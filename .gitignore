@@ -1,3 +1,13 @@
+cellspecs.sfn
+*.pickle
+*.hdf5
+*.csv
+*~
+mesh/*obj
+networks
+simulations/
+x86_64/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
