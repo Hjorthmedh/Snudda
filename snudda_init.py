@@ -125,12 +125,12 @@ class SnuddaInit(object):
                       parameterFile=None,
                       channelParamDictionary=None):
 
-    if(connectionType == "GapJunction"):
-      assert f1 is None and softMax is None and mu2 is None and a3 is None\
-        and f1_other is None and softMax_other is None and mu2_other is None \
-        and a3_other is None, \
-        "addNeuronTarget: " + str(neuronName) \
-        + ", pruning not currently available for gap junctions"
+    #if(connectionType == "GapJunction"):
+    #  assert f1 is None and softMax is None and mu2 is None and a3 is None\
+    #    and f1_other is None and softMax_other is None and mu2_other is None \
+    #    and a3_other is None, \
+    #    "addNeuronTarget: " + str(neuronName) \
+    #    + ", pruning not currently available for gap junctions"
 
     if(parameterFile is not None):
       if(channelParamDictionary is None):
@@ -644,7 +644,7 @@ class SnuddaInit(object):
                            targetName="FSN",
                            connectionType="GapJunction",
                            distPruning=None,
-                           f1=None, softMax=None, mu2=None, a3=None,
+                           f1=None, softMax=10, mu2=2, a3=0.9,
                            conductance=FSgGapJunction,
                            channelParamDictionary=None)
 

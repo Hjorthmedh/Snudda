@@ -821,6 +821,11 @@ class SnuddaAnalyse(object):
 
     if(sideLen is None):
       sideLen = self.sideLen
+
+    if(preType not in self.populations or postType not in self.populations):
+      print("Missing " + preType + " or " + postType + " in network, " \
+            + "skipping plot with their connectivity")
+      return
     
     print("Plotting connection probability " + preType + " to " + postType \
           + " (" + str(connectionType) + ")")
@@ -1341,7 +1346,7 @@ class SnuddaAnalyse(object):
       
       if(self.debug):
         print(str(xi+1) + "/" + str(len(preID)) + " " + str(tB-tA) + "s")
-      
+
     Pcon = np.divide(countCon,countAll)
 
     print("Requested: " + str(nPoints) + " calculated " + str(sum(countAll)))
