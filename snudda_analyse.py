@@ -2410,7 +2410,7 @@ class SnuddaAnalyse(object):
     plt.pause(0.001)
 
 
-    figName = "figures/Nearest-presynaptic-slice-neighbour-to-" \
+    figName = "Nearest-presynaptic-slice-neighbour-to-" \
       + str(postType) + "-from-" + str(preType) + "-ID-" \
       +str(self.network["SlurmID"]) + nameStr + ".pdf"
 

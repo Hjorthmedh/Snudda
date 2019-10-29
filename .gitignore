@@ -12,6 +12,8 @@ input.txt
 delme
 cellspec.res5
 
+.ipython
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
