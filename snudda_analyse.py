@@ -35,6 +35,7 @@ class SnuddaAnalyse(object):
 
     self.debug = False
 
+
     print("Assuming volume type: " + str(volumeType) \
           + "[cube or full]")
     
@@ -53,7 +54,12 @@ class SnuddaAnalyse(object):
     
     if(hdf5File is None or hdf5File == "last"):
       hdf5File = self.findLatestFile()
-    
+
+    self.figDir = os.path.dirname(hdf5File) + "/figs"
+    if(not os.path.exists(self.figDir)):
+      os.makedirs(self.figDir)
+
+      
     # First load all data but synapses
     self.networkLoad = SnuddaLoad(hdf5File,loadSynapses=False)
     self.network = self.networkLoad.data
@@ -589,13 +595,10 @@ class SnuddaAnalyse(object):
 
   def saveFigure(self, plt, figName, figType="pdf"):
 
-    SlurmIDStr = str(self.network["SlurmID"])
-    figPath = "figures/" + SlurmIDStr
-
-    if(not os.path.isdir(figPath)):
-      os.mkdir(figPath)
+    if(not os.path.isdir(self.figDir)):
+      os.mkdir(self.figDir)
     
-    fullFigName = figPath + "/" + figName + "-ID-" + SlurmIDStr + "." + figType
+    fullFigName = self.figDir + "/" + figName + "." + figType
 
     plt.pause(0.001)
     plt.savefig(fullFigName)
@@ -2397,7 +2400,7 @@ class SnuddaAnalyse(object):
 
     # Data from Sabatini 2016
     if(preType == "LTS" and (postType == "dSPN" or postType == "iSPN")):
-      SabatiniLTS = np.genfromtxt("../DATA/LTS-nearest-neighbour-points-Sabatini2016.csv", delimiter = ",")
+      SabatiniLTS = np.genfromtxt("DATA/LTS-nearest-neighbour-points-Sabatini2016.csv", delimiter = ",")
       LTSpoints = SabatiniLTS[:,1] * 1e3 # Get in micrometer
       plt.hist(LTSpoints,color='r',histtype="step")
       
@@ -2407,12 +2410,11 @@ class SnuddaAnalyse(object):
     plt.pause(0.001)
 
 
-    figName = "Nearest-presynaptic-slice-neighbour-to-" \
+    figName = "figures/Nearest-presynaptic-slice-neighbour-to-" \
       + str(postType) + "-from-" + str(preType) + "-ID-" \
       +str(self.network["SlurmID"]) + nameStr + ".pdf"
 
-    plt.savefig(figName)
-    print("Wrote " + figName)
+    self.saveFigure(plt,figName)
 
     if(self.closePlots):
       time.sleep(1)
@@ -2591,6 +2593,7 @@ if __name__ == "__main__":
   # 3/21 LTS->MS, Basal Ganglia book --- distance??
   # Ibanez-Sandoval, ..., Tepper  2011 3/21 -- if patching around visual axon
   # but 2/60 when patching blind
+  # !!! Use the focused 3/21 statistics for validation!! --- please :)
   na.plotConnectionProbability("LTS","dSPN", \
                                        dist3D=dist3D,
                                        expMaxDist=[250e-6],
@@ -2717,19 +2720,33 @@ if __name__ == "__main__":
 
 
     # Do we have ChINs?
-    # ChIN data, Johanna had ref.
+    # ChIN data, Johanna had ref. ????
+    # Janickova
 
     if(True):
+      # REF???!?!?!?!
+      #na.plotConnectionProbability("ChIN","iSPN", \
+      #                                     dist3D=dist3D,
+      #                                     expMaxDist=[200e-6],
+      #                                     expData=[62/89.0],
+      #                                     expDataDetailed=[(62,89)])
+      #na.plotConnectionProbability("ChIN","dSPN", \
+      #                                     dist3D=dist3D,
+      #                                     expMaxDist=[200e-6],
+      #                                     expData=[62/89.0],
+      #                                     expDataDetailed=[(62,89)])
+
+      # Derived from Janickova H, ..., Bernard V 2017
       na.plotConnectionProbability("ChIN","iSPN", \
                                            dist3D=dist3D,
                                            expMaxDist=[200e-6],
-                                           expData=[62/89.0],
-                                           expDataDetailed=[(62,89)])
+                                           expData=[0.05])
       na.plotConnectionProbability("ChIN","dSPN", \
                                            dist3D=dist3D,
                                            expMaxDist=[200e-6],
-                                           expData=[62/89.0],
-                                           expDataDetailed=[(62,89)])
+                                           expData=[0.05])
+
+
       na.plotConnectionProbability("ChIN","FSN", \
                                            dist3D=dist3D)
 

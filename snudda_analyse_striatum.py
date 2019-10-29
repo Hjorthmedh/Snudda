@@ -19,13 +19,15 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
     self.simDir = simDir
 
     hdf5File = simDir + "/network-pruned-synapses.hdf5"
-
+    
     if(not os.path.exists(hdf5File)):
       althdf5File = simDir + "/network-connect-voxel-pruned-synapse-file.hdf5"
 
       if(os.path.exists(althdf5File)):
         hfd5File = althdf5File
-      
+
+    print("Loading " + str(hdf5File))
+        
     super().__init__(hdf5File=hdf5File,loadCache=True)
 
 if __name__ == "__main__":

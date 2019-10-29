@@ -122,7 +122,7 @@ class Snudda(object):
 
     configFile = self.networkPath + "/network-config.json"
     positionFile = self.networkPath + "/network-neuron-positions.hdf5"
-    logFileName = self.networkPath + "/logFile-place-neurons.txt"
+    logFileName = self.networkPath + "/log/logFile-place-neurons.txt"
 
     self.setupLogFile(logFileName) # sets self.logFile
     self.setupParallel() # sets self.dView and self.lbView
@@ -162,16 +162,17 @@ class Snudda(object):
       volumeID = args.volumeID
     else:
       volumeID = None
-      
+
+    logDir = self.networkPath + "/log"
+    
     configFile = self.networkPath + "/network-config.json"
     positionFile = self.networkPath + "/network-neuron-positions.hdf5"
-    logFileName = self.networkPath + "/logFile-touch-detection.txt"
+    logFileName = self.networkPath + "/log/logFile-touch-detection.txt"
     saveFile = self.networkPath + "/voxels/network-putative-synapses.hdf5"
 
+    
     voxelDir = self.networkPath + "/voxels"
-    if not os.path.exists(voxelDir):
-      os.makedirs(voxelDir)
-
+    self.makeDirIfNeeded(voxelDir)
     
     self.setupLogFile(logFileName) # sets self.logFile
     self.setupParallel() # sets self.dView and self.lbView
@@ -222,9 +223,9 @@ class Snudda(object):
 
     from snudda_prune import SnuddaPrune
 
-    logFileName = self.networkPath + "/logFile-synapse-pruning.txt"
+    logFileName = self.networkPath + "/log/logFile-synapse-pruning.txt"
 
-    workLog = self.networkPath + "/network-putative-synapses-worklog.hdf5" 
+    workLog = self.networkPath + "/log/network-detect-worklog.hdf5" 
     
     self.setupLogFile(logFileName) # sets self.logFile
     self.setupParallel() # sets self.dView and self.lbView
@@ -263,7 +264,7 @@ class Snudda(object):
     from snudda_input import SnuddaInput
     
     print("Setting up inputs, assuming input.json exists")
-    logFileName = self.networkPath + "/logFile-setup-input.log"
+    logFileName = self.networkPath + "/log/logFile-setup-input.log"
     self.setupLogFile(logFileName) # sets self.logFile
     self.setupParallel() # sets self.dView and self.lbView
     
@@ -416,8 +417,7 @@ class Snudda(object):
   def setupLogFile(self, logFileName):
     dataDir = os.path.dirname(logFileName)
     
-    if(not os.path.isdir(dataDir)):
-      os.mkdir(dataDir)
+    self.makeDirIfNeeded(dataDir)
       
     try:
       self.logFile = open(logFileName,'w')

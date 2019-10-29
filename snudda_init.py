@@ -469,17 +469,15 @@ class SnuddaInit(object):
                            structMesh="mesh/Striatum-mesh.obj",
                            meshBinWidth=1e-4)
 
-    FSdir   = "cellspecs/fs"
-    MSD1dir = "cellspecs/dspn"
-    MSD2dir = "cellspecs/ispn"
-    ChINdir = "cellspecs/chin"
-    LTSdir  = "cellspecs/lts"
+    csDir = "cellspecs"
+    #csDir = "cellspecs.res5"
+    
+    FSdir   = csDir + "/fs"
+    MSD1dir = csDir + "/dspn"
+    MSD2dir = csDir + "/ispn"
+    ChINdir = csDir + "/chin"
+    LTSdir  = csDir + "/lts"
 
-    #FSdir   = "cellspecs.sfn/fs"
-    #MSD1dir = "cellspecs.sfn/dspn"
-    #MSD2dir = "cellspecs.sfn/ispn"
-    #ChINdir = "cellspecs.sfn/chin"
-    #LTSdir  = "cellspecs.sfn/lts"
     
     self.regSize = 5
 

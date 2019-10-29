@@ -7,6 +7,10 @@ mesh/*obj
 networks
 simulations/
 x86_64/
+figures/
+input.txt
+delme
+cellspec.res5
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

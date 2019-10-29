@@ -199,10 +199,14 @@ class SnuddaDetect(object):
       
       self.setupParallel(dView=dView)
 
-      if(self.workHistoryFile is None):
-        self.workHistoryFile = self.saveFile.replace(".hdf5","-worklog.hdf5")
-        self.workHistoryFile = self.workHistoryFile.replace("/voxels/","/")
-      
+      if(self.workHistoryFile is None):        
+        workDir = os.path.dirname(self.saveFile)
+        workDir = workDir.replace("/voxels","/")
+        logDir = workDir + "/log/"
+        #self.workHistoryFile = self.saveFile.replace(".hdf5","-worklog.hdf5")
+        #self.workHistoryFile = self.workHistoryFile.replace("/voxels/","/")
+        self.workHistoryFile = logDir + "network-detect-worklog.hdf5"
+        
         #workHistoryFile = re.sub("/voxels-\d+/","/",workHistoryFile)
       
         if(self.workHistoryFile == self.saveFile):

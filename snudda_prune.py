@@ -72,7 +72,9 @@ class SnuddaPrune(object):
     
     startTime = timeit.default_timer()
     self.workHistoryFile = workHistoryFile
-
+    self.basePath = os.path.dirname(self.workHistoryFile)+"/"
+    self.basePath = self.basePath.replace("/log/","/")
+    
     self.logFile = logFile
     self.logFileName = logFileName
     self.verbose = verbose
@@ -234,7 +236,8 @@ class SnuddaPrune(object):
         self.writeLog("No output file created, no synapses exist?")
         self.writeLog("Creating symbolic link to MERGE file instead")
 
-        fDest = os.path.dirname(self.workHistoryFile) + "/network-pruned-synapses.hdf5"
+        fDest = os.path.dirname(self.workHistoryFile).replace("/log/","/") \
+                                + "/network-pruned-synapses.hdf5"
         fSrc = os.path.basename(fName)
         
         print(str(fDest) + "->" + str(fSrc))
@@ -292,9 +295,7 @@ class SnuddaPrune(object):
       "Need to call openWorkHistoryFile before setScratchPath"
     
     if(scratchPath is None):
-      basePath = os.path.dirname(self.workHistoryFile)
-      #self.scratchPath = basePath + "/voxels-" + str(self.SlurmID) + "/"
-      self.scratchPath = basePath + "/temp/"
+      self.scratchPath = self.basePath + "/temp/"
 
       if not os.path.exists(self.scratchPath):
         os.makedirs(self.scratchPath)
@@ -331,7 +332,7 @@ class SnuddaPrune(object):
     except:
       print("Out file already closed?")
 
-    self.cleanUpMergeFiles()
+    # self.cleanUpMergeFiles()
     
   ############################################################################
 
@@ -423,14 +424,8 @@ class SnuddaPrune(object):
 
     if(verbose):
       self.writeLog("Reading hypervoxel " + str(hyperVoxelID))
-
-    basePath = os.path.dirname(self.workHistoryFile)
       
-    #hFileName = basePath + "/voxels-" + str(self.SlurmID) \
-    #            + "/network-connect-synapse-voxel-file-"  \
-    #            + str(self.SlurmID) + "-" + str(hyperVoxelID) + ".hdf5"
-
-    hFileName = basePath + "/voxels/network-putative-synapse-" \
+    hFileName = self.basePath + "/voxels/network-putative-synapse-" \
                 + str(hyperVoxelID) + ".hdf5"
 
     
@@ -494,10 +489,7 @@ class SnuddaPrune(object):
 
   def getConMatCacheFileName(self):
 
-    basePath = os.path.dirname(self.workHistoryFile)
-    #cacheFile = basePath +  "/voxels-" + str(self.SlurmID) \
-    #            + "/connection-matrix-cache.pickle"
-    cacheFile = basePath + "/connection-matrix-cache.pickle"
+    cacheFile = self.basePath + "/connection-matrix-cache.pickle"
 
     return cacheFile
   
@@ -778,9 +770,7 @@ class SnuddaPrune(object):
       return
     
     if(outputFile is None):
-      basePath = os.path.dirname(self.workHistoryFile)      
-      outputFile = basePath \
-                   + "/network-pruned-synapses.hdf5"
+      outputFile = self.basePath + "/network-pruned-synapses.hdf5"
     
     self.writeLog("Writing to " + outputFile)
 
@@ -865,13 +855,7 @@ class SnuddaPrune(object):
   def mergeFileExists(self):
 
     # check if merge file exists
-    basePath = os.path.dirname(self.workHistoryFile)
-    
-    #mergeFileName = basePath + "/voxels-" + str(self.SlurmID) \
-    #                + "/network-connect-synapses-MERGED-" \
-    #                + str(self.SlurmID) + ".hdf5"
-
-    mergeFileName = basePath + "/network-putative-synapses-MERGED.hdf5"
+    mergeFileName = self.basePath + "/network-putative-synapses-MERGED.hdf5"
     
     mergeFileOK = False
 
@@ -936,11 +920,9 @@ class SnuddaPrune(object):
                      nGapJunctions = None,
                      deleteAfter=True):
     
-
-    basePath = os.path.dirname(self.workHistoryFile)
     
     if(outFileName is None):
-      outFileName = basePath + "/network-putative-synapses-MERGED.hdf5"
+      outFileName = self.basePath + "/network-putative-synapses-MERGED.hdf5"
 
     #  Make a list of all temporary files so we can remove them
     if(deleteAfter):
@@ -1470,8 +1452,7 @@ class SnuddaPrune(object):
     numSynapses = np.zeros((maxHyperID,),dtype=np.int)
     
     # Open all files for reading
-    basePath = os.path.dirname(self.workHistoryFile)
-    hFileNameMask = basePath + "/voxels/network-putative-synapses-%s.hdf5"
+    hFileNameMask = self.basePath + "/voxels/network-putative-synapses-%s.hdf5"
 
     maxAxonVoxelCtr = 0
     maxDendVoxelCtr = 0
@@ -2035,8 +2016,7 @@ class SnuddaPrune(object):
     fileMatIterator = dict([])
     
     # Next we need to open all the relevant files
-    basePath = os.path.dirname(self.workHistoryFile)
-    hFileNameMask = basePath + "/voxels/network-putative-synapses-%s.hdf5"
+    hFileNameMask = self.basePath + "/voxels/network-putative-synapses-%s.hdf5"
 
     maxAxonVoxelCtr = 0
     maxDendVoxelCtr = 0
@@ -2273,8 +2253,7 @@ class SnuddaPrune(object):
     numSynapses = np.zeros((maxHyperID,),dtype=np.int)
     
     # Open all files for reading
-    basePath = os.path.dirname(self.workHistoryFile)
-    hFileNameMask = basePath + "/voxels/network-putative-synapses-%s.hdf5"
+    hFileNameMask = self.basePath + "/voxels/network-putative-synapses-%s.hdf5"
 
     maxAxonVoxelCtr = 0
     maxDendVoxelCtr = 0
@@ -2464,8 +2443,7 @@ class SnuddaPrune(object):
     numSynapses = np.zeros((maxHyperID,),dtype=np.int)
     
     # Open all files for reading
-    basePath = os.path.dirname(self.workHistoryFile)
-    hFileNameMask = basePath + "/voxels/network-putative-synapses-%s.hdf5"
+    hFileNameMask = self.basePath + "/voxels/network-putative-synapses-%s.hdf5"
 
     maxAxonVoxelCtr = 0
     maxDendVoxelCtr = 0
