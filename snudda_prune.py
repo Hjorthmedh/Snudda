@@ -236,7 +236,7 @@ class SnuddaPrune(object):
         self.writeLog("No output file created, no synapses exist?")
         self.writeLog("Creating symbolic link to MERGE file instead")
 
-        fDest = os.path.dirname(self.workHistoryFile).replace("/log/","/") \
+        fDest=(os.path.dirname(self.workHistoryFile)+"/").replace("/log/","/")\
                                 + "/network-pruned-synapses.hdf5"
         fSrc = os.path.basename(fName)
         
@@ -2833,7 +2833,7 @@ class SnuddaPrune(object):
 
         # pKeep = float(softMax)/nKeep # OLD implementation
         softMax = float(softMax)
-        pKeep = 2*softMax*np.divide(1-np.exp(-nKeep/softMax),1+np.exp(-nKeep/softMax))
+        pKeep = 2*softMax*np.divide(1-np.exp(-nKeep/softMax),1+np.exp(-nKeep/softMax))/nKeep
         
         keepRowFlag[nextReadPos:readEndIdx] = \
           np.logical_and(pKeep > np.random.random(nPairSynapses),
