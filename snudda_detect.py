@@ -125,10 +125,10 @@ class SnuddaDetect(object):
     # Columns in hyperVoxelSynapses:
     # 0: sourceCellID, 1: destCellID, 2: voxelX, 3: voxelY, 4: voxelZ,
     # 5: hyperVoxelID, 6: channelModelID,
-    # 7: sourceAxonSomaDist (SI scaled 1e6, micrometers),
-    # 8: destDendSomaDist (SI scalled 1e6, micrometers)
+    # 7: sourceAxonSomaDist (not SI scaled 1e6, micrometers),
+    # 8: destDendSomaDist (not SI scalled 1e6, micrometers)
     # 9: destSegID, 10: destSegX (int 0 - 1000, SONATA wants float 0.0-1.0)
-    # 11: conductance (int,SI scaled 1e12, in pS)
+    # 11: conductance (int, not SI scaled 1e12, in pS)
     # 12: parameterID
     #
     # Note on parameterID:
