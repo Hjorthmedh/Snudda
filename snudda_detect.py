@@ -104,7 +104,9 @@ class SnuddaDetect(object):
     self.voxelOverflowCounter = 0
     
     self.nBins = hyperVoxelSize*np.ones((3,),dtype=int)
-
+    self.writeLog("Each hyper voxel has %d x %d x %d voxels" \
+                  % tuple(self.nBins))
+    
     # These are voxels that axons/dend occupy
     self.axonVoxels = None
     self.dendVoxels = None
@@ -1623,6 +1625,11 @@ class SnuddaDetect(object):
 
         # !!! OBS, as it is written now last MSN will define how all MSN are
         # connected, since we use type name.
+        #
+        #
+        # !!! Should we change behaviour so it uses the full name instead
+        # !!! of typeName (ie skip split)
+        
         typeName = name.split("_")[0]
         
         if(synapseTypeString == "GapJunction"): # Gap junction
