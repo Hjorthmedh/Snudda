@@ -15,16 +15,20 @@ from snudda_analyse import SnuddaAnalyse
 class SnuddaAnalyseStriatum(SnuddaAnalyse):
 
   def __init__(self,simDir):
-      
-    self.simDir = simDir
 
-    hdf5File = simDir + "/network-pruned-synapses.hdf5"
+    if(os.path.isfile(simDir)):
+      # We allow the user to also send in a hdf5 file as simDir...
+      hdf5File = simDir
+      self.simDir = os.path.basename(simDir)
+    else:
+      self.simDir = simDir
+      hdf5File = simDir + "/network-pruned-synapses.hdf5"
     
-    if(not os.path.exists(hdf5File)):
-      althdf5File = simDir + "/network-connect-voxel-pruned-synapse-file.hdf5"
+      if(not os.path.exists(hdf5File)):
+        althdf5File = simDir + "/network-connect-voxel-pruned-synapse-file.hdf5"
 
-      if(os.path.exists(althdf5File)):
-        hfd5File = althdf5File
+        if(os.path.exists(althdf5File)):
+          hfd5File = althdf5File
 
     print("Loading " + str(hdf5File))
         
@@ -41,6 +45,12 @@ if __name__ == "__main__":
 
   nas = SnuddaAnalyseStriatum(simDir)
 
+
+  #import pdb
+  #pdb.set_trace()
+  #
+  #nas.plotNeurons(0,showSynapses=True)
+  
   if(False):
     nas.plotNumSynapsesPerPair("FSN","dSPN")
     nas.plotNumSynapsesPerPair("FSN","iSPN")  
@@ -54,20 +64,7 @@ if __name__ == "__main__":
   plotLTS = True
 
   dist3D = False
-  # dist3D = True
-
-  if(True):
-    nas.plotConnectionProbability("FSN","FSN", \
-                                  dist3D=dist3D ,
-                                  connectionType="gapjunctions",
-                                  expMaxDist=[250e-6,250e-6],
-                                  expData=[2/6.0,3/7.0],
-                                  expDataDetailed=[(2,6),(3,7)],)
-
-    nas.plotNumSynapsesPerPair("FSN","FSN",connectionType="gapjunctions")
-   
-    nas.plotIncomingConnections(neuronType="FSN",preType="FSN",
-                                connectionType="gapjunctions")
+  #dist3D = True
 
    
   
@@ -194,7 +191,22 @@ if __name__ == "__main__":
     # --> 0.13*2500 = 325 ChIN inputs to MS
     nas.plotIncomingConnections(neuronType="ChIN",preType="dSPN")
     nas.plotIncomingConnections(neuronType="ChIN",preType="iSPN")  
-     
+
+  if(True):
+    nas.plotConnectionProbability("FSN","FSN", \
+                                  dist3D=dist3D ,
+                                  connectionType="gapjunctions",
+                                  expMaxDist=[250e-6,250e-6],
+                                  expData=[2/6.0,3/7.0],
+                                  expDataDetailed=[(2,6),(3,7)],)
+
+    nas.plotNumSynapsesPerPair("FSN","FSN",connectionType="gapjunctions")
+   
+    nas.plotIncomingConnections(neuronType="FSN",preType="FSN",
+                                connectionType="gapjunctions")
+
+
+    
       
   if(plotLTS):
 

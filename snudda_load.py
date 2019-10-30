@@ -518,9 +518,9 @@ if __name__ == "__main__":
     print("No argument given, using a test file")
     nl = SnuddaLoad("save/network-connect-voxel-pruned-synapse-file-413.hdf5")
 
-  syn = nl.findSynapses(22,5)
+  #syn = nl.findSynapses(22,5)
 
-  syn2 = nl.findSynapses(postID=5) 
+  #syn2 = nl.findSynapses(postID=5) 
     
   import pdb
   pdb.set_trace()

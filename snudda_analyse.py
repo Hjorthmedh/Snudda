@@ -54,7 +54,7 @@ class SnuddaAnalyse(object):
     
     if(hdf5File is None or hdf5File == "last"):
       hdf5File = self.findLatestFile()
-
+      
     self.figDir = os.path.dirname(hdf5File) + "/figs"
     if(not os.path.exists(self.figDir)):
       os.makedirs(self.figDir)
@@ -63,7 +63,9 @@ class SnuddaAnalyse(object):
     # First load all data but synapses
     self.networkLoad = SnuddaLoad(hdf5File,loadSynapses=False)
     self.network = self.networkLoad.data
-    self.config = json.loads(self.network["config"])
+    
+    if("config" in self.network):
+      self.config = json.loads(self.network["config"])
     self.sideLen = sideLen
     
     self.lowMemory = lowMemory
@@ -1356,7 +1358,10 @@ class SnuddaAnalyse(object):
 
     if(not dist3D):
       print("Rejected (too large z-depth): " + str(countRejected))
-    
+
+    #import pdb
+    #pdb.set_trace()
+      
     return (dist,Pcon,countCon,countAll)
 
   ############################################################################
