@@ -1318,6 +1318,13 @@ class SnuddaAnalyse(object):
         pdb.set_trace()
         
       for y in poID: #postID:
+
+        if(x == y):
+          # Do not count self connections in statistics!!
+          # This can lead to what looks like an artificial drop in
+          # connectivity proximally
+          continue
+        
         if(dist3D):
           d = np.sqrt(np.sum((self.positions[x,:]-self.positions[y,:]) ** 2))
         else:
