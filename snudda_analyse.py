@@ -1415,6 +1415,10 @@ class SnuddaAnalyse(object):
         pdb.set_trace()
         
       for y in poID: #postID:
+
+        if(x == y):
+          # Dont include self-self
+          continue
         
         if(dist3D):
           d = np.sqrt(np.sum((self.positions[x,:]-self.positions[y,:]) ** 2))

@@ -441,7 +441,7 @@ class SnuddaInit(object):
     if(nNeurons <= 1e6): #1e6
       print("Using cube for striatum")
       # 1.73 million neurons, volume of allen striatal mesh is 21.5mm3
-      striatumVolume = 1e-9*(nNeurons)/80.5e3 
+      striatumVolume = 1e-9*(nNeurons)/80.5e3
       striatumSideLen = striatumVolume ** (1./3)
       striatumCentre = np.array([3540e-6,4645e-6,5081e-6])
 
@@ -606,7 +606,7 @@ class SnuddaInit(object):
                          targetName="dSPN",
                          connectionType="GABA",
                          distPruning=FSDistDepPruning,
-                         f1=1, softMax=8, mu2=2, a3=None, # mu2 was 2
+                         f1=1, softMax=8, mu2=2, a3=0.96, # mu2 was 2
                          conductance=FSgGABA,
                          parameterFile=pfFSdSPN,
                          modFile="tmGabaA",
@@ -617,7 +617,7 @@ class SnuddaInit(object):
                          targetName="iSPN",
                          connectionType="GABA",
                          distPruning=FSDistDepPruning,
-                         f1=1, softMax=8, mu2=2, a3=None, # mu2 was 2
+                         f1=1, softMax=8, mu2=2, a3=0.78, # mu2 was 2
                          conductance=FSgGABA,
                          parameterFile=pfFSiSPN,
                          modFile="tmGabaA",
@@ -642,7 +642,7 @@ class SnuddaInit(object):
                            targetName="FSN",
                            connectionType="GapJunction",
                            distPruning=None,
-                           f1=None, softMax=10, mu2=2, a3=0.9,
+                           f1=None, softMax=10, mu2=2, a3=0.7,
                            conductance=FSgGapJunction,
                            channelParamDictionary=None)
 
@@ -655,7 +655,7 @@ class SnuddaInit(object):
 
     # 3e-6 voxel method
     MSP11 = 0.17
-    MSP12 = 0.085 #0.1 # 0.14 then 0.16 old
+    MSP12 = 0.072 # 0.085 #0.1 # 0.14 then 0.16 old
 
     # 23pA * 50 receptors = 1.15e-9 -- Taverna 2008, fig3
     # std ~ +/- 8 receptors
@@ -810,7 +810,7 @@ class SnuddaInit(object):
                          targetName="dSPN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=1.0, softMax=20, mu2=15,a3=None,
+                         f1=1.0, softMax=20, mu2=15,a3=0.8,
                          conductance=ChINgGABA,
                          parameterFile=pfChINdSPN,
                          modFile="tmGabaA",
@@ -822,7 +822,7 @@ class SnuddaInit(object):
                          targetName="iSPN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=1.0, softMax=20, mu2=10,a3=None,
+                         f1=1.0, softMax=20, mu2=10,a3=0.8,
                          conductance=ChINgGABA,
                          parameterFile=pfChINiSPN,
                          modFile="tmGabaA",
