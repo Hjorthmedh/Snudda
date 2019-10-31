@@ -30,10 +30,10 @@
 #   As a bonus, it is much faster than regular ethernet connections. 
 #..
 
-JOBDIR=TegnerRun.${SLURM_JOBID}
+JOBDIR=networks/TegnerRun.${SLURM_JOBID}
 #SIMSIZE=120000
 #SIMSIZE=2174
-SIMSIZE=20000
+SIMSIZE=100000
 #SIMSIZE=1760000
 
 if [ $SLURM_PROCID -gt 0 ]; then
