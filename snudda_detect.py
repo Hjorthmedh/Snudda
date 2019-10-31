@@ -187,6 +187,8 @@ class SnuddaDetect(object):
     self.prototypeNeurons = dict([])
 
     self.axonCumDensityCache = dict([])
+
+    self.deleteOldMerge()
     
     # Rather than load all neuron morphologies, we only load prototypes
     self.readPrototypes(configFile=configFile,
@@ -1702,6 +1704,28 @@ class SnuddaDetect(object):
 
     self.writeLog("Position file read.")
     del posInfo
+
+  ############################################################################
+
+  # If the detect is rerun we need to make sure there are not old MERGE
+  # files left that might remember old run accidentally
+  
+  def deleteOldMerge(self):
+
+    if(self.role == "master"):
+
+      workDir = os.path.dirname(self.saveFile)
+      workDir = (workDir + "/").replace("/voxels/","/")
+
+      delFiles =  [workDir + "network-putative-synapses-MERGED.hdf5",
+                   workDir + "network-putative-synapses-MERGED.hdf5-cache",
+                   workDir + "network-pruned-synapses.hdf5",
+                   workDir + "network-pruned-synapses.hdf5-cache"]
+
+      for f in delFiles:
+        if os.path.exists(f):
+          self.writeLog("Removing old files " + str(f))
+          os.remove(f)
     
   ############################################################################
 
