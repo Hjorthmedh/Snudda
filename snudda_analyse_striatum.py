@@ -217,13 +217,15 @@ if __name__ == "__main__":
                                   dist3D=dist3D,
                                   expMaxDist=[250e-6],
                                   expData=[2/60.0],
-                                  expDataDetailed=[(2,60)])
+                                  expDataDetailed=[(2,60)],
+                                  xMax=1500)
 
     nas.plotConnectionProbability("LTS","iSPN", \
                                   dist3D=dist3D,
                                   expMaxDist=[250e-6],
                                   expData=[2/60.0],
-                                  expDataDetailed=[(2,60)])
+                                  expDataDetailed=[(2,60)],
+                                  xMax=1500)
 
   
     # Silberberg et al 2013, 2/12 FS-> LTS connected --- distance??
@@ -235,10 +237,17 @@ if __name__ == "__main__":
     
     nas.plotConnectionProbability("ChIN","LTS", \
                                   dist3D=dist3D)
+
+    # Janicova 2015?? --- distance??!
     nas.plotConnectionProbability("ChIN","iSPN", \
-                                  dist3D=dist3D)
+                                  dist3D=dist3D,
+                                  expMaxDist=[250e-6],
+                                  expData=[0.05])
+    
     nas.plotConnectionProbability("ChIN","dSPN", \
-                                  dist3D=dist3D)
+                                  dist3D=dist3D,
+                                  expMaxDist=[250e-6],
+                                  expData=[0.05])
 
 
     

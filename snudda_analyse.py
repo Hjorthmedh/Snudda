@@ -725,7 +725,7 @@ class SnuddaAnalyse(object):
   def plotConnectionProbabilityParallel(self,
                                         preType=None,
                                         postType=None,
-                                        nBins=60,dist3D=True):
+                                        nBins=86,dist3D=True):
     
     assert preType is not None
     assert postType is not None
@@ -809,7 +809,7 @@ class SnuddaAnalyse(object):
   def plotConnectionProbability(self,
                                 preType=None,
                                 postType=None,
-                                nBins=60,
+                                nBins=86,
                                 nameStr="",
                                 sideLen=None,
                                 expMaxDist=[],
@@ -861,7 +861,10 @@ class SnuddaAnalyse(object):
       expData = []
       for x in expDataDetailed:
         expData.append(x[0]/float(x[1]))
-    
+
+    if(len(expDataDetailed) == 0 and len(expData) > 0):
+      expDataDetailed = [None for x in expData]
+        
     (dist,Pcon,countCon,countAll) = \
       self.connectionProbability(preID,postID,nBins,dist3D=dist3D,
                                  connectionType=connectionType)
@@ -873,7 +876,7 @@ class SnuddaAnalyse(object):
     #fig = plt.figure()
     fig,ax = plt.subplots(1)
     import matplotlib
-    matplotlib.rcParams.update({'font.size': 22})
+    matplotlib.rcParams.update({'font.size': 24})
       
 
     pltCtr = 0
@@ -932,7 +935,14 @@ class SnuddaAnalyse(object):
         
       if(Pexp is not None):
         plt.plot([0,dLimit*1e6],[Pexp, Pexp],
-                 color=(0.8,0.3*pltCtr,0.3*pltCtr),linewidth=5)
+                 color=(0.8,0.3*pltCtr,0.3*pltCtr),linewidth=2)
+
+        # Add a star also
+        plt.plot(dLimit*1e6/2,Pexp,
+                 color=(0.8,0.3*pltCtr,0.3*pltCtr),
+                 marker="D",
+                 markersize=10)
+        
         pltCtr += 1
         plt.ion()
         plt.draw()
@@ -959,10 +969,10 @@ class SnuddaAnalyse(object):
     plt.step(dist*1e6,Pcon,color='black',linewidth=2,where="post")
     #plt.plot(dist*1e6,Pcon,color='black',linewidth=2)    
 
-    plt.xticks(fontsize=12, rotation=0)
-    plt.yticks(fontsize=12, rotation=0)
+    plt.xticks(fontsize=14, rotation=0)
+    plt.yticks(fontsize=14, rotation=0)
     
-    labelSize = 14
+    labelSize = 16
     
     #if(dist3D):
     #  plt.xlabel("Distance ($\mu$m)",fontsize=labelSize)
@@ -981,6 +991,7 @@ class SnuddaAnalyse(object):
                         * np.sqrt((ns * (n - ns) / n + (z ** 2) / 4)) \
                         for (ns,n) in zip(countCon,countAllB)]).flatten()
 
+    # Use the last bin larger than xMax as the end
     dIdx = np.where(dist*1e6 > xMax)[0][0]
     
     pMin = pCentre - pHeight
@@ -1053,7 +1064,7 @@ class SnuddaAnalyse(object):
   def plotConnectionProbabilityChannels(self,
                                         preType=None,
                                         postType=None,
-                                        nBins=60,
+                                        nBins=86,
                                         nameStr="",
                                         sideLen=None, # buffer around edges if neg
                                         expMaxDist=[],
@@ -1255,7 +1266,7 @@ class SnuddaAnalyse(object):
     
   ############################################################################
 
-  def connectionProbabilityWrapper(self,preID,postID,nBins=60,dist3D=True):
+  def connectionProbabilityWrapper(self,preID,postID,nBins=86,dist3D=True):
 
     print("Worker started, preID: " + str(preID))
     
@@ -1273,8 +1284,8 @@ class SnuddaAnalyse(object):
   def connectionProbability(self,
                             preID,
                             postID,
-                            nBins=60,
-                            nPoints=5000000.0,
+                            nBins=86,
+                            nPoints=10000000.0,
                             dist3D=True,
                             connectionType="synapses"):
 
@@ -1376,7 +1387,7 @@ class SnuddaAnalyse(object):
   def connectionProbabilityChannels(self,
                                     preID,
                                     postID,
-                                    nBins=60,
+                                    nBins=86,
                                     nPoints=5000000.0,
                                     dist3D=True):
 
