@@ -1513,6 +1513,7 @@ if __name__ == "__main__":
   logFile = os.path.dirname(args.networkFile) + "/network-simulation-log.txt"
 
   saveDir = os.path.dirname(args.networkFile) + "/simulation/"
+  
   if(not os.path.exists(saveDir)):
     print("Creating directory " + saveDir)
     os.makedirs(saveDir)

@@ -344,6 +344,8 @@ class Snudda(object):
     else:
       inputFile = self.networkPath + "/input-spikes.hdf5"
 
+    self.makeDirIfNeeded(self.networkPath + "/simulation")
+      
     print("Using input file " + inputFile)
 
     nWorkers = 12
