@@ -126,10 +126,12 @@ class NetworkPlotSpikeRaster(object):
     plt.pause(0.001)
     # plt.savefig('figures/Network-spike-raster-' + str(self.ID) + "-colour.pdf")
 
-    import pdb
-    pdb.set_trace()
-    
-    plt.savefig('figures/Network-spike-raster-' + str(self.ID) + "-colour.png",dpi=600)    
+    figPath = os.path.dirname(self.networkFile) + "/figs/"
+    if(not os.path.exists(figPath)):
+      os.makedirs(figPath)
+    figName = figPath + 'Network-spike-raster-' + str(self.ID) + "-colour.png"
+    print("Saving " + figName)
+    plt.savefig(figName,dpi=600)    
 
    ############################################################################
 
