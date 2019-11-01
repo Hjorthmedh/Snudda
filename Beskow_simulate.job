@@ -1,10 +1,10 @@
 #!/bin/bash -l
 #SBATCH -t 2:59:00
 #SBATCH --time-min=0:59:00
-#SBATCH -J Network_simulate
+#SBATCH -J snudda_simulate
 #SBATCH -A 2019-3-304
-#SBATCH -o save/output-Network_simulate.o%j
-#SBATCH -e save/error-Network_simulate.e%j
+#SBATCH -o save/output-snudda_simulate.o%j
+#SBATCH -e save/error-snudda_simulate.e%j
 #SBATCH --nodes=7-15
 #SBATCH --ntasks-per-node=32
 
@@ -12,7 +12,7 @@
 # push to the stack somewhere in the neuron code)
 let N_WORKERS="$SLURM_NNODES * 32"
 
-HOME=/cfs/klemming/nobackup/h/hjorth/StriatumNetwork/model
+HOME=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda
 
 module swap PrgEnv-cray PrgEnv-intel/6.0.5
 #module swap PrgEnv-cray PrgEnv-gnu
@@ -50,11 +50,11 @@ NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 # or separate files
 # aprun -n 1 python3 Network_input.py 
 
-#aprun -n $N_WORKERS /cfs/klemming/nobackup/h/hjorth/StriatumNetwork/model/x86_64/special -mpi -python3 Network_simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE
-#aprun -n $N_WORKERS /cfs/klemming/nobackup/h/hjorth/StriatumNetwork/model/x86_64/special -mpi -python Network_simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE
+#aprun -n $N_WORKERS /cfs/klemming/nobackup/h/hjorth/StriatumNetwork/model/x86_64/special -mpi -python3 snudda_simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE
+#aprun -n $N_WORKERS /cfs/klemming/nobackup/h/hjorth/StriatumNetwork/model/x86_64/special -mpi -python snudda_simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE
 
-srun -n $N_WORKERS /cfs/klemming/nobackup/h/hjorth/StriatumNetwork/model/x86_64/special -mpi -python Network_simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ
+srun -n $N_WORKERS /cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/x86_64/special -mpi -python snudda_simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ
 
 
 # Original version, start neuron from python, does not work on beskow
-#aprun -n  $N_WORKERS /cfs/klemming/nobackup/h/hjorth/ChINopt/model/x86_64/special -mpi -python Network_simulate.py /cfs/klemming/nobackup/h/hjorth/ChINopt/model/save/save/network-connect-synapse-file-1749867.pickle
+#aprun -n  $N_WORKERS /cfs/klemming/nobackup/h/hjorth/ChINopt/model/x86_64/special -mpi -python snudda_simulate.py /cfs/klemming/nobackup/h/hjorth/ChINopt/model/save/save/network-connect-synapse-file-1749867.pickle
