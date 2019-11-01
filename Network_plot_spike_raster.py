@@ -112,6 +112,7 @@ class NetworkPlotSpikeRaster(object):
                plotLookup[self.spikeID[tIdx]],
                color=[cols2[t] for t in tIdx],s=1)
     #ax.xlim(xmin=0)
+    ax.invert_yaxis()
     
     ax.set_xlabel('Time (s)')
     if(tickPos is not None):
