@@ -571,8 +571,9 @@ class SnuddaInit(object):
     # Silberberg G (2013) Target selectivity of feedforward inhibition
     # by striatal fast-spiking interneurons. J Neurosci
     # --> FS does not target ChIN
-    
-    FSDistDepPruning = "np.exp(-(0.3*d/60e-6)**2)"
+
+    #FSDistDepPruning = "np.exp(-(0.3*d/60e-6)**2)"
+    FSDistDepPruning = "np.exp(-(0.5*d/60e-6)**2)" # updated 2019-10-31
     # Temp disable dist dep pruning
     # FSDistDepPruning = None
     FSgGABA = [1.1e-9, 1.5e-9] # cond (1nS Gittis et al 2010), condStd
@@ -852,6 +853,8 @@ class SnuddaInit(object):
     LTSgGABA = 1e-9 # !!! FIXME
     LTSgNO = 1e-9
 
+    LTSDistDepPruning = "1-np.exp(-(0.4*d/60e-6)**2)" # updated 2019-10-31
+    
     # !!! Straub, Sabatini 2016
     # No LTS synapses within 70 micrometers of proximal MS dendrite
     # !!! ADD DISTANCE DEPENDENT PRUNING
@@ -863,7 +866,7 @@ class SnuddaInit(object):
     self.addNeuronTarget(neuronName="LTS",
                          targetName="dSPN",
                          connectionType="GABA",
-                         distPruning=None,
+                         distPruning=LTSDistDepPruning,
                          f1=1.0, softMax=10, mu2=2, a3=None,
                          conductance=LTSgGABA,
                          parameterFile=pfLTSdSPN,
@@ -875,7 +878,7 @@ class SnuddaInit(object):
     self.addNeuronTarget(neuronName="LTS",
                          targetName="iSPN",
                          connectionType="GABA",
-                         distPruning=None,
+                         distPruning=LTSDistDepPruning,
                          f1=1.0, softMax=10, mu2=2, a3=None,
                          conductance=LTSgGABA,
                          parameterFile=pfLTSiSPN,
