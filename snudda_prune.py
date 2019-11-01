@@ -1447,7 +1447,7 @@ class SnuddaPrune(object):
     assert np.max(self.histFile["network/neurons/neuronID"])+1 == nNeurons, \
       "bigMerge: There are neuron IDs missing"
     
-    maxHyperID = np.max(self.allHyperIDs)
+    maxHyperID = np.max(self.allHyperIDs)+1
     fileList = [None] * maxHyperID
     numSynapses = np.zeros((maxHyperID,),dtype=np.int)
     
@@ -2243,7 +2243,7 @@ class SnuddaPrune(object):
     assert np.max(self.histFile["network/neurons/neuronID"])+1 == nNeurons, \
       "bigMerge (lookup): There are neuron IDs missing"
 
-    maxHyperID = np.max(self.allHyperIDs)
+    maxHyperID = np.max(self.allHyperIDs)+1
     fileList = [None] * maxHyperID
     fileMatIterator = [None] * maxHyperID
     
@@ -2298,12 +2298,21 @@ class SnuddaPrune(object):
         print(settings)
         
         # fileList[hID] = h5py.File(hFileName,'r')
-        fileList[hID] = h5py.File(fid,drive=self.h5driver)
-        fileMatIterator[hID] \
-          = self.synapseSetIterator(h5matLookup=fileList[hID][h5SynLookup],
-                                   h5mat=fileList[hID][h5SynMat],
-                                   chunkSize=10000)
-                                       
+        try:
+          fileList[hID] = h5py.File(fid,drive=self.h5driver)
+          fileMatIterator[hID] \
+            = self.synapseSetIterator(h5matLookup=fileList[hID][h5SynLookup],
+                                      h5mat=fileList[hID][h5SynMat],
+                                      chunkSize=10000)
+        except:
+          import traceback
+          tstr = traceback.format_exc()
+          self.writeLog(tstr)
+
+          print("This should not happen...")
+          import pdb
+          pdb.set_trace()
+          
         numSynapses[hID] = nSyn
 
         # There should be at least the first row, otherwise nSyn = 0
@@ -2433,7 +2442,7 @@ class SnuddaPrune(object):
     assert np.max(self.histFile["network/neurons/neuronID"])+1 == nNeurons, \
       "bigMerge (lookup): There are neuron IDs missing"
 
-    maxHyperID = np.max(self.allHyperIDs)
+    maxHyperID = np.max(self.allHyperIDs)+1
     fileList = [None] * maxHyperID
     fileMat = [None] * maxHyperID # points to the synapse matrix in each file
     fileMatLookup = [None] * maxHyperID # points to the matrix lookup in file
