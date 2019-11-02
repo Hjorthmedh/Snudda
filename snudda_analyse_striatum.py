@@ -51,14 +51,8 @@ if __name__ == "__main__":
   #
   #nas.plotNeurons(0,showSynapses=True)
   
-  if(False):
-    nas.plotNumSynapsesPerPair("FSN","dSPN")
-    nas.plotNumSynapsesPerPair("FSN","iSPN")  
-    nas.plotNumSynapsesPerPair("dSPN","dSPN")
-    nas.plotNumSynapsesPerPair("dSPN","iSPN")    
-    nas.plotNumSynapsesPerPair("iSPN","dSPN")
-    nas.plotNumSynapsesPerPair("iSPN","iSPN")    
-  
+    
+    
   plotHenrike = True
   plotChIN = True
   plotLTS = True
@@ -66,7 +60,8 @@ if __name__ == "__main__":
   dist3D = False
   #dist3D = True
 
-   
+
+  nas.plotSynapseDist(densityFlag=True)
   
   if(True):
     nas.plotConnectionProbability("LTS","ChIN", \
@@ -218,14 +213,14 @@ if __name__ == "__main__":
                                   expMaxDist=[250e-6],
                                   expData=[2/60.0],
                                   expDataDetailed=[(2,60)],
-                                  xMax=1500)
+                                  xMax=500)
 
     nas.plotConnectionProbability("LTS","iSPN", \
                                   dist3D=dist3D,
                                   expMaxDist=[250e-6],
                                   expData=[2/60.0],
                                   expDataDetailed=[(2,60)],
-                                  xMax=1500)
+                                  xMax=500)
 
   
     # Silberberg et al 2013, 2/12 FS-> LTS connected --- distance??
@@ -251,7 +246,39 @@ if __name__ == "__main__":
 
 
     
-    nas.nearestPreNeighbourDistance("LTS","dSPN")
-    nas.nearestPreNeighbourDistance("LTS","iSPN")
+    #nas.nearestPreNeighbourDistance("LTS","dSPN")
+    #nas.nearestPreNeighbourDistance("LTS","iSPN")
 
+    
+  if(True):
+    nas.plotNumSynapsesPerPair("FSN","dSPN")
+    nas.plotNumSynapsesPerPair("FSN","iSPN")  
+    nas.plotNumSynapsesPerPair("dSPN","dSPN")
+    nas.plotNumSynapsesPerPair("dSPN","iSPN")    
+    nas.plotNumSynapsesPerPair("iSPN","dSPN")
+    nas.plotNumSynapsesPerPair("iSPN","iSPN")    
+
+    na.plotIncomingConnections(neuronType="dSPN",preType="iSPN")
+    na.plotIncomingConnections(neuronType="dSPN",preType="dSPN")
+    na.plotIncomingConnections(neuronType="dSPN",preType="FSN")            
+
+    na.plotIncomingConnections(neuronType="iSPN",preType="iSPN")
+    na.plotIncomingConnections(neuronType="iSPN",preType="dSPN")
+    na.plotIncomingConnections(neuronType="iSPN",preType="FSN")
+
+    na.plotNumSynapsesPerPair("FSN","LTS")  
+  
+    na.plotIncomingConnections(neuronType="dSPN",preType="LTS")
+    na.plotIncomingConnections(neuronType="iSPN",preType="LTS")  
+    na.plotIncomingConnections(neuronType="ChIN",preType="LTS")
+
+    na.plotIncomingConnections(neuronType="LTS",preType="ChIN")
+    na.plotIncomingConnections(neuronType="LTS",preType="FSN")  
+
+    # 2-5 ChIN should connect to each MS (approx)
+    na.plotIncomingConnections(neuronType="dSPN",preType="ChIN")
+    na.plotIncomingConnections(neuronType="iSPN",preType="ChIN")  
+  
+    na.plotIncomingConnections(neuronType="ChIN",preType="dSPN")
+    na.plotIncomingConnections(neuronType="ChIN",preType="iSPN")  
     
