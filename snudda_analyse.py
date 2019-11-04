@@ -1922,6 +1922,8 @@ class SnuddaAnalyse(object):
                                        binWidth=self.dendPositionEdges[1],
                                        sideLen=sideLen)
 
+
+    # self.dendPositionBin calculated by synapseDist(), done at time of init
     
     for pair in self.dendPositionBin:
 

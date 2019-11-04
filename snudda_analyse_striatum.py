@@ -8,7 +8,7 @@ import numpy as np
 import sys
 import os
 
-
+import matplotlib.pyplot as plt
 
 from snudda_analyse import SnuddaAnalyse
 
@@ -34,6 +34,72 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
         
     super().__init__(hdf5File=hdf5File,loadCache=True)
 
+  ############################################################################
+
+  # Validation. How well do the synapse location for dSPN and iSPN match
+  # the experimental data from Straub,..., Sabatini 2016
+  
+  def plotFSLTScumDist(self):
+
+    pairListList = [[("FSN","dSPN"),("LTS","dSPN")],
+                    [("FSN","iSPN"),("LTS","iSPN")]]
+    figureNameList = ["synapseCumulativeDistance-FSN-and-LTS-to-dSPN.png",
+                      "synapseCumulativeDistance-FSN-and-LTS-to-iSPN.png"]
+    figureColourList = [(6./255,31./255,85./255),
+                         (150./255,63./255,212./255)]
+    fillRange = [[0,100e-6],[50e-6,250e-6]]
+                 
+    
+    for pairList,figName in zip(pairListList,figureNameList):
+
+      plt.rcParams.update({'font.size': 16})      
+      fig = plt.figure()
+      ax = plt.subplot(111)
+      #fig.tight_layout()
+      fig.subplots_adjust(bottom=0.15,left=0.15)
+      
+      for pair,figCol,fillR in zip(pairList,figureColourList,fillRange):
+
+        pairID = tuple([self.allTypes.index(x) for x in pair])
+                
+        cumDist = np.cumsum(self.dendPositionBin[pairID])  \
+                    /np.sum(self.dendPositionBin[pairID])
+
+        # Dont plot the full range
+        endIdx = np.where(self.dendPositionEdges <= 400e-6)[0][-1]
+
+        ax.plot(self.dendPositionEdges[:endIdx]*1e6, cumDist[:endIdx],
+                color=figCol,label=pair[0],linewidth=3)
+
+        fillIdx = np.where(np.logical_and(fillR[0]
+                                          <= self.dendPositionEdges,
+                                          self.dendPositionEdges
+                                          <= fillR[1]))[0]
+        fillStart = fillIdx[0]
+        fillEnd = fillIdx[-1]
+        
+        # Add the area marking
+        ax.fill_between(self.dendPositionEdges[fillIdx]*1e6,
+                        np.zeros((len(fillIdx),)),
+                        cumDist[fillIdx],alpha=0.95,color=figCol,
+                        label=None)
+        
+        ax.set_xlabel('Distance from soma ($\mu$m)')
+        ax.set_ylabel('Cumulative distrib.')
+        ax.set_title("Synapse locations onto " + pair[1])
+        
+      ax.legend(loc="lower right")
+        
+      plt.ion()
+      plt.show()
+      plt.draw()
+      plt.pause(0.0001)
+
+      self.saveFigure(plt,figName)
+
+      
+  ############################################################################
+    
 if __name__ == "__main__":
 
   if(len(sys.argv) > 1):
@@ -45,9 +111,12 @@ if __name__ == "__main__":
 
   nas = SnuddaAnalyseStriatum(simDir)
 
+  nas.plotFSLTScumDist()
 
-  #import pdb
-  #pdb.set_trace()
+  
+
+  import pdb
+  pdb.set_trace()
   #
   #nas.plotNeurons(0,showSynapses=True)
   
@@ -60,6 +129,7 @@ if __name__ == "__main__":
   dist3D = False
   #dist3D = True
 
+  nas.plotSynapseCumDist()
 
   nas.plotSynapseDist(densityFlag=True)
   
