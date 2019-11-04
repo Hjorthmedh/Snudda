@@ -819,7 +819,8 @@ class SnuddaAnalyse(object):
                                 volumeID=None,
                                 xMax=250,
                                 yMax=None,
-                                connectionType="synapses"):
+                                connectionType="synapses",
+                                drawStep=False):
     
     assert preType is not None
     assert postType is not None
@@ -966,8 +967,11 @@ class SnuddaAnalyse(object):
 
 
     # Draw the curve itself
-    plt.step(dist*1e6,Pcon,color='black',linewidth=2,where="post")
-    #plt.plot(dist*1e6,Pcon,color='black',linewidth=2)    
+    if(drawStep):
+      plt.step(dist*1e6,Pcon,color='black',linewidth=2,where="post")
+    else:
+      dHalfStep = (dist[1]-dist[0])/2
+      plt.plot((dist+dHalfStep)*1e6 ,Pcon,color='black',linewidth=2)    
 
     plt.xticks(fontsize=14, rotation=0)
     plt.yticks(fontsize=14, rotation=0)
@@ -996,10 +1000,16 @@ class SnuddaAnalyse(object):
     
     pMin = pCentre - pHeight
     pMax = pCentre + pHeight
-    
-    plt.fill_between(dist[:dIdx]*1e6, pMin[:dIdx], pMax[:dIdx],
-                     color = 'grey', step="post",
-                     alpha = 0.4)
+
+    if(drawStep):
+      plt.fill_between(dist[:dIdx]*1e6, pMin[:dIdx], pMax[:dIdx],
+                       color = 'grey', step="post",
+                       alpha = 0.4)
+    else:
+      plt.fill_between((dist[:dIdx]+dHalfStep)*1e6, pMin[:dIdx], pMax[:dIdx],
+                       color = 'grey', step=None,
+                       alpha = 0.4)
+      
     
     plt.xlabel("Distance ($\mu$m)",fontsize=labelSize)            
     plt.ylabel("Connection probability (%)",fontsize=labelSize)

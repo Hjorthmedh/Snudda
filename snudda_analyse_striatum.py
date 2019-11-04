@@ -258,27 +258,27 @@ if __name__ == "__main__":
     nas.plotNumSynapsesPerPair("iSPN","dSPN")
     nas.plotNumSynapsesPerPair("iSPN","iSPN")    
 
-    na.plotIncomingConnections(neuronType="dSPN",preType="iSPN")
-    na.plotIncomingConnections(neuronType="dSPN",preType="dSPN")
-    na.plotIncomingConnections(neuronType="dSPN",preType="FSN")            
+    nas.plotIncomingConnections(neuronType="dSPN",preType="iSPN")
+    nas.plotIncomingConnections(neuronType="dSPN",preType="dSPN")
+    nas.plotIncomingConnections(neuronType="dSPN",preType="FSN")            
 
-    na.plotIncomingConnections(neuronType="iSPN",preType="iSPN")
-    na.plotIncomingConnections(neuronType="iSPN",preType="dSPN")
-    na.plotIncomingConnections(neuronType="iSPN",preType="FSN")
+    nas.plotIncomingConnections(neuronType="iSPN",preType="iSPN")
+    nas.plotIncomingConnections(neuronType="iSPN",preType="dSPN")
+    nas.plotIncomingConnections(neuronType="iSPN",preType="FSN")
 
-    na.plotNumSynapsesPerPair("FSN","LTS")  
+    nas.plotNumSynapsesPerPair("FSN","LTS")  
   
-    na.plotIncomingConnections(neuronType="dSPN",preType="LTS")
-    na.plotIncomingConnections(neuronType="iSPN",preType="LTS")  
-    na.plotIncomingConnections(neuronType="ChIN",preType="LTS")
+    nas.plotIncomingConnections(neuronType="dSPN",preType="LTS")
+    nas.plotIncomingConnections(neuronType="iSPN",preType="LTS")  
+    nas.plotIncomingConnections(neuronType="ChIN",preType="LTS")
 
-    na.plotIncomingConnections(neuronType="LTS",preType="ChIN")
-    na.plotIncomingConnections(neuronType="LTS",preType="FSN")  
+    nas.plotIncomingConnections(neuronType="LTS",preType="ChIN")
+    nas.plotIncomingConnections(neuronType="LTS",preType="FSN")  
 
     # 2-5 ChIN should connect to each MS (approx)
-    na.plotIncomingConnections(neuronType="dSPN",preType="ChIN")
-    na.plotIncomingConnections(neuronType="iSPN",preType="ChIN")  
+    nas.plotIncomingConnections(neuronType="dSPN",preType="ChIN")
+    nas.plotIncomingConnections(neuronType="iSPN",preType="ChIN")  
   
-    na.plotIncomingConnections(neuronType="ChIN",preType="dSPN")
-    na.plotIncomingConnections(neuronType="ChIN",preType="iSPN")  
+    nas.plotIncomingConnections(neuronType="ChIN",preType="dSPN")
+    nas.plotIncomingConnections(neuronType="ChIN",preType="iSPN")  
     
