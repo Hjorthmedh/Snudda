@@ -111,12 +111,15 @@ if __name__ == "__main__":
 
   nas = SnuddaAnalyseStriatum(simDir)
 
+
+
+  
   nas.plotFSLTScumDist()
 
   
 
-  import pdb
-  pdb.set_trace()
+  #import pdb
+  #pdb.set_trace()
   #
   #nas.plotNeurons(0,showSynapses=True)
   
@@ -158,7 +161,7 @@ if __name__ == "__main__":
 
   if(plotHenrike):
 
-    yMaxH = 0.5
+    yMaxH = None #0.5
 
     nas.plotConnectionProbability("dSPN","iSPN", \
                                   dist3D=dist3D, \
@@ -192,14 +195,14 @@ if __name__ == "__main__":
                                   expMaxDist=[100e-6, 150e-6, 250e-6],
                                   expData=[6/9.0, 21/54.0, 27/77.0],
                                   expDataDetailed=[(6,9),(21,54),(27,77)],
-                                  yMax=1.0)
+                                  yMax=None)
 
     nas.plotConnectionProbability("FSN","dSPN", \
                                   dist3D=dist3D, \
                                   expMaxDist=[100e-6, 150e-6, 250e-6],
                                   expData=[8/9.0, 29/48.0, 48/90.0],
                                   expDataDetailed=[(8,9),(29,48),(48,90)],
-                                  yMax=1.0)
+                                  yMax=None)
 
 
   if(plotChIN):
@@ -219,21 +222,24 @@ if __name__ == "__main__":
     # within radius of axonal arbour)
     # -->  3-7% connectivity probability??
      
-    nas.plotConnectionProbability("ChIN","iSPN", \
-                                  dist3D=dist3D,
-                                  expMaxDist=[200e-6],
-                                  expData=[62/89.0],
-                                  expDataDetailed=[(62,89)],
-                                  yMax=1.0)
-    nas.plotConnectionProbability("ChIN","dSPN", \
-                                  dist3D=dist3D,
-                                  expMaxDist=[200e-6],
-                                  expData=[62/89.0],
-                                  expDataDetailed=[(62,89)],
-                                  yMax=1.0)
+    #nas.plotConnectionProbability("ChIN","iSPN", \
+    #                              dist3D=dist3D,
+    #                              expMaxDist=[200e-6],
+    #                              expData=[62/89.0],
+    #                              expDataDetailed=[(62,89)],
+    #                              yMax=1.0)
+    # This is from a targeted experiment, when they looked at where axon were?
+    #
+    #nas.plotConnectionProbability("ChIN","dSPN", \
+    #                              dist3D=dist3D,
+    #                              expMaxDist=[200e-6],
+    #                              expData=[62/89.0],
+    #                              expDataDetailed=[(62,89)],
+    #                              yMax=1.0)
+    
     nas.plotConnectionProbability("ChIN","FSN", \
                                   dist3D=dist3D,
-                                  yMax=1.0)
+                                  yMax=None)
 
     # 2-5 ChIN should connect to each MS (approx) --- ref?
     nas.plotIncomingConnections(neuronType="dSPN",preType="ChIN")            

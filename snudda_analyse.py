@@ -31,10 +31,11 @@ class SnuddaAnalyse(object):
                sideLen=250e-6,
                volumeType="full",
                nMaxAnalyse=None,
+               showPlots=False,
                closePlots=True): # "cube" or "full"
 
     self.debug = False
-
+    self.showPlots = showPlots
 
     print("Assuming volume type: " + str(volumeType) \
           + "[cube or full]")
@@ -585,7 +586,9 @@ class SnuddaAnalyse(object):
       
       plt.ion()
       #plt.draw()
-      plt.show()
+
+      if(self.showPlots):
+        plt.show()
 
       plt.pause(0.001)       
       import pdb
@@ -696,9 +699,10 @@ class SnuddaAnalyse(object):
               
     plt.hist(existingCon,
              range(0,1+maxSynapses),
+             density=True,
              align="left")
     plt.xlabel("Number of " + connectionType)
-    plt.ylabel('Count')
+    plt.ylabel('Density')
     #plt.title(preType + " to " + postType \
     #          + "(M=" + str(maxSynapses) \
     #          + ",m=" + '%.1f' % meanSynapses \
@@ -711,7 +715,8 @@ class SnuddaAnalyse(object):
         
     plt.ion()
     plt.draw()
-    plt.show()
+    if(self.showPlots):
+      plt.show()
     
     plt.pause(0.001)
     figName = "Network-number-of-" + connectionType + "-from-" \
@@ -795,7 +800,9 @@ class SnuddaAnalyse(object):
 
     plt.ion()
     plt.draw()
-    plt.show()
+
+    if(self.showPlots):
+      plt.show()
 
     plt.pause(0.001)
     figName = 'Network-distance-dependent-connection-probability-' \
@@ -914,7 +921,7 @@ class SnuddaAnalyse(object):
         # Wilson score
         ns = expNum[0]
         n = expNum[1]
-        z = 1 
+        z = 1.96 # This gives us 95% confidence intervall
         barCentre = (ns + (z**2)/2) / (n + z *2)
         barHeight = z / (n + z**2) * np.sqrt((ns * (n - ns) / n + (z ** 2) / 4))
         
@@ -947,7 +954,9 @@ class SnuddaAnalyse(object):
         pltCtr += 1
         plt.ion()
         plt.draw()
-        plt.show()
+
+        if(self.showPlots):
+          plt.show()
         
         #rectExp = patches.Rectangle((0,0), dLimit*1e6, Pexp, \
         #                            linewidth=2,color='red',fill=False)
@@ -987,8 +996,10 @@ class SnuddaAnalyse(object):
     countAllB = countAll.copy()
     countAllB[countAllB == 0] = 1.0
     
+
+    # This gives us 95% confidence intervall
+    z = 1.96
     
-    z = 1
     pCentre = np.array([(ns + (z**2)/2) / (n + z *2) \
                         for (ns,n) in zip(countCon,countAllB)]).flatten()
     pHeight = np.array([z / (n + z**2) \
@@ -1016,8 +1027,8 @@ class SnuddaAnalyse(object):
 
         
     # Adjust axis if needed
-    #import pdb
-    #pdb.set_trace()
+    # import pdb
+    # pdb.set_trace()
 
     # Set plot limits
     #if(any(x is not None for x in expData)):
@@ -1048,7 +1059,10 @@ class SnuddaAnalyse(object):
     plt.tight_layout()
     plt.ion()
     plt.draw()
-    plt.show()
+
+    if(self.showPlots):
+      plt.show()
+      
     plt.pause(0.001)
 
     if(dist3D):
@@ -1259,7 +1273,10 @@ class SnuddaAnalyse(object):
     plt.tight_layout()
     plt.ion()
     plt.draw()
-    plt.show()
+
+    if(self.showPlots):
+      plt.show()
+      
     plt.pause(0.001)
 
     if(dist3D):
@@ -1588,15 +1605,17 @@ class SnuddaAnalyse(object):
       else:
         binSize=1
         
-      plt.hist(nCon,range(0,int(np.max(nCon)),binSize),align="left")
+      plt.hist(nCon,range(0,int(np.max(nCon)),binSize),align="left",density=True)
       
     plt.xlabel("Number of connected neighbours")
-    plt.ylabel("Count")
+    plt.ylabel("Density")
     plt.title(preType + " connecting to " + neuronType)
     plt.tight_layout()
     plt.ion()
     plt.draw()
-    plt.show()
+
+    if(self.showPlots):
+      plt.show()
 
     plt.pause(0.001)
     
@@ -1619,15 +1638,17 @@ class SnuddaAnalyse(object):
         binSize = 5
       else:
         binSize = 10
-      plt.hist(nSyn,range(0,int(np.max(nSyn)),binSize),align="left")
+      plt.hist(nSyn,range(0,int(np.max(nSyn)),binSize),align="left",density=True)
       
     plt.xlabel("Number of incoming " + connectionType)
-    plt.ylabel("Count")
+    plt.ylabel("Density")
     plt.title(preType + " " + connectionType + " on " + neuronType)
     plt.tight_layout()
     plt.ion()
     plt.draw()
-    plt.show()
+
+    if(self.showPlots):
+      plt.show()
 
     plt.pause(0.001)
     figName = "Network-" + connectionType + "-to-" + neuronType + "-from-" + preType
@@ -1709,7 +1730,9 @@ class SnuddaAnalyse(object):
 
     plt.ion()
     plt.draw()
-    plt.show()
+
+    if(self.showPlots):
+      plt.show()
 
     plt.pause(0.001)
 
@@ -1752,11 +1775,8 @@ class SnuddaAnalyse(object):
     isCorner[cornerID] = 1
    
     print("Calculating synapse distance histogram")
-    
-    import pdb
-    # pdb.set_trace()
-    
-    nBins = 50
+        
+    nBins = 200
     maxDist = 1000e-6
     binWidth = maxDist/nBins
     binScaling = 1e-6 / binWidth # To avoid a division
@@ -1885,7 +1905,10 @@ class SnuddaAnalyse(object):
         plt.tight_layout()
 
         plt.ion()
-        plt.show()
+
+        if(self.showPlots):
+          plt.show()
+          
         plt.draw()
         plt.pause(0.0001)
         figName = "SynapseCumulativeDistribution-" \
@@ -1936,7 +1959,9 @@ class SnuddaAnalyse(object):
       try:
         preType = self.allTypes[pair[0]]
         postType = self.allTypes[pair[1]]
-      
+        
+        plt.rcParams.update({'font.size': 16})      
+
         plt.figure()
         if(densityFlag):
 
@@ -1964,7 +1989,10 @@ class SnuddaAnalyse(object):
         plt.tight_layout()
 
         plt.ion()
-        plt.show()
+
+        if(self.showPlots):
+          plt.show()
+          
         plt.draw()
         plt.pause(0.0001)
 
@@ -2133,7 +2161,9 @@ class SnuddaAnalyse(object):
         
       plt.ion()
       plt.draw()
-      plt.show()
+
+      if(self.showPlots):
+        plt.show()
 
       figName = "VirtuaAxon-synapses-" + axonType + "-to-" \
                   + postNeuronType
@@ -2445,7 +2475,10 @@ class SnuddaAnalyse(object):
       
     plt.ion()
     plt.draw()
-    plt.show()
+
+    if(self.showPlots):
+      plt.show()
+      
     plt.pause(0.001)
 
 
@@ -2524,7 +2557,10 @@ class SnuddaAnalyse(object):
       
     plt.ion()
     plt.draw()
-    plt.show()
+
+    if(self.showPlots):
+      plt.show()
+      
     plt.pause(0.001)
 
     figName = "figures/Nearest-presynaptic-neighbour-to-" \
