@@ -39,7 +39,7 @@ nrnivmodl cellspecs/mechanisms
 #NETWORK_INFO_FILE=save/network-connect-synapse-file-2001927.hdf5
 #NETWORK_INFO_FILE=last
 NETWORK_DIR=TegnerRun.849262
-NETWORK_INFO_FILE=$NETWORK_DIR/network-connect-voxel-pruned-synapse-file.hdf5
+NETWORK_INFO_FILE=$NETWORK_DIR/network-pruned-synapses.hdf5
 
 NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 

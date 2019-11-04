@@ -29,7 +29,7 @@ export CRAY_ROOTFS=DSL
 # Synapse file
 #NETWORK_INFO_FILE=save/network-connect-synapse-file-2001927.hdf5
 #NETWORK_INFO_FILE=last
-NETWORK_INFO_FILE=BeskowMini2160/network-connect-voxel-pruned-synapse-file.hdf5
+NETWORK_INFO_FILE=BeskowMini2160/network-pruned-synapses.hdf5
 
 NETWORK_INPUT_FILE=BeskowMini2160/input-spikes.hdf5
 
