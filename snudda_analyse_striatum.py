@@ -8,7 +8,7 @@ import numpy as np
 import sys
 import os
 
-
+import matplotlib.pyplot as plt
 
 from snudda_analyse import SnuddaAnalyse
 
@@ -34,6 +34,72 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
         
     super().__init__(hdf5File=hdf5File,loadCache=True)
 
+  ############################################################################
+
+  # Validation. How well do the synapse location for dSPN and iSPN match
+  # the experimental data from Straub,..., Sabatini 2016
+  
+  def plotFSLTScumDist(self):
+
+    pairListList = [[("FSN","dSPN"),("LTS","dSPN")],
+                    [("FSN","iSPN"),("LTS","iSPN")]]
+    figureNameList = ["synapseCumulativeDistance-FSN-and-LTS-to-dSPN.png",
+                      "synapseCumulativeDistance-FSN-and-LTS-to-iSPN.png"]
+    figureColourList = [(6./255,31./255,85./255),
+                         (150./255,63./255,212./255)]
+    fillRange = [[0,100e-6],[50e-6,250e-6]]
+                 
+    
+    for pairList,figName in zip(pairListList,figureNameList):
+
+      plt.rcParams.update({'font.size': 16})      
+      fig = plt.figure()
+      ax = plt.subplot(111)
+      #fig.tight_layout()
+      fig.subplots_adjust(bottom=0.15,left=0.15)
+      
+      for pair,figCol,fillR in zip(pairList,figureColourList,fillRange):
+
+        pairID = tuple([self.allTypes.index(x) for x in pair])
+                
+        cumDist = np.cumsum(self.dendPositionBin[pairID])  \
+                    /np.sum(self.dendPositionBin[pairID])
+
+        # Dont plot the full range
+        endIdx = np.where(self.dendPositionEdges <= 400e-6)[0][-1]
+
+        ax.plot(self.dendPositionEdges[:endIdx]*1e6, cumDist[:endIdx],
+                color=figCol,label=pair[0],linewidth=3)
+
+        fillIdx = np.where(np.logical_and(fillR[0]
+                                          <= self.dendPositionEdges,
+                                          self.dendPositionEdges
+                                          <= fillR[1]))[0]
+        fillStart = fillIdx[0]
+        fillEnd = fillIdx[-1]
+        
+        # Add the area marking
+        ax.fill_between(self.dendPositionEdges[fillIdx]*1e6,
+                        np.zeros((len(fillIdx),)),
+                        cumDist[fillIdx],alpha=0.95,color=figCol,
+                        label=None)
+        
+        ax.set_xlabel('Distance from soma ($\mu$m)')
+        ax.set_ylabel('Cumulative distrib.')
+        ax.set_title("Synapse locations onto " + pair[1])
+        
+      ax.legend(loc="lower right")
+        
+      plt.ion()
+      plt.show()
+      plt.draw()
+      plt.pause(0.0001)
+
+      self.saveFigure(plt,figName)
+
+      
+  ############################################################################
+    
 if __name__ == "__main__":
 
   if(len(sys.argv) > 1):
@@ -45,6 +111,12 @@ if __name__ == "__main__":
 
   nas = SnuddaAnalyseStriatum(simDir)
 
+
+
+  
+  nas.plotFSLTScumDist()
+
+  
 
   #import pdb
   #pdb.set_trace()
@@ -60,6 +132,7 @@ if __name__ == "__main__":
   dist3D = False
   #dist3D = True
 
+  nas.plotSynapseCumDist()
 
   nas.plotSynapseDist(densityFlag=True)
   
@@ -88,7 +161,7 @@ if __name__ == "__main__":
 
   if(plotHenrike):
 
-    yMaxH = 0.5
+    yMaxH = None #0.5
 
     nas.plotConnectionProbability("dSPN","iSPN", \
                                   dist3D=dist3D, \
@@ -122,14 +195,14 @@ if __name__ == "__main__":
                                   expMaxDist=[100e-6, 150e-6, 250e-6],
                                   expData=[6/9.0, 21/54.0, 27/77.0],
                                   expDataDetailed=[(6,9),(21,54),(27,77)],
-                                  yMax=1.0)
+                                  yMax=None)
 
     nas.plotConnectionProbability("FSN","dSPN", \
                                   dist3D=dist3D, \
                                   expMaxDist=[100e-6, 150e-6, 250e-6],
                                   expData=[8/9.0, 29/48.0, 48/90.0],
                                   expDataDetailed=[(8,9),(29,48),(48,90)],
-                                  yMax=1.0)
+                                  yMax=None)
 
 
   if(plotChIN):
@@ -149,21 +222,24 @@ if __name__ == "__main__":
     # within radius of axonal arbour)
     # -->  3-7% connectivity probability??
      
-    nas.plotConnectionProbability("ChIN","iSPN", \
-                                  dist3D=dist3D,
-                                  expMaxDist=[200e-6],
-                                  expData=[62/89.0],
-                                  expDataDetailed=[(62,89)],
-                                  yMax=1.0)
-    nas.plotConnectionProbability("ChIN","dSPN", \
-                                  dist3D=dist3D,
-                                  expMaxDist=[200e-6],
-                                  expData=[62/89.0],
-                                  expDataDetailed=[(62,89)],
-                                  yMax=1.0)
+    #nas.plotConnectionProbability("ChIN","iSPN", \
+    #                              dist3D=dist3D,
+    #                              expMaxDist=[200e-6],
+    #                              expData=[62/89.0],
+    #                              expDataDetailed=[(62,89)],
+    #                              yMax=1.0)
+    # This is from a targeted experiment, when they looked at where axon were?
+    #
+    #nas.plotConnectionProbability("ChIN","dSPN", \
+    #                              dist3D=dist3D,
+    #                              expMaxDist=[200e-6],
+    #                              expData=[62/89.0],
+    #                              expDataDetailed=[(62,89)],
+    #                              yMax=1.0)
+    
     nas.plotConnectionProbability("ChIN","FSN", \
                                   dist3D=dist3D,
-                                  yMax=1.0)
+                                  yMax=None)
 
     # 2-5 ChIN should connect to each MS (approx) --- ref?
     nas.plotIncomingConnections(neuronType="dSPN",preType="ChIN")            
@@ -258,27 +334,27 @@ if __name__ == "__main__":
     nas.plotNumSynapsesPerPair("iSPN","dSPN")
     nas.plotNumSynapsesPerPair("iSPN","iSPN")    
 
-    na.plotIncomingConnections(neuronType="dSPN",preType="iSPN")
-    na.plotIncomingConnections(neuronType="dSPN",preType="dSPN")
-    na.plotIncomingConnections(neuronType="dSPN",preType="FSN")            
+    nas.plotIncomingConnections(neuronType="dSPN",preType="iSPN")
+    nas.plotIncomingConnections(neuronType="dSPN",preType="dSPN")
+    nas.plotIncomingConnections(neuronType="dSPN",preType="FSN")            
 
-    na.plotIncomingConnections(neuronType="iSPN",preType="iSPN")
-    na.plotIncomingConnections(neuronType="iSPN",preType="dSPN")
-    na.plotIncomingConnections(neuronType="iSPN",preType="FSN")
+    nas.plotIncomingConnections(neuronType="iSPN",preType="iSPN")
+    nas.plotIncomingConnections(neuronType="iSPN",preType="dSPN")
+    nas.plotIncomingConnections(neuronType="iSPN",preType="FSN")
 
-    na.plotNumSynapsesPerPair("FSN","LTS")  
+    nas.plotNumSynapsesPerPair("FSN","LTS")  
   
-    na.plotIncomingConnections(neuronType="dSPN",preType="LTS")
-    na.plotIncomingConnections(neuronType="iSPN",preType="LTS")  
-    na.plotIncomingConnections(neuronType="ChIN",preType="LTS")
+    nas.plotIncomingConnections(neuronType="dSPN",preType="LTS")
+    nas.plotIncomingConnections(neuronType="iSPN",preType="LTS")  
+    nas.plotIncomingConnections(neuronType="ChIN",preType="LTS")
 
-    na.plotIncomingConnections(neuronType="LTS",preType="ChIN")
-    na.plotIncomingConnections(neuronType="LTS",preType="FSN")  
+    nas.plotIncomingConnections(neuronType="LTS",preType="ChIN")
+    nas.plotIncomingConnections(neuronType="LTS",preType="FSN")  
 
     # 2-5 ChIN should connect to each MS (approx)
-    na.plotIncomingConnections(neuronType="dSPN",preType="ChIN")
-    na.plotIncomingConnections(neuronType="iSPN",preType="ChIN")  
+    nas.plotIncomingConnections(neuronType="dSPN",preType="ChIN")
+    nas.plotIncomingConnections(neuronType="iSPN",preType="ChIN")  
   
-    na.plotIncomingConnections(neuronType="ChIN",preType="dSPN")
-    na.plotIncomingConnections(neuronType="ChIN",preType="iSPN")  
+    nas.plotIncomingConnections(neuronType="ChIN",preType="dSPN")
+    nas.plotIncomingConnections(neuronType="ChIN",preType="iSPN")  
     
