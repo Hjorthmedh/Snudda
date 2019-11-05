@@ -1516,7 +1516,7 @@ if __name__ == "__main__":
   
   if(not os.path.exists(saveDir)):
     print("Creating directory " + saveDir)
-    os.makedirs(saveDir)
+    os.makedirs(saveDir, exist_ok=True)
   
   if(args.verbose):
     self.verbose=True
