@@ -110,7 +110,7 @@ class NeuronMorphology(object):
       if(self.cacheExist()):
         # Load existing cache
         try:
-          self.loadCache()
+          self.loadCache() 
         except Exception as e:
           
           import traceback
@@ -266,6 +266,7 @@ class NeuronMorphology(object):
   # We can specify a position and rotation
   def place(self, rotation=None, position=None):
 
+    
     if(self.rotatedFlag):
       self.writeLog("!!! WARNING, rotating a rotated neuron...")
     
@@ -278,6 +279,9 @@ class NeuronMorphology(object):
       position = self.position
     elif(type(position) is not np.ndarray):
       position = np.array(position)
+
+    print("Place called! pos = " + str(position) + ", rot = " + str(rotation))
+
       
     # rotation = self.randRotationMatrix()
       
@@ -428,8 +432,8 @@ class NeuronMorphology(object):
     else:
       self.axonDensity = None
       
-    # Place neuron
-    self.place()
+    # Place neuron -- Do not place neuron, loadNeuronMorphology does that
+    # self.place()
 
       
   ############################################################################
@@ -742,7 +746,7 @@ class NeuronMorphology(object):
       
   ############################################################################
 
-  def plotNeuron(self,axis=None,plotAxon=True,plotDendrite=True,lineStyle='-',alpha=1.0):
+  def plotNeuron(self,axis=None,plotAxon=True,plotDendrite=True,lineStyle='-',alpha=1.0,plotOrigo=np.array([0,0,0]),plotScale=1.0):
     
     if(self.verbose):
       print("Plotting neuron " + self.swc_filename)
@@ -767,9 +771,9 @@ class NeuronMorphology(object):
         elif(row[1] == axLinks[-1]):
           axLinks.append(row[0])
         else:
-          ax.plot(self.axon[axLinks,0],
-                  self.axon[axLinks,1],
-                  self.axon[axLinks,2],
+          ax.plot((self.axon[axLinks,0]-plotOrigo[0])*plotScale,
+                  (self.axon[axLinks,1]-plotOrigo[1])*plotScale,
+                  (self.axon[axLinks,2]-plotOrigo[2])*plotScale,
                   linestyle=lineStyle,
                   marker=',',
                   alpha=alpha,
@@ -778,9 +782,9 @@ class NeuronMorphology(object):
           axLinks = list(row)
 
       if(len(axLinks) > 0):
-          ax.plot(self.axon[axLinks,0],
-                  self.axon[axLinks,1],
-                  self.axon[axLinks,2],
+          ax.plot((self.axon[axLinks,0]-plotOrigo[0])*plotScale,
+                  (self.axon[axLinks,1]-plotOrigo[1])*plotScale,
+                  (self.axon[axLinks,2]-plotOrigo[2])*plotScale,
                   linestyle=lineStyle,
                   marker=',',
                   alpha=alpha,
@@ -796,9 +800,9 @@ class NeuronMorphology(object):
         elif(row[1] == dendLinks[-1]):
           dendLinks.append(row[0])
         else:
-          ax.plot(self.dend[dendLinks,0],
-                  self.dend[dendLinks,1],
-                  self.dend[dendLinks,2],
+          ax.plot((self.dend[dendLinks,0]-plotOrigo[0])*plotScale,
+                  (self.dend[dendLinks,1]-plotOrigo[1])*plotScale,
+                  (self.dend[dendLinks,2]-plotOrigo[2])*plotScale,
                   linestyle=lineStyle,
                   marker=',',
                   alpha=alpha,
@@ -807,9 +811,9 @@ class NeuronMorphology(object):
           dendLinks = list(row)
 
       if(len(dendLinks) > 0):
-        ax.plot(self.dend[dendLinks,0],
-                self.dend[dendLinks,1],
-                self.dend[dendLinks,2],
+        ax.plot((self.dend[dendLinks,0]-plotOrigo[0])*plotScale,
+                (self.dend[dendLinks,1]-plotOrigo[1])*plotScale,
+                (self.dend[dendLinks,2]-plotOrigo[2])*plotScale,
                 linestyle=lineStyle,
                 marker=',',
                 alpha=alpha,
@@ -817,7 +821,10 @@ class NeuronMorphology(object):
         
           
     if(len(self.soma) > 0):
-      ax.scatter(self.soma[:,0],self.soma[:,1],self.soma[:,2],c=self.colour,alpha=alpha)
+      ax.scatter((self.soma[:,0]-plotOrigo[0])*plotScale,
+                 (self.soma[:,1]-plotOrigo[1])*plotScale,
+                 (self.soma[:,2]-plotOrigo[2])*plotScale,
+                 c=self.colour,alpha=alpha)
       
     plt.axis('equal')
     plt.ion()

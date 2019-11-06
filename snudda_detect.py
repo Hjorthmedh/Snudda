@@ -783,7 +783,9 @@ class SnuddaDetect(object):
     # Clear lookup tables, just to be safe
     self.hyperVoxelSynapseLookup = None
     self.hyperVoxelGapJunctionLookup = None
-            
+
+    # Used by plotHyperVoxel to make sure synapses are displayed correctly
+    self.hyperVoxelOffset = None
     
     # Which axons populate the different voxels  
     if(self.axonVoxels is None):
@@ -934,13 +936,14 @@ class SnuddaDetect(object):
 
     # Sort the synapses (note sortIdx will not contain the empty rows
     # at the end.
- 
+
     self.sortSynapses()
 
     # Convert from hyper voxel local coordinates to simulation coordinates
+    # basically how many voxel steps do we need to take to go from
+    # simulationOrigo to hyperVoxelOrigo (those were not included, so add them)
     try:
-      hyperVoxelOffset = np.round((self.hyperVoxelOrigo \
-                                   -self.simulationOrigo) \
+      hyperVoxelOffset = np.round((self.hyperVoxelOrigo - self.simulationOrigo)\
                                   /self.hyperVoxelWidth).astype(int) \
                                   * self.hyperVoxelSize
 
@@ -950,6 +953,9 @@ class SnuddaDetect(object):
       
       self.hyperVoxelSynapses[:self.hyperVoxelSynapseCtr,:][:,range(2,5)]\
         += hyperVoxelOffset
+
+      # We need this in case plotHyperVoxel is called
+      self.hyperVoxelOffset = hyperVoxelOffset
       
     except:
       import traceback
@@ -975,6 +981,16 @@ class SnuddaDetect(object):
     
     self.writeLog("detectSynapses: " + str(self.hyperVoxelSynapseCtr) \
                   + " took " + str(endTime-startTime) + "s")
+
+    if(False and self.hyperVoxelSynapseCtr > 0):
+      print("First plot shows dendrites, and the voxels that were marked")
+      print("Second plot same, but for axons")
+      self.plotHyperVoxel(plotNeurons=True,drawAxons=False)
+      self.plotHyperVoxel(plotNeurons=True,drawDendrites=False)
+      
+      import pdb
+      pdb.set_trace()
+    
     
     return self.hyperVoxelSynapses[:self.hyperVoxelSynapseCtr,:]
 
@@ -2894,7 +2910,8 @@ class SnuddaDetect(object):
 
   # hyperID is just needed if we want to plotNeurons also
   
-  def plotHyperVoxel(self,plotNeurons=False,drawAxons=True,drawDendrites=True):
+  def plotHyperVoxel(self,plotNeurons=False,drawAxons=True,drawDendrites=True,
+                     detectDone=True):
     
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D  
@@ -2923,6 +2940,11 @@ class SnuddaDetect(object):
 
     if(self.hyperVoxelSynapseCtr > 0):
       sCoord = self.hyperVoxelSynapses[:self.hyperVoxelSynapseCtr,2:5]
+
+      # In case hyperVoxelOffset has been applied, we need to subtract it
+      # to draw within the hyper voxel
+      if(self.hyperVoxelOffset is not None):
+        sCoord - self.hyperVoxelOffset
       ax.scatter(sCoord[:,0],sCoord[:,1],sCoord[:,2],c="green")
     
     plt.ion()
@@ -2936,19 +2958,11 @@ class SnuddaDetect(object):
       for neuronID in self.hyperVoxels[self.hyperVoxelID]["neurons"][:nNeurons]:
         
         neuron = self.loadNeuron(self.neurons[neuronID])
-        
-        # We temp rescale to hypervoxel coordinates
-        # This modification is destructive !!! just for debugging
-        neuron.dend[:,:3] -= self.hyperVoxelOrigo
-        neuron.dend /= self.voxelSize
 
-        neuron.axon[:,:3] -= self.hyperVoxelOrigo
-        neuron.axon /= self.voxelSize
-
-        neuron.soma[:,:3] -= self.hyperVoxelOrigo
-        neuron.soma /= self.voxelSize
-
-        neuron.plotNeuron(axis=ax)
+        neuron.plotNeuron(axis=ax,
+                          plotAxon=drawAxons,
+                          plotDendrite=drawDendrites,
+                          plotOrigo=self.hyperVoxelOrigo,plotScale=1/self.voxelSize)
       
 
     plt.show()

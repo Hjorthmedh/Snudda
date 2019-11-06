@@ -409,6 +409,12 @@ class SnuddaLoad(object):
 
       idxFound = None
 
+      # We use idxA1 and idxA2 as upper and lower range within which we
+      # hope to find one of the synapses. Once we found a synapse row
+      # we go up and down in matrix to find the range of the synapses
+      # matching the requested condition. This works because the matrix is
+      # sorted on postID, and then preID if postID matches
+      
       if(rowEval(f["network/synapses"][idxA1,:],nNeurons) == valTarget):
         idxFound = idxA1
 
@@ -436,28 +442,28 @@ class SnuddaLoad(object):
       if(idxFound is None):
         # No synapses found
         print("No synapses found")
-        import pdb
-        pdb.set_trace()
         return None, None
       
       # Find start of synapse range
       idxB1 = idxFound
       valB1 = rowEval(f["network/synapses"][idxB1-1,:],nNeurons)
 
-      while(valB1 == valTarget):
+      while(valB1 == valTarget and idxB1 > 0):
         idxB1 -= 1
         valB1 = rowEval(f["network/synapses"][idxB1-1,:],nNeurons)
 
       # Find end of synapse range
       idxB2 = idxFound
-      valB2 = rowEval(f["network/synapses"][idxB2+1,:],nNeurons)
 
-      while(valB2 == valTarget):
-        idxB2 += 1
+      if(idxB2 + 1 < f["network/synapses"].shape[0]):
         valB2 = rowEval(f["network/synapses"][idxB2+1,:],nNeurons)
 
-      synapses = f["network/synapses"][idxB1:idxB2+1,:].copy()
+        while(valB2 == valTarget and idxB2+1 < f["network/synapses"].shape[0]):
+          idxB2 += 1
+          valB2 = rowEval(f["network/synapses"][idxB2+1,:],nNeurons)
 
+      synapses = f["network/synapses"][idxB1:idxB2+1,:].copy()
+      
       print("Synapse range, first " + str(idxB1) + ", last " + str(idxB2))
       print(str(synapses))
 

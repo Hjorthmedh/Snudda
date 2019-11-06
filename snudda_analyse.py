@@ -1702,6 +1702,8 @@ class SnuddaAnalyse(object):
     # Finding synapses, this might take time
     (synapses,synapseCoords) = self.networkLoad.findSynapses(postID=neuronID)
 
+    assert (synapses[:,1] == neuronID).all(), "!!!! Wrong synapses extracted"
+    
     neurons = dict([])
 
     import matplotlib.pyplot as plt
@@ -1737,8 +1739,8 @@ class SnuddaAnalyse(object):
 
     plt.pause(0.001)
 
-    import pdb
-    pdb.set_trace()
+    return axis
+
       
   ############################################################################
 
@@ -2573,7 +2575,7 @@ class SnuddaAnalyse(object):
   ############################################################################
 
   # Inspired by:
-  # Nao Chuhma, Kenji F. Tanaka, René Hen and Stephen Rayport 2011
+  # Nao Chuhma, Kenji F. Tanaka, Rene Hen and Stephen Rayport 2011
   #
   # 10% of a neuron type are marked, fraction of presynaptic neurons
   # out of total population
@@ -2655,7 +2657,6 @@ if __name__ == "__main__":
   #na.simpleMotif("iSPN","iSPN","iSPN")
   #na.simpleMotif("dSPN","dSPN","iSPN")
   # na.analyseSingleMotifs("dSPN")
-
 
   
   na.nearestPreNeighbourDistance("LTS","dSPN")
