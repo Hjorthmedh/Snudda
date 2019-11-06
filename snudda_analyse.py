@@ -707,8 +707,9 @@ class SnuddaAnalyse(object):
     #          + "(M=" + str(maxSynapses) \
     #          + ",m=" + '%.1f' % meanSynapses \
     #          + ",sl=" + '%.0f' % (sideLen*1e6) + ")")
-    plt.title(preType + " to " + postType \
-              + " (total: " + str(np.sum(existingCon)) + ")")
+    #plt.title(preType + " to " + postType \
+    #          + " (total: " + str(np.sum(existingCon)) + ")")
+    plt.title(preType + " to " + postType)
 
 
     plt.tight_layout()
@@ -1608,7 +1609,7 @@ class SnuddaAnalyse(object):
       plt.hist(nCon,range(0,int(np.max(nCon)),binSize),align="left",density=True)
       
     plt.xlabel("Number of connected neighbours")
-    plt.ylabel("Density")
+    plt.ylabel("Probability density")
     plt.title(preType + " connecting to " + neuronType)
     plt.tight_layout()
     plt.ion()
@@ -1641,7 +1642,7 @@ class SnuddaAnalyse(object):
       plt.hist(nSyn,range(0,int(np.max(nSyn)),binSize),align="left",density=True)
       
     plt.xlabel("Number of incoming " + connectionType)
-    plt.ylabel("Density")
+    plt.ylabel("Probability density")
     plt.title(preType + " " + connectionType + " on " + neuronType)
     plt.tight_layout()
     plt.ion()

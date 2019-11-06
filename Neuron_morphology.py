@@ -755,27 +755,67 @@ class NeuronMorphology(object):
       ax = fig.add_subplot(111, projection='3d')
     else:
       ax = axis
-      
+
     if(len(self.axon) > 0 and plotAxon):
+      axLinks = []
+
       for row in self.axonLinks[:,:2].astype(int):
-        ax.plot(self.axon[row,0],
-                self.axon[row,1],
-                self.axon[row,2],
-                linestyle=lineStyle,
-                marker=',',
-                alpha=alpha,
-                c=self.colour)
+        if(len(axLinks) == 0):
+          axLinks = list(row)
+        elif(row[0] == axLinks[-1]):
+          axLinks.append(row[1])
+        elif(row[1] == axLinks[-1]):
+          axLinks.append(row[0])
+        else:
+          ax.plot(self.axon[axLinks,0],
+                  self.axon[axLinks,1],
+                  self.axon[axLinks,2],
+                  linestyle=lineStyle,
+                  marker=',',
+                  alpha=alpha,
+                  c=self.colour)
+
+          axLinks = list(row)
+
+      if(len(axLinks) > 0):
+          ax.plot(self.axon[axLinks,0],
+                  self.axon[axLinks,1],
+                  self.axon[axLinks,2],
+                  linestyle=lineStyle,
+                  marker=',',
+                  alpha=alpha,
+                  c=self.colour)
 
     if(plotDendrite):
+      dendLinks = []
       for row in self.dendLinks[:,:2].astype(int):
-        ax.plot(self.dend[row,0],
-                self.dend[row,1],
-                self.dend[row,2],
+        if(len(dendLinks) == 0):
+          dendLinks = list(row)
+        elif(row[0] == dendLinks[-1]):
+          dendLinks.append(row[1])
+        elif(row[1] == dendLinks[-1]):
+          dendLinks.append(row[0])
+        else:
+          ax.plot(self.dend[dendLinks,0],
+                  self.dend[dendLinks,1],
+                  self.dend[dendLinks,2],
+                  linestyle=lineStyle,
+                  marker=',',
+                  alpha=alpha,
+                  c=self.colour)
+
+          dendLinks = list(row)
+
+      if(len(dendLinks) > 0):
+        ax.plot(self.dend[dendLinks,0],
+                self.dend[dendLinks,1],
+                self.dend[dendLinks,2],
                 linestyle=lineStyle,
                 marker=',',
                 alpha=alpha,
                 c=self.colour)
-
+        
+          
     if(len(self.soma) > 0):
       ax.scatter(self.soma[:,0],self.soma[:,1],self.soma[:,2],c=self.colour,alpha=alpha)
       
