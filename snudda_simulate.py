@@ -492,6 +492,9 @@ class SnuddaSimulate(object):
     # Neuron wants it in microsiemens??!
     conductance = self.synapses[startRow:endRow,11]*1e-6
     parameterID = self.synapses[startRow:endRow,12]
+
+    voxelCoords = self.synapses[startRow:endRow,2:5]
+    self.verifySynapsePlacement(dendSections,secX,destID,voxelCoords)
     
     for (srcID,section,sectionX,sTypeID,axonDist,cond,pID) \
       in zip(sourceIDs,dendSections,secX,synapseTypeID,
@@ -1406,6 +1409,94 @@ class SnuddaSimulate(object):
             spikeFile.write('%.3f\t%d\n' %(t,id))
       self.pc.barrier()
 
+  ############################################################################
+
+  # secList is a list of sections
+  # secXList is a list of X values 0 to 1.0
+  # destID is the ID of the neuron receiving synapse (one value!)
+  # voxel coords are the voxel that the synapse is in
+
+  # We want to check that voxel coords transformed to local coordinate system
+  # of neuron matches with where neuron places the synapse
+  
+  def verifySynapsePlacement(self,secList,secXList,destID,voxelCoords):
+
+
+    simulationOrigo = self.network_info["simulationOrigo"]
+    voxelSize = self.network_info["voxelSize"]
+    neuronPosition = self.network_info["neurons"][destID]["position"]
+    neuronRotation = self.network_info["neurons"][destID]["rotation"]
+
+    # Transform voxel coordinates to local neuron coordinates to match neuron
+    synapsePos = (voxelSize*voxelCoords+simulationOrigo-neuronPosition)*1e6
+
+    try:
+      synPosNrn =  np.array([[h.x3d(secX,sec=sec),
+                              h.y3d(secX,sec=sec),
+                              h.z3d(secX,sec=sec)] \
+                             for sec,secX in zip(secList,secXList)])
+    except:
+      import traceback
+      tstr = traceback.format_exc()
+      self.writeLog(tstr)
+      import pdb
+      pdb.set_trace()
+     
+      
+    # We need to rotate the neuron to match the big simulation
+    # !!! OBS, this assumes that some is in 0,0,0 local coordinates
+    synPosNrnRot = np.transpose(np.matmul(neuronRotation, \
+                                          np.transpose(synPosNrn)))
+
+    synMismatch = np.sqrt(np.sum((synPosNrnRot - synapsePos)**2,axis=1))
+
+    badThreshold = 20
+    nBad = np.sum(synMismatch > badThreshold)
+
+    if(nBad > 0):
+      # If this happens, check that Neuron does not warn for removing sections
+      # due to having only one point
+      self.writeLog("!!! Found " + str(nBad) + " synapses on " \
+                    + self.network_info["neurons"][destID]["name"] \
+                    + "( " + str(destID) + ") " \
+                    " that are further than " + str(badThreshold) + "mum away."\
+                    + " morphology: " \
+                    + self.network_info["neurons"][destID]["morphology"])
+
+      ### DEBUG PLOT!!!
+
+      if(True):
+        import matplotlib.pyplot as plt
+        plt.figure()
+
+        somaDist = np.sqrt(np.sum(synapsePos**2,axis=1))
+        plt.scatter(somaDist*1e6,synMismatch)
+        plt.ion()
+        plt.show()
+        plt.title(self.network_info["neurons"][destID]["name"])
+
+        from mpl_toolkits.mplot3d import Axes3D
+        fig=plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        ax.scatter(synapsePos[:,0],
+                   synapsePos[:,1],
+                   synapsePos[:,2],color="red")
+        ax.scatter(synPosNrnRot[:,0],
+                   synPosNrnRot[:,1],
+                   synPosNrnRot[:,2],color="black")
+        
+        import pdb
+        pdb.set_trace()
+      
+    #voxelCoords * 
+    
+    # Get local neuron position
+    #self.neurons["position"]
+    
+    #for sec,secX
+    #h.x3d(
+      
   ############################################################################
 
 # File format for csv voltage file:
