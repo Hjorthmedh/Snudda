@@ -14,6 +14,11 @@
 #
 ############################################################################
 
+# Plot all sections
+# [neuron.h.psection(x) for x in neuron.h.allsec()]
+
+
+
 from mpi4py import MPI # This must be imported before neuron, to run parallel
 from neuron import h, gui
 import h5py
@@ -1421,6 +1426,7 @@ class SnuddaSimulate(object):
   
   def verifySynapsePlacement(self,secList,secXList,destID,voxelCoords):
 
+    print("Running verify synapse")
 
     simulationOrigo = self.network_info["simulationOrigo"]
     voxelSize = self.network_info["voxelSize"]
@@ -1431,10 +1437,19 @@ class SnuddaSimulate(object):
     synapsePos = (voxelSize*voxelCoords+simulationOrigo-neuronPosition)*1e6
 
     try:
-      synPosNrn =  np.array([[h.x3d(secX,sec=sec),
-                              h.y3d(secX,sec=sec),
-                              h.z3d(secX,sec=sec)] \
-                             for sec,secX in zip(secList,secXList)])
+      synPosNrn = np.zeros((len(secList),3))
+
+      for i,(sec,secX) in enumerate(zip(secList,secXList)):
+        nPoints = h.n3d(sec=sec)
+        arcLen = h.arc3d(nPoints-1,sec=sec)
+        idx = int(np.round(secX*(nPoints-1)))
+        arcLenX = h.arc3d(idx,sec=sec)
+
+        print("X : " + str(secX) + " = " + str(arcLenX/arcLen) + " ???")
+        
+        synPosNrn[i,0] = h.x3d(idx,sec=sec)
+        synPosNrn[i,1] = h.y3d(idx,sec=sec)
+        synPosNrn[i,2] = h.z3d(idx,sec=sec)
     except:
       import traceback
       tstr = traceback.format_exc()
@@ -1450,9 +1465,10 @@ class SnuddaSimulate(object):
 
     synMismatch = np.sqrt(np.sum((synPosNrnRot - synapsePos)**2,axis=1))
 
-    badThreshold = 20
+    badThreshold = 10
     nBad = np.sum(synMismatch > badThreshold)
 
+    
     if(nBad > 0):
       # If this happens, check that Neuron does not warn for removing sections
       # due to having only one point
@@ -1484,7 +1500,18 @@ class SnuddaSimulate(object):
                    synapsePos[:,2],color="red")
         ax.scatter(synPosNrnRot[:,0],
                    synPosNrnRot[:,1],
-                   synPosNrnRot[:,2],color="black")
+                   synPosNrnRot[:,2],color="black",s=50)
+
+        if(False):
+          # Draw neuron
+          allSec = [x for x in neuron.h.allsec()  if "axon" not in str(x)]
+          for x in np.linspace(0,1,10):
+            secPos =  np.array([[h.x3d(x,sec=sec),
+                                 h.y3d(x,sec=sec),
+                                 h.z3d(x,sec=sec)] \
+                                for sec in allSec])
+
+            ax.scatter(secPos[:,0],secPos[:,1],secPos[:,2],color="blue")
         
         import pdb
         pdb.set_trace()

@@ -54,7 +54,7 @@ class SnuddaDetect(object):
                dView=None,
                lbView=None,
                rc=None,
-               axonStumpIDFlag=True,
+               axonStumpIDFlag=False,
                h5libver="latest"):
 
 
@@ -1520,7 +1520,7 @@ class SnuddaDetect(object):
     
   ############################################################################
 
-  def readPrototypes(self, configFile=None, axonStumpIDFlag=True):
+  def readPrototypes(self, configFile=None, axonStumpIDFlag=False):
 
     if(configFile is None):
       configFile = self.configFile

@@ -175,22 +175,41 @@ class NeuronModel(ephys.models.CellModel):
 
 ##############################################################################
 
+  # Neuron_morphology defines sectionID, these must match what this returns
+  # so that they point to the same compartment.
+  #
+  # Soma is 0
+  # axons are negative values (currently all set to -1) in Neuron_morphology
+  # dendrites are 1,2,3,4,5... ie one higher than what Neuron internally
+  # uses to index the dendrites (due to us wanting to include soma)
+  
+
   def mapIDtoCompartment(self,sectionID):
 
     if(self.sectionLookup is None):
-      self.sectionLookup = []
+      
+      self.sectionLookup = dict([])
 
-      self.sectionLookup.append(self.icell.soma[0])
+      # Soma is zero
+      self.sectionLookup[0] = self.icell.soma[0]
 
-      for c in self.icell.axon:
-        self.sectionLookup.append(c)
-
-      for c in self.icell.dend:
-        self.sectionLookup.append(c)
+      # Dendrites are consequtive numbers starting from 1
+      # Ie neurons dend(0) is in pos 1, dend(99) is in pos 100
+      # This so we dont need to special treat soma (pos 0)
+      
+      for ic,c in enumerate(self.icell.dend):
+        self.sectionLookup[ic+1] = c
+      
+      # Negative numbers for axon
+      for ic,c in enumerate(self.icell.axon):
+        self.sectionLookup[-ic-1] = c
 
     try:
       sec = [self.sectionLookup[x] for x in sectionID]
     except:
+      print("Missing section ID?")
+      print("sectionID = " + str(sectionID))
+      print("sectionLookup = " + str(self.sectionLookup))
       import traceback
       tstr = traceback.format_exc()
       print(tstr)
