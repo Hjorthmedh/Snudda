@@ -32,6 +32,8 @@ class NeuronMorphology(object):
                virtualNeuron = False,
                axonStumpIDFlag = False ):
 
+    self.cacheVersion = 0.9
+    
     self.position = np.copy(np.array(position))
     
     if(rotation is not None):
@@ -358,6 +360,7 @@ class NeuronMorphology(object):
     morph["maxDendRadius"] = self.maxDendRadius
     morph["dendDensity"] = self.dendDensity
     morph["axonDensity"] = self.axonDensity
+    morph["version"] = self.cacheVersion
     
     assert(cacheFile != self.swc_filename)
     print("Saving cache file: " + cacheFile)
@@ -421,7 +424,9 @@ class NeuronMorphology(object):
     self.dendLinks = morph["dendLinks"]
     self.dendSecX = morph["dendSecX"]
     self.dendSecID = morph["dendSecID"]
-    
+
+    assert morph["version"] == self.cacheVersion, \
+      "Cache version mismatch, regenerating cache"
 
     
     self.maxAxonRadius = morph["maxAxonRadius"]
