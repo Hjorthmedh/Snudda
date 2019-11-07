@@ -5,7 +5,7 @@
 	    "start" : 1.5,
 	    "end" : 2.0,
 	    "type: " : "AMPA_NMDA",
-	    "nInputs" : 200,
+	    "nInputs" : 260,
 	    "frequency" : 1,
 	    "channelCorrelation" : 0.0,
 	    "jitter" : 0.002,
@@ -17,7 +17,7 @@
 	"Thalamic" : {
 	    "generator" : "poisson",	    
 	    "type: " : "AMPA_NMDA",
-	    "nInputs" : 200,
+	    "nInputs" : 260,
 	    "frequency" : 1,
 	    "channelCorrelation" : 0.0,
 	    "jitter" : 0.01,
