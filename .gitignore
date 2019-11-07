@@ -12,6 +12,7 @@ input.txt
 delme
 cellspec.res5
 output.txt
+save/
 
 .ipython
 

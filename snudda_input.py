@@ -60,8 +60,8 @@ class SnuddaInput(object):
       self.networkConfigFile = networkConfigFile
       self.positionFile = positionFile
 
-      self.writeLog("Assuming axonStumpIDFlag is True (Running Network_simulate.py)")
-      self.axonStumpIDFlag = True
+      #self.writeLog("Assuming axonStumpIDFlag is True (Running Network_simulate.py)")
+      self.axonStumpIDFlag = False
     
     self.inputConfigFile = inputConfigFile
 

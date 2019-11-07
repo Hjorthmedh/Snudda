@@ -1445,7 +1445,7 @@ class SnuddaSimulate(object):
         idx = int(np.round(secX*(nPoints-1)))
         arcLenX = h.arc3d(idx,sec=sec)
 
-        print("X : " + str(secX) + " = " + str(arcLenX/arcLen) + " ???")
+        #print("X : " + str(secX) + " = " + str(arcLenX/arcLen) + " ???")
         
         synPosNrn[i,0] = h.x3d(idx,sec=sec)
         synPosNrn[i,1] = h.y3d(idx,sec=sec)
@@ -1465,7 +1465,7 @@ class SnuddaSimulate(object):
 
     synMismatch = np.sqrt(np.sum((synPosNrnRot - synapsePos)**2,axis=1))
 
-    badThreshold = 10
+    badThreshold = 50
     nBad = np.sum(synMismatch > badThreshold)
 
     
