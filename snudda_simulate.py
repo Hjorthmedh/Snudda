@@ -333,6 +333,9 @@ class SnuddaSimulate(object):
         # We need to instantiate the cell
         try:
           self.neurons[ID].instantiate(sim=self.sim)
+
+          self.setRestingVoltage(ID)
+          
         except:
           import traceback
           tstr = traceback.format_exc()
@@ -1221,6 +1224,27 @@ class SnuddaSimulate(object):
 
   ############################################################################
 
+  def setRestingVoltage(self,neuronID,restVolt=None):
+
+    if(restVolt is None):
+      # If no resting voltage is given, extract it from parameters
+      restVolt = [x for x in self.neurons[neuronID].parameters \
+                  if x["param_name"] == "v_init"][0]["value"]
+      self.writeLog("Neuron " + self.neurons[neuronID].name \
+                    + " resting voltage = " + str(restVolt))
+    
+    soma = [x for x in self.neurons[neuronID].icell.soma]
+    axon = [x for x in self.neurons[neuronID].icell.axon]
+    dend = [x for x in self.neurons[neuronID].icell.dend]
+
+    cell = soma+axon+dend
+
+    for sec in cell:
+      for seg in sec.allseg():
+        seg.v = restVolt
+
+  ############################################################################
+  
   def addVirtualNeuronInput(self):
 
     self.writeLog("Adding inputs from virtual neurons")
@@ -1365,8 +1389,10 @@ class SnuddaSimulate(object):
     
     # If we want to use a non-default initialisation voltage, we need to 
     # explicitly set: h.v_init
-    self.sim.neuron.h.v_init = -78
-    self.sim.neuron.h.finitialize(-78)
+    #self.sim.neuron.h.v_init = -78
+    #self.sim.neuron.h.finitialize(-78)
+    self.sim.neuron.h.finitialize()
+    
     # Asked on neuron, check answer:
     # https://www.neuron.yale.edu/phpBB/viewtopic.php?f=2&t=4161&p=18021
     
@@ -1426,7 +1452,7 @@ class SnuddaSimulate(object):
   
   def verifySynapsePlacement(self,secList,secXList,destID,voxelCoords):
 
-    print("Running verify synapse")
+    # print("Running verify synapse placement")
 
     simulationOrigo = self.network_info["simulationOrigo"]
     voxelSize = self.network_info["voxelSize"]

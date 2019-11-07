@@ -216,7 +216,7 @@ if __name__ == "__main__":
     #npt.plotTraces(offset=0.2,traceID=[1,5,7,15,16],skipTime=0.2)
 
     plotOffset = 0 # -0.2
-    skipTime = 0.5
+    skipTime = 0 #0.5
     nTracesMax = 5
     
     npt.plotTraceNeuronType(neuronType="dSPN",nTraces=nTracesMax,offset=plotOffset,skipTime=skipTime)

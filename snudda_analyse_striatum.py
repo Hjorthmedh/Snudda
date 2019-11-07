@@ -113,8 +113,6 @@ if __name__ == "__main__":
 
 
 
-  
-  nas.plotFSLTScumDist()
 
   
 
@@ -132,6 +130,31 @@ if __name__ == "__main__":
   dist3D = False
   #dist3D = True
 
+  #import pdb
+  #pdb.set_trace()
+
+  nas.plotFSLTScumDist()
+
+  nas.plotNumSynapsesPerPair("dSPN","ChIN")
+  nas.plotNumSynapsesPerPair("iSPN","ChIN")
+  nas.plotNumSynapsesPerPair("LTS","ChIN")
+  
+  nas.plotIncomingConnections(neuronType="FSN",preType="FSN")            
+  nas.plotIncomingConnections(neuronType="FSN",preType="FSN")            
+  
+  nas.plotNumSynapsesPerPair("FSN","FSN")  
+  nas.plotNumSynapsesPerPair("ChIN","FSN")  
+
+  nas.plotNumSynapsesPerPair("ChIN","LTS")
+
+  
+  nas.plotNumSynapsesPerPair("ChIN","dSPN")
+  nas.plotNumSynapsesPerPair("ChIN","iSPN")      
+
+  nas.plotNumSynapsesPerPair("LTS","dSPN")
+  nas.plotNumSynapsesPerPair("LTS","iSPN")  
+
+  
   nas.plotSynapseCumDist()
 
   nas.plotSynapseDist(densityFlag=True)

@@ -92,6 +92,9 @@ class NeuronModel(ephys.models.CellModel):
     param_configs = json.load(open(parameter_config))
     parameters = []
 
+    # Save this to be accessible in the future
+    self.parameters = param_configs
+    
     for param_config in param_configs:
       if 'value' in param_config:
         frozen = True
