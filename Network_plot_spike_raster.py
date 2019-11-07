@@ -75,7 +75,7 @@ class NetworkPlotSpikeRaster(object):
   def plotColourRaster(self,skipTime,plotIdx="sort",typeOrder=None):
 
     if(plotIdx == "sort"):
-      plotIdx,tickPos,tickText = self.sortTraces(typeOrder)
+      plotIdx,tickPos,tickText,typedict = self.sortTraces(typeOrder)
     else:
       tickPos,tickText = None,None
 
@@ -94,24 +94,38 @@ class NetworkPlotSpikeRaster(object):
 
     cols = [colours[c] for c in cellTypes]
 
-    #import pdb
-    #pdb.set_trace()
-
-
-    
-    fig=plt.figure()
-    ax=fig.add_subplot(111)
-#    for (t,sid) in zip(self.time,self.spikeID):
-#      plt.scatter(t,sid,color=cols[int(sid)],s=1)
+    fig     = plt.figure(figsize=(6,4))
+    r       = 4
+    grid    = plt.GridSpec(r, r, hspace=0, wspace=0)
+    ax      = fig.add_subplot(grid[1:,:])
+    atop    = fig.add_subplot(grid[0,:])
     tIdx = np.where(self.time >= skipTime)[0]
-
 
     cols2 = [colours[cellTypes[int(s)]] for s in self.spikeID]
 
     ax.scatter(self.time[tIdx]-skipTime,
                plotLookup[self.spikeID[tIdx]],
-               color=[cols2[t] for t in tIdx],s=1)
-    #ax.xlim(xmin=0)
+               color=[cols2[t] for t in tIdx],s=1,
+               linewidths=0.1)
+    # histogram
+    for t in typeOrder:
+        pruned_spikes = [   self.time[int(i)]-skipTime for i in tIdx if i in typedict[t] ]
+        '''
+        atop.hist(  pruned_spikes, 
+                    bins=100, 
+                    range=(0,1.500), 
+                    density=False,
+                    color=c, 
+                    alpha=0.3, 
+                    histtype='stepfilled')'''
+        atop.hist(  pruned_spikes, 
+                    bins=100, 
+                    range=(0,1.500), 
+                    density=0,
+                    color=colours[t], 
+                    alpha=1.0, 
+                    histtype='step')
+    
     ax.invert_yaxis()
     
     ax.set_xlabel('Time (s)')
@@ -120,17 +134,31 @@ class NetworkPlotSpikeRaster(object):
       ax.set_yticklabels(tickText)
     else:
       ax.ylabel('Neurons')
-      
+    
+    # set axes ---------------------------------------------------
+    atop.axis('off')
+    # UPDATE here to set specific range for plot window!!!!
+    atop.set_xlim([-0.01,1.51])
+    ax.set_xlim(  [-0.01,1.51])
+    m = len(self.networkInfo.data["neurons"])
+    offset = m*0.05 # 5%
+    ax.set_ylim([-offset,m+offset])
+    # -----------------------------------------------------------
     plt.ion()
     plt.show()
     plt.draw()
     plt.pause(0.001)
     # plt.savefig('figures/Network-spike-raster-' + str(self.ID) + "-colour.pdf")
-
-    figPath = os.path.dirname(self.networkFile) + "/figs/"
+    
+    # TODO: this is not working if run from the same folder as the networkFile
+    # if so -> figPath = "/figs"
+    figPath = os.path.dirname(self.networkFile) + "/figs"
     if(not os.path.exists(figPath)):
       os.makedirs(figPath)
-    figName = figPath + 'Network-spike-raster-' + str(self.ID) + "-colour.png"
+    
+    # have updated the name of the saved file to be the same as the fileName
+    fn = os.path.basename(self.fileName)
+    figName = '{}/{}{}'.format(figPath, fn.split('.')[0], '-colour.png')
     print("Saving " + figName)
     plt.savefig(figName,dpi=600)    
 
@@ -148,7 +176,12 @@ class NetworkPlotSpikeRaster(object):
     # This one was fun to write. For every type t in typeOrder we want
     # to find all the indexes associated with it (here using enumerate and if)
     idx = [ i for t in typeOrder for i,x in enumerate(allTypes) if x == t]
-
+    
+    # new dict with cell type specific spikes
+    typedict = {'order':typeOrder}
+    for t in typeOrder:
+        typedict[t] = [ i for i,x in enumerate(self.spikeID) if allTypes[x] == t]
+    
     prevPos = 0
     tickPos = []
     tickText = []
@@ -163,13 +196,13 @@ class NetworkPlotSpikeRaster(object):
       tickText.append(t)
       prevPos += nElement
       
-    return idx,tickPos,tickText
+    return idx,tickPos,tickText,typedict
 
   ############################################################################
 
   def makePlotLookup(self,plotIdx):
 
-    plotLookup = np.nan*np.zeros((np.max(self.spikeID)+1,))
+    plotLookup = np.nan*np.zeros(len(plotIdx))
 
     for i,p in enumerate(plotIdx):
       plotLookup[p] = i
@@ -191,14 +224,14 @@ if __name__ == "__main__":
     fileName = sys.argv[1]
   else:
     fileName = None
-
+  
   if(len(sys.argv) > 2):
     networkFile = sys.argv[2]
   else:
     networkFile = None
 
   if(fileName is not None):
-    npsr = NetworkPlotSpikeRaster(fileName,networkFile,skipTime=0.5,
+    npsr = NetworkPlotSpikeRaster(fileName,networkFile,skipTime=0.0,
                                   typeOrder=["FSN","dSPN","LTS","iSPN","ChIN"])
 
 
