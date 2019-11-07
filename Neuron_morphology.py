@@ -287,7 +287,7 @@ class NeuronMorphology(object):
     elif(type(position) is not np.ndarray):
       position = np.array(position)
 
-    print("Place called! pos = " + str(position) + ", rot = " + str(rotation))
+    # print("Place called! pos = " + str(position) + ", rot = " + str(rotation))
 
       
     # rotation = self.randRotationMatrix()
