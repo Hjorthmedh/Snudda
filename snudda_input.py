@@ -1,6 +1,13 @@
 # This code writes the input spikes for the neuron simulation --
 #
+#
+# If nInputs is given then synapseDensity is scaled to give approximately
+# that total number of synapses, otherwise it is used without scaling.
+# see config/input-tinytest-v2.json for example config.
+#
+
 # Smith, Galvan, ..., Bolam 2014 -- Bra info om thalamic inputs, CM/PF
+#
 
 
 import numpy as np
@@ -184,8 +191,8 @@ class SnuddaInput(object):
           itGroup.create_dataset("freq",data=neuronIn["freq"])
           itGroup.create_dataset("correlation",data=neuronIn["correlation"])
           itGroup.create_dataset("jitter",data=neuronIn["jitter"])
-          itGroup.create_dataset("locationDistrib",
-                                 data=neuronIn["locationDistrib"])
+          itGroup.create_dataset("synapseDensity",
+                                 data=neuronIn["synapseDensity"])
           itGroup.create_dataset("start",data=neuronIn["start"])
           itGroup.create_dataset("end",data=neuronIn["end"])
           itGroup.create_dataset("conductance",data=neuronIn["conductance"])
@@ -309,6 +316,7 @@ class SnuddaInput(object):
     freqList = []
     startList = []
     endList = []
+    synapseDensityList = []
     nInputsList = []
     PkeepList = []
     channelSpikesList = []
@@ -321,7 +329,6 @@ class SnuddaInput(object):
     modFileList = []
     parameterFileList = []
     parameterListList = []
-    parameterIDList = []
     
     for (neuronID,neuronType,channelID) \
         in zip(self.neuronID, self.neuronType,self.channelID):
@@ -358,18 +365,21 @@ class SnuddaInput(object):
 
           if(inputType.lower() == "VirtualNeuron".lower()):
             # Virtual neurons spikes specify their activity, location and conductance not used
-            loc = None
             cond = None
             nInp = 1
             
             modFile = None
             parameterFile = None
             parameterList = None
-            parameterID = None
           else:
-            loc = inputInf["location"]
+            assert "location" not in inputInf, \
+              "Location in input config has been replaced with synapseDensity"
             cond = inputInf["conductance"]
-            nInp = inputInf["nInputs"]
+
+            if("nInputs" in inputInf):
+              nInp = inputInf["nInputs"]
+            else:
+              nInp = None
 
             modFile = inputInf["modFile"]
             if("parameterFile" in inputInf):
@@ -381,11 +391,15 @@ class SnuddaInput(object):
               parameterList = inputInf["parameterList"]
             else:
               parameterList = None
-            parameterID = np.random.randint(1e6,size=nInp)
+
+          if("synapseDensity" in inputInf):
+            synapseDensity = inputInf["synapseDensity"]
+          else:
+            synapseDensity = "1"
             
+          synapseDensityList.append(synapseDensity)
           nInputsList.append(nInp)
             
-          locationList.append(loc)
           channelIDList.append(channelID)
           conductanceList.append(cond)
           correlationList.append(inputInf["channelCorrelation"])
@@ -396,7 +410,6 @@ class SnuddaInput(object):
           modFileList.append(modFile)
           parameterFileList.append(parameterFile)
           parameterListList.append(parameterList)
-          parameterIDList.append(parameterID)
           
         elif(inputInf["generator"] == "csv"):
           csvFile = inputInf["csvFile"] % neuronID
@@ -418,13 +431,6 @@ class SnuddaInput(object):
     
     #Lets try and swap self.lbView for self.dView
     if(self.dView is not None):
-
-      # !!! We need to have a list of how many parameter sets there are
-      #     so that parameterID can be set
-      #     parameterID needs to be stored in the input information
-      #
-      # --- parameterID is the ID of the synapses parameters,
-      #     since we now have a family of inputs
       
       #self.writeLog("Sending jobs to workers, using lbView")
       self.writeLog("Sending jobs to workers, using dView")
@@ -437,18 +443,17 @@ class SnuddaInput(object):
                            freqList,
                            startList,
                            endList,
+                           synapseDensityList,
                            nInputsList,
                            PkeepList,
                            channelSpikesList,
                            jitterDtList,
-                           locationList,
                            channelIDList,
                            conductanceList,
                            correlationList,
                            modFileList,
                            parameterFileList,
-                           parameterListList,
-                           parameterIDList))
+                           parameterListList))
 
       self.dView.scatter("inputList",inputList,block=True)
       cmdStr = "inpt = list(map(nl.makeInputHelperParallel,inputList))"
@@ -466,22 +471,21 @@ class SnuddaInput(object):
                 freqList,
                 startList,
                 endList,
+                synapseDensityList,
                 nInputsList,
                 PkeepList,
                 channelSpikesList,
                 jitterDtList,
-                locationList,
                 channelIDList,
                 conductanceList,
                 correlationList,
                 modFileList,
                 parameterFileList,
-                parameterListList,
-                parameterIDList)
+                parameterListList)
           
     # Gather the spikes that were generated in parallell
-    for neuronID, inputType, spikes, loc, frq, \
-        jdt, cID,cond,corr,locDist,timeRange, \
+    for neuronID, inputType, spikes, loc, synapseDensity, frq, \
+        jdt, cID,cond,corr,timeRange, \
         modFile,paramFile,paramList,paramID in amr:
       self.writeLog("Gathering " + str(neuronID) + " - " + str(inputType) )
       self.neuronInput[neuronID][inputType]["spikes"] = spikes
@@ -490,7 +494,8 @@ class SnuddaInput(object):
         # Virtual neurons have no location of their input, as the "input"
         # specifies the spike times of the virtual neuron itself
         self.neuronInput[neuronID][inputType]["location"] = loc
-        self.neuronInput[neuronID][inputType]["locationDistrib"] = locDist
+        self.neuronInput[neuronID][inputType]["synapseDensity"] \
+          = synapseDensity
         self.neuronInput[neuronID][inputType]["conductance"] = cond
         
       self.neuronInput[neuronID][inputType]["freq"] = frq
@@ -745,6 +750,82 @@ class SnuddaInput(object):
     
   ############################################################################
 
+  # inputDensity = f(d) where d is micrometers from soma,
+  #                unit of f is synapses/micrometer
+
+  # !!! Returns input locations only on dendrites, not on synapses
+  
+  def dendriteInputLocations(self,neuronID,synapseDensity="1",nSpikeTrains=None):
+
+    neuronName = self.neuronName[neuronID]
+    swcFile = self.networkConfig[neuronName]["morphology"]
+
+    if(swcFile in self.neuronCache):
+      morphology = self.neuronCache[swcFile]
+    else:     
+      morphology = NeuronMorphology(name=neuronID,
+                                    swc_filename=swcFile,
+                                    axonStumpIDFlag=self.axonStumpIDFlag)
+      self.neuronCache[swcFile] = morphology
+
+    # Calculate the input density at each point in dendrite morphology
+    d = morphology.dend[:,4]
+    try:
+      iDensity = eval(synapseDensity)
+    except:
+      self.writeLog("Bad synapse density string: " + str(synapseDensity))
+      import traceback
+      tstr = traceback.format_exc()
+      self.writeLog(tstr)
+      
+
+    if(type(iDensity) in (int, float)):
+      # If iDensity is a constant, we need to set it for all points
+      iDensity *= np.ones(d.shape)
+    
+    compDensity = (iDensity[morphology.dendLinks[:,0]] \
+                   + iDensity[morphology.dendLinks[:,1]])/2
+    compLen = morphology.compartmentLength(compType="dend")
+
+    # compDensity is in synapses per micrometer, multiply by 1e6
+    expectedSynapses = compDensity*compLen*1e6
+
+    if(nSpikeTrains is not None):
+      print("Trying to set nSpikeTrains = " + str(nSpikeTrains) + " (approx)")
+      expectedSynapses *= nSpikeTrains / np.sum(expectedSynapses)
+    
+    numberOfSynapses = (expectedSynapses \
+                     + ((expectedSynapses % 1) \
+                        > np.random.rand(len(expectedSynapses)))).astype(int)
+
+    nSynTot = np.sum(numberOfSynapses)
+
+    sectionX = np.random.rand(nSynTot)
+    
+    # x,y,z, secID, secX    
+    inputLoc = np.zeros((nSynTot,5))
+    inputLoc[:,4] = sectionX
+    
+    # Iterate over each compartment
+    synCtr = 0
+    for iComp, nSyn in enumerate(numberOfSynapses):
+      # Add synapses to that compartment
+      for j in range(0,nSyn):
+        inputLoc[synCtr,3] = morphology.dendSecID[iComp]
+        coords = morphology.dend[morphology.dendLinks[iComp,0],:3] \
+                  * (1-sectionX[synCtr]) \
+                + morphology.dend[morphology.dendLinks[iComp,1],:3] \
+                  * sectionX[synCtr]
+        inputLoc[synCtr,:3] = coords
+        synCtr += 1
+
+    # Return xyz,secID,secX
+    return inputLoc[:,:3],inputLoc[:,3],inputLoc[:,4]
+
+    
+      
+  ############################################################################
+  
   # Returns random dendrite compartments
   # Pdist = function of d (micrometers), e.g. "1", "2*d", ... etc
   
@@ -805,7 +886,7 @@ class SnuddaInput(object):
                  + morphology.dendSecX[compIdx,0]
 
       compCoords[ix,:3] = (morphology.dend[morphology.dendLinks[compIdx,0],:3] \
-                        + morphology.dend[morphology.dendLinks[compIdx,0],:3])/2
+                        + morphology.dend[morphology.dendLinks[compIdx,1],:3])/2
       
         
     # The probability of picking a compartment is dependent on a distance
@@ -998,32 +1079,119 @@ class SnuddaInput(object):
   def makeInputHelperParallel(self,args):
 
     neuronID,inputType,freq,start,end,\
+    synapseDensity,
     nSpikeTrains,Pkeep,channelSpikes,\
-    jitterDt,location,channelID,conductance,\
+    jitterDt,channelID,conductance,\
     correlation,modFile,parameterFile,\
-    parameterList,parameterID = args
+    parameterList = args
 
-    return self.makeInputHelperSerial(neuronID,
-                                      inputType,
-                                      freq,
-                                      start,
-                                      end,
-                                      nSpikeTrains,
-                                      Pkeep,
-                                      channelSpikes,
-                                      jitterDt,
-                                      location,
-                                      channelID,
-                                      conductance,
-                                      correlation,
-                                      modFile,
-                                      parameterFile,
-                                      parameterList,
-                                      parameterID)
-  
+    return self.makeInputHelperSerial(neuronID = neuronID,
+                                      inputType = inputType,
+                                      freq = freq,
+                                      start = start,
+                                      end = end,
+                                      synapseDensity = synapseDensity,
+                                      nSpikeTrains = nSpikeTrains,
+                                      Pkeep = Pkeep,
+                                      channelSpikes = channelSpikes,
+                                      jitterDt = jitterDt,
+                                      channelID = channelID,
+                                      conductance = conductance,
+                                      correlation = correlation,
+                                      modFile = modFile,
+                                      parameterFile = parameterFile,
+                                      parameterList = parameterList)
+
   ############################################################################
+
+  # Normally specify synapseDensity which then sets number of inputs
+  # ie leave nSpikeTrains as None. If nSpikeTrains is set, that will then
+  # scale synapseDensity to get the requested number of inputs (approximately)
+
+  # For virtual neurons nSpikeTrains must be set, as it defines their activity
   
   def makeInputHelperSerial(self,
+                            neuronID,
+                            inputType,
+                            freq,
+                            start,
+                            end,
+                            synapseDensity,
+                            nSpikeTrains,
+                            Pkeep,
+                            channelSpikes,
+                            jitterDt,
+                            channelID,
+                            conductance,
+                            correlation,
+                            modFile,
+                            parameterFile,
+                            parameterList):
+                            
+    # First, find out how many inputs and where, based on morphology and
+    # synapse density
+
+    try:
+
+      timeRange = (start,end)
+      
+      if(inputType.lower() == "VirtualNeuron".lower()):
+        # This specifies activity of a virtual neuron
+        loc = None
+        conductance = None
+
+        assert nSpikeTrains is None or nSpikeTrains == 1, \
+          "Virtual neuron " + self.neuronName[neuronID] \
+          + " should have only one spike train, fix nSpikeTrains in config"
+        
+        spikes = self.makeCorrelatedSpikes(freq=freq,
+                                           timeRange=timeRange,
+                                           nSpikeTrains=1,
+                                           Pkeep=Pkeep,
+                                           channelSpikes=channelSpikes,
+                                           jitterDt=jitterDt)
+        nInputs = 1
+      else:
+        
+        # x,y,z, secID, secX    
+        inputLoc = self.dendriteInputLocations(neuronID=neuronID,
+                                               synapseDensity=synapseDensity,
+                                               nSpikeTrains=nSpikeTrains)
+
+        nInputs = inputLoc[0].shape[0]
+        print("Generating " + str(nInputs) + " inputs for " \
+              + self.neuronName[neuronID])
+        
+        # OBS, nInputs might differ slightly from nSpikeTrains if that is given
+        spikes = self.makeCorrelatedSpikes(freq=freq,
+                                           timeRange=timeRange,
+                                           nSpikeTrains=nInputs,
+                                           Pkeep=Pkeep,
+                                           channelSpikes=channelSpikes,
+                                           jitterDt=jitterDt)        
+    except:
+      import traceback
+      tstr = traceback.format_exc()
+      self.writeLog(tstr)
+      import pdb
+      pdb.set_trace()
+
+      
+    # We need to pick which parameter set to use for the input also
+    parameterID = np.random.randint(1e6,size=nInputs)
+      
+    # We need to keep track of the neuronID, since it will all be jumbled
+    # when doing asynchronous prallellisation
+    return (neuronID, inputType, spikes, inputLoc, synapseDensity,freq,
+            jitterDt,channelID,conductance,correlation,
+            timeRange,
+            modFile,parameterFile,parameterList,parameterID)
+
+
+      
+  ############################################################################
+  
+  def makeInputHelperSerialOLD(self,
                             neuronID,
                             inputType,
                             freq,
@@ -1043,6 +1211,8 @@ class SnuddaInput(object):
                             parameterID):
     try:
 
+      assert False, "Depricated use makeInputHelperSerial"
+    
       timeRange = (start,end)
       
       spikes = self.makeCorrelatedSpikes(freq=freq,
