@@ -549,12 +549,12 @@ class SnuddaSimulate(object):
                        for x in self.gapJunctions[:,1]])[0]
 
     # GJIDoffset = self.network_info["GJIDoffset"]
-    GJIDoffset = 10*self.nNeurons
+    GJIDoffset = 100*self.nNeurons
     GJGIDsrcA = GJIDoffset + 4*GJidxA
     GJGIDsrcB = GJIDoffset + 4*GJidxB+1
 
-    GJGIDdestA = GJIDoffset + 4*GJidxA +2 # +1
-    GJGIDdestB = GJIDoffset + 4*GJidxB +3 # +0 
+    GJGIDdestA = GJIDoffset + 4*GJidxA + 1#+2 # +1
+    GJGIDdestB = GJIDoffset + 4*GJidxB + 0 #+3 # +0 
 
     neuronIDA = self.gapJunctions[GJidxA,0]
     neuronIDB = self.gapJunctions[GJidxB,1]
@@ -599,6 +599,9 @@ class SnuddaSimulate(object):
     (neuronID,compartment,segX,GJGIDsrc,GJGIDdest,cond) \
      = self.findLocalGapJunctions()
 
+    #import pdb
+    #pdb.set_trace()
+    
     try:
       # WHY??!
       # ValueError: too many values to unpack (expected 6)
@@ -855,6 +858,8 @@ class SnuddaSimulate(object):
   def addSynapse(self, cellIDsource, dendCompartment, sectionDist, conductance,
                  parameterID,synapseTypeID,axonDist=None):
 
+    assert False, "There is something fishy with the parallel gap junctions. Please run with them disabled for now"
+    
     # You can not locate a point process at
     # position 0 or 1 if it needs an ion   
     if(sectionDist == 0.0):

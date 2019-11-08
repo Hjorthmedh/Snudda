@@ -349,7 +349,7 @@ class Snudda(object):
     print("Using input file " + inputFile)
 
     nWorkers = 12
-    cmdStr = "nrnivmodl cellspecs/mechanisms && mpiexec -n " + str(nWorkers) + " -map-by socket:OVERSUBSCRIBE python3 snudda_simulate.py " + networkFile + " " + inputFile + " --time " + str(args.time)
+    cmdStr = "nrnivmodl cellspecs/mechanisms && mpiexec -n " + str(nWorkers) + " -map-by socket:OVERSUBSCRIBE python3 snudda_simulate.py " + networkFile + " " + inputFile + " --time " + str(args.time) + " --disableGJ"
 
     if(args.voltOut is not None):
       cmdStr += " --voltOut " + args.voltOut
