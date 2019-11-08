@@ -857,8 +857,6 @@ class SnuddaSimulate(object):
 
   def addSynapse(self, cellIDsource, dendCompartment, sectionDist, conductance,
                  parameterID,synapseTypeID,axonDist=None):
-
-    assert False, "There is something fishy with the parallel gap junctions. Please run with them disabled for now"
     
     # You can not locate a point process at
     # position 0 or 1 if it needs an ion   
@@ -962,6 +960,9 @@ class SnuddaSimulate(object):
                      gGapJunction=0.5e-9, \
                      GID=None): # GID unused??
 
+    assert False, "There is something fishy with the parallel gap junctions. Please run with them disabled for now"
+
+    
     #self.writeLog("Adding src = " + str(GIDsourceGJ) + ", dest = " + str(GIDdestGJ))
 
     # If neuron complains, make sure you have par_ggap.mod 
