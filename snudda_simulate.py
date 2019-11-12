@@ -82,7 +82,7 @@ class SnuddaSimulate(object):
     # !!! different for AMPA and GABA?
     self.synapseWeight = 10.0 # microsiemens 
     self.synapseDelay = 1      # ms 
-    self.spikeThreshold = 10
+    self.spikeThreshold = -20
     self.axonSpeed = 0.8 # Tepper and Lee 2007, Wilson 1986, Wilson 1990
                          # refs taken from Damodaran et al 2013
 
@@ -932,6 +932,7 @@ class SnuddaSimulate(object):
       nc.delay = synapseDelay
       nc.threshold = self.spikeThreshold
 
+      # Prevent garbage collection in python
       self.netConList.append(nc)
       self.synapseList.append(syn)
 

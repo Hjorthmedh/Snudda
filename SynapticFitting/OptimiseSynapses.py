@@ -349,7 +349,9 @@ class OptimiseSynapses(object):
     plt.title(titleStr)
     plt.xlabel("Time (ms)")
     plt.ylabel("Volt (mV)")
-  
+
+    if(not os.path.exists("figures/")):
+      os.makedirs("figures/")
     
     baseName = os.path.splitext(os.path.basename(self.fileName))[0]
     figName = "figures/" + baseName + "-"  + dataType \
