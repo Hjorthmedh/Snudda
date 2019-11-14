@@ -2892,13 +2892,13 @@ class SnuddaPrune(object):
       self.writeLog("No synapses kept, resizing")
       outputFile[h5SynMat].resize((writeEndPos,outputFile[h5SynMat].shape[1]))
       
-    self.writeLog("Synapse connection not allowed: " + str(nNotConnected) \
-                  + "\nAll synapses between pairs removed: " \
-                  + str(nAllRemoved)\
-                  + "\nDistance dependent pruning: " + str(nDistDepPruning) \
-                  + "\nSynapses randomly removed: " + str(nSomeRemoved) \
-                  + "\nToo Many synapses, removed: " + str(nTooManyRemoved) \
-                  + "\nToo few between pair, removed: " + str(nTooFewRemoved))
+    self.writeLog("Number of synapses removed where synapse connection not allowed: " + str(nNotConnected) \
+                  + "\nNumber of synapses removed due to distance dependent pruning: " + str(nDistDepPruning) \
+                  + "\nNumber of synapses removed randomly: " + str(nSomeRemoved) \
+                  + "\nNumber of synapses removed due to too many synapses between connected pair: " + str(nTooManyRemoved) \
+                  + "\nNumber of synapses removed due to too few synapses between connected pairs: " + str(nTooFewRemoved) \
+                  + "\nNumber of synapses removed where all synapses between pairs are removed: " \
+                  + str(nAllRemoved))
 
 ############################################################################
       

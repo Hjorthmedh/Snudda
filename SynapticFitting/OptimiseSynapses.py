@@ -847,7 +847,8 @@ class OptimiseSynapses(object):
 
   ############################################################################
 
-  def neuronSynapseSwarmHelper(self,pars,tSpikes,peakHeight,smoothExpTrace):
+  def neuronSynapseSwarmHelper(self,pars,tSpikes,peakHeight,
+                               smoothExpTrace):
 
     if(self.debugParsFlag):
       self.debugPars.append(pars)
@@ -859,27 +860,56 @@ class OptimiseSynapses(object):
 
       # Calculating error in peak height
       hDiff = np.abs(peakH - peakHeight)
+      hDiff[0] *= 3
       hDiff[-1] *= 3
       hError = np.sum(hDiff)/len(hDiff)
+
+      # Calculate error in decay fit
+      simTrace,simTime = self.smoothingTrace(vSim,self.nSmoothing,
+                                             time=tSim,
+                                             startTime=self.decayStartFit,
+                                             endTime=self.decayEndFit)
+
+      # We only want to use the bit of the trace after max
+      idxMax = np.argmax(smoothExpTrace)
+
+      # We divide by number of points in vector, to get the average deviation
+      # then we multiply by 10000 to get an error comparable to the others
+      decayError = np.sum((smoothExpTrace[idxMax:] \
+                           - simTrace[idxMax:])**2) \
+                           /(self.nSmoothing-idxMax+1) * 2000
+
+      if(False):
+        plt.figure()
+        plt.plot(smoothExpTrace[idxMax:])
+        plt.plot(simTrace[idxMax:])
+        import pdb
+        pdb.set_trace()
       
-      # Calculating error in smoothed voltage trace
-      stError = np.sum(np.abs(smoothExpTrace \
-                      - self.smoothingTrace(vSim,self.nSmoothing))) \
-                      / self.nSmoothing
-      
-      res[idx] = hError + stError*0.2
+      res[idx] = hError + decayError
       
     return res
 
   ############################################################################
 
-  def smoothingTrace(self,originalTrace,nParts,time=None,endTime=None):
+  def smoothingTrace(self,originalTrace,nParts,time=None,
+                     startTime=None,endTime=None):
 
-    if(time is not None and endTime is not None):
-      tIdx = np.where(time <= endTime)[0]
-      trace = originalTrace[tIdx]
+    if(time is not None):
+      tFlag = np.ones((len(originalTrace),),dtype=bool)
+      
+      if(endTime is not None):
+        tFlag[np.where(time > endTime)[0]] = False
+
+      if(startTime is not None):
+         tFlag[np.where(time < startTime)[0]] = False
+         
+      #tIdx = np.where(tFlag)[0]
+      trace = originalTrace[tFlag]
+      t = time[tFlag]
     else:
       trace = originalTrace
+      t = time
     
     N = int(np.round(len(trace)/nParts))
     
@@ -887,7 +917,7 @@ class OptimiseSynapses(object):
 
     idx = np.linspace(0,len(smoothTrace)-1,num=nParts,dtype=int)
     
-    return smoothTrace[idx]
+    return smoothTrace[idx], t
   
   ############################################################################
   
@@ -990,7 +1020,7 @@ class OptimiseSynapses(object):
     elif("MS" in cellType.upper()):
       # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR), nmda_ratio
       modelBounds = ([1e-3,1e-4,1e-4,0, 1e-5,0.3],
-                     [1.0,2,2,0.9999999,1e-1,4])
+                     [1.0,2,2,0.9999999,1e-1,6])
 
     elif("CHAT" in cellType.upper()):
       # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR), nmda_ratio
@@ -1052,6 +1082,8 @@ class OptimiseSynapses(object):
         # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR)
         modelBounds = ([1e-3,1e-4,1e-4,0, 1e-5],[1.0,2,2,0.9999999,1e-1])
 
+        # This one gives nmda_ratio as parameter also
+        #modelBounds = self.getModelBounds(cellID)
         
         # Call best random, to find a good set of starting points
         p0 = self.bestRandom(synapseModel=synapseModel,
@@ -1093,9 +1125,14 @@ class OptimiseSynapses(object):
         #               [1.0,2,2,0.9999999,1e-1,4])
 
         modelBounds = self.getModelBounds(cellID)
-        
-        smoothVolt = self.smoothingTrace(volt,self.nSmoothing,
-                                         time=time,endTime=self.simTime)
+
+        self.decayStartFit = 1.0
+        self.decayEndFit = 1.2
+         
+        smoothVolt,smoothTime = self.smoothingTrace(volt,self.nSmoothing,
+                                                 time=time,
+                                                 startTime = self.decayStartFit,
+                                                 endTime = self.decayEndFit)
                       
         import pyswarms as ps
         from pyswarms.utils.functions import single_obj as fx
@@ -1103,16 +1140,17 @@ class OptimiseSynapses(object):
         options = {"c1":0.5, "c2":0.3, "w":0.9} # default
         
         # Increased from 200 to 300
-        optimizer = ps.single.GlobalBestPSO(n_particles=300,
+        optimizer = ps.single.GlobalBestPSO(n_particles=400,
                                             dimensions=6,
                                             options=options,
                                             bounds=modelBounds)
 
+        # Set iter to 50
         cost, fitParams = optimizer.optimize(self.neuronSynapseSwarmHelper,
-                                       iters=50,
-                                       tSpikes = stimTime,
-                                       peakHeight = peakHeight,
-                                       smoothExpTrace=smoothVolt)
+                                             iters=10,
+                                             tSpikes = stimTime,
+                                             peakHeight = peakHeight,
+                                             smoothExpTrace=smoothVolt)
 
         modelHeights,vSim,tSim = \
           self._neuronSynapseSwarmHelper(fitParams,stimTime)
@@ -1195,6 +1233,7 @@ class OptimiseSynapses(object):
         peakHeights = self.synapseModelNeuron(tPeak,U,tauR,tauF,tau,cond)
       
         error = np.abs(peakHeights - hPeak)
+        error[0] *= 3
         error[-1] *= 3
         error = np.sum(error)
       
@@ -1255,6 +1294,9 @@ class OptimiseSynapses(object):
         self.writeLog("We are in serial mode, use serial code..")
         for c in cellIDlist:
           self.optimiseCell(dataType,c)
+
+        # Save parameters to file
+        self.saveParameterCache()
         return
 
       self.writeLog("Optimising in parallel")
@@ -1561,7 +1603,13 @@ if __name__ == "__main__":
   ly = OptimiseSynapses(args.file,synapseType=args.st,dView=dView,role="master",
                         logFileName=logFileName,optMethod=optMethod)
 
-
+  if(args.plot):
+    print("Only plotting data for ID " + str(int(args.id)))
+    assert args.id is not None, "You need to specify which trace(s) to plot"
+    for id in ly.getUserID(args.id):
+      ly.plotData("GBZ_CC_H20",int(id),show=True)
+    exit(0)
+    
   if(args.id is not None):
     # ID has priority over type
     userID = ly.getUserID(args.id)
