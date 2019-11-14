@@ -41,7 +41,7 @@ class OptimiseSynapses(object):
   
   def __init__(self, fileName, synapseType="glut",loadCache=True,
                role="master",dView=None,verbose=True,logFileName=None,
-               optMethod="swarm"):
+               optMethod="swarm",prettyPlot=True):
 
     # Parallel execution role, "master" or "servant"
     self.role = role
@@ -55,6 +55,8 @@ class OptimiseSynapses(object):
     
     self.debugParsFlag = False
     self.debugPars = []
+
+    self.prettyPlot = prettyPlot
     
     print("Init optMethod = " + str(optMethod))
     
@@ -291,7 +293,11 @@ class OptimiseSynapses(object):
 
 
   
-  def plotData(self,dataType,cellID=None,params={},show=True,skipTime=0.05):
+  def plotData(self,dataType,cellID=None,params={},show=True,skipTime=0.05,
+               prettyPlot=None):
+
+    if(prettyPlot is None):
+      prettyPlot = self.prettyPlot
     
     (data,t) = self.getData(dataType,cellID)
 
@@ -337,8 +343,9 @@ class OptimiseSynapses(object):
       plt.plot(tPlot[t2Idx]*1e3,vPlot[t2Idx]*1e3,'k-')
     # plt.title(dataType + " " + str(cellID))
     cellType = self.getCellType(cellID)
-    titleStr = cellType + " " + str(cellID)
-    titleStr += "\nU=%.3g, tauR=%.3g, tauF=%.3g, tau=%.3g,\ncond=%.3g, nmda_ratio=%.3g" \
+    if(not prettyPlot):
+      titleStr = cellType + " " + str(cellID)
+      titleStr += "\nU=%.3g, tauR=%.3g, tauF=%.3g, tau=%.3g,\ncond=%.3g, nmda_ratio=%.3g" \
         % (params["U"],
            params["tauR"],
            params["tauF"],
@@ -346,10 +353,40 @@ class OptimiseSynapses(object):
            params["cond"],
            params["nmda_ratio"])
 
-    plt.title(titleStr)
+      plt.title(titleStr)
+
+    if(prettyPlot):
+      # Draw scalebars
+      vScaleX = 1300
+      #vMax = np.max(vPlot[np.where(tPlot > 0.050)[0]])
+      vBase = vPlot[-1]
+      vScaleY1 = vBase*1e3+2
+      vScaleY2 = vBase*1e3+1
+      tScaleY  = vBase*1e3+1
+      tScaleX1 = 1300
+      tScaleX2 = 1400
+      
+      plt.plot([vScaleX,vScaleX],[vScaleY1,vScaleY2],color="black")
+      plt.plot([tScaleX1,tScaleX2],[tScaleY,tScaleY],color="black")
+
+      # Mark optogenetical stimulation
+      yHeight = float(np.diff(plt.ylim()))/13
+      
+      tStim = self.getStimTime(dataType,cellID)*1e3
+      yStimMarker1 = vPlot[-1]*1e3-1.5*yHeight
+      yStimMarker2 = vPlot[-1]*1e3-2.5*yHeight
+      for ts in tStim:
+        plt.plot([ts,ts],[yStimMarker1,yStimMarker2],color="cyan")      
+
+      plt.axis("off")
+
+      #import pdb
+      #pdb.set_trace()
+      
+      
     plt.xlabel("Time (ms)")
     plt.ylabel("Volt (mV)")
-
+    
     if(not os.path.exists("figures/")):
       os.makedirs("figures/")
     
@@ -1568,6 +1605,8 @@ if __name__ == "__main__":
   #                    default="swarm")
   parser.add_argument("--plot",action="store_true",
                       help="plotting previous optimised model")
+  parser.add_argument("--prettyplot",action="store_true",
+                      help="plotting traces for article")
   
   args = parser.parse_args()
 
@@ -1604,11 +1643,18 @@ if __name__ == "__main__":
   ly = OptimiseSynapses(args.file,synapseType=args.st,dView=dView,role="master",
                         logFileName=logFileName,optMethod=optMethod)
 
-  if(args.plot):
-    print("Only plotting data for ID " + str(int(args.id)))
+  if(args.plot or args.prettyplot):
+
+    if(args.prettyplot):
+      prettyPlotFlag = True
+    else:
+      prettyPlotFlag = False
+    
     assert args.id is not None, "You need to specify which trace(s) to plot"
     for id in ly.getUserID(args.id):
-      ly.plotData("GBZ_CC_H20",int(id),show=True)
+      print("Only plotting data for ID " + str(int(id)))
+
+      ly.plotData("GBZ_CC_H20",int(id),show=True,prettyPlot=prettyPlotFlag)
     exit(0)
     
   if(args.id is not None):
