@@ -1,0 +1,147 @@
+{
+    "dSPN": {
+	"CorticalBase" : {
+	    "generator" : "poisson",
+	    "type: " : "AMPA_NMDA",
+	    "synapseDensity" : "0.075/(1+np.exp(-(d-30e-6)/5e-6))",
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.002,
+	    "conductance" : 1.5e-9,
+	    "modFile": "tmGlut",
+	    "parameterFile": "synapses/v2/M1RH_Analysis_190925.h5-parameters-MS.json"
+	},
+	"CorticalSignal" : {
+	    "generator" : "poisson",
+	    "start" : 1.5,
+	    "end" : 2.0,
+	    "type: " : "AMPA_NMDA",
+	    "synapseDensity" : "0.05/(1+np.exp(-(d-30e-6)/5e-6))",
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.002,
+	    "conductance" : 1.5e-9,
+	    "modFile": "tmGlut",
+	    "parameterFile": "synapses/v2/M1RH_Analysis_190925.h5-parameters-MS.json"
+	},
+	"Thalamic" : {
+	    "generator" : "poisson",	    
+	    "type: " : "AMPA_NMDA",
+	    "synapseDensity" : "0.075*np.exp(-d/200e-6)",
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.01,
+	    "conductance" : 1.5e-9,
+	    "modFile": "tmGlut",
+	    "parameterFile":"synapses/v2/TH_Analysis_191001.h5-parameters-MS.json"
+	}	
+    },
+
+    "iSPN": {
+	"CorticalBase" : {
+	    "generator" : "poisson",
+	    "type: " : "AMPA_NMDA",
+	    "synapseDensity": "0.05/(1+np.exp(-(d-30e-6)/5e-6))",
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.003,
+	    "conductance" : 1.5e-9,
+
+	    "modFile":"tmGlut",
+	    "parameterFile": "synapses/v2/M1RH_Analysis_190925.h5-parameters-MS.json"
+	},
+	"CorticalSignal" : {
+	    "generator" : "poisson",
+	    "start" : 1.5,
+	    "end" : 2.0,
+	    "type: " : "AMPA_NMDA",
+	    "synapseDensity": "0.03/(1+np.exp(-(d-30e-6)/5e-6))",
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.003,
+	    "conductance" : 1.5e-9,
+
+	    "modFile":"tmGlut",
+	    "parameterFile": "synapses/v2/M1RH_Analysis_190925.h5-parameters-MS.json"
+	},
+	"Thalamic" : {
+	    "generator" : "poisson",	    
+	    "type: " : "AMPA_NMDA",
+	    "synapseDensity" : "0.05*np.exp(-d/200e-6)",
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.01,
+	    "conductance" : 1.5e-9,
+	    "modFile": "tmGlut",
+	    "parameterFile":"synapses/v2/TH_Analysis_191001.h5-parameters-MS.json"
+	}	
+    },
+
+    
+    "FSN": {
+	"Cortical" : {
+	    "generator" : "poisson",	    
+	    "type: " : "AMPA_NMDA",
+	    "synapseDensity": "0.01*(1-np.exp(-d/200e-6))",	    
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.001,
+	    "conductance" : 4e-9,	    
+	    "modFile": "tmGlut",
+	    "parameterFile": "synapses/v2/M1RH_Analysis_190925.h5-parameters-FS.json"
+	},
+	"Thalamic" : {
+	    "generator" : "poisson",	    
+	    "type: " : "AMPA_NMDA",
+	    "synapseDensity" : "0.01*np.exp(-d/200e-6)",	    
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.001,	    
+	    "conductance" : 4e-9,	    
+	    "modFile":"tmGlut",
+	    "parameterFile":"synapses/v2/TH_Analysis_191001.h5-parameters-FS.json"
+	}
+
+	
+    },
+
+    "ChIN": {
+	"Cortical" : {
+	    "generator" : "poisson",	    
+	    "type: " : "AMPA_NMDA",
+	    "synapseDensity": "0.03*(1-np.exp(-d/200e-6))",	    
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.001,	    
+	    "conductance" : 0.5e-9,	    
+	    "modFile": "tmGlut",
+	    "parameterFile":"synapses/v2/M1RH_Analysis_190925.h5-parameters-CHAT.json"
+	},
+	"Thalamic" : {
+	    "generator" : "poisson",	    
+	    "type: " : "AMPA_NMDA",
+	    "synapseDensity" : "0.03*np.exp(-d/200e-6)",	    
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.001,	    
+	    "conductance" : 0.5e-9,	    
+	    "modFile": "tmGlut",
+	    "parameterFile":"synapses/v2/TH_Analysis_191001.h5-parameters-CHAT.json"
+	}
+    },
+
+    "LTS": {
+	"Cortical" : {
+	    "generator" : "poisson",	    
+	    "type: " : "AMPA_NMDA",
+	    "synapseDensity": "0.001*(1-np.exp(-d/200e-6))",	    
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.001,	    
+	    "conductance" : 0.05e-9,	    
+	    "modFile": "tmGlut",
+	    "parameterFile":"synapses/v2/M1RH_Analysis_190925.h5-parameters-LTS.json"
+	}
+    }
+    
+}

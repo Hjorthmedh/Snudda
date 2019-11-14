@@ -1234,6 +1234,7 @@ class OptimiseSynapses(object):
       
         error = np.abs(peakHeights - hPeak)
         error[0] *= 3
+        error[1] *= 2
         error[-1] *= 3
         error = np.sum(error)
       

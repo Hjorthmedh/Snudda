@@ -1000,14 +1000,15 @@ class SnuddaInit(object):
 
     # We should have both ipsi and contra, M1 and S1 input, for now
     # picking one
-    cortextSynPar = "synapses/M1_Analysis_RH_extr_UP.pxp-traceList-MSND1-require-H20-model-parameters.json"
+    cortexSynParMS = "synapses/v2/M1RH_Analysis_190925.h5-parameters-MS.json"
+    cortexSynParFS = "synapses/v2/M1RH_Analysis_190925.h5-parameters-FS.json"    
     
     self.addNeuronTarget(neuronName="CortexAxon",
                          targetName="dSPN",
                          connectionType="AMPA_NMDA",
                          distPruning=None,
                          f1=1.0, softMax=3, mu2=2.4,a3=None,
-                         parameterFile=cortexSynPar,
+                         parameterFile=cortexSynParMS,
                          modFile="tmGlut",
                          conductance=CortexGlutCond,
                          channelParamDictionary=None)
@@ -1017,7 +1018,7 @@ class SnuddaInit(object):
                          connectionType="AMPA_NMDA",
                          distPruning=None,
                          f1=1.0, softMax=3, mu2=2.4,a3=None,
-                         parameterFile=cortexSynPar,
+                         parameterFile=cortexSynParMS,
                          modFile="tmGlut",
                          conductance=CortexGlutCond,
                          channelParamDictionary=None)
@@ -1027,7 +1028,7 @@ class SnuddaInit(object):
                          connectionType="AMPA_NMDA",
                          distPruning=None,
                          f1=1.0, softMax=3, mu2=2.4,a3=None,
-                         parameterFile=cortexSynPar,
+                         parameterFile=cortexSynParFS,
                          modFile="tmGlut",
                          conductance=CortexGlutCond,
                          channelParamDictionary=None)
@@ -1067,9 +1068,8 @@ class SnuddaInit(object):
 
     # Define targets
 
-    thalamusSynParD1 = "synapses/TH_Analysis_extr_UP.pxp-traceList-MSND1-require-H20-model-parameters.json"
-    thalamusSynParD2 = "synapses/TH_Analysis_extr_UP.pxp-traceList-MSND2-require-H20-model-parameters.json"
-    thalamusSynParFS = "synapses/TH_Analysis_extr_UP.pxp-traceList-FS-require-H20-model-parameters.json"
+    thalamusSynParMS = "synapses/v2/TH_Analysis_191001.h5-parameters-MS.json"
+    thalamusSynParFS = "synapses/v2/TH_Analysis_191001.h5-parameters-FS.json"
 
     
     ThalamusGlutCond = [1e-9,0.1e-9]
@@ -1080,7 +1080,7 @@ class SnuddaInit(object):
                          distPruning=None,
                          f1=1.0, softMax=3, mu2=2.4,a3=None,
                          conductance=ThalamusGlutCond,
-                         parameterFile=thalamusSynParD1,
+                         parameterFile=thalamusSynParMs,
                          modFile="tmGlut",
                          channelParamDictionary=None)
 
@@ -1090,7 +1090,7 @@ class SnuddaInit(object):
                          distPruning=None,
                          f1=1.0, softMax=3, mu2=2.4,a3=None,
                          conductance=ThalamusGlutCond,
-                         parameterFile=thalamusSynParD2,
+                         parameterFile=thalamusSynParMS,
                          modFile="tmGlut",
                          channelParamDictionary=None)
 
