@@ -1396,17 +1396,19 @@ class OptimiseSynapses(object):
       self.writeLog("Optimising in parallel")
       
       self.setupParallel(self.dView)
-      dView.scatter("cellIDlist",cellIDlist,block=True)
-      dView.push({"dataType" : dataType},block=True)
+      self.dView.scatter("cellIDlist",cellIDlist,block=True)
+      self.dView.push({"dataType" : dataType},block=True)
       
       try:
 
         cmdStr = "res = ly.parallelOptimiseCells(dataType=dataType,cellIDlist=cellIDlist)"
         self.writeLog("Starting execution")
-        dView.execute(cmdStr,block=True)
+        self.dView.execute(cmdStr,block=True)
+        import pdb
+        pdb.set_trace()
         self.writeLog("Execution finished, gathering results")
-        #res = dView.gather("res",block=True)
-        res = dView["res"]
+        #res = self.dView.gather("res",block=True)
+        res = self.dView["res"]
       
         # res now contains a list of dictionaries, each dictionary from one worker, we need
         # to merge these
@@ -1536,7 +1538,7 @@ class OptimiseSynapses(object):
       # Already setup servants
       return
     
-    with dView.sync_imports():
+    with self.dView.sync_imports():
       from RunLittleSynapseRun import RunLittleSynapseRun
       from OptimiseSynapses import NumpyEncoder
       from OptimiseSynapses import OptimiseSynapses
@@ -1547,20 +1549,20 @@ class OptimiseSynapses(object):
     # Create unique log file names for the workers
     if(self.logFileName is not None):
       engineLogFile = [self.logFileName + "-" \
-                       + str(x) for x in range(0,len(dView))]
+                       + str(x) for x in range(0,len(self.dView))]
     else:
-      engineLogFile = [[] for x in range(0,len(dView))]
+      engineLogFile = [[] for x in range(0,len(self.dView))]
 
-    nWorkers = len(dView)
-    dView.scatter("engineLogFile",engineLogFile) 
+    nWorkers = len(self.dView)
+    self.dView.scatter("engineLogFile",engineLogFile) 
     
-    dView.push({"fileName": self.fileName,
-                "synapseType" : self.synapseType,
-                "loadCache" : self.loadCache,
-                "role" : "servant"})
+    self.dView.push({"fileName": self.fileName,
+                     "synapseType" : self.synapseType,
+                     "loadCache" : self.loadCache,
+                     "role" : "servant"})
 
     cmdStr = "ly = OptimiseSynapses(fileName=fileName, synapseType=synapseType,loadCache=loadCache,role=role,logFileName=engineLogFile[0])"
-    dView.execute(cmdStr,block=True)
+    self.dView.execute(cmdStr,block=True)
     self.parallelSetupFlag = True
 
   ############################################################################

@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import time
 
 
 from OptimiseSynapses import OptimiseSynapses
@@ -7,10 +8,14 @@ from OptimiseSynapses import OptimiseSynapses
 
 class OptimiseSynapsesPlanert(OptimiseSynapses):
 
-  def __init__(self,traceList):
+  def __init__(self,traceList,dView=None,logFileName="logs/planert.txt",
+               role="master"):
 
+    self.traceList = traceList
+    
     # Create object
-    super().__init__(fileName=None,synapseType="gaba",loadCache=False)
+    super().__init__(fileName=None,synapseType="gaba",loadCache=False,
+                     dView=dView,logFileName=logFileName,role=role)
 
     self.cacheFileName = traceList + "-parameters.json"
     self.data = {}
@@ -177,6 +182,48 @@ class OptimiseSynapsesPlanert(OptimiseSynapses):
   def getCellType(self,cellID):
 
     return self.nameList[cellID].split("_")[0]
+
+  ############################################################################
+
+  def setupParallel(self,dView=None):
+
+    assert self.role == "master", "Only master should call setupParallel"
+
+    if(dView is None):
+      self.writeLog("No dView, no parallel")
+      return
+    else:
+      self.dView = dView
+
+    if(self.parallelSetupFlag):
+      # Already setup servants
+      return
+    
+    with self.dView.sync_imports():
+      from RunLittleSynapseRun import RunLittleSynapseRun
+      from OptimiseSynapses import NumpyEncoder
+      from OptimiseSynapsesPlanert import OptimiseSynapsesPlanert
+
+    self.writeLog("Setting up workers: " \
+          + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+
+    # Create unique log file names for the workers
+    if(self.logFileName is not None):
+      engineLogFile = [self.logFileName + "-" \
+                       + str(x) for x in range(0,len(self.dView))]
+    else:
+      engineLogFile = [[] for x in range(0,len(self.dView))]
+
+    nWorkers = len(self.dView)
+    self.dView.scatter("engineLogFile",engineLogFile) 
+    
+    self.dView.push({"traceList": self.traceList,
+                     "role" : "servant"})
+
+    cmdStr = "ly = OptimiseSynapsesPlanert(traceList=traceList,role=role,logFileName=engineLogFile[0])"
+    self.dView.execute(cmdStr,block=True)
+    self.parallelSetupFlag = True
+
   
   ############################################################################
     
@@ -199,10 +246,13 @@ if __name__ == "__main__":
     dView = None  
   
   traceList = "DATA/Planert2010/d1d2conns/traces/trace_table.txt"
+  logFile = "logs/Planert-log.txt"
 
-  osp = OptimiseSynapsesPlanert(traceList)
-
-  osp.parallelOptimiseCells("planert",np.arange(0,len(osp.nameList)))
+  osp = OptimiseSynapsesPlanert(traceList,dView=dView,
+                                logFileName=logFile)
+  
+  osp.parallelOptimiseCells("planert",
+                            np.arange(0,len(osp.nameList)))
   
   # osp.optimiseCell("planert",0)
 
