@@ -69,7 +69,7 @@ class OptimiseSynapses(object):
     self.figResolution = 300
 
     self.fileName = fileName
-    self.cacheFileName = self.fileName + "-parameters.json"
+    self.cacheFileName = str(self.fileName) + "-parameters.json"
     self.loadCache = loadCache
     self.synapseType = synapseType
 
@@ -82,11 +82,12 @@ class OptimiseSynapses(object):
       self.loadParameterCache()
     else:
       self.parameterCache = dict([])
-      
-    self.hFile = h5py.File(fileName,"r")
-    # self.hFile.swmr_mode = True # Allow multiple reads from h5py file
+
+    if(fileName is not None):
+      self.hFile = h5py.File(fileName,"r")
+      # self.hFile.swmr_mode = True # Allow multiple reads from h5py file
     
-    self.writeLog("Loading " + str(fileName))
+      self.writeLog("Loading " + str(fileName))
 
     if(self.role == "master"):
       self.setupParallel(dView=dView)
@@ -345,13 +346,23 @@ class OptimiseSynapses(object):
     cellType = self.getCellType(cellID)
     if(not prettyPlot):
       titleStr = cellType + " " + str(cellID)
-      titleStr += "\nU=%.3g, tauR=%.3g, tauF=%.3g, tau=%.3g,\ncond=%.3g, nmda_ratio=%.3g" \
-        % (params["U"],
-           params["tauR"],
-           params["tauF"],
-           params["tau"],
-           params["cond"],
-           params["nmda_ratio"])
+
+      if("nmda_ratio" in params):
+        titleStr += "\nU=%.3g, tauR=%.3g, tauF=%.3g, tau=%.3g,\ncond=%.3g, nmda_ratio=%.3g" \
+          % (params["U"],
+             params["tauR"],
+             params["tauF"],
+             params["tau"],
+             params["cond"],
+             params["nmda_ratio"])
+      else:
+        titleStr += "\nU=%.3g, tauR=%.3g, tauF=%.3g, tau=%.3g,\ncond=%.3g" \
+          % (params["U"],
+             params["tauR"],
+             params["tauF"],
+             params["tau"],
+             params["cond"])
+        
 
       plt.title(titleStr)
 
@@ -643,7 +654,7 @@ class OptimiseSynapses(object):
     freq = 1.0/(pTime[1]-pTime[0])
     pWindow = 1.0/(2*freq)*np.ones(pTime.shape)
     pWindow[-1] *= 5
-
+    
     peakInfo = self.findPeaksHelper(cellID=cellID,
                                     dataType=dataType,
                                     pTime=pTime,
@@ -658,7 +669,7 @@ class OptimiseSynapses(object):
     freq = 1.0/(stimTime[1]-stimTime[0])
     pWindow = 1.0/(2*freq)*np.ones(stimTime.shape)
     pWindow[-1] *= 5
-
+    
     peakInfo = self.findPeaksHelper(pTime=stimTime,
                                     pWindow=pWindow,
                                     time=time,
@@ -720,12 +731,22 @@ class OptimiseSynapses(object):
       tEnd = pt + pw
 
       tIdx = np.where(np.logical_and(tStart <= time,time <= tEnd))[0]
-      pIdx = tIdx[np.argmax(volt[tIdx])]
 
+      if(self.synapseType == "glut"):
+        pIdx = tIdx[np.argmax(volt[tIdx])]
+      elif(self.synapseType == "gaba"):
+        # We assume that neuron is more depolarised than -65, ie gaba is
+        # also depolarising
+        pIdx = tIdx[np.argmax(volt[tIdx])]
+      else:
+        self.writeLog("Unknown synapse type : " +str(self.synapseType))
+        import pdb
+        pdb.set_trace()
+        
       peakIdx.append(int(pIdx))
       peakTime.append(time[pIdx])
       peakVolt.append(volt[pIdx])
-    
+      
     # Save to cache -- obs peakVolt is NOT amplitude of peak, just volt
 
     peakDict = { "peakIdx" : np.array(peakIdx),
@@ -758,13 +779,16 @@ class OptimiseSynapses(object):
         if(idxB < len(peakIdx) -1):        
           p0d = [0.06,0.05,-0.074]
         else:
-          p0d = [1e-5,100,-0.074]          
+          p0d = [1e-5,100,-0.074]
+
+          if(self.synapseType == "gaba"):
+            p0d = [1e-8,10000,-0.0798]  
       else:
         # In some cases for GABA we had really fast decay back
         if(idxB < len(peakIdx) -1):        
-          p0d = [-0.06,0.05,-0.06]
+          p0d = [-0.06,0.05,-0.0798]
         else:
-          p0d = [-1e-5,1e5,-0.06]
+          p0d = [-1e-5,1e5,-0.0798]
 
       idxA = idxB -1
 
@@ -920,6 +944,8 @@ class OptimiseSynapses(object):
         plt.figure()
         plt.plot(smoothExpTrace[idxMax:])
         plt.plot(simTrace[idxMax:])
+        plt.ion()
+        plt.show()
         import pdb
         pdb.set_trace()
       
@@ -954,7 +980,7 @@ class OptimiseSynapses(object):
 
     idx = np.linspace(0,len(smoothTrace)-1,num=nParts,dtype=int)
     
-    return smoothTrace[idx], t
+    return smoothTrace[idx], t[idx]
   
   ############################################################################
   
@@ -962,13 +988,18 @@ class OptimiseSynapses(object):
                                pars,
                                tSpikes):
 
-    assert self.synapseType == "glut", \
-      "nmda_ratio is only valid for glutamate synapses, for GABA, think again!"
-    
-    U,tauR,tauF,tauRatio,cond,nmdaRatio = pars
-    tau = tauR*tauRatio
-
-    params = { "nmda_ratio" : nmdaRatio }
+    if(self.synapseType == "glut"):
+      U,tauR,tauF,tauRatio,cond,nmdaRatio = pars
+      tau = tauR*tauRatio
+      params = { "nmda_ratio" : nmdaRatio }
+    elif(self.synapseType == "gaba"):
+      U,tauR,tauF,tauRatio,cond = pars
+      tau = tauR*tauRatio
+      params = {}
+    else:
+      self.writeLog("Unknown synapse type: " + str(self.synapseType))
+      import pdb
+      pdb.set_trace()
     
     peakHeights,tSim,vSim = self.synapseModelNeuron(tSpikes,U,
                                                     tauR,tauF,cond,tau,
@@ -1069,7 +1100,7 @@ class OptimiseSynapses(object):
       modelBounds = ([1e-3,1e-4,1e-4,0, 1e-5,2],
                      [1.0,2,2,0.9999999,1e-1,8])
     else:
-      print("Unknown celltype in " + str(cellType))
+      self.writeLog("Unknown celltype in " + str(cellType))
       import pdb
       pdb.set_trace()
 
@@ -1170,19 +1201,24 @@ class OptimiseSynapses(object):
                                                  time=time,
                                                  startTime = self.decayStartFit,
                                                  endTime = self.decayEndFit)
-                      
+
         import pyswarms as ps
         from pyswarms.utils.functions import single_obj as fx
 
         options = {"c1":0.5, "c2":0.3, "w":0.9} # default
         
-        # Increased from 200 to 300
-        optimizer = ps.single.GlobalBestPSO(n_particles=400,
-                                            dimensions=6,
+        # Increased from 200 to 300, to 400
+        if(self.synapseType == "glut"):
+          nPart = 400
+        else:
+          nPart = 50
+          
+        optimizer = ps.single.GlobalBestPSO(n_particles=nPart,
+                                            dimensions=len(modelBounds[0]),
                                             options=options,
                                             bounds=modelBounds)
 
-        # Set iter to 50
+        # Set iter to 50, lowered to 10
         cost, fitParams = optimizer.optimize(self.neuronSynapseSwarmHelper,
                                              iters=10,
                                              tSpikes = stimTime,
@@ -1195,10 +1231,16 @@ class OptimiseSynapses(object):
         # tau < tauR, so we use tauRatio for optimisation
         fitParams[3] *= fitParams[1] # tau = tauR * tauRatio
 
-        self.writeLog("Parameters: U = %.3g, tauR = %.3g, tauF = %.3g, tau = %.3g, cond = %3.g, nmda_ratio = %.3g" % tuple(fitParams))
-        
+        if(len(fitParams) == 6):
+          self.writeLog("Parameters: U = %.3g, tauR = %.3g, tauF = %.3g, tau = %.3g, cond = %3.g, nmda_ratio = %.3g" % tuple(fitParams))
+        elif(len(fitParams) == 5):
+          self.writeLog("Parameters: U = %.3g, tauR = %.3g, tauF = %.3g, tau = %.3g, cond = %3.g" % tuple(fitParams))
+        else:
+          self.writeLog("Unknown parameter format: " + str(fitParams))
+          import pdb
+          pdb.set_trace()
       else:
-        print("NO METHOD SELECTED!!!")
+        self.writeLog("NO METHOD SELECTED!!!")
         exit(-1)
         
       self.writeLog("peakHeight = " + str(peakHeight))
@@ -1212,13 +1254,27 @@ class OptimiseSynapses(object):
       pdb.set_trace()
 
 
-    self.addParameterCache(cellID,"synapse", \
-                           { "U" : fitParams[0],
-                             "tauR" : fitParams[1],
-                             "tauF" : fitParams[2],
-                             "tau"  : fitParams[3],
-                             "cond" : fitParams[4],
-                             "nmda_ratio" : fitParams[5] })
+    if(len(fitParams) == 6):
+      self.addParameterCache(cellID,"synapse", \
+                             { "U" : fitParams[0],
+                               "tauR" : fitParams[1],
+                               "tauF" : fitParams[2],
+                               "tau"  : fitParams[3],
+                               "cond" : fitParams[4],
+                               "nmda_ratio" : fitParams[5] })
+    elif(len(fitParams) == 5):
+      self.addParameterCache(cellID,"synapse", \
+                             { "U" : fitParams[0],
+                               "tauR" : fitParams[1],
+                               "tauF" : fitParams[2],
+                               "tau"  : fitParams[3],
+                               "cond" : fitParams[4] })
+    else:
+      print("Unknown fitParams format, unable to save paramters = " \
+            +str(fitParams))
+      import pdb
+      pdb.set_trace()
+      
 
     self.addParameterCache(cellID,"meta", \
                            { "type" : self.getCellType(cellID),
@@ -1451,9 +1507,9 @@ class OptimiseSynapses(object):
        or inputResSteadyState > inputResMaxLimit
        or inputResSteadyState < 5e6
        or tauDelta > 5):
-      print("Bad values for input resistance and/or tauDelta for " \
-            + str(dataType) + " ID = " +str(cellID) \
-            + "(" + str(self.getCellType(cellID)) + ")")
+      self.writeLog("Bad values for input resistance and/or tauDelta for " \
+                    + str(dataType) + " ID = " +str(cellID) \
+                    + "(" + str(self.getCellType(cellID)) + ")")
       goodDataFlag = False
       
     return goodDataFlag
@@ -1642,7 +1698,7 @@ if __name__ == "__main__":
   # "DATA/Yvonne2019/M1RH_Analysis_190925.h5"
   ly = OptimiseSynapses(args.file,synapseType=args.st,dView=dView,role="master",
                         logFileName=logFileName,optMethod=optMethod)
-
+  
   if(args.plot or args.prettyplot):
 
     if(args.prettyplot):
