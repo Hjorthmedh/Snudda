@@ -513,13 +513,38 @@ class SnuddaLoad(object):
     
     return files[idx[-1]]
   
+  ############################################################################
+
+  # Returns cellID of all neurons of neuronType
+  
+  def getCellIDofType(self,neuronType,nNeurons=None):
+
+    
+    cellID = [x["neuronID"] for x in self.data["neurons"] \
+              if x["type"] == neuronType]
+
+    
+    if(nNeurons is not None):
+      keepIdx = np.random.permutation(len(cellID))[:nNeurons]
+      cellID = np.array([cellID[x] for x in keepIdx])
+
+      if(len(cellID) < nNeurons):
+        print("getCellIDofType: wanted " + str(nNeurons) \
+              + " only got " + str(len(cellID)) \
+              + " neurons of type " + str(neuronType))
+      
+    # Double check that all of the same type
+    assert np.array([self.data["neurons"][x]["type"] == neuronType \
+                     for x in cellID]).all()
+
+    return cellID
   
   ############################################################################
   
   
 if __name__ == "__main__":
   if(len(sys.argv) > 1):
-    nl = SnuddaLoad(sys.argv[1]).data
+    nl = SnuddaLoad(sys.argv[1]) 
   else:
     print("No argument given, using a test file")
     nl = SnuddaLoad("save/network-connect-voxel-pruned-synapse-file-413.hdf5")
@@ -527,6 +552,10 @@ if __name__ == "__main__":
   #syn = nl.findSynapses(22,5)
 
   #syn2 = nl.findSynapses(postID=5) 
-    
+
+
+  
+  cellID = nl.getCellIDofType(neuronType="FSN")
+  
   import pdb
   pdb.set_trace()

@@ -253,8 +253,10 @@ if __name__ == "__main__":
   
   osp.parallelOptimiseCells("planert",
                             np.arange(0,len(osp.nameList)))
+
+  ops.saveParameterCache()
   
   # osp.optimiseCell("planert",0)
 
-  import pdb
-  pdb.set_trace()
+  #import pdb
+  #pdb.set_trace()

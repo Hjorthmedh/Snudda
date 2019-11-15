@@ -165,7 +165,8 @@ class SnuddaSimulate(object):
                   + ": Loading network from " + networkFile)
 
     from snudda_load import SnuddaLoad
-    self.network_info = SnuddaLoad(networkFile).data
+    self.snuddaLoader = SnuddaLoad(networkFile)
+    self.network_info = self.snuddaLoader.data
     
     self.synapses = self.network_info["synapses"]
     self.gapJunctions = self.network_info["gapJunctions"]
@@ -1359,6 +1360,15 @@ class SnuddaSimulate(object):
     return cID
     
   
+  ############################################################################
+
+  def addRecordingOfType(self,neuronType,nNeurons=None):
+
+    cellID = self.snuddaLoader.getCellIDofType(neuronType=neuronType,
+                                               nNeurons=nNeurons)
+
+    self.addRecording(cellID)
+    
   ############################################################################
   
   def addRecording(self,cellID=None,sideLen=None):
