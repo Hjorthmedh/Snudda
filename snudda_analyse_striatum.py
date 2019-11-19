@@ -39,7 +39,7 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
   # Validation. How well do the synapse location for dSPN and iSPN match
   # the experimental data from Straub,..., Sabatini 2016
   
-  def plotFSLTScumDist(self):
+  def plotFSLTScumDist(self,plotFS=True,plotLTS=True):
 
     pairListList = [[("FSN","dSPN"),("LTS","dSPN")],
                     [("FSN","iSPN"),("LTS","iSPN")]]
@@ -48,18 +48,32 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
     figureColourList = [(6./255,31./255,85./255),
                          (150./255,63./255,212./255)]
     fillRange = [[0,100e-6],[50e-6,250e-6]]
-                 
-    
-    for pairList,figName in zip(pairListList,figureNameList):
 
-      plt.rcParams.update({'font.size': 16})      
+    plotFlag = (plotFS,plotLTS)
+
+    assert plotFS or plotLTS, "You must plot either FS or LTS, or both"
+    
+    if(not plotFS):
+      figureNameList = [x.replace("FSN-and-","") for x in figureNameList]
+    if(not plotLTS):
+      figureNameList = [x.replace("and-LTS-","") for x in figureNameList]
+    
+    for pairList,figName \
+        in zip(pairListList,figureNameList):
+
+      
+      plt.rcParams.update({'font.size': 22})      
       fig = plt.figure()
       ax = plt.subplot(111)
       #fig.tight_layout()
       fig.subplots_adjust(bottom=0.15,left=0.15)
       
-      for pair,figCol,fillR in zip(pairList,figureColourList,fillRange):
+      for pair,figCol,fillR,plotMeFlag \
+          in zip(pairList,figureColourList,fillRange,plotFlag):
 
+        if(not plotMeFlag):
+          continue
+        
         pairID = tuple([self.allTypes.index(x) for x in pair])
                 
         cumDist = np.cumsum(self.dendPositionBin[pairID])  \
@@ -86,9 +100,15 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
         
         ax.set_xlabel('Distance from soma ($\mu$m)')
         ax.set_ylabel('Cumulative distrib.')
-        ax.set_title("Synapse locations onto " + pair[1])
-        
-      ax.legend(loc="lower right")
+
+        if(plotFS and plotLTS):
+          ax.set_title("Synapse locations onto " + pair[1])
+        else:
+          ax.set_title("Synapses " + pair[0] + " to " + pair[1])
+
+      if(plotFS and plotLTS):
+        #Only do legend if both are in figure
+        ax.legend(loc="lower right")
         
       plt.ion()
       plt.show()
@@ -134,7 +154,10 @@ if __name__ == "__main__":
   #pdb.set_trace()
 
   nas.plotFSLTScumDist()
+  nas.plotFSLTScumDist(plotFS=False)
+  nas.plotFSLTScumDist(plotLTS=False)
 
+  
   nas.plotNumSynapsesPerPair("dSPN","ChIN")
   nas.plotNumSynapsesPerPair("iSPN","ChIN")
   nas.plotNumSynapsesPerPair("LTS","ChIN")

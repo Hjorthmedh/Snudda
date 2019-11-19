@@ -585,8 +585,8 @@ class SnuddaInit(object):
     pfFSFS = None # Gittis 2010?
     pfFSLTS = None
 
-    pfFSdSPN = "synapses/trace_table.txt-FD-model-parameters.json"
-    pfFSiSPN = "synapses/trace_table.txt-FI-model-parameters.json"
+    pfFSdSPN = "synapses/v1/trace_table.txt-FD-model-parameters.json"
+    pfFSiSPN = "synapses/v1/trace_table.txt-FI-model-parameters.json"
 
     
     # Increased from a3=0.1 to a3=0.7 to match FS-FS connectivity from Gittis
@@ -669,8 +669,8 @@ class SnuddaInit(object):
     P12withinChannel = MSP12 * self.channelMSNmodifier
     P12betweenChannel = MSP12 *(1 +(1-self.channelMSNmodifier) / self.nChannels)
 
-    pfdSPNdSPN = "synapses/trace_table.txt-DD-model-parameters.json"
-    pfdSPNiSPN = "synapses/trace_table.txt-DI-model-parameters.json"
+    pfdSPNdSPN = "synapses/v1/trace_table.txt-DD-model-parameters.json"
+    pfdSPNiSPN = "synapses/v1/trace_table.txt-DI-model-parameters.json"
     pfdSPNChIN = None
     
     self.addNeuronTarget(neuronName="dSPN",
@@ -739,8 +739,8 @@ class SnuddaInit(object):
     P22withinChannel = MSP22 * self.channelMSNmodifier
     P22betweenChannel = MSP22 *(1 +(1-self.channelMSNmodifier) / self.nChannels)
 
-    pfiSPNdSPN = "synapses/trace_table.txt-ID-model-parameters.json"
-    pfiSPNiSPN = "synapses/trace_table.txt-II-model-parameters.json"    
+    pfiSPNdSPN = "synapses/v1/trace_table.txt-ID-model-parameters.json"
+    pfiSPNiSPN = "synapses/v1/trace_table.txt-II-model-parameters.json"    
     pfiSPNChIN = None
 
     
@@ -811,7 +811,7 @@ class SnuddaInit(object):
                          targetName="dSPN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=1.0, softMax=20, mu2=15,a3=0.1,
+                         f1=1.0, softMax=15, mu2=15,a3=0.1,
                          conductance=ChINgGABA,
                          parameterFile=pfChINdSPN,
                          modFile="tmGabaA",
@@ -823,7 +823,7 @@ class SnuddaInit(object):
                          targetName="iSPN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=1.0, softMax=20, mu2=10,a3=0.1,
+                         f1=1.0, softMax=15, mu2=10,a3=0.1,
                          conductance=ChINgGABA,
                          parameterFile=pfChINiSPN,
                          modFile="tmGabaA",
@@ -836,7 +836,7 @@ class SnuddaInit(object):
                          targetName="LTS",
                          connectionType="ACh",
                          distPruning=None,
-                         f1=1.0, softMax=20, mu2=10,a3=None,
+                         f1=1.0, softMax=15, mu2=10,a3=None,
                          conductance=ChINgACh,
                          parameterFile=pfChINLTS,
                          modFile="tmGabaA",

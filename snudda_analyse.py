@@ -702,7 +702,7 @@ class SnuddaAnalyse(object):
              density=True,
              align="left")
     plt.xlabel("Number of " + connectionType)
-    plt.ylabel('Density')
+    plt.ylabel('Probability density')
     #plt.title(preType + " to " + postType \
     #          + "(M=" + str(maxSynapses) \
     #          + ",m=" + '%.1f' % meanSynapses \
@@ -1900,7 +1900,9 @@ class SnuddaAnalyse(object):
         matplotlib.rcParams.update({'font.size': 22})
         
         plt.figure()
-        plt.plot(self.dendPositionEdges[:endIdx]*1e6, cumDist[:endIdx])
+        plt.plot(self.dendPositionEdges[:endIdx]*1e6,
+                 cumDist[:endIdx],
+                 linewidth=3)
         plt.xlabel('Distance from soma')
         plt.ylabel('Cumulative distrib.')
         plt.title('Synapses ' + self.allTypes[preType] \

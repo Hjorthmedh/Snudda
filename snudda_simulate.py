@@ -242,8 +242,12 @@ class SnuddaSimulate(object):
         # Save data as a list, we dont need the keys
         parData = []
         for pd in parDataDict:
-          parData.append(parDataDict[pd])
-        
+          if("synapse" in parDataDict[pd]):
+            parData.append(parDataDict[pd]["synapse"])
+          else:
+            self.writeLog("WARNING: Old data format in parameter file " \
+                          + str(parFile))
+            parData.append(parDataDict[pd])
       else:
         parData = None
 
@@ -1195,13 +1199,18 @@ class SnuddaSimulate(object):
           # Get the modifications of synapse parameters, specific to
           # this synapse
           if(paramList is not None and len(paramList) > 0):
-            synParams = paramList[paramID % len(paramList)]
+            synParams = paramList[paramID % len(paramList)]["synapse"]
 
             for par in synParams:
               if(par == "expdata"):
                 # Not a parameter
                 continue
 
+              if(par == "cond"):
+                # Ignoring cond value specified for synapse, using the
+                # one specified in the input information instead
+                continue
+              
               try:
 
                 evalStr = "syn." + par + "=" + str(synParams[par])
@@ -1377,6 +1386,8 @@ class SnuddaSimulate(object):
     if(cellID is None):
       cellID = self.neuronID
 
+    # Does nothing if sideLen is not specified (otherwise, give neurons in
+    # the centre)
     cellID = self.centreNeurons(sideLen=sideLen,neuronID=cellID)
 
     cells = dict((k,self.neurons[k]) \
@@ -1727,7 +1738,8 @@ if __name__ == "__main__":
   sim.addExternalInput()
 
   if(voltFile is not None):
-    sim.addRecording(sideLen=None) # Side len let you record from a subset
+    #sim.addRecording(sideLen=None) # Side len let you record from a subset
+    sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
 
   tSim = args.time*1000 # Convert from s to ms for Neuron simulator
   
