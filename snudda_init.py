@@ -643,7 +643,7 @@ class SnuddaInit(object):
                            targetName="FSN",
                            connectionType="GapJunction",
                            distPruning=None,
-                           f1=None, softMax=10, mu2=2, a3=0.7,
+                           f1=None, softMax=10, mu2=2, a3=0.9,
                            conductance=FSgGapJunction,
                            channelParamDictionary=None)
 
@@ -823,7 +823,7 @@ class SnuddaInit(object):
                          targetName="iSPN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=1.0, softMax=15, mu2=10,a3=0.1,
+                         f1=1.0, softMax=12, mu2=10,a3=0.1,
                          conductance=ChINgGABA,
                          parameterFile=pfChINiSPN,
                          modFile="tmGabaA",
@@ -836,7 +836,7 @@ class SnuddaInit(object):
                          targetName="LTS",
                          connectionType="ACh",
                          distPruning=None,
-                         f1=1.0, softMax=15, mu2=10,a3=None,
+                         f1=1.0, softMax=12, mu2=10,a3=None,
                          conductance=ChINgACh,
                          parameterFile=pfChINLTS,
                          modFile="tmGabaA",

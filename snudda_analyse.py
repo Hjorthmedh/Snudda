@@ -605,6 +605,7 @@ class SnuddaAnalyse(object):
     
     fullFigName = self.figDir + "/" + figName + "." + figType
 
+    plt.tight_layout()
     plt.pause(0.001)
     plt.savefig(fullFigName)
 

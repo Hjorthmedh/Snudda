@@ -1225,7 +1225,7 @@ class OptimiseSynapses(object):
                                              peakHeight = peakHeight,
                                              smoothExpTrace=smoothVolt)
 
-        modelHeights,vSim,tSim = \
+        modelHeights,tSim,vSim = \
           self._neuronSynapseSwarmHelper(fitParams,stimTime)
         
         # tau < tauR, so we use tauRatio for optimisation
