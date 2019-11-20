@@ -162,7 +162,7 @@ class Planert2010part2(object):
     # Pyswarm options
     options = {"c1":0.5, "c2":0.3, "w":0.9} # default
 
-    nParticles = 100
+    nParticles = 200
     nIterations = 10
 
     optimizer = ps.single.GlobalBestPSO(n_particles=nParticles,
@@ -574,5 +574,6 @@ if __name__ == "__main__":
   parser.add_argument("dataType",choices=["DD","ID","DI","II","FI","FD"])
   args = parser.parse_args()
   
-  pp = Planert2010part2(dataType=args.dataType,cellID=0)
+  pp = Planert2010part2(dataType=args.dataType,cellID=None)
+  #pp = Planert2010part2(dataType=args.dataType,cellID=0)
           

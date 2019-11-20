@@ -585,8 +585,10 @@ class SnuddaInit(object):
     pfFSFS = None # Gittis 2010?
     pfFSLTS = None
 
-    pfFSdSPN = "synapses/v1/trace_table.txt-FD-model-parameters.json"
-    pfFSiSPN = "synapses/v1/trace_table.txt-FI-model-parameters.json"
+    #pfFSdSPN = "synapses/v1/trace_table.txt-FD-model-parameters.json"
+    #pfFSiSPN = "synapses/v1/trace_table.txt-FI-model-parameters.json"
+    pfFSdSPN = "synapses/v2/PlanertFitting-FD-tmgaba-fit.json"
+    pfFSiSPN = "synapses/v2/PlanertFitting-FI-tmgaba-fit.json"
 
     
     # Increased from a3=0.1 to a3=0.7 to match FS-FS connectivity from Gittis
@@ -669,8 +671,10 @@ class SnuddaInit(object):
     P12withinChannel = MSP12 * self.channelMSNmodifier
     P12betweenChannel = MSP12 *(1 +(1-self.channelMSNmodifier) / self.nChannels)
 
-    pfdSPNdSPN = "synapses/v1/trace_table.txt-DD-model-parameters.json"
-    pfdSPNiSPN = "synapses/v1/trace_table.txt-DI-model-parameters.json"
+    #pfdSPNdSPN = "synapses/v1/trace_table.txt-DD-model-parameters.json"
+    #pfdSPNiSPN = "synapses/v1/trace_table.txt-DI-model-parameters.json"
+    pfdSPNdSPN = "synapses/v2/PlanertFitting-DD-tmgaba-fit.json"
+    pfdSPNiSPN = "synapses/v2/PlanertFitting-DI-tmgaba-fit.json"
     pfdSPNChIN = None
     
     self.addNeuronTarget(neuronName="dSPN",
@@ -739,8 +743,8 @@ class SnuddaInit(object):
     P22withinChannel = MSP22 * self.channelMSNmodifier
     P22betweenChannel = MSP22 *(1 +(1-self.channelMSNmodifier) / self.nChannels)
 
-    pfiSPNdSPN = "synapses/v1/trace_table.txt-ID-model-parameters.json"
-    pfiSPNiSPN = "synapses/v1/trace_table.txt-II-model-parameters.json"    
+    pfiSPNdSPN = "synapses/v2/PlanertFitting-ID-tmgaba-fit.json"
+    pfiSPNiSPN = "synapses/v2/PlanertFitting-II-tmgaba-fit.json"
     pfiSPNChIN = None
 
     
