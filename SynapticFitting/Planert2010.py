@@ -37,11 +37,11 @@ class NumpyEncoder(json.JSONEncoder):
 class Planert2010(object):
 
 
-  def __init__(self,parType,num=10):
+  def __init__(self,parType,preNum=1000000,maxNum=100):
     
 
     self.defExpData()
-    pars= self.pickRandomParam(parType=parType,num=num)
+    pars= self.pickRandomParam(parType=parType,num=preNum)
     amps = None
 
     if(True):
@@ -51,11 +51,22 @@ class Planert2010(object):
     amps = self.checkDataMatch(parType=parType,pars=pars,amps=amps)
     
     for ctr in range(0,3):
+      if(False):
+        # This tries to prune the distribution of the variables back to
+        # the range
+        pars,amps = self.pruneParameters(parType=parType,pars=pars,amps=amps)
+        self.checkDataMatch(parType=parType,pars=pars,amps=amps)
+
       pars,amps = self.pruneData(parType=parType,pars=pars,amps=amps)
       self.checkDataMatch(parType=parType,pars=pars,amps=amps)
+      self.plotModelParams(parType,pars)
 
+
+    pars,amps = self.maxNumParams(pars,amps,maxNum=maxNum)
+      
     self.saveData(parType,pars,amps)
 
+    self.checkDataMatch(parType=parType,pars=pars,amps=amps)    
     self.plotModelParams(parType,pars)
       
 
@@ -108,7 +119,7 @@ class Planert2010(object):
     keepFlag = np.ones((nLeft,),dtype=bool)
     done = False
 
-    idxRand = np.random.permutation(np.where(keepFlag)[0])
+    idxRand = np.random.permutation(nLeft)
 
     for idx in idxRand:
       pprBin = pprIdx[idx]
@@ -118,7 +129,7 @@ class Planert2010(object):
       
       #if(pprP > pprDensity[pprBin] or rtrP > rtrDensity[rtrBin] \
       #   or pprBin == 0 or rtrBin == 0):
-      if(pprP + rtrP > pprDensity[pprBin] + rtrDensity[rtrBin] \
+      if(pprP/pprDensity[pprBin] + rtrP/rtrDensity[rtrBin] > 2  \
          or pprBin == 0 or rtrBin == 0 \
          or pprDensity[pprBin] < 1e-4 \
          or rtrDensity[rtrBin] < 1e-4):
@@ -133,26 +144,114 @@ class Planert2010(object):
     pars["dtau"] = pars["dtau"][keepFlag]    
     pars["amp"]  = pars["amp"][keepFlag]    
 
-    print("Reduced " + str(len(keepFlag)) + " down to " + str(sum(keepFlag)))
+    print("(Peaks) Reduced " + str(len(keepFlag)) + " down to " + str(sum(keepFlag)))
     
     return pars,amps[keepFlag,:]
 
   ############################################################################
 
+  def maxNumParams(self,pars,amps,maxNum=100):
+
+    nParSets = len(pars["u"])
+    if(nParSets < maxNum):
+      return pars,amps
+
+    print("Reducing from " + str(nParSets) + " down to " \
+          + str(maxNum) + " parameter sets")
+    
+    pars["u"] = pars["u"][:maxNum]
+    
+    pars["ftau"] = pars["ftau"][:maxNum]
+    pars["dtau"] = pars["dtau"][:maxNum]    
+    pars["amp"]  = pars["amp"][:maxNum]    
+
+    return pars,amps[:maxNum,:]    
+  
+  ############################################################################
+
   # This prunes the parameters to get back their distribution to match
   
-  def pruneParameters(self,parType,pars):
+  def pruneParameters(self,parType,pars,amps):
 
-    (dtauMean,dtauStd) = self.conInfo[dataType]["dtau"]
-    (ftauMean,ftauStd) = self.conInfo[dataType]["ftau"]    
-    (uMean,uStd) = self.conInfo[dataType]["U"]
+    (dtauMean,dtauStd) = self.conInfo[parType]["dtau"]
+    (ftauMean,ftauStd) = self.conInfo[parType]["ftau"]    
+    (uMean,uStd) = self.conInfo[parType]["U"]
 
     uPar = pars["u"]
     dtauPar = pars["dtau"]
     ftauPar = pars["ftau"]
 
-     #!!! TODO
+    nBins = 20
     
+    uMax    = np.max(pars["u"])
+    dtauMax = np.max(pars["dtau"])
+    ftauMax = np.max(pars["ftau"])
+
+    uIdx = (nBins * pars["u"] / (uMax + 1e-6)).astype(int)
+    dtauIdx = (nBins * pars["dtau"] / (dtauMax + 1e-6)).astype(int)
+    ftauIdx = (nBins * pars["ftau"] / (ftauMax + 1e-6)).astype(int)    
+    
+    uCount = np.zeros((nBins,))
+    dtauCount = np.zeros((nBins,))
+    ftauCount = np.zeros((nBins,))    
+
+    for u,d,f in zip(uIdx,dtauIdx,ftauIdx):
+      uCount[u]  += 1
+      dtauCount[d] += 1
+      ftauCount[f] += 1
+    
+    uBinWidth = uMax/(nBins-1)
+    dtauBinWidth = dtauMax/(nBins-1)
+    ftauBinWidth = ftauMax/(nBins-1)
+
+    uCentre = uBinWidth/2 + np.arange(0,nBins)*uBinWidth
+    dtauCentre = dtauBinWidth/2 + np.arange(0,nBins)*dtauBinWidth
+    ftauCentre = ftauBinWidth/2 + np.arange(0,nBins)*ftauBinWidth    
+
+    uDensity = stats.norm.pdf(uCentre,uMean,uStd)
+    dtauDensity = stats.norm.pdf(dtauCentre,dtauMean*1e-3,dtauStd*1e-3)
+    ftauDensity = stats.norm.pdf(ftauCentre,ftauMean*1e-3,ftauStd*1e-3)    
+    
+    nLeft = len(pars["u"])
+    keepFlag = np.ones((nLeft,),dtype=bool)
+    done = False
+
+    idxRand = np.random.permutation(nLeft)
+
+    for idx in idxRand:
+      uBin = uIdx[idx]
+      dtauBin = dtauIdx[idx]
+      ftauBin = ftauIdx[idx]
+      
+      uP = uCount[uBin] / nLeft / uBinWidth
+      dtauP = dtauCount[dtauBin] / nLeft /dtauBinWidth
+      ftauP = ftauCount[ftauBin] / nLeft /ftauBinWidth      
+      
+      if(uP/uDensity[uBin] \
+         + dtauP/dtauDensity[dtauBin] \
+         + ftauP/ftauDensity[ftauBin]  > 3
+         or uDensity[uBin] < 1e-4 \
+         or dtauDensity[dtauBin] < 1e-4 \
+         or ftauDensity[ftauBin] < 1e-4):
+        keepFlag[idx] = False
+        nLeft -= 1
+        uCount[uIdx[idx]] -= 1
+        dtauCount[dtauIdx[idx]] -= 1
+        ftauCount[ftauIdx[idx]] -= 1
+
+        #import pdb
+        #pdb.set_trace()
+        
+    pars["u"]    = pars["u"][keepFlag]
+    pars["ftau"] = pars["ftau"][keepFlag]
+    pars["dtau"] = pars["dtau"][keepFlag]    
+    pars["amp"]  = pars["amp"][keepFlag]    
+
+    print("(Pars) Reduced " + str(len(keepFlag)) + " down to " + str(sum(keepFlag)))
+
+    
+    return pars,amps[keepFlag,:]
+       
     
   ############################################################################
 
@@ -450,18 +549,15 @@ class Planert2010(object):
 if __name__ == "__main__":
 
   nRuns = 1000000
+  maxNum = 50
 
-  pp = Planert2010(parType="FI",num=nRuns)
-
-  import pdb
-  pdb.set_trace()
+  pp = Planert2010(parType="FI",preNum=nRuns,maxNum=maxNum)
+  pp = Planert2010(parType="FD",preNum=nRuns,maxNum=maxNum)
   
-  pp = Planert2010(parType="FD",num=nRuns)
-  
-  pp = Planert2010(parType="DD",num=nRuns)
-  pp = Planert2010(parType="DI",num=nRuns)
-  pp = Planert2010(parType="ID",num=nRuns)
-  pp = Planert2010(parType="II",num=nRuns)  
+  pp = Planert2010(parType="DD",preNum=nRuns,maxNum=maxNum)
+  pp = Planert2010(parType="DI",preNum=nRuns,maxNum=maxNum)
+  pp = Planert2010(parType="ID",preNum=nRuns,maxNum=maxNum)
+  pp = Planert2010(parType="II",preNum=nRuns,maxNum=maxNum)  
 
   
   import pdb
