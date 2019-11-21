@@ -525,8 +525,9 @@ class SnuddaLoad(object):
 
     
     if(nNeurons is not None):
-      keepIdx = np.random.permutation(len(cellID))[:nNeurons]
-      cellID = np.array([cellID[x] for x in keepIdx])
+      #keepIdx = np.random.permutation(len(cellID))[:nNeurons]
+      #cellID = np.array([cellID[x] for x in keepIdx])
+      cellID = np.array([cellID[x] for x in range(nNeurons)])
 
       if(len(cellID) < nNeurons):
         print("getCellIDofType: wanted " + str(nNeurons) \

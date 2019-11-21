@@ -1382,8 +1382,19 @@ class SnuddaSimulate(object):
 
     cellID = self.snuddaLoader.getCellIDofType(neuronType=neuronType,
                                                nNeurons=nNeurons)
-
+    
     self.addRecording(cellID)
+  
+  ############################################################################
+
+  def recordAllIndividualCells(self,):
+
+    # get all individual cell models in the network (from config or some list)
+    
+    # randomly pick one id
+    
+    #
+    pass
     
   ############################################################################
   
@@ -1746,8 +1757,13 @@ if __name__ == "__main__":
   sim.addExternalInput()
 
   if(voltFile is not None):
-    sim.addRecording(sideLen=None) # Side len let you record from a subset
+    #sim.addRecording(sideLen=None) # Side len let you record from a subset
     #sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
+    sim.addRecordingOfType("dSPN",2)
+    sim.addRecordingOfType("iSPN",2)
+    sim.addRecordingOfType("FSN",2)
+    sim.addRecordingOfType("LTS",2)
+    sim.addRecordingOfType("ChIN",2)
 
   tSim = args.time*1000 # Convert from s to ms for Neuron simulator
   
