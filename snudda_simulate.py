@@ -1398,7 +1398,8 @@ class SnuddaSimulate(object):
     cellID = self.centreNeurons(sideLen=sideLen,neuronID=cellID)
 
     cells = dict((k,self.neurons[k]) \
-                 for k in cellID if not self.isVirtualNeuron[k])
+                 for k in cellID if (not self.isVirtualNeuron[k] \
+                                     and k in self.neuronID))
 
     if(len(self.tSave) == 0 or self.tSave is None):
       self.tSave = self.sim.neuron.h.Vector()
