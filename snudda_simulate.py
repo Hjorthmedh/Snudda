@@ -1746,8 +1746,8 @@ if __name__ == "__main__":
   sim.addExternalInput()
 
   if(voltFile is not None):
-    #sim.addRecording(sideLen=None) # Side len let you record from a subset
-    sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
+    sim.addRecording(sideLen=None) # Side len let you record from a subset
+    #sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
 
   tSim = args.time*1000 # Convert from s to ms for Neuron simulator
   
