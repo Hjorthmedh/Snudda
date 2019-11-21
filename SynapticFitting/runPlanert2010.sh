@@ -1,5 +1,5 @@
 # Create surrogate data
-python3 Planert2010.py
+#python3 Planert2010.py
 
 
 # Fit to surrogate data

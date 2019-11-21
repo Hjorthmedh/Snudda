@@ -6,7 +6,7 @@ sleep 20
 
 # simName=networks/article100000-v1
 #simName=networks/res5test
-simName=networks/article2019-v5
+simName=networks/article2019-v6
 
 if [ -d "$simName" ]; then
   echo "Directory $simName already exists!!"

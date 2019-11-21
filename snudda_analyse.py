@@ -13,6 +13,13 @@ import sys
 import json
 import pickle
 
+import matplotlib
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from mpl_toolkits.mplot3d import Axes3D
+
+
+
 from snudda_load import SnuddaLoad
 
 # !!! We need to parallelise the analysis script also!
@@ -574,8 +581,6 @@ class SnuddaAnalyse(object):
     if(False):
       
       # Debug plot
-      import matplotlib.pyplot as plt
-      from mpl_toolkits.mplot3d import Axes3D
       fig = plt.figure()
       ax = fig.add_subplot(111, projection='3d')
 
@@ -672,8 +677,6 @@ class SnuddaAnalyse(object):
     meanSynapses=float(np.sum(conMat[prePop,:][:,postPop].data))\
                    / np.sum(conMat[prePop,:][:,postPop].data!=0)
     
-    import matplotlib.pyplot as plt
-
     
     con = conMat[prePop,:][:,postPop]
 
@@ -695,7 +698,6 @@ class SnuddaAnalyse(object):
     #pdb.set_trace()
     
     plt.figure()
-    import matplotlib
     matplotlib.rcParams.update({'font.size': 22})
               
     plt.hist(existingCon,
@@ -785,9 +787,6 @@ class SnuddaAnalyse(object):
     Pcon = np.divide(countCon,countAll)
     
     # Now let's plot it
-    import matplotlib.pyplot as plt
-
-    import matplotlib
     matplotlib.rcParams.update({'font.size': 22})
     plt.figure()            
     plt.plot(dist*1e6,Pcon)
@@ -880,12 +879,10 @@ class SnuddaAnalyse(object):
                                  connectionType=connectionType)
 
     # Now let's plot it
-    import matplotlib.pyplot as plt
-    import matplotlib.patches as patches
     
     #fig = plt.figure()
     fig,ax = plt.subplots(1)
-    import matplotlib
+
     matplotlib.rcParams.update({'font.size': 24})
       
 
@@ -987,7 +984,7 @@ class SnuddaAnalyse(object):
     plt.xticks(fontsize=14, rotation=0)
     plt.yticks(fontsize=14, rotation=0)
     
-    labelSize = 16
+    labelSize = 22
     
     #if(dist3D):
     #  plt.xlabel("Distance ($\mu$m)",fontsize=labelSize)
@@ -1025,7 +1022,7 @@ class SnuddaAnalyse(object):
       
     
     plt.xlabel("Distance ($\mu$m)",fontsize=labelSize)            
-    plt.ylabel("Connection probability (%)",fontsize=labelSize)
+    plt.ylabel("Con Prob (%)",fontsize=labelSize)
 
         
     # Adjust axis if needed
@@ -1146,12 +1143,9 @@ class SnuddaAnalyse(object):
       self.connectionProbabilityChannels(preID,postID,nBins,dist3D=dist3D)
 
     # Now let's plot it
-    import matplotlib.pyplot as plt
-    import matplotlib.patches as patches
     
     #fig = plt.figure()
     fig,ax = plt.subplots(1)
-    import matplotlib
     matplotlib.rcParams.update({'font.size': 22})
       
     # Draw the curve itself
@@ -1592,11 +1586,6 @@ class SnuddaAnalyse(object):
                                               sideLen=sideLen,
                                               connectionType=connectionType)
 
-    
-
-    import matplotlib.pyplot as plt
-    import matplotlib
-
     # Plotting number of connected neighbours
     plt.figure()
     matplotlib.rcParams.update({'font.size':22})
@@ -1706,9 +1695,6 @@ class SnuddaAnalyse(object):
     assert (synapses[:,1] == neuronID).all(), "!!!! Wrong synapses extracted"
     
     neurons = dict([])
-
-    import matplotlib.pyplot as plt
-    from mpl_toolkits.mplot3d import Axes3D
     
     postNeuron = self.networkLoad.loadNeuron(neuronID)
     axis = postNeuron.plotNeuron(axis=axis,plotAxon=False, \
@@ -1867,8 +1853,6 @@ class SnuddaAnalyse(object):
 
   def plotSynapseCumDist(self):
 
-    import matplotlib.pyplot as plt
-
     #import pdb
     #pdb.set_trace()
     
@@ -1897,7 +1881,6 @@ class SnuddaAnalyse(object):
         preType = pair[0]
         postType = pair[1]
 
-        import matplotlib
         matplotlib.rcParams.update({'font.size': 22})
         
         plt.figure()
@@ -1942,8 +1925,6 @@ class SnuddaAnalyse(object):
     if(sideLen is None):
       sideLen = self.sideLen
     
-    import matplotlib.pyplot as plt
-
     #import pdb
     #pdb.set_trace()
 
@@ -2143,10 +2124,6 @@ class SnuddaAnalyse(object):
         virtSyn[nType] = [synMat]
       else:
         virtSyn[nType].append(synMat)
-
-    import matplotlib
-    import matplotlib.pyplot as plt
-
     
     for axonType in virtSyn:
       plt.figure()
@@ -2456,10 +2433,6 @@ class SnuddaAnalyse(object):
       
     maxDist = np.nanmax(nearestDist)
     
-      
-    import matplotlib.pyplot as plt
-    import matplotlib
-
     plt.figure()
     matplotlib.rcParams.update({"font.size":22})
 
@@ -2542,9 +2515,6 @@ class SnuddaAnalyse(object):
     nnDist = nnDist[nnDist < np.inf] * 1e6
     maxDist = max(nnDist)
         
-    import matplotlib.pyplot as plt
-    import matplotlib
-
     plt.figure()
     matplotlib.rcParams.update({"font.size":22})
 

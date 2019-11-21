@@ -880,8 +880,8 @@ class SnuddaSimulate(object):
 
       parSet = parData[parID]
       for par in parSet:
-        if(par == "expdata"):
-          # Not a parameter
+        if(par == "expdata" or par == "cond"):
+          # expdata is not a parameter, and cond we take from synapse matrix
           continue
         
         try:
@@ -1199,7 +1199,14 @@ class SnuddaSimulate(object):
           # Get the modifications of synapse parameters, specific to
           # this synapse
           if(paramList is not None and len(paramList) > 0):
-            synParams = paramList[paramID % len(paramList)]["synapse"]
+            try:
+              synParams = paramList[paramID % len(paramList)]["synapse"]
+            except:
+              import traceback
+              tstr = traceback.format_exc()
+              print(tstr)
+              import pdb
+              pdb.set_trace()
 
             for par in synParams:
               if(par == "expdata"):

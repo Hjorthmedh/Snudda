@@ -13,8 +13,8 @@ if __name__ == "__main__":
   #simName = "networks/twoFS"
   #simName = "networks/FSmorphTest4"
   #simName = "networks/3types-v2"
-  #simName = "networks/RobertV3"
-  simName = "networks/IlariaLTS-v2"
+  simName = "networks/RobertV4"
+
   
   cnc = SnuddaInit(structDef={},configName=None,nChannels=1)
   #cnc.defineStriatum(nMSD1=4,nMSD2=4,nFS=4,nLTS=1,nChIN=1)
@@ -58,6 +58,6 @@ if __name__ == "__main__":
   print("Now run:\n./snudda.py place " + simName)
   print("./snudda.py detect " + simName)
   print("./snudda.py prune " + simName)
-  print("./snudda.py input " + simName + " --input config/input-tinytest.json")
+  print("./snudda.py input " + simName + " --input config/input-tinytest-v4.json")
   print("./snudda.py simulate " + simName \
         + " --voltOut " + simName + "/volt-out.csv --time 10.0")
