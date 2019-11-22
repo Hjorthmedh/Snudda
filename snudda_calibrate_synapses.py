@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 class SnuddaCalibrateSynapses():
 
-  def __init__(self,networkFile,preType,postType,curInj=2.5e-9,logFile=None):
+  def __init__(self,networkFile,preType,postType,curInj=10e-9,logFile=None):
 
     if(os.path.isdir(networkFile)):
       self.networkFile = networkFile + "/network-pruned-synapses.hdf5"
@@ -25,7 +25,7 @@ class SnuddaCalibrateSynapses():
           + " to " + postType + "synapses")
 
     self.injSpacing = 0.5
-    self.injDuration = 2e-3
+    self.injDuration = 1e-3
 
     # Voltage file
     self.voltFile = os.path.dirname(networkFile) \
@@ -156,9 +156,10 @@ class SnuddaCalibrateSynapses():
     # Now we have all synapse deflections in synapseData
     plt.figure()
     for t,v in synapseData:
-      plt.plot((t-t[0])*1e3,v*1e3,color="black")
+      plt.plot((t-t[0])*1e3,(v-v[0])*1e3,color="black")
     plt.xlabel("Time (ms)")
     plt.ylabel("Voltage (mV)")
+    plt.title(str(len(synapseData)) + " traces")
     plt.ion()
     plt.show()
     plt.savefig(traceFig)
@@ -177,7 +178,8 @@ class SnuddaCalibrateSynapses():
     plt.show()
     plt.savefig(histFig)
     
-    
+    import pdb
+    pdb.set_trace()
 
 if __name__ == "__main__":
 

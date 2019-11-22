@@ -22,7 +22,7 @@ if __name__ == "__main__":
   #cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=1000,nLTS=0,nChIN=0)
   #cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=100,nLTS=0,nChIN=0)
   #cnc.defineStriatum(nMSD1=100,nMSD2=100,nFS=100,nLTS=0,nChIN=0)
-  cnc.defineStriatum(nMSD1=5,nMSD2=5,nFS=5,nLTS=5,nChIN=5)  
+  cnc.defineStriatum(nMSD1=20,nMSD2=20,nFS=5,nLTS=0,nChIN=0)  
   #cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=0,nLTS=10,nChIN=0)
   configName= simName + "/network-config.json"
 

@@ -1663,6 +1663,10 @@ class SnuddaSimulate(object):
 
   def addCurrentInjection(self,neuronID,startTime,endTime,amplitude):
 
+    if neuronID not in self.neuronID:
+      # The neuron ID does not exist on this worker
+      return
+    
     assert endTime > startTime, \
       "addCurrentInection: End time must be after start time"
     
