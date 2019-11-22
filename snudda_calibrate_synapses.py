@@ -173,8 +173,8 @@ class SnuddaCalibrateSynapses():
       amp[i] = v[np.argmax(np.abs(v-v[0]))]-v[0]
 
     plt.figure()
-    plt.hist(amp)
-    plt.xlabel("Voltage deflection")
+    plt.hist(amp*1e3)
+    plt.xlabel("Voltage deflection (mV)")
     plt.show()
     plt.savefig(histFig)
     
