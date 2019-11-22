@@ -74,7 +74,9 @@ class SnuddaSimulate(object):
         
     self.writeLog("Using networkFile: " + str(networkFile))
     self.writeLog("Using inputFile: " + str(inputFile))
-    self.writeLog("Using logFile: " + str(self.logFile.name))
+    
+    if(self.logFile is not None):
+      self.writeLog("Using logFile: " + str(self.logFile.name))
                   
       
     
@@ -98,6 +100,7 @@ class SnuddaSimulate(object):
     
     self.netConList = [] # Avoid premature garbage collection
     self.synapseList = []
+    self.iStim = []
     self.gapJunctionList = []
     self.externalStim = dict([])
     self.tSave = []
@@ -1474,7 +1477,13 @@ class SnuddaSimulate(object):
 
   ############################################################################
 
-  def writeSpikes(self,outputFile='save/network-spikes.txt'):
+  def writeSpikes(self,outputFile=None):
+
+    if(outFile is None):
+      outFile = self.getVoltFileName()
+
+    self.writeLog("Writing voltage data to " + outFile)
+      
     for i in range(int(self.pc.nhost())):
       self.pc.barrier() # sync all processes
       if(i == int(self.pc.id())):
@@ -1652,6 +1661,28 @@ class SnuddaSimulate(object):
         
 ############################################################################
 
+  def addCurrentInjection(self,neuronID,startTime,endTime,amplitude):
+
+    assert endTime > startTime, \
+      "addCurrentInection: End time must be after start time"
+    
+    curStim = self.sim.neuron.h.IClamp(0.5,self.neurons[neuronID].icell.soma[0])
+    curStim.delay = startTime*1e3
+    curStim.dur = (endTime-startTime)*1e3
+    curStim.amp = amplitude*1e9 # What is units of amp?? nA??
+
+    self.iStim.append(curStim)
+
+  ############################################################################
+
+  def getVoltFileName(self):
+
+    voltFile = os.path.basename(self.networkFile) + "/simulation-volt.txt"
+
+    return voltFile
+  
+  ############################################################################
+
 def findLatestFile(fileMask):
 
   files = glob(fileMask)
@@ -1757,13 +1788,13 @@ if __name__ == "__main__":
   sim.addExternalInput()
 
   if(voltFile is not None):
-    #sim.addRecording(sideLen=None) # Side len let you record from a subset
+    sim.addRecording(sideLen=None) # Side len let you record from a subset
     #sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
-    sim.addRecordingOfType("dSPN",2)
-    sim.addRecordingOfType("iSPN",2)
-    sim.addRecordingOfType("FSN",2)
-    sim.addRecordingOfType("LTS",2)
-    sim.addRecordingOfType("ChIN",2)
+    #sim.addRecordingOfType("dSPN",2)
+    #sim.addRecordingOfType("iSPN",2)
+    #sim.addRecordingOfType("FSN",2)
+    #sim.addRecordingOfType("LTS",2)
+    #sim.addRecordingOfType("ChIN",2)
 
   tSim = args.time*1000 # Convert from s to ms for Neuron simulator
   

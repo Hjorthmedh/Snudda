@@ -13,7 +13,7 @@ if __name__ == "__main__":
   #simName = "networks/twoFS"
   #simName = "networks/FSmorphTest4"
   #simName = "networks/3types-v2"
-  simName = "networks/RobertV4"
+  simName = "networks/SynTest-v1"
 
   
   cnc = SnuddaInit(structDef={},configName=None,nChannels=1)
