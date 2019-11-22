@@ -517,7 +517,7 @@ class SnuddaLoad(object):
 
   # Returns cellID of all neurons of neuronType
   
-  def getCellIDofType(self,neuronType,nNeurons=None):
+  def getCellIDofType(self,neuronType,nNeurons=None,randomPermute=False):
 
     
     cellID = [x["neuronID"] for x in self.data["neurons"] \
@@ -525,9 +525,11 @@ class SnuddaLoad(object):
 
     
     if(nNeurons is not None):
-      #keepIdx = np.random.permutation(len(cellID))[:nNeurons]
-      #cellID = np.array([cellID[x] for x in keepIdx])
-      cellID = np.array([cellID[x] for x in range(nNeurons)])
+      if(randomPermute):
+        keepIdx = np.random.permutation(len(cellID))[:nNeurons]
+        cellID = np.array([cellID[x] for x in keepIdx])
+      else:
+        cellID = np.array([cellID[x] for x in range(nNeurons)])
 
       if(len(cellID) < nNeurons):
         print("getCellIDofType: wanted " + str(nNeurons) \
@@ -547,8 +549,9 @@ if __name__ == "__main__":
   if(len(sys.argv) > 1):
     nl = SnuddaLoad(sys.argv[1]) 
   else:
-    print("No argument given, using a test file")
-    nl = SnuddaLoad("save/network-connect-voxel-pruned-synapse-file-413.hdf5")
+    print("No argument given, please specify a hdf5 snudda network file")
+    exit(-1)
+    #nl = SnuddaLoad("save/network-connect-voxel-pruned-synapse-file-413.hdf5")
 
   #syn = nl.findSynapses(22,5)
 
