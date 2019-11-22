@@ -23,6 +23,7 @@ from mpi4py import MPI # This must be imported before neuron, to run parallel
 from neuron import h, gui
 import h5py
 import json
+import timeit
 
 import bluepyopt.ephys as ephys
 from Neuron_model_extended import NeuronModel
@@ -1436,6 +1437,8 @@ class SnuddaSimulate(object):
   ############################################################################
         
   def run(self,t=1000.0):
+
+    startTime = timeit.default_timer()
     
     # If we want to use a non-default initialisation voltage, we need to 
     # explicitly set: h.v_init
@@ -1454,6 +1457,9 @@ class SnuddaSimulate(object):
     self.pc.barrier()
     self.writeLog("Simulation done.")
     
+    endTime = timeit.default_timer()
+    self.writeLog("Simulation run time: " \
+                  + str(endTime - startTime) + " s")
     
   ############################################################################
     
