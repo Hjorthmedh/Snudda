@@ -13,6 +13,8 @@ delme
 cellspec.res5
 output.txt
 save/
+SynapticFitting/DATA/
+SynapticFitting/output-*.txt
 
 .ipython
 

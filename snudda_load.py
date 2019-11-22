@@ -355,10 +355,10 @@ class SnuddaLoad(object):
 
     print("Finding synapses originating from " + str(preID) + ", this is slow")
     
-    synapses = np.zeros((nMax,13))
+    synapses = np.zeros((nMax,13),dtype=np.int32)
     synCtr = 0
-
-    if(type(preID) == int):
+    
+    if(np.issubdtype(type(preID),np.integer)):
       for synList in self.synapseIterator():
         for syn in synList:
           if(syn[0] == preID):

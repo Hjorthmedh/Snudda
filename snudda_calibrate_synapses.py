@@ -64,7 +64,11 @@ class SnuddaCalibrateSynapses():
       
     # Record from all the potential post synaptic neurons
     self.snuddaSim.addRecordingOfType(self.postType)
-            
+
+    # Also save the presynaptic traces for debugging, to make sure they spike
+    self.snuddaSim.addRecordingOfType(self.preType)
+
+    
     # Run simulation
     self.snuddaSim.run(simEnd*1e3)
     
@@ -95,7 +99,7 @@ class SnuddaCalibrateSynapses():
   def analyse(self):
 
     # Read the data
-    self.snuddaLoad = SnuddaLoad(self.voltFile)
+    self.snuddaLoad = SnuddaLoad(self.networkFile)
     self.data = self.snuddaLoad.data
 
     time,voltage = self.readVoltage(self.voltFile) # sets self.voltage
@@ -107,6 +111,10 @@ class SnuddaCalibrateSynapses():
                   for x in self.data["neurons"] \
                   if x["type"] == self.preType]
 
+    self.possiblePostID = [x["neuronID"] \
+                           for x in self.data["neurons"] \
+                           if x["type"] == self.postType]
+    
     # injInfo contains (preID,injStartTime)
     self.injInfo = zip(self.preID, \
                        self.injSpacing\
@@ -120,23 +128,31 @@ class SnuddaCalibrateSynapses():
     
     for (preID,t) in self.injInfo:
       # Post synaptic neurons to preID
-      synapses = self.snuddaLoad.findSynapses(preID=preID)
+      synapses,coords = self.snuddaLoad.findSynapses(preID=preID)
+
+      postIDset = set(synapses[:,1]).intersection(self.possiblePostID)
       
-      for postID in np.unique(self.synapses[:,1]):
+      for postID in postIDset:
+
         # There is a bit of synaptic delay, so we can take voltage
         # at first timestep as baseline
         tIdx = np.where(np.logical_and(t <= time, time <= t + checkWidth))[0]
-        synapseData.append((time[tIdx],voltage[tIdx]))
+        synapseData.append((time[tIdx],voltage[postID][tIdx]))
 
     # Fig names:
-    traceFig = os.path.dirname(networkFile) \
+    traceFig = os.path.dirname(self.networkFile) \
       + "/figures/synapse-calibration-volt-traces-" \
       + self.preType + "-" + self.postType + ".pdf"
 
-    histFig = os.path.dirname(networkFile) \
+    histFig = os.path.dirname(self.networkFile) \
       + "/figures/synapse-calibration-volt-histogram-" \
       + self.preType + "-" + self.postType + ".pdf"
-        
+
+    figDir = os.path.dirname(self.networkFile) + "/figures"
+    
+    if(not os.path.exists(figDir)):
+      os.makedirs(figDir)
+    
     # Now we have all synapse deflections in synapseData
     plt.figure()
     for t,v in synapseData:
@@ -147,6 +163,7 @@ class SnuddaCalibrateSynapses():
     plt.show()
     plt.savefig(traceFig)
 
+      
     # Extract the amplitude of all voltage pulses
     amp = np.zeros((len(synapseData),))
 

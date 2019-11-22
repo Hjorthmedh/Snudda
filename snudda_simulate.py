@@ -1666,7 +1666,8 @@ class SnuddaSimulate(object):
     assert endTime > startTime, \
       "addCurrentInection: End time must be after start time"
     
-    curStim = self.sim.neuron.h.IClamp(0.5,self.neurons[neuronID].icell.soma[0])
+    curStim = self.sim.neuron.h.IClamp(0.5,
+                                       sec=self.neurons[neuronID].icell.soma[0])
     curStim.delay = startTime*1e3
     curStim.dur = (endTime-startTime)*1e3
     curStim.amp = amplitude*1e9 # What is units of amp?? nA??
