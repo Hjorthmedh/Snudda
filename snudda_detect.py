@@ -546,8 +546,8 @@ class SnuddaDetect(object):
     neuronGroup.create_dataset("channelMethod", data=self.channelMethod)
 
     # Variable for axon density "r", "xyz" or "" (No axon density)
-    axonDensityType = [n["axonDensity"].encode("ascii","ignore") \
-                       if n["axonDensity"] is not None \
+    axonDensityType = [n["axonDensityType"].encode("ascii","ignore") \
+                       if n["axonDensityType"] is not None \
                        else b"" \
                        for n in self.neurons]
     
