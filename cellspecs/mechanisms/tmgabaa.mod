@@ -73,7 +73,7 @@ VERBATIM
         return;
 ENDVERBATIM
     }
-    if( urand() > failRate) ) { 
+    if( urand() > failRate ) { 
       z = z*exp(-(t-tsyn)/tauR)
       z = z + (y*(exp(-(t-tsyn)/tau) - exp(-(t-tsyn)/tauR)) / (tau/tauR - 1) )
       y = y*exp(-(t-tsyn)/tau)

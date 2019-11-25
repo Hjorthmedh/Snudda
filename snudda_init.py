@@ -664,6 +664,7 @@ class SnuddaInit(object):
     # std ~ +/- 8 receptors
     MSD1gGABA = [1.15e-9, 0.18e-9]
     # Koos, Tepper 1999 says max 0.75nS?
+    MSD1GABAfailRate = 0.5
     
     
     P11withinChannel = MSP11 * self.channelMSNmodifier
@@ -688,7 +689,8 @@ class SnuddaInit(object):
                          parameterFile=pfdSPNdSPN,
                          modFile="tmGabaA",
                          channelParamDictionary={"tau1" : 1.3e-3,
-                                                 "tau2" : 12.4e-3 })
+                                                 "tau2" : 12.4e-3,
+                                                 "failRate" : MSD1GABAfailRate})
 
     self.addNeuronTarget(neuronName="dSPN",
                          targetName="iSPN",
@@ -736,6 +738,8 @@ class SnuddaInit(object):
     # 24pA * 51 receptors = 1.15e-9 -- Taverna 2008, fig3
     # std ~ +/- 10 receptors
     MSD2gGABA = [1.24e-9, 0.24e-9]
+    MSD2GABAfailRate = 0.5
+
     
     # Voxel method 
     P21withinChannel = MSP21 * self.channelMSNmodifier
@@ -759,7 +763,8 @@ class SnuddaInit(object):
                          parameterFile=pfiSPNdSPN,
                          modFile="tmGabaA",
                          channelParamDictionary={"tau1" : 1.3e-3,
-                                                 "tau2" : 12.4e-3 })
+                                                 "tau2" : 12.4e-3,
+                                                 "failRate" : MSD2GABAfailRate})
 
     self.addNeuronTarget(neuronName="iSPN",
                          targetName="iSPN",
