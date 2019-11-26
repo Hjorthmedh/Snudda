@@ -1710,7 +1710,7 @@ class SnuddaSimulate(object):
   ############################################################################
     
   def _setupPrintSimTimeHelper(self,tMax):
-    updatePoints = np.arange(0, tMax, tMax/100. )
+    updatePoints = np.arange(tMax/100., tMax, tMax/100. )
     for t in updatePoints:
       h.cvode.event(t, self.printSimTime)
 
