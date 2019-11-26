@@ -350,7 +350,9 @@ class SnuddaCut(object):
     print("Writing to figure " + figName)
     plt.savefig(figName,dpi=300)
 
-    if(False):
+    if(True):
+      print("Inspect plot, then quit debug")
+      print("The viewing angle might not be good for your try, so leave it interactive")
       import pdb
       pdb.set_trace()
     else:

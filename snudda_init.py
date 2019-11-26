@@ -660,12 +660,20 @@ class SnuddaInit(object):
     MSP11 = 0.17
     MSP12 = 0.072 # 0.085 #0.1 # 0.14 then 0.16 old
 
-    # 23pA * 50 receptors = 1.15e-9 -- Taverna 2008, fig3
-    # std ~ +/- 8 receptors
-    MSD1gGABA = [1.15e-9, 0.18e-9]
+
+    # Taverna 2008, fig 3E&F:
+    # D1D1 22.6+/-3pS per synapse, 37+/-15 synapses (approx)
+    # D2D1 24.6+/-6pS per synapse, 75+/-30 synapses (approx)
+    # D2D2 24+/-1.5pS per synapse, 78+/-11 synapses (approx)
+    
+    
+    MSD1gGABA = [0.83e-9,0.4e-9]
     # Koos, Tepper 1999 says max 0.75nS?
     MSD1GABAfailRate = 0.5
-    
+
+    # OLD: Previously: 23pA * 50 receptors = 1.15e-9 -- Taverna 2008, fig3
+    # OLD: std ~ +/- 8 receptors, we used before:  [1.15e-9, 0.18e-9]
+
     
     P11withinChannel = MSP11 * self.channelMSNmodifier
     P11betweenChannel = MSP11 *(1 +(1-self.channelMSNmodifier) / self.nChannels)
@@ -735,9 +743,15 @@ class SnuddaInit(object):
     MSP21 = 0.23
     MSP22 = 0.4
 
-    # 24pA * 51 receptors = 1.15e-9 -- Taverna 2008, fig3
-    # std ~ +/- 10 receptors
-    MSD2gGABA = [1.24e-9, 0.24e-9]
+    # OLD: 24pA * 51 receptors = 1.15e-9 -- Taverna 2008, fig3
+    # OLD: std ~ +/- 10 receptors [1.24e-9, 0.24e-9]
+
+    # Taverna 2008, fig 3E&F:
+    # D1D1 22.6+/-3pS per synapse, 37+/-15 synapses (approx)
+    # D2D1 24.6+/-6pS per synapse, 75+/-30 synapses (approx)
+    # D2D2 24+/-1.5pS per synapse, 78+/-11 synapses (approx)
+    
+    MSD2gGABA = [1.8e-9,0.7e-9]
     MSD2GABAfailRate = 0.5
 
     

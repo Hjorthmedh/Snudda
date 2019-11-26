@@ -1439,6 +1439,8 @@ class SnuddaSimulate(object):
         
   def run(self,t=1000.0):
 
+    self.setupPrintSimTime(t)
+    
     startTime = timeit.default_timer()
     
     # If we want to use a non-default initialisation voltage, we need to 
@@ -1692,6 +1694,36 @@ class SnuddaSimulate(object):
     voltFile = os.path.basename(self.networkFile) + "/simulation-volt.txt"
 
     return voltFile
+
+  ############################################################################
+
+  # Use event handling
+  
+  def setupPrintSimTime(self,tMax):
+
+    # Only have the first node print time estimates
+    if(self.pc.id() == 0):
+      self.tMax = tMax
+      self.simStartTime = timeit.default_timer()
+      self.fihTime = h.FInitializeHandler((self._setupPrintSimTimeHelper,tMax))
+
+  ############################################################################
+    
+  def _setupPrintSimTimeHelper(self,tMax):
+    updatePoints = np.arange(0, tMax, tMax/100. )
+    for t in updatePoints:
+      h.cvode.event(t, self.printSimTime)
+
+  ############################################################################
+      
+  def printSimTime(self):
+    curTime = timeit.default_timer()
+    elapsedTime = curTime - self.simStartTime
+    fractionDone = h.t/self.tMax
+    timeLeft = elapsedTime * ((self.tMax - h.t)/ h.t)
+
+    self.writeLog("%f done. Elapsed: %f s, estimated time left: %f" \
+                  % (fractionDone, elapsedTime, timeLeft))
   
   ############################################################################
 

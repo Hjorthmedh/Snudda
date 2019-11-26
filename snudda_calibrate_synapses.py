@@ -18,6 +18,10 @@
 #
 # * Look at networks/SynTest-v2/network-cut-slice.hdf5.pdf to decide cut plane
 #
+# * Compile mod files (we now have failure rates for GABA)
+#
+# nrnivmodl cellspecs/mechanisms/
+#
 # * Cut the slice, so z > 0.00504 is kept
 #
 #  python3 snudda_cut.py networks/SynTest-v2/network-pruned-synapses.hdf5 "z>0.00504"
@@ -26,19 +30,23 @@
 #
 # * Run dSPN -> iSPN calibration (you get dSPN -> dSPN data for free then)
 #
-#  python3 snudda_calibrate_synapses.py run networks/SynTest-v2/network-cut-slice.hdf5 dSPN iSPN
+#  mpiexec -n 12  -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run networks/SynTest-v2/network-cut-slice.hdf5 dSPN iSPN
 #
 # *  Analyse
 #
 #  python3 snudda_calibrate_synapses.py analyse networks/SynTest-v2/network-cut-slice.hdf5 dSPN iSPN
+# python3 snudda_calibrate_synapses.py analyse networks/SynTest-v2/network-cut-slice.hdf5 dSPN dSPN
 #
 # * Look at plot with traces overlayed and histogram of voltage amplitudes
+# (When you do preType to postType, you also get preType to preType for free
+# since both voltages are recorded
 
 import os
 import glob
 import numpy as np
 from snudda_simulate import SnuddaSimulate
 from snudda_load import SnuddaLoad
+import matplotlib
 import matplotlib.pyplot as plt
 
 class SnuddaCalibrateSynapses():
@@ -97,12 +105,18 @@ class SnuddaCalibrateSynapses():
                                          startTime=t,
                                          endTime=t+self.injDuration,
                                          amplitude=self.curInj)
-      
-    # Record from all the potential post synaptic neurons
-    self.snuddaSim.addRecordingOfType(self.postType)
 
-    # Also save the presynaptic traces for debugging, to make sure they spike
-    self.snuddaSim.addRecordingOfType(self.preType)
+    # !!! We could maybe update code so that for postType == "ALL" we
+    # record voltage from all neurons
+
+    if(self.postType == "ALL"):
+      self.snudda.addRecording()
+    else:
+      # Record from all the potential post synaptic neurons
+      self.snuddaSim.addRecordingOfType(self.postType)
+
+      # Also save the presynaptic traces for debugging, to make sure they spike
+      self.snuddaSim.addRecordingOfType(self.preType)
 
     
     # Run simulation
@@ -118,8 +132,13 @@ class SnuddaCalibrateSynapses():
 
     if(not os.path.exists(voltFile)):
       print("Missing " + voltFile)
+
+      allFile = self.voltFileAltMask.replace("*","ALL")
       
-      if(self.preType == self.postType):
+      if(os.path.exists(allFile)):
+        print("Using " + allFile + " instead")
+        voltFile = allFile
+      elif(self.preType == self.postType):
         fileList = glob.glob(self.voltFileAltMask)
         if(len(fileList) > 0):
           voltFile = fileList[0]
@@ -151,7 +170,7 @@ class SnuddaCalibrateSynapses():
     self.data = self.snuddaLoad.data
 
     time,voltage = self.readVoltage(self.voltFile) # sets self.voltage
-    checkWidth = 0.4
+    checkWidth = 0.05
 
     # Generate current info structure
     # A current pulse to all pre synaptic neurons, one at a time
@@ -200,29 +219,45 @@ class SnuddaCalibrateSynapses():
     
     if(not os.path.exists(figDir)):
       os.makedirs(figDir)
+
+    # Extract the amplitude of all voltage pulses
+    amp = np.zeros((len(synapseData),))
+    idxMax = np.zeros((len(synapseData),),dtype=int)    
+    tMax = np.zeros((len(synapseData),))
     
+    for i,(t,v) in enumerate(synapseData):
+      # Save the largest deflection -- with sign
+      idxMax[i] = np.argmax(np.abs(v-v[0]))
+      tMax[i] = t[idxMax[i]] - t[0]
+      amp[i] = v[idxMax[i]]-v[0]
+
+    print("Min amp: " + str(np.min(amp)))
+    print("Max amp: " + str(np.max(amp)))
+    print("Mean amp: " + str(np.mean(amp)) + " +/- " + str(np.std(amp)))
+    print("Amps: " + str(amp))
+      
+      
     # Now we have all synapse deflections in synapseData
+    matplotlib.rcParams.update({'font.size': 22})    
     plt.figure()
     for t,v in synapseData:
       plt.plot((t-t[0])*1e3,(v-v[0])*1e3,color="black")
+
+    plt.scatter(tMax*1e3,amp*1e3,color="red",marker=".")
     plt.xlabel("Time (ms)")
     plt.ylabel("Voltage (mV)")
     plt.title(str(len(synapseData)) + " traces")
+    plt.tight_layout()
     plt.ion()
     plt.show()
     plt.savefig(traceFig)
 
       
-    # Extract the amplitude of all voltage pulses
-    amp = np.zeros((len(synapseData),))
-
-    for i,(t,v) in enumerate(synapseData):
-      # Save the largest deflection -- with sign
-      amp[i] = v[np.argmax(np.abs(v-v[0]))]-v[0]
 
     plt.figure()
-    plt.hist(amp*1e3)
+    plt.hist(amp*1e3,bins=30)
     plt.xlabel("Voltage deflection (mV)")
+    plt.tight_layout()
     plt.show()
     plt.savefig(histFig)
     
@@ -237,7 +272,7 @@ if __name__ == "__main__":
   parser.add_argument("task", choices=["run","analyse"])
   parser.add_argument("networkFile",help="Network file (hdf5)")
   parser.add_argument("preType",help="Pre synaptic neuron type")
-  parser.add_argument("postType",help="Post synaptic neuron type")
+  parser.add_argument("postType",help="Post synaptic neuron type (for run task, postType can be 'ALL' to record from all neurons)")
   args = parser.parse_args()
   
   scs = SnuddaCalibrateSynapses(networkFile=args.networkFile,
