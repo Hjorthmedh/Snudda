@@ -567,8 +567,9 @@ if __name__ == "__main__":
   if(args.listN):
     print("Neurons in network: ")
 
-    for nid,name in [(x["neuronID"],x["name"]) for x in nl.data["neurons"]]:
-      print("%d : %s" % (nid,name))
+    for nid,name,pos in [(x["neuronID"],x["name"],x["position"])\
+                         for x in nl.data["neurons"]]:
+      print("%d : %s  (x: %f, y: %f, z: %f)" % (nid,name,pos[0],pos[1],pos[2]))
     
   if(args.listT is not None):
     if(args.listT == "?"):
