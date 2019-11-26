@@ -258,6 +258,7 @@ class SnuddaSimulate(object):
       if("modFile" in infoDict):
         modFile = infoDict["modFile"]
         try:
+          # Can we avoid the eval here?
           evalStr = "self.sim.neuron.h." + modFile
           channelModule = eval(evalStr)
         except:

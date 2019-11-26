@@ -1,7 +1,41 @@
 # This code assumes you have created a small network of neurons, it will
 # setup current injections
+#
+# How to:
+#
+# * Edit snudda_init_custom.py to have the neurons you want.
+#
+# * Generate network:
+#
+#  python3 snudda_init_custom.py
+#  python3 snudda.py place networks/SynTest-v2
+#  python3 snudda.py detect networks/SynTest-v2
+#  python3 snudda.py prune networks/SynTest-v2
+
+# * Figure out where to put the slcie cut (with plotOnly equation is ignored)
+# 
+#  python3 snudda_cut.py networks/SynTest-v2/network-pruned-synapses.hdf5 "z>0" --plotOnly
+#
+# * Look at networks/SynTest-v2/network-cut-slice.hdf5.pdf to decide cut plane
+#
+# * Cut the slice, so z > 0.00504 is kept
+#
+#  python3 snudda_cut.py networks/SynTest-v2/network-pruned-synapses.hdf5 "z>0.00504"
+#
+# * Look at networks/SynTest-v2/network-cut-slice.hdf5.pdf to verify cut plane
+#
+# * Run dSPN -> iSPN calibration (you get dSPN -> dSPN data for free then)
+#
+#  python3 snudda_calibrate_synapses.py run networks/SynTest-v2/network-cut-slice.hdf5 dSPN iSPN
+#
+# *  Analyse
+#
+#  python3 snudda_calibrate_synapses.py analyse networks/SynTest-v2/network-cut-slice.hdf5 dSPN iSPN
+#
+# * Look at plot with traces overlayed and histogram of voltage amplitudes
 
 import os
+import glob
 import numpy as np
 from snudda_simulate import SnuddaSimulate
 from snudda_load import SnuddaLoad
@@ -31,7 +65,9 @@ class SnuddaCalibrateSynapses():
     self.voltFile = os.path.dirname(networkFile) \
       + "/synapse-calibration-volt-" \
       + self.preType + "-" + self.postType + ".txt"
-    
+    self.voltFileAltMask = os.path.dirname(networkFile) \
+      + "/synapse-calibration-volt-" \
+      + self.preType + "-*.txt"
     
   ############################################################################
     
@@ -79,6 +115,18 @@ class SnuddaCalibrateSynapses():
   ############################################################################
 
   def readVoltage(self,voltFile):
+
+    if(not os.path.exists(voltFile)):
+      print("Missing " + voltFile)
+      
+      if(self.preType == self.postType):
+        fileList = glob.glob(self.voltFileAltMask)
+        if(len(fileList) > 0):
+          voltFile = fileList[0]
+          print("Using " + voltFile + " instead, since pre and post are same")
+      else:
+        print("Aborting")
+        exit(-1)
     
     data = np.genfromtxt(voltFile, delimiter=',')
     assert(data[0,0] == -1) # First column should be time
