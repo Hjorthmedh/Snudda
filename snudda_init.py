@@ -5,6 +5,7 @@ import os.path
 import glob
 import collections
 import CreateCubeMesh
+import CreateSliceMesh
 
 import json
 
@@ -82,6 +83,21 @@ class SnuddaInit(object):
                                     + ", centre = " + str(structCentre) \
                                     + ", side = " + str(sideLen))
 
+    elif(structMesh == "slice"):
+
+      structMesh = "mesh/" + structName + "-slice-mesh-150mum-depth.obj"
+
+      # 2019-11-26 : Anya said that her sagital striatal slices
+      # were 2.36 x 2.36 mm. So that can be an upper limit
+
+      
+      CreateSliceMesh.CreateSliceMesh(fileName=structMesh,
+                                      centrePoint=np.array([0,0,0]),
+                                      xLen=500e-6,
+                                      yLen=500e-6,
+                                      zLen=150e-6,
+                                      description=structName + " slice mesh")
+      
     assert structName not in self.networkData["Volume"], \
       "defineStruct: Volume " + structName + " is already defined."
       
@@ -403,7 +419,8 @@ class SnuddaInit(object):
                      nMSD2=None,
                      nFS=None,
                      nChIN=None,
-                     nLTS=None):
+                     nLTS=None,
+                     volumeType=None):
 
     getVal = lambda x : 0 if x is None else x
     if(nNeurons is None):
@@ -438,7 +455,17 @@ class SnuddaInit(object):
         print("Striatum should have " + str(nNeurons) + " but " + str(self.nTotal) \
               + " are being requested, check fractions set for defineStriatum.")
 
-    if(nNeurons <= 1e6): #1e6
+    if(volumeType == "mouseStriatum"):
+      self.defineStructure(structName="Striatum",
+                           structMesh="mesh/Striatum-mesh.obj",
+                           meshBinWidth=1e-4)
+
+    elif(volumeType == "slice"):
+      self.defineStructure(structName="Striatum",
+                           structMesh="slice",
+                           meshBinWidth=1e-4)
+      
+    elif(nNeurons <= 1e6): #1e6
       print("Using cube for striatum")
       # 1.73 million neurons, volume of allen striatal mesh is 21.5mm3
       striatumVolume = 1e-9*(nNeurons)/80.5e3

@@ -13,17 +13,13 @@ if __name__ == "__main__":
   #simName = "networks/twoFS"
   #simName = "networks/FSmorphTest4"
   #simName = "networks/3types-v2"
-  simName = "networks/SynTest-v3"
+  simName = "networks/SynTest-v4"
 
   
   cnc = SnuddaInit(structDef={},configName=None,nChannels=1)
-  #cnc.defineStriatum(nMSD1=4,nMSD2=4,nFS=4,nLTS=1,nChIN=1)
-  # cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=100,nLTS=0,nChIN=0)
-  #cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=1000,nLTS=0,nChIN=0)
-  #cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=100,nLTS=0,nChIN=0)
-  #cnc.defineStriatum(nMSD1=100,nMSD2=100,nFS=100,nLTS=0,nChIN=0)
-  cnc.defineStriatum(nMSD1=20,nMSD2=20,nFS=10,nLTS=0,nChIN=0)  
-  #cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=0,nLTS=10,nChIN=0)
+  # cnc.defineStriatum(nMSD1=20,nMSD2=20,nFS=10,nLTS=0,nChIN=0,volumeType="cube")  
+  cnc.defineStriatum(nMSD1=40,nMSD2=40,nFS=10,nLTS=0,nChIN=0,volumeType="slice")  
+
   configName= simName + "/network-config.json"
 
   dirName = os.path.dirname(configName)
