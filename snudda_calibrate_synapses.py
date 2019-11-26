@@ -24,13 +24,13 @@
 #
 # * Cut the slice, so z > 0.00504 is kept
 #
-#  python3 snudda_cut.py networks/SynTest-v2/network-pruned-synapses.hdf5 "z>0.00504"
+#  python3 snudda_cut.py networks/SynTest-v2/network-pruned-synapses.hdf5 "abs(z)<100e-6)"
 #
 # * Look at networks/SynTest-v2/network-cut-slice.hdf5.pdf to verify cut plane
 #
 # * Run dSPN -> iSPN calibration (you get dSPN -> dSPN data for free then)
 #
-#  mpiexec -n 12  -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run networks/SynTest-v2/network-cut-slice.hdf5 dSPN iSPN
+#  mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run networks/SynTest-v2/network-cut-slice.hdf5 dSPN iSPN
 #
 # *  Analyse
 #
@@ -49,6 +49,18 @@ from snudda_load import SnuddaLoad
 import matplotlib
 import matplotlib.pyplot as plt
 
+# We want to match Taverna 2008 data:
+
+# The slices were 300 μm thick.  MSNs sampled were 25–100 μm from the
+# surface of the slice to facilitate paired recordings.  Pairs always
+# had cell bodies that were similar in depth (near the same focal
+# plane) in an attempt to minimize the probability that the local axon
+# collateral of one or the other cell was cut. After choosing a given
+# pair of cells (lateral distance between somata, ≤50 μm)
+#
+# Assume loss of 100 micrometer in depth, at KI they start with 250 micrometers
+# and get 150 micrometers after.
+
 class SnuddaCalibrateSynapses():
 
   def __init__(self,networkFile,preType,postType,curInj=10e-9,logFile=None):
@@ -66,7 +78,7 @@ class SnuddaCalibrateSynapses():
     print("Checking depolarisation/hyperpolarisation of " + preType \
           + " to " + postType + "synapses")
 
-    self.injSpacing = 0.5
+    self.injSpacing = 0.2 # 0.5
     self.injDuration = 1e-3
 
     # Voltage file
@@ -163,7 +175,7 @@ class SnuddaCalibrateSynapses():
   
   # This extracts all the voltage deflections, to see how strong they are
   
-  def analyse(self):
+  def analyse(self,maxDist=50e-6):
 
     # Read the data
     self.snuddaLoad = SnuddaLoad(self.networkFile)
@@ -192,20 +204,31 @@ class SnuddaCalibrateSynapses():
     # of its post synaptic neurons
 
     synapseData = []
+    tooFarAway = 0
     
     for (preID,t) in self.injInfo:
       # Post synaptic neurons to preID
       synapses,coords = self.snuddaLoad.findSynapses(preID=preID)
 
       postIDset = set(synapses[:,1]).intersection(self.possiblePostID)
+      prePos = self.snuddaLoad.data["neuronPositions"][preID,:]
       
       for postID in postIDset:
 
+        if(maxDist is not None):
+          postPos = self.snuddaLoad.data["neuronPositions"][postID,:]
+          if(np.linalg.norm(prePos-postPos) > maxDist):
+            tooFarAway += 1
+            continue
+        
         # There is a bit of synaptic delay, so we can take voltage
         # at first timestep as baseline
         tIdx = np.where(np.logical_and(t <= time, time <= t + checkWidth))[0]
         synapseData.append((time[tIdx],voltage[postID][tIdx]))
 
+    print("Number of pairs excluded, distance > " \
+          + str(maxDist*1e6) + "mum : " + str(tooFarAway))
+        
     # Fig names:
     traceFig = os.path.dirname(self.networkFile) \
       + "/figures/synapse-calibration-volt-traces-" \
@@ -231,6 +254,8 @@ class SnuddaCalibrateSynapses():
       tMax[i] = t[idxMax[i]] - t[0]
       amp[i] = v[idxMax[i]]-v[0]
 
+    assert len(amp) > 0, "No responses... too short distance!"
+      
     print("Min amp: " + str(np.min(amp)))
     print("Max amp: " + str(np.max(amp)))
     print("Mean amp: " + str(np.mean(amp)) + " +/- " + str(np.std(amp)))

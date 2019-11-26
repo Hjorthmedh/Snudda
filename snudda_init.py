@@ -93,8 +93,8 @@ class SnuddaInit(object):
       
       CreateSliceMesh.CreateSliceMesh(fileName=structMesh,
                                       centrePoint=np.array([0,0,0]),
-                                      xLen=500e-6,
-                                      yLen=500e-6,
+                                      xLen=300e-6,
+                                      yLen=300e-6,
                                       zLen=150e-6,
                                       description=structName + " slice mesh")
       
