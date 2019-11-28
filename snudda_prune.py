@@ -2842,7 +2842,8 @@ class SnuddaPrune(object):
 
         # pKeep = float(softMax)/nKeep # OLD implementation
         softMax = float(softMax)
-        pKeep = 2*softMax*np.divide(1-np.exp(-nKeep/softMax),1+np.exp(-nKeep/softMax))/nKeep
+        #pKeep = 2*softMax*np.divide(1-np.exp(-nKeep/softMax),1+np.exp(-nKeep/softMax))/nKeep
+        pKeep = np.divide(2*softMax,(1+np.exp(-(nKeep-softMax)/5))*nKeep)
         
         keepRowFlag[nextReadPos:readEndIdx] = \
           np.logical_and(pKeep > np.random.random(nPairSynapses),
