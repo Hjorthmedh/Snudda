@@ -4,7 +4,13 @@ import json
 import os
 
 if __name__ == "__main__":
+  import argparse
+  parser = argparse.ArgumentParser(description="Init custom network")
+  parser.add_argument("network",type=str,help="Network path")
+  args = parser.parse_args()
 
+  simName = args.network
+  
   connectNeurons = False
 
   #simName = "networks/FSmorphTest2orig"
@@ -13,14 +19,17 @@ if __name__ == "__main__":
   #simName = "networks/twoFS"
   #simName = "networks/FSmorphTest4"
   #simName = "networks/3types-v2"
-  simName = "networks/SynTest-v5"
+  # simName = "networks/SynTest-v6" # MSMS tuning
+  #simName = "networks/SynTest-v15"  
 
-  
-  cnc = SnuddaInit(structDef={},configName=None,nChannels=1)
-  # cnc.defineStriatum(nMSD1=20,nMSD2=20,nFS=10,nLTS=0,nChIN=0,volumeType="cube")  
-  cnc.defineStriatum(nMSD1=100,nMSD2=100,nFS=50,nLTS=0,nChIN=0,volumeType="slice")  
 
   configName= simName + "/network-config.json"
+  cnc = SnuddaInit(structDef={},configName=configName,nChannels=1)
+  # cnc.defineStriatum(nMSD1=20,nMSD2=20,nFS=10,nLTS=0,nChIN=0,volumeType="cube")  
+  cnc.defineStriatum(nMSD1=40,nMSD2=40,nFS=40,nLTS=0,nChIN=0,volumeType="slice")
+  #cnc.defineStriatum(nMSD1=40,nMSD2=40,nFS=40,nLTS=0,nChIN=0,volumeType="cube")  
+
+
 
   dirName = os.path.dirname(configName)
   

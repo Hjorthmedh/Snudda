@@ -20,6 +20,11 @@ class SnuddaInit(object):
     self.nTotal = 0
     self.configName = configName
 
+    if(configName is not None):
+      self.basePath = os.path.dirname(configName)
+    else:
+      self.basePath = ""
+
     # Channels here refer to processing units, where the neurons within a channel
     # might have different connectivity than neurons belonging to different channels
     self.networkData["Channels"] = collections.OrderedDict([])
@@ -62,7 +67,7 @@ class SnuddaInit(object):
                       dMin=15e-6,
                       structCentre=None,
                       sideLen=None,
-                      meshBinWidth=1e-4):
+                      meshBinWidth=None):
 
     if(structMesh == "cube"):
       assert sideLen is not None, \
@@ -70,7 +75,8 @@ class SnuddaInit(object):
       assert structCentre is not None, \
         "defineStructuer: cube needs a structCentre"
       
-      structMesh = "mesh/" + structName + "-cube-mesh-" + str(sideLen) + ".obj"
+      structMesh = self.basePath + "/mesh/" + structName \
+        + "-cube-mesh-" + str(sideLen) + ".obj"
 
       if(meshBinWidth is None):
         meshBinWidth = sideLen/20.0
@@ -85,17 +91,26 @@ class SnuddaInit(object):
 
     elif(structMesh == "slice"):
 
-      structMesh = "mesh/" + structName + "-slice-mesh-150mum-depth.obj"
+      structMesh = self.basePath + "/mesh/" + structName \
+        + "-slice-mesh-150mum-depth.obj"
 
       # 2019-11-26 : Anya said that her sagital striatal slices
       # were 2.36 x 2.36 mm. So that can be an upper limit
 
+      sliceLen = 200e-6
+      sliceDepth = 150e-6
+      
+      if(meshBinWidth is None):
+        meshBinWidth = np.minimum(sliceLen,sliceDepth)/3.0
+        print("Setting meshBinWidth to " + str(meshBinWidth))
+
+ 
       
       CreateSliceMesh.CreateSliceMesh(fileName=structMesh,
                                       centrePoint=np.array([0,0,0]),
-                                      xLen=300e-6,
-                                      yLen=300e-6,
-                                      zLen=150e-6,
+                                      xLen=sliceLen,
+                                      yLen=sliceLen,
+                                      zLen=sliceDepth,
                                       description=structName + " slice mesh")
       
     assert structName not in self.networkData["Volume"], \
@@ -462,8 +477,7 @@ class SnuddaInit(object):
 
     elif(volumeType == "slice"):
       self.defineStructure(structName="Striatum",
-                           structMesh="slice",
-                           meshBinWidth=1e-4)
+                           structMesh="slice")
       
     elif(nNeurons <= 1e6): #1e6
       print("Using cube for striatum")
@@ -623,7 +637,7 @@ class SnuddaInit(object):
                          targetName="FSN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=1, softMax=8, mu2=2, a3=0.7,
+                         f1=0.15, softMax=8, mu2=2, a3=1, 
                          conductance=FSgGABA,
                          parameterFile=pfFSFS,
                          modFile="tmGabaA",
@@ -636,7 +650,7 @@ class SnuddaInit(object):
                          targetName="dSPN",
                          connectionType="GABA",
                          distPruning=FSDistDepPruning,
-                         f1=1, softMax=8, mu2=2, a3=0.96, # mu2 was 2
+                         f1=0.5, softMax=8, mu2=2, a3=1.0, 
                          conductance=FSgGABA,
                          parameterFile=pfFSdSPN,
                          modFile="tmGabaA",
@@ -647,7 +661,7 @@ class SnuddaInit(object):
                          targetName="iSPN",
                          connectionType="GABA",
                          distPruning=FSDistDepPruning,
-                         f1=1, softMax=8, mu2=2, a3=0.78, # mu2 was 2
+                         f1=0.5, softMax=8, mu2=2, a3=0.9, 
                          conductance=FSgGABA,
                          parameterFile=pfFSiSPN,
                          modFile="tmGabaA",
@@ -672,7 +686,7 @@ class SnuddaInit(object):
                            targetName="FSN",
                            connectionType="GapJunction",
                            distPruning=None,
-                           f1=None, softMax=10, mu2=2, a3=0.9,
+                           f1=0.7, softMax=10, mu2=2, a3=1.0,
                            conductance=FSgGapJunction,
                            channelParamDictionary=None)
 
@@ -1007,7 +1021,8 @@ class SnuddaInit(object):
     self.nTotal += nNeurons
 
     self.defineStructure(structName="SNr",
-                         structMesh="mesh/SNr-mesh.obj")
+                         structMesh="mesh/SNr-mesh.obj",
+                         meshBinWidth=1e-4)
     
     # !!! Need to add targets for neurons in SNr                         
 

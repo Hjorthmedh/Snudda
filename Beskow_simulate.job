@@ -2,7 +2,7 @@
 #SBATCH -t 2:59:00
 #SBATCH --time-min=0:59:00
 #SBATCH -J snudda_simulate
-#SBATCH -A 2019-3-304
+#SBATCH -A 2019-3-644
 #SBATCH -o save/output-snudda_simulate.o%j
 #SBATCH -e save/error-snudda_simulate.e%j
 #SBATCH --nodes=7-15

@@ -153,11 +153,6 @@ if __name__ == "__main__":
   #import pdb
   #pdb.set_trace()
 
-  nas.plotNumSynapsesPerPair("dSPN","dSPN")
-  nas.plotNumSynapsesPerPair("dSPN","iSPN")    
-  nas.plotNumSynapsesPerPair("iSPN","dSPN")
-  nas.plotNumSynapsesPerPair("iSPN","iSPN")    
-
     
   # This plots figures for the article
 
@@ -165,6 +160,51 @@ if __name__ == "__main__":
   # 150e-6 from Gittis 2011 (actually 100 +/- 50 micrometers)
   
   # MS <-> MS
+
+    # FS -> MS
+  
+  
+
+  if(True):
+
+    nas.plotConnectionProbability("FSN","iSPN", \
+                                  dist3D=dist3D, \
+                                  expMaxDist=[100e-6, 150e-6, 250e-6],
+                                  expData=[6/9.0, 21/54.0, 27/77.0],
+                                  expDataDetailed=[(6,9),(21,54),(27,77)],
+                                  yMax=None)
+
+    nas.plotConnectionProbability("FSN","dSPN", \
+                                  dist3D=dist3D, \
+                                  expMaxDist=[100e-6, 150e-6, 250e-6],
+                                  expData=[8/9.0, 29/48.0, 48/90.0],
+                                  expDataDetailed=[(8,9),(29,48),(48,90)],
+                                  yMax=None)
+
+    nas.plotNumSynapsesPerPair("FSN","dSPN")
+    nas.plotNumSynapsesPerPair("FSN","iSPN")  
+
+    nas.plotConnectionProbability("FSN","FSN", \
+                                  dist3D=dist3D, \
+                                  expMaxDist=[250e-6],\
+                                  expData=[7/12.0],
+                                  expDataDetailed=[(7,12)] )
+
+    nas.plotNumSynapsesPerPair("FSN","FSN")  
+    
+
+    nas.plotConnectionProbability("FSN","FSN", \
+                                  dist3D=dist3D ,
+                                  connectionType="gapjunctions",
+                                  expMaxDist=[250e-6,250e-6],
+                                  expData=[2/6.0,3/7.0],
+                                  expDataDetailed=[(2,6),(3,7)],)
+
+    nas.plotNumSynapsesPerPair("FSN","FSN",connectionType="gapjunctions")
+   
+    nas.plotIncomingConnections(neuronType="FSN",preType="FSN",
+                                connectionType="gapjunctions")
+
 
   if(plotHenrike):
 
@@ -195,23 +235,13 @@ if __name__ == "__main__":
                                   expDataDetailed=[(14,39),(7,31)],
                                   yMax=yMaxH)
       
-    # FS -> MS
-  
-    nas.plotConnectionProbability("FSN","iSPN", \
-                                  dist3D=dist3D, \
-                                  expMaxDist=[100e-6, 150e-6, 250e-6],
-                                  expData=[6/9.0, 21/54.0, 27/77.0],
-                                  expDataDetailed=[(6,9),(21,54),(27,77)],
-                                  yMax=None)
-
-    nas.plotConnectionProbability("FSN","dSPN", \
-                                  dist3D=dist3D, \
-                                  expMaxDist=[100e-6, 150e-6, 250e-6],
-                                  expData=[8/9.0, 29/48.0, 48/90.0],
-                                  expDataDetailed=[(8,9),(29,48),(48,90)],
-                                  yMax=None)
 
 
+
+  nas.plotNumSynapsesPerPair("dSPN","dSPN")
+  nas.plotNumSynapsesPerPair("dSPN","iSPN")    
+  nas.plotNumSynapsesPerPair("iSPN","dSPN")
+  nas.plotNumSynapsesPerPair("iSPN","iSPN")    
 
   
   
@@ -227,7 +257,6 @@ if __name__ == "__main__":
   nas.plotIncomingConnections(neuronType="FSN",preType="FSN")            
   nas.plotIncomingConnections(neuronType="FSN",preType="FSN")            
   
-  nas.plotNumSynapsesPerPair("FSN","FSN")  
   nas.plotNumSynapsesPerPair("ChIN","FSN")  
 
   nas.plotNumSynapsesPerPair("ChIN","LTS")
@@ -252,11 +281,6 @@ if __name__ == "__main__":
     # No exp data for this -- Gittis,...,Kreitzer 2010 (p2228) -- 7/12 (and 3/4 reciprocal) -- distance?
     # FS->FS synapses weaker, 1.1 +/- 1.5nS
     
-    nas.plotConnectionProbability("FSN","FSN", \
-                                  dist3D=dist3D, \
-                                  expMaxDist=[250e-6],\
-                                  expData=[7/12.0],
-                                  expDataDetailed=[(7,12)] )
 
 
   if(plotChIN):
@@ -317,19 +341,6 @@ if __name__ == "__main__":
     nas.plotIncomingConnections(neuronType="ChIN",preType="dSPN")
     nas.plotIncomingConnections(neuronType="ChIN",preType="iSPN")  
 
-  if(True):
-    nas.plotConnectionProbability("FSN","FSN", \
-                                  dist3D=dist3D ,
-                                  connectionType="gapjunctions",
-                                  expMaxDist=[250e-6,250e-6],
-                                  expData=[2/6.0,3/7.0],
-                                  expDataDetailed=[(2,6),(3,7)],)
-
-    nas.plotNumSynapsesPerPair("FSN","FSN",connectionType="gapjunctions")
-   
-    nas.plotIncomingConnections(neuronType="FSN",preType="FSN",
-                                connectionType="gapjunctions")
-
 
     
       
@@ -381,8 +392,6 @@ if __name__ == "__main__":
 
     
   if(True):
-    nas.plotNumSynapsesPerPair("FSN","dSPN")
-    nas.plotNumSynapsesPerPair("FSN","iSPN")  
 
     nas.plotIncomingConnections(neuronType="dSPN",preType="iSPN")
     nas.plotIncomingConnections(neuronType="dSPN",preType="dSPN")

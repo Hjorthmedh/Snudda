@@ -122,7 +122,7 @@ class SnuddaCalibrateSynapses():
     # record voltage from all neurons
 
     if(self.postType == "ALL"):
-      self.snudda.addRecording()
+      self.snuddaSim.addRecording()
     else:
       # Record from all the potential post synaptic neurons
       self.snuddaSim.addRecordingOfType(self.postType)

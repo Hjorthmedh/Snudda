@@ -449,7 +449,11 @@ class RegionMesh(object):
                 /np.prod(self.voxelMaskBorder.shape)))
 
     self.saveCache()
-  
+
+
+    if(np.sum(self.voxelMaskInner) == 0):
+      self.writeLog("Warning no inner voxels in mesh, check your meshBinWidth")
+      self.writeLog("mesh file: " + self.fileName)
 
   #  if(self.role == "master"):
   #    import pdb

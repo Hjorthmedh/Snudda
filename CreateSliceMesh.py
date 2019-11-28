@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 
@@ -8,6 +9,10 @@ def CreateSliceMesh(fileName,
                     zLen=150e-6,
                     description=None):
 
+  meshDir = os.path.dirname(fileName)
+  if(not os.path.exists(meshDir)):
+    os.makedirs(meshDir)
+    
   # 2019-11-26 : Anya said that her sagital striatal slices were 2.36 x 2.36 mm.
   #              so that can be an upper limit
   

@@ -1,8 +1,13 @@
 import numpy as np
+import os
 
 
 def CreateCubeMesh(fileName,centrePoint,sideLen, description=None):
 
+  meshDir = os.path.dirname(fileName)
+  if(not os.path.exists(meshDir)):
+    os.makedirs(meshDir)
+  
   if(type(centrePoint) is not np.ndarray):
     centrePoint = np.array(centrePoint)
     
