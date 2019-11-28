@@ -79,7 +79,7 @@ class SnuddaInit(object):
         + "-cube-mesh-" + str(sideLen) + ".obj"
 
       if(meshBinWidth is None):
-        meshBinWidth = sideLen/20.0
+        meshBinWidth = sideLen/3.0
         print("Setting meshBinWidth to " + str(meshBinWidth))
       
       CreateCubeMesh.CreateCubeMesh(fileName=structMesh,
@@ -637,7 +637,7 @@ class SnuddaInit(object):
                          targetName="FSN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=0.15, softMax=8, mu2=2, a3=1, 
+                         f1=0.15, softMax=5, mu2=2, a3=1, 
                          conductance=FSgGABA,
                          parameterFile=pfFSFS,
                          modFile="tmGabaA",
@@ -650,7 +650,7 @@ class SnuddaInit(object):
                          targetName="dSPN",
                          connectionType="GABA",
                          distPruning=FSDistDepPruning,
-                         f1=0.5, softMax=8, mu2=2, a3=1.0, 
+                         f1=0.5, softMax=5, mu2=2, a3=1.0, 
                          conductance=FSgGABA,
                          parameterFile=pfFSdSPN,
                          modFile="tmGabaA",
@@ -661,7 +661,7 @@ class SnuddaInit(object):
                          targetName="iSPN",
                          connectionType="GABA",
                          distPruning=FSDistDepPruning,
-                         f1=0.5, softMax=8, mu2=2, a3=0.9, 
+                         f1=0.5, softMax=5, mu2=2, a3=0.9, 
                          conductance=FSgGABA,
                          parameterFile=pfFSiSPN,
                          modFile="tmGabaA",
@@ -686,7 +686,7 @@ class SnuddaInit(object):
                            targetName="FSN",
                            connectionType="GapJunction",
                            distPruning=None,
-                           f1=0.7, softMax=10, mu2=2, a3=1.0,
+                           f1=0.7, softMax=8, mu2=2, a3=1.0,
                            conductance=FSgGapJunction,
                            channelParamDictionary=None)
 
@@ -710,7 +710,7 @@ class SnuddaInit(object):
     
     MSD1gGABA = [0.83e-9,0.4e-9]
     # Koos, Tepper 1999 says max 0.75nS?
-    MSD1GABAfailRate = 0.5
+    MSD1GABAfailRate = 0.7 # Taverna 2008, figure 2
 
     # OLD: Previously: 23pA * 50 receptors = 1.15e-9 -- Taverna 2008, fig3
     # OLD: std ~ +/- 8 receptors, we used before:  [1.15e-9, 0.18e-9]
@@ -731,7 +731,7 @@ class SnuddaInit(object):
                          targetName="dSPN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=0.15, softMax=None, mu2=2.4, # f1=1.0, softMax=3, mu2=2.4,
+                         f1=0.15, softMax=3, mu2=2.4,
                          a3=P11withinChannel,
                          a3_other=P11betweenChannel,
                          conductance=MSD1gGABA,
@@ -745,7 +745,7 @@ class SnuddaInit(object):
                          targetName="iSPN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=0.15, softMax=None, mu2=2.4, # f1=1.0, softMax=3, mu2=2.4,
+                         f1=0.15, softMax=3, mu2=2.4, 
                          a3=P12withinChannel,
                          a3_other=P12betweenChannel,
                          conductance=MSD1gGABA,
@@ -793,7 +793,7 @@ class SnuddaInit(object):
     # D2D2 24+/-1.5pS per synapse, 78+/-11 synapses (approx)
     
     MSD2gGABA = [1.8e-9,0.7e-9]
-    MSD2GABAfailRate = 0.5
+    MSD2GABAfailRate = 0.4 # Taverna 2008, 2mM
 
     
     # Voxel method 
@@ -811,7 +811,7 @@ class SnuddaInit(object):
                          targetName="dSPN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=0.15, softMax=None, mu2=2.4,
+                         f1=0.15, softMax=3, mu2=2.4,
                          a3=P21withinChannel,
                          a3_other=P21betweenChannel,
                          conductance=MSD2gGABA,
@@ -825,7 +825,7 @@ class SnuddaInit(object):
                          targetName="iSPN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=0.15, softMax=None, mu2=2.4, # f1=1.0, softMax=3, mu2=2.4,
+                         f1=0.15, softMax=3, mu2=2.4,
                          a3=P22withinChannel,
                          a3_other=P22betweenChannel,
                          conductance=MSD2gGABA,
