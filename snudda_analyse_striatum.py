@@ -73,9 +73,15 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
 
         if(not plotMeFlag):
           continue
+
+        try:
+          pairID = tuple([self.allTypes.index(x) for x in pair])
+        except:
+          import traceback
+          tstr = traceback.format_exc()
+          print(tstr)
+          continue
         
-        pairID = tuple([self.allTypes.index(x) for x in pair])
-                
         cumDist = np.cumsum(self.dendPositionBin[pairID])  \
                     /np.sum(self.dendPositionBin[pairID])
 

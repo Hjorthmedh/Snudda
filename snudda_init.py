@@ -710,8 +710,10 @@ class SnuddaInit(object):
     # !!! But Taverna 2008 analyse aggregates all synapses into a conductance
     # measure?? if so, we need to divide the values by 3 or 4.
     # 
+
+    # !!! UPDATE: Assume 24pS per channel, and 10 channels per synapse
     
-    MSD1gGABA = [0.83e-9/4, 0.4e-9/4]
+    MSD1gGABA = [0.24e-9, 0.1e-9]
     # Koos, Tepper 1999 says max 0.75nS?
     MSD1GABAfailRate = 0.7 # Taverna 2008, figure 2
 
@@ -798,8 +800,12 @@ class SnuddaInit(object):
     # !!! But Taverna 2008 analyse aggregates all synapses into a conductance
     # measure?? if so, we need to divide the values by 3 or 4.
     # 
+
+    # !!! UPDATE: Assume 24pS per channel, and 10 channels per synapse
+    # Because in Taverna 2008 iSPN has more receptors in total, we increase
+    # softMax from 3 to 4
     
-    MSD2gGABA = [1.8e-9/4, 0.7e-9/4]
+    MSD2gGABA = [0.24e-9, 0.1e-9]
     MSD2GABAfailRate = 0.4 # Taverna 2008, 2mM
 
     
@@ -818,7 +824,7 @@ class SnuddaInit(object):
                          targetName="dSPN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=0.15, softMax=3, mu2=2.4,
+                         f1=0.15, softMax=4, mu2=2.4,
                          a3=P21withinChannel,
                          a3_other=P21betweenChannel,
                          conductance=MSD2gGABA,
@@ -832,7 +838,7 @@ class SnuddaInit(object):
                          targetName="iSPN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=0.15, softMax=3, mu2=2.4,
+                         f1=0.15, softMax=4, mu2=2.4,
                          a3=P22withinChannel,
                          a3_other=P22betweenChannel,
                          conductance=MSD2gGABA,
