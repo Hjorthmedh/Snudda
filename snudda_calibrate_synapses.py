@@ -24,7 +24,7 @@
 #
 # * Cut the slice, so z > 0.00504 is kept
 #
-#  python3 snudda_cut.py networks/SynTest-v2/network-pruned-synapses.hdf5 "abs(z)<100e-6)"
+#  python3 snudda_cut.py networks/SynTest-v2/network-pruned-synapses.hdf5 "abs(z)<100e-6"
 #
 # * Look at networks/SynTest-v2/network-cut-slice.hdf5.pdf to verify cut plane
 #

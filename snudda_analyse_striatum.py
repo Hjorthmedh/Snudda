@@ -153,49 +153,10 @@ if __name__ == "__main__":
   #import pdb
   #pdb.set_trace()
 
-  nas.plotFSLTScumDist()
-  nas.plotFSLTScumDist(plotFS=False)
-  nas.plotFSLTScumDist(plotLTS=False)
-
-  
-  nas.plotNumSynapsesPerPair("dSPN","ChIN")
-  nas.plotNumSynapsesPerPair("iSPN","ChIN")
-  nas.plotNumSynapsesPerPair("LTS","ChIN")
-  
-  nas.plotIncomingConnections(neuronType="FSN",preType="FSN")            
-  nas.plotIncomingConnections(neuronType="FSN",preType="FSN")            
-  
-  nas.plotNumSynapsesPerPair("FSN","FSN")  
-  nas.plotNumSynapsesPerPair("ChIN","FSN")  
-
-  nas.plotNumSynapsesPerPair("ChIN","LTS")
-
-  
-  nas.plotNumSynapsesPerPair("ChIN","dSPN")
-  nas.plotNumSynapsesPerPair("ChIN","iSPN")      
-
-  nas.plotNumSynapsesPerPair("LTS","dSPN")
-  nas.plotNumSynapsesPerPair("LTS","iSPN")  
-
-  
-  nas.plotSynapseCumDist()
-
-  nas.plotSynapseDist(densityFlag=True)
-  
-  if(True):
-    nas.plotConnectionProbability("LTS","ChIN", \
-                                  dist3D=dist3D )
-
-    # ALSO ADD GAP JUNCTIONS PLOT!!!
-    # No exp data for this -- Gittis,...,Kreitzer 2010 (p2228) -- 7/12 (and 3/4 reciprocal) -- distance?
-    # FS->FS synapses weaker, 1.1 +/- 1.5nS
-    
-    nas.plotConnectionProbability("FSN","FSN", \
-                                  dist3D=dist3D, \
-                                  expMaxDist=[250e-6],\
-                                  expData=[7/12.0],
-                                  expDataDetailed=[(7,12)] )
-
+  nas.plotNumSynapsesPerPair("dSPN","dSPN")
+  nas.plotNumSynapsesPerPair("dSPN","iSPN")    
+  nas.plotNumSynapsesPerPair("iSPN","dSPN")
+  nas.plotNumSynapsesPerPair("iSPN","iSPN")    
 
     
   # This plots figures for the article
@@ -249,6 +210,53 @@ if __name__ == "__main__":
                                   expData=[8/9.0, 29/48.0, 48/90.0],
                                   expDataDetailed=[(8,9),(29,48),(48,90)],
                                   yMax=None)
+
+
+
+  
+  
+  nas.plotFSLTScumDist()
+  nas.plotFSLTScumDist(plotFS=False)
+  nas.plotFSLTScumDist(plotLTS=False)
+
+  
+  nas.plotNumSynapsesPerPair("dSPN","ChIN")
+  nas.plotNumSynapsesPerPair("iSPN","ChIN")
+  nas.plotNumSynapsesPerPair("LTS","ChIN")
+  
+  nas.plotIncomingConnections(neuronType="FSN",preType="FSN")            
+  nas.plotIncomingConnections(neuronType="FSN",preType="FSN")            
+  
+  nas.plotNumSynapsesPerPair("FSN","FSN")  
+  nas.plotNumSynapsesPerPair("ChIN","FSN")  
+
+  nas.plotNumSynapsesPerPair("ChIN","LTS")
+
+  
+  nas.plotNumSynapsesPerPair("ChIN","dSPN")
+  nas.plotNumSynapsesPerPair("ChIN","iSPN")      
+
+  nas.plotNumSynapsesPerPair("LTS","dSPN")
+  nas.plotNumSynapsesPerPair("LTS","iSPN")  
+
+  
+  nas.plotSynapseCumDist()
+
+  nas.plotSynapseDist(densityFlag=True)
+  
+  if(True):
+    nas.plotConnectionProbability("LTS","ChIN", \
+                                  dist3D=dist3D )
+
+    # ALSO ADD GAP JUNCTIONS PLOT!!!
+    # No exp data for this -- Gittis,...,Kreitzer 2010 (p2228) -- 7/12 (and 3/4 reciprocal) -- distance?
+    # FS->FS synapses weaker, 1.1 +/- 1.5nS
+    
+    nas.plotConnectionProbability("FSN","FSN", \
+                                  dist3D=dist3D, \
+                                  expMaxDist=[250e-6],\
+                                  expData=[7/12.0],
+                                  expDataDetailed=[(7,12)] )
 
 
   if(plotChIN):
@@ -375,10 +383,6 @@ if __name__ == "__main__":
   if(True):
     nas.plotNumSynapsesPerPair("FSN","dSPN")
     nas.plotNumSynapsesPerPair("FSN","iSPN")  
-    nas.plotNumSynapsesPerPair("dSPN","dSPN")
-    nas.plotNumSynapsesPerPair("dSPN","iSPN")    
-    nas.plotNumSynapsesPerPair("iSPN","dSPN")
-    nas.plotNumSynapsesPerPair("iSPN","iSPN")    
 
     nas.plotIncomingConnections(neuronType="dSPN",preType="iSPN")
     nas.plotIncomingConnections(neuronType="dSPN",preType="dSPN")

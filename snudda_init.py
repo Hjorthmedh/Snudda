@@ -684,8 +684,8 @@ class SnuddaInit(object):
     # MSP12 = 0.17
 
     # 3e-6 voxel method
-    MSP11 = 0.17
-    MSP12 = 0.072 # 0.085 #0.1 # 0.14 then 0.16 old
+    MSP11 = 0.55 # 0.17
+    MSP12 = 0.20 # 0.072 # 0.085 #0.1 # 0.14 then 0.16 old
 
 
     # Taverna 2008, fig 3E&F:
@@ -717,7 +717,7 @@ class SnuddaInit(object):
                          targetName="dSPN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=1.0, softMax=3, mu2=2.4,
+                         f1=0.15, softMax=None, mu2=2.4, # f1=1.0, softMax=3, mu2=2.4,
                          a3=P11withinChannel,
                          a3_other=P11betweenChannel,
                          conductance=MSD1gGABA,
@@ -731,7 +731,7 @@ class SnuddaInit(object):
                          targetName="iSPN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=1.0, softMax=3, mu2=2.4,
+                         f1=0.15, softMax=None, mu2=2.4, # f1=1.0, softMax=3, mu2=2.4,
                          a3=P12withinChannel,
                          a3_other=P12betweenChannel,
                          conductance=MSD1gGABA,
@@ -767,8 +767,8 @@ class SnuddaInit(object):
     # MSP22 = 0.8
 
     # 3e-6 voxel method
-    MSP21 = 0.23
-    MSP22 = 0.4
+    MSP21 = 0.50 #0.23
+    MSP22 = 0.95 #0.4
 
     # OLD: 24pA * 51 receptors = 1.15e-9 -- Taverna 2008, fig3
     # OLD: std ~ +/- 10 receptors [1.24e-9, 0.24e-9]
@@ -797,7 +797,7 @@ class SnuddaInit(object):
                          targetName="dSPN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=1.0, softMax=3, mu2=2.4,
+                         f1=0.15, softMax=None, mu2=2.4,
                          a3=P21withinChannel,
                          a3_other=P21betweenChannel,
                          conductance=MSD2gGABA,
@@ -811,7 +811,7 @@ class SnuddaInit(object):
                          targetName="iSPN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=1.0, softMax=3, mu2=2.4,
+                         f1=0.15, softMax=None, mu2=2.4, # f1=1.0, softMax=3, mu2=2.4,
                          a3=P22withinChannel,
                          a3_other=P22betweenChannel,
                          conductance=MSD2gGABA,
