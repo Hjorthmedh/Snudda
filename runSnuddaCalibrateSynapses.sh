@@ -1,6 +1,6 @@
 # Calibrate the synapses in a network, edit snudda_init_custom.py
 
-export simName="networks/SynTest-v16"
+export simName="networks/SynTest-v17"
 
 python3 snudda_init_custom.py $simName
 
@@ -10,6 +10,8 @@ export IPYTHONDIR="`pwd`/.ipython"
 export IPYTHON_PROFILE=Snudda_LOCAL
 
 ipcluster start -n 12 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
+
+sleep 10
 
 ./snudda.py detect $simName --volumeID Striatum
 ./snudda.py prune $simName
