@@ -1436,8 +1436,9 @@ class SnuddaSimulate(object):
         pdb.set_trace()
         
   ############################################################################
-        
-  def run(self,t=1000.0):
+
+  
+  def run(self,t=1000.0,holdV=None):
 
     self.setupPrintSimTime(t)
     
@@ -1447,7 +1448,12 @@ class SnuddaSimulate(object):
     # explicitly set: h.v_init
     #self.sim.neuron.h.v_init = -78
     #self.sim.neuron.h.finitialize(-78)
-    self.sim.neuron.h.finitialize()
+    if(holdV is None):
+      self.sim.neuron.h.finitialize()
+    else:
+      self.writeLog("User override for holding voltage: " \
+                    + str(holdV*1e3) + " mV")
+      self.sim.neuron.h.finitialize(holdV*1e3)
     
     # Asked on neuron, check answer:
     # https://www.neuron.yale.edu/phpBB/viewtopic.php?f=2&t=4161&p=18021
@@ -1854,7 +1860,8 @@ if __name__ == "__main__":
 
 
   stop = timeit.default_timer()
-  print("Program run time: " + str(stop - start ))
+  if(self.pc.id() == 0):
+    print("Program run time: " + str(stop - start ))
 
   # sim.plot()
   exit(0)

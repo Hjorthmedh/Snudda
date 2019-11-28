@@ -1,6 +1,12 @@
 # This code assumes you have created a small network of neurons, it will
 # setup current injections
 #
+#
+# OBS! We set a holding current to keep neuron at around -80mV
+# We also change GABA reversal potential to -40mV, since internal Cl is 30mM
+# and external Cl is 135 mM, temperature is 306K
+#
+#
 # How to:
 #
 # * Edit snudda_init_custom.py to have the neurons you want.
@@ -48,6 +54,7 @@ from snudda_simulate import SnuddaSimulate
 from snudda_load import SnuddaLoad
 import matplotlib
 import matplotlib.pyplot as plt
+import neuron
 
 # We want to match Taverna 2008 data:
 
@@ -63,7 +70,11 @@ import matplotlib.pyplot as plt
 
 class SnuddaCalibrateSynapses():
 
-  def __init__(self,networkFile,preType,postType,curInj=10e-9,logFile=None):
+  def __init__(self,networkFile,
+               preType,postType,
+               curInj = 10e-9,
+               holdV = -80e-3,
+               logFile=None):
 
     if(os.path.isdir(networkFile)):
       self.networkFile = networkFile + "/network-pruned-synapses.hdf5"
@@ -73,6 +84,7 @@ class SnuddaCalibrateSynapses():
     self.preType = preType
     self.postType = postType
     self.curInj = curInj
+    self.holdV = holdV
     self.logFile = logFile
     
     print("Checking depolarisation/hyperpolarisation of " + preType \
@@ -90,13 +102,70 @@ class SnuddaCalibrateSynapses():
       + self.preType + "-*.txt"
     
   ############################################################################
+
+  def setupHoldingVolt(self,holdV=None,simEnd=None):
+
+    assert simEnd is not None, \
+      "setupHoldingVolt: Please set simEnd, for holding current"
     
+    if(holdV is None):
+      holdV = self.holdV
+
+    if(holdV is None):
+      print("Not using holding voltage, skipping.")
+      return
+
+    # Setup vClamps to calculate what holding current will be needed
+    somaVClamp = []
+
+    somaList = [self.snuddaSim.neurons[x].icell.soma[0] \
+                for x in self.snuddaSim.neurons]
+    
+    for s in somaList:
+      vc = neuron.h.SEClamp(s(0.5))
+      vc.rs = 1e-9
+      vc.amp1 = holdV*1e3
+      vc.dur1 = 100
+
+      somaVClamp.append((s,vc))
+
+    neuron.h.finitialize(holdV*1e3)
+    neuron.h.tstop = 100
+    neuron.h.run()
+
+    self.holdingIClampList = []
+
+    # Setup iClamps    
+    for s,vc in somaVClamp:
+      cur = float(vc.i)
+      ic = neuron.h.IClamp(s(0.5))
+      ic.amp = cur
+      ic.dur = 2*simEnd*1e3
+      self.holdingIClampList.append(ic)
+      
+    # Remove vClamps
+    vClamps = None
+    vc = None  
+    
+  ############################################################################
+
+  def setGABArev(self,vRevCl):
+
+    print("Setting GABA reversal potential to " + str(vRevCl*1e3) + " mV")
+    
+    for s in self.snuddaSim.synapseList:
+      assert s.e == -65, "It should be GABA synapses only that we modify!"
+      s.e = vRevCl * 1e3
+          
+  ############################################################################
+  
   def runSim(self):
     
     self.snuddaSim = SnuddaSimulate(networkFile=self.networkFile,
                                     inputFile=None,
                                     logFile=self.logFile,
                                     disableGapJunctions=True)
+
     
     # A current pulse to all pre synaptic neurons, one at a time
     self.preID = [x["neuronID"] \
@@ -109,6 +178,12 @@ class SnuddaCalibrateSynapses():
                             +self.injSpacing*np.arange(0,len(self.preID))))
     
     simEnd = self.injInfo[-1][1] + self.injSpacing
+    
+    # Set the holding voltage
+    self.setupHoldingVolt(holdV=self.holdV,simEnd=simEnd)
+
+    self.setGABArev(-40e-3)
+    
     
     # Add current injections defined in init
     for (nid,t) in self.injInfo:
@@ -132,7 +207,7 @@ class SnuddaCalibrateSynapses():
 
     
     # Run simulation
-    self.snuddaSim.run(simEnd*1e3)
+    self.snuddaSim.run(simEnd*1e3,holdV=self.holdV)
     
     # Write results to disk
     self.snuddaSim.writeVoltage(self.voltFile)

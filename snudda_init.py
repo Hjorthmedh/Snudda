@@ -706,9 +706,12 @@ class SnuddaInit(object):
     # D1D1 22.6+/-3pS per synapse, 37+/-15 synapses (approx)
     # D2D1 24.6+/-6pS per synapse, 75+/-30 synapses (approx)
     # D2D2 24+/-1.5pS per synapse, 78+/-11 synapses (approx)
+
+    # !!! But Taverna 2008 analyse aggregates all synapses into a conductance
+    # measure?? if so, we need to divide the values by 3 or 4.
+    # 
     
-    
-    MSD1gGABA = [0.83e-9,0.4e-9]
+    MSD1gGABA = [0.83e-9/4, 0.4e-9/4]
     # Koos, Tepper 1999 says max 0.75nS?
     MSD1GABAfailRate = 0.7 # Taverna 2008, figure 2
 
@@ -791,8 +794,12 @@ class SnuddaInit(object):
     # D1D1 22.6+/-3pS per synapse, 37+/-15 synapses (approx)
     # D2D1 24.6+/-6pS per synapse, 75+/-30 synapses (approx)
     # D2D2 24+/-1.5pS per synapse, 78+/-11 synapses (approx)
+
+    # !!! But Taverna 2008 analyse aggregates all synapses into a conductance
+    # measure?? if so, we need to divide the values by 3 or 4.
+    # 
     
-    MSD2gGABA = [1.8e-9,0.7e-9]
+    MSD2gGABA = [1.8e-9/4, 0.7e-9/4]
     MSD2GABAfailRate = 0.4 # Taverna 2008, 2mM
 
     

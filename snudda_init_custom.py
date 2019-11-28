@@ -4,6 +4,7 @@ import json
 import os
 
 if __name__ == "__main__":
+  
   import argparse
   parser = argparse.ArgumentParser(description="Init custom network")
   parser.add_argument("network",type=str,help="Network path")
@@ -26,8 +27,8 @@ if __name__ == "__main__":
   configName= simName + "/network-config.json"
   cnc = SnuddaInit(structDef={},configName=configName,nChannels=1)
   # cnc.defineStriatum(nMSD1=20,nMSD2=20,nFS=10,nLTS=0,nChIN=0,volumeType="cube")  
-  cnc.defineStriatum(nMSD1=40,nMSD2=40,nFS=40,nLTS=0,nChIN=0,volumeType="slice")
-  #cnc.defineStriatum(nMSD1=40,nMSD2=40,nFS=40,nLTS=0,nChIN=0,volumeType="cube")  
+  #cnc.defineStriatum(nMSD1=200,nMSD2=200,nFS=20,nLTS=0,nChIN=0,volumeType="slice")
+  cnc.defineStriatum(nMSD1=20,nMSD2=20,nFS=0,nLTS=0,nChIN=0,volumeType="cube")  
 
 
 
