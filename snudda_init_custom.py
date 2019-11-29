@@ -27,10 +27,10 @@ if __name__ == "__main__":
   configName= simName + "/network-config.json"
   cnc = SnuddaInit(structDef={},configName=configName,nChannels=1)
   # cnc.defineStriatum(nMSD1=20,nMSD2=20,nFS=10,nLTS=0,nChIN=0,volumeType="cube")  
-  #cnc.defineStriatum(nMSD1=50,nMSD2=50,nFS=20,nLTS=0,nChIN=0,volumeType="slice")
+  cnc.defineStriatum(nMSD1=120,nMSD2=120,nFS=20,nLTS=0,nChIN=0,volumeType="slice")
   #cnc.defineStriatum(nMSD1=10,nMSD2=10,nFS=10,nLTS=10,nChIN=10,volumeType="slice")
   
-  cnc.defineStriatum(nMSD1=500,nMSD2=500,nFS=0,nLTS=0,nChIN=500,volumeType="cube")  
+  # cnc.defineStriatum(nMSD1=500,nMSD2=500,nFS=0,nLTS=0,nChIN=500,volumeType="cube")  
 
 
 
