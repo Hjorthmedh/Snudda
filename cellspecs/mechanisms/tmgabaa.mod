@@ -68,7 +68,7 @@ NET_RECEIVE(weight (uS), y, z, u, tsyn (ms)) {
         u = u0
         tsyn = t
     }
-    if ( weight < 0 ) {
+    if ( weight <= 0 ) {
 VERBATIM
         return;
 ENDVERBATIM

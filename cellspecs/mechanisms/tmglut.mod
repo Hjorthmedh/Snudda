@@ -12,6 +12,7 @@ NEURON {
     RANGE e, g, i, q, mg
     RANGE tau, tauR, tauF, U, u0
     RANGE ca_ratio_ampa, ca_ratio_nmda, mggate, use_stp
+    RANGE failRate
     NONSPECIFIC_CURRENT i
     USEION cal WRITE ical VALENCE 2
 }
@@ -41,7 +42,7 @@ PARAMETER {
     mg = 1 (mM)
 
     use_stp = 1     : to turn of use_stp -> use 0
-	
+    failRate = 0	
 }
 
 ASSIGNED {
@@ -127,38 +128,54 @@ NET_RECEIVE(weight (uS), y, z, u, tsyn (ms)) {
         : printf("t\t t-tsyn\t y\t z\t u\n")
 
     }
-    z = z*exp(-(t-tsyn)/tauR)
-    z = z + (y*(exp(-(t-tsyn)/tau) - exp(-(t-tsyn)/tauR)) / (tau/tauR - 1) )
-    y = y*exp(-(t-tsyn)/tau)
-    x = 1-y-z
-    if (tauF > 0) {
-        u = u*exp(-(t-tsyn)/tauF)
-        u = u + U*(1-u)
-    } else {
-        u = U
+
+    if ( weight <= 0 ) {
+VERBATIM
+        return;
+ENDVERBATIM
+    }    
+    if( urand() > failRate ) { 
+ 
+      z = z*exp(-(t-tsyn)/tauR)
+      z = z + (y*(exp(-(t-tsyn)/tau) - exp(-(t-tsyn)/tauR)) / (tau/tauR - 1) )
+      y = y*exp(-(t-tsyn)/tau)
+      x = 1-y-z
+      if (tauF > 0) {
+          u = u*exp(-(t-tsyn)/tauF)
+          u = u + U*(1-u)
+      } else {
+          u = U
+      }
+    
+      if (use_stp > 0) {
+  	 : We divide by U to normalise, so that g gives amplitude
+           : of first activation
+          weight_ampa = weight *x*u / U
+      } else {
+          weight_ampa = weight
+      }
+    
+      weight_nmda = weight_ampa*nmda_ratio
+    
+      A_ampa = A_ampa + weight_ampa*factor_ampa 
+      B_ampa = B_ampa + weight_ampa*factor_ampa 
+      A_nmda = A_nmda + weight_nmda*factor_nmda 
+      B_nmda = B_nmda + weight_nmda*factor_nmda 
+    
+      y = y + x*u
+      : printf("** %g\t%g\t%g\t%g\t%g\n", t, t-tsyn, y, z, u)
+      tsyn = t
     }
-    
-    if (use_stp > 0) {
-	 : We divide by U to normalise, so that g gives amplitude
-         : of first activation
-        weight_ampa = weight *x*u / U
-    } else {
-        weight_ampa = weight
-    }
-    
-    weight_nmda = weight_ampa*nmda_ratio
-    
-    A_ampa = A_ampa + weight_ampa*factor_ampa 
-    B_ampa = B_ampa + weight_ampa*factor_ampa 
-    A_nmda = A_nmda + weight_nmda*factor_nmda 
-    B_nmda = B_nmda + weight_nmda*factor_nmda 
-    
-    y = y + x*u
-    : printf("** %g\t%g\t%g\t%g\t%g\n", t, t-tsyn, y, z, u)
-    tsyn = t
+}
+
+FUNCTION urand() {
+    urand = scop_random(1)
 }
 
 COMMENT
+(2019-11-29) Synaptic failure rate (fail) added. Random factor, no
+reproducibility guaranteed in parallel sim.
+
 (2019-08-21) We normalise the activation by U, to make sure that g specifies
              the conductance of the first actvation
 
