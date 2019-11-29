@@ -168,7 +168,32 @@ if __name__ == "__main__":
   # MS <-> MS
 
     # FS -> MS
+
+  nas.plotNumSynapsesPerPair("ChIN","dSPN")
+  nas.plotNumSynapsesPerPair("ChIN","iSPN")      
+  nas.plotNumSynapsesPerPair("ChIN","LTS")
+
+  nas.plotConnectionProbability("ChIN","LTS", \
+                                dist3D=dist3D)
   
+  # Janicova 2015?? --- distance??!
+  nas.plotConnectionProbability("ChIN","iSPN", \
+                                dist3D=dist3D,
+                                expMaxDist=[250e-6],
+                                expData=[0.05])
+    
+  nas.plotConnectionProbability("ChIN","dSPN", \
+                                dist3D=dist3D,
+                                expMaxDist=[250e-6],
+                                expData=[0.05])
+  
+  
+    
+  if(True):
+    # 2-5 ChIN should connect to each MS (approx)
+    nas.plotIncomingConnections(neuronType="dSPN",preType="ChIN")
+    nas.plotIncomingConnections(neuronType="iSPN",preType="ChIN")  
+    
   
 
   if(True):
@@ -265,11 +290,8 @@ if __name__ == "__main__":
   
   nas.plotNumSynapsesPerPair("ChIN","FSN")  
 
-  nas.plotNumSynapsesPerPair("ChIN","LTS")
 
   
-  nas.plotNumSynapsesPerPair("ChIN","dSPN")
-  nas.plotNumSynapsesPerPair("ChIN","iSPN")      
 
   nas.plotNumSynapsesPerPair("LTS","dSPN")
   nas.plotNumSynapsesPerPair("LTS","iSPN")  
@@ -325,7 +347,19 @@ if __name__ == "__main__":
                                   dist3D=dist3D,
                                   yMax=None)
 
-    # 2-5 ChIN should connect to each MS (approx) --- ref?
+    # A MS neuron receives 1e4 assymetrical synapses (Kincaid et al 1998),
+    # and 2500 symmetrical synapses (Ingham et al 1998). Symmetrical synapses
+    # can be dopaminergic, cholinergic or GABAergic, with dopaminergic
+    # being 13% (Roberts et al 2002). Assuming that cholinergic inputs are
+    # a similar percentage, 650 symmetrical synapses per MS are not GABAergic.
+    #
+    # --> 0.13*2500 = 325 ChIN inputs to MS
+    nas.plotIncomingConnections(neuronType="ChIN",preType="dSPN")
+    nas.plotIncomingConnections(neuronType="ChIN",preType="iSPN")  
+    nas.plotIncomingConnections(neuronType="ChIN",preType="LTS")
+
+    
+    # 2-5 ChIN should connect to each MS (approx) --- ref? ?!?!?!
     nas.plotIncomingConnections(neuronType="dSPN",preType="ChIN")            
     nas.plotIncomingConnections(neuronType="iSPN",preType="ChIN")            
 
@@ -337,15 +371,6 @@ if __name__ == "__main__":
     nas.plotConnectionProbability("iSPN","ChIN", \
                                   dist3D=dist3D)
 
-    # A MS neuron receives 1e4 assymetrical synapses (Kincaid et al 1998),
-    # and 2500 symmetrical synapses (Ingham et al 1998). Symmetrical synapses
-    # can be dopaminergic, cholinergic or GABAergic, with dopaminergic
-    # being 13% (Roberts et al 2002). Assuming that cholinergic inputs are
-    # a similar percentage, 650 symmetrical synapses per MS are not GABAergic.
-    #
-    # --> 0.13*2500 = 325 ChIN inputs to MS
-    nas.plotIncomingConnections(neuronType="ChIN",preType="dSPN")
-    nas.plotIncomingConnections(neuronType="ChIN",preType="iSPN")  
 
 
     
@@ -377,19 +402,6 @@ if __name__ == "__main__":
                                   expData=[2.0/12],
                                   expDataDetailed=[(2,12)])
     
-    nas.plotConnectionProbability("ChIN","LTS", \
-                                  dist3D=dist3D)
-
-    # Janicova 2015?? --- distance??!
-    nas.plotConnectionProbability("ChIN","iSPN", \
-                                  dist3D=dist3D,
-                                  expMaxDist=[250e-6],
-                                  expData=[0.05])
-    
-    nas.plotConnectionProbability("ChIN","dSPN", \
-                                  dist3D=dist3D,
-                                  expMaxDist=[250e-6],
-                                  expData=[0.05])
 
 
     
@@ -416,9 +428,6 @@ if __name__ == "__main__":
     nas.plotIncomingConnections(neuronType="LTS",preType="ChIN")
     nas.plotIncomingConnections(neuronType="LTS",preType="FSN")  
 
-    # 2-5 ChIN should connect to each MS (approx)
-    nas.plotIncomingConnections(neuronType="dSPN",preType="ChIN")
-    nas.plotIncomingConnections(neuronType="iSPN",preType="ChIN")  
   
     nas.plotIncomingConnections(neuronType="ChIN",preType="dSPN")
     nas.plotIncomingConnections(neuronType="ChIN",preType="iSPN")  

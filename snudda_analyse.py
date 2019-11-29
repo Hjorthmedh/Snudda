@@ -63,7 +63,7 @@ class SnuddaAnalyse(object):
     if(hdf5File is None or hdf5File == "last"):
       hdf5File = self.findLatestFile()
       
-    self.figDir = os.path.dirname(hdf5File) + "/figs"
+    self.figDir = os.path.dirname(hdf5File) + "/figures"
     if(not os.path.exists(self.figDir)):
       os.makedirs(self.figDir)
 

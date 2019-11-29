@@ -573,7 +573,7 @@ class SnuddaInit(object):
     # ChINaxonDensity = ("6*5000*1e12/3*np.exp(-d/60e-6)",350e-6)
 
     # func type, density function, max axon radius
-    ChINaxonDensity = ("r", "2*5000*1e12/3*np.exp(-r/120e-6)",350e-6)
+    ChINaxonDensity = ("r", "5000*1e12/3*np.exp(-r/120e-6)",350e-6)
     # !!! TEST
     #ChINaxonDensity = ("xyz", "2*5000*1e12/3*np.exp(-np.sqrt(x**2+y**2+z**2)/120e-6)",[-350e-6,350e-6,-350e-6,350e-6,-350e-6,350e-6])    
     
@@ -845,7 +845,8 @@ class SnuddaInit(object):
                          parameterFile=pfiSPNiSPN,
                          modFile="tmGabaA",
                          channelParamDictionary={"tau1" : 1.3e-3,
-                                                 "tau2" : 12.4e-3 })
+                                                 "tau2" : 12.4e-3,
+                                                 "failRate" : MSD2GABAfailRate})
 
     self.addNeuronTarget(neuronName="iSPN",
                          targetName="ChIN",
@@ -888,7 +889,7 @@ class SnuddaInit(object):
                          targetName="dSPN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=1.0, softMax=15, mu2=15,a3=0.1,
+                         f1=0.5, softMax=15, mu2=15,a3=0.1, # SM 15
                          conductance=ChINgGABA,
                          parameterFile=pfChINdSPN,
                          modFile="tmGabaA",
@@ -900,7 +901,7 @@ class SnuddaInit(object):
                          targetName="iSPN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=1.0, softMax=12, mu2=10,a3=0.1,
+                         f1=0.5, softMax=12, mu2=10,a3=0.1, # SM 12
                          conductance=ChINgGABA,
                          parameterFile=pfChINiSPN,
                          modFile="tmGabaA",
@@ -913,7 +914,7 @@ class SnuddaInit(object):
                          targetName="LTS",
                          connectionType="ACh",
                          distPruning=None,
-                         f1=1.0, softMax=12, mu2=10,a3=None,
+                         f1=0.5, softMax=None, mu2=10,a3=None, # SM 12
                          conductance=ChINgACh,
                          parameterFile=pfChINLTS,
                          modFile="tmGabaA",

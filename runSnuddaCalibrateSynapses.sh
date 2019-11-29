@@ -1,6 +1,6 @@
 # Calibrate the synapses in a network, edit snudda_init_custom.py
 
-export simName="networks/SynTest-v17"
+export simName="networks/SynTest-v27"
 
 python3 snudda_init_custom.py $simName
 
@@ -24,6 +24,7 @@ ipcluster stop
 echo "Type Ctrl+D after inspecting the cut"
 
 python3 snudda_cut.py $simName/network-pruned-synapses.hdf5 "abs(z)<100e-6"
+#python3 snudda_cut.py $simName/network-pruned-synapses.hdf5 "abs(z-0.00511)<100e-6"
 
 mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run $simName/network-cut-slice.hdf5 dSPN iSPN
 

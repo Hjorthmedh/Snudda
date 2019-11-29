@@ -74,6 +74,7 @@ class SnuddaCalibrateSynapses():
                preType,postType,
                curInj = 10e-9,
                holdV = -80e-3,
+               maxDist = 50e-6,
                logFile=None):
 
     if(os.path.isdir(networkFile)):
@@ -86,6 +87,7 @@ class SnuddaCalibrateSynapses():
     self.curInj = curInj
     self.holdV = holdV
     self.logFile = logFile
+    self.maxDist = maxDist
     
     print("Checking depolarisation/hyperpolarisation of " + preType \
           + " to " + postType + "synapses")
@@ -250,8 +252,11 @@ class SnuddaCalibrateSynapses():
   
   # This extracts all the voltage deflections, to see how strong they are
   
-  def analyse(self,maxDist=50e-6):
+  def analyse(self,maxDist=None):
 
+    if(maxDist is None):
+      maxDist = self.maxDist
+    
     # Read the data
     self.snuddaLoad = SnuddaLoad(self.networkFile)
     self.data = self.snuddaLoad.data
@@ -301,8 +306,9 @@ class SnuddaCalibrateSynapses():
         tIdx = np.where(np.logical_and(t <= time, time <= t + checkWidth))[0]
         synapseData.append((time[tIdx],voltage[postID][tIdx]))
 
-    print("Number of pairs excluded, distance > " \
-          + str(maxDist*1e6) + "mum : " + str(tooFarAway))
+    if(maxDist is not None):
+      print("Number of pairs excluded, distance > " \
+            + str(maxDist*1e6) + "mum : " + str(tooFarAway))
         
     # Fig names:
     traceFig = os.path.dirname(self.networkFile) \
@@ -373,11 +379,21 @@ if __name__ == "__main__":
   parser.add_argument("networkFile",help="Network file (hdf5)")
   parser.add_argument("preType",help="Pre synaptic neuron type")
   parser.add_argument("postType",help="Post synaptic neuron type (for run task, postType can be 'ALL' to record from all neurons)")
+  parser.add_argument("--maxDist",help="Only check neuron pairs within (mum)")
   args = parser.parse_args()
-  
+  if(args.maxDist is None):
+    maxDist = 50e-6
+  elif(args.maxDist == "None"):
+    maxDist = None
+  else:
+    maxDist = args.maxDist
+
+  print("Using maxDist = " + str(maxDist))
+    
   scs = SnuddaCalibrateSynapses(networkFile=args.networkFile,
                                 preType=args.preType,
-                                postType=args.postType)
+                                postType=args.postType,
+                                maxDist=maxDist)
 
   if(args.task == "run"):
     scs.runSim()
