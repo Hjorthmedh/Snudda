@@ -771,7 +771,7 @@ class SnuddaInit(object):
                          targetName="ChIN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=1.0, softMax=None, mu2=2.4,a3=0.1,
+                         f1=0.5, softMax=None, mu2=2.4,a3=0.1,
                          conductance=MSD1gGABA,
                          parameterFile=pfdSPNChIN,
                          modFile="tmGabaA",
@@ -852,7 +852,7 @@ class SnuddaInit(object):
                          targetName="ChIN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=1.0, softMax=None, mu2=2.4,a3=0.1,
+                         f1=0.5, softMax=None, mu2=2.4,a3=0.1,
                          conductance=MSD2gGABA,
                          parameterFile=pfiSPNChIN,
                          modFile="tmGabaA",
@@ -889,7 +889,7 @@ class SnuddaInit(object):
                          targetName="dSPN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=0.5, softMax=15, mu2=15,a3=0.1, # SM 15
+                         f1=0.5, softMax=10, mu2=15,a3=0.1, # SM 15
                          conductance=ChINgGABA,
                          parameterFile=pfChINdSPN,
                          modFile="tmGabaA",
@@ -901,7 +901,7 @@ class SnuddaInit(object):
                          targetName="iSPN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=0.5, softMax=12, mu2=10,a3=0.1, # SM 12
+                         f1=0.5, softMax=10, mu2=10,a3=0.1, # SM 12
                          conductance=ChINgGABA,
                          parameterFile=pfChINiSPN,
                          modFile="tmGabaA",

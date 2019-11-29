@@ -386,7 +386,7 @@ if __name__ == "__main__":
   elif(args.maxDist == "None"):
     maxDist = None
   else:
-    maxDist = args.maxDist
+    maxDist = float(args.maxDist)
 
   print("Using maxDist = " + str(maxDist))
     
