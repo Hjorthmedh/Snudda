@@ -21,6 +21,7 @@
 
 from mpi4py import MPI # This must be imported before neuron, to run parallel
 from neuron import h, gui
+import neuron
 import h5py
 import json
 import timeit
@@ -102,11 +103,14 @@ class SnuddaSimulate(object):
     self.netConList = [] # Avoid premature garbage collection
     self.synapseList = []
     self.iStim = []
+    self.vClampList = []
     self.gapJunctionList = []
     self.externalStim = dict([])
     self.tSave = []
     self.vSave = []
     self.vKey = []
+    self.iSave = []
+    self.iKey = []
 
     self.inputData = None
     
@@ -890,10 +894,12 @@ class SnuddaSimulate(object):
           continue
         
         try:
-          evalStr = "syn." + par + "=" + str(parSet[par])
+          setattr(syn,par,parSet[par])
+
+          #evalStr = "syn." + par + "=" + str(parSet[par])
           # self.writeLog("Updating synapse: " + evalStr)
           # !!! Can we avoid an eval here, it is soooo SLOW
-          exec(evalStr)
+          #exec(evalStr)
         except:
           import traceback
           tstr = traceback.format_exc()
@@ -1392,14 +1398,44 @@ class SnuddaSimulate(object):
   
   ############################################################################
 
-  def recordAllIndividualCells(self,):
+  def addVoltageClamp(self,cellID,voltage,duration,res=1e-9,saveIflag=False):
 
-    # get all individual cell models in the network (from config or some list)
-    
-    # randomly pick one id
-    
-    #
-    pass
+    if(type(cellID) != list):
+      cellID = [cellID]
+
+    if(type(voltage) != list):
+      voltage = [voltage for x in cellID]
+
+    if(type(duration) != list):
+      duration = [duration for x in cellID]
+      
+    if(type(res) != list):
+      res = [res for x in cellID]
+
+    if(saveIflag and (len(self.tSave) == 0 or self.tSave is None)):
+      self.tSave = self.sim.neuron.h.Vector()
+      self.tSave.record(self.sim.neuron.h._ref_t)
+
+    for cID,v,rs,dur in zip(cellID,voltage,res,duration):
+      
+      if(not(cID in self.neuronID)):
+        # Not in the list of neuronID on the worker, skip it
+        continue
+      
+      self.writeLog("Adding voltage clamp to " + str(cID))
+      s = self.neurons[cID].icell.soma[0]
+      vc = neuron.h.SEClamp(s(0.5))
+      vc.rs = rs
+      vc.amp1 = v*1e3
+      vc.dur1 = dur*1e3
+
+      self.vClampList.append(vc)
+
+      if(saveIflag):
+        cur = self.sim.neuron.h.Vector()
+        cur.record(vc._ref_i)
+        self.iSave.append(cur)
+        self.iKey.append(cID)
     
   ############################################################################
   
@@ -1413,6 +1449,8 @@ class SnuddaSimulate(object):
     # the centre)
     cellID = self.centreNeurons(sideLen=sideLen,neuronID=cellID)
 
+    # Only include neuron IDs on this worker, ie those in self.neuronID
+    # (filtering in the if statement)
     cells = dict((k,self.neurons[k]) \
                  for k in cellID if (not self.isVirtualNeuron[k] \
                                      and k in self.neuronID))
@@ -1651,6 +1689,39 @@ class SnuddaSimulate(object):
 
             for vIdx in range(0,len(voltage),downSampling):
               voltageFile.write(',%.4f' % voltage[vIdx])
+         
+      self.pc.barrier()
+
+  ############################################################################  
+
+  # File format for csv current file:
+  # -1,t0,t1,t2,t3 ... (time)
+  # cellID,i0,i1,i2,i3, ... (current for cell #ID)
+  # repeat
+  
+  def writeCurrent(self,outputFile="save/traces/network-current",
+                   downSampling=20):
+    for i in range(int(self.pc.nhost())):
+      self.pc.barrier()
+      
+      if(i == int(self.pc.id())):
+        if(i == 0):
+          mode = 'w'
+        else:
+          mode = 'a'
+          
+        with open(outputFile,mode) as currentFile:
+          if(mode == 'w'):
+            currentFile.write('-1') # Indiciate that first column is time
+
+            for tIdx in range(0,len(self.tSave),downSampling):
+              currentFile.write(',%.4f' % self.tSave[tIdx])
+            
+          for iID, cur in zip(self.iKey,self.iSave):
+            currentFile.write('\n%d' % iID)
+
+            for iIdx in range(0,len(cur),downSampling):
+              currentFile.write(',%.4f' % cur[iIdx])
          
       self.pc.barrier()
     

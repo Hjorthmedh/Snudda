@@ -68,7 +68,7 @@ import neuron
 # Assume loss of 100 micrometer in depth, at KI they start with 250 micrometers
 # and get 150 micrometers after.
 
-class SnuddaCalibrateSynapses():
+class SnuddaCalibrateSynapses(object):
 
   def __init__(self,networkFile,
                preType,postType,

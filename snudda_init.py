@@ -97,19 +97,21 @@ class SnuddaInit(object):
       # 2019-11-26 : Anya said that her sagital striatal slices
       # were 2.36 x 2.36 mm. So that can be an upper limit
 
-      sliceLen = 200e-6
+      if(sideLen is None):
+        sideLen = 200e-6
+        
       sliceDepth = 150e-6
       
       if(meshBinWidth is None):
-        meshBinWidth = np.minimum(sliceLen,sliceDepth)/3.0
+        meshBinWidth = np.minimum(sideLen,sliceDepth)/3.0
         print("Setting meshBinWidth to " + str(meshBinWidth))
 
  
       
       CreateSliceMesh.CreateSliceMesh(fileName=structMesh,
                                       centrePoint=np.array([0,0,0]),
-                                      xLen=sliceLen,
-                                      yLen=sliceLen,
+                                      xLen=sideLen,
+                                      yLen=sideLen,
                                       zLen=sliceDepth,
                                       description=structName + " slice mesh")
       
@@ -435,7 +437,8 @@ class SnuddaInit(object):
                      nFS=None,
                      nChIN=None,
                      nLTS=None,
-                     volumeType=None):
+                     volumeType=None,
+                     sideLen=None):
 
     getVal = lambda x : 0 if x is None else x
     if(nNeurons is None):
@@ -477,7 +480,8 @@ class SnuddaInit(object):
 
     elif(volumeType == "slice"):
       self.defineStructure(structName="Striatum",
-                           structMesh="slice")
+                           structMesh="slice",
+                           sideLen=sideLen)
       
     elif(nNeurons <= 1e6): #1e6
       print("Using cube for striatum")
@@ -910,15 +914,16 @@ class SnuddaInit(object):
     # We got an increasing connection distribution with distance, looks fishy
     # !!! Should be ACh, lets try set it to GABA and see if that changes things
     # --- trying same pruning as for ChIN to MSD2
-    self.addNeuronTarget(neuronName="ChIN",
-                         targetName="LTS",
-                         connectionType="ACh",
-                         distPruning=None,
-                         f1=0.5, softMax=None, mu2=10,a3=None, # SM 12
-                         conductance=ChINgACh,
-                         parameterFile=pfChINLTS,
-                         modFile="tmGabaA",
-                         channelParamDictionary=None)
+    if(False):
+      self.addNeuronTarget(neuronName="ChIN",
+                           targetName="LTS",
+                           connectionType="ACh",
+                           distPruning=None,
+                           f1=0.5, softMax=None, mu2=10,a3=None, # SM 12
+                           conductance=ChINgACh,
+                           parameterFile=pfChINLTS,
+                           modFile="ACh", # !!! DOES NOT YET EXIST --- FIXME
+                           channelParamDictionary=None)
     
 
     # !!! USE SAME PARAMS FOR FS AS FOR MS??
