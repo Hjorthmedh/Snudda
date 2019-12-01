@@ -31,10 +31,11 @@ class SnuddaModelCurrentInjections(object):
 
     self.simName = simName
 
-
-      
-    # Setup network
-    
+    self.tInj = 0.5
+    self.injDuration = 1e-3
+    self.curInj = 10e-9
+    self.simEnd = 0.8
+    self.holdV = -60
 
 
   ############################################################################
@@ -105,38 +106,33 @@ class SnuddaModelCurrentInjections(object):
     # Remove the overlap, ie dont stimulate the neurons we measure from    
     self.stimID = np.setdiff1d(self.stimID,
                                np.union1d(self.measuredSPN,self.measureiSPN))
-
-    tInj = 0.5
-    injDuration = 1e-3
-    curInj = 10e-9
-    simEnd = 0.8
     
     # Set up stimulation protocol
     for nID in self.stimID:
       self.snuddaSim.addCurrentInjection(neuronID=nID,
-                                         startTime=tInj,
-                                         endTime=tInj+injDuration,
-                                         amplitude=curInj)
+                                         startTime=self.tInj,
+                                         endTime=self.tInj+self.injDuration,
+                                         amplitude=self.curInj)
 
     # Add recordings
     self.snuddaSim.addVoltageClamp(cellID = self.measureFSN,
-                                   voltage = -60,
-                                   duration=simEnd,
+                                   voltage = self.holdV,
+                                   duration=self.simEnd,
                                    saveIflag=True)
     self.snuddaSim.addVoltageClamp(cellID = self.measureChIN,
-                                   voltage = -60,
-                                   duration=simEnd,
+                                   voltage = self.holdV,
+                                   duration=self.simEnd,
                                    saveIflag=True)
     self.snuddaSim.addVoltageClamp(cellID = self.measuredSPN,
-                                   voltage = -60,
-                                   duration=simEnd,
+                                   voltage = self.holdV,
+                                   duration=self.simEnd,
                                    saveIflag=True)
     self.snuddaSim.addVoltageClamp(cellID = self.measureiSPN,
-                                   voltage = -60,
-                                   duration=simEnd,
+                                   voltage = self.holdV,
+                                   duration=self.simEnd,
                                    saveIflag=True)
     
-    self.snuddaSim.run(simEnd*1e3)
+    self.snuddaSim.run(self.simEnd*1e3)
 
     self.currentFile = simName + "/Chuhma2011-network-stimulation-current.txt"
     self.snuddaSim.writeCurrent(self.currentFile)
@@ -174,13 +170,13 @@ class SnuddaModelCurrentInjections(object):
     data = np.genfromtxt(voltFile,delimiter=",")
 
     assert(data[0,0] == -1) # First column should be time
-    time = data[0,1:] / 1e3
+    time = data[0,1:] * 1e-3
     
     current = dict()
     
     for rows in data[1:,:]:
       cID = int(rows[0])
-      current[cID] = rows[1:] * 1e-3
+      current[cID] = rows[1:] * 1e-9
 
     # Data in time, current now
 
@@ -191,6 +187,29 @@ class SnuddaModelCurrentInjections(object):
     
     recordedNeurons = [x for x in current]
 
+    # Group the neurons by type
+
+    dSPNID = [x for x in current if self.data["neurons"][x]["type"] == "dSPN"]
+    iSPNID = [x for x in current if self.data["neurons"][x]["type"] == "iSPN"]
+    FSNID = [x for x in current if self.data["neurons"][x]["type"] == "FSN"]
+    ChINID = [x for x in current if self.data["neurons"][x]["type"] == "ChIN"]
+
+    for plotID in [dSPNID,iSPNID,FSNID,ChINID]:
+
+      plotType = self.data["neurons"][plotID[0]]["type"]
+      figName = "figures/" + plotType + "-current-traces.pdf"
+      
+      plt.figure()
+      for pID in plotID:
+        tIdx = np.where(time > self.tInj)[0]
+        plt.plot(time[tIdx]*1e3,current[pID][tIdx]*1e9,c="black")
+
+      plt.xlabel("Time (ms)")
+      plt.ylabel("Current (nA)")
+      plt.ion()
+      plt.show()
+      plt.savefig(figName)
+      
     import pdb
     pdb.set_trace()
 
