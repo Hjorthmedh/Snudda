@@ -1429,6 +1429,9 @@ class SnuddaSimulate(object):
       vc.amp1 = v*1e3
       vc.dur1 = dur*1e3
 
+      self.writeLog("Resistance: " + str(rs) \
+                    + ", voltage: " + str(vc.amp1) + "mV")
+      
       self.vClampList.append(vc)
 
       if(saveIflag):

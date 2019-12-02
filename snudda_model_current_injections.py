@@ -31,11 +31,13 @@ class SnuddaModelCurrentInjections(object):
 
     self.simName = simName
 
-    self.tInj = 0.5
+    self.tInj = 0.3
     self.injDuration = 1e-3
     self.curInj = 10e-9
-    self.simEnd = 0.8
-    self.holdV = -60
+    self.tWindow = 0.05
+    self.simEnd = self.tInj + self.tWindow*2
+    self.holdV = -60e-3
+    self.GABArev = 2 # 144mM inside, 133.5mM outside, 32-33C --NERNST--> 2mV
 
 
   ############################################################################
@@ -55,11 +57,14 @@ class SnuddaModelCurrentInjections(object):
     # Adding 10 FSN, 10 ChIN, 10 dSPN, 10 iSPN to measure from
     #
 
-    
-    cnc.defineStriatum(nMSD1=10,nMSD2=10,nFS=10,nLTS=0,nChIN=10,
-                       volumeType="slice",sideLen=200e-6)    
-    #cnc.defineStriatum(nMSD1=580,nMSD2=580,nFS=10,nLTS=0,nChIN=10,
-    #                   volumeType="slice",sideLen=1000e-6)    
+
+    if(False):
+      #Small debug version
+      cnc.defineStriatum(nMSD1=20,nMSD2=20,nFS=10,nLTS=0,nChIN=10,
+                         volumeType="slice",sideLen=200e-6)
+    else:
+      cnc.defineStriatum(nMSD1=580,nMSD2=580,nFS=10,nLTS=0,nChIN=10,
+                         volumeType="slice",sideLen=1000e-6)    
 
     dirName = os.path.dirname(configName)
   
@@ -122,6 +127,7 @@ class SnuddaModelCurrentInjections(object):
     self.snuddaSim.addVoltageClamp(cellID = self.measureChIN,
                                    voltage = self.holdV,
                                    duration=self.simEnd,
+                                   res=1e-6,
                                    saveIflag=True)
     self.snuddaSim.addVoltageClamp(cellID = self.measuredSPN,
                                    voltage = self.holdV,
@@ -132,11 +138,22 @@ class SnuddaModelCurrentInjections(object):
                                    duration=self.simEnd,
                                    saveIflag=True)
     
+    # Also add voltage recording for debugging reasons
+    saveVoltage = True # False #True
+    if(saveVoltage):
+      self.snuddaSim.addRecording(cellID=self.stimID)
+
+    self.setGABArev(self.GABArev)
+      
     self.snuddaSim.run(self.simEnd*1e3)
 
     self.currentFile = simName + "/Chuhma2011-network-stimulation-current.txt"
     self.snuddaSim.writeCurrent(self.currentFile)
-    
+
+    if(saveVoltage):
+      voltageFile = simName  + "/Chuhma2011-network-stimulation-voltage.txt"
+      self.snuddaSim.writeVoltage(voltageFile)
+      
   ############################################################################
 
   def createNetwork(self,simName):
@@ -201,11 +218,16 @@ class SnuddaModelCurrentInjections(object):
       
       plt.figure()
       for pID in plotID:
-        tIdx = np.where(time > self.tInj)[0]
-        plt.plot(time[tIdx]*1e3,current[pID][tIdx]*1e9,c="black")
+        tIdx = np.where(np.logical_and(time > self.tInj,
+                                       time < self.tInj+self.tWindow))[0]
+        plt.plot(time[tIdx]*1e3,
+                 (current[pID][tIdx]-current[pID][tIdx[0]-1])*1e9,
+                 c="black")
 
+      plt.title(plotType)
       plt.xlabel("Time (ms)")
       plt.ylabel("Current (nA)")
+      plt.tight_layout()
       plt.ion()
       plt.show()
       plt.savefig(figName)
@@ -213,6 +235,16 @@ class SnuddaModelCurrentInjections(object):
     import pdb
     pdb.set_trace()
 
+    
+  ############################################################################
+
+  def setGABArev(self,vRevCl):
+
+    print("Setting GABA reversal potential to " + str(vRevCl*1e3) + " mV")
+    
+    for s in self.snuddaSim.synapseList:
+      assert s.e == -65, "It should be GABA synapses only that we modify!"
+      s.e = vRevCl * 1e3
     
   ############################################################################
 
