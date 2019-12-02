@@ -34,10 +34,10 @@ class SnuddaModelCurrentInjections(object):
     self.tInj = 0.3
     self.injDuration = 1e-3
     self.curInj = 10e-9
-    self.tWindow = 0.05
+    self.tWindow = 0.03
     self.simEnd = self.tInj + self.tWindow*2
     self.holdV = -60e-3
-    self.GABArev = 2 # 144mM inside, 133.5mM outside, 32-33C --NERNST--> 2mV
+    self.GABArev = 2e-3 # 144mM inside, 133.5mM outside, 32-33C --NERNST--> 2mV
 
 
   ############################################################################
@@ -58,12 +58,19 @@ class SnuddaModelCurrentInjections(object):
     #
 
 
-    if(False):
+    if(True):
       #Small debug version
-      cnc.defineStriatum(nMSD1=20,nMSD2=20,nFS=10,nLTS=0,nChIN=10,
-                         volumeType="slice",sideLen=200e-6)
+      #cnc.defineStriatum(nMSD1=20,nMSD2=20,nFS=0,nLTS=0,nChIN=0,
+      #                   volumeType="slice",sideLen=200e-6)
+      #cnc.defineStriatum(nMSD1=20,nMSD2=20,nFS=10,nLTS=0,nChIN=10,
+      #                   volumeType="slice",sideLen=200e-6)
+      cnc.defineStriatum(nMSD1=153,nMSD2=153,nFS=10,nLTS=0,nChIN=10,
+                         volumeType="slice",sideLen=500e-6)    
+
+
+
     else:
-      cnc.defineStriatum(nMSD1=580,nMSD2=580,nFS=10,nLTS=0,nChIN=10,
+      cnc.defineStriatum(nMSD1=590,nMSD2=590,nFS=5,nLTS=0,nChIN=20,
                          volumeType="slice",sideLen=1000e-6)    
 
     dirName = os.path.dirname(configName)
@@ -103,10 +110,10 @@ class SnuddaModelCurrentInjections(object):
     # For SPN we want to make sure we find ones in the centre
     self.measuredSPN = [x["neuronID"] \
                        for x in self.snuddaSim.network_info["neurons"] \
-                       if x["type"] == "dSPN"][:10]
+                       if x["type"] == "dSPN"][:20]
     self.measureiSPN = [x["neuronID"] \
                        for x in self.snuddaSim.network_info["neurons"] \
-                       if x["type"] == "iSPN"][:10]
+                       if x["type"] == "iSPN"][:20]
 
     # Remove the overlap, ie dont stimulate the neurons we measure from    
     self.stimID = np.setdiff1d(self.stimID,
@@ -144,7 +151,7 @@ class SnuddaModelCurrentInjections(object):
       self.snuddaSim.addRecording(cellID=self.stimID)
 
     self.setGABArev(self.GABArev)
-      
+    
     self.snuddaSim.run(self.simEnd*1e3)
 
     self.currentFile = simName + "/Chuhma2011-network-stimulation-current.txt"
@@ -211,19 +218,43 @@ class SnuddaModelCurrentInjections(object):
     FSNID = [x for x in current if self.data["neurons"][x]["type"] == "FSN"]
     ChINID = [x for x in current if self.data["neurons"][x]["type"] == "ChIN"]
 
-    for plotID in [dSPNID,iSPNID,FSNID,ChINID]:
+    dSPNmaxIdx = [np.argmax(np.abs(current[x]-current[x][0])) \
+                  for x in dSPNID]
+    iSPNmaxIdx = [np.argmax(np.abs(current[x]-current[x][0])) \
+                  for x in iSPNID]
+    FSNmaxIdx = [np.argmax(np.abs(current[x]-current[x][0])) \
+                  for x in FSNID]
+    ChINmaxIdx = [np.argmax(np.abs(current[x]-current[x][0])) \
+                  for x in ChINID]
+    
+    for plotID,maxIdx in [(dSPNID,dSPNmaxIdx),
+                          (iSPNID,iSPNmaxIdx),
+                          (FSNID,FSNmaxIdx),
+                          (ChINID,ChINmaxIdx)]:
 
+      if(len(plotID) == 0):
+        continue
+      
       plotType = self.data["neurons"][plotID[0]]["type"]
       figName = "figures/" + plotType + "-current-traces.pdf"
       
       plt.figure()
-      for pID in plotID:
+      for pID,mIdx in zip(plotID,maxIdx):
+        if(mIdx < np.where(time > self.tInj)[0][0]or
+           mIdx > np.where(time > self.tInj + self.tWindow)[0][0]):
+          # No peaks
+          continue
+        
         tIdx = np.where(np.logical_and(time > self.tInj,
                                        time < self.tInj+self.tWindow))[0]
         plt.plot(time[tIdx]*1e3,
                  (current[pID][tIdx]-current[pID][tIdx[0]-1])*1e9,
                  c="black")
 
+        plt.plot(time[mIdx]*1e3,
+                 (current[pID][mIdx]-current[pID][tIdx[0]-1])*1e9,
+                 marker=".",c="red")
+        
       plt.title(plotType)
       plt.xlabel("Time (ms)")
       plt.ylabel("Current (nA)")

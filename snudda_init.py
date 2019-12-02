@@ -761,7 +761,8 @@ class SnuddaInit(object):
                          parameterFile=pfdSPNiSPN,
                          modFile="tmGabaA",
                          channelParamDictionary={"tau1" : 1.3e-3,
-                                                 "tau2" : 12.4e-3 })
+                                                 "tau2" : 12.4e-3,
+                                                 "failRate" : MSD1GABAfailRate})
 
     # Doig, Magill, Apicella, Bolam, Sharott 2014:
     # 5166 +/- 285 GABA synapses on ChIN (antag att 95% av dem är från MS?)
@@ -775,11 +776,11 @@ class SnuddaInit(object):
                          targetName="ChIN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=0.5, softMax=None, mu2=2.4,a3=0.1,
+                         f1=0.1, softMax=3, mu2=2.4,a3=0.1,
                          conductance=MSD1gGABA,
                          parameterFile=pfdSPNChIN,
                          modFile="tmGabaA",
-                         channelParamDictionary=None)
+                         channelParamDictionary={"failRate" : MSD1GABAfailRate})
 
                          
 
@@ -852,15 +853,16 @@ class SnuddaInit(object):
                                                  "tau2" : 12.4e-3,
                                                  "failRate" : MSD2GABAfailRate})
 
+    # See comment for dSPN to ChIN
     self.addNeuronTarget(neuronName="iSPN",
                          targetName="ChIN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=0.5, softMax=None, mu2=2.4,a3=0.1,
+                         f1=0.1, softMax=3, mu2=2.4,a3=0.1,
                          conductance=MSD2gGABA,
                          parameterFile=pfiSPNChIN,
                          modFile="tmGabaA",
-                         channelParamDictionary=None)
+                         channelParamDictionary={"failRate" : MSD2GABAfailRate})
 
     
     
