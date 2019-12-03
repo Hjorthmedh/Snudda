@@ -63,6 +63,16 @@ class SnuddaModelCurrentInjections(object):
       self.holdV = -70e-3
       self.GABArev = -0.3e-3 # Out: 133.5 mM chloride, In 131.5 mM, Temperature 33-34 C
       self.nNrns = 30
+    elif(simType == "Szydlowski2013"):
+      self.tInj = 0.5
+      self.injDuration = 1e-3
+      self.curInj = 10e-9
+      self.tWindow = 0.03
+      self.simEnd = self.tInj + self.tWindow*2
+      self.holdV = -70e-3
+      self.GABArev = -30e-3 
+      self.nNrns = 30
+      
     else:
       print("Unknown simType: " + str(simType))
       
@@ -122,7 +132,13 @@ class SnuddaModelCurrentInjections(object):
                          nFS=0,nLTS=84,
                          nChIN=self.nNrns,
                          volumeType="slice",sideLen=1000e-6)    
-
+    elif(simType == "Szydlowski2013"):
+      cnc.defineStriatum(nMSD1=0,
+                         nMSD2=0,
+                         nFS=156,
+                         nLTS=self.nNrns,
+                         nChIN=0,
+                         volumeType="slice",sideLen=1000e-6)          
     else:
       print("setup : Unkown simType: " + str(simType))
       exit(-1)
@@ -147,6 +163,9 @@ class SnuddaModelCurrentInjections(object):
     elif(simType == "Straub2016FS" or "Straub2016LTS"):
       self.simulateNetworkStraub2016(simName,simType)
 
+    elif(simType == "Szydlowski2013"):
+      self.simulateNetworkSzydlowski2013(simName)
+      
     else:
       print("simulateNetwork: unknown simType = " + str(simType))
       exit(-1)
@@ -234,6 +253,29 @@ class SnuddaModelCurrentInjections(object):
                  or x["type"] == "iSPN"]
       
     self._simulateNetworkHelper(simName,simType,stimID,measureID)
+
+  ############################################################################
+
+  def simulateNetworkSzydlowski2013(self,simName):
+
+    if(self.snuddaSim is None):
+      logFile = simName + "/log/simlog.txt"
+      self.networkFile = simName + "/network-pruned-synapses.hdf5"
+      
+      self.snuddaSim = SnuddaSimulate(networkFile=self.networkFile,
+                                      inputFile=None,
+                                      logFile=logFile,
+                                      disableGapJunctions=True)
+    
+    stimID = [x["neuronID"] \
+              for x in self.snuddaSim.network_info["neurons"] \
+              if "FSN" in x["type"]]
+
+    measureID = [x["neuronID"] \
+                 for x in self.snuddaSim.network_info["neurons"] \
+                 if x["type"] == "LTS"]
+      
+    self._simulateNetworkHelper(simName,simType,stimID,measureID)
     
   ############################################################################
   
@@ -314,6 +356,18 @@ class SnuddaModelCurrentInjections(object):
 
     if(simType is None):
       simType = self.simType
+
+    if(simType == "Straub2016LTS"):
+      preType = "LTS"
+    elif(simType == "Straub2016FS"):
+      preType = "FSN"
+    elif(simType == "Chuhma2011"):
+      preType = "SPN"
+    elif(simType == "Szydlowski2013"):
+      preType = "FSN"
+    else:
+      print("Unknown simType : " + simType)
+      exit(-1)
       
     print("Analysing data in " + simName)
     voltFile = simName + "/" + simType + "-network-stimulation-current.txt"
@@ -345,6 +399,8 @@ class SnuddaModelCurrentInjections(object):
       neuronTypeList = ["dSPN","iSPN","FSN","ChIN"]
     elif(simType == "Straub2016FS" or simType == "Straub2016LTS"):
       neuronTypeList = ["dSPN","iSPN","ChIN"]
+    elif(simType == "Szydlowski2013"):
+      neuronTypeList = ["LTS"]
     else:
       print("simulate: Unknown simType: " + simType)
       exit(-1)
@@ -371,8 +427,8 @@ class SnuddaModelCurrentInjections(object):
         continue
       
       plotType = self.data["neurons"][plotID[0]]["type"]
-      figName = figDir + simType + "-" + plotType + "-current-traces.pdf"
-      figNameHist = figDir + simType + "-" plotType + "-current-histogram.pdf"
+      figName = figDir + "/" + simType + "-" + plotType + "-current-traces.pdf"
+      figNameHist = figDir + "/" + simType + "-" + plotType + "-current-histogram.pdf"
 
       goodMax = []
       
@@ -402,7 +458,7 @@ class SnuddaModelCurrentInjections(object):
         goodMax.append(maxAmp*1e9)
 
         
-      plt.title(plotType)
+      plt.title(preType + " to " + plotType)
       plt.xlabel("Time (ms)")
       plt.ylabel("Current (nA)")
       plt.tight_layout()
@@ -414,7 +470,7 @@ class SnuddaModelCurrentInjections(object):
       plt.figure()
       plt.hist(goodMax)
       plt.xlabel("Current (nA)")
-      plt.title(plotType)      
+      plt.title(preType + " to " + plotType)      
       plt.tight_layout()
       plt.ion()
       plt.show()
@@ -448,7 +504,8 @@ if __name__ == "__main__":
   parser.add_argument("simType",help="Experiment we want to perform",
                       choices=["Chuhma2011",
                                "Straub2016FS",
-                               "Straub2016LTS"])
+                               "Straub2016LTS",
+                               "Szydlowski2013"])
 
   args = parser.parse_args()
 
