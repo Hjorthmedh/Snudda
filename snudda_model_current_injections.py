@@ -9,6 +9,16 @@
 # Suggestion: create a slice that is 0.6 x 0.6 mm in length, and 0.15 mm deep.
 #
 #
+# Example usage:
+#
+# python3 snudda_model_current_injections.py setup networks/Chuhma2011-v14
+#
+# mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_model_current_injections.py run networks/Chuhma2011-v14/
+#
+# python3 snudda_model_current_injections.py analyse networks/Chuhma2011-v14/
+#
+#
+
 import os
 
 from snudda_simulate import SnuddaSimulate
@@ -58,7 +68,7 @@ class SnuddaModelCurrentInjections(object):
     #
 
 
-    if(True):
+    if(False):
       #Small debug version
       #cnc.defineStriatum(nMSD1=20,nMSD2=20,nFS=0,nLTS=0,nChIN=0,
       #                   volumeType="slice",sideLen=200e-6)
@@ -187,6 +197,11 @@ class SnuddaModelCurrentInjections(object):
 
   def analyseNetwork(self,simName):
 
+    figDir = simName + "/figures/"
+    if(not os.path.exists(figDir)):
+      os.makedirs(figDir)
+
+    
     print("Analysing data in " + simName)
     voltFile = simName + "/Chuhma2011-network-stimulation-current.txt"
 
@@ -226,6 +241,11 @@ class SnuddaModelCurrentInjections(object):
                   for x in FSNID]
     ChINmaxIdx = [np.argmax(np.abs(current[x]-current[x][0])) \
                   for x in ChINID]
+
+    minTimeIdx = np.where(time > self.tInj)[0][0]
+    maxTimeIdx = np.where(time > self.tInj + self.tWindow)[0][0]
+
+    matplotlib.rcParams.update({'font.size': 22})    
     
     for plotID,maxIdx in [(dSPNID,dSPNmaxIdx),
                           (iSPNID,iSPNmaxIdx),
@@ -236,14 +256,18 @@ class SnuddaModelCurrentInjections(object):
         continue
       
       plotType = self.data["neurons"][plotID[0]]["type"]
-      figName = "figures/" + plotType + "-current-traces.pdf"
+      figName = figDir + plotType + "-current-traces.pdf"
+      figNameHist = figDir + plotType + "-current-histogram.pdf"      
+
+      goodMax = []
       
       plt.figure()
       for pID,mIdx in zip(plotID,maxIdx):
-        if(mIdx < np.where(time > self.tInj)[0][0]or
-           mIdx > np.where(time > self.tInj + self.tWindow)[0][0]):
+        if(mIdx < minTimeIdx or
+           mIdx > maxTimeIdx):
           # No peaks
           continue
+
         
         tIdx = np.where(np.logical_and(time > self.tInj,
                                        time < self.tInj+self.tWindow))[0]
@@ -254,6 +278,9 @@ class SnuddaModelCurrentInjections(object):
         plt.plot(time[mIdx]*1e3,
                  (current[pID][mIdx]-current[pID][tIdx[0]-1])*1e9,
                  marker=".",c="red")
+
+        goodMax.append((current[pID][mIdx]-current[pID][tIdx[0]-1])*1e9)
+
         
       plt.title(plotType)
       plt.xlabel("Time (ms)")
@@ -261,7 +288,17 @@ class SnuddaModelCurrentInjections(object):
       plt.tight_layout()
       plt.ion()
       plt.show()
-      plt.savefig(figName)
+      plt.savefig(figName,dpi=300)
+
+      # Also plot histogram
+      plt.figure()
+      plt.hist(goodMax)
+      plt.xlabel("Current (nA)")
+      plt.title(plotType)      
+      plt.tight_layout()
+      plt.ion()
+      plt.show()
+      plt.savefig(figNameHist,dpi=300)
       
     import pdb
     pdb.set_trace()

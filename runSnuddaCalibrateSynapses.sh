@@ -1,6 +1,10 @@
 # Calibrate the synapses in a network, edit snudda_init_custom.py
 
-export simName="networks/SynTest-v27"
+# Make sure the defineStriatum line looks like this:
+#   cnc.defineStriatum(nMSD1=120,nMSD2=120,nFS=20,nLTS=0,nChIN=0,volumeType="slice")
+
+
+export simName="networks/SynTest-v29"
 
 python3 snudda_init_custom.py $simName
 

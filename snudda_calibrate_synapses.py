@@ -11,9 +11,9 @@
 #
 # * Edit snudda_init_custom.py to have the neurons you want.
 #
-# * Generate network:
+# * Generate network (note the x x are ignored, but argparse wanted them there):
 #
-#  python3 snudda_init_custom.py
+#  python3 snudda_calibrate_synapses.py setup networks/SynTest-v2 x x
 #  python3 snudda.py place networks/SynTest-v2
 #  python3 snudda.py detect networks/SynTest-v2
 #  python3 snudda.py prune networks/SynTest-v2
@@ -102,6 +102,40 @@ class SnuddaCalibrateSynapses(object):
     self.voltFileAltMask = os.path.dirname(networkFile) \
       + "/synapse-calibration-volt-" \
       + self.preType + "-*.txt"
+
+  ############################################################################
+
+  def setup(self,simName):
+
+    from snudda_init import SnuddaInit
+
+    configName= simName + "/network-config.json"
+    cnc = SnuddaInit(structDef={},configName=configName,nChannels=1)
+    cnc.defineStriatum(nMSD1=120,nMSD2=120,nFS=20,nLTS=0,nChIN=0,
+                       volumeType="slice")
+
+    dirName = os.path.dirname(configName)
+  
+    if not os.path.exists(dirName):
+      os.makedirs(dirName)
+
+    cnc.writeJSON(configName)
+
+    
+    print("\n\npython3 snudda.py place " + str(simName))
+    print("python3 snudda.py detect " + str(simName))
+    print("python3 snudda.py prune " + str(simName))
+    print("python3 snudda_cut.py " + str(simName) \
+          + '/network-pruned-synapses.hdf5 "abs(z)<100e-6"')
+
+    print("\nThe last command will pop up a figure and enter debug mode, press ctrl+D in the terminal window after inspecting the plot to continue")
+
+    print("\n!!! Remember to compile the mod files: nrnivmodl cellspecs/mechanisms")
+
+    print("\nTo run for example dSPN -> iSPN (and dSPN->dSPN) calibration:")
+    print("mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run " + str(simName) + "/network-cut-slice.hdf5 dSPN iSPN")
+
+    print("\npython3 snudda_calibrate_synapses.py analyse networks/SynTest-v2/network-cut-slice.hdf5 dSPN iSPN\npython3 snudda_calibrate_synapses.py analyse networks/SynTest-v2/network-cut-slice.hdf5 dSPN dSPN")
     
   ############################################################################
 
@@ -252,7 +286,7 @@ class SnuddaCalibrateSynapses(object):
   
   # This extracts all the voltage deflections, to see how strong they are
   
-  def analyse(self,maxDist=None):
+  def analyse(self,maxDist=None,nMaxShow=10):
 
     if(maxDist is None):
       maxDist = self.maxDist
@@ -278,7 +312,6 @@ class SnuddaCalibrateSynapses(object):
     self.injInfo = zip(self.preID, \
                        self.injSpacing\
                        +self.injSpacing*np.arange(0,len(self.preID)))
-
     
     # For each pre synaptic neuron, find the voltage deflection in each
     # of its post synaptic neurons
@@ -328,13 +361,14 @@ class SnuddaCalibrateSynapses(object):
     amp = np.zeros((len(synapseData),))
     idxMax = np.zeros((len(synapseData),),dtype=int)    
     tMax = np.zeros((len(synapseData),))
-    
+        
     for i,(t,v) in enumerate(synapseData):
+      
       # Save the largest deflection -- with sign
       idxMax[i] = np.argmax(np.abs(v-v[0]))
       tMax[i] = t[idxMax[i]] - t[0]
       amp[i] = v[idxMax[i]]-v[0]
-
+      
     assert len(amp) > 0, "No responses... too short distance!"
       
     print("Min amp: " + str(np.min(amp)))
@@ -342,30 +376,38 @@ class SnuddaCalibrateSynapses(object):
     print("Mean amp: " + str(np.mean(amp)) + " +/- " + str(np.std(amp)))
     print("Amps: " + str(amp))
       
+    nShown = 0
       
     # Now we have all synapse deflections in synapseData
     matplotlib.rcParams.update({'font.size': 22})    
     plt.figure()
     for t,v in synapseData:
+      if(nShown is not None and nShown > nMaxShow):
+        print("Over nMaxShow traces, skipping")
+        continue
+      
       plt.plot((t-t[0])*1e3,(v-v[0])*1e3,color="black")
-
-    plt.scatter(tMax*1e3,amp*1e3,color="red",marker=".")
+      nShown += 1
+      
+    plt.scatter(tMax*1e3,amp*1e3,color="blue",marker=".")
     plt.xlabel("Time (ms)")
     plt.ylabel("Voltage (mV)")
-    plt.title(str(len(synapseData)) + " traces")
+    #plt.title(str(len(synapseData)) + " traces")
+    plt.title(self.preType + " to " + str(self.postType))
     plt.tight_layout()
     plt.ion()
     plt.show()
-    plt.savefig(traceFig)
+    plt.savefig(traceFig,dpi=300)
 
       
 
     plt.figure()
-    plt.hist(amp*1e3,bins=30)
+    plt.hist(amp*1e3,bins=20)
+    plt.title(self.preType + " to " + str(self.postType))    
     plt.xlabel("Voltage deflection (mV)")
     plt.tight_layout()
     plt.show()
-    plt.savefig(histFig)
+    plt.savefig(histFig,dpi=300)
     
     import pdb
     pdb.set_trace()
@@ -375,8 +417,9 @@ if __name__ == "__main__":
   from argparse import ArgumentParser
 
   parser = ArgumentParser(description="Calibrate synapse conductances")
-  parser.add_argument("task", choices=["run","analyse"])
-  parser.add_argument("networkFile",help="Network file (hdf5)")
+  parser.add_argument("task", choices=["setup","run","analyse"])
+  parser.add_argument("networkFile", \
+                      help="Network file (hdf5) or network directory")
   parser.add_argument("preType",help="Pre synaptic neuron type")
   parser.add_argument("postType",help="Post synaptic neuron type (for run task, postType can be 'ALL' to record from all neurons)")
   parser.add_argument("--maxDist",help="Only check neuron pairs within (mum)")
@@ -395,7 +438,10 @@ if __name__ == "__main__":
                                 postType=args.postType,
                                 maxDist=maxDist)
 
-  if(args.task == "run"):
+  if(args.task == "setup"):
+    scs.setup(args.networkFile)
+    
+  elif(args.task == "run"):
     scs.runSim()
 
   elif(args.task == "analyse"):

@@ -393,7 +393,7 @@ class SnuddaSimulate(object):
     
     # Add gap junctions
     if(self.disableGapJunctions):
-      self.writeLog("Gap junctions disabled.")
+      self.writeLog("!!! Gap junctions disabled.")
     else:
       self.writeLog("Adding gap junctions.")
       #self.connectNetworkGapJunctions()

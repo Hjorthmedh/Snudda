@@ -396,6 +396,9 @@ if __name__ == "__main__":
 
   
     # Silberberg et al 2013, 2/12 FS-> LTS connected --- distance??
+    # Voltage deflection... 0.5mV and 0.8mV
+    # (check Szydlowski et al 2013, what Cl rev)
+    #
     nas.plotConnectionProbability("FSN","LTS", \
                                   dist3D=dist3D,
                                   expMaxDist=[250e-6],
