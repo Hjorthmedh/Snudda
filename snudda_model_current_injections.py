@@ -160,7 +160,7 @@ class SnuddaModelCurrentInjections(object):
     if(simType == "Chuhma2011"):
       self.simulateNetworkChuhma2011(simName)
 
-    elif(simType == "Straub2016FS" or "Straub2016LTS"):
+    elif(simType == "Straub2016FS" or simType == "Straub2016LTS"):
       self.simulateNetworkStraub2016(simName,simType)
 
     elif(simType == "Szydlowski2013"):
