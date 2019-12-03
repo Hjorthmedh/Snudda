@@ -11,11 +11,11 @@
 #
 # Example usage:
 #
-# python3 snudda_model_current_injections.py setup networks/Chuhma2011-v14
+# python3 snudda_model_current_injections.py setup networks/Chuhma2011-v14 Chuhma2011
 #
-# mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_model_current_injections.py run networks/Chuhma2011-v14/
+# mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_model_current_injections.py run networks/Chuhma2011-v14/ Chuhma2011
 #
-# python3 snudda_model_current_injections.py analyse networks/Chuhma2011-v14/
+# python3 snudda_model_current_injections.py analyse networks/Chuhma2011-v14/ Chuhma2011
 #
 #
 
@@ -37,23 +37,44 @@ class SnuddaModelCurrentInjections(object):
 
   def __init__(self,
                simName,
+               simType,
                curInj = 10e-9):
 
     self.simName = simName
-
-    self.tInj = 0.3
-    self.injDuration = 1e-3
-    self.curInj = 10e-9
-    self.tWindow = 0.03
-    self.simEnd = self.tInj + self.tWindow*2
-    self.holdV = -60e-3
-    self.GABArev = 2e-3 # 144mM inside, 133.5mM outside, 32-33C --NERNST--> 2mV
+    self.simType = simType
+    self.snuddaSim = None
+    
+    if(simType == "Chuhma2011"):
+      self.tInj = 0.3
+      self.injDuration = 1e-3
+      self.curInj = 10e-9
+      self.tWindow = 0.03
+      self.simEnd = self.tInj + self.tWindow*2
+      self.holdV = -60e-3
+      self.GABArev = 2e-3 # 144mM inside, 133.5mM outside, 32-33C --NERNST--> 2mV
+      self.nNrns = 100 # How many we measure from of each type
+      
+    elif(simType == "Straub2016FS" or simType == "Straub2016LTS"):
+      self.tInj = 0.5
+      self.injDuration = 1e-3
+      self.curInj = 10e-9
+      self.tWindow = 0.03
+      self.simEnd = self.tInj + self.tWindow*2
+      self.holdV = -70e-3
+      self.GABArev = -0.3e-3 # Out: 133.5 mM chloride, In 131.5 mM, Temperature 33-34 C
+      self.nNrns = 30
+    else:
+      print("Unknown simType: " + str(simType))
+      
 
 
   ############################################################################
   
-  def defineNetwork(self,simName):
+  def defineNetwork(self,simName,simType=None):
 
+    if(simType is None):
+      simType = self.simType
+            
     configName= simName + "/network-config.json"
     cnc = SnuddaInit(structDef={},configName=configName,nChannels=1)
 
@@ -79,10 +100,33 @@ class SnuddaModelCurrentInjections(object):
 
 
 
-    else:
-      cnc.defineStriatum(nMSD1=590,nMSD2=590,nFS=5,nLTS=0,nChIN=20,
+    if(simType == "Chuhma2011"):
+      cnc.defineStriatum(nMSD1=570+self.nNrns,
+                         nMSD2=570+self.nNrns,
+                         nFS=5,
+                         nLTS=0,
+                         nChIN=self.nNrns,
                          volumeType="slice",sideLen=1000e-6)    
 
+    elif(simType == "Straub2016FS"):
+      # nFS must be correct density, but readout neurons can be any density
+      cnc.defineStriatum(nMSD1=self.nNrns,
+                         nMSD2=self.nNrns,
+                         nFS=156, nLTS=0,
+                         nChIN=self.nNrns,
+                         volumeType="slice",sideLen=1000e-6)    
+
+    elif(simType == "Straub2016LTS"):
+      cnc.defineStriatum(nMSD1=self.nNrns,
+                         nMSD2=self.nNrns,
+                         nFS=0,nLTS=84,
+                         nChIN=self.nNrns,
+                         volumeType="slice",sideLen=1000e-6)    
+
+    else:
+      print("setup : Unkown simType: " + str(simType))
+      exit(-1)
+      
     dirName = os.path.dirname(configName)
   
     if not os.path.exists(dirName):
@@ -92,65 +136,128 @@ class SnuddaModelCurrentInjections(object):
 
   ############################################################################
 
-  def simulateNetwork(self,simName):
+  def simulateNetwork(self,simName,simType=None):
 
-    logFile = simName + "/log/simlog.txt"
+    if(simType is None):
+      simType = self.simType
+
+    if(simType == "Chuhma2011"):
+      self.simulateNetworkChuhma2011(simName)
+
+    elif(simType == "Straub2016FS" or "Straub2016LTS"):
+      self.simulateNetworkStraub2016(simName,simType)
+
+    else:
+      print("simulateNetwork: unknown simType = " + str(simType))
+      exit(-1)
+      
+  ############################################################################
+
+  def simulateNetworkChuhma2011(self,simName):
+
+    simType = "Chuhma2011"
+
+    if(self.snuddaSim is None):
+      logFile = simName + "/log/simlog.txt"
+      self.networkFile = simName + "/network-pruned-synapses.hdf5"
+      
+      self.snuddaSim = SnuddaSimulate(networkFile=self.networkFile,
+                                      inputFile=None,
+                                      logFile=logFile,
+                                      disableGapJunctions=True)
     
-    self.networkFile = simName + "/network-pruned-synapses.hdf5"
-    
-    self.snuddaSim = SnuddaSimulate(networkFile=self.networkFile,
-                                    inputFile=None,
-                                    logFile=logFile,
-                                    disableGapJunctions=True)
-    
+
     # Get neuronID of neurons that will get artificial stimulation
-    self.stimID = [x["neuronID"] \
+    stimID = [x["neuronID"] \
                    for x in self.snuddaSim.network_info["neurons"] \
                    if "SPN" in x["type"]]
 
+
     # Pick neurons that we will measure from
-    self.measureFSN = [x["neuronID"] \
-                       for x in self.snuddaSim.network_info["neurons"] \
-                       if x["type"] == "FSN"]
+    measureFSN = [x["neuronID"] \
+                  for x in self.snuddaSim.network_info["neurons"] \
+                  if x["type"] == "FSN"]
     
-    self.measureChIN = [x["neuronID"] \
-                       for x in self.snuddaSim.network_info["neurons"] \
-                       if x["type"] == "ChIN"]
+    measureChIN = [x["neuronID"] \
+                   for x in self.snuddaSim.network_info["neurons"] \
+                   if x["type"] == "ChIN"]
 
-    # For SPN we want to make sure we find ones in the centre
-    self.measuredSPN = [x["neuronID"] \
-                       for x in self.snuddaSim.network_info["neurons"] \
-                       if x["type"] == "dSPN"][:20]
-    self.measureiSPN = [x["neuronID"] \
-                       for x in self.snuddaSim.network_info["neurons"] \
-                       if x["type"] == "iSPN"][:20]
+    # For future: maybe pick the ones more centrally
+    measuredSPN = [x["neuronID"] \
+                   for x in self.snuddaSim.network_info["neurons"] \
+                   if x["type"] == "dSPN"][:self.nNrns]
+    measureiSPN = [x["neuronID"] \
+                   for x in self.snuddaSim.network_info["neurons"] \
+                   if x["type"] == "iSPN"][:self.nNrns]
 
+    
     # Remove the overlap, ie dont stimulate the neurons we measure from    
-    self.stimID = np.setdiff1d(self.stimID,
-                               np.union1d(self.measuredSPN,self.measureiSPN))
+    stimID = np.setdiff1d(stimID,
+                          np.union1d(measuredSPN,measureiSPN))
+
+    measureID = np.union1d(np.union1d(measuredSPN,measureiSPN),
+                           np.union1d(measureFSN,measureChIN))
+
+    self._simulateNetworkHelper(simName,simType,stimID,measureID)
+    
+
+  ############################################################################
+
+  def simulateNetworkStraub2016(self,simName,simType):
+
+    if(self.snuddaSim is None):
+      logFile = simName + "/log/simlog.txt"
+      self.networkFile = simName + "/network-pruned-synapses.hdf5"
+      
+      self.snuddaSim = SnuddaSimulate(networkFile=self.networkFile,
+                                      inputFile=None,
+                                      logFile=logFile,
+                                      disableGapJunctions=True)
+    
+    # Get neuronID of neurons that will get artificial stimulation
+    if(simType == "Straub2016FS"):
+      stimID = [x["neuronID"] \
+                for x in self.snuddaSim.network_info["neurons"] \
+                if "FSN" in x["type"]]
+    elif(simType == "Straub2016LTS"):
+      stimID = [x["neuronID"] \
+                for x in self.snuddaSim.network_info["neurons"] \
+                if "LTS" in x["type"]]
+    else:
+      print("simulateNetworkStraub2016: Unknown simType : " + simType)
+      exit(-1)
+
+    measureID = [x["neuronID"] \
+                 for x in self.snuddaSim.network_info["neurons"] \
+                 if x["type"] == "ChIN" \
+                 or x["type"] == "dSPN" \
+                 or x["type"] == "iSPN"]
+      
+    self._simulateNetworkHelper(simName,simType,stimID,measureID)
+    
+  ############################################################################
+  
+  def _simulateNetworkHelper(self,simName,simType,stimID,measureID):
+    
+
+    if(self.snuddaSim is None):
+      logFile = simName + "/log/simlog.txt"
+      self.networkFile = simName + "/network-pruned-synapses.hdf5"
+          
+      self.snuddaSim = SnuddaSimulate(networkFile=self.networkFile,
+                                      inputFile=None,
+                                      logFile=logFile,
+                                      disableGapJunctions=True)
     
     # Set up stimulation protocol
-    for nID in self.stimID:
+    for nID in stimID:
       self.snuddaSim.addCurrentInjection(neuronID=nID,
                                          startTime=self.tInj,
                                          endTime=self.tInj+self.injDuration,
                                          amplitude=self.curInj)
 
     # Add recordings
-    self.snuddaSim.addVoltageClamp(cellID = self.measureFSN,
-                                   voltage = self.holdV,
-                                   duration=self.simEnd,
-                                   saveIflag=True)
-    self.snuddaSim.addVoltageClamp(cellID = self.measureChIN,
-                                   voltage = self.holdV,
-                                   duration=self.simEnd,
-                                   res=1e-6,
-                                   saveIflag=True)
-    self.snuddaSim.addVoltageClamp(cellID = self.measuredSPN,
-                                   voltage = self.holdV,
-                                   duration=self.simEnd,
-                                   saveIflag=True)
-    self.snuddaSim.addVoltageClamp(cellID = self.measureiSPN,
+    self.snuddaSim.addVoltageClamp(cellID = measureID,
                                    voltage = self.holdV,
                                    duration=self.simEnd,
                                    saveIflag=True)
@@ -158,17 +265,21 @@ class SnuddaModelCurrentInjections(object):
     # Also add voltage recording for debugging reasons
     saveVoltage = True # False #True
     if(saveVoltage):
-      self.snuddaSim.addRecording(cellID=self.stimID)
+      self.snuddaSim.addRecording(cellID=stimID)
 
     self.setGABArev(self.GABArev)
     
     self.snuddaSim.run(self.simEnd*1e3)
 
-    self.currentFile = simName + "/Chuhma2011-network-stimulation-current.txt"
+    self.currentFile = simName + "/" + simType \
+      + "-network-stimulation-current.txt"
+    
     self.snuddaSim.writeCurrent(self.currentFile)
 
     if(saveVoltage):
-      voltageFile = simName  + "/Chuhma2011-network-stimulation-voltage.txt"
+      voltageFile = simName  + "/" + simType \
+        + "-network-stimulation-voltage.txt"
+      
       self.snuddaSim.writeVoltage(voltageFile)
       
   ############################################################################
@@ -195,15 +306,17 @@ class SnuddaModelCurrentInjections(object):
 
   ############################################################################
 
-  def analyseNetwork(self,simName):
+  def analyseNetwork(self,simName,simType=None):
 
     figDir = simName + "/figures/"
     if(not os.path.exists(figDir)):
       os.makedirs(figDir)
 
-    
+    if(simType is None):
+      simType = self.simType
+      
     print("Analysing data in " + simName)
-    voltFile = simName + "/Chuhma2011-network-stimulation-current.txt"
+    voltFile = simName + "/" + simType + "-network-stimulation-current.txt"
 
     # Read data from file
     data = np.genfromtxt(voltFile,delimiter=",")
@@ -228,58 +341,65 @@ class SnuddaModelCurrentInjections(object):
 
     # Group the neurons by type
 
-    dSPNID = [x for x in current if self.data["neurons"][x]["type"] == "dSPN"]
-    iSPNID = [x for x in current if self.data["neurons"][x]["type"] == "iSPN"]
-    FSNID = [x for x in current if self.data["neurons"][x]["type"] == "FSN"]
-    ChINID = [x for x in current if self.data["neurons"][x]["type"] == "ChIN"]
-
-    dSPNmaxIdx = [np.argmax(np.abs(current[x]-current[x][0])) \
-                  for x in dSPNID]
-    iSPNmaxIdx = [np.argmax(np.abs(current[x]-current[x][0])) \
-                  for x in iSPNID]
-    FSNmaxIdx = [np.argmax(np.abs(current[x]-current[x][0])) \
-                  for x in FSNID]
-    ChINmaxIdx = [np.argmax(np.abs(current[x]-current[x][0])) \
-                  for x in ChINID]
+    if(simType == "Chuhma2011"):
+      neuronTypeList = ["dSPN","iSPN","FSN","ChIN"]
+    elif(simType == "Straub2016FS" or simType == "Straub2016LTS"):
+      neuronTypeList = ["dSPN","iSPN","ChIN"]
+    else:
+      print("simulate: Unknown simType: " + simType)
+      exit(-1)
+      
+    neuronPlotList = []
 
     minTimeIdx = np.where(time > self.tInj)[0][0]
     maxTimeIdx = np.where(time > self.tInj + self.tWindow)[0][0]
+    
+    for nt in neuronTypeList:
+      IDList = [x for x in current if self.data["neurons"][x]["type"] == nt]
+      maxIdx = [np.argmax(np.abs(current[x][minTimeIdx:maxTimeIdx] \
+                                 -current[x][minTimeIdx])) + minTimeIdx \
+                for x in IDList]
+
+      neuronPlotList.append((IDList,maxIdx))
+      
 
     matplotlib.rcParams.update({'font.size': 22})    
     
-    for plotID,maxIdx in [(dSPNID,dSPNmaxIdx),
-                          (iSPNID,iSPNmaxIdx),
-                          (FSNID,FSNmaxIdx),
-                          (ChINID,ChINmaxIdx)]:
+    for plotID,maxIdx in neuronPlotList:
 
       if(len(plotID) == 0):
         continue
       
       plotType = self.data["neurons"][plotID[0]]["type"]
-      figName = figDir + plotType + "-current-traces.pdf"
-      figNameHist = figDir + plotType + "-current-histogram.pdf"      
+      figName = figDir + simType + "-" + plotType + "-current-traces.pdf"
+      figNameHist = figDir + simType + "-" plotType + "-current-histogram.pdf"
 
       goodMax = []
       
       plt.figure()
       for pID,mIdx in zip(plotID,maxIdx):
+        tIdx = np.where(np.logical_and(time > self.tInj,
+                                       time < self.tInj+self.tWindow))[0]
+
+        curAmp = current[pID][tIdx]-current[pID][tIdx[0]-1]
+        maxAmp = current[pID][mIdx]-current[pID][tIdx[0]-1]
+        
         if(mIdx < minTimeIdx or
-           mIdx > maxTimeIdx):
+           mIdx > maxTimeIdx or
+           abs(maxAmp) < 1e-12):
           # No peaks
           continue
 
         
-        tIdx = np.where(np.logical_and(time > self.tInj,
-                                       time < self.tInj+self.tWindow))[0]
         plt.plot(time[tIdx]*1e3,
-                 (current[pID][tIdx]-current[pID][tIdx[0]-1])*1e9,
+                 curAmp*1e9,
                  c="black")
 
         plt.plot(time[mIdx]*1e3,
-                 (current[pID][mIdx]-current[pID][tIdx[0]-1])*1e9,
-                 marker=".",c="red")
+                 maxAmp*1e9,
+                 marker=".",c="blue")
 
-        goodMax.append((current[pID][mIdx]-current[pID][tIdx[0]-1])*1e9)
+        goodMax.append(maxAmp*1e9)
 
         
       plt.title(plotType)
@@ -320,17 +440,22 @@ class SnuddaModelCurrentInjections(object):
 if __name__ == "__main__":
 
   import argparse
-  parser = argparse.ArgumentParser("Simulate Chuhma 2011 experiment")
+  parser = argparse.ArgumentParser("Simulate Chuhma 2011 and Straub2016 experiments")
   parser.add_argument("action",choices=["setup","run","analyse"])
   parser.add_argument("simName",
                       help="Simulation name, eg. networks/Chuhma2011-v1",
                       type=str)
+  parser.add_argument("simType",help="Experiment we want to perform",
+                      choices=["Chuhma2011",
+                               "Straub2016FS",
+                               "Straub2016LTS"])
 
   args = parser.parse_args()
 
   simName = args.simName
+  simType = args.simType
 
-  sm = SnuddaModelCurrentInjections(simName)
+  sm = SnuddaModelCurrentInjections(simName,simType)
   
   if(args.action == "setup"):
     print("Setup " + simName)
