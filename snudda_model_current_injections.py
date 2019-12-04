@@ -11,11 +11,11 @@
 #
 # Example usage:
 #
-# python3 snudda_model_current_injections.py setup Chuhma2011 networks/Chuhma2011-v14 
+# python3 snudda_model_current_injections.py setup Chuhma2011 networks/Chuhma2011-v15 
 #
-# mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_model_current_injections.py run Chuhma2011 networks/Chuhma2011-v14/ 
+# mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_model_current_injections.py run Chuhma2011 networks/Chuhma2011-v15/ 
 #
-# python3 snudda_model_current_injections.py analyse Chuhma2011 networks/Chuhma2011-v14/ 
+# python3 snudda_model_current_injections.py analyse Chuhma2011 networks/Chuhma2011-v15/ 
 #
 # OR
 #
