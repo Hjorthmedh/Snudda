@@ -11,11 +11,18 @@
 #
 # Example usage:
 #
-# python3 snudda_model_current_injections.py setup networks/Chuhma2011-v14 Chuhma2011
+# python3 snudda_model_current_injections.py setup Chuhma2011 networks/Chuhma2011-v14 
 #
-# mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_model_current_injections.py run networks/Chuhma2011-v14/ Chuhma2011
+# mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_model_current_injections.py run Chuhma2011 networks/Chuhma2011-v14/ 
 #
-# python3 snudda_model_current_injections.py analyse networks/Chuhma2011-v14/ Chuhma2011
+# python3 snudda_model_current_injections.py analyse Chuhma2011 networks/Chuhma2011-v14/ 
+#
+# OR
+#
+#
+# python3 snudda_model_current_injections.py setup Straub2016FS networks/Straub2016FS-v9
+# mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_model_current_injections.py run Straub2016FS networks/Straub2016FS-v9
+# python3 snudda_model_current_injections.py analyse Straub2016FS networks/Straub2016FS-v9
 #
 #
 
@@ -350,6 +357,46 @@ class SnuddaModelCurrentInjections(object):
 
   ############################################################################
 
+  def setupExpDataDict(self):
+
+    self.expDataDict = dict()
+
+    # Straub et al 2016
+    LTS2SPN = np.array([0.0316, 0.0433, 0.0474, 0.1253, 0.1839,
+                        0.1860, 0.1946, 0.1968, 0.2082, 0.2203,
+                        0.2384, 0.2439, 0.2793, 0.3091, 0.3234,
+                        0.3271, 0.3383, 0.3500, 0.3540, 0.3662,
+                        0.3662, 0.3831, 0.4053, 0.4099, 0.4288,
+                        0.4337, 0.4966, 0.5023, 0.5196, 0.5314,
+                        0.5436, 0.5560, 0.5817, 0.6017, 0.6736,
+                        0.6968, 0.7047, 0.7047, 0.7127, 0.7979,
+                        0.9034, 1.0461])
+
+    LTS2ChIN = np.array([0.2466, 0.5080, 0.5196, 0.6017, 0.6660,
+                         0.7541, 0.7713, 0.8442, 1.1069, 1.2391,
+                         1.2818, 1.4030, 2.3315])
+
+    FSN2SPN = np.array([0.3091, 0.5137, 0.5255, 0.5687, 0.6890,
+                        0.8161, 0.8832, 0.8932, 0.9667, 1.0228,
+                        1.0228, 1.0822, 1.1844, 1.2391, 1.2964,
+                        1.3111, 1.4189, 1.4350, 1.5530, 1.6247,
+                        1.7385, 1.7984, 1.9028, 2.1063, 2.2539,
+                        2.3580, 2.4669, 2.4949, 2.5232, 2.7307,
+                        2.7930, 2.8247, 3.2711, 3.3458, 3.4222,
+                        4.2648, 4.4617, 4.9668, 5.3148])
+
+    FSN2ChIN = np.array([0.0233, 0.0378, 0.0419, 0.0428, 0.0666,
+                         0.0762])
+    
+    self.expDataDict[("Straub2016LTS","dSPN")] = LTS2SPN
+    self.expDataDict[("Straub2016LTS","iSPN")] = LTS2SPN
+    self.expDataDict[("Straub2016LTS","ChIN")] = LTS2ChIN        
+    self.expDataDict[("Straub2016FS","dSPN")]  = FSN2SPN
+    self.expDataDict[("Straub2016FS","iSPN")]  = FSN2SPN
+    self.expDataDict[("Straub2016FS","ChIN")]  = FSN2ChIN        
+    
+  ############################################################################
+  
   def analyseNetwork(self,simName,simType=None):
 
     figDir = simName + "/figures/"
@@ -361,8 +408,10 @@ class SnuddaModelCurrentInjections(object):
 
     if(simType == "Straub2016LTS"):
       preType = "LTS"
+      self.setupExpDataDict()
     elif(simType == "Straub2016FS"):
       preType = "FSN"
+      self.setupExpDataDict()
     elif(simType == "Chuhma2011"):
       preType = "SPN"
     elif(simType == "Szydlowski2013"):
@@ -449,16 +498,21 @@ class SnuddaModelCurrentInjections(object):
           continue
 
         
-        plt.plot(time[tIdx]*1e3,
+        plt.plot((time[tIdx]-time[tIdx[0]])*1e3,
                  curAmp*1e9,
                  c="black")
 
-        plt.plot(time[mIdx]*1e3,
+        plt.plot((time[mIdx]-time[tIdx[0]])*1e3,
                  maxAmp*1e9,
                  marker=".",c="blue")
 
         goodMax.append(maxAmp*1e9)
 
+      nType = self.data["neurons"][plotID[0]]["type"]
+      if((simType,nType) in self.expDataDict):
+        expData = self.expDataDict[(simType,nType)]
+        t = self.tWindow*1e3*(1+0.01*np.random.rand(expData.shape[0]))
+        plt.scatter(t, -expData, marker=".", c="red")
         
       plt.title(preType + " to " + plotType)
       plt.xlabel("Time (ms)")
@@ -500,14 +554,15 @@ if __name__ == "__main__":
   import argparse
   parser = argparse.ArgumentParser("Simulate Chuhma 2011 and Straub2016 experiments")
   parser.add_argument("action",choices=["setup","run","analyse"])
-  parser.add_argument("simName",
-                      help="Simulation name, eg. networks/Chuhma2011-v1",
-                      type=str)
   parser.add_argument("simType",help="Experiment we want to perform",
                       choices=["Chuhma2011",
                                "Straub2016FS",
                                "Straub2016LTS",
                                "Szydlowski2013"])
+
+  parser.add_argument("simName",
+                      help="Simulation name, eg. networks/Chuhma2011-v1",
+                      type=str)
 
   args = parser.parse_args()
 
@@ -529,6 +584,6 @@ if __name__ == "__main__":
 
   if(args.action == "analyse"):
     print("Analyse " + simName)
-    sm.analyseNetwork(simName)
+    sm.analyseNetwork(simType=simType,simName=simName)
 
     

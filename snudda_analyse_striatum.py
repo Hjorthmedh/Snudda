@@ -193,6 +193,7 @@ if __name__ == "__main__":
     nas.plotNumSynapsesPerPair("LTS","dSPN")
     nas.plotNumSynapsesPerPair("LTS","iSPN")  
     nas.plotNumSynapsesPerPair("LTS","ChIN")
+    nas.plotNumSynapsesPerPair("FSN","LTS")  
     
     
   # This plots figures for the article
@@ -425,7 +426,6 @@ if __name__ == "__main__":
     nas.plotIncomingConnections(neuronType="iSPN",preType="dSPN")
     nas.plotIncomingConnections(neuronType="iSPN",preType="FSN")
 
-    nas.plotNumSynapsesPerPair("FSN","LTS")  
   
     nas.plotIncomingConnections(neuronType="dSPN",preType="LTS")
     nas.plotIncomingConnections(neuronType="iSPN",preType="LTS")  
