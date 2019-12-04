@@ -159,6 +159,41 @@ if __name__ == "__main__":
   #import pdb
   #pdb.set_trace()
 
+
+  if(plotLTS):
+
+    # 3/21 LTS->MS, Basal Ganglia book --- distance??
+    # Ibanez-Sandoval, ..., Tepper  2011 3/21 -- if patching around visual axon
+    # but 2/60 when patching blind
+    nas.plotConnectionProbability("LTS","dSPN", \
+                                  dist3D=dist3D,
+                                  expMaxDist=[250e-6],
+                                  expData=[2/60.0],
+                                  expDataDetailed=[(2,60)],
+                                  xMax=500)
+
+    nas.plotConnectionProbability("LTS","iSPN", \
+                                  dist3D=dist3D,
+                                  expMaxDist=[250e-6],
+                                  expData=[2/60.0],
+                                  expDataDetailed=[(2,60)],
+                                  xMax=500)
+
+  
+    # Silberberg et al 2013, 2/12 FS-> LTS connected --- distance??
+    # Voltage deflection... 0.5mV and 0.8mV
+    # (check Szydlowski et al 2013, what Cl rev)
+    #
+    nas.plotConnectionProbability("FSN","LTS", \
+                                  dist3D=dist3D,
+                                  expMaxDist=[250e-6],
+                                  expData=[2.0/12],
+                                  expDataDetailed=[(2,12)])
+
+    nas.plotNumSynapsesPerPair("LTS","dSPN")
+    nas.plotNumSynapsesPerPair("LTS","iSPN")  
+    nas.plotNumSynapsesPerPair("LTS","ChIN")
+    
     
   # This plots figures for the article
 
@@ -283,7 +318,6 @@ if __name__ == "__main__":
   
   nas.plotNumSynapsesPerPair("dSPN","ChIN")
   nas.plotNumSynapsesPerPair("iSPN","ChIN")
-  nas.plotNumSynapsesPerPair("LTS","ChIN")
   
   nas.plotIncomingConnections(neuronType="FSN",preType="FSN")            
   nas.plotIncomingConnections(neuronType="FSN",preType="FSN")            
@@ -293,8 +327,6 @@ if __name__ == "__main__":
 
   
 
-  nas.plotNumSynapsesPerPair("LTS","dSPN")
-  nas.plotNumSynapsesPerPair("LTS","iSPN")  
 
   
   nas.plotSynapseCumDist()
@@ -375,35 +407,6 @@ if __name__ == "__main__":
 
     
       
-  if(plotLTS):
-
-    # 3/21 LTS->MS, Basal Ganglia book --- distance??
-    # Ibanez-Sandoval, ..., Tepper  2011 3/21 -- if patching around visual axon
-    # but 2/60 when patching blind
-    nas.plotConnectionProbability("LTS","dSPN", \
-                                  dist3D=dist3D,
-                                  expMaxDist=[250e-6],
-                                  expData=[2/60.0],
-                                  expDataDetailed=[(2,60)],
-                                  xMax=500)
-
-    nas.plotConnectionProbability("LTS","iSPN", \
-                                  dist3D=dist3D,
-                                  expMaxDist=[250e-6],
-                                  expData=[2/60.0],
-                                  expDataDetailed=[(2,60)],
-                                  xMax=500)
-
-  
-    # Silberberg et al 2013, 2/12 FS-> LTS connected --- distance??
-    # Voltage deflection... 0.5mV and 0.8mV
-    # (check Szydlowski et al 2013, what Cl rev)
-    #
-    nas.plotConnectionProbability("FSN","LTS", \
-                                  dist3D=dist3D,
-                                  expMaxDist=[250e-6],
-                                  expData=[2.0/12],
-                                  expDataDetailed=[(2,12)])
     
 
 

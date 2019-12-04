@@ -1721,8 +1721,8 @@ class SnuddaSimulate(object):
     fractionDone = h.t/self.tMax
     timeLeft = elapsedTime * ((self.tMax - h.t)/ h.t)
 
-    self.writeLog("%f done. Elapsed: %f s, estimated time left: %f" \
-                  % (fractionDone, elapsedTime, timeLeft))
+    self.writeLog("%.0f%% done. Elapsed: %.1f s, estimated time left: %.1f s" \
+                  % (fractionDone*100, elapsedTime, timeLeft))
   
   ############################################################################
 

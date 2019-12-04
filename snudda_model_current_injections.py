@@ -64,6 +64,8 @@ class SnuddaModelCurrentInjections(object):
       self.GABArev = -0.3e-3 # Out: 133.5 mM chloride, In 131.5 mM, Temperature 33-34 C
       self.nNrns = 30
     elif(simType == "Szydlowski2013"):
+
+      assert False, "Szydlowski did not stimulate all FS or did they when recording LTS?"
       self.tInj = 0.5
       self.injDuration = 1e-3
       self.curInj = 10e-9

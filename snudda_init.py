@@ -600,8 +600,10 @@ class SnuddaInit(object):
 
  
     # See plotLTSdensity.py 
-    LTSaxonDensity = ("xyz", "3000*1e12*(0.25*np.exp(-(((x-200e-6)/100e-6)**2 + ((y-0)/50e-6)**2 + ((z-0)/20e-6)**2)) + 1*np.exp(-(((x-300e-6)/300e-6)**2 + ((y-0)/10e-6)**2 + ((z-0)/10e-6)**2)) + 1*np.exp(-(((x-700e-6)/100e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/15e-6)**2)))",[-200e-6,900e-6,-100e-6,100e-6,-30e-6,30e-6])    
+    # LTSaxonDensity = ("xyz", "10*3000*1e12*(0.25*np.exp(-(((x-200e-6)/100e-6)**2 + ((y-0)/50e-6)**2 + ((z-0)/20e-6)**2)) + 1*np.exp(-(((x-300e-6)/300e-6)**2 + ((y-0)/10e-6)**2 + ((z-0)/10e-6)**2)) + 1*np.exp(-(((x-700e-6)/100e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/15e-6)**2)))",[-200e-6,900e-6,-100e-6,100e-6,-30e-6,30e-6])    
 
+    LTSaxonDensity = ("xyz", "12*3000*1e12*( 0.25*np.exp(-(((x-200e-6)/100e-6)**2 + ((y-0)/50e-6)**2 + ((z-0)/30e-6)**2)) + 1*np.exp(-(((x-300e-6)/300e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/10e-6)**2)) + 1*np.exp(-(((x-700e-6)/100e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/15e-6)**2)) )",[-200e-6,900e-6,-100e-6,100e-6,-30e-6,30e-6])    
+    
     # !!! Remember to update bounding box
     
     self.addNeurons(name="LTS",neuronDir=LTSdir,
@@ -936,7 +938,7 @@ class SnuddaInit(object):
     # Add targets for LTS neurons
 
     LTSgGABA = 1e-9 # !!! FIXME
-    LTSgNO = 2e-9
+    #LTSgNO = 1e-9
 
     LTSDistDepPruning = "1-np.exp(-(0.4*d/60e-6)**2)" # updated 2019-10-31
     
@@ -952,7 +954,7 @@ class SnuddaInit(object):
                          targetName="dSPN",
                          connectionType="GABA",
                          distPruning=LTSDistDepPruning,
-                         f1=1.0, softMax=10, mu2=2, a3=None,
+                         f1=1.0, softMax=None, mu2=3, a3=0.3,
                          conductance=LTSgGABA,
                          parameterFile=pfLTSdSPN,
                          modFile="tmGabaA",
@@ -964,7 +966,7 @@ class SnuddaInit(object):
                          targetName="iSPN",
                          connectionType="GABA",
                          distPruning=LTSDistDepPruning,
-                         f1=1.0, softMax=10, mu2=2, a3=None,
+                         f1=1.0, softMax=None, mu2=3, a3=0.3,
                          conductance=LTSgGABA,
                          parameterFile=pfLTSiSPN,
                          modFile="tmGabaA",
@@ -973,10 +975,10 @@ class SnuddaInit(object):
 
     self.addNeuronTarget(neuronName="LTS",
                          targetName="ChIN",
-                         connectionType="GABA", # NO, nitric oxide
+                         connectionType="GABA", # also NO, nitric oxide
                          distPruning=None,
-                         f1=1.0, softMax=10, mu2=2, a3=None,
-                         conductance=LTSgNO,
+                         f1=0.5, softMax=10, mu2=3, a3=0.4,
+                         conductance=LTSgGABA,
                          parameterFile=pfLTSChIN,
                          modFile="tmGabaA",
                          channelParamDictionary=None)
