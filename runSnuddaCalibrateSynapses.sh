@@ -4,15 +4,19 @@
 #   cnc.defineStriatum(nMSD1=120,nMSD2=120,nFS=20,nLTS=0,nChIN=0,volumeType="slice")
 
 
-export simName="networks/SynTest-v29"
+export simName="networks/SynTest-v31"
 
-python3 snudda_init_custom.py $simName
+python3 snudda_calibrate_synapses.py setup Taverna2008 $simName
+
+unset IPYTHONDIR
+unset IPYTHON_PROFILE
 
 ./snudda.py place $simName 
 
 export IPYTHONDIR="`pwd`/.ipython"
 export IPYTHON_PROFILE=Snudda_LOCAL
 
+ipcluster stop
 ipcluster start -n 12 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 
 sleep 10
@@ -20,8 +24,8 @@ sleep 10
 ./snudda.py detect $simName --volumeID Striatum
 ./snudda.py prune $simName
 
-export IPYTHONDIR=""
-export IPYTHON_PROFILE=""
+unset IPYTHONDIR
+unset IPYTHON_PROFILE
 
 ipcluster stop
 
@@ -30,10 +34,15 @@ echo "Type Ctrl+D after inspecting the cut"
 python3 snudda_cut.py $simName/network-pruned-synapses.hdf5 "abs(z)<100e-6"
 #python3 snudda_cut.py $simName/network-pruned-synapses.hdf5 "abs(z-0.00511)<100e-6"
 
-mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run $simName/network-cut-slice.hdf5 dSPN iSPN
+mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run Taverna2008 $simName/network-cut-slice.hdf5 --pre dSPN --post iSPN
 
-mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run $simName/network-cut-slice.hdf5 iSPN dSPN
+mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run Taverna2008 $simName/network-cut-slice.hdf5 --pre iSPN --post dSPN
 
-mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run $simName/network-cut-slice.hdf5 FSN dSPN
+mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run Taverna2008 $simName/network-cut-slice.hdf5 --pre FSN --post ALL
 
-mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run $simName/network-cut-slice.hdf5 FSN iSPN
+python3 snudda_calibrate_synapses.py analyse Taverna2008 $simName dSPN iSPN
+python3 snudda_calibrate_synapses.py analyse Taverna2008 $simName dSPN dSPN
+python3 snudda_calibrate_synapses.py analyse Taverna2008 $simName iSPN iSPN
+python3 snudda_calibrate_synapses.py analyse Taverna2008 $simName iSPN dSPN
+python3 snudda_calibrate_synapses.py analyse Taverna2008 $simName FSN iSPN
+python3 snudda_calibrate_synapses.py analyse Taverna2008 $simName FSN dSPN

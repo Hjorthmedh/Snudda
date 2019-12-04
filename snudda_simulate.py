@@ -1454,8 +1454,8 @@ class SnuddaSimulate(object):
 
   def writeSpikes(self,outputFile=None):
 
-    if(outFile is None):
-      outFile = self.getVoltFileName()
+    if(outputFile is None):
+      outputFile = self.getVoltFileName()
 
     self.writeLog("Writing voltage data to " + outFile)
       
@@ -1782,10 +1782,7 @@ if __name__ == "__main__":
   if(not os.path.exists(saveDir)):
     print("Creating directory " + saveDir)
     os.makedirs(saveDir, exist_ok=True)
-  
-  if(args.verbose):
-    self.verbose=True
-  
+    
   # Get the SlurmID, used in default file names
   SlurmID = os.getenv('SLURM_JOBID')
   
@@ -1826,7 +1823,8 @@ if __name__ == "__main__":
   sim = SnuddaSimulate(networkFile=networkDataFile,
                        inputFile=inputFile,
                        disableGapJunctions=disableGJ,
-                       logFile=logFile)
+                       logFile=logFile,
+                       verbose=args.verbose)
 
   sim.addExternalInput()
 
@@ -1853,7 +1851,7 @@ if __name__ == "__main__":
 
 
   stop = timeit.default_timer()
-  if(self.pc.id() == 0):
+  if(sim.pc.id() == 0):
     print("Program run time: " + str(stop - start ))
 
   # sim.plot()
