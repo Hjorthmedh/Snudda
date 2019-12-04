@@ -13,7 +13,7 @@
 #
 # * Generate network 
 #
-#  python3 snudda_calibrate_synapses.py setup Taverna2008 networks/SynTest-v2
+#  python3 snudda_calibrate_synapses.py setup Planert2010 networks/SynTest-v2
 #  python3 snudda.py place networks/SynTest-v2
 #  python3 snudda.py detect networks/SynTest-v2
 #  python3 snudda.py prune networks/SynTest-v2
@@ -36,12 +36,12 @@
 #
 # * Run dSPN -> iSPN calibration (you get dSPN -> dSPN data for free then)
 #
-#  mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run Taverna2008 networks/SynTest-v2/network-cut-slice.hdf5 --pre dSPN --post iSPN
+#  mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run Planert2010 networks/SynTest-v2/network-cut-slice.hdf5 --pre dSPN --post iSPN
 #
 # *  Analyse
 #
 #  python3 snudda_calibrate_synapses.py analyse networks/SynTest-v2/network-cut-slice.hdf5 dSPN iSPN
-# python3 snudda_calibrate_synapses.py analyse Taverna2008 networks/SynTest-v2/network-cut-slice.hdf5 --pre dSPN --post dSPN
+# python3 snudda_calibrate_synapses.py analyse Planert2010 networks/SynTest-v2/network-cut-slice.hdf5 --pre dSPN --post dSPN
 #
 # * Look at plot with traces overlayed and histogram of voltage amplitudes
 # (When you do preType to postType, you also get preType to preType for free
@@ -286,7 +286,7 @@ class SnuddaCalibrateSynapses(object):
   
   # This extracts all the voltage deflections, to see how strong they are
   
-  def analyse(self,maxDist=None,nMaxShow=10):
+  def analyse(self,expType,maxDist=None,nMaxShow=10):
 
     if(maxDist is None):
       maxDist = self.maxDist
@@ -345,11 +345,11 @@ class SnuddaCalibrateSynapses(object):
         
     # Fig names:
     traceFig = os.path.dirname(self.networkFile) \
-      + "/figures/synapse-calibration-volt-traces-" \
+      + "/figures/" + expType +"synapse-calibration-volt-traces-" \
       + self.preType + "-" + self.postType + ".pdf"
 
     histFig = os.path.dirname(self.networkFile) \
-      + "/figures/synapse-calibration-volt-histogram-" \
+      + "/figures/" + expType + "synapse-calibration-volt-histogram-" \
       + self.preType + "-" + self.postType + ".pdf"
 
     figDir = os.path.dirname(self.networkFile) + "/figures"
@@ -419,7 +419,7 @@ if __name__ == "__main__":
   parser = ArgumentParser(description="Calibrate synapse conductances")
   parser.add_argument("task", choices=["setup","run","analyse"])
   parser.add_argument("expType",help="Experiment we replicate",
-                      choices=["Taverna2008","Szydlowski2013"])
+                      choices=["Planert2010","Szydlowski2013"])
   parser.add_argument("networkFile", \
                       help="Network file (hdf5) or network directory")
   parser.add_argument("--preType","--pre",
@@ -442,7 +442,7 @@ if __name__ == "__main__":
   print("Using maxDist = " + str(maxDist))
     
 
-  if(args.expType == "Taverna2008"):
+  if(args.expType == "Planert2010"):
     nMSD1 = 120
     nMSD2 = 120
     nFS   = 20
@@ -451,18 +451,18 @@ if __name__ == "__main__":
 
     holdV = -80e-3
     maxDist = 50e-6 if args.maxDist is None else args.maxDist
-    GABArev = -40e-6
+    GABArev = -40e-3
     
   elif(args.expType == "Szydlowski2013"):
-    nMSD1 = 20
-    nMSD2 = 20
+    nMSD1 = 10
+    nMSD2 = 10
     nFS   = 20
     nLTS  = 20
     nChIN = 0
 
     holdV = -76e-3
     maxDist = args.maxDist # Default None
-    GABArev = -39e-6
+    GABArev = -39e-3
     
   else:
     print("Unknown expType = " + str(expType))
@@ -484,7 +484,7 @@ if __name__ == "__main__":
     scs.runSim(GABArev=GABArev)
 
   elif(args.task == "analyse"):
-    scs.analyse()
+    scs.analyse(args.expType)
   
   
   

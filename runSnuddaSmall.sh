@@ -8,7 +8,7 @@ sleep 20
 #simName=networks/res5test
 # simName=networks/article2019-v6
 #simName=networks/article2019-v8
-simName=networks/LTS-con-v4
+simName=networks/LTS-con-v5
 
 if [ -d "$simName" ]; then
   echo "Directory $simName already exists!!"
@@ -16,7 +16,7 @@ if [ -d "$simName" ]; then
 fi
 
 #./snudda.py init $simName --size 10000
-./snudda.py init $simName --size 2000
+./snudda.py init $simName --size 5000
 
 ./snudda.py place $simName 
 #./snudda.py detect $simName --hvsize 50 --volumeID Striatum

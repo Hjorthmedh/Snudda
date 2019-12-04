@@ -36,4 +36,8 @@ python3 snudda_cut.py $simName/network-pruned-synapses.hdf5 "abs(z)<100e-6"
 
 mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run Szydlowski2013 $simName/network-cut-slice.hdf5 --pre FSN --post ALL
 
+python3 snudda_calibrate_synapses.py analyse Szydlowski2013 $simName/network-cut-slice.hdf5 --pre FSN --post dSPN
 
+python3 snudda_calibrate_synapses.py analyse Szydlowski2013 $simName/network-cut-slice.hdf5 --pre FSN --post iSPN
+
+python3 snudda_calibrate_synapses.py analyse Szydlowski2013 $simName/network-cut-slice.hdf5 --pre FSN --post LTS
