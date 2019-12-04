@@ -624,6 +624,7 @@ class SnuddaInit(object):
     # Temp disable dist dep pruning
     # FSDistDepPruning = None
     FSgGABA = [1.1e-9, 1.5e-9] # cond (1nS Gittis et al 2010), condStd
+    FStoLTSgGABA = [1.1e-10, 1.5e-10] # cond (1nS Gittis et al 2010), condStd
     FSgGapJunction = [0.5e-9, 0.1e-9]
     # (gap junctions: 0.5nS, P=0.3 -- Galarreta Hestrin 2002, Koos Tepper 1999)
     # total 8.4nS ?? Gittis et al 2010??
@@ -656,7 +657,7 @@ class SnuddaInit(object):
                          targetName="dSPN",
                          connectionType="GABA",
                          distPruning=FSDistDepPruning,
-                         f1=0.5, softMax=8, mu2=2, a3=1.0, 
+                         f1=0.5, softMax=5, mu2=2, a3=1.0, 
                          conductance=FSgGABA,
                          parameterFile=pfFSdSPN,
                          modFile="tmGabaA",
@@ -667,7 +668,7 @@ class SnuddaInit(object):
                          targetName="iSPN",
                          connectionType="GABA",
                          distPruning=FSDistDepPruning,
-                         f1=0.5, softMax=8, mu2=2, a3=0.9, 
+                         f1=0.5, softMax=5, mu2=2, a3=0.9, 
                          conductance=FSgGABA,
                          parameterFile=pfFSiSPN,
                          modFile="tmGabaA",
@@ -678,8 +679,8 @@ class SnuddaInit(object):
                          targetName="LTS",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=1.0, softMax=8, mu2=2,a3=0.3,
-                         conductance=FSgGABA,
+                         f1=0.15, softMax=3, mu2=2,a3=1.0,
+                         conductance=FStoLTSgGABA,
                          parameterFile=pfFSLTS,
                          modFile="tmGabaA",
                          channelParamDictionary=None)

@@ -450,7 +450,7 @@ if __name__ == "__main__":
     nChIN = 0
 
     holdV = -80e-3
-    maxDist = 50e-6 if args.maxDist is None else args.maxDist
+    maxDist = 100e-6 if args.maxDist is None else args.maxDist
     GABArev = -40e-3
     
   elif(args.expType == "Szydlowski2013"):
@@ -461,7 +461,7 @@ if __name__ == "__main__":
     nChIN = 0
 
     holdV = -76e-3
-    maxDist = args.maxDist # Default None
+    maxDist = 200e-6 if args.maxDist is None else args.maxDist
     GABArev = -39e-3
     
   else:
