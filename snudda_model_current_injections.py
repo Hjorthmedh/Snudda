@@ -50,6 +50,7 @@ class SnuddaModelCurrentInjections(object):
     self.simName = simName
     self.simType = simType
     self.snuddaSim = None
+    self.expDataDict = dict()
     
     if(simType == "Chuhma2011"):
       self.tInj = 0.3

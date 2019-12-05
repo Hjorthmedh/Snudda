@@ -40,9 +40,9 @@ mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py 
 
 mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run Planert2010 $simName/network-cut-slice.hdf5 --pre FSN --post ALL
 
-python3 snudda_calibrate_synapses.py analyse Planert2010 $simName dSPN iSPN
-python3 snudda_calibrate_synapses.py analyse Planert2010 $simName dSPN dSPN
-python3 snudda_calibrate_synapses.py analyse Planert2010 $simName iSPN iSPN
-python3 snudda_calibrate_synapses.py analyse Planert2010 $simName iSPN dSPN
-python3 snudda_calibrate_synapses.py analyse Planert2010 $simName FSN iSPN
-python3 snudda_calibrate_synapses.py analyse Planert2010 $simName FSN dSPN
+python3 snudda_calibrate_synapses.py analyse Planert2010 $simName --pre dSPN --post iSPN
+python3 snudda_calibrate_synapses.py analyse Planert2010 $simName --pre dSPN --post dSPN
+python3 snudda_calibrate_synapses.py analyse Planert2010 $simName --pre iSPN --post iSPN
+python3 snudda_calibrate_synapses.py analyse Planert2010 $simName --pre iSPN --post dSPN
+python3 snudda_calibrate_synapses.py analyse Planert2010 $simName --pre FSN --post iSPN
+python3 snudda_calibrate_synapses.py analyse Planert2010 $simName --pre FSN --post dSPN
