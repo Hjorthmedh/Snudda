@@ -738,6 +738,9 @@ class SnuddaInit(object):
     pfdSPNdSPN = "synapses/v2/PlanertFitting-DD-tmgaba-fit.json"
     pfdSPNiSPN = "synapses/v2/PlanertFitting-DI-tmgaba-fit.json"
     pfdSPNChIN = None
+
+    SPN2ChINDistDepPruning = "1-np.exp(-(0.4*d/60e-6)**2)" # Chuhma about 20pA response from 10% SPN, we need to reduce activity, try dist dep pruning (already so few synapses and connectivity)
+
     
     self.addNeuronTarget(neuronName="dSPN",
                          targetName="dSPN",
@@ -778,7 +781,7 @@ class SnuddaInit(object):
     self.addNeuronTarget(neuronName="dSPN",
                          targetName="ChIN",
                          connectionType="GABA",
-                         distPruning=None,
+                         distPruning=SPN2ChINDistDepPruning,
                          f1=0.1, softMax=3, mu2=2.4,a3=0.1,
                          conductance=MSD1gGABA,
                          parameterFile=pfdSPNChIN,
@@ -828,6 +831,7 @@ class SnuddaInit(object):
     pfiSPNChIN = None
 
     
+    
     self.addNeuronTarget(neuronName="iSPN",
                          targetName="dSPN",
                          connectionType="GABA",
@@ -856,11 +860,12 @@ class SnuddaInit(object):
                                                  "tau2" : 12.4e-3,
                                                  "failRate" : MSD2GABAfailRate})
 
+    
     # See comment for dSPN to ChIN
     self.addNeuronTarget(neuronName="iSPN",
                          targetName="ChIN",
                          connectionType="GABA",
-                         distPruning=None,
+                         distPruning=SPN2ChINDistDepPruning,
                          f1=0.1, softMax=3, mu2=2.4,a3=0.1,
                          conductance=MSD2gGABA,
                          parameterFile=pfiSPNChIN,

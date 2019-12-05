@@ -398,7 +398,7 @@ class SnuddaModelCurrentInjections(object):
     
   ############################################################################
   
-  def analyseNetwork(self,simName,simType=None):
+  def analyseNetwork(self,simName,simType=None,nPlotMax=10):
 
     figDir = simName + "/figures/"
     if(not os.path.exists(figDir)):
@@ -485,6 +485,8 @@ class SnuddaModelCurrentInjections(object):
       goodMax = []
       
       plt.figure()
+      nPlotCtr = 0
+      
       for pID,mIdx in zip(plotID,maxIdx):
         tIdx = np.where(np.logical_and(time > self.tInj,
                                        time < self.tInj+self.tWindow))[0]
@@ -498,16 +500,19 @@ class SnuddaModelCurrentInjections(object):
           # No peaks
           continue
 
-        
-        plt.plot((time[tIdx]-time[tIdx[0]])*1e3,
-                 curAmp*1e9,
-                 c="black")
+        goodMax.append(maxAmp*1e9)
+
+        if(nPlotCtr < nPlotMax):
+          plt.plot((time[tIdx]-time[tIdx[0]])*1e3,
+                   curAmp*1e9,
+                   c="black")
+          nPlotCtr += 1
 
         plt.plot((time[mIdx]-time[tIdx[0]])*1e3,
                  maxAmp*1e9,
                  marker=".",c="blue")
 
-        goodMax.append(maxAmp*1e9)
+
 
       nType = self.data["neurons"][plotID[0]]["type"]
       if((simType,nType) in self.expDataDict):
