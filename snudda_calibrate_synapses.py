@@ -13,16 +13,16 @@
 #
 # * Generate network 
 #
-#  python3 snudda_calibrate_synapses.py setup Planert2010 networks/SynTest-v2
-#  python3 snudda.py place networks/SynTest-v2
-#  python3 snudda.py detect networks/SynTest-v2
-#  python3 snudda.py prune networks/SynTest-v2
+#  python3 snudda_calibrate_synapses.py setup Planert2010 networks/Planert2010-v1
+#  python3 snudda.py place networks/Planert2010-v1
+#  python3 snudda.py detect networks/Planert2010-v1
+#  python3 snudda.py prune networks/Planert2010-v1
 
 # * Figure out where to put the slcie cut (with plotOnly equation is ignored)
 # 
-#  python3 snudda_cut.py networks/SynTest-v2/network-pruned-synapses.hdf5 "z>0" --plotOnly
+#  python3 snudda_cut.py networks/Planert2010-v1/network-pruned-synapses.hdf5 "z>0" --plotOnly
 #
-# * Look at networks/SynTest-v2/network-cut-slice.hdf5.pdf to decide cut plane
+# * Look at networks/Planert2010-v1/network-cut-slice.hdf5.pdf to decide cut plane
 #
 # * Compile mod files (we now have failure rates for GABA)
 #
@@ -30,18 +30,18 @@
 #
 # * Cut the slice, so z > 0.00504 is kept
 #
-#  python3 snudda_cut.py networks/SynTest-v2/network-pruned-synapses.hdf5 "abs(z)<100e-6"
+#  python3 snudda_cut.py networks/Planert2010-v1/network-pruned-synapses.hdf5 "abs(z)<100e-6"
 #
-# * Look at networks/SynTest-v2/network-cut-slice.hdf5.pdf to verify cut plane
+# * Look at networks/Planert2010-v1/network-cut-slice.hdf5.pdf to verify cut plane
 #
 # * Run dSPN -> iSPN calibration (you get dSPN -> dSPN data for free then)
 #
-#  mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run Planert2010 networks/SynTest-v2/network-cut-slice.hdf5 --pre dSPN --post iSPN
+#  mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run Planert2010 networks/Planert2010-v1/network-cut-slice.hdf5 --pre dSPN --post iSPN
 #
 # *  Analyse
 #
-#  python3 snudda_calibrate_synapses.py analyse networks/SynTest-v2/network-cut-slice.hdf5 dSPN iSPN
-# python3 snudda_calibrate_synapses.py analyse Planert2010 networks/SynTest-v2/network-cut-slice.hdf5 --pre dSPN --post dSPN
+#  python3 snudda_calibrate_synapses.py analyse networks/Planert2010-v1/network-cut-slice.hdf5 dSPN iSPN
+# python3 snudda_calibrate_synapses.py analyse Planert2010 networks/Planert2010-v1/network-cut-slice.hdf5 --pre dSPN --post dSPN
 #
 # * Look at plot with traces overlayed and histogram of voltage amplitudes
 # (When you do preType to postType, you also get preType to preType for free
@@ -135,7 +135,7 @@ class SnuddaCalibrateSynapses(object):
     print("\nTo run for example dSPN -> iSPN (and dSPN->dSPN) calibration:")
     print("mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run " + str(expType) + " " + str(simName) + "/network-cut-slice.hdf5 dSPN iSPN")
 
-    print("\npython3 snudda_calibrate_synapses.py analyse " + str(expType) + " " + str(simName) + "/network-cut-slice.hdf5 dSPN iSPN\npython3 snudda_calibrate_synapses.py analyse networks/SynTest-v2/network-cut-slice.hdf5 iSPN dSPN")
+    print("\npython3 snudda_calibrate_synapses.py analyse " + str(expType) + " " + str(simName) + "/network-cut-slice.hdf5 dSPN iSPN\npython3 snudda_calibrate_synapses.py analyse " + str(simName) + "/network-cut-slice.hdf5 iSPN dSPN")
     
   ############################################################################
 
@@ -376,20 +376,25 @@ class SnuddaCalibrateSynapses(object):
     print("Mean amp: " + str(np.mean(amp)) + " +/- " + str(np.std(amp)))
     print("Amps: " + str(amp))
       
-    nShown = 0
       
     # Now we have all synapse deflections in synapseData
-    matplotlib.rcParams.update({'font.size': 22})    
+    matplotlib.rcParams.update({'font.size': 22})
+
+    sortIdx = np.argsort(amp)
+    if(len(sortIdx) > nMaxShow):
+      keepIdx = [sortIdx[int(np.round(x))] \
+                 for x in np.linspace(0,len(sortIdx)-1,nMaxShow)]
+    else:
+      keepIdx = sortIdx
+      
     plt.figure()
-    for t,v in synapseData:
-      if(nShown is not None and nShown > nMaxShow):
-        print("Over nMaxShow traces, skipping")
-        continue
+    for x in keepIdx:
+
+      t,v = synapseData[x]
       
       plt.plot((t-t[0])*1e3,(v-v[0])*1e3,color="black")
-      nShown += 1
       
-    plt.scatter(tMax*1e3,amp*1e3,color="blue",marker=".")
+    plt.scatter(tMax*1e3,amp*1e3,color="blue",marker=".",s=100)
     plt.xlabel("Time (ms)")
     plt.ylabel("Voltage (mV)")
     #plt.title(str(len(synapseData)) + " traces")

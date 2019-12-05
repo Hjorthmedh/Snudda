@@ -485,7 +485,10 @@ class SnuddaModelCurrentInjections(object):
       goodMax = []
       
       plt.figure()
-      nPlotCtr = 0
+
+      peakAmp = []
+      peakTime = []
+      voltCurve = []
       
       for pID,mIdx in zip(plotID,maxIdx):
         tIdx = np.where(np.logical_and(time > self.tInj,
@@ -501,24 +504,29 @@ class SnuddaModelCurrentInjections(object):
           continue
 
         goodMax.append(maxAmp*1e9)
+        peakAmp.append(maxAmp*1e9)
+        peakTime.append((time[mIdx]-time[tIdx[0]])*1e3)
+        voltCurve.append(((time[tIdx]-time[tIdx[0]])*1e3,curAmp*1e9))
+        
+      # Pick which curves to plot
+      sortIdx = np.argsort(peakAmp)
+      if(len(sortIdx) < nPlotMax):
+        keepIdx = sortIdx
+      else:
+        keepIdx = [sortIdx[int(np.round(x))] for x in \
+                   np.linspace(0,len(sortIdx)-1,nPlotMax)]
 
-        if(nPlotCtr < nPlotMax):
-          plt.plot((time[tIdx]-time[tIdx[0]])*1e3,
-                   curAmp*1e9,
-                   c="black")
-          nPlotCtr += 1
-
-        plt.plot((time[mIdx]-time[tIdx[0]])*1e3,
-                 maxAmp*1e9,
-                 marker=".",c="blue")
-
+      for x in keepIdx:
+        plt.plot(voltCurve[x][0],voltCurve[x][1],'k-')
+      
+      plt.scatter(peakTime,peakAmp,marker=".",c="blue",s=100)
 
 
       nType = self.data["neurons"][plotID[0]]["type"]
       if((simType,nType) in self.expDataDict):
         expData = self.expDataDict[(simType,nType)]
-        t = self.tWindow*1e3*(1+0.01*np.random.rand(expData.shape[0]))
-        plt.scatter(t, -expData, marker=".", c="red")
+        t = self.tWindow*1e3*(1+0.03*np.random.rand(expData.shape[0]))
+        plt.scatter(t, -expData, marker=".", c="red",s=100)
         
       plt.title(preType + " to " + plotType)
       plt.xlabel("Time (ms)")
