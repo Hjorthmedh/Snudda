@@ -332,7 +332,7 @@ class SnuddaPrune(object):
     except:
       print("Out file already closed?")
 
-    # self.cleanUpMergeFiles()
+    self.cleanUpMergeFiles()
     
   ############################################################################
 
