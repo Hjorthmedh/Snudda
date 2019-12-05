@@ -288,6 +288,8 @@ class SnuddaCalibrateSynapses(object):
   
   def analyse(self,expType,maxDist=None,nMaxShow=10):
 
+    self.setupExpData()
+    
     if(maxDist is None):
       maxDist = self.maxDist
     
@@ -395,6 +397,20 @@ class SnuddaCalibrateSynapses(object):
       plt.plot((t-t[0])*1e3,(v-v[0])*1e3,color="black")
       
     plt.scatter(tMax*1e3,amp*1e3,color="blue",marker=".",s=100)
+
+    if((expType,self.preType,self.postType) in self.expData):
+      expMean,expStd = self.expData[(expType,self.preType,self.postType)]
+
+      tEnd = (t[-1]-t[0])*1e3
+
+      axes = plt.gca()
+      ay = axes.get_ylim()
+      # Plot SD or 1.96 SD?
+      plt.errorbar(tEnd,expMean,expStd,ecolor="red",
+                   marker='o',color="red")
+      axes.set_ylim(ay)
+      
+      
     plt.xlabel("Time (ms)")
     plt.ylabel("Voltage (mV)")
     #plt.title(str(len(synapseData)) + " traces")
@@ -417,6 +433,30 @@ class SnuddaCalibrateSynapses(object):
     import pdb
     pdb.set_trace()
 
+############################################################################
+
+  def setupExpData(self):
+
+    self.expData = dict()
+
+    planertD1D1 = (0.24,0.15)
+    planertD1D2 = (0.33,0.15)
+    planertD2D1 = (0.27,0.09)
+    planertD2D2 = (0.45,0.44)
+    planertFSD1 = (4.8,4.9)
+    planertFSD2 = (3.1,4.1)
+
+    self.expData[("Planert2010","dSPN","dSPN")] = planertD1D1
+    self.expData[("Planert2010","dSPN","iSPN")] = planertD1D2
+    self.expData[("Planert2010","iSPN","dSPN")] = planertD2D1
+    self.expData[("Planert2010","iSPN","iSPN")] = planertD2D2    
+    self.expData[("Planert2010","FSN","dSPN")]  = planertFSD1
+    self.expData[("Planert2010","FSN","iSPN")]  = planertFSD2    
+
+
+    
+############################################################################
+    
 if __name__ == "__main__":
 
   from argparse import ArgumentParser
