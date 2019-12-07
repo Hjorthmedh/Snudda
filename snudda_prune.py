@@ -1875,16 +1875,18 @@ class SnuddaPrune(object):
       "neuronID should start from 0 and the end should be n-1"
     
     nWorkers = len(self.dView)
-    nNeuronsPerWorker = float(nNeurons)/nWorkers
 
     neuronRanges = []
+    rangeBorders = np.linspace(0,nNeurons,nWorkers+1).astype(int)
     
-    for startIdx in np.arange(0,nNeurons,nNeuronsPerWorker):
-      sIdx = int(round(startIdx))
-      endIdx = int(round(startIdx + nNeuronsPerWorker))
+    for idx in range(0,nWorkers):
+      neuronRanges.append((rangeBorders[idx],rangeBorders[idx+1]))
 
-      neuronRanges.append((sIdx,endIdx))
-            
+    assert neuronRanges[-1][-1] == nNeurons, \
+      "bigMergeParallel: Problem with neuronRanges, last element incorrect"
+    assert len(neuronRanges) == nWorkers, \
+      "bigMergeParallel: Problem with neuronRanges, bad length"
+    
     # Send list of neurons to workers
     self.dView.scatter("neuronRange",neuronRanges,block=True)
 
@@ -1931,7 +1933,8 @@ class SnuddaPrune(object):
         endPos = startPos + nSynapses
 
         if(dataFile is None):
-          assert nSynapses == 0, "Missing merge file, internal problem"
+          assert nSynapses == 0, "!!! Missing merge file " + str(dataFile) \
+            + ", internal problem"
           continue
           
         self.writeLog("Extracting " + location + " from " + dataFile)
