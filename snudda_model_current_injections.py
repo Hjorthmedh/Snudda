@@ -51,6 +51,7 @@ class SnuddaModelCurrentInjections(object):
     self.simType = simType
     self.snuddaSim = None
     self.expDataDict = dict()
+    self.expTraceDict = dict()
     
     if(simType == "Chuhma2011"):
       self.tInj = 0.3
@@ -86,6 +87,7 @@ class SnuddaModelCurrentInjections(object):
     else:
       print("Unknown simType: " + str(simType))
       
+    self.plotExpTrace = True
 
 
   ############################################################################
@@ -394,7 +396,25 @@ class SnuddaModelCurrentInjections(object):
     self.expDataDict[("Straub2016LTS","ChIN")] = LTS2ChIN        
     self.expDataDict[("Straub2016FS","dSPN")]  = FSN2SPN
     self.expDataDict[("Straub2016FS","iSPN")]  = FSN2SPN
-    self.expDataDict[("Straub2016FS","ChIN")]  = FSN2ChIN        
+    self.expDataDict[("Straub2016FS","ChIN")]  = FSN2ChIN
+
+    if(self.plotExpTrace):
+      self.expTraceDict = dict()
+
+      LTS2SPN = np.genfromtxt("DATA/Straub2016/LTSItoSPN_Straub2.txt")
+      LTS2ChIN = np.genfromtxt("DATA/Straub2016/LTSItoChIN_Straub2.txt")
+      FS2SPN = np.genfromtxt("DATA/Straub2016/FSItoSPN_Straub2_shorter.txt")
+
+      # Convert current from pA to nA
+      LTS2SPN[:,1:] = 1e-3*LTS2SPN[:,1:]
+      LTS2ChIN[:,1:] = 1e-3*LTS2ChIN[:,1:]
+      FS2SPN[:,1:] = 1e-3*FS2SPN[:,1:] 
+    
+      self.expTraceDict[("Straub2016LTS","dSPN")] = LTS2SPN
+      self.expTraceDict[("Straub2016LTS","iSPN")] = LTS2SPN    
+      self.expTraceDict[("Straub2016LTS","ChIN")] = LTS2ChIN
+      self.expTraceDict[("Straub2016FS","dSPN")] = FS2SPN
+      self.expTraceDict[("Straub2016FS","iSPN")] = FS2SPN    
     
   ############################################################################
   
@@ -527,6 +547,13 @@ class SnuddaModelCurrentInjections(object):
         expData = self.expDataDict[(simType,nType)]
         t = self.tWindow*1e3*(1+0.03*np.random.rand(expData.shape[0]))
         plt.scatter(t, -expData, marker=".", c="red",s=100)
+
+      if(self.plotExpTrace and (simType,nType) in self.expTraceDict):
+        data = self.expTraceDict[(simType,nType)]
+        tExp = data[:,0]
+        vExp = data[:,1:]
+        tIdx = np.where(tExp < self.tWindow*1e3)[0]
+        plt.plot(tExp[tIdx],vExp[tIdx,:],c="red")
         
       plt.title(preType + " to " + plotType)
       plt.xlabel("Time (ms)")

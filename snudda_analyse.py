@@ -36,7 +36,7 @@ class SnuddaAnalyse(object):
                saveCache=True,
                lowMemory=False,
                sideLen=250e-6,
-               volumeType="full",
+               volumeType="cube",
                nMaxAnalyse=None,
                showPlots=False,
                closePlots=True): # "cube" or "full"
@@ -412,6 +412,8 @@ class SnuddaAnalyse(object):
   def getSubPop(self,volumeType="cube",volumePart="centre",sideLen=None,
                 neuronID=None,volumeID="Striatum",nMaxAnalyse=None):
 
+    # print("volumeType=" + volumeType + ",volumePart=" + volumePart + ",sideLen=" +str(sideLen))
+
     if(volumeType == "full"):
       # return all neurons
 
@@ -423,7 +425,7 @@ class SnuddaAnalyse(object):
         neuronID = idx
 
     elif(volumeType == "cube"):
-
+      
       if(volumePart == "centre"):
         neuronID = self.centreNeurons(sideLen=sideLen,
                                       neuronID=neuronID,

@@ -14,7 +14,7 @@ from snudda_analyse import SnuddaAnalyse
 
 class SnuddaAnalyseStriatum(SnuddaAnalyse):
 
-  def __init__(self,simDir):
+  def __init__(self,simDir,volumeType="cube"):
 
     if(os.path.isfile(simDir)):
       # We allow the user to also send in a hdf5 file as simDir...
@@ -32,7 +32,7 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
 
     print("Loading " + str(hdf5File))
         
-    super().__init__(hdf5File=hdf5File,loadCache=True)
+    super().__init__(hdf5File=hdf5File,loadCache=True,volumeType=volumeType)
 
   ############################################################################
 
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     print("Please specify which directory the striatum network files is in")
     exit(-1)
 
-  nas = SnuddaAnalyseStriatum(simDir)
+  nas = SnuddaAnalyseStriatum(simDir,volumeType="cube")
 
 
 
@@ -160,6 +160,17 @@ if __name__ == "__main__":
   #pdb.set_trace()
 
 
+  # !!! Check edge effects
+
+  nas.plotIncomingConnections(neuronType="iSPN",preType="FSN")
+  nas.plotIncomingConnections(neuronType="iSPN",preType="ChIN")
+  nas.plotIncomingConnections(neuronType="iSPN",preType="LTS")
+  
+  nas.plotIncomingConnections(neuronType="dSPN",preType="dSPN")
+  nas.plotIncomingConnections(neuronType="dSPN",preType="iSPN")
+  nas.plotIncomingConnections(neuronType="iSPN",preType="dSPN")
+  nas.plotIncomingConnections(neuronType="iSPN",preType="iSPN")
+  
   if(plotLTS):
 
     # 3/21 LTS->MS, Basal Ganglia book --- distance??
