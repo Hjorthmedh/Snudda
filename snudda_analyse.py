@@ -427,9 +427,17 @@ class SnuddaAnalyse(object):
     elif(volumeType == "cube"):
       
       if(volumePart == "centre"):
-        neuronID = self.centreNeurons(sideLen=sideLen,
-                                      neuronID=neuronID,
-                                      volumeID=volumeID)
+        try:
+          neuronID = self.centreNeurons(sideLen=sideLen,
+                                        neuronID=neuronID,
+                                        volumeID=volumeID)
+        except:
+          import traceback
+          tstr = traceback.format_exc()
+          print(tstr)
+          import pdb
+          pdb.set_trace()
+          
       elif(volumePart == "corner"):
         neuronID = self.cornerNeurons(sideLen=sideLen,
                                       neuronID=neuronID,
@@ -471,13 +479,24 @@ class SnuddaAnalyse(object):
 
     if(sideLen is None):
       sideLen = self.sideLen
-    
-    idx = np.where([x["volumeID"] == volumeID \
-                    for x in self.network["neurons"]])[0]
-    
-    minCoord = np.min(self.network["neuronPositions"][idx,:],axis=0)
-    maxCoord = np.max(self.network["neuronPositions"][idx,:],axis=0)    
 
+    if(volumeID is None):
+      idx = np.arange(0,self.network["nNeurons"])
+    else:
+      idx = np.where([x["volumeID"] == volumeID \
+                      for x in self.network["neurons"]])[0]
+
+    try:
+      minCoord = np.min(self.network["neuronPositions"][idx,:],axis=0)
+      maxCoord = np.max(self.network["neuronPositions"][idx,:],axis=0)    
+    except:
+      import traceback
+      tstr = traceback.format_exc()
+      print(tstr)
+      import pdb
+      pdb.set_trace()
+      
+      
     xMin = minCoord[0]
     yMin = minCoord[1]
     zMin = minCoord[2]
@@ -511,15 +530,16 @@ class SnuddaAnalyse(object):
       # pos = self.network["neurons"][nid]["position"]
       pos = self.positions[nid,:]
 
-      assert self.network["neurons"][nid]["volumeID"] == volumeID, \
-        "Neuron " + str(nid) + " does not belong to volumeID " + volumeID
+      assert volumeID is None \
+        or self.network["neurons"][nid]["volumeID"] == volumeID, \
+        "Neuron " + str(nid) + " does not belong to volumeID " + str(volumeID)
       
       if(abs(pos[0]-xCentre) <= sideLen
          and abs(pos[1]-yCentre) <= sideLen
          and abs(pos[2]-zCentre) <= sideLen):
         cID.append(nid)
         
-    print("Centering in " + volumeID + " : Keeping " + str(len(cID)) + "/" + str(len(neuronID)))
+    print("Centering in " + str(volumeID) + " : Keeping " + str(len(cID)) + "/" + str(len(neuronID)))
         
     return cID
 
@@ -534,9 +554,12 @@ class SnuddaAnalyse(object):
 
     if(sideLen is None):
       sideLen = self.sideLen
-    
-    idx = np.where([x["volumeID"] == volumeID \
-                    for x in self.network["neurons"]])[0]
+
+    if(volumeID is None):
+      idx = np.arange(0,self.network["nNeurons"])
+    else:      
+      idx = np.where([x["volumeID"] == volumeID \
+                      for x in self.network["neurons"]])[0]
 
     if(len(idx) == 0):
       print("No neurons found in volume " + str(volumeID))
