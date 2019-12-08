@@ -1078,29 +1078,34 @@ class SnuddaInput(object):
 
   def makeInputHelperParallel(self,args):
 
-    neuronID,inputType,freq,start,end,\
-    synapseDensity,
-    nSpikeTrains,Pkeep,channelSpikes,\
-    jitterDt,channelID,conductance,\
-    correlation,modFile,parameterFile,\
-    parameterList = args
+    try:
+    
+      neuronID,inputType,freq,start,end,synapseDensity,nSpikeTrains,Pkeep,channelSpikes,jitterDt,channelID,conductance,correlation,modFile,parameterFile,parameterList = args
 
-    return self.makeInputHelperSerial(neuronID = neuronID,
-                                      inputType = inputType,
-                                      freq = freq,
-                                      start = start,
-                                      end = end,
-                                      synapseDensity = synapseDensity,
-                                      nSpikeTrains = nSpikeTrains,
-                                      Pkeep = Pkeep,
-                                      channelSpikes = channelSpikes,
-                                      jitterDt = jitterDt,
-                                      channelID = channelID,
-                                      conductance = conductance,
-                                      correlation = correlation,
-                                      modFile = modFile,
-                                      parameterFile = parameterFile,
-                                      parameterList = parameterList)
+      return self.makeInputHelperSerial(neuronID = neuronID,
+                                        inputType = inputType,
+                                        freq = freq,
+                                        start = start,
+                                        end = end,
+                                        synapseDensity = synapseDensity,
+                                        nSpikeTrains = nSpikeTrains,
+                                        Pkeep = Pkeep,
+                                        channelSpikes = channelSpikes,
+                                        jitterDt = jitterDt,
+                                        channelID = channelID,
+                                        conductance = conductance,
+                                        correlation = correlation,
+                                        modFile = modFile,
+                                        parameterFile = parameterFile,
+                                        parameterList = parameterList)
+
+    except:
+      import traceback
+      tstr = traceback.format_exc()
+      self.writeLog(tstr)
+      import pdb
+      pdb.set_trace()
+      
 
   ############################################################################
 
