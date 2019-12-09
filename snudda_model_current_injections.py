@@ -415,6 +415,18 @@ class SnuddaModelCurrentInjections(object):
       self.expTraceDict[("Straub2016LTS","ChIN")] = LTS2ChIN
       self.expTraceDict[("Straub2016FS","dSPN")] = FS2SPN
       self.expTraceDict[("Straub2016FS","iSPN")] = FS2SPN    
+
+      SPN2SPN = np.genfromtxt("DATA/Chuhma2011/SPNtoSPN_Chuhma.txt")
+      SPN2ChIN = np.genfromtxt("DATA/Chuhma2011/SPNtoChIN_Chuhma.txt")
+
+      # Convert current from pA to nA
+      SPN2SPN[:,1:] = 1e-3 * SPN2SPN[:,1:]
+      SPN2ChIN[:,1:] = 1e-3 * SPN2ChIN[:,1:]    
+        
+      self.expTraceDict[("Chuhma2011","dSPN")] = SPN2SPN
+      self.expTraceDict[("Chuhma2011","iSPN")] = SPN2SPN    
+      self.expTraceDict[("Chuhma2011","ChIN")] = SPN2ChIN
+    
     
   ############################################################################
   
@@ -435,6 +447,7 @@ class SnuddaModelCurrentInjections(object):
       self.setupExpDataDict()
     elif(simType == "Chuhma2011"):
       preType = "SPN"
+      self.setupExpDataDict()
     elif(simType == "Szydlowski2013"):
       preType = "FSN"
     else:

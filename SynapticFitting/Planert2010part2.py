@@ -33,12 +33,19 @@ class NumpyEncoder(json.JSONEncoder):
     
 class Planert2010part2(object):
   
-  def __init__(self,dataType,cellID=None):
+  def __init__(self,dataType,cellID=None,prettyPlot=True,fitData=True):
 
+    self.dataLegend = { "II" : "iSPN to iSPN",
+                        "ID" : "iSPN to dSPN",
+                        "DD" : "dSPN to dSPN",
+                        "DI" : "dSPN to iSPN",
+                        "FD" : "FSN to dSPN",
+                        "FI" : "FSN to iSPN" }
     
     # Since we reuse code that was parallel, need to say that this is master
     self.role = "master"
     self.figResolution = 300
+    self.prettyPlot = prettyPlot
 
     fileName = "DATA/Planert2010/PlanertFitting-" + dataType + "-cache.json"
     print("Loading data " + str(dataType) + ": " + str(fileName))
@@ -55,16 +62,25 @@ class Planert2010part2(object):
 
     self.loadParameterCache()
 
-    # Save parameters after fitting
+    if(fitData):
+      # Save parameters after fitting
+    
+      if(type(cellID) in [list,np.ndarray]):
+        for cID in cellID:
+          self.fitPeaks(dataType,cID)
+      else:
+        self.fitPeaks(dataType,int(cellID))
 
-    if(type(cellID) in [list,np.ndarray]):
-      for cID in cellID:
-        self.fitPeaks(dataType,cID)
+      self.saveParameterCache()
     else:
-      self.fitPeaks(dataType,int(cellID))
-
-    self.saveParameterCache()
-
+      self.setupModelSynapseFitting(dataType)
+      
+      if(type(cellID) in [list,np.ndarray]):
+        for cID in cellID:
+          self.plotData(dataType,cID,runSim=True,show=False)
+      else:
+        self.plotData(dataType,int(cellID),runSim=True,show=False)
+      
 
   ############################################################################
 
@@ -208,12 +224,43 @@ class Planert2010part2(object):
   ############################################################################
 
   def plotData(self,dataType,cellID,
-               tStim,surrogatePeaks,modelPeaks,
+               tStim=None,
+               surrogatePeaks=None,
+               modelPeaks=None,
                tSim=None,vSim=None,
-               params=None,
+               modelParams=None,
                show=True,
-               tSkip=0.01):
+               tSkip=0.01,
+               prettyPlot=None,
+               runSim=False):
 
+    if(surrogatePeaks is None):
+      surrogatePeaks = np.array(self.data["simAmp"][cellID])
+
+    if(tStim is None):
+      tStim = np.array(self.data["tStim"])
+
+    if(modelParams is None):
+      pDict = self.getParameterCache(cellID,"synapse")
+      modelParams = [pDict[x] for x in ["U","tauR","tauF","tau","cond"]]
+      
+    if(runSim):
+
+      assert modelParams is not None, \
+        "plotData: modelParams must be given if runSim = True"
+      if(tSim is not None or vSim is not None):
+        print("Ignoring tSim and vSim when runSim = True")
+      
+      print("Run simulation for " + str(dataType) + " " + str(cellID))
+      U,tauR,tauF,tau,cond = modelParams
+
+      modelPeaks,tSim,vSim = self.synapseModelNeuron(tStim,U,
+                                                     tauR,tauF,cond,tau,
+                                                     params={},
+                                                     returnTrace=True)
+      
+    if(prettyPlot is None):
+      prettyPlot = self.prettyPlot
     
     plt.figure()
     if(tSim is not None):
@@ -225,7 +272,8 @@ class Planert2010part2(object):
       for t,sp,mp in zip(tStim*1e3,surrogatePeaks*1e3,modelPeaks*1e3):
 
         idx = np.argmin(np.abs(tSim-t))
-        plt.plot([t,t],[vBase,vBase+sp],color="red",linewidth=3)
+        plt.plot([t,t],[vBase,vBase+sp],color=(1,0.31,0),linewidth=3)
+        #plt.plot([t,t],[vBase,vBase+sp],color="red",linewidth=3)        
         plt.plot([t,t],[vBase,vBase+mp],color="blue")
 
       plt.plot(1e3*tSim[tIdx:],1e3*vSim[tIdx:],color="black")
@@ -233,26 +281,54 @@ class Planert2010part2(object):
     else:
       for t,sp,mp in zip(tStim*1e3,surrogatePeaks*1e3,modelPeaks*1e3):
 
-        plt.plot([t,t],[0,sp],color="red",linewidth=3)
-        plt.plot([t,t],[0,mp],color="blue")        
+        #plt.plot([t,t],[0,sp],color="red",linewidth=3)
+        plt.plot([t,t],[0,sp],color=(1,0.31,0),linewidth=3)        
+        plt.plot([t,t],[0,mp],color="blue")
 
-    if(params is not None):
-      titleStr = "\nU=%.3g, tauR=%.3g, tauF=%.3g, tau=%.3g,\ncond=%.3g" \
-        % (params[0],
-           params[1],
-           params[2],
-           params[3],
-           params[4])
-      plt.title(titleStr)
+      vBase = 0 # No sim data, base it at 0
       
-    plt.xlabel("Time (ms)")
-    plt.ylabel("Volt (mV)")
+    if(prettyPlot):
+      # Draw scalebars
+      vScaleX = 1300
+      #vMax = np.max(vPlot[np.where(tPlot > 0.050)[0]])
+      vScaleY1 = vBase+0.15
+      vScaleY2 = vBase+0.05
+      tScaleY  = vBase+0.05
+      tScaleX1 = 1300
+      tScaleX2 = 1400
+      
+      plt.plot([vScaleX,vScaleX],[vScaleY1,vScaleY2],color="black")
+      plt.plot([tScaleX1,tScaleX2],[tScaleY,tScaleY],color="black")
+     
+        
+    if(not prettyPlot):
+      if(modelParams is not None):
+        titleStr = "\nU=%.3g, tauR=%.3g, tauF=%.3g, tau=%.3g,\ncond=%.3g" \
+          % (modelParams[0],
+             modelParams[1],
+             modelParams[2],
+             modelParams[3],
+             modelParams[4])
+        plt.title(titleStr)
+
+      plt.xlabel("Time (ms)")
+      plt.ylabel("Volt (mV)")
+
+    else:
+      if(dataType in self.dataLegend):
+        plt.title(self.dataLegend[dataType])
+
+      plt.axis("off")
 
     if(not os.path.exists("figures/")):
       os.makedirs("figures/")
 
-    figName = "figures/PlanertFitting-" + dataType \
-      + "-" + str(cellID) + ".pdf"
+    if(prettyPlot):
+      figName = "figures/PlanertFitting-" + dataType \
+        + "-" + str(cellID) + "-noaxis.pdf"      
+    else:
+      figName = "figures/PlanertFitting-" + dataType \
+        + "-" + str(cellID) + ".pdf"
     plt.savefig(figName,dpi=self.figResolution)
 
     if(show):
@@ -572,8 +648,16 @@ if __name__ == "__main__":
   import argparse
   parser = argparse.ArgumentParser(description="Fit GABA model to peaks")
   parser.add_argument("dataType",choices=["DD","ID","DI","II","FI","FD"])
+  parser.add_argument("--plotOnly",help="Only plot, no new fitting",
+                      action="store_true")
   args = parser.parse_args()
-  
-  pp = Planert2010part2(dataType=args.dataType,cellID=None)
+
+  if(args.plotOnly):
+    fitData = False
+  else:
+    fitData = True
+    
+  pp = Planert2010part2(dataType=args.dataType,cellID=None,
+                        prettyPlot=True,fitData=fitData)
   #pp = Planert2010part2(dataType=args.dataType,cellID=0)
           
