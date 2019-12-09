@@ -70,7 +70,13 @@ class SnuddaLoad(object):
         data["nNeurons"] = f["network/neurons/neuronID"].shape[0]
         assert data["nNeurons"] == f["network/neurons/neuronID"][-1] + 1, \
           "Internal error, something fishy with number of neurons found"
-          
+
+        # Point the data structure to the synapses and gap junctions on file
+        # This will be slower, and only work while the file is open
+        data["synapses"] = f["network/synapses"]
+        data["gapJunctions"] = f["network/gapJunctions"]
+       
+        
       configFile = f["meta/configFile"].value
       if(type(configFile) == bytes):
         configFile = configFile.decode()
