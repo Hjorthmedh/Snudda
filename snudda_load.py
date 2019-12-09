@@ -18,6 +18,11 @@ class SnuddaLoad(object):
     self.config = None
     self.data = self.loadHDF5(network_file,loadSynapses)
     self.network_file = network_file
+
+    # This variable will only be set if the synapses are not kept in
+    # memory so we can access them later, otherwise the hdf5 file is
+    # automatically closed
+    self.hdf5File = None
     
   ############################################################################
   
@@ -66,6 +71,10 @@ class SnuddaLoad(object):
           # This will be slower, and only work while the file is open
           data["synapses"] = f["network/synapses"]
           data["gapJunctions"] = f["network/gapJunctions"]
+
+          # We need to keep f alive, since we did not load synapses into
+          # the memory
+          self.hdf5File = f
           
           # data["origSynapseCoords"] = f["network/origSynapseCoords"][:]
           # gatheredSynapses = f["network/origGJCoords"][:]
@@ -566,9 +575,16 @@ if __name__ == "__main__":
                       type=int)
   parser.add_argument("--listPost", help="List post synaptic neurons (slow)",
                       type=int)
+  parser.add_argument("--keepOpen", help="This prevents loading of synapses to memory, and keeps HDF5 file open", action="store_true")
+  
   args = parser.parse_args()
 
-  nl = SnuddaLoad(args.networkFile) 
+  if(args.keepOpen):
+    loadSynapses=False
+  else:
+    loadSynapses=True
+    
+  nl = SnuddaLoad(args.networkFile,loadSynapses=loadSynapses) 
 
   if(args.listN):
     print("Neurons in network: ")
