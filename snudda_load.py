@@ -61,7 +61,11 @@ class SnuddaLoad(object):
           data["synapseCoords"] = f["network/synapses"][:,2:5] \
                                 * f["meta/voxelSize"].value \
                                 + f["meta/simulationOrigo"].value
-                                  
+        else:
+          # Point the data structure to the synapses and gap junctions on file
+          # This will be slower, and only work while the file is open
+          data["synapses"] = f["network/synapses"]
+          data["gapJunctions"] = f["network/gapJunctions"]
           
           # data["origSynapseCoords"] = f["network/origSynapseCoords"][:]
           # gatheredSynapses = f["network/origGJCoords"][:]
@@ -71,10 +75,6 @@ class SnuddaLoad(object):
         assert data["nNeurons"] == f["network/neurons/neuronID"][-1] + 1, \
           "Internal error, something fishy with number of neurons found"
 
-        # Point the data structure to the synapses and gap junctions on file
-        # This will be slower, and only work while the file is open
-        data["synapses"] = f["network/synapses"]
-        data["gapJunctions"] = f["network/gapJunctions"]
        
         
       configFile = f["meta/configFile"].value
