@@ -9,6 +9,7 @@ import pyswarms as ps
 from pyswarms.utils.functions import single_obj as fx
 from RunLittleSynapseRun import RunLittleSynapseRun
 import matplotlib.pyplot as plt
+import matplotlib
 
 ############################################################################
 
@@ -234,6 +235,8 @@ class Planert2010part2(object):
                prettyPlot=None,
                runSim=False):
 
+    matplotlib.rcParams.update({'font.size': 24})
+    
     if(surrogatePeaks is None):
       surrogatePeaks = np.array(self.data["simAmp"][cellID])
 
