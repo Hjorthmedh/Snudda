@@ -123,34 +123,42 @@ class SnuddaModelCurrentInjections(object):
 
 
     if(simType == "Chuhma2011"):
-      cnc.defineStriatum(nMSD1=570+self.nNrns,
-                         nMSD2=570+self.nNrns,
+      cnc.defineStriatum(nMSD1=1140+self.nNrns,
+                         nMSD2=1140+self.nNrns,
                          nFS=5,
                          nLTS=0,
                          nChIN=self.nNrns,
-                         volumeType="slice",sideLen=1000e-6)    
+                         volumeType="slice",
+                         sideLen=1000e-6,
+                         sliceDepth=300e-6) # 400mum, assume 100 mum dead    
 
     elif(simType == "Straub2016FS"):
       # nFS must be correct density, but readout neurons can be any density
       cnc.defineStriatum(nMSD1=self.nNrns,
                          nMSD2=self.nNrns,
-                         nFS=156, nLTS=0,
+                         nFS=182, nLTS=0,
                          nChIN=self.nNrns,
-                         volumeType="slice",sideLen=1000e-6)    
+                         volumeType="slice",
+                         sideLen=1000e-6,
+                         sliceDepth=175e-6)  #275e-6 m slice, assume 100e-6 dead
 
     elif(simType == "Straub2016LTS"):
       cnc.defineStriatum(nMSD1=self.nNrns,
                          nMSD2=self.nNrns,
-                         nFS=0,nLTS=84,
+                         nFS=0,nLTS=98,
                          nChIN=self.nNrns,
-                         volumeType="slice",sideLen=1000e-6)    
+                         volumeType="slice",
+                         sideLen=1000e-6,
+                         sliceDepth=175e-6)    
     elif(simType == "Szydlowski2013"):
       cnc.defineStriatum(nMSD1=0,
                          nMSD2=0,
                          nFS=156,
                          nLTS=self.nNrns,
                          nChIN=0,
-                         volumeType="slice",sideLen=1000e-6)          
+                         volumeType="slice",
+                         sideLen=1000e-6,
+                         sliceDepth=150e-6)          
     else:
       print("setup : Unkown simType: " + str(simType))
       exit(-1)

@@ -112,7 +112,7 @@ class SnuddaCalibrateSynapses(object):
     configName= simName + "/network-config.json"
     cnc = SnuddaInit(structDef={},configName=configName,nChannels=1)
     cnc.defineStriatum(nMSD1=nMSD1,nMSD2=nMSD2,nFS=nFS,nLTS=nLTS,nChIN=nChIN,
-                       volumeType="slice",sideLen=200e-6)
+                       volumeType="slice",sideLen=200e-6,sliceDepth=150e-6)
 
     dirName = os.path.dirname(configName)
   
