@@ -19,7 +19,7 @@ class SnuddaCut(object):
   
   def __init__(self,networkFile,cutEquation="z>0",
                outFileName=None,
-               plotOnly=False):
+               plotOnly=False,showPlot=True):
 
     #self.snuddaLoader = SnuddaLoad(networkFile)
     #self.data = self.snuddaLoader.data
@@ -50,7 +50,8 @@ class SnuddaCut(object):
     self.setupOutputFile(self.outFileName)
     self.writeCutSlice(self.cutEquationLambda)
 
-    self.plotCut(includeSynapses=True,includeGapJunctions=True)
+    self.plotCut(includeSynapses=True,includeGapJunctions=True,
+                 showPlot=showPlot)
     
     if(False):
       self.inFile.close()
@@ -294,7 +295,7 @@ class SnuddaCut(object):
 
   # This is just used to verify
   
-  def plotCut(self,includeSynapses=True,includeGapJunctions=True):
+  def plotCut(self,includeSynapses=True,includeGapJunctions=True,showPlot=True):
 
     print("Plotting verification figure")
     
@@ -342,15 +343,16 @@ class SnuddaCut(object):
         ax.scatter(outGJ[:,0],outGJ[:,1],outGJ[:,2],c='green',s=3,alpha=aVal)
 
     ax.view_init(elev=-3, azim=-95)
-      
-    plt.ion()
-    plt.show()
+
+    if(showPlot):
+      plt.ion()
+      plt.show()
 
     figName = self.outFileName + ".pdf"
     print("Writing to figure " + figName)
     plt.savefig(figName,dpi=300)
 
-    if(True):
+    if(showPlot):
       print("Inspect plot, then quit debug")
       print("The viewing angle might not be good for your try, so leave it interactive")
       import pdb
@@ -374,10 +376,17 @@ if __name__ == "__main__":
   parser.add_argument("--plotOnly", \
                       help="Plots the network without cutting",
                       action="store_true")
+  parser.add_argument("--hidePlot", help="Hide plot.", action="store_true")
   
   args = parser.parse_args()
 
+  if(args.hidePlot):
+    showPlot = False
+  else:
+    showPlot = True
+    
   sc = SnuddaCut(networkFile=args.networkFile,
                  cutEquation=args.cutEquation,
-                 plotOnly=args.plotOnly)
+                 plotOnly=args.plotOnly,
+                 showPlot=showPlot)
   

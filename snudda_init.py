@@ -105,7 +105,9 @@ class SnuddaInit(object):
 
       if(sliceDepth is None):
         sliceDepth = 150e-6
-      
+
+      print("Using slice depth: " + str(sliceDepth))
+        
       if(meshBinWidth is None):
         meshBinWidth = np.minimum(sideLen,sliceDepth)/3.0
         print("Setting meshBinWidth to " + str(meshBinWidth))

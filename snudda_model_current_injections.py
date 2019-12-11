@@ -198,7 +198,14 @@ class SnuddaModelCurrentInjections(object):
 
     if(self.snuddaSim is None):
       logFile = simName + "/log/simlog.txt"
-      self.networkFile = simName + "/network-pruned-synapses.hdf5"
+
+      cutFile = simName + "/network-cut-slice.hdf5"
+      if(os.path.exists(cutFile)):
+        self.networkFile = cutFile
+      else:
+        self.networkFile = simName + "/network-pruned-synapses.hdf5"
+
+      print("Using network file: " + str(self.networkFile))
       
       self.snuddaSim = SnuddaSimulate(networkFile=self.networkFile,
                                       inputFile=None,
