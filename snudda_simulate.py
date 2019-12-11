@@ -443,8 +443,17 @@ class SnuddaSimulate(object):
                     + connectionType)
       import pdb
       pdb.set_trace()
+
+    try:
+      nSynRows = synapses.shape[0]
+    except:
+      self.writeLog("findNextSynapseGroup: If synapses was not loaded into memory, your problem is probably that the HDF5 file that holds the synapses were closed. Sorry.")
+      import traceback
+      tstr = traceback.format_exc()
+      self.writeLog(tstr)
+      import pdb
+      pdb.set_trace()
       
-    nSynRows = synapses.shape[0]
 
     if(nextRow >= nSynRows):
       # No more synapses to get

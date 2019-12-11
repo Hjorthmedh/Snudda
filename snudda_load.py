@@ -23,6 +23,16 @@ class SnuddaLoad(object):
     # memory so we can access them later, otherwise the hdf5 file is
     # automatically closed
     self.hdf5File = None
+
+  ############################################################################
+
+  def __del__(self):
+
+    if(self.hdf5File is not None):
+      try:
+        self.hdf5File.close()
+      except:
+        print("Unable to close HDF5, alread closed?")
     
   ############################################################################
   
@@ -31,9 +41,12 @@ class SnuddaLoad(object):
 
     startTime = timeit.default_timer()
     data = dict([])
-    
-    with h5py.File(network_file,'r') as f:
 
+    f = h5py.File(network_file,'r')
+    
+    # with h5py.File(network_file,'r') as f:
+    if(True): # Need f open when loadSynapses = False, "with" doesnt work then
+    
       if("config" in f):
         print("Loading config data from HDF5")
         data["config"] = f["config"].value
@@ -176,6 +189,11 @@ class SnuddaLoad(object):
         
       print("Load done. " + str(timeit.default_timer() - startTime))
 
+    if(loadSynapses):
+      f.close()
+    else:
+      self.hdf5File = f
+    
     return data
 
   ############################################################################
