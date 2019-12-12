@@ -133,8 +133,10 @@ class SnuddaSimulate(object):
     
     self.loadNetworkInfo(networkFile)
 
-    self.distributeNeurons()
+    self.checkMemoryStatus()
+    self.distributeNeurons()    
     self.setupNeurons()
+    self.checkMemoryStatus()    
     self.pc.barrier()
 
 #    for i in range(0,self.nNeurons):
@@ -142,6 +144,7 @@ class SnuddaSimulate(object):
 
       
     self.connectNetwork()
+    self.checkMemoryStatus()
     self.pc.barrier()
     
     # Do we need blocking call here, to make sure all neurons are setup
@@ -1743,6 +1746,32 @@ class SnuddaSimulate(object):
   
   ############################################################################
 
+  def checkMemoryStatus(self,threshold=0.1):
+    with open('/proc/meminfo', 'r') as mem:
+      ret = {}
+      tmp = 0
+      
+      for i in mem:
+        sline = i.split()
+        if str(sline[0]) == 'MemTotal:':
+          ret['total'] = int(sline[1])
+        elif str(sline[0]) in ('MemFree:', 'Buffers:', 'Cached:'):
+          tmp += int(sline[1])
+      ret['free'] = tmp
+      ret['used'] = int(ret['total']) - int(ret['free'])
+
+    #import pdb
+    #pdb.set_trace()
+
+    memoryRatio = ret['free'] / ret['total']
+
+    self.writeLog(str(self.pc.id()) + ": Memory status: " \
+                  + str(int(memoryRatio * 100)) + "% free")
+    
+    return memoryRatio < threshold
+  
+  ############################################################################
+  
 def findLatestFile(fileMask):
 
   files = glob(fileMask)
@@ -1844,6 +1873,7 @@ if __name__ == "__main__":
                        verbose=args.verbose)
 
   sim.addExternalInput()
+  sim.checkMemoryStatus()
 
   if(voltFile is not None):
     sim.addRecording(sideLen=None) # Side len let you record from a subset
@@ -1855,7 +1885,8 @@ if __name__ == "__main__":
     #sim.addRecordingOfType("ChIN",2)
 
   tSim = args.time*1000 # Convert from s to ms for Neuron simulator
-  
+
+  sim.checkMemoryStatus()  
   print("Running simulation for " + str(tSim) + " ms.")
   sim.run(tSim) # In milliseconds
 
