@@ -635,6 +635,10 @@ class SnuddaAnalyse(object):
     
     fullFigName = self.figDir + "/" + figName + "." + figType
 
+    # Remove part of the frame
+    plt.gca().spines["right"].set_visible(False)
+    plt.gca().spines["top"].set_visible(False)
+
     plt.tight_layout()
     plt.pause(0.001)
     plt.savefig(fullFigName)

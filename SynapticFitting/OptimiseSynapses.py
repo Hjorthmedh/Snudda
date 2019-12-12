@@ -5,6 +5,7 @@ import h5py
 import scipy
 import scipy.optimize
 import matplotlib.pyplot as plt
+import matplotlib
 import neuron
 import json
 import copy
@@ -297,6 +298,8 @@ class OptimiseSynapses(object):
   def plotData(self,dataType,cellID=None,params={},show=True,skipTime=0.05,
                prettyPlot=None):
 
+    matplotlib.rcParams.update({'font.size': 24})
+    
     if(prettyPlot is None):
       prettyPlot = self.prettyPlot
     
@@ -368,18 +371,25 @@ class OptimiseSynapses(object):
 
     if(prettyPlot):
       # Draw scalebars
-      vScaleX = 1300
+      vScaleX = 1200
       #vMax = np.max(vPlot[np.where(tPlot > 0.050)[0]])
       vBase = vPlot[-1]
-      vScaleY1 = vBase*1e3+2
-      vScaleY2 = vBase*1e3+1
-      tScaleY  = vBase*1e3+1
-      tScaleX1 = 1300
-      tScaleX2 = 1400
+      yScaleBar = vBase*1e3 + float(np.diff(plt.ylim()))/4
+      vScaleY1 = yScaleBar+1
+      vScaleY2 = yScaleBar
+      tScaleY  = yScaleBar
+      tScaleX1 = vScaleX
+      tScaleX2 = vScaleX + 100
       
       plt.plot([vScaleX,vScaleX],[vScaleY1,vScaleY2],color="black")
       plt.plot([tScaleX1,tScaleX2],[tScaleY,tScaleY],color="black")
 
+      plt.text(vScaleX-100, vScaleY2 + 0.20*float(np.diff(plt.ylim())),\
+               ("%.0f" % (vScaleY1-vScaleY2)) + " mV",
+                     rotation=90)
+      plt.text(vScaleX,vScaleY2 - float(np.diff(plt.ylim()))/10,
+               ("%.0f" % (tScaleX2 - tScaleX1) + " ms"))
+      
       # Mark optogenetical stimulation
       yHeight = float(np.diff(plt.ylim()))/13
       

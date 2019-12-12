@@ -291,18 +291,37 @@ class Planert2010part2(object):
       vBase = 0 # No sim data, base it at 0
       
     if(prettyPlot):
+
+      vBarLength = 0.05
+      if(dataType[0] == "F"):
+        vBarLength = 0.5
+      
       # Draw scalebars
-      vScaleX = 1300
+      vScaleX = 1200
       #vMax = np.max(vPlot[np.where(tPlot > 0.050)[0]])
-      vScaleY1 = vBase+0.15
-      vScaleY2 = vBase+0.05
-      tScaleY  = vBase+0.05
-      tScaleX1 = 1300
-      tScaleX2 = 1400
+      yScaleBar = vBase + float(np.diff(plt.ylim()))/4
+      vScaleY1 = yScaleBar + vBarLength
+      vScaleY2 = yScaleBar
+      tScaleY  = yScaleBar
+      tScaleX1 = vScaleX
+      tScaleX2 = vScaleX + 100
       
       plt.plot([vScaleX,vScaleX],[vScaleY1,vScaleY2],color="black")
       plt.plot([tScaleX1,tScaleX2],[tScaleY,tScaleY],color="black")
-     
+
+      plt.text(vScaleX-100, vScaleY2 + 0.30*float(np.diff(plt.ylim())),\
+               ("%.2f" % (vScaleY1-vScaleY2)) + " mV",
+                     rotation=90)
+      plt.text(vScaleX,vScaleY2 - float(np.diff(plt.ylim()))/10,
+               ("%.0f" % (tScaleX2 - tScaleX1) + " ms"))
+
+      plt.axis("off")
+
+      if(False):
+        plt.ion()
+        plt.show()
+        import pdb
+        pdb.set_trace()
         
     if(not prettyPlot):
       if(modelParams is not None):
@@ -317,12 +336,17 @@ class Planert2010part2(object):
       plt.xlabel("Time (ms)")
       plt.ylabel("Volt (mV)")
 
+      # Remove part of the frame
+      plt.gca().spines["right"].set_visible(False)
+      plt.gca().spines["top"].set_visible(False)
+
     else:
       if(dataType in self.dataLegend):
         plt.title(self.dataLegend[dataType])
 
       plt.axis("off")
 
+      
     if(not os.path.exists("figures/")):
       os.makedirs("figures/")
 
