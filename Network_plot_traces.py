@@ -20,6 +20,8 @@ class NetworkPlotTraces():
     self.time = []
     self.voltage = dict([])
 
+    self.neuronNameRemap = {"FSN" : "FS"}
+    
     self.readCSV()
 
     try:
@@ -54,6 +56,16 @@ class NetworkPlotTraces():
             
   ############################################################################
 
+  def neuronName(self,neuronType):
+
+    if(neuronType in self.neuronNameRemap):
+      return self.neuronNameRemap[neuronType]
+    else:
+      return neuronType
+
+  ############################################################################
+  
+  
   def plotTraces(self,traceID=None,offset=150e-3,colours=None,skipTime=None,
                  title=None):
 
@@ -188,7 +200,7 @@ class NetworkPlotTraces():
       return
     
     self.plotTraces(offset=offset,traceID=traceID[:nTraces],skipTime=skipTime,
-                    title=neuronType)
+                    title=self.neuronName(neuronType))
                                    
     
   ############################################################################

@@ -21,6 +21,8 @@ class NetworkPlotSpikeRaster(object):
 
     self.ID = int(re.findall('\d+', ntpath.basename(fileName))[0])
 
+    self.neuronNameRemap = {"FSN" : "FS"}
+    
     self.readCSV()
 
     if(networkFile is not None):
@@ -41,7 +43,16 @@ class NetworkPlotSpikeRaster(object):
       self.plotColourRaster(skipTime=skipTime,typeOrder=typeOrder)
 
   ############################################################################
-      
+
+  def neuronName(self,neuronType):
+
+    if(neuronType in self.neuronNameRemap):
+      return self.neuronNameRemap[neuronType]
+    else:
+      return neuronType
+    
+  ############################################################################  
+  
   def readCSV(self):
 
     data = np.genfromtxt(self.fileName, delimiter='\t')
@@ -193,7 +204,7 @@ class NetworkPlotSpikeRaster(object):
         continue
       
       tickPos.append(prevPos + nElement/2)
-      tickText.append(t)
+      tickText.append(self.neuronName(t))
       prevPos += nElement
       
     return idx,tickPos,tickText,typedict
