@@ -87,8 +87,17 @@ class SnuddaModelCurrentInjections(object):
     else:
       print("Unknown simType: " + str(simType))
       
-    self.plotExpTrace = True
+    self.plotExpTrace = False
+    self.neuronNameRemap = {"FSN" : "FS"}
 
+  ############################################################################
+
+  def neuronName(self,neuronType):
+
+    if(neuronType in self.neuronNameRemap):
+      return self.neuronNameRemap[neuronType]
+    else:
+      return neuronType
 
   ############################################################################
   
@@ -583,9 +592,14 @@ class SnuddaModelCurrentInjections(object):
         tIdx = np.where(tExp < self.tWindow*1e3)[0]
         plt.plot(tExp[tIdx],vExp[tIdx,:],c="red")
         
-      plt.title(preType + " to " + plotType)
+      plt.title(self.neuronName(preType) + " to " + self.neuronName(plotType))
       plt.xlabel("Time (ms)")
       plt.ylabel("Current (nA)")
+
+      # Remove part of the frame
+      plt.gca().spines["right"].set_visible(False)
+      plt.gca().spines["top"].set_visible(False)
+      
       plt.tight_layout()
       plt.ion()
       plt.show()
@@ -595,7 +609,12 @@ class SnuddaModelCurrentInjections(object):
       plt.figure()
       plt.hist(goodMax)
       plt.xlabel("Current (nA)")
-      plt.title(preType + " to " + plotType)      
+      plt.title(self.neuronName(preType) + " to " + self.neuronName(plotType))
+
+      # Remove part of the frame
+      plt.gca().spines["right"].set_visible(False)
+      plt.gca().spines["top"].set_visible(False)
+      
       plt.tight_layout()
       plt.ion()
       plt.show()

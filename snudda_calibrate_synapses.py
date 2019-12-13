@@ -103,6 +103,17 @@ class SnuddaCalibrateSynapses(object):
       + "/synapse-calibration-volt-" \
       + self.preType + "-*.txt"
 
+    self.neuronNameRemap = {"FSN" : "FS"}
+
+  ############################################################################
+    
+  def neuronName(self,neuronType):
+
+    if(neuronType in self.neuronNameRemap):
+      return self.neuronNameRemap[neuronType]
+    else:
+      return neuronType    
+    
   ############################################################################
 
   def setup(self,simName,expType,nMSD1=120,nMSD2=120,nFS=20,nLTS=0,nChIN=0):
@@ -420,7 +431,13 @@ class SnuddaCalibrateSynapses(object):
     plt.xlabel("Time (ms)")
     plt.ylabel("Voltage (mV)")
     #plt.title(str(len(synapseData)) + " traces")
-    plt.title(self.preType + " to " + str(self.postType))
+    plt.title(self.neuronName(self.preType) \
+              + " to " + self.neuronName(self.postType))
+
+    # Remove part of the frame
+    plt.gca().spines["right"].set_visible(False)
+    plt.gca().spines["top"].set_visible(False)
+    
     plt.tight_layout()
     plt.ion()
     plt.show()
@@ -430,8 +447,14 @@ class SnuddaCalibrateSynapses(object):
 
     plt.figure()
     plt.hist(amp*1e3,bins=20)
-    plt.title(self.preType + " to " + str(self.postType))    
+    plt.title(self.neuronName(self.preType) \
+              + " to " + self.neuronName(self.postType))    
     plt.xlabel("Voltage deflection (mV)")
+
+    # Remove part of the frame
+    plt.gca().spines["right"].set_visible(False)
+    plt.gca().spines["top"].set_visible(False)    
+    
     plt.tight_layout()
     plt.show()
     plt.savefig(histFig,dpi=300)

@@ -161,7 +161,9 @@ if __name__ == "__main__":
   #import pdb
   #pdb.set_trace()
 
-
+  nas.plotSynapseCumDistSummary(pairList=[("dSPN","ChIN"),
+                                          ("iSPN","ChIN"),
+                                          ("LTS","ChIN")])  
     
   nas.plotSynapseCumDistSummary(pairList=[("dSPN","dSPN"),
                                           ("iSPN","dSPN"),
