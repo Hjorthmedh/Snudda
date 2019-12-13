@@ -131,6 +131,15 @@ class SnuddaAnalyse(object):
       return self.neuronNameRemap[neuronType]
     else:
       return neuronType
+
+  ############################################################################
+
+  def getNeuronColor(self,neuronType):
+
+    if(neuronType in self.neuronColors):
+      return self.neuronColors[neuronType]
+    else:
+      return self.neuronColors["default"]
     
   ############################################################################
 
@@ -746,11 +755,13 @@ class SnuddaAnalyse(object):
     
     plt.figure()
     matplotlib.rcParams.update({'font.size': 22})
-              
+
     plt.hist(existingCon,
              range(0,1+maxSynapses),
              density=True,
-             align="left")
+             align="left",
+             color=self.getNeuronColor(preType))
+    
     plt.xlabel("Number of " + connectionType)
     plt.ylabel('Probability density')
     #plt.title(preType + " to " + postType \
@@ -1645,7 +1656,9 @@ class SnuddaAnalyse(object):
       else:
         binSize=1
         
-      plt.hist(nCon,range(0,int(np.max(nCon)),binSize),align="left",density=True)
+      plt.hist(nCon,range(0,int(np.max(nCon)),binSize),
+               align="left",density=True,
+               color=self.getNeuronColor(preType))
       
     plt.xlabel("Number of connected neighbours")
     plt.ylabel("Probability density")
@@ -1679,7 +1692,9 @@ class SnuddaAnalyse(object):
         binSize = 5
       else:
         binSize = 10
-      plt.hist(nSyn,range(0,int(np.max(nSyn)),binSize),align="left",density=True)
+      plt.hist(nSyn,range(0,int(np.max(nSyn)),binSize),
+               align="left",density=True,
+               color=self.getNeuronColor(preType))
       
     plt.xlabel("Number of incoming " + connectionType)
     plt.ylabel("Probability density")
@@ -1951,7 +1966,7 @@ class SnuddaAnalyse(object):
 
         figName += "_" + preType + "-" + postType
 
-        legendText.append(self.neuronName(preType) + " to " \
+        legendText.append(self.neuronName(preType) + "-" \
                           + self.neuronName(postType))
         
       except:

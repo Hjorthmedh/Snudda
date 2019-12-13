@@ -14,7 +14,7 @@ from snudda_analyse import SnuddaAnalyse
 
 class SnuddaAnalyseStriatum(SnuddaAnalyse):
 
-  def __init__(self,simDir,volumeType="cube"):
+  def __init__(self,simDir,volumeType="cube",sideLen=300e-6):
 
     if(os.path.isfile(simDir)):
       # We allow the user to also send in a hdf5 file as simDir...
@@ -32,7 +32,9 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
 
     print("Loading " + str(hdf5File))
         
-    super().__init__(hdf5File=hdf5File,loadCache=True,volumeType=volumeType)
+    super().__init__(hdf5File=hdf5File,loadCache=True,
+                     volumeType=volumeType,
+                     sideLen=sideLen)
 
   ############################################################################
 
