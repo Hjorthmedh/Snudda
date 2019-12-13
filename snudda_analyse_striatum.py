@@ -161,8 +161,16 @@ if __name__ == "__main__":
 
 
     
-  
-
+  nas.plotSynapseCumDistSummary(pairList=[("dSPN","dSPN"),
+                                          ("iSPN","dSPN"),
+                                          ("FSN","dSPN"),
+                                          ("LTS","dSPN"),
+                                          ("ChIN","dSPN")])
+  nas.plotSynapseCumDistSummary(pairList=[("dSPN","iSPN"),
+                                          ("iSPN","iSPN"),
+                                          ("FSN","iSPN"),
+                                          ("LTS","iSPN"),
+                                          ("ChIN","iSPN")])
 
   if(plotHenrike):
 

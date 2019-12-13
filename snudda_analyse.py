@@ -77,6 +77,8 @@ class SnuddaAnalyse(object):
     self.sideLen = sideLen
     
     self.lowMemory = lowMemory
+
+    self.neuronNameRemap = {"FSN" : "FS"}
     
     cacheLoaded = False
     if(loadCache):
@@ -114,6 +116,22 @@ class SnuddaAnalyse(object):
 
     self.workerData = []
 
+    self.neuronColors = {"dSPN" : (77./255,151./255,1.0),
+                         "iSPN" : (67./255,55./255,181./255),
+                         "FSN"  : (6./255,31./255,85./255),
+                         "ChIN" : (252./266,102./255,0.0),
+                         "LTS"  : (150./255,63./255,212./255),
+                         "default" : [0.4, 0.4, 0.4] }
+    
+  ############################################################################
+
+  def neuronName(self,neuronType):
+
+    if(neuronType in self.neuronNameRemap):
+      return self.neuronNameRemap[neuronType]
+    else:
+      return neuronType
+    
   ############################################################################
 
   # Reading the HDF5 files takes a lot of time, this stores a cached copy
@@ -741,7 +759,7 @@ class SnuddaAnalyse(object):
     #          + ",sl=" + '%.0f' % (sideLen*1e6) + ")")
     #plt.title(preType + " to " + postType \
     #          + " (total: " + str(np.sum(existingCon)) + ")")
-    plt.title(preType + " to " + postType)
+    plt.title(self.neuronName(preType) + " to " + self.neuronName(postType))
 
 
     plt.tight_layout()
@@ -822,7 +840,8 @@ class SnuddaAnalyse(object):
     plt.xlabel("Distance ($\mu$m)")
     plt.ylabel("Connection probability")
 
-    plt.title(str(preType) + " to " + str(postType) + " connections")
+    plt.title(self.neuronName(preType) + " to " \
+              + self.neuronName(postType) + " connections")
     plt.tight_layout()
 
     plt.xlim([0, 250])
@@ -1083,7 +1102,7 @@ class SnuddaAnalyse(object):
     
     plt.yticks(locs,newLabels)
 
-    plt.title(str(preType) + " to " + str(postType))
+    plt.title(self.neuronName(preType) + " to " + self.neuronName(postType))
     plt.tight_layout()
     plt.ion()
     plt.draw()
@@ -1293,7 +1312,8 @@ class SnuddaAnalyse(object):
     plt.xlim([0, 250])
     #plt.xlim([0, 1000])            
 
-    plt.title(str(preType) + " to " + str(postType) + " connections")
+    plt.title(self.neuronName(preType) + " to " \
+              + self.neuronName(postType) + " connections")
         
     plt.tight_layout()
     plt.ion()
@@ -1629,7 +1649,8 @@ class SnuddaAnalyse(object):
       
     plt.xlabel("Number of connected neighbours")
     plt.ylabel("Probability density")
-    plt.title(preType + " connecting to " + neuronType)
+    plt.title(self.neuronName(preType) + " connecting to " \
+              + self.neuronName(neuronType))
     plt.tight_layout()
     plt.ion()
     plt.draw()
@@ -1662,7 +1683,8 @@ class SnuddaAnalyse(object):
       
     plt.xlabel("Number of incoming " + connectionType)
     plt.ylabel("Probability density")
-    plt.title(preType + " " + connectionType + " on " + neuronType)
+    plt.title(self.neuronName(preType) + " " + connectionType \
+              + " on " + self.neuronName(neuronType))
     plt.tight_layout()
     plt.ion()
     plt.draw()
@@ -1877,7 +1899,78 @@ class SnuddaAnalyse(object):
 
     print("Created distance histogram (optimised) in " + str(tB-tA) + " seconds")
 
+
+  ############################################################################
+
+  def plotSynapseCumDistSummary(self,pairList):
+
+    matplotlib.rcParams.update({'font.size': 22})
+    plt.figure()
+
+    figName = "SynapseCumDistSummary"
+    legendText = []
+    
+    for pair in pairList:
+
+      pairID = (self.allTypes.index(pair[0]),
+                self.allTypes.index(pair[1]))
       
+      if(pairID not in self.dendPositionBin):
+        print("Missing cum dist information for " + str(pair))
+        continue
+
+      if(sum(self.dendPositionBin[pairID]) == 0):
+        print("Empty cum dist data for " + str(pair))
+        continue
+
+      cumDist = np.cumsum(self.dendPositionBin[pairID])  \
+                 /np.sum(self.dendPositionBin[pairID])
+
+      # Select range to plot
+      endIdx = np.where(self.dendPositionEdges <= 400e-6)[0][-1]
+
+      try:
+        preType = pair[0]
+        postType = pair[1]
+
+        if(preType in self.neuronColors):
+          plotCol = self.neuronColors[preType]
+        else:
+          plotCol = self.neuronColors["default"]
+
+        # Hack: dSPN and iSPN are overlapping, need to make dSPN visible
+        if(preType == "dSPN"):
+          linewidth=7
+        else:
+          linewidth=3
+          
+        plt.plot(self.dendPositionEdges[:endIdx]*1e6,
+                 cumDist[:endIdx],
+                 linewidth=linewidth,color=plotCol)
+
+
+        figName += "_" + preType + "-" + postType
+
+        legendText.append(self.neuronName(preType) + " to " \
+                          + self.neuronName(postType))
+        
+      except:
+        import traceback
+        tstr = traceback.format_exc()
+        print(tstr)
+        import pdb
+        pdb.set_trace()
+        
+    fontP = matplotlib.font_manager.FontProperties()
+    fontP.set_size('small')
+    plt.legend(legendText,prop=fontP)
+    plt.xlabel('Distance from soma')
+    plt.ylabel('Cumulative distrib.')
+        
+    figName += ".pdf"
+    
+    self.saveFigure(plt,figName)
+        
   ############################################################################
 
   def plotSynapseCumDist(self):
@@ -1903,7 +1996,7 @@ class SnuddaAnalyse(object):
             + str(self.dendPositionEdges[idx]*1e6) + " micrometer")
 
       # Dont plot the full range
-      endIdx = np.where(self.dendPositionEdges <= 400e-6)[0][-1]
+      endIdx = np.where(self.dendPositionEdges <= 300e-6)[0][-1]
             
       
       try:
@@ -1918,8 +2011,8 @@ class SnuddaAnalyse(object):
                  linewidth=3)
         plt.xlabel('Distance from soma')
         plt.ylabel('Cumulative distrib.')
-        plt.title('Synapses ' + self.allTypes[preType] \
-                  + " to " + self.allTypes[postType])
+        plt.title('Synapses ' + self.neuronName(self.allTypes[preType]) \
+                  + " to " + self.neuronName(self.allTypes[postType]))
         plt.tight_layout()
 
         plt.ion()
@@ -1930,8 +2023,8 @@ class SnuddaAnalyse(object):
         plt.draw()
         plt.pause(0.0001)
         figName = "SynapseCumulativeDistribution-" \
-                    + self.allTypes[preType] + "-to-" \
-                    + self.allTypes[postType]
+                    + self.neuronName(self.allTypes[preType]) + "-to-" \
+                    + self.neuronName(self.allTypes[postType])
 
         self.saveFigure(plt,figName)
 
@@ -1990,7 +2083,8 @@ class SnuddaAnalyse(object):
           plt.ylabel('Synapse/micrometer')
           plt.xlabel('Distance from soma')
 
-          plt.title('Synapse density ' + preType + " to " + postType)
+          plt.title('Synapse density ' + self.neuronName(preType)\
+                    + " to " + self.neuronName(postType))
 
                    
         else:
@@ -2000,7 +2094,8 @@ class SnuddaAnalyse(object):
           plt.xlabel('Distance from soma')
           plt.ylim([0,np.ceil(np.max(self.dendPositionBin[pair][:endIdx]))])
 
-          plt.title('Synapses ' + preType + " to " + postType)
+          plt.title('Synapses ' + self.neuronName(preType) \
+                    + " to " + self.neuronName(postType))
 
         plt.tight_layout()
 
@@ -2166,7 +2261,8 @@ class SnuddaAnalyse(object):
       plt.hist(vSyn,bins=virtSynBins,align="left")
       plt.xlabel("Synapses (only connected pairs)")
       plt.ylabel("Count")
-      plt.title("Synapses from " + axonType + " to " + postNeuronType \
+      plt.title("Synapses from " + self.neuronName(axonType) \
+                + " to " + self.neuronName(postNeuronType) \
                 + " (nSyn=" + str(np.sum(vSyn)) + ")" )
       
       plt.tight_layout()
@@ -2473,7 +2569,7 @@ class SnuddaAnalyse(object):
     else:
       plt.ylabel("Count")
     plt.title("Nearest presynaptic neighbour " \
-              + str(preType) + " to " + str(postType))
+              + self.neuronName(preType) + " to " + self.neuronName(postType))
 
     # Data from Sabatini 2016
     if(preType == "LTS" and (postType == "dSPN" or postType == "iSPN")):
@@ -2552,7 +2648,7 @@ class SnuddaAnalyse(object):
     plt.xlabel("Distance")
     plt.ylabel("Count")
     plt.title("Nearest presynaptic neighbour " \
-              + str(preType) + " to " + str(postType))
+              + self.neuronName(preType) + " to " + self.neuronName(postType))
 
     # Data from Sabatini 2016
     if(preType == "LTS" and (postType == "dSPN" or postType == "iSPN")):

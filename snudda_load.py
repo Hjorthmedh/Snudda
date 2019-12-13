@@ -560,6 +560,9 @@ class SnuddaLoad(object):
     
     if(nNeurons is not None):
       if(randomPermute):
+        # Do not use this if you have a simulation with multiple
+        # workers... they might randomize differently, and you might
+        # get more or less neurons in total than you wanted
         keepIdx = np.random.permutation(len(cellID))[:nNeurons]
         cellID = np.array([cellID[x] for x in keepIdx])
       else:
