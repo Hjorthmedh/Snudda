@@ -176,6 +176,9 @@ if __name__ == "__main__":
                                           ("LTS","iSPN"),
                                           ("ChIN","iSPN")])
 
+  import pdb
+  pdb.set_trace()
+
   if(plotHenrike):
 
     yMaxH = None #0.5

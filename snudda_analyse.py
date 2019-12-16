@@ -1979,7 +1979,7 @@ class SnuddaAnalyse(object):
     fontP = matplotlib.font_manager.FontProperties()
     fontP.set_size('small')
     plt.legend(legendText,prop=fontP)
-    plt.xlabel('Distance from soma')
+    plt.xlabel('Distance from soma ($\mu$m)')
     plt.ylabel('Cumulative distrib.')
         
     figName += ".pdf"
@@ -2024,7 +2024,7 @@ class SnuddaAnalyse(object):
         plt.plot(self.dendPositionEdges[:endIdx]*1e6,
                  cumDist[:endIdx],
                  linewidth=3)
-        plt.xlabel('Distance from soma')
+        plt.xlabel('Distance from soma ($\mu$m)')
         plt.ylabel('Cumulative distrib.')
         plt.title('Synapses ' + self.neuronName(self.allTypes[preType]) \
                   + " to " + self.neuronName(self.allTypes[postType]))
@@ -2096,7 +2096,7 @@ class SnuddaAnalyse(object):
                    np.divide(self.dendPositionBin[pair][1:endIdx],
                              dendHistTot[postType][1:endIdx]*1e6))
           plt.ylabel('Synapse/micrometer')
-          plt.xlabel('Distance from soma')
+          plt.xlabel('Distance from soma ($\mu$m)')
 
           plt.title('Synapse density ' + self.neuronName(preType)\
                     + " to " + self.neuronName(postType))
@@ -2106,7 +2106,7 @@ class SnuddaAnalyse(object):
           plt.plot(self.dendPositionEdges[:endIdx]*1e6,
                    self.dendPositionBin[pair][:endIdx])
           plt.ylabel('Synapse count')
-          plt.xlabel('Distance from soma')
+          plt.xlabel('Distance from soma ($\mu$m)')
           plt.ylim([0,np.ceil(np.max(self.dendPositionBin[pair][:endIdx]))])
 
           plt.title('Synapses ' + self.neuronName(preType) \
