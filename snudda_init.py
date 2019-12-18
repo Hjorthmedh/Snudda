@@ -31,7 +31,9 @@ class SnuddaInit(object):
     self.networkData["Channels"]["nChannels"] = nChannels
     self.networkData["Channels"]["method"] = "random"
 
-    self.neuronTargets = collections.OrderedDict([])
+    self.networkData["Connectivity"] = dict([])
+    
+    # self.neuronTargets = collections.OrderedDict([])
 
     print("Using " + str(nChannels) + " functional channels")
     self.nChannels = nChannels #5
@@ -189,7 +191,18 @@ class SnuddaInit(object):
       cond = conductance
       condStd = 0
     
-    pruneInfo = (distPruning,f1,softMax,mu2,a3)
+    conInfo = dict([])
+    conInfo["conductance"] = [cond,condStd] # Mean, Std
+    conInfo["channelParameters"] = channelParamDictionary
+    pruningInfo = dict([])
+    pruningInfo["f1"] = f1
+    pruningInfo["softMax"] = softMax
+    pruningInfo["mu2"] = mu2
+    pruningInfo["a3"] = a3
+    pruningInfo["distPruning"] = distPruning
+    conInfo["pruning"] = pruningInfo
+    
+    # pruneInfo = (distPruning,f1,softMax,mu2,a3)
     
     if(distPruning_other is not None
        or f1_other is not None
@@ -216,24 +229,33 @@ class SnuddaInit(object):
       if(a3_other is None):
         a3_other = a3
       
-      pruneInfo_other = (distPruning_other,
-                         f1_other,
-                         softMax_other,
-                         mu2_other,
-                         a3_other)
-      
-      # Different pruning rules for within and between neuron channels
-      targetInfo = [targetName,
-                    [connectionType,cond,condStd,channelParamDictionary],
-                    pruneInfo, pruneInfo_other]
-    else:
-      # All targets of same type are treated equally, no channels 
-      targetInfo = [targetName,
-                    [connectionType,cond,condStd,channelParamDictionary],
-                    pruneInfo]
+      #pruneInfo_other = (distPruning_other,
+      #                   f1_other,
+      #                   softMax_other,
+      #                   mu2_other,
+      #                   a3_other)
 
-    if(neuronName not in self.neuronTargets):
-      self.neuronTargets[neuronName] = []
+      pruningInfoOther = dict([])
+      pruningInfoOther["f1"] = f1_other
+      pruningInfoOther["softMax"] = softMax
+      pruningInfoOther["mu2"] = mu2_other
+      pruningInfoOther["a3"] = a3_other
+      pruningInfoOther["distPruning"] = distPruning_other
+
+      # Different pruning rules for within and between neuron channels
+      conInfo["pruningOther"] = pruningInfoOther
+      
+      #targetInfo = [targetName,
+      #              [connectionType,cond,condStd,channelParamDictionary],
+      #              pruneInfo, pruneInfo_other]
+    #else:
+    #  # All targets of same type are treated equally, no channels 
+    #  targetInfo = [targetName,
+    #                [connectionType,cond,condStd,channelParamDictionary],
+    #                pruneInfo]
+    # 
+    # if(neuronName not in self.neuronTargets):
+    #   self.neuronTargets[neuronName] = []
 
     #import pdb
     #pdb.set_trace()
@@ -245,8 +267,16 @@ class SnuddaInit(object):
     #  "Error " + neuronName + " already has output for " + targetName \
     #   + " specified (DUPLICATE!)"
       
-    self.neuronTargets[neuronName].append(targetInfo)
+    # self.neuronTargets[neuronName].append(targetInfo)
 
+    # New format for connection info, now stored as dictionary
+    # Json did not like typles in keys, so we separate by comma
+    ntKey = neuronName + "," + targetName
+    if( ntKey not in self.networkData["Connectivity"] ):
+      self.networkData["Connectivity"][ntKey] = dict([])
+    
+    self.networkData["Connectivity"][ntKey][connectionType] = conInfo
+    
   ############################################################################
 
     
@@ -396,17 +426,18 @@ class SnuddaInit(object):
 
   def writeJSON(self,filename):
 
-    # We need to copy over the target data to each neuron
-    for n in self.networkData:
-      if(n in ["Volume","Channels"]):
-        # Non-neuron keywords, skip
-        continue
-
-      nType = n.split("_")[0]      
-      if(nType in self.neuronTargets):
-        self.networkData[n]["targets"] = self.neuronTargets[nType]
-      else:
-        print("No targets defined for " + str(nType))
+    # !!! Dont need to do this anymore
+    ## We need to copy over the target data to each neuron
+    #for n in self.networkData:
+    #  if(n in ["Volume","Channels"]):
+    #    # Non-neuron keywords, skip
+    #    continue
+    #
+    #  nType = n.split("_")[0]      
+    #  if(nType in self.neuronTargets):
+    #    self.networkData[n]["targets"] = self.neuronTargets[nType]
+    #  else:
+    #    print("No targets defined for " + str(nType))
         
     # import pdb
     # pdb.set_trace()

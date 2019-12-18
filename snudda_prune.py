@@ -571,17 +571,12 @@ class SnuddaPrune(object):
     # Normally we use type names as lookups, but since we will do this
     # many millions of times, we create an temporary typeID number
     self.makeTypeNumbering()
-
-    # This is the original connection distributions
-    #print("!!! SOME PROBLEM WITH TUPLES")
-    #import pdb
-    #pdb.set_trace()
     
     origConnectivityDistributions = \
       json.loads(self.histFile["meta/connectivityDistributions"].value)
 
-    origConnectivityDistributionsGJ = \
-      json.loads(self.histFile["meta/connectivityDistributionsGJ"].value)
+    #origConnectivityDistributionsGJ = \
+    #  json.loads(self.histFile["meta/connectivityDistributionsGJ"].value)
 
     self.connectivityDistributions = dict([])
 
@@ -597,41 +592,46 @@ class SnuddaPrune(object):
       
       preTypeID = self.typeIDLookup[preType]
       postTypeID = self.typeIDLookup[postType]
-      conData = origConnectivityDistributions[keys]
 
-      distrib = conData[0]
-      distrib2 = conData[1]
-      synapseTypeID = conData[2]
-      
-      self.connectivityDistributions[preTypeID,postTypeID,synapseTypeID] \
-        = (distrib,distrib2)
+      for conType in origConnectivityDistributions[keys]:
+        conData = origConnectivityDistributions[keys][conType]
+        
+        pruning = self.completePruningInfo(conData["pruning"])
+        
+        if("pruningOther" in conData):
+          pruningOther = self.completePruningInfo(conData["pruningOther"])
+        else:
+          pruningOther = None
 
-    for keys in origConnectivityDistributionsGJ:
-      (preType,postType) = keys.split("$$")
-      
-      # Need to handle if preType or postType dont exist, then skip this
-      if(preType not in self.typeIDLookup \
-         or postType not in self.typeIDLookup):
-        print("Skipping " + preType + " to " + postType + " connection")
-        continue      
+        synapseTypeID = conData["channelModelID"]
 
-      preTypeID = self.typeIDLookup[preType]
-      postTypeID = self.typeIDLookup[postType]
-      conData = origConnectivityDistributionsGJ[keys]
+        self.connectivityDistributions[preTypeID,postTypeID,synapseTypeID] \
+          = (pruning,pruningOther)
 
-      distrib = conData[0]
-      distrib2 = conData[1]
-      synapseTypeID = conData[2]
+  ############################################################################
 
-      self.connectivityDistributions[preTypeID,postTypeID,synapseTypeID] \
-        = (distrib,distrib2)
-      
-    
-    # !!! This was a test to reuse the connectionDistribution from the
-    # Network_connect_voxel, but below we have converted to typeID to do
-    # faster lookups, so lets keep using that since at this stage we do not
-    # need the parameter info (it is used for simulations)
-    
+  # This makes sure all the variables exist, that way pruneSynapseHelper
+  # does not have to check, but can assume that they will exist
+  
+  def completePruningInfo(self,pruneInfo):
+
+    if("distPruning" not in pruneInfo):
+      pruneInfo["distPruning"] = None
+
+    if("f1" not in pruneInfo or pruneInfo["f1"] is None):
+      pruneInfo["f1"] = 1.0
+
+    if("softMax" not in pruneInfo):
+      pruneInfo["softMax"] = None
+
+    if("mu2" not in pruneInfo):
+      pruneInfo["mu2"] = None
+
+    if("a3" not in pruneInfo):
+      pruneInfo["a3"] = None
+
+    return pruneInfo
+
   ############################################################################
   
   def loadPruningInformationOLD(self):
@@ -791,8 +791,16 @@ class SnuddaPrune(object):
     morphGroup = outFile.create_group("morphologies")
 
     for name, definition in cfg.items():
-      if(name not in ["Volume", "Channels"]):
-        morphFile = definition["morphology"]
+      if(name not in ["Volume", "Channels","Connectivity"]):
+
+        try:
+          morphFile = definition["morphology"]
+        except:
+          import traceback
+          tstr = traceback.format_exc()
+          self.writeLog(tstr)
+          import pdb
+          pdb.set_trace()
            
         with open(morphFile,"r") as f:
           swcData = f.read()
@@ -970,8 +978,15 @@ class SnuddaPrune(object):
       morphGroup = outFile.create_group("morphologies")
 
       for name, definition in cfg.items():
-        if(name not in ["Volume", "Channels"]):
-          morphFile = definition["morphology"]
+        if(name not in ["Volume", "Channels","Connectivity"]):
+          try:
+            morphFile = definition["morphology"]
+          except:
+            import traceback
+            tstr = traceback.format_exc()
+            self.writeLog(tstr)
+            import pdb
+            pdb.set_trace()
            
           with open(morphFile,"r") as f:
             swcData = f.read()
@@ -2773,26 +2788,29 @@ class SnuddaPrune(object):
       conID = (self.typeIDList[srcID],self.typeIDList[destID],synapseType)
       
       if(conID in self.connectivityDistributions):
-        
+
+        # We have the option to separate between connections within a
+        # functional channel or not. If conInfo[1] != None then first
+        # tuple is connection info within a channel, and second item
+        # is connection info between different channels
         conInfo = self.connectivityDistributions[conID]
-       
+
+        #
         if(conInfo[1] is None \
            or self.channelID[srcID] == self.channelID[destID]):
-          distP = conInfo[0][0] # Dist dep pruning
-          
-          f1 = conInfo[0][1]
-          softMax = conInfo[0][2]
-          mu2 = conInfo[0][3]
-          a3 = conInfo[0][4]
-          
+          # All or within channel pruning parameters
+          cInfo = conInfo[0]
         else:
-          # Different probability distribution between channels
-          distP = conInfo[1][0] # Dist dep pruning
-          
-          f1 = conInfo[1][1]
-          softMax = conInfo[1][2]
-          mu2 = conInfo[1][3]
-          a3 = conInfo[1][4]
+          # Between channel pruning parameters
+          cInfo = conInfo[1]
+
+        # These will always exist thanks to completePruningInfo function
+        
+        distP = cInfo["distPruning"] # Dist dep pruning
+        f1 = cInfo["f1"]
+        softMax = cInfo["softMax"]
+        mu2 = cInfo["mu2"]
+        a3 = cInfo["a3"]
           
       else:
         # Not listed in connectivityDistribution, skip neuron pair
@@ -2814,9 +2832,6 @@ class SnuddaPrune(object):
         # Stats
         nAllRemoved += nPairSynapses
         continue
-
-      if(f1 is None):
-        f1 = 1
       
       if(distP is not None):
         # Distance dependent pruning, used for FS->MS connections
@@ -2872,12 +2887,7 @@ class SnuddaPrune(object):
           nTooFewRemoved += nKeep
           continue
 
-      nextReadPos = readEndIdx
-
-    # TEMP DISABLE PRUNING
-    #self.writeLog("Temp disable pruning for all neurons")
-    #keepRowFlag[:] = 1
-      
+      nextReadPos = readEndIdx      
 
     # Time to write synapses to file
     nKeepTot = sum(keepRowFlag)

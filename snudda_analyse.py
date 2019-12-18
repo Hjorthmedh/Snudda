@@ -605,9 +605,13 @@ class SnuddaAnalyse(object):
     yMax = maxCoord[1]
     zMax = maxCoord[2]
     
-    assert sideLen < xMax - xMin \
-      and sideLen < yMax - yMin \
-      and sideLen < zMax - zMin, "SideLen too large."
+    if(sideLen > xMax - xMin \
+      or sideLen > yMax - yMin \
+       or sideLen > zMax - zMin):
+      print("Warning: the analysis cube specified by sideLen is too large.")
+      print("!!! Setting sideLen to None")
+      
+      sideLen = None
     
     if(neuronID is None):
       neuronID = idx

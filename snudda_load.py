@@ -165,7 +165,7 @@ class SnuddaLoad(object):
 
 
       data["connectivityDistributions"] = dict([])
-      data["connectivityDistributionsGJ"] = dict([])      
+      #data["connectivityDistributionsGJ"] = dict([])      
 
       if("connectivityDistributions" in f["meta"]):
         origConnectivityDistributions = \
@@ -177,14 +177,14 @@ class SnuddaLoad(object):
             = origConnectivityDistributions[keys]
 
           
-      if("connectivityDistributionsGJ" in f["meta"]):
-        origConnectivityDistributionsGJ = \
-          json.loads(f["meta/connectivityDistributionsGJ"].value)
-        
-        for keys in origConnectivityDistributionsGJ:
-          (preType,postType) = keys.split("$$")
-          data["connectivityDistributionsGJ"][preType,postType] \
-            = origConnectivityDistributionsGJ[keys]
+#      if("connectivityDistributionsGJ" in f["meta"]):
+#        origConnectivityDistributionsGJ = \
+#          json.loads(f["meta/connectivityDistributionsGJ"].value)
+#        
+#        for keys in origConnectivityDistributionsGJ:
+#          (preType,postType) = keys.split("$$")
+#          data["connectivityDistributionsGJ"][preType,postType] \
+#            = origConnectivityDistributionsGJ[keys]
         
         
       print("Load done. " + str(timeit.default_timer() - startTime))

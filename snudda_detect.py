@@ -181,7 +181,7 @@ class SnuddaDetect(object):
     #    {v: k for k, v in self.synapseTypeLookup.items()}
     
     self.connectivityDistributions = dict([])
-    self.connectivityDistributionsGJ = dict([])
+    #self.connectivityDistributionsGJ = dict([])
     self.nextChannelModelID = 10
     
     self.prototypeNeurons = dict([])
@@ -428,8 +428,8 @@ class SnuddaDetect(object):
     for keys in self.connectivityDistributions:
       tmpConDist["$$".join(keys)] = self.connectivityDistributions[keys]
 
-    for keys in self.connectivityDistributionsGJ:
-      tmpConDistGJ["$$".join(keys)] = self.connectivityDistributionsGJ[keys]
+    #for keys in self.connectivityDistributionsGJ:
+    #  tmpConDistGJ["$$".join(keys)] = self.connectivityDistributionsGJ[keys]
       
     
     saveMetaData = [(self.SlurmID, "SlurmID"),
@@ -440,9 +440,10 @@ class SnuddaDetect(object):
                     (self.axonStumpIDFlag,"axonStumpIDFlag"),
                     (json.dumps(self.config),"config"),
                     (json.dumps(tmpConDist),
-                     "connectivityDistributions"),
-                    (json.dumps(tmpConDistGJ),
-                     "connectivityDistributionsGJ")]
+                     "connectivityDistributions")]
+#    ,
+#                    (json.dumps(tmpConDistGJ),
+#                     "connectivityDistributionsGJ")]
 
     
     if("meta" not in self.workHistory):
@@ -892,47 +893,54 @@ class SnuddaDetect(object):
           postType = self.neurons[dID]["type"]
 
           if (preType,postType) in self.connectivityDistributions:
-
-            (distrib,distrib2,channelModelID,
-             meanSynapseConductance,stdSynapseConductance,
-             paramDictionary) = \
-               self.connectivityDistributions[(preType,postType)] 
             
-            # We can not do pruning at this stage, since we only see
-            # synapses within hyper voxel, and pruning depends on
-            # all synapses between two connected cells.
+            conDict = self.connectivityDistributions[preType,postType]
 
-            # Do we have enough space allocated?
-            if(self.hyperVoxelSynapseCtr >= self.maxSynapses):
-              self.resizeHyperVoxelSynapsesMatrix()
-
-            try:
-
-              # Synapse conductance varies between synapses
-              cond = np.random.normal(meanSynapseConductance,
-                                      stdSynapseConductance)
-
-              # Need to make sure the conductance is not negative,
-              # set lower cap at 10% of mean value
-              cond = np.maximum(cond,meanSynapseConductance*0.1)
+            # We need to loop over conDict in case there are multiple
+            # types of synapses from this neuron
+            for conType in conDict:
+              if conType == "gapJunction":
+                # This part detects only axon-dend synapses, skip gap junctions
+                continue
               
-              paramID = np.random.randint(1000000)
+              meanSynapseCond,stdSynapseCond = conDict[conType]["conductance"]
+              channelModelID = conDict[conType]["channelModelID"]
               
-              # Add synapse
-              self.hyperVoxelSynapses[self.hyperVoxelSynapseCtr,:] = \
-                  [axID,dID,x,y,z,self.hyperVoxelID,channelModelID,
-                   axDist,dDist,dSegID,dSegX*1000,cond*1e12,paramID]
-            except:
-              import traceback
-              tstr = traceback.format_exc()
-              self.writeLog(tstr)
-              import pdb
-              pdb.set_trace()
+              # We can not do pruning at this stage, since we only see
+              # synapses within hyper voxel, and pruning depends on
+              # all synapses between two connected cells.
 
-            # !!! OBS, dSegX is a value between 0 and 1, multiplied by 1000
-            # need to divide by 1000 later
+              # Do we have enough space allocated?
+              if(self.hyperVoxelSynapseCtr >= self.maxSynapses):
+                self.resizeHyperVoxelSynapsesMatrix()
+
+              try:
+
+                # Synapse conductance varies between synapses
+                cond = np.random.normal(meanSynapseCond,
+                                        stdSynapseCond)
+
+                # Need to make sure the conductance is not negative,
+                # set lower cap at 10% of mean value
+                cond = np.maximum(cond,meanSynapseCond*0.1)
+              
+                paramID = np.random.randint(1000000)
+              
+                # Add synapse
+                self.hyperVoxelSynapses[self.hyperVoxelSynapseCtr,:] = \
+                    [axID,dID,x,y,z,self.hyperVoxelID,channelModelID,
+                     axDist,dDist,dSegID,dSegX*1000,cond*1e12,paramID]
+              except:
+                import traceback
+                tstr = traceback.format_exc()
+                self.writeLog(tstr)
+                import pdb
+                pdb.set_trace()
+
+              # !!! OBS, dSegX is a value between 0 and 1, multiplied by 1000
+              # need to divide by 1000 later
             
-            self.hyperVoxelSynapseCtr += 1
+              self.hyperVoxelSynapseCtr += 1
 
     # Sort the synapses (note sortIdx will not contain the empty rows
     # at the end.
@@ -1410,12 +1418,24 @@ class SnuddaDetect(object):
     
   ############################################################################
 
+  def includesGapJunctions(self):
+
+    hasGapJunctions = False
+    
+    for key in self.connectivityDistributions:
+      if("gapJunctions" in self.connectivityDistributions[key]):
+        hasGapJunctions = True
+
+    return hasGapJunctions
+  
+  ############################################################################
+  
   # Gap junctions are stored in self.hyperVoxelGapJunctions
     
   def detectGapJunctions(self):
 
-    if(not self.connectivityDistributionsGJ):
-      self.writeLog("No gap junctions in simulation, skipping this step.")
+    if(not self.includesGapJunctions()):
+      self.writeLog("detectGapJunctions: No gap junctions defined in connectivity rules")
       return
     
     startTime = timeit.default_timer()
@@ -1443,27 +1463,31 @@ class SnuddaDetect(object):
         preType = self.neurons[neuronID1]["type"]
         postType = self.neurons[neuronID2]["type"]
 
-        if (preType,postType) in self.connectivityDistributionsGJ:
+        if (preType,postType) in self.connectivityDistributions:
 
-          segID1 = self.dendSecID[x,y,z,pairs[0]]
-          segID2 = self.dendSecID[x,y,z,pairs[1]]        
+          if("gapJunctions" \
+             in self.connectivityDistributions[preType,postType]):
+
+            conInfo \
+              = self.connectivityDistributions[preType,postType]["gapJunctions"]
+            
+            segID1 = self.dendSecID[x,y,z,pairs[0]]
+            segID2 = self.dendSecID[x,y,z,pairs[1]]        
         
-          segX1 = self.dendSecX[x,y,z,pairs[0]]
-          segX2 = self.dendSecX[x,y,z,pairs[1]]        
+            segX1 = self.dendSecX[x,y,z,pairs[0]]
+            segX2 = self.dendSecX[x,y,z,pairs[1]]        
 
-          (distrib,distrib2,channelModelID, meanGJcond,stdGJcond,channelParamDict) \
-            = self.connectivityDistributionsGJ[preType,postType]
+            meanGJcond,stdGJcond = conInfo["conductance"]
 
-
-          # !!! Currently not using channelParamDict for GJ
+            # !!! Currently not using channelParamDict for GJ
           
-          GJcond = np.random.normal(meanGJcond,stdGJcond)
-          GJcond = np.maximum(GJcond,meanGJcond*0.1) # Avoid negative cond
+            GJcond = np.random.normal(meanGJcond,stdGJcond)
+            GJcond = np.maximum(GJcond,meanGJcond*0.1) # Avoid negative cond
           
-          self.hyperVoxelGapJunctions[self.hyperVoxelGapJunctionCtr,:] = \
-            [neuronID1,neuronID2,segID1,segID2,segX1*1e3,segX2*1e3,
-             x,y,z,self.hyperVoxelID,GJcond*1e12]
-          self.hyperVoxelGapJunctionCtr += 1
+            self.hyperVoxelGapJunctions[self.hyperVoxelGapJunctionCtr,:] = \
+              [neuronID1,neuronID2,segID1,segID2,segX1*1e3,segX2*1e3,
+               x,y,z,self.hyperVoxelID,GJcond*1e12]
+            self.hyperVoxelGapJunctionCtr += 1
 
     self.sortGapJunctions()
 
@@ -1540,7 +1564,7 @@ class SnuddaDetect(object):
       
     for name, definition in self.config.items():
 
-      if(name == "Volume" or name == "Channels"):
+      if(name == "Volume" or name == "Channels" or name == "Connectivity"):
         self.writeLog("Ignoring " + name + " block when reading prototypes")
         # This is not a neuron, ignore
         continue
@@ -1610,66 +1634,23 @@ class SnuddaDetect(object):
       # Since we already have the config file open, let's read connectivity
       # distributions also
 
-      if "targets" in definition:
-        conDist = definition["targets"]
-      else:
-        conDist = []
+    self.writeLog("Loading connectivity information")
+      
+    for name,definition in self.config["Connectivity"].items():
+     
+      preType,postType = name.split(",")
 
+      conDef = definition.copy()
+     
+      for key in conDef:
+        conDef[key]["channelModelID"] = self.nextChannelModelID
+        self.nextChannelModelID += 1
 
-      for row in conDist:
-        target = row[0]
-
-        try:
-          synapseTypeString = row[1][0]
-          #synapseType = self.synapseTypeReverseLookup[row[1][0]]
-          meanSynapseConductance = row[1][1]
-          stdSynapseConductance = row[1][2]
-          channelParameterDictionary = row[1][3]
-          distrib = row[2]
-        except:
-          self.writeLog("Something wrong with your network json file. row: " \
-                        + str(row))
-          assert False, "Something wrong with network json file. row: " \
-                        + str(row)
-          import pdb
-          pdb.set_trace()
-          
-        if(len(row) > 3):
-          # If distrib2 is specified, then distrib is within channel
-          # distribution and distrib2 is between channel distribution
-          distrib2 = row[3]
-        else:
-          distrib2 = None
-
-        # !!! OBS, as it is written now last MSN will define how all MSN are
-        # connected, since we use type name.
-        #
-        #
-        # !!! Should we change behaviour so it uses the full name instead
-        # !!! of typeName (ie skip split)
+        # Also if conductance is just a number, add std 0
+        if(type(conDef[key]["conductance"]) not in [list,tuple]):
+          conDef[key]["conductance"] = [conDef[key]["conductance"],0]
         
-        typeName = name.split("_")[0]
-        
-        if(synapseTypeString == "GapJunction"): # Gap junction
-          #assert (typeName,target) not in self.connectivityDistributionsGJ, \
-          #  str(typeName) + " duplicate entries for GJ target " + str(target)
-          
-          self.connectivityDistributionsGJ[typeName,target] \
-            = (distrib,distrib2,3,
-               meanSynapseConductance,stdSynapseConductance,
-               channelParameterDictionary)
-        else:
-          #assert (typeName,target) not in self.connectivityDistributions, \
-          # str(typeName)+" duplicate entries for synapse target " + str(target)
-          
-          self.connectivityDistributions[typeName,target] \
-            = (distrib,distrib2,self.nextChannelModelID,
-               meanSynapseConductance,stdSynapseConductance,
-               channelParameterDictionary)
-
-          # channelParameterDictionary contains the modFile and parameterFile
-          
-          self.nextChannelModelID += 1
+      self.connectivityDistributions[preType,postType] = conDef
 
   ############################################################################
 

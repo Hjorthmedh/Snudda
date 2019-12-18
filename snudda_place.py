@@ -174,55 +174,56 @@ class SnuddaPlace(object):
       meshLogFileName = self.logFile.name + "-mesh"
     meshLogFile = open(meshLogFileName,'wt')
 
+    # First handle volume definitions
+    volumeDef = config["Volume"]
+
+    for volumeID, volDef in volumeDef.items():
+
+      self.volume[volumeID] = volDef
+
+      if("meshFile" in volDef):
+
+        assert "dMin" in volDef, "You must specify dMin if using a mesh" \
+          + " for volume " + str(volumeID)
+
+        if("meshBinWidth" not in volDef):
+          self.writeLog("No meshBinWidth specified, using 1e-4")
+          meshBinWidth = 1e-4
+        else:
+          meshBinWidth = volDef["meshBinWidth"]
+
+        self.writeLog("Using meshBinWidth " + str(meshBinWidth)) 
+              
+        if("-cube-mesh-" in volDef["meshFile"]):
+          self.writeLog("Cube mesh, switching to serial processing.")
+          dView = None
+          lbView = None
+        else:
+          dView = self.dView
+          lbView = self.lbView
+              
+        self.volume[volumeID]["mesh"] \
+          =  RegionMesh(volDef["meshFile"],
+                        dView=dView,
+                        lbView=lbView,
+                        raytraceBorders=False,
+                        dMin=volDef["dMin"],
+                        binWidth=meshBinWidth,
+                        logFile=meshLogFile)
+
+      self.writeLog("Using dimensions from config file")
+        
+    # Read the rest of the file
+      
     for name, definition in config.items():
 
-      if(name == "Volume"):
-
-        for volumeID, volDef in definition.items():
-
-          self.volume[volumeID] = volDef
-
-          if("meshFile" in volDef):
-
-            assert "dMin" in volDef, "You must specify dMin if using a mesh" \
-              + " for volume " + str(volumeID)
-
-            if("meshBinWidth" not in volDef):
-              self.writeLog("No meshBinWidth specified, using 1e-4")
-              meshBinWidth = 1e-4
-            else:
-              meshBinWidth = volDef["meshBinWidth"]
-
-            self.writeLog("Using meshBinWidth " + str(meshBinWidth)) 
-              
-            if("-cube-mesh-" in volDef["meshFile"]):
-              self.writeLog("Cube mesh, switching to serial processing.")
-              dView = None
-              lbView = None
-            else:
-              dView = self.dView
-              lbView = self.lbView
-              
-            self.volume[volumeID]["mesh"] \
-              =  RegionMesh(volDef["meshFile"],
-                            dView=dView,
-                            lbView=lbView,
-                            raytraceBorders=False,
-                            dMin=volDef["dMin"],
-                            binWidth=meshBinWidth,
-                            logFile=meshLogFile)
-
-        self.writeLog("Using dimensions from config file")
-        
-        assert len(self.neurons) == 0, "Volume block must be first in file"
-        
-        # This is not a neuron, skip rest
+      if(name == "Volume" or name == "Connectivity"):
+        # This has already been processed, or not needed yet
         continue
 
       if(name == "Channels"):
         self.channelMethod = definition["method"]
-        self.nChannels = definition["nChannels"]
-        
+        self.nChannels = definition["nChannels"]        
         continue
         
       try:
