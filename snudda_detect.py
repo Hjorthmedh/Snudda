@@ -899,7 +899,7 @@ class SnuddaDetect(object):
             # We need to loop over conDict in case there are multiple
             # types of synapses from this neuron
             for conType in conDict:
-              if conType == "gapJunction":
+              if conType == "GapJunction":
                 # This part detects only axon-dend synapses, skip gap junctions
                 continue
               
@@ -1423,9 +1423,9 @@ class SnuddaDetect(object):
     hasGapJunctions = False
     
     for key in self.connectivityDistributions:
-      if("gapJunctions" in self.connectivityDistributions[key]):
+      if("GapJunction" in self.connectivityDistributions[key]):
         hasGapJunctions = True
-
+        
     return hasGapJunctions
   
   ############################################################################
@@ -1462,14 +1462,14 @@ class SnuddaDetect(object):
         # Add type field, derived from name field MSD1_45 --> MSD1
         preType = self.neurons[neuronID1]["type"]
         postType = self.neurons[neuronID2]["type"]
-
+        
         if (preType,postType) in self.connectivityDistributions:
-
-          if("gapJunctions" \
+          
+          if("GapJunction" \
              in self.connectivityDistributions[preType,postType]):
 
             conInfo \
-              = self.connectivityDistributions[preType,postType]["gapJunctions"]
+              = self.connectivityDistributions[preType,postType]["GapJunction"]
             
             segID1 = self.dendSecID[x,y,z,pairs[0]]
             segID2 = self.dendSecID[x,y,z,pairs[1]]        
