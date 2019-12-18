@@ -212,19 +212,19 @@ class SnuddaPlace(object):
                         logFile=meshLogFile)
 
       self.writeLog("Using dimensions from config file")
-        
+
+    if("Channels" in config):
+      self.channelMethod = config["Channels"]["method"]
+      self.nChannels = config["Channels"]["nChannels"]        
+      
     # Read the rest of the file
       
     for name, definition in config.items():
 
-      if(name == "Volume" or name == "Connectivity"):
+      if(name in ["Volume","Connectivity","Channels"]):
         # This has already been processed, or not needed yet
         continue
 
-      if(name == "Channels"):
-        self.channelMethod = definition["method"]
-        self.nChannels = definition["nChannels"]        
-        continue
         
       try:
         neuronName = name
