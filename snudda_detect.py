@@ -1643,8 +1643,11 @@ class SnuddaDetect(object):
       conDef = definition.copy()
      
       for key in conDef:
-        conDef[key]["channelModelID"] = self.nextChannelModelID
-        self.nextChannelModelID += 1
+        if(key == "GapJunction"):
+          conDef[key]["channelModelID"] = 3
+        else:
+          conDef[key]["channelModelID"] = self.nextChannelModelID
+          self.nextChannelModelID += 1
 
         # Also if conductance is just a number, add std 0
         if(type(conDef[key]["conductance"]) not in [list,tuple]):
