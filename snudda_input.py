@@ -6,6 +6,10 @@
 # see config/input-tinytest-v2.json for example config.
 #
 
+#
+# !!!! Change how data is stored, many small datasets is inefficient
+#
+
 # Smith, Galvan, ..., Bolam 2014 -- Bra info om thalamic inputs, CM/PF
 #
 
@@ -180,11 +184,11 @@ class SnuddaInput(object):
           itGroup = NIDGroup.create_group(inputType)
 
           neuronIn = self.neuronInput[neuronID][inputType]
-          spikeGroup = itGroup.create_group("spikes")
+          spikeMat,nSpikes = self.createSpikeMatrix(neuronIn["spikes"])
 
-          for sIdx,s in enumerate(neuronIn["spikes"]):
-            spikeGroup.create_dataset(str(sIdx),data=s)
-              
+          itGroup.create_dataset("spikes",data=spikeMat)
+          itGroup.create_dataset("nSpikes",data=nSpikes)
+                        
           itGroup.create_dataset("sectionID", data=neuronIn["location"][1])
           itGroup.create_dataset("sectionX", data=neuronIn["location"][2])
 
@@ -239,7 +243,24 @@ class SnuddaInput(object):
     outFile.close()
     
 
-  
+  ############################################################################
+
+  def createSpikeMatrix(self,spikes):
+
+    if(len(spikes) == 0):
+      return np.zeros((0,0)), 0
+    
+    nInputTrains = len(spikes)
+    nSpikes = np.array([len(x) for x in spikes])
+    maxLen = max(nSpikes)
+    
+    spikeMat = -1*np.ones((nInputTrains,maxLen))
+    for idx,st in enumerate(spikes):
+      n = st.shape[0]
+      spikeMat[idx,:n] = st
+
+    return spikeMat, nSpikes
+      
   ############################################################################
 
   # Reads from self.inputConfigFile

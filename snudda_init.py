@@ -474,7 +474,8 @@ class SnuddaInit(object):
                      nLTS=None,
                      volumeType=None,
                      sideLen=None,
-                     sliceDepth=None):
+                     sliceDepth=None,
+                     cellSpecDir=None):
 
     getVal = lambda x : 0 if x is None else x
     if(nNeurons is None):
@@ -550,8 +551,10 @@ class SnuddaInit(object):
                            structMesh="mesh/Striatum-mesh.obj",
                            meshBinWidth=1e-4)
 
-    csDir = "cellspecs"
-    #csDir = "cellspecs.res5"
+    if(cellSpecDir is None):
+      csDir = "cellspecs"
+    else:
+      csDir = cellSpecDir
     
     FSdir   = csDir + "/fs"
     MSD1dir = csDir + "/dspn"

@@ -243,46 +243,87 @@ class SnuddaSimulate(object):
     for (preType,postType) in self.network_info["connectivityDistributions"]:
 
       synData = self.network_info["connectivityDistributions"][preType,postType]
-      synapseTypeID = synData[2]
-      infoDict = synData[5]
 
-      if("parameterFile" in infoDict):
-        parFile = infoDict["parameterFile"]
-        parDataDict = json.load(open(parFile,'r'))
+      for synType in synData:
 
-        # Save data as a list, we dont need the keys
-        parData = []
-        for pd in parDataDict:
-          if("synapse" in parDataDict[pd]):
-            parData.append(parDataDict[pd]["synapse"])
-          else:
-            self.writeLog("WARNING: Old data format in parameter file " \
-                          + str(parFile))
-            parData.append(parDataDict[pd])
-      else:
-        parData = None
+        
+        synapseTypeID = synData[synType]["channelModelID"]
+        infoDict = synData[synType]
 
-      if("modFile" in infoDict):
-        modFile = infoDict["modFile"]
-        try:
-          # Can we avoid the eval here?
-          evalStr = "self.sim.neuron.h." + modFile
-          channelModule = eval(evalStr)
-        except:
-          import traceback
-          tstr = traceback.format_exc()
-          print(tstr)
-          import pdb
-          pdb.set_trace()
-  
-      else:
-        assert False, "No channel module specified for " \
-          + str(preType) + "->" + str(postType) + " synapses"
-        channelModule = None
+        if(synapseTypeID == 3):
+          # Gap junctions, skip parameters
+          continue
+        
+        #import pdb
+        #pdb.set_trace()
 
-      self.synapseParameters[synapseTypeID] = (channelModule,parData)    
+        if("channelParameters" in infoDict \
+           and infoDict["channelParameters"] is not None):
+          channelParamDict = infoDict["channelParameters"].copy()
+          modFile = channelParamDict["modFile"]
 
-    
+          try:
+            evalStr = "self.sim.neuron.h." + modFile
+            channelModule = eval(evalStr)
+            
+          except:
+            import traceback
+            tstr = traceback.format_exc()
+            print(tstr)
+            import pdb
+            pdb.set_trace()
+
+          # These are not variables to set in the modFile
+          if("modFile" in channelParamDict):
+            del channelParamDict["modFile"]
+            
+          if("parameterFile" in channelParamDict):
+            del channelParamDict["parameterFile"]
+          
+        else:
+          channelParamDict = dict()
+          modFile = None
+
+          assert False, "No channel module specified for " \
+            + str(preType) + "->" + str(postType) + " synapses, type ID= " \
+            + str(synapseTypeID)
+          channelModule = None
+
+          
+        if("parameterFile" in infoDict \
+           and infoDict["parameterFile"] is not None):
+          parFile = infoDict["parameterFile"]
+          parDataDict = json.load(open(parFile,'r'))
+
+          # Save data as a list, we dont need the keys
+          parData = []
+          for pd in parDataDict:
+            if("synapse" in parDataDict[pd]):
+
+              # Add channel parameters specified in network file, however
+              # any values in the synapse parameter file will overwrite them
+              pDict = channelParamDict.copy()
+              for x in parDataDict[pd]["synapse"]:
+                pDict[x] = parDataDict[pd]["synapse"][x]
+              
+              parData.append(pDict)
+            else:
+              self.writeLog("WARNING: Old data format in parameter file " \
+                            + str(parFile))
+
+              pDict = channelParamDict.copy()
+              for x in parDataDict[pd]:
+                pDict[x] = parDataDict[pd][x]
+              
+              parData.append(pDict)
+        elif(len(channelParamDict) > 0):
+          parData = [channelParamDict]
+        else:
+          parData = None
+
+        self.synapseParameters[synapseTypeID] = (channelModule,parData)    
+
+        
   ############################################################################
 
   def setupNeurons(self):
@@ -314,7 +355,7 @@ class SnuddaSimulate(object):
           self.inputData = h5py.File(self.inputFile,'r')
         
           name = self.network_info["neurons"][ID]["name"]
-          spikes = self.inputData["input"][ID]["activity"]["spikes"].value
+          spikes = self.inputData["input"][ID]["activity"]["spikes"][:,0]
         
         # Creating NEURON VecStim and vector
         # https://www.neuron.yale.edu/phpBB/viewtopic.php?t=3125
@@ -1084,15 +1125,18 @@ class SnuddaSimulate(object):
         evalStr = "self.sim.neuron.h." + modFile
         channelModule = eval(evalStr)
         
-        for inputID,section,sectionX,paramID in zip(neuronInput["spikes"],
-                                                    sections,
-                                                    neuronInput["sectionX"],
-                                                    neuronInput["parameterID"]):
+        for inputID,(section,sectionX,paramID,nSpikes) \
+            in enumerate(zip(sections,
+                             neuronInput["sectionX"],
+                             neuronInput["parameterID"],
+                             neuronInput["nSpikes"])):
           # We need to find cellID (int) from neuronID (string, eg. MSD1_3)
           
-          idx = int(inputID)
-          spikes = neuronInput["spikes"][inputID].value * 1e3 # Neuron uses ms
-
+          idx = inputID
+          spikes = neuronInput["spikes"][inputID,:nSpikes] * 1e3 # Neuron uses ms
+          assert (spikes >= 0).all(), \
+            "Negative spike times for neuron " + str(neuronID) + " " + inputType
+                         
           if(False):
             print("Neuron " + str(neuron.name) + " receive " + str(len(spikes)) + " spikes from " + str(inputID))
             if(len(spikes) > 0):
@@ -1477,7 +1521,7 @@ class SnuddaSimulate(object):
     if(outputFile is None):
       outputFile = self.getVoltFileName()
 
-    self.writeLog("Writing voltage data to " + outFile)
+    self.writeLog("Writing voltage data to " + outputFile)
       
     for i in range(int(self.pc.nhost())):
       self.pc.barrier() # sync all processes

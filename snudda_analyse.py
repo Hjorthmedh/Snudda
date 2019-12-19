@@ -1931,8 +1931,12 @@ class SnuddaAnalyse(object):
     
     for pair in pairList:
 
-      pairID = (self.allTypes.index(pair[0]),
-                self.allTypes.index(pair[1]))
+      try:
+        pairID = (self.allTypes.index(pair[0]),
+                  self.allTypes.index(pair[1]))
+      except:
+        print("Missing pair: " + str(pair))
+        continue
       
       if(pairID not in self.dendPositionBin):
         print("Missing cum dist information for " + str(pair))
