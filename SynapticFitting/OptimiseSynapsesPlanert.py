@@ -229,6 +229,8 @@ class OptimiseSynapsesPlanert(OptimiseSynapses):
     
 if __name__ == "__main__":
 
+  assert False, "This code uses the old incomplete Planert data, for the article we instead resorted to surrogate data. See Planert2010.py and Planert2010part2.py"
+  
   print("IPYTHON_PROFILE = " + str(os.getenv('IPYTHON_PROFILE')))
   
   if(os.getenv('IPYTHON_PROFILE') is not None \

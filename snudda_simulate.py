@@ -1728,8 +1728,10 @@ class SnuddaSimulate(object):
   def createDir(self,dirName):
     if(not os.path.isdir(dirName)):
       print("Creating " + str(dirName))
-      os.makedirs(dirName)
-
+      try:
+        os.makedirs(dirName)
+      except:
+        print("Failed to create dir. Already exists?")
         
 ############################################################################
 

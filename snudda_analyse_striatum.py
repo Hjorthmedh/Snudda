@@ -250,6 +250,10 @@ if __name__ == "__main__":
     nas.plotNumSynapsesPerPair("FSN","dSPN")
     nas.plotNumSynapsesPerPair("FSN","iSPN")  
 
+    
+    #  Gittis,...,Kreitzer 2010 (p2228) -- 7/12 (and 3/4 reciprocal) -- distance?
+    # FS->FS synapses weaker, 1.1 +/- 1.5nS
+    
     nas.plotConnectionProbability("FSN","FSN", \
                                   dist3D=dist3D, \
                                   expMaxDist=[250e-6],\
@@ -258,7 +262,7 @@ if __name__ == "__main__":
 
     nas.plotNumSynapsesPerPair("FSN","FSN")  
     
-
+    # Koos & Tepper 1999, 2/6
     nas.plotConnectionProbability("FSN","FSN", \
                                   dist3D=dist3D ,
                                   connectionType="gapjunctions",

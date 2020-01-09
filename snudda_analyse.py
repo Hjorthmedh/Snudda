@@ -981,6 +981,7 @@ class SnuddaAnalyse(object):
         # https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval#Wilson_score_interval
         # https://www.tandfonline.com/doi/abs/10.1080/01621459.1927.10502953
         # Wilson score
+        # Wilson, Edwin B. "Probable inference, the law of succession, and statistical inference." Journal of the American Statistical Association 22.158 (1927): 209-212.
         ns = expNum[0]
         n = expNum[1]
         z = 1.96 # This gives us 95% confidence intervall
