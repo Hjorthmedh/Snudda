@@ -1562,14 +1562,9 @@ class SnuddaDetect(object):
 
     self.prototypeNeurons = dict()
       
-    for name, definition in self.config.items():
+    for name, definition in self.config["Neurons"].items():
 
-      if(name == "Volume" or name == "Channels" or name == "Connectivity"):
-        self.writeLog("Ignoring " + name + " block when reading prototypes")
-        # This is not a neuron, ignore
-        continue
-      else:
-        self.writeLog("Reading prototype for: " + name)
+      self.writeLog("Reading prototype for: " + name)
       
       morph = definition["morphology"]
       param = definition["parameters"]

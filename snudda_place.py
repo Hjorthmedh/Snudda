@@ -216,16 +216,13 @@ class SnuddaPlace(object):
     if("Channels" in config):
       self.channelMethod = config["Channels"]["method"]
       self.nChannels = config["Channels"]["nChannels"]        
-      
-    # Read the rest of the file
-      
-    for name, definition in config.items():
 
-      if(name in ["Volume","Connectivity","Channels"]):
-        # This has already been processed, or not needed yet
-        continue
+    assert "Neurons" in config, \
+      "No neurons defined. Is this config file old format?"
 
-        
+    # Read in the neurons
+    for name, definition in config["Neurons"].items():
+
       try:
         neuronName = name
         morph = definition["morphology"]

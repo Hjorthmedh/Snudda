@@ -790,25 +790,23 @@ class SnuddaPrune(object):
 
     morphGroup = outFile.create_group("morphologies")
 
-    for name, definition in cfg.items():
-      if(name not in ["Volume", "Channels","Connectivity"]):
-
-        try:
-          morphFile = definition["morphology"]
-        except:
-          import traceback
-          tstr = traceback.format_exc()
-          self.writeLog(tstr)
-          import pdb
-          pdb.set_trace()
+    for name, definition in cfg["Neurons"].items():
+      try:
+        morphFile = definition["morphology"]
+      except:
+        import traceback
+        tstr = traceback.format_exc()
+        self.writeLog(tstr)
+        import pdb
+        pdb.set_trace()
            
-        with open(morphFile,"r") as f:
-          swcData = f.read()
+      with open(morphFile,"r") as f:
+        swcData = f.read()
 
-        self.writeLog("Saving morphology in HDF5 file: " + morphFile)
-        swcGroup = morphGroup.create_group(name)
-        swcGroup.create_dataset("swc",data=swcData)
-        swcGroup.create_dataset("location",data=morphFile)
+      self.writeLog("Saving morphology in HDF5 file: " + morphFile)
+      swcGroup = morphGroup.create_group(name)
+      swcGroup.create_dataset("swc",data=swcData)
+      swcGroup.create_dataset("location",data=morphFile)
 
     
     networkGroup = outFile.create_group("network")
@@ -977,24 +975,23 @@ class SnuddaPrune(object):
     if(saveMorphologies):
       morphGroup = outFile.create_group("morphologies")
 
-      for name, definition in cfg.items():
-        if(name not in ["Volume", "Channels","Connectivity"]):
-          try:
-            morphFile = definition["morphology"]
-          except:
-            import traceback
-            tstr = traceback.format_exc()
-            self.writeLog(tstr)
-            import pdb
-            pdb.set_trace()
+      for name, definition in cfg["Neurons"].items():
+        try:
+          morphFile = definition["morphology"]
+        except:
+          import traceback
+          tstr = traceback.format_exc()
+          self.writeLog(tstr)
+          import pdb
+          pdb.set_trace()
            
-          with open(morphFile,"r") as f:
-            swcData = f.read()
+        with open(morphFile,"r") as f:
+          swcData = f.read()
 
-          self.writeLog("Saving morphology in HDF5 file: " + morphFile)
-          swcGroup = morphGroup.create_group(name)
-          swcGroup.create_dataset("swc",data=swcData)
-          swcGroup.create_dataset("location",data=morphFile)
+        self.writeLog("Saving morphology in HDF5 file: " + morphFile)
+        swcGroup = morphGroup.create_group(name)
+        swcGroup.create_dataset("swc",data=swcData)
+        swcGroup.create_dataset("location",data=morphFile)
       
     chunkSize = self.synapseChunkSize      
 

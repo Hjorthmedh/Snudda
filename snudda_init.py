@@ -32,6 +32,7 @@ class SnuddaInit(object):
     self.networkData["Channels"]["method"] = "random"
 
     self.networkData["Connectivity"] = dict([])
+    self.networkData["Neurons"] = dict([])
     
     # self.neuronTargets = collections.OrderedDict([])
 
@@ -419,7 +420,7 @@ class SnuddaInit(object):
       if(axonDensity is not None):
         cellData["axonDensity"] = axonDensity
       
-      self.networkData[uniqueName] = cellData
+      self.networkData["Neurons"][uniqueName] = cellData
        
 
   ############################################################################

@@ -342,7 +342,7 @@ class SnuddaSimulate(object):
      
       name = self.network_info["neurons"][ID]["name"]
 
-      config = self.config[name]
+      config = self.config["Neurons"][name]
       morph = config["morphology"]
       param = config["parameters"]
       mech = config["mechanisms"]
@@ -1519,9 +1519,9 @@ class SnuddaSimulate(object):
   def writeSpikes(self,outputFile=None):
 
     if(outputFile is None):
-      outputFile = self.getVoltFileName()
+      outputFile = self.getSpikeFileName()
 
-    self.writeLog("Writing voltage data to " + outputFile)
+    self.writeLog("Writing spike times to " + outputFile)
       
     for i in range(int(self.pc.nhost())):
       self.pc.barrier() # sync all processes
@@ -1754,9 +1754,17 @@ class SnuddaSimulate(object):
 
   ############################################################################
 
+  def getSpikeFileName(self):
+
+    spikeFile = os.path.basename(self.networkFile) + "/simulation/spike-data.txt"
+    return spikeFile
+
+  
+  ############################################################################
+  
   def getVoltFileName(self):
 
-    voltFile = os.path.basename(self.networkFile) + "/simulation-volt.txt"
+    voltFile = os.path.basename(self.networkFile) + "/simulation/simulation-volt.txt"
 
     return voltFile
 

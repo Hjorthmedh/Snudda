@@ -779,7 +779,7 @@ class SnuddaInput(object):
   def dendriteInputLocations(self,neuronID,synapseDensity="1",nSpikeTrains=None):
 
     neuronName = self.neuronName[neuronID]
-    swcFile = self.networkConfig[neuronName]["morphology"]
+    swcFile = self.networkConfig["Neurons"][neuronName]["morphology"]
 
     if(swcFile in self.neuronCache):
       morphology = self.neuronCache[swcFile]
