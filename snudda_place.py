@@ -52,8 +52,8 @@ class SnuddaPlace(object):
     # This defines the neuron units/channels. The dictionary lists all the
     # members of each unit, the neuronChannel gives the individual neurons
     # channel membership
-    self.nChannels = 0
-    self.channelMethod = None
+    self.nChannels = 1
+    self.channelMethod = "random"
     self.neuronChannels = dict([])
     self.neuronChannel = None
 
@@ -439,7 +439,11 @@ class SnuddaPlace(object):
     # Store input information
     neuronGroup.create_dataset("channelID", data=self.neuronChannel,dtype=int)
     neuronGroup.create_dataset("nChannels", data=self.nChannels,dtype=int)
-    neuronGroup.create_dataset("channelMethod", data=self.channelMethod)
+
+    if(self.channelMethod is not None):
+      neuronGroup.create_dataset("channelMethod", data=self.channelMethod)
+    else:
+      neuronGroup.create_dataset("channelMethod", data="")      
 
     # Variable for axon density "r", "xyz" or "" (No axon density)
     axonDensityType = [n.axonDensity[0].encode("ascii","ignore") \
@@ -564,6 +568,8 @@ class SnuddaPlace(object):
   
 if __name__ == "__main__":
 
+  assert False, "Please use snudda.py place networks/yournetwork"
+  
   if(os.getenv('IPYTHON_PROFILE') is not None):
     from ipyparallel import Client
     rc = Client(profile=os.getenv('IPYTHON_PROFILE'),
