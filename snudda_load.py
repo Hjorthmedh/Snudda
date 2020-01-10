@@ -187,7 +187,9 @@ class SnuddaLoad(object):
 #            = origConnectivityDistributionsGJ[keys]
 
       print(str(len(data["neurons"])) + " neurons with " \
-            + str(data["synapses"].shape[0]) + " synapses")
+            + str(data["synapses"].shape[0]) + " synapses" \
+            + " and " + str(data["gapJunctions"].shape[0]) \
+            + " gap junctions")
       print("Load done. " + str(timeit.default_timer() - startTime))
 
     if(loadSynapses):
