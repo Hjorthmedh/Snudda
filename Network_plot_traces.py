@@ -7,6 +7,7 @@ import numpy as np
 from snudda_load import SnuddaLoad
 import re
 import ntpath
+import time
 
 class NetworkPlotTraces():
 
@@ -202,6 +203,7 @@ class NetworkPlotTraces():
     self.plotTraces(offset=offset,traceID=traceID[:nTraces],skipTime=skipTime,
                     title=self.neuronName(neuronType))
                                    
+    time.sleep(1)
     
   ############################################################################
     
@@ -241,5 +243,5 @@ if __name__ == "__main__":
   else:
     print("Usage: " + sys.argv[0] + " network-voltage-XXX.csv")
     
-  import pdb
-  pdb.set_trace()
+  #import pdb
+  #pdb.set_trace()

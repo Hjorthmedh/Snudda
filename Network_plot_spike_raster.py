@@ -9,6 +9,7 @@ import numpy as np
 import re
 import ntpath
 from snudda_load import SnuddaLoad
+import time
 
 class NetworkPlotSpikeRaster(object):
 
@@ -37,11 +38,13 @@ class NetworkPlotSpikeRaster(object):
     if(self.networkInfo is None):
       print("If you also give network file, then the plot shows neuron types")
       self.plotRaster(skipTime=skipTime)
+      time.sleep(1)
     else:
 
       self.sortTraces()
       self.plotColourRaster(skipTime=skipTime,typeOrder=typeOrder)
-
+      time.sleep(1)
+      
   ############################################################################
 
   def neuronName(self,neuronType):
@@ -105,33 +108,27 @@ class NetworkPlotSpikeRaster(object):
 
     cols = [colours[c] for c in cellTypes]
 
-    fig     = plt.figure(figsize=(6,4))
-    r       = 4
-    grid    = plt.GridSpec(r, r, hspace=0, wspace=0)
-    ax      = fig.add_subplot(grid[1:,:])
-    atop    = fig.add_subplot(grid[0,:])
+    fig  = plt.figure(figsize=(6,4))
+    r    = 4
+    grid = plt.GridSpec(r, r, hspace=0, wspace=0)
+    ax   = fig.add_subplot(grid[1:,:])
+    atop = fig.add_subplot(grid[0,:])
     tIdx = np.where(self.time >= skipTime)[0]
 
     cols2 = [colours[cellTypes[int(s)]] for s in self.spikeID]
 
+    
     ax.scatter(self.time[tIdx]-skipTime,
                plotLookup[self.spikeID[tIdx]],
                color=[cols2[t] for t in tIdx],s=1,
                linewidths=0.1)
+
     # histogram
     for t in typeOrder:
         pruned_spikes = [   self.time[int(i)]-skipTime for i in tIdx if i in typedict[t] ]
-        '''
         atop.hist(  pruned_spikes, 
-                    bins=100, 
-                    range=(0,1.500), 
-                    density=False,
-                    color=c, 
-                    alpha=0.3, 
-                    histtype='stepfilled')'''
-        atop.hist(  pruned_spikes, 
-                    bins=100, 
-                    range=(0,1.500), 
+                    bins=int(self.time[-1]*100), 
+                    range=(0,self.time[-1]), 
                     density=0,
                     color=colours[t], 
                     alpha=1.0, 
@@ -149,8 +146,9 @@ class NetworkPlotSpikeRaster(object):
     # set axes ---------------------------------------------------
     atop.axis('off')
     # UPDATE here to set specific range for plot window!!!!
-    atop.set_xlim([-0.01,1.51])
-    ax.set_xlim(  [-0.01,1.51])
+    atop.set_xlim([-0.01,self.time[-1]+0.01])
+    ax.set_xlim(  [-0.01,self.time[-1]+0.01])
+    
     m = len(self.networkInfo.data["neurons"])
     offset = m*0.05 # 5%
     ax.set_ylim([-offset,m+offset])
@@ -246,5 +244,5 @@ if __name__ == "__main__":
                                   typeOrder=["FSN","dSPN","LTS","iSPN","ChIN"])
 
 
-  import pdb
-  pdb.set_trace()
+  #import pdb
+  #pdb.set_trace()
