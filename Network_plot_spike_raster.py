@@ -13,13 +13,14 @@ import time
 
 class NetworkPlotSpikeRaster(object):
 
-  def __init__(self,fileName,networkFile=None,skipTime=0.0,typeOrder=None):
+  def __init__(self,fileName,networkFile=None,skipTime=0.0,typeOrder=None,endTime=2.0):
     
     self.fileName = fileName
 
     self.time = []
     self.spikeID = []
-
+    self.endTime = endTime
+    
     self.ID = int(re.findall('\d+', ntpath.basename(fileName))[0])
 
     self.neuronNameRemap = {"FSN" : "FS"}
@@ -122,7 +123,7 @@ class NetworkPlotSpikeRaster(object):
                plotLookup[self.spikeID[tIdx]],
                color=[cols2[t] for t in tIdx],s=1,
                linewidths=0.1)
-
+    
     # histogram
     for t in typeOrder:
         pruned_spikes = [   self.time[int(i)]-skipTime for i in tIdx if i in typedict[t] ]
@@ -146,8 +147,11 @@ class NetworkPlotSpikeRaster(object):
     # set axes ---------------------------------------------------
     atop.axis('off')
     # UPDATE here to set specific range for plot window!!!!
-    atop.set_xlim([-0.01,self.time[-1]+0.01])
-    ax.set_xlim(  [-0.01,self.time[-1]+0.01])
+    
+    endTime = np.max([self.endTime,np.max(self.time)])
+    
+    atop.set_xlim([-0.01,endTime+0.01])
+    ax.set_xlim(  [-0.01,endTime+0.01])
     
     m = len(self.networkInfo.data["neurons"])
     offset = m*0.05 # 5%
@@ -239,8 +243,14 @@ if __name__ == "__main__":
   else:
     networkFile = None
 
+  if(len(sys.argv) > 3):
+    endTime = float(sys.argv[3])
+  else:
+    endTime = 2.0
+    
   if(fileName is not None):
     npsr = NetworkPlotSpikeRaster(fileName,networkFile,skipTime=0.0,
+                                  endTime=endTime,
                                   typeOrder=["FSN","dSPN","LTS","iSPN","ChIN"])
 
 
