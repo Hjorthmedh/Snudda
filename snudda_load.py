@@ -186,10 +186,16 @@ class SnuddaLoad(object):
 #          data["connectivityDistributionsGJ"][preType,postType] \
 #            = origConnectivityDistributionsGJ[keys]
 
-      print(str(len(data["neurons"])) + " neurons with " \
-            + str(data["synapses"].shape[0]) + " synapses" \
-            + " and " + str(data["gapJunctions"].shape[0]) \
-            + " gap junctions")
+      if("synapses" in data):
+        if("gapJunctions" in data):
+          print(str(len(data["neurons"])) + " neurons with " \
+                + str(data["synapses"].shape[0]) + " synapses" \
+                + " and " + str(data["gapJunctions"].shape[0]) \
+                + " gap junctions")
+        else:
+          print(str(len(data["neurons"])) + " neurons with " \
+                + str(data["synapses"].shape[0]) + " synapses")
+          
       print("Load done. " + str(timeit.default_timer() - startTime))
 
     if(loadSynapses):
