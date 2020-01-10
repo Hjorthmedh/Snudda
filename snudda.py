@@ -348,7 +348,9 @@ class Snudda(object):
       
     print("Using input file " + inputFile)
 
-    nWorkers = 12
+    nWorkers = args.ncores
+    print("Using " + str(nWorkers) + " workers for neuron")
+    
     mechDir = "cellspecs/mechanisms"
     cmdStr = "nrnivmodl " + mechDir + " && mpiexec -n " + str(nWorkers) + " -map-by socket:OVERSUBSCRIBE python3 snudda_simulate.py " + networkFile + " " + inputFile + " --time " + str(args.time) + " --disableGJ"
 
@@ -519,6 +521,8 @@ if __name__ == "__main__":
   parser.add_argument("--voltOut","--voltout",
                       default=None,
                       help="Name of voltage output file (csv)")
+  parser.add_argument("--ncores", default=12,
+                      help="Number of cores used for simulation")
   
   args = parser.parse_args()
   

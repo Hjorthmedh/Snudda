@@ -169,12 +169,17 @@ class NetworkPlotTraces():
 
     #plt.savefig('figures/Network-spikes-' + str(self.ID) + "-colour.pdf")
 
+    figPath = os.path.dirname(self.networkFile) + "/figs"
+    if(not os.path.exists(figPath)):
+      os.makedirs(figPath)
+ 
+    
     
     if(len(typesInPlot) > 1):
-      figName = 'figures/Network-spikes-' + str(self.ID) \
+      figName = figPath + '/Network-spikes-' + str(self.ID) \
         + "-".join(typesInPlot) + "-colour.png"
     else:
-      figName = 'figures/Network-spikes-' + str(self.ID) \
+      figName = figPath + '/Network-spikes-' + str(self.ID) \
         + "-" + typesInPlot.pop() + "-colour.png"
       
     plt.savefig(figName,
