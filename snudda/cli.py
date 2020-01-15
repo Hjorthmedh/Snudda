@@ -1,6 +1,7 @@
 import argparse
 
 def snudda_cli():
+      from .core import Snudda
       parser = argparse.ArgumentParser(description="Microcircuit generation")
       parser.add_argument("action", choices=["init","place","detect",
                                              "prune","input","export","analyse","convert","simulate","help"],
