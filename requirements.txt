@@ -3,7 +3,6 @@ h5py==2.8.0
 ipyparallel==6.2.3
 matplotlib==3.0.2
 mpi4py==3.0.1
-neuron==7.7.2
 numpy==1.15.4
 scipy==1.2.0
 sonata==0.0.1
