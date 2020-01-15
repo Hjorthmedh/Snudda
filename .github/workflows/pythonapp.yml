@@ -14,7 +14,7 @@ jobs:
       with:
         python-version: 3.7
     - name: Install MPI
-      run: sudo apt-get install openmpi-bin
+      run: sudo apt-get install openmpi-bin libopenmpi-dev
     - name: Install NEURON
       run: |
         wget https://neuron.yale.edu/ftp/neuron/versions/v7.7/7.7.2/nrn-7.7.2.x86_64-linux-py-37-36-35-27.deb
