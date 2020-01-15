@@ -49,17 +49,17 @@ import zmq
 class Snudda(object):
 
   ############################################################################
-  
+
   def __init__(self,networkPath):
 
     if(networkPath[-1] == "/"):
       self.networkPath = networkPath[:-1]
     else:
       self.networkPath = networkPath
-      
+
     # Add current dir to python path
     sys.path.append(os.getcwd())
-    
+
     self.start = timeit.default_timer()
 
   ############################################################################
@@ -72,10 +72,10 @@ class Snudda(object):
     with open(helpFile,"r") as f:
       for row in f:
         print(row,end="")
-    
-  
+
+
   ############################################################################
-  
+
   def initConfig(self,args):
     # self.networkPath = args.path
     print("Creating config file")
@@ -83,7 +83,7 @@ class Snudda(object):
 
     assert args.size is not None, \
       "You need to speicfy --size when initialising config for network2"
-    
+
     from snudda_init import SnuddaInit
     structDef = { "Striatum" : args.size,
                   "GPe" : 0,
@@ -101,7 +101,7 @@ class Snudda(object):
     self.makeDirIfNeeded(self.networkPath)
 
     nChannels = args.nchannels
-      
+
     configFile = self.networkPath + "/network-config.json"
     SnuddaInit(structDef=structDef,
                configName=configFile,
@@ -111,13 +111,13 @@ class Snudda(object):
       print("Make sure there is enough disk space in " + str(self.networkPath))
       print("Large networks take up ALOT of space")
 
-    
+
   ############################################################################
 
   def placeNeurons(self,args):
     # self.networkPath = args.path
     print("Placing neurons")
-    print("Network path: " + str(self.networkPath))    
+    print("Network path: " + str(self.networkPath))
 
 
     configFile = self.networkPath + "/network-config.json"
@@ -133,7 +133,7 @@ class Snudda(object):
       h5libver = "earliest"
     else:
       h5libver = "latest" # default
-      
+
     npn = SnuddaPlace(config_file=configFile,
                       logFile=self.logFile,
                       verbose=True,
@@ -145,9 +145,9 @@ class Snudda(object):
     self.stopParallel()
     self.closeLogFile()
 
-    
+
   ############################################################################
-    
+
   def touchDetection(self,args):
     # self.networkPath = args.path
     print("Touch detection")
@@ -164,16 +164,16 @@ class Snudda(object):
       volumeID = None
 
     logDir = self.networkPath + "/log"
-    
+
     configFile = self.networkPath + "/network-config.json"
     positionFile = self.networkPath + "/network-neuron-positions.hdf5"
     logFileName = self.networkPath + "/log/logFile-touch-detection.txt"
     saveFile = self.networkPath + "/voxels/network-putative-synapses.hdf5"
 
-    
+
     voxelDir = self.networkPath + "/voxels"
     self.makeDirIfNeeded(voxelDir)
-    
+
     self.setupLogFile(logFileName) # sets self.logFile
     self.setupParallel() # sets self.dView and self.lbView
 
@@ -181,13 +181,13 @@ class Snudda(object):
       h5libver = "earliest"
     else:
       h5libver = "latest" # default
-    
+
     from snudda_detect import SnuddaDetect
-    
+
     if(args.cont):
       # Continue previous run
       print("Continuing previous touch detection")
-      
+
       ncv = SnuddaDetect(configFile=configFile,
                          positionFile=positionFile,
                          logFile=self.logFile,
@@ -198,8 +198,8 @@ class Snudda(object):
                          hyperVoxelSize=hyperVoxelSize,
                          h5libver=h5libver,
                          restartDetectionFlag=False)
-      
-      
+
+
     else:
       ncv = SnuddaDetect(configFile=configFile,
                          positionFile=positionFile,
@@ -210,12 +210,12 @@ class Snudda(object):
                          rc=self.rc,
                          h5libver=h5libver,
                          hyperVoxelSize=hyperVoxelSize)
-      
+
     self.stopParallel()
     self.closeLogFile()
 
   ############################################################################
-    
+
   def pruneSynapses(self,args):
     # self.networkPath = args.path
     print("Prune synapses")
@@ -225,8 +225,8 @@ class Snudda(object):
 
     logFileName = self.networkPath + "/log/logFile-synapse-pruning.txt"
 
-    workLog = self.networkPath + "/log/network-detect-worklog.hdf5" 
-    
+    workLog = self.networkPath + "/log/network-detect-worklog.hdf5"
+
     self.setupLogFile(logFileName) # sets self.logFile
     self.setupParallel() # sets self.dView and self.lbView
 
@@ -244,7 +244,7 @@ class Snudda(object):
       h5libver = "earliest"
     else:
       h5libver = "latest" # default
-    
+
     ncvp = SnuddaPrune(workHistoryFile=workLog,
                        logFile=self.logFile,
                        logFileName=logFileName,
@@ -252,22 +252,22 @@ class Snudda(object):
                        scratchPath=scratchPath,
                        h5libver=h5libver,
                        preMergeOnly=preMergeOnly)
-    
+
     self.stopParallel()
     self.closeLogFile()
-   
+
 
   ############################################################################
 
   def setupInput(self,args):
 
     from snudda_input import SnuddaInput
-    
+
     print("Setting up inputs, assuming input.json exists")
     logFileName = self.networkPath + "/log/logFile-setup-input.log"
     self.setupLogFile(logFileName) # sets self.logFile
     self.setupParallel() # sets self.dView and self.lbView
-    
+
     if "input" in args:
       inputConfig = args.input
     else:
@@ -292,7 +292,7 @@ class Snudda(object):
       inputTime = args.time
 
     print("Writing input spikes to " + spikeFile)
-      
+
     ni = SnuddaInput(inputConfigFile=inputConfig,
                      HDF5networkFile=networkFile,
                      spikeDataFileName=spikeFile,
@@ -301,13 +301,13 @@ class Snudda(object):
 
     self.stopParallel()
     self.closeLogFile()
-    
+
   ############################################################################
 
   def exportToSONATA(self,args):
 
     from ConvertNetwork import ConvertNetwork
-    
+
     print("Exporting to SONATA format")
     print("Network path: " + str(self.networkPath))
 
@@ -328,7 +328,7 @@ class Snudda(object):
     cn = ConvertNetwork(networkFile=networkFile,
                         inputFile=inputFile,
                         outDir=outDir)
-    
+
   ############################################################################
 
   def simulate(self,args):
@@ -345,12 +345,12 @@ class Snudda(object):
       inputFile = self.networkPath + "/input-spikes.hdf5"
 
     self.makeDirIfNeeded(self.networkPath + "/simulation")
-      
+
     print("Using input file " + inputFile)
 
     nWorkers = args.ncores
     print("Using " + str(nWorkers) + " workers for neuron")
-    
+
     mechDir = "cellspecs/mechanisms"
     cmdStr = "nrnivmodl " + mechDir + " && mpiexec -n " + str(nWorkers) + " -map-by socket:OVERSUBSCRIBE python3 snudda_simulate.py " + networkFile + " " + inputFile + " --time " + str(args.time) + " --disableGJ"
 
@@ -358,13 +358,13 @@ class Snudda(object):
       cmdStr += " --voltOut " + args.voltOut
 
     os.system(cmdStr)
-  
+
   ############################################################################
-  
+
   def analyse(self,args):
 
     print("Add analysis code here, see Network_analyse.py")
-    
+
   ############################################################################
 
   def setupParallel(self):
@@ -374,23 +374,23 @@ class Snudda(object):
       self.SlurmID = self.nextRunID()
     else:
       self.SlurmID = int(self.SlurmID)
-    
+
     self.logFile.write("Using SlurmID: " + str(self.SlurmID))
 
     if(os.getenv('IPYTHON_PROFILE') is not None):
 
       self.logFile.write('Creating ipyparallel client\n')
-      
+
       from ipyparallel import Client
       #self.rc = Client(profile=os.getenv('IPYTHON_PROFILE'),
       #            # sshserver='127.0.0.1',
       #            debug=False)
-      
+
       ufile = os.getenv('IPYTHONDIR') + "/profile_" \
               + os.getenv('IPYTHON_PROFILE') \
               + "/security/ipcontroller-client.json"
       self.rc = Client(url_file=ufile, timeout=120, debug=False)
-      
+
       self.logFile.write('Client IDs: ' + str(self.rc.ids))
 
       # http://davidmasad.com/blog/simulation-with-ipyparallel/
@@ -412,24 +412,24 @@ class Snudda(object):
 
     # Disable this function, keep the pool running for now
     return
-  
+
     if(self.rc is not None):
       print("Stopping ipyparallel")
       self.rc.shutdown(hub=True)
 
   ############################################################################
-      
+
   def setupLogFile(self, logFileName):
     dataDir = os.path.dirname(logFileName)
-    
+
     self.makeDirIfNeeded(dataDir)
-      
+
     try:
       self.logFile = open(logFileName,'w')
       self.logFile.write('Starting log file\n')
     except:
       print("Unable to set up log file " + str(logFileName))
-      
+
   ############################################################################
 
   def closeLogFile(self):
@@ -440,36 +440,36 @@ class Snudda(object):
 
     self.logFile.write("Program run time: " + str(stop - self.start))
     self.logFile.write("End of log. Closing file.")
-    self.logFile.close()   
-    
+    self.logFile.close()
+
   ##############################################################################
 
 
   def nextRunID(self):
 
     import pickle
-    
+
     runIDfile = ".runID.pickle"
 
     try:
       if(os.path.isfile(runIDfile)):
-      
+
         with open(runIDfile,'rb') as f:
           runID = pickle.load(f)
           nextID = int(np.ceil(np.max(runID)) + 1)
 
         runID.append(nextID)
-        
+
         with open(runIDfile,'wb') as f:
           pickle.dump(runID,f,-1)
 
       else:
-      
+
         with open(runIDfile,'wb') as f:
           nextID = 1
           runID = [1]
           pickle.dump(runID,f,-1)
-        
+
     except Exception as e:
       import traceback
       tstr = traceback.format_exc()
@@ -481,9 +481,9 @@ class Snudda(object):
       return 0
 
     print("Using runID = " + str(nextID))
-  
+
     return nextID
-  
+
 ############################################################################
 
   def makeDirIfNeeded(self,dirPath):
@@ -496,67 +496,5 @@ class Snudda(object):
 
 
 if __name__ == "__main__":
-
-  import argparse
-  parser = argparse.ArgumentParser(description="Microcircuit generation")
-  parser.add_argument("action", choices=["init","place","detect",
-                                         "prune","input","export","analyse","convert","simulate","help"],
-                      help="Action to do")
-  parser.add_argument("path", help="Storage path for network files")
-  parser.add_argument("--size",type=int,help="Number of neurons",
-                      default=None)
-  parser.add_argument("-cont", "--cont",help="Continue partial touch detection",
-                      action="store_true")
-  parser.add_argument("-hvsize", "--hvsize",help="Hyper voxel size, 100 good value for full striatum, for small runs, use smaller values to more evenly distribute the workload between workers")
-  parser.add_argument("--volumeID", help="Specify volumeID for detection step")
-  parser.add_argument("--mergeonly","--onlymerge", help="Only merge synapses in hyper voxels into a big file. Pre-processing to pruning, normally run before. This allows the user to run this separately.",action="store_true")
-  parser.add_argument("--h5legacy",help="Use legacy hdf5 support",action="store_true")
-  parser.add_argument("--profile",help="Run python cProfile",action="store_true")
-  parser.add_argument("--nchannels",type=int,help="Number of functional channels in the structure, affects connectivity and input correlation",default=1)
-  parser.add_argument("--input",help="Input json config file (for input setup)")
-  parser.add_argument("--inputFile",help="Input hdf5 file (for simulation)")
-  parser.add_argument("--networkFile", help="Network file, if not network-pruned-synapses.hdf5")
-  parser.add_argument("--time",type=float,default=2.5,
-                      help="Duration of simulation in seconds")
-  parser.add_argument("--voltOut","--voltout",
-                      default=None,
-                      help="Name of voltage output file (csv)")
-  parser.add_argument("--ncores", default=12,
-                      help="Number of cores used for simulation")
-  
-  args = parser.parse_args()
-  
-  if(args.path is not None):
-    if(args.path[-1] == "/"):
-      args.path = args.path[:-1]
-
-  snudda = Snudda(args.path)
-  
-  actions = { "init" : snudda.initConfig,
-              "place" : snudda.placeNeurons,
-              "detect" : snudda.touchDetection,
-              "prune" : snudda.pruneSynapses,
-              "input" : snudda.setupInput,
-              "export" : snudda.exportToSONATA,
-              "convert" : snudda.exportToSONATA,
-              "analyse" : snudda.analyse,
-              "simulate" : snudda.simulate,
-              "help" : snudda.helpInfo}
-
-  
-  
-  if(args.profile):
-    profFile = "profile-"+args.action+".prof"
-    print("Saving profile data to: " + profFile)
-    import cProfile
-    cProfile.run("actions[args.action](args)", profFile)
-
-    # To analyse profile data:
-    import pstats
-    from pstats import SortKey
-    p = pstats.Stats(profFile)
-    p.strip_dirs().sort_stats(SortKey.CUMULATIVE).print_stats(30)
-    
-  else:
-    # Performing the requested action
-    actions[args.action](args)
+    from .cli import snudda_cli
+    snudda_cli()
