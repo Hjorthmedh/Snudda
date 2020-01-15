@@ -6,5 +6,5 @@ class TestFirstTest(unittest.TestCase):
         self.assertTrue(True)
         self.assertFalse(False)
         self.assertEqual("ABC","ABC")
-
+        self.thisisabug()
 
