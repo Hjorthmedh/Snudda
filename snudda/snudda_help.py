@@ -1,5 +1,5 @@
 def snudda_help_text():
-return """Snudda - Create a network of neurons, with connectivity constrained by morphology
+  return """Snudda - Create a network of neurons, with connectivity constrained by morphology
 
   Usage:
 
