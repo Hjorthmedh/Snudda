@@ -18,6 +18,10 @@ jobs:
         wget https://neuron.yale.edu/ftp/neuron/versions/v7.7/7.7.2/nrn-7.7.2.x86_64-linux-py-37-36-35-27.deb
         sudo dpkg -i nrn-7.7.2.x86_64-linux-py-37-36-35-27.deb
         python -c "help('modules')"
+        echo "PYTHONPATH=$PYTHONPATH"
+        echo "/usr/local/nrn contains:"
+        ls /usr/local/nrn
+        
         
     - name: Install dependencies
       run: |
