@@ -15,8 +15,10 @@ jobs:
         python-version: 3.7
     - name: Install NEURON
       run: |
-        wget https://neuron.yale.edu/ftp/neuron/versions/v7.7/nrn-7.7.x86_64-linux.deb
-        sudo dpkg -i nrn-7.7.x86_64-linux.deb
+        wget https://neuron.yale.edu/ftp/neuron/versions/v7.7/7.7.2/nrn-7.7.2.x86_64-linux-py-37-36-35-27.deb
+        sudo dpkg -i nrn-7.7.2.x86_64-linux-py-37-36-35-27.deb
+        python -c "help('modules')"
+        
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
