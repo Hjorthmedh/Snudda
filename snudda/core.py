@@ -65,13 +65,8 @@ class Snudda(object):
   ############################################################################
 
   def helpInfo(self,args):
-
-    helpFile = "snudda_help.txt"
-    os.path.exists(helpFile)
-
-    with open(helpFile,"r") as f:
-      for row in f:
-        print(row,end="")
+    from .snudda_help import snudda_help_text
+    print(snudda_help_text())
 
 
   ############################################################################

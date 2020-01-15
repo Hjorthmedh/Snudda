@@ -1,4 +1,5 @@
-Snudda - Create a network of neurons, with connectivity constrained by morphology
+def snudda_help_text():
+return """Snudda - Create a network of neurons, with connectivity constrained by morphology
 
   Usage:
 
@@ -27,3 +28,4 @@ Snudda - Create a network of neurons, with connectivity constrained by morpholog
 
   snudda help me
   -- Show this help text
+"""
