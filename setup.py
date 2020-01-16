@@ -1,11 +1,12 @@
 import setuptools, sys, os
+from snudda import __version__
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="snudda",
-    version="0.0.1b0", # First release -- beta release 0.
+    version=__version__,
     author="Johannes Hjorth",
     author_email="robingilbert.deschepper@unipv.it",
     description="Create realistic networks of neurons, synapses placed using touch detection between axons and dendrites.",
