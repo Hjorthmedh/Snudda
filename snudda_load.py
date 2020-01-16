@@ -9,12 +9,12 @@ from glob import glob
 class SnuddaLoad(object):
 
   ############################################################################
-  
+
   def __init__(self,network_file,loadSynapses=True):
 
     if(network_file == "last"):
       network_file = self.findLatestFile()
-    
+
     self.config = None
     self.data = self.loadHDF5(network_file,loadSynapses)
     self.network_file = network_file
@@ -33,9 +33,9 @@ class SnuddaLoad(object):
         self.hdf5File.close()
       except:
         print("Unable to close HDF5, alread closed?")
-    
+
   ############################################################################
-  
+
   def loadHDF5(self, network_file, loadSynapses=True, loadMorph=True):
     print("Loading " + network_file)
 
@@ -43,10 +43,10 @@ class SnuddaLoad(object):
     data = dict([])
 
     f = h5py.File(network_file,'r')
-    
+
     # with h5py.File(network_file,'r') as f:
     if(True): # Need f open when loadSynapses = False, "with" doesnt work then
-    
+
       if("config" in f):
         print("Loading config data from HDF5")
         data["config"] = f["config"].value
@@ -57,7 +57,7 @@ class SnuddaLoad(object):
       if("network/synapses" in f):
         data["nNeurons"] = f["network/neurons/neuronID"].shape[0]
         data["nSynapses"] = f["network/synapses"].shape[0]
-        data["nGapJunctions"] = f["network/gapJunctions"].shape[0]        
+        data["nGapJunctions"] = f["network/gapJunctions"].shape[0]
 
         if(data["nSynapses"] > 100e6):
           print(str(data["nSynapses"]) + \
@@ -70,7 +70,7 @@ class SnuddaLoad(object):
 
         if("network/hyperVoxelIDs" in f):
           data["hyperVoxelIDs"] = f["network/hyperVoxelIDs"].value
-          
+
         if(loadSynapses):
           data["synapses"] = f["network/synapses"][:]
           data["gapJunctions"] = f["network/gapJunctions"][:]
@@ -88,7 +88,7 @@ class SnuddaLoad(object):
           # We need to keep f alive, since we did not load synapses into
           # the memory
           self.hdf5File = f
-          
+
           # data["origSynapseCoords"] = f["network/origSynapseCoords"][:]
           # gatheredSynapses = f["network/origGJCoords"][:]
           # data["origGJCoords"] = self.extractSynapseCoords(gatheredSynapses)
@@ -97,19 +97,19 @@ class SnuddaLoad(object):
         assert data["nNeurons"] == f["network/neurons/neuronID"][-1] + 1, \
           "Internal error, something fishy with number of neurons found"
 
-       
-        
+
+
       configFile = f["meta/configFile"].value
       if(type(configFile) == bytes):
         configFile = configFile.decode()
       data["configFile"] = configFile
-      
+
       if("meta/positionFile" in f):
         positionFile = f["meta/positionFile"].value
 
         if(type(positionFile) == bytes):
-          postionFile = positionFile.decode()
-      
+          positionFile = positionFile.decode()
+
         data["positionFile"] = positionFile
 
       if("meta/SlurmID" in f):
@@ -117,7 +117,7 @@ class SnuddaLoad(object):
           data["SlurmID"] = int(f["meta/SlurmID"].value.decode())
         else:
           data["SlurmID"] = int(f["meta/SlurmID"].value)
-        
+
       else:
         print("No SlurmID set, using -1")
         data["SlurmID"] = -1
@@ -130,7 +130,7 @@ class SnuddaLoad(object):
 
       if("meta/axonStumpIDFlag" in f):
         data["axonStumpIDFlag"] = f["meta/axonStumpIDFlag"].value
-        
+
       data["neurons"] = self.extractNeurons(f)
 
       # This is for old format, update for new format
@@ -142,7 +142,7 @@ class SnuddaLoad(object):
 
 
       data["neuronPositions"] = f["network/neurons/position"].value
-      
+
       if("nChannels" in f["network/neurons"]):
         data["nChannels"] = f["network/neurons/nChannels"].value
         data["neuronChannel"] = f["network/neurons/channelID"].value
@@ -157,7 +157,7 @@ class SnuddaLoad(object):
         data["morph"] = dict([])
 
         for name in f["morphologies"].keys():
-          
+
           data["morph"][name] = { "swc" :
                                   f["morphologies"][name]["swc"].value,
                                   "location" :
@@ -165,7 +165,7 @@ class SnuddaLoad(object):
 
 
       data["connectivityDistributions"] = dict([])
-      #data["connectivityDistributionsGJ"] = dict([])      
+      #data["connectivityDistributionsGJ"] = dict([])
 
       if("connectivityDistributions" in f["meta"]):
         origConnectivityDistributions = \
@@ -176,11 +176,11 @@ class SnuddaLoad(object):
           data["connectivityDistributions"][preType,postType] \
             = origConnectivityDistributions[keys]
 
-          
+
 #      if("connectivityDistributionsGJ" in f["meta"]):
 #        origConnectivityDistributionsGJ = \
 #          json.loads(f["meta/connectivityDistributionsGJ"].value)
-#        
+#
 #        for keys in origConnectivityDistributionsGJ:
 #          (preType,postType) = keys.split("$$")
 #          data["connectivityDistributionsGJ"][preType,postType] \
@@ -195,18 +195,18 @@ class SnuddaLoad(object):
         else:
           print(str(len(data["neurons"])) + " neurons with " \
                 + str(data["synapses"].shape[0]) + " synapses")
-          
+
       print("Load done. " + str(timeit.default_timer() - startTime))
 
     if(loadSynapses):
       f.close()
     else:
       self.hdf5File = f
-    
+
     return data
 
   ############################################################################
-  
+
   def extractSynapseCoords(self,gatheredSynapses):
 
     synCoords = dict([])
@@ -221,8 +221,8 @@ class SnuddaLoad(object):
   def extractNeurons(self,HDF5file):
 
     neurons = []
-    
-      
+
+
     for name,neuronID,hoc,pos,rot,dendR,axonR,virtual,vID, \
         axonDensityType, axonDensity,axonDensityRadius, \
         axonDensityBoundsXYZ, \
@@ -236,12 +236,12 @@ class SnuddaLoad(object):
                HDF5file["network/neurons/maxAxonRadius"][:],
                HDF5file["network/neurons/virtualNeuron"][:],
                HDF5file["network/neurons/volumeID"][:],
-               HDF5file["network/neurons/axonDensityType"][:],               
+               HDF5file["network/neurons/axonDensityType"][:],
                HDF5file["network/neurons/axonDensity"][:],
                HDF5file["network/neurons/axonDensityRadius"][:],
                HDF5file["network/neurons/axonDensityBoundsXYZ"][:],
                HDF5file["network/neurons/morphology"][:]):
-      
+
       n = dict([])
 
       if(type(name) == np.ndarray):
@@ -251,7 +251,7 @@ class SnuddaLoad(object):
         hoc = hoc[0]
         dendR = dendR[0]
         axonR = axonR[0]
-      
+
       if(type(name) in [bytes, np.bytes_] ):
         n["name"] = name.decode()
       else:
@@ -262,22 +262,22 @@ class SnuddaLoad(object):
           n["morphology"] = morph.decode()
         else:
           n["morphology"] = morph
-          
+
       # Naming convention is TYPE_X, where XX is a number starting from 0
       n["type"] = n["name"].split("_")[0]
-        
+
       n["neuronID"] = neuronID
 
       if(type(vID) in [bytes,np.bytes_] ):
         n["volumeID"] = vID.decode()
       else:
         n["volumeID"] = vID
-        
+
       if(type(hoc) in [bytes, np.bytes_]):
         n["hoc"] = hoc.decode()
       else:
         n["hoc"] = hoc
-        
+
       n["position"] = pos
       n["rotation"] = rot.reshape(3,3)
       n["maxDendRadius"] = dendR
@@ -285,12 +285,12 @@ class SnuddaLoad(object):
       n["virtualNeuron"] = virtual
 
       if(len(axonDensityType) == 0):
-        n["axonDensityType"] = None        
+        n["axonDensityType"] = None
       elif(type(axonDensityType) in [bytes, np.bytes_]):
         n["axonDensityType"] = axonDensityType.decode()
       else:
-        n["axonDensityType"] = axonDensityType        
-        
+        n["axonDensityType"] = axonDensityType
+
       if(len(axonDensity) > 0):
         if(type(axonDensity) in [bytes,np.bytes_] ):
           n["axonDensity"] = axonDensity.decode()
@@ -306,19 +306,19 @@ class SnuddaLoad(object):
         n["axonDensityBoundsXYZ"] = None
 
       n["axonDensityRadius"] = axonDensityRadius
-        
+
       neurons.append(n)
 
     return neurons
 
   ############################################################################
-  
+
   def loadConfigFile(self):
 
     if(self.config is None):
       configFile = self.data["configFile"]
       self.config = json.load(open(configFile,'r'))
-  
+
   ############################################################################
 
   def loadNeuron(self,neuronID):
@@ -345,23 +345,23 @@ class SnuddaLoad(object):
     typeStrDict = { "synapses" : "network/synapses",
                     "gapJunctions" : "network/gapJunctions" }
     dataStr = typeStrDict[dataType]
-    
+
     with h5py.File(self.network_file,'r') as f:
       nRows = f[dataStr].shape[0]
       if(nRows == 0):
         # No synapses
         return
-      
+
       chunkSize = min(nRows,chunkSize)
       nSteps = int(np.ceil(nRows/chunkSize))
-      
+
       rowStart = 0
 
       for rowEnd in np.linspace(chunkSize,nRows,nSteps,dtype=int):
 
         synapses = f[dataStr][rowStart:rowEnd,:]
         rowStart = rowEnd
-        
+
         yield synapses
 
   ############################################################################
@@ -379,10 +379,10 @@ class SnuddaLoad(object):
 
         gapJunctions = f["network/gapJunctions"][rowStart:rowEnd,:]
         rowStart = rowEnd
-        
+
         yield gapJunctions
 
-    
+
   ############################################################################
 
   def _rowEvalPostPre(self,row,nNeurons):
@@ -396,10 +396,10 @@ class SnuddaLoad(object):
   def findSynapsesSLOW(self,preID,nMax=1000000):
 
     print("Finding synapses originating from " + str(preID) + ", this is slow")
-    
+
     synapses = np.zeros((nMax,13),dtype=np.int32)
     synCtr = 0
-    
+
     if(np.issubdtype(type(preID),np.integer)):
       for synList in self.synapseIterator():
         for syn in synList:
@@ -419,23 +419,23 @@ class SnuddaLoad(object):
                       * f["meta/voxelSize"].value \
                       + f["meta/simulationOrigo"].value
 
-    
+
     return (synapses[:synCtr,:],synapseCoords)
-  
+
   ############################################################################
-  
+
   # Either give preID and postID, or just postID
-  
+
   def findSynapses(self,preID=None,postID=None,silent=True):
 
     if(postID is None):
       return self.findSynapsesSLOW(preID=preID)
 
-    
+
     with h5py.File(self.network_file,'r') as f:
 
       assert postID is not None, "Must specify at least postID"
-      
+
       nRows = f["network/synapses"].shape[0]
       nNeurons = f["network/neurons/neuronID"].shape[0]
 
@@ -444,7 +444,7 @@ class SnuddaLoad(object):
         valTarget = postID
       else:
         rowEval = self._rowEvalPostPre
-        valTarget = postID * nNeurons + preID  
+        valTarget = postID * nNeurons + preID
 
       idxA1 = 0
       idxA2 = nRows-1
@@ -456,13 +456,13 @@ class SnuddaLoad(object):
       # we go up and down in matrix to find the range of the synapses
       # matching the requested condition. This works because the matrix is
       # sorted on postID, and then preID if postID matches
-      
+
       if(rowEval(f["network/synapses"][idxA1,:],nNeurons) == valTarget):
         idxFound = idxA1
 
       if(rowEval(f["network/synapses"][idxA2,:],nNeurons) == valTarget):
         idxFound = idxA2
-      
+
       while(idxA1 < idxA2 and idxFound is None):
 
         idxNext = int(np.round((idxA1 + idxA2)/2))
@@ -471,7 +471,7 @@ class SnuddaLoad(object):
         #print("synRow = " + str( f["network/synapses"][idxNext,:]))
         #print("valTarget = " + str(valTarget) + " , valNext = " + str(valNext))
         #print("idxNext = " + str(idxNext), " - " + str(idxA1) + " " + str(idxA2))
-        
+
         if(valNext < valTarget):
           idxA1 = idxNext
         elif(valNext > valTarget):
@@ -485,7 +485,7 @@ class SnuddaLoad(object):
         # No synapses found
         print("No synapses found")
         return None, None
-      
+
       # Find start of synapse range
       idxB1 = idxFound
       valB1 = rowEval(f["network/synapses"][idxB1-1,:],nNeurons)
@@ -514,18 +514,18 @@ class SnuddaLoad(object):
       synapseCoords = synapses[:,2:5] \
                       * f["meta/voxelSize"].value \
                       + f["meta/simulationOrigo"].value
-      
+
       return synapses,synapseCoords
 
 
   ############################################################################
-  
+
   # !!! DEPRICATED
-  
+
   def synapseOrigCoordIterator(self,chunkSize=1000000):
 
     assert False, "This code is now depricated."
-    
+
     with h5py.File(self.network_file,'r') as f:
       nRows = f["network/synapses"].shape[0]
       chunkSize = min(nRows,chunkSize)
@@ -542,7 +542,7 @@ class SnuddaLoad(object):
         # OBS, origCoords is the coordinates in the original swc file
         # coordinate frame (not in the slice coordinates)
         yield synapses #,origCoords
-        
+
   ############################################################################
 
   def findLatestFile(self):
@@ -553,20 +553,20 @@ class SnuddaLoad(object):
     idx = np.argsort(modTime)
 
     print("Using the newest file: " + files[idx[-1]])
-    
+
     return files[idx[-1]]
-  
+
   ############################################################################
 
   # Returns cellID of all neurons of neuronType
-  
+
   def getCellIDofType(self,neuronType,nNeurons=None,randomPermute=False):
 
-    
+
     cellID = [x["neuronID"] for x in self.data["neurons"] \
               if x["type"] == neuronType]
 
-    
+
     if(nNeurons is not None):
       if(randomPermute):
         # Do not use this if you have a simulation with multiple
@@ -581,16 +581,16 @@ class SnuddaLoad(object):
         print("getCellIDofType: wanted " + str(nNeurons) \
               + " only got " + str(len(cellID)) \
               + " neurons of type " + str(neuronType))
-      
+
     # Double check that all of the same type
     assert np.array([self.data["neurons"][x]["type"] == neuronType \
                      for x in cellID]).all()
 
     return cellID
-  
+
   ############################################################################
-  
-  
+
+
 if __name__ == "__main__":
 
   from argparse import ArgumentParser
@@ -606,15 +606,15 @@ if __name__ == "__main__":
   parser.add_argument("--listPost", help="List post synaptic neurons (slow)",
                       type=int)
   parser.add_argument("--keepOpen", help="This prevents loading of synapses to memory, and keeps HDF5 file open", action="store_true")
-  
+
   args = parser.parse_args()
 
   if(args.keepOpen):
     loadSynapses=False
   else:
     loadSynapses=True
-    
-  nl = SnuddaLoad(args.networkFile,loadSynapses=loadSynapses) 
+
+  nl = SnuddaLoad(args.networkFile,loadSynapses=loadSynapses)
 
   if(args.listN):
     print("Neurons in network: ")
@@ -622,7 +622,7 @@ if __name__ == "__main__":
     for nid,name,pos in [(x["neuronID"],x["name"],x["position"])\
                          for x in nl.data["neurons"]]:
       print("%d : %s  (x: %f, y: %f, z: %f)" % (nid,name,pos[0],pos[1],pos[2]))
-    
+
   if(args.listT is not None):
     if(args.listT == "?"):
       print("List neuron types in network:")
@@ -631,7 +631,7 @@ if __name__ == "__main__":
       for nt in nTypes:
         num = len([x["type"] for x in nl.data["neurons"] if x["type"] == nt])
         print(nt + " (" + str(num) + " total)")
-      
+
     else:
       print("Neurons of type " + args.listT + ":")
       nOfType = [(x["neuronID"], x["name"]) for x in nl.data["neurons"] \
@@ -644,7 +644,7 @@ if __name__ == "__main__":
           + " (" + str(nl.data["neurons"][args.listPre]["name"]) + ")" )
     synapses = nl.findSynapses(postID=args.listPre)
     preID = np.unique(synapses[0][:,0])
-    
+
     for nid,name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"] \
                      if x["neuronID"] in preID]:
       nSyn = np.sum(synapses[0][:,0] == nid)
@@ -655,20 +655,19 @@ if __name__ == "__main__":
           + " (" + str(nl.data["neurons"][args.listPost]["name"]) + ")" )
     synapses = nl.findSynapses(preID=args.listPost)
     postID = np.unique(synapses[0][:,1])
-    
+
     for nid,name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"] \
                      if x["neuronID"] in postID]:
       nSyn = np.sum(synapses[0][:,1] == nid)
       print("%d : %s (%d synapses)" % (nid,name,nSyn))
-    
+
     # List neurons of network
-  
-  
+
+
   #syn = nl.findSynapses(22,5)
 
-  #syn2 = nl.findSynapses(postID=5) 
+  #syn2 = nl.findSynapses(postID=5)
 
 
-  
+
   # cellID = nl.getCellIDofType(neuronType="FSN")
-  
