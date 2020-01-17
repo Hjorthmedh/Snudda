@@ -352,7 +352,7 @@ class Snudda(object):
     print("Using " + str(nWorkers) + " workers for neuron")
     
     mechDir = "cellspecs/mechanisms"
-    cmdStr = "nrnivmodl " + mechDir + " && mpiexec -n " + str(nWorkers) + " -map-by socket:OVERSUBSCRIBE python3 snudda_simulate.py " + networkFile + " " + inputFile + " --time " + str(args.time) + " --disableGJ"
+    cmdStr = "nrnivmodl " + mechDir + " && mpiexec -n " + str(nWorkers) + " -map-by socket:OVERSUBSCRIBE python3 snudda_simulate.py " + networkFile + " " + inputFile + " --time " + str(args.time)
 
     if(args.voltOut is not None):
       cmdStr += " --voltOut " + args.voltOut

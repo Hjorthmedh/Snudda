@@ -685,7 +685,7 @@ class SnuddaSimulate(object):
     except:
       import traceback
       tstr = traceback.format_exc()
-      print(tstr)
+      self.writeLog(tstr)
       import pdb
       pdb.set_trace()
   
@@ -949,8 +949,8 @@ class SnuddaSimulate(object):
                      gGapJunction=0.5e-9, \
                      GID=None): # GID unused??
 
-    assert False, "There is something fishy with the parallel gap junctions. Please run with them disabled for now"
-
+    # There was a bug in neuron that affected gap junctions in parallel
+    # simulations -- fixed in neuron 7.7    
     
     #self.writeLog("Adding src = " + str(GIDsourceGJ) + ", dest = " + str(GIDdestGJ))
 
