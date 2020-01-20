@@ -378,7 +378,10 @@ class SnuddaPrune(object):
     self.configFile = self.histFile["meta/configFile"].value
     self.positionFile = self.histFile["meta/positionFile"].value
 
-    self.config = json.loads(self.histFile["meta/config"].value)
+
+    self.detectConfig = json.loads(self.histFile["meta/config"].value)
+    with open(self.histFile["meta/configFile"].value,"r") as f:
+      self.config = json.load(f)    
     
     
   ############################################################################
@@ -556,6 +559,30 @@ class SnuddaPrune(object):
     
     with open(cacheFile,'wb') as f:
       pickle.dump(data,f,-1) # -1 latest version
+
+  ############################################################################
+
+  # This checks that all connections included in the pruning, were present
+  # in the detection. If some are missing in the detection phase, then they
+  # would incorrectly be missing after pruning.
+  
+  def checkNetworkConfigIntegrity(self):
+
+    detectConfig = json.loads(self.histFile["meta/config"].value)
+    with open(self.histFile["meta/configFile"].value,"r") as f:
+      pruneConfig = json.load(f)
+
+    allPresent = True
+    
+    for con in pruneConfig["Connectivity"]:
+      if(con not in detectConfig["Connectivity"]):
+        self.writeLog("!!! Connection " + con + " has been added to " \
+                      + self.histFile["meta/configFile"].value \
+                      + " after detection, please rerun snudda detect")
+        allPresent = False
+
+    assert allPresent, "Please rerun snudda detect."
+    
     
   ############################################################################
 
@@ -564,7 +591,11 @@ class SnuddaPrune(object):
 
   def loadPruningInformation(self):
 
-    self.config = json.loads(self.histFile["meta/config"].value)
+    # self.config = json.loads(self.histFile["meta/config"].value)
+    
+    self.checkNetworkConfigIntegrity()
+    with open(self.histFile["meta/configFile"].value,"r") as f:
+      self.config = json.load(f)    
     
     self.channelID = self.histFile["network/neurons/channelID"].value
 
