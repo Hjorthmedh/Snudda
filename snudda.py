@@ -94,9 +94,10 @@ class Snudda(object):
                   "Thalamus" : 0}
     # Cortex and thalamus axons disabled right now, set to 1 to include one
 
-    assert not os.path.exists(self.networkPath), \
-      "Network path " + str(self.networkPath) + " already exists" \
-      + " (aborting to prevent accidental overwriting)"
+    if not args.overwrite:
+      assert not os.path.exists(self.networkPath), \
+        "Network path " + str(self.networkPath) + " already exists" \
+        + " (aborting to prevent accidental overwriting)"
 
     self.makeDirIfNeeded(self.networkPath)
 
@@ -523,6 +524,9 @@ if __name__ == "__main__":
                       help="Name of voltage output file (csv)")
   parser.add_argument("--ncores", default=12,
                       help="Number of cores used for simulation")
+  parser.add_argument("--overwrite",
+                      help="Skips check if network directory already exists",
+                      action="store_true")
   
   args = parser.parse_args()
   
