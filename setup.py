@@ -29,6 +29,7 @@ setuptools.setup(
         "numpy>=1.15.4",
         "scipy>=1.2.0",
         "sonata>=0.0.1",
+        "pyzmq>=18.0.0"
     ],
     extras_require={"dev": ["sphinx"]},
 )
