@@ -1,8 +1,17 @@
 import setuptools, sys, os
 from snudda import __version__
+from glob import glob
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
+
+# # Collect all files from the data folder
+# data_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
+# data_files = []
+# for (dirpath, dirnames, filenames) in os.walk(data_folder):
+#     rel_folder = os.path.join("snudda_data", os.path.relpath(dirpath, "data"))
+#     if len(filenames) > 0:
+#         data_files.append((rel_folder, [os.path.relpath(os.path.join(dirpath, f)) for f in filenames]))
 
 setuptools.setup(
     name="snudda",
@@ -19,6 +28,10 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
     ],
+    include_package_data=True,
+    package_data={
+        "mypkg": ["data/*"],
+    }
     entry_points={"console_scripts": ["snudda = snudda.cli:snudda_cli"]},
     install_requires=[
         "bluepyopt>=1.8.21",
