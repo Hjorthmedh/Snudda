@@ -40,6 +40,8 @@ import os
 # !!! Need to gracefully handle the situation where there are more workers than
 # number of neurons, currently we get problem when adding the voltage saving
 
+# !!! Have added code for dopamine modulation of neuron intrinsic channels
+#     need to add dopamine modulation for the synaptic channels also !!!
 
 ##############################################################################
 
