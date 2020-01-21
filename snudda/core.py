@@ -45,6 +45,13 @@ import sys
 import timeit
 import numpy as np
 import zmq
+import pkg_resources
+
+def get_data_file(*dirs):
+  path = os.path.join("data", *dirs)
+  if not pkg_resources.resource_exists(__package__, path):
+    raise FileNotFoundError("Data file '{}' not found".format(path))
+  return pkg_resources.resource_filename(__package__, path)
 
 class Snudda(object):
 
