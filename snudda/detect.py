@@ -532,12 +532,26 @@ class SnuddaDetect(object):
                                                   (len(self.neurons),),\
                                                   "float",
                                                  compression=self.h5compression)
-                                                  
+
+    neuronParamID = neuronGroup.create_dataset("parameterID",
+                                               (len(self.neurons),),\
+                                               "int",
+                                               compression=self.h5compression)
+
+    neuronModulationID = neuronGroup.create_dataset("modulationID",
+                                               (len(self.neurons),),\
+                                               "int",
+                                               compression=self.h5compression)
+
+    
     for (i,n) in enumerate(self.neurons):
-      neuronPosition[i] = n["position"]
-      neuronRotation[i] = n["rotation"].reshape(1,9)
-      neuronDendRadius[i] = n["maxDendRadius"]
-      neuronAxonRadius[i] = n["maxAxonRadius"]
+      neuronPosition[i]     = n["position"]
+      neuronRotation[i]     = n["rotation"].reshape(1,9)
+      neuronDendRadius[i]   = n["maxDendRadius"]
+      neuronAxonRadius[i]   = n["maxAxonRadius"]
+      neuronParamID[i]      = n["parameterID"]
+      neuronModulationID[i] = n["modulationID"]
+      
 
     # Store input information
     neuronGroup.create_dataset("channelID", data=self.neuronChannel,

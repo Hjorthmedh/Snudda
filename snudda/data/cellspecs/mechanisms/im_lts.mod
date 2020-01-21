@@ -17,13 +17,33 @@ TITLE Cortical M current
 :   Written by Alain Destexhe, Laval University, 1995
 :
 
+
+COMMENT
+
+neuromodulation is added as functions:
+    
+    modulation = 1 + damod*(maxMod-1)
+
+where:
+    
+    damod  [0]: is a switch for turning modulation on or off {1/0}
+    maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
+                    e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+
+[] == default values
+{} == ranges
+    
+ENDCOMMENT
+
 INDEPENDENT {t FROM 0 TO 1 WITH 1 (ms)}
 
 NEURON {
-	SUFFIX im
+	SUFFIX im_lts
 	USEION k READ ek WRITE ik
-        RANGE gkbar, m_inf, tau_m
+    RANGE gkbar, m_inf, tau_m
 	GLOBAL taumax
+    RANGE damod, maxMod
+	
 
 }
 
@@ -39,6 +59,8 @@ PARAMETER {
 	ek		(mV)
 	gkbar	= 1e-6	(mho/cm2)
 	taumax	= 1000	(ms)		: peak value of tau
+    damod = 0
+    maxMod = 1
 }
 
 
@@ -57,7 +79,7 @@ ASSIGNED {
 
 BREAKPOINT {
 	SOLVE states METHOD cnexp
-	ik = gkbar * m * (v - ek)
+	ik = gkbar * m * (v - ek)*modulation()
 }
 
 DERIVATIVE states { 
@@ -95,3 +117,8 @@ FUNCTION exptable(x) {
 	}
 }
 
+FUNCTION modulation() {
+    : returns modulation factor
+    
+    modulation = 1 + damod*(maxMod-1)
+}

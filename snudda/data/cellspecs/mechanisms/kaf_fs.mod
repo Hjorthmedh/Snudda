@@ -1,9 +1,27 @@
 TITLE Fast A-type potassium current (Kv4.2)
 
+COMMENT
+
+neuromodulation is added as functions:
+    
+    modulation = 1 + damod*(maxMod-1)
+
+where:
+    
+    damod  [0]: is a switch for turning modulation on or off {1/0}
+    maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
+                    e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+
+[] == default values
+{} == ranges
+    
+ENDCOMMENT
+
 NEURON {
     SUFFIX kaf_fs
     USEION k READ ek WRITE ik
     RANGE gbar, gk, ik, q
+    RANGE damod, maxMod
 }
 
 UNITS {
@@ -16,6 +34,8 @@ PARAMETER {
     gbar = 0.0 	(S/cm2) 
     :q = 1	: room temperature (unspecified)
     q = 3	: body temperature 35 C
+    damod = 0
+    maxMod = 1
 }
 
 ASSIGNED {
@@ -33,7 +53,7 @@ STATE { m h }
 
 BREAKPOINT {
     SOLVE states METHOD cnexp
-    gk = gbar*m*m*h
+    gk = gbar*m*m*h*modulation()
     ik = gk*(v-ek)
 }
 
@@ -56,6 +76,12 @@ PROCEDURE rates() {
     hinf = 1/(1+exp((v-(-75.6))/11.8))
     htau = 14
     UNITSON
+}
+
+FUNCTION modulation() {
+    : returns modulation factor
+    
+    modulation = 1 + damod*(maxMod-1)
 }
 
 COMMENT

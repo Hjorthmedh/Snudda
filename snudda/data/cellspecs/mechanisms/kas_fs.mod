@@ -1,9 +1,27 @@
 TITLE Slowly inactivating A-type potassium current (Kv1.2)
 
+COMMENT
+
+neuromodulation is added as functions:
+    
+    modulation = 1 + damod*(maxMod-1)
+
+where:
+    
+    damod  [0]: is a switch for turning modulation on or off {1/0}
+    maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
+                    e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+
+[] == default values
+{} == ranges
+    
+ENDCOMMENT
+
 NEURON {
     SUFFIX kas_fs
     USEION k READ ek WRITE ik
     RANGE gbar, gk, ik, shift, q
+    RANGE damod, maxMod
 }
 
 UNITS {
@@ -18,6 +36,8 @@ PARAMETER {
     :q = 1	: room temperature 22-24 C
     q = 3	: body temperature 33 C
     shift = 0
+    damod = 0
+    maxMod = 1
 }
 
 ASSIGNED {
@@ -35,7 +55,7 @@ STATE { m h }
 
 BREAKPOINT {
     SOLVE states METHOD cnexp
-    gk = gbar*m*m*(h*a+1-a)
+    gk = gbar*m*m*(h*a+1-a)*modulation()
     ik = gk*(v-ek)
 }
 
@@ -58,6 +78,12 @@ PROCEDURE rates() {
     hinf = 1/(1+exp((v-(-33.5)-shift)/21.5))
     htau = 548.7*6/(exp((v-(-96))/(-29.01))+exp((v-(-96))/100))
     UNITSON
+}
+
+FUNCTION modulation() {
+    : returns modulation factor
+    
+    modulation = 1 + damod*(maxMod-1)
 }
 
 COMMENT
