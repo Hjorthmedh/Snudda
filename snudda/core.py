@@ -79,7 +79,7 @@ class Snudda(object):
     assert args.size is not None, \
       "You need to speicfy --size when initialising config for network2"
 
-    from snudda_init import SnuddaInit
+    from .init import SnuddaInit
     structDef = { "Striatum" : args.size,
                   "GPe" : 0,
                   "GPi" : 0,
@@ -123,7 +123,7 @@ class Snudda(object):
     self.setupLogFile(logFileName) # sets self.logFile
     self.setupParallel() # sets self.dView and self.lbView
 
-    from snudda_place import SnuddaPlace
+    from .place import SnuddaPlace
 
     if(args.h5legacy):
       h5libver = "earliest"
@@ -178,7 +178,7 @@ class Snudda(object):
     else:
       h5libver = "latest" # default
 
-    from snudda_detect import SnuddaDetect
+    from .detect import SnuddaDetect
 
     if(args.cont):
       # Continue previous run
@@ -217,7 +217,7 @@ class Snudda(object):
     print("Prune synapses")
     print("Network path: " + str(self.networkPath))
 
-    from snudda_prune import SnuddaPrune
+    from .prune import SnuddaPrune
 
     logFileName = self.networkPath + "/log/logFile-synapse-pruning.txt"
 
@@ -257,7 +257,7 @@ class Snudda(object):
 
   def setupInput(self,args):
 
-    from snudda_input import SnuddaInput
+    from .input import SnuddaInput
 
     print("Setting up inputs, assuming input.json exists")
     logFileName = self.networkPath + "/log/logFile-setup-input.log"

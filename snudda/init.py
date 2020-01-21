@@ -4,17 +4,17 @@ import numpy as np
 import os.path
 import glob
 import collections
-import CreateCubeMesh
-import CreateSliceMesh
+from .CreateCubeMesh import CreateCubeMesh
+from .CreateSliceMesh import CreateSliceMesh
 
 import json
 
-class SnuddaInit(object):  
-    
+class SnuddaInit(object):
+
   def __init__(self,structDef,configName,nChannels=1):
 
     print("CreateConfig")
-    
+
     self.networkData = collections.OrderedDict([])
     self.networkData["Volume"] = collections.OrderedDict([])
     self.nTotal = 0
@@ -33,7 +33,7 @@ class SnuddaInit(object):
 
     self.networkData["Connectivity"] = dict([])
     self.networkData["Neurons"] = dict([])
-    
+
     # self.neuronTargets = collections.OrderedDict([])
 
     print("Using " + str(nChannels) + " functional channels")
@@ -48,7 +48,7 @@ class SnuddaInit(object):
                    "Thalamus" : self.defineThalamus }
 
     if(structDef):
-    
+
       for sn in structDef:
         print("Adding " + sn + " with " + str(structDef[sn]) + " neurons")
         structFunc[sn](nNeurons=structDef[sn])
@@ -57,13 +57,13 @@ class SnuddaInit(object):
       self.writeJSON(self.configName)
     else:
       print("No structDef defined, not writing JSON file in init")
-      
+
   ############################################################################
 
   # meshBinWidth is used when voxelising the mesh to determine which part of
   # space is inside the mesh. For smaller structures we might need to use
   # a smaller meshBinWidth than the default 1e-4
-  
+
   def defineStructure(self,
                       structName,
                       structMesh,
@@ -80,15 +80,15 @@ class SnuddaInit(object):
         "defineStructure: cube needs sideLen specified"
       assert structCentre is not None, \
         "defineStructuer: cube needs a structCentre"
-      
+
       structMesh = self.basePath + "/mesh/" + structName \
         + "-cube-mesh-" + str(sideLen) + ".obj"
 
       if(meshBinWidth is None):
         meshBinWidth = sideLen/3.0
         print("Setting meshBinWidth to " + str(meshBinWidth))
-      
-      CreateCubeMesh.CreateCubeMesh(fileName=structMesh,
+
+      CreateCubeMesh(fileName=structMesh,
                                     centrePoint=structCentre,
                                     sideLen=sideLen,
                                     description=structName + " cube mesh" \
@@ -110,21 +110,21 @@ class SnuddaInit(object):
         sliceDepth = 150e-6
 
       print("Using slice depth: " + str(sliceDepth))
-        
+
       if(meshBinWidth is None):
         meshBinWidth = np.minimum(sideLen,sliceDepth)/3.0
         print("Setting meshBinWidth to " + str(meshBinWidth))
-     
-      CreateSliceMesh.CreateSliceMesh(fileName=structMesh,
+
+      CreateSliceMesh(fileName=structMesh,
                                       centrePoint=np.array([0,0,0]),
                                       xLen=sideLen,
                                       yLen=sideLen,
                                       zLen=sliceDepth,
                                       description=structName + " slice mesh")
-      
+
     assert structName not in self.networkData["Volume"], \
       "defineStruct: Volume " + structName + " is already defined."
-      
+
     self.networkData["Volume"][structName] = \
       self.defineVolume(dMin=dMin,
                         meshFile=structMesh,
@@ -141,14 +141,14 @@ class SnuddaInit(object):
     vol["meshBinWidth"] = meshBinWidth
 
     return vol
-      
+
   ############################################################################
 
   # conductance and conductanceStd -- allow variation of conductances
   #
   # channelParamDictionary = dictionary specifying other parameters, such as
   #                   fascilitation and depression of AMPA/NMDA channels etc
-  
+
   def addNeuronTarget(self,neuronName, targetName, connectionType,
                       distPruning,
                       f1,
@@ -175,7 +175,7 @@ class SnuddaInit(object):
     if(parameterFile is not None):
       if(channelParamDictionary is None):
         channelParamDictionary = dict([])
-        
+
       channelParamDictionary["parameterFile"] = parameterFile
 
     if(modFile is not None):
@@ -183,15 +183,15 @@ class SnuddaInit(object):
         channelParamDictionary = dict([])
 
       channelParamDictionary["modFile"] = modFile
-        
-      
+
+
     if(type(conductance) == list):
       cond = conductance[0]
       condStd = conductance[1]
     else:
       cond = conductance
       condStd = 0
-    
+
     conInfo = dict([])
     conInfo["conductance"] = [cond,condStd] # Mean, Std
     conInfo["channelParameters"] = channelParamDictionary
@@ -202,9 +202,9 @@ class SnuddaInit(object):
     pruningInfo["a3"] = a3
     pruningInfo["distPruning"] = distPruning
     conInfo["pruning"] = pruningInfo
-    
+
     # pruneInfo = (distPruning,f1,softMax,mu2,a3)
-    
+
     if(distPruning_other is not None
        or f1_other is not None
        or softMax_other is not None
@@ -214,7 +214,7 @@ class SnuddaInit(object):
       # If any of the other varibles is set,
       # then all other "other" variables that are
       # not set assume default values
-      
+
       if(distPruning_other is None):
         distPruning_other = distPruning
 
@@ -229,7 +229,7 @@ class SnuddaInit(object):
 
       if(a3_other is None):
         a3_other = a3
-      
+
       #pruneInfo_other = (distPruning_other,
       #                   f1_other,
       #                   softMax_other,
@@ -245,29 +245,29 @@ class SnuddaInit(object):
 
       # Different pruning rules for within and between neuron channels
       conInfo["pruningOther"] = pruningInfoOther
-      
+
       #targetInfo = [targetName,
       #              [connectionType,cond,condStd,channelParamDictionary],
       #              pruneInfo, pruneInfo_other]
     #else:
-    #  # All targets of same type are treated equally, no channels 
+    #  # All targets of same type are treated equally, no channels
     #  targetInfo = [targetName,
     #                [connectionType,cond,condStd,channelParamDictionary],
     #                pruneInfo]
-    # 
+    #
     # if(neuronName not in self.neuronTargets):
     #   self.neuronTargets[neuronName] = []
 
     #import pdb
     #pdb.set_trace()
-      
+
     # Just make sure we are not specifying the same output twice
     # Can have GJ and synapse to same target, so moved this check to
     # Network_connect_voxel.py
     #assert targetName not in [x[0] for x in self.neuronTargets[neuronName]], \
     #  "Error " + neuronName + " already has output for " + targetName \
     #   + " specified (DUPLICATE!)"
-      
+
     # self.neuronTargets[neuronName].append(targetInfo)
 
     # New format for connection info, now stored as dictionary
@@ -275,18 +275,18 @@ class SnuddaInit(object):
     ntKey = neuronName + "," + targetName
     if( ntKey not in self.networkData["Connectivity"] ):
       self.networkData["Connectivity"][ntKey] = dict([])
-    
+
     self.networkData["Connectivity"][ntKey][connectionType] = conInfo
-    
+
   ############################################################################
 
-    
+
   # modelType is "neuron" or "virtual" (= just provides input to network)
   # For axonDensity when it is "xyz" we assume that soma is at 0,0,0
 
   # neuronDir contains all the neurons in separate directories
   # Each of those directories have a config and morphology subdirectory
-  
+
   def addNeurons(self,name,
                  neuronDir,
                  numNeurons, \
@@ -318,10 +318,10 @@ class SnuddaInit(object):
           print("Inparameters: x,y,z three 1-D arrays (units in meter)")
           import traceback
           tstr = traceback.format_exc()
- 
+
           import pdb
           pdb.set_trace()
-          
+
 
         print("Checking boundaries, to make sure P is not too high")
         x = np.zeros((8,1))
@@ -335,7 +335,7 @@ class SnuddaInit(object):
               y[ctr] = yy
               z[ctr] = zz
               ctr += 1
-              
+
         Pcorner = eval(axonDensity[1])*(3e-6**3)
 
         for P,xx,yy,zz in zip(Pcorner,x,y,z):
@@ -349,7 +349,7 @@ class SnuddaInit(object):
 
         #print(str(axonDensity[3]) + " " + str(name) \
         #      + " axon points to place")
-                
+
     print("Adding neurons: " + str(name) + " from dir " + str(neuronDir))
 
     # Find which neurons are available in neuronDir
@@ -357,7 +357,7 @@ class SnuddaInit(object):
     neuronFileList = []
 
     assert len(dirList) > 0, "Neuron dir " + str(neuronDir) + " is empty!"
-        
+
     for d in dirList:
 
       if(os.path.isdir(d)):
@@ -372,12 +372,12 @@ class SnuddaInit(object):
 
         assert len(hocFile) <= 1, "Morph dir " + d \
           + " contains more than one hoc file"
-        
+
         if(len(hocFile) == 0):
           hocFile = [None]
-          
+
         neuronFileList.append((d,swcFile[0],parFile,mechFile,hocFile[0]))
-        
+
     # First check how many unique cells we hava available, then we
     # calculate how many of each to use in simulation
     nInd = len(neuronFileList)
@@ -388,13 +388,13 @@ class SnuddaInit(object):
     nOfEachInd[addIdx] += 1
 
     # Add the neurons to config
-    
+
     for ctr, ((nrnDir,swcFile,parFile,mechFile,hocFile),num) \
         in enumerate(zip(neuronFileList,nOfEachInd)):
-      
+
       if(int(num) == 0):
         continue
-      
+
       uniqueName = name + "_" + str(ctr)
       cellData = dict([])
 
@@ -412,16 +412,16 @@ class SnuddaInit(object):
       cellData["mechanisms"] = mechFile
       cellData["num"] = int(num)
       cellData["hoc"] = hocFile
-      
+
       cellData["neuronType"] = modelType
       cellData["rotationMode"] = rotationMode
       cellData["volumeID"] = volumeID
 
       if(axonDensity is not None):
         cellData["axonDensity"] = axonDensity
-      
+
       self.networkData["Neurons"][uniqueName] = cellData
-       
+
 
   ############################################################################
 
@@ -434,17 +434,17 @@ class SnuddaInit(object):
     #    # Non-neuron keywords, skip
     #    continue
     #
-    #  nType = n.split("_")[0]      
+    #  nType = n.split("_")[0]
     #  if(nType in self.neuronTargets):
     #    self.networkData[n]["targets"] = self.neuronTargets[nType]
     #  else:
     #    print("No targets defined for " + str(nType))
-        
+
     # import pdb
     # pdb.set_trace()
 
     print("Writing " + filename)
-    
+
     import json
     with open(filename,'w') as f:
       json.dump(self.networkData,f,indent=4)
@@ -458,15 +458,15 @@ class SnuddaInit(object):
   # If nNeurons is set to None, then we use nMSD1, nMSD2, nFS, nChIN, nLTS
   # to set the number of neurons. This is useful if you want to create a small
   # test network.
-  
+
   # Divide by fTot since we are not including all neurons and we want the
   # proportions to sum to 1.0 (f means fraction)
-  
+
   def defineStriatum(self,nNeurons=None,
                      fMSD1=0.475,
                      fMSD2=0.475,
                      fFS=0.013,
-                     fChIN=0.011, 
+                     fChIN=0.011,
                      fLTS=0.007,
                      nMSD1=None,
                      nMSD2=None,
@@ -488,7 +488,7 @@ class SnuddaInit(object):
 
       self.nTotal += self.nFS + self.nMSD1 + self.nMSD2 + self.nChIN + self.nLTS
       nNeurons = self.nTotal
-      
+
       if(self.nTotal <= 0):
         # No neurons specified, skipping structure
         return
@@ -520,7 +520,7 @@ class SnuddaInit(object):
       self.defineStructure(structName="Striatum",
                            structMesh="slice",
                            sideLen=sideLen)
-      
+
     elif(nNeurons <= 1e6): #1e6
       print("Using cube for striatum")
       # 1.73 million neurons, volume of allen striatal mesh is 21.5mm3
@@ -531,17 +531,17 @@ class SnuddaInit(object):
       if(nNeurons < 500):
         meshBinWidth = striatumSideLen
       elif(nNeurons < 5000):
-        meshBinWidth = striatumSideLen / 5        
+        meshBinWidth = striatumSideLen / 5
       else:
         meshBinWidth = striatumSideLen / 10
-      
+
       # Reduced striatum, due to few neurons
       self.defineStructure(structName="Striatum",
                            structMesh="cube",
                            structCentre=striatumCentre,
                            sideLen=striatumSideLen,
                            meshBinWidth=meshBinWidth)
-      
+
                            # meshBinWidth=5e-5)
 
       #import pdb
@@ -556,14 +556,14 @@ class SnuddaInit(object):
       csDir = "cellspecs"
     else:
       csDir = cellSpecDir
-    
+
     FSdir   = csDir + "/fs"
     MSD1dir = csDir + "/dspn"
     MSD2dir = csDir + "/ispn"
     ChINdir = csDir + "/chin"
     LTSdir  = csDir + "/lts"
 
-    
+
     self.regSize = 5
 
     if(self.nChannels == 1):
@@ -573,7 +573,7 @@ class SnuddaInit(object):
       self.channelMSNmodifier = 0.2 # 0.2 = 20% within, 2 = 2x higher within
       print("channelMSNmodifier: " + str(self.channelMSNmodifier))
 
-    
+
 
     # Add the neurons
 
@@ -589,7 +589,7 @@ class SnuddaInit(object):
                     numNeurons=self.nMSD2, \
                     volumeID="Striatum")
 
-    
+
     # ChIN axon density,
     # We start with the axon length per unit volume, then we scale it
     # to synapses per unit volume
@@ -619,9 +619,9 @@ class SnuddaInit(object):
     # func type, density function, max axon radius
     ChINaxonDensity = ("r", "5000*1e12/3*np.exp(-r/120e-6)",350e-6)
     # !!! TEST
-    #ChINaxonDensity = ("xyz", "2*5000*1e12/3*np.exp(-np.sqrt(x**2+y**2+z**2)/120e-6)",[-350e-6,350e-6,-350e-6,350e-6,-350e-6,350e-6])    
-    
-    
+    #ChINaxonDensity = ("xyz", "2*5000*1e12/3*np.exp(-np.sqrt(x**2+y**2+z**2)/120e-6)",[-350e-6,350e-6,-350e-6,350e-6,-350e-6,350e-6])
+
+
     self.addNeurons(name="ChIN",neuronDir=ChINdir,
                     numNeurons=self.nChIN, \
                     axonDensity=ChINaxonDensity,
@@ -638,20 +638,20 @@ class SnuddaInit(object):
     # LTSaxonDensity = ("xyz", "2000*1e12*np.exp(-(((x-750e-6)/500e-6)**2 + ((y-0)/100e-6)**2 + ((z-0)/50e-6)**2))",[-100e-6,2000e-6,-200e-6,200e-6,-100e-6,100e-6])
     # LTSaxonDensity = ("xyz", "2000*1e12*np.exp(-(((x-300e-6)/300e-6)**2 + ((y-0)/10e-6)**2 + ((z-0)/10e-6)**2))",[-300e-6,900e-6,-30e-6,30e-6,-30e-6,30e-6])
 
- 
-    # See plotLTSdensity.py 
-    # LTSaxonDensity = ("xyz", "10*3000*1e12*(0.25*np.exp(-(((x-200e-6)/100e-6)**2 + ((y-0)/50e-6)**2 + ((z-0)/20e-6)**2)) + 1*np.exp(-(((x-300e-6)/300e-6)**2 + ((y-0)/10e-6)**2 + ((z-0)/10e-6)**2)) + 1*np.exp(-(((x-700e-6)/100e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/15e-6)**2)))",[-200e-6,900e-6,-100e-6,100e-6,-30e-6,30e-6])    
 
-    LTSaxonDensity = ("xyz", "12*3000*1e12*( 0.25*np.exp(-(((x-200e-6)/100e-6)**2 + ((y-0)/50e-6)**2 + ((z-0)/30e-6)**2)) + 1*np.exp(-(((x-300e-6)/300e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/10e-6)**2)) + 1*np.exp(-(((x-700e-6)/100e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/15e-6)**2)) )",[-200e-6,900e-6,-100e-6,100e-6,-30e-6,30e-6])    
-    
+    # See plotLTSdensity.py
+    # LTSaxonDensity = ("xyz", "10*3000*1e12*(0.25*np.exp(-(((x-200e-6)/100e-6)**2 + ((y-0)/50e-6)**2 + ((z-0)/20e-6)**2)) + 1*np.exp(-(((x-300e-6)/300e-6)**2 + ((y-0)/10e-6)**2 + ((z-0)/10e-6)**2)) + 1*np.exp(-(((x-700e-6)/100e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/15e-6)**2)))",[-200e-6,900e-6,-100e-6,100e-6,-30e-6,30e-6])
+
+    LTSaxonDensity = ("xyz", "12*3000*1e12*( 0.25*np.exp(-(((x-200e-6)/100e-6)**2 + ((y-0)/50e-6)**2 + ((z-0)/30e-6)**2)) + 1*np.exp(-(((x-300e-6)/300e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/10e-6)**2)) + 1*np.exp(-(((x-700e-6)/100e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/15e-6)**2)) )",[-200e-6,900e-6,-100e-6,100e-6,-30e-6,30e-6])
+
     # !!! Remember to update bounding box
-    
+
     self.addNeurons(name="LTS",neuronDir=LTSdir,
                     numNeurons=self.nLTS, \
                     axonDensity=LTSaxonDensity,
                     volumeID="Striatum")
 
-      
+
     ## Define FS targets
 
     # Szydlowski SN, Pollak Dorocic I, Planert H, Carlen M, Meletis K,
@@ -668,7 +668,7 @@ class SnuddaInit(object):
     FSgGapJunction = [0.5e-9, 0.1e-9]
     # (gap junctions: 0.5nS, P=0.3 -- Galarreta Hestrin 2002, Koos Tepper 1999)
     # total 8.4nS ?? Gittis et al 2010??
-    
+
     # File with FS->FS parameters (dont have one yet)
     pfFSFS = None # Gittis 2010?
     pfFSLTS = None
@@ -678,13 +678,13 @@ class SnuddaInit(object):
     pfFSdSPN = "synapses/v2/PlanertFitting-FD-tmgaba-fit.json"
     pfFSiSPN = "synapses/v2/PlanertFitting-FI-tmgaba-fit.json"
 
-    
+
     # Increased from a3=0.1 to a3=0.7 to match FS-FS connectivity from Gittis
     self.addNeuronTarget(neuronName="FSN",
                          targetName="FSN",
                          connectionType="GABA",
                          distPruning=None,
-                         f1=0.15, softMax=5, mu2=2, a3=1, 
+                         f1=0.15, softMax=5, mu2=2, a3=1,
                          conductance=FSgGABA,
                          parameterFile=pfFSFS,
                          modFile="tmGabaA",
@@ -697,7 +697,7 @@ class SnuddaInit(object):
                          targetName="dSPN",
                          connectionType="GABA",
                          distPruning=FSDistDepPruning,
-                         f1=0.5, softMax=5, mu2=2, a3=1.0, 
+                         f1=0.5, softMax=5, mu2=2, a3=1.0,
                          conductance=FSgGABA,
                          parameterFile=pfFSdSPN,
                          modFile="tmGabaA",
@@ -708,7 +708,7 @@ class SnuddaInit(object):
                          targetName="iSPN",
                          connectionType="GABA",
                          distPruning=FSDistDepPruning,
-                         f1=0.5, softMax=5, mu2=2, a3=0.9, 
+                         f1=0.5, softMax=5, mu2=2, a3=0.9,
                          conductance=FSgGABA,
                          parameterFile=pfFSiSPN,
                          modFile="tmGabaA",
@@ -725,7 +725,7 @@ class SnuddaInit(object):
                          modFile="tmGabaA",
                          channelParamDictionary=None)
 
-    
+
 
     # FS-FS gap junction, currently without pruning
     if(True):
@@ -737,12 +737,12 @@ class SnuddaInit(object):
                            conductance=FSgGapJunction,
                            channelParamDictionary=None)
 
-    
+
     ## Define MSD1 targets
 
     # 3e-6 voxel method
-    MSP11 = 1.0 #0.55 
-    MSP12 = 1.0 #0.20 
+    MSP11 = 1.0 #0.55
+    MSP12 = 1.0 #0.20
 
 
     # Taverna 2008, fig 3E&F:
@@ -752,10 +752,10 @@ class SnuddaInit(object):
 
     # !!! But Taverna 2008 analyse aggregates all synapses into a conductance
     # measure?? if so, we need to divide the values by 3 or 4.
-    # 
+    #
 
     # !!! UPDATE: Assume 24pS per channel, and 10 channels per synapse
-    
+
     MSD1gGABA = [0.24e-9, 0.1e-9]
     # Koos, Tepper 1999 says max 0.75nS?
     MSD1GABAfailRate = 0.7 # Taverna 2008, figure 2
@@ -763,7 +763,7 @@ class SnuddaInit(object):
     # OLD: Previously: 23pA * 50 receptors = 1.15e-9 -- Taverna 2008, fig3
     # OLD: std ~ +/- 8 receptors, we used before:  [1.15e-9, 0.18e-9]
 
-    
+
     P11withinChannel = MSP11 * self.channelMSNmodifier
     P11betweenChannel = MSP11 *(1 +(1-self.channelMSNmodifier) / self.nChannels)
     P12withinChannel = MSP12 * self.channelMSNmodifier
@@ -779,7 +779,7 @@ class SnuddaInit(object):
     # Argument for distance dependent SPN-SPN synapses:
     # Koos, Tepper, Wilson 2004 -- SPN-SPN more distally
 
-    # From this paper, https://www.frontiersin.org/articles/10.3389/fnana.2010.00150/full, 
+    # From this paper, https://www.frontiersin.org/articles/10.3389/fnana.2010.00150/full,
     #
     # This is in contrast to the axon collateral synapses between SPNs
     # (Tunstall et al., 2002), which typically evoke significantly
@@ -794,9 +794,9 @@ class SnuddaInit(object):
     # https://www.sciencedirect.com/science/article/pii/S0166223612001191?via%3Dihub,
     #
 
-    
+
     SPN2SPNdistDepPruning = "1-np.exp(-(0.4*d/60e-6)**2)" # With Taverna conductances, we see that the response is much stronger than Planert 2010. We try to introduce distance dependent pruning to see if removing strong proximal synapses will give a better match to experimental data.
-    
+
     SPN2ChINDistDepPruning = "1-np.exp(-(0.4*d/60e-6)**2)" # Chuhma about 20pA response from 10% SPN, we need to reduce activity, try dist dep pruning (already so few synapses and connectivity)
 
     # old f1 = 0.15
@@ -819,7 +819,7 @@ class SnuddaInit(object):
                          targetName="iSPN",
                          connectionType="GABA",
                          distPruning=SPN2SPNdistDepPruning,
-                         f1=0.20, softMax=3, mu2=2.4, 
+                         f1=0.20, softMax=3, mu2=2.4,
                          a3=P12withinChannel,
                          a3_other=P12betweenChannel,
                          conductance=MSD1gGABA,
@@ -836,7 +836,7 @@ class SnuddaInit(object):
 
     # Set a3 pruning to 0.1, to remove 90% of connected pairs
     # removed softMax = 3 (want to get 5000 MSD1+D2 synapses on ChIN)
-    
+
     self.addNeuronTarget(neuronName="dSPN",
                          targetName="ChIN",
                          connectionType="GABA",
@@ -847,14 +847,14 @@ class SnuddaInit(object):
                          modFile="tmGabaA",
                          channelParamDictionary={"failRate" : MSD1GABAfailRate})
 
-                         
+
 
     ## Define MSD2 targets
 
 
     # 3e-6 voxel method
-    MSP21 = 1.0 #0.50 
-    MSP22 = 1.0 # 0.95 
+    MSP21 = 1.0 #0.50
+    MSP22 = 1.0 # 0.95
 
     # OLD: 24pA * 51 receptors = 1.15e-9 -- Taverna 2008, fig3
     # OLD: std ~ +/- 10 receptors [1.24e-9, 0.24e-9]
@@ -866,17 +866,17 @@ class SnuddaInit(object):
 
     # !!! But Taverna 2008 analyse aggregates all synapses into a conductance
     # measure?? if so, we need to divide the values by 3 or 4.
-    # 
+    #
 
     # !!! UPDATE: Assume 24pS per channel, and 10 channels per synapse
     # Because in Taverna 2008 iSPN has more receptors in total, we increase
     # softMax from 3 to 4
-    
+
     MSD2gGABA = [0.24e-9, 0.1e-9]
     MSD2GABAfailRate = 0.4 # Taverna 2008, 2mM
 
-    
-    # Voxel method 
+
+    # Voxel method
     P21withinChannel = MSP21 * self.channelMSNmodifier
     P21betweenChannel = MSP21 *(1 +(1-self.channelMSNmodifier) / self.nChannels)
     P22withinChannel = MSP22 * self.channelMSNmodifier
@@ -918,7 +918,7 @@ class SnuddaInit(object):
                                                  "tau2" : 12.4e-3,
                                                  "failRate" : MSD2GABAfailRate})
 
-    
+
     # See comment for dSPN to ChIN
     self.addNeuronTarget(neuronName="iSPN",
                          targetName="ChIN",
@@ -930,8 +930,8 @@ class SnuddaInit(object):
                          modFile="tmGabaA",
                          channelParamDictionary={"failRate" : MSD2GABAfailRate})
 
-    
-    
+
+
     ## Define ChIN targets
 
     # Nelson AB, Hammack N, Yang CF, Shah NM, Seal RP, Kreitzer AC
@@ -941,7 +941,7 @@ class SnuddaInit(object):
 
     ChINgGABA = 1e-9 # If just one value given, then gSTD = 0
     ChINgACh = 1e-9 # FIXME
-    
+
     # Run 1142 -- No mu2
     # Run 1150 -- Mu2 2.4
     # Run 1153 -- Mu2 D1: 5, D2: 10 (för att testa fler värden)
@@ -953,10 +953,10 @@ class SnuddaInit(object):
 
     pfChINdSPN = None
     pfChINiSPN = None
-    pfChINLTS = None    
+    pfChINLTS = None
 
     # !!! SET RELEASE TO GABA FOR NOW
-    
+
     self.addNeuronTarget(neuronName="ChIN",
                          targetName="dSPN",
                          connectionType="GABA",
@@ -992,10 +992,10 @@ class SnuddaInit(object):
                            parameterFile=pfChINLTS,
                            modFile="ACh", # !!! DOES NOT YET EXIST --- FIXME
                            channelParamDictionary=None)
-    
+
 
     # !!! USE SAME PARAMS FOR FS AS FOR MS??
-    
+
 
     # ??? ChIN does not connect to FS and MS directly ???
 
@@ -1005,7 +1005,7 @@ class SnuddaInit(object):
     #LTSgNO = 1e-9
 
     LTSDistDepPruning = "1-np.exp(-(0.4*d/60e-6)**2)" # updated 2019-10-31
-    
+
     # !!! Straub, Sabatini 2016
     # No LTS synapses within 70 micrometers of proximal MS dendrite
     # !!! ADD DISTANCE DEPENDENT PRUNING
@@ -1013,7 +1013,7 @@ class SnuddaInit(object):
     pfLTSdSPN = None
     pfLTSiSPN = None
     pfLTSChIN = None
-    
+
     self.addNeuronTarget(neuronName="LTS",
                          targetName="dSPN",
                          connectionType="GABA",
@@ -1025,7 +1025,7 @@ class SnuddaInit(object):
                          channelParamDictionary={"tau1" : 3e-3,
                                                  "tau2" : 38e-3 })
     # LTS -> SPN, rise time 3+/-0.1 ms, decay time 38+/-3.1 ms, Straub 2016
-    
+
     self.addNeuronTarget(neuronName="LTS",
                          targetName="iSPN",
                          connectionType="GABA",
@@ -1046,8 +1046,8 @@ class SnuddaInit(object):
                          parameterFile=pfLTSChIN,
                          modFile="tmGabaA",
                          channelParamDictionary=None)
-    
-    
+
+
   ############################################################################
 
   def defineGPe(self,nNeurons):
@@ -1055,7 +1055,7 @@ class SnuddaInit(object):
     if(nNeurons <= 0):
       # No neurons specified, skipping structure
       return
-    
+
     self.nGPeneurons = nNeurons
     self.nTotal += nNeurons
 
@@ -1063,7 +1063,7 @@ class SnuddaInit(object):
                          structMesh="mesh/GPe-mesh.obj")
 
     # !!! Need to add targets for neurons in GPe
-    
+
   ############################################################################
 
   def defineGPi(self,nNeurons):
@@ -1071,7 +1071,7 @@ class SnuddaInit(object):
     if(nNeurons <= 0):
       # No neurons specified, skipping structure
       return
-    
+
     self.nGPineurons = nNeurons
     self.nTotal += nNeurons
 
@@ -1079,15 +1079,15 @@ class SnuddaInit(object):
                          structMesh="mesh/GPi-mesh.obj")
 
     # !!! Need to add targets for neurons in GPi
-    
+
   ############################################################################
 
   def defineSTN(self,nNeurons):
-    
+
     if(nNeurons <= 0):
       # No neurons specified, skipping structure
       return
-    
+
     self.nSTNneurons = nNeurons
     self.nTotal += nNeurons
 
@@ -1095,7 +1095,7 @@ class SnuddaInit(object):
                          structMesh="mesh/STN-mesh.obj")
 
     # !!! Need to add targets for neurons in STN
-    
+
   ############################################################################
 
   def defineSNr(self,nNeurons):
@@ -1103,30 +1103,30 @@ class SnuddaInit(object):
     if(nNeurons <= 0):
       # No neurons, skipping
       return
-    
+
     self.nSNrneurons = nNeurons
     self.nTotal += nNeurons
 
     self.defineStructure(structName="SNr",
                          structMesh="mesh/SNr-mesh.obj",
                          meshBinWidth=1e-4)
-    
-    # !!! Need to add targets for neurons in SNr                         
+
+    # !!! Need to add targets for neurons in SNr
 
   ############################################################################
-    
+
   def defineCortex(self,nNeurons):
 
     if(nNeurons <= 0):
       # No neurons specified, skipping structure
-      return    
-    
+      return
+
     # Neurons with corticostriatal axons
     self.nCortex = nNeurons
 
     self.nTotal += nNeurons
 
-    
+
     # Using start location of neuron  DOI: 10.25378/janelia.5521780 for centre
     # !!! If we use a larger mesh for cortex, we will need to reduce
     #     meshBinWidth to 1e-4 (or risk getting memory error)
@@ -1138,9 +1138,9 @@ class SnuddaInit(object):
 
 
     CortexDir = "morphology/InputAxons/Cortex/Reg10/"
-    
+
     # Add cortex axon
-    
+
     self.addNeurons("CortexAxon",CortexDir, self.nCortex, \
                     modelType="virtual",
                     rotationMode="",
@@ -1153,8 +1153,8 @@ class SnuddaInit(object):
     # We should have both ipsi and contra, M1 and S1 input, for now
     # picking one
     cortexSynParMS = "synapses/v2/M1RH_Analysis_190925.h5-parameters-MS.json"
-    cortexSynParFS = "synapses/v2/M1RH_Analysis_190925.h5-parameters-FS.json"    
-    
+    cortexSynParFS = "synapses/v2/M1RH_Analysis_190925.h5-parameters-FS.json"
+
     self.addNeuronTarget(neuronName="CortexAxon",
                          targetName="dSPN",
                          connectionType="AMPA_NMDA",
@@ -1184,18 +1184,18 @@ class SnuddaInit(object):
                          modFile="tmGlut",
                          conductance=CortexGlutCond,
                          channelParamDictionary=None)
-    
+
 
     # !!! No input for LTS and ChIN right now...
-    
+
   ############################################################################
-    
+
   def defineThalamus(self,nNeurons):
 
     if(nNeurons <= 0):
       # No neurons specified, skipping structure
       return
-    
+
     # Neurons with thalamustriatal axons
     self.nThalamus = nNeurons
 
@@ -1209,9 +1209,9 @@ class SnuddaInit(object):
                          meshBinWidth=5e-5)
 
     # Define neurons
-    
+
     ThalamusDir = "morphology/InputAxons/Thalamus/Reg10/"
-    
+
     self.addNeurons("ThalamusAxon",ThalamusDir, self.nThalamus, \
                     modelType="virtual",
                     rotationMode="",
@@ -1223,9 +1223,9 @@ class SnuddaInit(object):
     thalamusSynParMS = "synapses/v2/TH_Analysis_191001.h5-parameters-MS.json"
     thalamusSynParFS = "synapses/v2/TH_Analysis_191001.h5-parameters-FS.json"
 
-    
+
     ThalamusGlutCond = [1e-9,0.1e-9]
-    
+
     self.addNeuronTarget(neuronName="ThalamusAxon",
                          targetName="dSPN",
                          connectionType="AMPA_NMDA",
@@ -1256,11 +1256,11 @@ class SnuddaInit(object):
                          parameterFile=thalamusSynParFS,
                          modFile="tmGlut",
                          channelParamDictionary=None)
-    
-    
-    
+
+
+
   ############################################################################
-    
+
 if __name__ == "__main__":
 
   fullStriatum = True #False #True
@@ -1284,7 +1284,7 @@ if __name__ == "__main__":
  # Nstn=97
  # Nta=82
  # Nti=247
- # Nsnr=189  
+ # Nsnr=189
 
 
   if(fullStriatum):
@@ -1304,7 +1304,7 @@ if __name__ == "__main__":
                   "STN" : 0,
                   "Cortex" : 0,
                   "Thalamus" : 0}
-    
+
 
   else:
     structDef = { "Striatum" : 100000,
@@ -1315,11 +1315,11 @@ if __name__ == "__main__":
                   "Cortex" : 0,
                   "Thalamus" : 0}
 
-  
-  nTotals = 0 
+
+  nTotals = 0
   for x in structDef:
     nTotals += structDef[x]
 
   fName = "config/basal-ganglia-config-" + str(nTotals) + ".json"
-    
+
   SnuddaInit(structDef=structDef,configName=fName,nChannels=1)

@@ -28,9 +28,9 @@ import pickle
 
 import re
 
-from Neuron_morphology import NeuronMorphology
-from snudda_place import SnuddaPlace
-from snudda_load import SnuddaLoad
+from .Neuron_morphology import NeuronMorphology
+from .place import SnuddaPlace
+from .load import SnuddaLoad
 
 status = None
 hyperVoxelData = None
@@ -2241,7 +2241,7 @@ class SnuddaDetect(object):
       return
     
     with dView.sync_imports():
-      from snudda_detect import SnuddaDetect
+      from .detect import SnuddaDetect
 
     self.writeLog("Setting up workers: " \
                   + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))

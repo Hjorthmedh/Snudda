@@ -10,7 +10,7 @@ import os
 
 import matplotlib.pyplot as plt
 
-from snudda_analyse import SnuddaAnalyse
+from .analyse import SnuddaAnalyse
 
 class SnuddaAnalyseStriatum(SnuddaAnalyse):
 

@@ -300,7 +300,7 @@ class SnuddaLoad(object):
 
     prototypeInfo = self.config[neuronInfo["name"]]
 
-    from Neuron_morphology import NeuronMorphology
+    from .Neuron_morphology import NeuronMorphology
     neuron = NeuronMorphology(name=neuronInfo["name"],
                               position=neuronInfo["position"],
                               rotation=neuronInfo["rotation"],

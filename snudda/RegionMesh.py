@@ -10,19 +10,19 @@ import timeit
 class RegionMesh(object):
 
   ############################################################################
-  
+
   def __init__(self,fileName,dView = None, lbView = None, role="master",
                useCache=True,pickleVersion=-1,raytraceBorders=True,
                dMin=15e-6,binWidth=1e-4,logFileName=None,logFile=None):
 
     self.dView = dView
     self.lbView = lbView
-    
+
     self.role = role
     self.workersInitialised = False
 
     self.verbose = True
-    
+
     if(logFile is not None):
       self.logFile = logFile
       self.logFileName = logFile.name
@@ -34,19 +34,19 @@ class RegionMesh(object):
       self.logFileName = None
 
     #self.binWidth = 5e-4
-    self.binWidth = binWidth # 1e-4 # 5e-5 # 1e-4    
+    self.binWidth = binWidth # 1e-4 # 5e-5 # 1e-4
     self.padding = max(self.binWidth,dMin)
-    
+
     # This determines if we ray trace the border voxels, for finer detail
     # or not (activating this is SLOW)
     self.raytraceBorders = raytraceBorders
-    
+
     if(raytraceBorders):
       self.writeLog("Ray tracing points in border voxels, this is slow.")
       rtStr = "-RTB"
     else:
       rtStr = ""
-    
+
     # binWidth 5e-4 (94s) --> 10.8 % border voxels
     # binWidth 2.5e-4 (577) --> 6.2 % border voxels
     # binWidth 1e-4 (8090s) --> 2.7 % border voxels
@@ -55,11 +55,11 @@ class RegionMesh(object):
     self.fileName = fileName
     self.cacheFile = fileName + "-" + str(int(1e6*self.binWidth)) + rtStr + "-cache.pickle"
     self.pickleVersion = pickleVersion
-    
+
     self.debugFlag = False
 
     cacheLoaded = False
-    
+
     if(useCache and self.cacheExist()):
       try:
         self.loadCache()
@@ -72,10 +72,10 @@ class RegionMesh(object):
       self.loadMesh(fileName=fileName)
 
       tA = timeit.default_timer()
-      
+
       self.preCompute()
       self.setupVoxelFilter()
-      
+
       tB = timeit.default_timer()
 
       self.writeLog("Calculation time: " + str(tB-tA) + " s")
@@ -95,13 +95,13 @@ class RegionMesh(object):
   def markBorders(self):
 
     self.writeLog("Marking borders")
-    
+
     for row in self.meshVec:
       ic = np.floor((row - self.minCoord)/self.binWidth)
       self.voxelMaskBorder[int(ic[0]),int(ic[1]),int(ic[2])] = 1
-          
+
     maxN = 0
-    
+
     for row in self.meshFaces:
       coord1 = self.meshVec[row[0],:]
       coord2 = self.meshVec[row[1],:]
@@ -109,7 +109,7 @@ class RegionMesh(object):
 
       vx = coord2-coord1
       vy = coord3-coord1
-      
+
       dx = np.linalg.norm(coord2-coord1)
       dy = np.linalg.norm(coord3-coord1)
 
@@ -117,30 +117,30 @@ class RegionMesh(object):
       ny = int(2*np.ceil(dy/self.binWidth))+1
 
       maxN = max(maxN,max(nx,ny))
-      
+
       for xStep in np.linspace(0,1,nx):
         for yStep in np.linspace(0,1-xStep,ny):
           xPoint = coord1 + vx*xStep + vy*yStep
           ic = np.floor((xPoint - self.minCoord)/self.binWidth)
           self.voxelMaskBorder[int(ic[0]),int(ic[1]),int(ic[2])] = 1
-          
+
     self.writeLog("maxN = " + str(maxN))
-    
+
 
   ############################################################################
 
   def setupParallel(self,dView=None):
 
     if(dView is None):
-      
+
       if(self.dView is None):
         self.writeLog("Running in serial")
         return
-      
+
       dView = self.dView
 
     self.writeLog("Setting up parallel")
-    
+
     assert self.role == "master", \
       "setupParallel should only be called by master"
 
@@ -149,8 +149,8 @@ class RegionMesh(object):
       return
 
     with dView.sync_imports():
-      from RegionMesh import RegionMesh
-    
+      from .RegionMesh import RegionMesh
+
     try:
       self.writeLog("Setting up RegionMesh on workers")
       dView.push({"fileName":self.fileName}, block=True)
@@ -160,11 +160,11 @@ class RegionMesh(object):
                          + str(x) for x in range(0,len(dView))]
       else:
         engineLogFile = [[] for x in range(0,len(dView))]
-        
+
       dView.scatter('logFileName',engineLogFile,block=True)
 
       cmdStr = "sm = RegionMesh(fileName=fileName,role='worker',logFileName=logFileName[0])"
-      
+
       dView.execute(cmdStr,block=True)
       self.writeLog("Worker RegionMesh setup done.")
 
@@ -179,10 +179,10 @@ class RegionMesh(object):
       self.writeLog(tstr)
       import pdb
       pdb.set_trace()
-      
+
 
     self.workersInitialised = True
-    
+
   ############################################################################
 
   def cacheExist(self):
@@ -209,7 +209,7 @@ class RegionMesh(object):
   def loadCache(self):
 
     self.writeLog("Loading cache file: " + self.cacheFile)
-    
+
     with open(self.cacheFile,'rb') as f:
       data = pickle.load(f)
 
@@ -222,7 +222,7 @@ class RegionMesh(object):
     self.voxelMaskBorder = data["voxelMaskBorder"]
 
     self.pointOut = self.maxCoord + 1e-2
-    
+
     assert self.binWidth == data["binWidth"], \
       "Mismatch binWidth: " + str(self.binWidth) +" vs " + str(data["binWidth"])
     assert self.padding == data["padding"], \
@@ -231,17 +231,17 @@ class RegionMesh(object):
     assert self.raytraceBorders == data["raytraceBorders"], \
       "Missmatch raytraceBorders: " + str(self.raytraceBorders) \
       + " vs " + str(data["raytraceBorders"])
-    
+
     self.nBins = self.voxelMaskInner.shape
     self.preCompute()
-    
+
   ############################################################################
 
   def saveCache(self):
 
     if(self.role != "master"):
       return
-    
+
     data = dict([])
     data["meshVec"]   = self.meshVec
     data["meshFaces"] = self.meshFaces
@@ -249,21 +249,21 @@ class RegionMesh(object):
     data["minCoord"]  = self.minCoord
     data["maxCoord"]  = self.maxCoord
     data["voxelMaskInner"]  = self.voxelMaskInner
-    data["voxelMaskBorder"] = self.voxelMaskBorder      
+    data["voxelMaskBorder"] = self.voxelMaskBorder
     data["padding"] = self.padding
     data["binWidth"] = self.binWidth
     data["raytraceBorders"] = self.raytraceBorders
-    
+
     self.writeLog("Saving mesh cache file " + self.cacheFile)
     with open(self.cacheFile,'wb') as f:
       pickle.dump(data,f,self.pickleVersion)
-    
+
   ############################################################################
-  
+
   def loadMesh(self,fileName):
 
     self.fileName = fileName
-    
+
     allVec = []
     allFaces = []
     allNorm = []
@@ -280,14 +280,14 @@ class RegionMesh(object):
     (?: [Ee] [+-]? \d+ ) ?
     """
     rx = re.compile(numeric_const_pattern, re.VERBOSE)
-    
+
     with open(fileName,'rt') as f:
       for row in f:
         if(row[0:2] == 'v '):
           digits = rx.findall(row)
           # Convert to SI units
           allVec.append([float(d)*1e-6 for d in digits])
-          
+
         if(row[0:2] == 'f '):
           # Only take first value of each triplet 1/?/? 2/?/? 3/?/?
           digits = re.findall(r'f\s+(\d+)/\d*/\d*\s+(\d+)//\d*\s+(\d+)//\d*',
@@ -304,17 +304,17 @@ class RegionMesh(object):
         if(row[0:2] == 'vn'):
           digits = rx.findall(row)
           allNorm.append([float(d) for d in digits])
-          
+
       self.meshVec = np.zeros((len(allVec),3))
       self.meshFaces = np.zeros((len(allFaces),3),dtype=int)
-      self.meshNorm = np.zeros((len(allNorm),3))      
+      self.meshNorm = np.zeros((len(allNorm),3))
 
       for ir,row in enumerate(allVec):
         self.meshVec[ir,:] = row
-      
+
       for ir,row in enumerate(allFaces):
         self.meshFaces[ir,] = row
-        
+
       for ir,row in enumerate(allNorm):
         self.meshNorm[ir,:] = row
 
@@ -328,15 +328,15 @@ class RegionMesh(object):
 
       # Used by ray casting when checking if another point is interior
       self.pointOut = self.maxCoord + 1e-2
-      
+
   ############################################################################
 
   def preCompute(self):
 
     i0 = self.meshFaces[:,0]
-    i1 = self.meshFaces[:,1]    
+    i1 = self.meshFaces[:,1]
     i2 = self.meshFaces[:,2]
-    
+
     self.u = self.meshVec[i1,:] - self.meshVec[i0,:]
     self.v = self.meshVec[i2,:] - self.meshVec[i0,:]
 
@@ -345,7 +345,7 @@ class RegionMesh(object):
     self.uv = np.sum(np.multiply(self.u,self.v),axis=1)
     self.vv = np.sum(np.multiply(self.v,self.v),axis=1)
     self.uu = np.sum(np.multiply(self.u,self.u),axis=1)
-    
+
     self.denom = np.multiply(self.uv,self.uv) - np.multiply(self.uu,self.vv)
 
     # Normal of triangle
@@ -354,16 +354,16 @@ class RegionMesh(object):
     # We need to normalise it
     nl = np.repeat(np.reshape(self.uv,[self.uv.shape[0],1]),3,axis=1)
     self.nrm = np.divide(self.nrm,nl)
-    
-    
+
+
   ############################################################################
 
   def setupVoxelFilter(self):
 
-    
+
     if(self.role == "master"):
       self.setupParallel()
-    
+
     self.minCoord = np.floor((np.min(self.meshVec,axis=0)
                               - self.padding)/self.binWidth )*self.binWidth
     self.maxCoord = np.ceil((np.max(self.meshVec,axis=0)
@@ -377,17 +377,17 @@ class RegionMesh(object):
           + "x" + str(self.nBins[2]))
 
     self.voxelMaskInner = np.zeros(self.nBins,dtype=bool)
-    self.voxelMaskBorder = np.zeros(self.nBins,dtype=bool)    
+    self.voxelMaskBorder = np.zeros(self.nBins,dtype=bool)
 
     # All voxels with a mesh point in them are "border voxels"
     # For all remaining points, check if inner or outer
     # If raytraceBorders is false, we dont raytace for border points
     # at run time, this gives a bit jagged edges, but is MUCH faster
     # when placing cells (no ray tracing then)
-    
+
     if(self.raytraceBorders):
       self.markBorders()
-      
+
     nBinsTotal = self.nBins[0]*self.nBins[1]*self.nBins[2]
     iterCtr = 0
 
@@ -412,13 +412,13 @@ class RegionMesh(object):
         #    print(str(iterCtr) + "/" + str(nBinsTotal))
         #    for iz in range(0,self.nBins[2]):
         #      iterCtr += 1
-        #  
+        #
         #      if(not self.voxelMaskBorder[ix,iy,iz]):
         #        # Inner or outer point, check centre
         #        xyz = np.array([self.minCoord[0] + (ix+0.5)*self.binWidth,
         #                        self.minCoord[1] + (iy+0.5)*self.binWidth,
         #                        self.minCoord[2] + (iz+0.5)*self.binWidth])
-        #        
+        #
         #        self.voxelMaskInner[ix,iy,iz] = self.rayCasting(xyz)
 
       else:
@@ -440,7 +440,7 @@ class RegionMesh(object):
           self.writeToRandomFile(tstr)
           import pdb
           pdb.set_trace()
-          
+
         for m in innerMask:
           self.voxelMaskInner = np.logical_or(self.voxelMaskInner,m)
 
@@ -462,19 +462,19 @@ class RegionMesh(object):
   ############################################################################
 
   def writeToRandomFile(self,text):
-    
+
     import uuid
     tmp = open("save/regmesh-tmp-log-file-" + str(uuid.uuid4()),'w')
     tmp.write(text)
     tmp.close()
     print(text)
 
-  
+
   ############################################################################
 
   def checkInside(self,coords):
     idx = np.array(np.floor((coords - self.minCoord)/self.binWidth),dtype=int)
-    
+
     if(self.voxelMaskInner[idx[0],idx[1],idx[2]]):
       # We know it is an inner voxel
       return True
@@ -485,7 +485,7 @@ class RegionMesh(object):
       # We are outside structure
       return False
 
-    
+
   ############################################################################
 
   def _voxelMaskHelper(self, xRange):
@@ -495,10 +495,10 @@ class RegionMesh(object):
       # Need the extra dimension at the top to make gather work
       vmInner = np.zeros((1,self.nBins[0],self.nBins[1],self.nBins[2]),
                          dtype=bool)
-    
+
       for ix in xRange:
         self.writeLog("Processing x = " + str(ix))
-        
+
         for iy in range(0,self.nBins[1]):
           for iz in range(0,self.nBins[2]):
             if(not self.voxelMaskBorder[ix,iy,iz]):
@@ -517,7 +517,7 @@ class RegionMesh(object):
       self.writeToRandomFile(tstr)
       import pdb
       pdb.set_trace()
-  
+
     return vmInner
 
   ############################################################################
@@ -526,7 +526,7 @@ class RegionMesh(object):
   # if an odd number of intersections, then it is an inner point
   #
   # Based on: https://www.erikrotteveel.com/python/three-dimensional-ray-tracing-in-python/
-  
+
   def rayCasting(self,point):
 
     nTri = self.meshFaces.shape[0]
@@ -535,13 +535,13 @@ class RegionMesh(object):
     # rn = nominator, rd = denominator
     rn = np.sum(np.multiply(self.nrm,self.v0 - point),axis=1)
     rd = np.dot(self.nrm,P)
-    
+
     #r = np.divide(rn,rd)
-    
+
     intersectCount = 0
 
     for i in range(0,nTri):
-      
+
       if(rd[i] == 0):
         if(rn[i] == 0):
           # Parallel and lies in the plane
@@ -556,10 +556,10 @@ class RegionMesh(object):
         # Crosses the plane, but is it within triangle?
 
         w = point + rI * P - self.v0[i,:]
-        
+
         si = (self.uv[i] * np.inner(w,self.v[i,:]) \
               - self.vv[i] * np.inner(w,self.u[i,:])) / self.denom[i]
-        
+
         if(si < 0 or si > 1):
           # outside of triangle
           continue
@@ -573,16 +573,16 @@ class RegionMesh(object):
 
         # print("intersects face i = " + str(i))
         # print("si = " +str(si) + ", ti = " + str(ti))
-        
+
         intersectCount += 1
 
         if(self.debugFlag):
           import pdb
           pdb.set_trace()
-        
-        
+
+
     # print("intersection count = " + str(intersectCount))
-    
+
     return np.mod(intersectCount,2) == 1
 
   ############################################################################
@@ -591,18 +591,18 @@ class RegionMesh(object):
 
     if(self.role != "master"):
       return
-    
+
     xTest = np.random.uniform(self.minCoord[0],self.maxCoord[0],nPoints)
     yTest = np.random.uniform(self.minCoord[1],self.maxCoord[1],nPoints)
     zTest = np.random.uniform(self.minCoord[2],self.maxCoord[2],nPoints)
 
     self.writeLog("Verifying our method")
-    
+
     for i in range(0,nPoints):
 
       self.writeLog(str(i) + "/" + str(nPoints))
       coords = np.array([xTest[i],yTest[i],zTest[i]])
-      
+
       try:
         assert(self.checkInside(coords) == self.rayCasting(coords))
       except:
@@ -618,10 +618,10 @@ class RegionMesh(object):
   def setupPlaceNeurons(self,dMin=None):
 
     self.writeLog("Setup place neurons")
-    
+
     self.dMin = dMin
-    
-    self.maxRand = 1000000  
+
+    self.maxRand = 1000000
     self.randCtr = self.maxRand + 1
 
     self.randomPool = np.zeros((self.maxRand,3))
@@ -653,7 +653,7 @@ class RegionMesh(object):
   def setupVoxelList(self):
 
     self.writeLog("Setup voxel list")
-    
+
     self.maxNeuronsVoxel = 10000
 
     self.voxelNextNeuron = np.zeros(self.nBins,dtype=int)
@@ -665,11 +665,11 @@ class RegionMesh(object):
   def updatePaddingMask(self):
 
     self.writeLog("Update padding mask")
-    
+
     # Only save padding for border voxels, and voxels nearby
     nDist = int(np.ceil(2*self.dMin/self.binWidth))
     s = ndimage.generate_binary_structure(3,3)
-    
+
     if(np.sum(self.voxelMaskBorder)):
       # If we do raytracing then the border exists
       self.voxelMaskPadding = np.copy(self.voxelMaskBorder)
@@ -680,7 +680,7 @@ class RegionMesh(object):
                                           iterations=nDist)
     else:
       # No ray tracing, we need to create a padding region
-      
+
       dilatedMask = scipy.ndimage.binary_dilation(self.voxelMaskInner,
                                                   structure=s,
                                                   iterations=nDist)
@@ -688,7 +688,7 @@ class RegionMesh(object):
       self.voxelMaskPadding = \
           np.logical_xor(dilatedMask,self.voxelMaskInner)
 
-      
+
   ############################################################################
 
   def checkPaddingZone(self,coords):
@@ -696,7 +696,7 @@ class RegionMesh(object):
     idx = np.array(np.floor((coords - self.minCoord)/self.binWidth),dtype=int)
 
     return self.voxelMaskPadding[idx[0],idx[1],idx[2]]
-    
+
   ############################################################################
 
   def updateRandomPool(self):
@@ -710,12 +710,12 @@ class RegionMesh(object):
                                                  size=self.maxRand)
 
       self.randCtr = 0
-    
+
   ############################################################################
 
   # neuronType is included since in future versions we might want varying
   # density depending on the type of neuron
-  
+
   def placeNeurons(self, nCells, neuronType=None, dMin=None):
 
     if(dMin is None):
@@ -735,10 +735,10 @@ class RegionMesh(object):
     else:
       neuronID = self.nextNeuronType
       self.nextNeuronType += 1
-      
+
       self.neuronTypes[neuronType] = neuronID
 
-    
+
     startCtr = self.neuronCtr
     endCtr = self.neuronCtr + nCells
 
@@ -759,20 +759,20 @@ class RegionMesh(object):
           self.writeLog("No neurons placed, check why!")
           import pdb
           pdb.set_trace()
-      
+
       if(self.randCtr >= self.maxRand):
         self.updateRandomPool()
 
       minDist2 = 1e6
-      
+
       insideFlag = self.checkInside(coords=putativeLoc)
-      
+
       if(not insideFlag and not self.checkPaddingZone(putativeLoc)):
         # We are outside, go to next neuron
         self.rejectCtr += 1
         continue
 
-      
+
       # Check that we are not too close to existing points
       # Only check the neighbouring voxels, to speed things up
       voxelIdx = np.array(np.floor((putativeLoc - self.minCoord)
@@ -782,7 +782,7 @@ class RegionMesh(object):
       voxelIdxList.append(voxelIdx)
 
       borderVoxel = np.zeros((3,),dtype=int)
-      
+
       for idx in range(0,3):
         if((putativeLoc[idx] - self.minCoord[idx]) % self.binWidth < dMin):
           borderVoxel[idx] = -1
@@ -797,7 +797,7 @@ class RegionMesh(object):
           voxelIdxList.append(newIdx)
 
       nBorder = np.sum(np.abs(borderVoxel))
-      
+
       if(nBorder == 2):
         # Along one of the lines, need to check diagonal voxel also
         voxelIdxList.append(voxelIdx + borderVoxel)
@@ -807,7 +807,7 @@ class RegionMesh(object):
         voxelIdxList.append(voxelIdx + [borderVoxel[0],0,borderVoxel[2]])
         voxelIdxList.append(voxelIdx + [0,borderVoxel[1],borderVoxel[2]])
         voxelIdxList.append(voxelIdx + borderVoxel)
-        
+
       minDist2 = 1e6
       for voxIdx in voxelIdxList:
         if((voxIdx<0).any() or (voxIdx > self.nBins).any()):
@@ -825,10 +825,10 @@ class RegionMesh(object):
                                                          voxIdx[2]],
                                   :] \
                                   - putativeLoc
-        
-            
+
+
           minDist2 = min(minDist2, np.min(np.sum(np.square(tmp), axis=1)))
-          
+
       if(dMin2 < minDist2):
         # Ok neuron is not too close to any neighbours
 
@@ -850,27 +850,27 @@ class RegionMesh(object):
                                                voxelIdx[1],
                                                voxelIdx[2]],
                           :] = putativeLoc
-          
+
         self.voxelNextNeuron[voxelIdx[0],voxelIdx[1],voxelIdx[2]] += 1
-          
+
       else:
         self.rejectCtr += 1
-        
+
     tB = timeit.default_timer()
     self.writeLog("Placed " + str(nCells) + " in " + str(tB-tA) + " s")
-  
-        
+
+
     return self.neuronCoords[startCtr:endCtr,:]
-        
+
 
       # Store point in global list, but also reference it in specific voxel
-      
-  
+
+
   ############################################################################
 
   # shape = "cube" or "sphere"
   # radius = radius of sphere, or half the length of side of the cube
-  
+
   def getSubset(self,centre,radius=None,nNeurons=None,shape="cube",
                 returnIdxFlag=False):
 
@@ -879,7 +879,7 @@ class RegionMesh(object):
 
     coords = self.neuronCoords[:self.neuronCtr,:]
     nrnType = self.neuronType[:self.neuronCtr,:]
-    
+
     if(shape == "cube"):
       dist = np.amax(abs(coords - centre),axis=1)
     elif(shape == "sphere"):
@@ -905,14 +905,14 @@ class RegionMesh(object):
       return np.where(keepMask)
     else:
       return (coords[keepMask,:],nrnType[keepMask,:])
-  
+
   ############################################################################
-  
+
   def plotStruct(self,pdfName=None):
 
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
-    
+
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
@@ -927,10 +927,10 @@ class RegionMesh(object):
 
     ax.view_init(150,40); plt.draw()
     plt.axis("off")
-    
+
     if(pdfName is not None):
       plt.savefig(pdfName)
-    
+
   ############################################################################
 
   def plotNeurons(self,plotIdx=None,pdfName=None):
@@ -940,7 +940,7 @@ class RegionMesh(object):
 
     if(plotIdx is None):
       plotIdx = range(0,self.neuronCtr)
-    
+
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
@@ -955,10 +955,10 @@ class RegionMesh(object):
 
     ax.view_init(150,40); plt.draw()
     plt.axis("off")
-    
+
     #import pdb
     #pdb.set_trace()
-    
+
     if(pdfName is not None):
       plt.savefig(pdfName)
 
@@ -967,7 +967,7 @@ class RegionMesh(object):
   def testPlot(self):
 
     # !!! NEXT ADD dMIN TO THIS
-    
+
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
 
@@ -980,29 +980,29 @@ class RegionMesh(object):
     xTest = np.random.uniform(self.minCoord[0],self.maxCoord[0],nPoints)
     yTest = np.random.uniform(self.minCoord[1],self.maxCoord[1],nPoints)
     zTest = np.random.uniform(self.minCoord[2],self.maxCoord[2],nPoints)
-    
+
     for i in range(0,nPoints):
-      
+
       self.writeLog("Checking " + str(i+1) + "/" + str(nPoints))
-      
+
       if(self.rayCasting(np.array([xTest[i],yTest[i],zTest[i]]))):
         self.writeLog("Inside!")
         color = 'red'
-        ax.scatter(xTest[i],yTest[i],zTest[i],color=color)      
+        ax.scatter(xTest[i],yTest[i],zTest[i],color=color)
       else:
         color = 'black'
 
       # ax.scatter(xTest[i],yTest[i],zTest[i],color=color)
-    
+
     plt.show()
-    plt.pause(0.001)       
+    plt.pause(0.001)
 
   ############################################################################
 
   def testPlotCached(self):
 
     # !!! NEXT ADD dMIN TO THIS
-    
+
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
 
@@ -1015,9 +1015,9 @@ class RegionMesh(object):
     xTest = np.random.uniform(self.minCoord[0],self.maxCoord[0],nPoints)
     yTest = np.random.uniform(self.minCoord[1],self.maxCoord[1],nPoints)
     zTest = np.random.uniform(self.minCoord[2],self.maxCoord[2],nPoints)
-    
+
     for i in range(0,nPoints):
-      
+
 
       coord = np.array([xTest[i],yTest[i],zTest[i]])
       rayVal = self.rayCasting(coord)
@@ -1025,18 +1025,18 @@ class RegionMesh(object):
 
       if(rayVal == cachedVal):
         self.writeLog("Checking " + str(i+1) + "/" + str(nPoints))
-        
+
       elif(rayVal):
         # Inside, but cached was wrong
         color = 'red'
-        ax.scatter(xTest[i],yTest[i],zTest[i],color=color)      
+        ax.scatter(xTest[i],yTest[i],zTest[i],color=color)
       else:
         # Outside, but cached wrong
         color = 'blue'
         ax.scatter(xTest[i],yTest[i],zTest[i],color=color)
-    
+
     plt.show()
-    plt.pause(0.001)       
+    plt.pause(0.001)
 
   ############################################################################
 
@@ -1052,15 +1052,15 @@ class RegionMesh(object):
       self.writeLog("Too many to check all, picking random neurons to check")
       neuronRange = np.random.randint(0,self.neuronCtr,size=(100000,1))
       self.writeLog(str(neuronRange))
-      
+
     ctr = 0
 
     for iNeuron in range(0,self.neuronCtr):
-      
+
       ctr = ctr + 1
       if(ctr % 10000 == 0):
         self.writeLog(str(ctr) + "/" + str(len(neuronRange)))
-      
+
       d = np.sqrt(np.sum(np.square(self.neuronCoords[:self.neuronCtr,:]
                                    - self.neuronCoords[iNeuron,:]),
                          axis=1))
@@ -1088,7 +1088,7 @@ class RegionMesh(object):
 
     fig2 = plt.figure()
     ax = fig2.add_subplot(111, projection='3d')
-    
+
     xc = (self.neuronCoords[badIdx,:] - self.minCoord) % self.binWidth
     ax.scatter(xc[:,0],xc[:,1],xc[:,2],'black')
     plt.title("Bad neuron locations: " + str(xc.shape[0]) )
@@ -1099,7 +1099,7 @@ class RegionMesh(object):
     plt.ion()
     plt.show()
     plt.pause(0.001)
-    
+
     try:
       assert self.dMin <= np.min(minDist), "dMin criteria not fullfilled: " \
         + str(np.min(minDist)) + " < dMin = " + str(self.dMin)
@@ -1107,7 +1107,7 @@ class RegionMesh(object):
       self.writeLog("dMin not fullfilled")
       import pdb
       pdb.set_trace()
-      
+
   ############################################################################
 
   def simpleTestCase(self):
@@ -1125,9 +1125,9 @@ class RegionMesh(object):
     for i in range(0,1000):
       testPoint = np.random.uniform(0,1e-6,3) \
                   + np.array([0,0,0])*1e-6
-    
+
     #testPoint = np.array([0.5,0.61,0.5])*1e-6
-    
+
       #self.debugFlag = True
       insideFlag = self.rayCasting(testPoint)
 
@@ -1136,17 +1136,17 @@ class RegionMesh(object):
         self.writeLog("wrong!")
         import pdb
         pdb.set_trace()
-      
+
 
     self.writeLog("All correct")
     self.writeLog("Debug mode")
     import pdb
     pdb.set_trace()
-  
+
   ############################################################################
 
   def writeLog(self,text,flush=True): # Change flush to False in future, debug
-     
+
     if(self.logFile is not None):
       self.logFile.write(text + "\n")
       print(text)
@@ -1161,14 +1161,14 @@ class RegionMesh(object):
   def innerVoxelVolume(self):
 
     return np.sum(self.voxelMaskInner)*(self.binWidth**3)
-  
+
   ############################################################################
-  
+
 if __name__ == "__main__":
-  
+
   #sm = RegionMesh("cube.obj",useCache=False)
   #sm.simpleTestCase()
-  
+
   if(os.getenv('IPYTHON_PROFILE') is not None):
     from ipyparallel import Client
     rc = Client(profile=os.getenv('IPYTHON_PROFILE'),
@@ -1185,7 +1185,7 @@ if __name__ == "__main__":
     print("No IPYTHON_PROFILE enviroment variable set, running in serial")
     dView = None
     lbView = None
-    
+
   meshFile = 'mesh/striatum-mesh.obj'
   #meshFile = "mesh/cortex-mesh-200.obj"
   sm = RegionMesh(meshFile,dView=dView,lbView=lbView,
@@ -1196,7 +1196,7 @@ if __name__ == "__main__":
 
   # sm.plotStruct()
 
-  
+
   nNeurons = 1730000
   neuronPos = sm.placeNeurons(nNeurons)
   # sm.verifyDmin()
@@ -1210,17 +1210,15 @@ if __name__ == "__main__":
     sm.plotNeurons(plotIdx=idx)
 
   sm.plotStruct(pdfName="figures/striatum-fig-struct.png")
-  
+
   # sm.testPlot()
   # sm.testPlotCached()
-  
+
   #tp = (sm.minCoord + sm.maxCoord)/2
   #sm.rayCasting(np.array(tp))
-  
+
   import pdb
   pdb.set_trace()
 
   if(dView is not None):
     rc.shutdown(hub=True)
-
-  

@@ -28,9 +28,9 @@
 
 import os
 
-from snudda_simulate import SnuddaSimulate
-from snudda_load import SnuddaLoad
-from snudda_init import SnuddaInit
+from .simulate import SnuddaSimulate
+from .load import SnuddaLoad
+from .init import SnuddaInit
 from snudda import Snudda
 
 import numpy as np

@@ -40,7 +40,7 @@ import h5py
 import json
 import pickle
 
-from Neuron_morphology import NeuronMorphology
+from .Neuron_morphology import NeuronMorphology
 
 # The x,y,z coordinates of the synapses in the original file are integer
 # indexes refering to within the hyper voxel. Here they are transformed
@@ -1377,7 +1377,7 @@ class SnuddaPrune(object):
       return
    
     with dView.sync_imports():
-      from snudda_prune import SnuddaPrune
+      from .prune import SnuddaPrune
 
     self.writeLog("Setting up workers: " \
                   + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))

@@ -23,8 +23,8 @@ import itertools
 
 import matplotlib.pyplot as plt
 
-from Neuron_morphology import NeuronMorphology
-from snudda_load import SnuddaLoad
+from .Neuron_morphology import NeuronMorphology
+from .load import SnuddaLoad
 
 nl = None
 
@@ -981,7 +981,7 @@ class SnuddaInput(object):
       return
 
     with self.dView.sync_imports():
-      from snudda_input import SnuddaInput
+      from .input import SnuddaInput
 
     self.dView.push({ "inputConfigFile" : self.inputConfigFile,
                       "networkConfigFile" : self.networkConfigFile,

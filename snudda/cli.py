@@ -1,6 +1,6 @@
 from argparse import ArgumentParser, RawTextHelpFormatter
 from .core import Snudda
-from .snudda_help import snudda_help_text
+from .help import snudda_help_text
 
 def snudda_cli():
       parser = ArgumentParser(description="Microcircuit generation\n\n" + snudda_help_text(), formatter_class=RawTextHelpFormatter)
