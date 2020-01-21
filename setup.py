@@ -5,13 +5,13 @@ from glob import glob
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-# # Collect all files from the data folder
-# data_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
-# data_files = []
-# for (dirpath, dirnames, filenames) in os.walk(data_folder):
-#     rel_folder = os.path.join("snudda_data", os.path.relpath(dirpath, "data"))
-#     if len(filenames) > 0:
-#         data_files.append((rel_folder, [os.path.relpath(os.path.join(dirpath, f)) for f in filenames]))
+# Collect all files recursively from the "snudda/data" folder
+data_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), "snudda", "data"))
+data_files = []
+for (dirpath, dirnames, filenames) in os.walk(data_folder):
+    rel_folder = os.path.relpath(dirpath, "snudda")
+    if len(filenames) > 0:
+        data_files.append(os.path.join(rel_folder, "*"))
 
 setuptools.setup(
     name="snudda",
@@ -30,8 +30,8 @@ setuptools.setup(
     ],
     include_package_data=True,
     package_data={
-        "mypkg": ["data/*"],
-    }
+        "snudda": data_files,
+    },
     entry_points={"console_scripts": ["snudda = snudda.cli:snudda_cli"]},
     install_requires=[
         "bluepyopt>=1.8.21",
@@ -42,7 +42,8 @@ setuptools.setup(
         "numpy>=1.15.4",
         "scipy>=1.2.0",
         "sonata>=0.0.1",
-        "pyzmq>=18.0.0"
+        "pyzmq>=18.0.0",
+        "setuptools>=41.0.0"
     ],
     extras_require={"dev": ["sphinx"]},
 )
