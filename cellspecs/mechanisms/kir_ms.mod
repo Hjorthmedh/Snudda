@@ -1,9 +1,28 @@
 TITLE Non-inactivating inwardly rectifying potassium current (Kir2.3)
 
+COMMENT
+
+neuromodulation is added as functions:
+    
+    modulation = 1 + damod*(maxMod-1)
+
+where:
+    
+    damod  [0]: is a switch for turning modulation on or off {1/0}
+    maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
+                e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+
+[] == default values
+{} == ranges
+    
+ENDCOMMENT
+
+
 NEURON {
     SUFFIX kir_ms
     USEION k READ ek WRITE ik
     RANGE gbar, gk, ik, shift
+    RANGE damod, maxMod
 }
 
 UNITS {
@@ -16,6 +35,8 @@ PARAMETER {
     gbar = 0.0 	(S/cm2) 
     shift = 0.0 (mV)
     q = 1 	: body temperature 35 C
+    damod = 0
+    maxMod = 1
 }
 
 ASSIGNED {
@@ -31,7 +52,7 @@ STATE { m }
 
 BREAKPOINT {
     SOLVE states METHOD cnexp
-    gk = gbar*m
+    gk = gbar*m*modulation()
     ik = gk*(v-ek)
 }
 
@@ -50,6 +71,12 @@ PROCEDURE rates() {
     minf = 1/(1+exp((v-(-82)-shift)/13))
     mtau = 1/(exp((v-(-103))/(-14.5))+0.125/(1+exp((v-(-35))/(-19))))
     UNITSON
+}
+
+FUNCTION modulation() {
+    : returns modulation factor
+    
+    modulation = 1 + damod*(maxMod-1)
 }
 
 COMMENT

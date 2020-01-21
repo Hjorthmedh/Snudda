@@ -22,6 +22,9 @@ class NeuronMorphology(object):
                param_filename = None,
                param_data = None,
                mech_filename = None,
+               modulation = None,
+               parameterID = None,
+               modulationID = None,
                verbose=False,
                loadMorphology=True,
                hoc=None,
@@ -66,6 +69,9 @@ class NeuronMorphology(object):
     self.param_filename = param_filename
     self.param_data = param_data
     self.mech_filename = mech_filename
+    self.modulation = modulation
+    self.parameterID = parameterID
+    self.modulationID = modulationID
     self.verbose = verbose
     self.useCache = useCache
     self.pickleVersion = pickleVersion    
@@ -147,7 +153,9 @@ class NeuronMorphology(object):
   def clone(self,
             loadMorphology=None, # True or False, None = same as parent
             position=np.zeros((1,3)),
-            rotation=None):
+            rotation=None,
+            parameterID=None,
+            modulationID=None):
 
     if(loadMorphology is None):
       loadMorphology = self.loadMorphology
@@ -167,6 +175,9 @@ class NeuronMorphology(object):
                                  param_filename=self.param_filename,
                                  param_data=self.param_data,
                                  mech_filename=self.mech_filename,
+                                 modulation=self.modulation,
+                                 parameterID=parameterID,
+                                 modulationID=modulationID,
                                  verbose=self.verbose,
                                  loadMorphology=False,
                                  hoc=self.hoc,

@@ -2,6 +2,22 @@ TITLE Glutamatergic synapse with short-term plasticity (stp)
 
 COMMENT
 stp can be turned of by setting use_stp == 0
+
+--------------------------------------------
+
+neuromodulation is added as functions:
+    
+    modulation = 1 + damod*(maxMod-1)
+
+where:
+    
+    damod  [0]: is a switch for turning modulation on or off {1/0}
+    maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
+                e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+
+[] == default values
+{} == ranges
+
 ENDCOMMENT
 
 NEURON {
@@ -12,7 +28,7 @@ NEURON {
     RANGE e, g, i, q, mg
     RANGE tau, tauR, tauF, U, u0
     RANGE ca_ratio_ampa, ca_ratio_nmda, mggate, use_stp
-    RANGE failRate
+    RANGE failRate, damod, maxModAMPA, maxModNMDA
     NONSPECIFIC_CURRENT i
     USEION cal WRITE ical VALENCE 2
 }
@@ -40,9 +56,12 @@ PARAMETER {
     ca_ratio_ampa = 0.005
     ca_ratio_nmda = 0.1
     mg = 1 (mM)
+    damod = 0
+    maxModNMDA = 1
+    maxModAMPA = 1
 
     use_stp = 1     : to turn of use_stp -> use 0
-    failRate = 0	
+    failRate = 0
 }
 
 ASSIGNED {
@@ -91,14 +110,14 @@ BREAKPOINT {
     
     : NMDA
     mggate    = 1 / (1 + exp(-0.062 (/mV) * v) * (mg / 3.57 (mM)))
-    g_nmda    = B_nmda - A_nmda
+    g_nmda    = (B_nmda - A_nmda) * modNMDA()
     itot_nmda = g_nmda * (v - e) * mggate
     ical_nmda = ca_ratio_nmda*itot_nmda
     i_nmda    = itot_nmda - ical_nmda
     
     : AMPA
-    g_ampa    = B_ampa - A_ampa
-    itot_ampa = g_ampa*(v - e)
+    g_ampa    = (B_ampa - A_ampa) * modAMPA()
+    itot_ampa = g_ampa*(v - e) 
     ical_ampa = ca_ratio_ampa*itot_ampa
     i_ampa    = itot_ampa - ical_ampa
     
@@ -170,6 +189,20 @@ ENDVERBATIM
 
 FUNCTION urand() {
     urand = scop_random(1)
+}
+
+
+FUNCTION modAMPA() {
+    : returns modulation factor
+    
+    modAMPA = 1 + damod*(maxModAMPA-1)
+}
+
+
+FUNCTION modNMDA() {
+    : returns modulation factor
+    
+    modNMDA = 1 + damod*(maxModNMDA-1)
 }
 
 COMMENT

@@ -9,9 +9,21 @@ FAST
 
 6/18/2003
 
+
+neuromodulation is added as functions:
+    
+    modulation = 1 + damod*(maxMod-1)
+
+where:
+    
+    damod  [0]: is a switch for turning modulation on or off {1/0}
+    maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
+                    e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+
+[] == default values
+{} == ranges
+    
 ENDCOMMENT
-
-
 
 
 NEURON {
@@ -24,6 +36,7 @@ NEURON {
 	GLOBAL g0
 	GLOBAL d0
 	GLOBAL aS1, aS2, bS
+    RANGE damod, maxMod
 }
 
 UNITS {
@@ -55,6 +68,8 @@ PARAMETER {
 	Coff = 0.1	(1/ms)
 	Oon = 1.6	(1/ms)
 	Ooff = 0.01	(1/ms)
+    damod = 0
+    maxMod = 1
 }
 
 ASSIGNED {
@@ -92,7 +107,7 @@ STATE {
 
 BREAKPOINT {
 	SOLVE kin METHOD sparse
-	g = gbar*o
+	g = gbar*o*modulation()
 	ina = g*(v-ena)
 	ct = c1 + c2 + c3 + c4 + c5
 	ift = i1 + i2 + i3 + i4 + i5 + i6
@@ -138,4 +153,10 @@ PROCEDURE rates(v(millivolt)) {
 	delta = d0
 
 	a = ((Coff/Con)/(Ooff/Oon))^(1/8)
+}
+
+FUNCTION modulation() {
+    : returns modulation factor
+    
+    modulation = 1 + damod*(maxMod-1)
 }

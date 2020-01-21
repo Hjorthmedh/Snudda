@@ -12,18 +12,28 @@ import bluepyopt.ephys as ephys
 class NeuronModel(ephys.models.CellModel):
 
   def __init__(self,
-         cell_name="Unknown",
-         morph_file=None,
-         mech_file=None,
-         param_file=None):
+               cell_name="Unknown",
+               morph_file=None,
+               mech_file=None,
+               param_file=None,
+               modulation_file=None,
+               parameterID=None,
+               modulationID=None):
 
+    self.name = cell_name
+    self.parameters = []
+    
     self.script_dir = os.path.dirname(__file__)
     self.config_dir = os.path.join(self.script_dir, 'config')
 
     # morph=self.define_morphology(replaceAxon=False,morph_file=morph_file)    
     morph=self.define_morphology(replaceAxon=True,morph_file=morph_file)
     mechs=self.define_mechanisms(mechanism_config=mech_file)
-    params=self.define_parameters(param_file)
+    params=self.define_parameters(param_file,parameterID)
+    
+    if(modulation_file is not None):
+      modParams = self.define_parameters(modulation_file,modulationID)
+      params = params + modParams
     
     super(NeuronModel, self).__init__(name=cell_name,morph=morph,
                       mechs=mechs,params=params)      
@@ -78,11 +88,12 @@ class NeuronModel(ephys.models.CellModel):
 
 
       
-##############################################################################
+    
+############################################################################
 
   # Helper function
 
-  def define_parameters(self, parameter_config=None):
+  def define_parameters(self, parameter_config=None,parameterID=None):
     """Define parameters"""
 
     assert(parameter_config is not None)
@@ -92,8 +103,18 @@ class NeuronModel(ephys.models.CellModel):
     param_configs = json.load(open(parameter_config))
     parameters = []
 
+    if(type(param_configs[0]) == list):
+      # If it was a dict, then we have one parameterset,
+      # if it was a list we have multiple parametersets, pick one.
+      
+      assert parameterID is not None, \
+        "Multiple parametersets require parameterID set"
+      
+      nParams = len(param_configs)
+      param_configs = param_configs[parameterID % nParams]
+
     # Save this to be accessible in the future
-    self.parameters = param_configs
+    self.parameters += param_configs
     
     for param_config in param_configs:
       if 'value' in param_config:

@@ -4,9 +4,21 @@ c1 - c2 - c3 - c4 - o
 |    |    |    |    |
 i1 - i2 - i3 - i4 - i5 - is
 
+
+neuromodulation is added as functions:
+    
+    modulation = 1 + damod*(maxMod-1)
+
+where:
+    
+    damod  [0]: is a switch for turning modulation on or off {1/0}
+    maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
+                    e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+
+[] == default values
+{} == ranges
+    
 ENDCOMMENT
-
-
 
 
 NEURON {
@@ -17,6 +29,7 @@ NEURON {
 	GLOBAL ci, ic, oi, io, a, b, am, bm, vc, gamma, delta, vha, vhb
 	GLOBAL i5is, isi5
 	GLOBAL q10i, q10v
+    RANGE damod, maxMod
 }
 
 UNITS {
@@ -45,6 +58,8 @@ PARAMETER {
 	q10i = 3
 	q10v = 3
 	celsius		(degC)
+    damod = 0
+    maxMod = 1
 }
 
 ASSIGNED {
@@ -72,7 +87,7 @@ STATE {
 
 BREAKPOINT {
 	SOLVE kin METHOD sparse
-	g = gbar*o
+	g = gbar*o*modulation()
 	ik = g*(v-ek)
 }
 
@@ -107,4 +122,10 @@ PROCEDURE rates(v(millivolt)) {LOCAL q10
 	q10 = q10v^((celsius - 22 (degC))/10 (degC))
 	alpha = q10*am*exp((v-vha)/vc)
 	beta = q10*bm*exp((v-vhb)/-vc)
+}
+
+FUNCTION modulation() {
+    : returns modulation factor
+    
+    modulation = 1 + damod*(maxMod-1)
 }

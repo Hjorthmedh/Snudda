@@ -22,7 +22,7 @@ TITLE Low threshold calcium current
 INDEPENDENT {t FROM 0 TO 1 WITH 1 (ms)}
 
 NEURON {
-	SUFFIX it
+	SUFFIX it_lts
 	USEION ca READ cai,cao WRITE ica
 	GLOBAL q10
 	RANGE gcabar, m_inf, tau_m, h_inf, tau_h, shift

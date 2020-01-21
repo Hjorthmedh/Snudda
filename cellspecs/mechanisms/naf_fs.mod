@@ -1,9 +1,27 @@
 TITLE Fast transient sodium current
 
+COMMENT
+
+neuromodulation is added as functions:
+    
+    modulation = 1 + damod*(maxMod-1)
+
+where:
+    
+    damod  [0]: is a switch for turning modulation on or off {1/0}
+    maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
+                    e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+
+[] == default values
+{} == ranges
+    
+ENDCOMMENT
+
 NEURON {
     SUFFIX naf_fs
     USEION na READ ena WRITE ina
     RANGE gbar, gna, ina, q
+    RANGE damod, maxMod
 }
 
 UNITS {
@@ -16,6 +34,8 @@ PARAMETER {
     gbar = 0.0 	(S/cm2) 
     :q = 1	: room temperature 22 C
     q = 1.8	: body temperature 35 C
+    damod = 0
+    maxMod = 1
 }
 
 ASSIGNED {
@@ -33,7 +53,7 @@ STATE { m h }
 
 BREAKPOINT {
     SOLVE states METHOD cnexp
-    gna = gbar*m*m*m*h
+    gna = gbar*m*m*m*h*modulation()
     ina = gna*(v-ena)
 }
 
@@ -56,6 +76,12 @@ PROCEDURE rates() {
     hinf = 1/(1+exp((v-(-62))/6))
     htau = 0.6+1/(exp((v-(-44))/8)+exp((v-(-99))/(-44)))
     UNITSON
+}
+
+FUNCTION modulation() {
+    : returns modulation factor
+    
+    modulation = 1 + damod*(maxMod-1)
 }
 
 COMMENT

@@ -3,11 +3,29 @@ TITLE na3
 : modified from Jeff Magee. M.Migliore may97
 : added sh to account for higher threshold M.Migliore, Apr.2002
 
+COMMENT
+
+neuromodulation is added as functions:
+    
+    modulation = 1 + damod*(maxMod-1)
+
+where:
+    
+    damod  [0]: is a switch for turning modulation on or off {1/0}
+    maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
+                    e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+
+[] == default values
+{} == ranges
+    
+ENDCOMMENT
+
 NEURON {
-	SUFFIX na3
+	SUFFIX na3_lts
 	USEION na READ ena WRITE ina
 	RANGE  gbar, ar, sh
 	GLOBAL minf, hinf, mtau, htau, sinf, taus,qinf, thinf
+	RANGE damod, maxMod
 }
 
 PARAMETER {
@@ -45,6 +63,8 @@ PARAMETER {
 	ena		(mV)            : must be explicitly def. in hoc
 	celsius
 	v 		(mV)
+    damod = 0
+    maxMod = 1
 }
 
 
@@ -67,8 +87,8 @@ ASSIGNED {
 STATE { m h s}
 
 BREAKPOINT {
-        SOLVE states METHOD cnexp
-        thegna = gbar*m*m*m*h*s
+    SOLVE states METHOD cnexp
+    thegna = gbar*m*m*m*h*s*modulation()
 	ina = thegna * (v - ena)
 } 
 
@@ -129,4 +149,8 @@ FUNCTION trap0(v,th,a,q) {
  	}
 }	
 
-        
+FUNCTION modulation() {
+    : returns modulation factor
+    
+    modulation = 1 + damod*(maxMod-1)
+}   

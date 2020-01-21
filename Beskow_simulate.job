@@ -14,14 +14,14 @@ let N_WORKERS="$SLURM_NNODES * 32"
 
 HOME=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda
 
-module swap PrgEnv-cray PrgEnv-intel/6.0.5
-#module swap PrgEnv-cray PrgEnv-gnu
-module load craype-haswell
-module unload cray-libsci atp
-#module load neuron/7.4-py27
-#module load neuron/7.5-py36
-#module load PrgEnv-intel/6.0.5
-module load neuron/7.5-py37
+#module swap PrgEnv-cray PrgEnv-intel/6.0.5
+#module load craype-haswell
+#module unload cray-libsci atp
+
+# Updated 2020-01-21
+module sw PrgEnv-cray PrgEnv-intel
+module add mpi4py/3.0.2/py37
+module add neuron/7.7-py37
 
 
 export CRAYPE_LINK_TYPE=dynamic
