@@ -89,9 +89,10 @@ class Snudda(object):
                   "Thalamus" : 0}
     # Cortex and thalamus axons disabled right now, set to 1 to include one
 
-    assert not os.path.exists(self.networkPath), \
-      "Network path " + str(self.networkPath) + " already exists" \
-      + " (aborting to prevent accidental overwriting)"
+    if not args.overwrite:
+      assert not os.path.exists(self.networkPath), \
+        "Network path " + str(self.networkPath) + " already exists" \
+        + " (aborting to prevent accidental overwriting)"
 
     self.makeDirIfNeeded(self.networkPath)
 

@@ -28,6 +28,11 @@ def snudda_cli():
                           help="Name of voltage output file (csv)")
       parser.add_argument("--ncores", default=12,
                           help="Number of cores used for simulation")
+      parser.add_argument("--overwrite",
+                          help="Skips check if network directory already exists",
+                          action="store_true")
+      parser.add_argument("--mechDir", help="mechanism directory if not default",
+                          default=None)
 
       args = parser.parse_args()
 
