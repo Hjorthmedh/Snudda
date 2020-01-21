@@ -351,7 +351,7 @@ class Snudda(object):
 
     nWorkers = args.ncores
     print("Using " + str(nWorkers) + " workers for neuron")
-
+    
     if(args.mechDir is None):
       mechDir = "cellspecs/mechanisms"
     else:
@@ -531,6 +531,7 @@ if __name__ == "__main__":
   parser.add_argument("--overwrite",
                       help="Skips check if network directory already exists",
                       action="store_true")
+
   parser.add_argument("--mechDir", help="mechanism directory if not default",
                       default=None)
   
