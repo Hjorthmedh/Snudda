@@ -1,10 +1,27 @@
 TITLE GABA_A synapse with short-term plasticity
 
+COMMENT
+
+neuromodulation is added as functions:
+    
+    modulation = 1 + damod*(maxMod-1)
+
+where:
+    
+    damod  [0]: is a switch for turning modulation on or off {1/0}
+    maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
+                e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+
+[] == default values
+{} == ranges
+
+ENDCOMMENT
+
 NEURON {
     POINT_PROCESS tmGabaA
     RANGE tau1, tau2, e, i, q
     RANGE tau, tauR, tauF, U, u0
-    RANGE failRate
+    RANGE failRate, damod, maxMod
     NONSPECIFIC_CURRENT i
 }
 
@@ -24,7 +41,10 @@ PARAMETER {
     tauF = 0 (ms)    : tauF >= 0
     U = 0.1 (1) <0, 1>
     u0 = 0 (1) <0, 1>
-    failRate = 0
+    failRate = 0	
+    damod = 0
+    maxMod = 1
+
 }
 
 ASSIGNED {
@@ -51,7 +71,7 @@ INITIAL {
 
 BREAKPOINT {
     SOLVE state METHOD cnexp
-    g = B - A
+    g = (B - A) * modulation()
     i = g*(v - e)
 }
 
@@ -93,6 +113,13 @@ ENDVERBATIM
 
 FUNCTION urand() {
     urand = scop_random(1)
+}
+
+
+FUNCTION modulation() {
+    : returns modulation factor
+    
+    modulation = 1 + damod*(maxMod-1)
 }
 
 COMMENT

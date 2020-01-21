@@ -1,11 +1,30 @@
 :Kir2_ch.MOD
 : Kir2, inwardly rectifying channel
 
+
+COMMENT
+
+neuromodulation is added as functions:
+    
+    modulation = 1 + damod*(maxMod-1)
+
+where:
+    
+    damod  [0]: is a switch for turning modulation on or off {1/0}
+    maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
+                    e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+
+[] == default values
+{} == ranges
+    
+ENDCOMMENT
+
 NEURON {
 	SUFFIX kir2_ch
 	USEION k READ ek WRITE ik
 	RANGE g, ninf, tn, ik, gbar
 	GLOBAL C_tn, vh, vc
+    RANGE damod, maxMod
 }
 
 UNITS {
@@ -20,6 +39,8 @@ PARAMETER {
 	vh = -80	(mV)
 	vc = 5		(mV)
 	C_tn = 1	(ms)
+    damod = 0
+    maxMod = 1
 }
 
 ASSIGNED {
@@ -36,7 +57,7 @@ STATE {
 
 BREAKPOINT {
 	SOLVE states METHOD cnexp
-	g = gbar*n
+	g = gbar*n*modulation()
 	ik = g*(v-ek)
 }
 
@@ -53,4 +74,10 @@ INITIAL {
 PROCEDURE values() {
 	ninf = 1/(1 + exp((v - vh)/vc))
 	tn = C_tn
+}
+
+FUNCTION modulation() {
+    : returns modulation factor
+    
+    modulation = 1 + damod*(maxMod-1)
 }

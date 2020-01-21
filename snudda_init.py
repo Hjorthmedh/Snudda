@@ -363,7 +363,10 @@ class SnuddaInit(object):
       if(os.path.isdir(d)):
         parFile = d + "/parameters.json"
         mechFile = d + "/mechanisms.json"
-
+        modulationFile = d + "/modulation.json"
+        if(not os.path.exists(modulationFile)):
+          modulationFile = None
+        
         swcFile = glob.glob(d + "/*swc")
         hocFile = glob.glob(d + "/*hoc")
 
@@ -376,7 +379,12 @@ class SnuddaInit(object):
         if(len(hocFile) == 0):
           hocFile = [None]
           
-        neuronFileList.append((d,swcFile[0],parFile,mechFile,hocFile[0]))
+        neuronFileList.append((d,
+                               swcFile[0],
+                               parFile,
+                               mechFile,
+                               modulationFile,
+                               hocFile[0]))
         
     # First check how many unique cells we hava available, then we
     # calculate how many of each to use in simulation
@@ -389,7 +397,7 @@ class SnuddaInit(object):
 
     # Add the neurons to config
     
-    for ctr, ((nrnDir,swcFile,parFile,mechFile,hocFile),num) \
+    for ctr, ((nrnDir,swcFile,parFile,mechFile,modulationFile,hocFile),num) \
         in enumerate(zip(neuronFileList,nOfEachInd)):
       
       if(int(num) == 0):
@@ -410,6 +418,11 @@ class SnuddaInit(object):
       cellData["morphology"] = swcFile
       cellData["parameters"] = parFile
       cellData["mechanisms"] = mechFile
+      
+      if(modulationFile is not None):
+        # Modulation is optional
+        cellData["modulation"] = modulationFile
+        
       cellData["num"] = int(num)
       cellData["hoc"] = hocFile
       
@@ -553,7 +566,7 @@ class SnuddaInit(object):
                            meshBinWidth=1e-4)
 
     if(cellSpecDir is None):
-      csDir = "cellspecs"
+      csDir = "cellspecs" #
     else:
       csDir = cellSpecDir
     
