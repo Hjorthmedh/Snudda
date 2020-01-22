@@ -17,7 +17,7 @@ setuptools.setup(
     name="snudda",
     version=__version__,
     author="Johannes Hjorth",
-    author_email="hjorth@csc.kth.se",
+    author_email="hjorth@kth.se",
     description="Create realistic networks of neurons, synapses placed using touch detection between axons and dendrites.",
     long_description=long_description,
     long_description_content_type="text/markdown",
