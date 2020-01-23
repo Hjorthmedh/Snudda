@@ -1,10 +1,11 @@
 from argparse import ArgumentParser, RawTextHelpFormatter
-from .core import Snudda
+from .core import Snudda, get_data_file
 from .help import snudda_help_text
+import os
 
 def snudda_cli():
       parser = ArgumentParser(description="Microcircuit generation\n\n" + snudda_help_text(), formatter_class=RawTextHelpFormatter)
-      parser.add_argument("action", choices=["init","place","detect",
+      parser.add_argument("action", choices=["init", "create", "place","detect",
                                              "prune","input","export","analyse","convert","simulate","help"],
                           help="Action to do")
       parser.add_argument("path", help="Storage path for network files")
@@ -51,7 +52,8 @@ def snudda_cli():
                   "convert" : snudda.exportToSONATA,
                   "analyse" : snudda.analyse,
                   "simulate" : snudda.simulate,
-                  "help" : snudda.helpInfo}
+                  "help" : snudda.helpInfo,
+                  "create" : create_project}
 
 
 
@@ -70,3 +72,17 @@ def snudda_cli():
       else:
         # Performing the requested action
         actions[args.action](args)
+
+def create_project(args):
+  if not args.overwrite and os.path.exists(args.path):
+    if input("Directory '{}' exists. Are you sure you wish to overwrite it? [y/n] ".format(args.path)).lower() != "y":
+      print("Project creation aborted")
+      return
+    else:
+      # Delete the existing folder
+      import shutil
+      shutil.rmtree(args.path)
+  from distutils.dir_util import copy_tree
+  # Copy the root data files folder to the specified path.
+  # The root data folder is the "snudda/data" folder, containing config, synapses & cellspecs.
+  copy_tree(get_data_file(), args.path)
