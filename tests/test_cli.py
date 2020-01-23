@@ -28,12 +28,20 @@ class TestCLI(unittest.TestCase):
         self.assertRaises(argparse.ArgumentError, run_cli_command, "doesntexist")
 
     def test_workflow(self):
-        run_cli_command("create test-project --overwrite")
+        with self.subTest(stage="create"):
+            run_cli_command("create test-project --overwrite")
         os.chdir('test-project')
-        run_cli_command("init tiny --size 10 --overwrite")
-        run_cli_command("place tiny")
-        run_cli_command("detect tiny --volumeID Striatum")
-        run_cli_command("prune tiny")
-        os.copy("config/input-tinytest-v5.json", "tiny/input.json")
-        run_cli_command("input tiny --input tiny/input.json --time 1.0")
-        run_cli_command("simulate tiny --time 0.1")
+        with self.subTest(stage="init"):
+            run_cli_command("init tiny --size 10 --overwrite")
+        with self.subTest(stage="place"):
+            run_cli_command("place tiny")
+        with self.subTest(stage="detect"):
+            run_cli_command("detect tiny --volumeID Striatum")
+        with self.subTest(stage="prune"):
+            run_cli_command("prune tiny")
+        from shutil import copyfile
+        copyfile("config/input-tinytest-v5.json", "tiny/input.json")
+        with self.subTest(stage="input"):
+            run_cli_command("input tiny --input tiny/input.json --time 1.0")
+        with self.subTest(stage="simulate"):
+            run_cli_command("simulate tiny --time 0.1")
