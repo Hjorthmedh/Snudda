@@ -19,6 +19,21 @@ class SnuddaLoad(object):
     self.data = self.loadHDF5(network_file,loadSynapses)
     self.network_file = network_file
 
+    # This variable will only be set if the synapses are not kept in
+    # memory so we can access them later, otherwise the hdf5 file is
+    # automatically closed
+    self.hdf5File = None
+
+  ############################################################################
+
+  def __del__(self):
+
+    if(self.hdf5File is not None):
+      try:
+        self.hdf5File.close()
+      except:
+        print("Unable to close HDF5, alread closed?")
+
   ############################################################################
 
   def loadHDF5(self, network_file, loadSynapses=True, loadMorph=True):
@@ -27,7 +42,11 @@ class SnuddaLoad(object):
     startTime = timeit.default_timer()
     data = dict([])
 
-    with h5py.File(network_file,'r') as f:
+    f = h5py.File(network_file,'r')
+
+    # with h5py.File(network_file,'r') as f:
+    if(True): # Need f open when loadSynapses = False, "with" doesnt work then
+
       if("config" in f):
         print("Loading config data from HDF5")
         data["config"] = f["config"].value
@@ -66,6 +85,10 @@ class SnuddaLoad(object):
           data["synapses"] = f["network/synapses"]
           data["gapJunctions"] = f["network/gapJunctions"]
 
+          # We need to keep f alive, since we did not load synapses into
+          # the memory
+          self.hdf5File = f
+
           # data["origSynapseCoords"] = f["network/origSynapseCoords"][:]
           # gatheredSynapses = f["network/origGJCoords"][:]
           # data["origGJCoords"] = self.extractSynapseCoords(gatheredSynapses)
@@ -85,7 +108,7 @@ class SnuddaLoad(object):
         positionFile = f["meta/positionFile"].value
 
         if(type(positionFile) == bytes):
-          postionFile = positionFile.decode()
+          positionFile = positionFile.decode()
 
         data["positionFile"] = positionFile
 
@@ -175,6 +198,11 @@ class SnuddaLoad(object):
 
       print("Load done. " + str(timeit.default_timer() - startTime))
 
+    if(loadSynapses):
+      f.close()
+    else:
+      self.hdf5File = f
+
     return data
 
   ############################################################################
@@ -198,7 +226,7 @@ class SnuddaLoad(object):
     for name,neuronID,hoc,pos,rot,dendR,axonR,virtual,vID, \
         axonDensityType, axonDensity,axonDensityRadius, \
         axonDensityBoundsXYZ, \
-        morph \
+        morph,parameterID,modulationID \
         in zip(HDF5file["network/neurons/name"][:],
                HDF5file["network/neurons/neuronID"][:],
                HDF5file["network/neurons/hoc"][:],
@@ -212,7 +240,9 @@ class SnuddaLoad(object):
                HDF5file["network/neurons/axonDensity"][:],
                HDF5file["network/neurons/axonDensityRadius"][:],
                HDF5file["network/neurons/axonDensityBoundsXYZ"][:],
-               HDF5file["network/neurons/morphology"][:]):
+               HDF5file["network/neurons/morphology"][:],
+               HDF5file["network/neurons/parameterID"][:],
+               HDF5file["network/neurons/modulationID"][:]):
 
       n = dict([])
 
@@ -279,6 +309,9 @@ class SnuddaLoad(object):
 
       n["axonDensityRadius"] = axonDensityRadius
 
+      n["parameterID"] = parameterID
+      n["modulationID"] = modulationID
+      
       neurons.append(n)
 
     return neurons
@@ -300,7 +333,7 @@ class SnuddaLoad(object):
 
     prototypeInfo = self.config[neuronInfo["name"]]
 
-    from .Neuron_morphology import NeuronMorphology
+    from Neuron_morphology import NeuronMorphology
     neuron = NeuronMorphology(name=neuronInfo["name"],
                               position=neuronInfo["position"],
                               rotation=neuronInfo["rotation"],
