@@ -40,6 +40,10 @@ import os
 # !!! Need to gracefully handle the situation where there are more workers than
 # number of neurons, currently we get problem when adding the voltage saving
 
+# !!! Have added code for dopamine modulation of neuron intrinsic channels
+#     need to add dopamine modulation for the synaptic channels also !!!
+
+
 
 ##############################################################################
 
@@ -347,6 +351,11 @@ class SnuddaSimulate(object):
       param = config["parameters"]
       mech = config["mechanisms"]
 
+      if("modulation" in config):
+        modulation = config["modulation"]
+      else:
+        modulation = None
+      
       # Obs, neurons is a dictionary
       if(self.network_info["neurons"][ID]["virtualNeuron"]):
 
@@ -375,11 +384,16 @@ class SnuddaSimulate(object):
 
       else:
         # A real neuron (not a virtual neuron that just provides input)
+        parameterID = self.network_info["neurons"][ID]["parameterID"]
+        modulationID = self.network_info["neurons"][ID]["modulationID"]
 
         self.neurons[ID] = NeuronModel(param_file=param,
                                        morph_file=morph,
                                        mech_file=mech,
-                                       cell_name=name)
+                                       cell_name=name,
+                                       modulation_file=modulation,
+                                       parameterID=parameterID,
+                                       modulationID=modulationID)
 
         # Register ID as belonging to this worker node
         self.pc.set_gid2node(ID, int(self.pc.id()))
@@ -949,8 +963,8 @@ class SnuddaSimulate(object):
                      gGapJunction=0.5e-9, \
                      GID=None): # GID unused??
 
-    assert False, "There is something fishy with the parallel gap junctions. Please run with them disabled for now"
-
+    # There was a bug in neuron that affected gap junctions in parallel
+    # simulations -- fixed in neuron 7.7    
 
     #self.writeLog("Adding src = " + str(GIDsourceGJ) + ", dest = " + str(GIDdestGJ))
 
@@ -1259,6 +1273,7 @@ class SnuddaSimulate(object):
 
     self.writeLog("Adding inputs from virtual neurons")
 
+    assert False, "addVirtualNeuronInput not implemented"    
 
 
   ############################################################################
@@ -1824,6 +1839,42 @@ class SnuddaSimulate(object):
 
     return memoryRatio < threshold
 
+  ############################################################################
+
+  def setDopamineModulation(self,sec,transientVector=[]):
+    
+    channelList = { 'spn':  ['naf_ms', 'kas_ms', 'kaf_ms', 'kir_ms',
+                             'cal12_ms', 'cal13_ms', 'can_ms', 'car_ms'],
+                    'fs':   ['kir_fs', 'kas_fs', 'kaf_fs', 'naf_fs'],
+                    'chin': ['na_ch','na2_ch','kv4_ch','kir2_ch',
+                             'hcn12_ch','cap_ch'],
+                    'lts':  ['na3_lts','hd_lts'] }
+
+    for cellType in channelList:
+      for seg in sec:
+        for mech in seg:
+          if(mech.name in channelList[cellType]):
+            if(len(transientVector) == 0):
+              mech.damod = 1
+            else:
+              transientVector.play(mech._ref_damod,
+                                   self.sim.neuron.h.dt)
+
+  ############################################################################
+
+  def applyDopamine(self,cellID=None,transientVector=[]):
+    
+    if(cellID is None):
+      cellID = self.neuronID
+
+    cells = dict((k,self.neurons[k]) \
+                 for k in cellID if not self.isVirtualNeuron[k])
+
+    for c in cells.values():
+      for comp in [c.icell.dend, c.icell.axon, c.icell.soma]:
+        for sec in comp:
+          self.setDopamineModulation(sec,transientVector)
+    
   ############################################################################
 
 def findLatestFile(fileMask):

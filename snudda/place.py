@@ -84,6 +84,7 @@ class SnuddaPlace(object):
                  nNeurons,
                  param_data=None,
                  mech_filename=None,
+                 modulation=None,                 
                  name="Unnamed",
                  hoc=None,
                  volumeID=None,
@@ -111,6 +112,13 @@ class SnuddaPlace(object):
       # Only morphology loaded for nm then, to get axon and dend
       # radius needed for connectivity
 
+      # Pick a random parameterset
+      # parameter.json can be a list of lists, this allows you to select the
+      # parameterset randomly
+      # modulation.json is similarly formatted, pick a parameter set here
+      parameterID = np.random.randint(1000000)
+      modulationID = np.random.randint(1000000)      
+      
       if(rotationMode=="random"):
         rotation = nm.randRotationMatrix()
       elif(rotationMode is None or rotationMode == ""):
@@ -123,7 +131,9 @@ class SnuddaPlace(object):
 
       n = nm.clone(position=coords,
                    rotation=rotation,
-                   loadMorphology=False)
+                   loadMorphology=False,
+                   parameterID=parameterID,
+                   modulationID=modulationID)
 
       # self.writeLog("Place " + str(self.cellPos[i,:]))
 
@@ -228,6 +238,13 @@ class SnuddaPlace(object):
         morph = definition["morphology"]
         param = definition["parameters"]
         mech = definition["mechanisms"]
+
+        if("modulation" in definition):
+          modulation = definition["modulation"]
+        else:
+          # Modulation optional
+          modulation = None                  
+        
         num = definition["num"]
         volumeID = definition["volumeID"]
 
@@ -263,6 +280,7 @@ class SnuddaPlace(object):
                         swc_filename=morph,
                         param_data=param,
                         mech_filename=mech,
+                        modulation=modulation,                        
                         nNeurons=num,
                         hoc=hoc,
                         volumeID=volumeID,
@@ -312,40 +330,6 @@ class SnuddaPlace(object):
 
   def allNeuronNames(self):
     return map(lambda x: x.name, self.neurons)
-
-  ############################################################################
-
-  def writeData(self,file_name):
-
-    self.writeLog("Writing data to file: " + file_name)
-
-    network_info = {}
-    network_info["config_file"] = self.config_file
-    network_info["nChannels"] = self.nChannels
-    network_info["channels"] = self.neuronChannel
-    network_info["channelMethod"] = self.channelMethod
-
-    neuron_info = []
-
-    for ni, neuron in enumerate(self.neurons):
-      neuron_info.append(dict([("name",neuron.name),
-                               ("type",neuron.name.split("_")[0]),
-                               ("neuronID",ni),
-                               ("position",np.copy(neuron.position)),
-                               ("rotation",np.copy(neuron.rotation)),
-                               ("maxAxonRadius",neuron.maxAxonRadius),
-                               ("maxDendRadius",neuron.maxDendRadius),
-                               ("hoc",neuron.hoc),
-                               ("virtualNeuron",neuron.virtualNeuron),
-                               ("volumeID",neuron.volumeID)]))
-
-    #import dill
-    #with open(file_name,'wb') as output_file:
-    #  dill.dump(neuron_info,output_file)
-
-    import pickle
-    with open(file_name,'wb') as output_file:
-      pickle.dump([network_info, neuron_info],output_file,-1)
 
   ############################################################################
 
@@ -430,11 +414,23 @@ class SnuddaPlace(object):
                                                   "float",
                                                   compression="gzip")
 
+    neuronParamID = neuronGroup.create_dataset("parameterID",
+                                               (len(self.neurons),),\
+                                               "int",
+                                               compression="gzip")
+    neuronModulationID = neuronGroup.create_dataset("modulationID",
+                                                    (len(self.neurons),),\
+                                                    "int",
+                                                    compression="gzip")
+
+    
     for (i,n) in enumerate(self.neurons):
-      neuronPosition[i] = n.position
-      neuronRotation[i] = n.rotation.reshape(1,9)
-      neuronDendRadius[i] = n.maxDendRadius
-      neuronAxonRadius[i] = n.maxAxonRadius
+      neuronPosition[i]     = n.position
+      neuronRotation[i]     = n.rotation.reshape(1,9)
+      neuronDendRadius[i]   = n.maxDendRadius
+      neuronAxonRadius[i]   = n.maxAxonRadius
+      neuronParamID[i]      = n.parameterID
+      neuronModulationID[i] = n.modulationID
 
     # Store input information
     neuronGroup.create_dataset("channelID", data=self.neuronChannel,dtype=int)
@@ -595,5 +591,4 @@ if __name__ == "__main__":
   # voxel have numbers close to each other. This could speed up the merge
   # of files (but could slow down other things?)
 
-  npn.writeData('save/npn-test-save.pickle')
   npn.writeDataHDF5('save/npn-test-save.hdf5')
