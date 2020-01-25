@@ -1,5 +1,12 @@
 # Rewriting the create network config file to make it more general
 
+# !!! Currently writing full path for the files in the snudda data directory
+#     this makes moving between computers difficult. Fix...
+
+#
+# Add a function so that $SNUDDADATA refers to the base datapath for snudda
+#
+
 import numpy as np
 import os.path
 import glob
@@ -24,6 +31,8 @@ class SnuddaInit(object):
       self.basePath = os.path.dirname(configName)
     else:
       self.basePath = ""
+
+    self.dataPath = os.path.dirname(__file__) + "/data"
 
     # Channels here refer to processing units, where the neurons within a channel
     # might have different connectivity than neurons belonging to different channels
@@ -526,7 +535,7 @@ class SnuddaInit(object):
 
     if(volumeType == "mouseStriatum"):
       self.defineStructure(structName="Striatum",
-                           structMesh="mesh/Striatum-mesh.obj",
+                           structMesh=self.dataPath + "/mesh/Striatum-mesh.obj",
                            meshBinWidth=1e-4)
 
     elif(volumeType == "slice"):
@@ -562,11 +571,11 @@ class SnuddaInit(object):
     else:
       # Default, full size striatum
       self.defineStructure(structName="Striatum",
-                           structMesh="mesh/Striatum-mesh.obj",
+                           structMesh=self.dataPath + "/mesh/Striatum-mesh.obj",
                            meshBinWidth=1e-4)
-
+      
     if(cellSpecDir is None):
-      csDir = "cellspecs"
+      csDir = self.dataPath + "/cellspecs"
     else:
       csDir = cellSpecDir
 
@@ -688,8 +697,8 @@ class SnuddaInit(object):
 
     #pfFSdSPN = "synapses/v1/trace_table.txt-FD-model-parameters.json"
     #pfFSiSPN = "synapses/v1/trace_table.txt-FI-model-parameters.json"
-    pfFSdSPN = "synapses/v2/PlanertFitting-FD-tmgaba-fit.json"
-    pfFSiSPN = "synapses/v2/PlanertFitting-FI-tmgaba-fit.json"
+    pfFSdSPN = self.dataPath + "/synapses/v2/PlanertFitting-FD-tmgaba-fit.json"
+    pfFSiSPN = self.dataPath + "/synapses/v2/PlanertFitting-FI-tmgaba-fit.json"
 
 
     # Increased from a3=0.1 to a3=0.7 to match FS-FS connectivity from Gittis
@@ -784,8 +793,8 @@ class SnuddaInit(object):
 
     #pfdSPNdSPN = "synapses/v1/trace_table.txt-DD-model-parameters.json"
     #pfdSPNiSPN = "synapses/v1/trace_table.txt-DI-model-parameters.json"
-    pfdSPNdSPN = "synapses/v2/PlanertFitting-DD-tmgaba-fit.json"
-    pfdSPNiSPN = "synapses/v2/PlanertFitting-DI-tmgaba-fit.json"
+    pfdSPNdSPN = self.dataPath +"/synapses/v2/PlanertFitting-DD-tmgaba-fit.json"
+    pfdSPNiSPN = self.dataPath +"/synapses/v2/PlanertFitting-DI-tmgaba-fit.json"
     pfdSPNChIN = None
 
 
@@ -895,8 +904,8 @@ class SnuddaInit(object):
     P22withinChannel = MSP22 * self.channelMSNmodifier
     P22betweenChannel = MSP22 *(1 +(1-self.channelMSNmodifier) / self.nChannels)
 
-    pfiSPNdSPN = "synapses/v2/PlanertFitting-ID-tmgaba-fit.json"
-    pfiSPNiSPN = "synapses/v2/PlanertFitting-II-tmgaba-fit.json"
+    pfiSPNdSPN = self.dataPath +"/synapses/v2/PlanertFitting-ID-tmgaba-fit.json"
+    pfiSPNiSPN = self.dataPath +"/synapses/v2/PlanertFitting-II-tmgaba-fit.json"
     pfiSPNChIN = None
 
     # GABA decay från Taverna 2008
@@ -1165,8 +1174,10 @@ class SnuddaInit(object):
 
     # We should have both ipsi and contra, M1 and S1 input, for now
     # picking one
-    cortexSynParMS = "synapses/v2/M1RH_Analysis_190925.h5-parameters-MS.json"
-    cortexSynParFS = "synapses/v2/M1RH_Analysis_190925.h5-parameters-FS.json"
+    cortexSynParMS = self.dataPath \
+      + "/synapses/v2/M1RH_Analysis_190925.h5-parameters-MS.json"
+    cortexSynParFS = self.dataPath \
+      + "synapses/v2/M1RH_Analysis_190925.h5-parameters-FS.json"
 
     self.addNeuronTarget(neuronName="CortexAxon",
                          targetName="dSPN",
@@ -1233,8 +1244,10 @@ class SnuddaInit(object):
 
     # Define targets
 
-    thalamusSynParMS = "synapses/v2/TH_Analysis_191001.h5-parameters-MS.json"
-    thalamusSynParFS = "synapses/v2/TH_Analysis_191001.h5-parameters-FS.json"
+    thalamusSynParMS = self.dataPath \
+      + "synapses/v2/TH_Analysis_191001.h5-parameters-MS.json"
+    thalamusSynParFS = self.dataPath \
+      + "synapses/v2/TH_Analysis_191001.h5-parameters-FS.json"
 
 
     ThalamusGlutCond = [1e-9,0.1e-9]
