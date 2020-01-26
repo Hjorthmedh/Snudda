@@ -336,6 +336,8 @@ class Snudda(object):
 
   def simulate(self,args):
 
+    from .simulate import SnuddaSimulate
+    
     if(args.networkFile):
       networkFile = args.networkFile
     else:
@@ -351,20 +353,106 @@ class Snudda(object):
 
     print("Using input file " + inputFile)
 
-    nWorkers = args.ncores
-    print("Using " + str(nWorkers) + " workers for neuron")
+    #nWorkers = args.ncores
+    #print("Using " + str(nWorkers) + " workers for neuron")
 
     if(args.mechDir is None):
       mechDir = "cellspecs/mechanisms"
     else:
       mechDir = args.mechDir
 
-    cmdStr = "nrnivmodl " + mechDir + " && mpiexec -n " + str(nWorkers) + " -map-by socket:OVERSUBSCRIBE python3 " + os.path.dirname(__file__) + " simulate.py " + networkFile + " " + inputFile + " --time " + str(args.time)
+    # !!! These are saved in current directory x86_64
+    # --- problem since nrnivmodl seems to want a relative path...
+    makeModsStr = "nrnivmodl " + os.path.dirname(__file__) + "/data/" + mechDir
+    os.system(makeModsStr)
 
+    saveDir = os.path.dirname(networkFile) + "/simulation/"
+
+    if(not os.path.exists(saveDir)):
+      print("Creating directory " + saveDir)
+      os.makedirs(saveDir, exist_ok=True)
+
+    # Get the SlurmID, used in default file names
+    SlurmID = os.getenv('SLURM_JOBID')
+  
+    if(SlurmID is None):
+      SlurmID = str(666)
+
+
+    print("args: " + str(args))
+    
     if(args.voltOut is not None):
-      cmdStr += " --voltOut " + args.voltOut
+      # Save neuron voltage
+      if(args.voltOut == "default"):
+        voltFile = saveDir + 'network-voltage-' + SlurmID + '.csv'
+      else:
+        voltFile = args.voltOut
+    else:
+      voltFile = None
+    
+    if(args.spikesOut is None or args.spikesOut == "default"):
+      spikesFile = saveDir + 'network-output-spikes-' + SlurmID + '.txt'
+    else:
+      spikesFile = args.spikesOut
+      
+    disableGJ = args.disableGJ
+    if(disableGJ):
+      print("!!! WE HAVE DISABLED GAP JUNCTIONS !!!")
+      
+    logFile = os.path.dirname(networkFile) \
+      + "/log/network-simulation-log.txt"
 
-    os.system(cmdStr)
+    logDir = os.path.dirname(networkFile) + "/log"
+    if(not os.path.exists(logDir)):
+      print("Creating directory " + logDir)
+      os.makedirs(logDir, exist_ok=True)
+    
+    
+    from mpi4py import MPI # This must be imported before neuron, to run parallel
+    from neuron import h, gui
+      
+    pc = h.ParallelContext()
+    
+    sim = SnuddaSimulate(networkFile=networkFile,
+                         inputFile=inputFile,
+                         disableGapJunctions=disableGJ,
+                         logFile=logFile,
+                         verbose=args.verbose)
+
+    sim.addExternalInput()
+    sim.checkMemoryStatus()
+
+    if(voltFile is not None):
+      sim.addRecording(sideLen=None) # Side len let you record from a subset
+      #sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
+
+    tSim = args.time*1000 # Convert from s to ms for Neuron simulator
+
+    sim.checkMemoryStatus()  
+    print("Running simulation for " + str(tSim) + " ms.")
+    sim.run(tSim) # In milliseconds
+
+    print("Simulation done, saving output")
+    if(spikesFile is not None):
+      sim.writeSpikes(spikesFile)
+    
+    if(voltFile is not None):
+      sim.writeVoltage(voltFile)
+
+    stop = timeit.default_timer()
+    if(sim.pc.id() == 0):
+      print("Program run time: " + str(stop - start ))
+
+    # sim.plot()
+    exit(0)
+
+    
+    #cmdStr = "nrnivmodl " + mechDir + " && mpiexec -n " + str(nWorkers) + " -map-by socket:OVERSUBSCRIBE python3 " + os.path.dirname(__file__) + " simulate.py " + networkFile + " " + inputFile + " --time " + str(args.time)
+
+    #if(args.voltOut is not None):
+    #  cmdStr += " --voltOut " + args.voltOut
+
+    #os.system(cmdStr)
 
   ############################################################################
 
@@ -503,5 +591,15 @@ class Snudda(object):
 
 
 if __name__ == "__main__":
-    from .cli import snudda_cli
-    snudda_cli()
+
+  # This is fix to handle if user calles python from within neuron
+  import sys
+  if('-python' in sys.argv):
+    print("Network_simulate.py called through nrniv, fixing arguments")
+    pythonidx = sys.argv.index('-python')
+    if(len(sys.argv) > pythonidx):
+      sys.argv = sys.argv[pythonidx+1:]
+
+  
+  from .cli import snudda_cli
+  snudda_cli()

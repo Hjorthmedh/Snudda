@@ -27,14 +27,21 @@ def snudda_cli():
       parser.add_argument("--voltOut","--voltout",
                           default=None,
                           help="Name of voltage output file (csv)")
-      parser.add_argument("--ncores", default=12,
-                          help="Number of cores used for simulation")
+      parser.add_argument("--spikesOut","--spikesout",
+                          default=None,
+                          help="Name of spike output file (csv)")
+      parser.add_argument("--disableGJ",action="store_true",
+                          help="Disable gap junctions")
+     
+      #parser.add_argument("--ncores", default=12,
+      #                    help="Number of cores used for simulation")
       parser.add_argument("--overwrite",
                           help="Skips check if network directory already exists",
                           action="store_true")
       parser.add_argument("--mechDir", help="mechanism directory if not default",
                           default=None)
-
+      parser.add_argument("--verbose",action="store_true")
+  
       args = parser.parse_args()
 
       if(args.path is not None):
