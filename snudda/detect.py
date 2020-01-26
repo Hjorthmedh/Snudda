@@ -1563,6 +1563,8 @@ class SnuddaDetect(object):
     if(configFile is None):
       configFile = self.configFile
 
+    configFile = self.getPath(configFile)
+      
     self.axonStumpIDFlag = axonStumpIDFlag
       
     print("Loading from " + configFile)
@@ -1580,9 +1582,9 @@ class SnuddaDetect(object):
 
       self.writeLog("Reading prototype for: " + name)
       
-      morph = definition["morphology"]
-      param = definition["parameters"]
-      mech = definition["mechanisms"]
+      morph = self.getPath(definition["morphology"])
+      param = self.getPath(definition["parameters"])
+      mech = self.getPath(definition["mechanisms"])
 
       if("neuronType" in definition):
         neuronType = definition["neuronType"]
@@ -2798,6 +2800,13 @@ class SnuddaDetect(object):
 
   ############################################################################
 
+  def getPath(self,pathStr):
+
+    return pathStr.replace("$DATA", os.path.dirname(__file__) + "/data")
+          
+  ############################################################################
+
+  
   def processHyperVoxel(self,hyperID):
 
     startTime = timeit.default_timer()

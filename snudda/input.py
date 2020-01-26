@@ -276,6 +276,11 @@ class SnuddaInput(object):
       for inputType in self.inputInfo[neuronType]:
         if("parameterFile" in self.inputInfo[neuronType][inputType]):
           parFile = self.inputInfo[neuronType][inputType]["parameterFile"]
+
+          # Allow user to use $DATA to refer to snudda data directory
+          parFile = parFile.replace("$DATA",
+                                    os.path.dirname(__file__) + "/data")
+          
           parDataDict = json.load(open(parFile,'r'))
           
           # Read in parameters into a list

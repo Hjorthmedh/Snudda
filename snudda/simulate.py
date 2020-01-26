@@ -192,7 +192,7 @@ class SnuddaSimulate(object):
     self.nNeurons = self.network_info["nNeurons"]
 
     if(config_file is None):
-      config_file = self.network_info["configFile"]
+      config_file = self.getPath(self.network_info["configFile"])
 
     self.config_file = config_file
     self.writeLog("Loading config file " + config_file)
@@ -296,7 +296,7 @@ class SnuddaSimulate(object):
 
         if("parameterFile" in infoDict \
            and infoDict["parameterFile"] is not None):
-          parFile = infoDict["parameterFile"]
+          parFile = self.getPath(infoDict["parameterFile"])
           parDataDict = json.load(open(parFile,'r'))
 
           # Save data as a list, we dont need the keys
@@ -347,12 +347,13 @@ class SnuddaSimulate(object):
       name = self.network_info["neurons"][ID]["name"]
 
       config = self.config["Neurons"][name]
-      morph = config["morphology"]
-      param = config["parameters"]
-      mech = config["mechanisms"]
+      
+      morph = self.getPath(config["morphology"])
+      param = self.getPath(config["parameters"])
+      mech = self.getPath(config["mechanisms"])
 
       if("modulation" in config):
-        modulation = config["modulation"]
+        modulation = self.getPath(config["modulation"])
       else:
         modulation = None
       
@@ -361,7 +362,7 @@ class SnuddaSimulate(object):
 
         if(self.inputData is None):
           self.writeLog("Using " + self.inputFile + " for virtual neurons")
-          self.inputData = h5py.File(self.inputFile,'r')
+          self.inputData = h5py.File(self.getPath(self.inputFile),'r')
 
           name = self.network_info["neurons"][ID]["name"]
           spikes = self.inputData["input"][ID]["activity"]["spikes"][:,0]
@@ -1874,7 +1875,13 @@ class SnuddaSimulate(object):
       for comp in [c.icell.dend, c.icell.axon, c.icell.soma]:
         for sec in comp:
           self.setDopamineModulation(sec,transientVector)
-    
+
+  ############################################################################
+
+  def getPath(self,pathStr):
+
+    return pathStr.replace("$DATA", os.path.dirname(__file__) + "/data")
+          
   ############################################################################
 
 def findLatestFile(fileMask):
