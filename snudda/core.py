@@ -366,6 +366,7 @@ class Snudda(object):
     # --- problem since nrnivmodl seems to want a relative path...
 
     makeModsStr = "nrnivmodl " +  mechDir
+    print("Running: " + makeModsStr)
     os.system(makeModsStr)
 
     saveDir = os.path.dirname(networkFile) + "/simulation/"

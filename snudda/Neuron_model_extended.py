@@ -99,8 +99,16 @@ class NeuronModel(ephys.models.CellModel):
     assert(parameter_config is not None)
 
     # print("Using parameter config: " + parameter_config)
-    
-    param_configs = json.load(open(parameter_config))
+
+    try:
+      param_configs = json.load(open(parameter_config))
+    except:
+      import traceback
+      tstr = traceback.format_exc()
+      print(tstr)
+      import pdb
+      pdb.set_trace()
+      
     parameters = []
 
     if(type(param_configs[0]) == list):

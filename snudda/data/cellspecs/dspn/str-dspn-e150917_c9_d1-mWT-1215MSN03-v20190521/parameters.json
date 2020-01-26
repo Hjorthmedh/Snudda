@@ -3791,7 +3791,7 @@
         "param_name": "gbar_kir_ms", 
         "sectionlist": "basal", 
         "type": "range", 
-        "value": 1.4699577304334235e-06,
+        "value": 1.4699577304334235e-06
     }, 
     {
         "dist_type": "uniform", 
