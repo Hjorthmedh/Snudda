@@ -357,13 +357,15 @@ class Snudda(object):
     #print("Using " + str(nWorkers) + " workers for neuron")
 
     if(args.mechDir is None):
-      mechDir = "cellspecs/mechanisms"
+      mechDir = os.path.relpath(os.path.dirname(__file__) \
+                                + "/data/cellspecs/mechanisms")
     else:
       mechDir = args.mechDir
 
     # !!! These are saved in current directory x86_64
     # --- problem since nrnivmodl seems to want a relative path...
-    makeModsStr = "nrnivmodl " + os.path.dirname(__file__) + "/data/" + mechDir
+
+    makeModsStr = "nrnivmodl " +  mechDir
     os.system(makeModsStr)
 
     saveDir = os.path.dirname(networkFile) + "/simulation/"
