@@ -3,12 +3,31 @@
 
 : copy by josh for cholinergic interneuron
 
+
+COMMENT
+
+neuromodulation is added as functions:
+    
+    modulation = 1 + damod*(maxMod-1)
+
+where:
+    
+    damod  [0]: is a switch for turning modulation on or off {1/0}
+    maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
+                    e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+
+[] == default values
+{} == ranges
+    
+ENDCOMMENT
+
 NEURON {
 	SUFFIX cap_ch
 	USEION ca READ cai, cao WRITE ica
 	RANGE gbar, ica ,g
 	GLOBAL minf,mtau
 	GLOBAL monovalConc, monovalPerm
+    RANGE damod, maxMod
 }
 
 UNITS {
@@ -28,6 +47,8 @@ PARAMETER {
 	celsius = 35
 	cai             (milli/liter)
 	cao             (milli/liter)
+    damod = 0
+    maxMod = 1
 }
 
 ASSIGNED {
@@ -50,7 +71,7 @@ INITIAL {
 
 BREAKPOINT {
      SOLVE states METHOD cnexp
-	g = (1e3) * gbar * m 
+	g = (1e3) * gbar * m *modulation()
 	ica = g * ghk(v, cai, cao, 2)
 }
 
@@ -85,4 +106,11 @@ FUNCTION mtau_func( v (mV) ) (ms) {
             mtau_func = .00026367 + .1278 * exp(.10327*v)
         }
         UNITSON
+}
+
+
+FUNCTION modulation() {
+    : returns modulation factor
+    
+    modulation = 1 + damod*(maxMod-1) 
 }
