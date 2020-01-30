@@ -356,9 +356,14 @@ class Snudda(object):
     #nWorkers = args.ncores
     #print("Using " + str(nWorkers) + " workers for neuron")
 
+    # Problems with nested symbolic links when the second one is a relative
+    # path going beyond the original base path
     if(args.mechDir is None):
-      mechDir = os.path.relpath(os.path.dirname(__file__) \
-                                + "/data/cellspecs/mechanisms")
+      mechDir = os.path.dirname(networkFile) + "/mechanisms"
+      
+      if(not os.path.exists(mechDir)):
+        mDir = os.path.dirname(__file__) + "/data/cellspecs/mechanisms"
+        os.symlink(mDir,mechDir)
     else:
       mechDir = args.mechDir
 
