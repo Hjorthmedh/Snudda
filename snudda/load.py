@@ -15,14 +15,15 @@ class SnuddaLoad(object):
     if(network_file == "last"):
       network_file = self.findLatestFile()
 
-    self.config = None
-    self.data = self.loadHDF5(network_file,loadSynapses)
-    self.network_file = network_file
-
     # This variable will only be set if the synapses are not kept in
     # memory so we can access them later, otherwise the hdf5 file is
     # automatically closed
     self.hdf5File = None
+      
+    self.config = None
+    self.data = self.loadHDF5(network_file,loadSynapses)
+    self.network_file = network_file
+
 
   ############################################################################
 

@@ -360,6 +360,9 @@ class Snudda(object):
     # path going beyond the original base path
     if(args.mechDir is None):
       mechDir = os.path.dirname(networkFile) + "/mechanisms"
+
+      # !!! problem with paths, testing to create mechanism dir in current dir
+      mechDir = "mechanisms"
       
       if(not os.path.exists(mechDir)):
         mDir = os.path.dirname(__file__) + "/data/cellspecs/mechanisms"
@@ -371,8 +374,13 @@ class Snudda(object):
     # --- problem since nrnivmodl seems to want a relative path...
 
     makeModsStr = "nrnivmodl " +  mechDir
-    print("Running: " + makeModsStr)
-    os.system(makeModsStr)
+    if(not os.path.exists('x86_64')):
+      print("Please first run: " + makeModsStr)
+      exit(-1)
+      # I was having problems when running nrnivmodl in the script, but
+      # running it manually in bash works... WHY?!!
+      
+    # os.system(makeModsStr)
 
     saveDir = os.path.dirname(networkFile) + "/simulation/"
 
