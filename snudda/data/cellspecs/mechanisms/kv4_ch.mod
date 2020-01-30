@@ -7,15 +7,13 @@ i1 - i2 - i3 - i4 - i5 - is
 
 neuromodulation is added as functions:
     
-    modulation = 1 + damod*(maxMod-1)*
+    modulation = 1 + damod*(maxMod-1)
 
 where:
     
     damod  [0]: is a switch for turning modulation on or off {1/0}
     maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
                     e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
-    level  [0]: is an additional parameter for scaling modulation. 
-                    Can be used simulate non static modulation by gradually changing the value from 0 to 1 {0-1}
 
 [] == default values
 {} == ranges
@@ -62,7 +60,6 @@ PARAMETER {
 	celsius		(degC)
     damod = 0
     maxMod = 1
-    level = 0
 }
 
 ASSIGNED {
