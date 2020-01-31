@@ -336,6 +336,8 @@ class Snudda(object):
 
   def simulate(self,args):
 
+    start = timeit.default_timer()
+    
     from .simulate import SnuddaSimulate
     
     if(args.networkFile):
