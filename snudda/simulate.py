@@ -1968,7 +1968,6 @@ if __name__ == "__main__":
   else:
     spikesFile = args.spikesOut
 
-  import timeit
   start = timeit.default_timer()
 
   disableGJ = args.disableGJ

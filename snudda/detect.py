@@ -2257,7 +2257,7 @@ class SnuddaDetect(object):
       return
     
     with dView.sync_imports():
-      from .detect import SnuddaDetect
+      from snudda.detect import SnuddaDetect
 
     self.writeLog("Setting up workers: " \
                   + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
@@ -2285,8 +2285,12 @@ class SnuddaDetect(object):
                block=True)
 
     self.writeLog("Init values pushed to workers")
-
+    
     cmdStr = "nc = SnuddaDetect(configFile=configFile, positionFile=positionFile,voxelSize=voxelSize,hyperVoxelSize=hyperVoxelSize,verbose=verbose,logFileName=logFileName[0],saveFile=saveFile,SlurmID=SlurmID,role='worker')"
+
+    #import pdb
+    #pdb.set_trace()
+    
     dView.execute(cmdStr,block=True)
 
     self.writeLog("Workers setup: " \

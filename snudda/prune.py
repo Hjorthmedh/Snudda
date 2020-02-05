@@ -1408,7 +1408,7 @@ class SnuddaPrune(object):
       return
    
     with dView.sync_imports():
-      from .prune import SnuddaPrune
+      from snudda.prune import SnuddaPrune
 
     self.writeLog("Setting up workers: " \
                   + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))

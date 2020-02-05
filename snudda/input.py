@@ -986,7 +986,7 @@ class SnuddaInput(object):
       return
 
     with self.dView.sync_imports():
-      from .input import SnuddaInput
+      from snudda.input import SnuddaInput
 
     self.dView.push({ "inputConfigFile" : self.inputConfigFile,
                       "networkConfigFile" : self.networkConfigFile,

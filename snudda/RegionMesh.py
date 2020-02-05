@@ -149,7 +149,7 @@ class RegionMesh(object):
       return
 
     with dView.sync_imports():
-      from .RegionMesh import RegionMesh
+      from snudda.RegionMesh import RegionMesh
 
     try:
       self.writeLog("Setting up RegionMesh on workers")
