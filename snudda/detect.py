@@ -93,11 +93,6 @@ class SnuddaDetect(object):
     self.SlurmID = int(SlurmID) # Make sure integer
     self.workersInitialised = False
 
-    self.neuronCache = dict()
-    self.cacheHits = 0
-    self.cacheMisses = 0
-    self.cacheLimit = 1000
-
     self.voxelSize=voxelSize
     self.hyperVoxelSize=hyperVoxelSize # = N,  N x N x N voxels in a hyper voxel
     self.hyperVoxelOrigo=np.zeros((3,))
@@ -262,9 +257,6 @@ class SnuddaDetect(object):
           self.updateProcessHyperVoxelState(hyperID=hyperID,nSyn=nSyn,nGJ=nGJ,
                                             execTime=execTime,
                                          voxelOverflowCounter=voxelOverflowCtr)
-
-      print("Load neuron statistics: Cache hits: " + str(self.cacheHits) \
-            + ", cache misses: " + str(self.cacheMisses))
           
           
     # We need to gather data from all the HDF5 files
@@ -1812,53 +1804,16 @@ class SnuddaDetect(object):
 
   ############################################################################
   
-  def loadNeuron(self, neuronInfo, clearCacheIfFull=True):
+  def loadNeuron(self, neuronInfo):
 
-    # Have we loaded the neuron previously?
-    if neuronInfo["neuronID"] in self.neuronCache:
-      neuron = self.neuronCache[neuronInfo["neuronID"]]
-      
-      self.cacheHits += 1
-      
-    else:
-      # Clone prototype neuron (it is centred, and not rotated)
-      neuron = self.prototypeNeurons[neuronInfo["name"]].clone()
+    # Clone prototype neuron (it is centred, and not rotated)
+    neuron = self.prototypeNeurons[neuronInfo["name"]].clone()
 
-      # Rotate and place neuron in correct location
-      neuron.place(rotation=neuronInfo["rotation"],
-                   position=neuronInfo["position"])
-
-      # Store a copy of neuron in cache (if cache not saturated)
-      if(len(self.neuronCache) <= self.cacheLimit):
-        self.neuronCache[neuronInfo["neuronID"]] = neuron
-      elif(clearCacheIfFull):
-        self.neuronCache = dict([])
-        self.neuronCache[neuronInfo["neuronID"]] = neuron
-        
-      self.cacheMisses += 1
-      
+    # Rotate and place neuron in correct location
+    neuron.place(rotation=neuronInfo["rotation"],
+                 position=neuronInfo["position"])
+          
     return neuron
-
-  ############################################################################
-
-  def clearCache(self,cacheLimit=None):
-
-    if(cacheLimit is None):
-      cacheLimit = self.cacheLimit
-    
-    # If we are above the cache limit, clear it
-
-    if(len(self.neuronCache) > cacheLimit):
-      # Note that once the cache is full, it will not add any new items.
-      # It is important that the preNeuron is cached, so here we clear it
-      # to make sure that there is space for it in the loop in connectNeurons
-      self.writeLog("Cache larger than set limit " \
-                    + str(len(self.neuronCache)) \
-                    + " > " + str(cacheLimit) + ", clearing cache.")
-      self.neuronCache = dict([])      
-    else:
-      self.writeLog('Current cache size: ' + str(len(self.neuronCache)))
-    
 
   ############################################################################
 
@@ -1961,11 +1916,15 @@ class SnuddaDetect(object):
         # Increment counter
         self.hyperVoxels[hID]["neuronCtr"] += nNeurons
 
-    for hID in self.hyperVoxels:
-      nCtr = self.hyperVoxels[hID]["neuronCtr"]
+    # Sorting the list of neurons.
+    # -- check why this order matters to number of synapses detected,
+    #    it should not matter (except in case of voxel overflows).
+    if(False):
+      for hID in self.hyperVoxels:
+        nCtr = self.hyperVoxels[hID]["neuronCtr"]
       
-      self.hyperVoxels[hID]["neurons"] = \
-        np.sort(self.hyperVoxels[hID]["neurons"][:nCtr])
+        self.hyperVoxels[hID]["neurons"] = \
+          np.sort(self.hyperVoxels[hID]["neurons"][:nCtr])
         
     # Distribute the new list to all neurons
     dView.push({"nc.hyperVoxels":self.hyperVoxels},block=True)
