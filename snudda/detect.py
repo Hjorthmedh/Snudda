@@ -1960,6 +1960,12 @@ class SnuddaDetect(object):
             
         # Increment counter
         self.hyperVoxels[hID]["neuronCtr"] += nNeurons
+
+    for hID in self.hyperVoxels:
+      nCtr = self.hyperVoxels[hID]["neuronCtr"]
+      
+      self.hyperVoxels[hID]["neurons"] = \
+        np.sort(self.hyperVoxels[hID]["neurons"][:nCtr])
         
     # Distribute the new list to all neurons
     dView.push({"nc.hyperVoxels":self.hyperVoxels},block=True)
