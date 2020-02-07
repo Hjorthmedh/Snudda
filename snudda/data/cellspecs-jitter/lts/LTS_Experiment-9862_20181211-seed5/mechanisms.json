@@ -1,0 +1,12 @@
+{
+    "all": [
+        "pas"
+    ],
+    "somatic": [
+        "hd_lts",
+        "na3_lts",
+        "kdrb_lts",
+        "im_lts",
+        "it_lts"
+    ]
+}
