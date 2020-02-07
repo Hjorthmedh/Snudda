@@ -55,7 +55,8 @@ class SnuddaDetect(object):
                lbView=None,
                rc=None,
                axonStumpIDFlag=False,
-               h5libver="latest"):
+               h5libver="latest",
+               debugFlag=False):
 
 
     if(rc is not None):
@@ -68,6 +69,7 @@ class SnuddaDetect(object):
 
     self.verbose = verbose
     self.h5libver = h5libver
+    self.debugFlag = debugFlag
 
     self.logFile = logFile
     self.configFile = configFile
@@ -1793,7 +1795,18 @@ class SnuddaDetect(object):
       networkGroup.create_dataset("gapJunctionLookup",
                                   data=self.hyperVoxelGapJunctionLookup,
                                   dtype=int)
-      
+
+      # Additional information useful for debugging
+      if(self.debugFlag):
+        debugGroup = outFile.create_group("debug")
+        
+        debugGroup.create_dataset("dendVoxels",data=self.dendVoxels)
+        debugGroup.create_dataset("axonVoxels",data=self.axonVoxels)
+        
+        debugGroup.create_dataset("dendVoxelCtr",data=self.dendVoxelCtr)
+        debugGroup.create_dataset("axonVoxelCtr",data=self.axonVoxelCtr)
+        
+        
       endTime = timeit.default_timer()
       
       outFile.close()
@@ -2572,7 +2585,7 @@ class SnuddaDetect(object):
           try:
             vCtr = voxelSpaceCtr[vp[0],vp[1],vp[2]]
             
-            if(vCtr>0 and voxelSpace[vp1[0],vp1[1],vp1[2],vCtr-1] == neuronID):
+            if(vCtr>0 and voxelSpace[vp[0],vp[1],vp[2],vCtr-1] == neuronID):
               # Voxel already has neuronID, skip
               continue
             
