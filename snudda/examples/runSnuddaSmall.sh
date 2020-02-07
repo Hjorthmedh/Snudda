@@ -14,30 +14,29 @@ sleep 20
 #simName=networks/NewConfig-v4
 #simName=networks/FullStriatum-v2
 #simName=networks/Article10000-v1
-simName=networks/testSim-1
+simName=networks/Article100000-v3
 
 if [ -d "$simName" ]; then
   echo "Directory $simName already exists!!"
   exit 666    
 fi
 
-#./snudda.py init $simName --size 1760000
-./snudda.py init $simName --size 200 #00
+#snudda init $simName --size 1760000
+snudda init $simName --size 100000
 
-./snudda.py place $simName 
-#./snudda.py detect $simName --hvsize 50 --volumeID Striatum
-./snudda.py detect $simName --volumeID Striatum
-./snudda.py prune $simName
+snudda place $simName 
+#snudda detect $simName --hvsize 50 --volumeID Striatum
+snudda detect $simName --volumeID Striatum
+snudda prune $simName
 
 # Copy over template input
 cp -a config/input-tinytest-v5.json $simName/input.json
 
 # Uncomment this to generate input
- ./snudda.py input $simName --input $simName/input.json
+#snudda input $simName --input $simName/input.json
 
 ipcluster stop
 
-
 # Uncomment this to run simulation
-./snudda.py simulate $simName
+#snudda simulate $simName
 
