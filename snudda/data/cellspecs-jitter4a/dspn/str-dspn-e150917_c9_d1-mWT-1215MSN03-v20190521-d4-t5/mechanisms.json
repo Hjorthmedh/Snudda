@@ -1,0 +1,40 @@
+{
+    "all": [
+        "pas"
+    ],
+    "somatic": [
+        "naf_ms",
+        "kaf_ms",
+        "kas_ms",
+        "kdr_ms",
+        "kir_ms",
+        "cal12_ms",
+        "cal13_ms",
+        "can_ms",
+        "car_ms",
+        "cadyn_ms",
+        "caldyn_ms",
+        "sk_ms",
+        "bk_ms"
+    ],
+    "axonal": [
+        "naf_ms",
+        "kas_ms"
+    ],
+    "basal": [
+        "naf_ms",
+        "kaf_ms",
+        "kas_ms",
+        "kdr_ms",
+        "kir_ms",
+        "cal12_ms",
+        "cal13_ms",
+        "car_ms",
+        "cat32_ms",
+        "cat33_ms",
+        "cadyn_ms",
+        "caldyn_ms",
+        "sk_ms",
+        "bk_ms"
+    ]
+}
