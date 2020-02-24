@@ -673,6 +673,7 @@ class SnuddaAnalyse(object):
     plt.tight_layout()
     plt.pause(0.001)
     plt.savefig(fullFigName)
+    plt.savefig(fullFigName.replace('.pdf','.eps'))
 
     print("Wrote " + fullFigName)
 
@@ -1633,7 +1634,8 @@ class SnuddaAnalyse(object):
 
   def plotIncomingConnections(self,preType,neuronType,sideLen=None,
                               nameStr="",
-                              connectionType="synapses"):
+                              connectionType="synapses",
+                              fig=None,colour=None,histRange=None):
 
     if(preType not in self.populations):
       print("plotIncomingConnections: " + str(preType) \
@@ -1652,7 +1654,13 @@ class SnuddaAnalyse(object):
                                               connectionType=connectionType)
 
     # Plotting number of connected neighbours
-    plt.figure()
+    if(fig is None):
+      fig = plt.figure()
+      histType = 'bar'
+    else:
+      plt.sca(fig.axes[0])
+      histType = 'step'
+      
     matplotlib.rcParams.update({'font.size':22})
 
     if(sum(nCon) > 0):
@@ -1661,9 +1669,15 @@ class SnuddaAnalyse(object):
       else:
         binSize=1
 
-      plt.hist(nCon,range(0,int(np.max(nCon)),binSize),
+      if(colour is None):
+        colour = self.getNeuronColor(preType)
+
+      if(histRange is None):
+        histRange = range(0,int(np.max(nCon)),binSize)
+        
+      plt.hist(nCon,histRange,
                align="left",density=True,
-               color=self.getNeuronColor(preType))
+               color=colour,histtype=histType)
 
     plt.xlabel("Number of connected neighbours")
     plt.ylabel("Probability density")
@@ -1717,6 +1731,7 @@ class SnuddaAnalyse(object):
 
     self.saveFigure(plt,figName)
 
+    return fig
 
 
   ############################################################################

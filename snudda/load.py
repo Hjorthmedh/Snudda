@@ -221,6 +221,9 @@ class SnuddaLoad(object):
 
   def extractNeurons(self,HDF5file):
 
+    if("parameterID" not in HDF5file["network/neurons"]):
+      return self.extractNeuronsOLD(HDF5file)
+      
     neurons = []
 
 
@@ -317,8 +320,108 @@ class SnuddaLoad(object):
 
     return neurons
 
+
+  
   ############################################################################
 
+
+  # OLD version does not include parameterID and modulationID
+  
+  def extractNeuronsOLD(self,HDF5file):
+
+    neurons = []
+
+    for name,neuronID,hoc,pos,rot,dendR,axonR,virtual,vID, \
+        axonDensityType, axonDensity,axonDensityRadius, \
+        axonDensityBoundsXYZ, \
+        morph \
+        in zip(HDF5file["network/neurons/name"][:],
+               HDF5file["network/neurons/neuronID"][:],
+               HDF5file["network/neurons/hoc"][:],
+               HDF5file["network/neurons/position"].value,
+               HDF5file["network/neurons/rotation"].value,
+               HDF5file["network/neurons/maxDendRadius"][:],
+               HDF5file["network/neurons/maxAxonRadius"][:],
+               HDF5file["network/neurons/virtualNeuron"][:],
+               HDF5file["network/neurons/volumeID"][:],
+               HDF5file["network/neurons/axonDensityType"][:],
+               HDF5file["network/neurons/axonDensity"][:],
+               HDF5file["network/neurons/axonDensityRadius"][:],
+               HDF5file["network/neurons/axonDensityBoundsXYZ"][:],
+               HDF5file["network/neurons/morphology"][:]):
+
+      n = dict([])
+
+      if(type(name) == np.ndarray):
+        # Old version of savefiles give different output
+        name = name[0]
+        neuronID = neuronID[0]
+        hoc = hoc[0]
+        dendR = dendR[0]
+        axonR = axonR[0]
+
+      if(type(name) in [bytes, np.bytes_] ):
+        n["name"] = name.decode()
+      else:
+        n["name"] = name
+
+      if(morph is not None):
+        if(type(morph) in [bytes,np.bytes_] ):
+          n["morphology"] = morph.decode()
+        else:
+          n["morphology"] = morph
+
+      # Naming convention is TYPE_X, where XX is a number starting from 0
+      n["type"] = n["name"].split("_")[0]
+
+      n["neuronID"] = neuronID
+
+      if(type(vID) in [bytes,np.bytes_] ):
+        n["volumeID"] = vID.decode()
+      else:
+        n["volumeID"] = vID
+
+      if(type(hoc) in [bytes, np.bytes_]):
+        n["hoc"] = hoc.decode()
+      else:
+        n["hoc"] = hoc
+
+      n["position"] = pos
+      n["rotation"] = rot.reshape(3,3)
+      n["maxDendRadius"] = dendR
+      n["maxAxonRadius"] = axonR
+      n["virtualNeuron"] = virtual
+
+      if(len(axonDensityType) == 0):
+        n["axonDensityType"] = None
+      elif(type(axonDensityType) in [bytes, np.bytes_]):
+        n["axonDensityType"] = axonDensityType.decode()
+      else:
+        n["axonDensityType"] = axonDensityType
+
+      if(len(axonDensity) > 0):
+        if(type(axonDensity) in [bytes,np.bytes_] ):
+          n["axonDensity"] = axonDensity.decode()
+        else:
+          n["axonDensity"] = axonDensity
+      else:
+        n["axonDensity"] = None
+
+
+      if(n["axonDensityType"] == "xyz"):
+        n["axonDensityBoundsXYZ"] = axonDensityBoundsXYZ
+      else:
+        n["axonDensityBoundsXYZ"] = None
+
+      n["axonDensityRadius"] = axonDensityRadius
+      
+      neurons.append(n)
+
+    return neurons
+
+  ############################################################################
+
+  
   def loadConfigFile(self):
 
     if(self.config is None):
