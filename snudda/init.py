@@ -978,29 +978,35 @@ class SnuddaInit(object):
     pfChINLTS = None
 
     # !!! SET RELEASE TO GABA FOR NOW
+    
+    # ================================================================
+    # commenting gabaergic ChIN -> SPN connections Feb. 25th 2020 (RL)
+    
+    if(False):
+        self.addNeuronTarget(neuronName="ChIN",
+                             targetName="dSPN",
+                             connectionType="GABA",
+                             distPruning=None,
+                             f1=0.5, softMax=10, mu2=15,a3=0.1, # SM 15
+                             conductance=ChINgGABA,
+                             parameterFile=pfChINdSPN,
+                             modFile="tmGabaA",
+                             channelParamDictionary=None)
 
-    self.addNeuronTarget(neuronName="ChIN",
-                         targetName="dSPN",
-                         connectionType="GABA",
-                         distPruning=None,
-                         f1=0.5, softMax=10, mu2=15,a3=0.1, # SM 15
-                         conductance=ChINgGABA,
-                         parameterFile=pfChINdSPN,
-                         modFile="tmGabaA",
-                         channelParamDictionary=None)
-
-    # TEST SETTING THIS TO ACh (SHOULD BE GABA), will this change?
-    # !!!
-    self.addNeuronTarget(neuronName="ChIN",
-                         targetName="iSPN",
-                         connectionType="GABA",
-                         distPruning=None,
-                         f1=0.5, softMax=10, mu2=10,a3=0.1, # SM 12
-                         conductance=ChINgGABA,
-                         parameterFile=pfChINiSPN,
-                         modFile="tmGabaA",
-                         channelParamDictionary=None)
-
+        # TEST SETTING THIS TO ACh (SHOULD BE GABA), will this change?
+        # !!!
+        
+        self.addNeuronTarget(neuronName="ChIN",
+                             targetName="iSPN",
+                             connectionType="GABA",
+                             distPruning=None,
+                             f1=0.5, softMax=10, mu2=10,a3=0.1, # SM 12
+                             conductance=ChINgGABA,
+                             parameterFile=pfChINiSPN,
+                             modFile="tmGabaA",
+                             channelParamDictionary=None)
+    # ================================================================
+    
     # We got an increasing connection distribution with distance, looks fishy
     # !!! Should be ACh, lets try set it to GABA and see if that changes things
     # --- trying same pruning as for ChIN to MSD2
