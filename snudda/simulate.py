@@ -973,13 +973,13 @@ class SnuddaSimulate(object):
     GJ = h.gGapPar(section(sectionDist))
     self.gapJunctionList.append(GJ)
 
-    pc.target_var(GJ._ref_vgap, GIDdestGJ)
+    self.pc.target_var(GJ._ref_vgap, GIDdestGJ)
 
     # !!! The line below sometimes gives this error:
     # /cfs/klemming/nobackup/h/hjorth/ChINopt/model/x86_64/special: source var gid already in use: 17124416
     # --- ok can replicate error if create 200 FS in small volume...
     # --- need to fix. HMMM how, src and dest gid has to be unique for each GJ?
-    pc.source_var(section(sectionDist)._ref_v, GIDsourceGJ,sec=section)
+    self.pc.source_var(section(sectionDist)._ref_v, GIDsourceGJ,sec=section)
 
     GJ.g = gGapJunction
     #print("Setting conductance: " + str(GJ.g))

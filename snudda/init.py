@@ -576,6 +576,7 @@ class SnuddaInit(object):
       
     if(cellSpecDir is None):
       csDir = self.dataPath + "/cellspecs"
+      # csDir = self.dataPath + "/cellspecs-var"      
     else:
       csDir = cellSpecDir
 
