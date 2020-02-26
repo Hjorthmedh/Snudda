@@ -1,1 +1,0 @@
-../snudda/data/cellspecs/mechanisms/cal12_ms.mod

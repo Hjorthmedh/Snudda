@@ -1,1 +1,0 @@
-../snudda/data/cellspecs/mechanisms/ca_ch.mod

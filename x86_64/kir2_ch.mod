@@ -1,1 +1,0 @@
-../snudda/data/cellspecs/mechanisms/kir2_ch.mod

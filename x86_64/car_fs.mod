@@ -1,1 +1,0 @@
-../snudda/data/cellspecs/mechanisms/car_fs.mod

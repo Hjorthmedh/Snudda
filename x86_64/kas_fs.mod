@@ -1,1 +1,0 @@
-../snudda/data/cellspecs/mechanisms/kas_fs.mod

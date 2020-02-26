@@ -1,1 +1,0 @@
-../snudda/data/cellspecs/mechanisms/kaf_ms.mod

@@ -1,1 +1,0 @@
-../snudda/data/cellspecs/mechanisms/im_lts.mod

@@ -1,1 +1,0 @@
-../snudda/data/cellspecs/mechanisms/na2_ch.mod

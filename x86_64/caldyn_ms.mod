@@ -1,1 +1,0 @@
-../snudda/data/cellspecs/mechanisms/caldyn_ms.mod

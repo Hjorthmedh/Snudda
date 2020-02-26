@@ -1,1 +1,0 @@
-../snudda/data/cellspecs/mechanisms/hcn12_ch.mod

@@ -1,1 +1,0 @@
-../snudda/data/cellspecs/mechanisms/Kv3_ch.mod

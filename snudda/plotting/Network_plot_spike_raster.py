@@ -20,9 +20,12 @@ class NetworkPlotSpikeRaster(object):
     self.time = []
     self.spikeID = []
     self.endTime = endTime
-    
-    self.ID = int(re.findall('\d+', ntpath.basename(fileName))[0])
 
+    try:
+      self.ID = int(re.findall('\d+', ntpath.basename(fileName))[0])
+    except:
+      self.ID = 0
+      
     self.neuronNameRemap = {"FSN" : "FS"}
     
     self.readCSV()

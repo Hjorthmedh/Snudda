@@ -1,1 +1,0 @@
-../snudda/data/cellspecs/mechanisms/kdr_ms.mod

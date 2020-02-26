@@ -1,1 +1,0 @@
-../snudda/data/cellspecs/mechanisms/par_ggap.mod
