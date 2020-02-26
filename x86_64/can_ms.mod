@@ -1,0 +1,1 @@
+../snudda/data/cellspecs/mechanisms/can_ms.mod

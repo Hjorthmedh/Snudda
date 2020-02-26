@@ -1,0 +1,1 @@
+../snudda/data/cellspecs/mechanisms/sk_ms.mod

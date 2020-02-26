@@ -1,0 +1,1 @@
+../snudda/data/cellspecs/mechanisms/cat33_ms.mod

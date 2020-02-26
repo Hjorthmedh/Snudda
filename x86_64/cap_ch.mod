@@ -1,0 +1,1 @@
+../snudda/data/cellspecs/mechanisms/cap_ch.mod

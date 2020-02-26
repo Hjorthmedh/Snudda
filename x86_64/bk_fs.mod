@@ -1,0 +1,1 @@
+../snudda/data/cellspecs/mechanisms/bk_fs.mod

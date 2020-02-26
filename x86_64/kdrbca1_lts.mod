@@ -1,0 +1,1 @@
+../snudda/data/cellspecs/mechanisms/kdrbca1_lts.mod

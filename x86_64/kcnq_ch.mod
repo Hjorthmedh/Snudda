@@ -1,0 +1,1 @@
+../snudda/data/cellspecs/mechanisms/kcnq_ch.mod

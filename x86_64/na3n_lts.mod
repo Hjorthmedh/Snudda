@@ -1,0 +1,1 @@
+../snudda/data/cellspecs/mechanisms/na3n_lts.mod

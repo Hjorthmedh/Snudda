@@ -8,7 +8,7 @@ import os
 import numpy as np
 import re
 import ntpath
-from .load import SnuddaLoad
+from snudda.load import SnuddaLoad
 import time
 
 class NetworkPlotSpikeRaster(object):

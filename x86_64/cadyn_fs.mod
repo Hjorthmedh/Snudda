@@ -1,0 +1,1 @@
+../snudda/data/cellspecs/mechanisms/cadyn_fs.mod
