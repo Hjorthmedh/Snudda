@@ -50,8 +50,8 @@
 import os
 import glob
 import numpy as np
-from .simulate import SnuddaSimulate
-from .load import SnuddaLoad
+from snudda.simulate import SnuddaSimulate
+from snudda.load import SnuddaLoad
 import matplotlib
 import matplotlib.pyplot as plt
 import neuron
