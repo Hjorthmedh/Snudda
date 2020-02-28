@@ -42,3 +42,5 @@ and SGA2).
 
   snudda help me
   -- Show this help text
+
+Example of a small simulation of the striatal circuitry can be found in Jupyter notebook [StriatumScaffoldExample-tiny.ipynb](./snudda/examples/StriatumScaffoldExample-tiny.ipynb).
