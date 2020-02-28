@@ -1,0 +1,20 @@
+Starting log file
+Using SlurmID: 1No IPYTHON_PROFILE enviroment variable set, running in serialUsing hdf5 version: latest
+Parsing configuration file networks/tinySim/network-config.json
+Using meshBinWidth 0.00010749824478388102
+Cube mesh, switching to serial processing.
+Using dimensions from config file
+Adding: 1 FSN_0
+Adding: 12 dSPN_0
+Adding: 12 dSPN_1
+Adding: 12 dSPN_2
+Adding: 12 dSPN_3
+Adding: 12 iSPN_0
+Adding: 12 iSPN_1
+Adding: 12 iSPN_2
+Adding: 12 iSPN_3
+Adding: 1 ChIN_0
+Adding: 1 LTS_0
+Re-sorting the neuron IDs after location
+Writing data to HDF5 file: networks/tinySim/network-neuron-positions.hdf5
+Program run time: 5.055038872000296End of log. Closing file.

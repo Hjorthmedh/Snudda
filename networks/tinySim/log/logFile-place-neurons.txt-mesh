@@ -1,0 +1,28 @@
+No mesh cache file found (networks/tinySim/mesh/Striatum-cube-mesh-0.00010749824478388102.obj-107-cache.pickle)
+Running in serial
+Voxel mask: 5x5x5
+Processing x = 0
+Processing x = 1
+Processing x = 2
+Processing x = 3
+Processing x = 4
+Fraction of border voxels: 0.0
+Saving mesh cache file networks/tinySim/mesh/Striatum-cube-mesh-0.00010749824478388102.obj-107-cache.pickle
+Calculation time: 0.01307436999923084 s
+Setup voxel list
+Setup place neurons
+Update padding mask
+Regenerating new random pool
+Setup done
+Inner voxel bin volume: 0.0 mm³
+Placed 1 in 0.003589967000152683 s
+Placed 12 in 0.021250214998872252 s
+Placed 12 in 0.035246459001427866 s
+Placed 12 in 0.07043534100012039 s
+Placed 12 in 0.06620321400077955 s
+Placed 12 in 0.06483234900042589 s
+Placed 12 in 0.09527687699846865 s
+Placed 12 in 0.11298816700036696 s
+Placed 12 in 0.07991582700014987 s
+Placed 1 in 0.0031247139995684847 s
+Placed 1 in 0.005856461000803392 s

@@ -1,0 +1,73 @@
+Starting log file
+Using SlurmID: 3No IPYTHON_PROFILE enviroment variable set, running in serialSetting random seed: None
+Using hdf5 driver sec2, latest version
+Opening work history file: networks/tinySim/log/network-detect-worklog.hdf5
+Using default scratch path: networks/tinySim//temp/
+Checking for merge file networks/tinySim//network-putative-synapses-MERGED.hdf5
+Running merge in serial
+Doing bigMerge (lookup) for synapses
+Opening voxel file: networks/tinySim//voxels/network-putative-synapses-21.hdf5
+Opening voxel file: networks/tinySim//voxels/network-putative-synapses-17.hdf5
+Opening voxel file: networks/tinySim//voxels/network-putative-synapses-5.hdf5
+Opening voxel file: networks/tinySim//voxels/network-putative-synapses-20.hdf5
+Opening voxel file: networks/tinySim//voxels/network-putative-synapses-16.hdf5
+Opening voxel file: networks/tinySim//voxels/network-putative-synapses-1.hdf5
+Opening voxel file: networks/tinySim//voxels/network-putative-synapses-4.hdf5
+Opening voxel file: networks/tinySim//voxels/network-putative-synapses-0.hdf5
+Opening voxel file: networks/tinySim//voxels/network-putative-synapses-37.hdf5
+Opening voxel file: networks/tinySim//voxels/network-putative-synapses-22.hdf5
+Opening voxel file: networks/tinySim//voxels/network-putative-synapses-33.hdf5
+Opening voxel file: networks/tinySim//voxels/network-putative-synapses-36.hdf5
+Setting up out file networks/tinySim//network-putative-synapses-MERGED.hdf5
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226/MTC180800A-IDB-cor-rep.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/WT-P270-20-15ak-cor.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503/21-6-DE-cor-rep-ax.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/WT-1215MSN03-cor-rep-ax2.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529/46-3-DE-cor-rep-ax.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/WT-P270-09-15ak-cor.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603/WT-MSN1-cor-rep-ax.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611/51-5-DE-cor-rep-ax.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/chin/str-chin-e170614_cell6-m17JUL301751_170614_no6_MD_cell_1_x63-v20190710/17JUL301751_170614_no6_MD_cell_1_x63-cor-noaxon.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/lts/LTS_Experiment-9862_20181211/lts_morp_2019-11-07_centered_noAxon.swc
+maxAxonVoxelCtr = 9
+maxDendVoxelCtr = 6
+Synapses: 2/119924 (heap size: 11)
+Flushing networks/tinySim//network-putative-synapses-MERGED.hdf5 data: network/synapses
+network/synapses new size (119924, 13)
+bigMergeLookup: done
+Doing bigMerge (lookup) for gapJunctions
+pruneSynapses called.
+pruneSynapses: synapseFile=<HDF5 file "network-putative-synapses-MERGED.hdf5" (mode None)>, outputFileName=None, rowRange=None (synapses)
+About to calculate block ranges (1 blocks)
+Find block ranges. From 0 to 119924 block size 119924
+synapseRange=[(0, 119924)]
+blockRanges=[(0, 119924)]
+Writing to networks/tinySim//network-pruned-synapses.hdf5
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226/MTC180800A-IDB-cor-rep.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/WT-P270-20-15ak-cor.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503/21-6-DE-cor-rep-ax.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/WT-1215MSN03-cor-rep-ax2.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529/46-3-DE-cor-rep-ax.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/WT-P270-09-15ak-cor.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603/WT-MSN1-cor-rep-ax.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611/51-5-DE-cor-rep-ax.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/chin/str-chin-e170614_cell6-m17JUL301751_170614_no6_MD_cell_1_x63-v20190710/17JUL301751_170614_no6_MD_cell_1_x63-cor-noaxon.swc
+Saving morphology in HDF5 file: /home/akozlov/doc/hbp-bsp-live-papers-dev-priv/2020/hjorth_et_al_2020/work/Snudda/snudda/data/cellspecs/lts/LTS_Experiment-9862_20181211/lts_morp_2019-11-07_centered_noAxon.swc
+Pruning range : (0, 119924)
+Number of synapses removed where synapse connection not allowed: 0
+Number of synapses removed due to distance dependent pruning: 30058
+Number of synapses removed randomly: 74823
+Number of synapses removed due to too many synapses between connected pair: 877
+Number of synapses removed due to too few synapses between connected pairs: 5082
+Number of synapses removed where all synapses between pairs are removed: 2502
+pruneSynapses called.
+pruneSynapses: No gapJunctions skipping pruning
+Voxel overflows: 0 (should be zero)
+Synapses before pruning: 119924
+Synapses after pruning: 6582 (5.49 % kept)
+No gap junctions to prune.
+Cleaning up old merge files
+Total duration: 2.769833624999592
+Program run time: 2.821337310999297End of log. Closing file.

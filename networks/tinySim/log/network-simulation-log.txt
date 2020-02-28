@@ -1,0 +1,418 @@
+Using networkFile: networks/tinySim/network-pruned-synapses.hdf5
+Using inputFile: networks/tinySim/input-spikes.hdf5
+Using logFile: networks/tinySim/log/network-simulation-log.txt
+Worker 0: Loading network from networks/tinySim/network-pruned-synapses.hdf5
+Loading config file networks/tinySim/network-config.json
+0: Memory status: 80% free
+Distributing neurons.
+Setup neurons
+Node 0 - cell 0 dSPN_0
+Neuron dSPN_0 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 1 iSPN_2
+Neuron iSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 2 iSPN_1
+Neuron iSPN_1 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 3 iSPN_2
+Neuron iSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 4 dSPN_3
+Neuron dSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 5 dSPN_3
+Neuron dSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 6 dSPN_3
+Neuron dSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 7 iSPN_0
+Neuron iSPN_0 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 8 dSPN_0
+Neuron dSPN_0 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 9 dSPN_3
+Neuron dSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 10 dSPN_2
+Neuron dSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 11 dSPN_0
+Neuron dSPN_0 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 12 iSPN_0
+Neuron iSPN_0 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 13 iSPN_1
+Neuron iSPN_1 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 14 iSPN_0
+Neuron iSPN_0 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 15 dSPN_2
+Neuron dSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 16 iSPN_0
+Neuron iSPN_0 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 17 dSPN_1
+Neuron dSPN_1 resting voltage = -87
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 18 dSPN_0
+Neuron dSPN_0 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 19 dSPN_2
+Neuron dSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 20 iSPN_1
+Neuron iSPN_1 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 21 iSPN_1
+Neuron iSPN_1 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 22 dSPN_1
+Neuron dSPN_1 resting voltage = -87
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 23 iSPN_1
+Neuron iSPN_1 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 24 dSPN_3
+Neuron dSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 25 iSPN_1
+Neuron iSPN_1 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 26 iSPN_2
+Neuron iSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 27 iSPN_3
+Neuron iSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 28 dSPN_1
+Neuron dSPN_1 resting voltage = -87
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 29 iSPN_0
+Neuron iSPN_0 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 30 dSPN_1
+Neuron dSPN_1 resting voltage = -87
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 31 dSPN_0
+Neuron dSPN_0 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 32 dSPN_2
+Neuron dSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 33 iSPN_3
+Neuron iSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 34 iSPN_2
+Neuron iSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 35 dSPN_0
+Neuron dSPN_0 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 36 iSPN_1
+Neuron iSPN_1 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 37 dSPN_0
+Neuron dSPN_0 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 38 iSPN_3
+Neuron iSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 39 iSPN_2
+Neuron iSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 40 iSPN_1
+Neuron iSPN_1 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 41 dSPN_1
+Neuron dSPN_1 resting voltage = -87
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 42 dSPN_3
+Neuron dSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 43 iSPN_3
+Neuron iSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 44 iSPN_0
+Neuron iSPN_0 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 45 dSPN_3
+Neuron dSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 46 dSPN_0
+Neuron dSPN_0 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 47 iSPN_0
+Neuron iSPN_0 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 48 dSPN_3
+Neuron dSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 49 dSPN_0
+Neuron dSPN_0 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 50 iSPN_0
+Neuron iSPN_0 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 51 iSPN_2
+Neuron iSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 52 iSPN_3
+Neuron iSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 53 dSPN_2
+Neuron dSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 54 dSPN_0
+Neuron dSPN_0 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 55 dSPN_1
+Neuron dSPN_1 resting voltage = -87
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 56 dSPN_1
+Neuron dSPN_1 resting voltage = -87
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 57 dSPN_1
+Neuron dSPN_1 resting voltage = -87
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 58 dSPN_1
+Neuron dSPN_1 resting voltage = -87
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 59 dSPN_1
+Neuron dSPN_1 resting voltage = -87
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 60 dSPN_1
+Neuron dSPN_1 resting voltage = -87
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 61 iSPN_1
+Neuron iSPN_1 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 62 dSPN_0
+Neuron dSPN_0 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 63 ChIN_0
+Neuron ChIN_0 resting voltage = -60
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 64 dSPN_3
+Neuron dSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 65 dSPN_2
+Neuron dSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 66 dSPN_2
+Neuron dSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 67 iSPN_2
+Neuron iSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 68 iSPN_3
+Neuron iSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 69 dSPN_3
+Neuron dSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 70 dSPN_2
+Neuron dSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 71 iSPN_0
+Neuron iSPN_0 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 72 iSPN_0
+Neuron iSPN_0 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 73 dSPN_0
+Neuron dSPN_0 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 74 iSPN_1
+Neuron iSPN_1 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 75 dSPN_2
+Neuron dSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 76 iSPN_2
+Neuron iSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 77 iSPN_2
+Neuron iSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 78 iSPN_2
+Neuron iSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 79 FSN_0
+Neuron FSN_0 resting voltage = -85
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 80 iSPN_0
+Neuron iSPN_0 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 81 dSPN_3
+Neuron dSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 82 iSPN_1
+Neuron iSPN_1 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 83 iSPN_3
+Neuron iSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 84 dSPN_2
+Neuron dSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 85 dSPN_2
+Neuron dSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 86 iSPN_3
+Neuron iSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 87 iSPN_3
+Neuron iSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 88 LTS_0
+Neuron LTS_0 resting voltage = -75
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 89 iSPN_0
+Neuron iSPN_0 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 90 iSPN_3
+Neuron iSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 91 iSPN_1
+Neuron iSPN_1 resting voltage = -83
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 92 iSPN_3
+Neuron iSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 93 dSPN_1
+Neuron dSPN_1 resting voltage = -87
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 94 iSPN_2
+Neuron iSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 95 dSPN_2
+Neuron dSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 96 dSPN_3
+Neuron dSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 97 iSPN_3
+Neuron iSPN_3 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 98 iSPN_2
+Neuron iSPN_2 resting voltage = -86
+!!! Popping extra segment from neuron -- temp fix!
+0: Memory status: 79% free
+connectNetworkSynapses
+Adding gap junctions.
+connectNetworkGapJunctionsLOCAL
+Finding node local gap junctions...
+0: Memory status: 79% free
+Adding external (cortical, thalamic) input from networks/tinySim/input-spikes.hdf5
+0: Memory status: 75% free
+Adding somatic recordings
+0: Memory status: 75% free
+Running simulation for 0.1 s
+1% done. Elapsed: 3.8 s, estimated time left: 374.7 s
+2% done. Elapsed: 7.6 s, estimated time left: 371.0 s
+3% done. Elapsed: 11.1 s, estimated time left: 359.7 s
+4% done. Elapsed: 14.7 s, estimated time left: 352.6 s
+5% done. Elapsed: 18.2 s, estimated time left: 345.0 s
+6% done. Elapsed: 21.9 s, estimated time left: 342.5 s
+7% done. Elapsed: 25.5 s, estimated time left: 338.7 s
+8% done. Elapsed: 28.9 s, estimated time left: 332.2 s
+9% done. Elapsed: 32.2 s, estimated time left: 326.0 s
+10% done. Elapsed: 35.9 s, estimated time left: 323.1 s
+11% done. Elapsed: 39.5 s, estimated time left: 319.4 s
+12% done. Elapsed: 43.0 s, estimated time left: 315.3 s
+13% done. Elapsed: 46.4 s, estimated time left: 310.4 s
+14% done. Elapsed: 49.8 s, estimated time left: 305.7 s
+15% done. Elapsed: 53.1 s, estimated time left: 301.1 s
+16% done. Elapsed: 56.7 s, estimated time left: 297.9 s
+17% done. Elapsed: 60.2 s, estimated time left: 293.7 s
+18% done. Elapsed: 63.6 s, estimated time left: 289.7 s
+19% done. Elapsed: 67.0 s, estimated time left: 285.8 s
+20% done. Elapsed: 70.4 s, estimated time left: 281.8 s
+21% done. Elapsed: 73.8 s, estimated time left: 277.8 s
+22% done. Elapsed: 77.5 s, estimated time left: 274.7 s
+23% done. Elapsed: 80.9 s, estimated time left: 270.9 s
+24% done. Elapsed: 84.3 s, estimated time left: 266.9 s
+25% done. Elapsed: 87.7 s, estimated time left: 263.1 s
+26% done. Elapsed: 91.0 s, estimated time left: 259.1 s
+27% done. Elapsed: 94.4 s, estimated time left: 255.3 s
+28% done. Elapsed: 98.1 s, estimated time left: 252.3 s
+29% done. Elapsed: 101.6 s, estimated time left: 248.7 s
+30% done. Elapsed: 105.0 s, estimated time left: 244.9 s
+31% done. Elapsed: 108.3 s, estimated time left: 241.1 s
+32% done. Elapsed: 111.7 s, estimated time left: 237.3 s
+33% done. Elapsed: 115.0 s, estimated time left: 233.5 s
+34% done. Elapsed: 118.6 s, estimated time left: 230.2 s
+35% done. Elapsed: 122.0 s, estimated time left: 226.6 s
+36% done. Elapsed: 125.5 s, estimated time left: 223.0 s
+37% done. Elapsed: 128.9 s, estimated time left: 219.4 s
+38% done. Elapsed: 132.3 s, estimated time left: 215.8 s
+39% done. Elapsed: 135.7 s, estimated time left: 212.2 s
+40% done. Elapsed: 139.3 s, estimated time left: 209.0 s
+41% done. Elapsed: 142.8 s, estimated time left: 205.4 s
+42% done. Elapsed: 146.2 s, estimated time left: 201.9 s
+43% done. Elapsed: 149.6 s, estimated time left: 198.3 s
+44% done. Elapsed: 153.0 s, estimated time left: 194.7 s
+45% done. Elapsed: 156.4 s, estimated time left: 191.1 s
+46% done. Elapsed: 160.1 s, estimated time left: 187.9 s
+47% done. Elapsed: 163.6 s, estimated time left: 184.4 s
+48% done. Elapsed: 167.0 s, estimated time left: 180.9 s
+49% done. Elapsed: 170.4 s, estimated time left: 177.3 s
+50% done. Elapsed: 173.8 s, estimated time left: 173.8 s
+51% done. Elapsed: 177.2 s, estimated time left: 170.3 s
+52% done. Elapsed: 180.8 s, estimated time left: 166.9 s
+53% done. Elapsed: 184.2 s, estimated time left: 163.4 s
+54% done. Elapsed: 187.7 s, estimated time left: 159.9 s
+55% done. Elapsed: 191.1 s, estimated time left: 156.3 s
+56% done. Elapsed: 194.5 s, estimated time left: 152.8 s
+57% done. Elapsed: 197.9 s, estimated time left: 149.3 s
+58% done. Elapsed: 201.6 s, estimated time left: 146.0 s
+59% done. Elapsed: 205.1 s, estimated time left: 142.5 s
+60% done. Elapsed: 208.5 s, estimated time left: 139.0 s
+61% done. Elapsed: 211.9 s, estimated time left: 135.5 s
+62% done. Elapsed: 215.3 s, estimated time left: 131.9 s
+63% done. Elapsed: 218.6 s, estimated time left: 128.4 s
+64% done. Elapsed: 222.2 s, estimated time left: 125.0 s
+65% done. Elapsed: 225.7 s, estimated time left: 121.5 s
+66% done. Elapsed: 229.1 s, estimated time left: 118.0 s
+67% done. Elapsed: 232.4 s, estimated time left: 114.5 s
+68% done. Elapsed: 235.8 s, estimated time left: 111.0 s
+69% done. Elapsed: 239.2 s, estimated time left: 107.5 s
+70% done. Elapsed: 242.7 s, estimated time left: 104.0 s
+71% done. Elapsed: 246.2 s, estimated time left: 100.5 s
+72% done. Elapsed: 249.7 s, estimated time left: 97.1 s
+73% done. Elapsed: 253.4 s, estimated time left: 93.7 s
+74% done. Elapsed: 256.8 s, estimated time left: 90.2 s
+75% done. Elapsed: 260.2 s, estimated time left: 86.7 s
+76% done. Elapsed: 263.8 s, estimated time left: 83.3 s
+77% done. Elapsed: 267.2 s, estimated time left: 79.8 s
+78% done. Elapsed: 270.6 s, estimated time left: 76.3 s
+79% done. Elapsed: 274.0 s, estimated time left: 72.8 s
+80% done. Elapsed: 277.4 s, estimated time left: 69.3 s
+81% done. Elapsed: 280.7 s, estimated time left: 65.9 s
+82% done. Elapsed: 284.3 s, estimated time left: 62.4 s
+83% done. Elapsed: 287.7 s, estimated time left: 58.9 s
+84% done. Elapsed: 291.2 s, estimated time left: 55.5 s
+85% done. Elapsed: 294.6 s, estimated time left: 52.0 s
+86% done. Elapsed: 298.0 s, estimated time left: 48.5 s
+87% done. Elapsed: 301.4 s, estimated time left: 45.0 s
+88% done. Elapsed: 304.9 s, estimated time left: 41.6 s
+89% done. Elapsed: 308.3 s, estimated time left: 38.1 s
+90% done. Elapsed: 311.7 s, estimated time left: 34.6 s
+91% done. Elapsed: 315.2 s, estimated time left: 31.2 s
+92% done. Elapsed: 318.5 s, estimated time left: 27.7 s
+93% done. Elapsed: 321.9 s, estimated time left: 24.2 s
+94% done. Elapsed: 325.5 s, estimated time left: 20.8 s
+95% done. Elapsed: 329.0 s, estimated time left: 17.3 s
+96% done. Elapsed: 332.4 s, estimated time left: 13.8 s
+97% done. Elapsed: 335.8 s, estimated time left: 10.4 s
+98% done. Elapsed: 339.1 s, estimated time left: 6.9 s
+99% done. Elapsed: 342.5 s, estimated time left: 3.5 s
+Simulation done.
+Simulation run time: 345.90915805999975 s
+Writing spike times to networks/tinySim/simulation/network-output-spikes-666.txt
