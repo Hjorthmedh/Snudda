@@ -33,25 +33,35 @@ class RunLittleSynapseRun(object):
     neuron.h.load_file('stdrun.hoc')
 
     # Should we use weak reference for garbage collection? (weakref package)
-    
+
     self.soma = neuron.h.Section(name='soma')
     self.soma.insert('hh')
     neuron.h.celsius = 35
-    
+      
     # gnabar_hh: The maximum specific sodium channel conductance [Default value = 0.120 S/cm2]
     # gkbar_hh: The maximum specific potassium channel conductance [Default value = 0.036 S/cm2]
     # gl_hh: The maximum specific leakage conductance [Default value = 0.0003 S/cm2]
     # ena: The reversal potential for the sodium channel [Default value = 50 mV]
     # ek: The reversal potential for the potassium channel [Default value = -77 mV]
     # el_hh: The reversal potential for the leakage channel [Default value = -54.3 mV]
-    
-    if(synapseType.lower() == 'glut'):
-      self.littleSynapse=neuron.h.tmGlut(self.soma(0.5))
-    elif(synapseType.lower() == "gaba"):
-      self.littleSynapse=neuron.h.tmGabaA(self.soma(0.5))
-    else:
-      assert False, "Unknown synapse type: " + str(synapseType)
 
+    try:
+      if(synapseType.lower() == 'glut'):
+        self.littleSynapse=neuron.h.tmGlut(self.soma(0.5))
+      elif(synapseType.lower() == "gaba"):
+        self.littleSynapse=neuron.h.tmGabaA(self.soma(0.5))
+      else:
+        assert False, "Unknown synapse type: " + str(synapseType)
+
+    except:
+      import traceback
+      tstr = traceback.format_exc()
+      print(tstr)
+
+      print("Did you remember to run nrnivmodl first, to generate channels mod files?")
+      exit(-1)
+
+      
     # We need to set the params also
     self.params = params
 
