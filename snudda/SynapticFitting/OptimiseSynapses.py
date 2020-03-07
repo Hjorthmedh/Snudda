@@ -1061,38 +1061,49 @@ class OptimiseSynapses(object):
                                               params=params,
                                               returnTrace=True)
     
-    # Calculating error in peak height
-    #hDiff = np.abs(peakH - expPeakHeight)
-    #hDiff[0] *= 3
-    #hDiff[-1] *= 3
-    #hError = np.sum(hDiff)/len(hDiff)
-    hRelError = np.abs(np.divide(peakH-expPeakHeight,expPeakHeight)-1)
-    hRelError[0] *= 2
-    hRelError[-1] *= 2    
-    hError = np.sum(hRelError)
     
     # Calculate error in decay fit
     simTrace,simTime = self.smoothingTrace(vSim,self.nSmoothing,
                                            time=tSim,
                                            startTime=self.decayStartFit,
                                            endTime=self.decayEndFit)
-    
     # We only want to use the bit of the trace after max
     idxMax = np.argmax(smoothExpTrace)
     
-    # We divide by number of points in vector, to get the average deviation
-    # then we multiply by 10000 to get an error comparable to the others
-    # decayError = np.sum((smoothExpTrace[idxMax:] \
-    #                     - simTrace[idxMax:])**2) \
-    #                     /(self.nSmoothing-idxMax+1) * 2000
+    absError = True
 
+    if(absError):
 
-    decayError = np.mean(np.abs(np.divide(simTrace[idxMax:-1] 
-                                          - simTrace[-1],
-                                          smoothExpTrace[idxMax:-1]
-                                          - smoothExpTrace[-1])-1))
+      # Calculating error in peak height
+      hDiff = np.abs(peakH - expPeakHeight)
+      hDiff[0] *= 3
+      hDiff[-1] *= 3
+      hError = np.sum(hDiff)/len(hDiff)
+
+      decayError = np.sum((smoothExpTrace[idxMax:] \
+                           - simTrace[idxMax:])**2) \
+                           /(self.nSmoothing-idxMax+1) * 10000
+
+      fitError = hError + decayError
+      
+    else:
+      decayError = np.mean(np.abs(np.divide(simTrace[idxMax:-1] 
+                                            - simTrace[-1],
+                                            smoothExpTrace[idxMax:-1]
+                                            - smoothExpTrace[-1])-1))
+
+      hRelError = np.abs(np.divide(peakH-expPeakHeight,expPeakHeight)-1)
+      hRelError[0] *= 2
+      hRelError[-1] *= 2    
+      hError = np.sum(hRelError)
+
+      fitError = hError + decayError*3
+
+      
     
-    fitError = hError + decayError*3
+
+
+
 
     if(False):
       peakBase = vSim[-1]
@@ -1460,7 +1471,7 @@ class OptimiseSynapses(object):
                 tPeak,hPeak,
                 modelBounds,
                 smoothExpTrace,
-                nTrials=5000,loadParamsFlag=False):
+                nTrials=10000,loadParamsFlag=False):
 
     assert self.synapseType == "glut", \
       "GABA synapse not supported yet in new version"
