@@ -42,7 +42,7 @@ class OptimiseSynapses(object):
   
   def __init__(self, fileName, synapseType="glut",loadCache=True,
                role="master",dView=None,verbose=True,logFileName=None,
-               optMethod="swarm",prettyPlot=True):
+               optMethod="swarm",prettyPlot=False):
 
     # Parallel execution role, "master" or "servant"
     self.role = role
@@ -297,12 +297,16 @@ class OptimiseSynapses(object):
   
   def plotData(self,dataType,cellID=None,params={},show=True,skipTime=0.05,
                prettyPlot=None):
-
-    matplotlib.rcParams.update({'font.size': 24})
+      
     
     if(prettyPlot is None):
       prettyPlot = self.prettyPlot
-    
+
+    if(prettyPlot):
+      matplotlib.rcParams.update({'font.size': 24})
+    else:
+      matplotlib.rcParams.update({'font.size': 5})
+      
     (data,t) = self.getData(dataType,cellID)
 
     if(data is None):
@@ -1088,7 +1092,7 @@ class OptimiseSynapses(object):
                                           smoothExpTrace[idxMax:-1]
                                           - smoothExpTrace[-1])-1))
     
-    fitError = hError + decayError
+    fitError = hError + decayError*3
 
     if(False):
       peakBase = vSim[-1]
@@ -1250,12 +1254,16 @@ class OptimiseSynapses(object):
                              modelBounds=modelBounds)
 
 
-        fitParams,pcov = scipy.optimize.curve_fit(self.neuronSynapseHelper,
-                                                  stimTime,peakHeight,
-                                                  sigma=sigma,
-                                                  absolute_sigma=False,
-                                                  p0=p0,
-                                                  bounds=modelBounds)
+#        fitParams,pcov = scipy.optimize.curve_fit(self.neuronSynapseHelper,
+#                                                  stimTime,peakHeight,
+#                                                  sigma=sigma,
+#                                                  absolute_sigma=False,
+#                                                  p0=p0,
+#                                                  bounds=modelBounds)
+        fitParams,pcov = scipy.optimize.minimize(self.neuronSynapseHelper,
+                                                 stimTime,
+                                                 x0=p0,
+                                                 bounds=modelBounds)
 
         # tau < tauR, so we use tauRatio for optimisation
         fitParams[3] *= fitParams[1] # tau = tauR * tauRatio
@@ -1294,19 +1302,31 @@ class OptimiseSynapses(object):
                                   modelBounds=modelBounds,
                                   smoothExpTrace=smoothExpVolt)
 
-        func = lambda x,U,tauR,tauF,tauRatio,cond,nmdaRatio : \
-          self.neuronSynapseHelperGlut(x,U,tauR,tauF,tauRatio,cond,nmdaRatio,
+        func = lambda x : \
+          self.neuronSynapseHelperGlut(tSpike=stimTime,
+                                       U=x[0],
+                                       tauR=x[1],
+                                       tauF=x[2],
+                                       tauRatio=x[3],
+                                       cond=x[4],
+                                       nmdaRatio=x[5],
                                        smoothExpTrace=smoothExpVolt,
                                        expPeakHeight=peakHeight,
-                                       returnType="peaks")
-        
+                                       returnType="error")
 
-        fitParams,pcov = scipy.optimize.curve_fit(func,
-                                                  stimTime,peakHeight,
-                                                  sigma=sigma,
-                                                  absolute_sigma=False,
-                                                  p0=startPar,
-                                                  bounds=modelBounds)
+        mBounds = [x for x in zip(modelBounds[0],modelBounds[1])]
+        res = scipy.optimize.minimize(func,
+                                      x0=startPar,
+                                      bounds=mBounds)
+
+        fitParams = res.x
+        
+#        fitParams,pcov = scipy.optimize.curve_fit(func,
+#                                                  stimTime,peakHeight,
+#                                                  sigma=sigma,
+#                                                  absolute_sigma=False,
+#                                                  p0=startPar,
+#                                                  bounds=modelBounds)
 
         modelError,modelHeight,tSim,vSim = \
           self.neuronSynapseHelperGlut(stimTime,
@@ -1325,6 +1345,7 @@ class OptimiseSynapses(object):
         fitParams[3] *= fitParams[1] # tau = tauR * tauRatio
 
         self.writeLog("Parameters: U = %.3g, tauR = %.3g, tauF = %.3g, tau = %.3g, cond = %.3g, nmdaRatio = %.3g" % tuple(fitParams))
+        self.writeLog("Model error: %g" % modelError)
 
         
       elif(optMethod=="swarm"):
@@ -1492,7 +1513,8 @@ class OptimiseSynapses(object):
 
       idx += 1
       if(idx % 100 == 0):
-        print("%d / %d : minError = %g" % (idx, len(USobol),minError))
+        self.writeLog("%d / %d : minError = %g" % (idx, len(USobol),minError))
+        self.writeLog(str(minPar))
       
       error = self.neuronSynapseHelperGlut(tPeak,U,tauR,tauF,tauRatio,
                                            cond,nmdaRatio,
