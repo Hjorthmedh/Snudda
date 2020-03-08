@@ -1667,8 +1667,6 @@ class OptimiseSynapses(object):
         cmdStr = "res = ly.parallelOptimiseCells(dataType=dataType,cellIDlist=cellIDlist)"
         self.writeLog("Starting execution")
         self.dView.execute(cmdStr,block=True)
-        import pdb
-        pdb.set_trace()
         self.writeLog("Execution finished, gathering results")
         #res = self.dView.gather("res",block=True)
         res = self.dView["res"]
