@@ -6,6 +6,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+*.pdf
+*.png
+*.eps
+*cache
+
 # C extensions
 *.so
 

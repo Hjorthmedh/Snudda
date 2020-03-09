@@ -1047,7 +1047,7 @@ class OptimiseSynapses(object):
    
   def neuronSynapseHelperGlut(self,tSpike, 
                               U, tauR, tauF, tauRatio, cond, nmdaRatio, 
-                              smoothExpTrace, expPeakHeight,
+                              smoothExpTrace8, smoothExpTrace9, expPeakHeight,
                               returnType="peaks"):
 
     if(self.debugParsFlag):
@@ -1063,58 +1063,52 @@ class OptimiseSynapses(object):
     
     
     # Calculate error in decay fit
-    simTrace,simTime = self.smoothingTrace(vSim,self.nSmoothing,
-                                           time=tSim,
-                                           startTime=self.decayStartFit,
-                                           endTime=self.decayEndFit)
+    simTrace8,simTime8 = self.smoothingTrace(vSim,self.nSmoothing,
+                                             time=tSim,
+                                             startTime=self.decayStartFit8,
+                                             endTime=self.decayEndFit8)
+
+    simTrace9,simTime9 = self.smoothingTrace(vSim,self.nSmoothing,
+                                             time=tSim,
+                                             startTime=self.decayStartFit9,
+                                             endTime=self.decayEndFit9)
     # We only want to use the bit of the trace after max
-    idxMax = np.argmax(smoothExpTrace)
+    idxMax8 = np.argmax(smoothExpTrace8)
+    idxMax9 = np.argmax(smoothExpTrace9)    
     
-    absError = True
-
-    if(absError):
-
-      # Calculating error in peak height
-      hDiff = np.abs(peakH - expPeakHeight)
-      hDiff[0] *= 3
-      hDiff[-1] *= 3
-      hError = np.sum(hDiff)/len(hDiff)
-
-      decayError = np.sum((smoothExpTrace[idxMax:] \
-                           - simTrace[idxMax:])**2) \
-                           /(self.nSmoothing-idxMax+1) * 10000
-
-      fitError = hError + decayError
-      
-    else:
-      decayError = np.mean(np.abs(np.divide(simTrace[idxMax:-1] 
-                                            - simTrace[-1],
-                                            smoothExpTrace[idxMax:-1]
-                                            - smoothExpTrace[-1])-1))
-
-      hRelError = np.abs(np.divide(peakH-expPeakHeight,expPeakHeight)-1)
-      hRelError[0] *= 2
-      hRelError[-1] *= 2    
-      hError = np.sum(hRelError)
-
-      fitError = hError + decayError*3
-
-      
+    # Calculating error in peak height
+    hDiff = np.abs(peakH - expPeakHeight)
+    hDiff[0] *= 3
+    hDiff[-2] *= 2    
+    hDiff[-1] *= 3
     
+    hError = np.sum(hDiff)/len(hDiff)
 
+    decayError8 = np.sum((smoothExpTrace8[idxMax8:] \
+                          - simTrace8[idxMax8:])**2) \
+                         /(self.nSmoothing-idxMax8+1) * 10000
 
+    decayError9 = np.sum((smoothExpTrace9[idxMax9:] \
+                         - simTrace9[idxMax9:])**2) \
+                         /(self.nSmoothing-idxMax9+1) * 10000
 
+    fitError = hError + decayError8 + decayError9
+      
 
     if(False):
       peakBase = vSim[-1]
       plt.figure()
       plt.plot(tSim,vSim,'k-')
-      plt.plot(simTime,simTrace,'b--')
-      plt.plot(simTime,smoothExpTrace,'r--')
+      plt.plot(simTime8,simTrace8,'y--')
+      plt.plot(simTime8,smoothExpTrace8,'r--')
+      plt.plot(simTime9,simTrace9,'y--')
+      plt.plot(simTime9,smoothExpTrace9,'r--')
+      
       for tp,expH,modH in zip(tSpike,expPeakHeight,peakH):
         plt.plot([tp,tp],[peakBase,expH+peakBase],'r-',linewidth=3)
         plt.plot([tp,tp],[peakBase,modH+peakBase],'b-')
-      plt.title("hE = %g, dE = %g" % (hError,decayError))
+      plt.title("hE = %g, dE8 = %g, dE9 = %g" \
+                % (hError,decayError8,decayError9))
         
       plt.ion()
       plt.show()
@@ -1296,14 +1290,23 @@ class OptimiseSynapses(object):
         
         modelBounds = self.getModelBounds(cellID)
 
-        self.decayStartFit = 1.0
-        self.decayEndFit = 1.2
+        self.decayStartFit8 = 0.45
+        self.decayEndFit8   = 0.8
 
-        smoothExpVolt,smoothExpTime \
+        self.decayStartFit9 = 1.0
+        self.decayEndFit9   = 1.3
+
+        smoothExpVolt8,smoothExpTime8 \
           = self.smoothingTrace(volt,self.nSmoothing,
                                 time=time,
-                                startTime = self.decayStartFit,
-                                endTime = self.decayEndFit)
+                                startTime = self.decayStartFit8,
+                                endTime = self.decayEndFit8)
+        
+        smoothExpVolt9,smoothExpTime9 \
+          = self.smoothingTrace(volt,self.nSmoothing,
+                                time=time,
+                                startTime = self.decayStartFit9,
+                                endTime = self.decayEndFit9)
 
         
         startPar = self.sobolScan(synapseModel=synapseModel,
@@ -1311,7 +1314,8 @@ class OptimiseSynapses(object):
                                   tPeak = stimTime,
                                   hPeak = peakHeight,
                                   modelBounds=modelBounds,
-                                  smoothExpTrace=smoothExpVolt)
+                                  smoothExpTrace8=smoothExpVolt8,
+                                  smoothExpTrace9=smoothExpVolt9)
 
         func = lambda x : \
           self.neuronSynapseHelperGlut(tSpike=stimTime,
@@ -1321,7 +1325,8 @@ class OptimiseSynapses(object):
                                        tauRatio=x[3],
                                        cond=x[4],
                                        nmdaRatio=x[5],
-                                       smoothExpTrace=smoothExpVolt,
+                                       smoothExpTrace8=smoothExpVolt8,
+                                       smoothExpTrace9=smoothExpVolt9,
                                        expPeakHeight=peakHeight,
                                        returnType="error")
 
@@ -1347,7 +1352,8 @@ class OptimiseSynapses(object):
                                        tauRatio=fitParams[3],
                                        cond=fitParams[4],
                                        nmdaRatio=fitParams[5],
-                                       smoothExpTrace=smoothExpVolt,
+                                       smoothExpTrace8=smoothExpVolt8,
+                                       smoothExpTrace9=smoothExpVolt9,
                                        expPeakHeight=peakHeight,
                                        returnType="full")
           
@@ -1357,8 +1363,7 @@ class OptimiseSynapses(object):
 
         self.writeLog("Parameters: U = %.3g, tauR = %.3g, tauF = %.3g, tau = %.3g, cond = %.3g, nmdaRatio = %.3g" % tuple(fitParams))
         self.writeLog("Model error: %g" % modelError)
-
-        
+   
       elif(optMethod=="swarm"):
 
         if(self.debugParsFlag):
@@ -1470,8 +1475,8 @@ class OptimiseSynapses(object):
   def sobolScan(self,synapseModel,cellID,
                 tPeak,hPeak,
                 modelBounds,
-                smoothExpTrace,
-                nTrials=10000,loadParamsFlag=False):
+                smoothExpTrace8, smoothExpTrace9,
+                nTrials=1000,loadParamsFlag=False):
 
     assert self.synapseType == "glut", \
       "GABA synapse not supported yet in new version"
@@ -1511,7 +1516,8 @@ class OptimiseSynapses(object):
                                                 tauRatio=minPars[3]/minPars[1],
                                                 cond=minPars[4],
                                                 nmdaRatio=minPars[5],
-                                                smoothExpTrace=smoothExpTrace,
+                                                smoothExpTrace8=smoothExpTrace8,
+                                                smoothExpTrace9=smoothExpTrace9,
                                                 expPeakHeight=hPeak,
                                                 returnType="error")
 
@@ -1529,7 +1535,8 @@ class OptimiseSynapses(object):
       
       error = self.neuronSynapseHelperGlut(tPeak,U,tauR,tauF,tauRatio,
                                            cond,nmdaRatio,
-                                           smoothExpTrace=smoothExpTrace,
+                                           smoothExpTrace8=smoothExpTrace8,
+                                           smoothExpTrace9=smoothExpTrace9,
                                            expPeakHeight=hPeak,
                                            returnType="error")
       try:      
