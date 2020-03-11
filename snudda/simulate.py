@@ -20,7 +20,7 @@
 
 
 from mpi4py import MPI # This must be imported before neuron, to run parallel
-from neuron import h, gui
+from neuron import h #, gui
 import neuron
 import h5py
 import json
