@@ -393,7 +393,7 @@ if __name__== "__main__":
   tauR = 0.1
   tauF = 0.1
   U = 0.1
-  cond = 1e-8
+  cond = 1e-9
   
   
   rlsr = RunSynapseRun(stimTimes=stimTimes,
