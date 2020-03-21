@@ -779,9 +779,12 @@ class SnuddaInput(object):
   # inputDensity = f(d) where d is micrometers from soma,
   #                unit of f is synapses/micrometer
 
-  # !!! Returns input locations only on dendrites, not on synapses
+  # !!! Returns input locations only on dendrites, not on soma
   
-  def dendriteInputLocations(self,neuronID,synapseDensity="1",nSpikeTrains=None):
+  def dendriteInputLocations(self,
+                             neuronID,
+                             synapseDensity="1",
+                             nSpikeTrains=None):
 
     neuronName = self.neuronName[neuronID]
     swcFile = self.networkConfig["Neurons"][neuronName]["morphology"]
@@ -794,61 +797,8 @@ class SnuddaInput(object):
                                     axonStumpIDFlag=self.axonStumpIDFlag)
       self.neuronCache[swcFile] = morphology
 
-    # Calculate the input density at each point in dendrite morphology
-    d = morphology.dend[:,4]
-    try:
-      iDensity = eval(synapseDensity)
-    except:
-      self.writeLog("Bad synapse density string: " + str(synapseDensity))
-      import traceback
-      tstr = traceback.format_exc()
-      self.writeLog(tstr)
-      
-
-    if(type(iDensity) in (int, float)):
-      # If iDensity is a constant, we need to set it for all points
-      iDensity *= np.ones(d.shape)
-    
-    compDensity = (iDensity[morphology.dendLinks[:,0]] \
-                   + iDensity[morphology.dendLinks[:,1]])/2
-    compLen = morphology.compartmentLength(compType="dend")
-
-    # compDensity is in synapses per micrometer, multiply by 1e6
-    expectedSynapses = compDensity*compLen*1e6
-
-    if(nSpikeTrains is not None):
-      print("Trying to set nSpikeTrains = " + str(nSpikeTrains) + " (approx)")
-      expectedSynapses *= nSpikeTrains / np.sum(expectedSynapses)
-    
-    numberOfSynapses = (expectedSynapses \
-                     + ((expectedSynapses % 1) \
-                        > np.random.rand(len(expectedSynapses)))).astype(int)
-
-    nSynTot = np.sum(numberOfSynapses)
-
-    sectionX = np.random.rand(nSynTot)
-    
-    # x,y,z, secID, secX    
-    inputLoc = np.zeros((nSynTot,5))
-    inputLoc[:,4] = sectionX
-    
-    # Iterate over each compartment
-    synCtr = 0
-    for iComp, nSyn in enumerate(numberOfSynapses):
-      # Add synapses to that compartment
-      for j in range(0,nSyn):
-        inputLoc[synCtr,3] = morphology.dendSecID[iComp]
-        coords = morphology.dend[morphology.dendLinks[iComp,0],:3] \
-                  * (1-sectionX[synCtr]) \
-                + morphology.dend[morphology.dendLinks[iComp,1],:3] \
-                  * sectionX[synCtr]
-        inputLoc[synCtr,:3] = coords
-        synCtr += 1
-
-    # Return xyz,secID,secX
-    return inputLoc[:,:3],inputLoc[:,3],inputLoc[:,4]
-
-    
+    return morphology.dendriteInputLocations(synapseDensity=synapseDensity,
+                                             nLocations=nSpikeTrains)
       
   ############################################################################
   

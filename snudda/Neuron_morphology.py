@@ -936,6 +936,73 @@ class NeuronMorphology(object):
                              axis=1)
 
     return compLen
+
+  ############################################################################
+
+  def dendriteInputLocations(self,synapseDensity,nLocations=None):
+
+    # Calculate the input density at each point in dendrite morphology
+    d = self.dend[:,4]
+    try:
+      # d is now distance from some, so synapseDensity is a func of d
+      iDensity = eval(synapseDensity)
+    except:
+      self.writeLog("Bad synapse density string: " + str(synapseDensity))
+      import traceback
+      tstr = traceback.format_exc()
+      self.writeLog(tstr)
+      
+
+    if(type(iDensity) in (int, float)):
+      # If iDensity is a constant, we need to set it for all points
+      iDensity *= np.ones(d.shape)
+    
+    compDensity = (iDensity[self.dendLinks[:,0]] \
+                   + iDensity[self.dendLinks[:,1]])/2
+    compLen = self.compartmentLength(compType="dend")
+
+    # compDensity is in synapses per micrometer, multiply by 1e6
+    expectedSynapses = compDensity*compLen*1e6
+
+    if(nLocations is not None):
+      print("Trying to set nLocations = " + str(nLocations) + " (approx)")
+      expectedSynapses *= nLocations / np.sum(expectedSynapses)
+
+    # Number of input synapses on each compartment
+    numberOfSynapses = (expectedSynapses \
+                     + ((expectedSynapses % 1) \
+                        > np.random.rand(len(expectedSynapses)))).astype(int)
+
+    nSynTot = np.sum(numberOfSynapses)
+
+    compX = np.random.rand(nSynTot)
+    
+    # x,y,z, secID, secX    
+    inputLoc = np.zeros((nSynTot,5))
+    
+    # Iterate over each compartment
+    synCtr = 0
+    for iComp, nSyn in enumerate(numberOfSynapses):
+      # Add synapses to that compartment
+      for j in range(0,nSyn):
+        inputLoc[synCtr,3] = self.dendSecID[iComp]
+        
+        coords = self.dend[self.dendLinks[iComp,0],:3] * (1-compX[synCtr]) \
+                + self.dend[self.dendLinks[iComp,1],:3] * compX[synCtr]
+        
+        inputLoc[synCtr,:3] = coords
+
+        # Use compX (where between comp endpoints) to calculate sectionX
+        # (where between section end points)
+        inputLoc[:,4] = self.sectionX[self.dendLinks[iComp,0]] \
+                      + compX * self.sectionX[self.dendLinks[iComp,1]]
+        
+        synCtr += 1
+
+    # Return xyz,secID,secX
+    return inputLoc[:,:3],inputLoc[:,3],inputLoc[:,4]
+
+  
     
   ############################################################################
 
