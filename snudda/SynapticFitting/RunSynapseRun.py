@@ -31,6 +31,24 @@ class RunSynapseRun(object):
                params={},
                time=2.0):
     
+
+    #plotting neuronMorphology
+    '''
+    import neurom as nm
+    nrn=nm.load_neuron(neuronMorphology)
+    from neurom import viewer
+    fig, ax = viewer.draw(nrn) #2D plot
+    fig.show() 
+    fig, ax = viewer.draw(nrn, mode='3d')
+    fig.show()
+    '''
+    #import pdb
+    #pdb.set_trace()
+
+    #plotting synapseDensity
+    #import pdb
+    #pdb.set_trace()
+
     print("Holding voltage: " + str(holdingVoltage) + " V")
     print("Stim times: " + str(stimTimes) + " s")
     print("Synapse type: " + str(synapseType))
@@ -86,7 +104,9 @@ class RunSynapseRun(object):
     self.synapseCurrentRecord()
 
     self.updateHoldingCurrent(holdingVoltage)
-    
+
+    #import pdb
+    #pdb.set_trace()  
     
   ############################################################################
 
@@ -191,6 +211,7 @@ class RunSynapseRun(object):
     inputCoords,sectionID,sectionX = self.morphology.dendriteInputLocations( \
                                                synapseDensity=synapseDensity,
                                                nLocations=nSynapses)
+    self.synapseLocations=inputCoords
 
     sections = self.neuron.mapIDtoCompartment(sectionID)
     
@@ -374,10 +395,23 @@ class RunSynapseRun(object):
       print(tstr)
       import pdb
       pdb.set_trace()
-     
     
     
     
+  ############################################################################
+  def plot(self):
+    
+    ax=self.morphology.plotNeuron()
+
+    ax.scatter(self.synapseLocations[:,0],
+               self.synapseLocations[:,1],
+               self.synapseLocations[:,2],
+               color='black', 
+               marker='o',
+               s=20)
+    plt.ion()    
+
+
   ############################################################################
   
   # pars = { "tau1" : 0.25e-3 }
@@ -448,7 +482,10 @@ if __name__== "__main__":
                        nSynapses=20,
                        neuronParameterID=0,
                        neuronModulationID=0)
-  
+
+  # I would like to plot the morphology
+  ax = rlsr.plot()
+
   for i in range(3):
     tS,vS,iS = rlsr.run(tau*i,tauR,tauF,U,cond)
     plt.figure()
