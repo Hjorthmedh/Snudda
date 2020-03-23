@@ -974,8 +974,6 @@ class NeuronMorphology(object):
                         > np.random.rand(len(expectedSynapses)))).astype(int)
 
     nSynTot = np.sum(numberOfSynapses)
-
-    compX = np.random.rand(nSynTot)
     
     # x,y,z, secID, secX    
     inputLoc = np.zeros((nSynTot,5))
@@ -987,15 +985,18 @@ class NeuronMorphology(object):
       for j in range(0,nSyn):
         inputLoc[synCtr,3] = self.dendSecID[iComp]
         
-        coords = self.dend[self.dendLinks[iComp,0],:3] * (1-compX[synCtr]) \
-                + self.dend[self.dendLinks[iComp,1],:3] * compX[synCtr]
+        # Cant have at endpoints 0 or 1
+        compX = np.random.rand()
+        
+        coords = self.dend[self.dendLinks[iComp,0],:3] * (1-compX) \
+                + self.dend[self.dendLinks[iComp,1],:3] * compX
         
         inputLoc[synCtr,:3] = coords
 
         # Use compX (where between comp endpoints) to calculate sectionX
-        # (where between section end points)
-        inputLoc[:,4] = self.sectionX[self.dendLinks[iComp,0]] \
-                      + compX * self.sectionX[self.dendLinks[iComp,1]]
+        # (where between section end points)        
+        inputLoc[synCtr,4] = self.dendSecX[iComp,0] * (1-compX) \
+                        + compX * self.dendSecX[iComp,1]
         
         synCtr += 1
 
