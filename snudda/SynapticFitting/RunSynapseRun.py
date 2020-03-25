@@ -32,22 +32,6 @@ class RunSynapseRun(object):
                time=2.0):
     
 
-    #plotting neuronMorphology
-    '''
-    import neurom as nm
-    nrn=nm.load_neuron(neuronMorphology)
-    from neurom import viewer
-    fig, ax = viewer.draw(nrn) #2D plot
-    fig.show() 
-    fig, ax = viewer.draw(nrn, mode='3d')
-    fig.show()
-    '''
-    #import pdb
-    #pdb.set_trace()
-
-    #plotting synapseDensity
-    #import pdb
-    #pdb.set_trace()
 
     print("Holding voltage: " + str(holdingVoltage) + " V")
     print("Stim times: " + str(stimTimes) + " s")
@@ -208,15 +192,47 @@ class RunSynapseRun(object):
                         synapseDensity,
                         nSynapses=None):
 
-    inputCoords,sectionID,sectionX = self.morphology.dendriteInputLocations( \
-                                               synapseDensity=synapseDensity,
-                                               nLocations=nSynapses)
-    self.synapseLocations=inputCoords
 
+    inputCoords,sectionID,sectionX,densityFunction,distSynSoma =\
+                                              self.morphology.dendriteInputLocations( \
+                                               synapseDensity=synapseDensity,
+                                               nLocations=nSynapses,
+                                               returnDensity=True)
+
+    self.synapseLocations=inputCoords
+    distFromSoma = self.morphology.dend[:,4]
+    self.densityFunction=densityFunction
+    self.distSynSoma=distSynSoma
+    #print(inputCoords)
+    #print(sectionID, sectionID.size)
+    #print(sectionX, sectionX.size)
     sections = self.neuron.mapIDtoCompartment(sectionID)
+    #print(sections, len(sections))
     
     for s,sx in zip(sections,sectionX):
       self.addSynapse(synapseType,s,sx,self.params)
+
+    if (True):
+        #plot density function
+        plt.plot(distFromSoma*1e6,densityFunction,'o')
+        plt.xlabel('distance from soma $(\mu m)$')
+        plt.title('density function')
+        plt.show()
+
+    if (True):
+        #plot histogram - distance synapses from soma
+        plt.hist(distSynSoma*1e6,edgecolor='gray', bins=distSynSoma.size)
+        plt.xlabel('distance from soma $(\mu m)$')
+        plt.ylabel('frequency')
+        plt.title('synaptic distance from soma')
+        plt.show()
+
+            
+    
+    import pdb
+    pdb.set_trace()
+
+
 
   ############################################################################
     
@@ -400,8 +416,8 @@ class RunSynapseRun(object):
     
   ############################################################################
   def plot(self):
-    
-    ax=self.morphology.plotNeuron()
+
+    ax=self.morphology.plotNeuron(axonColour='red', dendColour='blue',somaColour='green')
 
     ax.scatter(self.synapseLocations[:,0],
                self.synapseLocations[:,1],
@@ -478,13 +494,17 @@ if __name__== "__main__":
                        neuronParameters="../data/cellspecs/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/parameters.json",
                        neuronMechanisms="../data/cellspecs/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/mechanisms.json",
                        neuronModulation="../data/cellspecs/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/modulation.json",
-                       synapseDensity="0.05/(1+np.exp(-(d-30e-6)/5e-6))",
+                       #synapseDensity="0.05/(1+np.exp(-(d-30e-6)/5e-6))",
+                       synapseDensity="0.05/(1+np.exp(-(d-150e-6)/5e-6))",
                        nSynapses=20,
                        neuronParameterID=0,
                        neuronModulationID=0)
 
   # I would like to plot the morphology
   ax = rlsr.plot()
+
+  #import pdb
+  #pdb.set_trace()
 
   for i in range(3):
     tS,vS,iS = rlsr.run(tau*i,tauR,tauF,U,cond)

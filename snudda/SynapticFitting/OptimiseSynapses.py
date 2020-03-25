@@ -1476,7 +1476,7 @@ class OptimiseSynapses(object):
                 tPeak,hPeak,
                 modelBounds,
                 smoothExpTrace8, smoothExpTrace9,
-                nTrials=1000,loadParamsFlag=False):
+                nTrials=100,loadParamsFlag=False):
 
     assert self.synapseType == "glut", \
       "GABA synapse not supported yet in new version"
