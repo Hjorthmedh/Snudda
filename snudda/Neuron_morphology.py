@@ -761,17 +761,27 @@ class NeuronMorphology(object):
       
   ############################################################################
 
-  def plotNeuron(self,axis=None,plotAxon=True,plotDendrite=True,lineStyle='-',alpha=1.0, plotOrigo=np.array([0,0,0]), plotScale=1.0, axonColour=None, dendColour=None, somaColour=None):
+  def plotNeuron(self,
+                 axis=None,
+                 plotAxon=True,
+                 plotDendrite=True,
+                 lineStyle='-',
+                 alpha=1.0,
+                 plotOrigo=np.array([0,0,0]),
+                 plotScale=1.0,
+                 axonColour=None,
+                 dendColour=None,
+                 somaColour=None):
     
     if(self.verbose):
       print("Plotting neuron " + self.swc_filename)
  
-    if (axonColour is None):
-        axonColour = self.colour
-    if (dendColour is None):
-        dendColour = self.colour
-    if (somaColour is None):
-        somaColour = self.colour
+    if(axonColour is None):
+      axonColour = self.colour
+    if(dendColour is None):
+      dendColour = self.colour
+    if(somaColour is None):
+      somaColour = self.colour
         
       
     import matplotlib.pyplot as plt
@@ -855,7 +865,8 @@ class NeuronMorphology(object):
 
       
     #plt.axis('equal')
-    plt.title("Neuron: " + self.swc_filename.split("/")[-3] + "_" + self.swc_filename.split('/').pop())
+    plt.title("Neuron: " + self.swc_filename.split("/")[-3] \
+              + "_" + self.swc_filename.split('/').pop())
     plt.ion()
     plt.show()
     plt.draw()
