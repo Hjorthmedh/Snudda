@@ -761,13 +761,13 @@ class NeuronMorphology(object):
       
   ############################################################################
 
-  def plotNeuron(self,axis=None,plotAxon=False,plotDendrite=True,lineStyle='-',alpha=1.0, plotOrigo=np.array([0,0,0]), plotScale=1.0, axonColour=None, dendColour=None, somaColour=None):
+  def plotNeuron(self,axis=None,plotAxon=True,plotDendrite=True,lineStyle='-',alpha=1.0, plotOrigo=np.array([0,0,0]), plotScale=1.0, axonColour=None, dendColour=None, somaColour=None):
     
     if(self.verbose):
       print("Plotting neuron " + self.swc_filename)
  
     if (axonColour is None):
-        axonColour=self.colour
+        axonColour = self.colour
     if (dendColour is None):
         dendColour = self.colour
     if (somaColour is None):
@@ -800,7 +800,7 @@ class NeuronMorphology(object):
                   linestyle=lineStyle,
                   marker=',',
                   alpha=alpha,
-                  c=self.axonColour)
+                  c=axonColour)
 
 
           axLinks = list(row)
@@ -812,7 +812,7 @@ class NeuronMorphology(object):
                   linestyle=lineStyle,
                   marker=',',
                   alpha=alpha,
-                  c=self.axonColour)
+                  c=axonColour)
 
 
     if(plotDendrite):
@@ -831,7 +831,7 @@ class NeuronMorphology(object):
                   linestyle=lineStyle,
                   marker=',',
                   alpha=alpha,
-                  c=self.dendColour)
+                  c=dendColour)
 
 
           dendLinks = list(row)
@@ -843,7 +843,7 @@ class NeuronMorphology(object):
                 linestyle=lineStyle,
                 marker=',',
                 alpha=alpha,
-                  c=self.dendColour)
+                c=dendColour)
 
         
           
@@ -851,7 +851,7 @@ class NeuronMorphology(object):
       ax.scatter((self.soma[:,0]-plotOrigo[0])*plotScale,
                  (self.soma[:,1]-plotOrigo[1])*plotScale,
                  (self.soma[:,2]-plotOrigo[2])*plotScale,
-                 c=self.somaColour,alpha=alpha)
+                 c=somaColour,alpha=alpha)
 
       
     #plt.axis('equal')
