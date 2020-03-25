@@ -24,6 +24,8 @@ class RunSynapseRun(object):
                stimTimes,
                synapseDensity,
                nSynapses,
+               synapseSectionID=None, # if given, nSynapses is ignored
+               synapseSectionX=None,  # same # of elements as synapseSectionID
                neuronParameterID=0, # Which param set in parameter file to use
                neuronModulationID=0,
                holdingVoltage=-70e-3,
@@ -77,7 +79,8 @@ class RunSynapseRun(object):
     self.params = params
     self.defaultCond = 5e-7
 
-    self.addSynapseDensity(synapseType,synapseDensity,nSynapses)
+    self.addSynapseDensity(synapseType,synapseDensity,nSynapses,
+                           synapseSectionID,synapseSectionX)
           
     self.stimTimes = stimTimes*1e3
 
@@ -190,48 +193,66 @@ class RunSynapseRun(object):
 
   def addSynapseDensity(self,synapseType,
                         synapseDensity,
-                        nSynapses=None):
+                        nSynapses=None,
+                        plotFlag=False,
+                        sectionID=None,
+                        sectionX=None):
 
 
-    inputCoords,sectionID,sectionX,densityFunction,distSynSoma =\
-                                              self.morphology.dendriteInputLocations( \
-                                               synapseDensity=synapseDensity,
-                                               nLocations=nSynapses,
-                                               returnDensity=True)
+    if(plotFlag):
 
-    self.synapseLocations=inputCoords
-    distFromSoma = self.morphology.dend[:,4]
-    self.densityFunction=densityFunction
-    self.distSynSoma=distSynSoma
-    #print(inputCoords)
-    #print(sectionID, sectionID.size)
-    #print(sectionX, sectionX.size)
+      assert sectionID is None and sectionX is None, \
+        "Can not plot if sectionID and sectionX are given"
+      
+    
+      inputCoords,sectionID,sectionX,densityFunction,distSynSoma =\
+                                    self.morphology.dendriteInputLocations( \
+                                                synapseDensity=synapseDensity,
+                                                nLocations=nSynapses,
+                                                returnDensity=True)
+
+      self.synapseLocations=inputCoords
+      distFromSoma = self.morphology.dend[:,4]
+
+      #plot density function
+      plt.figure()
+      plt.plot(distFromSoma*1e6,densityFunction,'o')
+      plt.xlabel('distance from soma $(\mu m)$')
+      plt.title('density function')
+      plt.ion()
+      plt.show()
+
+      #plot histogram - distance synapses from soma
+      plt.figure()
+      plt.hist(distSynSoma*1e6,edgecolor='gray', bins=distSynSoma.size)
+      plt.xlabel('distance from soma $(\mu m)$')
+      plt.ylabel('frequency')
+      plt.title('synaptic distance from soma')
+      plt.ion()
+      plt.show()
+
+    elif(sectionID is None or sectionX is None):
+
+      inputCoords,sectionID,sectionX =\
+        self.morphology.dendriteInputLocations( synapseDensity=synapseDensity,
+                                                nLocations=nSynapses )
+
+      
+      self.synapseLocations=inputCoords
+
+    else:
+      self.synapseLocations = "Unknown, you specified sectionX and sectionID, "\
+                            + "but not synapse xyz coordinates."
+      
+
+    # This is so we can find out where the synapses were placed
+    self.synapseSectionID = sectionID
+    self.synapseSectionX = sectionX
+      
     sections = self.neuron.mapIDtoCompartment(sectionID)
-    #print(sections, len(sections))
     
     for s,sx in zip(sections,sectionX):
       self.addSynapse(synapseType,s,sx,self.params)
-
-    if (True):
-        #plot density function
-        plt.plot(distFromSoma*1e6,densityFunction,'o')
-        plt.xlabel('distance from soma $(\mu m)$')
-        plt.title('density function')
-        plt.show()
-
-    if (True):
-        #plot histogram - distance synapses from soma
-        plt.hist(distSynSoma*1e6,edgecolor='gray', bins=distSynSoma.size)
-        plt.xlabel('distance from soma $(\mu m)$')
-        plt.ylabel('frequency')
-        plt.title('synaptic distance from soma')
-        plt.show()
-
-            
-    
-    import pdb
-    pdb.set_trace()
-
 
 
   ############################################################################
