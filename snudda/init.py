@@ -498,7 +498,8 @@ class SnuddaInit(object):
                      volumeType=None,
                      sideLen=None,
                      sliceDepth=None,
-                     cellSpecDir=None):
+                     cellSpecDir=None,
+                     neuronDensity=80500):
 
     getVal = lambda x : 0 if x is None else x
     if(nNeurons is None):
@@ -546,7 +547,7 @@ class SnuddaInit(object):
     elif(nNeurons <= 1e6): #1e6
       print("Using cube for striatum")
       # 1.73 million neurons, volume of allen striatal mesh is 21.5mm3
-      striatumVolume = 1e-9*(nNeurons)/80.5e3
+      striatumVolume = 1e-9*(nNeurons)/neuronDensity # 80.5e3
       striatumSideLen = striatumVolume ** (1./3)
       striatumCentre = np.array([3540e-6,4645e-6,5081e-6])
 
