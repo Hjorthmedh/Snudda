@@ -50,10 +50,12 @@ class OptimiseSynapsesFull(object):
   
   def __init__(self, fileName, synapseType="glut",loadCache=True,
                role="master",dView=None,verbose=True,logFileName=None,
-               optMethod="swarm",prettyPlot=False):
+               optMethod="sobol",prettyPlot=False,
+               neuronSetFile="neuronSet.json"):
 
     # Parallel execution role, "master" or "servant"
     self.role = role
+    
     self.parallelSetupFlag = False # Set to True when servants are done setup
     self.dView = dView
     self.verbose = verbose
@@ -61,9 +63,11 @@ class OptimiseSynapsesFull(object):
     self.optMethod = optMethod
     self.nSmoothing = 200 # How many smoothing points do we use?
     self.simTime = 1.5
+    self.neuronSetFile = neuronSetFile
     
     self.debugParsFlag = False
     self.debugPars = []
+    self.cellProperties = None
 
     self.prettyPlot = prettyPlot
     
@@ -78,7 +82,7 @@ class OptimiseSynapsesFull(object):
     self.figResolution = 300
 
     self.fileName = fileName
-    self.cacheFileName = str(self.fileName) + "-parameters.json"
+    self.cacheFileName = str(self.fileName) + "-parameters-full.json"
     self.loadCache = loadCache
     self.synapseType = synapseType
 
@@ -239,7 +243,7 @@ class OptimiseSynapsesFull(object):
     # If the text is byte encoded, decode it first
     allCellTypes = [ x if type(x) != bytes else x.decode() \
                      for x in self.getData("w_cell").flatten()]
-
+    
     return allCellTypes[cellID]
   
   ############################################################################
@@ -334,20 +338,12 @@ class OptimiseSynapsesFull(object):
         
         for p in synapseParams:
           params[p] = synapseParams[p]
-      
-        # Get experimental data
-        (inputResSteadyState,tauDelta,baselineDepol) \
-          = self.getCellProperties(dataType,cellID)
 
-        tStim = self.getStimTime(dataType,cellID)
+          plotModel = self.setupModel(dataType=dataType,
+                                      cellID=cellID,
+                                      params=params)
     
-        plotModel = RunSynapseRun(stimTimes=tStim,
-                                  holdingVoltage=baselineDepol,
-                                  synapseType=self.synapseType,
-                                  params=params,
-                                  time=self.simTime)
-    
-        (tPlot,vPlot,iPlot) = plotModel.run2(pars=params)
+          (tPlot,vPlot,iPlot) = plotModel.run2(pars=params)
 
     tIdx = np.where(skipTime <= t)[0]
         
@@ -440,13 +436,42 @@ class OptimiseSynapsesFull(object):
 
   def getCellProperties(self,dataType,cellID):
 
-    data = self.getData("w_ecode",cellID)
-    inputResSteadyState = data[32]*1e6
-    tauDelta = data[40]*1e-3
-    # baselineDepol = data[58]*1e-3
+    if(self.cellProperties is None):
+      with open(self.neuronSetFile,'r') as f:
+        self.cellProperties = json.load(f)
+
+    cellTypeString = self.getCellType(cellID)
+
     baselineDepol = self.getExpBaseline(dataType,cellID)
     
-    return (inputResSteadyState,tauDelta,baselineDepol)
+    # Need to extract cellType from the cellType string
+    if("MS" in cellTypeString.upper()):
+      if("D1" in cellTypeString.upper()):
+        cellType = 'dSPN'
+      elif("D2" in cellTypeString.upper()):
+        cellType = 'iSPN'
+      else:
+        cellType = 'SPN'
+
+    elif("FS" in cellTypeString.upper()):
+      cellType = 'FSN'
+
+    elif('LTS' in cellTypeString.upper()):
+      cellType = 'LTS'
+
+    elif('CHAT' in cellTypeString.upper()):
+      cellType = 'ChIN'
+
+    else:
+      cellType = cellTypeString
+      
+    assert cellType in self.cellProperties, \
+      "Error neuron type '" + str(cellType) + "' not in " + self.neuronSetFile
+
+    cProp = self.cellProperties[cellType].copy()
+    cProp["baselineDepol"] = baselineDepol
+
+    return cProp
 
   ############################################################################
 
@@ -521,44 +546,6 @@ class OptimiseSynapsesFull(object):
     return (RM,tau) 
     
 
-  ############################################################################
-
-  def setupModelDeltaPulse(self,dataType,cellID):
-
-    # Experimental data from file (only baselineDepol needed at this point)
-    (inputResSteadyState,tauDelta,baselineDepol) \
-      = self.getCellProperties(dataType,cellID)
-
-    # Initial guesses for parameters of soma
-    somaDiam = 16e-6     # m
-    somaGleak = 0.0003e4 # S/m2
-
-    #(1.0 / tauDelta) / (np.pi*2*16*16) # !!! Check me!!
-
-    params = { "somaDiameter" : somaDiam, "somaGleak" : somaGleak }
-    self.rsrDeltaModel = RunSynapseRun(stimTimes=np.array([]),
-                                       holdingVoltage=baselineDepol,
-                                       synapseType=self.synapseType,
-                                       params=params,
-                                       time=self.simTime)
-    # tau = R * C
-
-    # This is the short hyperpolarising current pulse that we use to
-    # estimate tau and input resistance
-    # SI units
-    self.curInj = -0.1e-9
-    self.curStart = 0.5
-    self.curDuration = 2e-3
-    self.curEnd = self.curStart + self.curDuration
-    self.baseStart = 0.2
-    self.baseEnd = 0.3
-
-    # Neuron uses natural units !
-    self.rsrDeltaModel.IClamp2 = neuron.h.IClamp(self.rsrDeltaModel.soma(0.5))
-    self.rsrDeltaModel.IClamp2.amp = self.curInj*1e9
-    self.rsrDeltaModel.IClamp2.delay = self.curStart*1e3
-    self.rsrDeltaModel.IClamp2.dur = self.curDuration*1e3
-    neuron.h.finitialize(self.rsrDeltaModel.holdingVoltage*1e3) # OLD : -70
 
   ############################################################################
 
@@ -615,52 +602,6 @@ class OptimiseSynapsesFull(object):
       plt.show()
     
     return optError
-    
-  ############################################################################
-  
-  def fitCellProperties(self,dataType,cellID,plotResults=True):
-
-    params = self.getParameterCache(cellID,"soma")
-    
-    if(params is not None):
-      return params
-    
-    import neuron
-
-    # Experimental data from file
-    (inputResSteadyState,tauDelta,baselineDepol) \
-      = self.getCellProperties(dataType,cellID)
-
-    # Setup neuron model
-    self.setupModelDeltaPulse(dataType,cellID)
-
-    p0 = [16e-6,0.0003e4]
-    res = scipy.optimize.minimize(self.optHelperFunction,p0,
-                                  args=(inputResSteadyState,tauDelta),
-                                  bounds=[(5e-6,50e-6),(0.0003e3,0.0003e5)])
-
-    somaDiameter = res.x[0]
-    somaGleak = res.x[1]
-    
-    self.writeLog("Soma Diameter: " + str(somaDiameter))
-    self.writeLog("Soma Gleak: " + str(somaGleak))
-
-    somaDict = { "somaDiameter" : somaDiameter,
-                 "somaGleak" : somaGleak }
-    self.addParameterCache(cellID,"soma", somaDict)
-
-    self.saveParameterCache()
-
-    if(plotResults and len(res) == 2):
-      self.optHelperFunction(res,
-                             inputResSteadyState=inputResSteadyState,
-                             tauDelta=tauDelta,
-                             plotResults=True)
-    
-    # Remove old model
-    self.rsrDeltaModel = None
- 
-    return somaDict
     
   ############################################################################
 
@@ -902,32 +843,37 @@ class OptimiseSynapsesFull(object):
         
   ############################################################################
 
-  def setupModelSynapseFitting(self,dataType,cellID,params={}):
-
-    # If the delta model existed, clear it
-    #self.rsrDeltaModel = None
+  def setupModel(self,dataType,cellID,params={},
+                 synapseDensityOverride=None,
+                 nSynapsesOverride=None):
     
-    tStim = self.getStimTime(dataType,cellID)
+    tStim = self.getStimTime(dataType,cellID)   
+
+    # Read the info needed to setup the neuron hosting the synapses
+    cProp = self.getCellProperties(dataType,cellID)
+
+    if(synapseDensityOverride is not None):
+      synapseDensity = synapseDensityOverride
+
+    if(nSynapsesOverride is not None):
+      nSynapses = nSynapsesOverride
     
-    somaParams = self.getParameterCache(cellID,"soma")
-    assert somaParams is not None, "You must fit soma parameters first"
-
-    # !!! Should we also try and load synapse parameters from cache here??
-    for p in somaParams:
-      params[p] = somaParams[p]
-
-    # Get experimental data
-    (inputResSteadyState,tauDelta,baselineDepol) \
-      = self.getCellProperties(dataType,cellID)
-
     # !!! We need to get the baseline depolarisation in another way
 
-    self.rsrSynapseModel = RunSynapseRun(stimTimes=tStim,
-                                         holdingVoltage=baselineDepol,
-                                         synapseType=self.synapseType,
-                                         params=params,
-                                         time=self.simTime)
+    self.rsrSynapseModel = \
+      RunSynapseRun(neuronMorphology=cProp["neuronMorphology"],
+                    neuronMechanisms=cProp["neuronMechanisms"],
+                    neuronParameters=cProp["neuronParameters"],
+                    neuronModulation=cProp["neuronModulation"],
+                    stimTimes=tStim,
+                    nSynapses=cProp["nSynapses"],
+                    synapseDensity=cProp["synapseDensity"],
+                    holdingVoltage=cProp["baselineDepol"],
+                    synapseType=self.synapseType,
+                    params=params,
+                    time=self.simTime)
 
+    
   ############################################################################
 
   def neuronSynapseSwarmHelper(self,pars,tSpikes,peakHeight,
@@ -1142,7 +1088,7 @@ class OptimiseSynapsesFull(object):
     # self.writeLog("Running neuron model")
     
     assert self.rsrSynapseModel is not None, \
-      "!!! Need to call setupModelSynapseFitting first"
+      "!!! Need to call setupModel first"
 
     # Should we make a copy of params, to not destroy it? ;)
     params["U"]    = U
@@ -1226,9 +1172,9 @@ class OptimiseSynapsesFull(object):
     # that we do not optimise for...
     params = dict([])
     
-    synapseModel = self.setupModelSynapseFitting(dataType=dataType,
-                                                 cellID=cellID,
-                                                 params=params)
+    synapseModel = self.setupModel(dataType=dataType,
+                                   cellID=cellID,
+                                   params=params)
 
 
 
@@ -1633,7 +1579,7 @@ class OptimiseSynapsesFull(object):
 
       self.writeLog("Optimising " + str(dataType) + " ID = " + str(cellID))
     
-      self.fitCellProperties(dataType,cellID)
+      # self.fitCellProperties(dataType,cellID)
       self.fitTrace(dataType,cellID)
       self.plotData(dataType,cellID,show=False)
 
@@ -1660,7 +1606,7 @@ class OptimiseSynapsesFull(object):
       if(cellIDlist is None):
         cellIDlist = self.getValidCellID(dataType)
 
-      self.printCellProperties(dataType,cellIDlist)
+      # self.printCellProperties(dataType,cellIDlist)
         
       if(self.dView is None):
         self.writeLog("We are in serial mode, use serial code..")
@@ -1720,43 +1666,6 @@ class OptimiseSynapsesFull(object):
         pdb.set_trace()
      
   ############################################################################
-
-  def printCellProperties(self,dataType,cellID):
-
-    inputResList = []
-    tauDeltaList = []
-    baselineDepolList = []
-    
-    for cid in cellID:
-
-      inputResSteadyState,tauDelta,baselineDepol \
-        = self.getCellProperties(dataType,cid)
-
-      inputResList.append(inputResSteadyState)
-      tauDeltaList.append(tauDelta)
-      baselineDepolList.append(baselineDepol)
-
-    inputRes = np.array(inputResList)
-    tauDelta = np.array(tauDeltaList)
-    baselineDepol = np.array(baselineDepolList)
-      
-    plt.figure()
-    plt.scatter(inputRes*1e-6,tauDelta*1e3)
-    plt.xlabel("Input resistance (Mohm)")
-    plt.ylabel("Tau (ms)")
-    plt.ion()
-    plt.show()
-
-    plt.figure()
-    plt.scatter(inputRes*1e-6,baselineDepol*1e3)
-    plt.xlabel("Input resistance (Mohm)")
-    plt.ylabel("Baseline depolarisation (mV)")
-    plt.ion()
-    plt.show()
-
-    
-  
-  ############################################################################
   
   def checkValidData(self,dataType,cellID):
 
@@ -1770,26 +1679,7 @@ class OptimiseSynapsesFull(object):
     if((data == 5).all()):
       self.writeLog("No response for " + str(dataType) + " ID = " + str(cellID))
       goodDataFlag = False
-
-    (inputResSteadyState,tauDelta,baselineDepol) = \
-      self.getCellProperties(dataType,cellID)
-
-    cellType = self.getCellType(cellID)
-    
-    if("LTS" in cellType.upper()):
-      inputResMaxLimit = 1000e6
-    else:
-      inputResMaxLimit = 500e6
-    
-    if(np.isnan(inputResSteadyState) or np.isnan(tauDelta) \
-       or inputResSteadyState > inputResMaxLimit
-       or inputResSteadyState < 5e6
-       or tauDelta > 5):
-      self.writeLog("Bad values for input resistance and/or tauDelta for " \
-                    + str(dataType) + " ID = " +str(cellID) \
-                    + "(" + str(self.getCellType(cellID)) + ")")
-      goodDataFlag = False
-      
+          
     return goodDataFlag
       
   ############################################################################

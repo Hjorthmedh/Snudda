@@ -338,6 +338,8 @@ class RunSynapseRun(object):
     
   def run(self,tau,tauR,tauF,U,cond=None,time=None):
 
+    assert False, "This is the old run method"
+    
     if(time is None):
       time = self.time
     else:
@@ -459,26 +461,28 @@ class RunSynapseRun(object):
   
   def run2(self,pars,time=None,cond=1e-8):
 
+    print("Running with pars: " + str(pars))
+    
     if(time is None):
       time = self.time
     else:
       self.time = time
 
     for p in pars:
-      if(p in ["somaDiameter","somaCM","somaGleak"]):
-        # Ignore soma parameters at this stage, should be set at setup
-        continue
       
       if(p == "cond"):
         cond = self.SItoNaturalUnits(p,pars[p])
+          
       else:
         v = self.SItoNaturalUnits(p,pars[p])
-        setattr(self.littleSynapse,p,v)
+        for s in self.synapses:
+          setattr(s,p,v)
         
     neuron.h.finitialize(self.holdingVoltage*1e3)  
-    self.ncSyn.weight[0] = cond
-    #print("Synapse conductance: " + str(cond) + " uS")
-    #print("Verification of conductance: " + str(self.ncSyn.weight[0]))
+    for ncs in self.ncSyn:
+      ncs.weight[0] = cond
+
+    # print("Synapse conductance: " + str(cond) + " uS")
 
     neuron.h.tstop = time*1e3
     neuron.h.run()
