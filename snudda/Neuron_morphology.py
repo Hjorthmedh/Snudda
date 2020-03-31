@@ -418,7 +418,9 @@ class NeuronMorphology(object):
     with open(cacheFile,'rb') as cache_file:
       morph = pickle.load(cache_file)
     
-    assert(self.swc_filename == morph["swc_filename"])
+    assert self.swc_filename == morph["swc_filename"], \
+      "Cached file had different path. Saving new version of cache."
+    
     assert self.axonStumpIDFlag == morph["axonStumpIDFlag"], \
     "axonStumpIDFlag must match cached version"
     

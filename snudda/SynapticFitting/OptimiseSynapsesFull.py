@@ -324,26 +324,20 @@ class OptimiseSynapsesFull(object):
     if(data is None):
       self.writeLog(dataType + " " + str(cellID) + ": Nothing to plot")
       return
-    
-    somaParams = self.getParameterCache(cellID,"soma")
+
+    synapseParams = self.getParameterCache(cellID,"synapse")    
 
     vPlot = None
-    if(somaParams is not None):
+    if(synapseParams is not None):
 
-      for p in somaParams:
-        params[p] = somaParams[p]
+      for p in synapseParams:
+        params[p] = synapseParams[p]
 
-      synapseParams = self.getParameterCache(cellID,"synapse")
-      if(synapseParams is not None):
-        
-        for p in synapseParams:
-          params[p] = synapseParams[p]
-
-          plotModel = self.setupModel(dataType=dataType,
-                                      cellID=cellID,
-                                      params=params)
+      plotModel = self.setupModel(dataType=dataType,
+                                  cellID=cellID,
+                                  params=params)
     
-          (tPlot,vPlot,iPlot) = plotModel.run2(pars=params)
+      (tPlot,vPlot,iPlot) = plotModel.run2(pars=params)
 
     tIdx = np.where(skipTime <= t)[0]
         
@@ -357,7 +351,7 @@ class OptimiseSynapsesFull(object):
     cellType = self.getCellType(cellID)
     if(not prettyPlot):
       titleStr = cellType + " " + str(cellID)
-
+      
       if("nmda_ratio" in params):
         titleStr += "\nU=%.3g, tauR=%.3g, tauF=%.3g, tau=%.3g,\ncond=%.3g, nmda_ratio=%.3g" \
           % (params["U"],
@@ -873,6 +867,8 @@ class OptimiseSynapsesFull(object):
                     params=params,
                     time=self.simTime)
 
+
+    return self.rsrSynapseModel
     
   ############################################################################
 
@@ -1134,23 +1130,23 @@ class OptimiseSynapsesFull(object):
 
     if("FS" in cellType.upper()):
       # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR), nmda_ratio
-      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-5,0.1],
-                     [1.0,2,2,0.9999999,1e-1,1])
+      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-9,0.1],
+                     [1.0,2,2,0.9999999,1e-6,1])
 
     elif("MS" in cellType.upper()):
       # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR), nmda_ratio
-      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-5,0.3],
-                     [1.0,2,2,0.9999999,1e-1,6])
+      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-9,0.3],
+                     [1.0,2,2,0.9999999,1e-6,6])
 
     elif("CHAT" in cellType.upper()):
       # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR), nmda_ratio
-      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-5,2],
-                     [1.0,2,2,0.9999999,1e-1,8])
+      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-9,2],
+                     [1.0,2,2,0.9999999,1e-6,8])
 
     elif("LTS" in cellType.upper()):
       # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR), nmda_ratio
-      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-5,2],
-                     [1.0,2,2,0.9999999,1e-1,8])
+      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-9,2],
+                     [1.0,2,2,0.9999999,1e-6,8])
     else:
       self.writeLog("Unknown celltype in " + str(cellType))
       import pdb
