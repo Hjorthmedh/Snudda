@@ -1,4 +1,4 @@
-from .init import SnuddaInit
+from snudda.init import SnuddaInit
 from collections import OrderedDict
 import json
 import os
@@ -27,7 +27,9 @@ if __name__ == "__main__":
   cnc = SnuddaInit(structDef={},configName=configName,nChannels=1)
   #cnc.defineStriatum(nMSD1=500,nMSD2=500,nFS=0,nLTS=0,nChIN=30,volumeType="cube")  
   #cnc.defineStriatum(nMSD1=120,nMSD2=120,nFS=20,nLTS=0,nChIN=0,volumeType="slice")
-  cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=100,nLTS=100,nChIN=0,volumeType="slice")
+  #cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=10000,nLTS=0,nChIN=0,volumeType="slice")
+  #cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=10000,nLTS=0,nChIN=0,volumeType="cube")
+  cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=100,nLTS=0,nChIN=0,volumeType="cube")
   #cnc.defineStriatum(nMSD1=10,nMSD2=10,nFS=10,nLTS=10,nChIN=10,volumeType="slice")
   
   # cnc.defineStriatum(nMSD1=500,nMSD2=500,nFS=0,nLTS=0,nChIN=500,volumeType="cube")  
@@ -63,9 +65,9 @@ if __name__ == "__main__":
       json.dump(conData,f,indent=2)
       
 
-  print("Now run:\n./snudda.py place " + simName)
-  print("./snudda.py detect " + simName)
-  print("./snudda.py prune " + simName)
-  print("./snudda.py input " + simName + " --input config/input-tinytest-v4.json")
-  print("./snudda.py simulate " + simName \
+  print("Now run:\nsnudda place " + simName)
+  print("snudda detect " + simName)
+  print("snudda prune " + simName)
+  print("snudda input " + simName + " --input config/input-tinytest-v4.json")
+  print("snudda simulate " + simName \
         + " --voltOut " + simName + "/volt-out.csv --time 10.0")

@@ -1130,23 +1130,23 @@ class OptimiseSynapsesFull(object):
 
     if("FS" in cellType.upper()):
       # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR), nmda_ratio
-      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-9,0.1],
-                     [1.0,2,2,0.9999999,1e-6,1])
+      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-11,0.1],
+                     [1.0,2,2,0.9999999,1e-9,1])
 
     elif("MS" in cellType.upper()):
       # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR), nmda_ratio
-      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-9,0.3],
-                     [1.0,2,2,0.9999999,1e-6,6])
+      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-11,0.3],
+                     [1.0,2,2,0.9999999,1e-9,6])
 
     elif("CHAT" in cellType.upper()):
       # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR), nmda_ratio
-      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-9,2],
-                     [1.0,2,2,0.9999999,1e-6,8])
+      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-11,2],
+                     [1.0,2,2,0.9999999,1e-9,8])
 
     elif("LTS" in cellType.upper()):
       # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR), nmda_ratio
-      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-9,2],
-                     [1.0,2,2,0.9999999,1e-6,8])
+      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-11,2],
+                     [1.0,2,2,0.9999999,1e-9,8])
     else:
       self.writeLog("Unknown celltype in " + str(cellType))
       import pdb
@@ -1426,7 +1426,7 @@ class OptimiseSynapsesFull(object):
                 tPeak,hPeak,
                 modelBounds,
                 smoothExpTrace8, smoothExpTrace9,
-                nTrials=100,loadParamsFlag=False):
+                nTrials=1000,loadParamsFlag=False):
 
     assert self.synapseType == "glut", \
       "GABA synapse not supported yet in new version"
