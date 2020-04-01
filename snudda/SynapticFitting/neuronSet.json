@@ -58,7 +58,7 @@
 	"neuronMorphology" : "../data/cellspecs/lts/LTS_Experiment-9862_20181211/lts_morp_2019-11-07_centered_noAxon.swc",
 	"neuronParameters" : "../data/cellspecs/lts/LTS_Experiment-9862_20181211/parameters.json",
 	"neuronMechanisms" : "../data/cellspecs/lts/LTS_Experiment-9862_20181211/mechanisms.json",
-	"neuronModulation" : "../data/cellspecs/lts/LTS_Experiment-9862_20181211/modulatin.json",
+	"neuronModulation" : "../data/cellspecs/lts/LTS_Experiment-9862_20181211/modulation.json",
 	"neuronParameterID" : 0,
 	"neuronModulationID": 0,
 	"synapseDensity" : "0.05/(1+np.exp(-(d-150e-6)/5e-6))",
