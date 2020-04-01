@@ -965,10 +965,10 @@ class OptimiseSynapsesFull(object):
       import pdb
       pdb.set_trace()
     
-    peakHeights,tSim,vSim = self.synapseModelNeuron(tSpikes,U,
-                                                    tauR,tauF,cond,tau,
-                                                    params=params,
-                                                    returnTrace=True)
+    peakHeights,tSim,vSim = self.runModel(tSpikes,U,
+                                          tauR,tauF,cond,tau,
+                                          params=params,
+                                          returnTrace=True)
     
     return peakHeights,tSim,vSim
   
@@ -987,7 +987,7 @@ class OptimiseSynapsesFull(object):
     elif(tau is None):
       assert False, "tau or tauRatio must be specified"
 
-    peakHeights = self.synapseModelNeuron(tSpike,U,tauR,tauF,cond,tau)
+    peakHeights = self.runModel(tSpike,U,tauR,tauF,cond,tau)
     
     return peakHeights
 
@@ -1006,10 +1006,10 @@ class OptimiseSynapsesFull(object):
     params = { "nmda_ratio" : nmdaRatio }
     tau = tauR * tauRatio
     
-    peakH,tSim,vSim = self.synapseModelNeuron(tSpike,U,
-                                              tauR,tauF,cond,tau,
-                                              params=params,
-                                              returnTrace=True)
+    peakH,tSim,vSim = self.runModel(tSpike,U,
+                                    tauR,tauF,cond,tau,
+                                    params=params,
+                                    returnTrace=True)
     
     
     # Calculate error in decay fit
@@ -1077,9 +1077,9 @@ class OptimiseSynapsesFull(object):
     
    ############################################################################
   
-  def synapseModelNeuron(self,tSpike,U,tauR,tauF,cond,tau,
-                         params = {},
-                         returnTrace=False):
+  def runModel(self,tSpike,U,tauR,tauF,cond,tau,
+               params = {},
+               returnTrace=False):
 
     # self.writeLog("Running neuron model")
     
@@ -1543,7 +1543,7 @@ class OptimiseSynapsesFull(object):
         cond = np.random.uniform(modelBounds[0][4],modelBounds[1][4])
 
       try:
-        peakHeights = self.synapseModelNeuron(tPeak,U,tauR,tauF,tau,cond)
+        peakHeights = self.runModel(tPeak,U,tauR,tauF,tau,cond)
       
         error = np.abs(peakHeights - hPeak)
         error[0] *= 3

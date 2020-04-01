@@ -531,19 +531,26 @@ if __name__== "__main__":
   #import pdb
   #pdb.set_trace()
 
-  for i in range(3):
-    tS,vS,iS = rlsr.run(tau*i,tauR,tauF,U,cond)
-    plt.figure()
-    plt.plot(tS,vS)
-    plt.xlabel("Time (s)")
-    plt.ylabel("Voltage (V)")
-    plt.figure()
-    
-    for iiS in iS:
-      plt.plot(tS,iiS)
+  params = { "U" : 0.8,
+             "tauR" : 0.6,
+             "tauF" : 1.1,
+             "tau" : 0.08,
+             "cond" : 2e-11,
+             "nmda_ratio" : 2.0 }
+  
+
+  tS,vS,iS = rlsr.run2(pars=params)
+  plt.figure()
+  plt.plot(tS,vS)
+  plt.xlabel("Time (s)")
+  plt.ylabel("Voltage (V)")
+  plt.figure()
+  
+  for iiS in iS:
+    plt.plot(tS,iiS)
       
-    plt.xlabel("Time (s)")
-    plt.ylabel("Current (A)")
+  plt.xlabel("Time (s)")
+  plt.ylabel("Current (A)")
   
   end = time.time()
   print(end - start)
