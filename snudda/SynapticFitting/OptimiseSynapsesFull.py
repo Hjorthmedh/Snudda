@@ -760,7 +760,7 @@ class OptimiseSynapsesFull(object):
       else:
         # Last spike, use only last half of decay trace
         idxStart = int(peakIdxA*0.5 + peakIdxB*0.5)
-        idxEnd = int(peakIdxA*0.05 + peakIdxB*0.95)
+        idxEnd = int(peakIdxA*0.05 + peakIdxB*0.9) # might need 0.85 as last
 
       try:
         assert idxStart < idxEnd
@@ -1031,6 +1031,9 @@ class OptimiseSynapsesFull(object):
     hDiff[0] *= 3
     hDiff[-2] *= 2    
     hDiff[-1] *= 3
+
+    # This is to prevent the model spiking
+    spikePenalty = np.sum(peakH > 0.03)*1
     
     hError = np.sum(hDiff)/len(hDiff)
 
@@ -1042,9 +1045,13 @@ class OptimiseSynapsesFull(object):
                          - simTrace9[idxMax9:])**2) \
                          /(self.nSmoothing-idxMax9+1) * 10000
 
-    fitError = hError + decayError8 + decayError9
+    fitError = hError + decayError8 + decayError9 + spikePenalty
       
 
+    if(spikePenalty > 0):
+      self.writeLog("Action potential detected in trace. Penalising!")
+      
+    
     if(False):
       peakBase = vSim[-1]
       plt.figure()
@@ -1426,7 +1433,7 @@ class OptimiseSynapsesFull(object):
                 tPeak,hPeak,
                 modelBounds,
                 smoothExpTrace8, smoothExpTrace9,
-                nTrials=1000,loadParamsFlag=False):
+                nTrials=100,loadParamsFlag=False):
 
     assert self.synapseType == "glut", \
       "GABA synapse not supported yet in new version"
