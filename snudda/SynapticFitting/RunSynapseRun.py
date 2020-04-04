@@ -56,6 +56,7 @@ class RunSynapseRun(object):
     # Should we use weak reference for garbage collection? (weakref package)
 
     # We load the neuron morphology object also, used to place synapses
+    self.writeLog("Using morphology: " + str(neuronMorphology))    
     self.morphology = NeuronMorphology(swc_filename = neuronMorphology)
 
     # We need to setup the Neuron model
@@ -66,6 +67,7 @@ class RunSynapseRun(object):
                               modulation_file=neuronModulation,
                               parameterID=neuronParameterID,
                               modulationID=neuronModulationID)
+
 
     self.neuron.instantiate(sim=self.sim)
     self.setRestingVoltage(holdingVoltage*1e3)
