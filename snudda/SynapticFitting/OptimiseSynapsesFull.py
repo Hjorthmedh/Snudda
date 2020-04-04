@@ -1138,8 +1138,8 @@ class OptimiseSynapsesFull(object):
 
     if("FS" in cellType.upper()):
       # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR), nmda_ratio
-      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-11,0.1],
-                     [1.0,2,2,0.9999999,1e-9,1])
+      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-11,0.01],
+                     [1.0,2,2,0.9999999,1e-9,0.5])
 
     elif("MS" in cellType.upper()):
       # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR), nmda_ratio

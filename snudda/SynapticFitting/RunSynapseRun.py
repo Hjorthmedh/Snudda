@@ -400,6 +400,8 @@ class RunSynapseRun(object):
 
   def setRestingVoltage(self,restVolt):
 
+    self.writeLog("Setting resting voltage to %.2d mV" % restVolt)
+    
     soma = [x for x in self.neuron.icell.soma]
     axon = [x for x in self.neuron.icell.axon]
     dend = [x for x in self.neuron.icell.dend]
@@ -489,7 +491,12 @@ class RunSynapseRun(object):
     # self.writeLog("Synapse conductance: " + str(cond) + " uS")
 
     self.setRestingVoltage(self.holdingVoltage*1e3)
-    
+
+#    print("Check voltage")
+#    import pdb
+#    pdb.set_trace()
+
+    neuron.h.v_init = self.holdingVoltage*1e3 
     neuron.h.tstop = time*1e3
     neuron.h.run()
 
