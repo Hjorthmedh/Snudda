@@ -31,13 +31,17 @@ class RunSynapseRun(object):
                holdingVoltage=-70e-3,
                synapseType='glut',
                params={},
-               time=2.0):
+               time=2.0,
+               logFile=None,
+               verbose=True):
     
 
+    self.logFile = logFile # File pointer
+    self.verbose = verbose
 
-    print("Holding voltage: " + str(holdingVoltage) + " V")
-    print("Stim times: " + str(stimTimes) + " s")
-    print("Synapse type: " + str(synapseType))
+    self.writeLog("Holding voltage: " + str(holdingVoltage) + " V")
+    self.writeLog("Stim times: " + str(stimTimes) + " s")
+    self.writeLog("Synapse type: " + str(synapseType))
 
     self.time = time
     self.synapses = []
@@ -64,7 +68,7 @@ class RunSynapseRun(object):
                               modulationID=neuronModulationID)
 
     self.neuron.instantiate(sim=self.sim)
-    self.setRestingVoltage(holdingVoltage)
+    self.setRestingVoltage(holdingVoltage*1e3)
     
     neuron.h.celsius = 35
       
@@ -117,7 +121,7 @@ class RunSynapseRun(object):
 
   def updateHoldingCurrent(self,holdingVoltage=None):
 
-    print("Updating holding current, might take a bit of time")
+    self.writeLog("Updating holding current, might take a bit of time")
     
     if(holdingVoltage is None):
       holdingVoltage = self.holdingVoltage
@@ -133,7 +137,7 @@ class RunSynapseRun(object):
     self.VClamp.rs = 1e-9
     self.VClamp.amp1 = holdingVoltage*1e3
     self.VClamp.dur1 = self.time*2*1e3
-    # print("VClamp duration: " + str(self.VClamp.dur1))
+    # self.writeLog("VClamp duration: " + str(self.VClamp.dur1))
 
     neuron.h.finitialize(self.holdingVoltage*1e3)
     # !!! There is a WEIRD neuron bug, that if this tstop here is
@@ -173,7 +177,7 @@ class RunSynapseRun(object):
 
     self.setRestingVoltage(self.holdingVoltage*1e3)
 
-    print("Holding voltage " + str(self.holdingVoltage*1e3) + "mV, " \
+    self.writeLog("Holding voltage " + str(self.holdingVoltage*1e3) + "mV, " \
           + "IClamp amp = " + str(cur) + "nA" )
 
     
@@ -184,7 +188,7 @@ class RunSynapseRun(object):
     if(len(stimTimes) != len(self.stimTimes) \
        or (stimTimes != self.stimTimes).any()):
 
-      print("Setting stim times to " + str(stimTimes) + " s")
+      self.writeLog("Setting stim times to " + str(stimTimes) + " s")
       self.stimVector = neuron.h.Vector(stimTimes*1e3)
       self.stimTimes = stimTimes*1e3
 
@@ -274,9 +278,9 @@ class RunSynapseRun(object):
     except:
       import traceback
       tstr = traceback.format_exc()
-      print(tstr)
+      self.writeLog(tstr)
 
-      print("Did you remember to run nrnivmodl first, " \
+      self.writeLog("Did you remember to run nrnivmodl first, " \
             + "to generate channels mod files?")
       exit(-1)
 
@@ -291,7 +295,7 @@ class RunSynapseRun(object):
       val = self.SItoNaturalUnits(p,params[p])
         
       setattr(syn,p,val)
-      print("Setting parameters: " + str(p) + " = " + str(val) \
+      self.writeLog("Setting parameters: " + str(p) + " = " + str(val) \
             + " (neuron natural units)")
       
       
@@ -299,7 +303,7 @@ class RunSynapseRun(object):
 
   def connectInputToSynapses(self,stimTimes):
 
-    print("Stimulation times (s): " + str(stimTimes))
+    self.writeLog("Stimulation times (s): " + str(stimTimes))
     
     self.ncSyn = []
     
@@ -379,9 +383,9 @@ class RunSynapseRun(object):
     #self.iSave.resize()
     
     if(np.array(self.tSave).shape != np.array(self.vSave).shape):
-      print("THIS IS WRONG, should be same shape!!")
-      print("size t = " + str(np.array(self.tSave).shape))
-      print("size v = " + str(np.array(self.vSave).shape))      
+      self.writeLog("THIS IS WRONG, should be same shape!!")
+      self.writeLog("size t = " + str(np.array(self.tSave).shape))
+      self.writeLog("size v = " + str(np.array(self.vSave).shape))      
       import pdb
       pdb.set_trace()
     
@@ -420,9 +424,9 @@ class RunSynapseRun(object):
                    "nmda_ratio" : 1.0 }
 
     if varName not in convFactor:
-      print("Missing conversion fractor for " + str(varName) \
+      self.writeLog("Missing conversion fractor for " + str(varName) \
             + ". Please update SItoNaturalUnits function.")
-      print("convFactor = " + str(convFactor))
+      self.writeLog("convFactor = " + str(convFactor))
       import pdb
       pdb.set_trace()
 
@@ -431,7 +435,7 @@ class RunSynapseRun(object):
     except:
       import traceback
       tstr = traceback.format_exc()
-      print(tstr)
+      self.writeLog(tstr)
       import pdb
       pdb.set_trace()
     
@@ -461,7 +465,7 @@ class RunSynapseRun(object):
   
   def run2(self,pars,time=None,cond=1e-8):
 
-    print("Running with pars: " + str(pars))
+    self.writeLog("Running with pars: " + str(pars))
     
     if(time is None):
       time = self.time
@@ -482,8 +486,10 @@ class RunSynapseRun(object):
     for ncs in self.ncSyn:
       ncs.weight[0] = cond
 
-    # print("Synapse conductance: " + str(cond) + " uS")
+    # self.writeLog("Synapse conductance: " + str(cond) + " uS")
 
+    self.setRestingVoltage(self.holdingVoltage*1e3)
+    
     neuron.h.tstop = time*1e3
     neuron.h.run()
 
@@ -491,6 +497,22 @@ class RunSynapseRun(object):
     return (np.array(self.tSave)*1e-3,
             np.array(self.vSave)*1e-3,
             np.array(self.iSave)*1e-9)
+
+############################################################################
+
+  def writeLog(self,text,flush=True): # Change flush to False in future, debug
+    if(self.logFile is not None):
+      self.logFile.write(text + "\n")
+      
+      if(self.verbose):
+        print(text)
+        
+      if(flush):
+        self.logFile.flush()
+    else:
+      if(self.verbose):
+        print(text)  
+
   
 ##############################################################################
   

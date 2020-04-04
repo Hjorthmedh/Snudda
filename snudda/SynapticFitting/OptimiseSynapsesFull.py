@@ -865,7 +865,8 @@ class OptimiseSynapsesFull(object):
                     holdingVoltage=cProp["baselineDepol"],
                     synapseType=self.synapseType,
                     params=params,
-                    time=self.simTime)
+                    time=self.simTime,
+                    logFile=self.logFile)
 
 
     return self.rsrSynapseModel
@@ -1486,7 +1487,7 @@ class OptimiseSynapsesFull(object):
                condSobol, nmdaRatioSobol):
 
       idx += 1
-      if(idx % 100 == 0):
+      if(idx % 50 == 0):
         self.writeLog("%d / %d : minError = %g" % (idx, len(USobol),minError))
         self.writeLog(str(minPar))
       
