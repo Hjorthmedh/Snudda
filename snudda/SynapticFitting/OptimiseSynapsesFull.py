@@ -307,7 +307,7 @@ class OptimiseSynapsesFull(object):
 
 
   
-  def plotData(self,dataType,cellID=None,params={},show=True,skipTime=0.05,
+  def plotData(self,dataType,cellID=None,params={},show=True,skipTime=0.0,
                prettyPlot=None):
       
     
@@ -1138,8 +1138,8 @@ class OptimiseSynapsesFull(object):
 
     if("FS" in cellType.upper()):
       # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR), nmda_ratio
-      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-11,0.01],
-                     [1.0,2,2,0.9999999,1e-9,0.5])
+      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-11,0.000001],
+                     [1.0,2,2,0.9999999,1e-9,0.0001])
 
     elif("MS" in cellType.upper()):
       # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR), nmda_ratio
@@ -1434,7 +1434,7 @@ class OptimiseSynapsesFull(object):
                 tPeak,hPeak,
                 modelBounds,
                 smoothExpTrace8, smoothExpTrace9,
-                nTrials=100,loadParamsFlag=False):
+                nTrials=1,loadParamsFlag=False):
 
     assert self.synapseType == "glut", \
       "GABA synapse not supported yet in new version"

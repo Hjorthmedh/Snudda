@@ -31,7 +31,7 @@ class RunSynapseRun(object):
                holdingVoltage=-70e-3,
                synapseType='glut',
                params={},
-               time=2.0,
+               time=2,
                logFile=None,
                verbose=True):
     
@@ -190,6 +190,8 @@ class RunSynapseRun(object):
     if(len(stimTimes) != len(self.stimTimes) \
        or (stimTimes != self.stimTimes).any()):
 
+
+      print("Setting stim times to " + str(stimTimes) + " s")
       self.writeLog("Setting stim times to " + str(stimTimes) + " s")
       self.stimVector = neuron.h.Vector(stimTimes*1e3)
       self.stimTimes = stimTimes*1e3
@@ -402,7 +404,7 @@ class RunSynapseRun(object):
 
   def setRestingVoltage(self,restVolt):
 
-    self.writeLog("Setting resting voltage to %.2d mV" % restVolt)
+    self.writeLog("Setting resting voltage to %.3f mV" % restVolt)
     
     soma = [x for x in self.neuron.icell.soma]
     axon = [x for x in self.neuron.icell.axon]
@@ -531,7 +533,7 @@ if __name__== "__main__":
   import time
   start = time.time() 
   
-  stimTimes = np.array([0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,1.0])
+  stimTimes = np.array([0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,1.3])
   tau  = 10e-3
   tauR = 200e-3
   tauF = 900e-3
