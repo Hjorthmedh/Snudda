@@ -533,7 +533,7 @@ if __name__== "__main__":
   import time
   start = time.time() 
   
-  stimTimes = np.array([0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,1.3])
+  stimTimes = np.array([0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,1.0]) + 0.3
   tau  = 10e-3
   tauR = 200e-3
   tauF = 900e-3

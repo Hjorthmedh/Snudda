@@ -48,7 +48,7 @@ class OptimiseSynapsesFull(object):
 
   ############################################################################
   
-  def __init__(self, fileName, synapseType="glut",loadCache=True,
+  def __init__(self, fileName, synapseType="glut",loadCache=False,
                role="master",dView=None,verbose=True,logFileName=None,
                optMethod="sobol",prettyPlot=False,
                neuronSetFile="neuronSet.json"):
@@ -62,7 +62,8 @@ class OptimiseSynapsesFull(object):
     self.logFileName = logFileName
     self.optMethod = optMethod
     self.nSmoothing = 200 # How many smoothing points do we use?
-    self.simTime = 1.5
+    #self.simTime = 1.5
+    self.simTime = 1.8
     self.neuronSetFile = neuronSetFile
     
     self.debugParsFlag = False
@@ -211,10 +212,12 @@ class OptimiseSynapsesFull(object):
 
   def getData(self,dataType,cellID=None):
 
+
     if(cellID is None):
       data = self.hFile[dataType].value.copy()
     else:
       data = self.hFile[dataType][:,cellID].copy()
+ 
       
     # data: 0 = no recording, 5 = recording but no response
       
@@ -228,12 +231,14 @@ class OptimiseSynapsesFull(object):
       # Which variable contains the start time? Do not know, so assume it is 0
     
       nPoints = data.shape[0]
-      t = 0 + tStep * np.arange(0,nPoints)
+      #t = 0 + tStep * np.arange(0,nPoints)
+      t = 0.3 + tStep * np.arange(0,nPoints)  
 
       return (data,t)
 
     else:
-      
+
+  
       return data
 
   ############################################################################
@@ -307,7 +312,7 @@ class OptimiseSynapsesFull(object):
 
 
   
-  def plotData(self,dataType,cellID=None,params={},show=True,skipTime=0.0,
+  def plotData(self,dataType,cellID=None,params={},show=True,skipTime=0.3,
                prettyPlot=None):
       
     
@@ -429,6 +434,7 @@ class OptimiseSynapsesFull(object):
   ############################################################################
 
   def getCellProperties(self,dataType,cellID):
+
 
     if(self.cellProperties is None):
       with open(self.neuronSetFile,'r') as f:
@@ -601,7 +607,7 @@ class OptimiseSynapsesFull(object):
 
   
   def getPeakIdx(self, dataType,cellID,
-                 firstSpike=0.1,delayToLast=None):
+                 firstSpike=0.4,delayToLast=None):
 
     pTime = self.getStimTime(dataType=dataType,
                               cellID=cellID,
@@ -639,8 +645,8 @@ class OptimiseSynapsesFull(object):
   ############################################################################
     
   def getStimTime(self,dataType,cellID,
-                  firstSpike=0.1,delayToLast=None):
-    
+                  firstSpike=0.4,delayToLast=None):
+ 
     try:
       freq = float(re.findall(r'H\d+',dataType)[0][1:])
     except:
@@ -654,8 +660,9 @@ class OptimiseSynapsesFull(object):
       else:
         delayToLast = 0.5
       
-    pTime = 0.1 + np.arange(0,8)*1.0/freq
+    pTime = 0.4 + np.arange(0,8)*1.0/freq
     pTime = np.append(pTime,pTime[-1] + delayToLast)
+
 
     return pTime
     
@@ -760,7 +767,7 @@ class OptimiseSynapsesFull(object):
       else:
         # Last spike, use only last half of decay trace
         idxStart = int(peakIdxA*0.5 + peakIdxB*0.5)
-        idxEnd = int(peakIdxA*0.05 + peakIdxB*0.9) # might need 0.85 as last
+        idxEnd = int(peakIdxA*0.05 + peakIdxB*0.85) # might need 0.85 as last
 
       try:
         assert idxStart < idxEnd
@@ -841,7 +848,7 @@ class OptimiseSynapsesFull(object):
                  synapseDensityOverride=None,
                  nSynapsesOverride=None):
     
-    tStim = self.getStimTime(dataType,cellID)   
+    tStim = self.getStimTime(dataType,cellID)  
 
     # Read the info needed to setup the neuron hosting the synapses
     cProp = self.getCellProperties(dataType,cellID)
@@ -1023,6 +1030,7 @@ class OptimiseSynapsesFull(object):
                                              time=tSim,
                                              startTime=self.decayStartFit9,
                                              endTime=self.decayEndFit9)
+
     # We only want to use the bit of the trace after max
     idxMax8 = np.argmax(smoothExpTrace8)
     idxMax9 = np.argmax(smoothExpTrace9)    
@@ -1071,8 +1079,7 @@ class OptimiseSynapsesFull(object):
       plt.ion()
       plt.show()
       
-      import pdb
-      pdb.set_trace()
+
 
     if(returnType == "peaks"):
       return peakH
@@ -1102,6 +1109,8 @@ class OptimiseSynapsesFull(object):
     params["tau"]  = tau
 
     #self.writeLog("params=" + str(params))
+
+
     
     (tSim,vSim,iSim) = \
       self.rsrSynapseModel.run2(pars=params)
@@ -1114,6 +1123,9 @@ class OptimiseSynapsesFull(object):
     peakIdx = self.getPeakIdx2(time=tSim,volt=vSim,stimTime=tSpike)
     peakHeight,decayFits,vBase = self.findTraceHeights(tSim,vSim,peakIdx)
 
+
+
+
     if(returnTrace):
       return peakHeight,tSim,vSim
     else:
@@ -1121,7 +1133,7 @@ class OptimiseSynapsesFull(object):
    
   ############################################################################
 
-  def getExpBaseline(self,dataType,cellID,tBefore=0.08):
+  def getExpBaseline(self,dataType,cellID,tBefore=0.38):
 
      (volt,time) = self.getData(dataType,cellID)
 
@@ -1139,7 +1151,7 @@ class OptimiseSynapsesFull(object):
     if("FS" in cellType.upper()):
       # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR), nmda_ratio
       modelBounds = ([1e-3,1e-4,1e-4,0, 1e-11,0.000001],
-                     [1.0,2,2,0.9999999,1e-9,0.0001])
+                     [1.0,2,2,0.9999999,1e-9,0.01])
 
     elif("MS" in cellType.upper()):
       # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR), nmda_ratio
@@ -1153,12 +1165,10 @@ class OptimiseSynapsesFull(object):
 
     elif("LTS" in cellType.upper()):
       # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR), nmda_ratio
-      modelBounds = ([1e-3,1e-4,1e-4,0, 1e-11,2],
-                     [1.0,2,2,0.9999999,1e-9,8])
+      modelBounds = ([0.75, 1e-4, 1e-1,           0, 1e-12, 0.1],
+                     [1.5 , 0.1 ,    1,   0.9999999, 1.5e-11, 0.3])
     else:
       self.writeLog("Unknown celltype in " + str(cellType))
-      import pdb
-      pdb.set_trace()
 
     return modelBounds
     
@@ -1166,11 +1176,19 @@ class OptimiseSynapsesFull(object):
   ############################################################################
   
   def fitTrace(self,dataType,cellID,optMethod=None):
+
     
     if(optMethod is None):
       optMethod = self.optMethod
     
     (volt,time) = self.getData(dataType,cellID)
+
+    if (False):
+        plt.plot(time, volt)
+        plt.show()
+        import pdb
+        pdb.set_trace()
+
 
     # This should NOT be empty, it should have AMPA/NMDA specific parameters
     # that we do not optimise for...
@@ -1335,8 +1353,8 @@ class OptimiseSynapsesFull(object):
 
         modelBounds = self.getModelBounds(cellID)
 
-        self.decayStartFit = 1.0
-        self.decayEndFit = 1.2
+        self.decayStartFit = 2.0
+        self.decayEndFit = 2.2
          
         smoothVolt,smoothTime = self.smoothingTrace(volt,self.nSmoothing,
                                                  time=time,
@@ -1434,7 +1452,7 @@ class OptimiseSynapsesFull(object):
                 tPeak,hPeak,
                 modelBounds,
                 smoothExpTrace8, smoothExpTrace9,
-                nTrials=1,loadParamsFlag=False):
+                nTrials=10000,loadParamsFlag=False):
 
     assert self.synapseType == "glut", \
       "GABA synapse not supported yet in new version"
@@ -1456,11 +1474,13 @@ class OptimiseSynapsesFull(object):
     USobol,tauRSobol,tauFSobol,tauRatioSobol,condSobol,nmdaRatioSobol \
       = distribution.sample(nTrials, rule="sobol")
 
+
     
     # tauSobol = np.multiply(tauRatioSobol,tauRSobol)
 
     minPars = None
     minError = np.inf
+
       
     if(loadParamsFlag):
       # If we should load params then do so first
@@ -1490,7 +1510,8 @@ class OptimiseSynapsesFull(object):
       if(idx % 50 == 0):
         self.writeLog("%d / %d : minError = %g" % (idx, len(USobol),minError))
         self.writeLog(str(minPar))
-      
+   
+   
       error = self.neuronSynapseHelperGlut(tPeak,U,tauR,tauF,tauRatio,
                                            cond,nmdaRatio,
                                            smoothExpTrace8=smoothExpTrace8,
@@ -1512,6 +1533,8 @@ class OptimiseSynapsesFull(object):
         
         # For big runs we do no want to give up. Let's try again...
         continue
+    
+
 
     return minPar
       
