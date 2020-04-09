@@ -418,7 +418,9 @@ class NeuronMorphology(object):
     with open(cacheFile,'rb') as cache_file:
       morph = pickle.load(cache_file)
     
-    assert(self.swc_filename == morph["swc_filename"])
+    assert self.swc_filename == morph["swc_filename"], \
+      "Cached file had different path. Saving new version of cache."
+    
     assert self.axonStumpIDFlag == morph["axonStumpIDFlag"], \
     "axonStumpIDFlag must match cached version"
     
@@ -761,10 +763,28 @@ class NeuronMorphology(object):
       
   ############################################################################
 
-  def plotNeuron(self,axis=None,plotAxon=True,plotDendrite=True,lineStyle='-',alpha=1.0,plotOrigo=np.array([0,0,0]),plotScale=1.0):
+  def plotNeuron(self,
+                 axis=None,
+                 plotAxon=True,
+                 plotDendrite=True,
+                 lineStyle='-',
+                 alpha=1.0,
+                 plotOrigo=np.array([0,0,0]),
+                 plotScale=1.0,
+                 axonColour=None,
+                 dendColour=None,
+                 somaColour=None):
     
     if(self.verbose):
       print("Plotting neuron " + self.swc_filename)
+ 
+    if(axonColour is None):
+      axonColour = self.colour
+    if(dendColour is None):
+      dendColour = self.colour
+    if(somaColour is None):
+      somaColour = self.colour
+        
       
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
@@ -792,7 +812,8 @@ class NeuronMorphology(object):
                   linestyle=lineStyle,
                   marker=',',
                   alpha=alpha,
-                  c=self.colour)
+                  c=axonColour)
+
 
           axLinks = list(row)
 
@@ -803,7 +824,8 @@ class NeuronMorphology(object):
                   linestyle=lineStyle,
                   marker=',',
                   alpha=alpha,
-                  c=self.colour)
+                  c=axonColour)
+
 
     if(plotDendrite):
       dendLinks = []
@@ -821,7 +843,8 @@ class NeuronMorphology(object):
                   linestyle=lineStyle,
                   marker=',',
                   alpha=alpha,
-                  c=self.colour)
+                  c=dendColour)
+
 
           dendLinks = list(row)
 
@@ -832,16 +855,20 @@ class NeuronMorphology(object):
                 linestyle=lineStyle,
                 marker=',',
                 alpha=alpha,
-                c=self.colour)
+                c=dendColour)
+
         
           
     if(len(self.soma) > 0):
       ax.scatter((self.soma[:,0]-plotOrigo[0])*plotScale,
                  (self.soma[:,1]-plotOrigo[1])*plotScale,
                  (self.soma[:,2]-plotOrigo[2])*plotScale,
-                 c=self.colour,alpha=alpha)
+                 c=somaColour,alpha=alpha)
+
       
     plt.axis('equal')
+    plt.title("Neuron: " + self.swc_filename.split("/")[-3] \
+              + "_" + self.swc_filename.split('/').pop())
     plt.ion()
     plt.show()
     plt.draw()
@@ -936,6 +963,89 @@ class NeuronMorphology(object):
                              axis=1)
 
     return compLen
+
+  ############################################################################
+
+  def dendriteInputLocations(self,synapseDensity,nLocations=None, returnDensity=False):
+
+    # Calculate the input density at each point in dendrite morphology
+    d = self.dend[:,4]
+    try:
+      # d is now distance from some, so synapseDensity is a func of d
+      iDensity = eval(synapseDensity)
+    except:
+      self.writeLog("Bad synapse density string: " + str(synapseDensity))
+      import traceback
+      tstr = traceback.format_exc()
+      self.writeLog(tstr)
+      
+
+    if(type(iDensity) in (int, float)):
+      # If iDensity is a constant, we need to set it for all points
+      iDensity *= np.ones(d.shape)
+    
+    compDensity = (iDensity[self.dendLinks[:,0]] \
+                   + iDensity[self.dendLinks[:,1]])/2
+    compLen = self.compartmentLength(compType="dend")
+
+    # compDensity is in synapses per micrometer, multiply by 1e6
+    expectedSynapses = compDensity*compLen*1e6
+
+    if(nLocations is not None):
+      print("Trying to set nLocations = " + str(nLocations) + " (approx)")
+      expectedSynapses *= nLocations / np.sum(expectedSynapses)
+
+    # Number of input synapses on each compartment
+    numberOfSynapses = (expectedSynapses \
+                     + ((expectedSynapses % 1) \
+                        > np.random.rand(len(expectedSynapses)))).astype(int)
+
+    nSynTot = np.sum(numberOfSynapses)
+    distSynSoma = []
+
+    #import pdb
+    #pdb.set_trace()
+    
+    # x,y,z, secID, secX    
+    inputLoc = np.zeros((nSynTot,5))
+    
+    # Iterate over each compartment
+    synCtr = 0
+    for iComp, nSyn in enumerate(numberOfSynapses):
+
+      # Add synapses to that compartment
+      for j in range(0,nSyn):
+        #print('Compartment containing a synapse',iComp)
+        #print('Distance from soma',self.dend[iComp][4]*1e6,'$mum$')
+        distSynSoma=np.append(distSynSoma,self.dend[iComp][4])
+        inputLoc[synCtr,3] = self.dendSecID[iComp]
+        
+        # Cant have at endpoints 0 or 1
+        compX = np.random.rand()
+        
+        coords = self.dend[self.dendLinks[iComp,0],:3] * (1-compX) \
+                + self.dend[self.dendLinks[iComp,1],:3] * compX
+        
+        inputLoc[synCtr,:3] = coords
+
+        # Use compX (where between comp endpoints) to calculate sectionX
+        # (where between section end points)        
+        inputLoc[synCtr,4] = self.dendSecX[iComp,0] * (1-compX) \
+                        + compX * self.dendSecX[iComp,1]
+        
+        synCtr += 1
+
+   
+
+    
+    if returnDensity:
+         # Return xyz,secID,secX,iDensity,distSynSoma
+        return inputLoc[:,:3],inputLoc[:,3],inputLoc[:,4],iDensity,distSynSoma
+
+    # Return xyz,secID,secX
+    return inputLoc[:,:3],inputLoc[:,3],inputLoc[:,4]
+
+  
     
   ############################################################################
 
@@ -1008,8 +1118,8 @@ if __name__ == "__main__":
   
   # nm = NeuronMorphology(swc_filename='morphology/network/FSN-BE79B-3ak-compact-5.swc',verbose=True,clusterFlag=True,nClustersDend=-1,nClustersAxon=-1)
 
-  # fName = "cellspecs/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc"
-  fName = "cellspecs/lts/LTS_Experiment-9862_20181211/Experiment-9862corrected-cor-rep.swc"
+  fName = "data/cellspecs/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/WT-1215MSN03-cor-rep-ax2.swc"
+  #fName = "data/cellspecs/lts/LTS_Experiment-9862_20181211/lts_morp_2019-11-07_centered_noAxon.swc"
   
   nm = NeuronMorphology(swc_filename=fName,verbose=True,useCache=False)
   
