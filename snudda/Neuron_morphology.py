@@ -866,7 +866,7 @@ class NeuronMorphology(object):
                  c=somaColour,alpha=alpha)
 
       
-    plt.axis('equal')
+    #plt.axis('equal')
     plt.title("Neuron: " + self.swc_filename.split("/")[-3] \
               + "_" + self.swc_filename.split('/').pop())
     plt.ion()

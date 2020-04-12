@@ -238,7 +238,6 @@ class OptimiseSynapsesFull(object):
 
     else:
 
-  
       return data
 
   ############################################################################
@@ -1452,7 +1451,7 @@ class OptimiseSynapsesFull(object):
                 tPeak,hPeak,
                 modelBounds,
                 smoothExpTrace8, smoothExpTrace9,
-                nTrials=10000,loadParamsFlag=False):
+                nTrials=1000,loadParamsFlag=False):
 
     assert self.synapseType == "glut", \
       "GABA synapse not supported yet in new version"
