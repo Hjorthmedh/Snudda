@@ -534,6 +534,14 @@ if __name__== "__main__":
   start = time.time() 
   
   stimTimes = np.array([0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,1.0]) + 0.3
+
+  #synapseDensity="0.05/(1+np.exp(-(d-30e-6)/5e-6))"  
+  # synapseDensity="0.05/(1+np.exp(-(d-150e-6)/5e-6))"
+
+  synapseDensity="np.exp(-((d-50e-6)/15e-6)**2)"  
+  holdingVoltage = -79.5e-3
+  
+  # !!! OBS changed number of synapses, before was 20 -- cond 1nS
   tau  = 10e-3
   tauR = 200e-3
   tauF = 900e-3
@@ -545,31 +553,30 @@ if __name__== "__main__":
   U = 0.1
   cond = 1e-9
   
-  
   rlsr = RunSynapseRun(stimTimes=stimTimes,
                        synapseType="glut",
                        neuronMorphology="../data/cellspecs/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/WT-1215MSN03-cor-rep-ax2.swc",
                        neuronParameters="../data/cellspecs/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/parameters.json",
                        neuronMechanisms="../data/cellspecs/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/mechanisms.json",
                        neuronModulation="../data/cellspecs/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/modulation.json",
-                       #synapseDensity="0.05/(1+np.exp(-(d-30e-6)/5e-6))",
-                       synapseDensity="0.05/(1+np.exp(-(d-150e-6)/5e-6))",
-                       nSynapses=20,
+                       synapseDensity=synapseDensity,
+                       nSynapses=10,
                        neuronParameterID=0,
-                       neuronModulationID=0)
+                       neuronModulationID=0,
+                       holdingVoltage=holdingVoltage)
 
   # I would like to plot the morphology
-  ax = rlsr.plot()
+  # ax = rlsr.plot()
 
   #import pdb
   #pdb.set_trace()
 
-  params = { "U" : 0.8,
+  params = { "U" : 0.5,
              "tauR" : 0.6,
-             "tauF" : 1.1,
+             "tauF" : 2.0, #1.1
              "tau" : 0.08,
-             "cond" : 2e-11,
-             "nmda_ratio" : 2.0 }
+             "cond" : 1e-9,
+             "nmda_ratio" : 0.5 }
   
 
   tS,vS,iS = rlsr.run2(pars=params)
@@ -577,19 +584,35 @@ if __name__== "__main__":
   plt.plot(tS,vS)
   plt.xlabel("Time (s)")
   plt.ylabel("Voltage (V)")
-  plt.figure()
+
+  if(True):
+    expData = 'DATA/YvonneJohansson2019/M1LH_Analysis_191001.h5'
+    expCellID = 131
+
+    import LoadExpData
+
+    led = LoadExpData.LoadExpData(expData)
+    cellType = led.getCellType(expCellID)
+    plt.title("ExpData is cellType : " + str(cellType))
+    expV,expT = led.getData("GBZ_CC_H20",expCellID)
+    plt.plot(expT,expV,'r-')
   
-  for iiS in iS:
-    plt.plot(tS,iiS)
+  if(False):
+    plt.figure()
+  
+    for iiS in iS:
+      plt.plot(tS,iiS)
       
-  plt.xlabel("Time (s)")
-  plt.ylabel("Current (A)")
-  
-  end = time.time()
-  print(end - start)
+    plt.xlabel("Time (s)")
+    plt.ylabel("Current (A)")
 
   plt.ion()
   plt.show()
+
+    
+  end = time.time()
+  print(end - start)
+
 
   import pdb
   pdb.set_trace()
