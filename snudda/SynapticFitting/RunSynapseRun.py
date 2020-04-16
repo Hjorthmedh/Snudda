@@ -542,6 +542,16 @@ if __name__== "__main__":
   holdingVoltage = -79.5e-3
   
   # !!! OBS changed number of synapses, before was 20 -- cond 1nS
+  tau  = 10e-3
+  tauR = 200e-3
+  tauF = 900e-3
+  U    = 0.5
+
+  tau = 0.1
+  tauR = 0.1
+  tauF = 0.1
+  U = 0.1
+  cond = 1e-9
   
   rlsr = RunSynapseRun(stimTimes=stimTimes,
                        synapseType="glut",
