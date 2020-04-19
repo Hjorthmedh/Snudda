@@ -1,0 +1,14 @@
+HOST=$(hostname -s | cut -d'-' -f1)
+L=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/$HOST
+
+export PATH=$L/bin:$PATH
+export LD_LIBRARY_PATH=$L/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$L/lib/python3.6/site-packages:$PYTHONPATH
+
+#if [ -e /pdc/modules/etc/init/bash ]; then
+#    source /pdc/modules/etc/init/bash
+#    export -f module
+#fi
+
+module load anaconda/py37/5.0.1
+
