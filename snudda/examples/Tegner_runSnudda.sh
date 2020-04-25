@@ -75,8 +75,11 @@ else
 
     #.. Run the self-installed version of python3
     #${ANACONDA_HOME}/bin/python3 badExample.py 
+    # Change to: snudda init ${JOBDIR} --size ${SIMSIZE}
+    # need to figure out how to get it ti find snudda so we can call it directly
+    # instead of calling core.py
     echo ">>> Init: "`date`
-    ${ANACONDA_HOME}/bin/python $SNUDDA_DIR/snudda.py init ${JOBDIR} --size ${SIMSIZE}
+    ${ANACONDA_HOME}/bin/python $SNUDDA_DIR/core.py init ${JOBDIR} --size ${SIMSIZE}
 
     if [ $? != 0 ]; then
 	echo "Something went wrong during init, aborting!"
@@ -85,7 +88,7 @@ else
     fi
 
     echo ">>> Place: "`date`
-    ${ANACONDA_HOME}/bin/python $SNUDDA_DIR/snudda.py place ${JOBDIR}
+    ${ANACONDA_HOME}/bin/python $SNUDDA_DIR/core.py place ${JOBDIR}
 
     if [ $? != 0 ]; then
 	echo "Something went wrong during placement, aborting!"
@@ -94,7 +97,7 @@ else
     fi
 
     echo ">>> Detect: "`date`
-    ${ANACONDA_HOME}/bin/python $SNUDDA_DIR/snudda.py detect ${JOBDIR} --hvsize 50 
+    ${ANACONDA_HOME}/bin/python $SNUDDA_DIR/core.py detect ${JOBDIR} --hvsize 50 
 
     if [ $? != 0 ]; then
 	echo "Something went wrong during detection, aborting!"
@@ -103,7 +106,7 @@ else
     fi
 
     echo ">>> Prune: "`date`
-    ${ANACONDA_HOME}/bin/python $SNUDDA_DIR/snudda.py prune ${JOBDIR}
+    ${ANACONDA_HOME}/bin/python $SNUDDA_DIR/core.py prune ${JOBDIR}
 
     if [ $? != 0 ]; then
 	echo "Something went wrong during pruning, aborting!"
@@ -112,7 +115,7 @@ else
     fi
 
     echo ">>> Input: "`date`
-    ${ANACONDA_HOME}/bin/python $SNUDDA_DIR/snudda.py input ${JOBDIR} --input config/input-tinytest.json
+    ${ANACONDA_HOME}/bin/python $SNUDDA_DIR/core.py input ${JOBDIR} --input config/input-tinytest.json
 
     #.. Shut down cluster
     ipcluster stop	
