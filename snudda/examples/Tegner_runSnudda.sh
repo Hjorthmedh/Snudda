@@ -30,11 +30,14 @@
 #   As a bonus, it is much faster than regular ethernet connections. 
 #..
 
-JOBDIR=networks/TegnerRun.${SLURM_JOBID}
+SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
+#JOBDIR=$SNUDDA_DIR/../networks/TegnerRun.${SLURM_JOBID}
+JOBDIR=$HOME/networks/TegnerRun.${SLURM_JOBID}
+
 #SIMSIZE=120000
-#SIMSIZE=50000
+SIMSIZE=50000
 #SIMSIZE=200000
-SIMSIZE=1760000
+#SIMSIZE=1760000
 
 if [ $SLURM_PROCID -gt 0 ]; then
 	mock_string="Not main process"
@@ -73,7 +76,7 @@ else
     #.. Run the self-installed version of python3
     #${ANACONDA_HOME}/bin/python3 badExample.py 
     echo ">>> Init: "`date`
-    ${ANACONDA_HOME}/bin/python3 snudda.py init ${JOBDIR} --size ${SIMSIZE}
+    ${ANACONDA_HOME}/bin/python $SNUDDA_DIR/snudda.py init ${JOBDIR} --size ${SIMSIZE}
 
     if [ $? != 0 ]; then
 	echo "Something went wrong during init, aborting!"
@@ -82,7 +85,7 @@ else
     fi
 
     echo ">>> Place: "`date`
-    ${ANACONDA_HOME}/bin/python3 snudda.py place ${JOBDIR}
+    ${ANACONDA_HOME}/bin/python $SNUDDA_DIR/snudda.py place ${JOBDIR}
 
     if [ $? != 0 ]; then
 	echo "Something went wrong during placement, aborting!"
@@ -91,7 +94,7 @@ else
     fi
 
     echo ">>> Detect: "`date`
-    ${ANACONDA_HOME}/bin/python3 snudda.py detect ${JOBDIR} --hvsize 50 
+    ${ANACONDA_HOME}/bin/python $SNUDDA_DIR/snudda.py detect ${JOBDIR} --hvsize 50 
 
     if [ $? != 0 ]; then
 	echo "Something went wrong during detection, aborting!"
@@ -100,7 +103,7 @@ else
     fi
 
     echo ">>> Prune: "`date`
-    ${ANACONDA_HOME}/bin/python3 snudda.py prune ${JOBDIR}
+    ${ANACONDA_HOME}/bin/python $SNUDDA_DIR/snudda.py prune ${JOBDIR}
 
     if [ $? != 0 ]; then
 	echo "Something went wrong during pruning, aborting!"
@@ -109,7 +112,7 @@ else
     fi
 
     echo ">>> Input: "`date`
-    ${ANACONDA_HOME}/bin/python3 snudda.py input ${JOBDIR} --input config/input-tinytest.json
+    ${ANACONDA_HOME}/bin/python $SNUDDA_DIR/snudda.py input ${JOBDIR} --input config/input-tinytest.json
 
     #.. Shut down cluster
     ipcluster stop	
