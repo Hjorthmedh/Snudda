@@ -31,14 +31,14 @@ module load anaconda/py37/5.0.1
 export IPYTHONDIR="/afs/pdc.kth.se/home/${USER:0:1}/$USER/.ipython"
 #export IPYTHONDIR=$(pwd -P)"/.ipython"
 
+# !!! OBS, you need to have done a dev installation using the line below:
+echo "You need to have done the following:"
+echo "pip install --user -e .[dev]"
+
 # Delete the old .ipython directory
 #echo "Removing old .ipython directory"
 #rm -r $IPYTHONDIR
 
-# We assume this is run from the example directory
-#pushd ../..
-#pip install --user -e .[dev]
-#popd
 
 
 export IPYTHON_PROFILE=mpi

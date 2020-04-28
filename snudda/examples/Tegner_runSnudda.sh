@@ -31,8 +31,8 @@
 #..
 
 SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
-#JOBDIR=$SNUDDA_DIR/../networks/TegnerRun.${SLURM_JOBID}
-JOBDIR=$HOME/networks/TegnerRun.${SLURM_JOBID}
+JOBDIR=$SNUDDA_DIR/../networks/TegnerRun.${SLURM_JOBID}
+#JOBDIR=$HOME/networks/TegnerRun.${SLURM_JOBID}
 
 #SIMSIZE=120000
 SIMSIZE=50000
