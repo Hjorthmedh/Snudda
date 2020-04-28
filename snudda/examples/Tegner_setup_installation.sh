@@ -6,6 +6,8 @@ module load anaconda/py37/5.0.1
 # make sure there are no conflicts
 module list
 
+HOST=$(hostname -s | cut -d'-' -f1)
+
 # setup directory for local software
 L=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/$HOST
 mkdir -pv $L
@@ -55,3 +57,6 @@ pushd $L/build
 
 popd
 rm -rf $L/build
+
+echo "For dev installation, in Snudda repository's root directory, run:"
+echo "pip install --user -e .[dev]"

@@ -1,0 +1,66 @@
+#!/bin/bash -l
+#SBATCH -t 0-23:59:00
+#SBATCH --time-min=11:59:00
+#SBATCH -J SnuddaLARGE
+#SBATCH -A 2019-3-644
+#SBATCH -o save/output-runSnudda.o%j
+#SBATCH -e save/error-runSnudda.e%j
+#SBATCH --nodes=8-20
+#SBATCH --ntasks-per-node=24
+
+# --- Tegner has 24 cores per node
+
+# Run projinfo if you need to see which project for the allocation
+
+# Had lots of trouble installing the conda environment correctly.
+# 1. Download from : https://www.anaconda.com/distribution/
+# 2. Use pip install mpi4py ipyparallel
+
+# HOME=/cfs/klemming/nobackup/h/hjorth/StriatumNetwork/model
+
+module load gcc/7.2.0 
+module load openmpi/3.0-gcc-7.2
+
+# Activate the anaconda_snudda environment
+#source /cfs/klemming/nobackup/h/hjorth/StriatumNetwork/model/.bashrc
+#source activate anaconda_snudda
+
+# export ANACONDA_HOME=/afs/pdc.kth.se/home/h/hjorth/.conda/envs/anaconda_snudda/
+#export ANACONDA_HOME=/cfs/klemming/nobackup/t/torkj/anaconda3
+export ANACONDA_HOME=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/anaconda3
+echo "ANACONDA_HOME=$ANACONDA_HOME"
+
+# module add intelmpi/17.0.1
+
+#module load anaconda/py36/5.0.1
+#source activate custom
+# conda install numpy scipy h5py ipyparallel mpi4py
+
+
+# Changed to using the .ipython in current dir
+#export IPYTHONDIR="$HOME/.ipython"
+export IPYTHONDIR=$(pwd -P)"/.ipython"
+
+# Delete the old .ipython directory
+echo "Removing old .ipython directory"
+rm -r .ipython
+
+export IPYTHON_PROFILE=mpi
+
+# export PATH=$PATH:$HOME/.local/bin
+
+export PATH=$ANACONDA_HOME"/bin/":$PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ANACONDA_HOME"/lib/"
+
+
+# source deactivate  # --- to leave custom environment
+
+export PYTHONPATH="$PYTHONPATH:/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/"
+
+#.. Let's try to run on infiniband connection
+srun -n $SLURM_NTASKS ./Tegner_runSnudda.sh
+
+echo "exiting submit script"
+
+
+# source deactivate
