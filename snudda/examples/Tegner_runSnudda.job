@@ -32,8 +32,14 @@ export IPYTHONDIR="/afs/pdc.kth.se/home/${USER:0:1}/$USER/.ipython"
 #export IPYTHONDIR=$(pwd -P)"/.ipython"
 
 # Delete the old .ipython directory
-echo "Removing old .ipython directory"
-rm -r $IPYTHONDIR
+#echo "Removing old .ipython directory"
+#rm -r $IPYTHONDIR
+
+# We assume this is run from the example directory
+#pushd ../..
+#pip install --user -e .[dev]
+#popd
+
 
 export IPYTHON_PROFILE=mpi
 
