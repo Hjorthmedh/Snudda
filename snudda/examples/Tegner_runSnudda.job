@@ -40,7 +40,6 @@ echo "pip install --user -e .[dev]"
 #rm -r $IPYTHONDIR
 
 
-
 export IPYTHON_PROFILE=mpi
 
 export PYTHONPATH="$PYTHONPATH:/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/"
