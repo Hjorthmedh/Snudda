@@ -31,6 +31,8 @@
 #..
 
 SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
+$DATA=$SNUDDA_DIR/data
+
 
 JOBDIR=$SNUDDA_DIR/../networks/TegnerRun.${SLURM_JOBID}
 #JOBDIR=$HOME/networks/TegnerRun.${SLURM_JOBID}
@@ -116,7 +118,7 @@ else
     fi
 
     echo ">>> Input: "`date`
-    snudda input ${JOBDIR} --input config/input-tinytest.json
+    snudda input ${JOBDIR} --input ../data/config/input-tinytest-v6.json
 
     #.. Shut down cluster
     ipcluster stop	

@@ -36,9 +36,8 @@ echo "You need to have done the following:"
 echo "pip install --user -e .[dev]"
 
 # Delete the old .ipython directory
-#echo "Removing old .ipython directory"
-#rm -r $IPYTHONDIR
-
+echo "Removing old .ipython directory"
+rm -r $IPYTHONDIR
 
 export IPYTHON_PROFILE=mpi
 
