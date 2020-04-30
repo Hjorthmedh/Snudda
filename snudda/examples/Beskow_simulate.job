@@ -38,7 +38,12 @@ nrnivmodl cellspecs/mechanisms
 # Synapse file
 #NETWORK_INFO_FILE=save/network-connect-synapse-file-2001927.hdf5
 #NETWORK_INFO_FILE=last
-NETWORK_DIR=TegnerRun.849262
+SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
+NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.TegnerRun.878620
+
+echo "Network dir: "$NETWORK_DIR
+
+#NETWORK_DIR=TegnerRun.849262
 NETWORK_INFO_FILE=$NETWORK_DIR/network-pruned-synapses.hdf5
 
 NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5

@@ -32,7 +32,8 @@
 
 # !!! OBS, you need to point to the right directory which contains network!!!
 #JOBDIR=TegnerRun.${SLURM_JOBID}
-JOBDIR=TegnerRun.849262
+SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
+JOBDIR=$SNUDDA_DIR/../networks/TegnerRun.878620
 
 if [ $SLURM_PROCID -gt 0 ]; then
 	mock_string="Not main process"
@@ -69,7 +70,7 @@ else
     sleep 120 #60
 
     echo ">>> Input: "`date`
-    ${ANACONDA_HOME}/bin/python3 snudda.py input ${JOBDIR} --input config/input-tinytest.json
+    snudda input ${JOBDIR} --input ../data/config/input-tinytest.json
 
     #.. Shut down cluster
     ipcluster stop	

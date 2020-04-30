@@ -116,7 +116,7 @@ else
     fi
 
     echo ">>> Input: "`date`
-    snudda input ${JOBDIR} --input config/input-tinytest.json
+    snudda input ${JOBDIR} --input ../data/config/input-tinytest.json
 
     #.. Shut down cluster
     ipcluster stop	
