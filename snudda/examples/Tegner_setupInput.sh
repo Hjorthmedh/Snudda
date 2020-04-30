@@ -33,6 +33,7 @@
 # !!! OBS, you need to point to the right directory which contains network!!!
 #JOBDIR=TegnerRun.${SLURM_JOBID}
 SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
+$DATA=$SNUDDA_DIR/data
 JOBDIR=$SNUDDA_DIR/../networks/TegnerRun.878620
 
 if [ $SLURM_PROCID -gt 0 ]; then
@@ -70,7 +71,7 @@ else
     sleep 120 #60
 
     echo ">>> Input: "`date`
-    snudda input ${JOBDIR} --input ../data/config/input-tinytest.json
+    snudda input ${JOBDIR} --input ../data/config/input-tinytest-v6.json
 
     #.. Shut down cluster
     ipcluster stop	
