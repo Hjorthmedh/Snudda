@@ -33,25 +33,15 @@ export PATH=$HOME/.local/bin:$PATH
 
 module load anaconda/py37/5.0.1
 
-# Changed to using the .ipython in current dir -- changed back to homedir
-#export IPYTHONDIR="$HOME/.ipython"
-export IPYTHONDIR="/afs/pdc.kth.se/home/${USER:0:1}/$USER/.ipython"
-#export IPYTHONDIR=$(pwd -P)"/.ipython"
 
 # !!! OBS, you need to have done a dev installation using the line below:
 echo "You need to have done the following:"
 echo "pip install --user -e .[dev]"
 
-# Delete the old .ipython directory
-echo "Removing old .ipython directory"
-rm -r $IPYTHONDIR
-
-export IPYTHON_PROFILE=mpi
-
 export PYTHONPATH="$PYTHONPATH:/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/"
 
 #.. Let's try to run on infiniband connection
-srun -n $SLURM_NTASKS ./Tegner_setupInput.sh
+srun -n 1 ./Tegner_setupInput_SERIAL.sh
 
 echo "exiting submit script"
 
