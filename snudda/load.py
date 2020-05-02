@@ -50,8 +50,8 @@ class SnuddaLoad(object):
 
       if("config" in f):
         print("Loading config data from HDF5")
-        data["config"] = f["config"].value
-        self.config = json.loads(f["config"].value)
+        data["config"] = f["config"][()]
+        self.config = json.loads(f["config"][()])
 
       # Added so this code can also load the position file, which
       # does not have the network group yet
@@ -67,10 +67,10 @@ class SnuddaLoad(object):
 
         # Depricated ??
         if("network/GJIDoffset" in f):
-          data["GJIDoffset"] = f["network/GJIDoffset"].value
+          data["GJIDoffset"] = f["network/GJIDoffset"][()]
 
         if("network/hyperVoxelIDs" in f):
-          data["hyperVoxelIDs"] = f["network/hyperVoxelIDs"].value
+          data["hyperVoxelIDs"] = f["network/hyperVoxelIDs"][()]
 
         if(loadSynapses):
           data["synapses"] = f["network/synapses"][:]
@@ -78,8 +78,8 @@ class SnuddaLoad(object):
 
           # !!! Convert from voxel idx to coordinates
           data["synapseCoords"] = f["network/synapses"][:,2:5] \
-                                * f["meta/voxelSize"].value \
-                                + f["meta/simulationOrigo"].value
+                                * f["meta/voxelSize"][()] \
+                                + f["meta/simulationOrigo"][()]
         else:
           # Point the data structure to the synapses and gap junctions on file
           # This will be slower, and only work while the file is open
@@ -100,13 +100,13 @@ class SnuddaLoad(object):
 
 
 
-      configFile = f["meta/configFile"].value
+      configFile = f["meta/configFile"][()]
       if(type(configFile) == bytes):
         configFile = configFile.decode()
       data["configFile"] = configFile
 
       if("meta/positionFile" in f):
-        positionFile = f["meta/positionFile"].value
+        positionFile = f["meta/positionFile"][()]
 
         if(type(positionFile) == bytes):
           positionFile = positionFile.decode()
@@ -114,40 +114,40 @@ class SnuddaLoad(object):
         data["positionFile"] = positionFile
 
       if("meta/SlurmID" in f):
-        if(type(f["meta/SlurmID"].value) == bytes):
-          data["SlurmID"] = int(f["meta/SlurmID"].value.decode())
+        if(type(f["meta/SlurmID"][()]) == bytes):
+          data["SlurmID"] = int(f["meta/SlurmID"][()].decode())
         else:
-          data["SlurmID"] = int(f["meta/SlurmID"].value)
+          data["SlurmID"] = int(f["meta/SlurmID"][()])
 
       else:
         print("No SlurmID set, using -1")
         data["SlurmID"] = -1
 
       if("meta/simulationOrigo" in f):
-        data["simulationOrigo"] = f["meta/simulationOrigo"].value
+        data["simulationOrigo"] = f["meta/simulationOrigo"][()]
 
       if("meta/voxelSize" in f):
-        data["voxelSize"] = f["meta/voxelSize"].value
+        data["voxelSize"] = f["meta/voxelSize"][()]
 
       if("meta/axonStumpIDFlag" in f):
-        data["axonStumpIDFlag"] = f["meta/axonStumpIDFlag"].value
+        data["axonStumpIDFlag"] = f["meta/axonStumpIDFlag"][()]
 
       data["neurons"] = self.extractNeurons(f)
 
       # This is for old format, update for new format
       if("parameters" in f):
         # print("Parameters found, loading")
-        data["synapseRange"] = f["parameters/synapseRange"].value
-        data["gapJunctionRange"] = f["parameters/gapJunctionRange"].value
-        data["minSynapseSpacing"] = f["parameters/minSynapseSpacing"].value
+        data["synapseRange"] = f["parameters/synapseRange"][()]
+        data["gapJunctionRange"] = f["parameters/gapJunctionRange"][()]
+        data["minSynapseSpacing"] = f["parameters/minSynapseSpacing"][()]
 
 
-      data["neuronPositions"] = f["network/neurons/position"].value
+      data["neuronPositions"] = f["network/neurons/position"][()]
 
       if("nChannels" in f["network/neurons"]):
-        data["nChannels"] = f["network/neurons/nChannels"].value
-        data["neuronChannel"] = f["network/neurons/channelID"].value
-        data["channelMethod"] = f["network/neurons/channelMethod"].value
+        data["nChannels"] = f["network/neurons/nChannels"][()]
+        data["neuronChannel"] = f["network/neurons/channelID"][()]
+        data["channelMethod"] = f["network/neurons/channelMethod"][()]
       else:
         print("No channels detected.")
         data["nChannels"] = 1
@@ -160,9 +160,9 @@ class SnuddaLoad(object):
         for name in f["morphologies"].keys():
 
           data["morph"][name] = { "swc" :
-                                  f["morphologies"][name]["swc"].value,
+                                  f["morphologies"][name]["swc"][()],
                                   "location" :
-                                  f["morphologies"][name]["location"].value }
+                                  f["morphologies"][name]["location"][()] }
 
 
       data["connectivityDistributions"] = dict([])
@@ -170,7 +170,7 @@ class SnuddaLoad(object):
 
       if("connectivityDistributions" in f["meta"]):
         origConnectivityDistributions = \
-          json.loads(f["meta/connectivityDistributions"].value)
+          json.loads(f["meta/connectivityDistributions"][()])
 
         for keys in origConnectivityDistributions:
           (preType,postType) = keys.split("$$")
@@ -180,7 +180,7 @@ class SnuddaLoad(object):
 
 #      if("connectivityDistributionsGJ" in f["meta"]):
 #        origConnectivityDistributionsGJ = \
-#          json.loads(f["meta/connectivityDistributionsGJ"].value)
+#          json.loads(f["meta/connectivityDistributionsGJ"][()])
 #
 #        for keys in origConnectivityDistributionsGJ:
 #          (preType,postType) = keys.split("$$")
@@ -234,8 +234,8 @@ class SnuddaLoad(object):
         in zip(HDF5file["network/neurons/name"][:],
                HDF5file["network/neurons/neuronID"][:],
                HDF5file["network/neurons/hoc"][:],
-               HDF5file["network/neurons/position"].value,
-               HDF5file["network/neurons/rotation"].value,
+               HDF5file["network/neurons/position"][()],
+               HDF5file["network/neurons/rotation"][()],
                HDF5file["network/neurons/maxDendRadius"][:],
                HDF5file["network/neurons/maxAxonRadius"][:],
                HDF5file["network/neurons/virtualNeuron"][:],
@@ -338,8 +338,8 @@ class SnuddaLoad(object):
         in zip(HDF5file["network/neurons/name"][:],
                HDF5file["network/neurons/neuronID"][:],
                HDF5file["network/neurons/hoc"][:],
-               HDF5file["network/neurons/position"].value,
-               HDF5file["network/neurons/rotation"].value,
+               HDF5file["network/neurons/position"][()],
+               HDF5file["network/neurons/rotation"][()],
                HDF5file["network/neurons/maxDendRadius"][:],
                HDF5file["network/neurons/maxAxonRadius"][:],
                HDF5file["network/neurons/virtualNeuron"][:],
@@ -525,8 +525,8 @@ class SnuddaLoad(object):
 
     with h5py.File(self.network_file,'r') as f:
       synapseCoords = synapses[:,2:5][:synCtr,:] \
-                      * f["meta/voxelSize"].value \
-                      + f["meta/simulationOrigo"].value
+                      * f["meta/voxelSize"][()] \
+                      + f["meta/simulationOrigo"][()]
 
 
     return (synapses[:synCtr,:],synapseCoords)
@@ -621,8 +621,8 @@ class SnuddaLoad(object):
 
       # Calculate coordinates
       synapseCoords = synapses[:,2:5] \
-                      * f["meta/voxelSize"].value \
-                      + f["meta/simulationOrigo"].value
+                      * f["meta/voxelSize"][()] \
+                      + f["meta/simulationOrigo"][()]
 
       return synapses,synapseCoords
 

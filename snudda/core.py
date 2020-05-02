@@ -603,8 +603,12 @@ class Snudda(object):
 
     if(not os.path.exists(dirPath)):
       print("Creating missing directory " + dirPath)
-      os.makedirs(dirPath)
-
+      try:
+        os.makedirs(dirPath)
+        print("Created directory " + dirPath)
+      except:
+        print("Failed to create dir " + dirPath)
+        
 ##############################################################################
 
 

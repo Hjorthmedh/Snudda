@@ -113,7 +113,7 @@ class SnuddaCut(object):
                                    compression=data.compression)
 
         # Double check that it is OK, should be in order after
-        assert (np.diff(neuronGroup["neuronID"].value) == 1).all(), \
+        assert (np.diff(neuronGroup["neuronID"][()]) == 1).all(), \
           "Problem with neuron remapping!"
         
       else:
@@ -202,7 +202,7 @@ class SnuddaCut(object):
   
   def somasInside(self,cutEquationLambda):
 
-    pos = self.inFile["network/neurons/position"].value
+    pos = self.inFile["network/neurons/position"][()]
     insideFlag = np.array([cutEquationLambda(x,y,z) for x,y,z in pos], \
                           dtype=bool)
 
@@ -212,8 +212,8 @@ class SnuddaCut(object):
   
   def synapsesInside(self,cutEquationLambda,dataType="synapses"):
 
-    voxelSize = self.inFile["meta/voxelSize"].value
-    simOrigo = self.inFile["meta/simulationOrigo"].value
+    voxelSize = self.inFile["meta/voxelSize"][()]
+    simOrigo = self.inFile["meta/simulationOrigo"][()]
 
     if(dataType == "synapses"):
       pos = self.inFile["network/synapses"][:,2:5] * voxelSize + simOrigo
@@ -299,21 +299,21 @@ class SnuddaCut(object):
 
     print("Plotting verification figure")
     
-    voxelSize = self.inFile["meta/voxelSize"].value
-    simOrigo = self.inFile["meta/simulationOrigo"].value
+    voxelSize = self.inFile["meta/voxelSize"][()]
+    simOrigo = self.inFile["meta/simulationOrigo"][()]
 
     
-    inPos = self.inFile["network/neurons/position"].value
+    inPos = self.inFile["network/neurons/position"][()]
     inSyn = self.inFile["network/synapses"][:,2:5]*voxelSize + simOrigo
     inGJ = self.inFile["network/gapJunctions"][:,6:9]*voxelSize + simOrigo
 
     if(self.outFile is not None):
 
       # Just double check that they match
-      assert self.outFile["meta/voxelSize"].value == voxelSize
-      assert (self.outFile["meta/simulationOrigo"].value == simOrigo).all()
+      assert self.outFile["meta/voxelSize"][()] == voxelSize
+      assert (self.outFile["meta/simulationOrigo"][()] == simOrigo).all()
 
-      outPos = self.outFile["network/neurons/position"].value    
+      outPos = self.outFile["network/neurons/position"][()]    
       outSyn = self.outFile["network/synapses"][:,2:5]*voxelSize + simOrigo    
       outGJ = self.outFile["network/gapJunctions"][:,6:9]*voxelSize + simOrigo
 

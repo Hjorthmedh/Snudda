@@ -1,7 +1,7 @@
 export IPYTHONDIR="`pwd`/.ipython"
 export IPYTHON_PROFILE=Snudda_LOCAL
 
-ipcluster start -n 12 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
+ipcluster start -n 6 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20
 
 # simName=networks/article100000-v1
@@ -14,7 +14,10 @@ sleep 20
 #simName=networks/NewConfig-v4
 #simName=networks/FullStriatum-v2
 #simName=networks/Article10000-v1
-simName=networks/Article100000-v3
+#simName=networks/Article-jitter-v6
+#simName=networks/Article-var-v2-100000
+simName=networks/tinySim10
+#simName=networks/Article-nojitter
 
 if [ -d "$simName" ]; then
   echo "Directory $simName already exists!!"
@@ -22,7 +25,8 @@ if [ -d "$simName" ]; then
 fi
 
 #snudda init $simName --size 1760000
-snudda init $simName --size 100000
+#snudda init $simName --size 100000
+snudda init $simName --size 100
 
 snudda place $simName 
 #snudda detect $simName --hvsize 50 --volumeID Striatum
@@ -30,13 +34,22 @@ snudda detect $simName --volumeID Striatum
 snudda prune $simName
 
 # Copy over template input
-cp -a config/input-tinytest-v5.json $simName/input.json
+cp -a data/config/input-tinytest-v6.json $simName/input.json
+echo "Make sure the input config file was found, otherwise provide your own"
+
+# TODO, maybe use to get snudda base install dir:
+# import inspect
+# import snudda
+# inspect.getfile(snudda) <--- can use this for path
+
 
 # Uncomment this to generate input
-#snudda input $simName --input $simName/input.json
+snudda input $simName --input $simName/input.json
 
 ipcluster stop
 
 # Uncomment this to run simulation
-#snudda simulate $simName
+# Remember you need to run "nrnivmodl data/cellspecs/mechanisms"
+# first to create the mechanisms
+mpiexec -n 6 snudda simulate $simName
 

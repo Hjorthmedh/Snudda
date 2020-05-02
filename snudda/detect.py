@@ -452,9 +452,9 @@ class SnuddaDetect(object):
       # Make sure config file etc match
 
       for data,dataName in saveMetaData:
-        assert data == self.workHistory["meta/" + dataName].value, \
+        assert data == self.workHistory["meta/" + dataName][()], \
           dataName + " mismatch " + str(data) + " vs " \
-          + str(self.workHistory["meta/" + dataName].value)              
+          + str(self.workHistory["meta/" + dataName][()])              
 
 
 
@@ -703,17 +703,17 @@ class SnuddaDetect(object):
         hyperVoxels[hID] = dict([])
         
         hyperVoxels[hID]["neurons"] = \
-          self.workHistory["hyperVoxels"][hIDstr]["neurons"].value
+          self.workHistory["hyperVoxels"][hIDstr]["neurons"][()]
         
         hyperVoxels[hID]["neuronCtr"] = \
-          self.workHistory["hyperVoxels"][hIDstr]["neuronCtr"].value
+          self.workHistory["hyperVoxels"][hIDstr]["neuronCtr"][()]
         
         hyperVoxels[hID]["origo"] = \
-          self.workHistory["hyperVoxels"][hIDstr]["origo"].value
+          self.workHistory["hyperVoxels"][hIDstr]["origo"][()]
 
-      hyperVoxelIDs = self.workHistory["meta/hyperVoxelIDs"].value
-      nHyperVoxels = self.workHistory["meta/nHyperVoxels"].value
-      simulationOrigo = self.workHistory["meta/simulationOrigo"].value
+      hyperVoxelIDs = self.workHistory["meta/hyperVoxelIDs"][()]
+      nHyperVoxels = self.workHistory["meta/nHyperVoxels"][()]
+      simulationOrigo = self.workHistory["meta/simulationOrigo"][()]
       
       return (hyperVoxels,hyperVoxelIDs,nHyperVoxels,simulationOrigo)
     else:
