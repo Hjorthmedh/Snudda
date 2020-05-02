@@ -240,7 +240,7 @@ class SnuddaAnalyse(object):
         try:
           with h5py.File(cacheFile,'r') as data:
 
-            assert self.nMaxAnalyse == data["nMaxAnalyse"].value, \
+            assert self.nMaxAnalyse == data["nMaxAnalyse"][()], \
               "nMaxAnalyse has changed, have to reload connection matrix"
 
             self.connectionMatrix = sps.csr_matrix((data["conMat_data"], \
@@ -258,15 +258,15 @@ class SnuddaAnalyse(object):
             for k in data["populations"].keys():
               self.populations[k] = data["populations"][k][:]
 
-              self.nNeurons = data["nNeurons"].value
+              self.nNeurons = data["nNeurons"][()]
               self.positions = data["positions"][:]
 
-            dendPosBin = json.loads(data["dendPositionBin"].value)
+            dendPosBin = json.loads(data["dendPositionBin"][()])
             self.dendPositionBin = dict([])
 
-            allTypes = list(data["allTypes"].value)
+            allTypes = list(data["allTypes"][()])
             self.allTypes = [x.decode() for x in allTypes]
-            self.neuronTypeID = data["neuronTypeID"].value
+            self.neuronTypeID = data["neuronTypeID"][()]
 
             for pp in dendPosBin:
               str = pp.split("_")
@@ -276,7 +276,7 @@ class SnuddaAnalyse(object):
               self.dendPositionBin[(preType,postType)] \
                 = np.array(dendPosBin[pp])
 
-            self.dendPositionEdges = data["dendPositionEdges"].value
+            self.dendPositionEdges = data["dendPositionEdges"][()]
 
             #import pdb
             #pdb.set_trace()
@@ -640,7 +640,7 @@ class SnuddaAnalyse(object):
       fig = plt.figure()
       ax = fig.add_subplot(111, projection='3d')
 
-      pos = self.data["network"]["neurons"]["position"].value
+      pos = self.data["network"]["neurons"]["position"][()]
 
       ax.scatter(pos[:,0],pos[:,1],pos[:,2],'black')
       ax.scatter(pos[cID,0],pos[cID,1],pos[cID,2],'red')
@@ -2184,7 +2184,7 @@ class SnuddaAnalyse(object):
     print("Using nBins = " + str(nBins) + ", binWidth = " + str(binWidth))
 
     # 1. Loop through all morphologies
-    morphFiles = set([self.data["morphologies"][name]["location"].value \
+    morphFiles = set([self.data["morphologies"][name]["location"][()] \
                       for name in self.data["morphologies"]])
 
     morphHist = dict([])
@@ -2224,7 +2224,7 @@ class SnuddaAnalyse(object):
         # Only post synaptic corner neurons included
         continue
 
-      mFile = self.data["morphologies"][name]["location"].value
+      mFile = self.data["morphologies"][name]["location"][()]
       nType = name.decode().split("_")[0]
       dendHistTot[nType] += morphHist[mFile]
 

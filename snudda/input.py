@@ -1018,11 +1018,11 @@ class SnuddaInput(object):
 
     try:
       with h5py.File(hdf5File,'r') as f:
-        self.networkConfigFile = f["meta"]["configFile"].value
-        self.positionFile = f["meta"]["positionFile"].value
-        self.networkSlurmID = int(f["meta/SlurmID"].value)
+        self.networkConfigFile = f["meta"]["configFile"][()]
+        self.positionFile = f["meta"]["positionFile"][()]
+        self.networkSlurmID = int(f["meta/SlurmID"][()])
         
-        self.axonStumpIDFlag = f["meta/axonStumpIDFlag"].value
+        self.axonStumpIDFlag = f["meta/axonStumpIDFlag"][()]
     except Exception as e:
       self.writeLog("Error in readHDF5info: " + str(e))
       self.writeLog("Opening: " + hdf5File)

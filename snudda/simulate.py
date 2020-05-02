@@ -1147,8 +1147,8 @@ class SnuddaSimulate(object):
         sections = self.neurons[neuronID].mapIDtoCompartment(neuronInput["sectionID"])
 
         # Setting individual parameters for synapses
-        modFile = neuronInput["modFile"].value
-        paramList = json.loads(neuronInput["parameterList"].value)
+        modFile = neuronInput["modFile"][()]
+        paramList = json.loads(neuronInput["parameterList"][()])
 
         evalStr = "self.sim.neuron.h." + modFile
         channelModule = eval(evalStr)
@@ -1204,7 +1204,7 @@ class SnuddaSimulate(object):
 
           nc.delay = 0.0
           # Should weight be between 0 and 1, or in microsiemens?
-          nc.weight[0] = neuronInput["conductance"].value * 1e6 # !! what is unit? microsiemens?
+          nc.weight[0] = neuronInput["conductance"][()] * 1e6 # !! what is unit? microsiemens?
           nc.threshold = 0.1
 
           if(False):

@@ -245,11 +245,11 @@ class SnuddaPrune(object):
         
         return
         
-      nSynBefore = np.sum(self.histFile["nSynapses"].value)
+      nSynBefore = np.sum(self.histFile["nSynapses"][()])
       nSynAfter = self.outFile["network/nSynapses"][0]
         
-      nOverflow = np.sum(self.histFile["voxelOverflowCounter"].value)
-      nGJBefore = np.sum(self.histFile["nGapJunctions"].value)
+      nOverflow = np.sum(self.histFile["voxelOverflowCounter"][()])
+      nGJBefore = np.sum(self.histFile["nGapJunctions"][()])
       nGJAfter = self.outFile["network/nGapJunctions"][0]
 
       self.writeLog("Voxel overflows: " + str(nOverflow) \
@@ -349,12 +349,12 @@ class SnuddaPrune(object):
     self.histFile = h5py.File(workHistoryFile,'r')      
     self.workHistoryFile = workHistoryFile
 
-    self.SlurmID = self.histFile["meta/SlurmID"].value    
-    self.hyperVoxelIDs = self.histFile["meta/hyperVoxelIDs"].value
-    self.allHyperIDs = self.histFile["allHyperIDs"].value
-    self.voxelSize = self.histFile["meta/voxelSize"].value
-    self.hyperVoxelSize = self.histFile["meta/hyperVoxelSize"].value # num bins
-    self.simulationOrigo = self.histFile["meta/simulationOrigo"].value
+    self.SlurmID = self.histFile["meta/SlurmID"][()]    
+    self.hyperVoxelIDs = self.histFile["meta/hyperVoxelIDs"][()]
+    self.allHyperIDs = self.histFile["allHyperIDs"][()]
+    self.voxelSize = self.histFile["meta/voxelSize"][()]
+    self.hyperVoxelSize = self.histFile["meta/hyperVoxelSize"][()] # num bins
+    self.simulationOrigo = self.histFile["meta/simulationOrigo"][()]
     self.hyperVoxelWidth = self.voxelSize * self.hyperVoxelSize
 
     # Network_simulate.py uses axonStumpIDFlag = True
@@ -372,15 +372,15 @@ class SnuddaPrune(object):
     # OBS the synapse and gap junction numbers are listed not in order of
     # hyperID but in order they were completed, to find out hyperID for
     # a particular one check self.histFile["completed"]
-    self.nSynapsesTotal = np.sum(self.histFile["nSynapses"].value)
-    self.nGapJunctionsTotal = np.sum(self.histFile["nGapJunctions"].value)
+    self.nSynapsesTotal = np.sum(self.histFile["nSynapses"][()])
+    self.nGapJunctionsTotal = np.sum(self.histFile["nGapJunctions"][()])
 
-    self.configFile = self.histFile["meta/configFile"].value
-    self.positionFile = self.histFile["meta/positionFile"].value
+    self.configFile = self.histFile["meta/configFile"][()]
+    self.positionFile = self.histFile["meta/positionFile"][()]
 
 
-    self.detectConfig = json.loads(self.histFile["meta/config"].value)
-    with open(self.histFile["meta/configFile"].value,"r") as f:
+    self.detectConfig = json.loads(self.histFile["meta/config"][()])
+    with open(self.histFile["meta/configFile"][()],"r") as f:
       self.config = json.load(f)    
     
     
@@ -396,7 +396,7 @@ class SnuddaPrune(object):
 
     # Just some sanity checks
     for c in checkList:
-      test = self.histFile["meta/"+c].value == hFile["meta/"+c].value
+      test = self.histFile["meta/"+c][()] == hFile["meta/"+c][()]
       if(type(test) == bool):
         assert test, \
           "Mismatch of " + c + " in file " + hFileName
@@ -405,15 +405,15 @@ class SnuddaPrune(object):
           "Mismatch of " + c + " in file " + hFileName              
         
     # Get xyz coordinates of hyper voxel
-    xyz = np.where(self.hyperVoxelIDs == hFile["meta/hyperVoxelID"].value)
+    xyz = np.where(self.hyperVoxelIDs == hFile["meta/hyperVoxelID"][()])
     xyz = np.array([x[0] for x in xyz])
 
     # Just do a sanity check that the hypervoxel origo matches stored value
     hOrigo = self.simulationOrigo + self.hyperVoxelWidth * xyz
-    assert (hOrigo == hFile["meta/hyperVoxelOrigo"].value).all(), \
+    assert (hOrigo == hFile["meta/hyperVoxelOrigo"][()]).all(), \
       "Hyper voxel origo mismatch in file " + hFileName
 
-    ofc = hFile["meta/voxelOverflowCounter"].value 
+    ofc = hFile["meta/voxelOverflowCounter"][()] 
 
     if(ofc > 0):
       self.voxelOverflowCounter += ofc
@@ -471,7 +471,7 @@ class SnuddaPrune(object):
 
       hFile = self.openHyperVoxel(hID)
 
-      synapses = hFile["network/synapses"].value
+      synapses = hFile["network/synapses"][()]
 
       for row in synapses:
         SrcID = row[0]
@@ -519,7 +519,7 @@ class SnuddaPrune(object):
                      ("meta/axonStumpIDFlag", "axonStumpIDFlag")]
 
         for checkNames in checkList:
-          test = self.histFile[checkNames[0]].value == data[checkNames[1]]
+          test = self.histFile[checkNames[0]][()] == data[checkNames[1]]
 
           if(type(test) == bool):
             assert test, "Connection matrix cache - mismatch for " \
@@ -568,8 +568,8 @@ class SnuddaPrune(object):
   
   def checkNetworkConfigIntegrity(self):
 
-    detectConfig = json.loads(self.histFile["meta/config"].value)
-    with open(self.histFile["meta/configFile"].value,"r") as f:
+    detectConfig = json.loads(self.histFile["meta/config"][()])
+    with open(self.histFile["meta/configFile"][()],"r") as f:
       pruneConfig = json.load(f)
 
     allPresent = True
@@ -577,7 +577,7 @@ class SnuddaPrune(object):
     for con in pruneConfig["Connectivity"]:
       if(con not in detectConfig["Connectivity"]):
         self.writeLog("!!! Connection " + con + " has been added to " \
-                      + self.histFile["meta/configFile"].value \
+                      + self.histFile["meta/configFile"][()] \
                       + " after detection, please rerun snudda detect")
         allPresent = False
 
@@ -591,23 +591,23 @@ class SnuddaPrune(object):
 
   def loadPruningInformation(self):
 
-    # self.config = json.loads(self.histFile["meta/config"].value)
+    # self.config = json.loads(self.histFile["meta/config"][()])
     
     self.checkNetworkConfigIntegrity()
-    with open(self.histFile["meta/configFile"].value,"r") as f:
+    with open(self.histFile["meta/configFile"][()],"r") as f:
       self.config = json.load(f)    
     
-    self.channelID = self.histFile["network/neurons/channelID"].value
+    self.channelID = self.histFile["network/neurons/channelID"][()]
 
     # Normally we use type names as lookups, but since we will do this
     # many millions of times, we create an temporary typeID number
     self.makeTypeNumbering()
     
     origConnectivityDistributions = \
-      json.loads(self.histFile["meta/connectivityDistributions"].value)
+      json.loads(self.histFile["meta/connectivityDistributions"][()])
 
     #origConnectivityDistributionsGJ = \
-    #  json.loads(self.histFile["meta/connectivityDistributionsGJ"].value)
+    #  json.loads(self.histFile["meta/connectivityDistributionsGJ"][()])
 
     self.connectivityDistributions = dict([])
 
@@ -667,9 +667,9 @@ class SnuddaPrune(object):
   
   def loadPruningInformationOLD(self):
 
-    self.config = json.loads(self.histFile["meta/config"].value)
+    self.config = json.loads(self.histFile["meta/config"][()])
 
-    self.channelID = self.histFile["network/neurons/channelID"].value
+    self.channelID = self.histFile["network/neurons/channelID"][()]
     
     # Normally we use type names as lookups, but since we will do this
     # many millions of times, we create an temporary typeID number
@@ -817,7 +817,7 @@ class SnuddaPrune(object):
     
     # Morphologies not included at this stage -- maybe add them?
     # Same morphologies
-    cfg = json.loads(self.histFile["meta/config"].value)
+    cfg = json.loads(self.histFile["meta/config"][()])
 
     morphGroup = outFile.create_group("morphologies")
 
@@ -906,7 +906,7 @@ class SnuddaPrune(object):
         f = h5py.File(mergeFileName)
 
         # Check that SlurmID matches
-        if(f["meta/SlurmID"].value != self.SlurmID):
+        if(f["meta/SlurmID"][()] != self.SlurmID):
           mergeFileOK = False
 
         # Check that synapse matrix has right size
@@ -999,7 +999,7 @@ class SnuddaPrune(object):
     self.histFile.copy("network/neurons",networkGroup)
 
 
-    cfg = json.loads(self.histFile["meta/config"].value)
+    cfg = json.loads(self.histFile["meta/config"][()])
 
 
     # Save morphologies
@@ -1207,7 +1207,7 @@ class SnuddaPrune(object):
 
       if(n > 0):
         self.outFile[h5SynMat][nextSyn:(nextSyn+n),:] = \
-          f[h5SynMat].value
+          f[h5SynMat][()]
       
         nextSyn += n
 
@@ -1523,10 +1523,10 @@ class SnuddaPrune(object):
         # This is so we can optimize the axon/dend voxelCtr and size
         if("maxAxonVoxelCtr" in fileList[hID]["meta"]):
           maxAxonVoxelCtr = max(maxAxonVoxelCtr,
-                                fileList[hID]["meta/maxAxonVoxelCtr"].value)
+                                fileList[hID]["meta/maxAxonVoxelCtr"][()])
         if("maxDendVoxelCtr" in fileList[hID]["meta"]):
           maxDendVoxelCtr = max(maxDendVoxelCtr,
-                                fileList[hID]["meta/maxDendVoxelCtr"].value)
+                                fileList[hID]["meta/maxDendVoxelCtr"][()])
 
         if(cleanVoxelFiles):
           # This makes sure we remove the old voxel files afterwards
@@ -2136,10 +2136,10 @@ class SnuddaPrune(object):
        # This is so we can optimize the axon/dend voxelCtr and size
         if("maxAxonVoxelCtr" in fileList[hID]["meta"]):
           maxAxonVoxelCtr = max(maxAxonVoxelCtr,
-                                fileList[hID]["meta/maxAxonVoxelCtr"].value)
+                                fileList[hID]["meta/maxAxonVoxelCtr"][()])
         if("maxDendVoxelCtr" in fileList[hID]["meta"]):
           maxDendVoxelCtr = max(maxDendVoxelCtr,
-                                fileList[hID]["meta/maxDendVoxelCtr"].value)
+                                fileList[hID]["meta/maxDendVoxelCtr"][()])
 
     if(mergeDataType == "synapses"):
       nSynapses = nTotal
@@ -2370,10 +2370,10 @@ class SnuddaPrune(object):
         # This is so we can optimize the axon/dend voxelCtr and size
         if("maxAxonVoxelCtr" in fileList[hID]["meta"]):
           maxAxonVoxelCtr = max(maxAxonVoxelCtr,
-                                fileList[hID]["meta/maxAxonVoxelCtr"].value)
+                                fileList[hID]["meta/maxAxonVoxelCtr"][()])
         if("maxDendVoxelCtr" in fileList[hID]["meta"]):
           maxDendVoxelCtr = max(maxDendVoxelCtr,
-                                fileList[hID]["meta/maxDendVoxelCtr"].value)
+                                fileList[hID]["meta/maxDendVoxelCtr"][()])
 
           
     assert np.sum(numSynapses) == nSynTotal, \
@@ -2560,10 +2560,10 @@ class SnuddaPrune(object):
         # This is so we can optimize the axon/dend voxelCtr and size
         if("maxAxonVoxelCtr" in fileList[hID]["meta"]):
           maxAxonVoxelCtr = max(maxAxonVoxelCtr,
-                                fileList[hID]["meta/maxAxonVoxelCtr"].value)
+                                fileList[hID]["meta/maxAxonVoxelCtr"][()])
         if("maxDendVoxelCtr" in fileList[hID]["meta"]):
           maxDendVoxelCtr = max(maxDendVoxelCtr,
-                                fileList[hID]["meta/maxDendVoxelCtr"].value)
+                                fileList[hID]["meta/maxDendVoxelCtr"][()])
 
     assert np.sum(numSynapses) == nSynTotal, \
       "Mismatch between work log file and data files: " \
