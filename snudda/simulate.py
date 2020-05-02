@@ -271,19 +271,32 @@ class SnuddaSimulate(object):
             channelModule = eval(evalStr)
 
           except:
+            self.writeLog("Are your NEURON modfiles correctly compiled?")
+            
             import traceback
             tstr = traceback.format_exc()
             print(tstr)
             import pdb
             pdb.set_trace()
 
-          # These are not variables to set in the modFile
-          if("modFile" in channelParamDict):
-            del channelParamDict["modFile"]
+          try:
+            # These are not variables to set in the modFile
+            if("modFile" in channelParamDict):
+              del channelParamDict["modFile"]
 
-          if("parameterFile" in channelParamDict):
-            del channelParamDict["parameterFile"]
+            if("parameterFile" in channelParamDict):
+              del channelParamDict["parameterFile"]
+              
+          except:
+            print(str(channelParamDict))
+            
+            import traceback
+            tstr = traceback.format_exc()
+            print(tstr)
+            import pdb
+            pdb.set_trace()
 
+            
         else:
           channelParamDict = dict()
           modFile = None
