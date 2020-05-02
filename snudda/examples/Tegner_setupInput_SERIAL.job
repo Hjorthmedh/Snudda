@@ -1,6 +1,6 @@
 #!/bin/bash -l
-#SBATCH -t 0-1:59:00
-#SBATCH --time-min=0:59:00
+#SBATCH -t 0-4:59:00
+#SBATCH --time-min=1:59:00
 #SBATCH -J SetupInput
 #SBATCH -A 2019-3-644
 #SBATCH -o save/output-setupInput.o%j
