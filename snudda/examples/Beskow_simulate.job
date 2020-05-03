@@ -33,7 +33,7 @@ export CRAY_ROOTFS=DSL
 
 # Remove "special" old directory
 rm -r x86_64
-nrnivmodl cellspecs/mechanisms
+nrnivmodl ../data/cellspecs/mechanisms
 
 # Synapse file
 #NETWORK_INFO_FILE=save/network-connect-synapse-file-2001927.hdf5
@@ -58,7 +58,11 @@ NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 #aprun -n $N_WORKERS /cfs/klemming/nobackup/h/hjorth/StriatumNetwork/model/x86_64/special -mpi -python3 snudda_simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE
 #aprun -n $N_WORKERS /cfs/klemming/nobackup/h/hjorth/StriatumNetwork/model/x86_64/special -mpi -python snudda_simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE
 
-srun -n $N_WORKERS /cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/x86_64/special -mpi -python snudda_simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ
+# Snudda bin gets installed here
+export PATH=$HOME/.local/bin:$PATH
+
+
+srun -n $N_WORKERS /cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/snudda/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ
 
 
 # Original version, start neuron from python, does not work on beskow

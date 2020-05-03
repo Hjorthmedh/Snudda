@@ -14,7 +14,7 @@ mkdir -pv $L
 
 export PATH=$L/bin:$PATH
 export LD_LIBRARY_PATH=$L/lib:$LD_LIBRARY_PATH
-export PYTHONPATH=$L/lib/python3.6/site-packages:$PYTHONPATH
+export PYTHONPATH=$L/lib/python3.7/site-packages:$PYTHONPATH
 
 rm -rf $L/build
 mkdir -pv $L/build

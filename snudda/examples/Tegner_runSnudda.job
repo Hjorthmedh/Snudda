@@ -14,7 +14,8 @@
 
 # Use Tegner_setupInput.sh to setup anaconda on Tegner
 
-HOST=$(hostname -s | cut -d'-' -f1)
+#HOST=$(hostname -s | cut -d'-' -f1)
+HOST=tegner
 L=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/$HOST
 
 export PATH=$L/bin:$PATH

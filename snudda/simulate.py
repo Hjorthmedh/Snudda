@@ -27,11 +27,11 @@ import json
 import timeit
 
 import bluepyopt.ephys as ephys
-from .Neuron_model_extended import NeuronModel
+from snudda.Neuron_model_extended import NeuronModel
 import pickle
 # from Network_place_neurons import NetworkPlaceNeurons
 import numpy as np
-from .NrnSimulatorParallel import NrnSimulatorParallel
+from snudda.NrnSimulatorParallel import NrnSimulatorParallel
 
 from glob import glob
 import re
@@ -179,7 +179,7 @@ class SnuddaSimulate(object):
     self.writeLog("Worker " + str(int(self.pc.id())) \
                   + ": Loading network from " + networkFile)
 
-    from .load import SnuddaLoad
+    from snudda.load import SnuddaLoad
     self.snuddaLoader = SnuddaLoad(networkFile)
     self.network_info = self.snuddaLoader.data
 
