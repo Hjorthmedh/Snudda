@@ -58,8 +58,12 @@ NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 #aprun -n $N_WORKERS /cfs/klemming/nobackup/h/hjorth/StriatumNetwork/model/x86_64/special -mpi -python3 snudda_simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE
 #aprun -n $N_WORKERS /cfs/klemming/nobackup/h/hjorth/StriatumNetwork/model/x86_64/special -mpi -python snudda_simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE
 
-# Snudda bin gets installed here
-export PATH=$HOME/.local/bin:$PATH
+echo "In the Snudda directory first run:"
+echo "pip install -e .[dev] -t /cfs/klemming/nobackup/h/hjorth/local/beskow/"
+
+
+# Snudda bin gets installed here, when we use the user flag above
+export PATH=/cfs/klemming/nobackup/h/hjorth/local/beskow/bin:$PATH
 
 
 srun -n $N_WORKERS /cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/snudda/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ
