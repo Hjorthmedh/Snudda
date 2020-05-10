@@ -1,5 +1,5 @@
-#!/bin/bash -l
-#SBATCH -t 0-4:59:00
+t#!/bin/bash -l
+#SBATCH -t 0-2:59:00
 #SBATCH --time-min=1:59:00
 #SBATCH -J SetupInput
 #SBATCH -A 2019-3-644
