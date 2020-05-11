@@ -14,6 +14,15 @@ let N_WORKERS="$SLURM_NNODES * 32"
 
 HOME=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda
 
+# Synapse file
+SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
+NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.882334
+NETWORK_INFO_FILE=$NETWORK_DIR/network-pruned-synapses.hdf5
+NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
+
+echo "Network dir: "$NETWORK_DIR
+
+
 #module swap PrgEnv-cray PrgEnv-intel/6.0.5
 #module load craype-haswell
 #module unload cray-libsci atp
@@ -33,20 +42,8 @@ export CRAY_ROOTFS=DSL
 
 # Remove "special" old directory
 rm -r x86_64
-nrnivmodl cellspecs/mechanisms
+nrnivmodl ../data/cellspecs/mechanisms
 
-# Synapse file
-#NETWORK_INFO_FILE=save/network-connect-synapse-file-2001927.hdf5
-#NETWORK_INFO_FILE=last
-SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
-NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.TegnerRun.878620
-
-echo "Network dir: "$NETWORK_DIR
-
-#NETWORK_DIR=TegnerRun.849262
-NETWORK_INFO_FILE=$NETWORK_DIR/network-pruned-synapses.hdf5
-
-NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 
 # Split the config file (is aprun blocking?)
 # aprun -n 1 python3 SplitConnectionFile.py $NETWORK_INFO_FILE $N_WORKERS
@@ -58,7 +55,24 @@ NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 #aprun -n $N_WORKERS /cfs/klemming/nobackup/h/hjorth/StriatumNetwork/model/x86_64/special -mpi -python3 snudda_simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE
 #aprun -n $N_WORKERS /cfs/klemming/nobackup/h/hjorth/StriatumNetwork/model/x86_64/special -mpi -python snudda_simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE
 
-srun -n $N_WORKERS /cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/x86_64/special -mpi -python snudda_simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ
+echo ""
+echo "!!! In the Snudda directory first run:"
+echo ""
+echo "module sw PrgEnv-cray PrgEnv-intel"
+echo "module add mpi4py/3.0.2/py37"
+echo "module add neuron/7.7-py37"
+echo "export PYTHONPATH=/cfs/klemming/nobackup/h/hjorth/local/beskow/lib/python3.7/site-packages:$PYTHONPATH"
+echo "pip install -e .[dev] --prefix /cfs/klemming/nobackup/h/hjorth/local/beskow"
+echo ""
+echo "!!! If you already done this, please ignore message."
+echo ""
+
+# Snudda bin gets installed here, when we use the user flag above
+export PATH=/cfs/klemming/nobackup/h/hjorth/local/beskow/bin:$PATH
+export PYTHONPATH=/cfs/klemming/nobackup/h/hjorth/local/beskow/lib/python3.7/site-packages:$PYTHONPATH
+
+
+srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ
 
 
 # Original version, start neuron from python, does not work on beskow

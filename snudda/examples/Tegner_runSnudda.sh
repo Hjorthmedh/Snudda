@@ -38,7 +38,7 @@ JOBDIR=$SNUDDA_DIR/../networks/TegnerRun.${SLURM_JOBID}
 #JOBDIR=$HOME/networks/TegnerRun.${SLURM_JOBID}
 
 #SIMSIZE=120000
-SIMSIZE=50000
+SIMSIZE=5000
 #SIMSIZE=200000
 #SIMSIZE=1760000
 
@@ -117,8 +117,9 @@ else
 	exit -1
     fi
 
-    echo ">>> Input: "`date`
-    snudda input ${JOBDIR} --input ../data/config/input-tinytest-v6.json
+    # echo ">>> Input: "`date`
+    # snudda input ${JOBDIR} --input ../data/config/input-tinytest-v6.json
+    echo "Use Tegner_setupInput_SERIAL.job to generate the input spikes"
 
     #.. Shut down cluster
     ipcluster stop	
