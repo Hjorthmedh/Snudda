@@ -14,6 +14,15 @@ let N_WORKERS="$SLURM_NNODES * 32"
 
 HOME=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda
 
+# Synapse file
+SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
+NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.882334
+NETWORK_INFO_FILE=$NETWORK_DIR/network-pruned-synapses.hdf5
+NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
+
+echo "Network dir: "$NETWORK_DIR
+
+
 #module swap PrgEnv-cray PrgEnv-intel/6.0.5
 #module load craype-haswell
 #module unload cray-libsci atp
@@ -35,18 +44,6 @@ export CRAY_ROOTFS=DSL
 rm -r x86_64
 nrnivmodl ../data/cellspecs/mechanisms
 
-# Synapse file
-#NETWORK_INFO_FILE=save/network-connect-synapse-file-2001927.hdf5
-#NETWORK_INFO_FILE=last
-SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
-NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.878620
-
-echo "Network dir: "$NETWORK_DIR
-
-#NETWORK_DIR=TegnerRun.849262
-NETWORK_INFO_FILE=$NETWORK_DIR/network-pruned-synapses.hdf5
-
-NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 
 # Split the config file (is aprun blocking?)
 # aprun -n 1 python3 SplitConnectionFile.py $NETWORK_INFO_FILE $N_WORKERS

@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #SBATCH -t 0-23:59:00
-#SBATCH --time-min=11:59:00
+#SBATCH --time-min=5:59:00
 #SBATCH -J SnuddaLARGE
 #SBATCH -A 2019-3-644
 #SBATCH -o save/output-runSnudda.o%j
