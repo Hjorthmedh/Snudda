@@ -264,7 +264,7 @@
     }, 
     {
         "dist": "((0.1) + (0.9)/(1 + exp(({distance}-(40))/(10))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "naf_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_naf_ms", 
@@ -274,7 +274,7 @@
     }, 
     {
         "dist": "((1.0) + (0.5)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "kaf_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_kaf_ms", 
@@ -293,7 +293,7 @@
     }, 
     {
         "dist": "((1.0) + (9.0)*exp(({distance}-(0.0))/(-5.0)))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "kas_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_kas_ms", 
@@ -348,7 +348,7 @@
     }, 
     {
         "dist": "((0.0) + (1.0)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "cat32_ms", 
         "mech_param": "pbar", 
         "param_name": "pbar_cat32_ms", 
@@ -358,7 +358,7 @@
     }, 
     {
         "dist": "((0.0) + (1.0)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "cat33_ms", 
         "mech_param": "pbar", 
         "param_name": "pbar_cat33_ms", 
@@ -650,7 +650,7 @@
     }, 
     {
         "dist": "((0.1) + (0.9)/(1 + exp(({distance}-(40))/(10))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "naf_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_naf_ms", 
@@ -660,7 +660,7 @@
     }, 
     {
         "dist": "((1.0) + (0.5)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "kaf_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_kaf_ms", 
@@ -679,7 +679,7 @@
     }, 
     {
         "dist": "((1.0) + (9.0)*exp(({distance}-(0.0))/(-5.0)))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "kas_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_kas_ms", 
@@ -734,7 +734,7 @@
     }, 
     {
         "dist": "((0.0) + (1.0)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "cat32_ms", 
         "mech_param": "pbar", 
         "param_name": "pbar_cat32_ms", 
@@ -744,7 +744,7 @@
     }, 
     {
         "dist": "((0.0) + (1.0)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "cat33_ms", 
         "mech_param": "pbar", 
         "param_name": "pbar_cat33_ms", 
@@ -1036,7 +1036,7 @@
     }, 
     {
         "dist": "((0.1) + (0.9)/(1 + exp(({distance}-(40))/(10))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "naf_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_naf_ms", 
@@ -1046,7 +1046,7 @@
     }, 
     {
         "dist": "((1.0) + (0.5)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "kaf_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_kaf_ms", 
@@ -1065,7 +1065,7 @@
     }, 
     {
         "dist": "((1.0) + (9.0)*exp(({distance}-(0.0))/(-5.0)))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "kas_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_kas_ms", 
@@ -1120,7 +1120,7 @@
     }, 
     {
         "dist": "((0.0) + (1.0)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "cat32_ms", 
         "mech_param": "pbar", 
         "param_name": "pbar_cat32_ms", 
@@ -1130,7 +1130,7 @@
     }, 
     {
         "dist": "((0.0) + (1.0)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "cat33_ms", 
         "mech_param": "pbar", 
         "param_name": "pbar_cat33_ms", 
@@ -1422,7 +1422,7 @@
     }, 
     {
         "dist": "((0.1) + (0.9)/(1 + exp(({distance}-(40))/(10))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "naf_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_naf_ms", 
@@ -1432,7 +1432,7 @@
     }, 
     {
         "dist": "((1.0) + (0.5)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "kaf_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_kaf_ms", 
@@ -1451,7 +1451,7 @@
     }, 
     {
         "dist": "((1.0) + (9.0)*exp(({distance}-(0.0))/(-5.0)))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "kas_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_kas_ms", 
@@ -1506,7 +1506,7 @@
     }, 
     {
         "dist": "((0.0) + (1.0)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "cat32_ms", 
         "mech_param": "pbar", 
         "param_name": "pbar_cat32_ms", 
@@ -1516,7 +1516,7 @@
     }, 
     {
         "dist": "((0.0) + (1.0)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "cat33_ms", 
         "mech_param": "pbar", 
         "param_name": "pbar_cat33_ms", 
@@ -1808,7 +1808,7 @@
     }, 
     {
         "dist": "((0.1) + (0.9)/(1 + exp(({distance}-(40))/(10))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "naf_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_naf_ms", 
@@ -1818,7 +1818,7 @@
     }, 
     {
         "dist": "((1.0) + (0.5)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "kaf_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_kaf_ms", 
@@ -1837,7 +1837,7 @@
     }, 
     {
         "dist": "((1.0) + (9.0)*exp(({distance}-(0.0))/(-5.0)))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "kas_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_kas_ms", 
@@ -1892,7 +1892,7 @@
     }, 
     {
         "dist": "((0.0) + (1.0)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "cat32_ms", 
         "mech_param": "pbar", 
         "param_name": "pbar_cat32_ms", 
@@ -1902,7 +1902,7 @@
     }, 
     {
         "dist": "((0.0) + (1.0)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "cat33_ms", 
         "mech_param": "pbar", 
         "param_name": "pbar_cat33_ms", 
@@ -2194,7 +2194,7 @@
     }, 
     {
         "dist": "((0.1) + (0.9)/(1 + exp(({distance}-(40))/(10))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "naf_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_naf_ms", 
@@ -2204,7 +2204,7 @@
     }, 
     {
         "dist": "((1.0) + (0.5)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "kaf_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_kaf_ms", 
@@ -2223,7 +2223,7 @@
     }, 
     {
         "dist": "((1.0) + (9.0)*exp(({distance}-(0.0))/(-5.0)))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "kas_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_kas_ms", 
@@ -2278,7 +2278,7 @@
     }, 
     {
         "dist": "((0.0) + (1.0)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "cat32_ms", 
         "mech_param": "pbar", 
         "param_name": "pbar_cat32_ms", 
@@ -2288,7 +2288,7 @@
     }, 
     {
         "dist": "((0.0) + (1.0)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "cat33_ms", 
         "mech_param": "pbar", 
         "param_name": "pbar_cat33_ms", 
@@ -2580,7 +2580,7 @@
     }, 
     {
         "dist": "((0.1) + (0.9)/(1 + exp(({distance}-(40))/(10))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "naf_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_naf_ms", 
@@ -2590,7 +2590,7 @@
     }, 
     {
         "dist": "((1.0) + (0.5)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "kaf_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_kaf_ms", 
@@ -2609,7 +2609,7 @@
     }, 
     {
         "dist": "((1.0) + (9.0)*exp(({distance}-(0.0))/(-5.0)))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "kas_ms", 
         "mech_param": "gbar", 
         "param_name": "gbar_kas_ms", 
@@ -2664,7 +2664,7 @@
     }, 
     {
         "dist": "((0.0) + (1.0)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "cat32_ms", 
         "mech_param": "pbar", 
         "param_name": "pbar_cat32_ms", 
@@ -2674,7 +2674,7 @@
     }, 
     {
         "dist": "((0.0) + (1.0)/(1 + exp(({distance}-(120))/(-30))))*{value}", 
-        "dist_type": "distance", 
+        "dist_type": "uniform", 
         "mech": "cat33_ms", 
         "mech_param": "pbar", 
         "param_name": "pbar_cat33_ms", 
