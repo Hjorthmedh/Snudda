@@ -47,6 +47,12 @@ if [ $SLURM_PROCID -gt 0 ]; then
 
 else
 
+    # For debug purposes:                                                         
+    echo "PATH: "$PATH
+    echo "IPYTHONDIR: "$IPYTHONDIR
+    echo "PYTHONPATH: "$PYTHONPATH
+    echo "LD_LIBRARY_PATH: "$LD_LIBRARY_PATH
+
     echo ">>>>>> Main process starting ipcluster"
     echo
 
