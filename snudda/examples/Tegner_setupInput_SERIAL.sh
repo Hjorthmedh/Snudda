@@ -4,7 +4,7 @@
 # !!! OBS, you need to point to the right directory which contains network!!!
 #JOBDIR=TegnerRun.${SLURM_JOBID}
 SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
-$DATA=$SNUDDA_DIR/data
+DATA=$SNUDDA_DIR/data
 JOBDIR=$SNUDDA_DIR/../networks/TegnerRun.882334
 
 if [ $SLURM_PROCID -gt 0 ]; then
