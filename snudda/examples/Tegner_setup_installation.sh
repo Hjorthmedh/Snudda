@@ -60,7 +60,7 @@ rm -rf $L/build
 
 echo "For dev installation, in Snudda repository's root directory, run:"
 echo ""
-echo "module load module load anaconda/py37/5.0.1"
+echo "module load anaconda/py37/5.0.1"
 echo ""
 echo "Make sure PYTHONPATH points correctly, then run"
 echo "PYTHONPATH=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/"$HOST"/lib/python3.7/site-packages"
