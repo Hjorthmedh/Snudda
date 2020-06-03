@@ -1,35 +1,5 @@
 #!/bin/bash -l
 
-
-# How to setup if new intallation:
-#
-# ipython profile create --parallel --profile=mpi
-#
-# Add the following lines to .ipython/profile_mpi/ipcluster_config.py
-#
-# c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'
-# c.IPClusterStart.controller_launcher_class = 'MPIControllerLauncher'
-#
-# Update the following lines in .ipython/profile_mpi/ipcontroller_config.py
-#
-# c.DictDB.record_limit = 10240
-# c.DictDB.size_limit = 10737418240
-#
-# If you run out of memory on the ipcontroller node, use this instead:
-# c.HubFactory.db_class = 'SQLiteDB'
-#
-
-#.. The idea here is to only launch ipcluster and
-#   subsequent python scripts from one mpi task.
-#   We still have access to them all, so the launched
-#   processes will be able to access the whole allocated
-#   network.
-#
-#   By using infiniband connection, we can connect
-#   compute nodes that to not have an external ip.
-#   As a bonus, it is much faster than regular ethernet connections. 
-#..
-
 SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
 $DATA=$SNUDDA_DIR/data
 
