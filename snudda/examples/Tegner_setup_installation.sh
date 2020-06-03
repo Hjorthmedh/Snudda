@@ -59,4 +59,5 @@ popd
 rm -rf $L/build
 
 echo "For dev installation, in Snudda repository's root directory, run:"
-echo "pip install --user -e .[dev]"
+echo "Make sure PYTHONPATH points correctly, then run"
+echo "pip install --user -e .[dev] --prefix /cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/"$HOST"/"
