@@ -12,7 +12,20 @@ import copy
 import time
 
 #
-# TODO:
+# TODO 2020-06-16
+# -- We need to make sure one neuron can be optimised by all workers
+#    collectively, right now one worker does one cell alone
+#
+# -- Determine synapse locations, pass it to all workers
+# -- Best random is easy to parallelise, just do the work, then gather it at
+#    the master node.
+# -- Difficult: How to parallise scipy.optimize.minimize
+#    Possible idea: let func to optimize handle vectors, and then each
+#    position in vector is sent to one worker.
+
+#
+#
+# TODO (depricated):
 # 1. Remove the old soma optimisation code, not needed anymore
 # 2. Place the inital synapses, then find out the sectionID,X,
 # 3. Pass sectionID, sectionX to all workers, so they use same synapselocations
@@ -845,19 +858,29 @@ class OptimiseSynapsesFull(object):
 
   def setupModel(self,dataType,cellID,params={},
                  synapseDensityOverride=None,
-                 nSynapsesOverride=None):
+                 nSynapsesOverride=None,
+                 synapsePostionOverride=None):
     
     tStim = self.getStimTime(dataType,cellID)  
 
     # Read the info needed to setup the neuron hosting the synapses
     cProp = self.getCellProperties(dataType,cellID)
 
+    if(synapsePositionOverride is not None):
+      synapseSectionID,synapseSectionX = synapsePositionOverride
+    else:
+      synapseSectionID,synapseSectionX = None,None
+      
     if(synapseDensityOverride is not None):
       synapseDensity = synapseDensityOverride
-
+    else:
+      synapseDensity = cProp["synapseDensity"]
+      
     if(nSynapsesOverride is not None):
       nSynapses = nSynapsesOverride
-    
+    else:
+      nSynapses = cProp["nSynapses"]
+      
     # !!! We need to get the baseline depolarisation in another way
 
     self.rsrSynapseModel = \
@@ -866,13 +889,15 @@ class OptimiseSynapsesFull(object):
                     neuronParameters=cProp["neuronParameters"],
                     neuronModulation=cProp["neuronModulation"],
                     stimTimes=tStim,
-                    nSynapses=cProp["nSynapses"],
-                    synapseDensity=cProp["synapseDensity"],
+                    nSynapses=nSynapses,
+                    synapseDensity=synapseDensity,
                     holdingVoltage=cProp["baselineDepol"],
                     synapseType=self.synapseType,
                     params=params,
                     time=self.simTime,
-                    logFile=self.logFile)
+                    logFile=self.logFile,
+                    synapseSectionID=synapseSectionID,
+                    synapseSectionX=synapseSectionX)
 
 
     return self.rsrSynapseModel
