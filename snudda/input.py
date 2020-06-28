@@ -376,8 +376,6 @@ class SnuddaInput(object):
         continue
       
       for inputType in self.inputInfo[neuronType]:
-
-        self.neuronInput[neuronID][inputType] = dict([])
         
         inputInf = self.inputInfo[neuronType][inputType]
 
@@ -393,7 +391,9 @@ class SnuddaInput(object):
             # We have a single functional channel, but this neuron is not
             # in that functional channel
             continue
-        
+
+        self.neuronInput[neuronID][inputType] = dict([])
+          
         if(inputInf["generator"] == "poisson"):
           neuronIDList.append(neuronID)
           inputTypeList.append(inputType)
@@ -553,7 +553,7 @@ class SnuddaInput(object):
       self.neuronInput[neuronID][inputType]["end"] = timeRange[1]
       self.neuronInput[neuronID][inputType]["channelID"] = cID
 
-      assert cID = self.channelID[neuronID], \
+      assert cID == self.channelID[neuronID], \
         "Internal error: Neuron should belong to the functional channel "\
         + "that input is generated for" 
       
