@@ -321,8 +321,17 @@ class SnuddaInput(object):
         
           freq = self.inputInfo[cellType][inputType]["frequency"]
           self.channelSpikes[cellType][inputType] = dict([])
-        
-          for idxChan in range(0,self.nChannels):
+
+          if("functionalChannelID" in self.inputInfo[cellType][inputType]):
+            funcChannelList = \
+              self.inputInfo[cellType][inputType]["functionalChannelID"]
+
+            if(type(funcChannelList) != list):
+              funcChannelList = [funcChannelList]
+          else:
+            funcChannelList = range(0,self.nChannels)
+              
+          for idxChan in funcChannelList:
             self.channelSpikes[cellType][inputType][idxChan] = \
               self.generateSpikes(freq=freq,timeRange=timeRange)
 
@@ -372,6 +381,19 @@ class SnuddaInput(object):
         
         inputInf = self.inputInfo[neuronType][inputType]
 
+        if("functionalChannelID" in inputInf):
+          funcChannelID = inputInf["functionalChannelID"]
+          
+          if(type(funcChannelID) == list \
+             and channelID not in funcChannelID):
+            # We have a list of functional channels, but this neuron
+            # does not belong to a functional channel in that list
+            continue
+          elif(channelID != funcChannelID):
+            # We have a single functional channel, but this neuron is not
+            # in that functional channel
+            continue
+        
         if(inputInf["generator"] == "poisson"):
           neuronIDList.append(neuronID)
           inputTypeList.append(inputType)
@@ -531,7 +553,10 @@ class SnuddaInput(object):
       self.neuronInput[neuronID][inputType]["end"] = timeRange[1]
       self.neuronInput[neuronID][inputType]["channelID"] = cID
 
-
+      assert cID = self.channelID[neuronID], \
+        "Internal error: Neuron should belong to the functional channel "\
+        + "that input is generated for" 
+      
       self.neuronInput[neuronID][inputType]["generator"] = "poisson"
       self.neuronInput[neuronID][inputType]["modFile"] = modFile
       self.neuronInput[neuronID][inputType]["parameterFile"] = paramFile
