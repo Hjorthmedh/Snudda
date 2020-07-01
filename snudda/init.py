@@ -52,7 +52,7 @@ class SnuddaInit(object):
       
       self.networkData["Channels"]["radius"] = 50e-6
       
-      print("Overriding the number of channels"):
+      print("Overriding the number of channels")
       self.networkData["Channels"]["nChannels"] \
         = len(self.networkData["Channels"]["centres"])
 
