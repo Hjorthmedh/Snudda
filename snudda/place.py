@@ -555,7 +555,7 @@ class SnuddaPlace(object):
     centres = np.array(channelCentres)
     self.neuronChannel = np.zeros((xyz.shape[0],),dtype=int)
     
-    for (ctr, pos in enumerate(xyz)):
+    for (ctr, pos) in enumerate(xyz):
       d = [np.linalg.norm(pos-c) for c in centres]
       idx = np.argsort(d)
       
