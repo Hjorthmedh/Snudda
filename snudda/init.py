@@ -38,8 +38,26 @@ class SnuddaInit(object):
     # might have different connectivity than neurons belonging to different channels
     self.networkData["Channels"] = collections.OrderedDict([])
     self.networkData["Channels"]["nChannels"] = nChannels
-    self.networkData["Channels"]["method"] = "random"
 
+    useRandomChannels = False
+    
+    if(useRandomChannels):
+      self.networkData["Channels"]["method"] = "random"
+      
+    else:      
+      self.networkData["Channels"]["method"] = "channelSpheres"
+      self.networkData["Channels"]["centres"] = [(100e-6,100e-6,100e-6),
+                                                 (-100e-6,-100e-6,-100e-6),
+                                                 (0,200e-6,0)]
+      
+      self.networkData["Channels"]["radius"] = 50e-6
+      
+      print("Overriding the number of channels"):
+      self.networkData["Channels"]["nChannels"] \
+        = len(self.networkData["Channels"]["centres"])
+
+      
+      
     self.networkData["Connectivity"] = dict([])
     self.networkData["Neurons"] = dict([])
 
