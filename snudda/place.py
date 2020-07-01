@@ -227,6 +227,10 @@ class SnuddaPlace(object):
       self.channelMethod = config["Channels"]["method"]
       self.nChannels = config["Channels"]["nChannels"]
 
+      if(self.channelMethod == "channelSpheres"):
+        self.channelRadius = config["Channels"]["radius"]
+        self.channelCentres = config["Channels"]["centres"]
+      
     assert "Neurons" in config, \
       "No neurons defined. Is this config file old format?"
 
@@ -520,12 +524,14 @@ class SnuddaPlace(object):
     if(nChannels is None):
       nChannels = self.nChannels
 
-    # Here you can define additional methods for specifying channels
-    # for example, you can make distribution dependent on neuron type etc
-    switcher = { "random" : self.randomLabeling }
-
-    switcher.get(method)(nChannels=nChannels)
-
+    if(method == "random"):
+      self.randomLabeling()
+    elif(method == "channelSpheres"):
+      self.channelSpheresLabeling(self.channelCentres,self.channelRadius)
+    else:
+      self.neuronChannel = np.zeros((len(self.neurons),),dtype=int)
+      self.neuronChannels = dict([])
+      
   ############################################################################
 
   def randomLabeling(self,nChannels=None):
@@ -540,6 +546,29 @@ class SnuddaPlace(object):
     for i in range(0,nChannels):
       self.neuronChannels[i] = np.where(self.neuronChannel == i)[0]
 
+  ############################################################################
+
+  def channelSpheresLabeling(self,channelCentres,channelRadius):
+
+    xyz = self.allNeuronPositions()
+
+    centres = np.array(channelCentres)
+    self.neuronChannel = np.zeros((xyz.shape[0],),dtype=int)
+    
+    for (ctr, pos in enumerate(xyz)):
+      d = [np.linalg.norm(pos-c) for c in centres]
+      idx = np.argsort(d)
+      
+      if(d[idx[0]] <= radius):
+        self.neuronChannel = idx[0] + 1 # We reserve 0 for no channel
+
+    nChannels = np.max(self.neuronChannel)+1
+        
+    for i in range(0,nChannels):
+      # Channel 0 is unassigned, no channel, poor homeless neurons!
+      self.neuronChannels[i] = np.where(self.neuronChannel == i)[0]
+
+        
   ############################################################################
 
   def sortNeurons(self):
