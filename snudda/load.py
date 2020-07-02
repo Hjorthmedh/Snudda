@@ -150,7 +150,7 @@ class SnuddaLoad(object):
         data["channelMethod"] = f["network/neurons/channelMethod"][()]
       else:
         print("No channels detected.")
-        data["nChannels"] = 1
+        data["nChannels"] = 0
         data["neuronChannel"] = np.zeros(data["nNeurons"])
         data["channelMethod"] = "none"
 
