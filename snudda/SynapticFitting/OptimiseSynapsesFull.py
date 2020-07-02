@@ -12,6 +12,13 @@ import copy
 import time
 
 #
+# TODO 2020-07-02
+# -- We just wrote parallelOptimiseSingleCell -- need to make sure we call it
+#    the function will optimise one cellID, using all workers available
+#    need to debug the code, to make sure it works... have fun! :)
+#
+
+#
 # TODO 2020-06-16
 # -- We need to make sure one neuron can be optimised by all workers
 #    collectively, right now one worker does one cell alone
@@ -183,6 +190,8 @@ class OptimiseSynapsesFull(object):
 
   ############################################################################
 
+  # Returns a subset of a dictionary, cellID can be the key, or a list of keys
+  
   def getSubDictionary(self,cellID):
 
     try:
@@ -224,7 +233,6 @@ class OptimiseSynapsesFull(object):
   ############################################################################
 
   def getData(self,dataType,cellID=None):
-
 
     if(cellID is None):
       data = self.hFile[dataType].value.copy()
@@ -1476,40 +1484,34 @@ class OptimiseSynapsesFull(object):
                 tPeak,hPeak,
                 modelBounds,
                 smoothExpTrace8, smoothExpTrace9,
-                nTrials=5000,loadParamsFlag=False):
+                nTrials=5000,loadParamsFlag=False,
+                parameterSets = None,
+                returnMinError=False):
 
     assert self.synapseType == "glut", \
       "GABA synapse not supported yet in new version"
+
+    if(parameterSets is None):
+      parameterSets = self.setupParameterSet(modelBounds,nTrials)
     
-    import chaospy
-    distribution = chaospy.J(chaospy.Uniform(modelBounds[0][0],
-                                             modelBounds[1][0]),
-                             chaospy.Uniform(modelBounds[0][1],
-                                             modelBounds[1][1]),
-                             chaospy.Uniform(modelBounds[0][2],
-                                             modelBounds[1][2]),
-                             chaospy.Uniform(modelBounds[0][3],
-                                             modelBounds[1][3]),
-                             chaospy.Uniform(modelBounds[0][4],
-                                             modelBounds[1][4]),
-                             chaospy.Uniform(modelBounds[0][5],
-                                             modelBounds[1][5]))
-    
+
+    # zip(*xxx) unzips xxx -- cool.
     USobol,tauRSobol,tauFSobol,tauRatioSobol,condSobol,nmdaRatioSobol \
-      = distribution.sample(nTrials, rule="sobol")
-
-
+      = zip(*parameterSets)
     
     # tauSobol = np.multiply(tauRatioSobol,tauRSobol)
 
     minPars = None
     minError = np.inf
-
       
     if(loadParamsFlag):
       # If we should load params then do so first
       minPars = self.getParameterCache(cellID,"synapse")
-            
+
+      # --- now parameters are read from cache, but we can in future
+      # have them read from a work-log with parameters to do etc
+      
+      # What was error of the cached parameterset
       if(minPars is not None):
         minError = self.neuronSynapseHelperGlut(tPeak,
                                                 U=minPars[0],
@@ -1525,7 +1527,6 @@ class OptimiseSynapsesFull(object):
 
     idx = 0
         
-    # This for loop should be parallelised... please...
     for U,tauR,tauF,tauRatio,cond,nmdaRatio \
         in zip(USobol, tauRSobol, tauFSobol, tauRatioSobol, \
                condSobol, nmdaRatioSobol):
@@ -1534,7 +1535,6 @@ class OptimiseSynapsesFull(object):
       if(idx % 50 == 0):
         self.writeLog("%d / %d : minError = %g" % (idx, len(USobol),minError))
         self.writeLog(str(minPar))
-   
    
       error = self.neuronSynapseHelperGlut(tPeak,U,tauR,tauF,tauRatio,
                                            cond,nmdaRatio,
@@ -1547,6 +1547,8 @@ class OptimiseSynapsesFull(object):
           minError = error
           minPar = np.array([U,tauR,tauF,tauRatio,cond,nmdaRatio])
 
+          # TODO, write intermediate results to file, in case of a crash...
+          
       except:
         import traceback
         tstr = traceback.format_exc()
@@ -1559,8 +1561,10 @@ class OptimiseSynapsesFull(object):
         continue
     
 
-
-    return minPar
+    if(returnMinError):
+      return minPar,minError
+    else:
+      return minPar
       
   ############################################################################
   
@@ -1648,6 +1652,134 @@ class OptimiseSynapsesFull(object):
       self.addParameterCache(cellID,"error",tstr)
       
 
+  ############################################################################
+
+  def parallelOptimiseSingleCell(self,dataType,cellID,nTrials=10000):
+
+    if(self.role == "master"):
+
+      # 1. Setup workers
+
+      params = dict([])
+      
+      synapseModel = self.setupModel(dataType=dataType,
+                                     cellID=cellID,
+                                     params=params)
+
+
+      
+      
+      
+      
+      # 2. Setup one cell to optimise, randomise synapse positions
+
+      # 2b. Create list of all parameter points to investigate
+
+      modelBounds = self.getModelBounds(cellID)
+      parameterPoints = self.setupParameterSet(modelBounds,nTrials):
+      
+      # 3. Send synapse positions to all workers, and split parameter points
+      #    between workers
+      self.setupParallel(self.dView)
+
+      self.dView.scatter("parameterPoints",parameterPoints,block=True)
+      
+      self.dView.push( { "cellID"           : cellID,
+                         "dataType"         : dataType,
+                         "params"           : dict(),
+                         "synapseSectionID" : synapseModel.synapseSectionID,
+                         "synapseSectionX"  : synapseModel.synapseSectionX},
+                       block=True)
+
+      cmdStrSetup = \
+        "ly.sobolWorkerSetup(dataType=dataType,cellID=cellID,params=params)"
+
+      self.writeLog("Setting up cellID = %d on workers" % cellID)
+      self.dView.execute(cmdStrSetup,block=True)
+      
+      cmdStr = "res = ly.sobolScan(synapseModel=synapseModel, \
+                                   cellID=cellID, \
+                                   tPeak = stimTime, \
+                                   hPeak = peakHeight, \
+                                   modelBounds=modelBounds, \
+                                   smoothExpTrace8=ly.smoothExpVolt8, \
+                                   smoothExpTrace9=ly.smoothExpVolt9, \
+                                   returnMinError=True)"
+
+      self.writeLog("Executing workers, bang bang")
+      self.dView.execute(cmdStr,block=True)
+      
+      # 5. Gather worker data
+      self.writeLog("Gathering results from workers")
+      res = self.dView["res"]
+
+      parSets,parError = zip(*res)
+
+      minErrorIdx = np.argSort(parError)
+
+      bestPar = parSet[minErrorIdx]
+
+      self.parameterCache[cellID] = bestPar
+
+      self.saveParameterCache()
+      self.writeLog("Done. Best parameter for cellID = %d : %s" \
+                    % (cellID,str(bestPar))
+      
+  ############################################################################
+
+  def sobolWorkerSetup(self,dataType,cellID,params):
+
+    self.setupModel(dataType=dataType,cellID=cellID,params=params)
+
+    (volt,time) = self.getData(dataType,cellID)
+    
+    self.decayStartFit8 = 0.45
+    self.decayEndFit8   = 0.8
+
+    self.decayStartFit9 = 1.0
+    self.decayEndFit9   = 1.3
+
+    self.smoothExpVolt8,self.smoothExpTime8 \
+      = self.smoothingTrace(volt,self.nSmoothing,
+                            time=time,
+                            startTime = self.decayStartFit8,
+                            endTime = self.decayEndFit8)
+        
+    self.smoothExpVolt9,self.smoothExpTime9 \
+      = self.smoothingTrace(volt,self.nSmoothing,
+                            time=time,
+                            startTime = self.decayStartFit9,
+                            endTime = self.decayEndFit9)
+    
+    
+      
+  ############################################################################
+
+  def setupParameterSet(self,modelBounds,nSets):
+
+    import chaospy
+    distribution = chaospy.J(chaospy.Uniform(modelBounds[0][0],
+                                             modelBounds[1][0]),
+                             chaospy.Uniform(modelBounds[0][1],
+                                             modelBounds[1][1]),
+                             chaospy.Uniform(modelBounds[0][2],
+                                             modelBounds[1][2]),
+                             chaospy.Uniform(modelBounds[0][3],
+                                             modelBounds[1][3]),
+                             chaospy.Uniform(modelBounds[0][4],
+                                             modelBounds[1][4]),
+                             chaospy.Uniform(modelBounds[0][5],
+                                             modelBounds[1][5]))
+    
+    USobol,tauRSobol,tauFSobol,tauRatioSobol,condSobol,nmdaRatioSobol \
+      = distribution.sample(nTrials, rule="sobol")
+
+    parameterSets = [x for x in zip(USobol, \
+                                    tauRSobol,tauFSobol,tauRatioSobol, \
+                                    condSobol,nmdaRatioSobol)]
+    
+    return parameterSets
+      
   ############################################################################
 
   def parallelOptimiseCells(self,dataType,cellIDlist=None):
