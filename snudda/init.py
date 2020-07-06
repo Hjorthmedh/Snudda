@@ -576,7 +576,7 @@ class SnuddaInit(object):
                            meshBinWidth=1e-4)
       
     if(cellSpecDir is None):
-      csDir = self.dataPath + "/cellspecs"
+      csDir = self.dataPath + "/cellspecs-v2"
       # csDir = self.dataPath + "/cellspecs-var"      
     else:
       csDir = cellSpecDir
