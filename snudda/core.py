@@ -430,10 +430,19 @@ class Snudda(object):
     from neuron import h #, gui
       
     pc = h.ParallelContext()
+
+    disableSynapses = 0
+
+    lateral = [['iSPN','dSPN'],['iSPN','iSPN'],['dSPN','iSPN'],['dSPN','dSPN']]
+    feedforward = [['FSN','dSPN'],['FSN','iSPN']]
+    ltsinh = [['LTS','dSPN'],['LTS','iSPN']]
+    disinhibit = [[], lateral, feedforward, ltsinh]
     
     sim = SnuddaSimulate(networkFile=networkFile,
                          inputFile=inputFile,
                          disableGapJunctions=disableGJ,
+                         disableSynapses=disableSynapses,
+                         disabelConnection = disinhibit[0],
                          logFile=logFile,
                          verbose=args.verbose)
 

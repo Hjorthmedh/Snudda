@@ -54,6 +54,8 @@ class SnuddaSimulate(object):
   def __init__(self, networkFile, inputFile=None,
                verbose=True, logFile=None, \
                disableGapJunctions=True,
+               disableSynapses=False,
+               disableConnection = [],
                simulationConfig=None):
 
     self.verbose = verbose
@@ -147,7 +149,7 @@ class SnuddaSimulate(object):
 #      print("Node : " + str(int(self.pc.id())) + " cell " + str(i) + " status " + str(self.pc.gid_exists(i)))
 
 
-    self.connectNetwork()
+    self.connectNetwork(disableSynapses=disableSynapses)
     self.checkMemoryStatus()
     self.pc.barrier()
 
@@ -461,7 +463,7 @@ class SnuddaSimulate(object):
     self.pc.barrier()
 
     # Add synapses
-    self.connectNetworkSynapses()
+    if not disableSynapses: self.connectNetworkSynapses()
 
     # Add gap junctions
     if(self.disableGapJunctions):
@@ -1990,11 +1992,21 @@ if __name__ == "__main__":
 
   pc = h.ParallelContext()
 
+  disableSynapses = 0
+  lateral = [['iSPN','dSPN'],['iSPN','iSPN'],['dSPN','iSPN'],['dSPN','dSPN']]
+  feedforward = [['FSN','dSPN'],['FSN','iSPN']]
+  ltsinh = [['LTS','dSPN'],['LTS','iSPN']]
+  disinhibit = [[], lateral, feedforward, ltsinh]
+                                                    
+
   sim = SnuddaSimulate(networkFile=networkDataFile,
                        inputFile=inputFile,
                        disableGapJunctions=disableGJ,
+                       disableSynapses=disableSynapses,
+                       disableConnection = disinhibit[0],
                        logFile=logFile,
                        verbose=args.verbose)
+
 
   sim.addExternalInput()
   sim.checkMemoryStatus()
