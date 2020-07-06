@@ -560,7 +560,7 @@ class SnuddaPlace(object):
       idx = np.argsort(d)
       
       if(d[idx[0]] <= channelRadius):
-        self.neuronChannel = idx[0] + 1 # We reserve 0 for no channel
+        self.neuronChannel[ctr] = idx[0] + 1 # We reserve 0 for no channel
 
     nChannels = np.max(self.neuronChannel)+1
         
