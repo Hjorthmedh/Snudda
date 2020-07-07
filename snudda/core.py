@@ -431,18 +431,17 @@ class Snudda(object):
       
     pc = h.ParallelContext()
 
-    disableSynapses = 0
+    disableSynapses = False
 
-    lateral = [['iSPN','dSPN'],['iSPN','iSPN'],['dSPN','iSPN'],['dSPN','dSPN']]
-    feedforward = [['FSN','dSPN'],['FSN','iSPN']]
-    ltsinh = [['LTS','dSPN'],['LTS','iSPN']]
-    disinhibit = [[], lateral, feedforward, ltsinh]
-    
+    if(args.disableConnection is not None):
+      
+      removeConnection = eval(args.disableConnection)
+      
     sim = SnuddaSimulate(networkFile=networkFile,
                          inputFile=inputFile,
                          disableGapJunctions=disableGJ,
                          disableSynapses=disableSynapses,
-                         disableConnection = disinhibit[0],
+                         disableConnection = removeConnection,
                          logFile=logFile,
                          verbose=args.verbose)
 

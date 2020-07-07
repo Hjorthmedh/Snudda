@@ -97,7 +97,8 @@ class SnuddaSimulate(object):
                          # refs taken from Damodaran et al 2013
 
     self.disableGapJunctions = disableGapJunctions
-
+    self.disableConnection=disableConnection
+    
     self.synapseTypeLookup = { 1 : "GABA", 2: "AMPA_NMDA", 3: "GapJunction" }
 
     self.neurons = {}
@@ -458,7 +459,7 @@ class SnuddaSimulate(object):
 
   ############################################################################
 
-  def connectNetwork(self):
+  def connectNetwork(self,disableSynapses=False):
 
     self.pc.barrier()
 
@@ -604,7 +605,16 @@ class SnuddaSimulate(object):
     for (srcID,section,sectionX,sTypeID,axonDist,cond,pID) \
       in zip(sourceIDs,dendSections,secX,synapseTypeID,
              axonDistance,conductance,parameterID):
-
+      flag = 0
+      for connection in self.disableConnection:
+        
+        if self.network_info['neurons'][srcID]['type'] == connection[0] and self.network_info['neurons'][destID]['type'] == connection[1]:
+          flag = 1
+          break
+      if flag:
+        continue
+      if self.network_info['neurons'][srcID]['type'] == 'ChIN': continue
+      
       try:
         # !!!
         self.addSynapse(cellIDsource=srcID,

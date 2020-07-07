@@ -32,7 +32,20 @@ def snudda_cli():
                           help="Name of spike output file (csv)")
       parser.add_argument("--disableGJ",action="store_true",
                           help="Disable gap junctions")
-     
+
+      ### For disabling connections ###
+      '''
+      
+      Send a list of the pre and post synaptic connections to ablate,
+      e.g. [['iSPN','dSPN'],['iSPN','iSPN'],['dSPN','iSPN'],['dSPN','dSPN']]
+      
+      '''
+      parser.add_argument("--disableConnection",default=None,
+                          help="Disable gap junctions")
+
+
+      ################################################################
+      
       #parser.add_argument("--ncores", default=12,
       #                    help="Number of cores used for simulation")
       parser.add_argument("--overwrite",
