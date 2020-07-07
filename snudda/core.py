@@ -442,7 +442,7 @@ class Snudda(object):
                          inputFile=inputFile,
                          disableGapJunctions=disableGJ,
                          disableSynapses=disableSynapses,
-                         disabelConnection = disinhibit[0],
+                         disableConnection = disinhibit[0],
                          logFile=logFile,
                          verbose=args.verbose)
 
