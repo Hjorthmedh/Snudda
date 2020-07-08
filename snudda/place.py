@@ -555,12 +555,21 @@ class SnuddaPlace(object):
     centres = np.array(channelCentres)
     self.neuronChannel = np.zeros((xyz.shape[0],),dtype=int)
     
+<<<<<<< HEAD
     for (ctr, pos) in enumerate(xyz):
       d = [np.linalg.norm(pos-c) for c in centres]
       idx = np.argsort(d)
       
       if(d[idx[0]] <= channelRadius):
         self.neuronChannel[ctr] = idx[0] + 1 # We reserve 0 for no channel
+=======
+    for (ctr, pos in enumerate(xyz)):
+      d = [np.linalg.norm(pos-c) for c in centres]
+      idx = np.argsort(d)
+      
+      if(d[idx[0]] <= radius):
+        self.neuronChannel = idx[0] + 1 # We reserve 0 for no channel
+>>>>>>> Added updated place
 
     nChannels = np.max(self.neuronChannel)+1
         
