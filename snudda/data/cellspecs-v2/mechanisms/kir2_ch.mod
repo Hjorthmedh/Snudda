@@ -24,8 +24,7 @@ NEURON {
 	USEION k READ ek WRITE ik
 	RANGE g, ninf, tn, ik, gbar
 	GLOBAL C_tn, vh, vc
-        RANGE maxMod
-        POINTER damod
+    RANGE damod, maxMod
 }
 
 UNITS {
