@@ -18,12 +18,11 @@ where:
 ENDCOMMENT
 
 NEURON {
-    SUFFIX hd_lts
-    NONSPECIFIC_CURRENT i
+	SUFFIX hd_lts
+	NONSPECIFIC_CURRENT i
     RANGE ghdbar, vhalfl
     GLOBAL linf,taul
-    RANGE maxMod
-    POINTER damod
+    RANGE damod, maxMod
 }
 
 UNITS {
@@ -33,18 +32,18 @@ UNITS {
 }
 
 PARAMETER {
-    v 		        (mV)
+	v 		        (mV)
     ehd  = -30		(mV)        
-    celsius 	    (degC)
-    ghdbar=.0001 	(mho/cm2)
+	celsius 	    (degC)
+	ghdbar=.0001 	(mho/cm2)
     vhalfl=-81   	(mV)
-    kl=-8
+	kl=-8
     vhalft=-75   	(mV)
     a0t=0.011      	(/ms)
     zetat=2.2    	(1)
     gmt=.4   	    (1)
-    q10=4.5
-    qtl=1
+	q10=4.5
+	qtl=1
     damod = 0
     maxMod = 1
 }

@@ -32,8 +32,7 @@ NEURON {
     SUFFIX car_ms
     USEION ca READ cai, cao WRITE ica VALENCE 2
     RANGE pbar, ica
-    RANGE maxMod
-    POINTER damod
+    RANGE damod, maxMod
 }
 
 PARAMETER {

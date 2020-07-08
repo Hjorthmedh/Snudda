@@ -1,6 +1,6 @@
 COMMENT
 
-Josh Helds adaptation to suit HCN1+2.  12/22/2003
+Josh Held's adaptation to suit HCN1+2.  12/22/2003
 
 ****
 Kinetic model of HCN2 channel gating from Wang et al 2002.
@@ -36,8 +36,7 @@ NEURON {
 	GLOBAL a0, b0, ah, bh, ac, bc, aa0, ba0
 	GLOBAL aa0, ba0, aah, bah, aac, bac
 	GLOBAL kon, koff, b, bf, ai, gca, shift
-        RANGE maxMod
-        POINTER damod
+    RANGE damod, maxMod
 }
 
 UNITS {

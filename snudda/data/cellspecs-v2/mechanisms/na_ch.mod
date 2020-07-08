@@ -36,8 +36,7 @@ NEURON {
 	GLOBAL g0
 	GLOBAL d0
 	GLOBAL aS1, aS2, bS
-        RANGE maxMod
-        POINTER damod
+    RANGE damod, maxMod
 }
 
 UNITS {
