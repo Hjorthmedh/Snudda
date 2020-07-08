@@ -350,7 +350,8 @@ class OptimiseSynapsesFull(object):
       self.writeLog(dataType + " " + str(cellID) + ": Nothing to plot")
       return
 
-    synapseParams = self.getParameterCache(cellID,"synapse")    
+    synapseParams,synapsePositionOverride,minError \
+      = self.getParameterCache(cellID,"synapse")    
 
     vPlot = None
     if(synapseParams is not None):
@@ -360,7 +361,8 @@ class OptimiseSynapsesFull(object):
 
       plotModel = self.setupModel(dataType=dataType,
                                   cellID=cellID,
-                                  params=params)
+                                  params=params,
+                                synapsePositionOverride=synapsePositionOverride)
     
       (tPlot,vPlot,iPlot) = plotModel.run2(pars=params)
 
@@ -1654,27 +1656,24 @@ class OptimiseSynapsesFull(object):
 
   ############################################################################
 
-  def parallelOptimiseSingleCell(self,dataType,cellID,nTrials=10000):
+  def parallelOptimiseSingleCell(self,dataType,cellID,nTrials=10000, \
+                                 postOpt=True):
 
+    # !!! Future improvement. Allow continuation of old optimisation by
+    # reading synapse location and old parameter set, so that is not thrown away
+    
     if(self.role == "master"):
 
       # 1. Setup workers
-
       params = dict([])
-      
+
+      # 2. Setup one cell to optimise, randomise synapse positions
       synapseModel = self.setupModel(dataType=dataType,
                                      cellID=cellID,
                                      params=params)
-
-
       
-      
-      
-      
-      # 2. Setup one cell to optimise, randomise synapse positions
 
       # 2b. Create list of all parameter points to investigate
-
       modelBounds = self.getModelBounds(cellID)
       parameterPoints = self.setupParameterSet(modelBounds,nTrials):
       
@@ -1688,11 +1687,12 @@ class OptimiseSynapsesFull(object):
                          "dataType"         : dataType,
                          "params"           : dict(),
                          "synapseSectionID" : synapseModel.synapseSectionID,
-                         "synapseSectionX"  : synapseModel.synapseSectionX},
+                         "synapseSectionX"  : synapseModel.synapseSectionX },
                        block=True)
 
       cmdStrSetup = \
-        "ly.sobolWorkerSetup(dataType=dataType,cellID=cellID,params=params)"
+        "ly.sobolWorkerSetup(dataType=dataType,cellID=cellID,params=params," \
+        + "synapsePositionOverride=(synapseSectionID,synapseSectionX))"
 
       self.writeLog("Setting up cellID = %d on workers" % cellID)
       self.dView.execute(cmdStrSetup,block=True)
@@ -1717,19 +1717,85 @@ class OptimiseSynapsesFull(object):
 
       minErrorIdx = np.argSort(parError)
 
-      bestPar = parSet[minErrorIdx]
+      # We save parameter set, synapse locations, error value
+      bestPar = (parSet[minErrorIdx],
+                 (synapseModel.synapseSectionID,synapseModel.synapseSectionX),
+                 parError[minErrorIdx])
 
       self.parameterCache[cellID] = bestPar
 
       self.saveParameterCache()
-      self.writeLog("Done. Best parameter for cellID = %d : %s" \
-                    % (cellID,str(bestPar))
+      self.writeLog("Sobol search done. Best parameter for cellID = %d : %s" \
+                    % (cellID,str(bestPar)))
+
+      if(postOpt):
+        # This updates parameters and saves new parameter cache
+        self.getRefinedParameters(dataType,cellID)
+        
       
   ############################################################################
 
-  def sobolWorkerSetup(self,dataType,cellID,params):
+  # This sets up the model also, so can be run in a self-contained loop
+  # We might later want to let the workers do this, but then they cant
+  # write to cache --- THAT WILL LEAD TO DATA CORRUPTION!!
+  
+  def getRefinedParameters(self, dataType, cellID):
 
-    self.setupModel(dataType=dataType,cellID=cellID,params=params)
+    assert self.role == "master", \
+      "You do not want to run this on workers in parallel, " \
+      + " since it writes directly to parameter cache. " \
+      + " That could lead to corrupted data."
+    
+    # Load parameters from disk
+    self.loadParameterCache()
+    modelBounds = self.getModelBounds(cellID)
+
+    (parSet,synapsePositionOverride,startParErrorVal) \
+      = self.parameterCache[cellID]
+
+    params = dict([])
+
+    self.sobolWorkerSetup(dataType,cellID,params, \
+                          synapsePositionOverride = synapsePositionOverride)
+    
+    func = lambda x : \
+           self.neuronSynapseHelperGlut(tSpike=stimTime,
+                                        U=x[0],
+                                        tauR=x[1],
+                                        tauF=x[2],
+                                        tauRatio=x[3],
+                                        cond=x[4],
+                                        nmdaRatio=x[5],
+                                        smoothExpTrace8=smoothExpVolt8,
+                                        smoothExpTrace9=smoothExpVolt9,
+                                        expPeakHeight=peakHeight,
+                                        returnType="error")
+
+    mBounds = [x for x in zip(modelBounds[0],modelBounds[1])]
+    res = scipy.optimize.minimize(func,
+                                  x0=startPar,
+                                  bounds=mBounds)
+
+    fitParams = res.x
+    minError = res.fun
+
+    if(minError >= startParErrorVal):
+      print("Refinement failed. Sobol parameters are better match than new fitting")
+      # Dont overwrite the old parameters
+      
+    else:
+      self.parameterCache[cellID] = (fitParams,synapsePositionOverride,minError)
+      self.saveParameterCache()
+
+      print(f"Cell {cellID}: Old error: {startParErrorVal}, New error: {minError}")
+                    
+  ############################################################################
+
+  def sobolWorkerSetup(self,dataType,cellID,params,
+                       synapsePositionOverride=None):
+
+    self.setupModel(dataType=dataType,cellID=cellID,params=params,
+                    synapsePositionOverride)
 
     (volt,time) = self.getData(dataType,cellID)
     
@@ -1756,7 +1822,7 @@ class OptimiseSynapsesFull(object):
   ############################################################################
 
   def setupParameterSet(self,modelBounds,nSets):
-
+    
     import chaospy
     distribution = chaospy.J(chaospy.Uniform(modelBounds[0][0],
                                              modelBounds[1][0]),
@@ -2067,40 +2133,16 @@ if __name__ == "__main__":
     
   if(args.id is not None):
     # ID has priority over type
-    userID = ly.getUserID(args.id)
-    print("Optimising only " + str(userID))
-    ly.parallelOptimiseCells("GBZ_CC_H20", userID)
-
+    allCellID = ly.getUserID(args.id)
+    print("Optimising only " + str(allCellID))
+    
   elif(args.type):
     print("Optimising only " + args.type + " in " + "GBZ_CC_H20")
-    ly.parallelOptimiseCells("GBZ_CC_H20",
-                             ly.getCellID("GBZ_CC_H20",args.type))
+    allCellID = ly.getCellID("GBZ_CC_H20",args.type)
   else:
-    ly.parallelOptimiseCells("GBZ_CC_H20")
-
+    print("Optimising all cells, have fun on vacation!")
+    allCellID = self.getValidCellID("GBZ_CC_H20")
     
-  # (d2,t2) = ly.getData("GBZ_CC_H20",21)
-  # xx = ly.getCellID("MSN")
+  for cellID in allCellID:
+    ly.parallelOptimiseSingleCell("GBZ_CC_H20", cellID)
 
-
-
-  if(False):
-    optHelper = lambda x : ly.optimiseCell( "GBZ_CC_H20", x)
-
-    for idx in ly.getAllCellID():
-      try:
-        if(not ly.checkValidData("GBZ_CC_H20", idx)):
-          # Skip invalid trace
-          continue
-        ly.optimiseCell("GBZ_CC_H20", idx)
-      except:
-        import traceback
-        tstr = traceback.format_exc()
-        print(tstr)
-        print("!!! Something went wrong. Skipping neuron " + str(idx))
-  
-    ly.saveParameterCache()
-  
-  print("Did we get all the parameters in the file?")
-  #import pdb
-  #pdb.set_trace()
