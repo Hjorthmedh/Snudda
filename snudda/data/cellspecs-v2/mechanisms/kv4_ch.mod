@@ -29,8 +29,7 @@ NEURON {
 	GLOBAL ci, ic, oi, io, a, b, am, bm, vc, gamma, delta, vha, vhb
 	GLOBAL i5is, isi5
 	GLOBAL q10i, q10v
-        RANGE maxMod
-        POINTER damod 
+    RANGE damod, maxMod
 }
 
 UNITS {

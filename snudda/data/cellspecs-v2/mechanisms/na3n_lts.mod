@@ -25,8 +25,7 @@ NEURON {
 	USEION na READ ena WRITE ina
 	RANGE  gbar, ar, sh
 	GLOBAL minf, hinf, mtau, htau, sinf, taus,qinf, thinf
-	RANGE maxMod
-        POINTER damod
+	RANGE damod, maxMod
 }
 
 PARAMETER {

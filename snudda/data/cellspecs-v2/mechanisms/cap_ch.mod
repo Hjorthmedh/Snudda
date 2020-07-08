@@ -27,8 +27,7 @@ NEURON {
 	RANGE gbar, ica ,g
 	GLOBAL minf,mtau
 	GLOBAL monovalConc, monovalPerm
-        RANGE maxMod
-	POINTER damod
+    RANGE damod, maxMod
 }
 
 UNITS {
