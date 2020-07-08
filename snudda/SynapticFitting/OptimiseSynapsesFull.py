@@ -67,6 +67,8 @@ class NumpyEncoder(json.JSONEncoder):
 class OptimiseSynapsesFull(object):
 
   ############################################################################
+
+  # optMethod not used anymore, potentially allow user to set sobol or refine
   
   def __init__(self, fileName, synapseType="glut",loadCache=False,
                role="master",dView=None,verbose=True,logFileName=None,
@@ -869,7 +871,7 @@ class OptimiseSynapsesFull(object):
   def setupModel(self,dataType,cellID,params={},
                  synapseDensityOverride=None,
                  nSynapsesOverride=None,
-                 synapsePostionOverride=None):
+                 synapsePositionOverride=None):
     
     tStim = self.getStimTime(dataType,cellID)  
 
@@ -1211,6 +1213,7 @@ class OptimiseSynapsesFull(object):
   
   def fitTrace(self,dataType,cellID,optMethod=None):
 
+    assert False, "Obsolete!!"
     
     if(optMethod is None):
       optMethod = self.optMethod
@@ -1675,7 +1678,7 @@ class OptimiseSynapsesFull(object):
 
       # 2b. Create list of all parameter points to investigate
       modelBounds = self.getModelBounds(cellID)
-      parameterPoints = self.setupParameterSet(modelBounds,nTrials):
+      parameterPoints = self.setupParameterSet(modelBounds,nTrials)
       
       # 3. Send synapse positions to all workers, and split parameter points
       #    between workers
@@ -1795,7 +1798,7 @@ class OptimiseSynapsesFull(object):
                        synapsePositionOverride=None):
 
     self.setupModel(dataType=dataType,cellID=cellID,params=params,
-                    synapsePositionOverride)
+                    synapsePositionOverride=synapsePositionOverride)
 
     (volt,time) = self.getData(dataType,cellID)
     
@@ -1838,7 +1841,7 @@ class OptimiseSynapsesFull(object):
                                              modelBounds[1][5]))
     
     USobol,tauRSobol,tauFSobol,tauRatioSobol,condSobol,nmdaRatioSobol \
-      = distribution.sample(nTrials, rule="sobol")
+      = distribution.sample(nSets, rule="sobol")
 
     parameterSets = [x for x in zip(USobol, \
                                     tauRSobol,tauFSobol,tauRatioSobol, \
