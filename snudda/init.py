@@ -1031,7 +1031,7 @@ class SnuddaInit(object):
 
     # Add targets for LTS neurons
 
-    LTSgGABA = 1e-9 # !!! FIXME
+    LTSgGABA = 3e-9 # !!! FIXME changed from 1e-9 to 3e-9
     #LTSgNO = 1e-9
 
     LTSDistDepPruning = "1-np.exp(-(0.4*d/60e-6)**2)" # updated 2019-10-31
