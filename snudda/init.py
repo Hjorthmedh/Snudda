@@ -46,27 +46,15 @@ class SnuddaInit(object):
       
     else:      
       self.networkData["Channels"]["method"] = "channelSpheres"
-<<<<<<< HEAD
-      self.networkData["Channels"]["centres"] = [(3540e-6,4645e-6,5081e-6),
-                                                 (3510e-6, 4615e-6,5050e-6),
-                                                 (3570,4675e-6,5111e-6)]
+
+      self.networkData["Channels"]["centres"] = [(3540e-6,4645e-6,5045e-6),
+                                                 (3535e-6, 4640e-6,5050e-6),
+                                                 (3545,4650e-6,5055e-6)]
       
       self.networkData["Channels"]["radius"] = 50e-6
       
       print("Overriding the number of channels")
-=======
-      self.networkData["Channels"]["centres"] = [(100e-6,100e-6,100e-6),
-                                                 (-100e-6,-100e-6,-100e-6),
-                                                 (0,200e-6,0)]
-      
-      self.networkData["Channels"]["radius"] = 50e-6
-      
-<<<<<<< HEAD
-      print("Overriding the number of channels"):
->>>>>>> Added updated place
-=======
-      print("Overriding the number of channels")
->>>>>>> Removed colon
+
       self.networkData["Channels"]["nChannels"] \
         = len(self.networkData["Channels"]["centres"])
 
