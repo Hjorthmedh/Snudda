@@ -1950,6 +1950,16 @@ if __name__ == "__main__":
                       help="Duration of simulation in seconds")
   parser.add_argument("--verbose",action="store_true")
 
+
+  '''
+      
+      Send a list of the pre and post synaptic connections to ablate,
+      e.g. [['iSPN','dSPN'],['iSPN','iSPN'],['dSPN','iSPN'],['dSPN','dSPN']]
+      
+  '''
+  parser.add_argument("--disableConnection",default=None,
+                      help="Disable gap junctions")
+  
   # If called through "nrniv -python Network_simulate.py ..." then argparse
   # gets confused by -python flag, and we need to ignore it
   # parser.add_argument("-python",help=argparse.SUPPRESS,
@@ -2002,12 +2012,11 @@ if __name__ == "__main__":
 
   pc = h.ParallelContext()
 
-  disableSynapses = 0
-  lateral = [['iSPN','dSPN'],['iSPN','iSPN'],['dSPN','iSPN'],['dSPN','dSPN']]
-  feedforward = [['FSN','dSPN'],['FSN','iSPN']]
-  ltsinh = [['LTS','dSPN'],['LTS','iSPN']]
-  disinhibit = [[], lateral, feedforward, ltsinh]
-                                                    
+  disableSynapses = False
+
+    if(args.disableConnection is not None):
+
+      removeConnection = eval(args.disableConnection)
 
   sim = SnuddaSimulate(networkFile=networkDataFile,
                        inputFile=inputFile,
