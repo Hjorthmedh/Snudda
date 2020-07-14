@@ -2022,7 +2022,7 @@ if __name__ == "__main__":
                        inputFile=inputFile,
                        disableGapJunctions=disableGJ,
                        disableSynapses=disableSynapses,
-                       disableConnection = disinhibit[0],
+                       disableConnection = removeConnection,
                        logFile=logFile,
                        verbose=args.verbose)
 
