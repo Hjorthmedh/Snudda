@@ -2014,9 +2014,9 @@ if __name__ == "__main__":
 
   disableSynapses = False
 
-    if(args.disableConnection is not None):
+  if(args.disableConnection is not None):
 
-      removeConnection = eval(args.disableConnection)
+    removeConnection = eval(args.disableConnection)
 
   sim = SnuddaSimulate(networkFile=networkDataFile,
                        inputFile=inputFile,

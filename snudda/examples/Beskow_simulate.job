@@ -1,6 +1,6 @@
 #!/bin/bash -l
-#SBATCH -t 2:59:00
-#SBATCH --time-min=0:59:00
+#SBATCH -t 9:59:00
+#SBATCH --time-min=5:59:00
 #SBATCH -J snudda_simulate
 #SBATCH -A 2019-3-644
 #SBATCH -o save/output-snudda_simulate.o%j
@@ -16,7 +16,7 @@ HOME=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda
 
 # Synapse file
 SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
-NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.882334
+NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.895240
 NETWORK_INFO_FILE=$NETWORK_DIR/network-pruned-synapses.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 
@@ -28,7 +28,7 @@ echo "Network dir: "$NETWORK_DIR
 #module unload cray-libsci atp
 
 # Updated 2020-01-21
-module sw PrgEnv-cray PrgEnv-intel
+module sw PrgEnv-cray PrgEnv-intel/6.0.5
 module add mpi4py/3.0.2/py37
 module add neuron/7.7-py37
 
@@ -42,7 +42,7 @@ export CRAY_ROOTFS=DSL
 
 # Remove "special" old directory
 rm -r x86_64
-nrnivmodl ../data/cellspecs/mechanisms
+nrnivmodl ../data/cellspecs-v2/mechanisms
 
 
 # Split the config file (is aprun blocking?)
@@ -68,11 +68,11 @@ echo "!!! If you already done this, please ignore message."
 echo ""
 
 # Snudda bin gets installed here, when we use the user flag above
-export PATH=/cfs/klemming/nobackup/h/hjorth/local/beskow/bin:$PATH
-export PYTHONPATH=/cfs/klemming/nobackup/h/hjorth/local/beskow/lib/python3.7/site-packages:$PYTHONPATH
+export PATH=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/beskow/bin:$PATH
+export PYTHONPATH=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/beskow/lib/python3.7/site-packages:$PYTHONPATH
 
 
-srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 2.5 --voltOut $NETWWORK_DIR/simulation/volt-fullnetwork.csv --spikesOut $NETWORK_DIR/simulation/network-output-spikes-fullnetwork.csv --disableConnection "[]"
+srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 2.5 --voltOut $NETWORK_DIR/simulation/volt-fullnetwork.csv --spikesOut $NETWORK_DIR/simulation/network-output-spikes-fullnetwork.csv --disableConnection "[]"
 
 
 srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 2.5 --voltOut $NETWORK_DIR/simulation/volt-SPN-ablation.csv --spikesOut $NETWORK_DIR/simulation/network-output-spikes-SPN-ablation.csv --disableConnection "[['iSPN','dSPN'],['iSPN','iSPN'],['dSPN','iSPN'],['dSPN','dSPN']]"
