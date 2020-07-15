@@ -1,6 +1,6 @@
 #!/bin/bash -l
-#SBATCH -t 9:59:00
-#SBATCH --time-min=5:59:00
+#SBATCH -t 4:30:00
+#SBATCH --time-min=3:59:00
 #SBATCH -J snudda_simulate
 #SBATCH -A 2019-3-644
 #SBATCH -o save/output-snudda_simulate.o%j
@@ -16,7 +16,7 @@ HOME=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda
 
 # Synapse file
 SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
-NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.895240
+NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.895338
 NETWORK_INFO_FILE=$NETWORK_DIR/network-pruned-synapses.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 
@@ -61,8 +61,8 @@ echo ""
 echo "module sw PrgEnv-cray PrgEnv-intel"
 echo "module add mpi4py/3.0.2/py37"
 echo "module add neuron/7.7-py37"
-echo "export PYTHONPATH=/cfs/klemming/nobackup/h/hjorth/local/beskow/lib/python3.7/site-packages:$PYTHONPATH"
-echo "pip install -e .[dev] --prefix /cfs/klemming/nobackup/h/hjorth/local/beskow"
+echo "export PYTHONPATH=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/beskow/lib/python3.7/site-packages:$PYTHONPATH"
+echo "pip install -e .[dev] --prefix /cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/beskow"
 echo ""
 echo "!!! If you already done this, please ignore message."
 echo ""

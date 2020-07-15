@@ -5,7 +5,7 @@
 #JOBDIR=TegnerRun.${SLURM_JOBID}
 SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
 DATA=$SNUDDA_DIR/data
-JOBDIR=$SNUDDA_DIR/../networks/TegnerRun.895240
+JOBDIR=$SNUDDA_DIR/../networks/TegnerRun.895338
 
 if [ $SLURM_PROCID -gt 0 ]; then
 	mock_string="Not main process"
