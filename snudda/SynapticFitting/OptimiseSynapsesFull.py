@@ -1494,7 +1494,7 @@ class OptimiseSynapsesFull(object):
                 tPeak,hPeak,
                 modelBounds,
                 smoothExpTrace8, smoothExpTrace9,
-                nTrials=50,loadParamsFlag=False,
+                nTrials=5,loadParamsFlag=False,
                 parameterSets = None,
                 returnMinError=False):
 
@@ -1776,7 +1776,11 @@ class OptimiseSynapsesFull(object):
                    parError)
         
  
-      self.parameterCache[cellID] = bestPar
+      self.addParameterCache(cellID,"param", bestPar[0])
+      self.addParameterCache(cellID,"sectionID", synapseModel.synapseSectionID)
+      self.addParameterCache(cellID,"sectionX", synapseModel.synapseSectionX)
+      self.addParameterCache(cellID,"error", bestPar[2])
+      
 
       self.saveParameterCache()
       self.writeLog("Sobol search done. Best parameter for cellID = %d : %s" \
@@ -1826,6 +1830,8 @@ class OptimiseSynapsesFull(object):
                                         returnType="error")
 
     mBounds = [x for x in zip(modelBounds[0],modelBounds[1])]
+    startPar = self.getParameterCache(cellID,"param")
+    
     res = scipy.optimize.minimize(func,
                                   x0=startPar,
                                   bounds=mBounds)
@@ -1838,7 +1844,9 @@ class OptimiseSynapsesFull(object):
       # Dont overwrite the old parameters
       
     else:
-      self.parameterCache[cellID] = (fitParams,synapsePositionOverride,minError)
+      self.addParameterCache(cellID,"param", fitParams)
+      self.addParameterCache(cellID,"error", minError)
+
       self.saveParameterCache()
 
       print(f"Cell {cellID}: Old error: {startParErrorVal}, New error: {minError}")
