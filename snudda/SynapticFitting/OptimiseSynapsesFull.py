@@ -11,6 +11,11 @@ import json
 import copy
 import time
 
+# TODO 2020-07-15
+#
+# Make it so that the code can run in serial mode also, to simplify debugging
+#
+
 #
 # TODO 2020-07-02
 # -- We just wrote parallelOptimiseSingleCell -- need to make sure we call it
