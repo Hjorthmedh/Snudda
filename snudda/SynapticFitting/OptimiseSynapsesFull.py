@@ -1494,7 +1494,7 @@ class OptimiseSynapsesFull(object):
                 tPeak,hPeak,
                 modelBounds,
                 smoothExpTrace8, smoothExpTrace9,
-                nTrials=5000,loadParamsFlag=False,
+                nTrials=50,loadParamsFlag=False,
                 parameterSets = None,
                 returnMinError=False):
 
@@ -1679,57 +1679,103 @@ class OptimiseSynapsesFull(object):
       synapseModel = self.setupModel(dataType=dataType,
                                      cellID=cellID,
                                      params=params)
-      
 
+      (volt,time) = self.getData(dataType,cellID)
+      peakIdx = self.getPeakIdx(dataType,cellID)
+      tSpikes = time[peakIdx]
+    
+      sigma = np.ones(len(peakIdx))
+      sigma[-1] = 1./3
+
+      stimTime =  self.getStimTime(dataType=dataType,
+                                   cellID=cellID)
+    
+      peakHeight,decayFits,vBase = self.findTraceHeights(time,volt,peakIdx)
+
+      
       # 2b. Create list of all parameter points to investigate
       modelBounds = self.getModelBounds(cellID)
       parameterPoints = self.setupParameterSet(modelBounds,nTrials)
       
       # 3. Send synapse positions to all workers, and split parameter points
       #    between workers
-      self.setupParallel(self.dView)
 
-      self.dView.scatter("parameterPoints",parameterPoints,block=True)
+      if(self.dView is not None):
+        self.setupParallel(self.dView)
+
+        self.dView.scatter("parameterPoints",parameterPoints,block=True)
       
-      self.dView.push( { "cellID"           : cellID,
-                         "dataType"         : dataType,
-                         "params"           : dict(),
-                         "synapseSectionID" : synapseModel.synapseSectionID,
-                         "synapseSectionX"  : synapseModel.synapseSectionX },
-                       block=True)
+        self.dView.push( { "cellID"           : cellID,
+                           "dataType"         : dataType,
+                           "params"           : params,
+                           "synapseSectionID" : synapseModel.synapseSectionID,
+                           "synapseSectionX"  : synapseModel.synapseSectionX,
+                           "stimTime"         : stimTime,
+                           "peakHeight"       : peakHeight },
+                         block=True)
 
-      cmdStrSetup = \
-        "ly.sobolWorkerSetup(dataType=dataType,cellID=cellID,params=params," \
-        + "synapsePositionOverride=(synapseSectionID,synapseSectionX))"
+        cmdStrSetup = \
+          "ly.sobolWorkerSetup(dataType=dataType,cellID=cellID,params=params," \
+          + "synapsePositionOverride=(synapseSectionID,synapseSectionX))"
 
-      self.writeLog("Setting up cellID = %d on workers" % cellID)
-      self.dView.execute(cmdStrSetup,block=True)
+        self.writeLog("Setting up cellID = %d on workers" % cellID)
+        self.dView.execute(cmdStrSetup,block=True)
       
-      cmdStr = "res = ly.sobolScan(synapseModel=synapseModel, \
-                                   cellID=cellID, \
-                                   tPeak = stimTime, \
-                                   hPeak = peakHeight, \
-                                   modelBounds=modelBounds, \
-                                   smoothExpTrace8=ly.smoothExpVolt8, \
-                                   smoothExpTrace9=ly.smoothExpVolt9, \
-                                   returnMinError=True)"
+        cmdStr = "res = ly.sobolScan(synapseModel=synapseModel, \
+                                     cellID=cellID, \
+                                     tPeak = stimTime, \
+                                     hPeak = peakHeight, \
+                                     modelBounds=modelBounds, \
+                                     smoothExpTrace8=ly.smoothExpVolt8, \
+                                     smoothExpTrace9=ly.smoothExpVolt9, \
+                                     returnMinError=True)"
 
-      self.writeLog("Executing workers, bang bang")
-      self.dView.execute(cmdStr,block=True)
+        self.writeLog("Executing workers, bang bang")
+        self.dView.execute(cmdStr,block=True)
       
-      # 5. Gather worker data
-      self.writeLog("Gathering results from workers")
-      res = self.dView["res"]
+        # 5. Gather worker data
+        self.writeLog("Gathering results from workers")
+        res = self.dView["res"]
 
-      parSets,parError = zip(*res)
+        # * unpacks res variable
+        parSets,parError = zip(*res)
 
-      minErrorIdx = np.argSort(parError)
+        minErrorIdx = np.argSort(parError)
 
-      # We save parameter set, synapse locations, error value
-      bestPar = (parSet[minErrorIdx],
-                 (synapseModel.synapseSectionID,synapseModel.synapseSectionX),
-                 parError[minErrorIdx])
+        # We save parameter set, synapse locations, error value
+        bestPar = (parSet[minErrorIdx],
+                   (synapseModel.synapseSectionID,synapseModel.synapseSectionX),
+                   parError[minErrorIdx])
 
+        
+      else:
+
+        # No dView, run in serial mode...
+        # !!!
+        self.sobolWorkerSetup(dataType=dataType,
+                              cellID=cellID,
+                              params=params,
+                              synapsePositionOverride \
+                                = (synapseModel.synapseSectionID,
+                                   synapseModel.synapseSectionX))
+
+        parSet,parError = self.sobolScan(synapseModel=synapseModel, \
+                                         cellID=cellID, \
+                                         tPeak = stimTime, \
+                                         hPeak = peakHeight, \
+                                         modelBounds=modelBounds, \
+                                         smoothExpTrace8=ly.smoothExpVolt8, \
+                                         smoothExpTrace9=ly.smoothExpVolt9, \
+                                         returnMinError=True)
+
+        
+        
+        
+        bestPar = (parSet,
+                   (synapseModel.synapseSectionID,synapseModel.synapseSectionX),
+                   parError)
+        
+ 
       self.parameterCache[cellID] = bestPar
 
       self.saveParameterCache()

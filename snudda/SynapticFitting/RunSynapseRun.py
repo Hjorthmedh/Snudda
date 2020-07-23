@@ -86,11 +86,11 @@ class RunSynapseRun(object):
     self.defaultCond = 5e-7
 
     # This returns (section,sectionX) so we can reuse it if needed
-    self.synapsePositions = self.addSynapseDensity(synapseType,
-                                                   synapseDensity,
-                                                   nSynapses,
-                                                   synapseSectionID,
-                                                   synapseSectionX)
+    self.synapsePositions = self.addSynapseDensity(synapseType=synapseType,
+                                                   synapseDensity=synapseDensity,
+                                                   nSynapses=nSynapses,
+                                                   sectionID=synapseSectionID,
+                                                   sectionX=synapseSectionX)
     
     self.stimTimes = stimTimes*1e3
 
