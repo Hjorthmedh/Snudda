@@ -1494,7 +1494,7 @@ class OptimiseSynapsesFull(object):
                 tPeak,hPeak,
                 modelBounds,
                 smoothExpTrace8, smoothExpTrace9,
-                nTrials=5,loadParamsFlag=False,
+                nTrials=2,loadParamsFlag=False,
                 parameterSets = None,
                 returnMinError=False):
 
@@ -1808,11 +1808,25 @@ class OptimiseSynapsesFull(object):
     self.loadParameterCache()
     modelBounds = self.getModelBounds(cellID)
 
-    (parSet,synapsePositionOverride,startParErrorVal) \
-      = self.parameterCache[cellID]
+    startPar = self.getParameterCache(cellID,"param")
+    sectionX = self.getParameterCache(cellID,"sectionX")
+    sectionID = self.getParameterCache(cellID,"sectionID")    
+    startParErrorVal = self.getParameterCache(cellID,"error")
+
+    synapsePositionOverride = (sectionID,sectionX)
 
     params = dict([])
 
+    (volt,time) = self.getData(dataType,cellID)
+    
+    peakIdx = self.getPeakIdx(dataType,cellID)
+    tSpikes = time[peakIdx]
+
+    stimTime =  self.getStimTime(dataType=dataType,
+                                 cellID=cellID)
+    
+    peakHeight,decayFits,vBase = self.findTraceHeights(time,volt,peakIdx)
+    
     self.sobolWorkerSetup(dataType,cellID,params, \
                           synapsePositionOverride = synapsePositionOverride)
     
@@ -1824,8 +1838,8 @@ class OptimiseSynapsesFull(object):
                                         tauRatio=x[3],
                                         cond=x[4],
                                         nmdaRatio=x[5],
-                                        smoothExpTrace8=smoothExpVolt8,
-                                        smoothExpTrace9=smoothExpVolt9,
+                                        smoothExpTrace8=self.smoothExpVolt8,
+                                        smoothExpTrace9=self.smoothExpVolt9,
                                         expPeakHeight=peakHeight,
                                         returnType="error")
 
