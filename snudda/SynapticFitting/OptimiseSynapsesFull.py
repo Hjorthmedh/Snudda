@@ -1494,7 +1494,7 @@ class OptimiseSynapsesFull(object):
                 tPeak,hPeak,
                 modelBounds,
                 smoothExpTrace8, smoothExpTrace9,
-                nTrials=2,loadParamsFlag=False,
+                nTrials=1000,loadParamsFlag=False,
                 parameterSets = None,
                 returnMinError=False):
 
@@ -1710,6 +1710,7 @@ class OptimiseSynapsesFull(object):
                            "params"           : params,
                            "synapseSectionID" : synapseModel.synapseSectionID,
                            "synapseSectionX"  : synapseModel.synapseSectionX,
+                           "modelBounds"      : modelBounds,
                            "stimTime"         : stimTime,
                            "peakHeight"       : peakHeight },
                          block=True)
@@ -1721,7 +1722,7 @@ class OptimiseSynapsesFull(object):
         self.writeLog("Setting up cellID = %d on workers" % cellID)
         self.dView.execute(cmdStrSetup,block=True)
       
-        cmdStr = "res = ly.sobolScan(synapseModel=synapseModel, \
+        cmdStr = "res = ly.sobolScan(synapseModel=ly.synapseModel, \
                                      cellID=cellID, \
                                      tPeak = stimTime, \
                                      hPeak = peakHeight, \
@@ -1870,8 +1871,11 @@ class OptimiseSynapsesFull(object):
   def sobolWorkerSetup(self,dataType,cellID,params,
                        synapsePositionOverride=None):
 
-    self.setupModel(dataType=dataType,cellID=cellID,params=params,
-                    synapsePositionOverride=synapsePositionOverride)
+    self.synapseModel = self.setupModel(dataType=dataType,
+                                        cellID=cellID,
+                                        params=params,
+                                        synapsePositionOverride \
+                                            =synapsePositionOverride)
 
     (volt,time) = self.getData(dataType,cellID)
     
