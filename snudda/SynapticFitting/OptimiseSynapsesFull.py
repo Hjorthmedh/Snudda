@@ -1741,7 +1741,7 @@ class OptimiseSynapsesFull(object):
         # * unpacks res variable
         parSets,parError = zip(*res)
 
-        minErrorIdx = np.argSort(parError)
+        minErrorIdx = np.argsort(parError)
 
         # We save parameter set, synapse locations, error value
         bestPar = (parSet[minErrorIdx],
