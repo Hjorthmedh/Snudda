@@ -1,0 +1,3134 @@
+[
+    [
+        {
+            "dist_type": "uniform",
+            "param_name": "cm",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 1.0
+        },
+        {
+            "param_name": "v_init",
+            "type": "global",
+            "value": -80
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "e_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": -50
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "basal",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ena",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": 50.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "Ra",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 150.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "g_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 5.9882633498295136e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.0007229874244718e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ehcn_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": -25.19745157590159
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 6.979955018816212e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kcnq_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0001120859678845314
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.11097116570839721
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.09090011481229436
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0005710665233402205
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004886305862871984
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.08369043102249393
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.28643441677723236
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.10249829720726629
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004082172771163771
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.2969333579813665e-06
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.2009095187678032
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9387357780412642
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0019943987839675633
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 5.005393603988407e-05
+        },
+        {
+            "param_name": "celsius",
+            "type": "global",
+            "value": 35
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kir2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.768881540338973
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9399483850617925
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9399483850617925
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.0142193290773742
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.0243744961568118
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.1934047026059507
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.1934047026059507
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9212560778267801
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9212560778267801
+        }
+    ],
+    [
+        {
+            "dist_type": "uniform",
+            "param_name": "cm",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 1.0
+        },
+        {
+            "param_name": "v_init",
+            "type": "global",
+            "value": -80
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "e_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": -50
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "basal",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ena",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": 50.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "Ra",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 150.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "g_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 5.9882633498295136e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.0007229874244718e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ehcn_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": -25.19745157590159
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 6.979955018816212e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kcnq_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0001120859678845314
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.11097116570839721
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.09090011481229436
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0005710665233402205
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004886305862871984
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.08369043102249393
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.28643441677723236
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.10249829720726629
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004082172771163771
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.2969333579813665e-06
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.2009095187678032
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9387357780412642
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0019943987839675633
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 5.005393603988407e-05
+        },
+        {
+            "param_name": "celsius",
+            "type": "global",
+            "value": 35
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kir2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7327973726140679
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9771707466470568
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9771707466470568
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.8679477646801439
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.004108649379824
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.1139964484977747
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.1139964484977747
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7883368648748352
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.7883368648748352
+        }
+    ],
+    [
+        {
+            "dist_type": "uniform",
+            "param_name": "cm",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 1.0
+        },
+        {
+            "param_name": "v_init",
+            "type": "global",
+            "value": -80
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "e_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": -50
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "basal",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ena",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": 50.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "Ra",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 150.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "g_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 5.9882633498295136e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.0007229874244718e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ehcn_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": -25.19745157590159
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 6.979955018816212e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kcnq_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0001120859678845314
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.11097116570839721
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.09090011481229436
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0005710665233402205
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004886305862871984
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.08369043102249393
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.28643441677723236
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.10249829720726629
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004082172771163771
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.2969333579813665e-06
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.2009095187678032
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9387357780412642
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0019943987839675633
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 5.005393603988407e-05
+        },
+        {
+            "param_name": "celsius",
+            "type": "global",
+            "value": 35
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kir2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.807275240428487
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9231576390166506
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9231576390166506
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.994240304614221
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.0180062188102743
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.168114109974943
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.168114109974943
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.6932159117979889
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.6932159117979889
+        }
+    ],
+    [
+        {
+            "dist_type": "uniform",
+            "param_name": "cm",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 1.0
+        },
+        {
+            "param_name": "v_init",
+            "type": "global",
+            "value": -80
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "e_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": -50
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "basal",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ena",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": 50.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "Ra",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 150.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "g_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 5.9882633498295136e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.0007229874244718e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ehcn_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": -25.19745157590159
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 6.979955018816212e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kcnq_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0001120859678845314
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.11097116570839721
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.09090011481229436
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0005710665233402205
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004886305862871984
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.08369043102249393
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.28643441677723236
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.10249829720726629
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004082172771163771
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.2969333579813665e-06
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.2009095187678032
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9387357780412642
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0019943987839675633
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 5.005393603988407e-05
+        },
+        {
+            "param_name": "celsius",
+            "type": "global",
+            "value": 35
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kir2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7467477328408368
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9492335130535621
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9492335130535621
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9602839295189254
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9261061396637668
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.0904345521735075
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.0904345521735075
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9607106240910221
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9607106240910221
+        }
+    ],
+    [
+        {
+            "dist_type": "uniform",
+            "param_name": "cm",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 1.0
+        },
+        {
+            "param_name": "v_init",
+            "type": "global",
+            "value": -80
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "e_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": -50
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "basal",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ena",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": 50.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "Ra",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 150.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "g_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 5.9882633498295136e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.0007229874244718e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ehcn_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": -25.19745157590159
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 6.979955018816212e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kcnq_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0001120859678845314
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.11097116570839721
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.09090011481229436
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0005710665233402205
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004886305862871984
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.08369043102249393
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.28643441677723236
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.10249829720726629
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004082172771163771
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.2969333579813665e-06
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.2009095187678032
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9387357780412642
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0019943987839675633
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 5.005393603988407e-05
+        },
+        {
+            "param_name": "celsius",
+            "type": "global",
+            "value": 35
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kir2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7688716223349734
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9558617899477261
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9558617899477261
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.8174901042535025
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9735501169779321
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9669374422151893
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9669374422151893
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9341464510194492
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9341464510194492
+        }
+    ],
+    [
+        {
+            "dist_type": "uniform",
+            "param_name": "cm",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 1.0
+        },
+        {
+            "param_name": "v_init",
+            "type": "global",
+            "value": -80
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "e_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": -50
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "basal",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ena",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": 50.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "Ra",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 150.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "g_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 5.9882633498295136e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.0007229874244718e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ehcn_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": -25.19745157590159
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 6.979955018816212e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kcnq_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0001120859678845314
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.11097116570839721
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.09090011481229436
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0005710665233402205
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004886305862871984
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.08369043102249393
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.28643441677723236
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.10249829720726629
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004082172771163771
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.2969333579813665e-06
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.2009095187678032
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9387357780412642
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0019943987839675633
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 5.005393603988407e-05
+        },
+        {
+            "param_name": "celsius",
+            "type": "global",
+            "value": 35
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kir2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7225308416132084
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.8940449519102055
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.8940449519102055
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.8274073487922445
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.975902770714391
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.1205812869195633
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.1205812869195633
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.8135488284525644
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.8135488284525644
+        }
+    ],
+    [
+        {
+            "dist_type": "uniform",
+            "param_name": "cm",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 1.0
+        },
+        {
+            "param_name": "v_init",
+            "type": "global",
+            "value": -80
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "e_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": -50
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "basal",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ena",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": 50.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "Ra",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 150.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "g_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 5.9882633498295136e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.0007229874244718e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ehcn_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": -25.19745157590159
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 6.979955018816212e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kcnq_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0001120859678845314
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.11097116570839721
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.09090011481229436
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0005710665233402205
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004886305862871984
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.08369043102249393
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.28643441677723236
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.10249829720726629
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004082172771163771
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.2969333579813665e-06
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.2009095187678032
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9387357780412642
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0019943987839675633
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 5.005393603988407e-05
+        },
+        {
+            "param_name": "celsius",
+            "type": "global",
+            "value": 35
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kir2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7264895699439099
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9071592698626256
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9071592698626256
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.8012580122470937
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.0073506292715073
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.1174236557855544
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.1174236557855544
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9083489592557812
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9083489592557812
+        }
+    ],
+    [
+        {
+            "dist_type": "uniform",
+            "param_name": "cm",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 1.0
+        },
+        {
+            "param_name": "v_init",
+            "type": "global",
+            "value": -80
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "e_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": -50
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "basal",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ena",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": 50.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "Ra",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 150.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "g_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 5.9882633498295136e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.0007229874244718e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ehcn_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": -25.19745157590159
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 6.979955018816212e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kcnq_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0001120859678845314
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.11097116570839721
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.09090011481229436
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0005710665233402205
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004886305862871984
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.08369043102249393
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.28643441677723236
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.10249829720726629
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004082172771163771
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.2969333579813665e-06
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.2009095187678032
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9387357780412642
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0019943987839675633
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 5.005393603988407e-05
+        },
+        {
+            "param_name": "celsius",
+            "type": "global",
+            "value": 35
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kir2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7335512461300168
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9488416532419981
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9488416532419981
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.0227738818290897
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9387446754395982
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.1424225672973236
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.1424225672973236
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.8522066878130832
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.8522066878130832
+        }
+    ],
+    [
+        {
+            "dist_type": "uniform",
+            "param_name": "cm",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 1.0
+        },
+        {
+            "param_name": "v_init",
+            "type": "global",
+            "value": -80
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "e_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": -50
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "basal",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ena",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": 50.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "Ra",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 150.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "g_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 5.9882633498295136e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.0007229874244718e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ehcn_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": -25.19745157590159
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 6.979955018816212e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kcnq_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0001120859678845314
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.11097116570839721
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.09090011481229436
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0005710665233402205
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004886305862871984
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.08369043102249393
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.28643441677723236
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.10249829720726629
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004082172771163771
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.2969333579813665e-06
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.2009095187678032
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9387357780412642
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0019943987839675633
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 5.005393603988407e-05
+        },
+        {
+            "param_name": "celsius",
+            "type": "global",
+            "value": 35
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kir2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7348708019578756
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.8976762120833998
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.8976762120833998
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.8197530728270073
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9921753095304301
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.1516461538386709
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.1516461538386709
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7823237829410034
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.7823237829410034
+        }
+    ],
+    [
+        {
+            "dist_type": "uniform",
+            "param_name": "cm",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 1.0
+        },
+        {
+            "param_name": "v_init",
+            "type": "global",
+            "value": -80
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "e_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": -50
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "basal",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ena",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": 50.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "Ra",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 150.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "g_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 5.9882633498295136e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.0007229874244718e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ehcn_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": -25.19745157590159
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 6.979955018816212e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kcnq_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0001120859678845314
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.11097116570839721
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.09090011481229436
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0005710665233402205
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004886305862871984
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.08369043102249393
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.28643441677723236
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.10249829720726629
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004082172771163771
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.2969333579813665e-06
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.2009095187678032
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9387357780412642
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0019943987839675633
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 5.005393603988407e-05
+        },
+        {
+            "param_name": "celsius",
+            "type": "global",
+            "value": 35
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kir2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.8440263010125586
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.950818587547796
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.950818587547796
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.8720362000191099
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9934895952045586
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.1602553674317722
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.1602553674317722
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.8553833028582574
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.8553833028582574
+        }
+    ],
+    [
+        {
+            "dist_type": "uniform",
+            "param_name": "cm",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 1.0
+        },
+        {
+            "param_name": "v_init",
+            "type": "global",
+            "value": -80
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "e_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": -50
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "basal",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ena",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": 50.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "Ra",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 150.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "g_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 5.9882633498295136e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.0007229874244718e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ehcn_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": -25.19745157590159
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 6.979955018816212e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kcnq_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0001120859678845314
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.11097116570839721
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.09090011481229436
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0005710665233402205
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004886305862871984
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.08369043102249393
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.28643441677723236
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.10249829720726629
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004082172771163771
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.2969333579813665e-06
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.2009095187678032
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9387357780412642
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0019943987839675633
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 5.005393603988407e-05
+        },
+        {
+            "param_name": "celsius",
+            "type": "global",
+            "value": 35
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kir2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7944456582876045
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9925670484045264
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9925670484045264
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.8325154842361974
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.0200666783849537
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.1081007587254201
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.1081007587254201
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.6858381292016912
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.6858381292016912
+        }
+    ],
+    [
+        {
+            "dist_type": "uniform",
+            "param_name": "cm",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 1.0
+        },
+        {
+            "param_name": "v_init",
+            "type": "global",
+            "value": -80
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "e_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": -50
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "basal",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ek",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": -105
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ena",
+            "sectionlist": "somatic",
+            "type": "section",
+            "value": 50.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "Ra",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 150.0
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "g_pas",
+            "sectionlist": "all",
+            "type": "section",
+            "value": 5.9882633498295136e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.0007229874244718e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "ehcn_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": -25.19745157590159
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 6.979955018816212e-05
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kcnq_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0001120859678845314
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.11097116570839721
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.09090011481229436
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0005710665233402205
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004886305862871984
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.08369043102249393
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.28643441677723236
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.10249829720726629
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.0004082172771163771
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.2969333579813665e-06
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_bk_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.2009095187678032
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_sk_ms",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9387357780412642
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cal_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.0019943987839675633
+        },
+        {
+            "dist_type": "uniform",
+            "param_name": "gbar_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 5.005393603988407e-05
+        },
+        {
+            "param_name": "celsius",
+            "type": "global",
+            "value": 35
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kir2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kir2_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7105877283443692
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9513698831087374
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "hcn12_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_hcn12_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.9513698831087374
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na2_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na2_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9416982162909164
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "na_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_na_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.9117222541291858
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 1.173523101535608
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kv4_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_kv4_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 1.173523101535608
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.643394733124624
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "cap_ch",
+            "mech_param": "maxMod",
+            "param_name": "maxMod_cap_ch",
+            "sectionlist": "soma",
+            "type": "range",
+            "value": 0.643394733124624
+        }
+    ]
+]
