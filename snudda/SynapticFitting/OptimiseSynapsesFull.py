@@ -75,7 +75,7 @@ class OptimiseSynapsesFull(object):
 
   # optMethod not used anymore, potentially allow user to set sobol or refine
   
-  def __init__(self, fileName, synapseType="glut",loadCache=False,
+  def __init__(self, fileName, synapseType="glut",loadCache=True,
                role="master",dView=None,verbose=True,logFileName=None,
                optMethod="sobol",prettyPlot=False,
                neuronSetFile="neuronSet.json"):
@@ -242,7 +242,7 @@ class OptimiseSynapsesFull(object):
   def getData(self,dataType,cellID=None):
 
     if(cellID is None):
-      data = self.hFile[dataType].value.copy()
+      data = self.hFile[dataType][()].copy()
     else:
       data = self.hFile[dataType][:,cellID].copy()
  
@@ -357,19 +357,31 @@ class OptimiseSynapsesFull(object):
       self.writeLog(dataType + " " + str(cellID) + ": Nothing to plot")
       return
 
-    synapseParams,synapsePositionOverride,minError \
-      = self.getParameterCache(cellID,"synapse")    
+
+    
+    bestParams = self.getParameterCache(cellID,"param")
+    synapsePositionOverride = (self.getParameterCache(cellID,"sectionID"),
+                               self.getParameterCache(cellID,"sectionX"))
+    minError = self.getParameterCache(cellID,"error")
 
     vPlot = None
-    if(synapseParams is not None):
 
-      for p in synapseParams:
-        params[p] = synapseParams[p]
+    if(bestParams is not None):
+      U, tauR, tauF, tauRatio, cond, nmdaRatio = bestParams
+
+      params = { "nmda_ratio" : nmdaRatio,
+                 "U" : U,
+                 "tauR" : tauR,
+                 "tauF" : tauF,
+                 "cond" : cond,
+                 "tau" : tauR * tauRatio}
+    
+    
 
       plotModel = self.setupModel(dataType=dataType,
                                   cellID=cellID,
                                   params=params,
-                                synapsePositionOverride=synapsePositionOverride)
+                                  synapsePositionOverride=synapsePositionOverride)
     
       (tPlot,vPlot,iPlot) = plotModel.run2(pars=params)
 
@@ -1494,7 +1506,7 @@ class OptimiseSynapsesFull(object):
                 tPeak,hPeak,
                 modelBounds,
                 smoothExpTrace8, smoothExpTrace9,
-                nTrials=1000,loadParamsFlag=False,
+                nTrials=6,loadParamsFlag=False,
                 parameterSets = None,
                 returnMinError=False):
 
@@ -1665,7 +1677,7 @@ class OptimiseSynapsesFull(object):
   ############################################################################
 
   def parallelOptimiseSingleCell(self,dataType,cellID,nTrials=10000, \
-                                 postOpt=True):
+                                 postOpt=False):
 
     # !!! Future improvement. Allow continuation of old optimisation by
     # reading synapse location and old parameter set, so that is not thrown away
@@ -1726,6 +1738,7 @@ class OptimiseSynapsesFull(object):
                                      cellID=cellID, \
                                      tPeak = stimTime, \
                                      hPeak = peakHeight, \
+                                     parameterSets=parameterPoints, \
                                      modelBounds=modelBounds, \
                                      smoothExpTrace8=ly.smoothExpVolt8, \
                                      smoothExpTrace9=ly.smoothExpVolt9, \
@@ -1743,10 +1756,13 @@ class OptimiseSynapsesFull(object):
 
         minErrorIdx = np.argsort(parError)
 
+        import pdb
+        pdb.set_trace()
+        
         # We save parameter set, synapse locations, error value
-        bestPar = (parSet[minErrorIdx],
+        bestPar = (parSets[minErrorIdx[0]],
                    (synapseModel.synapseSectionID,synapseModel.synapseSectionX),
-                   parError[minErrorIdx])
+                   parError[minErrorIdx[0]])
 
         
       else:
@@ -2224,5 +2240,5 @@ if __name__ == "__main__":
     allCellID = self.getValidCellID("GBZ_CC_H20")
     
   for cellID in allCellID:
-    ly.parallelOptimiseSingleCell("GBZ_CC_H20", cellID)
+    ly.parallelOptimiseSingleCell("GBZ_CC_H20", cellID, nTrials=12)
 
