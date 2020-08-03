@@ -849,8 +849,8 @@ class SnuddaInit(object):
                          conductance=MSD1gGABA,
                          parameterFile=pfdSPNiSPN,
                          modFile="tmGabaA",
-                         channelParamDictionary={"tau1" : 1.3e-3,
-                                                 "tau2" : 12.4e-3,
+                         channelParamDictionary={"tau1" : (1.3e-3,1e3),
+                                                 "tau2" : (12.4e-3,1e3),
                                                  "failRate" : MSD1GABAfailRate})
 
     # Doig, Magill, Apicella, Bolam, Sharott 2014:
@@ -938,8 +938,8 @@ class SnuddaInit(object):
                          conductance=MSD2gGABA,
                          parameterFile=pfiSPNiSPN,
                          modFile="tmGabaA",
-                         channelParamDictionary={"tau1" : 1.3e-3,
-                                                 "tau2" : 12.4e-3,
+                         channelParamDictionary={"tau1" : (1.3e-3,1e3),
+                                                 "tau2" : (12.4e-3,1e3),
                                                  "failRate" : MSD2GABAfailRate})
 
 
