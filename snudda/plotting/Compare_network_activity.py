@@ -67,7 +67,8 @@ class CompareNetwork(object):
     else:
       self.networkInfos = None
       self.networkFiles = None
-
+    #self.sortTraces()
+    print('doing it')
     self.plotColourRaster(skipTime=skipTime,typeOrder=typeOrder)
 
     '''  
@@ -156,6 +157,7 @@ class CompareNetwork(object):
         
       endTime = np.max([self.endTime,np.max(time)])
       for t in typeOrder:
+        print('plotting')
         if t in cellTypeactivity.keys():
           cellTypeactivity[t].append(neo.SpikeTrain([time[int(i)]-skipTime for i in tIdx if i in typedict[t]]*pq.s,t_stop=endTime))
 
@@ -169,7 +171,7 @@ class CompareNetwork(object):
         axis[neuronName].set_ylim([0,np.max(moving_averages)*1.25])
         axis[neuronName].legend()
 
-    plt.show()
+    
     figPath = os.path.dirname(self.networkFiles[ctr]) + "/figs"
     if(not os.path.exists(figPath)):
       os.makedirs(figPath)
@@ -178,7 +180,7 @@ class CompareNetwork(object):
     fn = os.path.basename(self.fileNames[ctr])
     figName = '{}/{}{}'.format(figPath, fn.split('.')[0], '-colour.svg')
     print("Saving " + figName)
-    #plt.savefig(figName,dpi=600)    
+    plt.savefig(figName,dpi=600)    
 
    ############################################################################
 
