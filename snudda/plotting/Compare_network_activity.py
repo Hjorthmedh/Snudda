@@ -67,7 +67,7 @@ class CompareNetwork(object):
     else:
       self.networkInfos = None
       self.networkFiles = None
-
+      
     self.plotColourRaster(skipTime=skipTime,typeOrder=typeOrder)
 
     '''  
@@ -134,32 +134,41 @@ class CompareNetwork(object):
         plotIdx,tickPos,tickText,typedict = self.sortTraces(typeOrder=typeOrder,networkInfo=networkInfo,spikeID=spikeID) # add Networkinfo extra
       else:
         tickPos,tickText = None,None
-
+      
       plotLookup = self.makePlotLookup(plotIdx)
 
-
+      dicttype = typedict
 
       cellTypes = [n["name"].split("_")[0] \
                      for n in networkInfo.data["neurons"]]
 
-      cols = [colours[c] for c in cellTypes]
+      #cols = [colours[c] for c in cellTypes]
 
     
       tIdx = np.where(time >= skipTime)[0]
 
-      
-        
-      cols2 = [colours[cellTypes[int(s)]] for s in spikeID]
+              
+      #cols2 = [colours[cellTypes[int(s)]] for s in spikeID]
 
       cellTypeactivity = dict.fromkeys(self.CompareNeuronType,list())
 
         
       endTime = np.max([self.endTime,np.max(time)])
       for t in typeOrder:
+        print(t)
         if t in cellTypeactivity.keys():
-          cellTypeactivity[t].append(neo.SpikeTrain([time[int(i)]-skipTime for i in tIdx if i in typedict[t]]*pq.s,t_stop=endTime))
-
+          
+          spike_train = list()
+          #for i in tIdx:
+          for i in range(10):
+            if i in dicttype[t]:
+              print(i)
+              spike_train.append(time[int(i)]-skipTime)
+          print(t)
+          cellTypeactivity[t].append(neo.SpikeTrain(spike_train*pq.s,t_stop=endTime)) 
+      print('added')
       for neuronName, activity in cellTypeactivity.items():
+        
         populationCount = elephant.statistics.time_histogram(activity, binsize,output='rate')
         number_series = pd.Series(np.transpose(populationCount)[0])
         windows = number_series.rolling(5)
@@ -169,7 +178,7 @@ class CompareNetwork(object):
         axis[neuronName].set_ylim([0,np.max(moving_averages)*1.25])
         axis[neuronName].legend()
 
-    plt.show()
+    #plt.show()
     figPath = os.path.dirname(self.networkFiles[ctr]) + "/figs"
     if(not os.path.exists(figPath)):
       os.makedirs(figPath)
@@ -178,7 +187,7 @@ class CompareNetwork(object):
     fn = os.path.basename(self.fileNames[ctr])
     figName = '{}/{}{}'.format(figPath, fn.split('.')[0], '-colour.svg')
     print("Saving " + figName)
-    #plt.savefig(figName,dpi=600)    
+    plt.savefig(figName,dpi=600)    
 
    ############################################################################
 
@@ -188,7 +197,7 @@ class CompareNetwork(object):
     print("Sort the traces")
 
     allTypes = [x["type"] for x in networkInfo.data["neurons"]]
-
+    
     if(typeOrder is None):
       typeOrder = np.unique(allTypes)
 
@@ -200,7 +209,7 @@ class CompareNetwork(object):
     typedict = {'order':typeOrder}
     for t in typeOrder:
         typedict[t] = [ i for i,x in enumerate(spikeID) if allTypes[x] == t]
-    
+   
     prevPos = 0
     tickPos = []
     tickText = []
