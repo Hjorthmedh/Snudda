@@ -184,8 +184,8 @@ class ComparePlotTraces():
           traceChosen.append(elephant.spike_train_generation.threshold_detection(neo.AnalogSignal(self.voltage[ctr][r][timeIdx] + ofs, units='mV',sampling_period = 0.5 * pq.ms),threshold = 0 *pq.mV))
 
           ofs += offset
-        import pdb
-        pdb.set_trace()
+        #import pdb
+        #pdb.set_trace()
         binsize = 10 * pq.ms 
         populationCount = elephant.statistics.time_histogram(traceChosen, binsize,output='rate')
         number_series = pd.Series(np.transpose(populationCount)[0])
@@ -196,8 +196,8 @@ class ComparePlotTraces():
         #plt.ylim([0,np.max(moving_averages)*1.25])
         plt.legend()
 
-    import pdb
-    pdb.set_trace()
+    #import pdb
+    #pdb.set_trace()
       
     plt.xlabel('Time')
     plt.ylabel('Voltage')
@@ -213,7 +213,7 @@ class ComparePlotTraces():
     #plt.show()
    
 
-    #plt.savefig('figures/Network-spikes-' + str(self.ID) + "-colour.pdf")
+    plt.savefig('figures/Network-spikes-' + str(self.ID) + "-colour.pdf")
 
     figPath = os.path.dirname(self.networkFiles) + "/figs"
     if(not os.path.exists(figPath)):

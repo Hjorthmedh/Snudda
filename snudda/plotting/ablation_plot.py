@@ -2,7 +2,7 @@ from snudda.plotting.compare_frequency_activity import ComparePlotTraces
 
 fileNames = ['/afs/pdc.kth.se/home/j/jofn/Snudda/networks/TegnerRun.895338/simulation/volt-LTS-ablation.csv','/afs/pdc.kth.se/home/j/jofn/Snudda/networks/TegnerRun.895338/simulation/volt-FS-ablation.csv','/afs/pdc.kth.se/home/j/jofn/Snudda/networks/TegnerRun.895338/simulation/volt-SPN-ablation.csv','/afs/pdc.kth.se/home/j/jofn/Snudda/networks/TegnerRun.895338/simulation/volt-fullnetwork.csv']
 
-networkFiles = '/afs/pdc.kth.se/home/j/jofn/Snudda/networks/TegnerRun.895338/network-pruned-synapses.hdf5'
+networkFile = '/afs/pdc.kth.se/home/j/jofn/Snudda/networks/TegnerRun.895338/network-pruned-synapses.hdf5'
 
 plotLabels = ['LTS ablation', 'FS ablation', 'SPN ablation', 'Full network']
 
