@@ -194,7 +194,7 @@ class ComparePlotTraces():
         plt.figure(1)
         plt.step(np.arange(len(moving_averages)),np.array(moving_averages),label=self.fileNames[ctr])
         #plt.ylim([0,np.max(moving_averages)*1.25])
-        plt.legend()
+        #plt.legend()
 
     #import pdb
     #pdb.set_trace()
@@ -213,7 +213,7 @@ class ComparePlotTraces():
     #plt.show()
    
 
-    plt.savefig('figures/Network-spikes-' + str(self.ID) + "-colour.pdf")
+    plt.savefig('Network-spikes-' + str(self.ID) + "-colour.svg")
 
     figPath = os.path.dirname(self.networkFiles) + "/figs"
     if(not os.path.exists(figPath)):

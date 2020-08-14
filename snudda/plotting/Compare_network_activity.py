@@ -160,11 +160,7 @@ class CompareNetwork(object):
         
       endTime = np.max([self.endTime,np.max(time)])
       for t in typeOrder:
-<<<<<<< HEAD
-        print(t)
-=======
-        print('plotting')
->>>>>>> a8d3d89c4afb3039362d14f9602429d6913aab16
+
         if t in cellTypeactivity.keys():
           
           spike_train = list()
@@ -187,11 +183,7 @@ class CompareNetwork(object):
         axis[neuronName].set_ylim([0,np.max(moving_averages)*1.25])
         axis[neuronName].legend()
 
-<<<<<<< HEAD
-    #plt.show()
-=======
-    
->>>>>>> a8d3d89c4afb3039362d14f9602429d6913aab16
+
     figPath = os.path.dirname(self.networkFiles[ctr]) + "/figs"
     if(not os.path.exists(figPath)):
       os.makedirs(figPath)
