@@ -189,7 +189,7 @@ class ComparePlotTraces():
         binsize = 10 * pq.ms 
         populationCount = elephant.statistics.time_histogram(traceChosen, binsize,output='rate')
         number_series = pd.Series(np.transpose(populationCount)[0])
-        windows = number_series.rolling(5)
+        windows = number_series.rolling(5).dropna()
         moving_averages = windows.mean().dropna()
         plt.figure(1)
         plt.step(np.arange(len(moving_averages)),np.array(moving_averages),label=self.fileNames[ctr])
