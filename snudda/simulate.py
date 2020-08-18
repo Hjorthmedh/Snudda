@@ -917,6 +917,7 @@ class SnuddaSimulate(object):
           # for SI -> natural units conversion
           val = parSet[par]
           
+          
           # Do we need to convert from SI to natural units?
           if(type(val) == tuple or type(val) == list):
              val = val[0] * val[1]
