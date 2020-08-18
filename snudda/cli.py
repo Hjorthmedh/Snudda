@@ -41,10 +41,23 @@ def snudda_cli():
       
       '''
       parser.add_argument("--disableConnection",default=None,
-                          help="Disable gap junctions")
+                          help="Disable Connections")
 
 
       ################################################################
+
+
+      ### For Recording specific point processes and their range parameters ####
+
+
+      parser.add_argument("--recordPointProcess",default=None,
+                          help="Record point processes")
+
+      parser.add_argument("--recordGapJunctions",default=None,
+                          help="Record gap junctions")
+
+
+      ####################################################
       
       #parser.add_argument("--ncores", default=12,
       #                    help="Number of cores used for simulation")

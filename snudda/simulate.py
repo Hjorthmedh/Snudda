@@ -101,6 +101,10 @@ class SnuddaSimulate(object):
     
     self.synapseTypeLookup = { 1 : "GABA", 2: "AMPA_NMDA", 3: "GapJunction" }
 
+    # Record pointprocess
+
+    self.recordPointProcessDict = dict()
+    
     self.neurons = {}
     self.sim = None
     self.neuronNodes = []
@@ -678,9 +682,12 @@ class SnuddaSimulate(object):
     segXB = self.gapJunctions[GJidxB,5] / 1000.0
 
     # Since we had ints we stored pS, but Neuron wants microsiemens
+   
+    #condA = self.gapJunctions[GJidxA,10] * 1e-6
+    #condB = self.gapJunctions[GJidxB,10] * 1e-6
+
     condA = self.gapJunctions[GJidxA,10] * 1e-6
     condB = self.gapJunctions[GJidxB,10] * 1e-6
-
     # Merge the two lists together
 
     GJidx = np.concatenate([GJidxA,GJidxB])
@@ -1005,8 +1012,11 @@ class SnuddaSimulate(object):
     # --- ok can replicate error if create 200 FS in small volume...
     # --- need to fix. HMMM how, src and dest gid has to be unique for each GJ?
     self.pc.source_var(section(sectionDist)._ref_v, GIDsourceGJ,sec=section)
-
-    GJ.g = gGapJunction
+    
+    import pdb
+    pdb.set_trace()
+    
+    GJ.g = gGapJunction*1e-3
     #print("Setting conductance: " + str(GJ.g))
 
 
@@ -1901,6 +1911,69 @@ class SnuddaSimulate(object):
         for sec in comp:
           self.setDopamineModulation(sec,transientVector)
 
+
+  ###########################################################################
+
+  def recordGapjunctions(self, gapjunction):
+
+    
+    for gapJunction in self.gapJunctionList:
+      for variableRecord in pointprocess[2]:
+        gapSave = self.sim.neuron.h.Vector()
+        gapSave.record(getattr(gapJunction,"_ref_"+variableRecord))
+
+        self.recordPointProcessDict.update({"_".join([neuronType,str(gapJunction.get_segment()),variableRecord]) : gapSave })
+        
+
+  def recordPointProcesses(self,pointprocess):
+
+    neuronType = pointprocess[0]
+    
+    
+    for syn in self.synapseList:
+     
+      if neuronType in str(syn.get_segment()) and pointprocess[1] in str(syn):
+
+        for variableRecord in pointprocess[2]:
+         
+          ppSave = self.sim.neuron.h.Vector()
+          ppSave.record(getattr(syn,"_ref_"+variableRecord))
+
+          self.recordPointProcessDict.update({"_".join([neuronType,str(syn.get_segment()),variableRecord]) : ppSave })
+        
+        
+   
+          
+          
+
+          
+  def saveDict(self,saveType):
+
+    saveDir = os.path.basename(self.networkFile) + "/recorded_parameters/"
+
+    if(not os.path.exists(saveDir)):
+      print("Creating directory " + saveDir)
+      os.makedirs(saveDir, exist_ok=True)
+
+    
+    if "gapJunction" in saveType:
+      for keys in self.recordPointProcessDict.keys():
+        self.recordPointProcessDict[keys]=list(self.recordPointProcessDict[keys])
+        
+      gapJunctionDir = saveDir + "gapJunctionRecorded.json"
+      with open(gapJunctionDir,"w") as f:
+        print("Writing to file: " + str(gapJunctionDir))
+        json.dump(self.recordPointProcessDict,f)
+
+    elif "pointprocess" in saveType:
+      for keys in self.recordPointProcessDict.keys():
+        self.recordPointProcessDict[keys]=list(self.recordPointProcessDict[keys])
+        
+      ppDir = saveDir + "pointprocess.json"
+      with open(ppDir,"w") as f:
+        print("Writing to file: " + str(ppDir))
+        json.dump(self.recordPointProcessDict,f)
+      
   ############################################################################
 
   def getPath(self,pathStr):

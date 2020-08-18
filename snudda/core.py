@@ -436,6 +436,9 @@ class Snudda(object):
     if(args.disableConnection is not None):
       
       removeConnection = eval(args.disableConnection)
+
+    else:
+      removeConnection = list()
       
     sim = SnuddaSimulate(networkFile=networkFile,
                          inputFile=inputFile,
@@ -448,6 +451,21 @@ class Snudda(object):
     sim.addExternalInput()
     sim.checkMemoryStatus()
 
+
+    if (args.recordGapJunctions is not None):
+
+      recordGJ = eval(args.recordGapJunctions)
+      for GJSpec in recordGJ:
+        sim.recordGapjunctions(GJSpec)
+
+
+    if (args.recordPointProcess is not None):
+
+      recordTheseProcesses = eval(args.recordPointProcess)
+
+      for pointProcessSpec in recordTheseProcesses:
+        sim.recordPointProcesses(pointProcessSpec)
+      
     if(voltFile is not None):
       sim.addRecording(sideLen=None) # Side len let you record from a subset
       #sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
@@ -461,7 +479,13 @@ class Snudda(object):
     print("Simulation done, saving output")
     if(spikesFile is not None):
       sim.writeSpikes(spikesFile)
-    
+
+    if (args.recordPointProcess is not None):
+      sim.saveDict(saveType="pointprocess")
+      
+    if (args.recordGapJunctions is not None):
+      sim.saveDict(saveType="gapJunction")
+      
     if(voltFile is not None):
       sim.writeVoltage(voltFile)
 
