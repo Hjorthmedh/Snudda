@@ -645,11 +645,11 @@ class SnuddaSimulate(object):
 
     # GJIDoffset = self.network_info["GJIDoffset"]
     GJIDoffset = 100*self.nNeurons
-    GJGIDsrcA = GJIDoffset + 4*GJidxA
-    GJGIDsrcB = GJIDoffset + 4*GJidxB+1
+    GJGIDsrcA = GJIDoffset + 2*GJidxA
+    GJGIDsrcB = GJIDoffset + 2*GJidxB+1
 
-    GJGIDdestA = GJIDoffset + 4*GJidxA + 1#+2 # +1
-    GJGIDdestB = GJIDoffset + 4*GJidxB + 0 #+3 # +0
+    GJGIDdestA = GJIDoffset + 2*GJidxA + 1
+    GJGIDdestB = GJIDoffset + 2*GJidxB + 0
 
     neuronIDA = self.gapJunctions[GJidxA,0]
     neuronIDB = self.gapJunctions[GJidxB,1]
