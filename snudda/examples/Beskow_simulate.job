@@ -7,6 +7,7 @@
 #SBATCH -e save/error-snudda_simulate.e%j
 #SBATCH --nodes=7-15
 #SBATCH --ntasks-per-node=32
+#SBATCH --mail-type=ALL
 
 # 16 workers were too few, got section stack overflow (there is a hidden
 # push to the stack somewhere in the neuron code)
@@ -16,7 +17,7 @@ HOME=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda
 
 # Synapse file
 SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
-NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.895338
+NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.900154
 NETWORK_INFO_FILE=$NETWORK_DIR/network-pruned-synapses.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 
