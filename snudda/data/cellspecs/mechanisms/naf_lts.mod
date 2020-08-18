@@ -18,11 +18,11 @@ where:
 ENDCOMMENT
 
 NEURON {
-    SUFFIX naf_ms_mod
+    SUFFIX naf_lts
     USEION na READ ena WRITE ina
     RANGE gbar, gna, ina
-    RANGE  maxMod
-    POINTER damod					    
+    RANGE maxMod
+
 }
 
 UNITS {
@@ -54,7 +54,7 @@ STATE { m h }
 
 BREAKPOINT {
     SOLVE states METHOD cnexp
-    gna = gbar*m*m*m*h*modulation()
+    gna = gbar*m*m*m*h
     ina = gna*(v-ena)
 }
 
@@ -83,11 +83,6 @@ PROCEDURE rates() {
     UNITSON
 }
 
-FUNCTION modulation() {
-    : returns modulation factor
-    
-    modulation = 1 + damod*(maxMod-1)
-}
 
 COMMENT
 

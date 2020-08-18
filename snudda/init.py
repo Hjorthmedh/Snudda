@@ -712,8 +712,8 @@ class SnuddaInit(object):
                          conductance=FSgGABA,
                          parameterFile=pfFSFS,
                          modFile="tmGabaA",
-                         channelParamDictionary={"tau1" : 1.33e-3,
-                                                 "tau2" : 5.7e-3 })
+                         channelParamDictionary={"tau1" : (1.33e-3,1e3),
+                                                 "tau2" : (5.7e-3,1e3) })
     # !!! Double check that channelParamDictionary works, and SI units gets
     # converted to natural units
 
@@ -725,8 +725,8 @@ class SnuddaInit(object):
                          conductance=FSgGABA,
                          parameterFile=pfFSdSPN,
                          modFile="tmGabaA",
-                         channelParamDictionary={"tau1" : 1.2e-3,
-                                                 "tau2" : 8e-3 })
+                         channelParamDictionary={"tau1" : (1.2e-3,1e3),
+                                                 "tau2" : (8e-3,1e3) })
 
     self.addNeuronTarget(neuronName="FSN",
                          targetName="iSPN",
@@ -736,8 +736,8 @@ class SnuddaInit(object):
                          conductance=FSgGABA,
                          parameterFile=pfFSiSPN,
                          modFile="tmGabaA",
-                         channelParamDictionary={"tau1" : 1.2e-3,
-                                                 "tau2" : 8e-3 })
+                         channelParamDictionary={"tau1" : (1.2e-3,1e3),
+                                                 "tau2" : (8e-3,1e3) })
 
     self.addNeuronTarget(neuronName="FSN",
                          targetName="LTS",
@@ -834,8 +834,8 @@ class SnuddaInit(object):
                          conductance=MSD1gGABA,
                          parameterFile=pfdSPNdSPN,
                          modFile="tmGabaA",
-                         channelParamDictionary={"tau1" : 1.3e-3,
-                                                 "tau2" : 12.4e-3,
+                         channelParamDictionary={"tau1" : (1.3e-3,1e3),
+                                                 "tau2" : (12.4e-3,1e3),
                                                  "failRate" : MSD1GABAfailRate})
 
     # old f1 = 0.15
@@ -849,8 +849,8 @@ class SnuddaInit(object):
                          conductance=MSD1gGABA,
                          parameterFile=pfdSPNiSPN,
                          modFile="tmGabaA",
-                         channelParamDictionary={"tau1" : 1.3e-3,
-                                                 "tau2" : 12.4e-3,
+                         channelParamDictionary={"tau1" : (1.3e-3,1e3),
+                                                 "tau2" : (12.4e-3,1e3),
                                                  "failRate" : MSD1GABAfailRate})
 
     # Doig, Magill, Apicella, Bolam, Sharott 2014:
@@ -923,8 +923,8 @@ class SnuddaInit(object):
                          conductance=MSD2gGABA,
                          parameterFile=pfiSPNdSPN,
                          modFile="tmGabaA",
-                         channelParamDictionary={"tau1" : 1.3e-3,
-                                                 "tau2" : 12.4e-3,
+                         channelParamDictionary={"tau1" : (1.3e-3,1e3),
+                                                 "tau2" : (12.4e-3,1e3),
                                                  "failRate" : MSD2GABAfailRate})
 
     # old f1 = 0.15
@@ -938,8 +938,8 @@ class SnuddaInit(object):
                          conductance=MSD2gGABA,
                          parameterFile=pfiSPNiSPN,
                          modFile="tmGabaA",
-                         channelParamDictionary={"tau1" : 1.3e-3,
-                                                 "tau2" : 12.4e-3,
+                         channelParamDictionary={"tau1" : (1.3e-3,1e3),
+                                                 "tau2" : (12.4e-3,1e3),
                                                  "failRate" : MSD2GABAfailRate})
 
 
@@ -1052,8 +1052,8 @@ class SnuddaInit(object):
                          conductance=LTSgGABA,
                          parameterFile=pfLTSdSPN,
                          modFile="tmGabaA",
-                         channelParamDictionary={"tau1" : 3e-3,
-                                                 "tau2" : 38e-3 })
+                         channelParamDictionary={"tau1" : (3e-3,1e3),
+                                                 "tau2" : (38e-3,1e3) })
     # LTS -> SPN, rise time 3+/-0.1 ms, decay time 38+/-3.1 ms, Straub 2016
 
     self.addNeuronTarget(neuronName="LTS",
@@ -1064,8 +1064,8 @@ class SnuddaInit(object):
                          conductance=LTSgGABA,
                          parameterFile=pfLTSiSPN,
                          modFile="tmGabaA",
-                         channelParamDictionary={"tau1" : 3e-3,
-                                                 "tau2" : 38e-3 })
+                         channelParamDictionary={"tau1" : (3e-3,1e3),
+                                                 "tau2" : (38e-3,1e3) })
 
     self.addNeuronTarget(neuronName="LTS",
                          targetName="ChIN",

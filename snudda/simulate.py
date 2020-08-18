@@ -6,7 +6,7 @@
 #
 #
 # This open source software code was developed in part or in whole in
-# the Human Brain Project, funded from the European Union’s Horizon
+# the Human Brain Project, funded from the European Union's Horizon
 # 2020 Framework Programme for Research and Innovation under Specific
 # Grant Agreements No. 720270 and No. 785907 (Human Brain Project SGA1
 # and SGA2).
@@ -661,11 +661,11 @@ class SnuddaSimulate(object):
 
     # GJIDoffset = self.network_info["GJIDoffset"]
     GJIDoffset = 100*self.nNeurons
-    GJGIDsrcA = GJIDoffset + 4*GJidxA
-    GJGIDsrcB = GJIDoffset + 4*GJidxB+1
+    GJGIDsrcA = GJIDoffset + 2*GJidxA
+    GJGIDsrcB = GJIDoffset + 2*GJidxB+1
 
-    GJGIDdestA = GJIDoffset + 4*GJidxA + 1#+2 # +1
-    GJGIDdestB = GJIDoffset + 4*GJidxB + 0 #+3 # +0
+    GJGIDdestA = GJIDoffset + 2*GJidxA + 1
+    GJGIDdestB = GJIDoffset + 2*GJidxB + 0
 
     neuronIDA = self.gapJunctions[GJidxA,0]
     neuronIDB = self.gapJunctions[GJidxB,1]
@@ -913,7 +913,15 @@ class SnuddaSimulate(object):
           continue
 
         try:
-          setattr(syn,par,parSet[par])
+          # Can be value, or a tuple/list, if so second value is scale factor
+          # for SI -> natural units conversion
+          val = parSet[par]
+          
+          # Do we need to convert from SI to natural units?
+          if(type(val) == tuple or type(val) == list):
+             val = val[0] * val[1]
+             
+          setattr(syn,par,val)
 
           #evalStr = "syn." + par + "=" + str(parSet[par])
           # self.writeLog("Updating synapse: " + evalStr)
