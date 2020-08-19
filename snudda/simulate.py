@@ -471,7 +471,7 @@ class SnuddaSimulate(object):
       #self.connectNetworkGapJunctions()
 
       self.connectNetworkGapJunctionsLOCAL()
-
+      self.pc.setup_transfer()
     self.pc.barrier()
 
   ############################################################################
