@@ -682,7 +682,8 @@ class SnuddaSimulate(object):
     segXB = self.gapJunctions[GJidxB,5] / 1000.0
 
     # Since we had ints we stored pS, but Neuron wants microsiemens
-   
+    #import pdb
+    #pdb.set_trace()
     #condA = self.gapJunctions[GJidxA,10] * 1e-6
     #condB = self.gapJunctions[GJidxB,10] * 1e-6
 
@@ -698,7 +699,8 @@ class SnuddaSimulate(object):
     compartment = np.concatenate([compartmentA,compartmentB])
     segX = np.concatenate([segXA,segXB])
     cond = np.concatenate([condA,condB])
-
+    #import pdb
+    #pdb.set_trace()
     return (neuronID,compartment,segX,GJGIDsrc,GJGIDdest,cond)
 
   ############################################################################
@@ -792,6 +794,8 @@ class SnuddaSimulate(object):
 
     destLoc = self.neurons[destID].mapIDtoCompartment(destSecID)
 
+    import pdb
+    pdb.set_trace()
     for (srcID,srcSecID,srcSecX,dstLoc,dstSecX,rowIdx) \
         in zip(sourceID,sourceSecID,sourceSecX,
                destLoc,destSecX,range(startRow,endRow)):
@@ -802,7 +806,7 @@ class SnuddaSimulate(object):
       # to avoid overlaps
       GJsrcID = rowIdx * 2 + 10*self.nNeurons
       GJdestID = GJsrcID + 1
-
+      
       print("rowIdx = " + str(rowIdx))
       print("GJsrcID = " + str(GJsrcID))
       print("GJdestID = " + str(GJdestID))
@@ -1007,25 +1011,31 @@ class SnuddaSimulate(object):
 
     # There was a bug in neuron that affected gap junctions in parallel
     # simulations -- fixed in neuron 7.7    
-
+    #import pdb
+    #pdb.set_trace()
     #self.writeLog("Adding src = " + str(GIDsourceGJ) + ", dest = " + str(GIDdestGJ))
 
     # If neuron complains, make sure you have par_ggap.mod
     GJ = h.gGapPar(section(sectionDist))
     self.gapJunctionList.append(GJ)
-
-    self.pc.target_var(GJ._ref_vgap, GIDdestGJ)
-
+    #import pdb
+    #pdb.set_trace()
+    #self.pc.target_var(GJ._ref_vgap, GIDdestGJ)
+    setattr(GJ,"vgap",-70)
+    
+    #self.pc.source_var(section(sectionDist)._ref_v, GIDsourceGJ,sec=section)
+    
+    #self.pc.target_var(GJ._ref_vgap, GIDdestGJ)
     # !!! The line below sometimes gives this error:
     # /cfs/klemming/nobackup/h/hjorth/ChINopt/model/x86_64/special: source var gid already in use: 17124416
     # --- ok can replicate error if create 200 FS in small volume...
     # --- need to fix. HMMM how, src and dest gid has to be unique for each GJ?
-    self.pc.source_var(section(sectionDist)._ref_v, GIDsourceGJ,sec=section)
     
-    import pdb
-    pdb.set_trace()
     
-    GJ.g = gGapJunction*1e-3
+    #import pdb
+    #pdb.set_trace()
+    
+    GJ.g = gGapJunction
     #print("Setting conductance: " + str(GJ.g))
 
 
@@ -1927,11 +1937,11 @@ class SnuddaSimulate(object):
 
     
     for gapJunction in self.gapJunctionList:
-      for variableRecord in pointprocess[2]:
+      for variableRecord in gapjunction[2]:
         gapSave = self.sim.neuron.h.Vector()
         gapSave.record(getattr(gapJunction,"_ref_"+variableRecord))
 
-        self.recordPointProcessDict.update({"_".join([neuronType,str(gapJunction.get_segment()),variableRecord]) : gapSave })
+        self.recordPointProcessDict.update({"_".join([gapjunction[0],str(gapJunction.get_segment()),variableRecord]) : gapSave })
         
 
   def recordPointProcesses(self,pointprocess):
