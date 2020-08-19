@@ -137,9 +137,10 @@ class SnuddaSimulate(object):
 
     self.pc = h.ParallelContext()
 
-    # self.writeLog("I am node " + str(int(self.pc.id())))
+    self.writeLog("I am node " + str(int(self.pc.id())))
 
-
+    #import pdb
+    #pdb.set_trace()
     # We need to initialise random streams, see Lytton el at 2016 (p2072)
 
     self.loadNetworkInfo(networkFile)
@@ -399,7 +400,7 @@ class SnuddaSimulate(object):
         self.virtualNeurons[ID]["name"] = name
 
         self.pc.set_gid2node(ID, int(self.pc.id()))
-
+        
         nc = h.NetCon(vs,None)
         self.pc.cell(ID,nc,1) # The 1 means broadcast spikes to other machines
 
@@ -418,7 +419,7 @@ class SnuddaSimulate(object):
 
         # Register ID as belonging to this worker node
         self.pc.set_gid2node(ID, int(self.pc.id()))
-
+        
         if(True or False):
           self.writeLog("Node " + str(int(self.pc.id())) + " - cell " \
                         + str(ID) + " " + name)
@@ -478,8 +479,11 @@ class SnuddaSimulate(object):
       #self.connectNetworkGapJunctions()
 
       self.connectNetworkGapJunctionsLOCAL()
-
+      self.setup_transfer()
+    #import pdb
+    #pdb.set_trace()
     self.pc.barrier()
+    
 
   ############################################################################
 
@@ -724,12 +728,14 @@ class SnuddaSimulate(object):
 
       for nID,comp,sX,GIDsrc,GIDdest,g \
           in zip(neuronID,compartment,segX,GJGIDsrc,GJGIDdest,cond):
-
+        #import pdb
+        #pdb.set_trace()
         self.addGapJunction(section=comp,
                             sectionDist=sX,
                             GIDsourceGJ=GIDsrc,
                             GIDdestGJ=GIDdest,
-                            gGapJunction=g)
+                            gGapJunction=g,
+                            GID=nID)
 
     except:
       import traceback
@@ -1014,16 +1020,18 @@ class SnuddaSimulate(object):
     #import pdb
     #pdb.set_trace()
     #self.writeLog("Adding src = " + str(GIDsourceGJ) + ", dest = " + str(GIDdestGJ))
-
-    # If neuron complains, make sure you have par_ggap.mod
-    GJ = h.gGapPar(section(sectionDist))
-    self.gapJunctionList.append(GJ)
     #import pdb
     #pdb.set_trace()
-    #self.pc.target_var(GJ._ref_vgap, GIDdestGJ)
-    setattr(GJ,"vgap",-70)
+    # If neuron complains, make sure you have par_ggap.mod
+    GJ = h.gGapPar(section(sectionDist),sec=section)
+    self.gapJunctionList.append(GJ)
     
-    #self.pc.source_var(section(sectionDist)._ref_v, GIDsourceGJ,sec=section)
+    #self.pc.set_gid2node(GIDdestGJ, int(self.pc.id()))
+    #self.pc.set_gid2node(GIDsourceGJ, int(self.pc.id()))
+    self.pc.target_var(GJ._ref_vgap, GIDdestGJ)
+    #setattr(GJ,"vgap",-70)
+    
+    self.pc.source_var(section(sectionDist)._ref_v, GIDsourceGJ,sec=section)
     
     #self.pc.target_var(GJ._ref_vgap, GIDdestGJ)
     # !!! The line below sometimes gives this error:
