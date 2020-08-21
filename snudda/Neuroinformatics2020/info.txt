@@ -1,0 +1,6 @@
+In the snudda directory, run:
+
+touch input.txt
+
+Neuroninformatics2020/makeRunForMethodFigsPruning.sh <input.txt &> output.txt &
+
