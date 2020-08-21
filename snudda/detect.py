@@ -1676,11 +1676,14 @@ class SnuddaDetect(object):
       
     mem = self.memory()
     self.writeLog(str(mem))
-      
-    # Make sure we do not change config file unintentionally
-    assert posInfo["configFile"] == self.configFile, \
+
+    # TEMP DISABLE CHECK, TURN BACK ON LATER
+    if(False):
+      # Make sure we do not change config file unintentionally
+      assert posInfo["configFile"] == self.configFile, \
         "Not using original config file: " \
         + str(posInfo["configFile"]) + " vs " + self.configFile
+
       
     self.neurons = posInfo["neurons"]
     nNeurons = len(self.neurons)
