@@ -1,0 +1,16 @@
+f1=0.3
+softMax=4
+mu2=2.4
+distPruning
+a3
+
+iSPN -> dSPN
+
+1. no pruning
+2. + distPruning
+3. + f1
+4. + softMax
+5. + mu2 = FULL
+
+6. + a3 = 1, so no change
+ 

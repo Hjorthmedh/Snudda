@@ -259,11 +259,11 @@ class MethodsPaperFigure2(object):
 
 if __name__ == '__main__':
 
-  files = ['examples/networks/Net10062-1/network-pruned-synapses.hdf5',
-           'examples/networks/Net10062-2/network-pruned-synapses.hdf5',
-           'examples/networks/Net10062-3/network-pruned-synapses.hdf5',
-           'examples/networks/Net10062-4/network-pruned-synapses.hdf5',
-           'examples/networks/Net10062-5/network-pruned-synapses.hdf5']
+  files = ['Neuroinformatics2020/Net10062-var-1/network-pruned-synapses.hdf5',
+           'Neuroinformatics2020/Net10062-var-2/network-pruned-synapses.hdf5',
+           'Neuroinformatics2020/Net10062-var-3/network-pruned-synapses.hdf5',
+           'Neuroinformatics2020/Net10062-var-4/network-pruned-synapses.hdf5',
+           'Neuroinformatics2020/Net10062-var-5/network-pruned-synapses.hdf5']
 
   legends = ['No pruning',
              'DP',
