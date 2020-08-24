@@ -8,12 +8,13 @@ import h5py
 
 # networkFile = "/home/hjorth/HBP/StriatumNetwork/model/SmallTest2/network-connect-voxel-pruned-synapse-file.hdf5"
 #networkFile = "/home/hjorth/HBP/StriatumNetwork/model/SmallTest2/network-connect-voxel-pruned-synapse-file.hdf5"
-networkFile = "/home/hjorth/HBP/Snudda/snudda/examples/networks/Net10062/network-pruned-synapses.hdf5"
+networkFile = "/home/hjorth/HBP/Snudda/snudda/Neuroinformatics2020/Net10062-var-5/network-pruned-synapses.hdf5"
+# networkFile = "/home/hjorth/HBP/Snudda/snudda/Neuroinformatics2020/Net10062-var-5/network-putative-synapses-MERGED.hdf5"
 
-outFile = "twoNeurons-synapses-white-2020.blend"
+outFile = "Neuroninformatics-twoNeurons-synapses-white-2020.blend"
 
 #visualiseID = [20,1217]
-visualiseID = [443,7]
+visualiseID = [3,3179]
 
 # Load the neuron positions
 fi = h5py.File(networkFile,"r")

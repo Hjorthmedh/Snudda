@@ -5,7 +5,7 @@ import os
 import matplotlib
 import matplotlib.pyplot as plt
 
-from load import SnuddaLoad
+from snudda.load import SnuddaLoad
 
 from snudda.analyse import SnuddaAnalyse
 
