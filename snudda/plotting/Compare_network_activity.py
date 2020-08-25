@@ -67,12 +67,7 @@ class CompareNetwork(object):
     else:
       self.networkInfos = None
       self.networkFiles = None
-<<<<<<< HEAD
-      
-=======
-    #self.sortTraces()
-    print('doing it')
->>>>>>> a8d3d89c4afb3039362d14f9602429d6913aab16
+
     self.plotColourRaster(skipTime=skipTime,typeOrder=typeOrder)
 
     '''  
