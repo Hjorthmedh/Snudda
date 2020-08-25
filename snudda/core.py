@@ -438,6 +438,7 @@ class Snudda(object):
                          verbose=args.verbose)
 
     sim.addExternalInput()
+    
     sim.checkMemoryStatus()
 
     if(voltFile is not None):
