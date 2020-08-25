@@ -480,8 +480,7 @@ class SnuddaSimulate(object):
 
       self.connectNetworkGapJunctionsLOCAL()
       self.pc.setup_transfer()
-    #import pdb
-    #pdb.set_trace()
+
     self.pc.barrier()
     
 
