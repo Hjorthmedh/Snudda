@@ -27,8 +27,8 @@ echo "Network dir: "$NETWORK_DIR
 #module load craype-haswell
 #module unload cray-libsci atp
 
-# Updated 2020-01-21
-module sw PrgEnv-cray PrgEnv-intel
+# Updated 2020-08-25
+module sw PrgEnv-cray PrgEnv-intel/6.0.5
 module add mpi4py/3.0.2/py37
 module add neuron/7.7-py37
 
