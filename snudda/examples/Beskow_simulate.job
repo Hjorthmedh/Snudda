@@ -42,7 +42,7 @@ export CRAY_ROOTFS=DSL
 
 # Remove "special" old directory
 rm -r x86_64
-nrnivmodl ../data/cellspecs/mechanisms
+nrnivmodl ../data/cellspecs-v2/mechanisms
 
 
 # Split the config file (is aprun blocking?)
