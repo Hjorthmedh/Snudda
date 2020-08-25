@@ -9,7 +9,9 @@ import numpy as np
 #fi = h5py.File("/home/hjorth/HBP/StriatumNetwork/model/Article-cube-2160/network-neuron-positions.hdf5","r")
 
 # 2174 neurons, density 80500... 0.3x0.3x0.3
-fi = h5py.File("/home/hjorth/HBP/StriatumNetwork/model/Article2019HyperVoxel/network-neuron-positions.hdf5","r")
+# hFile = "/home/hjorth/HBP/StriatumNetwork/model/Article2019HyperVoxel/network-neuron-positions.hdf5"
+hFile = "/home/hjorth/HBP/Snudda/snudda/examples/networks/Net10062/network-neuron-positions.hdf5"
+fi = h5py.File(hFile,"r")
 
 keepAll = True
 centreNeurons = True
