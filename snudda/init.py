@@ -47,9 +47,8 @@ class SnuddaInit(object):
     else:      
       self.networkData["Channels"]["method"] = "channelSpheres"
 
-      self.networkData["Channels"]["centres"] = [(3540e-6,4645e-6,5045e-6),
-                                                 (3535e-6, 4640e-6,5050e-6),
-                                                 (3545,4650e-6,5055e-6)]
+      #Centre of striatum is [3540e-6,4645e-6,5081e-6]
+      self.networkData["Channels"]["centres"] = [(0.003487273391161562, 0.004623025773382735, 0.005090639034459731),(0.003527273391161562, 0.004663025773382734, 0.00513063903445973),(0.003527273391161562, 0.004663025773382734, 0.00513063903445973)]
       
       self.networkData["Channels"]["radius"] = 50e-6
       

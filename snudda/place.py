@@ -548,8 +548,24 @@ class SnuddaPlace(object):
 
   ############################################################################
 
-  def channelSpheresLabeling(self,channelCentres,channelRadius):
+  def neuronpositions(self,channelCentres):
 
+    import numpy as np
+
+    np.savetxt('NEURONs.txt',self.allNeuronPositions())
+
+    np.savetxt('Centres.txt',np.array(channelCentres))
+
+    import pickle
+    #import pdb
+    #pdb.set_trace()
+    chan_file=open('channelgroup.pickle','wb')
+    pickle.dump(self.neuronChannels,chan_file)
+    
+  
+  def channelSpheresLabeling(self,channelCentres,channelRadius):
+    #import pdb
+    #pdb.set_trace()
     xyz = self.allNeuronPositions()
 
     centres = np.array(channelCentres)
@@ -570,7 +586,8 @@ class SnuddaPlace(object):
       # Channel 0 is unassigned, no channel, poor homeless neurons!
       self.neuronChannels[i] = np.where(self.neuronChannel == i)[0]
 
-    print(self.neuronChannels)
+    self.neuronpositions(channelCentres=channelCentres)
+    #print(self.neuronChannels)
 
         
   ############################################################################
