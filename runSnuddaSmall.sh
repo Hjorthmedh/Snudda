@@ -16,12 +16,12 @@ sleep 20
 #simName=networks/Article10000-v1
 #simName=networks/Article-jitter-v6
 #simName=networks/Article-var-v2-100000
-simName=networks/tinySim10
+simName=ChannelNetwork
 #simName=networks/Article-nojitter
 
 #snudda init $simName --size 1760000
 #snudda init $simName --size 100000
-snudda init $simName --size 100 --overwrite
+snudda init $simName --size 500 --nchannels 2 --overwrite
 
 snudda place $simName 
 #snudda detect $simName --hvsize 50 --volumeID Striatum
@@ -29,8 +29,8 @@ snudda detect $simName --volumeID Striatum
 snudda prune $simName
 
 # Copy over template input
-cp -a data/config/input-tinytest-v6.json $simName/input.json
-echo "Make sure the input config file was found, otherwise provide your own"
+#cp -a data/config/input-tinytest-v6.json $simName/input.json
+#echo "Make sure the input config file was found, otherwise provide your own"
 
 # TODO, maybe use to get snudda base install dir:
 # import inspect
@@ -39,12 +39,12 @@ echo "Make sure the input config file was found, otherwise provide your own"
 
 
 # Uncomment this to generate input
-snudda input $simName --input $simName/input.json
+#snudda input $simName --input $simName/input.json
 
-ipcluster stop
+#ipcluster stop
 
 # Uncomment this to run simulation
 # Remember you need to run "nrnivmodl data/cellspecs/mechanisms"
 # first to create the mechanisms
-mpiexec -n 6 snudda simulate $simName
+#mpiexec -n 6 snudda simulate $simName
 
