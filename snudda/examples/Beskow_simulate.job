@@ -1,11 +1,11 @@
 #!/bin/bash -l
 #SBATCH -t 2:59:00
-#SBATCH --time-min=0:59:00
+#SBATCH --time-min=1:59:00
 #SBATCH -J snudda_simulate
-#SBATCH -A 2019-3-644
+#SBATCH -A 2020-5-449
 #SBATCH -o save/output-snudda_simulate.o%j
 #SBATCH -e save/error-snudda_simulate.e%j
-#SBATCH --nodes=7-15
+#SBATCH --nodes=15-20
 #SBATCH --ntasks-per-node=32
 
 # 16 workers were too few, got section stack overflow (there is a hidden
@@ -16,7 +16,7 @@ HOME=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda
 
 # Synapse file
 SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
-NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.882334
+NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.902473
 NETWORK_INFO_FILE=$NETWORK_DIR/network-pruned-synapses.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 
@@ -72,7 +72,7 @@ export PATH=/cfs/klemming/nobackup/h/hjorth/local/beskow/bin:$PATH
 export PYTHONPATH=/cfs/klemming/nobackup/h/hjorth/local/beskow/lib/python3.7/site-packages:$PYTHONPATH
 
 
-srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ
+srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 2.5
 
 
 # Original version, start neuron from python, does not work on beskow

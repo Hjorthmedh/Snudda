@@ -145,7 +145,7 @@
 	"Cortical" : {
 	    "generator" : "poisson",	    
 	    "type: " : "AMPA_NMDA",
-	    "synapseDensity": "0.018*(1-np.exp(-d/200e-6))",	    
+	    "synapseDensity": "0.8*0.018*(1-np.exp(-d/200e-6))",	    
 	    "frequency" : 1,
 	    "channelCorrelation" : 0.0,
 	    "jitter" : 0.001,	    
@@ -158,7 +158,7 @@
 	    "start" : 1.0,
 	    "end" : 1.5,
 	    "type: " : "AMPA_NMDA",
-	    "synapseDensity": "0.018*(1-np.exp(-d/200e-6))",
+	    "synapseDensity": "0.8*0.018*(1-np.exp(-d/200e-6))",
 	    "frequency" : 1,
 	    "channelCorrelation" : 0.0,
 	    "jitter" : 0.003,
