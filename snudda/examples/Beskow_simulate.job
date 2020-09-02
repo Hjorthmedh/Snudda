@@ -72,7 +72,7 @@ export PATH=/cfs/klemming/nobackup/h/hjorth/local/beskow/bin:$PATH
 export PYTHONPATH=/cfs/klemming/nobackup/h/hjorth/local/beskow/lib/python3.7/site-packages:$PYTHONPATH
 
 
-srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 2.5
+srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5
 
 
 # Original version, start neuron from python, does not work on beskow
