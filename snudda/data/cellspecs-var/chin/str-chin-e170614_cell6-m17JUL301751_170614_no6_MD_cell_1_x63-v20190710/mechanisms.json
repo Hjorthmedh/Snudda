@@ -1,35 +1,20 @@
 {
     "all": [
         "pas"
-    ], 
-    "axonal": [
-        "kcnq_ch", 
-        "na2_ch", 
-        "na_ch", 
-        "Kv3_ch"
-    ], 
+    ],
+    "somatic": [
+        "hd_lts",
+        "na3_lts",
+        "naf_lts",
+        "kdr_lts",
+        "im_lts",
+        "it_lts",
+        "kir23_lts"
+    ],
     "basal": [
-        "kir2_ch", 
-        "hcn12_ch", 
-        "Kv3_ch", 
-        "kv4_ch", 
-        "bk_ch", 
-        "sk_ch", 
-        "cal_ch", 
-        "cap_ch", 
-        "ca_ch"
-    ], 
-    "soma": [
-        "kcnq_ch", 
-        "na2_ch", 
-        "na_ch", 
-        "Kv3_ch", 
-        "kv2_ch", 
-        "kv4_ch", 
-        "bk_ch", 
-        "sk_ch", 
-        "cal_ch", 
-        "cap_ch", 
-        "ca_ch"
+        "hd_lts",
+        "kdr_lts",
+        "im_lts",
+        "kir23_lts"
     ]
 }
