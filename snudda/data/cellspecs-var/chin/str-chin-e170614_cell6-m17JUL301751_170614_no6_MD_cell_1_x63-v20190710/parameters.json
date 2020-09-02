@@ -1,161 +1,153 @@
-[
-    {
-        "param_name": "celsius",
-        "type": "global",
-        "value": 35
-    },
-    {
-        "param_name": "v_init",
-        "type": "global",
-        "value": -75
-    },
-    {
-        "param_name": "cm",
-        "sectionlist": "all",
-        "type": "section",
-        "dist_type": "uniform",
-        "value": 1
-    },
-    {
-        "param_name": "ek",
-        "sectionlist": "somatic",
-        "type": "section",
-        "dist_type": "uniform",
-        "value": -100
-    },
-    {
-        "param_name": "ena",
-        "sectionlist": "somatic",
-        "type": "section",
-        "dist_type": "uniform",
-        "value": 50
-
-    },
-    {
-        "param_name": "ek",
-        "sectionlist": "basal",
-        "type": "section",
-        "dist_type": "uniform",
-        "value": -100
-    },
-    {
-        "param_name": "Ra",
-        "sectionlist": "all",
-        "type": "section",
-        "dist_type": "uniform",
-        "value": 119.72678093254834
-    },
-    {
-        "param_name": "g_pas",
-        "sectionlist": "all",
-        "type": "section",
-        "dist_type": "uniform",
-        "value": 1.4649357540737378e-05
-    },
-    {
-        "param_name": "e_pas",
-        "sectionlist": "all",
-        "type": "section",
-        "dist_type": "uniform",
-        "value": -46.06675265181954
-    },
-    {
-        "param_name": "ghdbar_hd_lts",
-        "mech": "hd",
-        "value": 1.054545554205882e-05,
-        "dist_type": "uniform",
-        "mech_param": "ghdbar",
-        "type": "range",
-        "sectionlist": "somatic"
-    },
-    {
-        "param_name": "ghdbar_hd_lts",
-        "mech": "hd",
-        "value": 4.8402096310252015e-06,
-        "dist_type": "uniform",
-        "mech_param": "ghdbar",
-        "type": "range",
-        "sectionlist": "basal"
-    },
-    {
-        "param_name": "gbar_na3_lts",
-        "mech": "na3",
-        "value": 0.013059032861101305,
-        "dist_type": "uniform",
-        "mech_param": "gbar",
-        "type": "range",
-        "sectionlist": "somatic"
-    },
-    {
-        "param_name": "gbar_naf_lts",
-        "mech": "naf_ms",
-        "value": 5.882451633944143,
-        "dist_type": "uniform",
-        "mech_param": "gbar",
-        "type": "range",
-        "sectionlist": "somatic"
-    },
-    {
-        "param_name": "gkdrbar_kdr_lts",
-        "mech": "kdrb",
-        "value":  0.09108261547197531,
-        "dist_type": "uniform",
-        "mech_param": "gkdrbar",
-        "type": "range",
-        "sectionlist": "somatic"
-    },
-    {
-        "param_name": "gkdrbar_kdr_lts",
-        "mech": "kdrb",
-        "value": 1.3382408358529078e-05,
-        "dist_type": "uniform",
-        "mech_param": "gkdrbar",
-        "type": "range",
-        "sectionlist": "basal"
-    },
-    {
-        "param_name": "gkbar_im_lts",
-        "mech": "im",
-        "value": 3.330320528656101e-06,
-        "dist_type": "uniform",
-        "mech_param": "gkbar",
-        "type": "range",
-        "sectionlist": "somatic"
-    },
-    {
-        "param_name": "gkbar_im_lts",
-        "mech": "im",
-        "value": 9.515323548964037e-06,
-        "dist_type": "uniform",
-        "mech_param": "gkbar",
-        "type": "range",
-        "sectionlist": "basal"
-    },
-    {
-        "param_name": "gcabar_it_lts",
-        "mech": "it",
-        "value":  3.409680376156301e-05,
-        "dist_type": "uniform",
-        "mech_param": "gcabar",
-        "type": "range",
-        "sectionlist": "somatic"
-    },
-    {
-        "param_name": "gbar_kir23_lts",
-        "mech": "kir23",
-        "value":  1.0209271233851354e-05,
-        "dist_type": "uniform",
-        "mech_param": "gbar",
-        "type": "range",
-        "sectionlist": "somatic"
-    },
-    {
-        "param_name": "gbar_kir23_lts",
-        "mech": "kir23",
-        "value": 2.0195719379572207e-05,
-        "dist_type": "uniform",
-        "mech_param": "gbar",
-        "type": "range",
-        "sectionlist": "basal"
-    }
-]
+[{
+	"dist_type": "uniform",
+	"param_name": "cm",
+	"sectionlist": "all",
+	"type": "section",
+	"value": 1.0
+}, {
+	"param_name": "v_init",
+	"type": "global",
+	"value": -80
+}, {
+	"dist_type": "uniform",
+	"param_name": "e_pas",
+	"sectionlist": "all",
+	"type": "section",
+	"value": -50
+}, {
+	"dist_type": "uniform",
+	"param_name": "ek",
+	"sectionlist": "basal",
+	"type": "section",
+	"value": -105
+}, {
+	"dist_type": "uniform",
+	"param_name": "ek",
+	"sectionlist": "somatic",
+	"type": "section",
+	"value": -105
+}, {
+	"dist_type": "uniform",
+	"param_name": "ena",
+	"sectionlist": "somatic",
+	"type": "section",
+	"value": 50.0
+}, {
+	"dist_type": "uniform",
+	"param_name": "Ra",
+	"sectionlist": "all",
+	"type": "section",
+	"value": 150.0
+}, {
+	"dist_type": "uniform",
+	"param_name": "g_pas",
+	"sectionlist": "all",
+	"type": "section",
+	"value": 5.9882633498295136e-05
+}, {
+	"dist_type": "uniform",
+	"param_name": "gbar_kir2_ch",
+	"sectionlist": "basal",
+	"type": "range",
+	"value": 1.0007229874244718e-05
+}, {
+	"dist_type": "uniform",
+	"param_name": "ehcn_hcn12_ch",
+	"sectionlist": "basal",
+	"type": "range",
+	"value": -25.19745157590159
+}, {
+	"dist_type": "uniform",
+	"param_name": "gbar_hcn12_ch",
+	"sectionlist": "basal",
+	"type": "range",
+	"value": 6.979955018816212e-05
+}, {
+	"dist_type": "uniform",
+	"param_name": "gbar_kcnq_ch",
+	"sectionlist": "soma",
+	"type": "range",
+	"value": 0.0001120859678845314
+}, {
+	"dist_type": "uniform",
+	"param_name": "gbar_na2_ch",
+	"sectionlist": "soma",
+	"type": "range",
+	"value": 0.11097116570839721
+}, {
+	"dist_type": "uniform",
+	"param_name": "gbar_na_ch",
+	"sectionlist": "soma",
+	"type": "range",
+	"value": 0.09090011481229436
+}, {
+	"dist_type": "uniform",
+	"param_name": "gbar_kv2_ch",
+	"sectionlist": "soma",
+	"type": "range",
+	"value": 0.0005710665233402205
+}, {
+	"dist_type": "uniform",
+	"param_name": "gbar_kv4_ch",
+	"sectionlist": "basal",
+	"type": "range",
+	"value": 0.0004886305862871984
+}, {
+	"dist_type": "uniform",
+	"param_name": "gbar_kv4_ch",
+	"sectionlist": "soma",
+	"type": "range",
+	"value": 0.08369043102249393
+}, {
+	"dist_type": "uniform",
+	"param_name": "gbar_bk_ch",
+	"sectionlist": "basal",
+	"type": "range",
+	"value": 0.28643441677723236
+}, {
+	"dist_type": "uniform",
+	"param_name": "gbar_sk_ms",
+	"sectionlist": "basal",
+	"type": "range",
+	"value": 0.10249829720726629
+}, {
+	"dist_type": "uniform",
+	"param_name": "gbar_cal_ch",
+	"sectionlist": "basal",
+	"type": "range",
+	"value": 0.0004082172771163771
+}, {
+	"dist_type": "uniform",
+	"param_name": "gbar_cap_ch",
+	"sectionlist": "basal",
+	"type": "range",
+	"value": 1.2969333579813665e-06
+}, {
+	"dist_type": "uniform",
+	"param_name": "gbar_bk_ch",
+	"sectionlist": "soma",
+	"type": "range",
+	"value": 1.2009095187678032
+}, {
+	"dist_type": "uniform",
+	"param_name": "gbar_sk_ms",
+	"sectionlist": "soma",
+	"type": "range",
+	"value": 0.9387357780412642
+}, {
+	"dist_type": "uniform",
+	"param_name": "gbar_cal_ch",
+	"sectionlist": "soma",
+	"type": "range",
+	"value": 0.0019943987839675633
+}, {
+	"dist_type": "uniform",
+	"param_name": "gbar_cap_ch",
+	"sectionlist": "soma",
+	"type": "range",
+	"value": 5.005393603988407e-05
+}, {
+	"param_name": "celsius",
+	"type": "global",
+	"value": 35
+}]
