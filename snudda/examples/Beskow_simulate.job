@@ -19,6 +19,7 @@ SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
 NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.902473
 NETWORK_INFO_FILE=$NETWORK_DIR/network-pruned-synapses.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
+NETWORK_VOLTAGE_FILE=$NETWORK_DIR/simulation/voltage-trace-${SLURM_JOBID}.txt
 
 echo "Network dir: "$NETWORK_DIR
 
@@ -72,7 +73,7 @@ export PATH=/cfs/klemming/nobackup/h/hjorth/local/beskow/bin:$PATH
 export PYTHONPATH=/cfs/klemming/nobackup/h/hjorth/local/beskow/lib/python3.7/site-packages:$PYTHONPATH
 
 
-srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5
+srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
 
 
 # Original version, start neuron from python, does not work on beskow
