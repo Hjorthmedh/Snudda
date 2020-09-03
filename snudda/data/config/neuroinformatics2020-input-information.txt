@@ -1,0 +1,24 @@
+dSPN och iSPN:
+
+What we:
+
+dSPN and iSPN should be approximately same frequency...
+
+
+dSPN, iSPN, FS
+Cortical baseline and thalamic baseline are equal in strength.
+Cortical signal är 40% av cortical baseline.
+
+LTS
+Bara cortical input, signal 40%
+
+ChIN
+Mostly thalamic input, 10% cortical input 
+so +4% for cortical signal
+
+To check that densities give approximately same number of inputs for cortex and thalamus
+Generate inputs, and check number of input of cortical and thalamic type for the two.
+OBS, dont double count with cortical base + cortical signal.
+
+
+
