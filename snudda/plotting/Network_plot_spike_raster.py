@@ -252,7 +252,7 @@ if __name__ == "__main__":
     endTime = 2.0
     
   if(fileName is not None):
-    npsr = NetworkPlotSpikeRaster(fileName,networkFile,skipTime=1.0,
+    npsr = NetworkPlotSpikeRaster(fileName,networkFile,skipTime=0.0,
                                   endTime=endTime,
                                   typeOrder=["FSN","dSPN","LTS","iSPN","ChIN"])
 

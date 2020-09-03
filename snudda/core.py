@@ -103,12 +103,12 @@ class Snudda(object):
 
     self.makeDirIfNeeded(self.networkPath)
 
-    nChannels = args.nchannels
+    nPopulationUnits = args.nPopulationUnits
 
     configFile = self.networkPath + "/network-config.json"
     SnuddaInit(structDef=structDef,
                configName=configFile,
-               nChannels=nChannels)
+               nPopulationUnits=nPopulationUnits)
 
     if(args.size > 1e5):
       print("Make sure there is enough disk space in " + str(self.networkPath))

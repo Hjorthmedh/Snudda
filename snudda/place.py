@@ -6,8 +6,9 @@
 # This open source software code was developed in part or in whole in
 # the Human Brain Project, funded from the European Union’s Horizon
 # 2020 Framework Programme for Research and Innovation under Specific
-# Grant Agreements No. 720270 and No. 785907 (Human Brain Project SGA1
-# and SGA2).
+# Grant Agreements No. 720270 and No. 785907, No 945539
+# (Human Brain Project SGA1, SGA2, SGA3).
+
 #
 
 import numpy as np
@@ -52,10 +53,10 @@ class SnuddaPlace(object):
     # This defines the neuron units/channels. The dictionary lists all the
     # members of each unit, the neuronChannel gives the individual neurons
     # channel membership
-    self.nChannels = 1
-    self.channelMethod = "random"
-    self.neuronChannels = dict([])
-    self.neuronChannel = None
+    self.nPoplationUnits = 1
+    self.populationUnitPlacementMethod = "random"
+    self.populationUnits = dict([])
+    self.populationUnit = None
 
     # These are the dimensions of our space, dMin also needs a "padding"
     # region outside the space where fake neurons are placed. This is to
@@ -223,13 +224,13 @@ class SnuddaPlace(object):
 
       self.writeLog("Using dimensions from config file")
 
-    if("Channels" in config):
-      self.channelMethod = config["Channels"]["method"]
-      self.nChannels = config["Channels"]["nChannels"]
+    if("populationUnits" in config):
+      self.channelMethod = config["populationUnits"]["method"]
+      self.nChannels = config["populationUnits"]["nPopulationUnits"]
 
-      if(self.channelMethod == "channelSpheres"):
-        self.channelRadius = config["Channels"]["radius"]
-        self.channelCentres = config["Channels"]["centres"]
+      if(self.channelMethod == "populationUnitSpheres"):
+        self.channelRadius = config["populationUnits"]["radius"]
+        self.channelCentres = config["populatonUnits"]["centres"]
       
     assert "Neurons" in config, \
       "No neurons defined. Is this config file old format?"
@@ -305,8 +306,8 @@ class SnuddaPlace(object):
     # We reorder neurons, sorting their IDs after position
     self.sortNeurons()
 
-    if(self.channelMethod is not None):
-      self.defineChannels(method=self.channelMethod)
+    if(self.populationUnitPlacementMethod is not None):
+      self.defineChannels(method=self.populationUnitPlacementMethod)
 
   ############################################################################
 
@@ -435,13 +436,13 @@ class SnuddaPlace(object):
       neuronModulationID[i] = n.modulationID
 
     # Store input information
-    neuronGroup.create_dataset("channelID", data=self.neuronChannel,dtype=int)
-    neuronGroup.create_dataset("nChannels", data=self.nChannels,dtype=int)
+    neuronGroup.create_dataset("populationUnitID", data=self.populationUnit,dtype=int)
+    neuronGroup.create_dataset("nPopulationUnits", data=self.nPopulationUnits,dtype=int)
 
     if(self.channelMethod is not None):
-      neuronGroup.create_dataset("channelMethod", data=self.channelMethod)
+      neuronGroup.create_dataset("populationUnitPlacementMethod", data=self.populationUnitPlacementMethod)
     else:
-      neuronGroup.create_dataset("channelMethod", data="")
+      neuronGroup.create_dataset("populationUnitPlacementMethod", data="")
 
     # Variable for axon density "r", "xyz" or "" (No axon density)
     axonDensityType = [n.axonDensity[0].encode("ascii","ignore") \
@@ -517,77 +518,76 @@ class SnuddaPlace(object):
 
   ############################################################################
 
-  def defineChannels(self,method="random",nChannels=None):
+  def definePopulationUnits(self,method="random",nPopulationUnits=None):
 
-    if(nChannels is None):
-      nChannels = self.nChannels
+    if(nPopulationUnits is None):
+      nChannels = self.nPopulationUnits
 
     if(method == "random"):
       self.randomLabeling()
-    elif(method == "channelSpheres"):
-      self.channelSpheresLabeling(self.channelCentres,self.channelRadius)
+    elif(method == "populationUnitSpheres"):
+      self.populationUnitSpheresLabeling(self.populationUnitCentres,self.populationUnitRadius)
     else:
       self.neuronChannel = np.zeros((len(self.neurons),),dtype=int)
       self.neuronChannels = dict([])
       
   ############################################################################
 
-  def randomLabeling(self,nChannels=None):
+  def randomLabeling(self,nPopulationUnits=None):
 
-    if(nChannels is None):
-      nChannels = self.nChannels
+    if(nPopulationUnits is None):
+      nPopulationUnits = self.nPopulationUnits
 
-    self.neuronChannel = np.random.randint(nChannels,size=len(self.neurons))
+    self.populationUnit = np.random.randint(nPopulationUnits,size=len(self.neurons))
 
-    self.neuronChannels = dict([])
+    self.populationUnits = dict([])
 
-    for i in range(0,nChannels):
-      self.neuronChannels[i] = np.where(self.neuronChannel == i)[0]
+    for i in range(0,nPopulationUnits):
+      self.populationUnits[i] = np.where(self.populationUnit == i)[0]
 
   ############################################################################
 
-  def neuronpositions(self,channelCentres):
+  def savePopulationUnits(self,populationUnitCentres):
 
     import numpy as np
-
-    if(not os.path.exists(os.path.join(os.path.dirname(self.config_file),"PopulationUnits"))):
-      os.mkdir(os.path.join(os.path.dirname(self.config_file),"PopulationUnits"))
-      
-    np.savetxt(os.path.join(os.path.dirname(self.config_file),"PopulationUnits","NEURONs.txt"),self.allNeuronPositions())
-
-    np.savetxt(os.path.join(os.path.dirname(self.config_file),"PopulationUnits","Centres.txt"),np.array(channelCentres))
-
     import pickle
-   
-    chan_file=open(os.path.join(os.path.dirname(self.config_file),"PopulationUnits","channelgroup.pickle"),'wb')
-    pickle.dump(self.neuronChannels,chan_file)
+
+    populationUnitDir = os.path.join(os.path.dirname(self.config_file),"PopulationUnits")
+    if(not os.path.exists(populationUnitDir)):
+      os.mkdir(populationUnitDir)
+      
+    np.savetxt(os.path.join(populationUnitDir,"positionsNeurons.txt"),self.allNeuronPositions())
+
+    np.savetxt(os.path.join(populationUnitDir,"PopulationUnitCentres.txt"),np.array(populationUnitCentres))
+
+    groupedPopulationUnitFile=open(os.path.join(populationUnitDir,"populationUnitGrouped.pickle"),'wb')
+    pickle.dump(self.populationUnits,groupedPopulationUnitFile)
     
   
-  def channelSpheresLabeling(self,channelCentres,channelRadius):
+  def channelSpheresLabeling(self,populationUnitCentres,populationUnitRadius):
   
     xyz = self.allNeuronPositions()
 
-    centres = np.array(channelCentres)
-    self.neuronChannel = np.zeros((xyz.shape[0],),dtype=int)
+    centres = np.array(populationUnitCentres)
+    self.populationUnit = np.zeros((xyz.shape[0],),dtype=int)
     
 
     for (ctr, pos) in enumerate(xyz):
       d = [np.linalg.norm(pos-c) for c in centres]
       idx = np.argsort(d)
       
-      if(d[idx[0]] <= channelRadius):
-        self.neuronChannel[ctr] = idx[0] + 1 # We reserve 0 for no channel
+      if(d[idx[0]] <= populationUnitlRadius):
+        self.populationUnit[ctr] = idx[0] + 1 # We reserve 0 for no channel
 
 
-    nChannels = np.max(self.neuronChannel)+1
+    nPopulationUnits = np.max(self.populationUnit)+1
         
-    for i in range(0,nChannels):
+    for i in range(0,nPopulationUnits):
       # Channel 0 is unassigned, no channel, poor homeless neurons!
-      self.neuronChannels[i] = np.where(self.neuronChannel == i)[0]
+      self.populationUnits[i] = np.where(self.populationUnit == i)[0]
 
-    self.neuronpositions(channelCentres=channelCentres)
-    #print(self.neuronChannels)
-
+    self.savePopulationUnits(populationUnitCentres=populationUnitCentres)
+   
         
   ############################################################################
 
@@ -633,7 +633,7 @@ if __name__ == "__main__":
     lbView = None
 
 
-  npn = SnuddaPlace(config_file="config/Network-striatum-mesh-v9-channels-10000-10.json",verbose=True,dView=dView,lbView=lbView)
+  npn = SnuddaPlace(config_file="config/Network-striatum-mesh-v9-population-Units-10000-10.json",verbose=True,dView=dView,lbView=lbView)
 
 
   # Should we renumber neuron order, so that the neurons in the same hyper
