@@ -201,8 +201,8 @@ class SnuddaInput(object):
           itGroup.create_dataset("end",data=neuronIn["end"])
           itGroup.create_dataset("conductance",data=neuronIn["conductance"])
         
-          populationUnitlID = neuronIn["populationUnitID"]
-          itGroup.create_dataset("channelID",data=channelID)
+          populationUnitID = neuronIn["populationUnitID"]
+          itGroup.create_dataset("populationUnitID",data=populationUnitID)
 
           chanSpikes = self.populationUnitSpikes[neuronType][inputType][populationUnitID]
           itGroup.create_dataset("populationUnitSpikes",
@@ -299,7 +299,7 @@ class SnuddaInput(object):
   # taken from a stream of spikes unique to that particular population unit
   # This function generates these correlated spikes
   
-  def makePopulationUnitSpikeTrains(self,nPopulationUits=None,timeRange=None):
+  def makePopulationUnitSpikeTrains(self,nPopulationUnits=None,timeRange=None):
 
     self.writeLog("Running makePopulationUnitSpikeTrains")
     
@@ -452,7 +452,7 @@ class SnuddaInput(object):
           conductanceList.append(cond)
           correlationList.append(inputInf["populationUnitCorrelation"])
 
-          cSpikes = self.channelSpikes[neuronType][inputType][populationUnitID]
+          cSpikes = self.populationUnitSpikes[neuronType][inputType][populationUnitID]
           populationUnitSpikesList.append(cSpikes)
 
           modFileList.append(modFile)
@@ -533,7 +533,7 @@ class SnuddaInput(object):
           
     # Gather the spikes that were generated in parallell
     for neuronID, inputType, spikes, loc, synapseDensity, frq, \
-        jdt, cID,cond,corr,timeRange, \
+        jdt, pUID,cond,corr,timeRange, \
         modFile,paramFile,paramList,paramID in amr:
       self.writeLog("Gathering " + str(neuronID) + " - " + str(inputType) )
       self.neuronInput[neuronID][inputType]["spikes"] = spikes
@@ -746,8 +746,8 @@ class SnuddaInput(object):
     # Make sure the position file matches the network config file
     assert(posInfo["configFile"] == self.networkConfigFile)
 
-    self.nChannels = posInfo["nPopulationUnits"]
-    self.channelID = posInfo["populationUnit"]
+    self.nPopulationUnits = posInfo["nPopulationUnits"]
+    self.populationUnitID = posInfo["populationUnit"]
 
     self.neuronName = [n["name"] for n in self.neuronInfo]
     

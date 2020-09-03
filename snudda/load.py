@@ -147,11 +147,11 @@ class SnuddaLoad(object):
       if("nPopulationUnits" in f["network/neurons"]):
         data["nPopulationUnits"] = f["network/neurons/nPopulationUnits"][()]
         data["populationUnit"] = f["network/neurons/populationUnitID"][()]
-        data["populationUnitPlacementMethod"] = f["network/neurons/populationUnitsPlacementMethod"][()]
+        data["populationUnitPlacementMethod"] = f["network/neurons/populationUnitPlacementMethod"][()]
       else:
         print("No Population Units detected.")
         data["nPopulationUnits"] = 0
-        data["PopulationUnit"] = np.zeros(data["nNeurons"])
+        data["populationUnit"] = np.zeros(data["nNeurons"])
         data["populationUnitPlacementMethod"] = "none"
 
       if(loadMorph and "morphologies" in f):

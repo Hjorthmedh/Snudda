@@ -224,13 +224,13 @@ class SnuddaPlace(object):
 
       self.writeLog("Using dimensions from config file")
 
-    if("populationUnits" in config):
-      self.channelMethod = config["populationUnits"]["method"]
-      self.nChannels = config["populationUnits"]["nPopulationUnits"]
+    if("PopulationUnits" in config):
+      self.populationUnitPlacementMethod = config["PopulationUnits"]["method"]
+      self.nPopulationUnits = config["PopulationUnits"]["nPopulationUnits"]
 
-      if(self.channelMethod == "populationUnitSpheres"):
-        self.channelRadius = config["populationUnits"]["radius"]
-        self.channelCentres = config["populatonUnits"]["centres"]
+      if(self.populationUnitPlacementMethod == "populationUnitSpheres"):
+        self.populationUnitRadius = config["PopulationUnits"]["radius"]
+        self.populationUnitCentres = config["PopulationUnits"]["centres"]
       
     assert "Neurons" in config, \
       "No neurons defined. Is this config file old format?"
@@ -307,7 +307,7 @@ class SnuddaPlace(object):
     self.sortNeurons()
 
     if(self.populationUnitPlacementMethod is not None):
-      self.defineChannels(method=self.populationUnitPlacementMethod)
+      self.definePopulationUnits(method=self.populationUnitPlacementMethod)
 
   ############################################################################
 
@@ -439,7 +439,7 @@ class SnuddaPlace(object):
     neuronGroup.create_dataset("populationUnitID", data=self.populationUnit,dtype=int)
     neuronGroup.create_dataset("nPopulationUnits", data=self.nPopulationUnits,dtype=int)
 
-    if(self.channelMethod is not None):
+    if(self.populationUnitPlacementMethod is not None):
       neuronGroup.create_dataset("populationUnitPlacementMethod", data=self.populationUnitPlacementMethod)
     else:
       neuronGroup.create_dataset("populationUnitPlacementMethod", data="")
@@ -521,15 +521,15 @@ class SnuddaPlace(object):
   def definePopulationUnits(self,method="random",nPopulationUnits=None):
 
     if(nPopulationUnits is None):
-      nChannels = self.nPopulationUnits
+      nPopulationUnits = self.nPopulationUnits
 
     if(method == "random"):
       self.randomLabeling()
     elif(method == "populationUnitSpheres"):
       self.populationUnitSpheresLabeling(self.populationUnitCentres,self.populationUnitRadius)
     else:
-      self.neuronChannel = np.zeros((len(self.neurons),),dtype=int)
-      self.neuronChannels = dict([])
+      self.populationUnit = np.zeros((len(self.neurons),),dtype=int)
+      self.populationUnits = dict([])
       
   ############################################################################
 
@@ -561,13 +561,29 @@ class SnuddaPlace(object):
     np.savetxt(os.path.join(populationUnitDir,"PopulationUnitCentres.txt"),np.array(populationUnitCentres))
 
     groupedPopulationUnitFile=open(os.path.join(populationUnitDir,"populationUnitGrouped.pickle"),'wb')
-    pickle.dump(self.populationUnits,groupedPopulationUnitFile)
+    
+    PopulationUnitInfo = dict([])
+
+    for popUnitIdx, neurons in self.populationUnits.items():
+      axonExtent = list()
+      dendExtent = list()
+      
+      for neuronNum in neurons:
+        
+        
+        axonExtent.append(self.neurons[neuronNum].maxAxonRadius)
+        dendExtent.append(self.neurons[neuronNum].maxDendRadius)
+
+      PopulationUnitInfo[popUnitIdx] = [ neurons , axonExtent, dendExtent]
+      
+    pickle.dump(PopulationUnitInfo,groupedPopulationUnitFile)
     
   
-  def channelSpheresLabeling(self,populationUnitCentres,populationUnitRadius):
+  def populationUnitSpheresLabeling(self,populationUnitCentres,populationUnitRadius):
   
     xyz = self.allNeuronPositions()
 
+   
     centres = np.array(populationUnitCentres)
     self.populationUnit = np.zeros((xyz.shape[0],),dtype=int)
     
@@ -576,16 +592,17 @@ class SnuddaPlace(object):
       d = [np.linalg.norm(pos-c) for c in centres]
       idx = np.argsort(d)
       
-      if(d[idx[0]] <= populationUnitlRadius):
+      if(d[idx[0]] <= populationUnitRadius):
         self.populationUnit[ctr] = idx[0] + 1 # We reserve 0 for no channel
 
 
     nPopulationUnits = np.max(self.populationUnit)+1
-        
+
     for i in range(0,nPopulationUnits):
       # Channel 0 is unassigned, no channel, poor homeless neurons!
       self.populationUnits[i] = np.where(self.populationUnit == i)[0]
 
+          
     self.savePopulationUnits(populationUnitCentres=populationUnitCentres)
    
         

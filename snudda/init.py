@@ -35,13 +35,13 @@ class SnuddaInit(object):
     self.dataPath = os.path.dirname(__file__) + "/data"
 
     # Population Units here refer to processing units, where the neurons within a Population Unit
-    # might have different connectivity than neurons belonging to different channels
+    # might have different connectivity than neurons belonging to different population Units
     self.networkData["PopulationUnits"] = collections.OrderedDict([])
     self.networkData["PopulationUnits"]["nPopulationUnits"] = nPopulationUnits
 
-    useRandomChannels = False
+    useRandomPopulationUnits = False
     
-    if(useRandomChannels):
+    if(useRandomPopulationUnits):
       self.networkData["PopulationUnits"]["method"] = "random"
       
     else:      
@@ -65,17 +65,15 @@ class SnuddaInit(object):
     # self.neuronTargets = collections.OrderedDict([])
 
     from scipy import spatial
-
-    distanceBetweenPopulationUnits = scipy.spatial.distance.cdist(self.networkData["PopulationUnits"]["centres"]*1e6,self.networkData["PopulationUnits"]["centres"]*1e6*1e6,metric="euclidean")
+    
+    distanceBetweenPopulationUnits = spatial.distance.cdist(self.networkData["PopulationUnits"]["centres"],self.networkData["PopulationUnits"]["centres"],metric="euclidean")
 
 
     print("Using " + str(nPopulationUnits) + " Population Units")
-    print("Using radius" + str(self.networkData["PopulationUnits"]["radius"]*1e6) + " microns")
+    print("Using radius of Population Unit Sphere" + str(self.networkData["PopulationUnits"]["radius"]*1e6) + " microns")
 
-    print("Using radius" + str(distanceBetweenPopulationUnits) + " microns")
+    print("Using distance between Population Unit Centres"  + str(distanceBetweenPopulationUnits*1e6) + " microns")
 
-    
-    
     
     self.nPopulationUnits = nPopulationUnits #5
 
@@ -624,7 +622,7 @@ class SnuddaInit(object):
     if(self.nPopulationUnits == 1):
       self.populationUnitMSNmodifier = 1
     else:
-      print("!!! OBS, modifying probaiblities within and between channels")
+      print("!!! OBS, modifying probaiblities within and between channe")
       self.populationUnitMSNmodifier = 0.2 # 0.2 = 20% within, 2 = 2x higher within
       print("populationUnitMSNmodifier: " + str(self.populationUnitMSNmodifier))
 
@@ -820,7 +818,7 @@ class SnuddaInit(object):
 
 
     P11withinChannel = MSP11 * self.populationUnitMSNmodifier
-    P11betweenChannel = MSP11 *(1 +(1-self.populationUnitMSNmodifier) / self.nPopulatonUnits)
+    P11betweenChannel = MSP11 *(1 +(1-self.populationUnitMSNmodifier) / self.nPopulationUnits)
     P12withinChannel = MSP12 * self.populationUnitMSNmodifier
     P12betweenChannel = MSP12 *(1 +(1-self.populationUnitMSNmodifier) / self.nPopulationUnits)
 
