@@ -159,7 +159,7 @@ class SnuddaPlace(object):
 
     if(config_file is None):
       config_file = self.config_file
-
+    
     if(config_file is None):
       self.writeLog("No configuration file specified")
       exit(-1)
@@ -361,8 +361,6 @@ class SnuddaPlace(object):
     # Neuron information
     neuronGroup = networkGroup.create_group("neurons")
 
-    #import pdb
-    #pdb.set_trace()
 
     # If the name list is longer than 20 chars, increase S20
     nameList = [n.name.encode("ascii","ignore") for n in self.neurons]
@@ -552,20 +550,21 @@ class SnuddaPlace(object):
 
     import numpy as np
 
-    np.savetxt('NEURONs.txt',self.allNeuronPositions())
+    if(not os.path.exists(os.path.join(os.path.dirname(self.config_file),"PopulationUnits"))):
+      os.mkdir(os.path.join(os.path.dirname(self.config_file),"PopulationUnits"))
+      
+    np.savetxt(os.path.join(os.path.dirname(self.config_file),"PopulationUnits","NEURONs.txt"),self.allNeuronPositions())
 
-    np.savetxt('Centres.txt',np.array(channelCentres))
+    np.savetxt(os.path.join(os.path.dirname(self.config_file),"PopulationUnits","Centres.txt"),np.array(channelCentres))
 
     import pickle
-    #import pdb
-    #pdb.set_trace()
-    chan_file=open('channelgroup.pickle','wb')
+   
+    chan_file=open(os.path.join(os.path.dirname(self.config_file),"PopulationUnits","channelgroup.pickle"),'wb')
     pickle.dump(self.neuronChannels,chan_file)
     
   
   def channelSpheresLabeling(self,channelCentres,channelRadius):
-    #import pdb
-    #pdb.set_trace()
+  
     xyz = self.allNeuronPositions()
 
     centres = np.array(channelCentres)
