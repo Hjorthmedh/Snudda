@@ -7,13 +7,13 @@
 }, {
 	"param_name": "v_init",
 	"type": "global",
-	"value": -80
+	"value": -60
 }, {
 	"dist_type": "uniform",
 	"param_name": "e_pas",
 	"sectionlist": "all",
 	"type": "section",
-	"value": -50
+	"value": -55
 }, {
 	"dist_type": "uniform",
 	"param_name": "ek",
