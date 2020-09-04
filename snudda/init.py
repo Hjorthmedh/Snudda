@@ -18,7 +18,7 @@ import json
 
 class SnuddaInit(object):
 
-  def __init__(self,structDef,configName,nPopulationUnits=1):
+  def __init__(self,structDef,configName,nPopulationUnits=1,PopulationUnitCentres=None,PopulationUnitRadius=None):
 
     print("CreateConfig")
 
@@ -48,9 +48,9 @@ class SnuddaInit(object):
       self.networkData["PopulationUnits"]["method"] = "populationUnitSpheres"
 
       #Centre of striatum is [3540e-6,4645e-6,5081e-6]
-      self.networkData["PopulationUnits"]["centres"] = [(0.003527752534434234, 0.004630560657029582, 0.005071984459773511),(0.0035677525344342343, 0.0046705606570295825, 0.005111984459773511)]
+      self.networkData["PopulationUnits"]["centres"] = eval(PopulationUnitCentres)
       
-      self.networkData["PopulationUnits"]["radius"] = 100e-6
+      self.networkData["PopulationUnits"]["radius"] = PopulationUnitRadius*1e-6
       
       print("Overriding the number of population units")
 
