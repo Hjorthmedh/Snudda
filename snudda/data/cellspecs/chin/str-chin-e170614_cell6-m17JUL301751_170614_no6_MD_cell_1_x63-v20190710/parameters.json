@@ -7,7 +7,7 @@
 }, {
 	"param_name": "v_init",
 	"type": "global",
-	"value": -80
+	"value": -60
 }, {
 	"dist_type": "uniform",
 	"param_name": "e_pas",
