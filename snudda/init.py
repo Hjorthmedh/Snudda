@@ -64,7 +64,7 @@ class SnuddaInit(object):
       
       print("Overriding the number of population units")
 
-      self.networkData["PopulationUnits"]["nPoplationUnits"] \
+      self.networkData["PopulationUnits"]["nPopulationUnits"] \
         = len(self.networkData["PopulationUnits"]["centres"])
 
       

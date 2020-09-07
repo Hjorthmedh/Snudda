@@ -53,7 +53,7 @@ class SnuddaPlace(object):
     # This defines the neuron units/channels. The dictionary lists all the
     # members of each unit, the neuronChannel gives the individual neurons
     # channel membership
-    self.nPoplationUnits = 1
+    self.nPopulationUnits = 1
     self.populationUnitPlacementMethod = "random"
     self.populationUnits = dict([])
     self.populationUnit = None
