@@ -6,7 +6,7 @@
 SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
 DATA=$SNUDDA_DIR/data
 
-JOBDIR=$SNUDDA_DIR/../networks/TegnerRun.904373
+JOBDIR=$SNUDDA_DIR/../networks/TegnerRun.900154
 
 
 if [ $SLURM_PROCID -gt 0 ]; then
@@ -16,7 +16,8 @@ else
 
     echo ">>> Input: "`date`
 
-    snudda input ${JOBDIR} --input ../data/config/input-tinytest-v7.json --time 3.5
+    snudda input ${JOBDIR} --input ../data/config/input-tinytest-v5org-strongerFS-short2.5s.json --time 2.5
+
 
     echo "JOB END "`date` start_time_network_connect.txt
 

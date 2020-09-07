@@ -1,6 +1,6 @@
 #!/bin/bash -l
-#SBATCH -t 2:59:00
-#SBATCH --time-min=1:59:00
+#SBATCH -t 8:59:00
+#SBATCH --time-min=8:59:00
 #SBATCH -J snudda_simulate
 #SBATCH -A 2020-5-449
 #SBATCH -o save/output-snudda_simulate.o%j
@@ -75,8 +75,16 @@ echo ""
 export PATH=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/beskow/bin:$PATH
 export PYTHONPATH=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/beskow/lib/python3.7/site-packages:$PYTHONPATH
 
+srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 2.5 --voltOut $NETWORK_DIR/simulation/volt-fullnetwork.csv --spikesOut $NETWORK_DIR/simulation/network-output-spikes-fullnetwork.csv --disableConnection "[]"
 
-srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
+
+srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 2.5 --voltOut $NETWORK_DIR/simulation/volt-SPN-ablation.csv --spikesOut $NETWORK_DIR/simulation/network-output-spikes-SPN-ablation.csv --disableConnection "[['iSPN','dSPN'],['iSPN','iSPN'],['dSPN','iSPN'],['dSPN','dSPN']]"
+
+
+srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 2.5 --voltOut $NETWORK_DIR/simulation/volt-FS-ablation.csv --spikesOut $NETWORK_DIR/simulation/network-output-spikes-FS-ablation.csv --disableConnection "[['FSN','dSPN'],['FSN','iSPN']]"
+
+
+srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 2.5 --voltOut $NETWORK_DIR/simulation/volt-LTS-ablation.csv --spikesOut $NETWORK_DIR/simulation/network-output-spikes-LTS-ablation.csv --disableConnection "[['LTS','dSPN'],['LTS','iSPN']]"
 
 
 

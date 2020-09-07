@@ -77,7 +77,7 @@ class NetworkPlotSpikeRaster(object):
     plt.xlabel('Time (s)')
     plt.ylabel('Neurons')
     xl = plt.xlim()
-    newx = (0,xl[1])
+    newx = (0,np.max(self.time)-skipTime)
     plt.xlim(newx)
     plt.ion()
     plt.show()
@@ -130,6 +130,10 @@ class NetworkPlotSpikeRaster(object):
     # histogram
     for t in typeOrder:
         pruned_spikes = [   self.time[int(i)]-skipTime for i in tIdx if i in typedict[t] ]
+
+        nOfType = len([x["type"] for x in self.networkInfo.data["neurons"] \
+                       if x["type"] == t])
+
         atop.hist(  pruned_spikes, 
                     bins=int(self.time[-1]*100), 
                     range=(0,self.time[-1]), 
@@ -151,7 +155,7 @@ class NetworkPlotSpikeRaster(object):
     atop.axis('off')
     # UPDATE here to set specific range for plot window!!!!
     
-    endTime = np.max([self.endTime,np.max(self.time)])
+    endTime = np.max([self.endTime,np.max(self.time)]) - skipTime
     
     atop.set_xlim([-0.01,endTime+0.01])
     ax.set_xlim(  [-0.01,endTime+0.01])
@@ -252,7 +256,7 @@ if __name__ == "__main__":
     endTime = 2.0
     
   if(fileName is not None):
-    npsr = NetworkPlotSpikeRaster(fileName,networkFile,skipTime=0.0,
+    npsr = NetworkPlotSpikeRaster(fileName,networkFile,skipTime=1.0,
                                   endTime=endTime,
                                   typeOrder=["FSN","dSPN","LTS","iSPN","ChIN"])
 

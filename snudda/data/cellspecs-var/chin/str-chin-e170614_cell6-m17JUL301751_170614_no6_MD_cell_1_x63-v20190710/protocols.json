@@ -1,0 +1,18 @@
+{
+    "IDthresh_fake_ChIN": {
+        "stimuli": [
+            {
+                "delay": 700.0, 
+                "amp": 0.050, 
+                "duration": 1000.0, 
+                "totduration": 1600.0
+            }, 
+            {
+                "delay": 0.0, 
+                "amp": 0.0, 
+                "duration": 10000.0, 
+                "totduration": 10000.0
+            }
+        ]
+    }
+}
