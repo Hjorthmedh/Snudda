@@ -1,0 +1,29 @@
+{
+  
+    "ChIN": {
+	"Cortical" : {
+	    "generator" : "poisson",	    
+	    "type: " : "AMPA_NMDA",
+	    "synapseDensity": "0.003*(1-np.exp(-d/200e-6))",	    
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.001,	    
+	    "conductance" : 0.5e-9,	    
+	    "modFile": "tmGlut",
+	    "parameterFile":"$DATA/synapses/v2/M1RH_Analysis_190925.h5-parameters-CHAT.json"
+	},
+	"Thalamic" : {
+	    "generator" : "poisson",	    
+	    "type: " : "AMPA_NMDA",
+	    "synapseDensity" : "0.003*np.exp(-d/200e-6)",	    
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.001,	    
+	    "conductance" : 0.5e-9,	    
+	    "modFile": "tmGlut",
+	    "parameterFile":"$DATA/synapses/v2/TH_Analysis_191001.h5-parameters-CHAT.json"
+	}
+    }
+
+       
+}

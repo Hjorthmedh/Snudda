@@ -16,7 +16,9 @@ HOME=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda
 
 # Synapse file
 SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
-NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.902473
+
+NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.904373
+
 NETWORK_INFO_FILE=$NETWORK_DIR/network-pruned-synapses.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 NETWORK_VOLTAGE_FILE=$NETWORK_DIR/simulation/voltage-trace-${SLURM_JOBID}.txt

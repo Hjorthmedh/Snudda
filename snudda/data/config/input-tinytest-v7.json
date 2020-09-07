@@ -2,8 +2,8 @@
     "dSPN": {
 	"CorticalBase" : {
 	    "generator" : "poisson",
-	    "type: " : "AMPA_NMDA",
-	    "synapseDensity" : "1.1*0.05/(1+np.exp(-(d-30e-6)/5e-6))",
+	    "type" : "AMPA_NMDA",
+	    "synapseDensity" : "1.15*0.05/(1+np.exp(-(d-30e-6)/5e-6))",
 	    "frequency" : 1,
 	    "channelCorrelation" : 0.0,
 	    "jitter" : 0.002,
@@ -15,8 +15,8 @@
 	    "generator" : "poisson",
 	    "start" : 2.0,
 	    "end" : 2.5,
-	    "type: " : "AMPA_NMDA",
-	    "synapseDensity" : "0.5*0.05/(1+np.exp(-(d-30e-6)/5e-6))",
+	    "type" : "AMPA_NMDA",
+	    "synapseDensity" : "0.45*0.05/(1+np.exp(-(d-30e-6)/5e-6))",
 	    "frequency" : 1,
 	    "channelCorrelation" : 0.0,
 	    "jitter" : 0.002,
@@ -26,7 +26,7 @@
 	},
 	"Thalamic" : {
 	    "generator" : "poisson",	    
-	    "type: " : "AMPA_NMDA",
+	    "type" : "AMPA_NMDA",
 	    "synapseDensity" : "0.05*np.exp(-d/200e-6)",
 	    "frequency" : 1,
 	    "channelCorrelation" : 0.0,
@@ -40,8 +40,8 @@
     "iSPN": {
 	"CorticalBase" : {
 	    "generator" : "poisson",
-	    "type: " : "AMPA_NMDA",
-	    "synapseDensity": "0.55*0.052/(1+np.exp(-(d-30e-6)/5e-6))",
+	    "type" : "AMPA_NMDA",
+	    "synapseDensity": "0.75*0.052/(1+np.exp(-(d-30e-6)/5e-6))",
 	    "frequency" : 1,
 	    "channelCorrelation" : 0.0,
 	    "jitter" : 0.003,
@@ -53,8 +53,8 @@
 	    "generator" : "poisson",
 	    "start" : 2.0,
 	    "end" : 2.5,
-	    "type: " : "AMPA_NMDA",
-	    "synapseDensity": "0.5*0.052/(1+np.exp(-(d-30e-6)/5e-6))",
+	    "type" : "AMPA_NMDA",
+	    "synapseDensity": "0.3*0.052/(1+np.exp(-(d-30e-6)/5e-6))",
 	    "frequency" : 1,
 	    "channelCorrelation" : 0.0,
 	    "jitter" : 0.003,
@@ -64,7 +64,7 @@
 	},
 	"Thalamic" : {
 	    "generator" : "poisson",	    
-	    "type: " : "AMPA_NMDA",
+	    "type" : "AMPA_NMDA",
 	    "synapseDensity" : "0.052*np.exp(-d/200e-6)",
 	    "frequency" : 1,
 	    "channelCorrelation" : 0.0,
@@ -79,8 +79,8 @@
     "FSN": {
 	"Cortical" : {
 	    "generator" : "poisson",	    
-	    "type: " : "AMPA_NMDA",
-	    "synapseDensity": "0.1*(1-np.exp(-d/200e-6))",	    
+	    "type" : "AMPA_NMDA",
+	    "synapseDensity": "0.092*(1-np.exp(-d/200e-6))",	    
 	    "frequency" : 1,
 	    "channelCorrelation" : 0.0,
 	    "jitter" : 0.001,
@@ -92,8 +92,8 @@
 	    "generator" : "poisson",
 	    "start" : 2.0,
 	    "end" : 2.5,
-	    "type: " : "AMPA_NMDA",
-	    "synapseDensity": "0.04*(1-np.exp(-d/200e-6))",
+	    "type" : "AMPA_NMDA",
+	    "synapseDensity": "0.038*(1-np.exp(-d/200e-6))",
 	    "frequency" : 1,
 	    "channelCorrelation" : 0.0,
 	    "jitter" : 0.003,
@@ -103,7 +103,7 @@
 	},
 	"Thalamic" : {
 	    "generator" : "poisson",	    
-	    "type: " : "AMPA_NMDA",
+	    "type" : "AMPA_NMDA",
 	    "synapseDensity" : "0.073*np.exp(-d/200e-6)",	    
 	    "frequency" : 1,
 	    "channelCorrelation" : 0.0,
@@ -119,8 +119,19 @@
     "ChIN": {
 	"Cortical" : {
 	    "generator" : "poisson",	    
-	    "type: " : "AMPA_NMDA",
-	    "synapseDensity": "0.022*(1-np.exp(-d/200e-6))",	    
+	    "type" : "AMPA_NMDA",
+	    "synapseDensity": "0.001*(1-np.exp(-d/200e-6))",	    
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.001,	    
+	    "conductance" : 0.5e-9,	    
+	    "modFile": "tmGlut",
+	    "parameterFile":"$DATA/synapses/v2/M1RH_Analysis_190925.h5-parameters-CHAT.json"
+	},
+	"CorticalSignal" : {
+	    "generator" : "poisson",	    
+	    "type" : "AMPA_NMDA",
+	    "synapseDensity": "0.0004*(1-np.exp(-d/200e-6))",	    
 	    "frequency" : 1,
 	    "channelCorrelation" : 0.0,
 	    "jitter" : 0.001,	    
@@ -130,8 +141,8 @@
 	},
 	"Thalamic" : {
 	    "generator" : "poisson",	    
-	    "type: " : "AMPA_NMDA",
-	    "synapseDensity" : "0.022*np.exp(-d/200e-6)",	    
+	    "type" : "AMPA_NMDA",
+	    "synapseDensity" : "0.003*np.exp(-d/200e-6)",	    
 	    "frequency" : 1,
 	    "channelCorrelation" : 0.0,
 	    "jitter" : 0.001,	    
@@ -144,8 +155,8 @@
     "LTS": {
 	"Cortical" : {
 	    "generator" : "poisson",	    
-	    "type: " : "AMPA_NMDA",
-	    "synapseDensity": "0.45*0.018*(1-np.exp(-d/200e-6))",	    
+	    "type" : "AMPA_NMDA",
+	    "synapseDensity": "0.37*0.018*(1-np.exp(-d/200e-6))",	    
 	    "frequency" : 1,
 	    "channelCorrelation" : 0.0,
 	    "jitter" : 0.001,	    
@@ -157,8 +168,8 @@
 	    "generator" : "poisson",
 	    "start" : 2.0,
 	    "end" : 2.5,
-	    "type: " : "AMPA_NMDA",
-	    "synapseDensity": "0.45*0.018*(1-np.exp(-d/200e-6))",
+	    "type" : "AMPA_NMDA",
+	    "synapseDensity": "0.15*0.018*(1-np.exp(-d/200e-6))",
 	    "frequency" : 1,
 	    "channelCorrelation" : 0.0,
 	    "jitter" : 0.003,
