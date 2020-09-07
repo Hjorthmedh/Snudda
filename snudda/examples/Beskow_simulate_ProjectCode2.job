@@ -1,11 +1,11 @@
 #!/bin/bash -l
-#SBATCH -t 8:30:00
-#SBATCH --time-min=7:59:00
+#SBATCH -t 0:10:00
+#SBATCH --time-min=0:05:00
 #SBATCH -J snudda_simulate
-#SBATCH -A 2019-3-644
+#SBATCH -A 2020-5-449
 #SBATCH -o save/output-snudda_simulate.o%j
 #SBATCH -e save/error-snudda_simulate.e%j
-#SBATCH --nodes=7-15
+#SBATCH --nodes=2
 #SBATCH --ntasks-per-node=32
 #SBATCH --mail-type=ALL
 
