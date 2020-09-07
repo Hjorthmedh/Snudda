@@ -119,3 +119,5 @@ x86_64
 /mechanisms
 networks
 save/
+/snudda/examples/controller_ip.txt
+/snudda/examples/start_time_network_connect.txt

@@ -76,8 +76,11 @@ export PATH=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/beskow/bin:$PATH
 export PYTHONPATH=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/beskow/lib/python3.7/site-packages:$PYTHONPATH
 
 
-srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 3.5 --spikesOut $NETWORK_SPIKE_FILE --voltOut $NETWORK_VOLTAGE_FILE
+srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 0.1 --spikesOut $NETWORK_SPIKE_FILE --voltOut $NETWORK_VOLTAGE_FILE
 
 
 # Original version, start neuron from python, does not work on beskow
 #aprun -n  $N_WORKERS /cfs/klemming/nobackup/h/hjorth/ChINopt/model/x86_64/special -mpi -python snudda_simulate.py /cfs/klemming/nobackup/h/hjorth/ChINopt/model/save/save/network-connect-synapse-file-1749867.pickle
+
+NETWORK_TAR = $NETWORK_DIR.tar.gz
+tar -zcvf NETWORK_TAR NETWORK_DIR
