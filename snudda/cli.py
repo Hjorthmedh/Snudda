@@ -19,7 +19,7 @@ def snudda_cli():
       parser.add_argument("--h5legacy",help="Use legacy hdf5 support",action="store_true")
       parser.add_argument("--profile",help="Run python cProfile",action="store_true")
       parser.add_argument("--nPopulationUnits",type=int,help="Number of Population Units in the structure, affects connectivity and input correlation",default=1)
-      parser.add_argument("--PopulationUnitCentres",help="A list which defines the population unit centres",default=None)
+      parser.add_argument("--PopulationUnitCentres",help="A list which defines the population unit centres",default="[[]]")
       parser.add_argument("--PopulationUnitRadius",type=float,help="Radius of population units",default=1)
       parser.add_argument("--input",help="Input json config file (for input setup)")
       parser.add_argument("--inputFile",help="Input hdf5 file (for simulation)")

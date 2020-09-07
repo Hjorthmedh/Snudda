@@ -18,7 +18,7 @@ import json
 
 class SnuddaInit(object):
 
-  def __init__(self,structDef,configName,nPopulationUnits=1,PopulationUnitCentres=None,PopulationUnitRadius=None):
+  def __init__(self,structDef,configName,nPopulationUnits=1,PopulationUnitCentres="[[]]",PopulationUnitRadius=None):
 
     print("CreateConfig")
 
@@ -44,12 +44,22 @@ class SnuddaInit(object):
     if(useRandomPopulationUnits):
       self.networkData["PopulationUnits"]["method"] = "random"
       
-    else:      
+    else:
       self.networkData["PopulationUnits"]["method"] = "populationUnitSpheres"
 
-      #Centre of striatum is [3540e-6,4645e-6,5081e-6]
+      #Centre of striatum mesh is [3540e-6,4645e-6,5081e-6] - the population units will be shifted according to this coordinate
+
       self.networkData["PopulationUnits"]["centres"] = eval(PopulationUnitCentres)
-      
+      try:
+        if(len(self.networkData["PopulationUnits"]["centres"]) == nPopulationUnits):
+            pass
+        else:
+            raise ValueError
+      except ValueError:
+         print("The number of Population Units does not equal the number of centres.")
+         import pdb
+         pdb.set_trace()
+
       self.networkData["PopulationUnits"]["radius"] = PopulationUnitRadius*1e-6
       
       print("Overriding the number of population units")
@@ -64,15 +74,19 @@ class SnuddaInit(object):
 
     # self.neuronTargets = collections.OrderedDict([])
 
-    from scipy import spatial
-    
-    distanceBetweenPopulationUnits = spatial.distance.cdist(self.networkData["PopulationUnits"]["centres"],self.networkData["PopulationUnits"]["centres"],metric="euclidean")
-
 
     print("Using " + str(nPopulationUnits) + " Population Units")
-    print("Using radius of Population Unit Sphere" + str(self.networkData["PopulationUnits"]["radius"]*1e6) + " microns")
 
-    print("Using distance between Population Unit Centres"  + str(distanceBetweenPopulationUnits*1e6) + " microns")
+    if(nPopulationUnits > 1):
+        from scipy import spatial
+
+        distanceBetweenPopulationUnits = spatial.distance.cdist(self.networkData["PopulationUnits"]["centres"],
+                                                                self.networkData["PopulationUnits"]["centres"],
+                                                                metric="euclidean")[np.triu_indices(len(self.networkData["PopulationUnits"]["centres"]),k = 1)]
+
+        print("Using radius of Population Unit Sphere " + str(np.ceil(self.networkData["PopulationUnits"]["radius"]*1e6)) + " microns")
+
+        print("Using distance between Population Unit Centres"  + str(distanceBetweenPopulationUnits*1e6) + " microns")
 
     
     self.nPopulationUnits = nPopulationUnits #5
@@ -281,7 +295,7 @@ class SnuddaInit(object):
       pruningInfoOther["a3"] = a3_other
       pruningInfoOther["distPruning"] = distPruning_other
 
-      # Different pruning rules for within and between neuron channels
+      # Different pruning rules for within and between neuron units
       conInfo["pruningOther"] = pruningInfoOther
 
       #targetInfo = [targetName,
@@ -481,7 +495,7 @@ class SnuddaInit(object):
     # !!! Dont need to do this anymore
     ## We need to copy over the target data to each neuron
     #for n in self.networkData:
-    #  if(n in ["Volume","Channels"]):
+    #  if(n in ["Volume","Units"]):
     #    # Non-neuron keywords, skip
     #    continue
     #
@@ -817,10 +831,10 @@ class SnuddaInit(object):
     # OLD: std ~ +/- 8 receptors, we used before:  [1.15e-9, 0.18e-9]
 
 
-    P11withinChannel = MSP11 * self.populationUnitMSNmodifier
-    P11betweenChannel = MSP11 *(1 +(1-self.populationUnitMSNmodifier) / self.nPopulationUnits)
-    P12withinChannel = MSP12 * self.populationUnitMSNmodifier
-    P12betweenChannel = MSP12 *(1 +(1-self.populationUnitMSNmodifier) / self.nPopulationUnits)
+    P11withinUnit = MSP11 * self.populationUnitMSNmodifier
+    P11betweenUnit = MSP11 *(1 +(1-self.populationUnitMSNmodifier) / self.nPopulationUnits)
+    P12withinUnit = MSP12 * self.populationUnitMSNmodifier
+    P12betweenUnit = MSP12 *(1 +(1-self.populationUnitMSNmodifier) / self.nPopulationUnits)
 
     #pfdSPNdSPN = "synapses/v1/trace_table.txt-DD-model-parameters.json"
     #pfdSPNiSPN = "synapses/v1/trace_table.txt-DI-model-parameters.json"
@@ -858,8 +872,8 @@ class SnuddaInit(object):
                          connectionType="GABA",
                          distPruning=SPN2SPNdistDepPruning,
                          f1=0.38, softMax=3, mu2=2.4,
-                         a3=P11withinChannel,
-                         a3_other=P11betweenChannel,
+                         a3=P11withinUnit,
+                         a3_other=P11betweenUnit,
                          conductance=MSD1gGABA,
                          parameterFile=pfdSPNdSPN,
                          modFile="tmGabaA",
@@ -873,8 +887,8 @@ class SnuddaInit(object):
                          connectionType="GABA",
                          distPruning=SPN2SPNdistDepPruning,
                          f1=0.20, softMax=3, mu2=2.4,
-                         a3=P12withinChannel,
-                         a3_other=P12betweenChannel,
+                         a3=P12withinUnit,
+                         a3_other=P12betweenUnit,
                          conductance=MSD1gGABA,
                          parameterFile=pfdSPNiSPN,
                          modFile="tmGabaA",
@@ -930,10 +944,10 @@ class SnuddaInit(object):
 
 
     # Voxel method
-    P21withinChannel = MSP21 * self.populationUnitMSNmodifier
-    P21betweenChannel = MSP21 *(1 +(1-self.populationUnitMSNmodifier) / self.nPopulationUnits)
-    P22withinChannel = MSP22 * self.populationUnitMSNmodifier
-    P22betweenChannel = MSP22 *(1 +(1-self.populationUnitMSNmodifier) / self.nPopulationUnits)
+    P21withinUnit = MSP21 * self.populationUnitMSNmodifier
+    P21betweenUnit = MSP21 *(1 +(1-self.populationUnitMSNmodifier) / self.nPopulationUnits)
+    P22withinUnit = MSP22 * self.populationUnitMSNmodifier
+    P22betweenUnit = MSP22 *(1 +(1-self.populationUnitMSNmodifier) / self.nPopulationUnits)
 
     pfiSPNdSPN = self.dataPath +"/synapses/v2/PlanertFitting-ID-tmgaba-fit.json"
     pfiSPNiSPN = self.dataPath +"/synapses/v2/PlanertFitting-II-tmgaba-fit.json"
@@ -947,8 +961,8 @@ class SnuddaInit(object):
                          connectionType="GABA",
                          distPruning=SPN2SPNdistDepPruning,
                          f1=0.3, softMax=4, mu2=2.4,
-                         a3=P21withinChannel,
-                         a3_other=P21betweenChannel,
+                         a3=P21withinUnit,
+                         a3_other=P21betweenUnit,
                          conductance=MSD2gGABA,
                          parameterFile=pfiSPNdSPN,
                          modFile="tmGabaA",
@@ -962,8 +976,8 @@ class SnuddaInit(object):
                          connectionType="GABA",
                          distPruning=SPN2SPNdistDepPruning,
                          f1=0.55, softMax=4, mu2=2.4,
-                         a3=P22withinChannel,
-                         a3_other=P22betweenChannel,
+                         a3=P22withinUnit,
+                         a3_other=P22betweenUnit,
                          conductance=MSD2gGABA,
                          parameterFile=pfiSPNiSPN,
                          modFile="tmGabaA",

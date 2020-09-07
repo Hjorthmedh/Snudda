@@ -546,38 +546,6 @@ class SnuddaPlace(object):
       self.populationUnits[i] = np.where(self.populationUnit == i)[0]
 
   ############################################################################
-
-  def savePopulationUnits(self,populationUnitCentres):
-
-    import numpy as np
-    import pickle
-
-    populationUnitDir = os.path.join(os.path.dirname(self.config_file),"PopulationUnits")
-    if(not os.path.exists(populationUnitDir)):
-      os.mkdir(populationUnitDir)
-      
-    np.savetxt(os.path.join(populationUnitDir,"positionsNeurons.txt"),self.allNeuronPositions())
-
-    np.savetxt(os.path.join(populationUnitDir,"PopulationUnitCentres.txt"),np.array(populationUnitCentres))
-
-    groupedPopulationUnitFile=open(os.path.join(populationUnitDir,"populationUnitGrouped.pickle"),'wb')
-    
-    PopulationUnitInfo = dict([])
-
-    for popUnitIdx, neurons in self.populationUnits.items():
-      axonExtent = list()
-      dendExtent = list()
-      
-      for neuronNum in neurons:
-        
-        
-        axonExtent.append(self.neurons[neuronNum].maxAxonRadius)
-        dendExtent.append(self.neurons[neuronNum].maxDendRadius)
-
-      PopulationUnitInfo[popUnitIdx] = [ neurons , axonExtent, dendExtent]
-      
-    pickle.dump(PopulationUnitInfo,groupedPopulationUnitFile)
-    
   
   def populationUnitSpheresLabeling(self,populationUnitCentres,populationUnitRadius):
   
@@ -591,7 +559,7 @@ class SnuddaPlace(object):
     for (ctr, pos) in enumerate(xyz):
       d = [np.linalg.norm(pos-c) for c in centres]
       idx = np.argsort(d)
-      
+
       if(d[idx[0]] <= populationUnitRadius):
         self.populationUnit[ctr] = idx[0] + 1 # We reserve 0 for no channel
 
@@ -602,10 +570,6 @@ class SnuddaPlace(object):
       # Channel 0 is unassigned, no channel, poor homeless neurons!
       self.populationUnits[i] = np.where(self.populationUnit == i)[0]
 
-          
-    self.savePopulationUnits(populationUnitCentres=populationUnitCentres)
-   
-        
   ############################################################################
 
   def sortNeurons(self):
