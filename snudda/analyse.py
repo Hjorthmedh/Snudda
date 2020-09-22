@@ -1697,6 +1697,9 @@ class SnuddaAnalyse(object):
     plt.title(self.neuronName(preType) + " connecting to " \
               + self.neuronName(neuronType))
     plt.tight_layout()
+    xleft,xright = plt.xlim()
+    plt.xlim(0,xright)
+
     plt.ion()
     plt.draw()
 
@@ -1733,6 +1736,10 @@ class SnuddaAnalyse(object):
     plt.title(self.neuronName(preType) + " " + connectionType \
               + " on " + self.neuronName(neuronType))
     plt.tight_layout()
+
+    xleft,xright = plt.xlim()
+    plt.xlim(0,xright)
+    
     plt.ion()
     plt.draw()
 
