@@ -162,11 +162,11 @@ class CompareNetwork(object):
           #for i in tIdx:
           for i in range(10):
             if i in dicttype[t]:
-              print(i)
+              
               spike_train.append(time[int(i)]-skipTime)
-          print(t)
+          
           cellTypeactivity[t].append(neo.SpikeTrain(spike_train*pq.s,t_stop=endTime)) 
-      print('added')
+      
       for neuronName, activity in cellTypeactivity.items():
         
         populationCount = elephant.statistics.time_histogram(activity, binsize,output='rate')
@@ -186,6 +186,7 @@ class CompareNetwork(object):
     # have updated the name of the saved file to be the same as the fileName
     fn = os.path.basename(self.fileNames[ctr])
     figName = '{}/{}{}'.format(figPath, fn.split('.')[0], '-colour.svg')
+    plt.show()
     print("Saving " + figName)
     plt.savefig(figName,dpi=600)    
 
