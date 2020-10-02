@@ -1,0 +1,12 @@
+
+2020-10-02 (JH+IC)
+
+- All the synapses on the same neuron from the same source (external),
+  need to have the same overall behaviour. Ie, they need to be picked from
+  the same pool: facilitating, depressing, high nmda/ampa ratio,
+  start ficiliating then depressing (this is for cortical and thalamic input)
+
+
+
+
+
