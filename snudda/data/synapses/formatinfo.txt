@@ -1,0 +1,53 @@
+The synapse parameter JSON file has the following structure:
+
+{
+  "1": {
+    "synapse": {
+      "U": 0.056196420124284725,
+      "tauR": 1.0639199542585276,
+      "tauF": 0.08327560711954084,
+      "tau": 0.2839240056771482,
+      "cond": 0.03976705462961755,
+      "nmda_ratio": 2.677107364924614
+    },
+    "meta": {
+      "type": "MSN1D1",
+      "experiment": "GBZ_CC_H20",
+      "datafile": "DATA/YvonneJohansson2019/M1RH_Analysis_190925.h5"
+    }
+  },
+  "2": {
+    "synapse": {
+      "U": 0.07608328784498158,
+      "tauR": 1.0161832218006048,
+      "tauF": 0.043126221953809225,
+      "tau": 0.9995215416863161,
+      "cond": 0.0782154516819461,
+      "nmda_ratio": 2.676846879109144
+    },
+    "meta": {
+      "type": "MSN3D1",
+      "experiment": "GBZ_CC_H20",
+      "datafile": "DATA/YvonneJohansson2019/M1RH_Analysis_190925.h5"
+    }
+  },
+
+...
+
+}
+
+The JSON file contains synapse parameters for one type of synapse, e.g.
+M1RH to dSPN (MSD1). We can have multiple named parameter sets in the file,
+above named "1" and "2".
+
+When setting up the simulation the "synapse" block is read in, and the
+parameters in it are applied to the channel model. 
+
+In init.py we use addNeuronTarget to specify which neuron types each neuron
+connects to. By passing your synapse parameter JSON file as parameterFile
+you can specify which file to use for each type of connection.
+
+Please note that you can specify parameters also using channelParamDictionary,
+however then all synapses between the two neuron types will have the same
+parameters. Using a parameterFile we can make sure there is variability for
+the synapse properties.

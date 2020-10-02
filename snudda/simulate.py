@@ -250,7 +250,6 @@ class SnuddaSimulate(object):
 
       for synType in synData:
 
-
         synapseTypeID = synData[synType]["channelModelID"]
         infoDict = synData[synType]
 
