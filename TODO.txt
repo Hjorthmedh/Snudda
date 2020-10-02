@@ -6,7 +6,21 @@
   the same pool: facilitating, depressing, high nmda/ampa ratio,
   start ficiliating then depressing (this is for cortical and thalamic input)
 
+  Current status: We randomly pick parameters for each synapse on the neuron,
+  ie the soma sees an averaging of these different behaviours - not good.
+  
 
+- We want to be able to do pruning such that synapses are clustered afterwards.
+  This is important for cortical and thalamic input when using virtual axons,
+  and possibly also for intrastriatal synapses.
+
+  Current status: Synapses are pruned independtly of each other.
+  
+
+- We want to be able to place clustered synapses for external input.
+  This is needed for cortical and thalamic input.
+
+  Current status: Synapses are placed indepedently of each other.
 
 
 
