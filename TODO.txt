@@ -22,5 +22,12 @@
 
   Current status: Synapses are placed indepedently of each other.
 
+2020-10-04 (IC)
+
+- Include the possibility to optimize for two traces at the same time (same input region, same cell but different frequencies). For example:
+  M1-RH-ipsi 161_FS10_GBZ_CC_H10 and 161_FS10_GBZ_CC_H20
+
+  Current status: One trace at the time is optimized.
+
 
 
