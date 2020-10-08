@@ -6,8 +6,9 @@
 # This open source software code was developed in part or in whole in
 # the Human Brain Project, funded from the European Union’s Horizon
 # 2020 Framework Programme for Research and Innovation under Specific
-# Grant Agreements No. 720270 and No. 785907 (Human Brain Project SGA1
-# and SGA2).
+# Grant Agreements No. 720270 and No. 785907, No 945539
+# (Human Brain Project SGA1, SGA2, SGA3).
+
 #
 
 import numpy as np
@@ -52,10 +53,10 @@ class SnuddaPlace(object):
     # This defines the neuron units/channels. The dictionary lists all the
     # members of each unit, the neuronChannel gives the individual neurons
     # channel membership
-    self.nChannels = 1
-    self.channelMethod = "random"
-    self.neuronChannels = dict([])
-    self.neuronChannel = None
+    self.nPopulationUnits = 1
+    self.populationUnitPlacementMethod = "random"
+    self.populationUnits = dict([])
+    self.populationUnit = None
 
     # These are the dimensions of our space, dMin also needs a "padding"
     # region outside the space where fake neurons are placed. This is to
@@ -159,7 +160,7 @@ class SnuddaPlace(object):
 
     if(config_file is None):
       config_file = self.config_file
-
+    
     if(config_file is None):
       self.writeLog("No configuration file specified")
       exit(-1)
@@ -223,10 +224,14 @@ class SnuddaPlace(object):
 
       self.writeLog("Using dimensions from config file")
 
-    if("Channels" in config):
-      self.channelMethod = config["Channels"]["method"]
-      self.nChannels = config["Channels"]["nChannels"]
+    if("PopulationUnits" in config):
+      self.populationUnitPlacementMethod = config["PopulationUnits"]["method"]
+      self.nPopulationUnits = config["PopulationUnits"]["nPopulationUnits"]
 
+      if(self.populationUnitPlacementMethod == "populationUnitSpheres"):
+        self.populationUnitRadius = config["PopulationUnits"]["radius"]
+        self.populationUnitCentres = config["PopulationUnits"]["centres"]
+      
     assert "Neurons" in config, \
       "No neurons defined. Is this config file old format?"
 
@@ -301,8 +306,8 @@ class SnuddaPlace(object):
     # We reorder neurons, sorting their IDs after position
     self.sortNeurons()
 
-    if(self.channelMethod is not None):
-      self.defineChannels(method=self.channelMethod)
+    if(self.populationUnitPlacementMethod is not None):
+      self.definePopulationUnits(method=self.populationUnitPlacementMethod)
 
   ############################################################################
 
@@ -357,8 +362,6 @@ class SnuddaPlace(object):
     # Neuron information
     neuronGroup = networkGroup.create_group("neurons")
 
-    #import pdb
-    #pdb.set_trace()
 
     # If the name list is longer than 20 chars, increase S20
     nameList = [n.name.encode("ascii","ignore") for n in self.neurons]
@@ -433,13 +436,13 @@ class SnuddaPlace(object):
       neuronModulationID[i] = n.modulationID
 
     # Store input information
-    neuronGroup.create_dataset("channelID", data=self.neuronChannel,dtype=int)
-    neuronGroup.create_dataset("nChannels", data=self.nChannels,dtype=int)
+    neuronGroup.create_dataset("populationUnitID", data=self.populationUnit,dtype=int)
+    neuronGroup.create_dataset("nPopulationUnits", data=self.nPopulationUnits,dtype=int)
 
-    if(self.channelMethod is not None):
-      neuronGroup.create_dataset("channelMethod", data=self.channelMethod)
+    if(self.populationUnitPlacementMethod is not None):
+      neuronGroup.create_dataset("populationUnitPlacementMethod", data=self.populationUnitPlacementMethod)
     else:
-      neuronGroup.create_dataset("channelMethod", data="")
+      neuronGroup.create_dataset("populationUnitPlacementMethod", data="")
 
     # Variable for axon density "r", "xyz" or "" (No axon density)
     axonDensityType = [n.axonDensity[0].encode("ascii","ignore") \
@@ -515,30 +518,57 @@ class SnuddaPlace(object):
 
   ############################################################################
 
-  def defineChannels(self,method="random",nChannels=None):
+  def definePopulationUnits(self,method="random",nPopulationUnits=None):
 
-    if(nChannels is None):
-      nChannels = self.nChannels
+    if(nPopulationUnits is None):
+      nPopulationUnits = self.nPopulationUnits
 
-    # Here you can define additional methods for specifying channels
-    # for example, you can make distribution dependent on neuron type etc
-    switcher = { "random" : self.randomLabeling }
-
-    switcher.get(method)(nChannels=nChannels)
-
+    if(method == "random"):
+      self.randomLabeling()
+    elif(method == "populationUnitSpheres"):
+      self.populationUnitSpheresLabeling(self.populationUnitCentres,self.populationUnitRadius)
+    else:
+      self.populationUnit = np.zeros((len(self.neurons),),dtype=int)
+      self.populationUnits = dict([])
+      
   ############################################################################
 
-  def randomLabeling(self,nChannels=None):
+  def randomLabeling(self,nPopulationUnits=None):
 
-    if(nChannels is None):
-      nChannels = self.nChannels
+    if(nPopulationUnits is None):
+      nPopulationUnits = self.nPopulationUnits
 
-    self.neuronChannel = np.random.randint(nChannels,size=len(self.neurons))
+    self.populationUnit = np.random.randint(nPopulationUnits,size=len(self.neurons))
 
-    self.neuronChannels = dict([])
+    self.populationUnits = dict([])
 
-    for i in range(0,nChannels):
-      self.neuronChannels[i] = np.where(self.neuronChannel == i)[0]
+    for i in range(0,nPopulationUnits):
+      self.populationUnits[i] = np.where(self.populationUnit == i)[0]
+
+  ############################################################################
+  
+  def populationUnitSpheresLabeling(self,populationUnitCentres,populationUnitRadius):
+  
+    xyz = self.allNeuronPositions()
+
+   
+    centres = np.array(populationUnitCentres)
+    self.populationUnit = np.zeros((xyz.shape[0],),dtype=int)
+    
+
+    for (ctr, pos) in enumerate(xyz):
+      d = [np.linalg.norm(pos-c) for c in centres]
+      idx = np.argsort(d)
+
+      if(d[idx[0]] <= populationUnitRadius):
+        self.populationUnit[ctr] = idx[0] + 1 # We reserve 0 for no channel
+
+
+    nPopulationUnits = np.max(self.populationUnit)+1
+
+    for i in range(0,nPopulationUnits):
+      # Channel 0 is unassigned, no channel, poor homeless neurons!
+      self.populationUnits[i] = np.where(self.populationUnit == i)[0]
 
   ############################################################################
 
@@ -584,7 +614,7 @@ if __name__ == "__main__":
     lbView = None
 
 
-  npn = SnuddaPlace(config_file="config/Network-striatum-mesh-v9-channels-10000-10.json",verbose=True,dView=dView,lbView=lbView)
+  npn = SnuddaPlace(config_file="config/Network-striatum-mesh-v9-population-Units-10000-10.json",verbose=True,dView=dView,lbView=lbView)
 
 
   # Should we renumber neuron order, so that the neurons in the same hyper

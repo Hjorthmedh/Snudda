@@ -1,7 +1,7 @@
 export IPYTHONDIR="`pwd`/.ipython"
 export IPYTHON_PROFILE=Snudda_LOCAL
 
-ipcluster start -n 6 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
+ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20
 
 # simName=networks/article100000-v1
@@ -19,14 +19,9 @@ sleep 20
 simName=networks/tinySim10
 #simName=networks/Article-nojitter
 
-if [ -d "$simName" ]; then
-  echo "Directory $simName already exists!!"
-  exit 666    
-fi
-
 #snudda init $simName --size 1760000
 #snudda init $simName --size 100000
-snudda init $simName --size 100
+snudda init $simName --size 100 --overwrite
 
 snudda place $simName 
 #snudda detect $simName --hvsize 50 --volumeID Striatum

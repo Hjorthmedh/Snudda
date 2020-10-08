@@ -1480,7 +1480,7 @@ class SnuddaAnalyse(object):
                                     nPoints=5000000.0,
                                     dist3D=True):
 
-    neuronChannel = self.network["neuronChannel"]
+    populationUnit = self.network["populationUnit"]
 
     # Count the connected neurons
     print("Counting connections")

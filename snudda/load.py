@@ -144,15 +144,15 @@ class SnuddaLoad(object):
 
       data["neuronPositions"] = f["network/neurons/position"][()]
 
-      if("nChannels" in f["network/neurons"]):
-        data["nChannels"] = f["network/neurons/nChannels"][()]
-        data["neuronChannel"] = f["network/neurons/channelID"][()]
-        data["channelMethod"] = f["network/neurons/channelMethod"][()]
+      if("nPopulationUnits" in f["network/neurons"]):
+        data["nPopulationUnits"] = f["network/neurons/nPopulationUnits"][()]
+        data["populationUnit"] = f["network/neurons/populationUnitID"][()]
+        data["populationUnitPlacementMethod"] = f["network/neurons/populationUnitPlacementMethod"][()]
       else:
-        print("No channels detected.")
-        data["nChannels"] = 1
-        data["neuronChannel"] = np.zeros(data["nNeurons"])
-        data["channelMethod"] = "none"
+        print("No Population Units detected.")
+        data["nPopulationUnits"] = 0
+        data["populationUnit"] = np.zeros(data["nNeurons"])
+        data["populationUnitPlacementMethod"] = "none"
 
       if(loadMorph and "morphologies" in f):
         data["morph"] = dict([])

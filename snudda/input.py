@@ -100,7 +100,7 @@ class SnuddaInput(object):
 
     
       # Make the "master input" for each channel
-      self.makeChannelSpikeTrains()
+      self.makePopulationUnitSpikeTrains()
       
       # Generate the actual input spikes, and the locations
       # stored in self.neuronInput dictionary
@@ -137,7 +137,7 @@ class SnuddaInput(object):
     
     # 2. Read the position file, so we know what neurons are in the network
 
-    # 3. Create the "master input" for each channel.
+    # 3. Create the "master input" for each population unit.
 
     # 4. Mix the master input with random input, for each neuron, to create
     #    the appropriate correlations
@@ -201,11 +201,11 @@ class SnuddaInput(object):
           itGroup.create_dataset("end",data=neuronIn["end"])
           itGroup.create_dataset("conductance",data=neuronIn["conductance"])
         
-          channelID = neuronIn["channelID"]
-          itGroup.create_dataset("channelID",data=channelID)
+          populationUnitID = neuronIn["populationUnitID"]
+          itGroup.create_dataset("populationUnitID",data=populationUnitID)
 
-          chanSpikes = self.channelSpikes[neuronType][inputType][channelID]
-          itGroup.create_dataset("channelSpikes",
+          chanSpikes = self.populationUnitSpikes[neuronType][inputType][populationUnitID]
+          itGroup.create_dataset("populationUnitSpikes",
                                  data=chanSpikes)
 
           itGroup.create_dataset("generator",data=neuronIn["generator"])
@@ -295,38 +295,47 @@ class SnuddaInput(object):
     
   ############################################################################
 
-  # Each synaptic input will contain a fraction of "channel" spikes, which are
-  # taken from a stream of spikes unique to that particular channel
+  # Each synaptic input will contain a fraction of population unit spikes, which are
+  # taken from a stream of spikes unique to that particular population unit
   # This function generates these correlated spikes
   
-  def makeChannelSpikeTrains(self,nChannels=None,timeRange=None):
+  def makePopulationUnitSpikeTrains(self,nPopulationUnits=None,timeRange=None):
 
-    self.writeLog("Running makeChannelSpikeTrains")
+    self.writeLog("Running makePopulationUnitSpikeTrains")
     
-    if(nChannels is None):
-      nChannels = self.nChannels
+    if(nPopulationUnits is None):
+      nPopulationUnits = self.nPopulationUnits
 
     if(timeRange is None):
       timeRange = (0,self.time)
       
-    self.channelSpikes = dict([])
+    self.populationUnitSpikes = dict([])
 
     for cellType in self.inputInfo:
       
-      self.channelSpikes[cellType] = dict([])
+      self.populationUnitSpikes[cellType] = dict([])
       
       for inputType in self.inputInfo[cellType]:
 
         if(self.inputInfo[cellType][inputType]["generator"] == "poisson"):
         
           freq = self.inputInfo[cellType][inputType]["frequency"]
-          self.channelSpikes[cellType][inputType] = dict([])
-        
-          for idxChan in range(0,self.nChannels):
-            self.channelSpikes[cellType][inputType][idxChan] = \
+          self.populationUnitSpikes[cellType][inputType] = dict([])
+
+          if("populationUnitID" in self.inputInfo[cellType][inputType]):
+            popUnitList = \
+              self.inputInfo[cellType][inputType]["populationUnitID"]
+
+            if(type(popUnitList) != list):
+              popUnitList = [popUnitList]
+          else:
+            popUnitList = range(0,self.nPopulationUnits)
+              
+          for idxPopUnit in popUnitList:
+            self.populationUnitSpikes[cellType][inputType][idxPopUnit] = \
               self.generateSpikes(freq=freq,timeRange=timeRange)
 
-    return self.channelSpikes
+    return self.populationUnitSpikes
 
   ############################################################################
 
@@ -345,10 +354,10 @@ class SnuddaInput(object):
     synapseDensityList = []
     nInputsList = []
     PkeepList = []
-    channelSpikesList = []
+    populationUnitSpikesList = []
     jitterDtList = []
     locationList = []
-    channelIDList = []
+    populationUnitIDList = []
     conductanceList = []
     correlationList = []
 
@@ -356,8 +365,8 @@ class SnuddaInput(object):
     parameterFileList = []
     parameterListList = []
     
-    for (neuronID,neuronType,channelID) \
-        in zip(self.neuronID, self.neuronType,self.channelID):
+    for (neuronID,neuronType,populationUnitID) \
+        in zip(self.neuronID, self.neuronType,self.populationUnitID):
       
       self.neuronInput[neuronID] = dict([])
 
@@ -367,16 +376,29 @@ class SnuddaInput(object):
         continue
       
       for inputType in self.inputInfo[neuronType]:
-
-        self.neuronInput[neuronID][inputType] = dict([])
         
         inputInf = self.inputInfo[neuronType][inputType]
 
+        if("populationUnitID" in inputInf):
+          popUnitID = inputInf["populationUnitID"]
+          
+          if(type(popUnitID) == list \
+             and populationUnitID not in popUnitID):
+            # We have a list of functional channels, but this neuron
+            # does not belong to a functional channel in that list
+            continue
+          elif(populationUnitID != popUnitID):
+            # We have a single functional channel, but this neuron is not
+            # in that functional channel
+            continue
+
+        self.neuronInput[neuronID][inputType] = dict([])
+          
         if(inputInf["generator"] == "poisson"):
           neuronIDList.append(neuronID)
           inputTypeList.append(inputType)
           freqList.append(inputInf["frequency"])
-          PkeepList.append(np.sqrt(inputInf["channelCorrelation"]))
+          PkeepList.append(np.sqrt(inputInf["populationUnitCorrelation"]))
           jitterDtList.append(inputInf["jitter"])
 
           if("start" in inputInf):
@@ -426,12 +448,12 @@ class SnuddaInput(object):
           synapseDensityList.append(synapseDensity)
           nInputsList.append(nInp)
             
-          channelIDList.append(channelID)
+          populationUnitIDList.append(populationUnitID)
           conductanceList.append(cond)
-          correlationList.append(inputInf["channelCorrelation"])
+          correlationList.append(inputInf["populationUnitCorrelation"])
 
-          cSpikes = self.channelSpikes[neuronType][inputType][channelID]
-          channelSpikesList.append(cSpikes)
+          cSpikes = self.populationUnitSpikes[neuronType][inputType][populationUnitID]
+          populationUnitSpikesList.append(cSpikes)
 
           modFileList.append(modFile)
           parameterFileList.append(parameterFile)
@@ -448,11 +470,11 @@ class SnuddaInput(object):
           self.writeLog("Unknown input generator: " + inputInf["generator"]\
                         + " for " + str(neuronID))
 
-    # The old code had so that all neurons within a channel shared the same
+    # The old code had so that all neurons within a population unit shared the same
     # mother process, which caused them all to activate at the same time
     # with high probability. By setting channelSpikeList to None we disable it
-    self.writeLog("Clearing channelSpikesList, thus all neurons will have their own mother process for each input")
-    channelSpikesList = [None for x in channelSpikesList]
+    self.writeLog("Clearing populationUnitSpikesList, thus all neurons will have their own mother process for each input")
+    populationUnitSpikesList = [None for x in populationUnitSpikesList]
     amr = None
     
     #Lets try and swap self.lbView for self.dView
@@ -472,9 +494,9 @@ class SnuddaInput(object):
                            synapseDensityList,
                            nInputsList,
                            PkeepList,
-                           channelSpikesList,
+                           populationUnitSpikesList,
                            jitterDtList,
-                           channelIDList,
+                           populationUnitIDList,
                            conductanceList,
                            correlationList,
                            modFileList,
@@ -500,9 +522,9 @@ class SnuddaInput(object):
                 synapseDensityList,
                 nInputsList,
                 PkeepList,
-                channelSpikesList,
+                populationUnitSpikesList,
                 jitterDtList,
-                channelIDList,
+                populationUnitIDList,
                 conductanceList,
                 correlationList,
                 modFileList,
@@ -511,7 +533,7 @@ class SnuddaInput(object):
           
     # Gather the spikes that were generated in parallell
     for neuronID, inputType, spikes, loc, synapseDensity, frq, \
-        jdt, cID,cond,corr,timeRange, \
+        jdt, pUID,cond,corr,timeRange, \
         modFile,paramFile,paramList,paramID in amr:
       self.writeLog("Gathering " + str(neuronID) + " - " + str(inputType) )
       self.neuronInput[neuronID][inputType]["spikes"] = spikes
@@ -529,9 +551,12 @@ class SnuddaInput(object):
       self.neuronInput[neuronID][inputType]["jitter"] = jdt
       self.neuronInput[neuronID][inputType]["start"] = timeRange[0]
       self.neuronInput[neuronID][inputType]["end"] = timeRange[1]
-      self.neuronInput[neuronID][inputType]["channelID"] = cID
+      self.neuronInput[neuronID][inputType]["populationUnitID"] = pUID
 
-
+      assert pUID == self.populationUnitID[neuronID], \
+        "Internal error: Neuron should belong to the functional channel "\
+        + "that input is generated for" 
+      
       self.neuronInput[neuronID][inputType]["generator"] = "poisson"
       self.neuronInput[neuronID][inputType]["modFile"] = modFile
       self.neuronInput[neuronID][inputType]["parameterFile"] = paramFile
@@ -592,29 +617,29 @@ class SnuddaInput(object):
   # freq -- frequency of spike train
   # nSpikeTrains -- number of spike trains to generate
   # Pkeep -- fraction of channel spikes to include in spike train
-  # retChanSpikes -- if true, returns tuple with second item channel spikes
+  # retpopUnitSpikes -- if true, returns tuple with second item population unit spikes
   #                  if false, just return spikes
-  # channelSpikes --- if None, new channel spikes will be generated
-  #                  (channelSpikes are the spikes shared between correlated
+  # populationUnitSpikes --- if None, new population unit spikes will be generated
+  #                  (population unit Spikes are the spikes shared between correlated
   #                   spike trains)
   
   def makeCorrelatedSpikes(self,freq,timeRange,nSpikeTrains,Pkeep, \
-                           channelSpikes=None, \
-                           retChanSpikes=False,jitterDt=None):
+                           populationUnitSpikes=None, \
+                           retPopUnitSpikes=False,jitterDt=None):
 
     assert(Pkeep >= 0 and Pkeep <= 1)
 
-    if(channelSpikes is None):
-      channelSpikes = self.generateSpikes(freq,timeRange)
+    if(populationUnitSpikes is None):
+      populationUnitSpikes = self.generateSpikes(freq,timeRange)
 
     uniqueFreq = freq * (1-Pkeep)
     spikeTrains = []
 
     for i in range(0,nSpikeTrains):
       tUnique = self.generateSpikes(uniqueFreq,timeRange)
-      tChannel = self.cullSpikes(channelSpikes,Pkeep)
+      tPopulationUnit = self.cullSpikes(populationUnitSpikes,Pkeep)
       
-      spikeTrains.append(self.mixSpikes([tUnique,tChannel]))
+      spikeTrains.append(self.mixSpikes([tUnique,tPopulationUnit]))
 
 
     #if(False):
@@ -623,8 +648,8 @@ class SnuddaInput(object):
     if(jitterDt is not None):
       spikeTrains = self.jitterSpikes(spikeTrains,jitterDt,timeRange=timeRange)
       
-    if(retChanSpikes):
-      return (spikeTrains,channelSpikes)
+    if(retPopUnitSpikes):
+      return (spikeTrains,populationUnitSpikes)
     else:
       return spikeTrains
 
@@ -721,8 +746,8 @@ class SnuddaInput(object):
     # Make sure the position file matches the network config file
     assert(posInfo["configFile"] == self.networkConfigFile)
 
-    self.nChannels = posInfo["nChannels"]
-    self.channelID = posInfo["neuronChannel"]
+    self.nPopulationUnits = posInfo["nPopulationUnits"]
+    self.populationUnitID = posInfo["populationUnit"]
 
     self.neuronName = [n["name"] for n in self.neuronInfo]
     
@@ -1056,7 +1081,7 @@ class SnuddaInput(object):
 
     try:
     
-      neuronID,inputType,freq,start,end,synapseDensity,nSpikeTrains,Pkeep,channelSpikes,jitterDt,channelID,conductance,correlation,modFile,parameterFile,parameterList = args
+      neuronID,inputType,freq,start,end,synapseDensity,nSpikeTrains,Pkeep,populationUnitSpikes,jitterDt,populationUnitID,conductance,correlation,modFile,parameterFile,parameterList = args
 
       return self.makeInputHelperSerial(neuronID = neuronID,
                                         inputType = inputType,
@@ -1066,9 +1091,9 @@ class SnuddaInput(object):
                                         synapseDensity = synapseDensity,
                                         nSpikeTrains = nSpikeTrains,
                                         Pkeep = Pkeep,
-                                        channelSpikes = channelSpikes,
+                                        populationUnitSpikes = populationUnitSpikes,
                                         jitterDt = jitterDt,
-                                        channelID = channelID,
+                                        populationUnitID = populationUnitID,
                                         conductance = conductance,
                                         correlation = correlation,
                                         modFile = modFile,
@@ -1100,9 +1125,9 @@ class SnuddaInput(object):
                             synapseDensity,
                             nSpikeTrains,
                             Pkeep,
-                            channelSpikes,
+                            populationUnitSpikes,
                             jitterDt,
-                            channelID,
+                            populationUnitID,
                             conductance,
                             correlation,
                             modFile,
@@ -1129,7 +1154,7 @@ class SnuddaInput(object):
                                            timeRange=timeRange,
                                            nSpikeTrains=1,
                                            Pkeep=Pkeep,
-                                           channelSpikes=channelSpikes,
+                                           populationUnitSpikes=populationUnitSpikes,
                                            jitterDt=jitterDt)
         nInputs = 1
       else:
@@ -1148,7 +1173,7 @@ class SnuddaInput(object):
                                            timeRange=timeRange,
                                            nSpikeTrains=nInputs,
                                            Pkeep=Pkeep,
-                                           channelSpikes=channelSpikes,
+                                           populationUnitSpikes=populationUnitSpikes,
                                            jitterDt=jitterDt)        
     except:
       import traceback
@@ -1164,7 +1189,7 @@ class SnuddaInput(object):
     # We need to keep track of the neuronID, since it will all be jumbled
     # when doing asynchronous prallellisation
     return (neuronID, inputType, spikes, inputLoc, synapseDensity,freq,
-            jitterDt,channelID,conductance,correlation,
+            jitterDt,populationUnitID,conductance,correlation,
             timeRange,
             modFile,parameterFile,parameterList,parameterID)
 
@@ -1180,10 +1205,10 @@ class SnuddaInput(object):
                             end,
                             nSpikeTrains,
                             Pkeep,
-                            channelSpikes,
+                            populationUnitSpikes,
                             jitterDt,
                             location,
-                            channelID,
+                            populationUnitID,
                             conductance,
                             correlation,
                             modFile,
@@ -1200,7 +1225,7 @@ class SnuddaInput(object):
                                          timeRange=timeRange,
                                          nSpikeTrains=nSpikeTrains,
                                          Pkeep=Pkeep,
-                                         channelSpikes=channelSpikes,
+                                         populationUnitSpikes=populationUnitSpikes,
                                          jitterDt=jitterDt)
 
       if(inputType.lower() == "VirtualNeuron".lower()):
@@ -1224,7 +1249,7 @@ class SnuddaInput(object):
     # We need to keep track of the neuronID, since it will all be jumbled
     # when doing asynchronous prallellisation
     return (neuronID, inputType, spikes, loc, freq,
-            jitterDt,channelID,conductance,correlation,location,
+            jitterDt,populationUnitID,conductance,correlation,location,
             timeRange,
             modFile,parameterFile,parameterList,parameterID)
 

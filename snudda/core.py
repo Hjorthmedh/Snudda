@@ -103,12 +103,14 @@ class Snudda(object):
 
     self.makeDirIfNeeded(self.networkPath)
 
-    nChannels = args.nchannels
+    nPopulationUnits = args.nPopulationUnits
+    PopulationUnitCentres = args.PopulationUnitCentres
+    PopulationUnitRadius = args.PopulationUnitRadius
 
     configFile = self.networkPath + "/network-config.json"
     SnuddaInit(structDef=structDef,
                configName=configFile,
-               nChannels=nChannels)
+               nPopulationUnits=nPopulationUnits,PopulationUnitCentres=PopulationUnitCentres,PopulationUnitRadius=PopulationUnitRadius)
 
     if(args.size > 1e5):
       print("Make sure there is enough disk space in " + str(self.networkPath))
@@ -438,6 +440,7 @@ class Snudda(object):
                          verbose=args.verbose)
 
     sim.addExternalInput()
+    
     sim.checkMemoryStatus()
 
     if(voltFile is not None):

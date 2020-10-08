@@ -1,0 +1,53 @@
+#!/bin/bash -l
+#SBATCH -t 0-23:59:00
+#SBATCH --time-min=5:59:00
+#SBATCH -J SnuddaLARGE
+#SBATCH -A 2019-3-644
+#SBATCH -o save/output-runSnudda.o%j
+#SBATCH -e save/error-runSnudda.e%j
+#SBATCH --nodes=1-4
+#SBATCH --ntasks-per-node=24
+
+# --- Tegner has 24 cores per node
+
+# Run projinfo if you need to see which project for the allocation
+
+# Use Tegner_setupInput.sh to setup anaconda on Tegner
+
+#HOST=$(hostname -s | cut -d'-' -f1)
+HOST=tegner
+L=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/$HOST
+
+export PATH=$L/bin:$PATH
+export LD_LIBRARY_PATH=$L/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$L/lib/python3.7/site-packages:$PYTHONPATH
+
+# Snudda bin gets installed here
+export PATH=$HOME/.local/bin:$PATH
+
+module load anaconda/py37/5.0.1
+
+# Changed to using the .ipython in current dir -- changed back to homedir
+#export IPYTHONDIR="$HOME/.ipython"
+export IPYTHONDIR="/afs/pdc.kth.se/home/${USER:0:1}/$USER/.ipython"
+#export IPYTHONDIR=$(pwd -P)"/.ipython"
+
+# !!! OBS, you need to have done a dev installation using the line below:
+echo "You need to have done the following:"
+echo "pip install --user -e .[dev]"
+
+# Delete the old .ipython directory
+echo "Removing old .ipython directory"
+rm -r $IPYTHONDIR
+
+export IPYTHON_PROFILE=mpi
+
+export PYTHONPATH="$PYTHONPATH:/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/"
+
+#.. Let's try to run on infiniband connection
+srun -n $SLURM_NTASKS ./Tegner_runSnuddaPopUnit.sh
+
+echo "exiting submit script"
+
+
+# source deactivate

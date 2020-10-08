@@ -168,8 +168,8 @@ class NetworkPlotTraces():
     plt.pause(0.001)
 
     #plt.savefig('figures/Network-spikes-' + str(self.ID) + "-colour.pdf")
-
-    figPath = os.path.dirname(self.networkFile) + "/figs"
+    
+    figPath = os.path.dirname(os.path.realpath(self.networkFile)) + "/figs"
     if(not os.path.exists(figPath)):
       os.makedirs(figPath)
  
