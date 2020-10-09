@@ -11,8 +11,33 @@ import json
 import copy
 import time
 
+# TODO 2020-07-15
 #
-# TODO:
+# Make it so that the code can run in serial mode also, to simplify debugging
+#
+
+#
+# TODO 2020-07-02
+# -- We just wrote parallelOptimiseSingleCell -- need to make sure we call it
+#    the function will optimise one cellID, using all workers available
+#    need to debug the code, to make sure it works... have fun! :)
+#
+
+#
+# TODO 2020-06-16
+# -- We need to make sure one neuron can be optimised by all workers
+#    collectively, right now one worker does one cell alone
+#
+# -- Determine synapse locations, pass it to all workers
+# -- Best random is easy to parallelise, just do the work, then gather it at
+#    the master node.
+# -- Difficult: How to parallise scipy.optimize.minimize
+#    Possible idea: let func to optimize handle vectors, and then each
+#    position in vector is sent to one worker.
+
+#
+#
+# TODO (depricated):
 # 1. Remove the old soma optimisation code, not needed anymore
 # 2. Place the inital synapses, then find out the sectionID,X,
 # 3. Pass sectionID, sectionX to all workers, so they use same synapselocations
@@ -47,8 +72,10 @@ class NumpyEncoder(json.JSONEncoder):
 class OptimiseSynapsesFull(object):
 
   ############################################################################
+
+  # optMethod not used anymore, potentially allow user to set sobol or refine
   
-  def __init__(self, fileName, synapseType="glut",loadCache=False,
+  def __init__(self, fileName, synapseType="glut",loadCache=True,
                role="master",dView=None,verbose=True,logFileName=None,
                optMethod="sobol",prettyPlot=False,
                neuronSetFile="neuronSet.json"):
@@ -170,6 +197,8 @@ class OptimiseSynapsesFull(object):
 
   ############################################################################
 
+  # Returns a subset of a dictionary, cellID can be the key, or a list of keys
+  
   def getSubDictionary(self,cellID):
 
     try:
@@ -212,9 +241,8 @@ class OptimiseSynapsesFull(object):
 
   def getData(self,dataType,cellID=None):
 
-
     if(cellID is None):
-      data = self.hFile[dataType].value.copy()
+      data = self.hFile[dataType][()].copy()
     else:
       data = self.hFile[dataType][:,cellID].copy()
  
@@ -329,17 +357,31 @@ class OptimiseSynapsesFull(object):
       self.writeLog(dataType + " " + str(cellID) + ": Nothing to plot")
       return
 
-    synapseParams = self.getParameterCache(cellID,"synapse")    
+
+    
+    bestParams = self.getParameterCache(cellID,"param")
+    synapsePositionOverride = (self.getParameterCache(cellID,"sectionID"),
+                               self.getParameterCache(cellID,"sectionX"))
+    minError = self.getParameterCache(cellID,"error")
 
     vPlot = None
-    if(synapseParams is not None):
 
-      for p in synapseParams:
-        params[p] = synapseParams[p]
+    if(bestParams is not None):
+      U, tauR, tauF, tauRatio, cond, nmdaRatio = bestParams
+
+      params = { "nmda_ratio" : nmdaRatio,
+                 "U" : U,
+                 "tauR" : tauR,
+                 "tauF" : tauF,
+                 "cond" : cond,
+                 "tau" : tauR * tauRatio}
+    
+    
 
       plotModel = self.setupModel(dataType=dataType,
                                   cellID=cellID,
-                                  params=params)
+                                  params=params,
+                                  synapsePositionOverride=synapsePositionOverride)
     
       (tPlot,vPlot,iPlot) = plotModel.run2(pars=params)
 
@@ -845,19 +887,29 @@ class OptimiseSynapsesFull(object):
 
   def setupModel(self,dataType,cellID,params={},
                  synapseDensityOverride=None,
-                 nSynapsesOverride=None):
+                 nSynapsesOverride=None,
+                 synapsePositionOverride=None):
     
     tStim = self.getStimTime(dataType,cellID)  
 
     # Read the info needed to setup the neuron hosting the synapses
     cProp = self.getCellProperties(dataType,cellID)
 
+    if(synapsePositionOverride is not None):
+      synapseSectionID,synapseSectionX = synapsePositionOverride
+    else:
+      synapseSectionID,synapseSectionX = None,None
+      
     if(synapseDensityOverride is not None):
       synapseDensity = synapseDensityOverride
-
+    else:
+      synapseDensity = cProp["synapseDensity"]
+      
     if(nSynapsesOverride is not None):
       nSynapses = nSynapsesOverride
-    
+    else:
+      nSynapses = cProp["nSynapses"]
+      
     # !!! We need to get the baseline depolarisation in another way
 
     self.rsrSynapseModel = \
@@ -866,13 +918,15 @@ class OptimiseSynapsesFull(object):
                     neuronParameters=cProp["neuronParameters"],
                     neuronModulation=cProp["neuronModulation"],
                     stimTimes=tStim,
-                    nSynapses=cProp["nSynapses"],
-                    synapseDensity=cProp["synapseDensity"],
+                    nSynapses=nSynapses,
+                    synapseDensity=synapseDensity,
                     holdingVoltage=cProp["baselineDepol"],
                     synapseType=self.synapseType,
                     params=params,
                     time=self.simTime,
-                    logFile=self.logFile)
+                    logFile=self.logFile,
+                    synapseSectionID=synapseSectionID,
+                    synapseSectionX=synapseSectionX)
 
 
     return self.rsrSynapseModel
@@ -1176,6 +1230,7 @@ class OptimiseSynapsesFull(object):
   
   def fitTrace(self,dataType,cellID,optMethod=None):
 
+    assert False, "Obsolete!!"
     
     if(optMethod is None):
       optMethod = self.optMethod
@@ -1451,40 +1506,34 @@ class OptimiseSynapsesFull(object):
                 tPeak,hPeak,
                 modelBounds,
                 smoothExpTrace8, smoothExpTrace9,
-                nTrials=5000,loadParamsFlag=False):
+                nTrials=6,loadParamsFlag=False,
+                parameterSets = None,
+                returnMinError=False):
 
     assert self.synapseType == "glut", \
       "GABA synapse not supported yet in new version"
+
+    if(parameterSets is None):
+      parameterSets = self.setupParameterSet(modelBounds,nTrials)
     
-    import chaospy
-    distribution = chaospy.J(chaospy.Uniform(modelBounds[0][0],
-                                             modelBounds[1][0]),
-                             chaospy.Uniform(modelBounds[0][1],
-                                             modelBounds[1][1]),
-                             chaospy.Uniform(modelBounds[0][2],
-                                             modelBounds[1][2]),
-                             chaospy.Uniform(modelBounds[0][3],
-                                             modelBounds[1][3]),
-                             chaospy.Uniform(modelBounds[0][4],
-                                             modelBounds[1][4]),
-                             chaospy.Uniform(modelBounds[0][5],
-                                             modelBounds[1][5]))
-    
+
+    # zip(*xxx) unzips xxx -- cool.
     USobol,tauRSobol,tauFSobol,tauRatioSobol,condSobol,nmdaRatioSobol \
-      = distribution.sample(nTrials, rule="sobol")
-
-
+      = zip(*parameterSets)
     
     # tauSobol = np.multiply(tauRatioSobol,tauRSobol)
 
     minPars = None
     minError = np.inf
-
       
     if(loadParamsFlag):
       # If we should load params then do so first
       minPars = self.getParameterCache(cellID,"synapse")
-            
+
+      # --- now parameters are read from cache, but we can in future
+      # have them read from a work-log with parameters to do etc
+      
+      # What was error of the cached parameterset
       if(minPars is not None):
         minError = self.neuronSynapseHelperGlut(tPeak,
                                                 U=minPars[0],
@@ -1500,7 +1549,6 @@ class OptimiseSynapsesFull(object):
 
     idx = 0
         
-    # This for loop should be parallelised... please...
     for U,tauR,tauF,tauRatio,cond,nmdaRatio \
         in zip(USobol, tauRSobol, tauFSobol, tauRatioSobol, \
                condSobol, nmdaRatioSobol):
@@ -1509,7 +1557,6 @@ class OptimiseSynapsesFull(object):
       if(idx % 50 == 0):
         self.writeLog("%d / %d : minError = %g" % (idx, len(USobol),minError))
         self.writeLog(str(minPar))
-   
    
       error = self.neuronSynapseHelperGlut(tPeak,U,tauR,tauF,tauRatio,
                                            cond,nmdaRatio,
@@ -1522,6 +1569,8 @@ class OptimiseSynapsesFull(object):
           minError = error
           minPar = np.array([U,tauR,tauF,tauRatio,cond,nmdaRatio])
 
+          # TODO, write intermediate results to file, in case of a crash...
+          
       except:
         import traceback
         tstr = traceback.format_exc()
@@ -1534,8 +1583,10 @@ class OptimiseSynapsesFull(object):
         continue
     
 
-
-    return minPar
+    if(returnMinError):
+      return minPar,minError
+    else:
+      return minPar
       
   ############################################################################
   
@@ -1623,6 +1674,274 @@ class OptimiseSynapsesFull(object):
       self.addParameterCache(cellID,"error",tstr)
       
 
+  ############################################################################
+
+  def parallelOptimiseSingleCell(self,dataType,cellID,nTrials=10000, \
+                                 postOpt=False):
+
+    # !!! Future improvement. Allow continuation of old optimisation by
+    # reading synapse location and old parameter set, so that is not thrown away
+    
+    if(self.role == "master"):
+
+      # 1. Setup workers
+      params = dict([])
+
+      # 2. Setup one cell to optimise, randomise synapse positions
+      synapseModel = self.setupModel(dataType=dataType,
+                                     cellID=cellID,
+                                     params=params)
+
+      (volt,time) = self.getData(dataType,cellID)
+      peakIdx = self.getPeakIdx(dataType,cellID)
+      tSpikes = time[peakIdx]
+    
+      sigma = np.ones(len(peakIdx))
+      sigma[-1] = 1./3
+
+      stimTime =  self.getStimTime(dataType=dataType,
+                                   cellID=cellID)
+    
+      peakHeight,decayFits,vBase = self.findTraceHeights(time,volt,peakIdx)
+
+      
+      # 2b. Create list of all parameter points to investigate
+      modelBounds = self.getModelBounds(cellID)
+      parameterPoints = self.setupParameterSet(modelBounds,nTrials)
+      
+      # 3. Send synapse positions to all workers, and split parameter points
+      #    between workers
+
+      if(self.dView is not None):
+        self.setupParallel(self.dView)
+
+        self.dView.scatter("parameterPoints",parameterPoints,block=True)
+      
+        self.dView.push( { "cellID"           : cellID,
+                           "dataType"         : dataType,
+                           "params"           : params,
+                           "synapseSectionID" : synapseModel.synapseSectionID,
+                           "synapseSectionX"  : synapseModel.synapseSectionX,
+                           "modelBounds"      : modelBounds,
+                           "stimTime"         : stimTime,
+                           "peakHeight"       : peakHeight },
+                         block=True)
+
+        cmdStrSetup = \
+          "ly.sobolWorkerSetup(dataType=dataType,cellID=cellID,params=params," \
+          + "synapsePositionOverride=(synapseSectionID,synapseSectionX))"
+
+        self.writeLog("Setting up cellID = %d on workers" % cellID)
+        self.dView.execute(cmdStrSetup,block=True)
+      
+        cmdStr = "res = ly.sobolScan(synapseModel=ly.synapseModel, \
+                                     cellID=cellID, \
+                                     tPeak = stimTime, \
+                                     hPeak = peakHeight, \
+                                     parameterSets=parameterPoints, \
+                                     modelBounds=modelBounds, \
+                                     smoothExpTrace8=ly.smoothExpVolt8, \
+                                     smoothExpTrace9=ly.smoothExpVolt9, \
+                                     returnMinError=True)"
+
+        self.writeLog("Executing workers, bang bang")
+        self.dView.execute(cmdStr,block=True)
+      
+        # 5. Gather worker data
+        self.writeLog("Gathering results from workers")
+        res = self.dView["res"]
+
+        # * unpacks res variable
+        parSets,parError = zip(*res)
+
+        minErrorIdx = np.argsort(parError)
+
+        import pdb
+        pdb.set_trace()
+        
+        # We save parameter set, synapse locations, error value
+        bestPar = (parSets[minErrorIdx[0]],
+                   (synapseModel.synapseSectionID,synapseModel.synapseSectionX),
+                   parError[minErrorIdx[0]])
+
+        
+      else:
+
+        # No dView, run in serial mode...
+        # !!!
+        self.sobolWorkerSetup(dataType=dataType,
+                              cellID=cellID,
+                              params=params,
+                              synapsePositionOverride \
+                                = (synapseModel.synapseSectionID,
+                                   synapseModel.synapseSectionX))
+
+        parSet,parError = self.sobolScan(synapseModel=synapseModel, \
+                                         cellID=cellID, \
+                                         tPeak = stimTime, \
+                                         hPeak = peakHeight, \
+                                         modelBounds=modelBounds, \
+                                         smoothExpTrace8=ly.smoothExpVolt8, \
+                                         smoothExpTrace9=ly.smoothExpVolt9, \
+                                         returnMinError=True)
+
+        
+        
+        
+        bestPar = (parSet,
+                   (synapseModel.synapseSectionID,synapseModel.synapseSectionX),
+                   parError)
+        
+ 
+      self.addParameterCache(cellID,"param", bestPar[0])
+      self.addParameterCache(cellID,"sectionID", synapseModel.synapseSectionID)
+      self.addParameterCache(cellID,"sectionX", synapseModel.synapseSectionX)
+      self.addParameterCache(cellID,"error", bestPar[2])
+      
+
+      self.saveParameterCache()
+      self.writeLog("Sobol search done. Best parameter for cellID = %d : %s" \
+                    % (cellID,str(bestPar)))
+
+      if(postOpt):
+        # This updates parameters and saves new parameter cache
+        self.getRefinedParameters(dataType,cellID)
+        
+      
+  ############################################################################
+
+  # This sets up the model also, so can be run in a self-contained loop
+  # We might later want to let the workers do this, but then they cant
+  # write to cache --- THAT WILL LEAD TO DATA CORRUPTION!!
+  
+  def getRefinedParameters(self, dataType, cellID):
+
+    assert self.role == "master", \
+      "You do not want to run this on workers in parallel, " \
+      + " since it writes directly to parameter cache. " \
+      + " That could lead to corrupted data."
+    
+    # Load parameters from disk
+    self.loadParameterCache()
+    modelBounds = self.getModelBounds(cellID)
+
+    startPar = self.getParameterCache(cellID,"param")
+    sectionX = self.getParameterCache(cellID,"sectionX")
+    sectionID = self.getParameterCache(cellID,"sectionID")    
+    startParErrorVal = self.getParameterCache(cellID,"error")
+
+    synapsePositionOverride = (sectionID,sectionX)
+
+    params = dict([])
+
+    (volt,time) = self.getData(dataType,cellID)
+    
+    peakIdx = self.getPeakIdx(dataType,cellID)
+    tSpikes = time[peakIdx]
+
+    stimTime =  self.getStimTime(dataType=dataType,
+                                 cellID=cellID)
+    
+    peakHeight,decayFits,vBase = self.findTraceHeights(time,volt,peakIdx)
+    
+    self.sobolWorkerSetup(dataType,cellID,params, \
+                          synapsePositionOverride = synapsePositionOverride)
+    
+    func = lambda x : \
+           self.neuronSynapseHelperGlut(tSpike=stimTime,
+                                        U=x[0],
+                                        tauR=x[1],
+                                        tauF=x[2],
+                                        tauRatio=x[3],
+                                        cond=x[4],
+                                        nmdaRatio=x[5],
+                                        smoothExpTrace8=self.smoothExpVolt8,
+                                        smoothExpTrace9=self.smoothExpVolt9,
+                                        expPeakHeight=peakHeight,
+                                        returnType="error")
+
+    mBounds = [x for x in zip(modelBounds[0],modelBounds[1])]
+    startPar = self.getParameterCache(cellID,"param")
+    
+    res = scipy.optimize.minimize(func,
+                                  x0=startPar,
+                                  bounds=mBounds)
+
+    fitParams = res.x
+    minError = res.fun
+
+    if(minError >= startParErrorVal):
+      print("Refinement failed. Sobol parameters are better match than new fitting")
+      # Dont overwrite the old parameters
+      
+    else:
+      self.addParameterCache(cellID,"param", fitParams)
+      self.addParameterCache(cellID,"error", minError)
+
+      self.saveParameterCache()
+
+      print(f"Cell {cellID}: Old error: {startParErrorVal}, New error: {minError}")
+                    
+  ############################################################################
+
+  def sobolWorkerSetup(self,dataType,cellID,params,
+                       synapsePositionOverride=None):
+
+    self.synapseModel = self.setupModel(dataType=dataType,
+                                        cellID=cellID,
+                                        params=params,
+                                        synapsePositionOverride \
+                                            =synapsePositionOverride)
+
+    (volt,time) = self.getData(dataType,cellID)
+    
+    self.decayStartFit8 = 0.45
+    self.decayEndFit8   = 0.8
+
+    self.decayStartFit9 = 1.0
+    self.decayEndFit9   = 1.3
+
+    self.smoothExpVolt8,self.smoothExpTime8 \
+      = self.smoothingTrace(volt,self.nSmoothing,
+                            time=time,
+                            startTime = self.decayStartFit8,
+                            endTime = self.decayEndFit8)
+        
+    self.smoothExpVolt9,self.smoothExpTime9 \
+      = self.smoothingTrace(volt,self.nSmoothing,
+                            time=time,
+                            startTime = self.decayStartFit9,
+                            endTime = self.decayEndFit9)
+    
+    
+      
+  ############################################################################
+
+  def setupParameterSet(self,modelBounds,nSets):
+    
+    import chaospy
+    distribution = chaospy.J(chaospy.Uniform(modelBounds[0][0],
+                                             modelBounds[1][0]),
+                             chaospy.Uniform(modelBounds[0][1],
+                                             modelBounds[1][1]),
+                             chaospy.Uniform(modelBounds[0][2],
+                                             modelBounds[1][2]),
+                             chaospy.Uniform(modelBounds[0][3],
+                                             modelBounds[1][3]),
+                             chaospy.Uniform(modelBounds[0][4],
+                                             modelBounds[1][4]),
+                             chaospy.Uniform(modelBounds[0][5],
+                                             modelBounds[1][5]))
+    
+    USobol,tauRSobol,tauFSobol,tauRatioSobol,condSobol,nmdaRatioSobol \
+      = distribution.sample(nSets, rule="sobol")
+
+    parameterSets = [x for x in zip(USobol, \
+                                    tauRSobol,tauFSobol,tauRatioSobol, \
+                                    condSobol,nmdaRatioSobol)]
+    
+    return parameterSets
+      
   ############################################################################
 
   def parallelOptimiseCells(self,dataType,cellIDlist=None):
@@ -1910,40 +2229,16 @@ if __name__ == "__main__":
     
   if(args.id is not None):
     # ID has priority over type
-    userID = ly.getUserID(args.id)
-    print("Optimising only " + str(userID))
-    ly.parallelOptimiseCells("GBZ_CC_H20", userID)
-
+    allCellID = ly.getUserID(args.id)
+    print("Optimising only " + str(allCellID))
+    
   elif(args.type):
     print("Optimising only " + args.type + " in " + "GBZ_CC_H20")
-    ly.parallelOptimiseCells("GBZ_CC_H20",
-                             ly.getCellID("GBZ_CC_H20",args.type))
+    allCellID = ly.getCellID("GBZ_CC_H20",args.type)
   else:
-    ly.parallelOptimiseCells("GBZ_CC_H20")
-
+    print("Optimising all cells, have fun on vacation!")
+    allCellID = self.getValidCellID("GBZ_CC_H20")
     
-  # (d2,t2) = ly.getData("GBZ_CC_H20",21)
-  # xx = ly.getCellID("MSN")
+  for cellID in allCellID:
+    ly.parallelOptimiseSingleCell("GBZ_CC_H20", cellID, nTrials=12)
 
-
-
-  if(False):
-    optHelper = lambda x : ly.optimiseCell( "GBZ_CC_H20", x)
-
-    for idx in ly.getAllCellID():
-      try:
-        if(not ly.checkValidData("GBZ_CC_H20", idx)):
-          # Skip invalid trace
-          continue
-        ly.optimiseCell("GBZ_CC_H20", idx)
-      except:
-        import traceback
-        tstr = traceback.format_exc()
-        print(tstr)
-        print("!!! Something went wrong. Skipping neuron " + str(idx))
-  
-    ly.saveParameterCache()
-  
-  print("Did we get all the parameters in the file?")
-  #import pdb
-  #pdb.set_trace()

@@ -1,0 +1,1605 @@
+{
+    "Volume": {
+        "Striatum": {
+            "type": "mesh",
+            "dMin": 1.5e-05,
+            "meshFile": "Neuroinformatics2020/Net10062-var-1/mesh/Striatum-cube-mesh-0.0004999917182893286.obj",
+            "meshBinWidth": 4.999917182893286e-05
+        }
+    },
+    "Channels": {
+        "nChannels": 1,
+        "method": "random"
+    },
+    "Connectivity": {
+        "FSN,FSN": {
+            "GABA": {
+                "conductance": [
+                    1.1e-09,
+                    1.5e-09
+                ],
+                "channelParameters": {
+                    "tau1": [
+                        0.00133,
+                        1000.0
+                    ],
+                    "tau2": [
+                        0.0057,
+                        1000.0
+                    ],
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.15,
+                    "softMax": 5,
+                    "mu2": 2,
+                    "a3": 1,
+                    "distPruning": null
+                }
+            },
+            "GapJunction": {
+                "conductance": [
+                    5e-10,
+                    1e-10
+                ],
+                "channelParameters": null,
+                "pruning": {
+                    "f1": 0.7,
+                    "softMax": 8,
+                    "mu2": 2,
+                    "a3": 1.0,
+                    "distPruning": null
+                }
+            }
+        },
+        "FSN,dSPN": {
+            "GABA": {
+                "conductance": [
+                    1.1e-09,
+                    1.5e-09
+                ],
+                "channelParameters": {
+                    "tau1": [
+                        0.0012,
+                        1000.0
+                    ],
+                    "tau2": [
+                        0.008,
+                        1000.0
+                    ],
+                    "parameterFile": "/home/hjorth/HBP/Snudda/snudda/data/synapses/v2/PlanertFitting-FD-tmgaba-fit.json",
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.5,
+                    "softMax": 5,
+                    "mu2": 2,
+                    "a3": 1.0,
+                    "distPruning": "np.exp(-(0.5*d/60e-6)**2)"
+                }
+            }
+        },
+        "FSN,iSPN": {
+            "GABA": {
+                "conductance": [
+                    1.1e-09,
+                    1.5e-09
+                ],
+                "channelParameters": {
+                    "tau1": [
+                        0.0012,
+                        1000.0
+                    ],
+                    "tau2": [
+                        0.008,
+                        1000.0
+                    ],
+                    "parameterFile": "/home/hjorth/HBP/Snudda/snudda/data/synapses/v2/PlanertFitting-FI-tmgaba-fit.json",
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.5,
+                    "softMax": 5,
+                    "mu2": 2,
+                    "a3": 0.9,
+                    "distPruning": "np.exp(-(0.5*d/60e-6)**2)"
+                }
+            }
+        },
+        "FSN,LTS": {
+            "GABA": {
+                "conductance": [
+                    1.1e-10,
+                    1.5e-10
+                ],
+                "channelParameters": {
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.15,
+                    "softMax": 3,
+                    "mu2": 2,
+                    "a3": 1.0,
+                    "distPruning": null
+                }
+            }
+        },
+        "dSPN,dSPN": {
+            "GABA": {
+                "conductance": [
+                    2.4e-10,
+                    1e-10
+                ],
+                "channelParameters": {
+                    "tau1": [
+                        0.0013,
+                        1000.0
+                    ],
+                    "tau2": [
+                        0.0124,
+                        1000.0
+                    ],
+                    "failRate": 0.7,
+                    "parameterFile": "/home/hjorth/HBP/Snudda/snudda/data/synapses/v2/PlanertFitting-DD-tmgaba-fit.json",
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.38,
+                    "softMax": 3,
+                    "mu2": 2.4,
+                    "a3": 1.0,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                },
+                "pruningOther": {
+                    "f1": 0.38,
+                    "softMax": 3,
+                    "mu2": 2.4,
+                    "a3": 1.0,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                }
+            }
+        },
+        "dSPN,iSPN": {
+            "GABA": {
+                "conductance": [
+                    2.4e-10,
+                    1e-10
+                ],
+                "channelParameters": {
+                    "tau1": [
+                        0.0013,
+                        1000.0
+                    ],
+                    "tau2": [
+                        0.0124,
+                        1000.0
+                    ],
+                    "failRate": 0.7,
+                    "parameterFile": "/home/hjorth/HBP/Snudda/snudda/data/synapses/v2/PlanertFitting-DI-tmgaba-fit.json",
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.2,
+                    "softMax": 3,
+                    "mu2": 2.4,
+                    "a3": 1.0,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                },
+                "pruningOther": {
+                    "f1": 0.2,
+                    "softMax": 3,
+                    "mu2": 2.4,
+                    "a3": 1.0,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                }
+            }
+        },
+        "dSPN,ChIN": {
+            "GABA": {
+                "conductance": [
+                    2.4e-10,
+                    1e-10
+                ],
+                "channelParameters": {
+                    "failRate": 0.7,
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.1,
+                    "softMax": 3,
+                    "mu2": 2.4,
+                    "a3": 0.1,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                }
+            }
+        },
+        "iSPN,dSPN": {
+            "GABA": {
+                "conductance": [
+                    2.4e-10,
+                    1e-10
+                ],
+                "channelParameters": {
+                    "tau1": [
+                        0.0013,
+                        1000.0
+                    ],
+                    "tau2": [
+                        0.0124,
+                        1000.0
+                    ],
+                    "failRate": 0.4,
+                    "parameterFile": "/home/hjorth/HBP/Snudda/snudda/data/synapses/v2/PlanertFitting-ID-tmgaba-fit.json",
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 1,
+                    "softMax": null,
+                    "mu2": null,
+                    "a3": 1.0,
+                    "distPruning": null
+                },
+                "pruningOther": {
+                    "f1": 1,
+                    "softMax": null,
+                    "mu2": null,
+                    "a3": 1.0,
+                    "distPruning": null
+                }
+            }
+        },
+        "iSPN,iSPN": {
+            "GABA": {
+                "conductance": [
+                    2.4e-10,
+                    1e-10
+                ],
+                "channelParameters": {
+                    "tau1": [
+                        0.0013,
+                        1000.0
+                    ],
+                    "tau2": [
+                        0.0124,
+                        1000.0
+                    ],
+                    "failRate": 0.4,
+                    "parameterFile": "/home/hjorth/HBP/Snudda/snudda/data/synapses/v2/PlanertFitting-II-tmgaba-fit.json",
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.55,
+                    "softMax": 4,
+                    "mu2": 2.4,
+                    "a3": 1.0,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                },
+                "pruningOther": {
+                    "f1": 0.55,
+                    "softMax": 4,
+                    "mu2": 2.4,
+                    "a3": 1.0,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                }
+            }
+        },
+        "iSPN,ChIN": {
+            "GABA": {
+                "conductance": [
+                    2.4e-10,
+                    1e-10
+                ],
+                "channelParameters": {
+                    "failRate": 0.4,
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.1,
+                    "softMax": 3,
+                    "mu2": 2.4,
+                    "a3": 0.1,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                }
+            }
+        },
+        "LTS,dSPN": {
+            "GABA": {
+                "conductance": [
+                    1e-09,
+                    0
+                ],
+                "channelParameters": {
+                    "tau1": [
+                        0.003,
+                        1000.0
+                    ],
+                    "tau2": [
+                        0.038,
+                        1000.0
+                    ],
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 1.0,
+                    "softMax": 15,
+                    "mu2": 3,
+                    "a3": 0.3,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                }
+            }
+        },
+        "LTS,iSPN": {
+            "GABA": {
+                "conductance": [
+                    1e-09,
+                    0
+                ],
+                "channelParameters": {
+                    "tau1": [
+                        0.003,
+                        1000.0
+                    ],
+                    "tau2": [
+                        0.038,
+                        1000.0
+                    ],
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 1.0,
+                    "softMax": 15,
+                    "mu2": 3,
+                    "a3": 0.3,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                }
+            }
+        },
+        "LTS,ChIN": {
+            "GABA": {
+                "conductance": [
+                    1e-09,
+                    0
+                ],
+                "channelParameters": {
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.5,
+                    "softMax": 10,
+                    "mu2": 3,
+                    "a3": 0.4,
+                    "distPruning": null
+                }
+            }
+        }
+    },
+    "Neurons": {
+        "FSN_0": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var8/MTC180800A-IDB-cor-rep-var8.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var8/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var8/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var8/modulation.json",
+            "num": 3,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_1": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var3/MTC251001A-IDB-cor-rep-var3.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var3/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var3/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var3/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_2": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var1/MTC251001A-IDB-cor-rep-var1.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var1/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var1/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var1/modulation.json",
+            "num": 3,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_3": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var4/DR-rat-Mar-13-08-1-536-R-cor-rep-var4.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var4/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var4/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var4/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_4": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var2/DR-rat-Mar-13-08-1-536-R-cor-rep-var2.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var2/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var2/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var2/modulation.json",
+            "num": 3,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_5": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var3/DR-rat-Mar-13-08-1-536-R-cor-rep-var3.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var3/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var3/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var3/modulation.json",
+            "num": 3,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_6": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var2/MTC180800A-IDB-cor-rep-var2.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var2/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var2/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var2/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_7": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var8/MTC251001A-IDB-cor-rep-var8.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var8/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var8/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var8/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_8": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var2/MTC251001A-IDB-cor-rep-var2.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var2/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var2/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var2/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_9": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var1/DR-rat-Mar-13-08-1-536-R-cor-rep-var1.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var1/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var1/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var1/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_10": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var2/MTC180800A-IDB-cor-rep-var2.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var2/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var2/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var2/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_11": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var5/MTC251001A-IDB-cor-rep-var5.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var5/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var5/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var5/modulation.json",
+            "num": 3,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_12": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var6/MTC251001A-IDB-cor-rep-var6.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var6/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var6/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var6/modulation.json",
+            "num": 3,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_13": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var8/DR-rat-Mar-13-08-1-536-R-cor-rep-var8.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var8/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var8/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var8/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_14": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var5/MTC180800A-IDB-cor-rep-var5.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var5/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var5/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var5/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_15": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var8/MTC180800A-IDB-cor-rep-var8.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var8/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var8/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var8/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_16": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var5/DR-rat-Mar-13-08-1-536-R-cor-rep-var5.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var5/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var5/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var5/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_17": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var7/MTC251001A-IDB-cor-rep-var7.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var7/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var7/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var7/modulation.json",
+            "num": 3,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_18": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var1/MTC180800A-IDB-cor-rep-var1.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var1/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var1/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var1/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_19": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var7/DR-rat-Mar-13-08-1-536-R-cor-rep-var7.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var7/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var7/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var7/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_20": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var6/MTC180800A-IDB-cor-rep-var6.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var6/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var6/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var6/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_21": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var3/MTC180800A-IDB-cor-rep-var3.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var3/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var3/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var3/modulation.json",
+            "num": 3,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_22": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var0/MTC180800A-IDB-cor-rep-var0.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var0/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var0/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var0/modulation.json",
+            "num": 3,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_23": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var0/DR-rat-Mar-13-08-1-536-R-cor-rep-var0.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var0/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var0/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var0/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_24": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var0/MTC251001A-IDB-cor-rep-var0.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var0/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var0/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var0/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_25": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var0/MTC180800A-IDB-cor-rep-var0.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var0/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var0/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var0/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_26": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var4/MTC180800A-IDB-cor-rep-var4.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var4/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var4/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var4/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_27": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var5/MTC180800A-IDB-cor-rep-var5.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var5/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var5/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var5/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_28": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var3/MTC180800A-IDB-cor-rep-var3.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var3/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var3/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var3/modulation.json",
+            "num": 3,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_29": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var7/MTC180800A-IDB-cor-rep-var7.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var7/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var7/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var7/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_30": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var1/MTC180800A-IDB-cor-rep-var1.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var1/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var1/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var1/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_31": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var4/MTC180800A-IDB-cor-rep-var4.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var4/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var4/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312-var4/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_32": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var4/MTC251001A-IDB-cor-rep-var4.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var4/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var4/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301-var4/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_33": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var6/DR-rat-Mar-13-08-1-536-R-cor-rep-var6.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var6/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var6/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225-var6/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_34": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var7/MTC180800A-IDB-cor-rep-var7.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var7/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var7/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var7/modulation.json",
+            "num": 4,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_35": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var6/MTC180800A-IDB-cor-rep-var6.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var6/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var6/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226-var6/modulation.json",
+            "num": 3,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_0": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var7/WT-0728MSN01-cor-rep-ax-var7.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var7/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var7/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var7/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_1": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var6/WT-P270-20-15ak-cor-var6.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var6/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var6/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var6/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_2": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var8/WT-0728MSN01-cor-rep-ax-var8.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var8/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var8/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var8/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_3": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var3/WT-1215MSN03-cor-rep-ax2-var3.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var3/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var3/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var3/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_4": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var0/WT-0728MSN01-cor-rep-ax-var0.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var0/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var0/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var0/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_5": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var6/WT-0728MSN01-cor-rep-ax-var6.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var6/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var6/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var6/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_6": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var6/21-6-DE-cor-rep-ax-var6.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var6/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var6/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var6/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_7": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var0/21-6-DE-cor-rep-ax-var0.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var0/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var0/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var0/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_8": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var7/21-6-DE-cor-rep-ax-var7.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var7/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var7/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var7/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_9": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var5/WT-0728MSN01-cor-rep-ax-var5.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var5/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var5/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var5/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_10": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var8/WT-1215MSN03-cor-rep-ax2-var8.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var8/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var8/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var8/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_11": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var5/WT-1215MSN03-cor-rep-ax2-var5.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var5/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var5/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var5/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_12": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var7/WT-P270-20-15ak-cor-var7.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var7/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var7/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var7/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_13": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var6/WT-1215MSN03-cor-rep-ax2-var6.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var6/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var6/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var6/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_14": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var3/21-6-DE-cor-rep-ax-var3.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var3/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var3/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var3/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_15": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var4/WT-0728MSN01-cor-rep-ax-var4.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var4/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var4/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var4/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_16": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var8/WT-P270-20-15ak-cor-var8.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var8/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var8/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var8/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_17": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var5/WT-P270-20-15ak-cor-var5.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var5/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var5/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var5/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_18": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var0/WT-1215MSN03-cor-rep-ax2-var0.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var0/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var0/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var0/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_19": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var2/21-6-DE-cor-rep-ax-var2.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var2/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var2/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var2/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_20": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var3/WT-0728MSN01-cor-rep-ax-var3.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var3/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var3/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var3/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_21": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var3/WT-P270-20-15ak-cor-var3.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var3/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var3/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var3/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_22": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var4/21-6-DE-cor-rep-ax-var4.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var4/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var4/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var4/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_23": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var0/WT-P270-20-15ak-cor-var0.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var0/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var0/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var0/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_24": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var4/WT-1215MSN03-cor-rep-ax2-var4.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var4/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var4/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var4/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_25": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var8/21-6-DE-cor-rep-ax-var8.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var8/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var8/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var8/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_26": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var2/WT-P270-20-15ak-cor-var2.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var2/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var2/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var2/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_27": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var1/WT-1215MSN03-cor-rep-ax2-var1.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var1/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var1/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var1/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_28": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var2/WT-0728MSN01-cor-rep-ax-var2.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var2/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var2/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var2/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_29": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var5/21-6-DE-cor-rep-ax-var5.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var5/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var5/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var5/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_30": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var1/21-6-DE-cor-rep-ax-var1.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var1/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var1/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503-var1/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_31": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var1/WT-P270-20-15ak-cor-var1.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var1/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var1/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var1/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_32": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var2/WT-1215MSN03-cor-rep-ax2-var2.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var2/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var2/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var2/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_33": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var1/WT-0728MSN01-cor-rep-ax-var1.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var1/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var1/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508-var1/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_34": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var7/WT-1215MSN03-cor-rep-ax2-var7.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var7/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var7/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521-var7/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_35": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var4/WT-P270-20-15ak-cor-var4.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var4/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var4/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521-var4/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_0": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var4/WT-P270-09-15ak-cor-var4.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var4/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var4/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var4/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_1": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var0/WT-MSN1-cor-rep-ax-var0.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var0/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var0/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var0/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_2": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var4/46-3-DE-cor-rep-ax-var4.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var4/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var4/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var4/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_3": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var6/WT-MSN1-cor-rep-ax-var6.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var6/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var6/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var6/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_4": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var7/WT-P270-09-15ak-cor-var7.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var7/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var7/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var7/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_5": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var5/WT-MSN1-cor-rep-ax-var5.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var5/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var5/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var5/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_6": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var2/WT-MSN1-cor-rep-ax-var2.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var2/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var2/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var2/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_7": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var4/51-5-DE-cor-rep-ax-var4.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var4/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var4/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var4/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_8": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var7/51-5-DE-cor-rep-ax-var7.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var7/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var7/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var7/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_9": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var1/WT-MSN1-cor-rep-ax-var1.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var1/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var1/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var1/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_10": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var6/51-5-DE-cor-rep-ax-var6.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var6/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var6/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var6/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_11": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var3/WT-P270-09-15ak-cor-var3.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var3/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var3/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var3/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_12": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var2/WT-P270-09-15ak-cor-var2.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var2/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var2/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var2/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_13": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var4/WT-MSN1-cor-rep-ax-var4.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var4/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var4/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var4/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_14": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var8/WT-MSN1-cor-rep-ax-var8.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var8/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var8/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var8/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_15": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var2/51-5-DE-cor-rep-ax-var2.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var2/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var2/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var2/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_16": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var6/46-3-DE-cor-rep-ax-var6.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var6/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var6/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var6/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_17": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var7/46-3-DE-cor-rep-ax-var7.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var7/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var7/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var7/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_18": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var8/WT-P270-09-15ak-cor-var8.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var8/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var8/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var8/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_19": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var5/WT-P270-09-15ak-cor-var5.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var5/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var5/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var5/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_20": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var1/51-5-DE-cor-rep-ax-var1.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var1/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var1/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var1/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_21": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var5/51-5-DE-cor-rep-ax-var5.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var5/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var5/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var5/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_22": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var3/46-3-DE-cor-rep-ax-var3.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var3/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var3/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var3/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_23": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var8/51-5-DE-cor-rep-ax-var8.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var8/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var8/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var8/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_24": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var0/46-3-DE-cor-rep-ax-var0.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var0/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var0/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var0/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_25": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var0/WT-P270-09-15ak-cor-var0.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var0/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var0/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var0/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_26": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var1/WT-P270-09-15ak-cor-var1.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var1/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var1/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var1/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_27": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var0/51-5-DE-cor-rep-ax-var0.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var0/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var0/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var0/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_28": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var3/WT-MSN1-cor-rep-ax-var3.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var3/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var3/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var3/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_29": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var6/WT-P270-09-15ak-cor-var6.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var6/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var6/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527-var6/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_30": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var5/46-3-DE-cor-rep-ax-var5.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var5/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var5/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var5/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_31": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var1/46-3-DE-cor-rep-ax-var1.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var1/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var1/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var1/modulation.json",
+            "num": 136,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_32": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var7/WT-MSN1-cor-rep-ax-var7.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var7/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var7/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603-var7/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_33": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var3/51-5-DE-cor-rep-ax-var3.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var3/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var3/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611-var3/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_34": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var8/46-3-DE-cor-rep-ax-var8.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var8/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var8/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var8/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_35": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var2/46-3-DE-cor-rep-ax-var2.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var2/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var2/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529-var2/modulation.json",
+            "num": 135,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "ChIN_0": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/chin/str-chin-e170614_cell6-m17JUL301751_170614_no6_MD_cell_1_x63-v20190710/17JUL301751_170614_no6_MD_cell_1_x63-cor-noaxon.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/chin/str-chin-e170614_cell6-m17JUL301751_170614_no6_MD_cell_1_x63-v20190710/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/chin/str-chin-e170614_cell6-m17JUL301751_170614_no6_MD_cell_1_x63-v20190710/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/chin/str-chin-e170614_cell6-m17JUL301751_170614_no6_MD_cell_1_x63-v20190710/modulation.json",
+            "num": 113,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum",
+            "axonDensity": [
+                "r",
+                "5000*1e12/3*np.exp(-r/120e-6)",
+                0.00035
+            ]
+        },
+        "LTS_0": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/lts/LTS_Experiment-9862_20181211/lts_morp_2019-11-07_centered_noAxon.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/lts/LTS_Experiment-9862_20181211/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/lts/LTS_Experiment-9862_20181211/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-var/lts/LTS_Experiment-9862_20181211/modulation.json",
+            "num": 72,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum",
+            "axonDensity": [
+                "xyz",
+                "12*3000*1e12*( 0.25*np.exp(-(((x-200e-6)/100e-6)**2 + ((y-0)/50e-6)**2 + ((z-0)/30e-6)**2)) + 1*np.exp(-(((x-300e-6)/300e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/10e-6)**2)) + 1*np.exp(-(((x-700e-6)/100e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/15e-6)**2)) )",
+                [
+                    -0.0002,
+                    0.0009,
+                    -0.0001,
+                    0.0001,
+                    -3e-05,
+                    3e-05
+                ]
+            ]
+        }
+    }
+}

@@ -8,12 +8,14 @@ import h5py
 
 # networkFile = "/home/hjorth/HBP/StriatumNetwork/model/SmallTest2/network-connect-voxel-pruned-synapse-file.hdf5"
 #networkFile = "/home/hjorth/HBP/StriatumNetwork/model/SmallTest2/network-connect-voxel-pruned-synapse-file.hdf5"
-networkFile = "/home/hjorth/HBP/Snudda/snudda/examples/networks/Net10062/network-pruned-synapses.hdf5"
+# networkFile = "/home/hjorth/HBP/Snudda/snudda/Neuroinformatics2020/Net10062-var-5/network-pruned-synapses.hdf5"
+networkFile = "/home/hjorth/HBP/Snudda/snudda/Neuroinformatics2020/Net10062-var-5/network-putative-synapses-MERGED.hdf5"
 
-outFile = "twoNeurons-synapses-white-2020.blend"
+# outFile = "Neuroninformatics-twoNeurons-synapses-white-2020.blend"
+outFile = "Neuroninformatics-twoNeurons-synapses-white-2020-prepruning.blend"
 
 #visualiseID = [20,1217]
-visualiseID = [443,7]
+visualiseID = [3,3179]
 
 # Load the neuron positions
 fi = h5py.File(networkFile,"r")
@@ -180,9 +182,11 @@ cam = bpy.data.objects["Camera"]
 #cam.location = (2.98,2.68,4.96)
 #cam.rotation_euler = (1.59,0,-0.26)
 
-cam.location = (3.19,3.46,4.96)
-cam.rotation_euler = (96.7*np.pi/180,0,-14.3*np.pi/180)
+# cam.location = (3.19,3.46,4.96)
+# cam.rotation_euler = (96.7*np.pi/180,0,-14.3*np.pi/180)
 
+cam.location = (3.501,4.136,4.694)
+cam.rotation_euler = (142*np.pi/180,0,13*np.pi/180)
 
 if(False):
   bpy.ops.render.render()
