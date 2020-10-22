@@ -1,6 +1,6 @@
 from argparse import ArgumentParser, RawTextHelpFormatter
-from .core import Snudda, get_data_file
-from .help import snudda_help_text
+from snudda.core import Snudda, get_data_file
+from snudda.help import snudda_help_text
 import os
 
 def snudda_cli():
@@ -95,3 +95,8 @@ def create_project(args):
   # Copy the root data files folder to the specified path.
   # The root data folder is the "snudda/data" folder, containing config, synapses & cellspecs.
   copy_tree(get_data_file(), args.path)
+
+
+if __name__ == "__main__":
+    snudda_cli()
+

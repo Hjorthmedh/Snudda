@@ -546,15 +546,18 @@ class SnuddaPlace(object):
       self.populationUnits[i] = np.where(self.populationUnit == i)[0]
 
   ############################################################################
-  
+
+
   def populationUnitSpheresLabeling(self,populationUnitCentres,populationUnitRadius):
   
     xyz = self.allNeuronPositions()
 
-   
     centres = np.array(populationUnitCentres)
     self.populationUnit = np.zeros((xyz.shape[0],),dtype=int)
-    
+
+    if centres.shape[1] == 0:
+      print("No population centres specified.")
+      return
 
     for (ctr, pos) in enumerate(xyz):
       d = [np.linalg.norm(pos-c) for c in centres]

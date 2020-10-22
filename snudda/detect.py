@@ -404,7 +404,7 @@ class SnuddaDetect(object):
 
     self.writeLog("Work history file: " + str(self.workHistoryFile))
       
-    self.workHistory = h5py.File(workHistoryFile,
+    self.workHistory = h5py.File(workHistoryFile, "w",
                                  libver=self.h5libver)
 
     # We need to encode the connectivityDistributions tuple as a string
