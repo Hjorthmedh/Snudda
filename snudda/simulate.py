@@ -1402,8 +1402,8 @@ class SnuddaSimulate(object):
 
   def addRecordingOfType(self,neuronType,nNeurons=None):
 
-    cellID = self.snuddaLoader.getCellIDofType(neuronType=neuronType,
-                                               nNeurons=nNeurons)
+    cellID = self.snuddaLoader.get_cell_id_of_type(neuron_type=neuronType,
+                                                   num_neurons=nNeurons)
 
     self.addRecording(cellID)
 

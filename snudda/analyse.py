@@ -324,7 +324,7 @@ class SnuddaAnalyse(object):
     rowCtr = 0
     nSynTotal = self.network["nSynapses"]
 
-    for synapses in self.networkLoad.synapseIterator(chunkSize=chunkSize):
+    for synapses in self.networkLoad.synapseIterator(chunk_size=chunkSize):
 
       print("Synapse row " + str(rowCtr) \
             + " - " + str(100*rowCtr/float(nSynTotal)) + " %" \
@@ -386,7 +386,7 @@ class SnuddaAnalyse(object):
     rowCtr = 0
     nGJTotal = self.network["nGapJunctions"]
 
-    for gjList in self.networkLoad.gapJunctionIterator(chunkSize=100000):
+    for gjList in self.networkLoad.gap_junction_iterator(chunk_size=100000):
       print("GJ row : " + str(rowCtr) \
             + " - " + str(100*rowCtr/float(nGJTotal)) + " % " \
             + " time : " + str(timeit.default_timer()-t0) + " seconds")
@@ -1802,7 +1802,7 @@ class SnuddaAnalyse(object):
 
     neurons = dict([])
 
-    postNeuron = self.networkLoad.loadNeuron(neuronID)
+    postNeuron = self.networkLoad.load_neuron(neuronID)
     axis = postNeuron.plotNeuron(axis=axis,plotAxon=False, \
                                   plotDendrite=True)
 
@@ -1814,7 +1814,7 @@ class SnuddaAnalyse(object):
         srcID = int(synRow[0])
 
         if(srcID not in plottedNeurons):
-          neurons[srcID] = self.networkLoad.loadNeuron(srcID)
+          neurons[srcID] = self.networkLoad.load_neuron(srcID)
           axis = neurons[srcID].plotNeuron(axis=axis,plotAxon=True, \
                                            plotDendrite=False)
           plottedNeurons.append(srcID)
