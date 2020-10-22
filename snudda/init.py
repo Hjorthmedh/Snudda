@@ -1309,7 +1309,7 @@ class SnuddaInit(object):
                          distPruning=None,
                          f1=1.0, softMax=3, mu2=2.4,a3=None,
                          conductance=ThalamusGlutCond,
-                         parameterFile=thalamusSynParMs,
+                         parameterFile=thalamusSynParMS,
                          modFile="tmGlut",
                          channelParamDictionary=None)
 

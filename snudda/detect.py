@@ -14,9 +14,7 @@
 
 
 import numpy as np
-import math
 import os
-import sys
 import itertools
 
 import time
@@ -26,10 +24,8 @@ import h5py
 import json
 import pickle
 
-import re
 
 from .Neuron_morphology import NeuronMorphology
-from .place import SnuddaPlace
 from .load import SnuddaLoad
 
 status = None
@@ -3021,10 +3017,10 @@ class SnuddaDetect(object):
                               axonAlpha=None,dendAlpha=None):
 
     if(axonAlpha is None):
-      axonAlpha = ones((len(neuronID),))
+      axonAlpha = np.ones((len(neuronID),))
 
     if(dendAlpha is None):
-      dendAlpha = ones((len(neuronID),))
+      dendAlpha = np.ones((len(neuronID),))
 
     alphaAxonLookup = dict([])
     alphaDendLookup = dict([])
@@ -3217,15 +3213,17 @@ class SnuddaDetect(object):
     
 ############################################################################
 
-  @staticmethod
-  def _processHyperVoxelHelper(hyperID):
 
-    mem = nc.memory()
-    nc.writeLog("Memory status, before processing " + str(hyperID) \
-                + ": "+ str(mem))
-   
-    return nc.processHyperVoxel(hyperID)
-    
+  # @staticmethod
+  # def _processHyperVoxelHelper(hyperID):
+  #
+  #   mem = nc.memory()
+  #   nc.writeLog("Memory status, before processing " + str(hyperID) \
+  #               + ": "+ str(mem))
+  #
+  #   return nc.processHyperVoxel(hyperID)
+
+
 ############################################################################
 
 def nextRunID():

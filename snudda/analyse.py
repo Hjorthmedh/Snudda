@@ -1549,15 +1549,15 @@ class SnuddaAnalyse(object):
 
         # assert (idx < nBins), "Idx too large " + str(idx)
 
-        sameChannelFlag = (neuronChannel[x] == neuronChannel[y])
+        samePopulationUnitFlag = (populationUnit[x] == populationUnit[y])
 
         if(self.connectionMatrix[x,y] > 0):
-          if(sameChannelFlag):
+          if(samePopulationUnitFlag):
             countConWithinChannel[idx] += 1
           else:
             countConBetweenChannels[idx] += 1
 
-        if(sameChannelFlag):
+        if(samePopulationUnitFlag):
           countAllWithinChannel[idx] += 1
         else:
           countAllBetweenChannels[idx] += 1

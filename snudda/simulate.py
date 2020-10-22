@@ -1547,8 +1547,8 @@ class SnuddaSimulate(object):
 
   ############################################################################
 
-  def getSpikes(self):
-    spiketrain.netconvecs_to_listoflists(self.tSpikes,self.idSpikes)
+  # def getSpikes(self):
+  #  spiketrain.netconvecs_to_listoflists(self.tSpikes,self.idSpikes)
 
   ############################################################################
 

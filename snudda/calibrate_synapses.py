@@ -539,7 +539,7 @@ if __name__ == "__main__":
     GABArev = -39e-3
     
   else:
-    print("Unknown expType = " + str(expType))
+    print("Unknown expType = " + str(args.expType))
     exit(-1)
 
   scs = SnuddaCalibrateSynapses(networkFile=args.networkFile,
