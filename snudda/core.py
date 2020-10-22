@@ -163,8 +163,8 @@ class Snudda(object):
     else:
       hyperVoxelSize = 100
 
-    if(args.volumeID is not None):
-      volumeID = args.volumeID
+    if(args.volume_id is not None):
+      volumeID = args.volume_id
     else:
       volumeID = None
 
@@ -193,28 +193,28 @@ class Snudda(object):
       # Continue previous run
       print("Continuing previous touch detection")
 
-      ncv = SnuddaDetect(configFile=configFile,
-                         positionFile=positionFile,
-                         logFile=self.logFile,
-                         saveFile=saveFile,
-                         SlurmID=self.SlurmID,
-                         volumeID=volumeID,
+      ncv = SnuddaDetect(config_file=configFile,
+                         position_file=positionFile,
+                         logfile=self.logFile,
+                         save_file=saveFile,
+                         slurm_id=self.SlurmID,
+                         volume_id=volumeID,
                          rc=self.rc,
-                         hyperVoxelSize=hyperVoxelSize,
+                         hyper_voxel_size=hyperVoxelSize,
                          h5libver=h5libver,
-                         restartDetectionFlag=False)
+                         restart_detection_flag=False)
 
 
     else:
-      ncv = SnuddaDetect(configFile=configFile,
-                         positionFile=positionFile,
-                         logFile=self.logFile,
-                         saveFile=saveFile,
-                         SlurmID=self.SlurmID,
-                         volumeID=volumeID,
+      ncv = SnuddaDetect(config_file=configFile,
+                         position_file=positionFile,
+                         logfile=self.logFile,
+                         save_file=saveFile,
+                         slurm_id=self.SlurmID,
+                         volume_id=volumeID,
                          rc=self.rc,
                          h5libver=h5libver,
-                         hyperVoxelSize=hyperVoxelSize)
+                         hyper_voxel_size=hyperVoxelSize)
 
     self.stopParallel()
     self.closeLogFile()

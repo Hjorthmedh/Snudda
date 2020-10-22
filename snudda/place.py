@@ -135,7 +135,7 @@ class SnuddaPlace(object):
             # self.writeLog("Place " + str(self.cellPos[i,:]))
 
             n.neuronID = len(self.neurons)
-            n.volumeID = volume_id
+            n.volume_id = volume_id
 
             assert axon_density is None or len(n.axon) == 0, \
                 "!!! ERROR: Neuron: " + str(n.name) + " has both axon and axon density."
@@ -365,7 +365,7 @@ class SnuddaPlace(object):
         neuron_group.create_dataset("neuronID", (len(neuron_id_list),),
                                     'int', neuron_id_list)
 
-        volume_id_list = [n.volumeID.encode("ascii", "ignore")
+        volume_id_list = [n.volume_id.encode("ascii", "ignore")
                           for n in self.neurons]
         str_type_vid = 'S' + str(max(1, max([len(x) for x in volume_id_list])))
 
