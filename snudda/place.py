@@ -99,8 +99,8 @@ class SnuddaPlace(object):
                               virtualNeuron=virtual_neuron)
 
         neuron_type = name.split("_")[0]
-        neuron_coords = self.volume[volume_id]["mesh"].placeNeurons(num_neurons,
-                                                                    neuron_type)
+        neuron_coords = self.volume[volume_id]["mesh"].place_neurons(num_neurons,
+                                                                     neuron_type)
 
         first_added = True
 
@@ -464,8 +464,7 @@ class SnuddaPlace(object):
             pdb.set_trace()
 
         axon_density_radius = [n.axonDensity[2]
-                               if n.axonDensity is not None
-                                  and n.axonDensity[0] == "r"
+                               if n.axonDensity is not None and n.axonDensity[0] == "r"
                                else np.nan for n in self.neurons]
 
         try:
@@ -484,11 +483,11 @@ class SnuddaPlace(object):
 
         for ni, n in enumerate(self.neurons):
 
-            if (n.axonDensity is None):
+            if n.axonDensity is None:
                 # No axon density specified, skip
                 continue
 
-            if (n.axonDensity[0] == "xyz"):
+            if n.axonDensity[0] == "xyz":
 
                 try:
                     axon_density_bounds_xyz[ni, :] = np.array(n.axonDensity[2])
@@ -507,7 +506,7 @@ class SnuddaPlace(object):
 
     def define_population_units(self, method="random", num_population_units=None):
 
-        if (num_population_units is None):
+        if num_population_units is None:
             num_population_units = self.nPopulationUnits
 
         if method == "random":
