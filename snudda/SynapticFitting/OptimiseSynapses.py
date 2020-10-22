@@ -1281,7 +1281,7 @@ class OptimiseSynapses(object):
                                                 cond=fitParams[4])
 
 
-        self.writeLog("Parameters: U = %.3g, tauR = %.3g, tauF = %.3g, tau = %.3g, cond = %3.g" % tuple(fitParams))
+        self.write_log("Parameters: U = %.3g, tauR = %.3g, tauF = %.3g, tau = %.3g, cond = %3.g" % tuple(fitParams))
 
       elif(optMethod=="sobol"):
 

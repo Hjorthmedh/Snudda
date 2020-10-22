@@ -29,19 +29,19 @@ class SnuddaPlace(object):
     def __init__(self,
                  config_file=None,
                  verbose=False,
-                 logFile=None,
-                 dView=None,
-                 lbView=None,
+                 log_file=None,
+                 d_view=None,
+                 lb_view=None,
                  h5libver="latest"):
 
         self.verbose = verbose
-        self.logFile = logFile
+        self.log_file = log_file
 
-        self.dView = dView
-        self.lbView = lbView
+        self.d_view = d_view
+        self.lb_view = lb_view
 
         self.h5libver = h5libver
-        self.writeLog("Using hdf5 version: " + str(self.h5libver))
+        self.write_log("Using hdf5 version: " + str(self.h5libver))
 
         # List of all neurons
         self.neurons = []
@@ -51,9 +51,9 @@ class SnuddaPlace(object):
         # members of each unit, the neuronChannel gives the individual neurons
         # channel membership
         self.nPopulationUnits = 1
-        self.populationUnitPlacementMethod = "random"
-        self.populationUnits = dict([])
-        self.populationUnit = None
+        self.population_unit_placement_method = "random"
+        self.population_units = dict([])
+        self.population_unit = None
 
         # These are the dimensions of our space, dMin also needs a "padding"
         # region outside the space where fake neurons are placed. This is to
@@ -62,49 +62,49 @@ class SnuddaPlace(object):
         self.volume = dict([])
 
         self.config_file = config_file
-        self.readConfig()
+        self.read_config()
 
     ############################################################################
 
-    def writeLog(self, text):
-        if (self.logFile is not None):
-            self.logFile.write(text + "\n")
+    def write_log(self, text):
+        if self.log_file is not None:
+            self.log_file.write(text + "\n")
             print(text)
         else:
-            if (self.verbose):
+            if self.verbose:
                 print(text)
 
     ############################################################################
 
-    def addNeurons(self,
-                   swc_filename,
-                   nNeurons,
-                   param_data=None,
-                   mech_filename=None,
-                   modulation=None,
-                   name="Unnamed",
-                   hoc=None,
-                   volumeID=None,
-                   rotationMode="random",
-                   virtualNeuron=False,
-                   axonDensity=None):
+    def add_neurons(self,
+                    swc_filename,
+                    num_neurons,
+                    param_data=None,
+                    mech_filename=None,
+                    modulation=None,
+                    name="Unnamed",
+                    hoc=None,
+                    volume_id=None,
+                    rotation_mode="random",
+                    virtual_neuron=False,
+                    axon_density=None):
 
-        assert volumeID is not None, "You must specify a volume for neuron " + name
+        assert volume_id is not None, "You must specify a volume for neuron " + name
 
         nm = NeuronMorphology(swc_filename=swc_filename,
                               param_data=param_data,
                               mech_filename=mech_filename,
                               name=name,
                               hoc=hoc,
-                              virtualNeuron=virtualNeuron)
+                              virtualNeuron=virtual_neuron)
 
-        neuronType = name.split("_")[0]
-        neuronCoords = self.volume[volumeID]["mesh"].placeNeurons(nNeurons,
-                                                                  neuronType)
+        neuron_type = name.split("_")[0]
+        neuron_coords = self.volume[volume_id]["mesh"].placeNeurons(num_neurons,
+                                                                    neuron_type)
 
-        firstAdded = True
+        first_added = True
 
-        for coords in neuronCoords:
+        for coords in neuron_coords:
             # We set loadMorphology = False, to preserve memory
             # Only morphology loaded for nm then, to get axon and dend
             # radius needed for connectivity
@@ -113,58 +113,58 @@ class SnuddaPlace(object):
             # parameter.json can be a list of lists, this allows you to select the
             # parameterset randomly
             # modulation.json is similarly formatted, pick a parameter set here
-            parameterID = np.random.randint(1000000)
-            modulationID = np.random.randint(1000000)
+            parameter_id = np.random.randint(1000000)
+            modulation_id = np.random.randint(1000000)
 
-            if (rotationMode == "random"):
+            if rotation_mode == "random":
                 rotation = nm.randRotationMatrix()
-            elif (rotationMode is None or rotationMode == ""):
-                self.writeLog("Rotation mode: None (disabled) for " + name)
+            elif rotation_mode is None or rotation_mode == "":
+                self.write_log("Rotation mode: None (disabled) for " + name)
                 rotation = np.eye(3)
             else:
-                self.writeLog("Unknown rotation mode: " + str(rotationMode) \
-                              + ", valid modes '' or 'random'.")
-                assert False, "Unknown rotation mode: " + str(rotationMode)
+                self.write_log("Unknown rotation mode: " + str(rotation_mode)
+                               + ", valid modes '' or 'random'.")
+                assert False, "Unknown rotation mode: " + str(rotation_mode)
 
             n = nm.clone(position=coords,
                          rotation=rotation,
                          loadMorphology=False,
-                         parameterID=parameterID,
-                         modulationID=modulationID)
+                         parameterID=parameter_id,
+                         modulationID=modulation_id)
 
             # self.writeLog("Place " + str(self.cellPos[i,:]))
 
             n.neuronID = len(self.neurons)
-            n.volumeID = volumeID
+            n.volumeID = volume_id
 
-            assert axonDensity is None or len(n.axon) == 0, \
+            assert axon_density is None or len(n.axon) == 0, \
                 "!!! ERROR: Neuron: " + str(n.name) + " has both axon and axon density."
 
-            n.axonDensity = axonDensity
+            n.axonDensity = axon_density
             self.neurons.append(n)
 
             # This info is used by workers to speed things up
-            if (firstAdded):
-                firstAdded = False
+            if first_added:
+                first_added = False
                 self.neuronPrototypes[n.name] = n
 
     ############################################################################
 
-    def readConfig(self, config_file=None):
+    def read_config(self, config_file=None):
 
-        if (config_file is None):
+        if config_file is None:
             config_file = self.config_file
 
-        if (config_file is None):
-            self.writeLog("No configuration file specified")
+        if config_file is None:
+            self.write_log("No configuration file specified")
             exit(-1)
 
-        if (not os.path.exists(config_file)):
-            self.writeLog("Config file does not exist: " + str(config_file))
-            self.writeLog("Run snudda init <your directory> first")
+        if not os.path.exists(config_file):
+            self.write_log("Config file does not exist: " + str(config_file))
+            self.write_log("Run snudda init <your directory> first")
             exit(-1)
 
-        self.writeLog("Parsing configuration file " + config_file)
+        self.write_log("Parsing configuration file " + config_file)
 
         cfg_file = open(config_file, 'r')
 
@@ -173,58 +173,58 @@ class SnuddaPlace(object):
         finally:
             cfg_file.close()
 
-        if (self.logFile is None):
-            meshLogFileName = "mesh-log.txt"
+        if self.log_file is None:
+            mesh_log_filename = "mesh-log.txt"
         else:
-            meshLogFileName = self.logFile.name + "-mesh"
-        meshLogFile = open(meshLogFileName, 'wt')
+            mesh_log_filename = self.log_file.name + "-mesh"
+        mesh_logfile = open(mesh_log_filename, 'wt')
 
         # First handle volume definitions
-        volumeDef = config["Volume"]
+        volume_def = config["Volume"]
 
-        for volumeID, volDef in volumeDef.items():
+        for volume_id, vol_def in volume_def.items():
 
-            self.volume[volumeID] = volDef
+            self.volume[volume_id] = vol_def
 
-            if ("meshFile" in volDef):
+            if "meshFile" in vol_def:
 
-                assert "dMin" in volDef, "You must specify dMin if using a mesh" \
-                                         + " for volume " + str(volumeID)
+                assert "dMin" in vol_def, "You must specify dMin if using a mesh" \
+                                          + " for volume " + str(volume_id)
 
-                if ("meshBinWidth" not in volDef):
-                    self.writeLog("No meshBinWidth specified, using 1e-4")
-                    meshBinWidth = 1e-4
+                if "mesh_bin_width" not in vol_def:
+                    self.write_log("No mesh_bin_width specified, using 1e-4")
+                    mesh_bin_width = 1e-4
                 else:
-                    meshBinWidth = volDef["meshBinWidth"]
+                    mesh_bin_width = vol_def["mesh_bin_width"]
 
-                self.writeLog("Using meshBinWidth " + str(meshBinWidth))
+                self.write_log("Using mesh_bin_width " + str(mesh_bin_width))
 
-                if ("-cube-mesh-" in volDef["meshFile"]):
-                    self.writeLog("Cube mesh, switching to serial processing.")
-                    dView = None
-                    lbView = None
+                if "-cube-mesh-" in vol_def["meshFile"]:
+                    self.write_log("Cube mesh, switching to serial processing.")
+                    d_view = None
+                    lb_view = None
                 else:
-                    dView = self.dView
-                    lbView = self.lbView
+                    d_view = self.d_view
+                    lb_view = self.lb_view
 
-                self.volume[volumeID]["mesh"] \
-                    = RegionMesh(volDef["meshFile"],
-                                 dView=dView,
-                                 lbView=lbView,
-                                 raytraceBorders=False,
-                                 dMin=volDef["dMin"],
-                                 binWidth=meshBinWidth,
-                                 logFile=meshLogFile)
+                self.volume[volume_id]["mesh"] \
+                    = RegionMesh(vol_def["meshFile"],
+                                 d_view=d_view,
+                                 lb_view=lb_view,
+                                 raytrace_borders=False,
+                                 d_min=vol_def["dMin"],
+                                 bin_width=mesh_bin_width,
+                                 log_file=mesh_logfile)
 
-            self.writeLog("Using dimensions from config file")
+            self.write_log("Using dimensions from config file")
 
-        if ("PopulationUnits" in config):
-            self.populationUnitPlacementMethod = config["PopulationUnits"]["method"]
+        if "PopulationUnits" in config:
+            self.population_unit_placement_method = config["PopulationUnits"]["method"]
             self.nPopulationUnits = config["PopulationUnits"]["nPopulationUnits"]
 
-            if (self.populationUnitPlacementMethod == "populationUnitSpheres"):
-                self.populationUnitRadius = config["PopulationUnits"]["radius"]
-                self.populationUnitCentres = config["PopulationUnits"]["centres"]
+            if self.population_unit_placement_method == "populationUnitSpheres":
+                self.population_unit_radius = config["PopulationUnits"]["radius"]
+                self.population_unit_centres = config["PopulationUnits"]["centres"]
 
         assert "Neurons" in config, \
             "No neurons defined. Is this config file old format?"
@@ -233,58 +233,58 @@ class SnuddaPlace(object):
         for name, definition in config["Neurons"].items():
 
             try:
-                neuronName = name
+                neuron_name = name
                 morph = definition["morphology"]
                 param = definition["parameters"]
                 mech = definition["mechanisms"]
 
-                if ("modulation" in definition):
+                if "modulation" in definition:
                     modulation = definition["modulation"]
                 else:
                     # Modulation optional
                     modulation = None
 
                 num = definition["num"]
-                volumeID = definition["volumeID"]
+                volume_id = definition["volumeID"]
 
-                if ("neuronType" in definition):
+                if "neuronType" in definition:
                     # type is "neuron" or "virtual" (provides input only)
-                    modelType = definition["neuronType"]
+                    model_type = definition["neuronType"]
                 else:
-                    modelType = "neuron"
+                    model_type = "neuron"
 
                 if 'hoc' in definition:
                     hoc = definition["hoc"]
                 else:
                     hoc = None
 
-                if (modelType == "virtual"):
+                if model_type == "virtual":
                     # Virtual neurons gets spikes from a file
                     mech = ""
                     hoc = ""
-                    virtualNeuron = True
+                    virtual_neuron = True
                 else:
-                    virtualNeuron = False
+                    virtual_neuron = False
 
-                rotationMode = definition["rotationMode"]
+                rotation_mode = definition["rotationMode"]
 
-                if ("axonDensity" in definition):
-                    axonDensity = definition["axonDensity"]
+                if "axonDensity" in definition:
+                    axon_density = definition["axonDensity"]
                 else:
-                    axonDensity = None
+                    axon_density = None
 
-                self.writeLog("Adding: " + str(num) + " " + str(neuronName))
-                self.addNeurons(name=neuronName,
-                                swc_filename=morph,
-                                param_data=param,
-                                mech_filename=mech,
-                                modulation=modulation,
-                                nNeurons=num,
-                                hoc=hoc,
-                                volumeID=volumeID,
-                                virtualNeuron=virtualNeuron,
-                                rotationMode=rotationMode,
-                                axonDensity=axonDensity)
+                self.write_log(f"Adding: {num} {neuron_name}")
+                self.add_neurons(name=neuron_name,
+                                 swc_filename=morph,
+                                 param_data=param,
+                                 mech_filename=mech,
+                                 modulation=modulation,
+                                 num_neurons=num,
+                                 hoc=hoc,
+                                 volume_id=volume_id,
+                                 virtual_neuron=virtual_neuron,
+                                 rotation_mode=rotation_mode,
+                                 axon_density=axon_density)
 
             except:
                 import traceback
@@ -297,190 +297,190 @@ class SnuddaPlace(object):
         self.config_file = config_file
 
         # We reorder neurons, sorting their IDs after position
-        self.sortNeurons()
+        self.sort_neurons()
 
-        if (self.populationUnitPlacementMethod is not None):
-            self.definePopulationUnits(method=self.populationUnitPlacementMethod)
+        if self.population_unit_placement_method is not None:
+            self.define_population_units(method=self.population_unit_placement_method)
 
     ############################################################################
 
-    def allNeuronPositions(self):
-        nNeurons = len(self.neurons)
-        pos = np.zeros((nNeurons, 3))
+    def all_neuron_positions(self):
+        n_neurons = len(self.neurons)
+        pos = np.zeros((n_neurons, 3))
 
-        for i in range(0, nNeurons):
+        for i in range(0, n_neurons):
             pos[i, :] = self.neurons[i].position
 
         return pos
 
     ############################################################################
 
-    def allNeuronRotations(self):
-        nNeurons = len(self.neurons)
-        rot = np.zeros((nNeurons, 3, 3))
+    def all_neuron_rotations(self):
 
-        for i in range(0, nNeurons):
+        n_neurons = len(self.neurons)
+        rot = np.zeros((n_neurons, 3, 3))
+
+        for i in range(0, n_neurons):
             rot[i, :, :] = self.neurons[i].rotation
 
         return rot
 
     ############################################################################
 
-    def allNeuronNames(self):
+    def all_neuron_names(self):
         return map(lambda x: x.name, self.neurons)
 
     ############################################################################
 
-    def writeDataHDF5(self, file_name):
+    def write_data_HDF5(self, file_name):
 
-        self.writeLog("Writing data to HDF5 file: " + file_name)
+        self.write_log("Writing data to HDF5 file: " + file_name)
 
-        posFile = h5py.File(file_name, "w", libver=self.h5libver)
+        pos_file = h5py.File(file_name, "w", libver=self.h5libver)
 
         with open(self.config_file, 'r') as cfg_file:
             config = json.load(cfg_file, object_pairs_hook=OrderedDict)
 
         # Meta data
-        saveMetaData = [(self.config_file, "configFile"),
-                        (json.dumps(config), "config")]
+        save_meta_data = [(self.config_file, "configFile"),
+                          (json.dumps(config), "config")]
 
-        metaGroup = posFile.create_group("meta")
+        meta_group = pos_file.create_group("meta")
 
-        for data, dataName in saveMetaData:
-            metaGroup.create_dataset(dataName, data=data)
+        for data, dataName in save_meta_data:
+            meta_group.create_dataset(dataName, data=data)
 
-        networkGroup = posFile.create_group("network")
+        network_group = pos_file.create_group("network")
 
         # Neuron information
-        neuronGroup = networkGroup.create_group("neurons")
+        neuron_group = network_group.create_group("neurons")
 
         # If the name list is longer than 20 chars, increase S20
-        nameList = [n.name.encode("ascii", "ignore") for n in self.neurons]
-        strType = 'S' + str(max(1, max([len(x) for x in nameList])))
-        neuronGroup.create_dataset("name", (len(nameList),), strType, nameList,
-                                   compression="gzip")
+        name_list = [n.name.encode("ascii", "ignore") for n in self.neurons]
+        str_type = 'S' + str(max(1, max([len(x) for x in name_list])))
+        neuron_group.create_dataset("name", (len(name_list),), str_type, name_list,
+                                    compression="gzip")
 
-        neuronIDlist = np.arange(len(self.neurons))
-        neuronGroup.create_dataset("neuronID", (len(neuronIDlist),), \
-                                   'int', neuronIDlist)
+        neuron_id_list = np.arange(len(self.neurons))
+        neuron_group.create_dataset("neuronID", (len(neuron_id_list),),
+                                    'int', neuron_id_list)
 
-        volumeIDlist = [n.volumeID.encode("ascii", "ignore") \
-                        for n in self.neurons]
-        strTypeVID = 'S' + str(max(1, max([len(x) for x in volumeIDlist])))
+        volume_id_list = [n.volumeID.encode("ascii", "ignore")
+                          for n in self.neurons]
+        str_type_vid = 'S' + str(max(1, max([len(x) for x in volume_id_list])))
 
-        neuronGroup.create_dataset("volumeID", \
-                                   (len(volumeIDlist),), strTypeVID, volumeIDlist,
-                                   compression="gzip")
+        neuron_group.create_dataset("volumeID",
+                                    (len(volume_id_list),), str_type_vid, volume_id_list,
+                                    compression="gzip")
 
-        hocList = [n.hoc.encode("ascii", "ignore") for n in self.neurons]
-        maxHocLen = max([len(x) for x in hocList])
-        maxHocLen = max(maxHocLen, 10)  # In case there are none
-        neuronGroup.create_dataset("hoc", (len(hocList),), 'S' + str(maxHocLen), hocList,
-                                   compression="gzip")
+        hoc_list = [n.hoc.encode("ascii", "ignore") for n in self.neurons]
+        max_hoc_len = max([len(x) for x in hoc_list])
+        max_hoc_len = max(max_hoc_len, 10)  # In case there are none
+        neuron_group.create_dataset("hoc", (len(hoc_list),), 'S' + str(max_hoc_len), hoc_list,
+                                    compression="gzip")
 
-        swcList = [n.swc_filename.encode("ascii", "ignore") for n in self.neurons]
-        maxSwcLen = max([len(x) for x in swcList])
-        neuronGroup.create_dataset("morphology", (len(swcList),), 'S' + str(maxSwcLen), swcList,
-                                   compression="gzip")
+        swc_list = [n.swc_filename.encode("ascii", "ignore") for n in self.neurons]
+        max_swc_len = max([len(x) for x in swc_list])
+        neuron_group.create_dataset("morphology", (len(swc_list),), 'S' + str(max_swc_len), swc_list,
+                                    compression="gzip")
 
-        virtualNeuronList = np.array([n.virtualNeuron for n in self.neurons],
-                                     dtype=bool)
-        virtualNeuron = neuronGroup.create_dataset("virtualNeuron",
-                                                   data=virtualNeuronList)
+        virtual_neuron_list = np.array([n.virtualNeuron for n in self.neurons], dtype=bool)
+        virtual_neuron = neuron_group.create_dataset("virtualNeuron",
+                                                     data=virtual_neuron_list)
 
         # Create dataset, filled further down
-        neuronPosition = neuronGroup.create_dataset("position", \
-                                                    (len(self.neurons), 3), \
-                                                    "float",
-                                                    compression="gzip")
-        neuronRotation = neuronGroup.create_dataset("rotation", \
-                                                    (len(self.neurons), 9), \
-                                                    "float", \
-                                                    compression="gzip")
-
-        neuronDendRadius = neuronGroup.create_dataset("maxDendRadius", \
-                                                      (len(self.neurons),), \
+        neuron_position = neuron_group.create_dataset("position",
+                                                      (len(self.neurons), 3),
+                                                      "float",
+                                                      compression="gzip")
+        neuron_rotation = neuron_group.create_dataset("rotation",
+                                                      (len(self.neurons), 9),
                                                       "float",
                                                       compression="gzip")
 
-        neuronAxonRadius = neuronGroup.create_dataset("maxAxonRadius", \
-                                                      (len(self.neurons),), \
-                                                      "float",
-                                                      compression="gzip")
+        neuron_dend_radius = neuron_group.create_dataset("maxDendRadius",
+                                                         (len(self.neurons),),
+                                                         "float",
+                                                         compression="gzip")
 
-        neuronParamID = neuronGroup.create_dataset("parameterID",
-                                                   (len(self.neurons),), \
-                                                   "int",
-                                                   compression="gzip")
-        neuronModulationID = neuronGroup.create_dataset("modulationID",
-                                                        (len(self.neurons),), \
-                                                        "int",
-                                                        compression="gzip")
+        neuron_axon_radius = neuron_group.create_dataset("maxAxonRadius",
+                                                         (len(self.neurons),),
+                                                         "float",
+                                                         compression="gzip")
+
+        neuron_param_id = neuron_group.create_dataset("parameterID",
+                                                      (len(self.neurons),),
+                                                      "int",
+                                                      compression="gzip")
+        neuron_modulation_id = neuron_group.create_dataset("modulationID",
+                                                           (len(self.neurons),),
+                                                           "int",
+                                                           compression="gzip")
 
         for (i, n) in enumerate(self.neurons):
-            neuronPosition[i] = n.position
-            neuronRotation[i] = n.rotation.reshape(1, 9)
-            neuronDendRadius[i] = n.maxDendRadius
-            neuronAxonRadius[i] = n.maxAxonRadius
-            neuronParamID[i] = n.parameterID
-            neuronModulationID[i] = n.modulationID
+            neuron_position[i] = n.position
+            neuron_rotation[i] = n.rotation.reshape(1, 9)
+            neuron_dend_radius[i] = n.maxDendRadius
+            neuron_axon_radius[i] = n.maxAxonRadius
+            neuron_param_id[i] = n.parameterID
+            neuron_modulation_id[i] = n.modulationID
 
         # Store input information
-        neuronGroup.create_dataset("populationUnitID", data=self.populationUnit, dtype=int)
-        neuronGroup.create_dataset("nPopulationUnits", data=self.nPopulationUnits, dtype=int)
+        neuron_group.create_dataset("populationUnitID", data=self.population_unit, dtype=int)
+        neuron_group.create_dataset("nPopulationUnits", data=self.nPopulationUnits, dtype=int)
 
-        if (self.populationUnitPlacementMethod is not None):
-            neuronGroup.create_dataset("populationUnitPlacementMethod", data=self.populationUnitPlacementMethod)
+        if self.population_unit_placement_method is not None:
+            neuron_group.create_dataset("populationUnitPlacementMethod", data=self.population_unit_placement_method)
         else:
-            neuronGroup.create_dataset("populationUnitPlacementMethod", data="")
+            neuron_group.create_dataset("populationUnitPlacementMethod", data="")
 
         # Variable for axon density "r", "xyz" or "" (No axon density)
-        axonDensityType = [n.axonDensity[0].encode("ascii", "ignore") \
-                               if n.axonDensity is not None \
-                               else b"" \
-                           for n in self.neurons]
+        axon_density_type = [n.axonDensity[0].encode("ascii", "ignore")
+                             if n.axonDensity is not None
+                             else b""
+                             for n in self.neurons]
 
-        adStrType2 = "S" + str(max(1, max([len(x) if x is not None else 1 \
-                                           for x in axonDensityType])))
-        neuronGroup.create_dataset("axonDensityType", (len(axonDensityType),),
-                                   adStrType2, data=axonDensityType,
-                                   compression="gzip")
+        ad_str_type2 = "S" + str(max(1, max([len(x) if x is not None else 1
+                                             for x in axon_density_type])))
+        neuron_group.create_dataset("axonDensityType", (len(axon_density_type),),
+                                    ad_str_type2, data=axon_density_type,
+                                    compression="gzip")
 
-        axonDensity = [n.axonDensity[1].encode("ascii", "ignore") \
-                           if n.axonDensity is not None \
-                           else b"" \
-                       for n in self.neurons]
-        adStrType = "S" + str(max(1, max([len(x) if x is not None else 1 \
-                                          for x in axonDensity])))
+        axon_density = [n.axonDensity[1].encode("ascii", "ignore")
+                        if n.axonDensity is not None
+                        else b""
+                        for n in self.neurons]
+        ad_str_type = "S" + str(max(1, max([len(x) if x is not None else 1
+                                            for x in axon_density])))
 
         try:
-            neuronGroup.create_dataset("axonDensity", (len(axonDensity),),
-                                       adStrType, data=axonDensity, compression="gzip")
+            neuron_group.create_dataset("axonDensity", (len(axon_density),),
+                                        ad_str_type, data=axon_density, compression="gzip")
         except:
             import traceback
             tstr = traceback.format_exc()
-            self.writeLog(tstr)
+            self.write_log(tstr)
             import pdb
             pdb.set_trace()
 
-        axonDensityRadius = [n.axonDensity[2] \
-                                 if n.axonDensity is not None \
-                                    and n.axonDensity[0] == "r" \
-                                 else np.nan for n in self.neurons]
+        axon_density_radius = [n.axonDensity[2]
+                               if n.axonDensity is not None
+                                  and n.axonDensity[0] == "r"
+                               else np.nan for n in self.neurons]
 
         try:
-            neuronGroup.create_dataset("axonDensityRadius", data=axonDensityRadius)
+            neuron_group.create_dataset("axonDensityRadius", data=axon_density_radius)
         except:
             import traceback
             tstr = traceback.format_exc()
-            self.writeLog(tstr)
+            self.write_log(tstr)
             import pdb
             pdb.set_trace()
 
         # We also need to save axonDensityBoundsXYZ, and nAxon points for the
         # non-spherical axon density option
 
-        axonDensityBoundsXYZ = np.nan * np.zeros((len(self.neurons), 6))
+        axon_density_bounds_xyz = np.nan * np.zeros((len(self.neurons), 6))
 
         for ni, n in enumerate(self.neurons):
 
@@ -491,55 +491,55 @@ class SnuddaPlace(object):
             if (n.axonDensity[0] == "xyz"):
 
                 try:
-                    axonDensityBoundsXYZ[ni, :] = np.array(n.axonDensity[2])
+                    axon_density_bounds_xyz[ni, :] = np.array(n.axonDensity[2])
                 except:
                     import traceback
                     tstr = traceback.format_exc()
-                    self.writeLog(tstr)
+                    self.write_log(tstr)
 
-                    self.writeLog("Incorrect density string: " + str(n.axonDensity))
+                    self.write_log("Incorrect density string: " + str(n.axonDensity))
 
-        neuronGroup.create_dataset("axonDensityBoundsXYZ", data=axonDensityBoundsXYZ)
+        neuron_group.create_dataset("axonDensityBoundsXYZ", data=axon_density_bounds_xyz)
 
-        posFile.close()
+        pos_file.close()
 
     ############################################################################
 
-    def definePopulationUnits(self, method="random", nPopulationUnits=None):
+    def define_population_units(self, method="random", num_population_units=None):
 
-        if (nPopulationUnits is None):
-            nPopulationUnits = self.nPopulationUnits
+        if (num_population_units is None):
+            num_population_units = self.nPopulationUnits
 
-        if (method == "random"):
-            self.randomLabeling()
-        elif (method == "populationUnitSpheres"):
-            self.populationUnitSpheresLabeling(self.populationUnitCentres, self.populationUnitRadius)
+        if method == "random":
+            self.random_labeling()
+        elif method == "populationUnitSpheres":
+            self.population_unit_spheres_labeling(self.population_unit_centres, self.population_unit_radius)
         else:
-            self.populationUnit = np.zeros((len(self.neurons),), dtype=int)
-            self.populationUnits = dict([])
+            self.population_unit = np.zeros((len(self.neurons),), dtype=int)
+            self.population_units = dict([])
 
     ############################################################################
 
-    def randomLabeling(self, nPopulationUnits=None):
+    def random_labeling(self, num_population_units=None):
 
-        if (nPopulationUnits is None):
-            nPopulationUnits = self.nPopulationUnits
+        if num_population_units is None:
+            num_population_units = self.nPopulationUnits
 
-        self.populationUnit = np.random.randint(nPopulationUnits, size=len(self.neurons))
+        self.population_unit = np.random.randint(num_population_units, size=len(self.neurons))
 
-        self.populationUnits = dict([])
+        self.population_units = dict([])
 
-        for i in range(0, nPopulationUnits):
-            self.populationUnits[i] = np.where(self.populationUnit == i)[0]
+        for i in range(0, num_population_units):
+            self.population_units[i] = np.where(self.population_unit == i)[0]
 
     ############################################################################
 
-    def populationUnitSpheresLabeling(self, populationUnitCentres, populationUnitRadius):
+    def population_unit_spheres_labeling(self, population_unit_centres, population_unit_radius):
 
-        xyz = self.allNeuronPositions()
+        xyz = self.all_neuron_positions()
 
-        centres = np.array(populationUnitCentres)
-        self.populationUnit = np.zeros((xyz.shape[0],), dtype=int)
+        centres = np.array(population_unit_centres)
+        self.population_unit = np.zeros((xyz.shape[0],), dtype=int)
 
         if centres.shape[1] == 0:
             print("No population centres specified.")
@@ -549,30 +549,30 @@ class SnuddaPlace(object):
             d = [np.linalg.norm(pos - c) for c in centres]
             idx = np.argsort(d)
 
-            if (d[idx[0]] <= populationUnitRadius):
-                self.populationUnit[ctr] = idx[0] + 1  # We reserve 0 for no channel
+            if d[idx[0]] <= population_unit_radius:
+                self.population_unit[ctr] = idx[0] + 1  # We reserve 0 for no channel
 
-        nPopulationUnits = np.max(self.populationUnit) + 1
+        num_population_units = np.max(self.population_unit) + 1
 
-        for i in range(0, nPopulationUnits):
+        for i in range(0, num_population_units):
             # Channel 0 is unassigned, no channel, poor homeless neurons!
-            self.populationUnits[i] = np.where(self.populationUnit == i)[0]
+            self.population_units[i] = np.where(self.population_unit == i)[0]
 
     ############################################################################
 
-    def sortNeurons(self):
+    def sort_neurons(self):
 
         # This changes the neuron IDs so the neurons are sorted along x,y or z
-        xyz = self.allNeuronPositions()
+        xyz = self.all_neuron_positions()
 
-        sortIdx = np.lexsort(xyz[:, [2, 1, 0]].transpose())  # x, y, z sort order
+        sort_idx = np.lexsort(xyz[:, [2, 1, 0]].transpose())  # x, y, z sort order
 
-        self.writeLog("Re-sorting the neuron IDs after location")
+        self.write_log("Re-sorting the neuron IDs after location")
 
-        for newIdx, oldIdx in enumerate(sortIdx):
+        for newIdx, oldIdx in enumerate(sort_idx):
             self.neurons[oldIdx].neuronID = newIdx
 
-        self.neurons = [self.neurons[x] for x in sortIdx]
+        self.neurons = [self.neurons[x] for x in sort_idx]
 
         for idx, n in enumerate(self.neurons):
             assert idx == self.neurons[idx].neuronID, \
@@ -584,30 +584,3 @@ class SnuddaPlace(object):
 if __name__ == "__main__":
 
     assert False, "Please use snudda.py place networks/yournetwork"
-
-    if (os.getenv('IPYTHON_PROFILE') is not None):
-        from ipyparallel import Client
-
-        rc = Client(profile=os.getenv('IPYTHON_PROFILE'),
-                    # sshserver='127.0.0.1',
-                    debug=False)
-        print('Client IDs: ' + str(rc.ids))
-
-        # http://davidmasad.com/blog/simulation-with-ipyparallel/
-        # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
-        print("Client IDs: " + str(rc.ids))
-        dView = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
-        lbView = rc.load_balanced_view(targets='all')
-    else:
-        print("No IPYTHON_PROFILE enviroment variable set, running in serial")
-        dView = None
-        lbView = None
-
-    npn = SnuddaPlace(config_file="config/Network-striatum-mesh-v9-population-Units-10000-10.json", verbose=True,
-                      dView=dView, lbView=lbView)
-
-    # Should we renumber neuron order, so that the neurons in the same hyper
-    # voxel have numbers close to each other. This could speed up the merge
-    # of files (but could slow down other things?)
-
-    npn.writeDataHDF5('save/npn-test-save.hdf5')

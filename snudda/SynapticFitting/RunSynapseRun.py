@@ -387,9 +387,9 @@ class RunSynapseRun(object):
     #self.iSave.resize()
     
     if(np.array(self.tSave).shape != np.array(self.vSave).shape):
-      self.writeLog("THIS IS WRONG, should be same shape!!")
-      self.writeLog("size t = " + str(np.array(self.tSave).shape))
-      self.writeLog("size v = " + str(np.array(self.vSave).shape))      
+      self.write_log("THIS IS WRONG, should be same shape!!")
+      self.write_log("size t = " + str(np.array(self.tSave).shape))
+      self.write_log("size v = " + str(np.array(self.vSave).shape))
       import pdb
       pdb.set_trace()
     

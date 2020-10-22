@@ -11,21 +11,21 @@ class RegionMesh(object):
 
   ############################################################################
 
-  def __init__(self,fileName,dView = None, lbView = None, role="master",
-               useCache=True,pickleVersion=-1,raytraceBorders=True,
-               dMin=15e-6,binWidth=1e-4,logFileName=None,logFile=None):
+  def __init__(self, fileName, d_view = None, lb_view = None, role="master",
+               useCache=True, pickleVersion=-1, raytrace_borders=True,
+               d_min=15e-6, bin_width=1e-4, logFileName=None, log_file=None):
 
-    self.dView = dView
-    self.lbView = lbView
+    self.dView = d_view
+    self.lbView = lb_view
 
     self.role = role
     self.workersInitialised = False
 
     self.verbose = True
 
-    if(logFile is not None):
-      self.logFile = logFile
-      self.logFileName = logFile.name
+    if(log_file is not None):
+      self.logFile = log_file
+      self.logFileName = log_file.name
     elif(logFileName is not None and len(logFileName) > 0):
       self.logFile = open(logFileName,'wt')
       self.logFileName = logFileName
@@ -34,14 +34,14 @@ class RegionMesh(object):
       self.logFileName = None
 
     #self.binWidth = 5e-4
-    self.binWidth = binWidth # 1e-4 # 5e-5 # 1e-4
-    self.padding = max(self.binWidth,dMin)
+    self.binWidth = bin_width # 1e-4 # 5e-5 # 1e-4
+    self.padding = max(self.binWidth, d_min)
 
     # This determines if we ray trace the border voxels, for finer detail
     # or not (activating this is SLOW)
-    self.raytraceBorders = raytraceBorders
+    self.raytraceBorders = raytrace_borders
 
-    if(raytraceBorders):
+    if(raytrace_borders):
       self.writeLog("Ray tracing points in border voxels, this is slow.")
       rtStr = "-RTB"
     else:
@@ -82,7 +82,7 @@ class RegionMesh(object):
 
     self.setupVoxelList()
 
-    self.setupPlaceNeurons(dMin=dMin)
+    self.setupPlaceNeurons(dMin=d_min)
 
     self.writeLog("Inner voxel bin volume: " \
                   + str(np.round(self.innerVoxelVolume()*1e9,1)) + " mm³")
@@ -1188,8 +1188,8 @@ if __name__ == "__main__":
 
   meshFile = 'mesh/striatum-mesh.obj'
   #meshFile = "mesh/cortex-mesh-200.obj"
-  sm = RegionMesh(meshFile,dView=dView,lbView=lbView,
-                    raytraceBorders=False)
+  sm = RegionMesh(meshFile, d_view=dView, lb_view=lbView,
+                  raytrace_borders=False)
 
   # import cProfile
   # cProfile.run("neuronPos = sm.placeNeurons(1000)")

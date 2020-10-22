@@ -140,12 +140,12 @@ class Snudda(object):
       h5libver = "latest" # default
 
     npn = SnuddaPlace(config_file=configFile,
-                      logFile=self.logFile,
+                      log_file=self.logFile,
                       verbose=True,
-                      dView=self.dView,
+                      d_view=self.dView,
                       h5libver=h5libver)
 
-    npn.writeDataHDF5(positionFile)
+    npn.write_data_HDF5(positionFile)
 
     self.stopParallel()
     self.closeLogFile()

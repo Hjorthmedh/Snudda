@@ -173,8 +173,8 @@ class SnuddaSimulate(object):
       if(os.path.isfile(splitFile)):
         networkFile = splitFile
       else:
-        self.writeLog("Unable to find " + splitFile + " using " \
-                      + networkFile)
+        self.write_log("Unable to find " + splitFile + " using " \
+                       + networkFile)
 
     self.writeLog("Worker " + str(int(self.pc.id())) \
                   + ": Loading network from " + networkFile)
@@ -226,8 +226,8 @@ class SnuddaSimulate(object):
     self.neuronNodes = [x%int(self.pc.nhost()) for x in range(0,self.nNeurons)]
 
     if(False):
-      self.writeLog("Node " + str(int(self.pc.id())) + " handling neurons: " \
-                    + ' '.join(map(str, self.neuronID)))
+      self.write_log("Node " + str(int(self.pc.id())) + " handling neurons: " \
+                     + ' '.join(map(str, self.neuronID)))
 
   ############################################################################
 
@@ -935,7 +935,7 @@ class SnuddaSimulate(object):
       synapseDelay = self.synapseDelay
 
     if(False):
-      self.writeLog("Synapse delay: " + str(synapseDelay) + " ms")
+      self.write_log("Synapse delay: " + str(synapseDelay) + " ms")
 
     # What do we do if the GID does not exist?
     # print("GID exists:" + str(self.pc.gid_exists(cellIDsource)))
@@ -1339,7 +1339,7 @@ class SnuddaSimulate(object):
           self.netConList.append(nc)
           self.synapseList.append(syn)
         except Exception as e:
-          self.writeLog("Error! " + str(e))
+          self.write_log("Error! " + str(e))
           import pdb
           pdb.set_trace()
 

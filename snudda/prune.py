@@ -1480,11 +1480,11 @@ class SnuddaPrune(object):
     h5SynMat, h5SynN, h5SynLoc = self.dataLoc[mergeDataType]
     
     self.mergeDataType = mergeDataType
-    self.writeLog("Doing bigMerge for " + mergeDataType)
+    self.write_log("Doing bigMerge for " + mergeDataType)
     
     synapseHeap = []
     
-    self.writeLog("Starting big merge of all data")
+    self.write_log("Starting big merge of all data")
 
     nNeurons = len(self.histFile["network/neurons/neuronID"])
     assert np.max(self.histFile["network/neurons/neuronID"])+1 == nNeurons, \
@@ -1548,12 +1548,12 @@ class SnuddaPrune(object):
     if(maxAxonVoxelCtr > 0 and self.mergeDataType == "synapses"):
       self.bufferOutFile["meta"].create_dataset("maxAxonVoxelCtr",
                                                 data=maxAxonVoxelCtr)
-      self.writeLog("maxAxonVoxelCtr = " + str(maxAxonVoxelCtr))
+      self.write_log("maxAxonVoxelCtr = " + str(maxAxonVoxelCtr))
 
     if(maxDendVoxelCtr > 0 and self.mergeDataType == "synapses"):
       self.bufferOutFile["meta"].create_dataset("maxDendVoxelCtr",
                                                 data=maxDendVoxelCtr)
-      self.writeLog("maxDendVoxelCtr = " + str(maxDendVoxelCtr))
+      self.write_log("maxDendVoxelCtr = " + str(maxDendVoxelCtr))
     
     # 2. Pop the smallest element, and add it to the final file
     # -- check same file if there are more with the same source and dest
@@ -1586,9 +1586,9 @@ class SnuddaPrune(object):
     while(synapsesRemaining or len(synapseHeap) > 0):
 
       if(loopCtr % 1000000 == 0):
-        self.writeLog("Synapses: " + str(synCtr) \
-                      + "/" + str(nSynTotal) \
-                      + " (heap size: " + str(len(synapseHeap)) + ")")
+        self.write_log("Synapses: " + str(synCtr) \
+                       + "/" + str(nSynTotal) \
+                       + " (heap size: " + str(len(synapseHeap)) + ")")
       
       if(synapsesRemaining):
         # Need to push the next synapse in line from that file onto the heap
@@ -1641,7 +1641,7 @@ class SnuddaPrune(object):
         print("Why is this wrong?")
         import traceback
         tstr = traceback.format_exc()
-        self.writeLog(tstr)    
+        self.write_log(tstr)
         import pdb
         pdb.set_trace() 
        
