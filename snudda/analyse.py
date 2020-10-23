@@ -1803,8 +1803,8 @@ class SnuddaAnalyse(object):
     neurons = dict([])
 
     postNeuron = self.networkLoad.load_neuron(neuronID)
-    axis = postNeuron.plotNeuron(axis=axis,plotAxon=False, \
-                                  plotDendrite=True)
+    axis = postNeuron.plot_neuron(axis=axis, plot_axon=False, \
+                                  plot_dendrite=True)
 
     plottedNeurons = [neuronID]
 
@@ -1815,8 +1815,8 @@ class SnuddaAnalyse(object):
 
         if(srcID not in plottedNeurons):
           neurons[srcID] = self.networkLoad.load_neuron(srcID)
-          axis = neurons[srcID].plotNeuron(axis=axis,plotAxon=True, \
-                                           plotDendrite=False)
+          axis = neurons[srcID].plot_neuron(axis=axis, plot_axon=True, \
+                                            plot_dendrite=False)
           plottedNeurons.append(srcID)
 
     if(showSynapses):
@@ -2267,7 +2267,7 @@ class SnuddaAnalyse(object):
     distToSoma = nMorph.dend[:,4]
     compartmentLength = np.zeros((nMorph.dend.shape[0],))
 
-    for idx,link in enumerate(nMorph.dendLinks):
+    for idx,link in enumerate(nMorph.dend_links):
       compartmentLength[idx] = np.linalg.norm(nMorph.dend[link[0],:3] \
                                               - nMorph.dend[link[1],:3])
       distToSoma[idx] = (nMorph.dend[link[0],4] + nMorph.dend[link[1],4])/2

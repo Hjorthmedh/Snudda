@@ -103,7 +103,7 @@ class Snudda(object):
 
     self.makeDirIfNeeded(self.networkPath)
 
-    nPopulationUnits = args.nPopulationUnits
+    nPopulationUnits = args.num_population_units
     PopulationUnitCentres = args.PopulationUnitCentres
     PopulationUnitRadius = args.PopulationUnitRadius
 

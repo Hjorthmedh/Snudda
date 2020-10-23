@@ -149,7 +149,7 @@ class RegionMesh(object):
 
         try:
             self.write_log("Setting up RegionMesh on workers")
-            d_view.push({"fileName": self.filename}, block=True)
+            d_view.push({"filename": self.filename}, block=True)
 
             if self.logfile_name is not None:
                 engine_log_file = [self.logfile_name + "-"
@@ -157,9 +157,9 @@ class RegionMesh(object):
             else:
                 engine_log_file = [[] for x in range(0, len(d_view))]
 
-            d_view.scatter('logFileName', engine_log_file, block=True)
+            d_view.scatter('logfile_name', engine_log_file, block=True)
 
-            cmd_str = "sm = RegionMesh(fileName=fileName,role='worker',logFileName=logFileName[0])"
+            cmd_str = "sm = RegionMesh(filename=filename,role='worker',logfile_name=logfile_name[0])"
 
             d_view.execute(cmd_str, block=True)
             self.write_log("Worker RegionMesh setup done.")
@@ -403,13 +403,13 @@ class RegionMesh(object):
                 all_x = np.random.permutation(np.arange(0, self.num_bins[0]))
 
                 try:
-                    self.d_view.scatter("xRange", all_x, block=True)
+                    self.d_view.scatter("x_range", all_x, block=True)
                     self.write_log("Starting parallel job")
-                    self.d_view.execute("innerMask = sm._voxelMaskHelper(xRange)", block=True)
+                    self.d_view.execute("innerMask = sm._voxel_mask_helper(x_range)", block=True)
                     self.write_log("Gathering results")
                     inner_mask = self.d_view.gather("innerMask", block=True)
                 except Exception as e:
-                    self.write_log("Oh no, something failed with parallel meshbuidling")
+                    self.write_log("Oh no, something failed with parallel meshbuilding")
                     import traceback
                     tstr = traceback.format_exc()
                     self.write_log(tstr)
@@ -420,7 +420,7 @@ class RegionMesh(object):
                 for m in inner_mask:
                     self.voxel_mask_inner = np.logical_or(self.voxel_mask_inner, m)
 
-        self.write_log("Fraction of border voxels: " \
+        self.write_log("Fraction of border voxels: "
                        + str(np.sum(self.voxel_mask_border)
                              / np.prod(self.voxel_mask_border.shape)))
 

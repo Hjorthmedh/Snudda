@@ -96,7 +96,7 @@ class SnuddaPlace(object):
                               mech_filename=mech_filename,
                               name=name,
                               hoc=hoc,
-                              virtualNeuron=virtual_neuron)
+                              virtual_neuron=virtual_neuron)
 
         neuron_type = name.split("_")[0]
         neuron_coords = self.volume[volume_id]["mesh"].place_neurons(num_neurons,
@@ -117,7 +117,7 @@ class SnuddaPlace(object):
             modulation_id = np.random.randint(1000000)
 
             if rotation_mode == "random":
-                rotation = nm.randRotationMatrix()
+                rotation = nm.rand_rotation_matrix()
             elif rotation_mode is None or rotation_mode == "":
                 self.write_log("Rotation mode: None (disabled) for " + name)
                 rotation = np.eye(3)
@@ -128,9 +128,9 @@ class SnuddaPlace(object):
 
             n = nm.clone(position=coords,
                          rotation=rotation,
-                         loadMorphology=False,
-                         parameterID=parameter_id,
-                         modulationID=modulation_id)
+                         load_morphology=False,
+                         parameter_id=parameter_id,
+                         modulation_id=modulation_id)
 
             # self.writeLog("Place " + str(self.cellPos[i,:]))
 
@@ -140,7 +140,7 @@ class SnuddaPlace(object):
             assert axon_density is None or len(n.axon) == 0, \
                 "!!! ERROR: Neuron: " + str(n.name) + " has both axon and axon density."
 
-            n.axonDensity = axon_density
+            n.axon_density = axon_density
             self.neurons.append(n)
 
             # This info is used by workers to speed things up
@@ -384,7 +384,7 @@ class SnuddaPlace(object):
         neuron_group.create_dataset("morphology", (len(swc_list),), 'S' + str(max_swc_len), swc_list,
                                     compression="gzip")
 
-        virtual_neuron_list = np.array([n.virtualNeuron for n in self.neurons], dtype=bool)
+        virtual_neuron_list = np.array([n.virtual_neuron for n in self.neurons], dtype=bool)
         virtual_neuron = neuron_group.create_dataset("virtualNeuron",
                                                      data=virtual_neuron_list)
 
@@ -420,10 +420,10 @@ class SnuddaPlace(object):
         for (i, n) in enumerate(self.neurons):
             neuron_position[i] = n.position
             neuron_rotation[i] = n.rotation.reshape(1, 9)
-            neuron_dend_radius[i] = n.maxDendRadius
-            neuron_axon_radius[i] = n.maxAxonRadius
-            neuron_param_id[i] = n.parameterID
-            neuron_modulation_id[i] = n.modulationID
+            neuron_dend_radius[i] = n.max_dend_radius
+            neuron_axon_radius[i] = n.max_axon_radius
+            neuron_param_id[i] = n.parameter_id
+            neuron_modulation_id[i] = n.modulation_id
 
         # Store input information
         neuron_group.create_dataset("populationUnitID", data=self.population_unit, dtype=int)
@@ -435,8 +435,8 @@ class SnuddaPlace(object):
             neuron_group.create_dataset("populationUnitPlacementMethod", data="")
 
         # Variable for axon density "r", "xyz" or "" (No axon density)
-        axon_density_type = [n.axonDensity[0].encode("ascii", "ignore")
-                             if n.axonDensity is not None
+        axon_density_type = [n.axon_density[0].encode("ascii", "ignore")
+                             if n.axon_density is not None
                              else b""
                              for n in self.neurons]
 
@@ -446,8 +446,8 @@ class SnuddaPlace(object):
                                     ad_str_type2, data=axon_density_type,
                                     compression="gzip")
 
-        axon_density = [n.axonDensity[1].encode("ascii", "ignore")
-                        if n.axonDensity is not None
+        axon_density = [n.axon_density[1].encode("ascii", "ignore")
+                        if n.axon_density is not None
                         else b""
                         for n in self.neurons]
         ad_str_type = "S" + str(max(1, max([len(x) if x is not None else 1
@@ -463,8 +463,8 @@ class SnuddaPlace(object):
             import pdb
             pdb.set_trace()
 
-        axon_density_radius = [n.axonDensity[2]
-                               if n.axonDensity is not None and n.axonDensity[0] == "r"
+        axon_density_radius = [n.axon_density[2]
+                               if n.axon_density is not None and n.axon_density[0] == "r"
                                else np.nan for n in self.neurons]
 
         try:
@@ -483,20 +483,20 @@ class SnuddaPlace(object):
 
         for ni, n in enumerate(self.neurons):
 
-            if n.axonDensity is None:
+            if n.axon_density is None:
                 # No axon density specified, skip
                 continue
 
-            if n.axonDensity[0] == "xyz":
+            if n.axon_density[0] == "xyz":
 
                 try:
-                    axon_density_bounds_xyz[ni, :] = np.array(n.axonDensity[2])
+                    axon_density_bounds_xyz[ni, :] = np.array(n.axon_density[2])
                 except:
                     import traceback
                     tstr = traceback.format_exc()
                     self.write_log(tstr)
 
-                    self.write_log("Incorrect density string: " + str(n.axonDensity))
+                    self.write_log("Incorrect density string: " + str(n.axon_density))
 
         neuron_group.create_dataset("axonDensityBoundsXYZ", data=axon_density_bounds_xyz)
 

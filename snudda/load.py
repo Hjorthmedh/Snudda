@@ -429,7 +429,7 @@ class SnuddaLoad(object):
                                   rotation=neuron_info["rotation"],
                                   swc_filename=prototype_info["morphology"],
                                   mech_filename=prototype_info["mechanisms"],
-                                  loadMorphology=True)
+                                  load_morphology=True)
 
         return neuron
 

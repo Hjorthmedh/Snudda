@@ -214,10 +214,10 @@ class RunSynapseRun(object):
       
     
       inputCoords,sectionID,sectionX,densityFunction,distSynSoma =\
-                                    self.morphology.dendriteInputLocations( \
-                                                synapseDensity=synapseDensity,
-                                                nLocations=nSynapses,
-                                                returnDensity=True)
+                                    self.morphology.dendrite_input_locations( \
+                                                synapse_density=synapseDensity,
+                                                num_locations=nSynapses,
+                                                return_density=True)
 
       self.synapseLocations=inputCoords
       distFromSoma = self.morphology.dend[:,4]
@@ -242,8 +242,8 @@ class RunSynapseRun(object):
     elif(sectionID is None or sectionX is None):
 
       inputCoords,sectionID,sectionX =\
-        self.morphology.dendriteInputLocations( synapseDensity=synapseDensity,
-                                                nLocations=nSynapses )
+        self.morphology.dendrite_input_locations(synapse_density=synapseDensity,
+                                                 num_locations=nSynapses)
 
       
       self.synapseLocations=inputCoords
@@ -450,7 +450,7 @@ class RunSynapseRun(object):
   ############################################################################
   def plot(self):
 
-    ax=self.morphology.plotNeuron(axonColour='red', dendColour='blue',somaColour='green')
+    ax=self.morphology.plot_neuron(axon_colour='red', dend_colour='blue', soma_colour='green')
 
     ax.scatter(self.synapseLocations[:,0],
                self.synapseLocations[:,1],

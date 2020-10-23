@@ -819,11 +819,11 @@ class SnuddaInput(object):
     else:     
       morphology = NeuronMorphology(name=neuronID,
                                     swc_filename=swcFile,
-                                    axonStumpIDFlag=self.axonStumpIDFlag)
+                                    axon_stump_id_flag=self.axonStumpIDFlag)
       self.neuronCache[swcFile] = morphology
 
-    return morphology.dendriteInputLocations(synapseDensity=synapseDensity,
-                                             nLocations=nSpikeTrains)
+    return morphology.dendrite_input_locations(synapse_density=synapseDensity,
+                                               num_locations=nSpikeTrains)
       
   ############################################################################
   
@@ -843,7 +843,7 @@ class SnuddaInput(object):
       
       morphology = NeuronMorphology(name=neuronID,
                                     swc_filename=swcFile,
-                                    axonStumpIDFlag=self.axonStumpIDFlag)
+                                    axon_stump_id_flag=self.axonStumpIDFlag)
       self.neuronCache[swcFile] = morphology
 
     # morphology.dend -- 0-2: x,y,z 3: r, 4: dist to soma
@@ -854,8 +854,8 @@ class SnuddaInput(object):
       # If Px is a constant, we need to set it for all points
       Px *= np.ones(d.shape)
 
-    Pcomp = (Px[morphology.dendLinks[:,0]] + Px[morphology.dendLinks[:,1]])/2
-    compLen = morphology.compartmentLength(compType="dend")
+    Pcomp = (Px[morphology.dend_links[:, 0]] + Px[morphology.dend_links[:, 1]]) / 2
+    compLen = morphology.compartment_length(comp_type="dend")
     
       
     # Multiply by length, so longer compartments are proportionally more likely to be
@@ -881,13 +881,13 @@ class SnuddaInput(object):
       while(xval > Pxcumsum[compIdx] and compIdx < lastValidIdx):
         compIdx += 1
         
-      secID[ix] = morphology.dendSecID[compIdx]
-      secX[ix] = np.random.rand()*(morphology.dendSecX[compIdx,1] \
-                                   - morphology.dendSecX[compIdx,0]) \
-                 + morphology.dendSecX[compIdx,0]
+      secID[ix] = morphology.dend_sec_id[compIdx]
+      secX[ix] = np.random.rand()*(morphology.dend_sec_x[compIdx, 1] \
+                                   - morphology.dend_sec_x[compIdx, 0]) \
+                 + morphology.dend_sec_x[compIdx, 0]
 
-      compCoords[ix,:3] = (morphology.dend[morphology.dendLinks[compIdx,0],:3] \
-                        + morphology.dend[morphology.dendLinks[compIdx,1],:3])/2
+      compCoords[ix,:3] = (morphology.dend[morphology.dend_links[compIdx, 0], :3] \
+                           + morphology.dend[morphology.dend_links[compIdx, 1], :3]) / 2
       
         
     # The probability of picking a compartment is dependent on a distance
