@@ -4,70 +4,68 @@ import json
 import os
 
 if __name__ == "__main__":
-  
-  import argparse
-  parser = argparse.ArgumentParser(description="Init custom network")
-  parser.add_argument("network",type=str,help="Network path")
-  args = parser.parse_args()
 
-  simName = args.network
-  
-  connectNeurons = False
+    import argparse
 
-  #simName = "networks/FSmorphTest2orig"
-  #simName = "networks/FSmorphTest1b"
-  #simName = "LTStest"
-  #simName = "networks/twoFS"
-  #simName = "networks/FSmorphTest4"
-  #simName = "networks/3types-v2"
-  # simName = "networks/SynTest-v6" # MSMS tuning
-  #simName = "networks/SynTest-v15"  
+    parser = argparse.ArgumentParser(description="Init custom network")
+    parser.add_argument("network", type=str, help="Network path")
+    args = parser.parse_args()
 
-  configName= simName + "/network-config.json"
-  cnc = SnuddaInit(struct_def={}, config_name=configName, nChannels=1)
-  #cnc.defineStriatum(nMSD1=500,nMSD2=500,nFS=0,nLTS=0,nChIN=30,volumeType="cube")  
-  #cnc.defineStriatum(nMSD1=120,nMSD2=120,nFS=20,nLTS=0,nChIN=0,volumeType="slice")
-  #cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=10000,nLTS=0,nChIN=0,volumeType="slice")
-  #cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=10000,nLTS=0,nChIN=0,volumeType="cube")
-  cnc.define_striatum(num_dSPN=0, num_iSPN=0, num_FS=100, num_LTS=0, num_ChIN=0, volume_type="cube")
-  #cnc.defineStriatum(nMSD1=10,nMSD2=10,nFS=10,nLTS=10,nChIN=10,volumeType="slice")
-  
-  # cnc.defineStriatum(nMSD1=500,nMSD2=500,nFS=0,nLTS=0,nChIN=500,volumeType="cube")  
+    simName = args.network
 
+    connect_neurons = False
 
+    # simName = "networks/FSmorphTest2orig"
+    # simName = "networks/FSmorphTest1b"
+    # simName = "LTStest"
+    # simName = "networks/twoFS"
+    # simName = "networks/FSmorphTest4"
+    # simName = "networks/3types-v2"
+    # simName = "networks/SynTest-v6" # MSMS tuning
+    # simName = "networks/SynTest-v15"
 
-  dirName = os.path.dirname(configName)
-  
-  if not os.path.exists(dirName):
-    os.makedirs(dirName)
+    config_name = simName + "/network-config.json"
+    cnc = SnuddaInit(struct_def={}, config_name=config_name, num_population_units=1)
+    # cnc.defineStriatum(nMSD1=500,nMSD2=500,nFS=0,nLTS=0,nChIN=30,volumeType="cube")
+    # cnc.defineStriatum(nMSD1=120,nMSD2=120,nFS=20,nLTS=0,nChIN=0,volumeType="slice")
+    # cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=10000,nLTS=0,nChIN=0,volumeType="slice")
+    # cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=10000,nLTS=0,nChIN=0,volumeType="cube")
+    cnc.define_striatum(num_dSPN=0, num_iSPN=0, num_FS=100, num_LTS=0, num_ChIN=0, volume_type="cube")
+    # cnc.defineStriatum(nMSD1=10,nMSD2=10,nFS=10,nLTS=10,nChIN=10,volumeType="slice")
 
-  cnc.write_JSON(configName)
+    # cnc.defineStriatum(nMSD1=500,nMSD2=500,nFS=0,nLTS=0,nChIN=500,volumeType="cube")
 
-  if(not connectNeurons):
-    print("Removing all target information, and rewriting config file")
-    # Reopen the config file, and remove all connectivity settings, to
-    # get an unconnected network
+    dir_name = os.path.dirname(config_name)
 
-    with open(configName,"r") as f:
-      conData = json.load(f,object_pairs_hook=OrderedDict)
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
 
-    for k in conData:
-      if(k.lower() in ["volume", "channels"]):
-        continue
+    cnc.write_JSON(config_name)
 
-      # Remove targets
-      if(False):
-        x = conData[k]
-        del x["targets"]
-      
-    with open(configName,"w") as f:
-      print("Writing to file: " + str(configName))
-      json.dump(conData,f,indent=2)
-      
+    if not connect_neurons:
+        print("Removing all target information, and rewriting config file")
+        # Reopen the config file, and remove all connectivity settings, to
+        # get an unconnected network
 
-  print("Now run:\nsnudda place " + simName)
-  print("snudda detect " + simName)
-  print("snudda prune " + simName)
-  print("snudda input " + simName + " --input config/input-tinytest-v4.json")
-  print("snudda simulate " + simName \
-        + " --voltOut " + simName + "/volt-out.csv --time 10.0")
+        with open(config_name, "r") as f:
+            con_data = json.load(f, object_pairs_hook=OrderedDict)
+
+        for k in con_data:
+            if k.lower() in ["volume", "channels"]:
+                continue
+
+            # Remove targets
+            if False:
+                x = con_data[k]
+                del x["targets"]
+
+        with open(config_name, "w") as f:
+            print("Writing to file: " + str(config_name))
+            json.dump(con_data, f, indent=2)
+
+    print("Now run:\nsnudda place " + simName)
+    print("snudda detect " + simName)
+    print("snudda prune " + simName)
+    print("snudda input " + simName + " --input config/input-tinytest-v4.json")
+    print("snudda simulate " + simName \
+          + " --voltOut " + simName + "/volt-out.csv --time 10.0")
