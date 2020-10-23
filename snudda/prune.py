@@ -656,7 +656,7 @@ class SnuddaPrune(object):
 
         self.config = json.loads(self.hist_file["meta/config"][()])
 
-        self.populationUnitID = self.hist_file["network/neurons/populationUnitID"][()]
+        self.population_unit_id = self.hist_file["network/neurons/populationUnitID"][()]
 
         # Normally we use type names as lookups, but since we will do this
         # many millions of times, we create an temporary typeID number

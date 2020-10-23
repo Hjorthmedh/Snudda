@@ -28,1248 +28,1154 @@ from .load import SnuddaLoad
 
 nl = None
 
+
 class SnuddaInput(object):
-  
-  def __init__(self, spikeDataFileName, inputConfigFile,
-               networkConfigFile=None,
-               positionFile=None,
-               HDF5networkFile=None,
-               time=10.0,
-               isMaster=True,
-               h5libver="latest",
-               randomSeed=None,
-               logFile=None,
-               verbose=True):
-    
-    if(type(logFile) == str):
-      self.logFile = open(logFile,"w")
-    else:
-      self.logFile = logFile
-      
-    self.verbose = verbose
-    
-    self.writeLog("Time = " + str(time))
 
-    # We need to set the seed, to avoid same seed on workers
-    np.random.seed(randomSeed)
-    self.writeLog("Setting random seed: " + str(randomSeed))
-    
-    self.h5libver = h5libver
-    self.writeLog("Using hdf5 version " + str(h5libver))
-    
-    if(HDF5networkFile is not None):
-      assert networkConfigFile is None and positionFile is None, \
-        "If HDF5networkFile specified then positionFile " + \
-        "and networkConfigFile should be left empty."
+    def __init__(self, spike_data_file_name, input_config_file,
+                 network_config_file=None,
+                 position_file=None,
+                 hdf5_network_file=None,
+                 time=10.0,
+                 is_master=True,
+                 h5libver="latest",
+                 random_seed=None,
+                 logfile=None,
+                 verbose=True):
 
-      if(HDF5networkFile == "last"):
-        HDF5networkFile = self.findLatestFile()
-      
-      self.HDF5networkFile = HDF5networkFile
-      self.readHDF5info(HDF5networkFile)
-    else:
-      self.networkConfigFile = networkConfigFile
-      self.positionFile = positionFile
-
-      #self.writeLog("Assuming axonStumpIDFlag is True (Running Network_simulate.py)")
-      self.axonStumpIDFlag = False
-    
-    self.inputConfigFile = inputConfigFile
-
-    if(spikeDataFileName is None):
-      spikeDataFileName = "save/input-spikes-" + str(self.networkSlurmID) + ".hdf5"
-    self.spikeDataFileName = spikeDataFileName
-
-    self.time = time # How long time to generate inputs for
-
-    self.neuronCache = dict([])
-    
-    # Read in the input configuration information from JSON file
-    self.readInputConfigFile()
-
-    # Read the network position file
-    self.readNeuronPositions()
-
-    # Read the network config file
-    self.readNetworkConfigFile()
-
-    # Only the master node should start the work
-    if(isMaster):
-      # Initialises lbView and dView (load balance, and direct view)
-      self.setupParallell()
-
-    
-      # Make the "master input" for each channel
-      self.makePopulationUnitSpikeTrains()
-      
-      # Generate the actual input spikes, and the locations
-      # stored in self.neuronInput dictionary
-
-      self.makeNeuronInputParallell()      
-
-      # Consolidate code, so same code runs for serial and parallel case
-      #if(self.lbView is None):
-      #  self.makeNeuronInput()
-      #else:
-      #  self.makeNeuronInputParallell()      
-
-      # Write spikes to disk, HDF5 format
-      self.writeHDF5()
-
-      # Verify correlation --- THIS IS VERY VERY SLOW
-      #self.verifyCorrelation()
-
-      self.checkSorted()
-
-      
-        
-    
-
-
-    
-    
-    # !!! TODO
-
-    # 1. Define what the within correlation, and between correlation should be
-    #    for each neuron type. Also what input frequency should we have for each
-    #    neuron. --- Does it depend on size of dendritic tree?
-    #    Store the info in an internal dict.
-    
-    # 2. Read the position file, so we know what neurons are in the network
-
-    # 3. Create the "master input" for each population unit.
-
-    # 4. Mix the master input with random input, for each neuron, to create
-    #    the appropriate correlations
-
-    # 5. Randomize which compartments each synaptic input should be on
-
-    # 6. Verify correlation of input
-
-    # 7. Write to disk
-    
-    # If more than one worker node, then we need to split the data
-    # into multiple files
-    # self.nWorkers=nWorkers
-
-
-  ############################################################################
-
-  def writeHDF5(self):
-
-    import timeit
-    import h5py
-
-    self.writeLog("Writing spikes to " + self.spikeDataFileName)
-    
-    startTime = timeit.default_timer()
-
-    outFile = h5py.File(self.spikeDataFileName,'w',libver=self.h5libver)
-
-    configData = outFile.create_dataset("config",
-                                        data=json.dumps(self.inputInfo,
-                                                        indent=4))
-
-    inputGroup = outFile.create_group("input")
-    
-    for neuronID in self.neuronInput:
-
-      NIDGroup = inputGroup.create_group(str(neuronID))
-
-      neuronType = self.neuronType[neuronID]
-      # nName = self.neuronName[neuronID]
-      
-      for inputType in self.neuronInput[neuronID]:
-        if(inputType.lower() != "VirtualNeuron".lower()):
-          itGroup = NIDGroup.create_group(inputType)
-
-          neuronIn = self.neuronInput[neuronID][inputType]
-          spikeMat,nSpikes = self.createSpikeMatrix(neuronIn["spikes"])
-
-          itGroup.create_dataset("spikes",data=spikeMat)
-          itGroup.create_dataset("nSpikes",data=nSpikes)
-                        
-          itGroup.create_dataset("sectionID", data=neuronIn["location"][1])
-          itGroup.create_dataset("sectionX", data=neuronIn["location"][2])
-
-          itGroup.create_dataset("freq",data=neuronIn["freq"])
-          itGroup.create_dataset("correlation",data=neuronIn["correlation"])
-          itGroup.create_dataset("jitter",data=neuronIn["jitter"])
-          itGroup.create_dataset("synapseDensity",
-                                 data=neuronIn["synapseDensity"])
-          itGroup.create_dataset("start",data=neuronIn["start"])
-          itGroup.create_dataset("end",data=neuronIn["end"])
-          itGroup.create_dataset("conductance",data=neuronIn["conductance"])
-        
-          populationUnitID = neuronIn["populationUnitID"]
-          itGroup.create_dataset("populationUnitID",data=populationUnitID)
-
-          chanSpikes = self.populationUnitSpikes[neuronType][inputType][populationUnitID]
-          itGroup.create_dataset("populationUnitSpikes",
-                                 data=chanSpikes)
-
-          itGroup.create_dataset("generator",data=neuronIn["generator"])
-
-          try:
-            itGroup.create_dataset("modFile",data=neuronIn["modFile"])
-            if(neuronIn["parameterFile"]):
-              itGroup.create_dataset("parameterFile",data=neuronIn["parameterFile"])
-            # We need to convert this to string to be able to save it
-            itGroup.create_dataset("parameterList",
-                                   data=json.dumps(neuronIn["parameterList"]))
-            itGroup.create_dataset("parameterID",data=neuronIn["parameterID"])
-          except:
-            import traceback
-            tstr = traceback.format_exc()
-            self.writeLog(tstr)
-       
-            import pdb
-            pdb.set_trace()
- 
-            
-            
-        else:          
-          
-          # Input is activity of a virtual neuron
-          aGroup = NIDGroup.create_group("activity")
-          spikes = self.neuronInput[neuronID][inputType]["spikes"]
-            
-          aGroup.create_dataset("spikes",data=spikes)
-          generator = self.neuronInput[neuronID][inputType]["generator"]
-          aGroup.create_dataset("generator", data=generator)
-
-          
-          
-    outFile.close()
-    
-
-  ############################################################################
-
-  def createSpikeMatrix(self,spikes):
-
-    if(len(spikes) == 0):
-      return np.zeros((0,0)), 0
-    
-    nInputTrains = len(spikes)
-    nSpikes = np.array([len(x) for x in spikes])
-    maxLen = max(nSpikes)
-    
-    spikeMat = -1*np.ones((nInputTrains,maxLen))
-    for idx,st in enumerate(spikes):
-      n = st.shape[0]
-      spikeMat[idx,:n] = st
-
-    return spikeMat, nSpikes
-      
-  ############################################################################
-
-  # Reads from self.inputConfigFile
-  
-  def readInputConfigFile(self):
-
-    self.writeLog("Loading input configuration from " + str(self.inputConfigFile))
-    
-    with open(self.inputConfigFile,'rt') as f:
-      self.inputInfo = json.load(f)
-
-    for neuronType in self.inputInfo:
-      for inputType in self.inputInfo[neuronType]:
-        if("parameterFile" in self.inputInfo[neuronType][inputType]):
-          parFile = self.inputInfo[neuronType][inputType]["parameterFile"]
-
-          # Allow user to use $DATA to refer to snudda data directory
-          parFile = parFile.replace("$DATA",
-                                    os.path.dirname(__file__) + "/data")
-          
-          parDataDict = json.load(open(parFile,'r'))
-          
-          # Read in parameters into a list
-          parData = []
-          for pd in parDataDict:
-            parData.append(parDataDict[pd])
+        if type(logfile) == str:
+            self.logfile = open(logfile, "w")
         else:
-          parData = None
+            self.logfile = logfile
 
-        self.inputInfo[neuronType][inputType]["parameterList"] = parData
-         
-    
-  ############################################################################
+        self.verbose = verbose
 
-  # Each synaptic input will contain a fraction of population unit spikes, which are
-  # taken from a stream of spikes unique to that particular population unit
-  # This function generates these correlated spikes
-  
-  def makePopulationUnitSpikeTrains(self,nPopulationUnits=None,timeRange=None):
+        self.write_log("Time = " + str(time))
 
-    self.writeLog("Running makePopulationUnitSpikeTrains")
-    
-    if(nPopulationUnits is None):
-      nPopulationUnits = self.nPopulationUnits
+        # We need to set the seed, to avoid same seed on workers
+        np.random.seed(random_seed)
+        self.write_log("Setting random seed: " + str(random_seed))
 
-    if(timeRange is None):
-      timeRange = (0,self.time)
-      
-    self.populationUnitSpikes = dict([])
+        self.h5libver = h5libver
+        self.write_log("Using hdf5 version " + str(h5libver))
 
-    for cellType in self.inputInfo:
-      
-      self.populationUnitSpikes[cellType] = dict([])
-      
-      for inputType in self.inputInfo[cellType]:
+        if hdf5_network_file is not None:
+            assert network_config_file is None and position_file is None, \
+                "If HDF5networkFile specified then positionFile " + \
+                "and networkConfigFile should be left empty."
 
-        if(self.inputInfo[cellType][inputType]["generator"] == "poisson"):
-        
-          freq = self.inputInfo[cellType][inputType]["frequency"]
-          self.populationUnitSpikes[cellType][inputType] = dict([])
+            if hdf5_network_file == "last":
+                hdf5_network_file = self.find_latest_file()
 
-          if("populationUnitID" in self.inputInfo[cellType][inputType]):
-            popUnitList = \
-              self.inputInfo[cellType][inputType]["populationUnitID"]
+            self.hdf5_network_file = hdf5_network_file
+            self.read_hdf5_info(hdf5_network_file)
+        else:
+            self.network_config_file = network_config_file
+            self.position_file = position_file
 
-            if(type(popUnitList) != list):
-              popUnitList = [popUnitList]
-          else:
-            popUnitList = range(0,self.nPopulationUnits)
-              
-          for idxPopUnit in popUnitList:
-            self.populationUnitSpikes[cellType][inputType][idxPopUnit] = \
-              self.generateSpikes(freq=freq,timeRange=timeRange)
+            # self.writeLog("Assuming axonStumpIDFlag is True (Running Network_simulate.py)")
+            self.axon_stump_id_flag = False
 
-    return self.populationUnitSpikes
+        self.input_config_file = input_config_file
 
-  ############################################################################
+        if spike_data_file_name is None:
+            spike_data_file_name = "save/input-spikes-" + str(self.network_slurm_id) + ".hdf5"
+        self.spike_data_filename = spike_data_file_name
 
-  
-  def makeNeuronInputParallell(self):
+        self.time = time  # How long time to generate inputs for
 
-    self.writeLog("Running makeNeuronInputParallell")
-    
-    self.neuronInput = dict([])
+        self.neuron_cache = dict([])
 
-    neuronIDList = []
-    inputTypeList = []
-    freqList = []
-    startList = []
-    endList = []
-    synapseDensityList = []
-    nInputsList = []
-    PkeepList = []
-    populationUnitSpikesList = []
-    jitterDtList = []
-    locationList = []
-    populationUnitIDList = []
-    conductanceList = []
-    correlationList = []
+        # Read in the input configuration information from JSON file
+        self.read_input_config_file()
 
-    modFileList = []
-    parameterFileList = []
-    parameterListList = []
-    
-    for (neuronID,neuronType,populationUnitID) \
-        in zip(self.neuronID, self.neuronType,self.populationUnitID):
-      
-      self.neuronInput[neuronID] = dict([])
+        # Read the network position file
+        self.read_neuron_positions()
 
-      if(neuronType not in self.inputInfo):
-        self.writeLog("!!! Warning, synaptic input to " + str(neuronType) \
-                      + " missing in " + str(self.inputConfigFile) )
-        continue
-      
-      for inputType in self.inputInfo[neuronType]:
-        
-        inputInf = self.inputInfo[neuronType][inputType]
+        # Read the network config file
+        self.read_network_config_file()
 
-        if("populationUnitID" in inputInf):
-          popUnitID = inputInf["populationUnitID"]
-          
-          if(type(popUnitID) == list \
-             and populationUnitID not in popUnitID):
-            # We have a list of functional channels, but this neuron
-            # does not belong to a functional channel in that list
-            continue
-          elif(populationUnitID != popUnitID):
-            # We have a single functional channel, but this neuron is not
-            # in that functional channel
-            continue
+        # Only the master node should start the work
+        if is_master:
+            # Initialises lbView and dView (load balance, and direct view)
+            self.setup_parallel()
 
-        self.neuronInput[neuronID][inputType] = dict([])
-          
-        if(inputInf["generator"] == "poisson"):
-          neuronIDList.append(neuronID)
-          inputTypeList.append(inputType)
-          freqList.append(inputInf["frequency"])
-          PkeepList.append(np.sqrt(inputInf["populationUnitCorrelation"]))
-          jitterDtList.append(inputInf["jitter"])
+            # Make the "master input" for each channel
+            self.make_population_unit_spike_trains()
 
-          if("start" in inputInf):
-            startList.append(inputInf["start"])
-          else:
-            startList.append(0.0) # Default start at beginning
+            # Generate the actual input spikes, and the locations
+            # stored in self.neuronInput dictionary
 
-          if("end" in inputInf):
-            endList.append(inputInf["end"])
-          else:
-            endList.append(self.time)
+            self.make_neuron_input_parallel()
 
-          if(inputType.lower() == "VirtualNeuron".lower()):
-            # Virtual neurons spikes specify their activity, location and conductance not used
-            cond = None
-            nInp = 1
-            
-            modFile = None
-            parameterFile = None
-            parameterList = None
-          else:
-            assert "location" not in inputInf, \
-              "Location in input config has been replaced with synapseDensity"
-            cond = inputInf["conductance"]
+            # Consolidate code, so same code runs for serial and parallel case
+            # if(self.lbView is None):
+            #  self.makeNeuronInput()
+            # else:
+            #  self.makeNeuronInputParallell()
 
-            if("nInputs" in inputInf):
-              nInp = inputInf["nInputs"]
-            else:
-              nInp = None
+            # Write spikes to disk, HDF5 format
+            self.write_hdf5()
 
-            modFile = inputInf["modFile"]
-            if("parameterFile" in inputInf):
-              parameterFile = inputInf["parameterFile"]
-            else:
-              parameterFile = None
+            # Verify correlation --- THIS IS VERY VERY SLOW
+            # self.verifyCorrelation()
 
-            if("parameterList" in inputInf):
-              parameterList = inputInf["parameterList"]
-            else:
-              parameterList = None
+            self.check_sorted()
 
-          if("synapseDensity" in inputInf):
-            synapseDensity = inputInf["synapseDensity"]
-          else:
-            synapseDensity = "1"
-            
-          synapseDensityList.append(synapseDensity)
-          nInputsList.append(nInp)
-            
-          populationUnitIDList.append(populationUnitID)
-          conductanceList.append(cond)
-          correlationList.append(inputInf["populationUnitCorrelation"])
+        # !!! TODO
 
-          cSpikes = self.populationUnitSpikes[neuronType][inputType][populationUnitID]
-          populationUnitSpikesList.append(cSpikes)
+        # 1. Define what the within correlation, and between correlation should be
+        #    for each neuron type. Also what input frequency should we have for each
+        #    neuron. --- Does it depend on size of dendritic tree?
+        #    Store the info in an internal dict.
 
-          modFileList.append(modFile)
-          parameterFileList.append(parameterFile)
-          parameterListList.append(parameterList)
-          
-        elif(inputInf["generator"] == "csv"):
-          csvFile = inputInf["csvFile"] % neuronID
-          
-          self.neuronInput[neuronID][inputType]["spikes"] \
-            = np.genfromtxt(csvFile, delimiter=',')
-          self.neuronInput[neuronID][inputType]["generator"] = "csv"
+        # 2. Read the position file, so we know what neurons are in the network
+
+        # 3. Create the "master input" for each population unit.
+
+        # 4. Mix the master input with random input, for each neuron, to create
+        #    the appropriate correlations
+
+        # 5. Randomize which compartments each synaptic input should be on
+
+        # 6. Verify correlation of input
+
+        # 7. Write to disk
+
+        # If more than one worker node, then we need to split the data
+        # into multiple files
+        # self.nWorkers=nWorkers
+
+    ############################################################################
+
+    def write_hdf5(self):
+
+        import timeit
+        import h5py
+
+        self.write_log("Writing spikes to " + self.spike_data_filename)
+
+        start_time = timeit.default_timer()
+
+        out_file = h5py.File(self.spike_data_filename, 'w', libver=self.h5libver)
+
+        config_data = out_file.create_dataset("config", data=json.dumps(self.input_info, indent=4))
+
+        input_group = out_file.create_group("input")
+
+        for neuron_id in self.neuron_input:
+
+            nid_group = input_group.create_group(str(neuron_id))
+
+            neuron_type = self.neuron_type[neuron_id]
+            # nName = self.neuronName[neuronID]
+
+            for input_type in self.neuron_input[neuron_id]:
+                if input_type.lower() != "VirtualNeuron".lower():
+                    it_group = nid_group.create_group(input_type)
+
+                    neuron_in = self.neuron_input[neuron_id][input_type]
+                    spike_mat, num_spikes = self.create_spike_matrix(neuron_in["spikes"])
+
+                    it_group.create_dataset("spikes", data=spike_mat)
+                    it_group.create_dataset("nSpikes", data=num_spikes)
+
+                    it_group.create_dataset("sectionID", data=neuron_in["location"][1])
+                    it_group.create_dataset("sectionX", data=neuron_in["location"][2])
+
+                    it_group.create_dataset("freq", data=neuron_in["freq"])
+                    it_group.create_dataset("correlation", data=neuron_in["correlation"])
+                    it_group.create_dataset("jitter", data=neuron_in["jitter"])
+                    it_group.create_dataset("synapseDensity",
+                                            data=neuron_in["synapseDensity"])
+                    it_group.create_dataset("start", data=neuron_in["start"])
+                    it_group.create_dataset("end", data=neuron_in["end"])
+                    it_group.create_dataset("conductance", data=neuron_in["conductance"])
+
+                    population_unit_id = neuron_in["populationUnitID"]
+                    it_group.create_dataset("populationUnitID", data=population_unit_id)
+
+                    chan_spikes = self.population_unit_spikes[neuron_type][input_type][population_unit_id]
+                    it_group.create_dataset("populationUnitSpikes", data=chan_spikes)
+
+                    it_group.create_dataset("generator", data=neuron_in["generator"])
+
+                    try:
+                        it_group.create_dataset("modFile", data=neuron_in["modFile"])
+                        if neuron_in["parameterFile"]:
+                            it_group.create_dataset("parameterFile", data=neuron_in["parameterFile"])
+                        # We need to convert this to string to be able to save it
+                        it_group.create_dataset("parameterList", data=json.dumps(neuron_in["parameterList"]))
+                        it_group.create_dataset("parameterID", data=neuron_in["parameterID"])
+                    except:
+                        import traceback
+                        tstr = traceback.format_exc()
+                        self.write_log(tstr)
+
+                        import pdb
+                        pdb.set_trace()
+
+
+
+                else:
+
+                    # Input is activity of a virtual neuron
+                    a_group = nid_group.create_group("activity")
+                    spikes = self.neuron_input[neuron_id][input_type]["spikes"]
+
+                    a_group.create_dataset("spikes", data=spikes)
+                    generator = self.neuron_input[neuron_id][input_type]["generator"]
+                    a_group.create_dataset("generator", data=generator)
+
+        out_file.close()
+
+    ############################################################################
+
+    def create_spike_matrix(self, spikes):
+
+        if len(spikes) == 0:
+            return np.zeros((0, 0)), 0
+
+        num_input_trains = len(spikes)
+        num_spikes = np.array([len(x) for x in spikes])
+        max_len = max(num_spikes)
+
+        spike_mat = -1 * np.ones((num_input_trains, max_len))
+        for idx, st in enumerate(spikes):
+            n = st.shape[0]
+            spike_mat[idx, :n] = st
+
+        return spike_mat, num_spikes
+
+    ############################################################################
+
+    # Reads from self.inputConfigFile
+
+    def read_input_config_file(self):
+
+        self.write_log("Loading input configuration from " + str(self.input_config_file))
+
+        with open(self.input_config_file, 'rt') as f:
+            self.input_info = json.load(f)
+
+        for neuron_type in self.input_info:
+            for input_type in self.input_info[neuron_type]:
+                if "parameterFile" in self.input_info[neuron_type][input_type]:
+                    par_file = self.input_info[neuron_type][input_type]["parameterFile"]
+
+                    # Allow user to use $DATA to refer to snudda data directory
+                    par_file = par_file.replace("$DATA",
+                                              os.path.dirname(__file__) + "/data")
+
+                    par_data_dict = json.load(open(par_file, 'r'))
+
+                    # Read in parameters into a list
+                    par_data = []
+                    for pd in par_data_dict:
+                        par_data.append(par_data_dict[pd])
+                else:
+                    par_data = None
+
+                self.input_info[neuron_type][input_type]["parameterList"] = par_data
+
+    ############################################################################
+
+    # Each synaptic input will contain a fraction of population unit spikes, which are
+    # taken from a stream of spikes unique to that particular population unit
+    # This function generates these correlated spikes
+
+    def make_population_unit_spike_trains(self, num_population_units=None, time_range=None):
+
+        self.write_log("Running makePopulationUnitSpikeTrains")
+
+        if num_population_units is None:
+            num_population_units = self.num_population_units
+
+        if time_range is None:
+            time_range = (0, self.time)
+
+        self.population_unit_spikes = dict([])
+
+        for cell_type in self.input_info:
+
+            self.population_unit_spikes[cell_type] = dict([])
+
+            for input_type in self.input_info[cell_type]:
+
+                if self.input_info[cell_type][input_type]["generator"] == "poisson":
+
+                    freq = self.input_info[cell_type][input_type]["frequency"]
+                    self.population_unit_spikes[cell_type][input_type] = dict([])
+
+                    if "populationUnitID" in self.input_info[cell_type][input_type]:
+                        pop_unit_list = \
+                            self.input_info[cell_type][input_type]["populationUnitID"]
+
+                        if type(pop_unit_list) != list:
+                            pop_unit_list = [pop_unit_list]
+                    else:
+                        pop_unit_list = range(0, self.num_population_units)
+
+                    for idxPopUnit in pop_unit_list:
+                        self.population_unit_spikes[cell_type][input_type][idxPopUnit] = \
+                            self.generate_spikes(freq=freq, timeRange=time_range)
+
+        return self.population_unit_spikes
+
+    ############################################################################
+
+    def make_neuron_input_parallel(self):
+
+        self.write_log("Running makeNeuronInputParallell")
+
+        self.neuron_input = dict([])
+
+        neuron_id_list = []
+        input_type_list = []
+        freq_list = []
+        start_list = []
+        end_list = []
+        synapse_density_list = []
+        num_inputs_list = []
+        p_keep_list = []
+        population_unit_spikes_list = []
+        jitter_dt_list = []
+        location_list = []
+        population_unit_id_list = []
+        conductance_list = []
+        correlation_list = []
+
+        mod_file_list = []
+        parameter_file_list = []
+        parameter_list_list = []
+
+        for (neuron_id, neuron_type, populationUnitID) \
+                in zip(self.neuron_id, self.neuron_type, self.population_unit_id):
+
+            self.neuron_input[neuron_id] = dict([])
+
+            if neuron_type not in self.input_info:
+                self.write_log("!!! Warning, synaptic input to " + str(neuron_type) \
+                               + " missing in " + str(self.input_config_file))
+                continue
+
+            for input_type in self.input_info[neuron_type]:
+
+                input_inf = self.input_info[neuron_type][input_type]
+
+                if "populationUnitID" in input_inf:
+                    pop_unit_id = input_inf["populationUnitID"]
+
+                    if type(pop_unit_id) == list and populationUnitID not in pop_unit_id:
+                        # We have a list of functional channels, but this neuron
+                        # does not belong to a functional channel in that list
+                        continue
+                    elif populationUnitID != pop_unit_id:
+                        # We have a single functional channel, but this neuron is not
+                        # in that functional channel
+                        continue
+
+                self.neuron_input[neuron_id][input_type] = dict([])
+
+                if input_inf["generator"] == "poisson":
+                    neuron_id_list.append(neuron_id)
+                    input_type_list.append(input_type)
+                    freq_list.append(input_inf["frequency"])
+                    p_keep_list.append(np.sqrt(input_inf["populationUnitCorrelation"]))
+                    jitter_dt_list.append(input_inf["jitter"])
+
+                    if "start" in input_inf:
+                        start_list.append(input_inf["start"])
+                    else:
+                        start_list.append(0.0)  # Default start at beginning
+
+                    if "end" in input_inf:
+                        end_list.append(input_inf["end"])
+                    else:
+                        end_list.append(self.time)
+
+                    if input_type.lower() == "VirtualNeuron".lower():
+                        # Virtual neurons spikes specify their activity, location and conductance not used
+                        cond = None
+                        n_inp = 1
+
+                        mod_file = None
+                        parameter_file = None
+                        parameter_list = None
+                    else:
+                        assert "location" not in input_inf, \
+                            "Location in input config has been replaced with synapseDensity"
+                        cond = input_inf["conductance"]
+
+                        if "nInputs" in input_inf:
+                            n_inp = input_inf["nInputs"]
+                        else:
+                            n_inp = None
+
+                        mod_file = input_inf["modFile"]
+                        if "parameterFile" in input_inf:
+                            parameter_file = input_inf["parameterFile"]
+                        else:
+                            parameter_file = None
+
+                        if "parameterList" in input_inf:
+                            parameter_list = input_inf["parameterList"]
+                        else:
+                            parameter_list = None
+
+                    if "synapseDensity" in input_inf:
+                        synapse_density = input_inf["synapseDensity"]
+                    else:
+                        synapse_density = "1"
+
+                    synapse_density_list.append(synapse_density)
+                    num_inputs_list.append(n_inp)
+
+                    population_unit_id_list.append(populationUnitID)
+                    conductance_list.append(cond)
+                    correlation_list.append(input_inf["populationUnitCorrelation"])
+
+                    c_spikes = self.population_unit_spikes[neuron_type][input_type][populationUnitID]
+                    population_unit_spikes_list.append(c_spikes)
+
+                    mod_file_list.append(mod_file)
+                    parameter_file_list.append(parameter_file)
+                    parameter_list_list.append(parameter_list)
+
+                elif input_inf["generator"] == "csv":
+                    csv_file = input_inf["csvFile"] % neuron_id
+
+                    self.neuron_input[neuron_id][input_type]["spikes"] \
+                        = np.genfromtxt(csv_file, delimiter=',')
+                    self.neuron_input[neuron_id][input_type]["generator"] = "csv"
+
+                else:
+                    self.write_log("Unknown input generator: " + input_inf["generator"] \
+                                   + " for " + str(neuron_id))
+
+        # The old code had so that all neurons within a population unit shared the same
+        # mother process, which caused them all to activate at the same time
+        # with high probability. By setting channelSpikeList to None we disable it
+        self.write_log(
+            "Clearing populationUnitSpikesList, thus all neurons will have their own mother process for each input")
+        population_unit_spikes_list = [None for x in population_unit_spikes_list]
+        amr = None
+
+        # Lets try and swap self.lbView for self.dView
+        if self.d_view is not None:
+
+            # self.writeLog("Sending jobs to workers, using lbView")
+            self.write_log("Sending jobs to workers, using dView")
+
+            # Changed the logic, the old input helper needed a global
+            # variable to be visible, but it was not always so in its scope
+
+            input_list = list(zip(neuron_id_list,
+                                  input_type_list,
+                                  freq_list,
+                                  start_list,
+                                  end_list,
+                                  synapse_density_list,
+                                  num_inputs_list,
+                                  p_keep_list,
+                                  population_unit_spikes_list,
+                                  jitter_dt_list,
+                                  population_unit_id_list,
+                                  conductance_list,
+                                  correlation_list,
+                                  mod_file_list,
+                                  parameter_file_list,
+                                  parameter_list_list))
+
+            self.d_view.scatter("input_list", input_list, block=True)
+            cmd_str = "inpt = list(map(nl.make_input_helper_parallel,input_list))"
+            self.d_view.execute(cmd_str, block=True)
+
+            inpt = self.d_view["inpt"]
+            amr = list(itertools.chain.from_iterable(inpt))
 
         else:
-          self.writeLog("Unknown input generator: " + inputInf["generator"]\
-                        + " for " + str(neuronID))
+            # If no lbView then we run it in serial
+            self.write_log("Running input generation in serial")
+            amr = map(self.make_input_helper_serial,
+                      neuron_id_list,
+                      input_type_list,
+                      freq_list,
+                      start_list,
+                      end_list,
+                      synapse_density_list,
+                      num_inputs_list,
+                      p_keep_list,
+                      population_unit_spikes_list,
+                      jitter_dt_list,
+                      population_unit_id_list,
+                      conductance_list,
+                      correlation_list,
+                      mod_file_list,
+                      parameter_file_list,
+                      parameter_list_list)
 
-    # The old code had so that all neurons within a population unit shared the same
-    # mother process, which caused them all to activate at the same time
-    # with high probability. By setting channelSpikeList to None we disable it
-    self.writeLog("Clearing populationUnitSpikesList, thus all neurons will have their own mother process for each input")
-    populationUnitSpikesList = [None for x in populationUnitSpikesList]
-    amr = None
-    
-    #Lets try and swap self.lbView for self.dView
-    if(self.dView is not None):
-      
-      #self.writeLog("Sending jobs to workers, using lbView")
-      self.writeLog("Sending jobs to workers, using dView")
+        # Gather the spikes that were generated in parallel
+        for neuron_id, input_type, spikes, loc, synapse_density, frq, \
+            jdt, p_uid, cond, corr, timeRange, \
+                mod_file, paramFile, paramList, paramID in amr:
+            self.write_log("Gathering " + str(neuron_id) + " - " + str(input_type))
+            self.neuron_input[neuron_id][input_type]["spikes"] = spikes
 
-      # Changed the logic, the old input helper needed a global
-      # variable to be visible, but it was not always so in its scope
+            if input_type.lower() != "VirtualNeuron".lower():
+                # Virtual neurons have no location of their input, as the "input"
+                # specifies the spike times of the virtual neuron itself
+                self.neuron_input[neuron_id][input_type]["location"] = loc
+                self.neuron_input[neuron_id][input_type]["synapseDensity"] \
+                    = synapse_density
+                self.neuron_input[neuron_id][input_type]["conductance"] = cond
 
-      inputList = list(zip(neuronIDList,
-                           inputTypeList,
-                           freqList,
-                           startList,
-                           endList,
-                           synapseDensityList,
-                           nInputsList,
-                           PkeepList,
-                           populationUnitSpikesList,
-                           jitterDtList,
-                           populationUnitIDList,
-                           conductanceList,
-                           correlationList,
-                           modFileList,
-                           parameterFileList,
-                           parameterListList))
+            self.neuron_input[neuron_id][input_type]["freq"] = frq
+            self.neuron_input[neuron_id][input_type]["correlation"] = corr
+            self.neuron_input[neuron_id][input_type]["jitter"] = jdt
+            self.neuron_input[neuron_id][input_type]["start"] = timeRange[0]
+            self.neuron_input[neuron_id][input_type]["end"] = timeRange[1]
+            self.neuron_input[neuron_id][input_type]["populationUnitID"] = p_uid
 
-      self.dView.scatter("inputList",inputList,block=True)
-      cmdStr = "inpt = list(map(nl.makeInputHelperParallel,inputList))"
-      self.dView.execute(cmdStr,block=True)
+            assert p_uid == self.population_unit_id[neuron_id], \
+                "Internal error: Neuron should belong to the functional channel " \
+                + "that input is generated for"
 
-      inpt = self.dView["inpt"]
-      amr = list(itertools.chain.from_iterable(inpt))
+            self.neuron_input[neuron_id][input_type]["generator"] = "poisson"
+            self.neuron_input[neuron_id][input_type]["modFile"] = mod_file
+            self.neuron_input[neuron_id][input_type]["parameterFile"] = paramFile
+            self.neuron_input[neuron_id][input_type]["parameterList"] = paramList
+            self.neuron_input[neuron_id][input_type]["parameterID"] = paramID
 
-    else:
-      # If no lbView then we run it in serial
-      self.writeLog("Running input generation in serial")
-      amr = map(self.makeInputHelperSerial,
-                neuronIDList,
-                inputTypeList,
-                freqList,
-                startList,
-                endList,
-                synapseDensityList,
-                nInputsList,
-                PkeepList,
-                populationUnitSpikesList,
-                jitterDtList,
-                populationUnitIDList,
-                conductanceList,
-                correlationList,
-                modFileList,
-                parameterFileList,
-                parameterListList)
-          
-    # Gather the spikes that were generated in parallell
-    for neuronID, inputType, spikes, loc, synapseDensity, frq, \
-        jdt, pUID,cond,corr,timeRange, \
-        modFile,paramFile,paramList,paramID in amr:
-      self.writeLog("Gathering " + str(neuronID) + " - " + str(inputType) )
-      self.neuronInput[neuronID][inputType]["spikes"] = spikes
-      
-      if(inputType.lower() != "VirtualNeuron".lower()):
-        # Virtual neurons have no location of their input, as the "input"
-        # specifies the spike times of the virtual neuron itself
-        self.neuronInput[neuronID][inputType]["location"] = loc
-        self.neuronInput[neuronID][inputType]["synapseDensity"] \
-          = synapseDensity
-        self.neuronInput[neuronID][inputType]["conductance"] = cond
-        
-      self.neuronInput[neuronID][inputType]["freq"] = frq
-      self.neuronInput[neuronID][inputType]["correlation"] = corr
-      self.neuronInput[neuronID][inputType]["jitter"] = jdt
-      self.neuronInput[neuronID][inputType]["start"] = timeRange[0]
-      self.neuronInput[neuronID][inputType]["end"] = timeRange[1]
-      self.neuronInput[neuronID][inputType]["populationUnitID"] = pUID
+        return self.neuron_input
 
-      assert pUID == self.populationUnitID[neuronID], \
-        "Internal error: Neuron should belong to the functional channel "\
-        + "that input is generated for" 
-      
-      self.neuronInput[neuronID][inputType]["generator"] = "poisson"
-      self.neuronInput[neuronID][inputType]["modFile"] = modFile
-      self.neuronInput[neuronID][inputType]["parameterFile"] = paramFile
-      self.neuronInput[neuronID][inputType]["parameterList"] = paramList
-      self.neuronInput[neuronID][inputType]["parameterID"] = paramID      
+    ############################################################################
 
-    return self.neuronInput
-     
-  
-  ############################################################################
+    # This generates poisson spikes with frequency freq, for a given time range
 
-  # This generates poisson spikes with frequency freq, for a given time range
-  
-  def generateSpikes(self,freq,timeRange):
+    def generate_spikes(self, freq, timeRange):
 
-    # https://stackoverflow.com/questions/5148635/how-to-simulate-poisson-arrival
-    start = timeRange[0]
-    end = timeRange[1]
-    duration = end-start
-    
-    tDiff = -np.log(1.0 - np.random.random(int(np.ceil(max(1,freq*duration)))))/freq
-
-    tSpikes = []
-    tSpikes.append(start+np.cumsum(tDiff))
-
-    # Is last spike after end of duration
-    while(tSpikes[-1][-1] <= end):
-      tDiff = -np.log(1.0 - np.random.random(int(np.ceil(freq*duration*0.1))))/freq
-      tSpikes.append(tSpikes[-1][-1] + np.cumsum(tDiff))
-
-    # Prune away any spikes after end 
-    if(len(tSpikes[-1]) > 0):
-      tSpikes[-1] = tSpikes[-1][tSpikes[-1] <= end]
-
-    # Return spike times
-    return np.concatenate(tSpikes)
-
-
-  ############################################################################
-
-  # This takes a list of spike trains and returns a single spike train
-  # including all spikes
-  
-  def mixSpikes(self,spikes):
-
-    return np.sort(np.concatenate(spikes))
-    
-  ############################################################################
-
-  def cullSpikes(self,spikes,Pkeep):
-
-    return spikes[np.random.random(spikes.shape) < Pkeep]
-
-
-  ############################################################################
-
-  # timeRange --- (start,end time) of spike train
-  # freq -- frequency of spike train
-  # nSpikeTrains -- number of spike trains to generate
-  # Pkeep -- fraction of channel spikes to include in spike train
-  # retpopUnitSpikes -- if true, returns tuple with second item population unit spikes
-  #                  if false, just return spikes
-  # populationUnitSpikes --- if None, new population unit spikes will be generated
-  #                  (population unit Spikes are the spikes shared between correlated
-  #                   spike trains)
-  
-  def makeCorrelatedSpikes(self,freq,timeRange,nSpikeTrains,Pkeep, \
-                           populationUnitSpikes=None, \
-                           retPopUnitSpikes=False,jitterDt=None):
-
-    assert(Pkeep >= 0 and Pkeep <= 1)
-
-    if(populationUnitSpikes is None):
-      populationUnitSpikes = self.generateSpikes(freq,timeRange)
-
-    uniqueFreq = freq * (1-Pkeep)
-    spikeTrains = []
-
-    for i in range(0,nSpikeTrains):
-      tUnique = self.generateSpikes(uniqueFreq,timeRange)
-      tPopulationUnit = self.cullSpikes(populationUnitSpikes,Pkeep)
-      
-      spikeTrains.append(self.mixSpikes([tUnique,tPopulationUnit]))
-
-
-    #if(False):
-    #self.verifyCorrelation(spikeTrains=spikeTrains) # THIS STEP IS VERY VERY SLOW
-      
-    if(jitterDt is not None):
-      spikeTrains = self.jitterSpikes(spikeTrains,jitterDt,timeRange=timeRange)
-      
-    if(retPopUnitSpikes):
-      return (spikeTrains,populationUnitSpikes)
-    else:
-      return spikeTrains
-
-  ############################################################################
-
-  def makeUncorrelatedSpikes(self,freq,start,end,nSpikeTrains):
-
-    spikeTrains = []
-
-    for i in range(0,nSpikeTrains):
-      spikeTrains.append(self.generateSpikes(freq,start,end))
-    
-    return spikeTrains
-
-
-  ############################################################################
-
-  # If a timeRange (start,endtime) is given then all spike times will
-  # be modulo duration, so if we jitter and they go to before start time,
-  # they wrap around and appear at end of the timeline
-  
-  def jitterSpikes(self,spikeTrains,dt,timeRange=None):
-
-    jitteredSpikes = []
-    
-    for i in range(0,len(spikeTrains)):
-      spikes = spikeTrains[i] + np.random.normal(0,dt,spikeTrains[i].shape)
-      
-      if(timeRange is not None):
+        # https://stackoverflow.com/questions/5148635/how-to-simulate-poisson-arrival
         start = timeRange[0]
         end = timeRange[1]
-        spikes = np.mod(spikes-start,end-start) + start
-        
-      s = np.sort(spikes)
-      # Remove any spikes that happened to go negative
-      s = s[np.where(s >= 0)]
-      jitteredSpikes.append(s)
+        duration = end - start
 
-    return jitteredSpikes
-  
-  ############################################################################
+        t_diff = -np.log(1.0 - np.random.random(int(np.ceil(max(1, freq * duration))))) / freq
 
-  # Plot spikes as a raster plot, for debugging and visualisation purposes
-  
-  def rasterPlot(self,spikeTimes, \
-                 markSpikes=None,markIdx=None, \
-                 title=None,figFile=None,fig=None):
+        t_spikes = []
+        t_spikes.append(start + np.cumsum(t_diff))
 
-    if(fig is None):
-      fig = plt.figure()
-    # ax = plt.gca()
+        # Is last spike after end of duration
+        while t_spikes[-1][-1] <= end:
+            t_diff = -np.log(1.0 - np.random.random(int(np.ceil(freq * duration * 0.1)))) / freq
+            t_spikes.append(t_spikes[-1][-1] + np.cumsum(t_diff))
 
-    for i, spikes in enumerate(spikeTimes):
-      plt.vlines(spikes,i+1.5,i+0.5,color="black")
+        # Prune away any spikes after end
+        if len(t_spikes[-1]) > 0:
+            t_spikes[-1] = t_spikes[-1][t_spikes[-1] <= end]
 
-    plt.ylim(0.5,len(spikeTimes)+0.5)
-      
-    if(markSpikes is not None and markIdx is not None):
-      for i, spikes in zip(markIdx,markSpikes):
-        plt.vlines(spikes,i+1.5,i+0.5,color="red")
+        # Return spike times
+        return np.concatenate(t_spikes)
 
-      plt.ylim(min(0.5,min(markIdx)-0.5), \
-               max(max(markIdx)+0.5,len(spikeTimes))+0.5)
-      
-    plt.xlabel("Time")
-    plt.ylabel("Inputs")
+    ############################################################################
 
-    plt.ion()
-    plt.show()
-    
-    if(title is not None):
-      plt.title(title)
+    # This takes a list of spike trains and returns a single spike train
+    # including all spikes
 
-    fig.show()
+    def mix_spikes(self, spikes):
 
-    if(figFile is not None):
-      plt.savefig(figFile)
+        return np.sort(np.concatenate(spikes))
 
-    return fig
-    
-  ############################################################################
+    ############################################################################
 
-  def readNeuronPositions(self):
+    def cull_spikes(self, spikes, Pkeep):
 
-    self.writeLog("Reading neuron postions")
-    
-    posInfo = SnuddaLoad(self.positionFile).data
-    self.networkInfo = posInfo
-    self.neuronInfo = posInfo["neurons"]
-    
-#    import pdb
-#    pdb.set_trace()
-    
-    # Make sure the position file matches the network config file
-    assert(posInfo["configFile"] == self.networkConfigFile)
+        return spikes[np.random.random(spikes.shape) < Pkeep]
 
-    self.nPopulationUnits = posInfo["nPopulationUnits"]
-    self.populationUnitID = posInfo["populationUnit"]
+    ############################################################################
 
-    self.neuronName = [n["name"] for n in self.neuronInfo]
-    
-    self.neuronID = [n["neuronID"] for n in self.neuronInfo]    
-    self.neuronType = [n["type"] for n in self.neuronInfo]
-    # self.nInputs =  [n["nInputs"] for n in self.neuronInfo]
+    # timeRange --- (start,end time) of spike train
+    # freq -- frequency of spike train
+    # nSpikeTrains -- number of spike trains to generate
+    # Pkeep -- fraction of channel spikes to include in spike train
+    # retpopUnitSpikes -- if true, returns tuple with second item population unit spikes
+    #                  if false, just return spikes
+    # populationUnitSpikes --- if None, new population unit spikes will be generated
+    #                  (population unit Spikes are the spikes shared between correlated
+    #                   spike trains)
 
-  ############################################################################
-    
-  def readNetworkConfigFile(self):
+    def make_correlated_spikes(self, freq, time_range, num_spike_trains, p_keep, \
+                               population_unit_spikes=None, \
+                               ret_pop_unit_spikes=False, jitter_dt=None):
 
-    self.writeLog("Reading config file " + str(self.networkConfigFile))
-    
-    import json
-    
-    with open(self.networkConfigFile,'r') as f:
-      self.networkConfig = json.load(f)
+        assert (0 <= p_keep <= 1)
 
-      
-  ############################################################################
+        if population_unit_spikes is None:
+            population_unit_spikes = self.generate_spikes(freq, time_range)
 
-  def verifyCorrelation(self,spikeTrains,expectedCorr=None,dt=0):
+        unique_freq = freq * (1 - p_keep)
+        spike_trains = []
 
-    # THIS FUNCTION IS VERY VERY SLOW
-    
-    corrVec = []
+        for i in range(0, num_spike_trains):
+            t_unique = self.generate_spikes(unique_freq, time_range)
+            t_population_unit = self.cull_spikes(population_unit_spikes, p_keep)
 
-    for si,s in enumerate(spikeTrains):
-      for s2i,s2 in enumerate(spikeTrains):      
-        if(si == s2i):
-          # No self comparison
-          continue
+            spike_trains.append(self.mix_spikes([t_unique, t_population_unit]))
 
-        corrVec.append(self.estimateCorrelation(s,s2,dt=dt))
-        
-    # print("corr = " + str(corrVec))
-    self.writeLog("meanCorr = " + str(np.mean(corrVec)))
-    
-  ############################################################################
+        # if(False):
+        # self.verifyCorrelation(spikeTrains=spikeTrains) # THIS STEP IS VERY VERY SLOW
 
-  def estimateCorrelation(self,spikesA,spikesB,dt=0):
+        if jitter_dt is not None:
+            spike_trains = self.jitter_spikes(spike_trains, jitter_dt, time_range=time_range)
 
-    nSpikesA = len(spikesA)
-    corrSpikes = 0
-
-    for t in spikesA:
-      if(np.min(abs(spikesB-t)) <= dt):
-        corrSpikes += 1
-        
-    return (corrSpikes / float(nSpikesA))
-    
-  ############################################################################
-
-  # inputDensity = f(d) where d is micrometers from soma,
-  #                unit of f is synapses/micrometer
-
-  # !!! Returns input locations only on dendrites, not on soma
-  
-  def dendriteInputLocations(self,
-                             neuronID,
-                             synapseDensity="1",
-                             nSpikeTrains=None):
-
-    neuronName = self.neuronName[neuronID]
-    swcFile = self.networkConfig["Neurons"][neuronName]["morphology"]
-
-    if(swcFile in self.neuronCache):
-      morphology = self.neuronCache[swcFile]
-    else:     
-      morphology = NeuronMorphology(name=neuronID,
-                                    swc_filename=swcFile,
-                                    axon_stump_id_flag=self.axonStumpIDFlag)
-      self.neuronCache[swcFile] = morphology
-
-    return morphology.dendrite_input_locations(synapse_density=synapseDensity,
-                                               num_locations=nSpikeTrains)
-      
-  ############################################################################
-  
-  # Returns random dendrite compartments
-  # Pdist = function of d (micrometers), e.g. "1", "2*d", ... etc
-  
-  def randomCompartment(self,neuronID,nLocations,Pdist="1"):
-    
-    neuronName = self.neuronName[neuronID]
-    swcFile = self.networkConfig[neuronName]["morphology"]
-    
-    if(swcFile in self.neuronCache):
-      morphology = self.neuronCache[swcFile]
-    else:
-      # !!! Should I use NeuronMorphology, or maybe the loadSWC in ConvertNetwork
-      #                      -- maybe move loadSWC out to a separate file
-      
-      morphology = NeuronMorphology(name=neuronID,
-                                    swc_filename=swcFile,
-                                    axon_stump_id_flag=self.axonStumpIDFlag)
-      self.neuronCache[swcFile] = morphology
-
-    # morphology.dend -- 0-2: x,y,z 3: r, 4: dist to soma
-    d = morphology.dend[:,4]
-    Px = eval(Pdist)
-
-    if(type(Px) in (int, float)):
-      # If Px is a constant, we need to set it for all points
-      Px *= np.ones(d.shape)
-
-    Pcomp = (Px[morphology.dend_links[:, 0]] + Px[morphology.dend_links[:, 1]]) / 2
-    compLen = morphology.compartment_length(comp_type="dend")
-    
-      
-    # Multiply by length, so longer compartments are proportionally more likely to be
-    # connected to
-    Pcomp = np.multiply(Pcomp,compLen)
-
-    # Randomize locations. Here we then sort the locations, this is to make
-    # it quicker to locate where they are (one pass in the Pxcumsum array)
-    Pxcumsum = np.cumsum(Pcomp)
-    x = np.random.uniform(low=0,high=Pxcumsum[-1],size=nLocations)
-    xsort = np.sort(x)
-
-    nComps = len(d)
-    lastValidIdx = nComps - 1 
-    compIdx = 0
-    
-    secID = np.zeros((nLocations,),dtype=int)
-    secX = np.zeros((nLocations,))
-    compCoords = np.zeros((nLocations,3))
-    
-    
-    for ix,xval in enumerate(xsort):
-      while(xval > Pxcumsum[compIdx] and compIdx < lastValidIdx):
-        compIdx += 1
-        
-      secID[ix] = morphology.dend_sec_id[compIdx]
-      secX[ix] = np.random.rand()*(morphology.dend_sec_x[compIdx, 1] \
-                                   - morphology.dend_sec_x[compIdx, 0]) \
-                 + morphology.dend_sec_x[compIdx, 0]
-
-      compCoords[ix,:3] = (morphology.dend[morphology.dend_links[compIdx, 0], :3] \
-                           + morphology.dend[morphology.dend_links[compIdx, 1], :3]) / 2
-      
-        
-    # The probability of picking a compartment is dependent on a distance
-    # dependent probability function, and the length of the compartment
-
-    # Plot synapses and segments, as a verification
-    if(False):
-      import matplotlib.pyplot as plt
-      plt.hist(d[compID],label="synapses")
-      plt.hist(d,label="segments")
-      plt.legend(loc='upper right')
-      plt.show()
-    
-    return(compCoords,secID,secX)
-
-  ############################################################################
-
-  def setSeed(self,randomSeed):
-
-    self.writeLog("Setting random seed: " + str(randomSeed))
-    np.random.seed(randomSeed)
-
-  ############################################################################
-
-    
-  def newWorkerSeeds(self,dView):
-
-    nWorkers = len(self.dView)
-    workerSeeds = np.random.randint(0,np.iinfo(np.uint32).max,
-                                    dtype=np.uint32,
-                                    size=(nWorkers,))
-    self.dView.scatter("workerSeed",workerSeeds,block=True)
-    self.dView.execute("nl.setSeed(workerSeed[0])",block=True)
-
-    self.writeLog("New worker seeds: " + str(workerSeeds))
-  
-  ############################################################################
-
-  def setupParallell(self):
-    
-    import os
-    SlurmJobID = os.getenv("SLURM_JOBID")
-
-    if(SlurmJobID is None):
-      self.SlurmID = 0
-    else:
-      self.SlurmID = int(SlurmJobID)
-
-    self.writeLog("IPYTHON_PROFILE = " + str(os.getenv('IPYTHON_PROFILE')))
-    
-    if(os.getenv('IPYTHON_PROFILE') is not None):
-      from ipyparallel import Client
-      self.rc = Client(profile=os.getenv('IPYTHON_PROFILE'))
-
-      # http://davidmasad.com/blog/simulation-with-ipyparallel/
-      # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
-      self.writeLog("Client IDs: " + str(self.rc.ids))
-      self.dView = self.rc[:] # Direct view into clients
-      self.lbView = self.rc.load_balanced_view()
-
-      if(self.logFile is not None):
-        logFileName = self.logFile.name
-        engineLogFile = [logFileName + "-" \
-                         + str(x) for x in range(0,len(self.dView))]
-      else:
-        engineLogFile = [None for x in range(0,len(self.dView))]
-    else:
-      self.writeLog("No IPYTHON_PROFILE enviroment variable set, running in serial")
-      self.dView = None
-      self.lbView = None
-      return
-
-    with self.dView.sync_imports():
-      from snudda.input import SnuddaInput
-
-    self.dView.push({ "inputConfigFile" : self.inputConfigFile,
-                      "networkConfigFile" : self.networkConfigFile,
-                      "positionFile" : self.positionFile,
-                      "spikeDataFileName" : self.spikeDataFileName,
-                      "isMaster" : False,
-                      "time" : self.time})
-
-    self.writeLog("Scattering engineLogFile = " + str(engineLogFile))
-      
-    self.dView.scatter('logFileName',engineLogFile,block=True)
-   
-    
-    self.writeLog("nl = SnuddaInput(inputConfigFile='" + self.inputConfigFile \
-                  + "',networkConfigFile='" + self.networkConfigFile \
-                  + "',positionFile='" + self.positionFile\
-                  + "',spikeDataFileName='" + self.spikeDataFileName \
-                  + "',isMaster=False " \
-                  + ",time=" +str(self.time) + ",logFile=logFileName[0])")
-    
-    cmdStr = 'global nl; nl = SnuddaInput(inputConfigFile=inputConfigFile,networkConfigFile=networkConfigFile,positionFile=positionFile,spikeDataFileName=spikeDataFileName,isMaster=isMaster,time=time,logFile=logFileName[0])'
-    
-    self.dView.execute(cmdStr,block=True)
-
-    self.newWorkerSeeds(self.dView)
-
-    self.writeLog("Workers set up")
-    
-  ############################################################################
-    
-  # Function for debugging
-
-  def dumpToRandomFile(self,filePrefix,dataToDump):
-    import uuid
-    tmp = open("save/" + filePrefix + "-file-" + str(uuid.uuid4()),'w')
-    tmp.write(str(dataToDump))
-    tmp.close()
-
-  ############################################################################
-
-  def checkSorted(self):
-
-    # Just a double check that the spikes are not jumbled
-    
-    for neuronID in self.neuronInput:
-      for inputType in self.neuronInput[neuronID]:
-        if(inputType == "VirtualNeuron"):
-          s = self.neuronInput[neuronID][inputType]["spikes"]
-          assert (np.diff(s) >= 0).all(), \
-            str(neuronID) + " " + inputType + ": Spikes must be in order"
+        if ret_pop_unit_spikes:
+            return spike_trains, population_unit_spikes
         else:
-          for spikes in self.neuronInput[neuronID][inputType]["spikes"]:
-            assert len(spikes) == 0 or spikes[0] >= 0
-            assert (np.diff(spikes) >= 0).all(), \
-              str(neuronID) + " " + inputType + ": Spikes must be in order"
+            return spike_trains
 
-  ############################################################################
-          
-  def plotSpikes(self,neuronID=None):
+    ############################################################################
 
-    self.writeLog("Plotting spikes for neuronID: " + str(neuronID))
-    
-    if(neuronID is None):
-      neuronID = self.neuronInput
+    def make_uncorrelated_spikes(self, freq, start, end, nSpikeTrains):
 
-    spikeTimes = []
-    
-    for nID in neuronID:
-      for inputType in self.neuronInput[nID]:
-        for spikes in self.neuronInput[nID][inputType]["spikes"]:
-          spikeTimes.append(spikes)
+        spike_trains = []
 
-    self.rasterPlot(spikeTimes)
-          
-  ############################################################################
+        for i in range(0, nSpikeTrains):
+            spike_trains.append(self.generate_spikes(freq, start, end))
 
-  def readHDF5info(self,hdf5File):
-    self.writeLog("Loading HDF5-file: " + hdf5File)
+        return spike_trains
 
-    try:
-      with h5py.File(hdf5File,'r') as f:
-        self.networkConfigFile = f["meta"]["configFile"][()]
-        self.positionFile = f["meta"]["positionFile"][()]
-        self.networkSlurmID = int(f["meta/SlurmID"][()])
-        
-        self.axonStumpIDFlag = f["meta/axonStumpIDFlag"][()]
-    except Exception as e:
-      self.writeLog("Error in readHDF5info: " + str(e))
-      self.writeLog("Opening: " + hdf5File)
+    ############################################################################
 
-      import traceback
-      tstr = traceback.format_exc()
-      self.writeLog(tstr)
-       
-      import pdb
-      pdb.set_trace()
- 
-          
-  ############################################################################
+    # If a timeRange (start,endtime) is given then all spike times will
+    # be modulo duration, so if we jitter and they go to before start time,
+    # they wrap around and appear at end of the timeline
+
+    def jitter_spikes(self, spike_trains, dt, time_range=None):
+
+        jittered_spikes = []
+
+        for i in range(0, len(spike_trains)):
+            spikes = spike_trains[i] + np.random.normal(0, dt, spike_trains[i].shape)
+
+            if time_range is not None:
+                start = time_range[0]
+                end = time_range[1]
+                spikes = np.mod(spikes - start, end - start) + start
+
+            s = np.sort(spikes)
+            # Remove any spikes that happened to go negative
+            s = s[np.where(s >= 0)]
+            jittered_spikes.append(s)
+
+        return jittered_spikes
+
+    ############################################################################
+
+    # Plot spikes as a raster plot, for debugging and visualisation purposes
+
+    def raster_plot(self, spike_times,
+                    mark_spikes=None, mark_idx=None,
+                    title=None, fig_file=None, fig=None):
+
+        if fig is None:
+            fig = plt.figure()
+        # ax = plt.gca()
+
+        for i, spikes in enumerate(spike_times):
+            plt.vlines(spikes, i + 1.5, i + 0.5, color="black")
+
+        plt.ylim(0.5, len(spike_times) + 0.5)
+
+        if mark_spikes is not None and mark_idx is not None:
+            for i, spikes in zip(mark_idx, mark_spikes):
+                plt.vlines(spikes, i + 1.5, i + 0.5, color="red")
+
+            plt.ylim(min(0.5, min(mark_idx) - 0.5),
+                     max(max(mark_idx) + 0.5, len(spike_times)) + 0.5)
+
+        plt.xlabel("Time")
+        plt.ylabel("Inputs")
+
+        plt.ion()
+        plt.show()
+
+        if title is not None:
+            plt.title(title)
+
+        fig.show()
+
+        if fig_file is not None:
+            plt.savefig(fig_file)
+
+        return fig
+
+    ############################################################################
+
+    def read_neuron_positions(self):
+
+        self.write_log("Reading neuron postions")
+
+        pos_info = SnuddaLoad(self.position_file).data
+        self.network_info = pos_info
+        self.neuron_info = pos_info["neurons"]
+
+        #    import pdb
+        #    pdb.set_trace()
+
+        # Make sure the position file matches the network config file
+        assert (pos_info["configFile"] == self.network_config_file)
+
+        self.num_population_units = pos_info["nPopulationUnits"]
+        self.population_unit_id = pos_info["populationUnit"]
+
+        self.neuron_name = [n["name"] for n in self.neuron_info]
+
+        self.neuron_id = [n["neuronID"] for n in self.neuron_info]
+        self.neuron_type = [n["type"] for n in self.neuron_info]
+        # self.nInputs =  [n["nInputs"] for n in self.neuronInfo]
+
+    ############################################################################
+
+    def read_network_config_file(self):
+
+        self.write_log("Reading config file " + str(self.network_config_file))
+
+        import json
+
+        with open(self.network_config_file, 'r') as f:
+            self.network_config = json.load(f)
+
+    ############################################################################
+
+    def verify_correlation(self, spike_trains, expected_corr=None, dt=0):
+
+        # THIS FUNCTION IS VERY VERY SLOW
+
+        corr_vec = []
+
+        for si, s in enumerate(spike_trains):
+            for s2i, s2 in enumerate(spike_trains):
+                if si == s2i:
+                    # No self comparison
+                    continue
+
+                corr_vec.append(self.estimate_correlation(s, s2, dt=dt))
+
+        # print("corr = " + str(corrVec))
+        self.write_log("meanCorr = " + str(np.mean(corr_vec)))
+
+    ############################################################################
+
+    def estimate_correlation(self, spikes_a, spikes_b, dt=0):
+
+        n_spikes_a = len(spikes_a)
+        corr_spikes = 0
+
+        for t in spikes_a:
+            if np.min(abs(spikes_b - t)) <= dt:
+                corr_spikes += 1
+
+        return corr_spikes / float(n_spikes_a)
+
+    ############################################################################
+
+    # inputDensity = f(d) where d is micrometers from soma,
+    #                unit of f is synapses/micrometer
+
+    # !!! Returns input locations only on dendrites, not on soma
+
+    def dendrite_input_locations(self,
+                                 neuron_id,
+                                 synapse_density="1",
+                                 num_spike_trains=None):
+
+        neuron_name = self.neuron_name[neuron_id]
+        swc_file = self.network_config["Neurons"][neuron_name]["morphology"]
+
+        if swc_file in self.neuron_cache:
+            morphology = self.neuron_cache[swc_file]
+        else:
+            morphology = NeuronMorphology(name=neuron_id,
+                                          swc_filename=swc_file,
+                                          axon_stump_id_flag=self.axon_stump_id_flag)
+            self.neuron_cache[swc_file] = morphology
+
+        return morphology.dendrite_input_locations(synapse_density=synapse_density,
+                                                   num_locations=num_spike_trains)
+
+    ############################################################################
+
+    # Returns random dendrite compartments
+    # Pdist = function of d (micrometers), e.g. "1", "2*d", ... etc
+
+    def random_compartment(self, neuron_id, num_locations, p_dist="1"):
+
+        neuron_name = self.neuron_name[neuron_id]
+        swc_file = self.network_config[neuron_name]["morphology"]
+
+        if swc_file in self.neuron_cache:
+            morphology = self.neuron_cache[swc_file]
+        else:
+            # !!! Should I use NeuronMorphology, or maybe the loadSWC in ConvertNetwork
+            #                      -- maybe move loadSWC out to a separate file
+
+            morphology = NeuronMorphology(name=neuron_id,
+                                          swc_filename=swc_file,
+                                          axon_stump_id_flag=self.axon_stump_id_flag)
+            self.neuron_cache[swc_file] = morphology
+
+        # morphology.dend -- 0-2: x,y,z 3: r, 4: dist to soma
+        d = morphology.dend[:, 4]
+        p_x = eval(p_dist)
+
+        if type(p_x) in (int, float):
+            # If Px is a constant, we need to set it for all points
+            p_x *= np.ones(d.shape)
+
+        p_comp = (p_x[morphology.dend_links[:, 0]] + p_x[morphology.dend_links[:, 1]]) / 2
+        comp_len = morphology.compartment_length(comp_type="dend")
+
+        # Multiply by length, so longer compartments are proportionally more likely to be
+        # connected to
+        p_comp = np.multiply(p_comp, comp_len)
+
+        # Randomize locations. Here we then sort the locations, this is to make
+        # it quicker to locate where they are (one pass in the Pxcumsum array)
+        p_x_cumsum = np.cumsum(p_comp)
+        x = np.random.uniform(low=0, high=p_x_cumsum[-1], size=num_locations)
+        x_sort = np.sort(x)
+
+        n_comps = len(d)
+        last_valid_idx = n_comps - 1
+        comp_idx = 0
+
+        sec_id = np.zeros((num_locations,), dtype=int)
+        sec_x = np.zeros((num_locations,))
+        comp_coords = np.zeros((num_locations, 3))
+
+        for ix, xval in enumerate(x_sort):
+            while xval > p_x_cumsum[comp_idx] and comp_idx < last_valid_idx:
+                comp_idx += 1
+
+            sec_id[ix] = morphology.dend_sec_id[comp_idx]
+            sec_x[ix] = (np.random.rand() * (morphology.dend_sec_x[comp_idx, 1]
+                                             - morphology.dend_sec_x[comp_idx, 0])
+                         + morphology.dend_sec_x[comp_idx, 0])
+
+            comp_coords[ix, :3] = (morphology.dend[morphology.dend_links[comp_idx, 0], :3]
+                                   + morphology.dend[morphology.dend_links[comp_idx, 1], :3]) / 2
+
+        # The probability of picking a compartment is dependent on a distance
+        # dependent probability function, and the length of the compartment
+
+        # Plot synapses and segments, as a verification
+        if False:
+            import matplotlib.pyplot as plt
+            plt.hist(d[compID], label="synapses")
+            plt.hist(d, label="segments")
+            plt.legend(loc='upper right')
+            plt.show()
+
+        return comp_coords, sec_id, sec_x
+
+    ############################################################################
+
+    def set_seed(self, random_seed):
+
+        self.write_log("Setting random seed: " + str(random_seed))
+        np.random.seed(random_seed)
+
+    ############################################################################
+
+    def new_worker_seeds(self, d_view):
+
+        n_workers = len(self.d_view)
+        worker_seeds = np.random.randint(0, np.iinfo(np.uint32).max, dtype=np.uint32, size=(n_workers,))
+        self.d_view.scatter("workerSeed", worker_seeds, block=True)
+        self.d_view.execute("nl.setSeed(workerSeed[0])", block=True)
+
+        self.write_log("New worker seeds: " + str(worker_seeds))
+
+    ############################################################################
+
+    def setup_parallel(self):
+
+        import os
+        slurm_job_id = os.getenv("SLURM_JOBID")
+
+        if slurm_job_id is None:
+            self.slurm_id = 0
+        else:
+            self.slurm_id = int(slurm_job_id)
+
+        self.write_log("IPYTHON_PROFILE = " + str(os.getenv('IPYTHON_PROFILE')))
+
+        if os.getenv('IPYTHON_PROFILE') is not None:
+            from ipyparallel import Client
+            self.rc = Client(profile=os.getenv('IPYTHON_PROFILE'))
+
+            # http://davidmasad.com/blog/simulation-with-ipyparallel/
+            # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
+            self.write_log("Client IDs: " + str(self.rc.ids))
+            self.d_view = self.rc[:]  # Direct view into clients
+            self.lbView = self.rc.load_balanced_view()
+
+            if self.logfile is not None:
+                log_filename = self.logfile.name
+                engine_logfile = [log_filename + "-" + str(x) for x in range(0, len(self.d_view))]
+            else:
+                engine_logfile = [None for x in range(0, len(self.d_view))]
+        else:
+            self.write_log("No IPYTHON_PROFILE environment variable set, running in serial")
+            self.d_view = None
+            self.lbView = None
+            return
+
+        with self.d_view.sync_imports():
+            from snudda.input import SnuddaInput
+
+        self.d_view.push({"input_config_file": self.input_config_file,
+                          "network_config_file": self.network_config_file,
+                          "position_file": self.position_file,
+                          "spike_data_filename": self.spike_data_filename,
+                          "is_master": False,
+                          "time": self.time})
+
+        self.write_log("Scattering engineLogFile = " + str(engine_logfile))
+
+        self.d_view.scatter('log_filename', engine_logfile, block=True)
+
+        self.write_log("nl = SnuddaInput(input_config_file='" + self.input_config_file
+                       + "',network_config_file='" + self.network_config_file
+                       + "',position_file='" + self.position_file
+                       + "',spike_data_filename='" + self.spike_data_filename
+                       + "',is_master=False "
+                       + ",time=" + str(self.time) + ",logfile=log_filename[0])")
+
+        cmd_str = "global nl; nl = SnuddaInput(input_config_file=input_config_file," \
+                + "network_config_file=network_config_file,position_file=position_file," \
+                + " spike_data_filename=spike_data_filename,is_master=is_master,time=time,logfile=log_filename[0])"
+
+        self.d_view.execute(cmd_str, block=True)
+
+        self.new_worker_seeds(self.d_view)
+
+        self.write_log("Workers set up")
+
+    ############################################################################
+
+    # Function for debugging
+
+    def dump_to_random_file(self, file_prefix, data_to_dump):
+        import uuid
+        tmp = open("save/" + file_prefix + "-file-" + str(uuid.uuid4()), 'w')
+        tmp.write(str(data_to_dump))
+        tmp.close()
+
+    ############################################################################
+
+    def check_sorted(self):
+
+        # Just a double check that the spikes are not jumbled
+
+        for neuron_id in self.neuron_input:
+            for input_type in self.neuron_input[neuron_id]:
+                if input_type == "VirtualNeuron":
+                    s = self.neuron_input[neuron_id][input_type]["spikes"]
+                    assert (np.diff(s) >= 0).all(), \
+                        str(neuron_id) + " " + input_type + ": Spikes must be in order"
+                else:
+                    for spikes in self.neuron_input[neuron_id][input_type]["spikes"]:
+                        assert len(spikes) == 0 or spikes[0] >= 0
+                        assert (np.diff(spikes) >= 0).all(), \
+                            str(neuron_id) + " " + input_type + ": Spikes must be in order"
+
+    ############################################################################
+
+    def plot_spikes(self, neuron_id=None):
+
+        self.write_log("Plotting spikes for neuronID: " + str(neuron_id))
+
+        if neuron_id is None:
+            neuron_id = self.neuron_input
+
+        spike_times = []
+
+        for nID in neuron_id:
+            for inputType in self.neuron_input[nID]:
+                for spikes in self.neuron_input[nID][inputType]["spikes"]:
+                    spike_times.append(spikes)
+
+        self.raster_plot(spike_times)
+
+    ############################################################################
+
+    def read_hdf5_info(self, hdf5_file):
+        self.write_log("Loading HDF5-file: " + hdf5_file)
+
+        try:
+            with h5py.File(hdf5_file, 'r') as f:
+                self.network_config_file = f["meta"]["configFile"][()]
+                self.position_file = f["meta"]["positionFile"][()]
+                self.network_slurm_id = int(f["meta/SlurmID"][()])
+
+                self.axon_stump_id_flag = f["meta/axonStumpIDFlag"][()]
+        except Exception as e:
+            self.write_log("Error in readHDF5info: " + str(e))
+            self.write_log("Opening: " + hdf5_file)
+
+            import traceback
+            tstr = traceback.format_exc()
+            self.write_log(tstr)
+
+            import pdb
+            pdb.set_trace()
+
+    ############################################################################
+
+    def find_latest_file(self):
+
+        files = glob('save/network-connect-voxel-pruned-synapse-file-*.hdf5')
+
+        mod_time = [os.path.getmtime(f) for f in files]
+        idx = np.argsort(mod_time)
+
+        self.write_log("Using the newest file: " + files[idx[-1]])
+
+        return files[idx[-1]]
+
+    ############################################################################
+
+    def make_input_helper_parallel(self, args):
+
+        try:
+
+            neuron_id, input_type, freq, start, end, synapse_density, num_spike_trains, p_keep, \
+                population_unit_spikes, jitter_dt, population_unit_id, conductance, correlation, mod_file, \
+                parameter_file, parameter_list = args
+
+            return self.make_input_helper_serial(neuron_id=neuron_id,
+                                                 input_type=input_type,
+                                                 freq=freq,
+                                                 start=start,
+                                                 end=end,
+                                                 synapse_density=synapse_density,
+                                                 num_spike_trains=num_spike_trains,
+                                                 p_keep=p_keep,
+                                                 population_unit_spikes=population_unit_spikes,
+                                                 jitter_dt=jitter_dt,
+                                                 population_unit_id=population_unit_id,
+                                                 conductance=conductance,
+                                                 correlation=correlation,
+                                                 mod_file=mod_file,
+                                                 parameter_file=parameter_file,
+                                                 parameter_list=parameter_list)
+
+        except:
+            import traceback
+            tstr = traceback.format_exc()
+            self.write_log(tstr)
+            import pdb
+            pdb.set_trace()
+
+    ############################################################################
+
+    # Normally specify synapseDensity which then sets number of inputs
+    # ie leave nSpikeTrains as None. If nSpikeTrains is set, that will then
+    # scale synapseDensity to get the requested number of inputs (approximately)
+
+    # For virtual neurons nSpikeTrains must be set, as it defines their activity
+
+    def make_input_helper_serial(self,
+                                 neuron_id,
+                                 input_type,
+                                 freq,
+                                 start,
+                                 end,
+                                 synapse_density,
+                                 num_spike_trains,
+                                 p_keep,
+                                 population_unit_spikes,
+                                 jitter_dt,
+                                 population_unit_id,
+                                 conductance,
+                                 correlation,
+                                 mod_file,
+                                 parameter_file,
+                                 parameter_list):
+
+        # First, find out how many inputs and where, based on morphology and
+        # synapse density
+
+        try:
+
+            time_range = (start, end)
+
+            if input_type.lower() == "VirtualNeuron".lower():
+                # This specifies activity of a virtual neuron
+                loc = None
+                conductance = None
+
+                assert num_spike_trains is None or num_spike_trains == 1, \
+                    "Virtual neuron " + self.neuron_name[neuron_id] \
+                    + " should have only one spike train, fix nSpikeTrains in config"
+
+                spikes = self.make_correlated_spikes(freq=freq,
+                                                     time_range=time_range,
+                                                     num_spike_trains=1,
+                                                     p_keep=p_keep,
+                                                     population_unit_spikes=population_unit_spikes,
+                                                     jitter_dt=jitter_dt)
+                num_inputs = 1
+            else:
+
+                # x,y,z, secID, secX
+                input_loc = self.dendrite_input_locations(neuron_id=neuron_id,
+                                                          synapse_density=synapse_density,
+                                                          num_spike_trains=num_spike_trains)
+
+                num_inputs = input_loc[0].shape[0]
+                print("Generating " + str(num_inputs) + " inputs for " \
+                      + self.neuron_name[neuron_id])
+
+                # OBS, nInputs might differ slightly from nSpikeTrains if that is given
+                spikes = self.make_correlated_spikes(freq=freq,
+                                                     time_range=time_range,
+                                                     num_spike_trains=num_inputs,
+                                                     p_keep=p_keep,
+                                                     population_unit_spikes=population_unit_spikes,
+                                                     jitter_dt=jitter_dt)
+        except:
+            import traceback
+            tstr = traceback.format_exc()
+            self.write_log(tstr)
+            import pdb
+            pdb.set_trace()
+
+        # We need to pick which parameter set to use for the input also
+        parameter_id = np.random.randint(1e6, size=num_inputs)
+
+        # We need to keep track of the neuronID, since it will all be jumbled
+        # when doing asynchronous prallelisation
+        return (neuron_id, input_type, spikes, input_loc, synapse_density, freq,
+                jitter_dt, population_unit_id, conductance, correlation,
+                time_range,
+                mod_file, parameter_file, parameter_list, parameter_id)
+
+    ############################################################################
+
+    def write_log(self, text, flush=True):  # Change flush to False in future, debug
+        if self.logfile is not None:
+            self.logfile.write(text + "\n")
+            print(text)
+            if flush:
+                self.logfile.flush()
+        else:
+            if self.verbose:
+                print(text)
+
+    ############################################################################
 
 
-  def findLatestFile(self):
-
-    files = glob('save/network-connect-voxel-pruned-synapse-file-*.hdf5')
-
-    modTime = [os.path.getmtime(f) for f in files]
-    idx = np.argsort(modTime)
-
-    self.writeLog("Using the newest file: " + files[idx[-1]])
-    
-    return files[idx[-1]]
-  
-  
-  ############################################################################
-
-  def makeInputHelperParallel(self,args):
-
-    try:
-    
-      neuronID,inputType,freq,start,end,synapseDensity,nSpikeTrains,Pkeep,populationUnitSpikes,jitterDt,populationUnitID,conductance,correlation,modFile,parameterFile,parameterList = args
-
-      return self.makeInputHelperSerial(neuronID = neuronID,
-                                        inputType = inputType,
-                                        freq = freq,
-                                        start = start,
-                                        end = end,
-                                        synapseDensity = synapseDensity,
-                                        nSpikeTrains = nSpikeTrains,
-                                        Pkeep = Pkeep,
-                                        populationUnitSpikes = populationUnitSpikes,
-                                        jitterDt = jitterDt,
-                                        populationUnitID = populationUnitID,
-                                        conductance = conductance,
-                                        correlation = correlation,
-                                        modFile = modFile,
-                                        parameterFile = parameterFile,
-                                        parameterList = parameterList)
-
-    except:
-      import traceback
-      tstr = traceback.format_exc()
-      self.writeLog(tstr)
-      import pdb
-      pdb.set_trace()
-      
-
-  ############################################################################
-
-  # Normally specify synapseDensity which then sets number of inputs
-  # ie leave nSpikeTrains as None. If nSpikeTrains is set, that will then
-  # scale synapseDensity to get the requested number of inputs (approximately)
-
-  # For virtual neurons nSpikeTrains must be set, as it defines their activity
-  
-  def makeInputHelperSerial(self,
-                            neuronID,
-                            inputType,
-                            freq,
-                            start,
-                            end,
-                            synapseDensity,
-                            nSpikeTrains,
-                            Pkeep,
-                            populationUnitSpikes,
-                            jitterDt,
-                            populationUnitID,
-                            conductance,
-                            correlation,
-                            modFile,
-                            parameterFile,
-                            parameterList):
-                            
-    # First, find out how many inputs and where, based on morphology and
-    # synapse density
-
-    try:
-
-      timeRange = (start,end)
-      
-      if(inputType.lower() == "VirtualNeuron".lower()):
-        # This specifies activity of a virtual neuron
-        loc = None
-        conductance = None
-
-        assert nSpikeTrains is None or nSpikeTrains == 1, \
-          "Virtual neuron " + self.neuronName[neuronID] \
-          + " should have only one spike train, fix nSpikeTrains in config"
-        
-        spikes = self.makeCorrelatedSpikes(freq=freq,
-                                           timeRange=timeRange,
-                                           nSpikeTrains=1,
-                                           Pkeep=Pkeep,
-                                           populationUnitSpikes=populationUnitSpikes,
-                                           jitterDt=jitterDt)
-        nInputs = 1
-      else:
-        
-        # x,y,z, secID, secX    
-        inputLoc = self.dendriteInputLocations(neuronID=neuronID,
-                                               synapseDensity=synapseDensity,
-                                               nSpikeTrains=nSpikeTrains)
-
-        nInputs = inputLoc[0].shape[0]
-        print("Generating " + str(nInputs) + " inputs for " \
-              + self.neuronName[neuronID])
-        
-        # OBS, nInputs might differ slightly from nSpikeTrains if that is given
-        spikes = self.makeCorrelatedSpikes(freq=freq,
-                                           timeRange=timeRange,
-                                           nSpikeTrains=nInputs,
-                                           Pkeep=Pkeep,
-                                           populationUnitSpikes=populationUnitSpikes,
-                                           jitterDt=jitterDt)        
-    except:
-      import traceback
-      tstr = traceback.format_exc()
-      self.writeLog(tstr)
-      import pdb
-      pdb.set_trace()
-
-      
-    # We need to pick which parameter set to use for the input also
-    parameterID = np.random.randint(1e6,size=nInputs)
-      
-    # We need to keep track of the neuronID, since it will all be jumbled
-    # when doing asynchronous prallellisation
-    return (neuronID, inputType, spikes, inputLoc, synapseDensity,freq,
-            jitterDt,populationUnitID,conductance,correlation,
-            timeRange,
-            modFile,parameterFile,parameterList,parameterID)
-
-
-      
-  ############################################################################
-  
-  def makeInputHelperSerialOLD(self,
-                            neuronID,
-                            inputType,
-                            freq,
-                            start,
-                            end,
-                            nSpikeTrains,
-                            Pkeep,
-                            populationUnitSpikes,
-                            jitterDt,
-                            location,
-                            populationUnitID,
-                            conductance,
-                            correlation,
-                            modFile,
-                            parameterFile,
-                            parameterList,
-                            parameterID):
-    try:
-
-      assert False, "Depricated use makeInputHelperSerial"
-    
-      timeRange = (start,end)
-      
-      spikes = self.makeCorrelatedSpikes(freq=freq,
-                                         timeRange=timeRange,
-                                         nSpikeTrains=nSpikeTrains,
-                                         Pkeep=Pkeep,
-                                         populationUnitSpikes=populationUnitSpikes,
-                                         jitterDt=jitterDt)
-
-      if(inputType.lower() == "VirtualNeuron".lower()):
-        loc = None
-        conductance = None
-      else:
-        loc = self.randomCompartment(neuronID,nSpikeTrains,location)
-      
-    except Exception as e:
-      import uuid
-      import traceback
-      tstr = traceback.format_exc()
-      tmp = open("save/tmp-log-file-" + str(uuid.uuid4()),'w')
-      tmp.write("Exception: " + str(e))
-      tmp.write("Trace:" + tstr)
-      tmp.close()
-      self.writeLog(tstr)
-      import pdb
-      pdb.set_trace()
-    
-    # We need to keep track of the neuronID, since it will all be jumbled
-    # when doing asynchronous prallellisation
-    return (neuronID, inputType, spikes, loc, freq,
-            jitterDt,populationUnitID,conductance,correlation,location,
-            timeRange,
-            modFile,parameterFile,parameterList,parameterID)
-
-  ############################################################################
-  
-  def writeLog(self,text,flush=True): # Change flush to False in future, debug
-    if(self.logFile is not None):
-      self.logFile.write(text + "\n")
-      print(text)
-      if(flush):
-        self.logFile.flush()
-    else:
-      if(self.verbose):
-        print(text)
-
-  
-  ############################################################################
-
-  
 if __name__ == "__main__":
-
-  print("Please do not call this file directly, use snudda.py")
-  exit(-1)
+    print("Please do not call this file directly, use snudda command line")
+    exit(-1)

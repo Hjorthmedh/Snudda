@@ -134,7 +134,7 @@ class SnuddaPlace(object):
 
             # self.writeLog("Place " + str(self.cellPos[i,:]))
 
-            n.neuronID = len(self.neurons)
+            n.neuron_id = len(self.neurons)
             n.volume_id = volume_id
 
             assert axon_density is None or len(n.axon) == 0, \
@@ -569,12 +569,12 @@ class SnuddaPlace(object):
         self.write_log("Re-sorting the neuron IDs after location")
 
         for newIdx, oldIdx in enumerate(sort_idx):
-            self.neurons[oldIdx].neuronID = newIdx
+            self.neurons[oldIdx].neuron_id = newIdx
 
         self.neurons = [self.neurons[x] for x in sort_idx]
 
         for idx, n in enumerate(self.neurons):
-            assert idx == self.neurons[idx].neuronID, \
+            assert idx == self.neurons[idx].neuron_id, \
                 "Something went wrong with sorting"
 
     ############################################################################

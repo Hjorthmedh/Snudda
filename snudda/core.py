@@ -294,11 +294,11 @@ class Snudda(object):
 
         print("Writing input spikes to " + spike_file)
 
-        ni = SnuddaInput(inputConfigFile=input_config,
-                         HDF5networkFile=network_file,
-                         spikeDataFileName=spike_file,
+        ni = SnuddaInput(input_config_file=input_config,
+                         hdf5_network_file=network_file,
+                         spike_data_file_name=spike_file,
                          time=input_time,
-                         logFile=self.logfile)
+                         logfile=self.logfile)
 
         self.stop_parallel()
         self.close_log_file()

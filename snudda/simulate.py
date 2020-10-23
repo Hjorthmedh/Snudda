@@ -227,7 +227,7 @@ class SnuddaSimulate(object):
 
     if(False):
       self.write_log("Node " + str(int(self.pc.id())) + " handling neurons: " \
-                     + ' '.join(map(str, self.neuronID)))
+                     + ' '.join(map(str, self.neuron_id)))
 
   ############################################################################
 
