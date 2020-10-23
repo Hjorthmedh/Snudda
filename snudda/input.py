@@ -31,7 +31,7 @@ nl = None
 
 class SnuddaInput(object):
 
-    def __init__(self, spike_data_file_name, input_config_file,
+    def __init__(self, spike_data_filename, input_config_file,
                  network_config_file=None,
                  position_file=None,
                  hdf5_network_file=None,
@@ -77,9 +77,9 @@ class SnuddaInput(object):
 
         self.input_config_file = input_config_file
 
-        if spike_data_file_name is None:
-            spike_data_file_name = "save/input-spikes-" + str(self.network_slurm_id) + ".hdf5"
-        self.spike_data_filename = spike_data_file_name
+        if spike_data_filename is None:
+            spike_data_filename = "save/input-spikes-" + str(self.network_slurm_id) + ".hdf5"
+        self.spike_data_filename = spike_data_filename
 
         self.time = time  # How long time to generate inputs for
 
@@ -890,8 +890,8 @@ class SnuddaInput(object):
 
         n_workers = len(self.d_view)
         worker_seeds = np.random.randint(0, np.iinfo(np.uint32).max, dtype=np.uint32, size=(n_workers,))
-        self.d_view.scatter("workerSeed", worker_seeds, block=True)
-        self.d_view.execute("nl.setSeed(workerSeed[0])", block=True)
+        self.d_view.scatter("worker_seed", worker_seeds, block=True)
+        self.d_view.execute("nl.set_seed(worker_seed[0])", block=True)
 
         self.write_log("New worker seeds: " + str(worker_seeds))
 

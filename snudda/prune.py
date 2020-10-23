@@ -1097,7 +1097,7 @@ class SnuddaPrune(object):
                 # 1. Pick names for the workers
         temp_output_file_name = [self.scratchPath + "worker-temp-" + merge_data_type + "-file-" + str(x)
                                  for x in range(0, len(self.d_view))]
-        self.d_view.scatter("outputFileName", temp_output_file_name, block=True)
+        self.d_view.scatter("output_filename", temp_output_file_name, block=True)
 
         # Add the files to a delete list, so we remove them after
         for f in temp_output_file_name:
@@ -1385,10 +1385,10 @@ class SnuddaPrune(object):
         else:
             engine_log_file = [[] for x in range(0, len(dView))]
 
-        dView.scatter('log_filename', engine_log_file, block=True)
+        dView.scatter('logfile_name', engine_log_file, block=True)
         dView.push({"work_history_file": self.work_history_file}, block=True)
 
-        cmd_str = "nw = SnuddaPrune(work_history_file=work_history_file, log_filename=log_filename[0],role='worker')"
+        cmd_str = "nw = SnuddaPrune(work_history_file=work_history_file, logfile_name=logfile_name[0],role='worker')"
         dView.execute(cmd_str, block=True)
 
         # Make sure we have different seeds for workers

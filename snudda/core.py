@@ -296,7 +296,7 @@ class Snudda(object):
 
         ni = SnuddaInput(input_config_file=input_config,
                          hdf5_network_file=network_file,
-                         spike_data_file_name=spike_file,
+                         spike_data_filename=spike_file,
                          time=input_time,
                          logfile=self.logfile)
 

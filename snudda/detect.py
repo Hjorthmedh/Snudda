@@ -1480,12 +1480,12 @@ class SnuddaDetect(object):
 
     ############################################################################
 
-    def setup_log(self, log_file_name=None):
+    def setup_log(self, logfile_name=None):
 
-        if log_file_name is None:
-            log_file_name = self.logfile_name
+        if logfile_name is None:
+            logfile_name = self.logfile_name
 
-        if log_file_name is None or len(log_file_name) == 0:
+        if logfile_name is None or len(logfile_name) == 0:
             # Not a valid log file name
             return
 
@@ -1493,7 +1493,7 @@ class SnuddaDetect(object):
             self.write_log("Already have a log file setup, ignoring")
             return
 
-        self.logfile = open(log_file_name, 'wt')
+        self.logfile = open(logfile_name, 'wt')
 
         ############################################################################
 
