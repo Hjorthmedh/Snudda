@@ -160,7 +160,7 @@ class SnuddaPrune(object):
                 if self.d_view:
 
                     self.write_log("Running parallel merge")
-                    synapse_file = self.bigMergeParallel()
+                    synapse_file = self.big_merge_parallel()
 
                     # print("We do not currently get all the synapses, where are the missing ones going? About 1.4% of synapses are missed")
                     # import pdb
@@ -1853,7 +1853,7 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    def bigMergeParallel(self):
+    def big_merge_parallel(self):
 
         if self.role != "master":
             self.write_log("bigMergeParallel is only run on master node, aborting")
@@ -1899,11 +1899,11 @@ class SnuddaPrune(object):
         # We need to sort the files in order, so we know how to add them
         print("Processing merge...")
 
-        mergeStartSyn = [x[1][0] for x in merge_results_syn]
-        mergeStartGJ = [x[1][0] for x in merge_results_gj]
+        merge_start_syn = [x[1][0] for x in merge_results_syn]
+        merge_start_gj = [x[1][0] for x in merge_results_gj]
 
-        mergeOrderSyn = np.argsort(mergeStartSyn)
-        mergeOrderGJ = np.argsort(mergeStartGJ)
+        merge_order_syn = np.argsort(merge_start_syn)
+        merge_order_gj = np.argsort(merge_start_gj)
 
         # We then need the file to merge them in
         (self.buffer_out_file, outFileName) \
@@ -1915,38 +1915,38 @@ class SnuddaPrune(object):
         # Copy the data to the file
 
         for order, results, location \
-                in zip([mergeOrderSyn, mergeOrderGJ],
+                in zip([merge_order_syn, merge_order_gj],
                        [merge_results_syn, merge_results_gj],
                        ["network/synapses", "network/gapJunctions"]):
 
-            startPos = 0
+            start_pos = 0
 
             for idx in order:
 
-                dataFile = results[idx][0]
-                nSynapses = results[idx][2]
-                endPos = startPos + nSynapses
+                data_file = results[idx][0]
+                num_synapses = results[idx][2]
+                end_pos = start_pos + num_synapses
 
-                if dataFile is None:
-                    assert nSynapses == 0, "!!! Missing merge file " + str(dataFile) \
-                                           + ", internal problem"
+                if data_file is None:
+                    assert num_synapses == 0, "!!! Missing merge file " + str(data_file) \
+                                              + ", internal problem"
                     continue
 
-                self.write_log("Extracting " + location + " from " + dataFile)
+                self.write_log("Extracting " + location + " from " + data_file)
 
-                fIn = h5py.File(dataFile, 'r')
+                f_in = h5py.File(data_file, 'r')
 
                 # Some idiot checks...
-                assert fIn[location].shape[0] == nSynapses, \
+                assert f_in[location].shape[0] == num_synapses, \
                     "Internal inconsistency in number of rows stored"
-                assert not (fIn[location][-1, :] == 0).all(), \
+                assert not (f_in[location][-1, :] == 0).all(), \
                     "Last row all zero, that should not happen"
 
-                self.buffer_out_file[location][startPos:endPos, :] = \
-                    fIn[location][:, :]
+                self.buffer_out_file[location][start_pos:end_pos, :] = \
+                    f_in[location][:, :]
 
-                fIn.close()
-                startPos = endPos
+                f_in.close()
+                start_pos = end_pos
 
         # We should check that the number of synapses in output file is correct
 
@@ -1963,21 +1963,21 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    def getHyperVoxelList(self, neuronRange):
+    def get_hyper_voxel_list(self, neuron_range):
 
         # We need to find all the hypervoxels that might contain synapses.
         # During touch detection we generated a list for each hypervoxel with
         # all the neurons that had any part of it within that hypervoxel.
 
-        hvList = []
-        neuronSet = set(range(neuronRange[0], neuronRange[1]))
+        hv_list = []
+        neuron_set = set(range(neuron_range[0], neuron_range[1]))
 
         for hid in self.hist_file["hyperVoxels"]:
-            hvNeurons = self.hist_file["hyperVoxels"][hid]["neurons"]
-            if len(neuronSet.intersection(hvNeurons)) > 0:
-                hvList.append(int(hid))
+            hv_neurons = self.hist_file["hyperVoxels"][hid]["neurons"]
+            if len(neuron_set.intersection(hv_neurons)) > 0:
+                hv_list.append(int(hid))
 
-        return hvList
+        return hv_list
 
     ############################################################################
 
@@ -1988,27 +1988,27 @@ class SnuddaPrune(object):
         try:
             self.write_log("Neuronrange = " + str(neuron_range))
 
-            outputFileName = self.scratchPath + merge_data_type + "-for-neurons-" \
-                             + str(neuron_range[0]) + "-to-" + str(neuron_range[1]) \
-                             + "-MERGE-ME.hdf5"
+            output_filename = self.scratchPath + merge_data_type + "-for-neurons-" \
+                              + str(neuron_range[0]) + "-to-" + str(neuron_range[1]) \
+                              + "-MERGE-ME.hdf5"
 
             self.merge_data_type = merge_data_type
 
             # Which hyper voxels are the neurons located in?
-            hvList = self.getHyperVoxelList(neuron_range)
+            hv_list = self.get_hyper_voxel_list(neuron_range)
 
             # Locations of data within the file
-            h5SynMat, h5SynN, h5SynLookup = self.data_loc[merge_data_type]
+            h5_syn_mat, h5_syn_n, h5_syn_lookup = self.data_loc[merge_data_type]
 
             synapse_heap = []
-            fileList = dict([])
-            fileMatIterator = dict([])
+            file_list = dict([])
+            file_mat_iterator = dict([])
 
             # Next we need to open all the relevant files
-            hFileNameMask = self.base_path + "/voxels/network-putative-synapses-%s.hdf5"
+            h_file_name_mask = self.base_path + "/voxels/network-putative-synapses-%s.hdf5"
 
-            maxAxonVoxelCtr = 0
-            maxDendVoxelCtr = 0
+            max_axon_voxel_ctr = 0
+            max_dend_voxel_ctr = 0
 
             # !!! Special code to increase h5py cache size
             propfaid = h5py.h5p.create(h5py.h5p.FILE_ACCESS)
@@ -2018,27 +2018,27 @@ class SnuddaPrune(object):
             # settings = propfaid.get_cache()
             # !!! End special cache code
 
-            nHV = int(self.hist_file["nCompleted"][0])
-            nTotal = 0
+            n_hv = int(self.hist_file["nCompleted"][0])
+            n_total = 0
 
             # import pdb
             # pdb.set_trace()
 
-            for hID, nSyn, nOverflow in zip(self.hist_file["completed"][:nHV],
-                                            self.hist_file[h5SynN][:nHV],
-                                            self.hist_file["voxelOverflowCounter"][:nHV]):
-                nTotal += nSyn
+            for h_id, n_syn, n_overflow in zip(self.hist_file["completed"][:n_hv],
+                                               self.hist_file[h5_syn_n][:n_hv],
+                                               self.hist_file["voxelOverflowCounter"][:n_hv]):
+                n_total += n_syn
 
-                if hID not in hvList:
+                if h_id not in hv_list:
                     # We only need a subset of the files
                     continue
 
-                if nSyn > 0:
-                    hFileName = hFileNameMask % str(hID)
-                    self.write_log("Opening voxel file: " + hFileName)
+                if n_syn > 0:
+                    h_filename = h_file_name_mask % str(h_id)
+                    self.write_log("Opening voxel file: " + h_filename)
 
                     # Low level opening hdf5 file, to have greater cache size #ACC_RDWR
-                    fid = h5py.h5f.open(hFileName.encode(),
+                    fid = h5py.h5f.open(h_filename.encode(),
                                         flags=h5py.h5f.ACC_RDONLY,
                                         fapl=propfaid)
 
@@ -2047,116 +2047,116 @@ class SnuddaPrune(object):
                     print(settings)
 
                     # fileList[hID] = h5py.File(hFileName,'r')
-                    fileList[hID] = h5py.File(fid, drive=self.h5driver)
+                    file_list[h_id] = h5py.File(fid, drive=self.h5driver)
 
-                    chunkSize = 10000
-                    lookupIterator = \
-                        self.file_row_lookup_iterator_subset(h5mat_lookup=fileList[hID][h5SynLookup],
+                    chunk_size = 10000
+                    lookup_iterator = \
+                        self.file_row_lookup_iterator_subset(h5mat_lookup=file_list[h_id][h5_syn_lookup],
                                                              min_dest_id=neuron_range[0],
                                                              max_dest_id=neuron_range[1],
-                                                             chunk_size=chunkSize)
+                                                             chunk_size=chunk_size)
 
-                    fileMatIterator[hID] \
-                        = self.synapse_set_iterator(h5mat_lookup=fileList[hID][h5SynLookup],
-                                                    h5mat=fileList[hID][h5SynMat],
-                                                    chunk_size=chunkSize,
-                                                    lookup_iterator=lookupIterator)
+                    file_mat_iterator[h_id] \
+                        = self.synapse_set_iterator(h5mat_lookup=file_list[h_id][h5_syn_lookup],
+                                                    h5mat=file_list[h_id][h5_syn_mat],
+                                                    chunk_size=chunk_size,
+                                                    lookup_iterator=lookup_iterator)
 
-                    synSet, uniqueID = next(fileMatIterator[hID], (None, None))
+                    syn_set, unique_id = next(file_mat_iterator[h_id], (None, None))
 
-                    if synSet is None:
+                    if syn_set is None:
                         # There were synapses in the hyper voxel, but none relevant to our
                         # selected files. Clear file List and fileMatIterator for this worker
-                        del fileList[hID]
-                        del fileMatIterator[hID]
+                        del file_list[h_id]
+                        del file_mat_iterator[h_id]
                         continue
 
                     # Create a heap containing the first subset of all files
-                    heapq.heappush(synapse_heap, (uniqueID, hID, synSet))
+                    heapq.heappush(synapse_heap, (unique_id, h_id, syn_set))
 
                     # This is so we can optimize the axon/dend voxelCtr and size
-                    if "maxAxonVoxelCtr" in fileList[hID]["meta"]:
-                        maxAxonVoxelCtr = max(maxAxonVoxelCtr,
-                                              fileList[hID]["meta/maxAxonVoxelCtr"][()])
-                    if "maxDendVoxelCtr" in fileList[hID]["meta"]:
-                        maxDendVoxelCtr = max(maxDendVoxelCtr,
-                                              fileList[hID]["meta/maxDendVoxelCtr"][()])
+                    if "maxAxonVoxelCtr" in file_list[h_id]["meta"]:
+                        max_axon_voxel_ctr = max(max_axon_voxel_ctr,
+                                              file_list[h_id]["meta/maxAxonVoxelCtr"][()])
+                    if "maxDendVoxelCtr" in file_list[h_id]["meta"]:
+                        max_dend_voxel_ctr = max(max_dend_voxel_ctr,
+                                              file_list[h_id]["meta/maxDendVoxelCtr"][()])
 
             if merge_data_type == "synapses":
-                nSynapses = nTotal
-                nGapJunctions = 0
+                num_synapses = n_total
+                num_gap_junctions = 0
             elif merge_data_type == "gapJunctions":
-                nSynapses = 0
-                nGapJunctions = nTotal
+                num_synapses = 0
+                num_gap_junctions = n_total
             else:
                 assert False, "Unknown mergeDataType " + str(merge_data_type)
 
             # Setup output file
             (self.buffer_out_file, outFileName) \
                 = self.setup_merge_file(big_cache=True,
-                                        outfile_name=outputFileName,
+                                        outfile_name=output_filename,
                                         save_morphologies=False,
-                                        num_synapses=nSynapses,
-                                        num_gap_junctions=nGapJunctions)
+                                        num_synapses=num_synapses,
+                                        num_gap_junctions=num_gap_junctions)
 
             # Here we store the sorted connection matrix
-            sortedMat = self.buffer_out_file[h5SynMat]
+            sorted_mat = self.buffer_out_file[h5_syn_mat]
 
             # Only save this meta data if doing the synapses call
-            if maxAxonVoxelCtr > 0 and self.merge_data_type == "synapses":
+            if max_axon_voxel_ctr > 0 and self.merge_data_type == "synapses":
                 self.buffer_out_file["meta"].create_dataset("maxAxonVoxelCtr",
-                                                            data=maxAxonVoxelCtr)
-                self.write_log("maxAxonVoxelCtr = " + str(maxAxonVoxelCtr))
+                                                            data=max_axon_voxel_ctr)
+                self.write_log("maxAxonVoxelCtr = " + str(max_axon_voxel_ctr))
 
-            if maxDendVoxelCtr > 0 and self.merge_data_type == "synapses":
+            if max_dend_voxel_ctr > 0 and self.merge_data_type == "synapses":
                 self.buffer_out_file["meta"].create_dataset("maxDendVoxelCtr",
-                                                            data=maxDendVoxelCtr)
-                self.write_log("maxDendVoxelCtr = " + str(maxDendVoxelCtr))
+                                                            data=max_dend_voxel_ctr)
+                self.write_log("maxDendVoxelCtr = " + str(max_dend_voxel_ctr))
 
             # Take the first (smallest uniqueID) element from the heap
 
             if len(synapse_heap) > 0:
                 # Get the first file to read synapses from
-                (uniqueID, hID, synSet) = heapq.heappop(synapse_heap)
+                (unique_id, h_id, syn_set) = heapq.heappop(synapse_heap)
             else:
                 # No synapses at all, return
                 self.clean_up_merge_read_buffers()
                 return None, neuron_range, 0
 
             # Store synapse
-            self.buffer_merge_write(h5SynMat, synSet)
-            synCtr = synSet.shape[0]
+            self.buffer_merge_write(h5_syn_mat, syn_set)
+            syn_ctr = syn_set.shape[0]
 
-            loopCtr = 0
+            loop_ctr = 0
             done = False
 
             while not done:
 
-                oldUniqueID = uniqueID
+                old_unique_id = unique_id
 
-                if loopCtr % 1000000 == 0:
-                    self.write_log("Worker synapses: " + str(synCtr) \
-                                   + "/" + str(nTotal) \
+                if loop_ctr % 1000000 == 0:
+                    self.write_log("Worker synapses: " + str(syn_ctr) \
+                                   + "/" + str(n_total) \
                                    + " (heap size: " + str(len(synapse_heap)) + ")")
 
                 # Get the next set of synapses from this file from the iterator
-                nextRowSet = next(fileMatIterator[hID], None)
+                next_row_set = next(file_mat_iterator[h_id], None)
 
-                if nextRowSet is not None:
+                if next_row_set is not None:
                     # More synapses in file, push next pair to heap, and pop top pair
-                    synSet, uniqueID = nextRowSet
-                    (uniqueID, hID, synSet) = heapq.heappushpop(synapse_heap,
-                                                                (uniqueID, hID,
-                                                                 synSet))
+                    syn_set, unique_id = next_row_set
+                    (unique_id, h_id, syn_set) = heapq.heappushpop(synapse_heap,
+                                                                (unique_id, h_id,
+                                                                 syn_set))
                 elif len(synapse_heap) > 0:
-                    (uniqueID, hID, synSet) = heapq.heappop(synapse_heap)
+                    (unique_id, h_id, syn_set) = heapq.heappop(synapse_heap)
 
                 else:
                     done = True
                     continue
 
                 try:
-                    assert uniqueID >= oldUniqueID, "uniqueID should be increasing in file"
+                    assert unique_id >= old_unique_id, "uniqueID should be increasing in file"
                 except:
                     import traceback
                     tstr = traceback.format_exc()
@@ -2165,25 +2165,25 @@ class SnuddaPrune(object):
                     import pdb
                     pdb.set_trace()
 
-                self.buffer_merge_write(h5SynMat, synSet)
-                synCtr += synSet.shape[0]
-                loopCtr += 1
+                self.buffer_merge_write(h5_syn_mat, syn_set)
+                syn_ctr += syn_set.shape[0]
+                loop_ctr += 1
 
-            self.write_log("Worker synapses: " + str(synCtr) \
-                           + "/" + str(nTotal) \
+            self.write_log("Worker synapses: " + str(syn_ctr) \
+                           + "/" + str(n_total) \
                            + " (heap size: " + str(len(synapse_heap)) + ")")
 
-            self.write_log("Read " + str(synCtr) + " out of total " + str(nTotal) \
+            self.write_log("Read " + str(syn_ctr) + " out of total " + str(n_total) \
                            + " synapses")
 
-            self.buffer_merge_write(h5SynMat, flush=True)
+            self.buffer_merge_write(h5_syn_mat, flush=True)
 
             self.write_log("bigMergeHelper: done")
 
             # Close the hyper voxel files
-            for f in fileList:
+            for f in file_list:
                 try:
-                    fileList[f].close()
+                    file_list[f].close()
                 except:
                     import traceback
                     tstr = traceback.format_exc()
@@ -2195,7 +2195,7 @@ class SnuddaPrune(object):
 
             self.buffer_out_file.close()
 
-            return outputFileName, neuron_range, synCtr
+            return output_filename, neuron_range, syn_ctr
         except:
             import traceback
             tstr = traceback.format_exc()
