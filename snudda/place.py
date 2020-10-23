@@ -191,11 +191,11 @@ class SnuddaPlace(object):
                 assert "dMin" in vol_def, "You must specify dMin if using a mesh" \
                                           + " for volume " + str(volume_id)
 
-                if "mesh_bin_width" not in vol_def:
-                    self.write_log("No mesh_bin_width specified, using 1e-4")
+                if "meshBinWidth" not in vol_def:
+                    self.write_log("No meshBinWidth specified, using 1e-4")
                     mesh_bin_width = 1e-4
                 else:
-                    mesh_bin_width = vol_def["mesh_bin_width"]
+                    mesh_bin_width = vol_def["meshBinWidth"]
 
                 self.write_log("Using mesh_bin_width " + str(mesh_bin_width))
 
