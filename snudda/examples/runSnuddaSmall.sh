@@ -21,7 +21,7 @@ simName=networks/tinySim10
 
 #snudda init $simName --size 1760000
 #snudda init $simName --size 100000
-snudda init $simName --size 100 --overwrite
+snudda init $simName --size 1000 --overwrite
 
 snudda place $simName 
 #snudda detect $simName --hvsize 50 --volumeID Striatum

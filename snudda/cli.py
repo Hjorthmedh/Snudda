@@ -14,7 +14,7 @@ def snudda_cli():
       parser.add_argument("-cont", "--cont",help="Continue partial touch detection",
                           action="store_true")
       parser.add_argument("-hvsize", "--hvsize",help="Hyper voxel size, 100 good value for full striatum, for small runs, use smaller values to more evenly distribute the workload between workers")
-      parser.add_argument("--volume_id", help="Specify volume ID for detection step")
+      parser.add_argument("--volumeID", help="Specify volume ID for detection step")
       parser.add_argument("--mergeonly","--onlymerge", help="Only merge synapses in hyper voxels into a big file. Pre-processing to pruning, normally run before. This allows the user to run this separately.",action="store_true")
       parser.add_argument("--h5legacy",help="Use legacy hdf5 support",action="store_true")
       parser.add_argument("--profile",help="Run python cProfile",action="store_true")

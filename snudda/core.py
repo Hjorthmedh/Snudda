@@ -163,8 +163,8 @@ class Snudda(object):
         else:
             hyper_voxel_size = 100
 
-        if args.volume_id is not None:
-            volume_id = args.volume_id
+        if args.volumeID is not None:
+            volume_id = args.volumeID
         else:
             volume_id = None
 
