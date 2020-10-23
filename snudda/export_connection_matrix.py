@@ -1,77 +1,73 @@
 import numpy as np
 from .load import SnuddaLoad
 
+
 class SnuddaExportConnectionMatrix(object):
 
-  def __init__(self,inFile,outFile):
-      
-    self.sl = SnuddaLoad(inFile)
+    def __init__(self, in_file, out_file):
 
-    self.outFile = outFile
-    self.outFileMeta = outFile + "-meta"
+        self.sl = SnuddaLoad(in_file)
 
-    data = self.sl.data
-    
+        self.outFile = out_file
+        self.out_file_meta = out_file + "-meta"
 
-    conMat = self.createConMat()
-    neuronType = [x["type"] for x in data["neurons"]]
-    pos = data["neuronPositions"]
+        data = self.sl.data
 
-    print("Writing " + self.outFile + " (row = src, column=dest)")
-    np.savetxt(self.outFile, conMat, delimiter=",",fmt="%d")
+        con_mat = self.create_con_mat()
+        neuron_type = [x["type"] for x in data["neurons"]]
+        pos = data["neuronPositions"]
 
-    print("Writing " + self.outFileMeta)
-    with open(self.outFileMeta,"w") as fOutMeta:
-      for i,(nt,p) in enumerate(zip(neuronType,pos)):
-        s = "%d,%s,%f,%f,%f\n" % (i,nt,p[0],p[1],p[2])
-        fOutMeta.write(s)
-      fOutMeta.close()
-        
-    #import pdb
-    #pdb.set_trace()
+        print("Writing " + self.outFile + " (row = src, column=dest)")
+        np.savetxt(self.outFile, con_mat, delimiter=",", fmt="%d")
 
-  ############################################################################
+        print("Writing " + self.out_file_meta)
+        with open(self.out_file_meta, "w") as f_out_meta:
+            for i, (nt, p) in enumerate(zip(neuron_type, pos)):
+                s = "%d,%s,%f,%f,%f\n" % (i, nt, p[0], p[1], p[2])
+                f_out_meta.write(s)
+            f_out_meta.close()
 
-  def createConMat(self):
+        # import pdb
+        # pdb.set_trace()
 
-    nNeurons = self.sl.data["nNeurons"]
+    ############################################################################
 
-    conMat = np.zeros((nNeurons,nNeurons),dtype=int)
-    cnt = 0
-    pre,post = 0,0
-    
-    for synChunk in self.sl.synapseIterator(dataType="synapses"):
-      for syn in synChunk:
-        p1 = syn[0]
-        p2 = syn[1]
+    def create_con_mat(self):
 
-        if(p1 == pre and p2 == post):
-          cnt += 1
-        else:
-          conMat[pre,post] += cnt
-          pre = p1
-          post = p2
-          cnt = 1
-          
-    conMat[pre,post] += cnt
-    cnt = 0
+        num_neurons = self.sl.data["nNeurons"]
 
-    assert np.sum(np.sum(conMat)) == self.sl.data["nSynapses"], \
-      "Synapse numbers in connection matrix does not match"
-    
-    return conMat
-    
-    
+        con_mat = np.zeros((num_neurons, num_neurons), dtype=int)
+        cnt = 0
+        pre, post = 0, 0
+
+        for syn_chunk in self.sl.synapse_iterator(dataType="synapses"):
+            for syn in syn_chunk:
+                p1 = syn[0]
+                p2 = syn[1]
+
+                if p1 == pre and p2 == post:
+                    cnt += 1
+                else:
+                    con_mat[pre, post] += cnt
+                    pre = p1
+                    post = p2
+                    cnt = 1
+
+        con_mat[pre, post] += cnt
+        cnt = 0
+
+        assert np.sum(np.sum(con_mat)) == self.sl.data["nSynapses"], \
+            "Synapse numbers in connection matrix does not match"
+
+        return con_mat
+
+
 if __name__ == "__main__":
+    from argparse import ArgumentParser
 
-  from argparse import ArgumentParser
+    parser = ArgumentParser(description="Export connection matrix to CSV file")
+    parser.add_argument("inFile", help="Snudda HDF5 file with network")
+    parser.add_argument("outFile", help="CSV output file")
+    args = parser.parse_args()
 
-  parser = ArgumentParser(description="Export connection matrix to CSV file")
-  parser.add_argument("inFile",help="Snudda HDF5 file with network")
-  parser.add_argument("outFile",help="CSV output file")
-  args = parser.parse_args()
-
-  secm = SnuddaExportConnectionMatrix(args.inFile,args.outFile)
-
-  
-  
+    secm = SnuddaExportConnectionMatrix(args.inFile, args.outFile)

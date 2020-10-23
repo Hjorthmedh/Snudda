@@ -28,10 +28,10 @@ if __name__ == "__main__":
   cellSpecDir = "cellspecs.parkinson/" +str(args.level) + "/"
   
   configName= simName + "/network-config.json"
-  cnc = SnuddaInit(structDef={},configName=configName,nChannels=1)
-  cnc.defineStriatum(nMSD1=1500,nMSD2=1500,nFS=0,nLTS=0,nChIN=0,
-                     cellSpecDir=cellSpecDir,
-                     volumeType="cube")  
+  cnc = SnuddaInit(struct_def={}, config_name=configName, nChannels=1)
+  cnc.define_striatum(num_dSPN=1500, num_iSPN=1500, num_FS=0, num_LTS=0, num_ChIN=0,
+                      cell_spec_dir=cellSpecDir,
+                      volume_type="cube")
 
   # cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=100,nLTS=100,nChIN=0,volumeType="slice")
 
@@ -42,7 +42,7 @@ if __name__ == "__main__":
   if not os.path.exists(dirName):
     os.makedirs(dirName)
 
-  cnc.writeJSON(configName)
+  cnc.write_JSON(configName)
 
   if(not connectNeurons):
     print("Removing all target information, and rewriting config file")

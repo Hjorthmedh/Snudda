@@ -435,7 +435,7 @@ class SnuddaLoad(object):
 
     ############################################################################
 
-    def synapseIterator(self, chunk_size=1000000, dataType="synapses"):
+    def synapse_iterator(self, chunk_size=1000000, dataType="synapses"):
 
         type_str_dict = {"synapses": "network/synapses",
                        "gapJunctions": "network/gapJunctions"}
@@ -493,14 +493,14 @@ class SnuddaLoad(object):
         syn_ctr = 0
 
         if np.issubdtype(type(pre_id), np.integer):
-            for synList in self.synapseIterator():
+            for synList in self.synapse_iterator():
                 for syn in synList:
                     if syn[0] == pre_id:
                         synapses[syn_ctr, :] = syn
                         syn_ctr += 1
 
         else:
-            for synList in self.synapseIterator():
+            for synList in self.synapse_iterator():
                 for syn in synList:
                     if syn[0] in pre_id:
                         synapses[syn_ctr, :] = syn

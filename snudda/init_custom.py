@@ -24,12 +24,12 @@ if __name__ == "__main__":
   #simName = "networks/SynTest-v15"  
 
   configName= simName + "/network-config.json"
-  cnc = SnuddaInit(structDef={},configName=configName,nChannels=1)
+  cnc = SnuddaInit(struct_def={}, config_name=configName, nChannels=1)
   #cnc.defineStriatum(nMSD1=500,nMSD2=500,nFS=0,nLTS=0,nChIN=30,volumeType="cube")  
   #cnc.defineStriatum(nMSD1=120,nMSD2=120,nFS=20,nLTS=0,nChIN=0,volumeType="slice")
   #cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=10000,nLTS=0,nChIN=0,volumeType="slice")
   #cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=10000,nLTS=0,nChIN=0,volumeType="cube")
-  cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=100,nLTS=0,nChIN=0,volumeType="cube")
+  cnc.define_striatum(num_dSPN=0, num_iSPN=0, num_FS=100, num_LTS=0, num_ChIN=0, volume_type="cube")
   #cnc.defineStriatum(nMSD1=10,nMSD2=10,nFS=10,nLTS=10,nChIN=10,volumeType="slice")
   
   # cnc.defineStriatum(nMSD1=500,nMSD2=500,nFS=0,nLTS=0,nChIN=500,volumeType="cube")  
@@ -41,7 +41,7 @@ if __name__ == "__main__":
   if not os.path.exists(dirName):
     os.makedirs(dirName)
 
-  cnc.writeJSON(configName)
+  cnc.write_JSON(configName)
 
   if(not connectNeurons):
     print("Removing all target information, and rewriting config file")

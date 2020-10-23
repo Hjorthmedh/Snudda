@@ -121,16 +121,16 @@ class SnuddaCalibrateSynapses(object):
     from .init import SnuddaInit
 
     configName= simName + "/network-config.json"
-    cnc = SnuddaInit(structDef={},configName=configName,nChannels=1)
-    cnc.defineStriatum(nMSD1=nMSD1,nMSD2=nMSD2,nFS=nFS,nLTS=nLTS,nChIN=nChIN,
-                       volumeType="slice",sideLen=200e-6,sliceDepth=150e-6)
+    cnc = SnuddaInit(struct_def={}, config_name=configName, nChannels=1)
+    cnc.define_striatum(num_dSPN=nMSD1, num_iSPN=nMSD2, num_FS=nFS, num_LTS=nLTS, num_ChIN=nChIN,
+                        volume_type="slice", side_len=200e-6, slice_depth=150e-6)
 
     dirName = os.path.dirname(configName)
   
     if not os.path.exists(dirName):
       os.makedirs(dirName)
 
-    cnc.writeJSON(configName)
+    cnc.write_JSON(configName)
 
     
     print("\n\npython3 snudda.py place " + str(simName))

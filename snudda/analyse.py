@@ -324,7 +324,7 @@ class SnuddaAnalyse(object):
     rowCtr = 0
     nSynTotal = self.network["nSynapses"]
 
-    for synapses in self.networkLoad.synapseIterator(chunk_size=chunkSize):
+    for synapses in self.networkLoad.synapse_iterator(chunk_size=chunkSize):
 
       print("Synapse row " + str(rowCtr) \
             + " - " + str(100*rowCtr/float(nSynTotal)) + " %" \
@@ -2678,7 +2678,7 @@ class SnuddaAnalyse(object):
 
     lastSynPair = (np.nan, np.nan)
 
-    for synapses in self.networkLoad.synapseIterator():
+    for synapses in self.networkLoad.synapse_iterator():
       for synRow in synapses:
         preIdx = synRow[0]
         postIdx = synRow[1]

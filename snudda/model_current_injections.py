@@ -107,7 +107,7 @@ class SnuddaModelCurrentInjections(object):
       simType = self.simType
             
     configName= simName + "/network-config.json"
-    cnc = SnuddaInit(structDef={},configName=configName,nChannels=1)
+    cnc = SnuddaInit(struct_def={}, config_name=configName, nChannels=1)
 
     # In a 1x1x0.15 mm slice there are 12000 neurons normally
     # We want 10% of MS population only, since those are the ones being
@@ -126,48 +126,48 @@ class SnuddaModelCurrentInjections(object):
       #                   volumeType="slice",sideLen=200e-6)
       #cnc.defineStriatum(nMSD1=20,nMSD2=20,nFS=10,nLTS=0,nChIN=10,
       #                   volumeType="slice",sideLen=200e-6)
-      cnc.defineStriatum(nMSD1=153,nMSD2=153,nFS=10,nLTS=0,nChIN=10,
-                         volumeType="slice",sideLen=500e-6)    
+      cnc.define_striatum(num_dSPN=153, num_iSPN=153, num_FS=10, num_LTS=0, num_ChIN=10,
+                          volume_type="slice", side_len=500e-6)
 
 
 
     if(simType == "Chuhma2011"):
-      cnc.defineStriatum(nMSD1=1140+self.nNrns,
-                         nMSD2=1140+self.nNrns,
-                         nFS=5,
-                         nLTS=0,
-                         nChIN=self.nNrns,
-                         volumeType="slice",
-                         sideLen=1000e-6,
-                         sliceDepth=300e-6) # 400mum, assume 100 mum dead    
+      cnc.define_striatum(num_dSPN=1140 + self.nNrns,
+                          num_iSPN=1140 + self.nNrns,
+                          num_FS=5,
+                          num_LTS=0,
+                          num_ChIN=self.nNrns,
+                          volume_type="slice",
+                          side_len=1000e-6,
+                          slice_depth=300e-6) # 400mum, assume 100 mum dead
 
     elif(simType == "Straub2016FS"):
       # nFS must be correct density, but readout neurons can be any density
-      cnc.defineStriatum(nMSD1=self.nNrns,
-                         nMSD2=self.nNrns,
-                         nFS=182, nLTS=0,
-                         nChIN=self.nNrns,
-                         volumeType="slice",
-                         sideLen=1000e-6,
-                         sliceDepth=175e-6)  #275e-6 m slice, assume 100e-6 dead
+      cnc.define_striatum(num_dSPN=self.nNrns,
+                          num_iSPN=self.nNrns,
+                          num_FS=182, num_LTS=0,
+                          num_ChIN=self.nNrns,
+                          volume_type="slice",
+                          side_len=1000e-6,
+                          slice_depth=175e-6)  #275e-6 m slice, assume 100e-6 dead
 
     elif(simType == "Straub2016LTS"):
-      cnc.defineStriatum(nMSD1=self.nNrns,
-                         nMSD2=self.nNrns,
-                         nFS=0,nLTS=98,
-                         nChIN=self.nNrns,
-                         volumeType="slice",
-                         sideLen=1000e-6,
-                         sliceDepth=175e-6)    
+      cnc.define_striatum(num_dSPN=self.nNrns,
+                          num_iSPN=self.nNrns,
+                          num_FS=0, num_LTS=98,
+                          num_ChIN=self.nNrns,
+                          volume_type="slice",
+                          side_len=1000e-6,
+                          slice_depth=175e-6)
     elif(simType == "Szydlowski2013"):
-      cnc.defineStriatum(nMSD1=0,
-                         nMSD2=0,
-                         nFS=156,
-                         nLTS=self.nNrns,
-                         nChIN=0,
-                         volumeType="slice",
-                         sideLen=1000e-6,
-                         sliceDepth=150e-6)          
+      cnc.define_striatum(num_dSPN=0,
+                          num_iSPN=0,
+                          num_FS=156,
+                          num_LTS=self.nNrns,
+                          num_ChIN=0,
+                          volume_type="slice",
+                          side_len=1000e-6,
+                          slice_depth=150e-6)
     else:
       print("setup : Unkown simType: " + str(simType))
       exit(-1)
@@ -177,7 +177,7 @@ class SnuddaModelCurrentInjections(object):
     if not os.path.exists(dirName):
       os.makedirs(dirName)
 
-    cnc.writeJSON(configName)
+    cnc.write_JSON(configName)
 
   ############################################################################
 
@@ -378,9 +378,9 @@ class SnuddaModelCurrentInjections(object):
     args = FakeArgs()
     
     
-    sn.placeNeurons(args)
-    sn.touchDetection(args)
-    sn.pruneSynapses(args)
+    sn.place_neurons(args)
+    sn.touch_detection(args)
+    sn.prune_synapses(args)
 
   ############################################################################
 

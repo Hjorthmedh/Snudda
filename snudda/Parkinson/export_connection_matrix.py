@@ -40,7 +40,7 @@ class SnuddaExportConnectionMatrix(object):
     cnt = 0
     pre,post = 0,0
     
-    for synChunk in self.sl.synapseIterator(dataType="synapses"):
+    for synChunk in self.sl.synapse_iterator(dataType="synapses"):
       for syn in synChunk:
         p1 = syn[0]
         p2 = syn[1]

@@ -18,7 +18,7 @@ def snudda_cli():
       parser.add_argument("--mergeonly","--onlymerge", help="Only merge synapses in hyper voxels into a big file. Pre-processing to pruning, normally run before. This allows the user to run this separately.",action="store_true")
       parser.add_argument("--h5legacy",help="Use legacy hdf5 support",action="store_true")
       parser.add_argument("--profile",help="Run python cProfile",action="store_true")
-      parser.add_argument("--nPopulationUnits",type=int,help="Number of Population Units in the structure, affects connectivity and input correlation",default=1)
+      parser.add_argument("--NumPopulationUnits",type=int,help="Number of Population Units in the structure, affects connectivity and input correlation",default=1)
       parser.add_argument("--PopulationUnitCentres",help="A list which defines the population unit centres",default="[[]]")
       parser.add_argument("--PopulationUnitRadius",type=float,help="Radius of population units",default=1)
       parser.add_argument("--input",help="Input json config file (for input setup)")
@@ -52,16 +52,16 @@ def snudda_cli():
 
       snudda = Snudda(args.path)
 
-      actions = { "init" : snudda.initConfig,
-                  "place" : snudda.placeNeurons,
-                  "detect" : snudda.touchDetection,
-                  "prune" : snudda.pruneSynapses,
-                  "input" : snudda.setupInput,
-                  "export" : snudda.exportToSONATA,
-                  "convert" : snudda.exportToSONATA,
+      actions = { "init" : snudda.init_config,
+                  "place" : snudda.place_neurons,
+                  "detect" : snudda.touch_detection,
+                  "prune" : snudda.prune_synapses,
+                  "input" : snudda.setup_input,
+                  "export" : snudda.export_to_SONATA,
+                  "convert" : snudda.export_to_SONATA,
                   "analyse" : snudda.analyse,
                   "simulate" : snudda.simulate,
-                  "help" : snudda.helpInfo,
+                  "help" : snudda.help_info,
                   "create" : create_project}
 
 
