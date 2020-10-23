@@ -55,7 +55,7 @@ class SnuddaCut(object):
     
     if(False):
       self.inFile.close()
-      self.outFile.close()
+      self.out_file.close()
 
     
     

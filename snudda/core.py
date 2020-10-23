@@ -250,13 +250,13 @@ class Snudda(object):
     else:
       h5libver = "latest" # default
 
-    ncvp = SnuddaPrune(workHistoryFile=workLog,
-                       logFile=self.logFile,
-                       logFileName=logFileName,
-                       dView=self.dView, lbView=self.lbView,
-                       scratchPath=scratchPath,
+    ncvp = SnuddaPrune(work_history_file=workLog,
+                       logfile=self.logFile,
+                       logfile_name=logFileName,
+                       d_view=self.dView, lb_view=self.lbView,
+                       scratch_path=scratchPath,
                        h5libver=h5libver,
-                       preMergeOnly=preMergeOnly)
+                       pre_merge_only=preMergeOnly)
 
     self.stopParallel()
     self.closeLogFile()
