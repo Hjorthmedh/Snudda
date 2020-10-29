@@ -29,7 +29,7 @@
 import os
 
 from snudda.simulate import SnuddaSimulate
-from snudda.load import SnuddaLoad
+from snudda.load import Snuddaload
 from snudda.init import SnuddaInit
 from snudda import Snudda
 
@@ -497,7 +497,7 @@ class SnuddaModelCurrentInjections(object):
 
     # Read the network info
     networkFile = simName + "/network-pruned-synapses.hdf5"    
-    self.snuddaLoad = SnuddaLoad(networkFile)
+    self.snuddaLoad = Snuddaload(networkFile)
     self.data = self.snuddaLoad.data
     
     recordedNeurons = [x for x in current]

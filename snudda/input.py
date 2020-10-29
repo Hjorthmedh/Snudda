@@ -24,7 +24,7 @@ import itertools
 import matplotlib.pyplot as plt
 
 from .Neuron_morphology import NeuronMorphology
-from .load import SnuddaLoad
+from .load import Snuddaload
 
 nl = None
 
@@ -714,7 +714,7 @@ class SnuddaInput(object):
 
         self.write_log("Reading neuron postions")
 
-        pos_info = SnuddaLoad(self.position_file).data
+        pos_info = Snuddaload(self.position_file).data
         self.network_info = pos_info
         self.neuron_info = pos_info["neurons"]
 

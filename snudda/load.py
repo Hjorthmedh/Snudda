@@ -6,7 +6,7 @@ import os
 from glob import glob
 
 
-class SnuddaLoad(object):
+class Snuddaload(object):
 
     ############################################################################
 
@@ -678,7 +678,7 @@ if __name__ == "__main__":
     else:
         loadSynapses = True
 
-    nl = SnuddaLoad(args.networkFile, loadSynapses=loadSynapses)
+    nl = Snuddaload(args.networkFile, loadSynapses=loadSynapses)
 
     if args.listN:
         print("Neurons in network: ")

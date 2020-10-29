@@ -51,7 +51,7 @@ import os
 import glob
 import numpy as np
 from snudda.simulate import SnuddaSimulate
-from snudda.load import SnuddaLoad
+from snudda.load import Snuddaload
 import matplotlib
 import matplotlib.pyplot as plt
 import neuron
@@ -305,7 +305,7 @@ class SnuddaCalibrateSynapses(object):
       maxDist = self.maxDist
     
     # Read the data
-    self.snuddaLoad = SnuddaLoad(self.networkFile)
+    self.snuddaLoad = Snuddaload(self.networkFile)
     self.data = self.snuddaLoad.data
 
     time,voltage = self.readVoltage(self.voltFile) # sets self.voltage

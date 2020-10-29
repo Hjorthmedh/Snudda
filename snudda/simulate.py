@@ -182,8 +182,8 @@ class SnuddaSimulate(object):
         self.write_log("Worker " + str(int(self.pc.id()))
                        + ": Loading network from " + network_file)
 
-        from snudda.load import SnuddaLoad
-        self.snudda_loader = SnuddaLoad(network_file)
+        from snudda.load import Snuddaload
+        self.snudda_loader = Snuddaload(network_file)
         self.network_info = self.snudda_loader.data
 
         self.synapses = self.network_info["synapses"]

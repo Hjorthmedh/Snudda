@@ -11,7 +11,7 @@
 import os
 import h5py
 import numpy as np
-from .load import SnuddaLoad
+from .load import Snuddaload
 import time
 
 

@@ -18,3021 +18,2911 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from mpl_toolkits.mplot3d import Axes3D
 
+from .load import Snuddaload
 
-
-from .load import SnuddaLoad
 
 # !!! We need to parallelise the analysis script also!
 
 class SnuddaAnalyse(object):
 
-  # saveCache = should we save a pickled file with connection matrix?
-  # loadCache = should we load cache file if available
-  # lowMemory = if false, uses dense matrix which is faster (assuming lots of memory)
+    # saveCache = should we save a pickled file with connection matrix?
+    # loadCache = should we load cache file if available
+    # lowMemory = if false, uses dense matrix which is faster (assuming lots of memory)
 
-  def __init__(self,
-               hdf5File=None,
-               loadCache=False,
-               saveCache=True,
-               lowMemory=False,
-               sideLen=250e-6,
-               volumeType="cube",
-               nMaxAnalyse=None,
-               showPlots=False,
-               closePlots=True): # "cube" or "full"
+    def __init__(self,
+                 hdf5_file=None,
+                 load_cache=False,
+                 save_cache=True,
+                 low_memory=False,
+                 side_len=250e-6,
+                 volume_type="cube",
+                 n_max_analyse=None,
+                 show_plots=False,
+                 close_plots=True):  # "cube" or "full"
 
-    self.debug = False
-    self.showPlots = showPlots
+        self.debug = False
+        self.show_plots = show_plots
 
-    print("Assuming volume type: " + str(volumeType) \
-          + "[cube or full]")
+        print("Assuming volume type: " + str(volume_type) \
+              + "[cube or full]")
 
-    self.volumeType = volumeType
-    self.closePlots = closePlots
+        self.volume_type = volume_type
+        self.close_plots = close_plots
 
-    if(nMaxAnalyse is None):
-      if(volumeType == "cube"):
-        nMaxAnalyse = 20000
-      elif(volumeType == "full"):
-        nMaxAnalyse = 20000
+        if n_max_analyse is None:
+            if volume_type == "cube":
+                n_max_analyse = 20000
+            elif volume_type == "full":
+                n_max_analyse = 20000
 
-    print("Only using " + str(nMaxAnalyse) + "neurons of the connection data")
+        print("Only using " + str(n_max_analyse) + "neurons of the connection data")
 
-    self.nMaxAnalyse = nMaxAnalyse
+        self.num_max_analyse = n_max_analyse
 
-    if(hdf5File is None or hdf5File == "last"):
-      hdf5File = self.findLatestFile()
+        self.populations = None
+        self.dend_position_bin = None
+        self.allTypes = None
+        self.neuronTypeID = None
 
-    self.figDir = os.path.dirname(hdf5File) + "/figures"
-    if(not os.path.exists(self.figDir)):
-      os.makedirs(self.figDir)
+        if hdf5_file is None or hdf5_file == "last":
+            hdf5_file = self.find_latest_file()
 
+        self.fig_dir = os.path.dirname(hdf5_file) + "/figures"
+        if not os.path.exists(self.fig_dir):
+            os.makedirs(self.fig_dir)
 
-    # First load all data but synapses
-    self.networkLoad = SnuddaLoad(hdf5File,loadSynapses=False)
-    self.network = self.networkLoad.data
+        # First load all data but synapses
+        self.network_load = Snuddaload(hdf5_file, loadSynapses=False)
+        self.network = self.network_load.data
 
-    if("config" in self.network):
-      self.config = json.loads(self.network["config"])
-    self.sideLen = sideLen
+        if "config" in self.network:
+            self.config = json.loads(self.network["config"])
+        self.side_len = side_len
 
-    self.lowMemory = lowMemory
+        self.low_memory = low_memory
 
-    self.neuronNameRemap = {"FSN" : "FS"}
+        self.neuron_name_remap = {"FSN": "FS"}
 
-    cacheLoaded = False
-    if(loadCache):
-      try:
-        cacheLoaded = self.loadCacheData(hdf5File)
-      except:
-        import traceback
-        tstr = traceback.format_exc()
-        print(tstr)
-        assert not cacheLoaded, "Load failed, cacheLoaded flag should be False"
+        cache_loaded = False
+        if load_cache:
+            try:
+                cache_loaded = self.load_cache_data(hdf5_file)
+            except:
+                import traceback
+                tstr = traceback.format_exc()
+                print(tstr)
+                assert not cache_loaded, "Load failed, cacheLoaded flag should be False"
 
-    self.data = h5py.File(hdf5File,'r')
+        self.data = h5py.File(hdf5_file, 'r')
 
-    if(not cacheLoaded):
-      self.nNeurons = self.network["nNeurons"]
-      print("Number of neurons: " + str(self.nNeurons))
+        if not cache_loaded:
+            self.num_neurons = self.network["nNeurons"]
+            print("Number of neurons: " + str(self.num_neurons))
 
-      # GABA connection matrix (synType = 1) (ignore AMPA/NMDA = 2, GJ = 3)
+            # GABA connection matrix (synType = 1) (ignore AMPA/NMDA = 2, GJ = 3)
+            # self.connectionMatrix = self.createConnectionMatrix(synType=1,
+            #                                                    lowMemory=lowMemory)
 
-      #self.connectionMatrix = self.createConnectionMatrix(synType=1,
-      #                                                    lowMemory=lowMemory)
+            self.connection_matrix = self.create_connection_matrix(low_memory=low_memory)
+            self.connection_matrix_gj = self.create_connection_matrix_gj()
 
-      self.connectionMatrix = self.createConnectionMatrix(lowMemory=lowMemory)
-      self.connectionMatrixGJ = self.createConnectionMatrixGJ()
+            # self.connectionMatrix = self.createConnectionMatrixSLOW(synType=1)
+            self.make_pop_dict()
+            self.positions = self.network["neuronPositions"]
 
-      #self.connectionMatrix = self.createConnectionMatrixSLOW(synType=1)
-      self.makePopDict()
-      self.positions = self.network["neuronPositions"]
+            self.synapse_dist()
 
-      self.synapseDist()
+            if save_cache:
+                self.save_cache_data(hdf5_file)
 
+        self.worker_data = []
 
-      if(saveCache):
-        self.saveCacheData(hdf5File)
+        self.neuron_colors = {"dSPN": (77. / 255, 151. / 255, 1.0),
+                              "iSPN": (67. / 255, 55. / 255, 181. / 255),
+                              "FSN": (6. / 255, 31. / 255, 85. / 255),
+                              "ChIN": (252. / 266, 102. / 255, 0.0),
+                              "LTS": (150. / 255, 63. / 255, 212. / 255),
+                              "default": [0.4, 0.4, 0.4]}
 
-    self.workerData = []
+    ############################################################################
 
-    self.neuronColors = {"dSPN" : (77./255,151./255,1.0),
-                         "iSPN" : (67./255,55./255,181./255),
-                         "FSN"  : (6./255,31./255,85./255),
-                         "ChIN" : (252./266,102./255,0.0),
-                         "LTS"  : (150./255,63./255,212./255),
-                         "default" : [0.4, 0.4, 0.4] }
+    def neuron_name(self, neuron_type):
 
-  ############################################################################
+        if neuron_type in self.neuron_name_remap:
+            return self.neuron_name_remap[neuron_type]
+        else:
+            return neuron_type
 
-  def neuronName(self,neuronType):
+    ############################################################################
 
-    if(neuronType in self.neuronNameRemap):
-      return self.neuronNameRemap[neuronType]
-    else:
-      return neuronType
+    def get_neuron_color(self, neuron_type):
 
-  ############################################################################
+        if neuron_type in self.neuron_colors:
+            return self.neuron_colors[neuron_type]
+        else:
+            return self.neuron_colors["default"]
 
-  def getNeuronColor(self,neuronType):
+    ############################################################################
 
-    if(neuronType in self.neuronColors):
-      return self.neuronColors[neuronType]
-    else:
-      return self.neuronColors["default"]
+    # Reading the HDF5 files takes a lot of time, this stores a cached copy
+    # of the connection matrix, positions and populations
 
-  ############################################################################
+    def save_cache_data(self, hdf5_file):
 
-  # Reading the HDF5 files takes a lot of time, this stores a cached copy
-  # of the connection matrix, positions and populations
+        import h5py
 
-  def saveCacheData(self,hdf5File):
+        cache_file = hdf5_file + "-cache"
 
-    import h5py
+        print("Saving cache to " + cache_file)
+        out_file = h5py.File(cache_file, 'w', libver='latest')
 
-    cacheFile = hdf5File + "-cache"
+        # Connection Matrix
+        out_file.create_dataset("conMat_data", data=self.connection_matrix.data,
+                                compression='gzip')
+        out_file.create_dataset("conMat_indices",
+                                data=self.connection_matrix.indices,
+                                compression='gzip')
+        out_file.create_dataset("conMat_indptr",
+                                data=self.connection_matrix.indptr,
+                                compression='gzip')
+        out_file.create_dataset("conMat_shape",
+                                data=self.connection_matrix.shape)
 
-    print("Saving cache to " + cacheFile    )
-    outFile = h5py.File(cacheFile,'w',libver='latest')
+        # GJ connection matrix
+        out_file.create_dataset("conMatGJ_data", data=self.connection_matrix_gj.data,
+                                compression='gzip')
+        out_file.create_dataset("conMatGJ_indices",
+                                data=self.connection_matrix_gj.indices,
+                                compression='gzip')
+        out_file.create_dataset("conMatGJ_indptr",
+                                data=self.connection_matrix_gj.indptr,
+                                compression='gzip')
+        out_file.create_dataset("conMatGJ_shape",
+                                data=self.connection_matrix_gj.shape)
 
-    # Connection Matrix
-    outFile.create_dataset("conMat_data",data=self.connectionMatrix.data, \
-                           compression='gzip')
-    outFile.create_dataset("conMat_indices", \
-                           data=self.connectionMatrix.indices, \
-                           compression='gzip')
-    outFile.create_dataset("conMat_indptr", \
-                           data=self.connectionMatrix.indptr, \
-                           compression='gzip')
-    outFile.create_dataset("conMat_shape", \
-                           data=self.connectionMatrix.shape)
+        pop_group = out_file.create_group("populations")
+        for k in self.populations:
+            v = self.populations[k]
+            pop_group.create_dataset(k, data=v)
 
-    # GJ connection matrix
-    outFile.create_dataset("conMatGJ_data",data=self.connectionMatrixGJ.data, \
-                           compression='gzip')
-    outFile.create_dataset("conMatGJ_indices", \
-                           data=self.connectionMatrixGJ.indices, \
-                           compression='gzip')
-    outFile.create_dataset("conMatGJ_indptr", \
-                           data=self.connectionMatrixGJ.indptr, \
-                           compression='gzip')
-    outFile.create_dataset("conMatGJ_shape", \
-                           data=self.connectionMatrixGJ.shape)
-
-
-    popGroup = outFile.create_group("populations")
-    for k in self.populations:
-      v = self.populations[k]
-      popGroup.create_dataset(k,data=v)
-
-    outFile["nNeurons"] = self.nNeurons
-    outFile.create_dataset("positions",data=self.positions)
-
-    try:
-
-      dendPosBin = dict([])
-      for prePost in self.dendPositionBin:
-        pp = self.allTypes[prePost[0]] + "_" + self.allTypes[prePost[1]]
-        dendPosBin[pp] = list(self.dendPositionBin[prePost])
-
-      outFile.create_dataset("dendPositionBin", \
-                             data=json.dumps(dendPosBin))
-      outFile.create_dataset("dendPositionEdges", \
-                             data=self.dendPositionEdges)
-
-      allTypes = [x.encode("ascii","ignore") for x in self.allTypes]
-      outFile.create_dataset("allTypes",
-                             data=allTypes)
-      outFile.create_dataset("neuronTypeID",data=self.neuronTypeID)
-
-      outFile.create_dataset("nMaxAnalyse",data=self.nMaxAnalyse)
-
-    except Exception as e:
-
-      import traceback
-      tstr = traceback.format_exc()
-      print(tstr)
-
-      print("Problem with writing hdf5")
-      import pdb
-      pdb.set_trace()
-
-    outFile.close()
-
-  ############################################################################
-
-  def loadCacheData(self,hdf5File):
-
-    import os
-    import h5py
-
-    cacheFile = hdf5File + "-cache"
-    dataLoaded = False
-
-    if(os.path.exists(cacheFile)):
-      tOrig = os.path.getmtime(hdf5File)
-      tCache = os.path.getmtime(cacheFile)
-
-      # Make sure cache file is newer than data file
-      if(tCache > tOrig):
-        print("Loading from " + cacheFile)
+        out_file["nNeurons"] = self.num_neurons
+        out_file.create_dataset("positions", data=self.positions)
 
         try:
-          with h5py.File(cacheFile,'r') as data:
 
-            assert self.nMaxAnalyse == data["nMaxAnalyse"][()], \
-              "nMaxAnalyse has changed, have to reload connection matrix"
+            dend_pos_bin = dict([])
+            for prePost in self.dend_position_bin:
+                pp = self.allTypes[prePost[0]] + "_" + self.allTypes[prePost[1]]
+                dend_pos_bin[pp] = list(self.dend_position_bin[prePost])
 
-            self.connectionMatrix = sps.csr_matrix((data["conMat_data"], \
-                                                    data["conMat_indices"], \
-                                                    data["conMat_indptr"]),
-                                                    data["conMat_shape"])
+            out_file.create_dataset("dendPositionBin",
+                                    data=json.dumps(dend_pos_bin))
+            out_file.create_dataset("dendPositionEdges",
+                                    data=self.dend_position_edges)
 
-            self.connectionMatrixGJ = sps.csr_matrix((data["conMatGJ_data"], \
-                                                    data["conMatGJ_indices"], \
-                                                    data["conMatGJ_indptr"]),
-                                                    data["conMatGJ_shape"])
+            all_types = [x.encode("ascii", "ignore") for x in self.allTypes]
+            out_file.create_dataset("allTypes",
+                                   data=all_types)
+            out_file.create_dataset("neuronTypeID", data=self.neuronTypeID)
 
-            self.populations = dict([])
-
-            for k in data["populations"].keys():
-              self.populations[k] = data["populations"][k][:]
-
-              self.nNeurons = data["nNeurons"][()]
-              self.positions = data["positions"][:]
-
-            dendPosBin = json.loads(data["dendPositionBin"][()])
-            self.dendPositionBin = dict([])
-
-            allTypes = list(data["allTypes"][()])
-            self.allTypes = [x.decode() for x in allTypes]
-            self.neuronTypeID = data["neuronTypeID"][()]
-
-            for pp in dendPosBin:
-              str = pp.split("_")
-              preType = self.allTypes.index(str[0])
-              postType = self.allTypes.index(str[1])
-
-              self.dendPositionBin[(preType,postType)] \
-                = np.array(dendPosBin[pp])
-
-            self.dendPositionEdges = data["dendPositionEdges"][()]
-
-            #import pdb
-            #pdb.set_trace()
-
-          dataLoaded = True
-          print("Loading done.")
+            out_file.create_dataset("nMaxAnalyse", data=self.num_max_analyse)
 
         except Exception as e:
-          import traceback
-          tstr = traceback.format_exc()
-          print(tstr)
-          print("Failed to load cache file.")
-          dataLoaded = False
-          #import pdb
-          #pdb.set_trace()
 
-    return dataLoaded
+            import traceback
+            tstr = traceback.format_exc()
+            print(tstr)
 
-  ############################################################################
+            print("Problem with writing hdf5")
+            import pdb
+            pdb.set_trace()
 
-  def createConnectionMatrix(self,chunkSize=1000000, \
-                             synType=None,
-                             minDendDist=None,
-                             maxDendDist=None,
-                             lowMemory=False):
+        out_file.close()
 
-    t0 = timeit.default_timer()
+    ############################################################################
 
-    if(lowMemory):
-      print("Trying to conserve memory, this is slower.")
-      connectionMatrix = sps.lil_matrix((self.nNeurons,self.nNeurons),\
-                                        dtype=np.int16)
-    else:
-      try:
-        connectionMatrix = np.zeros((self.nNeurons,self.nNeurons),\
-                                    dtype=np.int16)
-      except:
-        print("Unable to allocate full matrix, using sparse matrix instead")
-        connectionMatrix = sps.lil_matrix((self.nNeurons,self.nNeurons),\
-                                          dtype=np.int16)
-    lastSrcID = 0
-    lastDestID = 0
-    lastCount = 0
+    def load_cache_data(self, hdf5_file):
 
-    rowCtr = 0
-    nSynTotal = self.network["nSynapses"]
+        import os
+        import h5py
 
-    for synapses in self.networkLoad.synapse_iterator(chunk_size=chunkSize):
+        cache_file = hdf5_file + "-cache"
+        data_loaded = False
 
-      print("Synapse row " + str(rowCtr) \
-            + " - " + str(100*rowCtr/float(nSynTotal)) + " %" \
-            + " time: " + str(timeit.default_timer()-t0) + " seconds")
+        if os.path.exists(cache_file):
+            t_orig = os.path.getmtime(hdf5_file)
+            t_cache = os.path.getmtime(cache_file)
 
-      for synRow in synapses:
+            # Make sure cache file is newer than data file
+            if t_cache > t_orig:
+                print("Loading from " + cache_file)
 
-        rowCtr += 1
+                try:
+                    with h5py.File(cache_file, 'r') as data:
 
-        srcID = synRow[0]
-        destID = synRow[1] # New format!
-        dendDist = synRow[8]
+                        assert self.num_max_analyse == data["nMaxAnalyse"][()], \
+                            "nMaxAnalyse has changed, have to reload connection matrix"
 
-        if((minDendDist is not None and dendDist < minDendDist)
-           or (maxDendDist is not None and dendDist > maxDendDist)):
-           # Not correct distance to soma on dendrite
-           continue
+                        self.connection_matrix = sps.csr_matrix((data["conMat_data"],
+                                                                 data["conMat_indices"],
+                                                                 data["conMat_indptr"]),
+                                                                data["conMat_shape"])
 
-        if(synType is None or synType == synRow[6]):
-          # Only include specific synapse type
+                        self.connection_matrix_gj = sps.csr_matrix((data["conMatGJ_data"],
+                                                                    data["conMatGJ_indices"],
+                                                                    data["conMatGJ_indptr"]),
+                                                                   data["conMatGJ_shape"])
 
-          if(lastSrcID == srcID and lastDestID == destID):
-            lastCount += 1
-          else:
-            # Write the previous set of synapses to matrix
-            # For first iteration of loop, lastCount is zero
-            connectionMatrix[lastSrcID,lastDestID] += lastCount
+                        self.populations = dict([])
 
-            lastSrcID = srcID
-            lastDestID = destID
-            lastCount = 1
+                        for k in data["populations"].keys():
+                            self.populations[k] = data["populations"][k][:]
 
-          # connectionMatrix[srcID,destID] += 1
+                            self.num_neurons = data["nNeurons"][()]
+                            self.positions = data["positions"][:]
 
-    # Update the last row also
-    connectionMatrix[lastSrcID,lastDestID] += lastCount
-    lastCount = 0
+                        dend_pos_bin = json.loads(data["dendPositionBin"][()])
+                        self.dend_position_bin = dict([])
 
-    t1 = timeit.default_timer()
+                        all_types = list(data["allTypes"][()])
+                        self.allTypes = [x.decode() for x in all_types]
+                        self.neuronTypeID = data["neuronTypeID"][()]
 
-    print("Created connection matrix " + str(t1-t0) + " seconds")
+                        for pp in dend_pos_bin:
+                            p_str = pp.split("_")
+                            pre_type = self.allTypes.index(p_str[0])
+                            post_type = self.allTypes.index(p_str[1])
 
-    return sps.csr_matrix(connectionMatrix,dtype=np.int16)
+                            self.dend_position_bin[(pre_type, post_type)] \
+                                = np.array(dend_pos_bin[pp])
 
+                        self.dend_position_edges = data["dendPositionEdges"][()]
 
-  ############################################################################
+                        # import pdb
+                        # pdb.set_trace()
 
-  def createConnectionMatrixGJ(self):
+                    data_loaded = True
+                    print("Loading done.")
 
-    t0 = timeit.default_timer()
+                except Exception as e:
+                    import traceback
+                    tstr = traceback.format_exc()
+                    print(tstr)
+                    print("Failed to load cache file.")
+                    data_loaded = False
+                    # import pdb
+                    # pdb.set_trace()
 
-    connectionMatrixGJ = sps.lil_matrix((self.nNeurons,self.nNeurons),\
-                                        dtype=np.int16)
+        return data_loaded
 
-    lastSrcID = 0
-    lastDestID = 0
-    lastCount = 0
+    ############################################################################
 
-    rowCtr = 0
-    nGJTotal = self.network["nGapJunctions"]
+    def create_connection_matrix(self, chunk_size=1000000,
+                                 syn_type=None,
+                                 min_dend_dist=None,
+                                 max_dend_dist=None,
+                                 low_memory=False):
 
-    for gjList in self.networkLoad.gap_junction_iterator(chunk_size=100000):
-      print("GJ row : " + str(rowCtr) \
-            + " - " + str(100*rowCtr/float(nGJTotal)) + " % " \
-            + " time : " + str(timeit.default_timer()-t0) + " seconds")
+        t0 = timeit.default_timer()
 
-      for gjRow in gjList:
-        rowCtr += 1
-
-        srcID = gjRow[0]
-        destID = gjRow[1]
-
-        if(lastSrcID == srcID and lastDestID == destID):
-          lastCount += 1
+        if low_memory:
+            print("Trying to conserve memory, this is slower.")
+            connection_matrix = sps.lil_matrix((self.num_neurons, self.num_neurons),
+                                              dtype=np.int16)
         else:
-          connectionMatrixGJ[lastSrcID,lastDestID] += lastCount
+            try:
+                connection_matrix = np.zeros((self.num_neurons, self.num_neurons),
+                                            dtype=np.int16)
+            except:
+                print("Unable to allocate full matrix, using sparse matrix instead")
+                connection_matrix = sps.lil_matrix((self.num_neurons, self.num_neurons),
+                                                  dtype=np.int16)
+        last_src_id = 0
+        last_dest_id = 0
+        last_count = 0
 
-          lastSrcID = srcID
-          lastDestID = destID
-          lastCount = 1
+        row_ctr = 0
+        num_syn_total = self.network["nSynapses"]
 
-      connectionMatrixGJ[lastSrcID,lastDestID] += lastCount
-      lastCount = 0
+        for synapses in self.network_load.synapse_iterator(chunk_size=chunk_size):
 
-    t1 = timeit.default_timer()
-    print("Created gap junction connection matrix " + str(t1-t0) + " seconds")
+            print("Synapse row " + str(row_ctr) \
+                  + " - " + str(100 * row_ctr / float(num_syn_total)) + " %" \
+                  + " time: " + str(timeit.default_timer() - t0) + " seconds")
 
-    return sps.csr_matrix(connectionMatrixGJ,dtype=np.int16)
+            for synRow in synapses:
 
-  ############################################################################
+                row_ctr += 1
 
-  def makePopDict(self):
+                src_id = synRow[0]
+                dest_id = synRow[1]  # New format!
+                dend_dist = synRow[8]
 
-    print("Creating population dictionary")
+                if ((min_dend_dist is not None and dend_dist < min_dend_dist)
+                        or (max_dend_dist is not None and dend_dist > max_dend_dist)):
+                    # Not correct distance to soma on dendrite
+                    continue
 
-    self.populations = dict([])
+                if syn_type is None or syn_type == synRow[6]:
+                    # Only include specific synapse type
 
-    for nid,neuron in enumerate(self.network["neurons"]):
+                    if last_src_id == src_id and last_dest_id == dest_id:
+                        last_count += 1
+                    else:
+                        # Write the previous set of synapses to matrix
+                        # For first iteration of loop, lastCount is zero
+                        connection_matrix[last_src_id, last_dest_id] += last_count
 
-      assert(nid == neuron["neuronID"])
-      name = neuron["name"].split("_")[0]
+                        last_src_id = src_id
+                        last_dest_id = dest_id
+                        last_count = 1
 
-      if(name not in self.populations):
-        self.populations[name] = []
+                    # connectionMatrix[srcID,destID] += 1
 
-      self.populations[name].append(neuron["neuronID"])
+        # Update the last row also
+        connection_matrix[last_src_id, last_dest_id] += last_count
+        last_count = 0
 
-    print("Done.")
+        t1 = timeit.default_timer()
 
-  ############################################################################
+        print("Created connection matrix " + str(t1 - t0) + " seconds")
 
-  def getSubPop(self,volumeType="cube",volumePart="centre",sideLen=None,
-                neuronID=None,volumeID="Striatum",nMaxAnalyse=None):
+        return sps.csr_matrix(connection_matrix, dtype=np.int16)
 
-    # print("volumeType=" + volumeType + ",volumePart=" + volumePart + ",sideLen=" +str(sideLen))
+    ############################################################################
 
-    if(volumeType == "full"):
-      # return all neurons
+    def create_connection_matrix_gj(self):
 
-      if(volumeID is not None):
-        idx = np.where([x["volumeID"] == volumeID \
-                        for x in self.network["neurons"]])[0]
+        t0 = timeit.default_timer()
 
-      if(neuronID is None):
-        neuronID = idx
+        connection_matrix_gj = sps.lil_matrix((self.num_neurons, self.num_neurons),
+                                            dtype=np.int16)
 
-    elif(volumeType == "cube"):
+        last_src_id = 0
+        last_dest_id = 0
+        last_count = 0
 
-      if(volumePart == "centre"):
-        try:
-          neuronID = self.centreNeurons(sideLen=sideLen,
-                                        neuronID=neuronID,
-                                        volumeID=volumeID)
-        except:
-          import traceback
-          tstr = traceback.format_exc()
-          print(tstr)
-          import pdb
-          pdb.set_trace()
+        row_ctr = 0
+        num_gj_total = self.network["nGapJunctions"]
 
-      elif(volumePart == "corner"):
-        neuronID = self.cornerNeurons(sideLen=sideLen,
-                                      neuronID=neuronID,
-                                      volumeID=volumeID)
-    else:
+        for gjList in self.network_load.gap_junction_iterator(chunk_size=100000):
+            print("GJ row : " + str(row_ctr)
+                  + " - " + str(100 * row_ctr / float(num_gj_total)) + " % "
+                  + " time : " + str(timeit.default_timer() - t0) + " seconds")
 
-      print("Unknown volume type: " + str(volumeType))
-      import pdb
-      pdb.set_trace()
+            for gjRow in gjList:
+                row_ctr += 1
 
-    if(nMaxAnalyse is None):
-      nMaxAnalyse = self.nMaxAnalyse
+                src_id = gjRow[0]
+                dest_id = gjRow[1]
 
-    if(nMaxAnalyse is not None):
+                if last_src_id == src_id and last_dest_id == dest_id:
+                    last_count += 1
+                else:
+                    connection_matrix_gj[last_src_id, last_dest_id] += last_count
 
-      if(nMaxAnalyse < len(neuronID)):
+                    last_src_id = src_id
+                    last_dest_id = dest_id
+                    last_count = 1
 
-        try:
-          keepIdx = np.linspace(0,len(neuronID),nMaxAnalyse,
-                                endpoint=False,dtype=int)
-          print("Returning subset of neurons to analyse:" \
-                + str(len(keepIdx)) + "/" + str(len(neuronID)))
-          neuronID = np.array([neuronID[x] for x in keepIdx])
-        except:
-          import traceback
-          tstr = traceback.format_exc()
-          print(tstr)
+            connection_matrix_gj[last_src_id, last_dest_id] += last_count
+            last_count = 0
 
-          print("no no no wrong")
-          import pdb
-          pdb.set_trace()
+        t1 = timeit.default_timer()
+        print("Created gap junction connection matrix " + str(t1 - t0) + " seconds")
 
+        return sps.csr_matrix(connection_matrix_gj, dtype=np.int16)
 
-    return neuronID
+    ############################################################################
 
-  ############################################################################
+    def make_pop_dict(self):
 
-  def centreNeurons(self,sideLen=None,neuronID=None,volumeID="Striatum"):
+        print("Creating population dictionary")
 
-    if(sideLen is None):
-      sideLen = self.sideLen
+        self.populations = dict([])
 
-    if(volumeID is None):
-      idx = np.arange(0,self.network["nNeurons"])
-    else:
-      idx = np.where([x["volumeID"] == volumeID \
-                      for x in self.network["neurons"]])[0]
+        for nid, neuron in enumerate(self.network["neurons"]):
 
-    try:
-      minCoord = np.min(self.network["neuronPositions"][idx,:],axis=0)
-      maxCoord = np.max(self.network["neuronPositions"][idx,:],axis=0)
-    except:
-      import traceback
-      tstr = traceback.format_exc()
-      print(tstr)
-      import pdb
-      pdb.set_trace()
+            assert (nid == neuron["neuronID"])
+            name = neuron["name"].split("_")[0]
 
+            if name not in self.populations:
+                self.populations[name] = []
 
-    xMin = minCoord[0]
-    yMin = minCoord[1]
-    zMin = minCoord[2]
+            self.populations[name].append(neuron["neuronID"])
 
-    xMax = maxCoord[0]
-    yMax = maxCoord[1]
-    zMax = maxCoord[2]
+        print("Done.")
 
-    xCentre = (xMax + xMin)/2.0
-    yCentre = (yMax + yMin)/2.0
-    zCentre = (zMax + zMin)/2.0
+    ############################################################################
 
-    if(neuronID is None):
-      neuronID = idx
+    def get_sub_pop(self, volume_type="cube", volume_part="centre", side_len=None,
+                    neuron_id=None, volume_id="Striatum", num_max_analyse=None):
 
-    if(sideLen < 0):
-      print("We want to have all but the outher layer, assume a cube")
-      bufLen = -sideLen
-      sideLen = np.min([xMax-xCentre-bufLen,
-                        yMax-yCentre-bufLen,
-                        zMax-zCentre-bufLen])
+        # print("volumeType=" + volumeType + ",volumePart=" + volumePart + ",sideLen=" +str(sideLen))
 
-      assert sideLen > 0, "Unable to autodetect a good side len"
+        if volume_type == "full":
+            # return all neurons
 
-    if(sideLen is None):
-      return neuronID
+            if volume_id is not None:
+                idx = np.where([x["volumeID"] == volume_id
+                                for x in self.network["neurons"]])[0]
 
-    cID = []
+                if neuron_id is None:
+                    neuron_id = idx
 
-    for nid in neuronID:
-      # pos = self.network["neurons"][nid]["position"]
-      pos = self.positions[nid,:]
+        elif volume_type == "cube":
 
-      assert volumeID is None \
-        or self.network["neurons"][nid]["volumeID"] == volumeID, \
-        "Neuron " + str(nid) + " does not belong to volumeID " + str(volumeID)
+            if volume_part == "centre":
+                try:
+                    neuron_id = self.centre_neurons(side_len=side_len,
+                                                    neuron_id=neuron_id,
+                                                    volume_id=volume_id)
+                except:
+                    import traceback
+                    tstr = traceback.format_exc()
+                    print(tstr)
+                    import pdb
+                    pdb.set_trace()
 
-      if(abs(pos[0]-xCentre) <= sideLen
-         and abs(pos[1]-yCentre) <= sideLen
-         and abs(pos[2]-zCentre) <= sideLen):
-        cID.append(nid)
+            elif volume_part == "corner":
+                neuron_id = self.corner_neurons(side_len=side_len,
+                                                neuron_id=neuron_id,
+                                                volume_id=volume_id)
+        else:
 
-    print("Centering in " + str(volumeID) + " : Keeping " + str(len(cID)) + "/" + str(len(neuronID)))
+            print("Unknown volume type: " + str(volume_type))
+            import pdb
+            pdb.set_trace()
 
-    return cID
+        if num_max_analyse is None:
+            num_max_analyse = self.num_max_analyse
 
-  ############################################################################
+        if num_max_analyse is not None:
 
-  # If we use a corner, and account for missing 1/8th of the surrounding
-  # synapses then we can get larger distances.
-  #
-  # <--->
+            if num_max_analyse < len(neuron_id):
 
-  def cornerNeurons(self,sideLen=None,neuronID=None, volumeID="Striatum"):
+                try:
+                    keep_idx = np.linspace(0, len(neuron_id), num_max_analyse,
+                                           endpoint=False, dtype=int)
+                    print("Returning subset of neurons to analyse:"
+                          + str(len(keep_idx)) + "/" + str(len(neuron_id)))
+                    neuron_id = np.array([neuron_id[x] for x in keep_idx])
+                except:
+                    import traceback
+                    tstr = traceback.format_exc()
+                    print(tstr)
 
-    if(sideLen is None):
-      sideLen = self.sideLen
+                    print("no no no wrong")
+                    import pdb
+                    pdb.set_trace()
 
-    if(volumeID is None):
-      idx = np.arange(0,self.network["nNeurons"])
-    else:
-      idx = np.where([x["volumeID"] == volumeID \
-                      for x in self.network["neurons"]])[0]
+        return neuron_id
 
-    if(len(idx) == 0):
-      print("No neurons found in volume " + str(volumeID))
+    ############################################################################
 
-      import pdb
-      pdb.set_trace()
+    def centre_neurons(self, side_len=None, neuron_id=None, volume_id="Striatum"):
 
-    minCoord = np.min(self.network["neuronPositions"][idx,:],axis=0)
-    maxCoord = np.max(self.network["neuronPositions"][idx,:],axis=0)
+        if side_len is None:
+            side_len = self.side_len
 
-    xMin = minCoord[0]
-    yMin = minCoord[1]
-    zMin = minCoord[2]
+        if volume_id is None:
+            idx = np.arange(0, self.network["nNeurons"])
+        else:
+            idx = np.where([x["volumeID"] == volume_id
+                            for x in self.network["neurons"]])[0]
 
-    xMax = maxCoord[0]
-    yMax = maxCoord[1]
-    zMax = maxCoord[2]
+        min_coord = np.min(self.network["neuronPositions"][idx, :], axis=0)
+        max_coord = np.max(self.network["neuronPositions"][idx, :], axis=0)
 
-    if(sideLen > xMax - xMin \
-      or sideLen > yMax - yMin \
-       or sideLen > zMax - zMin):
-      print("Warning: the analysis cube specified by sideLen is too large.")
-      print("!!! Setting sideLen to None")
+        x_min = min_coord[0]
+        y_min = min_coord[1]
+        z_min = min_coord[2]
 
-      sideLen = None
+        x_max = max_coord[0]
+        y_max = max_coord[1]
+        z_max = max_coord[2]
 
-    if(neuronID is None):
-      neuronID = idx
+        x_centre = (x_max + x_min) / 2.0
+        y_centre = (y_max + y_min) / 2.0
+        z_centre = (z_max + z_min) / 2.0
 
-    if(sideLen is None):
-      return neuronID
+        if neuron_id is None:
+            neuron_id = idx
 
-    cID = []
+        if side_len < 0:
+            print("We want to have all but the outher layer, assume a cube")
+            buf_len = -side_len
+            side_len = np.min([x_max - x_centre - buf_len,
+                               y_max - y_centre - buf_len,
+                               z_max - z_centre - buf_len])
 
-    for nid in neuronID:
-      # pos = self.network["neurons"][nid]["position"]
-      pos = self.positions[nid,:]
+            assert side_len > 0, "Unable to autodetect a good side len"
 
-      # We assume centre is at zero
-      if((pos[0] <= xMin + sideLen or pos[0] >= xMax - sideLen)
-         and (pos[1] <= yMin + sideLen or pos[1] >= yMax - sideLen)
-         and (pos[2] <= zMin + sideLen or pos[2] >= zMax - sideLen)):
-        cID.append(nid)
+        if side_len is None:
+            return neuron_id
 
-    print("Taking corner neurons: Keeping " + str(len(cID)) + "/" + str(len(neuronID)))
+        c_id = []
 
+        for nid in neuron_id:
+            # pos = self.network["neurons"][nid]["position"]
+            pos = self.positions[nid, :]
 
-    if(False):
+            assert volume_id is None \
+                   or self.network["neurons"][nid]["volumeID"] == volume_id, \
+                   "Neuron " + str(nid) + " does not belong to volumeID " + str(volume_id)
 
-      # Debug plot
-      fig = plt.figure()
-      ax = fig.add_subplot(111, projection='3d')
+            if (abs(pos[0] - x_centre) <= side_len
+                    and abs(pos[1] - y_centre) <= side_len
+                    and abs(pos[2] - z_centre) <= side_len):
+                c_id.append(nid)
 
-      pos = self.data["network"]["neurons"]["position"][()]
+        print("Centering in " + str(volume_id) + " : Keeping " + str(len(c_id)) + "/" + str(len(neuron_id)))
 
-      ax.scatter(pos[:,0],pos[:,1],pos[:,2],'black')
-      ax.scatter(pos[cID,0],pos[cID,1],pos[cID,2],'red')
+        return c_id
 
-      plt.ion()
-      #plt.draw()
+    ############################################################################
 
-      if(self.showPlots):
-        plt.show()
+    # If we use a corner, and account for missing 1/8th of the surrounding
+    # synapses then we can get larger distances.
+    #
+    # <--->
 
-      plt.pause(0.001)
-      import pdb
-      pdb.set_trace()
+    def corner_neurons(self, side_len=None, neuron_id=None, volume_id="Striatum"):
 
-    return cID
+        if side_len is None:
+            side_len = self.side_len
 
-  ############################################################################
+        if volume_id is None:
+            idx = np.arange(0, self.network["nNeurons"])
+        else:
+            idx = np.where([x["volumeID"] == volume_id
+                            for x in self.network["neurons"]])[0]
 
-  def saveFigure(self, plt, figName, figType="pdf"):
+        if len(idx) == 0:
+            print("No neurons found in volume " + str(volume_id))
 
-    if(not os.path.isdir(self.figDir)):
-      os.mkdir(self.figDir)
+            import pdb
+            pdb.set_trace()
 
-    fullFigName = self.figDir + "/" + figName + "." + figType
+        min_coord = np.min(self.network["neuronPositions"][idx, :], axis=0)
+        max_coord = np.max(self.network["neuronPositions"][idx, :], axis=0)
 
-    # Remove part of the frame
-    plt.gca().spines["right"].set_visible(False)
-    plt.gca().spines["top"].set_visible(False)
+        x_min = min_coord[0]
+        y_min = min_coord[1]
+        z_min = min_coord[2]
 
-    plt.tight_layout()
-    plt.pause(0.001)
-    plt.savefig(fullFigName)
-    plt.savefig(fullFigName.replace('.pdf','.eps'))
+        x_max = max_coord[0]
+        y_max = max_coord[1]
+        z_max = max_coord[2]
 
-    print("Wrote " + fullFigName)
+        if (side_len > x_max - x_min
+                or side_len > y_max - y_min
+                or side_len > z_max - z_min):
+            print("Warning: the analysis cube specified by sideLen is too large.")
+            print("!!! Setting sideLen to None")
 
-    if(self.closePlots):
-      time.sleep(1)
-      plt.close()
+            side_len = None
 
+        if neuron_id is None:
+            neuron_id = idx
 
-  ############################################################################
+        if side_len is None:
+            return neuron_id
 
-  def plotNumSynapsesPerPair(self,preType,postType,sideLen=None, \
-                             nameStr="",volumeID="Striatum",
-                             connectionType="synapses"):
+        c_id = []
 
-    if(sideLen is None):
-      sideLen = self.sideLen
+        for nid in neuron_id:
+            # pos = self.network["neurons"][nid]["position"]
+            pos = self.positions[nid, :]
 
-    print("Plotting number of connections")
+            # We assume centre is at zero
+            if ((pos[0] <= x_min + side_len or pos[0] >= x_max - side_len)
+                    and (pos[1] <= y_min + side_len or pos[1] >= y_max - side_len)
+                    and (pos[2] <= z_min + side_len or pos[2] >= z_max - side_len)):
+                c_id.append(nid)
 
-    if(preType not in self.populations):
-      print("plotNumSynapsesPerPair: " + str(preType) \
-            + " is not in the simulation")
-      return
+        print("Taking corner neurons: Keeping " + str(len(c_id)) + "/" + str(len(neuron_id)))
 
-    if(postType not in self.populations):
-      print("plotNumSynapsesPerPair: " + str(postType) \
-            + " is not in the simulation")
-      return
+        if False:
 
-    prePop = self.populations[preType]
-    postPop = self.populations[postType]
+            # Debug plot
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
 
-    if(connectionType == "synapses"):
-      conMat = self.connectionMatrix
-    elif(connectionType == "gapjunctions"):
-      conMat = self.connectionMatrixGJ
-    else:
-      print("Unknown connectionType: " + str(connectionType))
-      print("Please use 'synapses' or 'gapjunctions'")
-      import pdb
-      pdb.set_trace()
+            pos = self.data["network"]["neurons"]["position"][()]
 
+            ax.scatter(pos[:, 0], pos[:, 1], pos[:, 2], 'black')
+            ax.scatter(pos[c_id, 0], pos[c_id, 1], pos[c_id, 2], 'red')
 
-    if(sideLen is not None):
-      # We are only looking at post synaptic neurons at the centre,
-      # to avoid edge effects
-      print("Only analysing centre post synaptic neurons, sideLen = " \
-            + str(sideLen) )
-      # postPop = self.centreNeurons(neuronID=postPop,sideLen=sideLen)
-      postPop = self.getSubPop(volumeType=self.volumeType,
-                               volumePart="centre",
-                               sideLen=sideLen,
-                               neuronID=postPop,
-                               volumeID=volumeID)
+            plt.ion()
+            # plt.draw()
 
-    print("Calculating max synapses")
-    maxSynapses = conMat[prePop,:][:,postPop].max()
+            if self.show_plots:
+                plt.show()
 
-    print("Calculating mean synapses")
+            plt.pause(0.001)
+            import pdb
+            pdb.set_trace()
 
-    # The prune tuning func might set data to 0, we want to exclude those
-    meanSynapses=float(np.sum(conMat[prePop,:][:,postPop].data))\
-                   / np.sum(conMat[prePop,:][:,postPop].data!=0)
+        return c_id
 
+    ############################################################################
 
-    con = conMat[prePop,:][:,postPop]
+    def save_figure(self, plt, fig_name, fig_type="pdf"):
 
-    #con = con.toarray()
-    #existingCon = con[con != 0]
+        if not os.path.isdir(self.fig_dir):
+            os.mkdir(self.fig_dir)
 
-    existingCon = con[np.nonzero(con)].transpose()
+        full_fig_name = self.fig_dir + "/" + fig_name + "." + fig_type
 
-    # Any connections? Otherwise skip plot
-    if((type(existingCon) == np.matrixlib.defmatrix.matrix \
-        and len(existingCon) == 0)
-       or (type(existingCon) != np.matrixlib.defmatrix.matrix \
-           and existingCon.getnnz() == 0)):
-      return
+        # Remove part of the frame
+        plt.gca().spines["right"].set_visible(False)
+        plt.gca().spines["top"].set_visible(False)
 
-    print("Plotting " + str(existingCon.shape[0]) + " connections")
+        plt.tight_layout()
+        plt.pause(0.001)
+        plt.savefig(full_fig_name)
+        plt.savefig(full_fig_name.replace('.pdf', '.eps'))
 
-    #import pdb
-    #pdb.set_trace()
+        print("Wrote " + full_fig_name)
 
-    plt.figure()
-    matplotlib.rcParams.update({'font.size': 22})
+        if self.close_plots:
+            time.sleep(1)
+            plt.close()
 
-    plt.hist(existingCon,
-             range(0,1+maxSynapses),
-             density=True,
-             align="left",
-             color=self.getNeuronColor(preType))
+    ############################################################################
 
-    plt.xlabel("Number of " + connectionType)
-    plt.ylabel('Probability density')
-    #plt.title(preType + " to " + postType \
-    #          + "(M=" + str(maxSynapses) \
-    #          + ",m=" + '%.1f' % meanSynapses \
-    #          + ",sl=" + '%.0f' % (sideLen*1e6) + ")")
-    #plt.title(preType + " to " + postType \
-    #          + " (total: " + str(np.sum(existingCon)) + ")")
-    plt.title(self.neuronName(preType) + " to " + self.neuronName(postType))
+    def plot_num_synapses_per_pair(self, pre_type, post_type, side_len=None,
+                                   name_str="", volume_id="Striatum",
+                                   connection_type="synapses"):
 
+        if side_len is None:
+            side_len = self.side_len
 
-    plt.tight_layout()
+        print("Plotting number of connections")
 
-    plt.ion()
-    plt.draw()
-    if(self.showPlots):
-      plt.show()
+        if pre_type not in self.populations:
+            print("plotNumSynapsesPerPair: " + str(pre_type)
+                  + " is not in the simulation")
+            return
 
-    plt.pause(0.001)
-    figName = "Network-number-of-" + connectionType + "-from-" \
-              + preType + "-to-" + postType + "-per-cell"
+        if post_type not in self.populations:
+            print("plotNumSynapsesPerPair: " + str(post_type)
+                  + " is not in the simulation")
+            return
 
-    self.saveFigure(plt,figName)
+        pre_pop = self.populations[pre_type]
+        post_pop = self.populations[post_type]
 
+        if connection_type == "synapses":
+            con_mat = self.connection_matrix
+        elif connection_type == "gapjunctions":
+            con_mat = self.connection_matrix_gj
+        else:
+            con_mat = None
+            print("Unknown connectionType: " + str(connection_type))
+            print("Please use 'synapses' or 'gapjunctions'")
+            import pdb
+            pdb.set_trace()
 
-  ############################################################################
+        if side_len is not None:
+            # We are only looking at post synaptic neurons at the centre,
+            # to avoid edge effects
+            print("Only analysing centre post synaptic neurons, sideLen = " + str(side_len))
+            # postPop = self.centreNeurons(neuronID=postPop,sideLen=sideLen)
+            post_pop = self.get_sub_pop(volume_type=self.volume_type,
+                                        volume_part="centre",
+                                        side_len=side_len,
+                                        neuron_id=post_pop,
+                                        volume_id=volume_id)
 
-  def plotConnectionProbabilityParallel(self,
-                                        preType=None,
-                                        postType=None,
-                                        nBins=86,dist3D=True):
+        print("Calculating max synapses")
+        max_synapses = con_mat[pre_pop, :][:, post_pop].max()
 
-    assert preType is not None
-    assert postType is not None
+        print("Calculating mean synapses")
 
-    print("Plotting connection probability " + preType + " to " + postType)
+        # The prune tuning func might set data to 0, we want to exclude those
+        mean_synapses = float(np.sum(con_mat[pre_pop, :][:, post_pop].data)) \
+                        / np.sum(con_mat[pre_pop, :][:, post_pop].data != 0)
 
-    if(preType not in self.populations):
-      print("plotConnectionProbability: " + str(preType) \
-            + " is not in the simulation")
-      return
+        con = con_mat[pre_pop, :][:, post_pop]
 
-    if(postType not in self.populations):
-      print("plotConnectionProbability: " + str(postType) \
-            + " is not in the simulation")
-      return
+        existing_con = con[np.nonzero(con)].transpose()
 
+        # Any connections? Otherwise skip plot
+        if ((type(existing_con) == np.matrixlib.defmatrix.matrix
+             and len(existing_con) == 0)
+                or (type(existing_con) != np.matrixlib.defmatrix.matrix
+                    and existing_con.getnnz() == 0)):
+            return
 
-    preID = self.populations[preType]
-    postID = self.populations[postType]
+        print("Plotting " + str(existing_con.shape[0]) + " connections")
 
-    # We need to split the work between multiple workers
-    import threading
-    nThreads = 4
-    threads = []
+        # import pdb
+        # pdb.set_trace()
 
-    self.workerData = []
+        plt.figure()
+        matplotlib.rcParams.update({'font.size': 22})
 
-    for iThread in range(0,nThreads):
-      workerPreID = preID[range(iThread,len(preID),nThreads)]
-      print("Worker " + str(iThread) + " PreID: " + str(workerPreID))
-      t = threading.Thread(target=self.connectionProbabilityWrapper,
-                           args=(workerPreID,postID,nBins,1000000.0,dist3D))
-      threads.append(t)
-      print("Starting " + t.getName())
-      t.start()
+        plt.hist(existing_con,
+                 range(0, 1 + max_synapses),
+                 density=True,
+                 align="left",
+                 color=self.get_neuron_color(pre_type))
 
-    for t in threads:
-      print("Joining " + t.getName())
-      t.join()
+        plt.xlabel("Number of " + connection_type)
+        plt.ylabel('Probability density')
+        # plt.title(preType + " to " + postType \
+        #          + "(M=" + str(maxSynapses) \
+        #          + ",m=" + '%.1f' % meanSynapses \
+        #          + ",sl=" + '%.0f' % (sideLen*1e6) + ")")
+        # plt.title(preType + " to " + postType \
+        #          + " (total: " + str(np.sum(existingCon)) + ")")
+        plt.title(self.neuron_name(pre_type) + " to " + self.neuron_name(post_type))
 
-    # Gather all the data
-    dist = self.workerData[0][0]
-    countCon = np.zeros((nBins,1))
-    countAll = np.zeros((nBins,1))
+        plt.tight_layout()
 
-    for data in self.workerData:
-      countCon += data[2]
-      countAll += data[3]
+        plt.ion()
+        plt.draw()
+        if self.show_plots:
+            plt.show()
 
-    Pcon = np.divide(countCon,countAll)
+        plt.pause(0.001)
+        fig_name = "Network-number-of-" + connection_type + "-from-" \
+                   + pre_type + "-to-" + post_type + "-per-cell"
 
-    # Now let's plot it
-    matplotlib.rcParams.update({'font.size': 22})
-    plt.figure()
-    plt.plot(dist*1e6,Pcon)
-    plt.xlabel("Distance ($\mu$m)")
-    plt.ylabel("Connection probability")
+        self.save_figure(plt, fig_name)
 
-    plt.title(self.neuronName(preType) + " to " \
-              + self.neuronName(postType) + " connections")
-    plt.tight_layout()
+    ############################################################################
 
-    plt.xlim([0, 250])
-    plt.ylim([0, 1])
+    def plot_connection_probability_parallel(self,
+                                             pre_type=None,
+                                             post_type=None,
+                                             num_bins=86,
+                                             dist_3d=True):
 
-    plt.ion()
-    plt.draw()
+        assert pre_type is not None
+        assert post_type is not None
 
-    if(self.showPlots):
-      plt.show()
+        print("Plotting connection probability " + pre_type + " to " + post_type)
 
-    plt.pause(0.001)
-    figName = 'Network-distance-dependent-connection-probability-' \
-              + str(preType) + "-to-" + str(postType)
+        if pre_type not in self.populations:
+            print("plotConnectionProbability: " + str(pre_type)
+                  + " is not in the simulation")
+            return
 
-    self.saveFigure(plt,figName)
+        if post_type not in self.populations:
+            print("plotConnectionProbability: " + str(post_type)
+                  + " is not in the simulation")
+            return
 
+        pre_id = self.populations[pre_type]
+        post_id = self.populations[post_type]
 
-  ############################################################################
+        # We need to split the work between multiple workers
+        import threading
+        num_threads = 4
+        threads = []
 
-  def plotConnectionProbability(self,
-                                preType=None,
-                                postType=None,
-                                nBins=86,
-                                nameStr="",
-                                sideLen=None,
-                                expMaxDist=[],
-                                expData=[],
-                                expDataDetailed = [],
-                                dist3D=True,
-                                volumeID=None,
-                                xMax=250,
-                                yMax=None,
-                                connectionType="synapses",
-                                drawStep=False):
+        self.worker_data = []
 
-    assert preType is not None
-    assert postType is not None
+        for iThread in range(0, num_threads):
+            worker_pre_id = pre_id[range(iThread, len(pre_id), num_threads)]
+            print("Worker " + str(iThread) + " PreID: " + str(worker_pre_id))
+            t = threading.Thread(target=self.connection_probability_wrapper,
+                                 args=(worker_pre_id, post_id, num_bins, 1000000.0, dist_3d))
+            threads.append(t)
+            print("Starting " + t.getName())
+            t.start()
 
-    if(sideLen is None):
-      sideLen = self.sideLen
+        for t in threads:
+            print("Joining " + t.getName())
+            t.join()
 
-    if(preType not in self.populations or postType not in self.populations):
-      print("Missing " + preType + " or " + postType + " in network, " \
-            + "skipping plot with their connectivity")
-      return
+        # Gather all the data
+        dist = self.worker_data[0][0]
+        count_con = np.zeros((num_bins, 1))
+        count_all = np.zeros((num_bins, 1))
 
-    print("Plotting connection probability " + preType + " to " + postType \
-          + " (" + str(connectionType) + ")")
+        for data in self.worker_data:
+            count_con += data[2]
+            count_all += data[3]
 
-    preID = self.populations[preType]
-    postID = self.populations[postType]
+        p_con = np.divide(count_con, count_all)
 
-    # We can in principle use all pairs, but here we restrict to just the
-    # pairs who's post partner are in the centre
-    # postID = self.centreNeurons(neuronID=postID,sideLen=sideLen)
-    postID = self.getSubPop(volumeType=self.volumeType,
-                            volumePart="centre",
-                            sideLen=sideLen,
-                            neuronID=postID,
-                            volumeID=volumeID)
+        # Now let's plot it
+        matplotlib.rcParams.update({'font.size': 22})
+        plt.figure()
+        plt.plot(dist * 1e6, p_con)
+        plt.xlabel("Distance ($\mu$m)")
+        plt.ylabel("Connection probability")
 
-    if(preType not in self.populations):
-      print("plotConnectionProbabilityChannels: " + str(preType) \
-            + " is not in the simulation")
-      return
+        plt.title(self.neuron_name(pre_type) + " to "
+                  + self.neuron_name(post_type) + " connections")
+        plt.tight_layout()
 
-    if(postType not in self.populations):
-      print("plotConnectionProbabilityChannels: " + str(postType) \
-            + " is not in the simulation")
-      return
+        plt.xlim([0, 250])
+        plt.ylim([0, 1])
 
-    if(len(expData) == 0 and len(expDataDetailed) > 0):
-      expData = []
-      for x in expDataDetailed:
-        expData.append(x[0]/float(x[1]))
-
-    if(len(expDataDetailed) == 0 and len(expData) > 0):
-      expDataDetailed = [None for x in expData]
-
-    (dist,Pcon,countCon,countAll) = \
-      self.connectionProbability(preID,postID,nBins,dist3D=dist3D,
-                                 connectionType=connectionType)
-
-    # Now let's plot it
-
-    #fig = plt.figure()
-    fig,ax = plt.subplots(1)
-
-    matplotlib.rcParams.update({'font.size': 24})
-
-
-    pltCtr = 0
-
-    # Add lines for experimental data and matching data for model
-    for (dLimit,Pexp,expNum) in zip(expMaxDist,expData,expDataDetailed):
-      cnt = 0
-      cntAll = 0
-
-      for (d,c,ca) in zip(dist,countCon,countAll):
-        if(d <= dLimit):
-          cnt += c
-          cntAll += ca
-
-      # Hack to avoid divide by zero
-      cntAll[cntAll == 0] = 1
-
-      Pmodel = float(cnt) / float(cntAll)
-
-      print("P(d<" + str(dLimit) + ")=" + str(Pmodel))
-      #ax = fig.get_axes()
-
-      # Also add errorbars
-      if(expNum is not None):
-        P = expNum[0]/float(expNum[1])
-
-        # Exp data specified should match
-        assert Pexp is None or Pexp == P
-
-        # stdExp = np.sqrt(P*(1-P)/expNum[1])
-
-        # https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval#Wilson_score_interval
-        # https://www.tandfonline.com/doi/abs/10.1080/01621459.1927.10502953
-        # Wilson score
-        # Wilson, Edwin B. "Probable inference, the law of succession, and statistical inference." Journal of the American Statistical Association 22.158 (1927): 209-212.
-        ns = expNum[0]
-        n = expNum[1]
-        z = 1.96 # This gives us 95% confidence intervall
-        barCentre = (ns + (z**2)/2) / (n + z *2)
-        barHeight = z / (n + z**2) * np.sqrt((ns * (n - ns) / n + (z ** 2) / 4))
-
-        #plt.errorbar(dLimit*1e6/2,P,stdExp,color="gray",
-        #             elinewidth=1,capsize=5)
-        plt.errorbar(dLimit*1e6/2,barCentre,barHeight,color="gray",
-                     elinewidth=1,capsize=5)
-
-        #import pdb
-        #pdb.set_trace()
-
-        #rectExpStd = patches.Rectangle((0,P-stdExp),
-        #                               width=dLimit*1e6,height=2*stdExp,
-        #                               alpha=0.2,linewidth=0,
-        #                               color="red",fill=True)
-        #ax.add_patch(rectExpStd)
-      else:
-        stdExp = 0
-
-      if(Pexp is not None):
-        plt.plot([0,dLimit*1e6],[Pexp, Pexp],
-                 color=(0.8,0.3*pltCtr,0.3*pltCtr),linewidth=2)
-
-        # Add a star also
-        plt.plot(dLimit*1e6/2,Pexp,
-                 color=(0.8,0.3*pltCtr,0.3*pltCtr),
-                 marker="D",
-                 markersize=10)
-
-        pltCtr += 1
         plt.ion()
         plt.draw()
 
-        if(self.showPlots):
-          plt.show()
+        if self.show_plots:
+            plt.show()
+
+        plt.pause(0.001)
+        fig_name = 'Network-distance-dependent-connection-probability-' \
+                   + str(pre_type) + "-to-" + str(post_type)
+
+        self.save_figure(plt, fig_name)
 
-        #rectExp = patches.Rectangle((0,0), dLimit*1e6, Pexp, \
-        #                            linewidth=2,color='red',fill=False)
-        #ax.add_patch(rectExp)
-
-      if(False): #
-        # Show the binning from the model data
-        plt.plot([0,dLimit*1e6],[Pmodel,Pmodel],color="blue",linewidth=2)
-
-      #rect = patches.Rectangle((0,0), dLimit*1e6, P, \
-      #                         linewidth=1,color='blue',fill=False)
-      #ax.add_patch(rect)
-
-      if(False):
-        plt.text(dLimit*1e6,Pmodel,
-                 "P(d<" + str(dLimit*1e6) + ")=%.3f" % Pmodel,size=9)
-
-
-    # Draw the curve itself
-    if(drawStep):
-      plt.step(dist*1e6,Pcon,color='black',linewidth=2,where="post")
-    else:
-      dHalfStep = (dist[1]-dist[0])/2
-      plt.plot((dist+dHalfStep)*1e6 ,Pcon,color='black',linewidth=2)
-
-    plt.xticks(fontsize=14, rotation=0)
-    plt.yticks(fontsize=14, rotation=0)
-
-    labelSize = 22
-
-    #if(dist3D):
-    #  plt.xlabel("Distance ($\mu$m)",fontsize=labelSize)
-    #else:
-    #  plt.xlabel("2D Distance ($\mu$m)",fontsize=labelSize)
-
-    # Hack to avoid divide by zero
-    countAllB = countAll.copy()
-    countAllB[countAllB == 0] = 1.0
-
-
-    # This gives us 95% confidence intervall
-    z = 1.96
-
-    pCentre = np.array([(ns + (z**2)/2) / (n + z *2) \
-                        for (ns,n) in zip(countCon,countAllB)]).flatten()
-    pHeight = np.array([z / (n + z**2) \
-                        * np.sqrt((ns * (n - ns) / n + (z ** 2) / 4)) \
-                        for (ns,n) in zip(countCon,countAllB)]).flatten()
-
-    # Use the last bin larger than xMax as the end
-    dIdx = np.where(dist*1e6 > xMax)[0][0]
-
-    pMin = pCentre - pHeight
-    pMax = pCentre + pHeight
-
-    if(drawStep):
-      plt.fill_between(dist[:dIdx]*1e6, pMin[:dIdx], pMax[:dIdx],
-                       color = 'grey', step="post",
-                       alpha = 0.4)
-    else:
-      plt.fill_between((dist[:dIdx]+dHalfStep)*1e6, pMin[:dIdx], pMax[:dIdx],
-                       color = 'grey', step=None,
-                       alpha = 0.4)
-
-
-    plt.xlabel("Distance ($\mu$m)",fontsize=labelSize)
-    plt.ylabel("Con Prob (%)",fontsize=labelSize)
-
-
-    # Adjust axis if needed
-    # import pdb
-    # pdb.set_trace()
-
-    # Set plot limits
-    #if(any(x is not None for x in expData)):
-    #  if(max(plt.ylim()) < max(expData+stdExp)):
-    #    plt.ylim([0, np.ceil(max(expData+stdExp)*10)/10])
-
-    if(xMax is not None):
-      plt.xlim([0, xMax])
-
-    if(yMax is not None):
-      plt.ylim([0, yMax])
-
-
-    locs,labels = plt.yticks()
-    newLabels = ["{0:g}".format(yy*100) for yy in locs]
-
-    if(locs[0] < 0):
-      locs = locs[1:]
-      newLabels = newLabels[1:]
-
-    if(locs[-1] > plt.ylim()[1]):
-      locs = locs[:-1]
-      newLabels = newLabels[:-1]
-
-    plt.yticks(locs,newLabels)
-
-    plt.title(self.neuronName(preType) + " to " + self.neuronName(postType))
-    plt.tight_layout()
-    plt.ion()
-    plt.draw()
-
-    if(self.showPlots):
-      plt.show()
-
-    plt.pause(0.001)
-
-    if(dist3D):
-      projText = '-3D-dist'
-    else:
-      projText = '-2D-dist'
-
-    figName = 'Network-distance-dependent-connection-probability-' \
-                + str(preType) + "-to-" + str(postType) \
-                + "-" + str(connectionType) \
-                + projText
-
-    self.saveFigure(plt,figName)
-
-
-
-  ############################################################################
-
-  # expMaxDist=[50e-6,100e-6]
-  # expData=[None, None] (none if no exp data, or values)
-  # expDataDetailed=[(conA,totA),(conB,totB)]
-
-  def plotConnectionProbabilityChannels(self,
-                                        preType=None,
-                                        postType=None,
-                                        nBins=86,
-                                        nameStr="",
-                                        sideLen=None, # buffer around edges if neg
-                                        expMaxDist=[],
-                                        expData=[],
-                                        expDataDetailed = [],
-                                        dist3D=True,
-                                        volumeID="Striatum"):
-
-    if(preType not in self.populations):
-      print("plotConnectionProbabilityChannels: " + str(preType) \
-            + " is not in the simulation")
-      return
-
-    if(postType not in self.populations):
-      print("plotConnectionProbabilityChannels: " + str(postType) \
-            + " is not in the simulation")
-      return
-
-
-    if(sideLen is None):
-      sideLen = self.sideLen
-
-    if(len(expData) == 0 and len(expDataDetailed) > 0):
-      expData = []
-      for x in expDataDetailed:
-        expData.append(x[0]/float(x[1]))
-
-    if(len(expDataDetailed) == 0):
-      expDataDetailed = []
-      for x in expData:
-        expDataDetailed.append(None)
-
-    assert preType is not None
-    assert postType is not None
-
-    print("Plotting connection probability " + preType + " to " + postType)
-
-    preID = self.populations[preType]
-    postID = self.populations[postType]
-
-    # We can in principle use all pairs, but here we restrict to just the
-    # pairs who's post partner are in the centre
-    # postID = self.centreNeurons(neuronID=postID,sideLen=sideLen)
-    postID = self.getSubPop(volumeType=self.volumeType,
-                            volumePart="centre",
-                            sideLen=sideLen,
-                            neuronID=postID,
-                            volumeID=volumeID)
-
-    (dist,PconWithin,PconBetween, \
-     countConWithin, countConBetween, \
-     countAllWithin, countAllBetween) = \
-      self.connectionProbabilityChannels(preID,postID,nBins,dist3D=dist3D)
-
-    # Now let's plot it
-
-    #fig = plt.figure()
-    fig,ax = plt.subplots(1)
-    matplotlib.rcParams.update({'font.size': 22})
-
-    # Draw the curve itself
-    plt.plot(dist*1e6,PconWithin,color='black',linewidth=2)
-    plt.plot(dist*1e6,PconBetween,color='grey',linewidth=2)
-
-    labelSize=14
-    if(dist3D):
-      plt.xlabel("Distance ($\mu$m)",fontsize=labelSize)
-    else:
-      plt.xlabel("2D Distance ($\mu$m)",fontsize=labelSize)
-    plt.ylabel("Connection probability",fontsize=labelSize)
-
-    plt.xticks(fontsize=12, rotation=0)
-    plt.yticks(fontsize=12, rotation=0)
-
-    #plt.tick_params(axis='both', which='major', labelsize=10)
-    #plt.tick_params(axis='both', which='minor', labelsize=8)
-
-    #import pdb
-    #pdb.set_trace()
-
-    # Add lines for experimental data and matching data for model
-    for (dLimit,Pexp,expNum) in zip(expMaxDist,expData,expDataDetailed):
-      cntWithin = 0
-      cntAllWithin = 0
-      cntBetween = 0
-      cntAllBetween = 0
-
-      for (d,c,ca) in zip(dist,countConWithin,countAllWithin):
-        if(d <= dLimit):
-          cntWithin += c
-          cntAllWithin += ca
-
-      for (d,c,ca) in zip(dist,countConBetween,countAllBetween):
-        if(d <= dLimit):
-          cntBetween += c
-          cntAllBetween += ca
-
-      # Hack to avoid divide by zero, since the corresponding cntWithin
-      # bin will also be zero, the resulting division is zero
-      cntAllWithin[cntAllWithin == 0] = 1
-      cntAllBetween[cntAllBetween == 0] = 1
-
-      Pwithin = float(cntWithin) / float(cntAllWithin)
-      Pbetween = float(cntBetween) / float(cntAllBetween)
-
-      Ptotal = float(cntWithin+cntBetween) / float(cntAllWithin+cntAllBetween)
-
-      print("Pwithin(d<" + str(dLimit) + ")=" + str(Pwithin))
-      print("Pbetween(d<" + str(dLimit) + ")=" + str(Pbetween))
-      print("Ptotal(d<" + str(dLimit) + ")=" + str(Ptotal))
-      #ax = fig.get_axes()
-
-      if(Pexp is not None):
-        plt.plot([0,dLimit*1e6],[Pexp,Pexp],color="red",linewidth=2)
-
-        oldRectFlag = False
-        if(oldRectFlag):
-          # Old rectangle
-          rectExp = patches.Rectangle((0,0), dLimit*1e6, Pexp, \
-                                      linewidth=2,color='red',fill=False,
-                                      linestyle="--")
-        # Also add errorbars
-        if(expNum is not None):
-          assert False, "Should change the error bars to wilson score!"
-          P = expNum[0]/float(expNum[1])
-          stdExp = np.sqrt(P*(1-P)/expNum[1])
-          rectExpStd = patches.Rectangle((0,Pexp-stdExp),
-                                         width=dLimit*1e6,height=2*stdExp,
-                                         alpha=0.2,linewidth=0,
-                                         color="red",fill=True)
-
-          ax.add_patch(rectExpStd)
-
-        if(oldRectFlag):
-          # Add P-line on top
-          ax.add_patch(rectExp)
-
-
-      if(False):
-        rectWithin = patches.Rectangle((0,0), dLimit*1e6, Pwithin, \
-                                       linewidth=1,color='blue',fill=False)
-        rectBetween = patches.Rectangle((0,0), dLimit*1e6, Pbetween, \
-                                        linewidth=1,color='lightblue',
-                                        fill=False)
-        rectTotal = patches.Rectangle((0,0), dLimit*1e6, Ptotal, \
-                                      linewidth=2,color='blue',fill=False)
-
-        ax.add_patch(rectWithin)
-        ax.add_patch(rectBetween)
-        ax.add_patch(rectTotal)
-
-      if(True):
-        # Draw binned data as lines instead
-        plt.plot([0,dLimit*1e6],[Pwithin, Pwithin],
-                 color="blue",linewidth=1)
-        plt.plot([0,dLimit*1e6],[Pbetween, Pbetween],
-                 color="lightblue", linewidth=1)
-        plt.plot([0,dLimit*1e6],[Ptotal,Ptotal],
-                 color="blue", linewidth=2)
-
-      if(False):
-        Plt(dLimit*1e6,Pwithin,"Pw(d<" + str(dLimit*1e6) + ")=%.3f" % Pwithin,size=9)
-        plt.text(dLimit*1e6,Pbetween,"Pb(d<" + str(dLimit*1e6) + ")=%.3f" % Pbetween,size=9)
-
-
-    # Adjust axis if needed
-    #import pdb
-    #pdb.set_trace()
-
-    if(any(x is not None for x in expData)):
-      if(max(plt.ylim()) < max(expData)):
-        plt.ylim([0, np.ceil(max(expData)*10)/10])
-
-    plt.xlim([0, 250])
-    #plt.xlim([0, 1000])
-
-    plt.title(self.neuronName(preType) + " to " \
-              + self.neuronName(postType) + " connections")
-
-    plt.tight_layout()
-    plt.ion()
-    plt.draw()
-
-    if(self.showPlots):
-      plt.show()
-
-    plt.pause(0.001)
-
-    if(dist3D):
-      projText = '-3D-dist'
-    else:
-      projText = '-2D-dist'
-
-    figName = 'Network-distance-dependent-connection-probability-channels-' \
-                + str(preType) + "-to-" + str(postType) \
-                + projText
-
-    self.saveFigure(plt,figName)
-
-
-  ############################################################################
-
-  def connectionProbabilityWrapper(self,preID,postID,nBins=86,dist3D=True):
-
-    print("Worker started, preID: " + str(preID))
-
-    (dist,Pcon,countCon,countAll) = self.connectionProbability(preID,
-                                                               postID,
-                                                               nBins,
-                                                               dist3D=dist3D)
-
-    self.workerData.append((dist,Pcon,countCon,countAll))
-
-  ############################################################################
-
-  # connectionType: "synapses" or "gapjunctions"
-
-  def connectionProbability(self,
-                            preID,
-                            postID,
-                            nBins=86,
-                            nPoints=10000000.0,
-                            dist3D=True,
-                            connectionType="synapses"):
-
-    # Count the connected neurons
-    print("Counting connections")
-    dist = np.linspace(0.0,1700.0e-6,num=nBins)
-    deltaDist = dist[1]-dist[0]
-
-    countCon = np.zeros((nBins,1))
-    countAll = np.zeros((nBins,1))
-    countRejected = 0
-
-    nPerPair = nPoints/len(preID)
-
-    if(connectionType == "synapses"):
-      conMat = self.connectionMatrix
-    elif(connectionType == "gapjunctions"):
-      conMat = self.connectionMatrixGJ
-    else:
-      print("Unknown connectionType: " + str(connectionType))
-      print("Please use 'synapses' or 'gapjunctions'")
-      import pdb
-      pdb.set_trace()
-
-
-    # Make this loop use threads, to speed it up
-
-    for xi,x in enumerate(preID):
-      tA = timeit.default_timer()
-
-      if(nPerPair - np.floor(nPerPair) > np.random.rand()):
-        nPts = int(np.ceil(nPerPair))
-      else:
-        nPts = int(np.floor(nPerPair))
-
-      try:
-        poID = np.random.permutation(postID)[0:min(nPts,len(postID))]
-      except:
-        print("Something fucked up")
-        import pdb
-        pdb.set_trace()
-
-      for y in poID: #postID:
-
-        if(x == y):
-          # Do not count self connections in statistics!!
-          # This can lead to what looks like an artificial drop in
-          # connectivity proximally
-          continue
-
-        if(dist3D):
-          d = np.sqrt(np.sum((self.positions[x,:]-self.positions[y,:]) ** 2))
+    ############################################################################
+
+    def plot_connection_probability(self,
+                                    pre_type=None,
+                                    post_type=None,
+                                    num_bins=86,
+                                    name_str="",
+                                    side_len=None,
+                                    exp_max_dist=None,
+                                    exp_data=None,
+                                    exp_data_detailed=None,
+                                    dist_3d=True,
+                                    volume_id=None,
+                                    x_max=250,
+                                    y_max=None,
+                                    connection_type="synapses",
+                                    draw_step=False):
+
+        assert pre_type is not None
+        assert post_type is not None
+
+        if not exp_max_dist:
+            exp_max_dist = []
+
+        if not exp_data:
+            exp_data = []
+
+        if not exp_data_detailed:
+            exp_data_detailed = None
+
+        if side_len is None:
+            side_len = self.side_len
+
+        if pre_type not in self.populations or post_type not in self.populations:
+            print("Missing " + pre_type + " or " + post_type + " in network, "
+                  + "skipping plot with their connectivity")
+            return
+
+        print("Plotting connection probability " + pre_type + " to " + post_type
+              + " (" + str(connection_type) + ")")
+
+        pre_id = self.populations[pre_type]
+        post_id = self.populations[post_type]
+
+        # We can in principle use all pairs, but here we restrict to just the
+        # pairs who's post partner are in the centre
+        # postID = self.centreNeurons(neuronID=postID,sideLen=sideLen)
+        post_id = self.get_sub_pop(volume_type=self.volume_type,
+                                   volume_part="centre",
+                                   side_len=side_len,
+                                   neuron_id=post_id,
+                                   volume_id=volume_id)
+
+        if pre_type not in self.populations:
+            print("plotConnectionProbabilityChannels: " + str(pre_type)
+                  + " is not in the simulation")
+            return
+
+        if post_type not in self.populations:
+            print("plotConnectionProbabilityChannels: " + str(post_type)
+                  + " is not in the simulation")
+            return
+
+        if len(exp_data) == 0 and len(exp_data_detailed) > 0:
+            exp_data = []
+            for x in exp_data_detailed:
+                exp_data.append(x[0] / float(x[1]))
+
+        if len(exp_data_detailed) == 0 and len(exp_data) > 0:
+            exp_data_detailed = [None for x in exp_data]
+
+        (dist, p_con, count_con, count_all) = \
+            self.connection_probability(pre_id, post_id, num_bins, dist_3d=dist3D,
+                                        connection_type=connection_type)
+
+        # Now let's plot it
+
+        # fig = plt.figure()
+        fig, ax = plt.subplots(1)
+
+        matplotlib.rcParams.update({'font.size': 24})
+
+        plt_ctr = 0
+
+        # Add lines for experimental data and matching data for model
+        for (d_limit, p_exp, exp_num) in zip(exp_max_dist, exp_data, exp_data_detailed):
+            cnt = 0
+            cnt_all = 0
+
+            for (d, c, ca) in zip(dist, count_con, count_all):
+                if d <= d_limit:
+                    cnt += c
+                    cnt_all += ca
+
+            # Hack to avoid divide by zero
+            cnt_all[cnt_all == 0] = 1
+
+            p_model = float(cnt) / float(cnt_all)
+
+            print("P(d<" + str(d_limit) + ")=" + str(p_model))
+            # ax = fig.get_axes()
+
+            # Also add errorbars
+            if exp_num is not None:
+                P = exp_num[0] / float(exp_num[1])
+
+                # Exp data specified should match
+                assert p_exp is None or p_exp == P
+
+                # stdExp = np.sqrt(P*(1-P)/expNum[1])
+
+                # https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval#Wilson_score_interval
+                # https://www.tandfonline.com/doi/abs/10.1080/01621459.1927.10502953
+                # Wilson score
+                # Wilson, Edwin B. "Probable inference, the law of succession, and statistical inference." Journal of the American Statistical Association 22.158 (1927): 209-212.
+                ns = exp_num[0]
+                n = exp_num[1]
+                z = 1.96  # This gives us 95% confidence intervall
+                bar_centre = (ns + (z ** 2) / 2) / (n + z * 2)
+                bar_height = z / (n + z ** 2) * np.sqrt((ns * (n - ns) / n + (z ** 2) / 4))
+
+                # plt.errorbar(dLimit*1e6/2,P,stdExp,color="gray",
+                #             elinewidth=1,capsize=5)
+                plt.errorbar(d_limit * 1e6 / 2, bar_centre, bar_height, color="gray",
+                             elinewidth=1, capsize=5)
+
+                # import pdb
+                # pdb.set_trace()
+
+                # rectExpStd = patches.Rectangle((0,P-stdExp),
+                #                               width=dLimit*1e6,height=2*stdExp,
+                #                               alpha=0.2,linewidth=0,
+                #                               color="red",fill=True)
+                # ax.add_patch(rectExpStd)
+            else:
+                stdExp = 0
+
+            if p_exp is not None:
+                plt.plot([0, d_limit * 1e6], [p_exp, p_exp],
+                         color=(0.8, 0.3 * plt_ctr, 0.3 * plt_ctr), linewidth=2)
+
+                # Add a star also
+                plt.plot(d_limit * 1e6 / 2, p_exp,
+                         color=(0.8, 0.3 * plt_ctr, 0.3 * plt_ctr),
+                         marker="D",
+                         markersize=10)
+
+                plt_ctr += 1
+                plt.ion()
+                plt.draw()
+
+                if self.show_plots:
+                    plt.show()
+
+                # rectExp = patches.Rectangle((0,0), dLimit*1e6, Pexp, \
+                #                            linewidth=2,color='red',fill=False)
+                # ax.add_patch(rectExp)
+
+            if False:  #
+                # Show the binning from the model data
+                plt.plot([0, d_limit * 1e6], [p_model, p_model], color="blue", linewidth=2)
+
+            # rect = patches.Rectangle((0,0), dLimit*1e6, P, \
+            #                         linewidth=1,color='blue',fill=False)
+            # ax.add_patch(rect)
+
+            if False:
+                plt.text(d_limit * 1e6, p_model,
+                         "P(d<" + str(d_limit * 1e6) + ")=%.3f" % p_model, size=9)
+
+        # Draw the curve itself
+        if drawStep:
+            plt.step(dist * 1e6, p_con, color='black', linewidth=2, where="post")
         else:
-          d = np.sqrt(np.sum((self.positions[x,0:2]-self.positions[y,0:2]) ** 2))
-          # We also need to check that z-distance is not too large
+            d_half_step = (dist[1] - dist[0]) / 2
+            plt.plot((dist + d_half_step) * 1e6, p_con, color='black', linewidth=2)
 
-          # Gilad email 2017-11-21:
-          # The 100 um is the lateral (XY) distance between somata of
-          # recorded cells. In terms of the Z axis, the slice
-          # thickness is 250 um but the recordings are all done in the
-          # upper half of the slice due to visibility of the cells. So
-          # lets say in a depth of roughly 40-110 um from the upper
-          # surface of the slice.
-          dz = np.abs(self.positions[x,2]-self.positions[y,2])
+        plt.xticks(fontsize=14, rotation=0)
+        plt.yticks(fontsize=14, rotation=0)
 
-          # Using dzMax = 70, see comment above from Gilad.
-          if(dz > 70e-6):
-            # Skip this pair, too far away in z-depth
-            countRejected += 1
-            continue
+        label_size = 22
 
-        idx = int(np.floor(d/deltaDist))
-        assert (idx < nBins), "Idx too large " + str(idx)
+        # if(dist3D):
+        #  plt.xlabel("Distance ($\mu$m)",fontsize=labelSize)
+        # else:
+        #  plt.xlabel("2D Distance ($\mu$m)",fontsize=labelSize)
 
-        if(conMat[x,y] > 0):
-          countCon[idx] += 1
+        # Hack to avoid divide by zero
+        count_all_b = count_all.copy()
+        count_all_b[count_all_b == 0] = 1.0
 
-        countAll[idx] += 1
+        # This gives us 95% confidence intervall
+        z = 1.96
 
-      tB = timeit.default_timer()
+        p_centre = np.array([(ns + (z ** 2) / 2) / (n + z * 2)
+                            for (ns, n) in zip(count_con, count_all_b)]).flatten()
+        p_height = np.array([z / (n + z ** 2)
+                            * np.sqrt((ns * (n - ns) / n + (z ** 2) / 4))
+                            for (ns, n) in zip(count_con, count_all_b)]).flatten()
 
-      if(self.debug):
-        print(str(xi+1) + "/" + str(len(preID)) + " " + str(tB-tA) + "s")
+        # Use the last bin larger than xMax as the end
+        d_idx = np.where(dist * 1e6 > xMax)[0][0]
 
-    Pcon = np.divide(countCon,countAll)
+        p_min = p_centre - p_height
+        p_max = p_centre + p_height
 
-    print("Requested: " + str(nPoints) + " calculated " + str(sum(countAll)))
-
-    if(not dist3D):
-      print("Rejected (too large z-depth): " + str(countRejected))
-
-    #import pdb
-    #pdb.set_trace()
-
-    return (dist,Pcon,countCon,countAll)
-
-  ############################################################################
-
-  def connectionProbabilityChannels(self,
-                                    preID,
-                                    postID,
-                                    nBins=86,
-                                    nPoints=5000000.0,
-                                    dist3D=True):
-
-    populationUnit = self.network["populationUnit"]
-
-    # Count the connected neurons
-    print("Counting connections")
-    dist = np.linspace(0.0,1700.0e-6,num=nBins)
-    deltaDist = dist[1]-dist[0]
-
-    countConWithinChannel = np.zeros((nBins,1))
-    countAllWithinChannel = np.zeros((nBins,1))
-
-    countConBetweenChannels = np.zeros((nBins,1))
-    countAllBetweenChannels = np.zeros((nBins,1))
-
-    countRejected = 0
-
-    nPerPair = nPoints/len(preID)
-
-    # Make this loop use threads, to speed it up
-
-    for xi,x in enumerate(preID):
-      tA = timeit.default_timer()
-
-      if(nPerPair - np.floor(nPerPair) > np.random.rand()):
-        nPts = int(np.ceil(nPerPair))
-      else:
-        nPts = int(np.floor(nPerPair))
-
-      try:
-        poID = np.random.permutation(postID)[0:min(nPts,len(postID))]
-      except:
-        print("Something fucked up")
-        import pdb
-        pdb.set_trace()
-
-      for y in poID: #postID:
-
-        if(x == y):
-          # Dont include self-self
-          continue
-
-        if(dist3D):
-          d = np.sqrt(np.sum((self.positions[x,:]-self.positions[y,:]) ** 2))
+        if drawStep:
+          plt.fill_between(dist[:d_idx] * 1e6, p_min[:d_idx], p_max[:d_idx],
+                           color='grey', step="post",
+                           alpha=0.4)
         else:
-          d = np.sqrt(np.sum((self.positions[x,0:2]-self.positions[y,0:2]) ** 2))
-          # We also need to check that z-distance is not too large
+            plt.fill_between((dist[:d_idx] + d_half_step) * 1e6, p_min[:d_idx], p_max[:d_idx],
+                             color='grey', step=None,
+                             alpha=0.4)
 
-          # Gilad email 2017-11-21:
-          # The 100 um is the lateral (XY) distance between somata of
-          # recorded cells. In terms of the Z axis, the slice
-          # thickness is 250 um but the recordings are all done in the
-          # upper half of the slice due to visibility of the cells. So
-          # lets say in a depth of roughly 40-110 um from the upper
-          # surface of the slice.
-          dz = np.abs(self.positions[x,2]-self.positions[y,2])
+        plt.xlabel("Distance ($\mu$m)", fontsize=label_size)
+        plt.ylabel("Con Prob (%)", fontsize=label_size)
 
-          # Using dzMax = 70, see comment above from Gilad.
-          if(dz > 70e-6):
-            # Skip this pair, too far away in z-depth
-            countRejected += 1
-            continue
+        # Adjust axis if needed
+        # import pdb
+        # pdb.set_trace()
 
-        idx = int(np.floor(d/deltaDist))
+        # Set plot limits
+        # if(any(x is not None for x in expData)):
+        #  if(max(plt.ylim()) < max(expData+stdExp)):
+        #    plt.ylim([0, np.ceil(max(expData+stdExp)*10)/10])
 
-        if(idx >= nBins):
-          countRejected += 1
-          continue
+        if xMax is not None:
+            plt.xlim([0, xMax])
 
-        # assert (idx < nBins), "Idx too large " + str(idx)
+        if yMax is not None:
+            plt.ylim([0, yMax])
 
-        samePopulationUnitFlag = (populationUnit[x] == populationUnit[y])
+        locs, labels = plt.yticks()
+        new_labels = ["{0:g}".format(yy * 100) for yy in locs]
 
-        if(self.connectionMatrix[x,y] > 0):
-          if(samePopulationUnitFlag):
-            countConWithinChannel[idx] += 1
-          else:
-            countConBetweenChannels[idx] += 1
+        if locs[0] < 0:
+            locs = locs[1:]
+            new_labels = new_labels[1:]
 
-        if(samePopulationUnitFlag):
-          countAllWithinChannel[idx] += 1
+        if locs[-1] > plt.ylim()[1]:
+            locs = locs[:-1]
+            new_labels = new_labels[:-1]
+
+        plt.yticks(locs, new_labels)
+
+        plt.title(self.neuron_name(preType) + " to " + self.neuron_name(postType))
+        plt.tight_layout()
+        plt.ion()
+        plt.draw()
+
+        if self.show_plots:
+            plt.show()
+
+        plt.pause(0.001)
+
+        if dist3D:
+            proj_text = '-3D-dist'
         else:
-          countAllBetweenChannels[idx] += 1
+            proj_text = '-2D-dist'
 
-      tB = timeit.default_timer()
+        fig_name = 'Network-distance-dependent-connection-probability-' \
+                  + str(preType) + "-to-" + str(postType) \
+                  + "-" + str(connectionType) \
+                  + proj_text
 
-      if(self.debug):
-        print(str(xi+1) + "/" + str(len(preID)) + " " + str(tB-tA) + "s")
+        self.save_figure(plt, fig_name)
 
-    PconWithinChannel = np.divide(countConWithinChannel,countAllWithinChannel)
-    PconBetweenChannels = np.divide(countConBetweenChannels, \
-                                    countAllBetweenChannels)
+    ############################################################################
 
-    print("Requested: " + str(nPoints) + " calculated " + str(sum(countAllWithinChannel) + sum(countAllBetweenChannels)))
+    # expMaxDist=[50e-6,100e-6]
+    # expData=[None, None] (none if no exp data, or values)
+    # expDataDetailed=[(conA,totA),(conB,totB)]
 
-    if(not dist3D):
-      print("Rejected (too large z-depth): " + str(countRejected))
+    def plot_connection_probability_channels(self,
+                                             pre_type=None,
+                                             post_type=None,
+                                             num_bins=86,
+                                             name_str="",
+                                             side_len=None,  # buffer around edges if neg
+                                             exp_max_dist=None,
+                                             exp_data=None,
+                                             exp_data_detailed=None,
+                                             dist_3d=True,
+                                             volume_id="Striatum"):
 
-    return (dist,PconWithinChannel,PconBetweenChannels, \
-            countConWithinChannel,countConBetweenChannels, \
-            countAllWithinChannel,countAllBetweenChannels)
+        if pre_type not in self.populations:
+            print("plotConnectionProbabilityChannels: " + str(pre_type)
+                  + " is not in the simulation")
+            return
 
+        if post_type not in self.populations:
+            print("plotConnectionProbabilityChannels: " + str(post_type)
+                  + " is not in the simulation")
+            return
 
+        if not exp_max_dist:
+            exp_max_dist = []
 
-  ############################################################################
+        if not exp_data:
+            exp_data = []
 
-  def numIncomingConnections(self,neuronType,preType,sideLen=None,
-                             volumeID="Striatum",
-                             connectionType="synapses"):
+        if not exp_data_detailed:
+            exp_data_detailed = None
 
-    if(sideLen is None):
-      sideLen=100e-6
+        if side_len is None:
+            side_len = self.side_len
 
-    print("Calculating number of incoming connections " + preType \
-      + " -> " + neuronType)
+        if len(exp_data) == 0 and len(exp_data_detailed) > 0:
+            exp_data = []
+            for x in exp_data_detailed:
+                exp_data.append(x[0] / float(x[1]))
 
-    # Only use post synaptic cell in central part of structure,
-    # to minimize edge effect
-    #neuronID = self.centreNeurons(neuronID=self.populations[neuronType],
-    #                              sideLen=sideLen)
+        if len(exp_data_detailed) == 0:
+            exp_data_detailed = []
+            for x in exp_data:
+              exp_data_detailed.append(None)
 
-    neuronID = self.getSubPop(volumeType=self.volumeType,
-                              volumePart="centre",
-                              sideLen=sideLen,
-                              neuronID=self.populations[neuronType],
-                              volumeID=volumeID)
+        assert pre_type is not None
+        assert post_type is not None
 
+        print("Plotting connection probability " + pre_type + " to " + post_type)
 
-    preID = self.populations[preType]
+        pre_id = self.populations[pre_type]
+        post_id = self.populations[post_type]
 
-    print("#pre = " + str(len(preID)) + ", #post = " + str(len(neuronID)))
+        # We can in principle use all pairs, but here we restrict to just the
+        # pairs who's post partner are in the centre
+        # postID = self.centreNeurons(neuronID=postID,sideLen=sideLen)
+        post_id = self.get_sub_pop(volume_type=self.volume_type,
+                                   volume_part="centre",
+                                   side_len=side_len,
+                                   neuron_id=post_id,
+                                   volume_id=volume_id)
 
-    if(connectionType == "synapses"):
-      conMat = self.connectionMatrix
-    elif(connectionType == "gapjunctions"):
-      conMat = self.connectionMatrixGJ
-    else:
-      print("Unknown connectionType: " + str(connectionType))
-      print("Please use 'synapses' or 'gapjunctions'")
-      import pdb
-      pdb.set_trace()
+        (dist, p_con_within, p_con_between,
+         count_con_within, count_con_between,
+         count_all_within, count_all_between) = \
+            self.connection_probability_population_units(pre_id, post_id, num_bins, dist_3d=dist_3d)
 
-    nCon = np.zeros((len(neuronID),1))
-    nSyn = np.zeros((len(neuronID),1))
+        # Now let's plot it
 
-    for i,nID in enumerate(neuronID):
-      cons = conMat[:,nID][preID,:]
-      nCon[i] = np.sum(cons > 0)
-      nSyn[i] = np.sum(cons)
+        # fig = plt.figure()
+        fig, ax = plt.subplots(1)
+        matplotlib.rcParams.update({'font.size': 22})
 
-    return (nCon,nSyn)
+        # Draw the curve itself
+        plt.plot(dist * 1e6, p_con_within, color='black', linewidth=2)
+        plt.plot(dist * 1e6, p_con_between, color='grey', linewidth=2)
 
-  ############################################################################
-
-  def plotIncomingConnections(self,preType,neuronType,sideLen=None,
-                              nameStr="",
-                              connectionType="synapses",
-                              fig=None,colour=None,histRange=None,
-                              binSize=None,
-                              nBins=None):
-
-    if(preType not in self.populations):
-      print("plotIncomingConnections: " + str(preType) \
-            + " is not in the simulation")
-      return
-
-    if(neuronType not in self.populations):
-      print("plotIncomingConnections: " + str(neuronType) \
-            + " is not in the simulation")
-      return
-
-
-    (nCon,nSyn) = self.numIncomingConnections(neuronType=neuronType,
-                                              preType=preType,
-                                              sideLen=sideLen,
-                                              connectionType=connectionType)
-
-    # Plotting number of connected neighbours
-    if(fig is None):
-      fig = plt.figure()
-      histType = 'bar'
-    else:
-      plt.sca(fig.axes[0])
-      histType = 'step'
-      
-    matplotlib.rcParams.update({'font.size':22})
-
-    if(sum(nCon) > 0):
-
-
-      if(binSize is None):
-        if(max(nCon) > 100):
-          binSize=10
+        label_size = 14
+        if dist_3d:
+            plt.xlabel("Distance ($\mu$m)", fontsize=label_size)
         else:
-          binSize=1
+            plt.xlabel("2D Distance ($\mu$m)", fontsize=label_size)
+        plt.ylabel("Connection probability", fontsize=label_size)
+
+        plt.xticks(fontsize=12, rotation=0)
+        plt.yticks(fontsize=12, rotation=0)
+
+        # plt.tick_params(axis='both', which='major', labelsize=10)
+        # plt.tick_params(axis='both', which='minor', labelsize=8)
+
+        # import pdb
+        # pdb.set_trace()
+
+        # Add lines for experimental data and matching data for model
+        for (dLimit, Pexp, expNum) in zip(exp_max_dist, exp_data, exp_data_detailed):
+            cnt_within = 0
+            cnt_all_within = 0
+            cnt_between = 0
+            cnt_all_between = 0
+
+            for (d, c, ca) in zip(dist, count_con_within, count_all_within):
+                if d <= dLimit:
+                    cnt_within += c
+                    cnt_all_within += ca
+
+            for (d, c, ca) in zip(dist, count_con_between, count_all_between):
+                if d <= dLimit:
+                    cnt_between += c
+                    cnt_all_between += ca
+
+            # Hack to avoid divide by zero, since the corresponding cntWithin
+            # bin will also be zero, the resulting division is zero
+            cnt_all_within[cnt_all_within == 0] = 1
+            cnt_all_between[cnt_all_between == 0] = 1
+
+            p_within = float(cnt_within) / float(cnt_all_within)
+            p_between = float(cnt_between) / float(cnt_all_between)
+
+            p_total = float(cnt_within + cnt_between) / float(cnt_all_within + cnt_all_between)
+
+            print("Pwithin(d<" + str(dLimit) + ")=" + str(p_within))
+            print("Pbetween(d<" + str(dLimit) + ")=" + str(p_between))
+            print("Ptotal(d<" + str(dLimit) + ")=" + str(p_total))
+            # ax = fig.get_axes()
+
+            if Pexp is not None:
+                plt.plot([0, dLimit * 1e6], [Pexp, Pexp], color="red", linewidth=2)
+
+                old_rect_flag = False
+                if old_rect_flag:
+                    # Old rectangle
+                    rect_exp = patches.Rectangle((0, 0), dLimit * 1e6, Pexp,
+                                                 linewidth=2, color='red', fill=False,
+                                                 linestyle="--")
+                # Also add errorbars
+                if expNum is not None:
+                    assert False, "Should change the error bars to wilson score!"
+                    p = expNum[0] / float(expNum[1])
+                    std_exp = np.sqrt(p * (1 - p) / expNum[1])
+                    rect_exp_std = patches.Rectangle((0, Pexp - std_exp),
+                                                     width=dLimit * 1e6, height=2 * std_exp,
+                                                     alpha=0.2, linewidth=0,
+                                                     color="red", fill=True)
+
+                    ax.add_patch(rect_exp_std)
+
+                if old_rect_flag:
+                    # Add P-line on top
+                    ax.add_patch(rect_exp)
+
+            if False:
+                rect_within = patches.Rectangle((0, 0), dLimit * 1e6, p_within,
+                                                linewidth=1, color='blue', fill=False)
+                rect_between = patches.Rectangle((0, 0), dLimit * 1e6, p_between,
+                                                 linewidth=1, color='lightblue',
+                                                 fill=False)
+                rect_total = patches.Rectangle((0, 0), dLimit * 1e6, p_total,
+                                               linewidth=2, color='blue', fill=False)
+
+                ax.add_patch(rect_within)
+                ax.add_patch(rect_between)
+                ax.add_patch(rect_total)
+
+            if True:
+                # Draw binned data as lines instead
+                plt.plot([0, dLimit * 1e6], [p_within, p_within],
+                         color="blue", linewidth=1)
+                plt.plot([0, dLimit * 1e6], [p_between, p_between],
+                         color="lightblue", linewidth=1)
+                plt.plot([0, dLimit * 1e6], [p_total, p_total],
+                         color="blue", linewidth=2)
+
+            if False:
+                Plt(dLimit * 1e6, p_within, "Pw(d<" + str(dLimit * 1e6) + ")=%.3f" % p_within, size=9)
+                plt.text(dLimit * 1e6, p_between, "Pb(d<" + str(dLimit * 1e6) + ")=%.3f" % p_between, size=9)
+
+        # Adjust axis if needed
+        # import pdb
+        # pdb.set_trace()
+
+        if any(x is not None for x in exp_data):
+            if max(plt.ylim()) < max(exp_data):
+                plt.ylim([0, np.ceil(max(exp_data) * 10) / 10])
 
-      if(colour is None):
-        colour = self.getNeuronColor(preType)
+        plt.xlim([0, 250])
+        # plt.xlim([0, 1000])
 
-      if(histRange is None):
-        histRange = range(0,int(np.max(nCon)),binSize)
+        plt.title(self.neuron_name(pre_type) + " to " \
+                  + self.neuron_name(post_type) + " connections")
 
-        
-      if(nBins is None):
-        plt.hist(nCon,histRange,
-                 align="left",density=True,
-                 color=colour,histtype=histType)
-      else:
-        plt.hist(nCon,bins=nBins,
-                 align="left",density=True,
-                 color=colour,histtype=histType)
-        
+        plt.tight_layout()
+        plt.ion()
+        plt.draw()
 
-        
-    plt.xlabel("Number of connected neighbours")
-    plt.ylabel("Probability density")
-    plt.title(self.neuronName(preType) + " connecting to " \
-              + self.neuronName(neuronType))
-    plt.tight_layout()
-    xleft,xright = plt.xlim()
-    plt.xlim(0,xright)
+        if self.show_plots:
+            plt.show()
 
-    plt.ion()
-    plt.draw()
+        plt.pause(0.001)
 
-    if(self.showPlots):
-      plt.show()
-
-    plt.pause(0.001)
-
-    figName = "Network-" + connectionType + "-input-to-" \
-      + neuronType + "-from-" + preType
-
-    self.saveFigure(plt,figName)
-
-
-    # Plotting number of input synapses
-    plt.figure()
-    matplotlib.rcParams.update({'font.size':22})
-
-    if(sum(nSyn) > 0):
-      if(max(nSyn) > 700):
-        binSize = 100
-      elif(max(nSyn) < 10):
-        binSize = 1
-      elif(max(nSyn) < 40):
-        binSize = 5
-      else:
-        binSize = 10
-      plt.hist(nSyn,range(0,int(np.max(nSyn)),binSize),
-               align="left",density=True,
-               color=self.getNeuronColor(preType))
-
-    plt.xlabel("Number of incoming " + connectionType)
-    plt.ylabel("Probability density")
-    plt.title(self.neuronName(preType) + " " + connectionType \
-              + " on " + self.neuronName(neuronType))
-    plt.tight_layout()
-
-    xleft,xright = plt.xlim()
-    plt.xlim(0,xright)
-    
-    plt.ion()
-    plt.draw()
-
-    if(self.showPlots):
-      plt.show()
-
-    plt.pause(0.001)
-    figName = "Network-" + connectionType + "-to-" + neuronType + "-from-" + preType
-
-    self.saveFigure(plt,figName)
-
-    return fig
-
-
-  ############################################################################
-
-  def findSynapses(self, neuronID, maxSynapses=10000, chunkSize=1000000):
-
-    print("Finding synapses between: " + str(neuronID))
-
-    synapses = np.zeros((maxSynapses,8))
-    synapseCtr = 0
-
-    nRows = self.data["network/synapses"].shape[0]
-    chunkSize = min(nRows,chunkSize)
-
-    nSteps = int(np.ceil(nRows/chunkSize))
-    rowStart = 0
-
-    for rowEnd in np.linspace(chunkSize,nRows,nSteps,dtype=int):
-
-      print("Rows: " + str(rowStart) + ":" + str(rowEnd) \
-        + " total: " + str(nRows))
-
-      syn = self.data["network/synapses"][rowStart:rowEnd,:]
-
-      for synRow in syn:
-        if(synRow[0] in neuronID and synRow[1] in neuronID):
-          synapses[synapseCtr,:] = synRow
-          synapseCtr += 1
-
-    print("Found " + str(synapseCtr) + " synapses")
-
-    print(str(synapses[0:synapseCtr,:]))
-
-    return synapses[0:synapseCtr,:]
-
-  ############################################################################
-
-  # Plots neuronID neuron, and all presynaptic partners
-
-  def plotNeurons(self,neuronID,showSynapses=True,plotPreNeurons=True):
-
-    axis = None
-
-    # Finding synapses, this might take time
-    (synapses,synapseCoords) = self.networkLoad.findSynapses(postID=neuronID)
-
-    assert (synapses[:,1] == neuronID).all(), "!!!! Wrong synapses extracted"
-
-    neurons = dict([])
-
-    postNeuron = self.networkLoad.load_neuron(neuronID)
-    axis = postNeuron.plot_neuron(axis=axis, plot_axon=False, \
-                                  plot_dendrite=True)
-
-    plottedNeurons = [neuronID]
-
-    if(plotPreNeurons):
-      for synRow in synapses:
-
-        srcID = int(synRow[0])
-
-        if(srcID not in plottedNeurons):
-          neurons[srcID] = self.networkLoad.load_neuron(srcID)
-          axis = neurons[srcID].plot_neuron(axis=axis, plot_axon=True, \
-                                            plot_dendrite=False)
-          plottedNeurons.append(srcID)
-
-    if(showSynapses):
-      axis.scatter(synapseCoords[:,0],
-                   synapseCoords[:,1],
-                   synapseCoords[:,2],c='red')
-
-    plt.ion()
-    plt.draw()
-
-    if(self.showPlots):
-      plt.show()
-
-    plt.pause(0.001)
-
-    return axis
-
-
-  ############################################################################
-
-  def findLatestFile(self):
-
-    files = glob('save/network-connect-voxel-pruned-synapse-file-*.hdf5')
-#    files = glob('save/network-connect-synapse-file-*.hdf5')
-
-    modTime = [os.path.getmtime(f) for f in files]
-    idx = np.argsort(modTime)
-
-    print("Using the newest file: " + files[idx[-1]])
-
-    return files[idx[-1]]
-
-  ############################################################################
-
-  # Loop through all synapses, create distance histogram
-
-  def synapseDist(self,sideLen=None,volumeID="Striatum"):
-
-    if(sideLen is None):
-      sideLen = self.sideLen
-
-    tA = timeit.default_timer()
-
-    # cornerID = self.cornerNeurons(sideLen=sideLen)
-    cornerID = self.getSubPop(volumeType=self.volumeType,
-                              volumePart="corner",
-                              sideLen=sideLen,
-                              neuronID=None,
-                              volumeID=volumeID)
-
-    isCorner = np.zeros((self.nNeurons,),dtype=bool)
-    isCorner[cornerID] = 1
-
-    print("Calculating synapse distance histogram")
-
-    nBins = 200
-    maxDist = 1000e-6
-    binWidth = maxDist/nBins
-    binScaling = 1e-6 / binWidth # To avoid a division
-
-    neuronType = [n["name"].split("_")[0] for n in self.network["neurons"]]
-    self.allTypes = np.unique(neuronType).tolist()
-
-    # To be quicker, we temporary define neuronTypeIDs
-    self.neuronTypeID = [self.allTypes.index(x) for x in neuronType]
-
-    self.dendPositionBin = dict([])
-    self.dendPositionEdges = np.linspace(0,maxDist,nBins+1)
-
-    for preTypeID in range(0,len(self.allTypes)):
-      for postTypeID in range(0,len(self.allTypes)):
-        self.dendPositionBin[(preTypeID,postTypeID)] = np.zeros((nBins,))
-
-    print("Creating dist histogram")
-
-    if(self.volumeType == "full"):
-      synIncrement = 1
-    elif(self.volumeType == "cube"):
-      synIncrement = 8    # Becaues we use 1/8th of volume,
-                          # count all synapses 8 times
-    else:
-      print("Unknown volume type: " + str(self.volumeType))
-      import pdb
-      pdb.set_trace()
-
-    nSynapses = self.data["network"]["synapses"].shape[0]
-    chunkSize = 1000000
-    startIdx = 0
-    endIdx = min(chunkSize,nSynapses)
-
-    # Outer while loop is to split the data processing into smaller chunks
-    # otherwise we use too much memory.
-    while(startIdx < nSynapses):
-
-      assert startIdx <= endIdx, "startIdx = " + str(startIdx) + ", endIdx = " + str(endIdx)
-
-      allPreID = self.data["network"]["synapses"][startIdx:endIdx,0]
-      allPostID = self.data["network"]["synapses"][startIdx:endIdx,1]
-
-      # Dist to soma on dendrite
-      allDistIdx = np.array(np.floor(self.data["network"]["synapses"][startIdx:endIdx,8] \
-                                     * binScaling),
-                            dtype=np.int)
-
-      lastPre = None
-      lastPost = None
-
-      print("nSynapses = " + str(nSynapses) + ", at " + str(startIdx))
-
-      for i in range(0,allPreID.shape[0]):
-
-        if(not isCorner[allPostID[i]]):
-          # We only want to include the corner neurons
-          continue
-
-        preTypeID = self.neuronTypeID[allPreID[i]]
-        postTypeID = self.neuronTypeID[allPostID[i]]
-        idx = allDistIdx[i]
-
-        if(preTypeID != lastPre or postTypeID != lastPost):
-          lastPre = preTypeID
-          lastPost = postTypeID
-          binCount = self.dendPositionBin[(preTypeID,postTypeID)]
-
-        # +8 for cube corners, and +1 for full
-        binCount[idx] += synIncrement
-
-
-      startIdx += chunkSize
-      endIdx += chunkSize
-      endIdx = min(endIdx,nSynapses)
-
-
-    tB = timeit.default_timer()
-
-    print("Created distance histogram (optimised) in " + str(tB-tA) + " seconds")
-
-
-  ############################################################################
-
-  def plotSynapseCumDistSummary(self,pairList):
-
-    matplotlib.rcParams.update({'font.size': 22})
-    plt.figure()
-
-    figName = "SynapseCumDistSummary"
-    legendText = []
-
-    for pair in pairList:
-
-      try:
-        pairID = (self.allTypes.index(pair[0]),
-                  self.allTypes.index(pair[1]))
-      except:
-        print("Missing pair: " + str(pair))
-        continue
-
-      if(pairID not in self.dendPositionBin):
-        print("Missing cum dist information for " + str(pair))
-        continue
-
-      if(sum(self.dendPositionBin[pairID]) == 0):
-        print("Empty cum dist data for " + str(pair))
-        continue
-
-      cumDist = np.cumsum(self.dendPositionBin[pairID])  \
-                 /np.sum(self.dendPositionBin[pairID])
-
-      # Select range to plot
-      endIdx = np.where(self.dendPositionEdges <= 400e-6)[0][-1]
-
-      try:
-        preType = pair[0]
-        postType = pair[1]
-
-        if(preType in self.neuronColors):
-          plotCol = self.neuronColors[preType]
+        if dist_3d:
+            proj_text = '-3D-dist'
         else:
-          plotCol = self.neuronColors["default"]
+            proj_text = '-2D-dist'
 
-        # Hack: dSPN and iSPN are overlapping, need to make dSPN visible
-        if(preType == "dSPN"):
-          linewidth=7
+        fig_name = 'Network-distance-dependent-connection-probability-channels-' \
+                   + str(pre_type) + "-to-" + str(post_type) \
+                   + proj_text
+
+        self.save_figure(plt, fig_name)
+
+    ############################################################################
+
+    def connection_probability_wrapper(self, pre_id, post_id, num_bins=86, dist_3d=True):
+
+        print("Worker started, preID: " + str(pre_id))
+
+        (dist, p_con, count_con, count_all) = self.connection_probability(pre_id,
+                                                                        post_id,
+                                                                        num_bins,
+                                                                        dist_3d=dist_3d)
+
+        self.worker_data.append((dist, p_con, count_con, count_all))
+
+    ############################################################################
+
+    # connectionType: "synapses" or "gapjunctions"
+
+    def connection_probability(self,
+                               pre_id,
+                               post_id,
+                               num_bins=86,
+                               num_points=10000000.0,
+                               dist_3d=True,
+                               connection_type="synapses"):
+
+        # Count the connected neurons
+        print("Counting connections")
+        dist = np.linspace(0.0, 1700.0e-6, num=num_bins)
+        delta_dist = dist[1] - dist[0]
+
+        count_con = np.zeros((num_bins, 1))
+        count_all = np.zeros((num_bins, 1))
+        count_rejected = 0
+
+        num_per_pair = num_points / len(pre_id)
+
+        if connection_type == "synapses":
+            con_mat = self.connection_matrix
+        elif connection_type == "gapjunctions":
+            con_mat = self.connection_matrix_gj
         else:
-          linewidth=3
+            assert False,"Unknown connectionType: " + str(connection_type)
 
-        plt.plot(self.dendPositionEdges[:endIdx]*1e6,
-                 cumDist[:endIdx],
-                 linewidth=linewidth,color=plotCol)
+        # Make this loop use threads, to speed it up
 
+        for xi, x in enumerate(pre_id):
+            t_a = timeit.default_timer()
 
-        figName += "_" + preType + "-" + postType
+            if num_per_pair - np.floor(num_per_pair) > np.random.rand():
+                n_pts = int(np.ceil(num_per_pair))
+            else:
+                n_pts = int(np.floor(num_per_pair))
 
-        legendText.append(self.neuronName(preType) + "-" \
-                          + self.neuronName(postType))
+            po_id = np.random.permutation(post_id)[0:min(n_pts, len(post_id))]
 
-      except:
-        import traceback
-        tstr = traceback.format_exc()
-        print(tstr)
-        import pdb
-        pdb.set_trace()
+            for y in po_id:  # postID:
 
-    fontP = matplotlib.font_manager.FontProperties()
-    fontP.set_size('small')
-    plt.legend(legendText,prop=fontP)
-    plt.xlabel('Distance from soma ($\mu$m)')
-    plt.ylabel('Cumulative distrib.')
+                if x == y:
+                    # Do not count self connections in statistics!!
+                    # This can lead to what looks like an artificial drop in
+                    # connectivity proximally
+                    continue
 
-    figName += ".pdf"
+                if dist_3d:
+                    d = np.sqrt(np.sum((self.positions[x, :] - self.positions[y, :]) ** 2))
+                else:
+                    d = np.sqrt(np.sum((self.positions[x, 0:2] - self.positions[y, 0:2]) ** 2))
+                    # We also need to check that z-distance is not too large
 
-    self.saveFigure(plt,figName)
+                    # Gilad email 2017-11-21:
+                    # The 100 um is the lateral (XY) distance between somata of
+                    # recorded cells. In terms of the Z axis, the slice
+                    # thickness is 250 um but the recordings are all done in the
+                    # upper half of the slice due to visibility of the cells. So
+                    # lets say in a depth of roughly 40-110 um from the upper
+                    # surface of the slice.
+                    dz = np.abs(self.positions[x, 2] - self.positions[y, 2])
 
-  ############################################################################
+                    # Using dzMax = 70, see comment above from Gilad.
+                    if dz > 70e-6:
+                        # Skip this pair, too far away in z-depth
+                        count_rejected += 1
+                        continue
 
-  def plotSynapseCumDist(self):
+                idx = int(np.floor(d / delta_dist))
+                assert (idx < num_bins), "Idx too large " + str(idx)
 
-    #import pdb
-    #pdb.set_trace()
+                if con_mat[x, y] > 0:
+                    count_con[idx] += 1
 
-    for pair in self.dendPositionBin:
+                count_all[idx] += 1
 
-      if(sum(self.dendPositionBin[pair]) == 0):
-        # Nothing in the bins, skip this plot
-        continue
+            t_b = timeit.default_timer()
 
-      #import pdb
-      #pdb.set_trace()
+            if self.debug:
+                print(str(xi + 1) + "/" + str(len(pre_id)) + " " + str(t_b - t_a) + "s")
 
-      cumDist = np.cumsum(self.dendPositionBin[pair])  \
-                 /np.sum(self.dendPositionBin[pair])
+        p_con = np.divide(count_con, count_all)
 
-      idx = np.where(cumDist < 0.5)[0][-1]
-      print(self.allTypes[pair[0]] + " to " + self.allTypes[pair[1]] \
-            + " 50% of synapses are within " \
-            + str(self.dendPositionEdges[idx]*1e6) + " micrometer")
+        print("Requested: " + str(num_points) + " calculated " + str(sum(count_all)))
 
-      # Dont plot the full range
-      endIdx = np.where(self.dendPositionEdges <= 300e-6)[0][-1]
+        if not dist_3d:
+            print("Rejected (too large z-depth): " + str(count_rejected))
 
+        # import pdb
+        # pdb.set_trace()
 
-      try:
-        preType = pair[0]
-        postType = pair[1]
+        return dist, p_con, count_con, count_all
+
+    ############################################################################
+
+    def connection_probability_population_units(self,
+                                                pre_id,
+                                                post_id,
+                                                num_bins=86,
+                                                num_points=5000000.0,
+                                                dist_3d=True):
+
+        population_unit = self.network["populationUnit"]
+
+        # Count the connected neurons
+        print("Counting connections")
+        dist = np.linspace(0.0, 1700.0e-6, num=num_bins)
+        delta_dist = dist[1] - dist[0]
+
+        count_con_within_channel = np.zeros((num_bins, 1))
+        count_all_within_pop_unit = np.zeros((num_bins, 1))
+
+        count_con_between_pop_units = np.zeros((num_bins, 1))
+        count_all_between_pop_units = np.zeros((num_bins, 1))
+
+        count_rejected = 0
+
+        num_per_pair = num_points / len(pre_id)
+
+        # Make this loop use threads, to speed it up
+
+        for xi, x in enumerate(pre_id):
+            t_a = timeit.default_timer()
+
+            if num_per_pair - np.floor(num_per_pair) > np.random.rand():
+                n_pts = int(np.ceil(num_per_pair))
+            else:
+                n_pts = int(np.floor(num_per_pair))
+
+            po_id = np.random.permutation(post_id)[0:min(n_pts, len(post_id))]
+
+            for y in po_id:  # postID:
+
+                if x == y:
+                    # Dont include self-self
+                    continue
+
+                if dist_3d:
+                    d = np.sqrt(np.sum((self.positions[x, :] - self.positions[y, :]) ** 2))
+                else:
+                    d = np.sqrt(np.sum((self.positions[x, 0:2] - self.positions[y, 0:2]) ** 2))
+                    # We also need to check that z-distance is not too large
+
+                    # Gilad email 2017-11-21:
+                    # The 100 um is the lateral (XY) distance between somata of
+                    # recorded cells. In terms of the Z axis, the slice
+                    # thickness is 250 um but the recordings are all done in the
+                    # upper half of the slice due to visibility of the cells. So
+                    # lets say in a depth of roughly 40-110 um from the upper
+                    # surface of the slice.
+                    dz = np.abs(self.positions[x, 2] - self.positions[y, 2])
+
+                    # Using dzMax = 70, see comment above from Gilad.
+                    if dz > 70e-6:
+                        # Skip this pair, too far away in z-depth
+                        count_rejected += 1
+                        continue
+
+                idx = int(np.floor(d / delta_dist))
+
+                if idx >= num_bins:
+                    count_rejected += 1
+                    continue
+
+                # assert (idx < nBins), "Idx too large " + str(idx)
+
+                same_population_unit_flag = (population_unit[x] == population_unit[y])
+
+                if self.connection_matrix[x, y] > 0:
+                    if same_population_unit_flag:
+                        count_con_within_channel[idx] += 1
+                    else:
+                        count_con_between_pop_units[idx] += 1
+
+                if same_population_unit_flag:
+                    count_all_within_pop_unit[idx] += 1
+                else:
+                    count_all_between_pop_units[idx] += 1
+
+            t_b = timeit.default_timer()
+
+            if self.debug:
+                print(str(xi + 1) + "/" + str(len(pre_id)) + " " + str(t_b - t_a) + "s")
+
+        pcon_within_pop_unit = np.divide(count_con_within_channel, count_all_within_pop_unit)
+        pcon_between_pop_unit = np.divide(count_con_between_pop_units,
+                                          count_all_between_pop_units)
+
+        print("Requested: " + str(num_points) + " calculated " + str(
+            sum(count_all_within_pop_unit) + sum(count_all_between_pop_units)))
+
+        if not dist_3d:
+            print("Rejected (too large z-depth): " + str(count_rejected))
+
+        return (dist, pcon_within_pop_unit, pcon_between_pop_unit,
+                count_con_within_channel, count_con_between_pop_units,
+                count_all_within_pop_unit, count_all_between_pop_units)
+
+    ############################################################################
+
+    def num_incoming_connections(self, neuron_type, pre_type, side_len=None,
+                                 volume_id="Striatum",
+                                 connection_type="synapses"):
+
+        if side_len is None:
+            side_len = 100e-6
+
+        print("Calculating number of incoming connections " + pre_type
+              + " -> " + neuron_type)
+
+        # Only use post synaptic cell in central part of structure,
+        # to minimize edge effect
+        # neuronID = self.centreNeurons(neuronID=self.populations[neuronType],
+        #                              sideLen=sideLen)
+
+        neuron_id = self.get_sub_pop(volume_type=self.volume_type,
+                                     volume_part="centre",
+                                     side_len=side_len,
+                                     neuron_id=self.populations[neuron_type],
+                                     volume_id=volume_id)
+
+        pre_id = self.populations[pre_type]
+
+        print("#pre = " + str(len(pre_id)) + ", #post = " + str(len(neuron_id)))
+
+        if connection_type == "synapses":
+            con_mat = self.connection_matrix
+        elif connection_type == "gapjunctions":
+            con_mat = self.connection_matrix_gj
+        else:
+            assert "Unknown connectionType: " + str(connection_type)
+            con_mat = None  # To get pycharm to shut up ;)
+
+        n_con = np.zeros((len(neuron_id), 1))
+        n_syn = np.zeros((len(neuron_id), 1))
+
+        for i, nID in enumerate(neuron_id):
+            cons = con_mat[:, nID][pre_id, :]
+            n_con[i] = np.sum(cons > 0)
+            n_syn[i] = np.sum(cons)
+
+        return n_con, n_syn
+
+    ############################################################################
+
+    def plot_incoming_connections(self, pre_type, neuron_type, side_len=None,
+                                  name_str="",
+                                  connection_type="synapses",
+                                  fig=None, colour=None, hist_range=None,
+                                  bin_size=None,
+                                  num_bins=None):
+
+        if pre_type not in self.populations:
+            print("plotIncomingConnections: " + str(pre_type)
+                  + " is not in the simulation")
+            return
+
+        if neuron_type not in self.populations:
+            print("plotIncomingConnections: " + str(neuron_type)
+                  + " is not in the simulation")
+            return
+
+        (n_con, nSyn) = self.num_incoming_connections(neuron_type=neuron_type,
+                                                      pre_type=pre_type,
+                                                      side_len=side_len,
+                                                      connection_type=connection_type)
+
+        # Plotting number of connected neighbours
+        if fig is None:
+            fig = plt.figure()
+            hist_type = 'bar'
+        else:
+            plt.sca(fig.axes[0])
+            hist_type = 'step'
 
         matplotlib.rcParams.update({'font.size': 22})
 
+        if sum(n_con) > 0:
+
+            if bin_size is None:
+                if max(n_con) > 100:
+                    bin_size = 10
+                else:
+                    bin_size = 1
+
+            if colour is None:
+                colour = self.get_neuron_color(pre_type)
+
+            if hist_range is None:
+                hist_range = range(0, int(np.max(n_con)), bin_size)
+
+            if num_bins is None:
+                plt.hist(n_con, hist_range,
+                         align="left", density=True,
+                         color=colour, histtype=hist_type)
+            else:
+                plt.hist(n_con, bins=num_bins,
+                         align="left", density=True,
+                         color=colour, histtype=hist_type)
+
+        plt.xlabel("Number of connected neighbours")
+        plt.ylabel("Probability density")
+        plt.title(self.neuron_name(pre_type) + " connecting to "
+                  + self.neuron_name(neuron_type))
+        plt.tight_layout()
+        xleft, xright = plt.xlim()
+        plt.xlim(0, xright)
+
+        plt.ion()
+        plt.draw()
+
+        if self.show_plots:
+            plt.show()
+
+        plt.pause(0.001)
+
+        fig_name = "Network-" + connection_type + "-input-to-" \
+                   + neuron_type + "-from-" + pre_type
+
+        self.save_figure(plt, fig_name)
+
+        # Plotting number of input synapses
         plt.figure()
-        plt.plot(self.dendPositionEdges[:endIdx]*1e6,
-                 cumDist[:endIdx],
-                 linewidth=3)
+        matplotlib.rcParams.update({'font.size': 22})
+
+        if sum(nSyn) > 0:
+            if max(nSyn) > 700:
+                bin_size = 100
+            elif max(nSyn) < 10:
+                bin_size = 1
+            elif max(nSyn) < 40:
+                bin_size = 5
+            else:
+                bin_size = 10
+            plt.hist(nSyn, range(0, int(np.max(nSyn)), bin_size),
+                     align="left", density=True,
+                     color=self.get_neuron_color(pre_type))
+
+        plt.xlabel("Number of incoming " + connection_type)
+        plt.ylabel("Probability density")
+        plt.title(self.neuron_name(pre_type) + " " + connection_type
+                  + " on " + self.neuron_name(neuron_type))
+        plt.tight_layout()
+
+        xleft, xright = plt.xlim()
+        plt.xlim(0, xright)
+
+        plt.ion()
+        plt.draw()
+
+        if self.show_plots:
+            plt.show()
+
+        plt.pause(0.001)
+        fig_name = "Network-" + connection_type + "-to-" + neuron_type + "-from-" + pre_type
+
+        self.save_figure(plt, fig_name)
+
+        return fig
+
+    ############################################################################
+
+    def find_synapses(self, neuron_id, max_synapses=10000, chunk_size=1000000):
+
+        print("Finding synapses between: " + str(neuron_id))
+
+        synapses = np.zeros((max_synapses, 8))
+        synapse_ctr = 0
+
+        num_rows = self.data["network/synapses"].shape[0]
+        chunk_size = min(num_rows, chunk_size)
+
+        num_steps = int(np.ceil(num_rows / chunk_size))
+        row_start = 0
+
+        for rowEnd in np.linspace(chunk_size, num_rows, num_steps, dtype=int):
+
+            print("Rows: " + str(row_start) + ":" + str(rowEnd)
+                  + " total: " + str(num_rows))
+
+            syn = self.data["network/synapses"][row_start:rowEnd, :]
+
+            for synRow in syn:
+                if synRow[0] in neuron_id and synRow[1] in neuron_id:
+                    synapses[synapse_ctr, :] = synRow
+                    synapse_ctr += 1
+
+        print("Found " + str(synapse_ctr) + " synapses")
+
+        print(str(synapses[0:synapse_ctr, :]))
+
+        return synapses[0:synapse_ctr, :]
+
+    ############################################################################
+
+    # Plots neuronID neuron, and all presynaptic partners
+
+    def plot_neurons(self, neuron_id, show_synapses=True, plot_pre_neurons=True):
+
+        axis = None
+
+        # Finding synapses, this might take time
+        (synapses, synapse_coords) = self.network_load.find_synapses(postID=neuron_id)
+
+        assert (synapses[:, 1] == neuron_id).all(), "!!!! Wrong synapses extracted"
+
+        neurons = dict([])
+
+        post_neuron = self.network_load.load_neuron(neuron_id)
+        axis = post_neuron.plot_neuron(axis=axis, plot_axon=False,
+                                       plot_dendrite=True)
+
+        plotted_neurons = [neuron_id]
+
+        if plot_pre_neurons:
+            for synRow in synapses:
+
+                src_id = int(synRow[0])
+
+                if src_id not in plotted_neurons:
+                    neurons[src_id] = self.network_load.load_neuron(src_id)
+                    axis = neurons[src_id].plot_neuron(axis=axis, plot_axon=True,
+                                                       plot_dendrite=False)
+                    plotted_neurons.append(src_id)
+
+        if show_synapses:
+            axis.scatter(synapse_coords[:, 0],
+                         synapse_coords[:, 1],
+                         synapse_coords[:, 2], c='red')
+
+        plt.ion()
+        plt.draw()
+
+        if self.show_plots:
+            plt.show()
+
+        plt.pause(0.001)
+
+        return axis
+
+    ############################################################################
+
+    def find_latest_file(self):
+
+        files = glob('save/network-connect-voxel-pruned-synapse-file-*.hdf5')
+        #    files = glob('save/network-connect-synapse-file-*.hdf5')
+
+        mod_time = [os.path.getmtime(f) for f in files]
+        idx = np.argsort(mod_time)
+
+        print("Using the newest file: " + files[idx[-1]])
+
+        return files[idx[-1]]
+
+    ############################################################################
+
+    # Loop through all synapses, create distance histogram
+
+    def synapse_dist(self, side_len=None, volume_id="Striatum"):
+
+        if side_len is None:
+            side_len = self.side_len
+
+        t_a = timeit.default_timer()
+
+        # cornerID = self.cornerNeurons(sideLen=sideLen)
+        corner_id = self.get_sub_pop(volume_type=self.volume_type,
+                                     volume_part="corner",
+                                     side_len=side_len,
+                                     neuron_id=None,
+                                     volume_id=volume_id)
+
+        is_corner = np.zeros((self.num_neurons,), dtype=bool)
+        is_corner[corner_id] = 1
+
+        print("Calculating synapse distance histogram")
+
+        n_bins = 200
+        max_dist = 1000e-6
+        bin_width = max_dist / n_bins
+        bin_scaling = 1e-6 / bin_width  # To avoid a division
+
+        neuron_type = [n["name"].split("_")[0] for n in self.network["neurons"]]
+        self.allTypes = np.unique(neuron_type).tolist()
+
+        # To be quicker, we temporary define neuronTypeIDs
+        self.neuronTypeID = [self.allTypes.index(x) for x in neuron_type]
+
+        self.dend_position_bin = dict([])
+        self.dend_position_edges = np.linspace(0, max_dist, n_bins + 1)
+
+        for pre_type_id in range(0, len(self.allTypes)):
+            for post_type_id in range(0, len(self.allTypes)):
+                self.dend_position_bin[(pre_type_id, post_type_id)] = np.zeros((n_bins,))
+
+        print("Creating dist histogram")
+
+        if self.volume_type == "full":
+            syn_increment = 1
+        elif self.volume_type == "cube":
+            syn_increment = 8  # Becaues we use 1/8th of volume,
+            # count all synapses 8 times
+        else:
+            print("Unknown volume type: " + str(self.volume_type))
+            import pdb
+            pdb.set_trace()
+
+        n_synapses = self.data["network"]["synapses"].shape[0]
+        chunk_size = 1000000
+        start_idx = 0
+        end_idx = min(chunk_size, n_synapses)
+
+        # Outer while loop is to split the data processing into smaller chunks
+        # otherwise we use too much memory.
+        while start_idx < n_synapses:
+
+            assert start_idx <= end_idx, "startIdx = " + str(start_idx) + ", endIdx = " + str(end_idx)
+
+            all_pre_id = self.data["network"]["synapses"][start_idx:end_idx, 0]
+            all_post_id = self.data["network"]["synapses"][start_idx:end_idx, 1]
+
+            # Dist to soma on dendrite
+            all_dist_idx = np.array(np.floor(self.data["network"]["synapses"][start_idx:end_idx, 8]
+                                             * bin_scaling),
+                                    dtype=np.int)
+
+            last_pre = None
+            last_post = None
+
+            print("nSynapses = " + str(n_synapses) + ", at " + str(start_idx))
+
+            for i in range(0, all_pre_id.shape[0]):
+
+                if not is_corner[all_post_id[i]]:
+                    # We only want to include the corner neurons
+                    continue
+
+                pre_type_id = self.neuronTypeID[all_pre_id[i]]
+                post_type_id = self.neuronTypeID[all_post_id[i]]
+                idx = all_dist_idx[i]
+
+                if pre_type_id != last_pre or post_type_id != last_post:
+                    last_pre = pre_type_id
+                    last_post = post_type_id
+                    bin_count = self.dend_position_bin[(pre_type_id, post_type_id)]
+
+                # +8 for cube corners, and +1 for full
+                bin_count[idx] += syn_increment
+
+            start_idx += chunk_size
+            end_idx += chunk_size
+            end_idx = min(end_idx, n_synapses)
+
+        t_b = timeit.default_timer()
+
+        print("Created distance histogram (optimised) in " + str(t_b - t_a) + " seconds")
+
+    ############################################################################
+
+    def plot_synapse_cum_dist_summary(self, pair_list):
+
+        matplotlib.rcParams.update({'font.size': 22})
+        plt.figure()
+
+        fig_name = "SynapseCumDistSummary"
+        legend_text = []
+
+        for pair in pair_list:
+
+            try:
+                pair_id = (self.allTypes.index(pair[0]),
+                          self.allTypes.index(pair[1]))
+            except:
+                print("Missing pair: " + str(pair))
+                continue
+
+            if pair_id not in self.dend_position_bin:
+                print("Missing cum dist information for " + str(pair))
+                continue
+
+            if sum(self.dend_position_bin[pair_id]) == 0:
+                print("Empty cum dist data for " + str(pair))
+                continue
+
+            cum_dist = np.cumsum(self.dend_position_bin[pair_id]) / np.sum(self.dend_position_bin[pair_id])
+
+            # Select range to plot
+            end_idx = np.where(self.dend_position_edges <= 400e-6)[0][-1]
+
+            try:
+                pre_type = pair[0]
+                post_type = pair[1]
+
+                if pre_type in self.neuron_colors:
+                    plot_col = self.neuron_colors[pre_type]
+                else:
+                    plot_col = self.neuron_colors["default"]
+
+                # Hack: dSPN and iSPN are overlapping, need to make dSPN visible
+                if pre_type == "dSPN":
+                    line_width = 7
+                else:
+                    line_width = 3
+
+                plt.plot(self.dend_position_edges[:end_idx] * 1e6,
+                         cum_dist[:end_idx],
+                         linewidth=line_width, color=plot_col)
+
+                fig_name += "_" + pre_type + "-" + post_type
+
+                legend_text.append(self.neuron_name(pre_type) + "-" + self.neuron_name(post_type))
+
+            except:
+                import traceback
+                tstr = traceback.format_exc()
+                print(tstr)
+                import pdb
+                pdb.set_trace()
+
+        font_p = matplotlib.font_manager.FontProperties()
+        font_p.set_size('small')
+        plt.legend(legend_text, prop=font_p)
         plt.xlabel('Distance from soma ($\mu$m)')
         plt.ylabel('Cumulative distrib.')
-        plt.title('Synapses ' + self.neuronName(self.allTypes[preType]) \
-                  + " to " + self.neuronName(self.allTypes[postType]))
-        plt.tight_layout()
 
-        plt.ion()
+        fig_name += ".pdf"
 
-        if(self.showPlots):
-          plt.show()
+        self.save_figure(plt, fig_name)
 
-        plt.draw()
-        plt.pause(0.0001)
-        figName = "SynapseCumulativeDistribution-" \
-                    + self.neuronName(self.allTypes[preType]) + "-to-" \
-                    + self.neuronName(self.allTypes[postType])
+    ############################################################################
 
-        self.saveFigure(plt,figName)
+    def plot_synapse_cum_dist(self):
+
+        # import pdb
+        # pdb.set_trace()
+
+        for pair in self.dend_position_bin:
+
+            if sum(self.dend_position_bin[pair]) == 0:
+                # Nothing in the bins, skip this plot
+                continue
+
+            # import pdb
+            # pdb.set_trace()
+
+            cum_dist = np.cumsum(self.dend_position_bin[pair]) / np.sum(self.dend_position_bin[pair])
+
+            idx = np.where(cum_dist < 0.5)[0][-1]
+            print(self.allTypes[pair[0]] + " to " + self.allTypes[pair[1]]
+                  + " 50% of synapses are within "
+                  + str(self.dend_position_edges[idx] * 1e6) + " micrometer")
+
+            # Dont plot the full range
+            end_idx = np.where(self.dend_position_edges <= 300e-6)[0][-1]
+
+            try:
+                pre_type = pair[0]
+                post_type = pair[1]
+
+                matplotlib.rcParams.update({'font.size': 22})
+
+                plt.figure()
+                plt.plot(self.dend_position_edges[:end_idx] * 1e6,
+                         cum_dist[:end_idx],
+                         linewidth=3)
+                plt.xlabel('Distance from soma ($\mu$m)')
+                plt.ylabel('Cumulative distrib.')
+                plt.title('Synapses ' + self.neuron_name(self.allTypes[pre_type])
+                          + " to " + self.neuron_name(self.allTypes[post_type]))
+                plt.tight_layout()
+
+                plt.ion()
+
+                if self.show_plots:
+                    plt.show()
+
+                plt.draw()
+                plt.pause(0.0001)
+                fig_name = "SynapseCumulativeDistribution-" \
+                           + self.neuron_name(self.allTypes[pre_type]) + "-to-" \
+                           + self.neuron_name(self.allTypes[post_type])
+
+                self.save_figure(plt, fig_name)
+
+            except Exception:
+                import traceback
+                tstr = traceback.format_exc()
+                print(tstr)
+
+                print("fucked up")
+                import pdb
+                pdb.set_trace()
+
+    ############################################################################
+
+    def plot_synapse_dist(self, density_flag=False, side_len=None):
+
+        if side_len is None:
+            side_len = self.side_len
+
+        # import pdb
+        # pdb.set_trace()
+
+        dend_hist_tot = self.dendrite_density(num_bins=len(self.dend_position_edges),
+                                              bin_width=self.dend_position_edges[1],
+                                              side_len=side_len)
+
+        # self.dendPositionBin calculated by synapseDist(), done at time of init
+
+        for pair in self.dend_position_bin:
+
+            if sum(self.dend_position_bin[pair]) == 0:
+                # Nothing in the bins, skip this plot
+                continue
+
+            end_idx = np.where(self.dend_position_edges <= 400e-6)[0][-1]
+
+            try:
+                pre_type = self.allTypes[pair[0]]
+                post_type = self.allTypes[pair[1]]
+
+                plt.rcParams.update({'font.size': 16})
+
+                plt.figure()
+                if density_flag:
+
+                    # Skip first bin if we plot densities, since synapses from soma
+                    # are in first bin, but contribute no dendritic length
+
+                    plt.plot(self.dend_position_edges[1:end_idx] * 1e6,
+                             np.divide(self.dend_position_bin[pair][1:end_idx],
+                                       dend_hist_tot[post_type][1:end_idx] * 1e6))
+                    plt.ylabel('Synapse/micrometer')
+                    plt.xlabel('Distance from soma ($\mu$m)')
+
+                    plt.title('Synapse density ' + self.neuron_name(pre_type)
+                              + " to " + self.neuron_name(post_type))
 
 
-      except Exception as e:
-        import traceback
-        tstr = traceback.format_exc()
-        print(tstr)
+                else:
+                    plt.plot(self.dend_position_edges[:end_idx] * 1e6,
+                             self.dend_position_bin[pair][:end_idx])
+                    plt.ylabel('Synapse count')
+                    plt.xlabel('Distance from soma ($\mu$m)')
+                    plt.ylim([0, np.ceil(np.max(self.dend_position_bin[pair][:end_idx]))])
 
-        print("fucked up")
-        import pdb
-        pdb.set_trace()
+                    plt.title('Synapses ' + self.neuron_name(pre_type)
+                              + " to " + self.neuron_name(post_type))
 
+                plt.tight_layout()
 
+                plt.ion()
 
-  ############################################################################
+                if self.show_plots:
+                    plt.show()
 
-  def plotSynapseDist(self,densityFlag=False,sideLen=None):
+                plt.draw()
+                plt.pause(0.0001)
 
-    if(sideLen is None):
-      sideLen = self.sideLen
+                if density_flag:
+                    fig_name = "SynapseDistribution-density-dend-" \
+                              + pre_type + "-to-" + post_type
+                else:
+                    fig_name = "SynapseDistribution-dend-" \
+                              + pre_type + "-to-" + post_type
 
-    #import pdb
-    #pdb.set_trace()
+                self.save_figure(plt, fig_name)
 
-    dendHistTot = self.dendriteDensity(nBins=len(self.dendPositionEdges),
-                                       binWidth=self.dendPositionEdges[1],
-                                       sideLen=sideLen)
+            except Exception:
+                import traceback
+                tstr = traceback.format_exc()
+                print(tstr)
 
+                print("fucked up")
+                import pdb
+                pdb.set_trace()
 
-    # self.dendPositionBin calculated by synapseDist(), done at time of init
+    ############################################################################
 
-    for pair in self.dendPositionBin:
+    ############################################################################
 
-      if(sum(self.dendPositionBin[pair]) == 0):
-        # Nothing in the bins, skip this plot
-        continue
+    # We want to get the number of synapses per unit length
+    # We have the number of synapses at different distances from some (arc length)
+    # So we want to calculate dendritic length, and then divide the synapses by
+    # that
 
-      endIdx = np.where(self.dendPositionEdges <= 400e-6)[0][-1]
+    def dendrite_density(self, num_bins, bin_width, side_len=None, volume_id="Striatum"):
 
-      try:
-        preType = self.allTypes[pair[0]]
-        postType = self.allTypes[pair[1]]
+        if side_len is None:
+            side_len = self.side_len
 
-        plt.rcParams.update({'font.size': 16})
+        print("Using nBins = " + str(num_bins) + ", binWidth = " + str(bin_width))
+
+        # 1. Loop through all morphologies
+        morph_files = set([self.data["morphologies"][name]["location"][()]
+                          for name in self.data["morphologies"]])
+
+        morph_hist = dict([])
+        for m_file in morph_files:
+            morph_hist[m_file] = self._dend_density(m_file, num_bins, bin_width)
+
+        neuron_types = set([m.split("_")[0]
+                           for m in self.data["morphologies"]])
+
+        # 2. Sum all the histograms together, with the right multiplicity
+
+        dend_hist_tot = dict([])
+        for nt in neuron_types:
+            dend_hist_tot[nt] = np.zeros((num_bins,))
+
+        # cornerID = self.cornerNeurons(sideLen=sideLen)
+        corner_id = self.get_sub_pop(volume_type=self.volume_type,
+                                     volume_part="corner",
+                                     side_len=side_len,
+                                     neuron_id=None,
+                                     volume_id=volume_id)
+
+        is_corner = np.zeros((self.num_neurons,), dtype=bool)
+        is_corner[corner_id] = 1
+
+        # OBS, neuronID unique, but many neurons can have same
+        # morphology and properties and thus same neuronName
+        # So the same name can appear twice in this list
+        for nID, name in zip(self.data["network"]["neurons"]["neuronID"],
+                             self.data["network"]["neurons"]["name"]):
+
+            if not is_corner[nID]:
+                # Only post synaptic corner neurons included
+                continue
+
+            m_file = self.data["morphologies"][name]["location"][()]
+            n_type = name.decode().split("_")[0]
+            dend_hist_tot[n_type] += morph_hist[m_file]
+
+        return dend_hist_tot
+
+    ############################################################################
+
+    def _dend_density(self, swc_file, num_bins, bin_width):
+
+        from .Neuron_morphology import NeuronMorphology
+
+        dend_hist = np.zeros((num_bins,))
+
+        n_morph = NeuronMorphology(swc_filename=swc_file)
+
+        print("Parsing dendrite histogram : " + swc_file)
+
+        # 0,1,2: x,y,z  3: radie, 4: dist to soma
+        dist_to_soma = n_morph.dend[:, 4]
+        compartment_length = np.zeros((n_morph.dend.shape[0],))
+
+        for idx, link in enumerate(n_morph.dend_links):
+            compartment_length[idx] = np.linalg.norm(n_morph.dend[link[0], :3]
+                                                     - n_morph.dend[link[1], :3])
+            dist_to_soma[idx] = (n_morph.dend[link[0], 4] + n_morph.dend[link[1], 4]) / 2
+
+        for d, cl in zip(dist_to_soma, compartment_length):
+            idx = int(d / bin_width)
+            dend_hist[idx] += cl
+
+        return dend_hist
+
+    ############################################################################
+
+    # This
+
+    def virtual_axon_synapses(self, post_neuron_type):
+
+        virt_idx = np.where([n["virtualNeuron"] for n in self.network["neurons"]])[0]
+
+        post_idx = self.populations[post_neuron_type]
+
+        virt_syn = dict([])
+
+        for v_idx in virt_idx:
+            n_type = self.network["neurons"][v_idx]["name"].split("_")[0]
+
+            syn_mat = self.connection_matrix[v_idx, :][:, post_idx]
+
+            if syn_mat.count_nonzero() == 0:
+                # No synapses here, skip plot
+                continue
+
+            syn_mat = syn_mat.todense()
+            syn_mat = syn_mat[np.where(syn_mat > 0)]
+
+            if n_type not in virt_syn:
+                virt_syn[n_type] = [syn_mat]
+            else:
+                virt_syn[n_type].append(syn_mat)
+
+        for axonType in virt_syn:
+            plt.figure()
+
+            v_syn = np.concatenate(virt_syn[axonType]).flatten().transpose()
+
+            # We dont want to show the count for zeros
+            n_bins = np.max(v_syn) + 1
+            virt_syn_bins = np.array(range(1, n_bins))
+
+            plt.hist(v_syn, bins=virt_syn_bins, align="left")
+            plt.xlabel("Synapses (only connected pairs)")
+            plt.ylabel("Count")
+            plt.title("Synapses from " + self.neuron_name(axonType)
+                      + " to " + self.neuron_name(post_neuron_type)
+                      + " (nSyn=" + str(np.sum(v_syn)) + ")")
+
+            plt.tight_layout()
+
+            plt.ion()
+            plt.draw()
+
+            if self.show_plots:
+                plt.show()
+
+            fig_name = "VirtuaAxon-synapses-" + axonType + "-to-" + post_neuron_type
+
+            self.save_figure(plt, fig_name)
+
+            # import pdb
+            # pdb.set_trace()
+
+    ############################################################################
+
+    def count_motifs(self, type_a, type_b, type_c, n_repeats=1000000):
+
+        print("Counting motivs between " + str(type_a) + ", " + str(type_b) \
+              + " " + str(type_c) + ". " + str(n_repeats) + " repeats.")
+
+        ida = self.populations[type_a]
+        idb = self.populations[type_b]
+        idc = self.populations[type_c]
+
+        # Init counter
+        motif_ctr = np.zeros((64,), dtype=int)
+
+        # bit 1 : A->B (1)
+        # bit 2 : A<-B (2)
+        # bit 3 : A->C (4)
+        # bit 4 : A<-C (8)
+        # bit 5 : B->C (16)
+        # bit 6 : B<-C (32)
+
+        # Faster to generate all int at once
+        i_a_all = np.random.randint(len(ida), size=(n_repeats,))
+        i_b_all = np.random.randint(len(idb), size=(n_repeats,))
+        i_c_all = np.random.randint(len(idc), size=(n_repeats,))
+
+        for i_rep in range(0, n_repeats):
+
+            if i_rep % 100000 == 0 and i_rep > 0:
+                print("rep: " + str(i_rep))
+
+            i_a = i_a_all[i_rep]
+            i_b = i_b_all[i_rep]
+            i_c = i_c_all[i_rep]
+
+            # In case the same neuron was picked twice, redo sampling
+            while i_a == i_b or i_b == i_c or i_c == i_a:
+                i_a = np.random.randint(len(ida))
+                i_b = np.random.randint(len(idb))
+                i_c = np.random.randint(len(idc))
+
+            idx = int(self.connection_matrix[i_a, i_b] > 0) * 1 \
+                  + int(self.connection_matrix[i_b, i_a] > 0) * 2 \
+                  + int(self.connection_matrix[i_a, i_c] > 0) * 4 \
+                  + int(self.connection_matrix[i_c, i_a] > 0) * 8 \
+                  + int(self.connection_matrix[i_b, i_c] > 0) * 16 \
+                  + int(self.connection_matrix[i_c, i_b] > 0) * 32
+
+            motif_ctr[idx] += 1
+
+        return motif_ctr, type_a, type_b, type_c
+
+    ############################################################################
+
+    def analyse_single_motifs(self, neuron_type, num_repeats=10000000):
+
+        (motif_ctr, tA, tB, tC) = self.count_motifs(type_a=neuron_type,
+                                                   type_b=neuron_type,
+                                                   type_c=neuron_type,
+                                                   n_repeats=num_repeats)
+
+        # !!! For debug
+        # motifCtr = [bin(x).count('1') for x in np.arange(0,64)]
+
+        # No connections
+        no_con = motif_ctr[0]
+
+        # One connection
+        one_con = motif_ctr[1] + motif_ctr[2] + motif_ctr[4] + motif_ctr[8] \
+                 + motif_ctr[16] + motif_ctr[32]
+
+        # Two connections
+        two_con_diverge = motif_ctr[1 + 4] + motif_ctr[2 + 16] + motif_ctr[8 + 32]
+        two_con_converge = motif_ctr[2 + 8] + motif_ctr[1 + 32] + motif_ctr[4 + 16]
+        two_con_line = motif_ctr[1 + 16] + motif_ctr[2 + 4] + motif_ctr[4 + 32] \
+                     + motif_ctr[8 + 1] + motif_ctr[16 + 8] + motif_ctr[32 + 2]
+        two_con_bi = motif_ctr[1 + 2] + motif_ctr[4 + 8] + motif_ctr[16 + 32]
+
+        # Three connections
+        three_circle = motif_ctr[1 + 16 + 8] + motif_ctr[2 + 4 + 32]
+        three_circle_flip = motif_ctr[2 + 16 + 8] + motif_ctr[1 + 32 + 8] + motif_ctr[1 + 16 + 4] \
+                          + motif_ctr[1 + 4 + 32] + motif_ctr[2 + 8 + 32] + motif_ctr[2 + 4 + 16]
+        three_bi_div = motif_ctr[1 + 2 + 4] + motif_ctr[1 + 2 + 16] \
+                     + motif_ctr[4 + 8 + 1] + motif_ctr[4 + 8 + 32] \
+                     + motif_ctr[16 + 32 + 2] + motif_ctr[16 + 32 + 8]
+        three_bi_conv = motif_ctr[1 + 2 + 8] + motif_ctr[1 + 2 + 32] \
+                      + motif_ctr[4 + 8 + 2] + motif_ctr[4 + 8 + 16] \
+                      + motif_ctr[16 + 32 + 1] + motif_ctr[16 + 32 + 4]
+
+        # Four connections
+        four_double_bi = motif_ctr[1 + 2 + 4 + 8] + motif_ctr[1 + 2 + 16 + 32] + motif_ctr[4 + 8 + 16 + 32]
+        four_bi_diverge = motif_ctr[1 + 2 + 4 + 16] + motif_ctr[4 + 8 + 1 + 32] \
+                        + motif_ctr[16 + 32 + 2 + 8]
+        four_bi_converge = motif_ctr[1 + 2 + 8 + 32] + motif_ctr[4 + 8 + 2 + 16] \
+                         + motif_ctr[16 + 32 + 1 + 4]
+        four_bi_cycle = motif_ctr[1 + 2 + 4 + 32] + motif_ctr[1 + 2 + 16 + 8] \
+                      + motif_ctr[4 + 8 + 1 + 16] + motif_ctr[4 + 8 + 32 + 2] \
+                      + motif_ctr[16 + 32 + 2 + 4] + motif_ctr[16 + 32 + 8 + 1]
+
+        # Five connections
+        five_con = motif_ctr[2 + 4 + 8 + 16 + 32] \
+                  + motif_ctr[1 + 4 + 8 + 16 + 32] \
+                  + motif_ctr[1 + 2 + 8 + 16 + 32] \
+                  + motif_ctr[1 + 2 + 4 + 16 + 32] \
+                  + motif_ctr[1 + 2 + 4 + 8 + 32] \
+                  + motif_ctr[1 + 2 + 4 + 8 + 16]
+
+        # Six connections
+        six_con = motif_ctr[1 + 2 + 4 + 8 + 16 + 32]
+
+        con_data = [("No connection", no_con),
+                   ("One connection", one_con),
+                   ("Two connections, diverge", two_con_diverge),
+                   ("Two connections, converge", two_con_converge),
+                   ("Two connections, line", two_con_line),
+                   ("Two connections, bidirectional", two_con_bi),
+                   ("Three connections, circle", three_circle),
+                   ("Three connections, circular, one flipped", three_circle_flip),
+                   ("Three connections, one bidirectional, one away", three_bi_div),
+                   ("Three connections, one bidirectional, one towards",
+                    three_bi_conv),
+                   ("Four connections, two bidirectional", four_double_bi),
+                   ("Four connections, one bi, two away", four_bi_diverge),
+                   ("Four connections, one bi, two towards", four_bi_converge),
+                   ("Four connections, cycle with one bidirectional", four_bi_cycle),
+                   ("Five connections", five_con),
+                   ("Six connections", six_con)]
+
+        print("Motif analysis:")
+        for (name, data) in con_data:
+            print(name + " " + str(100 * data / num_repeats) + "% (" + str(data) + ")")
+
+    ############################################################################
+
+    # If A is connected to B and C, what is probability that
+    # B and C are connected?
+
+    def simple_motif(self, type_a, type_b, type_c, n_rep=1000):
+
+        ida = self.populations[type_a]
+        idb = self.populations[type_b]
+        idc = self.populations[type_c]
+
+        # We need to reduce the IDA population, otherwise it will be too slow
+        if n_rep < len(ida):
+            try:
+                r_perm_idx = np.random.permutation(len(ida))[:n_rep]
+                ida = [ida[x] for x in r_perm_idx]
+            except:
+                import traceback
+                tstr = traceback.format_exc()
+                print(tstr)
+                import pdb
+                pdb.set_trace()
+
+        con_bc = 0
+        con_cb = 0
+        con_bi = 0
+        all_ctr = 0
+
+        n_a = len(ida)
+        ctr_a = 0
+
+        for iA in ida:
+
+            ctr_a += 1
+
+            if ctr_a % 100 == 0:
+                print(str(ctr_a) + "/" + str(n_a))
+
+            mat_row = self.connection_matrix[iA, :]
+
+            i_b_all = idb[mat_row[0, idb].nonzero()[1]]
+            i_c_all = idc[mat_row[0, idc].nonzero()[1]]
+
+            for iB in i_b_all:
+                for iC in i_c_all:
+                    bc = self.connection_matrix[iB, iC]
+                    cb = self.connection_matrix[iC, iB]
+
+                    if bc > 0:
+                        con_bc += 1
+                        if cb > 0:
+                            con_cb += 1
+                            con_bi += 1
+                    elif cb > 0:
+                        con_cb += 1
+
+                    all_ctr += 1
+
+        print("If " + str(type_a) + " connected to " + str(type_b) + " " \
+              + str(type_c) + ":")
+        print("P(" + type_b + "->" + type_c + ") = " + str((100.0 * con_bc) / all_ctr) + "%")
+        print("P(" + type_c + "->" + type_b + ") = " + str((100.0 * con_cb) / all_ctr) + "%")
+        print("P(" + type_b + "<->" + type_c + ") = " + str((100.0 * con_bi) / all_ctr) + "%")
+
+        return con_bc, con_cb, con_bi, all_ctr
+
+    ############################################################################
+
+    # Pick a post synaptic neuron, find out the distance to its closest
+    # presynaptic neighbour
+
+    def nearest_pre_neighbour_distance(self, pre_type, post_type, rabies_rate=1.0,
+                                       name_str=""):
+
+        if pre_type not in self.populations:
+            print("nearestPreNeighbourDistance: " + str(pre_type)
+                  + " is not in the simulation")
+            return
+
+        if post_type not in self.populations:
+            print("nearestPreNeighbourDistance: " + str(post_type)
+                  + " is not in the simulation")
+            return
+
+        # postPop = self.getSubPop(neuronID=self.populations[postType],
+        #                         volumePart="centre")
+
+        post_pop = self.populations[post_type]
+        pre_pop = self.populations[pre_type]
+
+        # Assume 300 micrometer slice
+        max_z = np.max(self.positions[post_pop, 2])
+        min_z = np.max(self.positions[post_pop, 2])
+
+        slice_min_z = (max_z + min_z) / 2 - 150e-6
+        slice_max_z = (max_z + min_z) / 2 + 150e-6
+
+        slice_pop = np.where(np.bitwise_and(slice_min_z <= self.positions[:, 2],
+                                           self.positions[:, 2] <= slice_max_z))[0]
+
+        # Only look at neurons in slice
+        pre_pop = np.intersect1d(pre_pop, slice_pop)
+        post_pop = np.intersect1d(post_pop, slice_pop)
+
+        # conIdx = np.sum(self.connectionMatrix[prePop,postPop],axis=1)
+
+        nearest_dist = np.nan * np.zeros((len(post_pop),))
+
+        for c, postID in enumerate(post_pop):
+
+            # Calculate distance to all connected neighbours
+            idx = np.where(self.connection_matrix[pre_pop, postID].todense() > 0)[0]
+            con_idx = pre_pop[idx]
+
+            if rabies_rate is not None and rabies_rate < 1:
+                keep_idx = np.where(np.random.rand(len(con_idx)) < rabies_rate)[0]
+                con_idx = con_idx[keep_idx]
+
+            d = np.sqrt(np.sum((self.positions[con_idx, :3]
+                                - self.positions[postID, :3]) ** 2,
+                               axis=1))
+
+            if len(d) > 0:
+                nearest_dist[c] = np.min(d) * 1e6  # micrometers
+
+        max_dist = np.nanmax(nearest_dist)
 
         plt.figure()
-        if(densityFlag):
+        matplotlib.rcParams.update({"font.size": 22})
 
-          # Skip first bin if we plot densities, since synapses from soma
-          # are in first bin, but contribute no dendritic length
+        plt.hist(nearest_dist, np.arange(0, max_dist + 25, 25))
 
-          plt.plot(self.dendPositionEdges[1:endIdx]*1e6,
-                   np.divide(self.dendPositionBin[pair][1:endIdx],
-                             dendHistTot[postType][1:endIdx]*1e6))
-          plt.ylabel('Synapse/micrometer')
-          plt.xlabel('Distance from soma ($\mu$m)')
-
-          plt.title('Synapse density ' + self.neuronName(preType)\
-                    + " to " + self.neuronName(postType))
-
-
+        plt.xlabel("Distance")
+        if rabies_rate is not None and rabies_rate < 1:
+            plt.ylabel("Count (Rabies rate: " + str(rabies_rate * 100) + "%)")
         else:
-          plt.plot(self.dendPositionEdges[:endIdx]*1e6,
-                   self.dendPositionBin[pair][:endIdx])
-          plt.ylabel('Synapse count')
-          plt.xlabel('Distance from soma ($\mu$m)')
-          plt.ylim([0,np.ceil(np.max(self.dendPositionBin[pair][:endIdx]))])
+            plt.ylabel("Count")
+        plt.title("Nearest presynaptic neighbour "
+                  + self.neuron_name(pre_type) + " to " + self.neuron_name(post_type))
 
-          plt.title('Synapses ' + self.neuronName(preType) \
-                    + " to " + self.neuronName(postType))
-
-        plt.tight_layout()
+        # Data from Sabatini 2016
+        if pre_type == "LTS" and (post_type == "dSPN" or post_type == "iSPN"):
+            sabatini_lts = np.genfromtxt("DATA/LTS-nearest-neighbour-points-Sabatini2016.csv", delimiter=",")
+            lts_points = sabatini_lts[:, 1] * 1e3  # Get in micrometer
+            plt.hist(lts_points, color='r', histtype="step")
 
         plt.ion()
-
-        if(self.showPlots):
-          plt.show()
-
         plt.draw()
-        plt.pause(0.0001)
 
-        if(densityFlag):
-          figName = "SynapseDistribution-density-dend-" \
-                      + preType + "-to-" + postType
-        else:
-          figName = "SynapseDistribution-dend-" \
-                      + preType + "-to-" + postType
+        if self.show_plots:
+            plt.show()
 
+        plt.pause(0.001)
 
-        self.saveFigure(plt,figName)
+        fig_name = "Nearest-presynaptic-slice-neighbour-to-" \
+                  + str(post_type) + "-from-" + str(pre_type) + "-ID-" \
+                  + str(self.network["SlurmID"]) + name_str + ".pdf"
 
+        self.save_figure(plt, fig_name)
 
-      except Exception as e:
-        import traceback
-        tstr = traceback.format_exc()
-        print(tstr)
+        if self.close_plots:
+            time.sleep(1)
+            plt.close()
 
-        print("fucked up")
+    ############################################################################
+
+    # !!! Doh, just realised using the connection matrix might have been smarter
+
+    def nearest_pre_neighbour_distance_old(self, pre_type, post_type, num_max=1000,
+                                           name_str=""):
+
+        post_pop = self.get_sub_pop(neuron_id=self.populations[post_type],
+                                    volume_part="centre")
+
+        if len(post_pop) > num_max:
+            post_pop = np.random.permutation(post_pop)[1:num_max]
+
+        nearest_neighbour_dist = dict([])
+        for idx in post_pop:
+            nearest_neighbour_dist[idx] = np.inf
+
+        potential_pre_pop = self.populations[pre_type]
+
+        last_syn_pair = (np.nan, np.nan)
+
+        for synapses in self.network_load.synapse_iterator():
+            for synRow in synapses:
+                pre_idx = synRow[0]
+                post_idx = synRow[1]
+                if (pre_idx, post_idx) == last_syn_pair:
+                    # Already did this pair
+                    continue
+
+                if post_idx in post_pop and pre_idx in potential_pre_pop:
+                    d = np.sqrt(np.sum((self.positions[pre_idx, :]
+                                        - self.positions[post_idx, :]) ** 2))
+                    if d < nearest_neighbour_dist[post_idx]:
+                        nearest_neighbour_dist[post_idx] = d
+
+                last_syn_pair = (pre_idx, post_idx)
+
+        nn_dist = np.array(list(nearest_neighbour_dist.values()))
+        nn_dist = nn_dist[nn_dist < np.inf] * 1e6
+        max_dist = max(nn_dist)
+
+        plt.figure()
+        matplotlib.rcParams.update({"font.size": 22})
+
+        plt.hist(nn_dist, np.arange(0, max_dist + 25, 25))
+
+        plt.xlabel("Distance")
+        plt.ylabel("Count")
+        plt.title("Nearest presynaptic neighbour "
+                  + self.neuron_name(pre_type) + " to " + self.neuron_name(post_type))
+
+        # Data from Sabatini 2016
+        if pre_type == "LTS" and (post_type == "dSPN" or post_type == "iSPN"):
+            sabatini_lts = np.genfromtxt("../DATA/LTS-nearest-neighbour-points-Sabatini2016.csv", delimiter=",")
+            lts_points = sabatini_lts[:, 1] * 1e3  # Get in micrometer
+            plt.hist(lts_points, color='r', histtype="step")
+
+        plt.ion()
+        plt.draw()
+
+        if self.show_plots:
+            plt.show()
+
+        plt.pause(0.001)
+
+        fig_name = "figures/Nearest-presynaptic-neighbour-to-" \
+                   + str(post_type) + "-from-" + str(pre_type)
+
+        self.save_figure(plt, fig_name)
+
+    ############################################################################
+
+    # Inspired by:
+    # Nao Chuhma, Kenji F. Tanaka, Rene Hen and Stephen Rayport 2011
+    #
+    # 10% of a neuron type are marked, fraction of presynaptic neurons
+    # out of total population
+
+    def chuhma_virtual_experiment(self, tagged_type=["dSPN", "iSPN"], tag_fraction=0.1):
+
+        print("Doing Chuma experiments: " + str(tagged_type))
+
+        idx = np.concatenate([self.populations[x] for x in tagged_type])
+        num_tagged = np.round(len(idx) * tag_fraction).astype(int)
+
+        tagged_neurons = np.sort(np.random.permutation(idx)[:num_tagged])
+
+        # Find all presynaptic neurons
+        pre_idx = np.where(np.sum(self.connection_matrix[:, tagged_neurons],
+                                 axis=1) > 0)[0]
+
+        # Ooops, no fun... pretty much all neurons got tagged.
+
         import pdb
         pdb.set_trace()
 
-  ############################################################################
+    ############################################################################
 
+    # Number of ChINs connected to each MS
 
-  ############################################################################
+    ############################################################################
 
-  # We want to get the number of synapses per unit length
-  # We have the number of synapses at different distances from some (arc length)
-  # So we want to calculate dendritic length, and then divide the synapses by
-  # that
-
-  def dendriteDensity(self,nBins,binWidth,sideLen=None,volumeID="Striatum"):
-
-    if(sideLen is None):
-      sideLen = self.sideLen
-
-    print("Using nBins = " + str(nBins) + ", binWidth = " + str(binWidth))
-
-    # 1. Loop through all morphologies
-    morphFiles = set([self.data["morphologies"][name]["location"][()] \
-                      for name in self.data["morphologies"]])
-
-    morphHist = dict([])
-    for mFile in morphFiles:
-      morphHist[mFile] = self._dendDensity(mFile,nBins,binWidth)
-
-
-    neuronTypes = set([m.split("_")[0] \
-                       for m in self.data["morphologies"]])
-
-
-    # 2. Sum all the histograms together, with the right multiplicity
-
-    dendHistTot = dict([])
-    for nt in neuronTypes:
-      dendHistTot[nt] = np.zeros((nBins,))
-
-
-    # cornerID = self.cornerNeurons(sideLen=sideLen)
-    cornerID = self.getSubPop(volumeType=self.volumeType,
-                              volumePart="corner",
-                              sideLen=sideLen,
-                              neuronID=None,
-                              volumeID=volumeID)
-
-
-    isCorner = np.zeros((self.nNeurons,),dtype=bool)
-    isCorner[cornerID] = 1
-
-    # OBS, neuronID unique, but many neurons can have same
-    # morphology and properties and thus same neuronName
-    # So the same name can appear twice in this list
-    for nID, name in zip(self.data["network"]["neurons"]["neuronID"],
-                         self.data["network"]["neurons"]["name"]):
-
-      if(not isCorner[nID]):
-        # Only post synaptic corner neurons included
-        continue
-
-      mFile = self.data["morphologies"][name]["location"][()]
-      nType = name.decode().split("_")[0]
-      dendHistTot[nType] += morphHist[mFile]
-
-    return dendHistTot
-
-
-  ############################################################################
-
-  def _dendDensity(self,swcFile,nBins,binWidth):
-
-    from .Neuron_morphology import NeuronMorphology
-
-    dendHist = np.zeros((nBins,))
-
-    nMorph = NeuronMorphology(swc_filename=swcFile)
-
-    print("Parsing dendrite histogram : " + swcFile)
-
-    # 0,1,2: x,y,z  3: radie, 4: dist to soma
-    distToSoma = nMorph.dend[:,4]
-    compartmentLength = np.zeros((nMorph.dend.shape[0],))
-
-    for idx,link in enumerate(nMorph.dend_links):
-      compartmentLength[idx] = np.linalg.norm(nMorph.dend[link[0],:3] \
-                                              - nMorph.dend[link[1],:3])
-      distToSoma[idx] = (nMorph.dend[link[0],4] + nMorph.dend[link[1],4])/2
-
-    for d,cl in zip(distToSoma,compartmentLength):
-      idx = int(d/binWidth)
-      dendHist[idx] += cl
-
-    return dendHist
-
-
-  ############################################################################
-
-  # This
-
-  def virtualAxonSynapses(self,postNeuronType):
-
-    virtIdx = np.where([n["virtualNeuron"] for n in self.network["neurons"]])[0]
-
-    postIdx = self.populations[postNeuronType]
-
-    virtSyn = dict([])
-
-    for vIdx in virtIdx:
-      nType = self.network["neurons"][vIdx]["name"].split("_")[0]
-
-      synMat = self.connectionMatrix[vIdx,:][:,postIdx]
-
-      if(synMat.count_nonzero() == 0):
-        # No synapses here, skip plot
-        continue
-
-      synMat = synMat.todense()
-      synMat = synMat[np.where(synMat > 0)]
-
-      if(nType not in virtSyn):
-        virtSyn[nType] = [synMat]
-      else:
-        virtSyn[nType].append(synMat)
-
-    for axonType in virtSyn:
-      plt.figure()
-
-      vSyn = np.concatenate(virtSyn[axonType]).flatten().transpose()
-
-      # We dont want to show the count for zeros
-      nBins = np.max(vSyn) + 1
-      virtSynBins = np.array(range(1,nBins))
-
-      plt.hist(vSyn,bins=virtSynBins,align="left")
-      plt.xlabel("Synapses (only connected pairs)")
-      plt.ylabel("Count")
-      plt.title("Synapses from " + self.neuronName(axonType) \
-                + " to " + self.neuronName(postNeuronType) \
-                + " (nSyn=" + str(np.sum(vSyn)) + ")" )
-
-      plt.tight_layout()
-
-      plt.ion()
-      plt.draw()
-
-      if(self.showPlots):
-        plt.show()
-
-      figName = "VirtuaAxon-synapses-" + axonType + "-to-" \
-                  + postNeuronType
-
-
-      self.saveFigure(plt,figName)
-
-
-      #import pdb
-      #pdb.set_trace()
-
-  ############################################################################
-
-  def countMotifs(self,typeA,typeB,typeC,nRepeats=1000000):
-
-    print("Counting motivs between " + str(typeA) + ", " + str(typeB) \
-          + " " + str(typeC) + ". " + str(nRepeats) + " repeats.")
-
-    IDA = self.populations[typeA]
-    IDB = self.populations[typeB]
-    IDC = self.populations[typeC]
-
-    # Init counter
-    motifCtr = np.zeros((64,),dtype=int)
-
-    # bit 1 : A->B (1)
-    # bit 2 : A<-B (2)
-    # bit 3 : A->C (4)
-    # bit 4 : A<-C (8)
-    # bit 5 : B->C (16)
-    # bit 6 : B<-C (32)
-
-    # Faster to generate all int at once
-    iAall = np.random.randint(len(IDA),size=(nRepeats,))
-    iBall = np.random.randint(len(IDB),size=(nRepeats,))
-    iCall = np.random.randint(len(IDC),size=(nRepeats,))
-
-    for iRep in range(0,nRepeats):
-
-      if(iRep % 100000 == 0 and iRep > 0):
-        print("rep: " + str(iRep))
-
-      iA = iAall[iRep]
-      iB = iBall[iRep]
-      iC = iCall[iRep]
-
-      # In case the same neuron was picked twice, redo sampling
-      while(iA == iB or iB == iC or iC == iA):
-        iA = np.random.randint(len(IDA))
-        iB = np.random.randint(len(IDB))
-        iC = np.random.randint(len(IDC))
-
-      idx =   int(self.connectionMatrix[iA,iB] > 0)*1 \
-            + int(self.connectionMatrix[iB,iA] > 0)*2 \
-            + int(self.connectionMatrix[iA,iC] > 0)*4 \
-            + int(self.connectionMatrix[iC,iA] > 0)*8 \
-            + int(self.connectionMatrix[iB,iC] > 0)*16 \
-            + int(self.connectionMatrix[iC,iB] > 0)*32
-
-      motifCtr[idx] += 1
-
-    return (motifCtr,typeA,typeB,typeC)
-
-  ############################################################################
-
-  def analyseSingleMotifs(self,neuronType,nRepeats=10000000):
-
-    (motifCtr,tA,tB,tC) = self.countMotifs(typeA=neuronType,
-                                           typeB=neuronType,
-                                           typeC=neuronType,
-                                           nRepeats=nRepeats)
-
-
-    # !!! For debug
-    # motifCtr = [bin(x).count('1') for x in np.arange(0,64)]
-
-    # No connections
-    noCon = motifCtr[0]
-
-    # One connection
-    oneCon = motifCtr[1] + motifCtr[2] + motifCtr[4] + motifCtr[8] \
-           + motifCtr[16] + motifCtr[32]
-
-    # Two connections
-    twoConDiverge = motifCtr[1+4] + motifCtr[2+16] + motifCtr[8+32]
-    twoConConverge = motifCtr[2+8] + motifCtr[1+32] + motifCtr[4+16]
-    twoConLine = motifCtr[1+16] + motifCtr[2+4] + motifCtr[4+32] \
-               + motifCtr[8+1] + motifCtr[16+8] + motifCtr[32+2]
-    twoConBi = motifCtr[1+2] + motifCtr[4+8] + motifCtr[16+32]
-
-    # Three connections
-    threeCircle = motifCtr[1+16+8] + motifCtr[2+4+32]
-    threeCircleFlip = motifCtr[2+16+8] + motifCtr[1+32+8] + motifCtr[1+16+4] \
-                    + motifCtr[1+4+32] + motifCtr[2+8+32] + motifCtr[2+4+16]
-    threeBiDiv = motifCtr[1+2+4]   + motifCtr[1+2+16] \
-               + motifCtr[4+8+1]   + motifCtr[4+8+32] \
-               + motifCtr[16+32+2] + motifCtr[16+32+8]
-    threeBiConv = motifCtr[1+2+8] + motifCtr[1+2+32] \
-                + motifCtr[4+8+2] + motifCtr[4+8+16] \
-                + motifCtr[16+32+1] + motifCtr[16+32+4]
-
-    # Four connections
-    fourDoubleBi = motifCtr[1+2+4+8] + motifCtr[1+2+16+32] + motifCtr[4+8+16+32]
-    fourBiDiverge = motifCtr[1+2+4+16] + motifCtr[4+8+1+32] \
-                    + motifCtr[16+32+2+8]
-    fourBiConverge = motifCtr[1+2+8+32] + motifCtr[4+8+2+16] \
-                    + motifCtr[16+32+1+4]
-    fourBiCycle = motifCtr[1+2+4+32] + motifCtr[1+2+16+8] \
-                + motifCtr[4+8+1+16] + motifCtr[4+8+32+2] \
-                + motifCtr[16+32+2+4] + motifCtr[16+32+8+1]
-
-    # Five connections
-    fiveCon = motifCtr[2+4+8+16+32] \
-            + motifCtr[1+4+8+16+32] \
-            + motifCtr[1+2+8+16+32] \
-            + motifCtr[1+2+4+16+32] \
-            + motifCtr[1+2+4+8+32] \
-            + motifCtr[1+2+4+8+16]
-
-    # Six connections
-    sixCon = motifCtr[1+2+4+8+16+32]
-
-
-    conData = [("No connection", noCon),
-               ("One connection", oneCon),
-               ("Two connections, diverge", twoConDiverge),
-               ("Two connections, converge", twoConConverge),
-               ("Two connections, line", twoConLine),
-               ("Two connections, bidirectional", twoConBi),
-               ("Three connections, circle", threeCircle),
-               ("Three connections, circular, one flipped", threeCircleFlip),
-               ("Three connections, one bidirectional, one away", threeBiDiv),
-               ("Three connections, one bidirectional, one towards",
-                threeBiConv),
-               ("Four connections, two bidirectional", fourDoubleBi),
-               ("Four connections, one bi, two away", fourBiDiverge),
-               ("Four connections, one bi, two towards", fourBiConverge),
-               ("Four connections, cycle with one bidirectional", fourBiCycle),
-               ("Five connections", fiveCon),
-               ("Six connections", sixCon)]
-
-    print("Motif analysis:")
-    for (name,data) in conData:
-      print(name + " " + str(100*data/nRepeats) + "% (" + str(data) + ")")
-
-
-  ############################################################################
-
-
-  # If A is connected to B and C, what is probability that
-  # B and C are connected?
-
-  def simpleMotif(self,typeA,typeB,typeC,nRep=1000):
-
-    IDA = self.populations[typeA]
-    IDB = self.populations[typeB]
-    IDC = self.populations[typeC]
-
-    # We need to reduce the IDA population, otherwise it will be too slow
-    if(nRep < len(IDA)):
-      try:
-        rPermIdx = np.random.permutation(len(IDA))[:nRep]
-        IDA = [IDA[x] for x in rPermIdx]
-      except:
-        import traceback
-        tstr = traceback.format_exc()
-        print(tstr)
-        import pdb
-        pdb.set_trace()
-
-
-    conBC = 0
-    conCB = 0
-    conBi = 0
-    allCtr = 0
-
-    nA = len(IDA)
-    ctrA = 0
-
-
-    for iA in IDA:
-
-      ctrA += 1
-
-      if(ctrA % 100 == 0):
-        print(str(ctrA) + "/" + str(nA))
-
-      matRow = self.connectionMatrix[iA,:]
-
-      try:
-        iBall = IDB[matRow[0,IDB].nonzero()[1]]
-        iCall = IDC[matRow[0,IDC].nonzero()[1]]
-
-      except:
-        print("Ugh")
-        import pdb
-        pdb.set_trace()
-
-      for iB in iBall:
-        for iC in iCall:
-          BC = self.connectionMatrix[iB,iC]
-          CB = self.connectionMatrix[iC,iB]
-
-          if(BC > 0):
-            conBC += 1
-            if(CB > 0):
-              conCB += 1
-              conBi += 1
-          elif(CB > 0):
-            conCB += 1
-
-          allCtr += 1
-
-
-    print("If " + str(typeA) + " connected to " + str(typeB) + " " \
-          + str(typeC) + ":")
-    print("P(" + typeB + "->" + typeC + ") = " + str((100.0*conBC)/allCtr)+"%")
-    print("P(" + typeC + "->" + typeB + ") = " + str((100.0*conCB)/allCtr)+"%")
-    print("P(" + typeB + "<->" + typeC + ") = " + str((100.0*conBi)/allCtr)+"%")
-
-
-    return (conBC,conCB,conBi,allCtr)
-
-  ############################################################################
-
-  # Pick a post synaptic neuron, find out the distance to its closest
-  # presynaptic neighbour
-
-  def nearestPreNeighbourDistance(self,preType,postType,rabiesRate=1.0,
-                                  nameStr=""):
-
-    if(preType not in self.populations):
-      print("nearestPreNeighbourDistance: " + str(preType) \
-            + " is not in the simulation")
-      return
-
-    if(postType not in self.populations):
-      print("nearestPreNeighbourDistance: " + str(postType) \
-            + " is not in the simulation")
-      return
-
-
-    #postPop = self.getSubPop(neuronID=self.populations[postType],
-    #                         volumePart="centre")
-
-    postPop = self.populations[postType]
-    prePop = self.populations[preType]
-
-
-    # Assume 300 micrometer slice
-    maxZ = np.max(self.positions[postPop,2])
-    minZ = np.max(self.positions[postPop,2])
-
-    sliceMinZ = (maxZ+minZ)/2 - 150e-6
-    sliceMaxZ = (maxZ+minZ)/2 + 150e-6
-
-    slicePop = np.where(np.bitwise_and(sliceMinZ <= self.positions[:,2],
-                                       self.positions[:,2] <= sliceMaxZ))[0]
-
-    # Only look at neurons in slice
-    prePop = np.intersect1d(prePop,slicePop)
-    postPop = np.intersect1d(postPop,slicePop)
-
-    # conIdx = np.sum(self.connectionMatrix[prePop,postPop],axis=1)
-
-    nearestDist = np.nan * np.zeros((len(postPop),))
-
-    for c,postID in enumerate(postPop):
-
-      # Calculate distance to all connected neighbours
-      idx = np.where(self.connectionMatrix[prePop,postID].todense() > 0)[0]
-      conIdx = prePop[idx]
-
-      if(rabiesRate is not None and rabiesRate < 1):
-        keepIdx = np.where(np.random.rand(len(conIdx)) < rabiesRate)[0]
-        conIdx = conIdx[keepIdx]
-
-      d = np.sqrt(np.sum((self.positions[conIdx,:3] \
-                         - self.positions[postID,:3])**2,
-                        axis=1))
-
-      if(len(d) > 0):
-        nearestDist[c] = np.min(d) * 1e6 # micrometers
-
-    maxDist = np.nanmax(nearestDist)
-
-    plt.figure()
-    matplotlib.rcParams.update({"font.size":22})
-
-    plt.hist(nearestDist,np.arange(0,maxDist+25,25))
-
-    plt.xlabel("Distance")
-    if(rabiesRate is not None and rabiesRate < 1):
-      plt.ylabel("Count (Rabies rate: " + str(rabiesRate*100) + "%)")
-    else:
-      plt.ylabel("Count")
-    plt.title("Nearest presynaptic neighbour " \
-              + self.neuronName(preType) + " to " + self.neuronName(postType))
-
-    # Data from Sabatini 2016
-    if(preType == "LTS" and (postType == "dSPN" or postType == "iSPN")):
-      SabatiniLTS = np.genfromtxt("DATA/LTS-nearest-neighbour-points-Sabatini2016.csv", delimiter = ",")
-      LTSpoints = SabatiniLTS[:,1] * 1e3 # Get in micrometer
-      plt.hist(LTSpoints,color='r',histtype="step")
-
-    plt.ion()
-    plt.draw()
-
-    if(self.showPlots):
-      plt.show()
-
-    plt.pause(0.001)
-
-
-    figName = "Nearest-presynaptic-slice-neighbour-to-" \
-      + str(postType) + "-from-" + str(preType) + "-ID-" \
-      +str(self.network["SlurmID"]) + nameStr + ".pdf"
-
-    self.saveFigure(plt,figName)
-
-    if(self.closePlots):
-      time.sleep(1)
-      plt.close()
-
-
-
-  ############################################################################
-
-  # !!! Doh, just realised using the connection matrix might have been smarter
-
-  def nearestPreNeighbourDistanceOLD(self,preType,postType,nMax=1000,
-                                  nameStr=""):
-
-    postPop = self.getSubPop(neuronID=self.populations[postType],
-                             volumePart="centre")
-
-    if(len(postPop) > nMax):
-      postPop = np.random.permutation(postPop)[1:nMax]
-
-    nearestNeighbourDist = dict([])
-    for idx in postPop:
-      nearestNeighbourDist[idx] = np.inf
-
-    potentialPrePop = self.populations[preType]
-
-    lastSynPair = (np.nan, np.nan)
-
-    for synapses in self.networkLoad.synapse_iterator():
-      for synRow in synapses:
-        preIdx = synRow[0]
-        postIdx = synRow[1]
-        if((preIdx,postIdx) == lastSynPair):
-          # Already did this pair
-          continue
-
-        if(postIdx in postPop and preIdx in potentialPrePop):
-          d = np.sqrt(np.sum((self.positions[preIdx,:]
-                              -self.positions[postIdx,:]) ** 2))
-          if(d < nearestNeighbourDist[postIdx]):
-            nearestNeighbourDist[postIdx] = d
-
-        lastSynPair = (preIdx,postIdx)
-
-
-    nnDist = np.array(list(nearestNeighbourDist.values()))
-    nnDist = nnDist[nnDist < np.inf] * 1e6
-    maxDist = max(nnDist)
-
-    plt.figure()
-    matplotlib.rcParams.update({"font.size":22})
-
-    plt.hist(nnDist,np.arange(0,maxDist+25,25))
-
-    plt.xlabel("Distance")
-    plt.ylabel("Count")
-    plt.title("Nearest presynaptic neighbour " \
-              + self.neuronName(preType) + " to " + self.neuronName(postType))
-
-    # Data from Sabatini 2016
-    if(preType == "LTS" and (postType == "dSPN" or postType == "iSPN")):
-      SabatiniLTS = np.genfromtxt("../DATA/LTS-nearest-neighbour-points-Sabatini2016.csv", delimiter = ",")
-      LTSpoints = SabatiniLTS[:,1] * 1e3 # Get in micrometer
-      plt.hist(LTSpoints,color='r',histtype="step")
-
-    plt.ion()
-    plt.draw()
-
-    if(self.showPlots):
-      plt.show()
-
-    plt.pause(0.001)
-
-    figName = "figures/Nearest-presynaptic-neighbour-to-" \
-      + str(postType) + "-from-" + str(preType)
-
-    self.saveFigure(plt,figName)
-
-
-  ############################################################################
-
-  # Inspired by:
-  # Nao Chuhma, Kenji F. Tanaka, Rene Hen and Stephen Rayport 2011
-  #
-  # 10% of a neuron type are marked, fraction of presynaptic neurons
-  # out of total population
-
-  def ChuhmaVirtualExperiment(self,taggedType=["dSPN","iSPN"],tagFraction=0.1):
-
-    print("Doing Chuma experiments: " + str(taggedType))
-
-    idx = np.concatenate([self.populations[x] for x in taggedType])
-    nTagged = np.round(len(idx)*tagFraction).astype(int)
-
-    taggedNeurons = np.sort(np.random.permutation(idx)[:nTagged])
-
-    # Find all presynaptic neurons
-    preIdx = np.where(np.sum(self.connectionMatrix[:,taggedNeurons],
-                             axis=1)>0)[0]
-
-    # Ooops, no fun... pretty much all neurons got tagged.
-
-    import pdb
-    pdb.set_trace()
-
-
-  ############################################################################
-
-  # Number of ChINs connected to each MS
-
-  ############################################################################
 
 if __name__ == "__main__":
 
-  assert False, "Do you want to run Network_analyse_striatum.py instead?"
+    assert False, "Do you want to run Network_analyse_striatum.py instead?"
 
-  if(len(sys.argv) > 1):
-    hdf5File = sys.argv[1]
-    print("Using user supplied HDF5 file: " + hdf5File)
+    if len(sys.argv) > 1:
+        hdf5File = sys.argv[1]
+        print("Using user supplied HDF5 file: " + hdf5File)
 
-  else:
-    hdf5File = None # Auto detect, use latest file
-    # hdf5File = "save/network-connect-synapse-file-0.hdf5"
+    else:
+        hdf5File = None  # Auto detect, use latest file
+        # hdf5File = "save/network-connect-synapse-file-0.hdf5"
 
-  #import cProfile
-  #cProfile.run('na = NetworkAnalyse(hdf5File,loadCache=False,lowMemory=False)')
-  #import pdb
-  #pdb.set_trace()
+    # import cProfile
+    # cProfile.run('na = NetworkAnalyse(hdf5File,loadCache=False,lowMemory=False)')
+    # import pdb
+    # pdb.set_trace()
 
+    na = NetworkAnalyse(hdf5File, loadCache=True, lowMemory=False, sideLen=250e-6,
+                        volumeType="full")  # "cube"
 
-  na = NetworkAnalyse(hdf5File,loadCache=True,lowMemory=False,sideLen=250e-6,
-                      volumeType="full") # "cube"
+    # na = NetworkAnalyse(hdf5File,loadCache=False)
 
-  #na = NetworkAnalyse(hdf5File,loadCache=False)
+    # na.plotNeurons(neuronID=5,plotPreNeurons=False)
+    # na.plotNeurons(neuronID=5)
 
-  #na.plotNeurons(neuronID=5,plotPreNeurons=False)
-  #na.plotNeurons(neuronID=5)
+    enableAnalysis = True  # True #False
 
+    # No exp data for this
+    #  dist3D = False
+    #  na.plotConnectionProbabilityChannels("FSN","FSN", \
+    #                                       dist3D=dist3D, \
+    #                                       expMaxDist=[],\
+    #                                       expData=[])
+    #
+    #  import pdb
+    #  pdb.set_trace()
 
-  enableAnalysis = True #True #False
+    # na.cornerNeurons(sideLen = 100e-6)
 
-  # No exp data for this
-#  dist3D = False
-#  na.plotConnectionProbabilityChannels("FSN","FSN", \
-#                                       dist3D=dist3D, \
-#                                       expMaxDist=[],\
-#                                       expData=[])
-#
-#  import pdb
-#  pdb.set_trace()
+    # na.plotSynapseDist(densityFlag=True)
+    # na.plotSynapseCumDist()
 
-  # na.cornerNeurons(sideLen = 100e-6)
+    # na.virtualAxonSynapses("dSPN")
+    # na.virtualAxonSynapses("iSPN")
+    # na.virtualAxonSynapses("FSN")
 
-  #na.plotSynapseDist(densityFlag=True)
-  #na.plotSynapseCumDist()
+    # na.simpleMotif("dSPN","dSPN","dSPN")
+    # na.simpleMotif("iSPN","iSPN","iSPN")
+    # na.simpleMotif("dSPN","dSPN","iSPN")
+    # na.analyseSingleMotifs("dSPN")
 
-  #na.virtualAxonSynapses("dSPN")
-  #na.virtualAxonSynapses("iSPN")
-  #na.virtualAxonSynapses("FSN")
+    na.nearest_pre_neighbour_distance("LTS", "dSPN")
+    na.nearest_pre_neighbour_distance("LTS", "iSPN")
 
-  #na.simpleMotif("dSPN","dSPN","dSPN")
-  #na.simpleMotif("iSPN","iSPN","iSPN")
-  #na.simpleMotif("dSPN","dSPN","iSPN")
-  # na.analyseSingleMotifs("dSPN")
+    # na.ChuhmaVirtualExperiment(taggedType=["dSPN","iSPN"])
 
-
-  na.nearestPreNeighbourDistance("LTS","dSPN")
-  na.nearestPreNeighbourDistance("LTS","iSPN")
-
-
-  # na.ChuhmaVirtualExperiment(taggedType=["dSPN","iSPN"])
-
-  dist3D = False
-
-  # 3/21 LTS->MS, Basal Ganglia book --- distance??
-  # Ibanez-Sandoval, ..., Tepper  2011 3/21 -- if patching around visual axon
-  # but 2/60 when patching blind
-  # !!! Use the focused 3/21 statistics for validation!! --- please :)
-  na.plotConnectionProbability("LTS","dSPN", \
-                                       dist3D=dist3D,
-                                       expMaxDist=[250e-6],
-                                       expData=[2/60.0],
-                                       expDataDetailed=[(2,60)])
-
-  na.plotConnectionProbability("LTS","iSPN", \
-                                       dist3D=dist3D,
-                                       expMaxDist=[250e-6],
-                                       expData=[2/60.0],
-                                       expDataDetailed=[(2,60)])
-
-
-  # Silberberg et al 2013, 2/12 FS-> LTS connected --- distance??
-  na.plotConnectionProbability("FSN","LTS", \
-                                       dist3D=dist3D,
-                                       expMaxDist=[250e-6],
-                                       expData=[2.0/12],
-                                       expDataDetailed=[(2,12)])
-
-  #import pdb
-  #pdb.set_trace()
-
-
-
-
-  na.plotConnectionProbability("dSPN","ChIN", \
-                                       dist3D=dist3D)
-  na.plotConnectionProbability("iSPN","ChIN", \
-                                       dist3D=dist3D)
-
-  na.plotConnectionProbability("ChIN","LTS", \
-                                       dist3D=dist3D)
-  na.plotConnectionProbability("ChIN","iSPN", \
-                                       dist3D=dist3D)
-  na.plotConnectionProbability("ChIN","dSPN", \
-                                       dist3D=dist3D)
-
-  print("Check the ChIN stuff")
-  #import pdb
-  #pdb.set_trace()
-
-
-
-  #import pdb
-  #pdb.set_trace()
-
-  na.nearestPreNeighbourDistance("FSN","dSPN")
-  na.nearestPreNeighbourDistance("FSN","iSPN")
-
-  na.plotNumSynapsesPerPair("ChIN","dSPN")
-  na.plotNumSynapsesPerPair("ChIN","iSPN")
-
-  na.plotNumSynapsesPerPair("dSPN", "ChIN")
-  na.plotNumSynapsesPerPair("iSPN", "ChIN")
-
-
-  # 2-5 ChIN should connect to each MS (approx)
-  na.plotIncomingConnections(neuronType="dSPN",preType="ChIN")
-  na.plotIncomingConnections(neuronType="iSPN",preType="ChIN")
-
-  na.plotIncomingConnections(neuronType="ChIN",preType="dSPN")
-  na.plotIncomingConnections(neuronType="ChIN",preType="iSPN")
-
-  # LTS plots
-  na.plotNumSynapsesPerPair("LTS","dSPN")
-  na.plotNumSynapsesPerPair("LTS","iSPN")
-  na.plotNumSynapsesPerPair("LTS","ChIN")
-
-  na.plotNumSynapsesPerPair("ChIN","LTS")
-  na.plotNumSynapsesPerPair("FSN","LTS")
-
-  na.plotIncomingConnections(neuronType="dSPN",preType="LTS")
-  na.plotIncomingConnections(neuronType="iSPN",preType="LTS")
-  na.plotIncomingConnections(neuronType="ChIN",preType="LTS")
-
-  na.plotIncomingConnections(neuronType="LTS",preType="ChIN")
-  na.plotIncomingConnections(neuronType="LTS",preType="FSN")
-
-
-  if(True or enableAnalysis):
     dist3D = False
 
-    # 100e-6 from Planert 2010, and 250e-6 data from Gittis 2010
-    # 150e-6 from Gittis 2011 (actually 100 +/- 50 micrometers)
-    na.plotConnectionProbability("FSN","iSPN", \
-                                         dist3D=dist3D, \
-                                         expMaxDist=[100e-6, 150e-6, 250e-6],
-                                         expData=[6/9.0, 21/54.0, 27/77.0],
-                                         expDataDetailed=[(6,9),(21,54),(27,77)])
-    na.plotConnectionProbability("FSN","dSPN", \
-                                         dist3D=dist3D, \
-                                         expMaxDist=[100e-6, 150e-6, 250e-6],
-                                         expData=[8/9.0, 29/48.0, 48/90.0],
-                                         expDataDetailed=[(8,9),(29,48),(48,90)])
-    na.plotConnectionProbability("dSPN","iSPN", \
-                                         dist3D=dist3D, \
-                                         expMaxDist=[50e-6,100e-6],\
-                                         expData=[3/47.0,3/66.0],
-                                         expDataDetailed=[(3,47),(3,66)])
-    na.plotConnectionProbability("dSPN","dSPN", \
-                                         dist3D=dist3D, \
-                                         expMaxDist=[50e-6,100e-6],\
-                                         expData=[5/19.0,3/43.0],
-                                         expDataDetailed=[(5,19),(3,43)])
-    na.plotConnectionProbability("iSPN","dSPN", \
-                                         dist3D=dist3D, \
-                                         expMaxDist=[50e-6,100e-6],\
-                                         expData=[13/47.0,10/80.0],
-                                         expDataDetailed=[(13,47),(10,80)])
-    na.plotConnectionProbability("iSPN","iSPN", \
-                                         dist3D=dist3D, \
-                                         expMaxDist=[50e-6,100e-6],\
-                                         expData=[14/39.0,7/31.0],
-                                         expDataDetailed=[(14,39),(7,31)])
+    # 3/21 LTS->MS, Basal Ganglia book --- distance??
+    # Ibanez-Sandoval, ..., Tepper  2011 3/21 -- if patching around visual axon
+    # but 2/60 when patching blind
+    # !!! Use the focused 3/21 statistics for validation!! --- please :)
+    na.plot_connection_probability("LTS", "dSPN",
+                                   dist_3d=dist3D,
+                                   exp_max_dist=[250e-6],
+                                   exp_data=[2 / 60.0],
+                                   exp_data_detailed=[(2, 60)])
 
-    # No exp data for this -- Gittis,...,Kreitzer 2010 (p2228) -- 7/12 (and 3/4 reciprocal) -- distance?
-    # FS->FS synapses weaker, 1.1 +/- 1.5nS
-    na.plotConnectionProbability("FSN","FSN", \
-                                         dist3D=dist3D, \
-                                         expMaxDist=[250e-6],\
-                                         expData=[7/12.0],
-                                         expDataDetailed=[(7,12)])
+    na.plot_connection_probability("LTS", "iSPN",
+                                   dist_3d=dist3D,
+                                   exp_max_dist=[250e-6],
+                                   exp_data=[2 / 60.0],
+                                   exp_data_detailed=[(2, 60)])
 
+    # Silberberg et al 2013, 2/12 FS-> LTS connected --- distance??
+    na.plot_connection_probability("FSN", "LTS",
+                                   dist_3d=dist3D,
+                                   exp_max_dist=[250e-6],
+                                   exp_data=[2.0 / 12],
+                                   exp_data_detailed=[(2, 12)])
 
-    # Do we have ChINs?
-    # ChIN data, Johanna had ref. ????
-    # Janickova
+    # import pdb
+    # pdb.set_trace()
 
-    if(True):
-      # REF???!?!?!?!
-      #na.plotConnectionProbability("ChIN","iSPN", \
-      #                                     dist3D=dist3D,
-      #                                     expMaxDist=[200e-6],
-      #                                     expData=[62/89.0],
-      #                                     expDataDetailed=[(62,89)])
-      #na.plotConnectionProbability("ChIN","dSPN", \
-      #                                     dist3D=dist3D,
-      #                                     expMaxDist=[200e-6],
-      #                                     expData=[62/89.0],
-      #                                     expDataDetailed=[(62,89)])
+    na.plot_connection_probability("dSPN", "ChIN",
+                                   dist_3d=dist3D)
+    na.plot_connection_probability("iSPN", "ChIN",
+                                   dist_3d=dist3D)
 
-      # Derived from Janickova H, ..., Bernard V 2017
-      na.plotConnectionProbability("ChIN","iSPN", \
-                                           dist3D=dist3D,
-                                           expMaxDist=[200e-6],
-                                           expData=[0.05])
-      na.plotConnectionProbability("ChIN","dSPN", \
-                                           dist3D=dist3D,
-                                           expMaxDist=[200e-6],
-                                           expData=[0.05])
+    na.plot_connection_probability("ChIN", "LTS",
+                                   dist_3d=dist3D)
+    na.plot_connection_probability("ChIN", "iSPN",
+                                   dist_3d=dist3D)
+    na.plot_connection_probability("ChIN", "dSPN",
+                                   dist_3d=dist3D)
 
+    print("Check the ChIN stuff")
+    # import pdb
+    # pdb.set_trace()
 
-      na.plotConnectionProbability("ChIN","FSN", \
-                                           dist3D=dist3D)
+    # import pdb
+    # pdb.set_trace()
 
-      na.plotIncomingConnections(neuronType="dSPN",preType="ChIN")
-      na.plotIncomingConnections(neuronType="iSPN",preType="ChIN")
+    na.nearest_pre_neighbour_distance("FSN", "dSPN")
+    na.nearest_pre_neighbour_distance("FSN", "iSPN")
 
+    na.plot_num_synapses_per_pair("ChIN", "dSPN")
+    na.plot_num_synapses_per_pair("ChIN", "iSPN")
 
-    if(True):
+    na.plot_num_synapses_per_pair("dSPN", "ChIN")
+    na.plot_num_synapses_per_pair("iSPN", "ChIN")
 
-      na.plotConnectionProbability("LTS","ChIN", \
-                                           dist3D=dist3D)
+    # 2-5 ChIN should connect to each MS (approx)
+    na.plot_incoming_connections(neuron_type="dSPN", pre_type="ChIN")
+    na.plot_incoming_connections(neuron_type="iSPN", pre_type="ChIN")
 
-      na.plotConnectionProbability("ChIN","LTS", \
-                                           dist3D=dist3D)
+    na.plot_incoming_connections(neuron_type="ChIN", pre_type="dSPN")
+    na.plot_incoming_connections(neuron_type="ChIN", pre_type="iSPN")
 
+    # LTS plots
+    na.plot_num_synapses_per_pair("LTS", "dSPN")
+    na.plot_num_synapses_per_pair("LTS", "iSPN")
+    na.plot_num_synapses_per_pair("LTS", "ChIN")
 
+    na.plot_num_synapses_per_pair("ChIN", "LTS")
+    na.plot_num_synapses_per_pair("FSN", "LTS")
 
+    na.plot_incoming_connections(neuron_type="dSPN", pre_type="LTS")
+    na.plot_incoming_connections(neuron_type="iSPN", pre_type="LTS")
+    na.plot_incoming_connections(neuron_type="ChIN", pre_type="LTS")
 
+    na.plot_incoming_connections(neuron_type="LTS", pre_type="ChIN")
+    na.plot_incoming_connections(neuron_type="LTS", pre_type="FSN")
 
-  if(True):
-    print("The synapse dist function needs a density func, which currently not working since we no longer include compartment length in the dend data, so need to calculate it")
-    na.plotSynapseDist()
-    na.plotSynapseCumDist()
-    na.plotSynapseDist(densityFlag=True)
+    if True or enableAnalysis:
+        dist3D = False
 
-    #import pdb
-    #pdb.set_trace()
+        # 100e-6 from Planert 2010, and 250e-6 data from Gittis 2010
+        # 150e-6 from Gittis 2011 (actually 100 +/- 50 micrometers)
+        na.plot_connection_probability("FSN", "iSPN",
+                                       dist_3d=dist3D,
+                                       exp_max_dist=[100e-6, 150e-6, 250e-6],
+                                       exp_data=[6 / 9.0, 21 / 54.0, 27 / 77.0],
+                                       exp_data_detailed=[(6, 9), (21, 54), (27, 77)])
+        na.plot_connection_probability("FSN", "dSPN",
+                                       dist_3d=dist3D,
+                                       exp_max_dist=[100e-6, 150e-6, 250e-6],
+                                       exp_data=[8 / 9.0, 29 / 48.0, 48 / 90.0],
+                                       exp_data_detailed=[(8, 9), (29, 48), (48, 90)])
+        na.plot_connection_probability("dSPN", "iSPN",
+                                       dist_3d=dist3D,
+                                       exp_max_dist=[50e-6, 100e-6],
+                                       exp_data=[3 / 47.0, 3 / 66.0],
+                                       exp_data_detailed=[(3, 47), (3, 66)])
+        na.plot_connection_probability("dSPN", "dSPN",
+                                       dist_3d=dist3D,
+                                       exp_max_dist=[50e-6, 100e-6],
+                                       exp_data=[5 / 19.0, 3 / 43.0],
+                                       exp_data_detailed=[(5, 19), (3, 43)])
+        na.plot_connection_probability("iSPN", "dSPN",
+                                       dist_3d=dist3D,
+                                       exp_max_dist=[50e-6, 100e-6],
+                                       exp_data=[13 / 47.0, 10 / 80.0],
+                                       exp_data_detailed=[(13, 47), (10, 80)])
+        na.plot_connection_probability("iSPN", "iSPN",
+                                       dist_3d=dist3D,
+                                       exp_max_dist=[50e-6, 100e-6],
+                                       exp_data=[14 / 39.0, 7 / 31.0],
+                                       exp_data_detailed=[(14, 39), (7, 31)])
 
+        # No exp data for this -- Gittis,...,Kreitzer 2010 (p2228) -- 7/12 (and 3/4 reciprocal) -- distance?
+        # FS->FS synapses weaker, 1.1 +/- 1.5nS
+        na.plot_connection_probability("FSN", "FSN",
+                                       dist_3d=dist3D,
+                                       exp_max_dist=[250e-6],
+                                       exp_data=[7 / 12.0],
+                                       exp_data_detailed=[(7, 12)])
 
-  if(True and enableAnalysis):
-    na.plotNumSynapsesPerPair("FSN","dSPN")
-    na.plotNumSynapsesPerPair("FSN","iSPN")
-    na.plotNumSynapsesPerPair("dSPN","dSPN")
-    na.plotNumSynapsesPerPair("dSPN","iSPN")
-    na.plotNumSynapsesPerPair("iSPN","dSPN")
-    na.plotNumSynapsesPerPair("iSPN","iSPN")
+        # Do we have ChINs?
+        # ChIN data, Johanna had ref. ????
+        # Janickova
 
+        if True:
+            # REF???!?!?!?!
+            # na.plotConnectionProbability("ChIN","iSPN", \
+            #                                     dist3D=dist3D,
+            #                                     expMaxDist=[200e-6],
+            #                                     expData=[62/89.0],
+            #                                     expDataDetailed=[(62,89)])
+            # na.plotConnectionProbability("ChIN","dSPN", \
+            #                                     dist3D=dist3D,
+            #                                     expMaxDist=[200e-6],
+            #                                     expData=[62/89.0],
+            #                                     expDataDetailed=[(62,89)])
 
+            # Derived from Janickova H, ..., Bernard V 2017
+            na.plot_connection_probability("ChIN", "iSPN",
+                                           dist_3d=dist3D,
+                                           exp_max_dist=[200e-6],
+                                           exp_data=[0.05])
+            na.plot_connection_probability("ChIN", "dSPN",
+                                           dist_3d=dist3D,
+                                           exp_max_dist=[200e-6],
+                                           exp_data=[0.05])
 
-  if(True and enableAnalysis):
-    na.plotIncomingConnections(neuronType="dSPN",preType="iSPN")
-    na.plotIncomingConnections(neuronType="dSPN",preType="dSPN")
-    na.plotIncomingConnections(neuronType="dSPN",preType="FSN")
+            na.plot_connection_probability("ChIN", "FSN",
+                                           dist_3d=dist3D)
 
+            na.plot_incoming_connections(neuron_type="dSPN", pre_type="ChIN")
+            na.plot_incoming_connections(neuron_type="iSPN", pre_type="ChIN")
 
+        if True:
+            na.plot_connection_probability("LTS", "ChIN",
+                                           dist_3d=dist3D)
 
-  if(True and enableAnalysis):
-    na.plotIncomingConnections(neuronType="iSPN",preType="iSPN")
-    na.plotIncomingConnections(neuronType="iSPN",preType="dSPN")
-    na.plotIncomingConnections(neuronType="iSPN",preType="FSN")
+            na.plot_connection_probability("ChIN", "LTS",
+                                           dist_3d=dist3D)
 
+    if True:
+        print("The synapse dist function needs a density func, which currently not working since we no longer "
+              + "include compartment length in the dend data, so need to calculate it")
+        na.plot_synapse_dist()
+        na.plot_synapse_cum_dist()
+        na.plot_synapse_dist(density_flag=True)
 
-  print("All done, exiting")
-  #import pdb
-  #pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
+
+    if True and enableAnalysis:
+        na.plot_num_synapses_per_pair("FSN", "dSPN")
+        na.plot_num_synapses_per_pair("FSN", "iSPN")
+        na.plot_num_synapses_per_pair("dSPN", "dSPN")
+        na.plot_num_synapses_per_pair("dSPN", "iSPN")
+        na.plot_num_synapses_per_pair("iSPN", "dSPN")
+        na.plot_num_synapses_per_pair("iSPN", "iSPN")
+
+    if True and enableAnalysis:
+        na.plot_incoming_connections(neuron_type="dSPN", pre_type="iSPN")
+        na.plot_incoming_connections(neuron_type="dSPN", pre_type="dSPN")
+        na.plot_incoming_connections(neuron_type="dSPN", pre_type="FSN")
+
+    if True and enableAnalysis:
+        na.plot_incoming_connections(neuron_type="iSPN", pre_type="iSPN")
+        na.plot_incoming_connections(neuron_type="iSPN", pre_type="dSPN")
+        na.plot_incoming_connections(neuron_type="iSPN", pre_type="FSN")
+
+    print("All done, exiting")
+    # import pdb
+    # pdb.set_trace()
