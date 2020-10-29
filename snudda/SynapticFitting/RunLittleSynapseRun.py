@@ -146,7 +146,7 @@ class RunLittleSynapseRun(object):
     if(False):
       import matplotlib.pyplot as plt
       plt.figure()
-      plt.plot(self.tSave,self.vSave)
+      plt.plot(self.t_save, self.v_save)
       plt.title("Holding voltage should be " \
                 + str(self.holdingVoltage*1e3) + "mV")
       plt.xlabel("time (ms)")

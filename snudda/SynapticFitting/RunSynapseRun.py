@@ -65,8 +65,8 @@ class RunSynapseRun(object):
                               mech_file=neuronMechanisms,
                               cell_name="OptimisationNeuron",
                               modulation_file=neuronModulation,
-                              parameterID=neuronParameterID,
-                              modulationID=neuronModulationID)
+                              parameter_id=neuronParameterID,
+                              modulation_id=neuronModulationID)
 
 
     self.neuron.instantiate(sim=self.sim)
@@ -154,7 +154,7 @@ class RunSynapseRun(object):
     if(False):
       import matplotlib.pyplot as plt
       plt.figure()
-      plt.plot(self.tSave,self.vSave)
+      plt.plot(self.t_save, self.v_save)
       plt.title("Holding voltage should be " \
                 + str(self.holdingVoltage*1e3) + "mV")
       plt.xlabel("time (ms)")
@@ -257,7 +257,7 @@ class RunSynapseRun(object):
     self.synapseSectionID = sectionID
     self.synapseSectionX = sectionX
       
-    sections = self.neuron.mapIDtoCompartment(sectionID)
+    sections = self.neuron.map_id_to_compartment(sectionID)
     
     for s,sx in zip(sections,sectionX):
       self.addSynapse(synapseType,s,sx,self.params)
@@ -386,19 +386,19 @@ class RunSynapseRun(object):
     #self.vSave.resize()
     #self.iSave.resize()
     
-    if(np.array(self.tSave).shape != np.array(self.vSave).shape):
+    if(np.array(self.t_save).shape != np.array(self.v_save).shape):
       self.write_log("THIS IS WRONG, should be same shape!!")
-      self.write_log("size t = " + str(np.array(self.tSave).shape))
-      self.write_log("size v = " + str(np.array(self.vSave).shape))
+      self.write_log("size t = " + str(np.array(self.t_save).shape))
+      self.write_log("size v = " + str(np.array(self.v_save).shape))
       import pdb
       pdb.set_trace()
     
     # print("Last V = " + str(self.vSave[-1]*1e-3))
     
     # Convert back to SI units
-    return (np.array(self.tSave)*1e-3,
-            np.array(self.vSave)*1e-3,
-            np.array(self.iSave)*1e-9)
+    return (np.array(self.t_save) * 1e-3,
+            np.array(self.v_save) * 1e-3,
+            np.array(self.i_save) * 1e-9)
 
   ############################################################################
 

@@ -1,7 +1,5 @@
 """ Based on BluePyOpt exampel code by Werner van Geit, 
-modified by Johannes Hjorth """ 
-
-
+modified by Johannes Hjorth """
 
 import os
 import json
@@ -9,364 +7,356 @@ import numpy as np
 
 import bluepyopt.ephys as ephys
 
+
 class NeuronModel(ephys.models.CellModel):
 
-  def __init__(self,
-               cell_name="Unknown",
-               morph_file=None,
-               mech_file=None,
-               param_file=None,
-               modulation_file=None,
-               parameterID=None,
-               modulationID=None):
+    def __init__(self,
+                 cell_name="Unknown",
+                 morph_file=None,
+                 mech_file=None,
+                 param_file=None,
+                 modulation_file=None,
+                 parameter_id=None,
+                 modulation_id=None):
 
-    self.name = cell_name
-    self.parameters = []
-    
-    self.script_dir = os.path.dirname(__file__)
-    self.config_dir = os.path.join(self.script_dir, 'config')
+        self.name = cell_name
+        self.parameters = []
 
-    # morph=self.define_morphology(replaceAxon=False,morph_file=morph_file)    
-    morph=self.define_morphology(replaceAxon=True,morph_file=morph_file)
-    mechs=self.define_mechanisms(mechanism_config=mech_file)
-    params=self.define_parameters(param_file,parameterID)
-    
-    if(modulation_file is not None):
-      modParams = self.define_parameters(modulation_file,modulationID)
-      params = params + modParams
-    
-    super(NeuronModel, self).__init__(name=cell_name,morph=morph,
-                      mechs=mechs,params=params)      
-    self.synlist = []
-    self.sectionLookup = None
+        self.script_dir = os.path.dirname(__file__)
+        self.config_dir = os.path.join(self.script_dir, 'config')
 
-    #import pdb
-    #pdb.set_trace()
-    
-##############################################################################
+        # morph=self.define_morphology(replaceAxon=False,morph_file=morph_file)
+        morph = self.define_morphology(replace_axon=True, morph_file=morph_file)
+        mechs = self.define_mechanisms(mechanism_config=mech_file)
+        params = self.define_parameters(param_file, parameter_id)
 
-  # Helper function
+        if modulation_file is not None:
+            mod_params = self.define_parameters(modulation_file, modulation_id)
+            params = params + mod_params
 
-  def define_mechanisms(self, mechanism_config=None):
-    """Define mechanisms"""
+        super(NeuronModel, self).__init__(name=cell_name, morph=morph,
+                                          mechs=mechs, params=params)
+        self.syn_list = []
+        self.section_lookup = None
 
-    assert(mechanism_config is not None)
-    # print("Using mechanmism config: " + mechanism_config)
-  
-    mech_definitions = json.load(open(mechanism_config))
+        # import pdb
+        # pdb.set_trace()
 
-    if("modpath" in mech_definitions):
-      mod_path = os.path.join(self.script_dir,mech_definitions["modpath"])
-      print("mod_path set to " + mod_path + " (not yet implemented)")
-    else:
-      mod_path = None
+    ##############################################################################
 
+    # Helper function
 
-    #import pdb
-    #pdb.set_trace()
-      
-    mechanisms = []
-    for sectionlist in mech_definitions:
-      channels = mech_definitions[sectionlist]
-      
-      # This allows us to specify a modpath in the file
-      if(sectionlist == "modpath"):
-        continue
-    
-      seclist_loc = \
-          ephys.locations.NrnSeclistLocation(sectionlist,
-                           seclist_name=sectionlist)
-      for channel in channels:
-        mechanisms.append(ephys.mechanisms.NrnMODMechanism(
-          name='%s.%s' % (channel, sectionlist),
-          mod_path=mod_path,
-          suffix=channel,
-          locations=[seclist_loc],
-          preloaded=True))
-      
-    return mechanisms
+    def define_mechanisms(self, mechanism_config=None):
+        """Define mechanisms"""
 
+        assert (mechanism_config is not None)
+        # print("Using mechanmism config: " + mechanism_config)
 
-      
-    
-############################################################################
+        mech_definitions = json.load(open(mechanism_config))
 
-  # Helper function
+        if "modpath" in mech_definitions:
+            mod_path = os.path.join(self.script_dir, mech_definitions["modpath"])
+            print("mod_path set to " + mod_path + " (not yet implemented)")
+        else:
+            mod_path = None
 
-  def define_parameters(self, parameter_config=None,parameterID=None):
-    """Define parameters"""
+        # import pdb
+        # pdb.set_trace()
 
-    assert(parameter_config is not None)
+        mechanisms = []
+        for section_list in mech_definitions:
+            channels = mech_definitions[section_list]
 
-    # print("Using parameter config: " + parameter_config)
+            # This allows us to specify a modpath in the file
+            if section_list == "modpath":
+                continue
 
-    try:
-      param_configs = json.load(open(parameter_config))
-    except:
-      import traceback
-      tstr = traceback.format_exc()
-      print(tstr)
-      import pdb
-      pdb.set_trace()
-      
-    parameters = []
+            seclist_loc = \
+                ephys.locations.NrnSeclistLocation(section_list,
+                                                   seclist_name=section_list)
+            for channel in channels:
+                mechanisms.append(ephys.mechanisms.NrnMODMechanism(
+                    name='%s.%s' % (channel, section_list),
+                    mod_path=mod_path,
+                    suffix=channel,
+                    locations=[seclist_loc],
+                    preloaded=True))
 
-    if(type(param_configs[0]) == list):
-      # If it was a dict, then we have one parameterset,
-      # if it was a list we have multiple parametersets, pick one.
-      
-      assert parameterID is not None, \
-        "Multiple parametersets require parameterID set"
-      
-      nParams = len(param_configs)
-      param_configs = param_configs[parameterID % nParams]
+        return mechanisms
 
-    # Save this to be accessible in the future
-    self.parameters += param_configs
-    
-    for param_config in param_configs:
-      if 'value' in param_config:
-        frozen = True
-        value = param_config['value']
-        bounds = None
-      elif 'bounds' in param_config:
-        frozen = False
-        bounds = param_config['bounds']
-        value = None
-      else:
-        raise Exception(
-          'Parameter config has to have bounds or value: %s'
-          % param_config)
+    ############################################################################
 
-      if param_config['type'] == 'global':
-        parameters.append(
-          ephys.parameters.NrnGlobalParameter(
-            name=param_config['param_name'],
-            param_name=param_config['param_name'],
-            frozen=frozen,
-            bounds=bounds,
-            value=value))
-      elif param_config['type'] in ['section', 'range']:
-        if param_config['dist_type'] == 'uniform':
-          scaler = ephys.parameterscalers.NrnSegmentLinearScaler()
-        elif param_config['dist_type'] in ['exp', 'distance']:
-          scaler = ephys.parameterscalers.NrnSegmentSomaDistanceScaler(
-            distribution=param_config['dist'])
-        seclist_loc = ephys.locations.NrnSeclistLocation(
-          param_config['sectionlist'],
-          seclist_name=param_config['sectionlist'])
+    # Helper function
 
-        name = '%s.%s' % (param_config['param_name'],
-                  param_config['sectionlist'])
+    def define_parameters(self, parameter_config=None, parameter_id=None):
+        """Define parameters"""
 
-        if param_config['type'] == 'section':
-          parameters.append(
-            ephys.parameters.NrnSectionParameter(
-              name=name,
-              param_name=param_config['param_name'],
-              value_scaler=scaler,
-              value=value,
-              frozen=frozen,
-              bounds=bounds,
-              locations=[seclist_loc]))
-        elif param_config['type'] == 'range':
-          parameters.append(
-            ephys.parameters.NrnRangeParameter(
-              name=name,
-              param_name=param_config['param_name'],
-              value_scaler=scaler,
-              value=value,
-              frozen=frozen,
-              bounds=bounds,
-              locations=[seclist_loc]))
-      else:
-        raise Exception(
-          'Param config type has to be global, section or range: %s' %
-          param_config)
+        assert (parameter_config is not None)
 
+        # print("Using parameter config: " + parameter_config)
 
-      # import pdb
-      # pdb.set_trace()
-  
-    return parameters
+        try:
+            param_configs = json.load(open(parameter_config))
+        except:
+            import traceback
+            tstr = traceback.format_exc()
+            print(tstr)
+            import pdb
+            pdb.set_trace()
 
-##############################################################################
+        parameters = []
 
-  # Helper function
+        if type(param_configs[0]) == list:
+            # If it was a dict, then we have one parameterset,
+            # if it was a list we have multiple parametersets, pick one.
 
-  def define_morphology(self, replaceAxon=True,morph_file=None):
-    """Define morphology. Handles SWC and ASC."""
+            assert parameter_id is not None, \
+                "Multiple parametersets require parameterID set"
 
-    assert(morph_file is not None)
+            num_params = len(param_configs)
+            param_configs = param_configs[parameter_id % num_params]
 
-    # print("Using morphology: " + morph_file)
-    
-    return ephys.morphologies.NrnFileMorphology(morph_file, do_replace_axon=replaceAxon)
-  # OLD BUGFIX FOR segment pop
-  #,replace_axon_hoc=self.getReplacementAxon()) 
+        # Save this to be accessible in the future
+        self.parameters += param_configs
 
-##############################################################################
+        for param_config in param_configs:
+            if 'value' in param_config:
+                frozen = True
+                value = param_config['value']
+                bounds = None
+            elif 'bounds' in param_config:
+                frozen = False
+                bounds = param_config['bounds']
+                value = None
+            else:
+                raise Exception(
+                    'Parameter config has to have bounds or value: %s'
+                    % param_config)
 
-  # Neuron_morphology defines sectionID, these must match what this returns
-  # so that they point to the same compartment.
-  #
-  # Soma is 0
-  # axons are negative values (currently all set to -1) in Neuron_morphology
-  # dendrites are 1,2,3,4,5... ie one higher than what Neuron internally
-  # uses to index the dendrites (due to us wanting to include soma)
-  
+            if param_config['type'] == 'global':
+                parameters.append(
+                    ephys.parameters.NrnGlobalParameter(
+                        name=param_config['param_name'],
+                        param_name=param_config['param_name'],
+                        frozen=frozen,
+                        bounds=bounds,
+                        value=value))
+            elif param_config['type'] in ['section', 'range']:
+                if param_config['dist_type'] == 'uniform':
+                    scaler = ephys.parameterscalers.NrnSegmentLinearScaler()
+                elif param_config['dist_type'] in ['exp', 'distance']:
+                    scaler = ephys.parameterscalers.NrnSegmentSomaDistanceScaler(
+                        distribution=param_config['dist'])
+                seclist_loc = ephys.locations.NrnSeclistLocation(
+                    param_config['sectionlist'],
+                    seclist_name=param_config['sectionlist'])
 
-  def mapIDtoCompartment(self,sectionID):
+                name = '%s.%s' % (param_config['param_name'],
+                                  param_config['sectionlist'])
 
-    if(self.sectionLookup is None):
-      
-      self.sectionLookup = dict([])
+                if param_config['type'] == 'section':
+                    parameters.append(
+                        ephys.parameters.NrnSectionParameter(
+                            name=name,
+                            param_name=param_config['param_name'],
+                            value_scaler=scaler,
+                            value=value,
+                            frozen=frozen,
+                            bounds=bounds,
+                            locations=[seclist_loc]))
+                elif param_config['type'] == 'range':
+                    parameters.append(
+                        ephys.parameters.NrnRangeParameter(
+                            name=name,
+                            param_name=param_config['param_name'],
+                            value_scaler=scaler,
+                            value=value,
+                            frozen=frozen,
+                            bounds=bounds,
+                            locations=[seclist_loc]))
+            else:
+                raise Exception(
+                    'Param config type has to be global, section or range: %s' %
+                    param_config)
 
-      # Soma is zero
-      self.sectionLookup[0] = self.icell.soma[0]
+            # import pdb
+            # pdb.set_trace()
 
-      # Dendrites are consequtive numbers starting from 1
-      # Ie neurons dend(0) is in pos 1, dend(99) is in pos 100
-      # This so we dont need to special treat soma (pos 0)
-      
-      for ic,c in enumerate(self.icell.dend):
-        self.sectionLookup[ic+1] = c
-      
-      # Negative numbers for axon
-      for ic,c in enumerate(self.icell.axon):
-        self.sectionLookup[-ic-1] = c
+        return parameters
 
-    try:
-      sec = [self.sectionLookup[x] for x in sectionID]
-    except:
-      print("Missing section ID?")
-      print("sectionID = " + str(sectionID))
-      print("sectionLookup = " + str(self.sectionLookup))
-      import traceback
-      tstr = traceback.format_exc()
-      print(tstr)
-      import pdb
-      pdb.set_trace()
-        
-    return sec
+    ##############################################################################
 
-    
+    # Helper function
 
-############################################################################
+    def define_morphology(self, replace_axon=True, morph_file=None):
+        """Define morphology. Handles SWC and ASC."""
 
-  def findDendCompartment(self,synapse_xyz,locType,sim):
-    """Locate where on dend sections each synapse is"""
+        assert (morph_file is not None)
 
-    assert False, "Depricated use mapIDtoCompartment"
-    
-    dendLoc = []
-  
-    secLookup = {}
-  
-    nPoints = 0
-    # Find out how many points we need to allocate space for
-    for sec in self.icell.dend:
-      for seg in sec:
-        # There must be a cleaner way to get the 3d points
-        # when we already have the section
-        nPoints = nPoints + int(sim.neuron.h.n3d(sec=sec))
-      
-    secPoints = np.zeros(shape=(nPoints,5)) # x,y,z,isec,arclen
-    pointCtr = 0
+        # print("Using morphology: " + morph_file)
 
-    # Create secPoints with a list of all segment points
-    for isec, sec in enumerate(self.icell.dend):
-      secLookup[isec] = sec # Lookup table    
-      # print("Parsing ", sec)
-      for seg in sec:
-        for i in range(int(sim.neuron.h.n3d(sec=sec))):
-          secLen = sim.neuron.h.arc3d(int(sim.neuron.h.n3d(sec=sec)-1), sec=sec)
-          # We work in SI units, so convert units from neuron
-          secPoints[pointCtr,:] = [sim.neuron.h.x3d(i,sec=sec)*1e-6,
-                       sim.neuron.h.y3d(i,sec=sec)*1e-6,
-                       sim.neuron.h.z3d(i,sec=sec)*1e-6,
-                       isec,
-                       (sim.neuron.h.arc3d(i,sec=sec)/secLen)]
-          pointCtr = pointCtr + 1
+        return ephys.morphologies.NrnFileMorphology(morph_file, do_replace_axon=replace_axon)
 
-    # Loop through all (axon-dendritic) synapse locations and find matching compartment
+    # OLD BUGFIX FOR segment pop
+    # ,replace_axon_hoc=self.getReplacementAxon())
 
+    ##############################################################################
 
-    for row,lType in zip(synapse_xyz,locType): #[locType == 1]:
-      # type 1 = axon-dendritic
-      if(lType == 1):
-        dist = np.sum((secPoints[:,0:3] - row)**2,axis=-1)
-        minIdx = np.argmin(dist)
+    # Neuron_morphology defines sectionID, these must match what this returns
+    # so that they point to the same compartment.
+    #
+    # Soma is 0
+    # axons are negative values (currently all set to -1) in Neuron_morphology
+    # dendrites are 1,2,3,4,5... ie one higher than what Neuron internally
+    # uses to index the dendrites (due to us wanting to include soma)
 
-        # Just to double check, the synapse coordinate and the compartment
-        # we match it against should not be too far away
-        assert dist[minIdx] < 5e-6, \
-          "Coords should be close to compartment"
-          
-        minInfo = secPoints[minIdx,:]
-        # Save section and distance within section
-        dendLoc.insert(len(dendLoc), [secLookup[minInfo[3]], minInfo[4]])
+    def map_id_to_compartment(self, section_id):
 
-    
-      # axo-somatic synapses (type = 2)
-      if(lType == 2):
-        dendLoc.insert(len(dendLoc), [self.icell.soma[0], 0.5])
+        if self.section_lookup is None:
 
-      # For gap junctions (locType == 3) see how Network_simulate.py
-      # creates a list of coordinates and calls the function
-      if(lType == 4):
-        dist = np.sum((secPoints[:,0:3] - row)**2,axis=-1)
-        minIdx = np.argmin(dist)
+            self.section_lookup = dict([])
 
-        # Just to double check, the synapse coordinate and the compartment
-        # we match it against should not be too far away
-        assert(dist[minIdx] < 5e-6)
+            # Soma is zero
+            self.section_lookup[0] = self.icell.soma[0]
 
-        minInfo = secPoints[minIdx,:]     
-        dendLoc.insert(len(dendLoc),[secLookup[minInfo[3]], minInfo[4]])
-    
-    # Currently only support axon-dend, and axon-soma synapses, not axon-axon
-    # check that there are none in indata
-    try:
-      assert(all(x == 1 or x == 2 or x == 4 for x in locType))
-    except:
-      print("Bad locTypes:")
-      print("locType: " + str(locType))
-      import pdb
-      pdb.set_trace()
-      
-    return dendLoc
+            # Dendrites are consequtive numbers starting from 1
+            # Ie neurons dend(0) is in pos 1, dend(99) is in pos 100
+            # This so we dont need to special treat soma (pos 0)
 
-  ############################################################################
+            for ic, c in enumerate(self.icell.dend):
+                self.section_lookup[ic + 1] = c
 
-  # OVERRIDE the create_empty_template from CellModel
-  
-  @staticmethod
-  def create_empty_template(
-      template_name,
-      seclist_names=None,
-      secarray_names=None):
+            # Negative numbers for axon
+            for ic, c in enumerate(self.icell.axon):
+                self.section_lookup[-ic - 1] = c
+
+        try:
+            sec = [self.section_lookup[x] for x in section_id]
+        except:
+            print("Missing section ID?")
+            print("sectionID = " + str(section_id))
+            print("sectionLookup = " + str(self.section_lookup))
+            import traceback
+            tstr = traceback.format_exc()
+            print(tstr)
+            import pdb
+            pdb.set_trace()
+
+        return sec
+
+    ############################################################################
+
+    def find_dend_compartment(self, synapse_xyz, loc_type, sim):
+        """Locate where on dend sections each synapse is"""
+
+        assert False, "Depricated use mapIDtoCompartment"
+
+        dend_loc = []
+        sec_lookup = {}
+
+        num_points = 0
+        # Find out how many points we need to allocate space for
+        for sec in self.icell.dend:
+            for seg in sec:
+                # There must be a cleaner way to get the 3d points
+                # when we already have the section
+                num_points = num_points + int(sim.neuron.h.n3d(sec=sec))
+
+        sec_points = np.zeros(shape=(num_points, 5))  # x,y,z,isec,arclen
+        point_ctr = 0
+
+        # Create secPoints with a list of all segment points
+        for isec, sec in enumerate(self.icell.dend):
+            sec_lookup[isec] = sec  # Lookup table
+            # print("Parsing ", sec)
+
+            # TODO: I think the for seg in sec is redudant since we loop over range below
+            for seg in sec:
+                for i in range(int(sim.neuron.h.n3d(sec=sec))):
+                    sec_len = sim.neuron.h.arc3d(int(sim.neuron.h.n3d(sec=sec) - 1), sec=sec)
+                    # We work in SI units, so convert units from neuron
+                    sec_points[point_ctr, :] = [sim.neuron.h.x3d(i, sec=sec) * 1e-6,
+                                                sim.neuron.h.y3d(i, sec=sec) * 1e-6,
+                                                sim.neuron.h.z3d(i, sec=sec) * 1e-6,
+                                                isec,
+                                                (sim.neuron.h.arc3d(i, sec=sec) / sec_len)]
+                    point_ctr = point_ctr + 1
+
+        # Loop through all (axon-dendritic) synapse locations and find matching compartment
+
+        for row, l_type in zip(synapse_xyz, loc_type):  # [locType == 1]:
+            # type 1 = axon-dendritic
+            if l_type == 1:
+                dist = np.sum((sec_points[:, 0:3] - row) ** 2, axis=-1)
+                min_idx = np.argmin(dist)
+
+                # Just to double check, the synapse coordinate and the compartment
+                # we match it against should not be too far away
+                assert dist[min_idx] < 5e-6, \
+                    "Coords should be close to compartment"
+
+                min_info = sec_points[min_idx, :]
+                # Save section and distance within section
+                dend_loc.insert(len(dend_loc), [sec_lookup[min_info[3]], min_info[4]])
+
+            # axo-somatic synapses (type = 2)
+            if l_type == 2:
+                dend_loc.insert(len(dend_loc), [self.icell.soma[0], 0.5])
+
+            # For gap junctions (locType == 3) see how Network_simulate.py
+            # creates a list of coordinates and calls the function
+            if l_type == 4:
+                dist = np.sum((sec_points[:, 0:3] - row) ** 2, axis=-1)
+                min_idx = np.argmin(dist)
+
+                # Just to double check, the synapse coordinate and the compartment
+                # we match it against should not be too far away
+                assert (dist[min_idx] < 5e-6)
+
+                min_info = sec_points[min_idx, :]
+                dend_loc.insert(len(dend_loc), [sec_lookup[min_info[3]], min_info[4]])
+
+        # Currently only support axon-dend, and axon-soma synapses, not axon-axon
+        # check that there are none in indata
+        try:
+            assert (all(x == 1 or x == 2 or x == 4 for x in loc_type))
+        except:
+            print("Bad locTypes:")
+            print("locType: " + str(loc_type))
+            import pdb
+            pdb.set_trace()
+
+        return dend_loc
+
+    ############################################################################
+
+    # OVERRIDE the create_empty_template from CellModel
     '''create an hoc template named template_name for an empty cell'''
 
-    objref_str = 'objref this, CellRef, synlist'
-    newseclist_str = ''
-    
-    if seclist_names:
-      for seclist_name in seclist_names:
-        objref_str += ', %s' % seclist_name
-        newseclist_str += \
-          '       %s = new SectionList()\n' % seclist_name
+    @staticmethod
+    def create_empty_template(
+            template_name,
+            seclist_names=None,
+            secarray_names=None):
 
-        
-    create_str = ''
-    if secarray_names:
-      create_str = 'create '
-      create_str += ', '.join(
-        '%s[1]' % secarray_name
-        for secarray_name in secarray_names)
-      create_str += '\n'
+        objref_str = 'objref this, CellRef, synlist'
+        new_seclist_str = ''
 
-    template = '''\
+        if seclist_names:
+            for seclist_name in seclist_names:
+                objref_str += ', %s' % seclist_name
+                new_seclist_str += \
+                    '       %s = new SectionList()\n' % seclist_name
+
+        create_str = ''
+        if secarray_names:
+            create_str = 'create '
+            create_str += ', '.join(
+                '%s[1]' % secarray_name
+                for secarray_name in secarray_names)
+            create_str += '\n'
+
+        template = '''\
     begintemplate %(template_name)s
       %(objref_str)s
       proc init() {\n%(newseclist_str)s
@@ -381,79 +371,77 @@ class NeuronModel(ephys.models.CellModel):
       %(create_str)s
     endtemplate %(template_name)s
          ''' % dict(template_name=template_name, objref_str=objref_str,
-              newseclist_str=newseclist_str,
-              create_str=create_str)
+                    newseclist_str=new_seclist_str,
+                    create_str=create_str)
 
-    # print(">>>> begin template")
-    # print(str(template))
-    # print(">>>> end template")
-    
-    return template
+        # print(">>>> begin template")
+        # print(str(template))
+        # print(">>>> end template")
 
-  ############################################################################
+        return template
 
-  # OVERRIDE the create_empty_template from CellModel
+    ############################################################################
 
-  @staticmethod
-  def create_empty_cell(
-      name,
-      sim,
-      seclist_names=None,
-      secarray_names=None):
+    # OVERRIDE the create_empty_template from CellModel
     """Create an empty cell in Neuron"""
 
-    # TODO minize hardcoded definition
-    # E.g. sectionlist can be procedurally generated
-    #hoc_template = ephys.models.CellModel.create_empty_template(name,
-    #                              seclist_names,
-    #                              secarray_names)
+    @staticmethod
+    def create_empty_cell(
+            name,
+            sim,
+            seclist_names=None,
+            secarray_names=None):
 
-    hoc_template = NeuronModel.create_empty_template(name,
-                             seclist_names,
-                             secarray_names)
+        # TODO minize hardcoded definition
+        # E.g. sectionlist can be procedurally generated
+        # hoc_template = ephys.models.CellModel.create_empty_template(name,
+        #                              seclist_names,
+        #                              secarray_names)
 
-    sim.neuron.h(hoc_template)
+        hoc_template = NeuronModel.create_empty_template(name,
+                                                         seclist_names,
+                                                         secarray_names)
 
-    template_function = getattr(sim.neuron.h, name)
+        sim.neuron.h(hoc_template)
 
-    return template_function()   
+        template_function = getattr(sim.neuron.h, name)
 
+        return template_function()
 
-  ############################################################################
+        ############################################################################
 
-  # OVERRIDE the create_empty_template from CellModel
+    # OVERRIDE the create_empty_template from CellModel
 
-  
-  def instantiate(self, sim=None):
-    """Instantiate model in simulator"""
-    
-    # TODO replace this with the real template name
-    if not hasattr(sim.neuron.h, self.name):
-      self.icell = self.create_empty_cell(
-        self.name,
-        sim=sim,
-        seclist_names=self.seclist_names,
-        secarray_names=self.secarray_names)
-    else:
-      self.icell = getattr(sim.neuron.h, self.name)()
+    def instantiate(self, sim=None):
+        """Instantiate model in simulator"""
 
-    self.icell.gid = self.gid
+        # TODO replace this with the real template name
+        if not hasattr(sim.neuron.h, self.name):
+            self.icell = self.create_empty_cell(
+                self.name,
+                sim=sim,
+                seclist_names=self.seclist_names,
+                secarray_names=self.secarray_names)
+        else:
+            self.icell = getattr(sim.neuron.h, self.name)()
 
-    self.morphology.instantiate(sim=sim, icell=self.icell)
+        self.icell.gid = self.gid
 
-    for mechanism in self.mechanisms:
-      mechanism.instantiate(sim=sim, icell=self.icell)
-    for param in self.params.values():
-      param.instantiate(sim=sim, icell=self.icell)
+        self.morphology.instantiate(sim=sim, icell=self.icell)
 
-  ############################################################################
-      
-  def getReplacementAxon(self):
+        for mechanism in self.mechanisms:
+            mechanism.instantiate(sim=sim, icell=self.icell)
+        for param in self.params.values():
+            param.instantiate(sim=sim, icell=self.icell)
 
-    assert False, "Old bugfix for segmetn stack pop, should not be needed anymore"
-    
-    newAxonHoc = \
-       '''
+    ############################################################################
+
+    def get_replacement_axon(self):
+
+        assert False, "Old bugfix for segmetn stack pop, should not be needed anymore"
+
+        new_axon_hoc = \
+            '''
 proc replace_axon(){ local nSec, D1, D2
   // preserve the number of original axonal sections
   nSec = sec_count(axonal)
@@ -510,5 +498,5 @@ proc replace_axon(){ local nSec, D1, D2
 
 }
         '''
-    
-    return newAxonHoc
+
+        return new_axon_hoc

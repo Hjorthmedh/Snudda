@@ -31,9 +31,20 @@ class RegionMesh(object):
             self.logfile = None
             self.logfile_name = None
 
-        # self.binWidth = 5e-4
-        self.bin_width = bin_width  # 1e-4 # 5e-5 # 1e-4
+        self.bin_width = bin_width
         self.padding = max(self.bin_width, d_min)
+        self.num_bins = None
+
+        # Set by load_mesh
+        self.mesh_vec = None
+        self.mesh_faces = None
+        self.mesh_norm = None
+        self.min_coord = None
+        self.max_coord = None
+        self.voxel_mask_inner = None
+        self.voxel_mask_border = None
+
+        self.point_out = self.max_coord + 1e-2
 
         # This determines if we ray trace the border voxels, for finer detail
         # or not (activating this is SLOW)
@@ -69,14 +80,14 @@ class RegionMesh(object):
         if not cache_loaded:
             self.load_mesh(filename=filename)
 
-            tA = timeit.default_timer()
+            t_a = timeit.default_timer()
 
             self.pre_compute()
             self.setup_voxel_filter()
 
-            tB = timeit.default_timer()
+            t_b = timeit.default_timer()
 
-            self.write_log("Calculation time: " + str(tB - tA) + " s")
+            self.write_log("Calculation time: " + str(t_b - t_a) + " s")
 
         self.setup_voxel_list()
 
@@ -402,20 +413,11 @@ class RegionMesh(object):
                 # Randomize order, to spread work load a bit better
                 all_x = np.random.permutation(np.arange(0, self.num_bins[0]))
 
-                try:
-                    self.d_view.scatter("x_range", all_x, block=True)
-                    self.write_log("Starting parallel job")
-                    self.d_view.execute("innerMask = sm._voxel_mask_helper(x_range)", block=True)
-                    self.write_log("Gathering results")
-                    inner_mask = self.d_view.gather("innerMask", block=True)
-                except Exception as e:
-                    self.write_log("Oh no, something failed with parallel meshbuilding")
-                    import traceback
-                    tstr = traceback.format_exc()
-                    self.write_log(tstr)
-                    self.write_to_random_file(tstr)
-                    import pdb
-                    pdb.set_trace()
+                self.d_view.scatter("x_range", all_x, block=True)
+                self.write_log("Starting parallel job")
+                self.d_view.execute("innerMask = sm._voxel_mask_helper(x_range)", block=True)
+                self.write_log("Gathering results")
+                inner_mask = self.d_view.gather("innerMask", block=True)
 
                 for m in inner_mask:
                     self.voxel_mask_inner = np.logical_or(self.voxel_mask_inner, m)
@@ -459,33 +461,21 @@ class RegionMesh(object):
 
     def _voxel_mask_helper(self, x_range):
 
-        try:
+        # Need the extra dimension at the top to make gather work
+        vm_inner = np.zeros((1, self.num_bins[0], self.num_bins[1], self.num_bins[2]), dtype=bool)
 
-            # Need the extra dimension at the top to make gather work
-            vm_inner = np.zeros((1, self.num_bins[0], self.num_bins[1], self.num_bins[2]),
-                                dtype=bool)
+        for ix in x_range:
+            self.write_log("Processing x = " + str(ix))
 
-            for ix in x_range:
-                self.write_log("Processing x = " + str(ix))
+            for iy in range(0, self.num_bins[1]):
+                for iz in range(0, self.num_bins[2]):
+                    if not self.voxel_mask_border[ix, iy, iz]:
+                        # Inner or outer point, check centre
+                        xyz = np.array([self.min_coord[0] + (ix + 0.5) * self.bin_width,
+                                        self.min_coord[1] + (iy + 0.5) * self.bin_width,
+                                        self.min_coord[2] + (iz + 0.5) * self.bin_width])
 
-                for iy in range(0, self.num_bins[1]):
-                    for iz in range(0, self.num_bins[2]):
-                        if not self.voxel_mask_border[ix, iy, iz]:
-                            # Inner or outer point, check centre
-                            xyz = np.array([self.min_coord[0] + (ix + 0.5) * self.bin_width,
-                                            self.min_coord[1] + (iy + 0.5) * self.bin_width,
-                                            self.min_coord[2] + (iz + 0.5) * self.bin_width])
-
-                            vm_inner[0, ix, iy, iz] = self.ray_casting(xyz)
-
-        except:
-
-            import traceback
-            tstr = traceback.format_exc()
-            self.write_log(tstr)
-            self.write_to_random_file(tstr)
-            import pdb
-            pdb.set_trace()
+                        vm_inner[0, ix, iy, iz] = self.ray_casting(xyz)
 
         return vm_inner
 
@@ -687,10 +677,7 @@ class RegionMesh(object):
         if d_min is None:
             d_min = self.d_min
 
-        try:
-            d_min2 = d_min ** 2
-        except:
-            self.write_log("Make sure dMin is set. dMin = " + str(d_min))
+        d_min2 = d_min ** 2
 
         # If this is not fulfilled, then we need to update the range values below
         assert 2 * d_min < self.bin_width, \
@@ -707,7 +694,7 @@ class RegionMesh(object):
         start_ctr = self.neuron_ctr
         end_ctr = self.neuron_ctr + num_cells
 
-        tA = timeit.default_timer()
+        t_a = timeit.default_timer()
 
         while self.neuron_ctr < end_ctr and self.reject_ctr < self.max_reject:
 
@@ -814,7 +801,7 @@ class RegionMesh(object):
                 self.reject_ctr += 1
 
         tB = timeit.default_timer()
-        self.write_log("Placed " + str(num_cells) + " in " + str(tB - tA) + " s")
+        self.write_log("Placed " + str(num_cells) + " in " + str(tB - t_a) + " s")
 
         return self.neuron_coords[start_ctr:end_ctr, :]
 
@@ -878,7 +865,7 @@ class RegionMesh(object):
         plt.show()
         plt.pause(0.001)
 
-        ax.view_init(150, 40);
+        ax.view_init(150, 40)
         plt.draw()
         plt.axis("off")
 
@@ -1135,6 +1122,7 @@ if __name__ == "__main__":
         print("No IPYTHON_PROFILE enviroment variable set, running in serial")
         dView = None
         lbView = None
+        rc = None
 
     meshFile = 'mesh/striatum-mesh.obj'
     # meshFile = "mesh/cortex-mesh-200.obj"
@@ -1148,15 +1136,8 @@ if __name__ == "__main__":
 
     nNeurons = 1730000
     neuronPos = sm.place_neurons(nNeurons)
-    # sm.verifyDmin()
+    # sm.verify_d_min()
     sm.plot_neurons(pdf_name="figures/striatum-fig-somas.png")
-
-    if False:
-        cent = np.array([0.0045, 0.0050, 0.007])
-        # idx = sm.getSubset(cent,radius=1e-3,shape="cube",returnIdxFlag=True)
-        # idx = sm.getSubset(cent,radius=1e-3,shape="sphere",returnIdxFlag=True)
-        idx = sm.get_subset(cent, num_neurons=1000, shape="cube", return_idx_flag=True)
-        sm.plot_neurons(plot_idx=idx)
 
     sm.plot_struct(pdf_name="figures/striatum-fig-struct.png")
 
@@ -1166,9 +1147,5 @@ if __name__ == "__main__":
     # tp = (sm.minCoord + sm.maxCoord)/2
     # sm.rayCasting(np.array(tp))
 
-    import pdb
-
-    pdb.set_trace()
-
-    if dView is not None:
+    if dView and rc:
         rc.shutdown(hub=True)

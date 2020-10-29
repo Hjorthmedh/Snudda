@@ -278,14 +278,14 @@ class Snudda(object):
             print("Missing input config file: " + str(input_config))
             return
 
-        if args.networkFile:
-            network_file = args.networkFile
+        if args.network_file:
+            network_file = args.network_file
         else:
             network_file = self.network_path \
                           + "/network-pruned-synapses.hdf5"
 
-        if args.inputFile:
-            spike_file = args.inputFile
+        if args.input_file:
+            spike_file = args.input_file
         else:
             spike_file = self.network_path + "/input-spikes.hdf5"
 
@@ -312,14 +312,14 @@ class Snudda(object):
         print("Exporting to SONATA format")
         print("Network path: " + str(self.network_path))
 
-        if args.networkFile:
-            network_file = args.networkFile
+        if args.network_file:
+            network_file = args.network_file
         else:
             network_file = self.network_path \
                           + "/network-pruned-synapses.hdf5"
 
-        if args.inputFile:
-            input_file = args.inputFile
+        if args.input_file:
+            input_file = args.input_file
         else:
             input_file = self.network_path + "/input-spikes.hdf5"
 
@@ -337,14 +337,14 @@ class Snudda(object):
 
         from .simulate import SnuddaSimulate
 
-        if args.networkFile:
-            network_file = args.networkFile
+        if args.network_file:
+            network_file = args.network_file
         else:
             network_file = self.network_path \
                           + "/network-pruned-synapses.hdf5"
 
-        if args.inputFile:
-            input_file = args.inputFile
+        if args.input_file:
+            input_file = args.input_file
         else:
             input_file = self.network_path + "/input-spikes.hdf5"
 
@@ -426,32 +426,32 @@ class Snudda(object):
 
         pc = h.ParallelContext()
 
-        sim = SnuddaSimulate(networkFile=network_file,
-                             inputFile=input_file,
-                             disableGapJunctions=disable_gj,
-                             logFile=log_file,
+        sim = SnuddaSimulate(network_file=network_file,
+                             input_file=input_file,
+                             disable_gap_junctions=disable_gj,
+                             log_file=log_file,
                              verbose=args.verbose)
 
-        sim.addExternalInput()
+        sim.add_external_input()
 
-        sim.checkMemoryStatus()
+        sim.check_memory_status()
 
         if volt_file is not None:
-            sim.addRecording(sideLen=None)  # Side len let you record from a subset
+            sim.add_recording(side_len=None)  # Side len let you record from a subset
             # sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
 
         tSim = args.time * 1000  # Convert from s to ms for Neuron simulator
 
-        sim.checkMemoryStatus()
+        sim.check_memory_status()
         print("Running simulation for " + str(tSim) + " ms.")
         sim.run(tSim)  # In milliseconds
 
         print("Simulation done, saving output")
         if spikes_file is not None:
-            sim.writeSpikes(spikes_file)
+            sim.write_spikes(spikes_file)
 
         if volt_file is not None:
-            sim.writeVoltage(volt_file)
+            sim.write_voltage(volt_file)
 
         stop = timeit.default_timer()
         if sim.pc.id() == 0:

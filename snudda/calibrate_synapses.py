@@ -200,7 +200,7 @@ class SnuddaCalibrateSynapses(object):
 
     print("Setting GABA reversal potential to " + str(vRevCl*1e3) + " mV")
     
-    for s in self.snuddaSim.synapseList:
+    for s in self.snuddaSim.synapse_list:
       assert s.e == -65, "It should be GABA synapses only that we modify!"
       s.e = vRevCl * 1e3
           
@@ -208,10 +208,10 @@ class SnuddaCalibrateSynapses(object):
   
   def runSim(self,GABArev):
     
-    self.snuddaSim = SnuddaSimulate(networkFile=self.networkFile,
-                                    inputFile=None,
-                                    logFile=self.logFile,
-                                    disableGapJunctions=True)
+    self.snuddaSim = SnuddaSimulate(network_file=self.networkFile,
+                                    input_file=None,
+                                    log_file=self.logFile,
+                                    disable_gap_junctions=True)
 
     
     # A current pulse to all pre synaptic neurons, one at a time
@@ -235,29 +235,29 @@ class SnuddaCalibrateSynapses(object):
     # Add current injections defined in init
     for (nid,t) in self.injInfo:
       print("Current injection to " + str(nid) + " at " + str(t) + " s")
-      self.snuddaSim.addCurrentInjection(neuronID=nid,
-                                         startTime=t,
-                                         endTime=t+self.injDuration,
-                                         amplitude=self.curInj)
+      self.snuddaSim.add_current_injection(neuron_id=nid,
+                                           start_time=t,
+                                           end_time=t + self.injDuration,
+                                           amplitude=self.curInj)
 
     # !!! We could maybe update code so that for postType == "ALL" we
     # record voltage from all neurons
 
     if(self.postType == "ALL"):
-      self.snuddaSim.addRecording()
+      self.snuddaSim.add_recording()
     else:
       # Record from all the potential post synaptic neurons
-      self.snuddaSim.addRecordingOfType(self.postType)
+      self.snuddaSim.add_recording_of_type(self.postType)
 
       # Also save the presynaptic traces for debugging, to make sure they spike
-      self.snuddaSim.addRecordingOfType(self.preType)
+      self.snuddaSim.add_recording_of_type(self.preType)
 
     
     # Run simulation
-    self.snuddaSim.run(simEnd*1e3,holdV=self.holdV)
+    self.snuddaSim.run(simEnd * 1e3, hold_v=self.holdV)
     
     # Write results to disk
-    self.snuddaSim.writeVoltage(self.voltFile)
+    self.snuddaSim.write_voltage(self.voltFile)
 
 
   ############################################################################

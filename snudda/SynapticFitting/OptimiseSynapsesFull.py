@@ -579,8 +579,8 @@ class OptimiseSynapsesFull(object):
     neuron.h.tstop = self.rsrDeltaModel.time *1e3# Must set tstop
     neuron.h.run()
 
-    (RM,tau) =self.extractInputResTau(t=np.array(self.rsrDeltaModel.tSave)*1e-3,
-                                      v=np.array(self.rsrDeltaModel.vSave)*1e-3,
+    (RM,tau) =self.extractInputResTau(t=np.array(self.rsrDeltaModel.t_save) * 1e-3,
+                                      v=np.array(self.rsrDeltaModel.v_save) * 1e-3,
                                       curAmp=self.curInj,
                                       curStart=self.curStart,
                                       curEnd=self.curEnd,
@@ -592,8 +592,8 @@ class OptimiseSynapsesFull(object):
 
     if(plotResults):
       plt.figure()
-      plt.plot(self.rsrDeltaModel.tSave,
-               self.rsrDeltaModel.vSave)
+      plt.plot(self.rsrDeltaModel.t_save,
+               self.rsrDeltaModel.v_save)
       plt.xlabel("Time (ms)")
       plt.ylabel("Volt (mV)")
       plt.title("RM = " + str(RM) + ", tau = " + str(tau))

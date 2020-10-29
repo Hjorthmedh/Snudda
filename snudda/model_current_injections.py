@@ -216,10 +216,10 @@ class SnuddaModelCurrentInjections(object):
 
       print("Using network file: " + str(self.networkFile))
       
-      self.snuddaSim = SnuddaSimulate(networkFile=self.networkFile,
-                                      inputFile=None,
-                                      logFile=logFile,
-                                      disableGapJunctions=True)
+      self.snuddaSim = SnuddaSimulate(network_file=self.networkFile,
+                                      input_file=None,
+                                      log_file=logFile,
+                                      disable_gap_junctions=True)
     
 
     # Get neuronID of neurons that will get artificial stimulation
@@ -264,10 +264,10 @@ class SnuddaModelCurrentInjections(object):
       logFile = simName + "/log/simlog.txt"
       self.networkFile = simName + "/network-pruned-synapses.hdf5"
       
-      self.snuddaSim = SnuddaSimulate(networkFile=self.networkFile,
-                                      inputFile=None,
-                                      logFile=logFile,
-                                      disableGapJunctions=True)
+      self.snuddaSim = SnuddaSimulate(network_file=self.networkFile,
+                                      input_file=None,
+                                      log_file=logFile,
+                                      disable_gap_junctions=True)
     
     # Get neuronID of neurons that will get artificial stimulation
     if(simType == "Straub2016FS"):
@@ -298,10 +298,10 @@ class SnuddaModelCurrentInjections(object):
       logFile = simName + "/log/simlog.txt"
       self.networkFile = simName + "/network-pruned-synapses.hdf5"
       
-      self.snuddaSim = SnuddaSimulate(networkFile=self.networkFile,
-                                      inputFile=None,
-                                      logFile=logFile,
-                                      disableGapJunctions=True)
+      self.snuddaSim = SnuddaSimulate(network_file=self.networkFile,
+                                      input_file=None,
+                                      log_file=logFile,
+                                      disable_gap_junctions=True)
     
     stimID = [x["neuronID"] \
               for x in self.snuddaSim.network_info["neurons"] \
@@ -322,28 +322,28 @@ class SnuddaModelCurrentInjections(object):
       logFile = simName + "/log/simlog.txt"
       self.networkFile = simName + "/network-pruned-synapses.hdf5"
           
-      self.snuddaSim = SnuddaSimulate(networkFile=self.networkFile,
-                                      inputFile=None,
-                                      logFile=logFile,
-                                      disableGapJunctions=True)
+      self.snuddaSim = SnuddaSimulate(network_file=self.networkFile,
+                                      input_file=None,
+                                      log_file=logFile,
+                                      disable_gap_junctions=True)
     
     # Set up stimulation protocol
     for nID in stimID:
-      self.snuddaSim.addCurrentInjection(neuronID=nID,
-                                         startTime=self.tInj,
-                                         endTime=self.tInj+self.injDuration,
-                                         amplitude=self.curInj)
+      self.snuddaSim.add_current_injection(neuron_id=nID,
+                                           start_time=self.tInj,
+                                           end_time=self.tInj + self.injDuration,
+                                           amplitude=self.curInj)
 
     # Add recordings
-    self.snuddaSim.addVoltageClamp(cellID = measureID,
-                                   voltage = self.holdV,
-                                   duration=self.simEnd,
-                                   saveIflag=True)
+    self.snuddaSim.add_voltage_clamp(cell_id= measureID,
+                                     voltage = self.holdV,
+                                     duration=self.simEnd,
+                                     save_i_flag=True)
     
     # Also add voltage recording for debugging reasons
     saveVoltage = True # False #True
     if(saveVoltage):
-      self.snuddaSim.addRecording(cellID=stimID)
+      self.snuddaSim.add_recording(cell_id=stimID)
 
     self.setGABArev(self.GABArev)
     
@@ -352,13 +352,13 @@ class SnuddaModelCurrentInjections(object):
     self.currentFile = simName + "/" + simType \
       + "-network-stimulation-current.txt"
     
-    self.snuddaSim.writeCurrent(self.currentFile)
+    self.snuddaSim.write_current(self.currentFile)
 
     if(saveVoltage):
       voltageFile = simName  + "/" + simType \
         + "-network-stimulation-voltage.txt"
       
-      self.snuddaSim.writeVoltage(voltageFile)
+      self.snuddaSim.write_voltage(voltageFile)
       
   ############################################################################
 
@@ -630,7 +630,7 @@ class SnuddaModelCurrentInjections(object):
 
     print("Setting GABA reversal potential to " + str(vRevCl*1e3) + " mV")
     
-    for s in self.snuddaSim.synapseList:
+    for s in self.snuddaSim.synapse_list:
       assert s.e == -65, "It should be GABA synapses only that we modify!"
       s.e = vRevCl * 1e3
     
