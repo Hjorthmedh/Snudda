@@ -1,6 +1,8 @@
 import os
 import glob
 import collections
+import json
+from snudda.CreateCubeMesh import CreateCubeMesh
 
 
 class InputScaling(object):
@@ -15,10 +17,19 @@ class InputScaling(object):
 
         assert os.path.isdir(self.cellspec_dir), f"Cellspec directory {self.cellspec_dir} does not exist."
 
-        all_neurons = self.gather_all_neurons()
+        self.network_file_name = os.path.join(self.network_dir,"network-config.json")
 
-        print(all_neurons)
+    # Writes config files
+    def setup(self):
 
+        config_def = self.create_config(num_replicas=10)
+
+        print(f"Writing network config file to {self.network_file_name}")
+        with open(self.network_file_name, "w") as f:
+            json.dump(config_def, f, indent=2)
+
+        ccm = CreateCubeMesh("data/mesh/InputTestMesh.obj",[ 0, 0, 0], 1e-3,
+                             description="Mesh file used for Input Scaling")
 
     # This loops through all neuron directories in cellspec in preparation of writing a network config file
     def gather_all_neurons(self):
@@ -33,7 +44,6 @@ class InputScaling(object):
             neuron_dir = [d for d in glob.glob(os.path.join(ntd, '*')) if os.path.isdir(d)]
             neuron_ctr = 0
 
-
             for nd in neuron_dir:
                 neuron_info = collections.OrderedDict()
 
@@ -42,7 +52,7 @@ class InputScaling(object):
 
                 parameter_file = os.path.join(nd, "parameters.json")
                 mechanism_file = os.path.join(nd, "mechanisms.json")
-                modulation_file = os.path.join(nd, "modulation.json")   # Optional
+                modulation_file = os.path.join(nd, "modulation.json")  # Optional
 
                 if len(neuron_morph_list) == 0:
                     assert (not os.path.isfile(parameter_file) and not os.path.isfile(mechanism_file)), \
@@ -69,12 +79,43 @@ class InputScaling(object):
 
                 all_neurons[neuron_name] = neuron_info
 
+            if neuron_ctr > 0:
+                print(f"Found {neuron_ctr} neurons in {ntd}")
+
         return all_neurons
 
+    def create_config(self, num_replicas=10):
 
+        config_def = collections.OrderedDict()
 
+        volume_def = collections.OrderedDict()
+
+        vol_name = "InputTest"
+
+        volume_def[vol_name] = collections.OrderedDict()
+        volume_def[vol_name]["type"] = "mesh"
+        volume_def[vol_name]["dMin"] = 15e-6
+        volume_def[vol_name]["meshFile"] = "data/mesh/InputTestMesh.obj"
+        volume_def[vol_name]["meshBinWidth"] = 100e-6
+
+        config_def["Volume"] = volume_def
+        config_def["Connectivity"] = dict()  # Unconnected
+
+        neuron_def = self.gather_all_neurons()
+
+        for n in neuron_def.keys():
+            neuron_def[n]["num"] = num_replicas
+            neuron_def[n]["volumeID"] = vol_name
+            neuron_def[n]["rotationMode"] = "random"
+            neuron_def[n]["hoc"] = None
+
+        config_def["Neurons"] = neuron_def
+
+        return config_def
 
 
 if __name__ == "__main__":
     input_scaling = InputScaling("networks/inp_scaling", "data/cellspecs-v2/")
 
+    input_scaling.setup()
+    
