@@ -20,7 +20,7 @@ class InputScaling(object):
         self.network_file_name = os.path.join(self.network_dir,"network-config.json")
 
     # Writes config files
-    def setup(self):
+    def setup_network(self):
 
         config_def = self.create_config(num_replicas=10)
 
@@ -127,8 +127,23 @@ class InputScaling(object):
 
         return config_def
 
+    def setup_input(self):
+
+        # TODO: Each replicate of neuron should have its own density
+        # This script is a helper script, then we write a master script to do entire range.
+        # 1. Generate network, then use same network and neurons for all simulations
+        # 2. Separate input generation step, where network is not regenerated.
+
+        # Let the user specify output simulation name
+        # Let the user specify range of frequencies, and density
+
+
+        pass
+        # We can vary the input, but not the density during a simulation. To handle varying densities we have
+        # the same morphology/model repeated in the simulation
+
 
 if __name__ == "__main__":
     input_scaling = InputScaling("networks/input_scaling_v1", "data/cellspecs-v2/")
 
-    input_scaling.setup()
+    input_scaling.setup_network()
