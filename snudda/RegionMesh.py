@@ -43,8 +43,7 @@ class RegionMesh(object):
         self.max_coord = None
         self.voxel_mask_inner = None
         self.voxel_mask_border = None
-
-        self.point_out = self.max_coord + 1e-2
+        self.point_out = None
 
         # This determines if we ray trace the border voxels, for finer detail
         # or not (activating this is SLOW)

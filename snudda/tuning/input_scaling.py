@@ -118,4 +118,3 @@ if __name__ == "__main__":
     input_scaling = InputScaling("networks/inp_scaling", "data/cellspecs-v2/")
 
     input_scaling.setup()
-    
