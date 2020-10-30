@@ -3,7 +3,7 @@ import glob
 import collections
 import json
 from snudda.CreateCubeMesh import CreateCubeMesh
-
+from snudda.Neuron_morphology import NeuronMorphology
 
 class InputScaling(object):
 
@@ -84,6 +84,13 @@ class InputScaling(object):
 
         return all_neurons
 
+
+    def has_axon(self, swc_file):
+        nm = NeuronMorphology(swc_filename=swc_file)
+
+        return len(nm.axon) > 0
+
+
     def create_config(self, num_replicas=10):
 
         config_def = collections.OrderedDict()
@@ -103,11 +110,18 @@ class InputScaling(object):
 
         neuron_def = self.gather_all_neurons()
 
+        fake_axon_density = ["r", "1", 10e-6]
+
         for n in neuron_def.keys():
             neuron_def[n]["num"] = num_replicas
             neuron_def[n]["volumeID"] = vol_name
             neuron_def[n]["rotationMode"] = "random"
             neuron_def[n]["hoc"] = None
+
+            if not self.has_axon(neuron_def[n]["morphology"]):
+                print(f"Morphology {neuron_def[n]['morphology']} has no axon, faking it.")
+                # We will have no connections in this test network, so add empty density
+                neuron_def[n]["axonDensity"] = fake_axon_density
 
         config_def["Neurons"] = neuron_def
 
@@ -115,6 +129,6 @@ class InputScaling(object):
 
 
 if __name__ == "__main__":
-    input_scaling = InputScaling("networks/inp_scaling", "data/cellspecs-v2/")
+    input_scaling = InputScaling("networks/input_scaling_v1", "data/cellspecs-v2/")
 
     input_scaling.setup()

@@ -31,6 +31,8 @@ status = None
 hyperVoxelData = None
 
 
+# TODO: Exclude neurons without synapses or gap junctions from touch detection (ie if no pre/post connections possible)
+
 class SnuddaDetect(object):
 
     def __init__(self,
