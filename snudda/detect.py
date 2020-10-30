@@ -2392,7 +2392,7 @@ class SnuddaDetect(object):
                         except:
                             # Increase maxAxon and maxDend
                             self.write_log("!!! If you see this you need to increase "
-                                           + "maxDend above " 
+                                           + "maxDend above "
                                            + str(voxel_space_ctr[vp[0], vp[1], vp[2]]))
                             self.voxel_overflow_counter += 1
                             continue

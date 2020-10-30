@@ -177,7 +177,7 @@ class SnuddaModelCurrentInjections(object):
     if not os.path.exists(dirName):
       os.makedirs(dirName)
 
-    cnc.write_JSON(configName)
+    cnc.write_json(configName)
 
   ############################################################################
 

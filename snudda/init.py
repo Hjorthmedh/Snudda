@@ -107,7 +107,7 @@ class SnuddaInit(object):
                 struct_func[sn](num_neurons=struct_def[sn])
 
             # Only write JSON file if the structDef was not empty
-            self.write_JSON(self.configName)
+            self.write_json(self.configName)
         else:
             print("No structDef defined, not writing JSON file in init")
 
@@ -127,19 +127,15 @@ class SnuddaInit(object):
                          mesh_bin_width=None):
 
         if struct_mesh == "cube":
-            assert slice_depth is None, \
-                "defineStructure: sliceDepth is not used for cubes, please set to None"
-            assert side_len is not None, \
-                "defineStructure: cube needs sideLen specified"
-            assert struct_centre is not None, \
-                "defineStructuer: cube needs a structCentre"
+            assert slice_depth is None, "define_structure: sliceDepth is not used for cubes, please set to None"
+            assert side_len is not None, "define_structure: cube needs sideLen specified"
+            assert struct_centre is not None, "define_structure: cube needs a structCentre"
 
-            struct_mesh = self.basePath + "/mesh/" + struct_name \
-                          + "-cube-mesh-" + str(side_len) + ".obj"
+            struct_mesh = self.basePath + "/mesh/" + struct_name + "-cube-mesh-" + str(side_len) + ".obj"
 
             if mesh_bin_width is None:
                 mesh_bin_width = side_len / 3.0
-                print("Setting meshBinWidth to " + str(mesh_bin_width))
+                print("Setting mesh_bin_width to " + str(mesh_bin_width))
 
             CreateCubeMesh(file_name=struct_mesh,
                            centre_point=struct_centre,
@@ -387,8 +383,7 @@ class SnuddaInit(object):
                 p_corner = eval(axon_density[1]) * (3e-6 ** 3)
 
                 for P, xx, yy, zz in zip(p_corner, x, y, z):
-                    print(name + " axon density P(" + str(xx) + "," + str(yy) \
-                          + "," + str(zz) + ") = " + str(P))
+                    print(name + " axon density P(" + str(xx) + "," + str(yy) + "," + str(zz) + ") = " + str(P))
 
                 if (p_corner > 0.01).any():
                     print("Axon density too high at boundary!!")
@@ -418,11 +413,9 @@ class SnuddaInit(object):
                 swc_file = glob.glob(d + "/*swc")
                 hoc_file = glob.glob(d + "/*hoc")
 
-                assert len(swc_file) == 1, "Morph dir " + d \
-                                          + " should contain one swc file"
+                assert len(swc_file) == 1, "Morph dir " + d + " should contain one swc file"
 
-                assert len(hoc_file) <= 1, "Morph dir " + d \
-                                          + " contains more than one hoc file"
+                assert len(hoc_file) <= 1, "Morph dir " + d + " contains more than one hoc file"
 
                 if len(hoc_file) == 0:
                     hoc_file = [None]
@@ -485,7 +478,7 @@ class SnuddaInit(object):
 
     ############################################################################
 
-    def write_JSON(self, filename):
+    def write_json(self, filename):
 
         # !!! Dont need to do this anymore
         ## We need to copy over the target data to each neuron
@@ -637,15 +630,15 @@ class SnuddaInit(object):
         # Add the neurons
 
         self.add_neurons(name="FSN", neuron_dir=FS_dir,
-                         num_neurons=self.num_FS, \
+                         num_neurons=self.num_FS,
                          volume_id="Striatum")
 
         self.add_neurons(name="dSPN", neuron_dir=dSPN_dir,
-                         num_neurons=self.num_dSPN, \
+                         num_neurons=self.num_dSPN,
                          volume_id="Striatum")
 
         self.add_neurons(name="iSPN", neuron_dir=iSPN_dir,
-                         num_neurons=self.num_iSPN, \
+                         num_neurons=self.num_iSPN,
                          volume_id="Striatum")
 
         # ChIN axon density,
@@ -736,7 +729,7 @@ class SnuddaInit(object):
                                parameter_file=pfFSFS,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"tau1": (1.33e-3, 1e3),
-                                                     "tau2": (5.7e-3, 1e3)})
+                                                         "tau2": (5.7e-3, 1e3)})
         # !!! Double check that channelParamDictionary works, and SI units gets
         # converted to natural units
 
@@ -749,7 +742,7 @@ class SnuddaInit(object):
                                parameter_file=pfFSdSPN,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"tau1": (1.2e-3, 1e3),
-                                                     "tau2": (8e-3, 1e3)})
+                                                         "tau2": (8e-3, 1e3)})
 
         self.add_neuron_target(neuron_name="FSN",
                                target_name="iSPN",
@@ -760,7 +753,7 @@ class SnuddaInit(object):
                                parameter_file=pfFSiSPN,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"tau1": (1.2e-3, 1e3),
-                                                     "tau2": (8e-3, 1e3)})
+                                                         "tau2": (8e-3, 1e3)})
 
         self.add_neuron_target(neuron_name="FSN",
                                target_name="LTS",
@@ -835,9 +828,14 @@ class SnuddaInit(object):
         # https://www.sciencedirect.com/science/article/pii/S0166223612001191?via%3Dihub,
         #
 
-        SPN2SPNdistDepPruning = "1-np.exp(-(0.4*d/60e-6)**2)"  # With Taverna conductances, we see that the response is much stronger than Planert 2010. We try to introduce distance dependent pruning to see if removing strong proximal synapses will give a better match to experimental data.
+        # With Taverna conductances, we see that the response is much stronger than Planert 2010.
+        # We try to introduce distance dependent pruning to see if removing strong proximal synapses
+        # will give a better match to experimental data.
+        SPN2SPNdistDepPruning = "1-np.exp(-(0.4*d/60e-6)**2)"
 
-        SPN2ChINDistDepPruning = "1-np.exp(-(0.4*d/60e-6)**2)"  # Chuhma about 20pA response from 10% SPN, we need to reduce activity, try dist dep pruning (already so few synapses and connectivity)
+        # Chuhma about 20pA response from 10% SPN, we need to reduce activity, try dist dep pruning
+        # (already so few synapses and connectivity)
+        SPN2ChINDistDepPruning = "1-np.exp(-(0.4*d/60e-6)**2)"
 
         # old f1 = 0.15
         self.add_neuron_target(neuron_name="dSPN",
@@ -851,8 +849,8 @@ class SnuddaInit(object):
                                parameter_file=pfdSPNdSPN,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"tau1": (1.3e-3, 1e3),
-                                                     "tau2": (12.4e-3, 1e3),
-                                                     "failRate": MSD1GABAfailRate})
+                                                         "tau2": (12.4e-3, 1e3),
+                                                         "failRate": MSD1GABAfailRate})
 
         # old f1 = 0.15
         self.add_neuron_target(neuron_name="dSPN",
@@ -866,8 +864,8 @@ class SnuddaInit(object):
                                parameter_file=pfdSPNiSPN,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"tau1": (1.3e-3, 1e3),
-                                                     "tau2": (12.4e-3, 1e3),
-                                                     "failRate": MSD1GABAfailRate})
+                                                         "tau2": (12.4e-3, 1e3),
+                                                         "failRate": MSD1GABAfailRate})
 
         # Doig, Magill, Apicella, Bolam, Sharott 2014:
         # 5166 +/- 285 GABA synapses on ChIN (antag att 95% av dem är från MS?)
@@ -935,8 +933,8 @@ class SnuddaInit(object):
                                parameter_file=pfiSPNdSPN,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"tau1": (1.3e-3, 1e3),
-                                                     "tau2": (12.4e-3, 1e3),
-                                                     "failRate": MSD2GABAfailRate})
+                                                         "tau2": (12.4e-3, 1e3),
+                                                         "failRate": MSD2GABAfailRate})
 
         # old f1 = 0.15
         self.add_neuron_target(neuron_name="iSPN",
@@ -950,8 +948,8 @@ class SnuddaInit(object):
                                parameter_file=pfiSPNiSPN,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"tau1": (1.3e-3, 1e3),
-                                                     "tau2": (12.4e-3, 1e3),
-                                                     "failRate": MSD2GABAfailRate})
+                                                         "tau2": (12.4e-3, 1e3),
+                                                         "failRate": MSD2GABAfailRate})
 
         # See comment for dSPN to ChIN
         self.add_neuron_target(neuron_name="iSPN",
@@ -1059,7 +1057,7 @@ class SnuddaInit(object):
                                parameter_file=pfLTSdSPN,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"tau1": (3e-3, 1e3),
-                                                     "tau2": (38e-3, 1e3)})
+                                                         "tau2": (38e-3, 1e3)})
         # LTS -> SPN, rise time 3+/-0.1 ms, decay time 38+/-3.1 ms, Straub 2016
 
         self.add_neuron_target(neuron_name="LTS",
@@ -1071,7 +1069,7 @@ class SnuddaInit(object):
                                parameter_file=pfLTSiSPN,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"tau1": (3e-3, 1e3),
-                                                     "tau2": (38e-3, 1e3)})
+                                                         "tau2": (38e-3, 1e3)})
 
         self.add_neuron_target(neuron_name="LTS",
                                target_name="ChIN",
@@ -1174,7 +1172,7 @@ class SnuddaInit(object):
 
         # Add cortex axon
 
-        self.add_neurons("CortexAxon", cortex_dir, self.num_Cortex_neurons, \
+        self.add_neurons("CortexAxon", cortex_dir, self.num_Cortex_neurons,
                          model_type="virtual",
                          rotation_mode="",
                          volume_id="Cortex")
@@ -1246,7 +1244,7 @@ class SnuddaInit(object):
 
         thalamus_dir = "morphology/InputAxons/Thalamus/Reg10/"
 
-        self.add_neurons("ThalamusAxon", thalamus_dir, self.num_thalamus_neurons, \
+        self.add_neurons("ThalamusAxon", thalamus_dir, self.num_thalamus_neurons,
                          model_type="virtual",
                          rotation_mode="",
                          volume_id="Thalamus")

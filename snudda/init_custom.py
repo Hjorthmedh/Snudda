@@ -40,7 +40,7 @@ if __name__ == "__main__":
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
 
-    cnc.write_JSON(config_name)
+    cnc.write_json(config_name)
 
     if not connect_neurons:
         print("Removing all target information, and rewriting config file")

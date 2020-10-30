@@ -130,7 +130,7 @@ class SnuddaCalibrateSynapses(object):
     if not os.path.exists(dirName):
       os.makedirs(dirName)
 
-    cnc.write_JSON(configName)
+    cnc.write_json(configName)
 
     
     print("\n\npython3 snudda.py place " + str(simName))
