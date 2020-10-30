@@ -356,25 +356,16 @@ class SnuddaDetect(object):
 
             # Check that there are neurons in the hyper voxel, otherwise skip it.
             if worker_status[worker_idx] is None and job_idx < len(remaining):
-                try:
-                    self.write_log(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-                                   + " Starting hyper voxel " + str(remaining[job_idx])
-                                   + " on worker " + str(worker_idx))
-                    cmd_str = "result = nc.process_hyper_voxel(" + str(remaining[job_idx]) + ")"
+                self.write_log(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                               + " Starting hyper voxel " + str(remaining[job_idx])
+                               + " on worker " + str(worker_idx))
+                cmd_str = "result = nc.process_hyper_voxel(" + str(remaining[job_idx]) + ")"
 
-                    worker_status[worker_idx] = rc[worker_idx].execute(cmd_str, block=False)
+                worker_status[worker_idx] = rc[worker_idx].execute(cmd_str, block=False)
 
-                    job_idx += 1
-                    busy_ctr += 1
-                    no_change_ctr = 0
-
-                except:
-                    print("!!! Problem with worker : " + str(worker_idx) + " (" + str(n_workers) + " total workers)")
-                    import traceback
-                    tstr = traceback.format_exc()
-                    self.write_log(tstr)
-                    import pdb
-                    pdb.set_trace()
+                job_idx += 1
+                busy_ctr += 1
+                no_change_ctr = 0
 
             else:
                 no_change_ctr += 1
@@ -624,16 +615,8 @@ class SnuddaDetect(object):
             all_hyper_i_ds = valid_hyper_id
             remaining = self.sort_remaining_by_size(all_hyper_i_ds)
 
-            # This should never happen,
-            try:
-                assert (np.array([self.hyper_voxels[x]["neuronCtr"] for x in
-                                  empty_hyper_id]) == 0).all(), "All hyperIDs marked as empty are not empty!"
-            except:
-                import traceback
-                tstr = traceback.format_exc()
-                self.write_log(tstr)
-                import pdb
-                pdb.set_trace()
+            assert (np.array([self.hyper_voxels[x]["neuronCtr"] for x in
+                              empty_hyper_id]) == 0).all(), "All hyperIDs marked as empty are not empty!"
 
             self.write_log("Skipping " + str(len(empty_hyper_id)) + " empty hyper voxels")
 
@@ -906,28 +889,20 @@ class SnuddaDetect(object):
                             if self.hyper_voxel_synapse_ctr >= self.max_synapses:
                                 self.resize_hyper_voxel_synapses_matrix()
 
-                            try:
+                            # Synapse conductance varies between synapses
+                            cond = np.random.normal(mean_synapse_cond,
+                                                    std_synapse_cond)
 
-                                # Synapse conductance varies between synapses
-                                cond = np.random.normal(mean_synapse_cond,
-                                                        std_synapse_cond)
+                            # Need to make sure the conductance is not negative,
+                            # set lower cap at 10% of mean value
+                            cond = np.maximum(cond, mean_synapse_cond * 0.1)
 
-                                # Need to make sure the conductance is not negative,
-                                # set lower cap at 10% of mean value
-                                cond = np.maximum(cond, mean_synapse_cond * 0.1)
+                            param_id = np.random.randint(1000000)
 
-                                param_id = np.random.randint(1000000)
-
-                                # Add synapse
-                                self.hyper_voxel_synapses[self.hyper_voxel_synapse_ctr, :] = \
-                                    [ax_id, d_id, x, y, z, self.hyper_voxel_id, channel_model_id,
-                                     ax_dist, d_dist, d_seg_id, d_seg_x * 1000, cond * 1e12, param_id]
-                            except:
-                                import traceback
-                                tstr = traceback.format_exc()
-                                self.write_log(tstr)
-                                import pdb
-                                pdb.set_trace()
+                            # Add synapse
+                            self.hyper_voxel_synapses[self.hyper_voxel_synapse_ctr, :] = \
+                                [ax_id, d_id, x, y, z, self.hyper_voxel_id, channel_model_id,
+                                 ax_dist, d_dist, d_seg_id, d_seg_x * 1000, cond * 1e12, param_id]
 
                             # !!! OBS, dSegX is a value between 0 and 1, multiplied by 1000
                             # need to divide by 1000 later
@@ -942,31 +917,21 @@ class SnuddaDetect(object):
         # Convert from hyper voxel local coordinates to simulation coordinates
         # basically how many voxel steps do we need to take to go from
         # simulationOrigo to hyperVoxelOrigo (those were not included, so add them)
-        try:
-            hyper_voxel_offset = np.round((self.hyper_voxel_origo - self.simulation_origo)
-                                          / self.hyper_voxel_width).astype(int) \
-                                 * self.hyper_voxel_size
+        hyper_voxel_offset = np.round((self.hyper_voxel_origo - self.simulation_origo)
+                                      / self.hyper_voxel_width).astype(int) \
+                             * self.hyper_voxel_size
 
-            # Just a double check...
-            assert self.hyper_voxel_id_lookup[int(np.round(hyper_voxel_offset[0] / self.hyper_voxel_size))][
-                       int(np.round(hyper_voxel_offset[1] / self.hyper_voxel_size))][
-                       int(np.round(hyper_voxel_offset[2] / self.hyper_voxel_size))] == self.hyper_voxel_id, \
-                "Internal inconsistency, have hyper voxel numbering or coordinates been changed?"
+        # Just a double check...
+        assert self.hyper_voxel_id_lookup[int(np.round(hyper_voxel_offset[0] / self.hyper_voxel_size))][
+                   int(np.round(hyper_voxel_offset[1] / self.hyper_voxel_size))][
+                   int(np.round(hyper_voxel_offset[2] / self.hyper_voxel_size))] == self.hyper_voxel_id, \
+            "Internal inconsistency, have hyper voxel numbering or coordinates been changed?"
 
-            self.hyper_voxel_synapses[:self.hyper_voxel_synapse_ctr, :][:, range(2, 5)] \
-                += hyper_voxel_offset
+        self.hyper_voxel_synapses[:self.hyper_voxel_synapse_ctr, :][:, range(2, 5)] \
+            += hyper_voxel_offset
 
-            # We need this in case plotHyperVoxel is called
-            self.hyperVoxelOffset = hyper_voxel_offset
-
-        except:
-            import traceback
-            tstr = traceback.format_exc()
-            self.write_log(tstr)
-
-            print("ARgh, what happened...")
-            import pdb
-            pdb.set_trace()
+        # We need this in case plotHyperVoxel is called
+        self.hyperVoxelOffset = hyper_voxel_offset
 
         # These are used when doing the heap sort of the hyper voxels
         self.hyper_voxel_synapse_lookup \
@@ -1084,18 +1049,10 @@ class SnuddaDetect(object):
             neuron_id = na_neuron["neuronID"]
 
             for idx in range(0, na_voxel_coords.shape[0]):
-                try:
-                    x_idx = na_voxel_coords[idx, 0]
-                    y_idx = na_voxel_coords[idx, 1]
-                    z_idx = na_voxel_coords[idx, 2]
-                    axon_dist = na_axon_dist[idx]
-                except:
-                    import traceback
-                    tstr = traceback.format_exc()
-                    self.write_log(tstr)
-
-                    import pdb
-                    pdb.set_trace()
+                x_idx = na_voxel_coords[idx, 0]
+                y_idx = na_voxel_coords[idx, 1]
+                z_idx = na_voxel_coords[idx, 2]
+                axon_dist = na_axon_dist[idx]
 
                 v_ctr = voxel_space_ctr[x_idx, y_idx, z_idx]
                 if v_ctr > 0 and voxel_space[x_idx, y_idx, z_idx, v_ctr - 1] == neuron_id:
@@ -1143,18 +1100,10 @@ class SnuddaDetect(object):
         r = np.zeros((num_points,))
 
         for posIdx, rP1 in enumerate(r_p):
-            try:
-                while rP1 > r_cum_distribution[next_idx + 1]:
-                    next_idx += 1
+            while rP1 > r_cum_distribution[next_idx + 1]:
+                next_idx += 1
 
-                r[posIdx] = next_idx
-
-            except:
-                import traceback
-                tstr = traceback.format_exc()
-                self.write_log(tstr)
-                import pdb
-                pdb.set_trace()
+            r[posIdx] = next_idx
 
         # Rescale index to radie
         r = r * self.voxel_size
@@ -1882,6 +1831,7 @@ class SnuddaDetect(object):
         # Sorting the list of neurons.
         # -- check why this order matters to number of synapses detected,
         #    it should not matter (except in case of voxel overflows).
+        # 2020-10-30 : TODO: Check if still an issue.
         if False:
             for hID in self.hyper_voxels:
                 n_ctr = self.hyper_voxels[hID]["neuronCtr"]
@@ -2237,16 +2187,9 @@ class SnuddaDetect(object):
         max_coord = -1e6 * np.ones((3,))
         min_coord = 1e6 * np.ones((3,))
 
-        try:
-            for (minC, maxC) in all_min_max:
-                max_coord = np.maximum(max_coord, maxC)
-                min_coord = np.minimum(min_coord, minC)
-        except:
-            import traceback
-            tstr = traceback.format_exc()
-            print(tstr)
-            import pdb
-            pdb.set_trace()
+        for (minC, maxC) in all_min_max:
+            max_coord = np.maximum(max_coord, maxC)
+            min_coord = np.minimum(min_coord, minC)
 
         return min_coord, max_coord
 
@@ -2448,8 +2391,8 @@ class SnuddaDetect(object):
                             voxel_space_ctr[vp[0], vp[1], vp[2]] += 1
                         except:
                             # Increase maxAxon and maxDend
-                            self.write_log("!!! If you see this you need to increase " \
-                                           + "maxDend above " \
+                            self.write_log("!!! If you see this you need to increase "
+                                           + "maxDend above " 
                                            + str(voxel_space_ctr[vp[0], vp[1], vp[2]]))
                             self.voxel_overflow_counter += 1
                             continue
@@ -2726,56 +2669,37 @@ class SnuddaDetect(object):
 
             neuron = self.load_neuron(self.neurons[neuron_id])
 
-            try:
-                self.fill_voxels_axon(self.axon_voxels,
-                                      self.axon_voxel_ctr,
-                                      self.axon_soma_dist,
-                                      neuron.axon,
-                                      neuron.axon_links,
-                                      neuron_id)
+            self.fill_voxels_axon(self.axon_voxels,
+                                  self.axon_voxel_ctr,
+                                  self.axon_soma_dist,
+                                  neuron.axon,
+                                  neuron.axon_links,
+                                  neuron_id)
 
-                self.fill_voxels_soma(self.dend_voxels,
-                                      self.dend_voxel_ctr,
-                                      self.dend_sec_id,
-                                      self.dend_sec_x,
-                                      neuron.soma,
-                                      neuron_id)
+            self.fill_voxels_soma(self.dend_voxels,
+                                  self.dend_voxel_ctr,
+                                  self.dend_sec_id,
+                                  self.dend_sec_x,
+                                  neuron.soma,
+                                  neuron_id)
 
-                self.fill_voxels_dend(self.dend_voxels,
-                                      self.dend_voxel_ctr,
-                                      self.dend_sec_id,
-                                      self.dend_sec_x,
-                                      self.dend_soma_dist,
-                                      neuron.dend,
-                                      neuron.dend_links,
-                                      neuron.dend_sec_id,
-                                      neuron.dend_sec_x,
-                                      neuron_id)
-
-            except Exception as e:
-                import traceback
-                tstr = traceback.format_exc()
-                print(tstr)
-
-                self.write_log("Something went wrong: " + str(tstr))
-                import pdb
-                pdb.set_trace()
+            self.fill_voxels_dend(self.dend_voxels,
+                                  self.dend_voxel_ctr,
+                                  self.dend_sec_id,
+                                  self.dend_sec_x,
+                                  self.dend_soma_dist,
+                                  neuron.dend,
+                                  neuron.dend_links,
+                                  neuron.dend_sec_id,
+                                  neuron.dend_sec_x,
+                                  neuron_id)
 
         # This should be outside the neuron loop
-        try:
-            # This places axon voxels for neurons without axon morphologies
-            self.place_synapses_no_axon(hyper_id,
-                                        self.axon_voxels,
-                                        self.axon_voxel_ctr,
-                                        self.axon_soma_dist)
-        except Exception as e:
-            import traceback
-            tstr = traceback.format_exc()
-            print(tstr)
-
-            self.write_log("Something wrong: " + str(tstr))
-            import pdb
-            pdb.set_trace()
+        # This places axon voxels for neurons without axon morphologies
+        self.place_synapses_no_axon(hyper_id,
+                                    self.axon_voxels,
+                                    self.axon_voxel_ctr,
+                                    self.axon_soma_dist)
 
         # This detects the synapses where we use a density distribution for axons
         # self.detectSynapsesNoAxonSLOW (hyperID) # --replaced by placeSynapseNoAxon
@@ -3148,8 +3072,6 @@ def next_run_id():
         print(tstr)
 
         print("Problem reading .runID.pickle file, setting runID to 0")
-        import pdb
-        pdb.set_trace()
         return 0
 
     print("Using runID = " + str(next_id))
