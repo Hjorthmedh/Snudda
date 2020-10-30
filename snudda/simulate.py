@@ -225,9 +225,7 @@ class SnuddaSimulate(object):
 
         self.neuron_nodes = [x % int(self.pc.nhost()) for x in range(0, self.num_neurons)]
 
-        if False:
-            self.write_log("Node " + str(int(self.pc.id())) + " handling neurons: " \
-                           + ' '.join(map(str, self.neuron_id)))
+        # self.write_log("Node " + str(int(self.pc.id())) + " handling neurons: " + ' '.join(map(str, self.neuron_id)))
 
     ############################################################################
 
@@ -262,48 +260,22 @@ class SnuddaSimulate(object):
                     channel_param_dict = info_dict["channelParameters"].copy()
                     mod_file = channel_param_dict["modFile"]
 
-                    try:
-                        eval_str = "self.sim.neuron.h." + mod_file
-                        channel_module = eval(eval_str)
+                    eval_str = "self.sim.neuron.h." + mod_file
+                    channel_module = eval(eval_str) # If this fails, check that NEURON modules are compiled
 
-                    except:
-                        self.write_log("Are your NEURON modfiles correctly compiled?")
+                    # These are not variables to set in the modFile
+                    if "modFile" in channel_param_dict:
+                        del channel_param_dict["modFile"]
 
-                        import traceback
-                        tstr = traceback.format_exc()
-                        print(tstr)
-                        import pdb
-                        pdb.set_trace()
-
-                    try:
-                        # These are not variables to set in the modFile
-                        if "modFile" in channel_param_dict:
-                            del channel_param_dict["modFile"]
-
-                        if "parameterFile" in channel_param_dict:
-                            del channel_param_dict["parameterFile"]
-
-                    except:
-                        print(str(channel_param_dict))
-
-                        import traceback
-                        tstr = traceback.format_exc()
-                        print(tstr)
-                        import pdb
-                        pdb.set_trace()
-
+                    if "parameterFile" in channel_param_dict:
+                        del channel_param_dict["parameterFile"]
 
                 else:
-                    channel_param_dict = dict()
-                    mod_file = None
-
                     assert False, "No channel module specified for " \
                                   + str(preType) + "->" + str(postType) + " synapses, type ID= " \
                                   + str(synapse_type_id)
-                    channel_module = None
 
-                if ("parameterFile" in info_dict \
-                        and info_dict["parameterFile"] is not None):
+                if "parameterFile" in info_dict and info_dict["parameterFile"] is not None:
                     par_file = self.get_path(info_dict["parameterFile"])
                     par_data_dict = json.load(open(par_file, 'r'))
 
@@ -504,21 +476,17 @@ class SnuddaSimulate(object):
         elif connection_type == "gapjunctions":
             synapses = self.gap_junctions
         else:
-            self.write_log("!!! findNextSynapseGroup: Unknown connectionType: " \
-                           + connection_type)
-            import pdb
-            pdb.set_trace()
+            assert False, "!!! find_next_synapse_group: Unknown connectionType: " + connection_type
 
         try:
             num_syn_rows = synapses.shape[0]
         except:
-            self.write_log(
-                "findNextSynapseGroup: If synapses was not loaded into memory, your problem is probably that the HDF5 file that holds the synapses were closed. Sorry.")
             import traceback
             tstr = traceback.format_exc()
             self.write_log(tstr)
-            import pdb
-            pdb.set_trace()
+
+            assert False, "find_next_synapse_group: If synapses was not loaded into memory, your problem is probably " \
+                          + "that the HDF5 file that holds the synapses were closed. Sorry."
 
         if next_row >= num_syn_rows:
             # No more synapses to get
@@ -802,11 +770,11 @@ class SnuddaSimulate(object):
 
         for ID in self.neuron_id:
 
-            idx_gj1 = np.where(np.logical_and(self.network_info["synapses"][:, 0] == ID, \
-                                             self.network_info["synapses"][:, 5] == 3))
+            idx_gj1 = np.where(np.logical_and(self.network_info["synapses"][:, 0] == ID,
+                                              self.network_info["synapses"][:, 5] == 3))
 
-            idx_gj2 = np.where(np.logical_and(self.network_info["synapses"][:, 2] == ID, \
-                                             self.network_info["synapses"][:, 5] == 3))
+            idx_gj2 = np.where(np.logical_and(self.network_info["synapses"][:, 2] == ID,
+                                              self.network_info["synapses"][:, 5] == 3))
 
             # Coordinates on either side of the gap junction
             gj_coords1 = np.array([orig_gj_coords[x][0:3] for x in idx_gj1[0]])
@@ -918,8 +886,7 @@ class SnuddaSimulate(object):
         else:
             synapse_delay = self.synapse_delay
 
-        if False:
-            self.write_log("Synapse delay: " + str(synapse_delay) + " ms")
+        #    self.write_log("Synapse delay: " + str(synapse_delay) + " ms")
 
         # What do we do if the GID does not exist?
         # print("GID exists:" + str(self.pc.gid_exists(cellIDsource)))
@@ -1030,9 +997,7 @@ class SnuddaSimulate(object):
                 elif syn_type == "AMPA_NMDA":
                     syn = self.sim.neuron.h.tmGlut(dend_compartment(section_dist))
                 else:
-                    self.write_log("Synapse type not implemented: ", synapse_type)
-                    import pdb
-                    pdb.set_trace()
+                    assert False, "Synapse type not implemented: " + synapse_type
 
                 self.synapse_list.append(syn)
                 self.neurons[cell_id].icell.syn_list.append(syn)
@@ -1139,12 +1104,6 @@ class SnuddaSimulate(object):
                     assert (spikes >= 0).all(), \
                         "Negative spike times for neuron " + str(neuron_id) + " " + inputType
 
-                    if False:
-                        print("Neuron " + str(neuron.name) + " receive " + str(len(spikes)) + " spikes from " + str(
-                            inputID))
-                        if len(spikes) > 0:
-                            print("First spike at " + str(spikes[0]) + " ms")
-
                     # Creating NEURON VecStim and vector
                     # https://www.neuron.yale.edu/phpBB/viewtopic.php?t=3125
                     # import pdb
@@ -1155,13 +1114,11 @@ class SnuddaSimulate(object):
                         v.from_python(spikes)
                         vs.play(v)
                     except:
-                        print("!!! If you see this, make sure that vecevent.mod is included in nrnivmodl compilation")
-
                         import traceback
                         tstr = traceback.format_exc()
                         print(tstr)
-                        import pdb
-                        pdb.set_trace()
+
+                        assert False, "!!! If you see this, make sure that vecevent.mod is included in nrnivmodl compilation"
 
                     # NEURON: You can not locate a point process at position 0 or 1
                     # if it needs an ion
@@ -1181,20 +1138,10 @@ class SnuddaSimulate(object):
                     nc.weight[0] = neuron_input["conductance"][()] * 1e6  # !! what is unit? microsiemens?
                     nc.threshold = 0.1
 
-                    if False:
-                        print("Weight: " + str(nc.weight[0]))
-
                     # Get the modifications of synapse parameters, specific to
                     # this synapse
                     if param_list is not None and len(param_list) > 0:
-                        try:
-                            syn_params = param_list[paramID % len(param_list)]["synapse"]
-                        except:
-                            import traceback
-                            tstr = traceback.format_exc()
-                            print(tstr)
-                            import pdb
-                            pdb.set_trace()
+                        syn_params = param_list[paramID % len(param_list)]["synapse"]
 
                         for par in syn_params:
                             if par == "expdata":
@@ -1206,19 +1153,10 @@ class SnuddaSimulate(object):
                                 # one specified in the input information instead
                                 continue
 
-                            try:
-
-                                eval_str = "syn." + par + "=" + str(syn_params[par])
-                                # self.writeLog("Updating synapse: " + evalStr)
-                                # !!! Can we avoid an eval here, it is soooo SLOW
-                                exec(eval_str)
-
-                            except:
-                                import traceback
-                                tstr = traceback.format_exc()
-                                print(tstr)
-                                import pdb
-                                pdb.set_trace()
+                            eval_str = "syn." + par + "=" + str(syn_params[par])
+                            # self.writeLog("Updating synapse: " + evalStr)
+                            # !!! Can we avoid an eval here, it is soooo SLOW
+                            exec(eval_str)
 
                     # !!! Set parameters in synParams
 
@@ -1260,6 +1198,8 @@ class SnuddaSimulate(object):
         assert False, "addVirtualNeuronInput not implemented"
 
         ############################################################################
+
+    # TODO: Remove this old unused function add_external_input_old
 
     # This adds external input (presumably cortical and thalamic)
     def add_external_input_old(self, nInputs=50, freq=5.0):
@@ -1515,38 +1455,31 @@ class SnuddaSimulate(object):
     # We want to check that voxel coords transformed to local coordinate system
     # of neuron matches with where neuron places the synapse
 
-    def verify_synapse_placement(self, secList, secXList, destID, voxelCoords):
+    def verify_synapse_placement(self, sec_list, sec_x_list, dest_id, voxel_coords):
 
         # print("Running verify synapse placement")
 
         simulation_origo = self.network_info["simulationOrigo"]
         voxel_size = self.network_info["voxelSize"]
-        neuron_position = self.network_info["neurons"][destID]["position"]
-        neuron_rotation = self.network_info["neurons"][destID]["rotation"]
+        neuron_position = self.network_info["neurons"][dest_id]["position"]
+        neuron_rotation = self.network_info["neurons"][dest_id]["rotation"]
 
         # Transform voxel coordinates to local neuron coordinates to match neuron
-        synapse_pos = (voxel_size * voxelCoords + simulation_origo - neuron_position) * 1e6
+        synapse_pos = (voxel_size * voxel_coords + simulation_origo - neuron_position) * 1e6
 
-        try:
-            syn_pos_nrn = np.zeros((len(secList), 3))
+        syn_pos_nrn = np.zeros((len(sec_list), 3))
 
-            for i, (sec, secX) in enumerate(zip(secList, secXList)):
-                num_points = h.n3d(sec=sec)
-                arc_len = h.arc3d(num_points - 1, sec=sec)
-                idx = int(np.round(secX * (num_points - 1)))
-                arc_len_x = h.arc3d(idx, sec=sec)
+        for i, (sec, secX) in enumerate(zip(sec_list, sec_x_list)):
+            num_points = h.n3d(sec=sec)
+            arc_len = h.arc3d(num_points - 1, sec=sec)
+            idx = int(np.round(secX * (num_points - 1)))
+            arc_len_x = h.arc3d(idx, sec=sec)
 
-                # print("X : " + str(secX) + " = " + str(arcLenX/arcLen) + " ???")
+            # print("X : " + str(secX) + " = " + str(arcLenX/arcLen) + " ???")
 
-                syn_pos_nrn[i, 0] = h.x3d(idx, sec=sec)
-                syn_pos_nrn[i, 1] = h.y3d(idx, sec=sec)
-                syn_pos_nrn[i, 2] = h.z3d(idx, sec=sec)
-        except:
-            import traceback
-            tstr = traceback.format_exc()
-            self.write_log(tstr)
-            import pdb
-            pdb.set_trace()
+            syn_pos_nrn[i, 0] = h.x3d(idx, sec=sec)
+            syn_pos_nrn[i, 1] = h.y3d(idx, sec=sec)
+            syn_pos_nrn[i, 2] = h.z3d(idx, sec=sec)
 
         # We need to rotate the neuron to match the big simulation
         # !!! OBS, this assumes that some is in 0,0,0 local coordinates
@@ -1562,11 +1495,11 @@ class SnuddaSimulate(object):
             # If this happens, check that Neuron does not warn for removing sections
             # due to having only one point
             self.write_log("!!! Found " + str(num_bad) + " synapses on " \
-                           + self.network_info["neurons"][destID]["name"] \
-                           + "( " + str(destID) + ") " \
+                           + self.network_info["neurons"][dest_id]["name"] \
+                           + "( " + str(dest_id) + ") " \
                                                  " that are further than " + str(bad_threshold) + "mum away." \
                            + " morphology: " \
-                           + self.network_info["neurons"][destID]["morphology"])
+                           + self.network_info["neurons"][dest_id]["morphology"])
 
             ### DEBUG PLOT!!!
 
@@ -1578,7 +1511,7 @@ class SnuddaSimulate(object):
                 plt.scatter(soma_dist * 1e6, syn_mismatch)
                 plt.ion()
                 plt.show()
-                plt.title(self.network_info["neurons"][destID]["name"])
+                plt.title(self.network_info["neurons"][dest_id]["name"])
 
                 from mpl_toolkits.mplot3d import Axes3D
                 fig = plt.figure()
@@ -1796,7 +1729,10 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def set_dopamine_modulation(self, sec, transient_vector=[]):
+    def set_dopamine_modulation(self, sec, transient_vector=None):
+
+        if not transient_vector:
+            transient_vector = []
 
         channel_list = {'spn': ['naf_ms', 'kas_ms', 'kaf_ms', 'kir_ms',
                                'cal12_ms', 'cal13_ms', 'can_ms', 'car_ms'],
@@ -1817,7 +1753,10 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def apply_dopamine(self, cell_id=None, transient_vector=[]):
+    def apply_dopamine(self, cell_id=None, transient_vector=None):
+
+        if not transient_vector:
+            transient_vector = []
 
         if cell_id is None:
             cell_id = self.neuron_id
