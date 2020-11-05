@@ -62,6 +62,8 @@ class SnuddaInput(object):
         self.rc = None
         self.network_slurm_id = None
         self.network_config = None
+        self.neuron_input = None
+        self.slurm_id = None
 
         self.write_log("Time = " + str(time))
 
@@ -227,7 +229,8 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    def create_spike_matrix(self, spikes):
+    @staticmethod
+    def create_spike_matrix(spikes):
 
         if len(spikes) == 0:
             return np.zeros((0, 0)), 0
@@ -545,9 +548,18 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    # This generates poisson spikes with frequency freq, for a given time range
+    def generate_spikes2(self, frequencies, time_ranges):
+        t_spikes = []
 
-    def generate_spikes(self, freq, time_range):
+        for f, t_start, t_end in zip(frequencies, time_ranges[0], time_ranges[1]):
+            t_spikes.append(self.generate_spikes(f, (t_start, t_end)))
+
+        # Double check correct dimension
+        return np.sort(np.concatenate[t_spikes])
+
+    @staticmethod
+    def generate_spikes(freq, time_range):
+        # This generates poisson spikes with frequency freq, for a given time range
 
         # https://stackoverflow.com/questions/5148635/how-to-simulate-poisson-arrival
         start = time_range[0]
@@ -575,13 +587,15 @@ class SnuddaInput(object):
     # This takes a list of spike trains and returns a single spike train
     # including all spikes
 
-    def mix_spikes(self, spikes):
+    @staticmethod
+    def mix_spikes(spikes):
 
         return np.sort(np.concatenate(spikes))
 
     ############################################################################
 
-    def cull_spikes(self, spikes, p_keep):
+    @staticmethod
+    def cull_spikes(spikes, p_keep):
 
         return spikes[np.random.random(spikes.shape) < p_keep]
 
@@ -643,7 +657,8 @@ class SnuddaInput(object):
     # be modulo duration, so if we jitter and they go to before start time,
     # they wrap around and appear at end of the timeline
 
-    def jitter_spikes(self, spike_trains, dt, time_range=None):
+    @staticmethod
+    def jitter_spikes(spike_trains, dt, time_range=None):
 
         jittered_spikes = []
 
@@ -666,7 +681,8 @@ class SnuddaInput(object):
 
     # Plot spikes as a raster plot, for debugging and visualisation purposes
 
-    def raster_plot(self, spike_times,
+    @staticmethod
+    def raster_plot(spike_times,
                     mark_spikes=None, mark_idx=None,
                     title=None, fig_file=None, fig=None):
 
@@ -759,7 +775,8 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    def estimate_correlation(self, spikes_a, spikes_b, dt=0):
+    @staticmethod
+    def estimate_correlation(spikes_a, spikes_b, dt=0):
 
         n_spikes_a = len(spikes_a)
         corr_spikes = 0
@@ -961,7 +978,8 @@ class SnuddaInput(object):
 
     # Function for debugging
 
-    def dump_to_random_file(self, file_prefix, data_to_dump):
+    @staticmethod
+    def dump_to_random_file(file_prefix, data_to_dump):
         import uuid
         tmp = open("save/" + file_prefix + "-file-" + str(uuid.uuid4()), 'w')
         tmp.write(str(data_to_dump))
