@@ -63,6 +63,7 @@ class SnuddaInput(object):
         self.network_slurm_id = None
         self.network_config = None
         self.neuron_input = None
+        self.slurm_id = None
 
         self.write_log("Time = " + str(time))
 
