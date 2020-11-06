@@ -62,7 +62,10 @@ class SnuddaInit(object):
                 import pdb
                 pdb.set_trace()
 
-            self.network_data["PopulationUnits"]["radius"] = population_unit_radius * 1e-6
+            if population_unit_radius:
+                self.network_data["PopulationUnits"]["radius"] = population_unit_radius * 1e-6
+            else:
+                self.network_data["PopulationUnits"]["radius"] = None
 
             print("Overriding the number of population units")
 
@@ -430,6 +433,9 @@ class SnuddaInit(object):
         # First check how many unique cells we hava available, then we
         # calculate how many of each to use in simulation
         n_ind = len(neuron_file_list)
+        assert n_ind > 0, \
+            f"No swc morphologies found in {neuron_dir}.\nObs, each morphology should have its own subdirectory."
+
         n_of_each_ind = np.zeros((n_ind,))
         n_of_each_ind[:] = int(num_neurons / n_ind)
         still_to_add = int(num_neurons - np.sum(n_of_each_ind))

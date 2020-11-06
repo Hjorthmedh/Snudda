@@ -9,9 +9,11 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Init custom network")
     parser.add_argument("network", type=str, help="Network path")
+    parser.add_argument("-cellspec", type=str, help="Cell spec directory", default=None)
     args = parser.parse_args()
 
-    simName = args.network
+    sim_name = args.network
+    cell_spec = args.cellspec
 
     connect_neurons = False
 
@@ -24,16 +26,18 @@ if __name__ == "__main__":
     # simName = "networks/SynTest-v6" # MSMS tuning
     # simName = "networks/SynTest-v15"
 
-    config_name = simName + "/network-config.json"
+    config_name = sim_name + "/network-config.json"
     cnc = SnuddaInit(struct_def={}, config_name=config_name, num_population_units=1)
     # cnc.defineStriatum(nMSD1=500,nMSD2=500,nFS=0,nLTS=0,nChIN=30,volumeType="cube")
     # cnc.defineStriatum(nMSD1=120,nMSD2=120,nFS=20,nLTS=0,nChIN=0,volumeType="slice")
     # cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=10000,nLTS=0,nChIN=0,volumeType="slice")
     # cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=10000,nLTS=0,nChIN=0,volumeType="cube")
-    cnc.define_striatum(num_dSPN=0, num_iSPN=0, num_FS=100, num_LTS=0, num_ChIN=0, volume_type="cube")
+    # cnc.define_striatum(num_dSPN=0, num_iSPN=0, num_FS=100, num_LTS=0, num_ChIN=0, volume_type="cube")
     # cnc.defineStriatum(nMSD1=10,nMSD2=10,nFS=10,nLTS=10,nChIN=10,volumeType="slice")
 
     # cnc.defineStriatum(nMSD1=500,nMSD2=500,nFS=0,nLTS=0,nChIN=500,volumeType="cube")
+    cnc.define_striatum(num_dSPN=47500, num_iSPN=47500, num_FS=1300, num_LTS=0, num_ChIN=0,
+                        volume_type="cube", cell_spec_dir=cell_spec)
 
     dir_name = os.path.dirname(config_name)
 
@@ -63,9 +67,9 @@ if __name__ == "__main__":
             print("Writing to file: " + str(config_name))
             json.dump(con_data, f, indent=2)
 
-    print("Now run:\nsnudda place " + simName)
-    print("snudda detect " + simName)
-    print("snudda prune " + simName)
-    print("snudda input " + simName + " --input config/input-tinytest-v4.json")
-    print("snudda simulate " + simName \
-          + " --voltOut " + simName + "/volt-out.csv --time 10.0")
+    print("Now run:\nsnudda place " + sim_name)
+    print("snudda detect " + sim_name)
+    print("snudda prune " + sim_name)
+    print("snudda input " + sim_name + " --input config/input-tinytest-v4.json")
+    print("snudda simulate " + sim_name \
+          + " --voltOut " + sim_name + "/volt-out.csv --time 10.0")
