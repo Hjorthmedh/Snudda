@@ -116,6 +116,9 @@ class SnuddaInput(object):
             self.setup_parallel()
 
             # Make the "master input" for each channel
+            # TODO: Having common spikes within a population unit caused problems, a lot of neurons fired at same
+            # time. To avoid this the population_spike_list is cleared in make_neuron_input_parallel
+            # Should rewrite this later.
             self.make_population_unit_spike_trains()
 
             # Generate the actual input spikes, and the locations
@@ -282,15 +285,12 @@ class SnuddaInput(object):
     # taken from a stream of spikes unique to that particular population unit
     # This function generates these correlated spikes
 
-    def make_population_unit_spike_trains(self, num_population_units=None, time_range=None):
+    def make_population_unit_spike_trains(self, num_population_units=None):
 
         self.write_log("Running makePopulationUnitSpikeTrains")
 
         if num_population_units is None:
             num_population_units = self.num_population_units
-
-        if time_range is None:
-            time_range = (0, self.time)
 
         self.population_unit_spikes = dict([])
 
@@ -305,6 +305,16 @@ class SnuddaInput(object):
                     freq = self.input_info[cell_type][input_type]["frequency"]
                     self.population_unit_spikes[cell_type][input_type] = dict([])
 
+                    if "start" in self.input_info[cell_type][input_type]:
+                        start_time = self.input_info[cell_type][input_type]["start"]
+                    else:
+                        start_time = 0
+
+                    if "end" in self.input_info[cell_type][input_type]:
+                        end_time = self.input_info[cell_type][input_type]["end"]
+                    else:
+                        end_time = self.time
+
                     if "populationUnitID" in self.input_info[cell_type][input_type]:
                         pop_unit_list = \
                             self.input_info[cell_type][input_type]["populationUnitID"]
@@ -316,7 +326,7 @@ class SnuddaInput(object):
 
                     for idxPopUnit in pop_unit_list:
                         self.population_unit_spikes[cell_type][input_type][idxPopUnit] = \
-                            self.generate_spikes(freq=freq, time_range=time_range)
+                            self.generate_spikes(freq=freq, time_range=(start_time, end_time))
 
         return self.population_unit_spikes
 
@@ -548,18 +558,31 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    def generate_spikes2(self, frequencies, time_ranges):
+    @staticmethod
+    def generate_spikes_helper(frequencies, time_ranges):
         t_spikes = []
 
         for f, t_start, t_end in zip(frequencies, time_ranges[0], time_ranges[1]):
-            t_spikes.append(self.generate_spikes(f, (t_start, t_end)))
+            t_spikes.append(SnuddaInput.generate_spikes(f, (t_start, t_end)))
 
         # Double check correct dimension
-        return np.sort(np.concatenate[t_spikes])
+        return np.sort(np.concatenate(t_spikes))
 
     @staticmethod
     def generate_spikes(freq, time_range):
         # This generates poisson spikes with frequency freq, for a given time range
+
+        if type(time_range[0]) == list:
+
+            if type(freq) != list:
+                freq_list = [freq for t in time_range[0]]
+                freq = freq_list
+
+            assert len(time_range[0]) == len(time_range[1]) == len(freq), \
+                (f"Frequency, start and end time vectors need to be of same length." 
+                    f"\nfreq: {freq}\nstart: {time_range[0]}\nend:{time_range[1]}")
+
+            return SnuddaInput.generate_spikes_helper(frequencies=freq, time_ranges=time_range)
 
         # https://stackoverflow.com/questions/5148635/how-to-simulate-poisson-arrival
         start = time_range[0]
@@ -620,7 +643,10 @@ class SnuddaInput(object):
         if population_unit_spikes is None:
             population_unit_spikes = self.generate_spikes(freq, time_range)
 
-        unique_freq = freq * (1 - p_keep)
+        if type(freq) == list:
+            unique_freq = [f * (1 - p_keep) for f in freq]
+        else:
+            unique_freq = freq * (1 - p_keep)
         spike_trains = []
 
         for i in range(0, num_spike_trains):
@@ -665,7 +691,8 @@ class SnuddaInput(object):
         for i in range(0, len(spike_trains)):
             spikes = spike_trains[i] + np.random.normal(0, dt, spike_trains[i].shape)
 
-            if time_range is not None:
+            # No modulo time jittering if list of times specified
+            if time_range is not None and type(time_range[0]) != list:
                 start = time_range[0]
                 end = time_range[1]
                 spikes = np.mod(spikes - start, end - start) + start
