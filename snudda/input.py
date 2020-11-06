@@ -28,6 +28,8 @@ from .load import Snuddaload
 
 nl = None
 
+# When specifying vectors for start and end time, they should normally not overlap
+# if we want to allow that, set time_interval_overlap_warning = False
 
 class SnuddaInput(object):
 
@@ -39,6 +41,7 @@ class SnuddaInput(object):
                  is_master=True,
                  h5libver="latest",
                  random_seed=None,
+                 time_interval_overlap_warning=True,
                  logfile=None,
                  verbose=True):
 
@@ -48,6 +51,7 @@ class SnuddaInput(object):
             self.logfile = logfile
 
         self.verbose = verbose
+        self.time_interval_overlap_warning = time_interval_overlap_warning
         self.input_info = None
         self.population_unit_spikes = None
         self.network_info = None
@@ -558,18 +562,16 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    @staticmethod
-    def generate_spikes_helper(frequencies, time_ranges):
+    def generate_spikes_helper(self, frequencies, time_ranges):
         t_spikes = []
 
         for f, t_start, t_end in zip(frequencies, time_ranges[0], time_ranges[1]):
-            t_spikes.append(SnuddaInput.generate_spikes(f, (t_start, t_end)))
+            t_spikes.append(self.generate_spikes(f, (t_start, t_end)))
 
         # Double check correct dimension
         return np.sort(np.concatenate(t_spikes))
 
-    @staticmethod
-    def generate_spikes(freq, time_range):
+    def generate_spikes(self, freq, time_range):
         # This generates poisson spikes with frequency freq, for a given time range
 
         if type(time_range[0]) == list:
@@ -582,25 +584,31 @@ class SnuddaInput(object):
                 (f"Frequency, start and end time vectors need to be of same length." 
                     f"\nfreq: {freq}\nstart: {time_range[0]}\nend:{time_range[1]}")
 
-            return SnuddaInput.generate_spikes_helper(frequencies=freq, time_ranges=time_range)
+            if self.time_interval_overlap_warning:
+                assert (np.array(time_range[0][1:]) - np.array(time_range[1][0:-1]) >= 0).all(), \
+                    f"Time range should not overlap: start: {time_range[0]}, end: {time_range[1]}"
+
+            return self.generate_spikes_helper(frequencies=freq, time_ranges=time_range)
 
         # https://stackoverflow.com/questions/5148635/how-to-simulate-poisson-arrival
-        start = time_range[0]
-        end = time_range[1]
-        duration = end - start
+        start_time = time_range[0]
+        end_time = time_range[1]
+        duration = end_time - start_time
+
+        assert duration > 0, f"Start time {start_time} and end time {end_time} incorrect (duration > 0 required)"
 
         t_diff = -np.log(1.0 - np.random.random(int(np.ceil(max(1, freq * duration))))) / freq
 
-        t_spikes = [start + np.cumsum(t_diff)]
+        t_spikes = [start_time + np.cumsum(t_diff)]
 
         # Is last spike after end of duration
-        while t_spikes[-1][-1] <= end:
+        while t_spikes[-1][-1] <= end_time:
             t_diff = -np.log(1.0 - np.random.random(int(np.ceil(freq * duration * 0.1)))) / freq
             t_spikes.append(t_spikes[-1][-1] + np.cumsum(t_diff))
 
         # Prune away any spikes after end
         if len(t_spikes[-1]) > 0:
-            t_spikes[-1] = t_spikes[-1][t_spikes[-1] <= end]
+            t_spikes[-1] = t_spikes[-1][t_spikes[-1] <= end_time]
 
         # Return spike times
         return np.concatenate(t_spikes)
