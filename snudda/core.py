@@ -343,8 +343,8 @@ class Snudda(object):
             network_file = self.network_path \
                           + "/network-pruned-synapses.hdf5"
 
-        if args.input_file:
-            input_file = args.input_file
+        if args.inputFile:
+            input_file = args.inputFile
         else:
             input_file = self.network_path + "/input-spikes.hdf5"
 
