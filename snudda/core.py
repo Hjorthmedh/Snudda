@@ -312,8 +312,8 @@ class Snudda(object):
         print("Exporting to SONATA format")
         print("Network path: " + str(self.network_path))
 
-        if args.network_file:
-            network_file = args.network_file
+        if args.networkFile:
+            network_file = args.networkFile
         else:
             network_file = self.network_path \
                           + "/network-pruned-synapses.hdf5"
@@ -337,8 +337,8 @@ class Snudda(object):
 
         from .simulate import SnuddaSimulate
 
-        if args.network_file:
-            network_file = args.network_file
+        if args.networkFile:
+            network_file = args.networkFile
         else:
             network_file = self.network_path \
                           + "/network-pruned-synapses.hdf5"
