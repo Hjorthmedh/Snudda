@@ -74,7 +74,7 @@ class Snudda(object):
     ############################################################################
 
     def help_info(self, args):
-        from .snudda_help import snudda_help_text
+        from snudda.snudda_help import snudda_help_text
         print(snudda_help_text())
 
     ############################################################################
@@ -307,13 +307,13 @@ class Snudda(object):
 
     def export_to_SONATA(self, args):
 
-        from ConvertNetwork import ConvertNetwork
+        from snudda.ConvertNetwork import ConvertNetwork
 
         print("Exporting to SONATA format")
         print("Network path: " + str(self.network_path))
 
-        if args.network_file:
-            network_file = args.network_file
+        if args.networkFile:
+            network_file = args.networkFile
         else:
             network_file = self.network_path \
                           + "/network-pruned-synapses.hdf5"
@@ -337,14 +337,14 @@ class Snudda(object):
 
         from .simulate import SnuddaSimulate
 
-        if args.network_file:
-            network_file = args.network_file
+        if args.networkFile:
+            network_file = args.networkFile
         else:
             network_file = self.network_path \
                           + "/network-pruned-synapses.hdf5"
 
-        if args.input_file:
-            input_file = args.input_file
+        if args.inputFile:
+            input_file = args.inputFile
         else:
             input_file = self.network_path + "/input-spikes.hdf5"
 
@@ -364,7 +364,7 @@ class Snudda(object):
             mech_dir = "mechanisms"
 
             if not os.path.exists(mech_dir):
-                m_dir = os.path.dirname(__file__) + "/data/cellspecs/mechanisms"
+                m_dir = os.path.dirname(__file__) + "/data/cellspecs-v2/mechanisms"
                 os.symlink(m_dir, mech_dir)
         else:
             mech_dir = args.mechDir
