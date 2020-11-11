@@ -1,12 +1,12 @@
 import numpy as np
-from .load import Snuddaload
+from .load import SnuddaLoad
 
 
 class SnuddaExportConnectionMatrix(object):
 
     def __init__(self, in_file, out_file):
 
-        self.sl = Snuddaload(in_file)
+        self.sl = SnuddaLoad(in_file)
 
         self.outFile = out_file
         self.out_file_meta = out_file + "-meta"

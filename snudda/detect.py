@@ -25,7 +25,7 @@ import json
 import pickle
 
 from .Neuron_morphology import NeuronMorphology
-from .load import Snuddaload
+from .load import SnuddaLoad
 
 status = None
 hyperVoxelData = None
@@ -1578,7 +1578,7 @@ class SnuddaDetect(object):
 
         self.write_log("Reading positions from file: " + position_file)
 
-        pos_info = Snuddaload(position_file).data
+        pos_info = SnuddaLoad(position_file).data
 
         mem = self.memory()
         self.write_log(str(mem))

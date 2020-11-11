@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from mpl_toolkits.mplot3d import Axes3D
 
-from .load import Snuddaload
+from .load import SnuddaLoad
 
 
 # !!! We need to parallelise the analysis script also!
@@ -72,7 +72,7 @@ class SnuddaAnalyse(object):
             os.makedirs(self.fig_dir)
 
         # First load all data but synapses
-        self.network_load = Snuddaload(hdf5_file, loadSynapses=False)
+        self.network_load = SnuddaLoad(hdf5_file, loadSynapses=False)
         self.network = self.network_load.data
 
         if "config" in self.network:

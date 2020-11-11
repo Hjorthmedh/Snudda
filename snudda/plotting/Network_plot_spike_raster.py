@@ -8,7 +8,7 @@ import os
 import numpy as np
 import re
 import ntpath
-from snudda.load import Snuddaload
+from snudda.load import SnuddaLoad
 import time
 
 class NetworkPlotSpikeRaster(object):
@@ -31,7 +31,7 @@ class NetworkPlotSpikeRaster(object):
     self.readCSV()
 
     if(networkFile is not None):
-      self.networkInfo = Snuddaload(networkFile)
+      self.networkInfo = SnuddaLoad(networkFile)
       self.networkFile = networkFile
 
       #assert(int(self.ID) == int(self.networkInfo.data["SlurmID"]))
