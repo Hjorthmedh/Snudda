@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Init custom network")
     parser.add_argument("network", type=str, help="Network path")
-    parser.add_argument("-cellspec", type=str, help="Cell spec directory", default=None)
+    parser.add_argument("--cellspec", type=str, help="Cell spec directory", default=None)
     args = parser.parse_args()
 
     sim_name = args.network
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     # cnc.defineStriatum(nMSD1=10,nMSD2=10,nFS=10,nLTS=10,nChIN=10,volumeType="slice")
 
     # cnc.defineStriatum(nMSD1=500,nMSD2=500,nFS=0,nLTS=0,nChIN=500,volumeType="cube")
-    cnc.define_striatum(num_dSPN=47500, num_iSPN=47500, num_FS=1300, num_LTS=0, num_ChIN=0,
+    cnc.define_striatum(num_dSPN=4750, num_iSPN=4750, num_FS=130, num_LTS=0, num_ChIN=0,
                         volume_type="cube", cell_spec_dir=cell_spec)
 
     dir_name = os.path.dirname(config_name)
