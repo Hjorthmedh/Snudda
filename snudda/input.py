@@ -360,19 +360,30 @@ class SnuddaInput(object):
         parameter_file_list = []
         parameter_list_list = []
 
-        for (neuron_id, neuron_type, populationUnitID) \
-                in zip(self.neuron_id, self.neuron_type, self.population_unit_id):
+        for (neuron_id, neuron_name, neuron_type, populationUnitID) \
+                in zip(self.neuron_id, self.neuron_name, self.neuron_type, self.population_unit_id):
 
             self.neuron_input[neuron_id] = dict([])
 
-            if neuron_type not in self.input_info:
-                self.write_log("!!! Warning, synaptic input to " + str(neuron_type)
-                               + " missing in " + str(self.input_config_file))
+            # The input can be specified using neuron_id, neuron_name or neuron_type
+            if str(neuron_id) in self.input_info:
+                input_info = self.input_info[str(neuron_id)]
+            elif neuron_name in self.input_info:
+                input_info = self.input_info[neuron_name]
+            elif neuron_type in self.input_info:
+                input_info = self.input_info[neuron_type]
+            else:
+                self.write_log(f"!!! Warning, no synaptic input for neuron ID {neuron_id}, "
+                               f"name {neuron_name} or type {neuron_type}")
                 continue
 
-            for input_type in self.input_info[neuron_type]:
+            # if a number --> use a specific neuron with that given ID
+            # if dSPN --> use neuron_type dSPN
+            # if dSPN_3 --> use specific neuron morphology corresponding to dSPN_3
 
-                input_inf = self.input_info[neuron_type][input_type]
+            for input_type in input_info:
+
+                input_inf = input_info[input_type]
 
                 if "populationUnitID" in input_inf:
                     pop_unit_id = input_inf["populationUnitID"]
@@ -772,9 +783,8 @@ class SnuddaInput(object):
         self.num_population_units = pos_info["nPopulationUnits"]
         self.population_unit_id = pos_info["populationUnit"]
 
-        self.neuron_name = [n["name"] for n in self.neuron_info]
-
         self.neuron_id = [n["neuronID"] for n in self.neuron_info]
+        self.neuron_name = [n["name"] for n in self.neuron_info]
         self.neuron_type = [n["type"] for n in self.neuron_info]
         # self.nInputs =  [n["nInputs"] for n in self.neuronInfo]
 
