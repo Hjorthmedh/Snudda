@@ -928,7 +928,7 @@ class SnuddaAnalyse(object):
             exp_data_detailed = [None for x in exp_data]
 
         (dist, p_con, count_con, count_all) = \
-            self.connection_probability(pre_id, post_id, num_bins, dist_3d=dist3D,
+            self.connection_probability(pre_id, post_id, num_bins, dist_3d=dist_3d,
                                         connection_type=connection_type)
 
         # Now let's plot it
