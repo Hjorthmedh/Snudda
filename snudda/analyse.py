@@ -1057,7 +1057,7 @@ class SnuddaAnalyse(object):
                             for (ns, n) in zip(count_con, count_all_b)]).flatten()
 
         # Use the last bin larger than xMax as the end
-        d_idx = np.where(dist * 1e6 > xMax)[0][0]
+        d_idx = np.where(dist * 1e6 > x_max)[0][0]
 
         p_min = p_centre - p_height
         p_max = p_centre + p_height
@@ -1083,11 +1083,11 @@ class SnuddaAnalyse(object):
         #  if(max(plt.ylim()) < max(expData+stdExp)):
         #    plt.ylim([0, np.ceil(max(expData+stdExp)*10)/10])
 
-        if xMax is not None:
-            plt.xlim([0, xMax])
+        if x_max is not None:
+            plt.xlim([0, x_max])
 
-        if yMax is not None:
-            plt.ylim([0, yMax])
+        if y_max is not None:
+            plt.ylim([0, y_max])
 
         locs, labels = plt.yticks()
         new_labels = ["{0:g}".format(yy * 100) for yy in locs]
