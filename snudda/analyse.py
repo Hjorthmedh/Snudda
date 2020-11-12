@@ -43,8 +43,7 @@ class SnuddaAnalyse(object):
         self.debug = False
         self.show_plots = show_plots
 
-        print("Assuming volume type: " + str(volume_type) \
-              + "[cube or full]")
+        print("Assuming volume type: " + str(volume_type) + "[cube or full]")
 
         self.volume_type = volume_type
         self.close_plots = close_plots
@@ -700,7 +699,7 @@ class SnuddaAnalyse(object):
             con_mat = self.connection_matrix_gj
         else:
             con_mat = None
-            print("Unknown connectionType: " + str(connection_type))
+            print("Unknown connection_type: " + str(connection_type))
             print("Please use 'synapses' or 'gapjunctions'")
             import pdb
             pdb.set_trace()
@@ -1111,10 +1110,10 @@ class SnuddaAnalyse(object):
         else:
             proj_text = '-2D-dist'
 
-        fig_name = 'Network-distance-dependent-connection-probability-' \
-                  + str(pre_type) + "-to-" + str(post_type) \
-                  + "-" + str(connectionType) \
-                  + proj_text
+        fig_name = ('Network-distance-dependent-connection-probability-'
+                    + str(pre_type) + "-to-" + str(post_type)
+                    + "-" + str(connection_type)
+                    + proj_text)
 
         self.save_figure(plt, fig_name)
 
@@ -1348,7 +1347,7 @@ class SnuddaAnalyse(object):
 
     ############################################################################
 
-    # connectionType: "synapses" or "gapjunctions"
+    # connection_type: "synapses" or "gapjunctions"
 
     def connection_probability(self,
                                pre_id,
@@ -1374,7 +1373,7 @@ class SnuddaAnalyse(object):
         elif connection_type == "gapjunctions":
             con_mat = self.connection_matrix_gj
         else:
-            assert False,"Unknown connectionType: " + str(connection_type)
+            assert False,"Unknown connection_type: " + str(connection_type)
 
         # Make this loop use threads, to speed it up
 
@@ -1579,7 +1578,7 @@ class SnuddaAnalyse(object):
         elif connection_type == "gapjunctions":
             con_mat = self.connection_matrix_gj
         else:
-            assert "Unknown connectionType: " + str(connection_type)
+            assert "Unknown connection_type: " + str(connection_type)
             con_mat = None  # To get pycharm to shut up ;)
 
         n_con = np.zeros((len(neuron_id), 1))
