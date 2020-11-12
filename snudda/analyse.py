@@ -1027,7 +1027,7 @@ class SnuddaAnalyse(object):
                          "P(d<" + str(d_limit * 1e6) + ")=%.3f" % p_model, size=9)
 
         # Draw the curve itself
-        if drawStep:
+        if draw_step:
             plt.step(dist * 1e6, p_con, color='black', linewidth=2, where="post")
         else:
             d_half_step = (dist[1] - dist[0]) / 2
@@ -1062,7 +1062,7 @@ class SnuddaAnalyse(object):
         p_min = p_centre - p_height
         p_max = p_centre + p_height
 
-        if drawStep:
+        if draw_step:
           plt.fill_between(dist[:d_idx] * 1e6, p_min[:d_idx], p_max[:d_idx],
                            color='grey', step="post",
                            alpha=0.4)
