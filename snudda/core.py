@@ -59,12 +59,12 @@ class Snudda(object):
 
     ############################################################################
 
-    def __init__(self, networkPath):
+    def __init__(self, network_path):
 
-        if networkPath[-1] == "/":
-            self.network_path = networkPath[:-1]
+        if network_path[-1] == "/":
+            self.network_path = network_path[:-1]
         else:
-            self.network_path = networkPath
+            self.network_path = network_path
 
         # Add current dir to python path
         sys.path.append(os.getcwd())
@@ -85,7 +85,7 @@ class Snudda(object):
         print("Network path: " + str(self.network_path))
 
         assert args.size is not None, \
-            "You need to speicfy --size when initialising config for network2"
+            "You need to specify --size when initialising config for network2"
 
         from .init import SnuddaInit
         struct_def = {"Striatum": args.size,

@@ -5,6 +5,7 @@ import json
 from snudda.CreateCubeMesh import CreateCubeMesh
 from snudda.Neuron_morphology import NeuronMorphology
 from snudda.load import SnuddaLoad
+from snudda.core import Snudda
 import numpy as np
 
 
@@ -25,31 +26,64 @@ class InputScaling(object):
 
         assert os.path.isdir(self.cellspec_dir), f"Cellspec directory {self.cellspec_dir} does not exist."
 
-        self.network_file_name = os.path.join(self.network_dir,"network-config.json")
+        self.network_config_file_name = os.path.join(self.network_dir, "network-config.json")
+        self.network_file = os.path.join(self.network_dir, "network-pruned-synapses.hdf5")
+        self.input_config_file = os.path.join(self.network_dir, "input-config.json")
+
+        self.core = Snudda(self.network_dir)
+
 
     # Writes config files
     def setup_network(self):
 
         config_def = self.create_network_config(num_replicas=10)
 
-        print(f"Writing network config file to {self.network_file_name}")
-        with open(self.network_file_name, "w") as f:
+        print(f"Writing network config file to {self.network_config_file_name}")
+        with open(self.network_config_file_name, "w") as f:
             json.dump(config_def, f, indent=2)
 
         CreateCubeMesh("data/mesh/InputTestMesh.obj", [0, 0, 0], 1e-3,
                        description="Mesh file used for Input Scaling")
 
+        from snudda.place import SnuddaPlace
+        from snudda.detect import SnuddaDetect
+        from snudda.prune import SnuddaPrune
+
+        SnuddaPlace(config_file=self.network_config_file_name)
+        SnuddaDetect(config_file=self.network_config_file_name,
+                     position_file=os.path.join(self.network_dir,"network-neuron-positions.hdf5"),
+                     save_file=os.path.join(self.network_dir, "voxels", "network-putative-synapses.hdf5"))
+        SnuddaPrune(work_history_file=os.path.join(self.network_dir,"log","network-detect-worklog.hdf5"))
+
         # TODO: Also run snudda place, detect, and prune
         # TODO: Make it so that snudda detect and prune are fast if there are no allowed connections
         # TODO: Skip placing neurons that will not receive any inputs or distribute any inputs
 
-    def setup_input(self):
+    def setup_input(self, input_type=None):
 
         # TODO: use create_input_config to create config file for input
         # TODO: generate inputs
 
+        synapse_density_cortical_input = "1.15*0.05/(1+np.exp(-(d-30e-6)/5e-6))"
+        synapse_density_thalamic_input = "0.05*np.exp(-d/200e-6)"
 
-        pass
+        if input_type == 'cortical':
+            synapse_density = synapse_density_cortical_input
+            print("Using cortical synapse density for input.")
+        elif input_type == 'thalamic':
+            synapse_density = synapse_density_thalamic_input
+            print("Using thalamic synapse density for input")
+        else:
+            synapse_density = "1"
+            print("No density profile used for input.")
+
+        self.create_input_config(input_config_file=self.input_config_file,
+                                 input_frequency=1.0,
+                                 n_input_min=0,
+                                 n_input_max=1000,
+                                 synapse_conductance=0.5e-9,
+                                 synapse_density=synapse_density)
+
 
     def run_simulations(self):
         pass
@@ -165,7 +199,7 @@ class InputScaling(object):
     def collect_neurons(self):
 
         if not self.neuron_info:
-            self.load_network_info()
+            self.load_network_info(network_file=self.network_file)
 
         neuron_id = self.neuron_info["neuronID"]
         neuron_type = self.neuron_info["type"]
@@ -217,18 +251,6 @@ class InputScaling(object):
         with open(input_config_file, "w") as f:
             json.dump(self.input_info,f,indent=4)
 
-
-        # TODO: Each replicate of neuron should have its own density
-        # This script is a helper script, then we write a master script to do entire range.
-        # 1. Generate network, then use same network and neurons for all simulations
-        # 2. Separate input generation step, where network is not regenerated.
-
-        # Let the user specify output simulation name
-        # Let the user specify range of frequencies, and density
-
-
-
-
     def add_input(self, input_target, input_frequency, input_duration,
                   input_density, input_conductance,
                   synapse_parameter_file):
@@ -266,3 +288,4 @@ if __name__ == "__main__":
     input_scaling = InputScaling("networks/input_scaling_v1", "data/cellspecs-v2/")
 
     input_scaling.setup_network()
+    input_scaling.setup_input(input_type="thalamic")

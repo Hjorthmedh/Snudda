@@ -27,7 +27,7 @@ import pickle
 from .Neuron_morphology import NeuronMorphology
 from .load import SnuddaLoad
 
-import snudda.utils
+import snudda.utils.memory
 
 status = None
 hyperVoxelData = None
@@ -3012,9 +3012,10 @@ class SnuddaDetect(object):
     # https://stackoverflow.com/questions/17718449/determine-free-ram-in-python/17718729#17718729
     #
 
-    def memory(self):
+    @staticmethod
+    def memory():
 
-        memory_available, memory_total = snudda.utils.memory_status()
+        memory_available, memory_total = snudda.utils.memory.memory_status()
         res = f"Memory: {memory_available} free, {memory_total} total"
 
         return res

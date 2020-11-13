@@ -35,7 +35,7 @@ from glob import glob
 import re
 import os
 
-import snudda.utils
+import snudda.utils.memory
 
 # !!! Need to gracefully handle the situation where there are more workers than
 # number of neurons, currently we get problem when adding the voltage saving
@@ -1706,7 +1706,7 @@ class SnuddaSimulate(object):
 
     def check_memory_status(self, threshold=0.1):
 
-        mem_available, mem_total = snudda.utils.memory_status()
+        mem_available, mem_total = snudda.utils.memory.memory_status()
 
         memory_ratio = mem_available / mem_total
 
