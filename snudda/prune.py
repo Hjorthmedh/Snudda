@@ -1400,31 +1400,6 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    def low_memory(self, threshold=0.1) -> bool:
-        with open('/proc/meminfo', 'r') as mem:
-            ret = {}
-            tmp = 0
-
-            for i in mem:
-                sline = i.split()
-                if str(sline[0]) == 'MemTotal:':
-                    ret['total'] = int(sline[1])
-                elif str(sline[0]) in ('MemFree:', 'Buffers:', 'Cached:'):
-                    tmp += int(sline[1])
-            ret['free'] = tmp
-            ret['used'] = int(ret['total']) - int(ret['free'])
-
-        # import pdb
-        # pdb.set_trace()
-
-        memory_ratio = ret['free'] / ret['total']
-
-        # self.writeLog("Memory status: " + str(int(memoryRatio * 100)) + "% free")
-
-        return memory_ratio < threshold
-
-    ############################################################################
-
     # This code does a N-way merge for synapses
 
     # !!! We also need to merge gap junctions

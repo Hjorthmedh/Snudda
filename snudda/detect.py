@@ -27,6 +27,8 @@ import pickle
 from .Neuron_morphology import NeuronMorphology
 from .load import SnuddaLoad
 
+import snudda.utils
+
 status = None
 hyperVoxelData = None
 
@@ -3011,37 +3013,11 @@ class SnuddaDetect(object):
     #
 
     def memory(self):
-        """
-      Get node total memory and memory usage
-      """
-        try:
-            with open('/proc/meminfo', 'r') as mem:
-                ret = {}
-                tmp = 0
-                for i in mem:
-                    sline = i.split()
-                    if str(sline[0]) == 'MemTotal:':
-                        ret['total'] = int(sline[1])
-                    elif str(sline[0]) in ('MemFree:', 'Buffers:', 'Cached:'):
-                        tmp += int(sline[1])
-                ret['free'] = tmp
-                ret['used'] = int(ret['total']) - int(ret['free'])
-            return ret
-        except:
-            return "Non-linux system, /proc/meminfo unavailable"
 
+        memory_available, memory_total = snudda.utils.memory_status()
+        res = f"Memory: {memory_available} free, {memory_total} total"
 
-############################################################################
-
-
-# @staticmethod
-# def _processHyperVoxelHelper(hyperID):
-#
-#   mem = nc.memory()
-#   nc.writeLog("Memory status, before processing " + str(hyperID) \
-#               + ": "+ str(mem))
-#
-#   return nc.processHyperVoxel(hyperID)
+        return res
 
 
 ############################################################################

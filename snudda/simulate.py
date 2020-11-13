@@ -35,6 +35,7 @@ from glob import glob
 import re
 import os
 
+import snudda.utils
 
 # !!! Need to gracefully handle the situation where there are more workers than
 # number of neurons, currently we get problem when adding the voltage saving
@@ -1704,28 +1705,15 @@ class SnuddaSimulate(object):
     ############################################################################
 
     def check_memory_status(self, threshold=0.1):
-        with open('/proc/meminfo', 'r') as mem:
-            ret = {}
-            tmp = 0
 
-            for i in mem:
-                sline = i.split()
-                if str(sline[0]) == 'MemTotal:':
-                    ret['total'] = int(sline[1])
-                elif str(sline[0]) in ('MemFree:', 'Buffers:', 'Cached:'):
-                    tmp += int(sline[1])
-            ret['free'] = tmp
-            ret['used'] = int(ret['total']) - int(ret['free'])
+        mem_available, mem_total = snudda.utils.memory_status()
 
-        # import pdb
-        # pdb.set_trace()
-
-        memoryRatio = ret['free'] / ret['total']
+        memory_ratio = mem_available / mem_total
 
         self.write_log(str(self.pc.id()) + ": Memory status: " \
-                       + str(int(memoryRatio * 100)) + "% free")
+                       + str(int(memory_ratio * 100)) + "% free")
 
-        return memoryRatio < threshold
+        return memory_ratio < threshold
 
     ############################################################################
 
