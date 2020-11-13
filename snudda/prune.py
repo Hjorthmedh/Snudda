@@ -230,7 +230,7 @@ class SnuddaPrune(object):
                 self.write_log("Creating symbolic link to MERGE file instead")
 
                 f_dest = (os.path.dirname(self.work_history_file) + "/").replace("/log/", "/") \
-                         + "/network-pruned-synapses.hdf5"
+                          + "/network-pruned-synapses.hdf5"
                 f_src = os.path.basename(f_name)
 
                 print(str(f_dest) + "->" + str(f_src))
@@ -1229,95 +1229,6 @@ class SnuddaPrune(object):
         self.file_buffers = None
         self.next_file_read_pos = None
         self.next_buffer_read_pos = None
-
-    ############################################################################
-
-    # Input: Hyper voxel ID, columns which contains location
-    # (columns are different for synapses: range(2,5) and GJ range(6,9)
-    # so we take them as parameter to reuse code for both cases
-
-    # Returns: synapses between pair,
-    #          synapses remaining flag,
-    #          (srcID,destID) of next synapse
-    #
-    # OBS, voxel coordinates for synapses are translated from hyper voxel
-    # coordiantes, to simulation wide coordinates
-
-    def findPairSynapsesBufferedMerge(self, hID, synapseMatrixPath, locationColumns):
-
-        assert False, "findPairSynapseBufferedMerge -- depricated -- remove?"
-
-        startIdx = self.next_buffer_read_pos[hID]
-        endIdx = startIdx + 1
-
-        synapses = self.file_buffers[hID]
-        bufLen = synapses.shape[0]
-
-        oldSynapses = None
-
-        while True:
-
-            if endIdx >= bufLen:
-
-                # End of buffer, we need to read more synapses from file
-                assert oldSynapses is None, \
-                    "Buffer too small, should not overflow twice."  # self.synapseBufferSize
-
-                oldSynapses = synapses[startIdx:, :].copy()
-
-                # This resets self.nextBufferReadPos[hID]
-                self.updateMergeReadBuffer(hID, synapseMatrixPath)
-
-                startIdx = 0
-                endIdx = 1
-
-                if self.file_buffers[hID] is None:
-                    # This was the end of the file
-                    return oldSynapses, False, None
-
-                synapses = self.file_buffers[hID]
-                bufLen = synapses.shape[0]
-
-                assert oldSynapses.shape[0] > 0, "This should never be empty"
-
-                if (oldSynapses[0, 0] != synapses[0, 0]
-                        or oldSynapses[0, 1] != synapses[0, 1]):
-                    # New pair in new buffer, send old pair synapses to caller
-                    return oldSynapses, True, synapses[0, :2].copy()
-
-            # Check if the next synapse belongs to pair
-            if (synapses[startIdx, 0] != synapses[endIdx, 0]
-                    or synapses[startIdx, 1] != synapses[endIdx, 1]):
-                # No more similar, stop
-                break
-
-            endIdx += 1
-
-        # Update the buffer read pos
-        self.next_buffer_read_pos[hID] = endIdx
-
-        if endIdx < bufLen:
-            synapsesRemaining = True
-            nextSynapsePair = synapses[endIdx, 0:2].copy()
-        else:
-            synapsesRemaining = False
-            nextSynapsePair = None
-
-        if oldSynapses is not None:
-            syn = np.concatenate((oldSynapses, synapses[startIdx:endIdx, :]))
-            # Need to add first half also from previous buffer read
-        else:
-            syn = synapses[startIdx:endIdx, :]
-
-        # OBS, we need to convert to global voxel coordinates from the local
-        # hyper voxel coordinates
-
-        # !!! We need to convert from hyper voxel local coordinates for synapse
-        # to simulation wide coordinates
-        # !!! THIS IS NOW DONE AFTER TOUCH DETECTION
-        # syn[:,locationColumns] += self.hyperVoxelOffset[hID]
-
-        return syn, synapsesRemaining, nextSynapsePair
 
     ############################################################################
 
