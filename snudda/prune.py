@@ -1212,6 +1212,8 @@ class SnuddaPrune(object):
 
     def findPairSynapses(self, synapses, startIdx):
 
+        assert False, "findPAirSynapses assumed not to be used -- remove?"
+
         endIdx = startIdx + 1
 
         while (endIdx < synapses.shape[0]
@@ -1230,21 +1232,25 @@ class SnuddaPrune(object):
 
     def setupBufferedMergeRead(self, fileList, synapseMatrixPath):
 
+        assert False, "setupBufferedMergeRead assumed not to be used -- remove?"
+
         self.file_list = fileList
         self.file_buffers = [None] * len(fileList)
-        self.nextBufferReadPos = np.zeros((len(fileList),), dtype=int)
-        self.nextFileReadPos = np.zeros((len(fileList),), dtype=int)
+        self.next_buffer_read_pos = np.zeros((len(fileList),), dtype=int)
+        self.next_file_read_pos = np.zeros((len(fileList),), dtype=int)
 
         for idx, f in enumerate(fileList):
             if f is not None:
                 nSyn = f[synapseMatrixPath].shape[0]
                 bufLen = min(nSyn, self.synapse_buffer_size)
                 self.file_buffers[idx] = f[synapseMatrixPath][0:bufLen, :]
-                self.nextFileReadPos[idx] = bufLen
+                self.next_file_read_pos[idx] = bufLen
 
     ############################################################################
 
     def updateMergeReadBuffer(self, hID, synapseMatrixPath):
+
+        assert False, "updateMergeReadBuffer -- depricated, remove?"
 
         if self.file_buffers[hID] is None:
             # Nothing to do
@@ -1255,11 +1261,11 @@ class SnuddaPrune(object):
             return
 
         syn = self.file_list[hID][synapseMatrixPath]
-        nSynToRead = min(syn.shape[0] - self.nextFileReadPos[hID],
+        nSynToRead = min(syn.shape[0] - self.next_file_read_pos[hID],
                          self.synapse_buffer_size)
 
         if nSynToRead > 0:
-            startPos = self.nextFileReadPos[hID]
+            startPos = self.next_file_read_pos[hID]
             endPos = startPos + nSynToRead
 
             if endPos - startPos != self.file_buffers[hID].shape[0]:
@@ -1268,12 +1274,12 @@ class SnuddaPrune(object):
                 # Reuse memory
                 self.file_buffers[hID][:, :] = syn[startPos:endPos, :]
 
-            self.nextFileReadPos[hID] = endPos
-            self.nextBufferReadPos[hID] = 0
+            self.next_file_read_pos[hID] = endPos
+            self.next_buffer_read_pos[hID] = 0
 
         else:
             self.file_buffers[hID] = None
-            self.nextBufferReadPos[hID] = 0
+            self.next_buffer_read_pos[hID] = 0
 
             ############################################################################
 
@@ -1294,8 +1300,8 @@ class SnuddaPrune(object):
                 self.file_buffers[idx] = None
 
         self.file_buffers = None
-        self.nextFileReadPos = None
-        self.nextBufferReadPos = None
+        self.next_file_read_pos = None
+        self.next_buffer_read_pos = None
 
     ############################################################################
 
@@ -1312,7 +1318,9 @@ class SnuddaPrune(object):
 
     def findPairSynapsesBufferedMerge(self, hID, synapseMatrixPath, locationColumns):
 
-        startIdx = self.nextBufferReadPos[hID]
+        assert False, "findPairSynapseBufferedMerge -- depricated -- remove?"
+
+        startIdx = self.next_buffer_read_pos[hID]
         endIdx = startIdx + 1
 
         synapses = self.file_buffers[hID]
@@ -1359,7 +1367,7 @@ class SnuddaPrune(object):
             endIdx += 1
 
         # Update the buffer read pos
-        self.nextBufferReadPos[hID] = endIdx
+        self.next_buffer_read_pos[hID] = endIdx
 
         if endIdx < bufLen:
             synapsesRemaining = True
@@ -1386,7 +1394,7 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    def buffer_merge_write(self, synapseMatrixLoc, synapses=None, flush=False):
+    def buffer_merge_write(self, synapse_matrix_loc, synapses=None, flush=False):
 
         #    if(synapseMatrixLoc == "network/gapJunctions" \
         #       and flush):
@@ -1397,14 +1405,14 @@ class SnuddaPrune(object):
             # First time run
 
             if synapses is not None:
-                bufferWidth = synapses.shape[1]
+                buffer_width = synapses.shape[1]
             else:
                 self.write_log("bufferMergeWrite: Unable to guess width of matrix")
                 import pdb
                 pdb.set_trace()
 
             self.synapse_write_buffer = np.zeros((self.synapse_buffer_size,
-                                                  bufferWidth),
+                                                  buffer_width),
                                                  dtype=np.int32)
             self.next_buffer_write_pos = 0
             # self.nextFileWritePos = 0
@@ -1414,32 +1422,32 @@ class SnuddaPrune(object):
             # Is buffer almost full?
             if synapses.shape[0] + self.next_buffer_write_pos >= self.synapse_buffer_size:
                 # Flush buffer first
-                endFileIdx = self.next_file_write_pos + self.next_buffer_write_pos
-                self.buffer_out_file[synapseMatrixLoc][self.next_file_write_pos:endFileIdx, :] \
+                end_file_idx = self.next_file_write_pos + self.next_buffer_write_pos
+                self.buffer_out_file[synapse_matrix_loc][self.next_file_write_pos:end_file_idx, :] \
                     = self.synapse_write_buffer[0:self.next_buffer_write_pos, :]
 
                 self.next_file_write_pos += self.next_buffer_write_pos
                 self.next_buffer_write_pos = 0
                 # Ok, now we have clean buffer, back to normal program
 
-            endBufIdx = self.next_buffer_write_pos + synapses.shape[0]
-            self.synapse_write_buffer[self.next_buffer_write_pos:endBufIdx, :] = synapses
+            end_buf_idx = self.next_buffer_write_pos + synapses.shape[0]
+            self.synapse_write_buffer[self.next_buffer_write_pos:end_buf_idx, :] = synapses
             self.next_buffer_write_pos += synapses.shape[0]
 
         if flush:
             self.write_log("Flushing " + str(self.buffer_out_file.filename) \
-                           + " data: " + synapseMatrixLoc)
-            endFileIdx = self.next_file_write_pos + self.next_buffer_write_pos
-            self.buffer_out_file[synapseMatrixLoc][self.next_file_write_pos:endFileIdx, :] \
+                           + " data: " + synapse_matrix_loc)
+            end_file_idx = self.next_file_write_pos + self.next_buffer_write_pos
+            self.buffer_out_file[synapse_matrix_loc][self.next_file_write_pos:end_file_idx, :] \
                 = self.synapse_write_buffer[0:self.next_buffer_write_pos, :]
 
             self.next_file_write_pos += self.next_buffer_write_pos
             self.next_buffer_write_pos = 0
 
             # Resize matrix to fit data
-            w = self.buffer_out_file[synapseMatrixLoc].shape[1]
-            self.buffer_out_file[synapseMatrixLoc].resize((endFileIdx, w))
-            self.write_log(synapseMatrixLoc + " new size " + str((endFileIdx, w)))
+            w = self.buffer_out_file[synapse_matrix_loc].shape[1]
+            self.buffer_out_file[synapse_matrix_loc].resize((end_file_idx, w))
+            self.write_log(synapse_matrix_loc + " new size " + str((end_file_idx, w)))
 
             # Remove buffer
             self.synapse_write_buffer = None
@@ -2588,7 +2596,7 @@ class SnuddaPrune(object):
                     read_buffer[:, :] = h5mat[buffer_start:buffer_end, :]
 
                 # Need to concatenate with old synapses
-                synMat = np.concatenate([old_synapses,
+                syn_mat = np.concatenate([old_synapses,
                                          read_buffer[:(end_idx - buffer_start), :]],
                                         axis=0)
 
@@ -2598,11 +2606,11 @@ class SnuddaPrune(object):
                                != read_buffer[end_idx - buffer_start, :2]).any(), \
                         "We missed one synpase! (2)"
 
-                    assert (synMat[:, 0] == synMat[0, 0]).all() \
-                           and (synMat[:, 1] == synMat[0, 1]).all(), \
-                        f"Synapse matrix (2) contains more than one pair:\n{synMat}"
+                    assert (syn_mat[:, 0] == syn_mat[0, 0]).all() \
+                           and (syn_mat[:, 1] == syn_mat[0, 1]).all(), \
+                        f"Synapse matrix (2) contains more than one pair:\n{syn_mat}"
 
-                    assert synMat.shape[0] == end_idx - start_idx, \
+                    assert syn_mat.shape[0] == end_idx - start_idx, \
                         "Synapse matrix has wrong size"
                 except:
                     import traceback
@@ -2612,14 +2620,14 @@ class SnuddaPrune(object):
                     import pdb
                     pdb.set_trace()
 
-                yield (synMat,
+                yield (syn_mat,
                        unique_id)
 
                 old_synapses = None
 
             else:
 
-                synMat = read_buffer[(start_idx - buffer_start):(end_idx - buffer_start), :]
+                syn_mat = read_buffer[(start_idx - buffer_start):(end_idx - buffer_start), :]
 
                 try:
                     assert end_idx == buffer_end \
@@ -2627,11 +2635,11 @@ class SnuddaPrune(object):
                                != read_buffer[end_idx - buffer_start, :2]).any(), \
                         "We missed one synpase! (1)"
 
-                    assert (synMat[:, 0] == synMat[0, 0]).all() \
-                           and (synMat[:, 1] == synMat[0, 1]).all(), \
-                        f"Synapse matrix (1) contains more than one pair:\n{synMat}"
+                    assert (syn_mat[:, 0] == syn_mat[0, 0]).all() \
+                           and (syn_mat[:, 1] == syn_mat[0, 1]).all(), \
+                        f"Synapse matrix (1) contains more than one pair:\n{syn_mat}"
 
-                    assert synMat.shape[0] == end_idx - start_idx, \
+                    assert syn_mat.shape[0] == end_idx - start_idx, \
                         "Synapse matrix has wrong size"
                 except:
                     import traceback
@@ -2641,7 +2649,7 @@ class SnuddaPrune(object):
                     import pdb
                     pdb.set_trace()
 
-                yield (synMat,
+                yield (syn_mat,
                        unique_id)
 
             next_row_set = next(lookup_iterator, None)
