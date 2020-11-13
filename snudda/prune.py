@@ -696,14 +696,7 @@ class SnuddaPrune(object):
         morph_group = out_file.create_group("morphologies")
 
         for name, definition in cfg["Neurons"].items():
-            try:
-                morph_file = definition["morphology"]
-            except:
-                import traceback
-                tstr = traceback.format_exc()
-                self.write_log(tstr)
-                import pdb
-                pdb.set_trace()
+            morph_file = definition["morphology"]
 
             with open(morph_file, "r") as f:
                 swc_data = f.read()
@@ -809,6 +802,7 @@ class SnuddaPrune(object):
             self.write_log("Something went wrong with reading old merge file, ignoring it")
             # Something went wrong
             merge_file_ok = False
+            f = None
 
         if merge_file_ok:
             self.write_log("Found old merge file " + str(merge_file_name))
@@ -873,14 +867,7 @@ class SnuddaPrune(object):
             morph_group = out_file.create_group("morphologies")
 
             for name, definition in cfg["Neurons"].items():
-                try:
-                    morph_file = definition["morphology"]
-                except:
-                    import traceback
-                    tstr = traceback.format_exc()
-                    self.write_log(tstr)
-                    import pdb
-                    pdb.set_trace()
+                morph_file = definition["morphology"]
 
                 with open(morph_file, "r") as f:
                     swc_data = f.read()
@@ -1127,70 +1114,6 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    def findRangesOLD(self, synapses, nWorkers, startPos=0, nSyn=None):
-
-        assert False, "findRangesOLD obsolete, remove?"
-
-        if nSyn is None:
-            nSyn = synapses.shape[0] - startPos
-
-        blockSize = max(1, int(math.floor(float(nSyn) / nWorkers)))
-
-        self.write_log("Find block ranges. From " + str(startPos) \
-                       + " to " + str(nSyn + startPos) \
-                       + " block size " + str(blockSize))
-
-        try:
-            blockStart = np.array([x + startPos for x \
-                                   in range(0, blockSize * nWorkers, blockSize)])
-        except:
-            import traceback
-            tstr = traceback.format_exc()
-            self.write_log(tstr)
-            import pdb
-            pdb.set_trace()
-
-        self.write_log("blockStart=" + str(blockStart))
-
-        for idx in range(1, len(blockStart)):
-
-            assert blockStart[idx - 1] < blockStart[idx], \
-                "Blocks seem to be quite small, run in serial instead. " \
-                + "idx = " + str(idx) + " blockStart = " + str(blockStart)
-
-            startRow = blockStart[idx]
-
-            # Need to make sure that the synapses between pairs of neurons are
-            # not split between workers
-            try:
-                while (synapses[blockStart[idx] - 1, 0:2] == synapses[startRow, 0:2]).all():
-                    startRow += 1
-            except:
-                import traceback
-                tstr = traceback.format_exc()
-                self.write_log(tstr)
-
-                self.write_log("Problem with setting ranges, fall back to serial")
-                return None
-
-            blockStart[idx] = startRow
-
-        assert (np.diff(blockStart) > 0).all(), \
-            "All workers should have different block starts. Try running in serial."
-
-        # Calculate the corresponding block ends, special treatment for last pos
-        blockEnd = np.zeros(blockStart.shape, dtype=int)
-        blockEnd[0:-1] = blockStart[1:]
-        blockEnd[-1] = startPos + nSyn + 1  # +1, python dont include element at end
-
-        synapseRanges = [range(x, y) for x, y in zip(blockStart, blockEnd)]
-
-        self.write_log("synapseRanges = " + str(synapseRanges))
-
-        return synapseRanges
-
-    ############################################################################
-
     def clean_up_merge_files(self):
 
         if self.temp_file_list is None:
@@ -1284,198 +1207,6 @@ class SnuddaPrune(object):
         self.write_log("Workers setup: " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
 
         self.workers_initialised = True
-
-    ############################################################################
-
-    # This code does a N-way merge for synapses
-
-    # !!! We also need to merge gap junctions
-
-    def big_merge(self, merge_data_type="synapses", clean_voxel_files=True):
-
-        assert False, "big_merge is replaced by big_merge_lookup"
-
-        # Since we want the code to work for both synapses and gap junction
-        # we need to know location of synapse matrix, eg "network/synapses",
-        # number of synapses, eg "nSynapses", and in some functions which
-        # columns containe x,y,z voxel coords, eg. range(2,5)
-        h5SynMat, h5SynN, h5SynLoc = self.data_loc[merge_data_type]
-
-        self.merge_data_type = merge_data_type
-        self.write_log("Doing bigMerge for " + merge_data_type)
-
-        synapse_heap = []
-
-        self.write_log("Starting big merge of all data")
-
-        nNeurons = len(self.hist_file["network/neurons/neuronID"])
-        assert np.max(self.hist_file["network/neurons/neuronID"]) + 1 == nNeurons, \
-            "bigMerge: There are neuron IDs missing"
-
-        maxHyperID = np.max(self.all_hyper_i_ds) + 1
-        fileList = [None] * maxHyperID
-        numSynapses = np.zeros((maxHyperID,), dtype=np.int)
-
-        # Open all files for reading
-        hFileNameMask = self.base_path + "/voxels/network-putative-synapses-%s.hdf5"
-
-        maxAxonVoxelCtr = 0
-        maxDendVoxelCtr = 0
-
-        nSynHist = self.hist_file[h5SynN]
-        nSynTotal = np.sum(nSynHist)
-
-        for hID, nSyn, nOverflow in zip(self.hist_file["completed"], nSynHist,
-                                        self.hist_file["voxelOverflowCounter"]):
-
-            if nSyn > 0:
-                # Open file, and add first row to the heap
-                hFileName = hFileNameMask % str(hID)
-                fileList[hID] = h5py.File(hFileName, 'r')
-                numSynapses[hID] = nSyn
-
-                srcID = fileList[hID][h5SynMat][0, 0]
-                destID = fileList[hID][h5SynMat][0, 1]
-                uniqueID = destID * nNeurons + srcID  # This is used for heap priority
-
-                # Create a heap containing the first element of all files
-                heapq.heappush(synapse_heap, (uniqueID, hID))
-
-                # This is so we can optimize the axon/dend voxelCtr and size
-                if "maxAxonVoxelCtr" in fileList[hID]["meta"]:
-                    maxAxonVoxelCtr = max(maxAxonVoxelCtr,
-                                          fileList[hID]["meta/maxAxonVoxelCtr"][()])
-                if "maxDendVoxelCtr" in fileList[hID]["meta"]:
-                    maxDendVoxelCtr = max(maxDendVoxelCtr,
-                                          fileList[hID]["meta/maxDendVoxelCtr"][()])
-
-                if clean_voxel_files:
-                    # This makes sure we remove the old voxel files afterwards
-                    self.temp_file_list.append(hFileName)
-
-        # Setup read buffer
-        self.setupBufferedMergeRead(fileList, h5SynMat)
-
-        if self.buffer_out_file is None:
-            # Create output file
-            (self.buffer_out_file, outFileName) \
-                = self.setup_merge_file(delete_after=False)
-        else:
-            # We need to reset the write pointer (GJ and synapses should start from 0)
-            self.next_file_write_pos = 0
-
-        # Only save this meta data if doing the synapses call
-        if maxAxonVoxelCtr > 0 and self.merge_data_type == "synapses":
-            self.buffer_out_file["meta"].create_dataset("maxAxonVoxelCtr",
-                                                        data=maxAxonVoxelCtr)
-            self.write_log("maxAxonVoxelCtr = " + str(maxAxonVoxelCtr))
-
-        if maxDendVoxelCtr > 0 and self.merge_data_type == "synapses":
-            self.buffer_out_file["meta"].create_dataset("maxDendVoxelCtr",
-                                                        data=maxDendVoxelCtr)
-            self.write_log("maxDendVoxelCtr = " + str(maxDendVoxelCtr))
-
-        # 2. Pop the smallest element, and add it to the final file
-        # -- check same file if there are more with the same source and dest
-        # -- buffer the writes
-
-        synCtr = 0
-
-        if len(synapse_heap) > 0:
-            # Get the first file to read synapses from
-            (uniqueID, hID) = heapq.heappop(synapse_heap)
-        else:
-            # No synapses at all, return
-            self.clean_up_merge_read_buffers()
-
-            return self.buffer_out_file[h5SynMat], self.buffer_out_file
-
-        # synapses coordinates are translated to simulation wide coordinates
-        # from hyper voxel local coordinates
-        (synapses, synapsesRemaining, nextSynapsePair) \
-            = self.findPairSynapsesBufferedMerge(hID, h5SynMat, h5SynLoc)
-
-        self.buffer_merge_write(h5SynMat, synapses)
-        synCtr += synapses.shape[0]
-
-        # !!! DEBUG
-        prevPair = synapses[0, 0:2].copy()
-        prevUID = uniqueID
-
-        loopCtr = 0
-        while synapsesRemaining or len(synapse_heap) > 0:
-
-            if loopCtr % 1000000 == 0:
-                self.write_log("Synapses: " + str(synCtr) \
-                               + "/" + str(nSynTotal) \
-                               + " (heap size: " + str(len(synapse_heap)) + ")")
-
-            if synapsesRemaining:
-                # Need to push the next synapse in line from that file onto the heap
-                [srcID, destID] = nextSynapsePair
-
-                uniqueID = destID * nNeurons + srcID  # This is used for heap priority
-                (uniqueID, hID) = heapq.heappushpop(synapse_heap, (uniqueID, hID))
-            else:
-                (uniqueID, hID) = heapq.heappop(synapse_heap)
-
-            (synapses, synapsesRemaining, nextSynapsePair) \
-                = self.findPairSynapsesBufferedMerge(hID, h5SynMat, h5SynLoc)
-
-            try:
-                assert nextSynapsePair is None or \
-                       synapses[0, 1] < nextSynapsePair[1] \
-                       or (synapses[0, 1] == nextSynapsePair[1] \
-                           and synapses[0, 0] < nextSynapsePair[0]), \
-                    "They are not in order in file"
-
-            except:
-                print("This is realyl weird...")
-                import pdb
-                pdb.set_trace()
-
-            assert uniqueID == synapses[0, 1] * nNeurons + synapses[0, 0], \
-                "Oh no! Internal inconsistency"
-
-            # !!! Just a check while writing code, to make sure it is ok
-            assert (synapses[:, 0] == synapses[0, 0]).all() \
-                   and (synapses[:, 1] == synapses[0, 1]).all(), \
-                "Source and dest should all be the same for pair synapses"
-
-            try:
-                assert (synapses[0, 1] > prevPair[1]
-                        or (synapses[0, 1] == prevPair[1] and synapses[0, 0] >= prevPair[0])), \
-                    "Synapses not in order"
-            except:
-                print("We have a big problem! Synapses not in order!")
-                import pdb
-                pdb.set_trace()
-
-            try:
-                self.buffer_merge_write(h5SynMat, synapses)
-                synCtr += synapses.shape[0]
-                loopCtr += 1
-
-            except:
-                print("Why is this wrong?")
-                import traceback
-                tstr = traceback.format_exc()
-                self.write_log(tstr)
-                import pdb
-                pdb.set_trace()
-
-                # DEBUG!!!
-            prevPair = synapses[0, 0:2].copy()
-            prevUID = uniqueID
-
-        # Make sure all of the buffer is written to file
-        self.buffer_merge_write(h5SynMat, flush=True)
-
-        # The buffers should be cleared once the files are read from,
-        # but just as a precaution
-        self.clean_up_merge_read_buffers()
-
-        return self.buffer_out_file[h5SynMat], self.buffer_out_file
 
     ############################################################################
 
