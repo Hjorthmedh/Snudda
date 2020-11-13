@@ -36,7 +36,7 @@ import h5py
 import json
 import pickle
 
-from snudda.Neuron_morphology import NeuronMorphology
+# from snudda.Neuron_morphology import NeuronMorphology
 
 
 # The x,y,z coordinates of the synapses in the original file are integer
@@ -647,119 +647,6 @@ class SnuddaPrune(object):
             prune_info["a3"] = None
 
         return prune_info
-
-    ############################################################################
-
-    def loadPruningInformationOLD(self):
-
-        assert False, "loadPruningInformationOLD -- unused?? delete..."
-
-        self.config = json.loads(self.hist_file["meta/config"][()])
-
-        self.population_unit_id = self.hist_file["network/neurons/populationUnitID"][()]
-
-        # Normally we use type names as lookups, but since we will do this
-        # many millions of times, we create an temporary typeID number
-        self.make_type_numbering()
-
-        self.connectivity_distributions = dict([])
-
-        for name, definition in self.config.items():
-
-            if name in ["Volume", "PopulationUnits"]:
-                # We are just loading the pruning information
-                continue
-
-            if "targets" in definition:
-                conDist = definition["targets"]
-            else:
-                conDist = []
-
-            for row in conDist:
-                target = row[0]
-
-                try:
-                    synapseType = self.synapse_type_reverse_lookup[row[1][0]]
-                    # Skipping loading conductance mean and std,
-                    # and channelParamDictionary
-                    distrib = row[2]
-                except:
-                    self.write_log("Something wrong with your network json file. row: " \
-                                   + str(row))
-                    import pdb
-                    pdb.set_trace()
-
-                if len(row) > 3:
-                    # If distrib2 is specified, then distrib is within population Unit
-                    # distribution and distrib2 is between population unit distribution
-                    distrib2 = row[3]
-                else:
-                    distrib2 = None
-
-                typeName = name.split("_")[0]
-
-                try:
-                    if target in self.type_id_lookup:
-                        self.connectivity_distributions[self.type_id_lookup[typeName],
-                                                        self.type_id_lookup[target],
-                                                        synapseType] \
-                            = (distrib, distrib2)
-                    else:
-                        self.write_log("WARNING: Target neuron " + str(target) + " not included in simulation")
-                except:
-
-                    import traceback
-                    tstr = traceback.format_exc()
-                    self.write_log(tstr)
-
-                    import pdb
-                    pdb.set_trace()
-
-    ############################################################################
-
-    def createConnectionMatrixOLD(self):
-
-        assert False, "createConnectionMatrixOLD unused --- delete??"
-
-        if self.hist_file is None:
-            self.open_work_history_file()
-
-        nNeurons = self.hist_file["network/neurons/neuronID"].shape[0]
-
-        self.write_log("Creating the " + str(nNeurons) + "x" + str(nNeurons) \
-                       + " sparse connection matrix")
-
-        # After creation, convert to csr or csc matrix
-        conMat = scipy.sparse.lil_matrix((nNeurons, nNeurons), dtype=np.int16)
-
-        assert self.synapses.shape[0] > 0, "No synapses in synapse matrix"
-
-        prevSrcID = self.synapses[0, 0]
-        prevDestID = self.synapses[0, 1]
-        prevCtr = 1
-
-        # The reason we dont write the synapse directly is that each access
-        # to the sparse matrix takes time, so better group synapses
-        # between same pairs together to one insert.
-        # This requires self.synapess to be sorted.
-
-        for row in self.synapses[1:, :]:
-            SrcID = row[0]
-            DestID = row[1]
-
-            if SrcID == prevSrcID and DestID == prevDestID:
-                prevCtr += 1
-            else:
-                conMat[prevSrcID, prevDestID] += prevCtr
-                prevSrcID = SrcID
-                prevDestID = DestID
-                prevCtr = 1
-
-        # Dont forget last one
-        conMat[prevSrcID, prevDestID] += prevCtr
-
-        self.write_log("Converting to CSR sparse matrix format")
-        return conMat.tocsr()
 
     ############################################################################
 
