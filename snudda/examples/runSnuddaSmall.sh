@@ -16,7 +16,7 @@ sleep 20
 #simName=networks/Article10000-v1
 #simName=networks/Article-jitter-v6
 #simName=networks/Article-var-v2-100000
-simName=networks/tinySim10b
+simName=networks/tinySim10c
 #simName=networks/Article-nojitter
 
 #snudda init $simName --size 1760000
