@@ -553,7 +553,7 @@ class Snuddaload(object):
             if rowEval(f["network/synapses"][idxA2, :], nNeurons) == valTarget:
                 idxFound = idxA2
 
-            while idxA1 < idxA2 and idxFound is None:
+            while idxA1 < idxA2 and idxFound is None and idxA2 - idxA1 > 1:
 
                 idxNext = int(np.round((idxA1 + idxA2) / 2))
                 valNext = rowEval(f["network/synapses"][idxNext, :], nNeurons)
