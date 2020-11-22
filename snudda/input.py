@@ -1073,8 +1073,8 @@ class SnuddaInput(object):
 
         try:
             with h5py.File(hdf5_file, 'r') as f:
-                self.network_config_file = f["meta"]["configFile"][()]
-                self.position_file = f["meta"]["positionFile"][()]
+                self.network_config_file = SnuddaLoad.to_str(f["meta"]["configFile"][()])
+                self.position_file = SnuddaLoad.to_str(f["meta"]["positionFile"][()])
                 self.network_slurm_id = int(f["meta/SlurmID"][()])
 
                 self.axon_stump_id_flag = f["meta/axonStumpIDFlag"][()]

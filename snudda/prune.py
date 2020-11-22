@@ -70,7 +70,7 @@ class SnuddaPrune(object):
         start_time = timeit.default_timer()
         self.work_history_file = work_history_file
         self.base_path = os.path.dirname(self.work_history_file) + "/"
-        self.base_path = self.base_path.replace("/log/", "/")
+        self.base_path = self.base_path.replace("/log/", "/")  # TODO: Fix so handles both / and \
 
         self.logfile = logfile
         self.logfile_name = logfile_name
