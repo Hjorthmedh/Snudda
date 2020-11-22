@@ -529,7 +529,8 @@ class SnuddaLoad(object):
             if row_eval(f["network/synapses"][idx_a2, :], num_neurons) == val_target:
                 idx_found = idx_a2
 
-            while idx_a1 < idx_a2 and idx_found is None:
+            # -1 since if idx_a1 and idx_a2 are one apart, we have checked all values
+            while idx_a1 < idx_a2 - 1 and idx_found is None:
 
                 idx_next = int(np.round((idx_a1 + idx_a2) / 2))
                 val_next = row_eval(f["network/synapses"][idx_next, :], num_neurons)
@@ -671,10 +672,15 @@ if __name__ == "__main__":
             for nid, name in nOfType:
                 print("%d : %s" % (nid, name))
 
-    if args.listPre:
+    if args.listPre is not None:
         print("List neurons pre-synaptic to neuronID = " + str(args.listPre)
               + " (" + str(nl.data["neurons"][args.listPre]["name"]) + ")")
         synapses = nl.find_synapses(post_id=args.listPre)
+
+        if synapses[0] is None:
+            # Nothing to display
+            exit(0)
+
         preID = np.unique(synapses[0][:, 0])
 
         for nid, name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"]
@@ -682,7 +688,7 @@ if __name__ == "__main__":
             nSyn = np.sum(synapses[0][:, 0] == nid)
             print("%d : %s (%d synapses)" % (nid, name, nSyn))
 
-    if args.listPost:
+    if args.listPost is not None:
         print("List neurons post-synaptic to neuronID = " + str(args.listPost)
               + " (" + str(nl.data["neurons"][args.listPost]["name"]) + ")")
         synapses = nl.find_synapses(pre_id=args.listPost)
