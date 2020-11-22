@@ -73,8 +73,9 @@ class Snudda(object):
 
     ############################################################################
 
-    def help_info(self, args):
-        from snudda.snudda_help import snudda_help_text
+    @staticmethod
+    def help_info(args):
+        from snudda.help import snudda_help_text
         print(snudda_help_text())
 
     ############################################################################
@@ -358,13 +359,13 @@ class Snudda(object):
         # Problems with nested symbolic links when the second one is a relative
         # path going beyond the original base path
         if args.mechDir is None:
-            mech_dir = os.path.dirname(network_file) + "/mechanisms"
+            mech_dir = os.path.join(os.path.dirname(network_file), "mechanisms")
 
-            # !!! problem with paths, testing to create mechanism dir in current dir
+            # TODO!!! problem with paths, testing to create mechanism dir in current dir
             mech_dir = "mechanisms"
 
             if not os.path.exists(mech_dir):
-                m_dir = os.path.dirname(__file__) + "/data/cellspecs-v2/mechanisms"
+                m_dir = os.path.join(os.path.dirname(__file__), "data", "cellspecs-v2", "mechanisms")
                 os.symlink(m_dir, mech_dir)
         else:
             mech_dir = args.mechDir
@@ -381,7 +382,7 @@ class Snudda(object):
 
         # os.system(makeModsStr)
 
-        save_dir = os.path.dirname(network_file) + "/simulation/"
+        save_dir = os.path.join(os.path.dirname(network_file), "simulation")
 
         if not os.path.exists(save_dir):
             print("Creating directory " + save_dir)
