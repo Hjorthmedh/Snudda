@@ -41,7 +41,7 @@
 
 
 import os
-import sys
+import sys  # Used in __init__
 import timeit
 import numpy as np
 import zmq
@@ -527,16 +527,16 @@ class Snudda(object):
 
     ############################################################################
 
-    def setup_log_file(self, logFileName):
-        data_dir = os.path.dirname(logFileName)
+    def setup_log_file(self, log_file_name):
+        data_dir = os.path.dirname(log_file_name)
 
         self.make_dir_if_needed(data_dir)
 
         try:
-            self.logfile = open(logFileName, 'w')
+            self.logfile = open(log_file_name, 'w')
             self.logfile.write('Starting log file\n')
         except:
-            print("Unable to set up log file " + str(logFileName))
+            print("Unable to set up log file " + str(log_file_name))
 
     ############################################################################
 

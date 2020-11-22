@@ -214,8 +214,7 @@ class SnuddaSimulate(object):
         self.gap_junction_next_gid = self.num_neurons + 100000000
 
         # Make a bool array indicating if cells are virtual or not
-        self.is_virtual_neuron = [n["virtualNeuron"] \
-                                  for n in self.network_info["neurons"]]
+        self.is_virtual_neuron = [n["virtualNeuron"] for n in self.network_info["neurons"]]
 
     ############################################################################
 
@@ -263,7 +262,7 @@ class SnuddaSimulate(object):
                     mod_file = channel_param_dict["modFile"]
 
                     eval_str = "self.sim.neuron.h." + mod_file
-                    channel_module = eval(eval_str) # If this fails, check that NEURON modules are compiled
+                    channel_module = eval(eval_str)  # If this fails, check that NEURON modules are compiled
 
                     # These are not variables to set in the modFile
                     if "modFile" in channel_param_dict:
@@ -294,8 +293,7 @@ class SnuddaSimulate(object):
 
                             par_data.append(p_dict)
                         else:
-                            self.write_log("WARNING: Old data format in parameter file " \
-                                           + str(par_file))
+                            self.write_log("WARNING: Old data format in parameter file " + str(par_file))
 
                             p_dict = channel_param_dict.copy()
                             for x in par_data_dict[pd]:
@@ -381,21 +379,11 @@ class SnuddaSimulate(object):
                 self.pc.set_gid2node(ID, int(self.pc.id()))
 
                 if True or False:
-                    self.write_log("Node " + str(int(self.pc.id())) + " - cell " \
-                                   + str(ID) + " " + name)
+                    self.write_log("Node " + str(int(self.pc.id())) + " - cell " + str(ID) + " " + name)
 
                 # We need to instantiate the cell
-                try:
-                    self.neurons[ID].instantiate(sim=self.sim)
-
-                    self.set_resting_voltage(ID)
-
-                except:
-                    import traceback
-                    tstr = traceback.format_exc()
-                    print(tstr)
-                    import pdb
-                    pdb.set_trace()
+                self.neurons[ID].instantiate(sim=self.sim)
+                self.set_resting_voltage(ID)
 
                 # !!! DIRTY FIX for
                 # https://github.com/BlueBrain/BluePyOpt/blob/master/bluepyopt/ephys/morphologies.py
@@ -598,11 +586,8 @@ class SnuddaSimulate(object):
 
         self.write_log("Finding node local gap junctions...")
 
-        gj_idx_a = np.where([x in self.neuron_id \
-                             for x in self.gap_junctions[:, 0]])[0]
-
-        gj_idx_b = np.where([x in self.neuron_id \
-                             for x in self.gap_junctions[:, 1]])[0]
+        gj_idx_a = np.where([x in self.neuron_id for x in self.gap_junctions[:, 0]])[0]
+        gj_idx_b = np.where([x in self.neuron_id for x in self.gap_junctions[:, 1]])[0]
 
         # GJIDoffset = self.network_info["GJIDoffset"]
         gj_id_offset = 100 * self.num_neurons
@@ -618,10 +603,8 @@ class SnuddaSimulate(object):
         seg_id_a = self.gap_junctions[gj_idx_a, 2]
         seg_id_b = self.gap_junctions[gj_idx_b, 3]
 
-        compartment_a = [self.neurons[x].map_id_to_compartment([y])[0] \
-                        for (x, y) in zip(neuron_id_a, seg_id_a)]
-        compartment_b = [self.neurons[x].map_id_to_compartment([y])[0] \
-                        for (x, y) in zip(neuron_id_b, seg_id_b)]
+        compartment_a = [self.neurons[x].map_id_to_compartment([y])[0] for (x, y) in zip(neuron_id_a, seg_id_a)]
+        compartment_b = [self.neurons[x].map_id_to_compartment([y])[0] for (x, y) in zip(neuron_id_b, seg_id_b)]
 
         seg_xa = self.gap_junctions[gj_idx_a, 4] / 1000.0
         seg_xb = self.gap_junctions[gj_idx_b, 5] / 1000.0
@@ -926,7 +909,7 @@ class SnuddaSimulate(object):
                          section, section_dist,
                          gid_source_gj, gid_dest_gj,
                          g_gap_junction=0.5e-9,
-                         GID=None):  # GID unused??
+                         gid=None):  # GID unused??
 
         # If neuron complains, make sure you have par_ggap.mod
         gj = h.gGapPar(section(section_dist))
@@ -934,11 +917,6 @@ class SnuddaSimulate(object):
 
         self.pc.target_var(gj._ref_vgap, gid_dest_gj)
 
-        # TODO: Is this still an issue?
-        # !!! The line below sometimes gives this error:
-        # /cfs/klemming/nobackup/h/hjorth/ChINopt/model/x86_64/special: source var gid already in use: 17124416
-        # --- ok can replicate error if create 200 FS in small volume...
-        # --- need to fix. HMMM how, src and dest gid has to be unique for each GJ?
         self.pc.source_var(section(section_dist)._ref_v, gid_source_gj, sec=section)
 
         gj.g = g_gap_junction
@@ -1059,19 +1037,11 @@ class SnuddaSimulate(object):
         if input_file is None:
             input_file = self.input_file
 
-        self.write_log("Adding external (cortical, thalamic) input from " \
-                       + input_file)
+        self.write_log("Adding external (cortical, thalamic) input from " + input_file)
 
         self.input_data = h5py.File(input_file, 'r')
 
         for neuron_id, neuron in self.neurons.items():
-
-            # if(neuronID != 0):
-            #  self.writeLog("Skipping input temporarilly")
-            #  continue
-
-            # !!! WE ALSO NEED TO HANDLE modFile and parameterFile parameters that are
-            # in inputData
 
             self.external_stim[neuron_id] = []
             name = neuron.name
@@ -1176,10 +1146,8 @@ class SnuddaSimulate(object):
 
         if rest_volt is None:
             # If no resting voltage is given, extract it from parameters
-            rest_volt = [x for x in self.neurons[neuron_id].parameters \
-                         if x["param_name"] == "v_init"][0]["value"]
-            self.write_log("Neuron " + self.neurons[neuron_id].name \
-                           + " resting voltage = " + str(rest_volt))
+            rest_volt = [x for x in self.neurons[neuron_id].parameters if x["param_name"] == "v_init"][0]["value"]
+            self.write_log("Neuron " + self.neurons[neuron_id].name + " resting voltage = " + str(rest_volt))
 
         soma = [x for x in self.neurons[neuron_id].icell.soma]
         axon = [x for x in self.neurons[neuron_id].icell.axon]
@@ -1246,7 +1214,6 @@ class SnuddaSimulate(object):
                     self.write_log("Error! " + str(e))
                     import pdb
                     pdb.set_trace()
-
 
     ############################################################################
 
@@ -1325,8 +1292,7 @@ class SnuddaSimulate(object):
             vc.amp1 = v * 1e3
             vc.dur1 = dur * 1e3
 
-            self.write_log("Resistance: " + str(rs) \
-                           + ", voltage: " + str(vc.amp1) + "mV")
+            self.write_log("Resistance: " + str(rs) + ", voltage: " + str(vc.amp1) + "mV")
 
             self.v_clamp_list.append(vc)
 
@@ -1350,7 +1316,7 @@ class SnuddaSimulate(object):
 
         # Only include neuron IDs on this worker, ie those in self.neuronID
         # (filtering in the if statement)
-        cells = dict((k, self.neurons[k]) \
+        cells = dict((k, self.neurons[k])
                      for k in cell_id if (not self.is_virtual_neuron[k]
                                           and k in self.neuron_id))
 
@@ -1387,8 +1353,7 @@ class SnuddaSimulate(object):
         if hold_v is None:
             self.sim.neuron.h.finitialize()
         else:
-            self.write_log("User override for holding voltage: " \
-                           + str(hold_v * 1e3) + " mV")
+            self.write_log("User override for holding voltage: " + str(hold_v * 1e3) + " mV")
             self.sim.neuron.h.finitialize(hold_v * 1e3)
 
         # Asked on neuron, check answer:
@@ -1403,8 +1368,7 @@ class SnuddaSimulate(object):
         self.write_log("Simulation done.")
 
         end_time = timeit.default_timer()
-        self.write_log("Simulation run time: " \
-                       + str(end_time - start_time) + " s")
+        self.write_log("Simulation run time: " + str(end_time - start_time) + " s")
 
     ############################################################################
 
@@ -1496,11 +1460,11 @@ class SnuddaSimulate(object):
         if num_bad > 0:
             # If this happens, check that Neuron does not warn for removing sections
             # due to having only one point
-            self.write_log("!!! Found " + str(num_bad) + " synapses on " \
-                           + self.network_info["neurons"][dest_id]["name"] \
-                           + "( " + str(dest_id) + ") " \
-                                                 " that are further than " + str(bad_threshold) + "mum away." \
-                           + " morphology: " \
+            self.write_log("!!! Found " + str(num_bad) + " synapses on "
+                           + self.network_info["neurons"][dest_id]["name"]
+                           + "( " + str(dest_id) + ") "
+                           + " that are further than " + str(bad_threshold) + "mum away."
+                           + " morphology: "
                            + self.network_info["neurons"][dest_id]["morphology"])
 
             ### DEBUG PLOT!!!
@@ -1528,14 +1492,14 @@ class SnuddaSimulate(object):
 
                 if False:
                     # Draw neuron
-                    allSec = [x for x in neuron.h.allsec() if "axon" not in str(x)]
+                    all_sec = [x for x in neuron.h.allsec() if "axon" not in str(x)]
                     for x in np.linspace(0, 1, 10):
-                        secPos = np.array([[h.x3d(x, sec=sec),
+                        sec_pos = np.array([[h.x3d(x, sec=sec),
                                             h.y3d(x, sec=sec),
-                                            h.z3d(x, sec=sec)] \
-                                           for sec in allSec])
+                                            h.z3d(x, sec=sec)]
+                                           for sec in all_sec])
 
-                        ax.scatter(secPos[:, 0], secPos[:, 1], secPos[:, 2], color="blue")
+                        ax.scatter(sec_pos[:, 0], sec_pos[:, 1], sec_pos[:, 2], color="blue")
 
                 import pdb
                 pdb.set_trace()
@@ -1647,11 +1611,9 @@ class SnuddaSimulate(object):
             # The neuron ID does not exist on this worker
             return
 
-        assert end_time > start_time, \
-            "addCurrentInection: End time must be after start time"
+        assert end_time > start_time, "add_current_injection: End time must be after start time"
 
-        cur_stim = self.sim.neuron.h.IClamp(0.5,
-                                           sec=self.neurons[neuron_id].icell.soma[0])
+        cur_stim = self.sim.neuron.h.IClamp(0.5, sec=self.neurons[neuron_id].icell.soma[0])
         cur_stim.delay = start_time * 1e3
         cur_stim.dur = (end_time - start_time) * 1e3
         cur_stim.amp = amplitude * 1e9  # What is units of amp?? nA??
@@ -1669,26 +1631,26 @@ class SnuddaSimulate(object):
 
     def get_volt_file_name(self):
 
-        voltFile = os.path.basename(self.network_file) + "/simulation/simulation-volt.txt"
+        volt_file = os.path.basename(self.network_file) + "/simulation/simulation-volt.txt"
 
-        return voltFile
+        return volt_file
 
     ############################################################################
 
     # Use event handling
 
-    def setup_print_sim_time(self, tMax):
+    def setup_print_sim_time(self, t_max):
 
         # Only have the first node print time estimates
         if self.pc.id() == 0:
-            self.t_max = tMax
+            self.t_max = t_max
             self.sim_start_time = timeit.default_timer()
-            self.fih_time = h.FInitializeHandler((self._setup_print_sim_time_helper, tMax))
+            self.fih_time = h.FInitializeHandler((self._setup_print_sim_time_helper, t_max))
 
     ############################################################################
 
-    def _setup_print_sim_time_helper(self, tMax):
-        update_points = np.arange(tMax / 100., tMax, tMax / 100.)
+    def _setup_print_sim_time_helper(self, t_max):
+        update_points = np.arange(t_max / 100., t_max, t_max / 100.)
         for t in update_points:
             h.cvode.event(t, self.print_sim_time)
 
@@ -1700,7 +1662,7 @@ class SnuddaSimulate(object):
         fraction_done = h.t / self.t_max
         time_left = elapsed_time * ((self.t_max - h.t) / h.t)
 
-        self.write_log("%.0f%% done. Elapsed: %.1f s, estimated time left: %.1f s" \
+        self.write_log("%.0f%% done. Elapsed: %.1f s, estimated time left: %.1f s"
                        % (fraction_done * 100, elapsed_time, time_left))
 
     ############################################################################
@@ -1711,7 +1673,7 @@ class SnuddaSimulate(object):
 
         memory_ratio = mem_available / mem_total
 
-        self.write_log(str(self.pc.id()) + ": Memory status: " \
+        self.write_log(str(self.pc.id()) + ": Memory status: "
                        + str(int(memory_ratio * 100)) + "% free")
 
         return memory_ratio < threshold
@@ -1723,12 +1685,10 @@ class SnuddaSimulate(object):
         if not transient_vector:
             transient_vector = []
 
-        channel_list = {'spn': ['naf_ms', 'kas_ms', 'kaf_ms', 'kir_ms',
-                               'cal12_ms', 'cal13_ms', 'can_ms', 'car_ms'],
-                       'fs': ['kir_fs', 'kas_fs', 'kaf_fs', 'naf_fs'],
-                       'chin': ['na_ch', 'na2_ch', 'kv4_ch', 'kir2_ch',
-                                'hcn12_ch', 'cap_ch'],
-                       'lts': ['na3_lts', 'hd_lts']}
+        channel_list = {'spn': ['naf_ms', 'kas_ms', 'kaf_ms', 'kir_ms', 'cal12_ms', 'cal13_ms', 'can_ms', 'car_ms'],
+                        'fs': ['kir_fs', 'kas_fs', 'kaf_fs', 'naf_fs'],
+                        'chin': ['na_ch', 'na2_ch', 'kv4_ch', 'kir2_ch', 'hcn12_ch', 'cap_ch'],
+                        'lts': ['na3_lts', 'hd_lts']}
 
         for cell_type in channel_list:
             for seg in sec:
@@ -1750,8 +1710,7 @@ class SnuddaSimulate(object):
         if cell_id is None:
             cell_id = self.neuron_id
 
-        cells = dict((k, self.neurons[k]) \
-                     for k in cell_id if not self.is_virtual_neuron[k])
+        cells = dict((k, self.neurons[k]) for k in cell_id if not self.is_virtual_neuron[k])
 
         for c in cells.values():
             for comp in [c.icell.dend, c.icell.axon, c.icell.soma]:
