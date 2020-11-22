@@ -46,6 +46,7 @@ import snudda.utils.memory
 ##############################################################################
 
 # If simulationConfig is set, those values override other values
+from snudda.load import SnuddaLoad
 
 
 class SnuddaSimulate(object):
@@ -1087,7 +1088,7 @@ class SnuddaSimulate(object):
                 sections = self.neurons[neuron_id].map_id_to_compartment(neuron_input["sectionID"])
 
                 # Setting individual parameters for synapses
-                mod_file = neuron_input["modFile"][()]
+                mod_file = SnuddaLoad.to_str(neuron_input["modFile"][()])
                 param_list = json.loads(neuron_input["parameterList"][()])
 
                 eval_str = "self.sim.neuron.h." + mod_file
