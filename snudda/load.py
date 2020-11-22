@@ -174,8 +174,8 @@ class SnuddaLoad(object):
             if "synapses" in data:
                 if "gapJunctions" in data:
                     print(str(len(data["neurons"])) + " neurons with "
-                          + str(data["synapses"].shape[0]) + " synapses"
-                          + " and " + str(data["gapJunctions"].shape[0])
+                          + str(data["nSynapses"][0]) + " synapses"
+                          + " and " + str(data["nGapJunctions"][0])
                           + " gap junctions")
                 else:
                     print(str(len(data["neurons"])) + " neurons with "
