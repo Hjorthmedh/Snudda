@@ -334,7 +334,7 @@ class SnuddaCalibrateSynapses(object):
     
     for (preID,t) in self.injInfo:
       # Post synaptic neurons to preID
-      synapses,coords = self.snuddaLoad.findSynapses(preID=preID)
+      synapses,coords = self.snuddaLoad.find_synapses(pre_id=preID)
 
       postIDset = set(synapses[:,1]).intersection(self.possiblePostID)
       prePos = self.snuddaLoad.data["neuronPositions"][preID,:]

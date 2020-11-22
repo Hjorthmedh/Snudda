@@ -71,7 +71,7 @@ class SnuddaAnalyse(object):
             os.makedirs(self.fig_dir)
 
         # First load all data but synapses
-        self.network_load = SnuddaLoad(hdf5_file, loadSynapses=False)
+        self.network_load = SnuddaLoad(hdf5_file, load_synapses=False)
         self.network = self.network_load.data
 
         if "config" in self.network:
