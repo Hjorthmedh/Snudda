@@ -1625,7 +1625,7 @@ class SnuddaDetect(object):
         if self.role == "master":
 
             work_dir = os.path.dirname(self.save_file)
-            work_dir = (work_dir + "/").replace("/voxels/", "/")
+            work_dir = (work_dir + "/").replace("/voxels/", "/")  #TODO: Fix so handles / and \
 
             del_files = [work_dir + "network-putative-synapses-MERGED.hdf5",
                          work_dir + "network-putative-synapses-MERGED.hdf5-cache",
@@ -2641,9 +2641,10 @@ class SnuddaDetect(object):
 
     ############################################################################
 
-    def get_path(self, path_str):
+    @staticmethod
+    def get_path(path_str):
 
-        return path_str.replace("$DATA", os.path.dirname(__file__) + "/data")
+        return path_str.replace("$DATA", os.path.join(os.path.dirname(__file__), "data"))
 
     ############################################################################
 
