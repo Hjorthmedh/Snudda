@@ -68,8 +68,8 @@ class SnuddaLoad(object):
             # does not have the network group yet
             if "network/synapses" in f:
                 data["nNeurons"] = f["network/neurons/neuronID"].shape[0]
-                data["nSynapses"] = f["network/synapses"].shape[0]
-                data["nGapJunctions"] = f["network/gapJunctions"].shape[0]
+                data["nSynapses"] = f["network/nSynapses"][0]
+                data["nGapJunctions"] = f["network/nGapJunctions"][0]
 
                 if data["nSynapses"] > 100e6:
                     print(str(data["nSynapses"]) + " synapses, which is a lot, not loading them into memory!")
@@ -174,8 +174,8 @@ class SnuddaLoad(object):
             if "synapses" in data:
                 if "gapJunctions" in data:
                     print(str(len(data["neurons"])) + " neurons with "
-                          + str(data["nSynapses"][0]) + " synapses"
-                          + " and " + str(data["nGapJunctions"][0])
+                          + str(data["nSynapses"]) + " synapses"
+                          + " and " + str(data["nGapJunctions"])
                           + " gap junctions")
                 else:
                     print(str(len(data["neurons"])) + " neurons with "
