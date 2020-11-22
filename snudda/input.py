@@ -270,7 +270,7 @@ class SnuddaInput(object):
                     par_file = self.input_info[neuron_type][input_type]["parameterFile"]
 
                     # Allow user to use $DATA to refer to snudda data directory
-                    par_file = par_file.replace("$DATA", os.path.dirname(__file__) + "/data")
+                    par_file = par_file.replace("$DATA", os.path.join(os.path.dirname(__file__), "data"))
 
                     par_data_dict = json.load(open(par_file, 'r'))
 

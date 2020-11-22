@@ -134,7 +134,7 @@ class SnuddaInit(object):
             assert side_len is not None, "define_structure: cube needs sideLen specified"
             assert struct_centre is not None, "define_structure: cube needs a structCentre"
 
-            struct_mesh = self.basePath + "/mesh/" + struct_name + "-cube-mesh-" + str(side_len) + ".obj"
+            struct_mesh = os.path.join(self.basePath, "mesh", struct_name + "-cube-mesh-" + str(side_len) + ".obj")
 
             if mesh_bin_width is None:
                 mesh_bin_width = side_len / 3.0
@@ -147,7 +147,7 @@ class SnuddaInit(object):
 
         elif struct_mesh == "slice":
 
-            struct_mesh = self.basePath + "/mesh/" + struct_name + "-slice-mesh-150mum-depth.obj"
+            struct_mesh = os.path.join(self.basePath, "mesh", + struct_name + "-slice-mesh-150mum-depth.obj")
 
             # 2019-11-26 : Anya said that her sagital striatal slices
             # were 2.36 x 2.36 mm. So that can be an upper limit
@@ -278,12 +278,6 @@ class SnuddaInit(object):
             if a3_other is None:
                 a3_other = a3
 
-            # pruneInfo_other = (distPruning_other,
-            #                   f1_other,
-            #                   softMax_other,
-            #                   mu2_other,
-            #                   a3_other)
-
             pruning_info_other = dict([])
             pruning_info_other["f1"] = f1_other
             pruning_info_other["softMax"] = soft_max
@@ -294,32 +288,7 @@ class SnuddaInit(object):
             # Different pruning rules for within and between neuron units
             con_info["pruningOther"] = pruning_info_other
 
-            # targetInfo = [targetName,
-            #              [connectionType,cond,condStd,channelParamDictionary],
-            #              pruneInfo, pruneInfo_other]
-        # else:
-        #  # All targets of same type are treated equally, no channels
-        #  targetInfo = [targetName,
-        #                [connectionType,cond,condStd,channelParamDictionary],
-        #                pruneInfo]
-        #
-        # if(neuronName not in self.neuronTargets):
-        #   self.neuronTargets[neuronName] = []
-
-        # import pdb
-        # pdb.set_trace()
-
-        # Just make sure we are not specifying the same output twice
-        # Can have GJ and synapse to same target, so moved this check to
-        # Network_connect_voxel.py
-        # assert targetName not in [x[0] for x in self.neuronTargets[neuronName]], \
-        #  "Error " + neuronName + " already has output for " + targetName \
-        #   + " specified (DUPLICATE!)"
-
-        # self.neuronTargets[neuronName].append(targetInfo)
-
-        # New format for connection info, now stored as dictionary
-        # Json did not like typles in keys, so we separate by comma
+        # Json did not like tuples in keys, so we separate by comma
         nt_key = neuron_name + "," + target_name
         if nt_key not in self.network_data["Connectivity"]:
             self.network_data["Connectivity"][nt_key] = dict([])
@@ -365,9 +334,8 @@ class SnuddaInit(object):
                     print("Inparameters: x,y,z three 1-D arrays (units in meter)")
                     import traceback
                     tstr = traceback.format_exc()
-
-                    import pdb
-                    pdb.set_trace()
+                    print(tstr)
+                    exit(-1)
 
                 print("Checking boundaries, to make sure P is not too high")
                 x = np.zeros((8, 1))
@@ -486,22 +454,6 @@ class SnuddaInit(object):
 
     def write_json(self, filename):
 
-        # !!! Dont need to do this anymore
-        ## We need to copy over the target data to each neuron
-        # for n in self.networkData:
-        #  if(n in ["Volume","Units"]):
-        #    # Non-neuron keywords, skip
-        #    continue
-        #
-        #  nType = n.split("_")[0]
-        #  if(nType in self.neuronTargets):
-        #    self.networkData[n]["targets"] = self.neuronTargets[nType]
-        #  else:
-        #    print("No targets defined for " + str(nType))
-
-        # import pdb
-        # pdb.set_trace()
-
         print("Writing " + filename)
 
         import json
@@ -557,13 +509,13 @@ class SnuddaInit(object):
                 # No neurons specified, skipping structure
                 return
 
-            fTot = f_dSPN + f_iSPN + f_FS + f_ChIN + f_LTS
+            f_tot = f_dSPN + f_iSPN + f_FS + f_ChIN + f_LTS
 
-            self.num_FS = np.round(f_FS * num_neurons / fTot)
-            self.num_dSPN = np.round(f_dSPN * num_neurons / fTot)
-            self.num_iSPN = np.round(f_iSPN * num_neurons / fTot)
-            self.num_ChIN = np.round(f_ChIN * num_neurons / fTot)
-            self.num_LTS = np.round(f_LTS * num_neurons / fTot)
+            self.num_FS = np.round(f_FS * num_neurons / f_tot)
+            self.num_dSPN = np.round(f_dSPN * num_neurons / f_tot)
+            self.num_iSPN = np.round(f_iSPN * num_neurons / f_tot)
+            self.num_ChIN = np.round(f_ChIN * num_neurons / f_tot)
+            self.num_LTS = np.round(f_LTS * num_neurons / f_tot)
 
             self.num_neurons_total += self.num_FS + self.num_dSPN + self.num_iSPN + self.num_ChIN + self.num_LTS
 
@@ -1354,6 +1306,6 @@ if __name__ == "__main__":
     for x in structDef:
         nTotals += structDef[x]
 
-    fName = "config/basal-ganglia-config-" + str(nTotals) + ".json"
+    fName = os.path.join("config", "basal-ganglia-config-" + str(nTotals) + ".json")
 
     SnuddaInit(struct_def=structDef, config_name=fName, num_population_units=1)
