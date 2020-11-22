@@ -76,7 +76,6 @@ class Snudda(object):
     @staticmethod
     def help_info(args):
         from snudda.help import snudda_help_text
-        print(snudda_help_text())
 
     ############################################################################
 
