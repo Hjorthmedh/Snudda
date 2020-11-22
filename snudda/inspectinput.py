@@ -1,6 +1,6 @@
 import os
 import h5py
-from snudda.load import Snuddaload
+from snudda.load import SnuddaLoad
 
 class InspectInput(object):
 
@@ -10,7 +10,7 @@ class InspectInput(object):
     self.inputFile = inputFile
 
     # We just need this to identify which neuron is which
-    self.network = Snuddaload(self.networkFile, loadSynapses=False)
+    self.network = SnuddaLoad(self.networkFile, load_synapses=False)
 
     self.inputData = h5py.File(inputFile,'r')
 

@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from mpl_toolkits.mplot3d import Axes3D
 
-from .load import Snuddaload
+from .load import SnuddaLoad
 
 
 # !!! We need to parallelise the analysis script also!
@@ -43,8 +43,7 @@ class SnuddaAnalyse(object):
         self.debug = False
         self.show_plots = show_plots
 
-        print("Assuming volume type: " + str(volume_type) \
-              + "[cube or full]")
+        print("Assuming volume type: " + str(volume_type) + "[cube or full]")
 
         self.volume_type = volume_type
         self.close_plots = close_plots
@@ -72,7 +71,7 @@ class SnuddaAnalyse(object):
             os.makedirs(self.fig_dir)
 
         # First load all data but synapses
-        self.network_load = Snuddaload(hdf5_file, loadSynapses=False)
+        self.network_load = SnuddaLoad(hdf5_file, load_synapses=False)
         self.network = self.network_load.data
 
         if "config" in self.network:
@@ -308,15 +307,15 @@ class SnuddaAnalyse(object):
         if low_memory:
             print("Trying to conserve memory, this is slower.")
             connection_matrix = sps.lil_matrix((self.num_neurons, self.num_neurons),
-                                              dtype=np.int16)
+                                               dtype=np.int16)
         else:
             try:
                 connection_matrix = np.zeros((self.num_neurons, self.num_neurons),
-                                            dtype=np.int16)
+                                             dtype=np.int16)
             except:
                 print("Unable to allocate full matrix, using sparse matrix instead")
                 connection_matrix = sps.lil_matrix((self.num_neurons, self.num_neurons),
-                                                  dtype=np.int16)
+                                                   dtype=np.int16)
         last_src_id = 0
         last_dest_id = 0
         last_count = 0
@@ -326,8 +325,8 @@ class SnuddaAnalyse(object):
 
         for synapses in self.network_load.synapse_iterator(chunk_size=chunk_size):
 
-            print("Synapse row " + str(row_ctr) \
-                  + " - " + str(100 * row_ctr / float(num_syn_total)) + " %" \
+            print("Synapse row " + str(row_ctr)
+                  + " - " + str(100 * row_ctr / float(num_syn_total)) + " %"
                   + " time: " + str(timeit.default_timer() - t0) + " seconds")
 
             for synRow in synapses:
@@ -376,7 +375,7 @@ class SnuddaAnalyse(object):
         t0 = timeit.default_timer()
 
         connection_matrix_gj = sps.lil_matrix((self.num_neurons, self.num_neurons),
-                                            dtype=np.int16)
+                                              dtype=np.int16)
 
         last_src_id = 0
         last_dest_id = 0
@@ -700,7 +699,7 @@ class SnuddaAnalyse(object):
             con_mat = self.connection_matrix_gj
         else:
             con_mat = None
-            print("Unknown connectionType: " + str(connection_type))
+            print("Unknown connection_type: " + str(connection_type))
             print("Please use 'synapses' or 'gapjunctions'")
             import pdb
             pdb.set_trace()
@@ -723,7 +722,7 @@ class SnuddaAnalyse(object):
 
         # The prune tuning func might set data to 0, we want to exclude those
         mean_synapses = float(np.sum(con_mat[pre_pop, :][:, post_pop].data)) \
-                        / np.sum(con_mat[pre_pop, :][:, post_pop].data != 0)
+                              / np.sum(con_mat[pre_pop, :][:, post_pop].data != 0)
 
         con = con_mat[pre_pop, :][:, post_pop]
 
@@ -752,12 +751,6 @@ class SnuddaAnalyse(object):
 
         plt.xlabel("Number of " + connection_type)
         plt.ylabel('Probability density')
-        # plt.title(preType + " to " + postType \
-        #          + "(M=" + str(maxSynapses) \
-        #          + ",m=" + '%.1f' % meanSynapses \
-        #          + ",sl=" + '%.0f' % (sideLen*1e6) + ")")
-        # plt.title(preType + " to " + postType \
-        #          + " (total: " + str(np.sum(existingCon)) + ")")
         plt.title(self.neuron_name(pre_type) + " to " + self.neuron_name(post_type))
 
         plt.tight_layout()
@@ -928,7 +921,7 @@ class SnuddaAnalyse(object):
             exp_data_detailed = [None for x in exp_data]
 
         (dist, p_con, count_con, count_all) = \
-            self.connection_probability(pre_id, post_id, num_bins, dist_3d=dist3D,
+            self.connection_probability(pre_id, post_id, num_bins, dist_3d=dist_3d,
                                         connection_type=connection_type)
 
         # Now let's plot it
@@ -991,7 +984,7 @@ class SnuddaAnalyse(object):
                 #                               color="red",fill=True)
                 # ax.add_patch(rectExpStd)
             else:
-                stdExp = 0
+                std_exp = 0
 
             if p_exp is not None:
                 plt.plot([0, d_limit * 1e6], [p_exp, p_exp],
@@ -1027,7 +1020,7 @@ class SnuddaAnalyse(object):
                          "P(d<" + str(d_limit * 1e6) + ")=%.3f" % p_model, size=9)
 
         # Draw the curve itself
-        if drawStep:
+        if draw_step:
             plt.step(dist * 1e6, p_con, color='black', linewidth=2, where="post")
         else:
             d_half_step = (dist[1] - dist[0]) / 2
@@ -1038,7 +1031,7 @@ class SnuddaAnalyse(object):
 
         label_size = 22
 
-        # if(dist3D):
+        # if(dist_3d):
         #  plt.xlabel("Distance ($\mu$m)",fontsize=labelSize)
         # else:
         #  plt.xlabel("2D Distance ($\mu$m)",fontsize=labelSize)
@@ -1057,12 +1050,12 @@ class SnuddaAnalyse(object):
                             for (ns, n) in zip(count_con, count_all_b)]).flatten()
 
         # Use the last bin larger than xMax as the end
-        d_idx = np.where(dist * 1e6 > xMax)[0][0]
+        d_idx = np.where(dist * 1e6 > x_max)[0][0]
 
         p_min = p_centre - p_height
         p_max = p_centre + p_height
 
-        if drawStep:
+        if draw_step:
           plt.fill_between(dist[:d_idx] * 1e6, p_min[:d_idx], p_max[:d_idx],
                            color='grey', step="post",
                            alpha=0.4)
@@ -1083,11 +1076,11 @@ class SnuddaAnalyse(object):
         #  if(max(plt.ylim()) < max(expData+stdExp)):
         #    plt.ylim([0, np.ceil(max(expData+stdExp)*10)/10])
 
-        if xMax is not None:
-            plt.xlim([0, xMax])
+        if x_max is not None:
+            plt.xlim([0, x_max])
 
-        if yMax is not None:
-            plt.ylim([0, yMax])
+        if y_max is not None:
+            plt.ylim([0, y_max])
 
         locs, labels = plt.yticks()
         new_labels = ["{0:g}".format(yy * 100) for yy in locs]
@@ -1102,7 +1095,7 @@ class SnuddaAnalyse(object):
 
         plt.yticks(locs, new_labels)
 
-        plt.title(self.neuron_name(preType) + " to " + self.neuron_name(postType))
+        plt.title(self.neuron_name(pre_type) + " to " + self.neuron_name(post_type))
         plt.tight_layout()
         plt.ion()
         plt.draw()
@@ -1112,15 +1105,15 @@ class SnuddaAnalyse(object):
 
         plt.pause(0.001)
 
-        if dist3D:
+        if dist_3d:
             proj_text = '-3D-dist'
         else:
             proj_text = '-2D-dist'
 
-        fig_name = 'Network-distance-dependent-connection-probability-' \
-                  + str(preType) + "-to-" + str(postType) \
-                  + "-" + str(connectionType) \
-                  + proj_text
+        fig_name = ('Network-distance-dependent-connection-probability-'
+                    + str(pre_type) + "-to-" + str(post_type)
+                    + "-" + str(connection_type)
+                    + proj_text)
 
         self.save_figure(plt, fig_name)
 
@@ -1316,7 +1309,7 @@ class SnuddaAnalyse(object):
         plt.xlim([0, 250])
         # plt.xlim([0, 1000])
 
-        plt.title(self.neuron_name(pre_type) + " to " \
+        plt.title(self.neuron_name(pre_type) + " to "
                   + self.neuron_name(post_type) + " connections")
 
         plt.tight_layout()
@@ -1346,15 +1339,15 @@ class SnuddaAnalyse(object):
         print("Worker started, preID: " + str(pre_id))
 
         (dist, p_con, count_con, count_all) = self.connection_probability(pre_id,
-                                                                        post_id,
-                                                                        num_bins,
-                                                                        dist_3d=dist_3d)
+                                                                          post_id,
+                                                                          num_bins,
+                                                                          dist_3d=dist_3d)
 
         self.worker_data.append((dist, p_con, count_con, count_all))
 
     ############################################################################
 
-    # connectionType: "synapses" or "gapjunctions"
+    # connection_type: "synapses" or "gapjunctions"
 
     def connection_probability(self,
                                pre_id,
@@ -1380,7 +1373,7 @@ class SnuddaAnalyse(object):
         elif connection_type == "gapjunctions":
             con_mat = self.connection_matrix_gj
         else:
-            assert False,"Unknown connectionType: " + str(connection_type)
+            assert False,"Unknown connection_type: " + str(connection_type)
 
         # Make this loop use threads, to speed it up
 
@@ -1585,7 +1578,7 @@ class SnuddaAnalyse(object):
         elif connection_type == "gapjunctions":
             con_mat = self.connection_matrix_gj
         else:
-            assert "Unknown connectionType: " + str(connection_type)
+            assert "Unknown connection_type: " + str(connection_type)
             con_mat = None  # To get pycharm to shut up ;)
 
         n_con = np.zeros((len(neuron_id), 1))
@@ -1926,7 +1919,7 @@ class SnuddaAnalyse(object):
 
             try:
                 pair_id = (self.allTypes.index(pair[0]),
-                          self.allTypes.index(pair[1]))
+                           self.allTypes.index(pair[1]))
             except:
                 print("Missing pair: " + str(pair))
                 continue
@@ -2092,7 +2085,6 @@ class SnuddaAnalyse(object):
 
                     plt.title('Synapse density ' + self.neuron_name(pre_type)
                               + " to " + self.neuron_name(post_type))
-
 
                 else:
                     plt.plot(self.dend_position_edges[:end_idx] * 1e6,
@@ -2319,12 +2311,12 @@ class SnuddaAnalyse(object):
                 i_b = np.random.randint(len(idb))
                 i_c = np.random.randint(len(idc))
 
-            idx = int(self.connection_matrix[i_a, i_b] > 0) * 1 \
-                  + int(self.connection_matrix[i_b, i_a] > 0) * 2 \
-                  + int(self.connection_matrix[i_a, i_c] > 0) * 4 \
-                  + int(self.connection_matrix[i_c, i_a] > 0) * 8 \
-                  + int(self.connection_matrix[i_b, i_c] > 0) * 16 \
-                  + int(self.connection_matrix[i_c, i_b] > 0) * 32
+            idx = (int(self.connection_matrix[i_a, i_b] > 0) * 1
+                   + int(self.connection_matrix[i_b, i_a] > 0) * 2
+                   + int(self.connection_matrix[i_a, i_c] > 0) * 4
+                   + int(self.connection_matrix[i_c, i_a] > 0) * 8
+                   + int(self.connection_matrix[i_b, i_c] > 0) * 16
+                   + int(self.connection_matrix[i_c, i_b] > 0) * 32)
 
             motif_ctr[idx] += 1
 
@@ -2335,9 +2327,9 @@ class SnuddaAnalyse(object):
     def analyse_single_motifs(self, neuron_type, num_repeats=10000000):
 
         (motif_ctr, tA, tB, tC) = self.count_motifs(type_a=neuron_type,
-                                                   type_b=neuron_type,
-                                                   type_c=neuron_type,
-                                                   n_repeats=num_repeats)
+                                                    type_b=neuron_type,
+                                                    type_c=neuron_type,
+                                                    n_repeats=num_repeats)
 
         # !!! For debug
         # motifCtr = [bin(x).count('1') for x in np.arange(0,64)]
@@ -2346,65 +2338,63 @@ class SnuddaAnalyse(object):
         no_con = motif_ctr[0]
 
         # One connection
-        one_con = motif_ctr[1] + motif_ctr[2] + motif_ctr[4] + motif_ctr[8] \
-                 + motif_ctr[16] + motif_ctr[32]
+        one_con = (motif_ctr[1] + motif_ctr[2] + motif_ctr[4] + motif_ctr[8]
+                   + motif_ctr[16] + motif_ctr[32])
 
         # Two connections
         two_con_diverge = motif_ctr[1 + 4] + motif_ctr[2 + 16] + motif_ctr[8 + 32]
         two_con_converge = motif_ctr[2 + 8] + motif_ctr[1 + 32] + motif_ctr[4 + 16]
-        two_con_line = motif_ctr[1 + 16] + motif_ctr[2 + 4] + motif_ctr[4 + 32] \
-                     + motif_ctr[8 + 1] + motif_ctr[16 + 8] + motif_ctr[32 + 2]
+        two_con_line = (motif_ctr[1 + 16] + motif_ctr[2 + 4] + motif_ctr[4 + 32]
+                        + motif_ctr[8 + 1] + motif_ctr[16 + 8] + motif_ctr[32 + 2])
         two_con_bi = motif_ctr[1 + 2] + motif_ctr[4 + 8] + motif_ctr[16 + 32]
 
         # Three connections
         three_circle = motif_ctr[1 + 16 + 8] + motif_ctr[2 + 4 + 32]
-        three_circle_flip = motif_ctr[2 + 16 + 8] + motif_ctr[1 + 32 + 8] + motif_ctr[1 + 16 + 4] \
-                          + motif_ctr[1 + 4 + 32] + motif_ctr[2 + 8 + 32] + motif_ctr[2 + 4 + 16]
-        three_bi_div = motif_ctr[1 + 2 + 4] + motif_ctr[1 + 2 + 16] \
-                     + motif_ctr[4 + 8 + 1] + motif_ctr[4 + 8 + 32] \
-                     + motif_ctr[16 + 32 + 2] + motif_ctr[16 + 32 + 8]
-        three_bi_conv = motif_ctr[1 + 2 + 8] + motif_ctr[1 + 2 + 32] \
-                      + motif_ctr[4 + 8 + 2] + motif_ctr[4 + 8 + 16] \
-                      + motif_ctr[16 + 32 + 1] + motif_ctr[16 + 32 + 4]
+        three_circle_flip = (motif_ctr[2 + 16 + 8] + motif_ctr[1 + 32 + 8] + motif_ctr[1 + 16 + 4]
+                             + motif_ctr[1 + 4 + 32] + motif_ctr[2 + 8 + 32] + motif_ctr[2 + 4 + 16])
+        three_bi_div = (motif_ctr[1 + 2 + 4] + motif_ctr[1 + 2 + 16]
+                        + motif_ctr[4 + 8 + 1] + motif_ctr[4 + 8 + 32]
+                        + motif_ctr[16 + 32 + 2] + motif_ctr[16 + 32 + 8])
+        three_bi_conv = (motif_ctr[1 + 2 + 8] + motif_ctr[1 + 2 + 32]
+                         + motif_ctr[4 + 8 + 2] + motif_ctr[4 + 8 + 16]
+                         + motif_ctr[16 + 32 + 1] + motif_ctr[16 + 32 + 4])
 
         # Four connections
         four_double_bi = motif_ctr[1 + 2 + 4 + 8] + motif_ctr[1 + 2 + 16 + 32] + motif_ctr[4 + 8 + 16 + 32]
-        four_bi_diverge = motif_ctr[1 + 2 + 4 + 16] + motif_ctr[4 + 8 + 1 + 32] \
-                        + motif_ctr[16 + 32 + 2 + 8]
-        four_bi_converge = motif_ctr[1 + 2 + 8 + 32] + motif_ctr[4 + 8 + 2 + 16] \
-                         + motif_ctr[16 + 32 + 1 + 4]
-        four_bi_cycle = motif_ctr[1 + 2 + 4 + 32] + motif_ctr[1 + 2 + 16 + 8] \
-                      + motif_ctr[4 + 8 + 1 + 16] + motif_ctr[4 + 8 + 32 + 2] \
-                      + motif_ctr[16 + 32 + 2 + 4] + motif_ctr[16 + 32 + 8 + 1]
+        four_bi_diverge = motif_ctr[1 + 2 + 4 + 16] + motif_ctr[4 + 8 + 1 + 32] + motif_ctr[16 + 32 + 2 + 8]
+        four_bi_converge = motif_ctr[1 + 2 + 8 + 32] + motif_ctr[4 + 8 + 2 + 16] + motif_ctr[16 + 32 + 1 + 4]
+        four_bi_cycle = (motif_ctr[1 + 2 + 4 + 32] + motif_ctr[1 + 2 + 16 + 8]
+                         + motif_ctr[4 + 8 + 1 + 16] + motif_ctr[4 + 8 + 32 + 2]
+                         + motif_ctr[16 + 32 + 2 + 4] + motif_ctr[16 + 32 + 8 + 1])
 
         # Five connections
-        five_con = motif_ctr[2 + 4 + 8 + 16 + 32] \
-                  + motif_ctr[1 + 4 + 8 + 16 + 32] \
-                  + motif_ctr[1 + 2 + 8 + 16 + 32] \
-                  + motif_ctr[1 + 2 + 4 + 16 + 32] \
-                  + motif_ctr[1 + 2 + 4 + 8 + 32] \
-                  + motif_ctr[1 + 2 + 4 + 8 + 16]
+        five_con = (motif_ctr[2 + 4 + 8 + 16 + 32]
+                    + motif_ctr[1 + 4 + 8 + 16 + 32]
+                    + motif_ctr[1 + 2 + 8 + 16 + 32]
+                    + motif_ctr[1 + 2 + 4 + 16 + 32]
+                    + motif_ctr[1 + 2 + 4 + 8 + 32]
+                    + motif_ctr[1 + 2 + 4 + 8 + 16])
 
         # Six connections
         six_con = motif_ctr[1 + 2 + 4 + 8 + 16 + 32]
 
         con_data = [("No connection", no_con),
-                   ("One connection", one_con),
-                   ("Two connections, diverge", two_con_diverge),
-                   ("Two connections, converge", two_con_converge),
-                   ("Two connections, line", two_con_line),
-                   ("Two connections, bidirectional", two_con_bi),
-                   ("Three connections, circle", three_circle),
-                   ("Three connections, circular, one flipped", three_circle_flip),
-                   ("Three connections, one bidirectional, one away", three_bi_div),
-                   ("Three connections, one bidirectional, one towards",
+                    ("One connection", one_con),
+                    ("Two connections, diverge", two_con_diverge),
+                    ("Two connections, converge", two_con_converge),
+                    ("Two connections, line", two_con_line),
+                    ("Two connections, bidirectional", two_con_bi),
+                    ("Three connections, circle", three_circle),
+                    ("Three connections, circular, one flipped", three_circle_flip),
+                    ("Three connections, one bidirectional, one away", three_bi_div),
+                    ("Three connections, one bidirectional, one towards",
                     three_bi_conv),
-                   ("Four connections, two bidirectional", four_double_bi),
-                   ("Four connections, one bi, two away", four_bi_diverge),
-                   ("Four connections, one bi, two towards", four_bi_converge),
-                   ("Four connections, cycle with one bidirectional", four_bi_cycle),
-                   ("Five connections", five_con),
-                   ("Six connections", six_con)]
+                    ("Four connections, two bidirectional", four_double_bi),
+                    ("Four connections, one bi, two away", four_bi_diverge),
+                    ("Four connections, one bi, two towards", four_bi_converge),
+                    ("Four connections, cycle with one bidirectional", four_bi_cycle),
+                    ("Five connections", five_con),
+                    ("Six connections", six_con)]
 
         print("Motif analysis:")
         for (name, data) in con_data:
@@ -2705,9 +2695,9 @@ if __name__ == "__main__":
     enableAnalysis = True  # True #False
 
     # No exp data for this
-    #  dist3D = False
+    #  dist_3d = False
     #  na.plotConnectionProbabilityChannels("FSN","FSN", \
-    #                                       dist3D=dist3D, \
+    #                                       dist_3d=dist_3d, \
     #                                       expMaxDist=[],\
     #                                       expData=[])
     #
@@ -2733,27 +2723,27 @@ if __name__ == "__main__":
 
     # na.ChuhmaVirtualExperiment(taggedType=["dSPN","iSPN"])
 
-    dist3D = False
+    dist_3d = False
 
     # 3/21 LTS->MS, Basal Ganglia book --- distance??
     # Ibanez-Sandoval, ..., Tepper  2011 3/21 -- if patching around visual axon
     # but 2/60 when patching blind
     # !!! Use the focused 3/21 statistics for validation!! --- please :)
     na.plot_connection_probability("LTS", "dSPN",
-                                   dist_3d=dist3D,
+                                   dist_3d=dist_3d,
                                    exp_max_dist=[250e-6],
                                    exp_data=[2 / 60.0],
                                    exp_data_detailed=[(2, 60)])
 
     na.plot_connection_probability("LTS", "iSPN",
-                                   dist_3d=dist3D,
+                                   dist_3d=dist_3d,
                                    exp_max_dist=[250e-6],
                                    exp_data=[2 / 60.0],
                                    exp_data_detailed=[(2, 60)])
 
     # Silberberg et al 2013, 2/12 FS-> LTS connected --- distance??
     na.plot_connection_probability("FSN", "LTS",
-                                   dist_3d=dist3D,
+                                   dist_3d=dist_3d,
                                    exp_max_dist=[250e-6],
                                    exp_data=[2.0 / 12],
                                    exp_data_detailed=[(2, 12)])
@@ -2762,16 +2752,16 @@ if __name__ == "__main__":
     # pdb.set_trace()
 
     na.plot_connection_probability("dSPN", "ChIN",
-                                   dist_3d=dist3D)
+                                   dist_3d=dist_3d)
     na.plot_connection_probability("iSPN", "ChIN",
-                                   dist_3d=dist3D)
+                                   dist_3d=dist_3d)
 
     na.plot_connection_probability("ChIN", "LTS",
-                                   dist_3d=dist3D)
+                                   dist_3d=dist_3d)
     na.plot_connection_probability("ChIN", "iSPN",
-                                   dist_3d=dist3D)
+                                   dist_3d=dist_3d)
     na.plot_connection_probability("ChIN", "dSPN",
-                                   dist_3d=dist3D)
+                                   dist_3d=dist_3d)
 
     print("Check the ChIN stuff")
     # import pdb
@@ -2812,37 +2802,37 @@ if __name__ == "__main__":
     na.plot_incoming_connections(neuron_type="LTS", pre_type="FSN")
 
     if True or enableAnalysis:
-        dist3D = False
+        dist_3d = False
 
         # 100e-6 from Planert 2010, and 250e-6 data from Gittis 2010
         # 150e-6 from Gittis 2011 (actually 100 +/- 50 micrometers)
         na.plot_connection_probability("FSN", "iSPN",
-                                       dist_3d=dist3D,
+                                       dist_3d=dist_3d,
                                        exp_max_dist=[100e-6, 150e-6, 250e-6],
                                        exp_data=[6 / 9.0, 21 / 54.0, 27 / 77.0],
                                        exp_data_detailed=[(6, 9), (21, 54), (27, 77)])
         na.plot_connection_probability("FSN", "dSPN",
-                                       dist_3d=dist3D,
+                                       dist_3d=dist_3d,
                                        exp_max_dist=[100e-6, 150e-6, 250e-6],
                                        exp_data=[8 / 9.0, 29 / 48.0, 48 / 90.0],
                                        exp_data_detailed=[(8, 9), (29, 48), (48, 90)])
         na.plot_connection_probability("dSPN", "iSPN",
-                                       dist_3d=dist3D,
+                                       dist_3d=dist_3d,
                                        exp_max_dist=[50e-6, 100e-6],
                                        exp_data=[3 / 47.0, 3 / 66.0],
                                        exp_data_detailed=[(3, 47), (3, 66)])
         na.plot_connection_probability("dSPN", "dSPN",
-                                       dist_3d=dist3D,
+                                       dist_3d=dist_3d,
                                        exp_max_dist=[50e-6, 100e-6],
                                        exp_data=[5 / 19.0, 3 / 43.0],
                                        exp_data_detailed=[(5, 19), (3, 43)])
         na.plot_connection_probability("iSPN", "dSPN",
-                                       dist_3d=dist3D,
+                                       dist_3d=dist_3d,
                                        exp_max_dist=[50e-6, 100e-6],
                                        exp_data=[13 / 47.0, 10 / 80.0],
                                        exp_data_detailed=[(13, 47), (10, 80)])
         na.plot_connection_probability("iSPN", "iSPN",
-                                       dist_3d=dist3D,
+                                       dist_3d=dist_3d,
                                        exp_max_dist=[50e-6, 100e-6],
                                        exp_data=[14 / 39.0, 7 / 31.0],
                                        exp_data_detailed=[(14, 39), (7, 31)])
@@ -2850,7 +2840,7 @@ if __name__ == "__main__":
         # No exp data for this -- Gittis,...,Kreitzer 2010 (p2228) -- 7/12 (and 3/4 reciprocal) -- distance?
         # FS->FS synapses weaker, 1.1 +/- 1.5nS
         na.plot_connection_probability("FSN", "FSN",
-                                       dist_3d=dist3D,
+                                       dist_3d=dist_3d,
                                        exp_max_dist=[250e-6],
                                        exp_data=[7 / 12.0],
                                        exp_data_detailed=[(7, 12)])
@@ -2862,38 +2852,38 @@ if __name__ == "__main__":
         if True:
             # REF???!?!?!?!
             # na.plotConnectionProbability("ChIN","iSPN", \
-            #                                     dist3D=dist3D,
+            #                                     dist_3d=dist_3d,
             #                                     expMaxDist=[200e-6],
             #                                     expData=[62/89.0],
             #                                     expDataDetailed=[(62,89)])
             # na.plotConnectionProbability("ChIN","dSPN", \
-            #                                     dist3D=dist3D,
+            #                                     dist_3d=dist_3d,
             #                                     expMaxDist=[200e-6],
             #                                     expData=[62/89.0],
             #                                     expDataDetailed=[(62,89)])
 
             # Derived from Janickova H, ..., Bernard V 2017
             na.plot_connection_probability("ChIN", "iSPN",
-                                           dist_3d=dist3D,
+                                           dist_3d=dist_3d,
                                            exp_max_dist=[200e-6],
                                            exp_data=[0.05])
             na.plot_connection_probability("ChIN", "dSPN",
-                                           dist_3d=dist3D,
+                                           dist_3d=dist_3d,
                                            exp_max_dist=[200e-6],
                                            exp_data=[0.05])
 
             na.plot_connection_probability("ChIN", "FSN",
-                                           dist_3d=dist3D)
+                                           dist_3d=dist_3d)
 
             na.plot_incoming_connections(neuron_type="dSPN", pre_type="ChIN")
             na.plot_incoming_connections(neuron_type="iSPN", pre_type="ChIN")
 
         if True:
             na.plot_connection_probability("LTS", "ChIN",
-                                           dist_3d=dist3D)
+                                           dist_3d=dist_3d)
 
             na.plot_connection_probability("ChIN", "LTS",
-                                           dist_3d=dist3D)
+                                           dist_3d=dist_3d)
 
     if True:
         print("The synapse dist function needs a density func, which currently not working since we no longer "

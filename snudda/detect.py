@@ -25,7 +25,9 @@ import json
 import pickle
 
 from .Neuron_morphology import NeuronMorphology
-from .load import Snuddaload
+from .load import SnuddaLoad
+
+import snudda.utils.memory
 
 status = None
 hyperVoxelData = None
@@ -96,7 +98,7 @@ class SnuddaDetect(object):
         self.hyper_voxel_origo = np.zeros((3,))
         self.voxel_overflow_counter = 0
 
-        self.hyperVoxelOffset = None
+        self.hyper_voxel_offset = None
         self.hyper_voxel_id = 0
 
         self.num_bins = hyper_voxel_size * np.ones((3,), dtype=int)
@@ -308,7 +310,7 @@ class SnuddaDetect(object):
         start_time = timeit.default_timer()
 
         # Loads state if previously existed, otherwise creates new fresh history
-        (allHyperIDs, nCompleted, remaining, self.voxel_overflow_counter) = \
+        (all_hyper_id_list, num_completed, remaining, self.voxel_overflow_counter) = \
             self.setup_process_hyper_voxel_state_history()
 
         n_workers = len(rc.ids)
@@ -590,10 +592,10 @@ class SnuddaDetect(object):
         if "completed" in self.work_history:
             self.write_log("setup_process_hyper_voxel_state_history: Resuming from old state")
             # We already have a run in progress, load the state
-            all_hyper_i_ds = set(self.work_history["allHyperIDs"])
+            all_hyper_id_list = set(self.work_history["allHyperIDs"])
             num_completed = int(self.work_history["nCompleted"][0])
             completed = set(self.work_history["completed"][:num_completed])
-            remaining = self.sort_remaining_by_size(all_hyper_i_ds - completed)
+            remaining = self.sort_remaining_by_size(all_hyper_id_list - completed)
             num_synapses = int(self.work_history["nSynapses"][0])
             num_gap_junctions = int(self.work_history["nGapJunctions"][0])
             voxel_overflow_counter = self.work_history["voxelOverflowCounter"][0]
@@ -610,19 +612,19 @@ class SnuddaDetect(object):
 
             # Could not rewrite scalars, so saving nCompleted as a vector of length 1
             self.work_history.create_dataset("nCompleted", data=np.zeros(1, ))
-            all_hyper_i_ds = np.array([x for x in self.hyper_voxels.keys()], dtype=np.int)
+            all_hyper_id_list = np.array([x for x in self.hyper_voxels.keys()], dtype=np.int)
 
             # Remove the empty hyper IDs
-            (valid_hyper_id, empty_hyper_id) = self.remove_empty(all_hyper_i_ds)
-            all_hyper_i_ds = valid_hyper_id
-            remaining = self.sort_remaining_by_size(all_hyper_i_ds)
+            (valid_hyper_id, empty_hyper_id) = self.remove_empty(all_hyper_id_list)
+            all_hyper_id_list = valid_hyper_id
+            remaining = self.sort_remaining_by_size(all_hyper_id_list)
 
             assert (np.array([self.hyper_voxels[x]["neuronCtr"] for x in
                               empty_hyper_id]) == 0).all(), "All hyperIDs marked as empty are not empty!"
 
             self.write_log("Skipping " + str(len(empty_hyper_id)) + " empty hyper voxels")
 
-            self.work_history.create_dataset("allHyperIDs", data=all_hyper_i_ds)
+            self.work_history.create_dataset("allHyperIDs", data=all_hyper_id_list)
             self.work_history.create_dataset("nSynapses",
                                              data=np.zeros(num_hyper_voxels, ), dtype=np.int)
             self.work_history.create_dataset("nGapJunctions",
@@ -630,7 +632,7 @@ class SnuddaDetect(object):
             self.work_history.create_dataset("voxelOverflowCounter",
                                              data=np.zeros(num_hyper_voxels, ), dtype=np.int)
 
-        return all_hyper_i_ds, num_completed, remaining, voxel_overflow_counter
+        return all_hyper_id_list, num_completed, remaining, voxel_overflow_counter
 
     ############################################################################
 
@@ -721,7 +723,7 @@ class SnuddaDetect(object):
 
     def update_process_hyper_voxel_state(self, hyper_id, num_syn, num_gj, exec_time, voxel_overflow_counter):
 
-        num_completed = self.work_history["nCompleted"][0]
+        num_completed = int(self.work_history["nCompleted"][0])
 
         self.work_history["completed"][num_completed] = hyper_id
         self.work_history["nSynapses"][num_completed] = num_syn
@@ -763,7 +765,7 @@ class SnuddaDetect(object):
         self.hyper_voxel_gap_junction_lookup = None
 
         # Used by plotHyperVoxel to make sure synapses are displayed correctly
-        self.hyperVoxelOffset = None
+        self.hyper_voxel_offset = None
 
         # Which axons populate the different voxels
         if self.axon_voxels is None:
@@ -933,7 +935,7 @@ class SnuddaDetect(object):
             += hyper_voxel_offset
 
         # We need this in case plotHyperVoxel is called
-        self.hyperVoxelOffset = hyper_voxel_offset
+        self.hyper_voxel_offset = hyper_voxel_offset
 
         # These are used when doing the heap sort of the hyper voxels
         self.hyper_voxel_synapse_lookup \
@@ -945,10 +947,10 @@ class SnuddaDetect(object):
         #  import pdb
         #  pdb.set_trace()
 
-        endTime = timeit.default_timer()
+        end_time = timeit.default_timer()
 
         self.write_log("detectSynapses: " + str(self.hyper_voxel_synapse_ctr)
-                       + " took " + str(endTime - start_time) + "s")
+                       + " took " + str(end_time - start_time) + "s")
 
         if False and self.hyper_voxel_synapse_ctr > 0:
             print("First plot shows dendrites, and the voxels that were marked")
@@ -1578,7 +1580,7 @@ class SnuddaDetect(object):
 
         self.write_log("Reading positions from file: " + position_file)
 
-        pos_info = Snuddaload(position_file).data
+        pos_info = SnuddaLoad(position_file).data
 
         mem = self.memory()
         self.write_log(str(mem))
@@ -1623,7 +1625,7 @@ class SnuddaDetect(object):
         if self.role == "master":
 
             work_dir = os.path.dirname(self.save_file)
-            work_dir = (work_dir + "/").replace("/voxels/", "/")
+            work_dir = (work_dir + "/").replace("/voxels/", "/")  #TODO: Fix so handles / and \
 
             del_files = [work_dir + "network-putative-synapses-MERGED.hdf5",
                          work_dir + "network-putative-synapses-MERGED.hdf5-cache",
@@ -2639,9 +2641,10 @@ class SnuddaDetect(object):
 
     ############################################################################
 
-    def get_path(self, path_str):
+    @staticmethod
+    def get_path(path_str):
 
-        return path_str.replace("$DATA", os.path.dirname(__file__) + "/data")
+        return path_str.replace("$DATA", os.path.join(os.path.dirname(__file__), "data"))
 
     ############################################################################
 
@@ -2756,8 +2759,8 @@ class SnuddaDetect(object):
 
             # In case hyperVoxelOffset has been applied, we need to subtract it
             # to draw within the hyper voxel
-            if self.hyperVoxelOffset is not None:
-                syn_coord -= self.hyperVoxelOffset
+            if self.hyper_voxel_offset is not None:
+                syn_coord -= self.hyper_voxel_offset
             ax.scatter(syn_coord[:, 0], syn_coord[:, 1], syn_coord[:, 2], c="green")
 
         plt.ion()
@@ -3010,38 +3013,13 @@ class SnuddaDetect(object):
     # https://stackoverflow.com/questions/17718449/determine-free-ram-in-python/17718729#17718729
     #
 
-    def memory(self):
-        """
-      Get node total memory and memory usage
-      """
-        try:
-            with open('/proc/meminfo', 'r') as mem:
-                ret = {}
-                tmp = 0
-                for i in mem:
-                    sline = i.split()
-                    if str(sline[0]) == 'MemTotal:':
-                        ret['total'] = int(sline[1])
-                    elif str(sline[0]) in ('MemFree:', 'Buffers:', 'Cached:'):
-                        tmp += int(sline[1])
-                ret['free'] = tmp
-                ret['used'] = int(ret['total']) - int(ret['free'])
-            return ret
-        except:
-            return "Non-linux system, /proc/meminfo unavailable"
+    @staticmethod
+    def memory():
 
+        memory_available, memory_total = snudda.utils.memory.memory_status()
+        res = f"Memory: {memory_available} free, {memory_total} total"
 
-############################################################################
-
-
-# @staticmethod
-# def _processHyperVoxelHelper(hyperID):
-#
-#   mem = nc.memory()
-#   nc.writeLog("Memory status, before processing " + str(hyperID) \
-#               + ": "+ str(mem))
-#
-#   return nc.processHyperVoxel(hyperID)
+        return res
 
 
 ############################################################################

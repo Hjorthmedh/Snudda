@@ -9,7 +9,8 @@ sonata>=0.0.1
 pyzmq
 
 argparse
-snudda
+# snudda
 NEURON
 pyswarms
 setuptools
+psutil

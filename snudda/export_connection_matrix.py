@@ -1,12 +1,12 @@
 import numpy as np
-from .load import Snuddaload
+from .load import SnuddaLoad
 
 
 class SnuddaExportConnectionMatrix(object):
 
     def __init__(self, in_file, out_file):
 
-        self.sl = Snuddaload(in_file)
+        self.sl = SnuddaLoad(in_file)
 
         self.outFile = out_file
         self.out_file_meta = out_file + "-meta"
@@ -40,7 +40,7 @@ class SnuddaExportConnectionMatrix(object):
         cnt = 0
         pre, post = 0, 0
 
-        for syn_chunk in self.sl.synapse_iterator(dataType="synapses"):
+        for syn_chunk in self.sl.synapse_iterator(data_type="synapses"):
             for syn in syn_chunk:
                 p1 = syn[0]
                 p2 = syn[1]

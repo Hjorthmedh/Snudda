@@ -51,7 +51,7 @@ import os
 import glob
 import numpy as np
 from snudda.simulate import SnuddaSimulate
-from snudda.load import Snuddaload
+from snudda.load import SnuddaLoad
 import matplotlib
 import matplotlib.pyplot as plt
 import neuron
@@ -305,7 +305,7 @@ class SnuddaCalibrateSynapses(object):
       maxDist = self.maxDist
     
     # Read the data
-    self.snuddaLoad = Snuddaload(self.networkFile)
+    self.snuddaLoad = SnuddaLoad(self.networkFile)
     self.data = self.snuddaLoad.data
 
     time,voltage = self.readVoltage(self.voltFile) # sets self.voltage
@@ -334,7 +334,7 @@ class SnuddaCalibrateSynapses(object):
     
     for (preID,t) in self.injInfo:
       # Post synaptic neurons to preID
-      synapses,coords = self.snuddaLoad.findSynapses(preID=preID)
+      synapses,coords = self.snuddaLoad.find_synapses(pre_id=preID)
 
       postIDset = set(synapses[:,1]).intersection(self.possiblePostID)
       prePos = self.snuddaLoad.data["neuronPositions"][preID,:]

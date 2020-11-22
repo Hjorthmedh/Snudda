@@ -41,7 +41,7 @@
 
 
 import os
-import sys
+import sys  # Used in __init__
 import timeit
 import numpy as np
 import zmq
@@ -59,12 +59,12 @@ class Snudda(object):
 
     ############################################################################
 
-    def __init__(self, networkPath):
+    def __init__(self, network_path):
 
-        if networkPath[-1] == "/":
-            self.network_path = networkPath[:-1]
+        if network_path[-1] == "/":
+            self.network_path = network_path[:-1]
         else:
-            self.network_path = networkPath
+            self.network_path = network_path
 
         # Add current dir to python path
         sys.path.append(os.getcwd())
@@ -73,9 +73,9 @@ class Snudda(object):
 
     ############################################################################
 
-    def help_info(self, args):
-        from snudda.snudda_help import snudda_help_text
-        print(snudda_help_text())
+    @staticmethod
+    def help_info(args):
+        from snudda.help import snudda_help_text
 
     ############################################################################
 
@@ -85,7 +85,7 @@ class Snudda(object):
         print("Network path: " + str(self.network_path))
 
         assert args.size is not None, \
-            "You need to speicfy --size when initialising config for network2"
+            "You need to specify --size when initialising config for network2"
 
         from .init import SnuddaInit
         struct_def = {"Striatum": args.size,
@@ -358,13 +358,13 @@ class Snudda(object):
         # Problems with nested symbolic links when the second one is a relative
         # path going beyond the original base path
         if args.mechDir is None:
-            mech_dir = os.path.dirname(network_file) + "/mechanisms"
+            mech_dir = os.path.join(os.path.dirname(network_file), "mechanisms")
 
-            # !!! problem with paths, testing to create mechanism dir in current dir
+            # TODO!!! problem with paths, testing to create mechanism dir in current dir
             mech_dir = "mechanisms"
 
             if not os.path.exists(mech_dir):
-                m_dir = os.path.dirname(__file__) + "/data/cellspecs-v2/mechanisms"
+                m_dir = os.path.join(os.path.dirname(__file__), "data", "cellspecs-v2", "mechanisms")
                 os.symlink(m_dir, mech_dir)
         else:
             mech_dir = args.mechDir
@@ -381,7 +381,7 @@ class Snudda(object):
 
         # os.system(makeModsStr)
 
-        save_dir = os.path.dirname(network_file) + "/simulation/"
+        save_dir = os.path.join(os.path.dirname(network_file), "simulation")
 
         if not os.path.exists(save_dir):
             print("Creating directory " + save_dir)
@@ -526,16 +526,16 @@ class Snudda(object):
 
     ############################################################################
 
-    def setup_log_file(self, logFileName):
-        data_dir = os.path.dirname(logFileName)
+    def setup_log_file(self, log_file_name):
+        data_dir = os.path.dirname(log_file_name)
 
         self.make_dir_if_needed(data_dir)
 
         try:
-            self.logfile = open(logFileName, 'w')
+            self.logfile = open(log_file_name, 'w')
             self.logfile.write('Starting log file\n')
         except:
-            print("Unable to set up log file " + str(logFileName))
+            print("Unable to set up log file " + str(log_file_name))
 
     ############################################################################
 
