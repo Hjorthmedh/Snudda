@@ -202,7 +202,7 @@ class SnuddaPrune(object):
                                               clean_voxel_files=True)
 
             # When running on a cluster, we might want to do the serial parts
-            # in a separte run, hence this option that allows us to prepare
+            # in a separate run, hence this option that allows us to prepare
             # the data for parallel execution.
             if pre_merge_only:
                 self.write_log("Pre-merge of synapses done. preMergeOnly = " + str(pre_merge_only) + ", exiting.")
@@ -318,7 +318,8 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    def write_to_random_file(self, text):
+    @staticmethod
+    def write_to_random_file(text):
 
         import uuid
         tmp = open("save/tmp-log-file-" + str(uuid.uuid4()), 'w')

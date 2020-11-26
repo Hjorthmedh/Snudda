@@ -619,10 +619,16 @@ class SnuddaDetect(object):
             all_hyper_id_list = valid_hyper_id
             remaining = self.sort_remaining_by_size(all_hyper_id_list)
 
-            assert (np.array([self.hyper_voxels[x]["neuronCtr"] for x in
-                              empty_hyper_id]) == 0).all(), "All hyperIDs marked as empty are not empty!"
+            if len(self.connectivity_distributions) == 0:
+                # We have no possible connections specified
+                self.write_log("No connections specified in connectivity_distribution.")
+                remaining = []
+            else:
 
-            self.write_log("Skipping " + str(len(empty_hyper_id)) + " empty hyper voxels")
+                assert (np.array([self.hyper_voxels[x]["neuronCtr"] for x in
+                                  empty_hyper_id]) == 0).all(), "All hyperIDs marked as empty are not empty!"
+
+                self.write_log("Skipping " + str(len(empty_hyper_id)) + " empty hyper voxels")
 
             self.work_history.create_dataset("allHyperIDs", data=all_hyper_id_list)
             self.work_history.create_dataset("nSynapses",

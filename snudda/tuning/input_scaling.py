@@ -4,6 +4,7 @@ import collections
 import json
 from snudda.CreateCubeMesh import CreateCubeMesh
 from snudda.Neuron_morphology import NeuronMorphology
+from snudda.input import SnuddaInput
 from snudda.load import SnuddaLoad
 from snudda.core import Snudda
 import numpy as np
@@ -21,6 +22,10 @@ class InputScaling(object):
         self.input_info = None
         self.neuron_info = None
 
+        self.frequency_range = np.arange(0, 10, 1)
+        self.input_duration = 10.0
+        self.max_time = self.input_duration * len(self.frequency_range)
+
         if not os.path.isdir(self.network_dir):
             os.mkdir(self.network_dir)
 
@@ -32,8 +37,8 @@ class InputScaling(object):
 
         self.core = Snudda(self.network_dir)
 
-
     # Writes config files
+
     def setup_network(self):
 
         config_def = self.create_network_config(num_replicas=10)
@@ -51,9 +56,9 @@ class InputScaling(object):
 
         SnuddaPlace(config_file=self.network_config_file_name)
         SnuddaDetect(config_file=self.network_config_file_name,
-                     position_file=os.path.join(self.network_dir,"network-neuron-positions.hdf5"),
+                     position_file=os.path.join(self.network_dir, "network-neuron-positions.hdf5"),
                      save_file=os.path.join(self.network_dir, "voxels", "network-putative-synapses.hdf5"))
-        SnuddaPrune(work_history_file=os.path.join(self.network_dir,"log","network-detect-worklog.hdf5"))
+        SnuddaPrune(work_history_file=os.path.join(self.network_dir, "log", "network-detect-worklog.hdf5"))
 
         # TODO: Also run snudda place, detect, and prune
         # TODO: Make it so that snudda detect and prune are fast if there are no allowed connections
@@ -78,12 +83,17 @@ class InputScaling(object):
             print("No density profile used for input.")
 
         self.create_input_config(input_config_file=self.input_config_file,
-                                 input_frequency=1.0,
+                                 input_frequency=[1.0],
                                  n_input_min=0,
                                  n_input_max=1000,
                                  synapse_conductance=0.5e-9,
-                                 synapse_density=synapse_density)
+                                 synapse_density=synapse_density,
+                                 input_duration=self.input_duration)
 
+        SnuddaInput(input_config_file=self.input_config_file,
+                    hdf5_network_file=os.path.join(self.network_dir, 'network-pruned-synapses.hdf5'),
+                    spike_data_filename=os.path.join(self.network_dir, 'input.hdf5'),
+                    time=self.max_time)
 
     def run_simulations(self):
         pass
@@ -227,6 +237,9 @@ class InputScaling(object):
         n_inputs = dict()
 
         for neuron_type in neuron_sets:
+
+            # For each neuron_type we want to run a range on number of inputs from n_input_min to n_input_max
+            # dynamically create a range depending on number of neurons of that morphology available
             neuron_id_list = neuron_sets[neuron_type]
             num_range = np.linspace(n_input_min, n_input_max, num=len(neuron_id_list)).astype(int)
 
@@ -249,7 +262,7 @@ class InputScaling(object):
                                input_conductance=sc)
 
         with open(input_config_file, "w") as f:
-            json.dump(self.input_info,f,indent=4)
+            json.dump(self.input_info, f, indent=4)
 
     def add_input(self, input_target, input_frequency, input_duration,
                   input_density, input_conductance,
