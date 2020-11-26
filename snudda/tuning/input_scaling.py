@@ -10,6 +10,13 @@ from snudda.core import Snudda
 import numpy as np
 
 
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
+
 class InputScaling(object):
 
     def __init__(self, network_dir, cellspec_dir):
@@ -45,7 +52,7 @@ class InputScaling(object):
 
         print(f"Writing network config file to {self.network_config_file_name}")
         with open(self.network_config_file_name, "w") as f:
-            json.dump(config_def, f, indent=2)
+            json.dump(config_def, f, indent=2, cls=NumpyEncoder)
 
         CreateCubeMesh("data/mesh/InputTestMesh.obj", [0, 0, 0], 1e-3,
                        description="Mesh file used for Input Scaling")
@@ -72,23 +79,42 @@ class InputScaling(object):
         synapse_density_cortical_input = "1.15*0.05/(1+np.exp(-(d-30e-6)/5e-6))"
         synapse_density_thalamic_input = "0.05*np.exp(-d/200e-6)"
 
+        cortical_SPN_synapse_parameter_file = "data/synapses/v2/M1RH_Analysis_190925.h5-parameters-MS.json"
+        thalamic_SPN_synapse_parameter_file = "data/synapses/v2/TH_Analysis_191001.h5-parameters-MS.json"
+        cortical_FS_synapse_parameter_file = "data/synapses/v2/M1RH_Analysis_190925.h5-parameters-FS.json"
+        thalamic_FS_synapse_parameter_file = "data/synapses/v2/TH_Analysis_191001.h5-parameters-FS.json"
+        cortical_ChIN_synapse_parameter_file = "data/synapses/v2/M1RH_Analysis_190925.h5-parameters-CHAT.json"
+        thalamic_ChIN_synapse_parameter_file = "data/synapses/v2/TH_Analysis_191001.h5-parameters-CHAT.json"
+        cortical_LTS_synapse_parameter_file = "data/synapses/v2/M1RH_Analysis_190925.h5-parameters-LTS.json"
+
         if input_type == 'cortical':
             synapse_density = synapse_density_cortical_input
+            synapse_parameter_file = { "dspn": cortical_SPN_synapse_parameter_file,
+                                       "ispn": cortical_SPN_synapse_parameter_file,
+                                       "fs": cortical_FS_synapse_parameter_file,
+                                       "lts": cortical_LTS_synapse_parameter_file,
+                                       "chin": cortical_ChIN_synapse_parameter_file }
             print("Using cortical synapse density for input.")
         elif input_type == 'thalamic':
             synapse_density = synapse_density_thalamic_input
+            synapse_parameter_file = { "dspn": thalamic_SPN_synapse_parameter_file,
+                                       "ispn": thalamic_SPN_synapse_parameter_file,
+                                       "fs": thalamic_FS_synapse_parameter_file,
+                                       "chin": thalamic_ChIN_synapse_parameter_file }
             print("Using thalamic synapse density for input")
         else:
             synapse_density = "1"
             print("No density profile used for input.")
 
         self.create_input_config(input_config_file=self.input_config_file,
+                                 input_type=input_type,
                                  input_frequency=[1.0],
                                  n_input_min=0,
                                  n_input_max=1000,
                                  synapse_conductance=0.5e-9,
                                  synapse_density=synapse_density,
-                                 input_duration=self.input_duration)
+                                 input_duration=self.input_duration,
+                                 synapse_parameter_file=synapse_parameter_file)
 
         SnuddaInput(input_config_file=self.input_config_file,
                     hdf5_network_file=os.path.join(self.network_dir, 'network-pruned-synapses.hdf5'),
@@ -211,16 +237,16 @@ class InputScaling(object):
         if not self.neuron_info:
             self.load_network_info(network_file=self.network_file)
 
-        neuron_id = self.neuron_info["neuronID"]
-        neuron_type = self.neuron_info["type"]
+        neuron_id = np.array([x["neuronID"] for x in self.neuron_info])
+        neuron_type = np.array([x["type"] for x in self.neuron_info])
 
         neuron_sets = dict()
 
         for nt in set(neuron_type):
             idx = np.where(neuron_type == nt)
-            neuron_id = np.sort(neuron_id[idx])
+            neuron_id_list = np.sort(neuron_id[idx])
 
-            neuron_sets[nt] = neuron_id
+            neuron_sets[nt] = neuron_id_list
 
         return neuron_sets
 
@@ -229,8 +255,11 @@ class InputScaling(object):
 
     def create_input_config(self,
                             input_config_file,
+                            input_type,
                             n_input_min, n_input_max, input_frequency,
-                            synapse_density, synapse_conductance,
+                            synapse_density,
+                            synapse_conductance,
+                            synapse_parameter_file,
                             input_duration=10.0):
 
         neuron_sets = self.collect_neurons()
@@ -250,21 +279,32 @@ class InputScaling(object):
                 else:
                     sd = synapse_density
 
+                if type(synapse_parameter_file) == dict:
+                    if neuron_type not in synapse_parameter_file:
+                        print(f"No parameter file for {neuron_type} {input_type} input, excluding from run.")
+                        continue
+
+                    spf = synapse_parameter_file[neuron_type]
+                else:
+                    spf = synapse_parameter_file
+
                 if type(synapse_conductance) == dict:
                     sc = synapse_conductance[neuron_type]
                 else:
                     sc = synapse_conductance
 
                 self.add_input(input_target=neuron_id,
+                               input_type=input_type,
                                input_frequency=input_frequency,
                                input_duration=input_duration,
                                input_density=sd,
-                               input_conductance=sc)
+                               input_conductance=sc,
+                               synapse_parameter_file=spf)
 
         with open(input_config_file, "w") as f:
-            json.dump(self.input_info, f, indent=4)
+            json.dump(self.input_info, f, indent=4, cls=NumpyEncoder)
 
-    def add_input(self, input_target, input_frequency, input_duration,
+    def add_input(self, input_target, input_type, input_frequency, input_duration,
                   input_density, input_conductance,
                   synapse_parameter_file):
 
@@ -280,18 +320,19 @@ class InputScaling(object):
         input_end = input_duration * np.arange(1, n_steps+1)
 
         self.input_info[input_target] = collections.OrderedDict()
+        self.input_info[input_target][input_type] = collections.OrderedDict()
 
-        self.input_info[input_target]["generator"] = "poisson"
-        self.input_info[input_target]["type"] = "AMPA_NMDA"
-        self.input_info[input_target]["synapseDensity"] = input_density
-        self.input_info[input_target]["frequency"] = input_frequency
-        self.input_info[input_target]["start"] = input_start
-        self.input_info[input_target]["end"] = input_end
-        self.input_info[input_target]["populationUnitCorrelation"] = 0.0
-        self.input_info[input_target]["jitter"] = 0.0
-        self.input_info[input_target]["conductance"] = input_conductance
-        self.input_info[input_target]["modFile"] = "tmGlut"
-        self.input_info[input_target]["parameterFile"] = synapse_parameter_file
+        self.input_info[input_target][input_type]["generator"] = "poisson"
+        self.input_info[input_target][input_type]["type"] = "AMPA_NMDA"
+        self.input_info[input_target][input_type]["synapseDensity"] = input_density
+        self.input_info[input_target][input_type]["frequency"] = input_frequency
+        self.input_info[input_target][input_type]["start"] = input_start
+        self.input_info[input_target][input_type]["end"] = input_end
+        self.input_info[input_target][input_type]["populationUnitCorrelation"] = 0.0
+        self.input_info[input_target][input_type]["jitter"] = 0.0
+        self.input_info[input_target][input_type]["conductance"] = input_conductance
+        self.input_info[input_target][input_type]["modFile"] = "tmGlut"
+        self.input_info[input_target][input_type]["parameterFile"] = synapse_parameter_file
 
 
 

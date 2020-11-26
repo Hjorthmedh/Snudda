@@ -254,6 +254,10 @@ class SnuddaPrune(object):
                 f_src = os.path.basename(f_name)
 
                 print(str(f_dest) + "->" + str(f_src))
+
+                if os.path.exists(f_dest):
+                    os.remove(f_dest)
+
                 os.symlink(f_src, f_dest)
 
                 return
