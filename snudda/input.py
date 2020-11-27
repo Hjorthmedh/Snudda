@@ -210,7 +210,11 @@ class SnuddaInput(object):
                     population_unit_id = neuron_in["populationUnitID"]
                     it_group.create_dataset("populationUnitID", data=population_unit_id)
 
-                    chan_spikes = self.population_unit_spikes[neuron_type][input_type][population_unit_id]
+                    # TODO: What to do with population_unit_spikes, should we have mandatory jittering for them?
+                    if neuron_type in self.population_unit_spikes:
+                        chan_spikes = self.population_unit_spikes[neuron_type][input_type][population_unit_id]
+                    else:
+                        chan_spikes = np.array([])
                     it_group.create_dataset("populationUnitSpikes", data=chan_spikes)
 
                     it_group.create_dataset("generator", data=neuron_in["generator"])
@@ -457,8 +461,13 @@ class SnuddaInput(object):
                     conductance_list.append(cond)
                     correlation_list.append(input_inf["populationUnitCorrelation"])
 
-                    c_spikes = self.population_unit_spikes[neuron_type][input_type][populationUnitID]
-                    population_unit_spikes_list.append(c_spikes)
+                    if neuron_type in self.population_unit_spikes:
+                        # TODO: These are cleared at the end anyway, so not currently used. Remove altogether?
+                        c_spikes = self.population_unit_spikes[neuron_type][input_type][populationUnitID]
+                        population_unit_spikes_list.append(c_spikes)
+                    else:
+                        print(f"No population spikes specified for neuron type {neuron_type}")
+                        population_unit_spikes_list.append(np.array([]))
 
                     mod_file_list.append(mod_file)
                     parameter_file_list.append(parameter_file)
