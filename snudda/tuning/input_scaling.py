@@ -2,12 +2,17 @@ import os
 import glob
 import collections
 import json
+
+import h5py
+
 from snudda.CreateCubeMesh import CreateCubeMesh
 from snudda.Neuron_morphology import NeuronMorphology
 from snudda.input import SnuddaInput
 from snudda.load import SnuddaLoad
 from snudda.core import Snudda
 import numpy as np
+
+import matplotlib.pyplot as plt
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -41,6 +46,7 @@ class InputScaling(object):
         self.network_config_file_name = os.path.join(self.network_dir, "network-config.json")
         self.network_file = os.path.join(self.network_dir, "network-pruned-synapses.hdf5")
         self.input_config_file = os.path.join(self.network_dir, "input-config.json")
+        self.input_spikes_file = os.path.join(self.network_dir, 'input.hdf5')
 
         self.core = Snudda(self.network_dir)
 
@@ -118,7 +124,7 @@ class InputScaling(object):
 
         SnuddaInput(input_config_file=self.input_config_file,
                     hdf5_network_file=os.path.join(self.network_dir, 'network-pruned-synapses.hdf5'),
-                    spike_data_filename=os.path.join(self.network_dir, 'input.hdf5'),
+                    spike_data_filename=self.input_spikes_file,
                     time=self.max_time)
 
     def run_simulations(self):
@@ -334,12 +340,38 @@ class InputScaling(object):
         self.input_info[input_target][input_type]["modFile"] = "tmGlut"
         self.input_info[input_target][input_type]["parameterFile"] = synapse_parameter_file
 
+    def plot_generated_input(self, num_bins=100):
+        # This function just checks that we have reasonable spikes generated
 
+        input_spike_data = h5py.File(self.input_spikes_file, 'r')
+        network_data = h5py.File(self.network_file, 'r')
 
+        neuron_type = np.array([x.decode().split("_")[0].lower() for x in network_data["network/neurons/name"]])
+        neuron_id = np.array([x for x in network_data["network/neurons/neuronID"]])
+
+        for nt in set(neuron_type):
+            fig, ax = plt.subplots()
+
+            for nid in neuron_id[np.where(neuron_type == nt)]:
+                for input_type in input_spike_data["input"][str(nid)]:
+                    spikes = input_spike_data["input"][str(nid)][input_type]["spikes"][:].ravel()
+                    ax.hist(spikes, num_bins)
+
+            plt.title(f"Input to {nt}")
+            plt.xlabel("Time (s)")
+            plt.ylabel("Count")
+            plt.show()
+
+        # input_spike_data["input/0/thalamic/spikes"]
+        # network_data["network/neurons/name"]
+
+        input_spike_data.close()
+        network_data.close()
 
 
 if __name__ == "__main__":
     input_scaling = InputScaling("networks/input_scaling_v1", "data/cellspecs-v2/")
 
-    input_scaling.setup_network()
-    input_scaling.setup_input(input_type="thalamic")
+    #input_scaling.setup_network()
+    #input_scaling.setup_input(input_type="thalamic")
+    input_scaling.plot_generated_input()

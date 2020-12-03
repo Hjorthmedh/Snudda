@@ -342,7 +342,7 @@ class SnuddaInput(object):
 
     def make_neuron_input_parallel(self):
 
-        self.write_log("Running makeNeuronInputParallell")
+        self.write_log("Running makeNeuronInputParallel")
 
         self.neuron_input = dict([])
 
