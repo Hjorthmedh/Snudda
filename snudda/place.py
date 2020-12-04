@@ -232,67 +232,58 @@ class SnuddaPlace(object):
         # Read in the neurons
         for name, definition in config["Neurons"].items():
 
-            try:
-                neuron_name = name
-                morph = definition["morphology"]
-                param = definition["parameters"]
-                mech = definition["mechanisms"]
+            neuron_name = name
+            morph = definition["morphology"]
+            param = definition["parameters"]
+            mech = definition["mechanisms"]
 
-                if "modulation" in definition:
-                    modulation = definition["modulation"]
-                else:
-                    # Modulation optional
-                    modulation = None
+            if "modulation" in definition:
+                modulation = definition["modulation"]
+            else:
+                # Modulation optional
+                modulation = None
 
-                num = definition["num"]
-                volume_id = definition["volumeID"]
+            num = definition["num"]
+            volume_id = definition["volumeID"]
 
-                if "neuronType" in definition:
-                    # type is "neuron" or "virtual" (provides input only)
-                    model_type = definition["neuronType"]
-                else:
-                    model_type = "neuron"
+            if "neuronType" in definition:
+                # type is "neuron" or "virtual" (provides input only)
+                model_type = definition["neuronType"]
+            else:
+                model_type = "neuron"
 
-                if 'hoc' in definition:
-                    hoc = definition["hoc"]
-                else:
-                    hoc = None
+            if 'hoc' in definition:
+                hoc = definition["hoc"]
+            else:
+                hoc = None
 
-                if model_type == "virtual":
-                    # Virtual neurons gets spikes from a file
-                    mech = ""
-                    hoc = ""
-                    virtual_neuron = True
-                else:
-                    virtual_neuron = False
+            if model_type == "virtual":
+                # Virtual neurons gets spikes from a file
+                mech = ""
+                hoc = ""
+                virtual_neuron = True
+            else:
+                virtual_neuron = False
 
-                rotation_mode = definition["rotationMode"]
+            rotation_mode = definition["rotationMode"]
 
-                if "axonDensity" in definition:
-                    axon_density = definition["axonDensity"]
-                else:
-                    axon_density = None
+            if "axonDensity" in definition:
+                axon_density = definition["axonDensity"]
+            else:
+                axon_density = None
 
-                self.write_log(f"Adding: {num} {neuron_name}")
-                self.add_neurons(name=neuron_name,
-                                 swc_filename=morph,
-                                 param_data=param,
-                                 mech_filename=mech,
-                                 modulation=modulation,
-                                 num_neurons=num,
-                                 hoc=hoc,
-                                 volume_id=volume_id,
-                                 virtual_neuron=virtual_neuron,
-                                 rotation_mode=rotation_mode,
-                                 axon_density=axon_density)
-
-            except:
-                import traceback
-                tstr = traceback.format_exc()
-                print(tstr)
-                print("SnuddaPlace: problem reading config file")
-                import pdb
-                pdb.set_trace()
+            self.write_log(f"Adding: {num} {neuron_name}")
+            self.add_neurons(name=neuron_name,
+                             swc_filename=morph,
+                             param_data=param,
+                             mech_filename=mech,
+                             modulation=modulation,
+                             num_neurons=num,
+                             hoc=hoc,
+                             volume_id=volume_id,
+                             virtual_neuron=virtual_neuron,
+                             rotation_mode=rotation_mode,
+                             axon_density=axon_density)
 
         self.config_file = config_file
 

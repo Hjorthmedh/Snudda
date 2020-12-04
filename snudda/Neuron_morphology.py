@@ -45,9 +45,9 @@ class NeuronMorphology(object):
         else:
             self.rotation = None
 
-        self.soma = np.zeros((1, 4))
-        self.axon = np.array((0, 5))
-        self.dend = np.array((0, 5))  # 0,1,2: x,y,z  3: radie, 4: dist to soma (all in meters)
+        self.soma = np.array([])
+        self.axon = np.array([])
+        self.dend = np.array([])  # 0,1,2: x,y,z  3: radie, 4: dist to soma (all in meters)
 
         self.axon_density_type = None
         self.dend_density = None
