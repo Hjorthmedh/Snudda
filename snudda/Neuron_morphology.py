@@ -262,20 +262,16 @@ class NeuronMorphology(object):
         # has length sqrt(2) to eliminate the 2 in the Householder matrix.
 
         r = np.sqrt(z)
-        Vx, Vy, Vz = V = (
-            np.sin(phi) * r,
-            np.cos(phi) * r,
-            np.sqrt(2.0 - z)
-        )
+        vv = (np.sin(phi) * r, np.cos(phi) * r, np.sqrt(2.0 - z))
 
         st = np.sin(theta)
         ct = np.cos(theta)
 
-        R = np.array(((ct, st, 0), (-st, ct, 0), (0, 0, 1)))
+        rr = np.array(((ct, st, 0), (-st, ct, 0), (0, 0, 1)))
 
         # Construct the rotation matrix  ( V Transpose(V) - I ) R.
-        M = (np.outer(V, V) - np.eye(3)).dot(R)
-        return M
+        mm = (np.outer(vv, vv) - np.eye(3)).dot(rr)
+        return mm
 
     ############################################################################
 
@@ -831,8 +827,7 @@ class NeuronMorphology(object):
                        c=soma_colour, alpha=alpha)
 
         # plt.axis('equal')
-        plt.title("Neuron: " + self.swc_filename.split("/")[-3] \
-                  + "_" + self.swc_filename.split('/').pop())
+        plt.title("Neuron: " + self.swc_filename.split("/")[-3] + "_" + self.swc_filename.split('/').pop())
         plt.ion()
         plt.show()
         plt.draw()
@@ -841,7 +836,6 @@ class NeuronMorphology(object):
         return ax
 
     ############################################################################
-
 
     def set_axon_voxel_radial_density(self, density, max_axon_radius):
 
@@ -944,8 +938,7 @@ class NeuronMorphology(object):
 
                 # Use compX (where between comp endpoints) to calculate sectionX
                 # (where between section end points)
-                input_loc[syn_ctr, 4] = self.dend_sec_x[i_comp, 0] * (1 - comp_x) \
-                                        + comp_x * self.dend_sec_x[i_comp, 1]
+                input_loc[syn_ctr, 4] = self.dend_sec_x[i_comp, 0] * (1 - comp_x) + comp_x * self.dend_sec_x[i_comp, 1]
 
                 syn_ctr += 1
 
@@ -955,29 +948,6 @@ class NeuronMorphology(object):
 
         # Return xyz,secID,secX, dist_to_soma (update: now also added distance synapse to soma)
         return input_loc[:, :3], input_loc[:, 3], input_loc[:, 4], dist_syn_soma
-
-    ############################################################################
-
-    # !!! Add plot functon for density
-
-    # Now density is specified as an equation of d, this func needs to be rewritten
-
-    def plot_density_OLD(self):
-
-        d = [self.density_bin_size * x * 1e6 for x in range(0, len(self.dend_density))]
-
-        import matplotlib.pyplot as plt
-        plt.figure()
-        plt.step(d, self.dend_density * 1e-12)
-        plt.xlabel('Distance from soma (mum)')
-        plt.ylabel('Density (mum/mum3)')
-
-        if self.axon_density is not None:
-            da = [self.density_bin_size * x * 1e6 for x in range(0, len(self.axon_density))]
-            plt.figure()
-            plt.step(da, self.axon_density * 1e-12)
-            plt.xlabel('Distance from soma (mum)')
-            plt.ylabel('Axon density (mum/mum3)')
 
     ############################################################################
 
@@ -1025,8 +995,6 @@ class NeuronMorphology(object):
 if __name__ == "__main__":
     # The lines below are just for testing purposes
 
-    # nm = NeuronMorphology(swc_filename='morphology/network/FSN-BE79B-3ak-compact-5.swc',verbose=True,clusterFlag=True,nClustersDend=-1,nClustersAxon=-1)
-
     fName = "data/cellspecs/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/WT-1215MSN03-cor-rep-ax2.swc"
     # fName = "data/cellspecs/lts/LTS_Experiment-9862_20181211/lts_morp_2019-11-07_centered_noAxon.swc"
 
@@ -1049,8 +1017,6 @@ if __name__ == "__main__":
 
     nm2 = nm.clone(rotation=nm.rand_rotation_matrix(), position=np.array([0.001, 0.001, 0.001]))
     nm2.plot_neuron(ax1)
-
-    nm2.plot_density_OLD()
 
     # raw_input("Test")
 
