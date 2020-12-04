@@ -925,11 +925,13 @@ class NeuronMorphology(object):
             for j in range(0, nSyn):
                 # print('Compartment containing a synapse',iComp)
                 # print('Distance from soma',self.dend[iComp][4]*1e6,'$mum$')
-                dist_syn_soma = np.append(dist_syn_soma, self.dend[i_comp][4])
                 input_loc[syn_ctr, 3] = self.dend_sec_id[i_comp]
 
                 # Cant have at endpoints 0 or 1
                 comp_x = np.random.rand()
+                dist_syn_soma = np.append(dist_syn_soma,
+                                          d[self.dend_links[i_comp, 0]] * (1 - comp_x)
+                                          + d[self.dend_links[i_comp, 1]] * comp_x)
 
                 coords = self.dend[self.dend_links[i_comp, 0], :3] * (1 - comp_x) \
                          + self.dend[self.dend_links[i_comp, 1], :3] * comp_x

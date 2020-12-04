@@ -566,7 +566,7 @@ class SnuddaInit(object):
 
         if cell_spec_dir is None:
             cs_dir = self.data_path + "/cellspecs-v2"
-            # csDir = self.dataPath + "/cellspecs-var"
+            # cs_dir = self.data_path + "/data/resampling-test/"
         else:
             cs_dir = cell_spec_dir
 
