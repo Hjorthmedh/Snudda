@@ -45,9 +45,9 @@ class NeuronMorphology(object):
         else:
             self.rotation = None
 
-        self.soma = []
-        self.axon = []
-        self.dend = []  # 0,1,2: x,y,z  3: radie, 4: dist to soma (all in meters)
+        self.soma = np.zeros((1, 4))
+        self.axon = np.array((0, 5))
+        self.dend = np.array((0, 5))  # 0,1,2: x,y,z  3: radie, 4: dist to soma (all in meters)
 
         self.axon_density_type = None
         self.dend_density = None
@@ -94,11 +94,11 @@ class NeuronMorphology(object):
         self.max_dend_radius = 0
 
         # Telling how the different points link together into lines
-        self.axon_links = []  # These should never be changed after CLONE
-        self.dend_links = []
+        self.axon_links = np.array((2, 0))  # These should never be changed after CLONE
+        self.dend_links = np.array((2, 0))
 
-        self.dend_sec_id = []
-        self.dend_sec_x = []
+        self.dend_sec_id = np.array((1,))
+        self.dend_sec_x = np.array((2, 0))
 
         if colour is None:
             self.colour = np.random.random((3,))
@@ -124,8 +124,7 @@ class NeuronMorphology(object):
                     tstr = traceback.format_exc()
                     print(tstr)
 
-                    self.write_log("!!! Failed to read cache file, loading: " \
-                                   + self.swc_filename)
+                    self.write_log("!!! Failed to read cache file, loading: " + self.swc_filename)
                     self.load_swc(self.swc_filename)
                     self.save_cache()
 
@@ -235,7 +234,8 @@ class NeuronMorphology(object):
     ############################################################################
 
     # http://blog.lostinmyterminal.com/python/2015/05/12/random-rotation-matrix.html
-    def rand_rotation_matrix(self, deflection=1.0, rand_nums=None):
+    @staticmethod
+    def rand_rotation_matrix(deflection=1.0, rand_nums=None):
         """
     Creates a random rotation matrix.
     
@@ -329,8 +329,7 @@ class NeuronMorphology(object):
         self.position = position
 
         # Plot neuron post rotation
-        if False:
-            self.plot_neuron()
+        # self.plot_neuron()
 
         return self
 
@@ -702,11 +701,6 @@ class NeuronMorphology(object):
             # We also have sectionID, secX0 and secX1 saved in links[:,2:5]
             # if needed in the future
 
-        if False:
-            print("Inspect self.dend and axon")
-            import pdb
-            pdb.set_trace()
-
         if self.virtual_neuron:
             # For virtual neurons, skip the dendrites (save space)
             self.dend = np.zeros((0, self.dend.shape[1]))
@@ -718,11 +712,7 @@ class NeuronMorphology(object):
         self.find_radius()
         self.place()
 
-        if False:
-            print("Debug plot")
-            self.debug_plot()
-            import pdb
-            pdb.set_trace()
+        # self.debug_plot()
 
     ############################################################################
 
@@ -852,52 +842,6 @@ class NeuronMorphology(object):
 
     ############################################################################
 
-    # !!! Is this function depricated?
-
-    def dendrite_density(self):
-
-        assert False, "Depricated function dendriteDensity?"
-
-        if len(self.dend) == 0:
-            assert self.virtual_neuron, \
-                "No dendrites in " + str(self.name) \
-                + ". Only virtual neurons are allowed to have no dendrites!"
-
-            # No dendrites, neuron is virtual
-            return None
-
-        if True or self.dend_density is None:
-
-            # Calculate all the segment lengths
-            dend_segment_length = \
-                np.sum(((self.dend[self.dend_links[:, 0].astype(int), :][:, 0:3]
-                         - self.dend[self.dend_links[:, 1].astype(int), :][:, 0:3]) ** 2),
-                       axis=-1) ** 0.5
-
-            # Calculate all segment centres distances to soma
-            dend_segment_dist = \
-                np.sum((((self.dend[self.dend_links[:, 0].astype(int), :][:, 0:3]
-                          + self.dend[self.dend_links[:, 1].astype(int), :][:, 0:3]) / 2
-                         - self.soma[0, 0:3]) ** 2),
-                       axis=-1) ** 0.5
-
-            bin_size = self.density_bin_size
-            max_dist = np.max(dend_segment_dist)
-            n_bins = int(np.ceil(max_dist / bin_size)) + 1
-
-            self.dend_density = np.zeros((n_bins, 1))
-
-            for sd, sl in zip(dend_segment_dist, dend_segment_length):
-                idx = int(np.floor(sd / bin_size))
-                self.dend_density[idx] += sl
-
-            # Divide by volume of shell to get density
-            for i in range(0, n_bins):
-                self.dend_density[i] /= 4 * np.pi / 3 * (((i + 1) * bin_size) ** 3 - (i * bin_size) ** 3)
-
-        return self.dend_density, self.density_bin_size
-
-    ############################################################################
 
     def set_axon_voxel_radial_density(self, density, max_axon_radius):
 

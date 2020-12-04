@@ -88,6 +88,8 @@ class InputScaling(object):
 
         synapse_density_cortical_input = "1.15*0.05/(1+np.exp(-(d-30e-6)/5e-6))"
         synapse_density_thalamic_input = "0.05*np.exp(-d/200e-6)"
+        synapse_density_thalamic_input = "(d > 100e-6)*1"
+
 
         cortical_SPN_synapse_parameter_file = "data/synapses/v2/M1RH_Analysis_190925.h5-parameters-MS.json"
         thalamic_SPN_synapse_parameter_file = "data/synapses/v2/TH_Analysis_191001.h5-parameters-MS.json"
@@ -404,8 +406,22 @@ class InputScaling(object):
         input_spike_data.close()
         network_data.close()
 
+#    def plot_neuron_soma_distance(self):
+
+    # TODO: Plotta morfologin, och kolla så att distance to soma verkar stämma (dvs plotta alla distance to soma) för en given cell.
+
+
+    def simulate_neurons(self):
+
+
+        pass
 
 if __name__ == "__main__":
+    #from argparse import ArgumentParser
+
+    #parser = ArgumentParser("Input Scaling")
+
+
     input_scaling = InputScaling("networks/input_scaling_v1", "data/cellspecs-v2/")
 
     input_scaling.setup_network()

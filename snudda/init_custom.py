@@ -10,6 +10,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Init custom network")
     parser.add_argument("network", type=str, help="Network path")
     parser.add_argument("--cellspec", type=str, help="Cell spec directory", default=None)
+    # TODO: Add cell number parameters
     args = parser.parse_args()
 
     sim_name = args.network
