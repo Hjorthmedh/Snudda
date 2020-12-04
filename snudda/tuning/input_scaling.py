@@ -308,6 +308,7 @@ class InputScaling(object):
                                input_frequency=input_frequency,
                                input_duration=input_duration,
                                input_density=sd,
+                               num_input=num_input,
                                input_conductance=sc,
                                synapse_parameter_file=spf)
 
@@ -315,7 +316,7 @@ class InputScaling(object):
             json.dump(self.input_info, f, indent=4, cls=NumpyEncoder)
 
     def add_input(self, input_target, input_type, input_frequency, input_duration,
-                  input_density, input_conductance,
+                  input_density, num_input, input_conductance,
                   synapse_parameter_file):
 
         if type(input_target) != str:
@@ -335,6 +336,7 @@ class InputScaling(object):
         self.input_info[input_target][input_type]["generator"] = "poisson"
         self.input_info[input_target][input_type]["type"] = "AMPA_NMDA"
         self.input_info[input_target][input_type]["synapseDensity"] = input_density
+        self.input_info[input_target][input_type]["nInputs"] = num_input
         self.input_info[input_target][input_type]["frequency"] = input_frequency
         self.input_info[input_target][input_type]["start"] = input_start
         self.input_info[input_target][input_type]["end"] = input_end
@@ -344,7 +346,7 @@ class InputScaling(object):
         self.input_info[input_target][input_type]["modFile"] = "tmGlut"
         self.input_info[input_target][input_type]["parameterFile"] = synapse_parameter_file
 
-    def plot_generated_input(self, num_bins=100):
+    def plot_generated_input(self, num_bins=50):
         # This function just checks that we have reasonable spikes generated
 
         input_spike_data = h5py.File(self.input_spikes_file, 'r')
@@ -365,7 +367,7 @@ class InputScaling(object):
                 for input_type in input_spike_data["input"][str(nid)]:
                     spikes = input_spike_data["input"][str(nid)][input_type]["spikes"][:].ravel()
                     spikes = spikes[spikes >= 0]  # Negative -1 is filler values, remove them.
-                    ax.hist(spikes, num_bins)
+                    ax.hist(spikes, num_bins, histtype="step")
 
             plt.title(f"Input to {nt}")
             plt.xlabel("Time (s)")
