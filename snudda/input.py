@@ -197,6 +197,7 @@ class SnuddaInput(object):
 
                     it_group.create_dataset("sectionID", data=neuron_in["location"][1])
                     it_group.create_dataset("sectionX", data=neuron_in["location"][2])
+                    it_group.create_dataset("distanceToSoma", data=neuron_in["location"][3])
 
                     it_group.create_dataset("freq", data=neuron_in["freq"])
                     it_group.create_dataset("correlation", data=neuron_in["correlation"])
@@ -557,8 +558,7 @@ class SnuddaInput(object):
                 # Virtual neurons have no location of their input, as the "input"
                 # specifies the spike times of the virtual neuron itself
                 self.neuron_input[neuron_id][input_type]["location"] = loc
-                self.neuron_input[neuron_id][input_type]["synapseDensity"] \
-                    = synapse_density
+                self.neuron_input[neuron_id][input_type]["synapseDensity"] = synapse_density
                 self.neuron_input[neuron_id][input_type]["conductance"] = cond
 
             self.neuron_input[neuron_id][input_type]["freq"] = frq
@@ -617,21 +617,26 @@ class SnuddaInput(object):
 
         assert duration > 0, f"Start time {start_time} and end time {end_time} incorrect (duration > 0 required)"
 
-        t_diff = -np.log(1.0 - np.random.random(int(np.ceil(max(1, freq * duration))))) / freq
+        if freq > 0:
+            t_diff = -np.log(1.0 - np.random.random(int(np.ceil(max(1, freq * duration))))) / freq
 
-        t_spikes = [start_time + np.cumsum(t_diff)]
+            t_spikes = [start_time + np.cumsum(t_diff)]
 
-        # Is last spike after end of duration
-        while t_spikes[-1][-1] <= end_time:
-            t_diff = -np.log(1.0 - np.random.random(int(np.ceil(freq * duration * 0.1)))) / freq
-            t_spikes.append(t_spikes[-1][-1] + np.cumsum(t_diff))
+            # Is last spike after end of duration
+            while t_spikes[-1][-1] <= end_time:
+                t_diff = -np.log(1.0 - np.random.random(int(np.ceil(freq * duration * 0.1)))) / freq
+                t_spikes.append(t_spikes[-1][-1] + np.cumsum(t_diff))
 
-        # Prune away any spikes after end
-        if len(t_spikes[-1]) > 0:
-            t_spikes[-1] = t_spikes[-1][t_spikes[-1] <= end_time]
+            # Prune away any spikes after end
+            if len(t_spikes[-1]) > 0:
+                t_spikes[-1] = t_spikes[-1][t_spikes[-1] <= end_time]
 
-        # Return spike times
-        return np.concatenate(t_spikes)
+            # Return spike times
+            return np.concatenate(t_spikes)
+        else:
+            # Frequency was 0 or negative(!)
+            assert not freq < 0, "Negative frequency specified."
+            return np.array([])
 
     ############################################################################
 
@@ -1196,7 +1201,7 @@ class SnuddaInput(object):
             num_inputs = 1
         else:
 
-            # x,y,z, secID, secX
+            # (x,y,z), secID, secX, dist_to_soma
             input_loc = self.dendrite_input_locations(neuron_id=neuron_id,
                                                       synapse_density=synapse_density,
                                                       num_spike_trains=num_spike_trains)
@@ -1216,7 +1221,7 @@ class SnuddaInput(object):
         parameter_id = np.random.randint(1e6, size=num_inputs)
 
         # We need to keep track of the neuronID, since it will all be jumbled
-        # when doing asynchronous prallelisation
+        # when doing asynchronous parallelisation
         return (neuron_id, input_type, spikes, input_loc, synapse_density, freq,
                 jitter_dt, population_unit_id, conductance, correlation,
                 time_range,

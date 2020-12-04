@@ -355,8 +355,10 @@ class InputScaling(object):
         neuron_type = np.array([x.decode().split("_")[0].lower() for x in network_data["network/neurons/name"]])
         neuron_id = np.array([x for x in network_data["network/neurons/neuronID"]])
 
+        # Plot the input spikes
         for nt in set(neuron_type):
             neuron_idx = np.where(neuron_type == nt)
+            distance_to_soma = dict()
 
             if len(neuron_idx) == 0:
                 continue
@@ -369,12 +371,32 @@ class InputScaling(object):
                     spikes = spikes[spikes >= 0]  # Negative -1 is filler values, remove them.
                     ax.hist(spikes, num_bins, histtype="step")
 
+                    if input_type not in distance_to_soma:
+                        distance_to_soma[input_type] = []
+
+                    distance_to_soma[input_type].append(input_spike_data["input"][str(nid)][input_type]["distanceToSoma"][:])
+
             plt.title(f"Input to {nt}")
             plt.xlabel("Time (s)")
             plt.ylabel("Count")
             plt.ion()
             plt.show()
             plt.pause(0.001)
+
+            fig2, ax2 = plt.subplots()
+            leg = []
+            for input_type in distance_to_soma:
+                leg.append(input_type)
+                ax2.hist(np.concatenate(distance_to_soma[input_type])*1e6, 50, histtype="step")
+
+            plt.legend(leg)
+            plt.title(f"Synapses onto {nt}")
+            plt.xlabel(f"Distance to soma (micrometers)")
+            plt.ylabel(f"Count")
+            plt.show()
+            plt.pause(0.001)
+
+        # Plot distance to soma
 
         # input_spike_data["input/0/thalamic/spikes"]
         # network_data["network/neurons/name"]
@@ -388,4 +410,6 @@ if __name__ == "__main__":
 
     input_scaling.setup_network()
     input_scaling.setup_input(input_type="thalamic")
+    #input_scaling.setup_input(input_type="cortical")
+
     input_scaling.plot_generated_input()

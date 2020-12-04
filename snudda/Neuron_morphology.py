@@ -1009,8 +1009,8 @@ class NeuronMorphology(object):
             # Return xyz,secID,secX,iDensity,distSynSoma
             return input_loc[:, :3], input_loc[:, 3], input_loc[:, 4], i_density, dist_syn_soma
 
-        # Return xyz,secID,secX
-        return input_loc[:, :3], input_loc[:, 3], input_loc[:, 4]
+        # Return xyz,secID,secX, dist_to_soma (update: now also added distance synapse to soma)
+        return input_loc[:, :3], input_loc[:, 3], input_loc[:, 4], dist_syn_soma
 
     ############################################################################
 
