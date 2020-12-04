@@ -19,6 +19,10 @@ class NumpyEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
+        elif isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
         return json.JSONEncoder.default(self, obj)
 
 
@@ -114,7 +118,7 @@ class InputScaling(object):
 
         self.create_input_config(input_config_file=self.input_config_file,
                                  input_type=input_type,
-                                 input_frequency=[1.0],
+                                 input_frequency=list(self.frequency_range),  #[1.0],
                                  n_input_min=0,
                                  n_input_max=1000,
                                  synapse_conductance=0.5e-9,
@@ -350,17 +354,25 @@ class InputScaling(object):
         neuron_id = np.array([x for x in network_data["network/neurons/neuronID"]])
 
         for nt in set(neuron_type):
+            neuron_idx = np.where(neuron_type == nt)
+
+            if len(neuron_idx) == 0:
+                continue
+
             fig, ax = plt.subplots()
 
-            for nid in neuron_id[np.where(neuron_type == nt)]:
+            for nid in neuron_id[neuron_idx]:
                 for input_type in input_spike_data["input"][str(nid)]:
                     spikes = input_spike_data["input"][str(nid)][input_type]["spikes"][:].ravel()
+                    spikes = spikes[spikes >= 0]  # Negative -1 is filler values, remove them.
                     ax.hist(spikes, num_bins)
 
             plt.title(f"Input to {nt}")
             plt.xlabel("Time (s)")
             plt.ylabel("Count")
+            plt.ion()
             plt.show()
+            plt.pause(0.001)
 
         # input_spike_data["input/0/thalamic/spikes"]
         # network_data["network/neurons/name"]
@@ -372,6 +384,6 @@ class InputScaling(object):
 if __name__ == "__main__":
     input_scaling = InputScaling("networks/input_scaling_v1", "data/cellspecs-v2/")
 
-    #input_scaling.setup_network()
-    #input_scaling.setup_input(input_type="thalamic")
+    input_scaling.setup_network()
+    input_scaling.setup_input(input_type="thalamic")
     input_scaling.plot_generated_input()
