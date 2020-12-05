@@ -417,15 +417,34 @@ class InputScaling(object):
         pass
 
 if __name__ == "__main__":
-    #from argparse import ArgumentParser
+    from argparse import ArgumentParser, RawTextHelpFormatter
 
-    #parser = ArgumentParser("Input Scaling")
+    parser = ArgumentParser("Input Scaling", formatter_class=RawTextHelpFormatter)
+    parser.add_argument("action", choices=["setup", "simulate", "analyse"], help="Action to run.")
+    parser.add_argument("networkPath", help="Network path")
+    parser.add_argument("cellspecspath", help="Cellspecs path")
 
+    args = parser.parse_args()
 
-    input_scaling = InputScaling("networks/input_scaling_v1", "data/cellspecs-v2/")
+    # TODO: Let the user choose input type, duration for each "run", frequency range, number of input range
 
-    input_scaling.setup_network()
-    input_scaling.setup_input(input_type="thalamic")
-    #input_scaling.setup_input(input_type="cortical")
+    input_scaling = InputScaling(args.networkPath, args.cellspecspath)
 
-    input_scaling.plot_generated_input()
+    if args.action == "setup":
+        input_scaling.setup_network()
+        #input_scaling.setup_input(input_type=["thalamic", "cortical"])
+        input_scaling.setup_input(input_type="thalamic")
+        #input_scaling.setup_input(input_type="cortical")
+
+    elif args.action == "simulate":
+        print("Run simulation...")
+        from snudda.core import Snudda
+
+        s = Snudda(args.networkpath)
+        s.simulate(args)
+
+    elif args.action == "analyse":
+        input_scaling.plot_generated_input()
+
+    else:
+        print(f"Unknown action {args.action}")
