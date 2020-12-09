@@ -38,7 +38,9 @@ class InputScaling(object):
         self.input_info = None
         self.neuron_info = None
 
-        self.frequency_range = np.arange(0, 10, 1)
+        # TODO: Check baseline, close to threshold...
+        # TODO: Check when at tonic activity, how sharp short burst can we get without depolarisation block
+        self.frequency_range = np.arange(0, 50, 1)  # to 50 Hz, or maybe 100Hz...
         self.input_duration = 10.0
         self.max_time = self.input_duration * len(self.frequency_range)
 
