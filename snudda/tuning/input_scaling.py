@@ -387,6 +387,13 @@ class InputScaling(object):
             plt.show()
             plt.pause(0.001)
 
+            fig_dir = os.path.join(self.network_dir, "figures")
+            if not os.path.isdir(fig_dir):
+                os.mkdir(fig_dir)
+
+            fig_name1 = os.path.join(self.network_dir, "figures", f"{nt}-binned-input.pdf")
+            plt.savefig(fig_name1)
+
             fig2, ax2 = plt.subplots()
             leg = []
             for input_type in distance_to_soma:
@@ -400,17 +407,11 @@ class InputScaling(object):
             plt.show()
             plt.pause(0.001)
 
-        # Plot distance to soma
-
-        # input_spike_data["input/0/thalamic/spikes"]
-        # network_data["network/neurons/name"]
+            fig_name2 = os.path.join(self.network_dir, "figures", f"{nt}-input-distance-to-soma.pdf")
+            plt.savefig(fig_name2)
 
         input_spike_data.close()
         network_data.close()
-
-#    def plot_neuron_soma_distance(self):
-
-    # TODO: Plotta morfologin, och kolla så att distance to soma verkar stämma (dvs plotta alla distance to soma) för en given cell.
 
 
     def simulate_neurons(self):
