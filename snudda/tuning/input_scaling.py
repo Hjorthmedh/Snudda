@@ -9,8 +9,10 @@ from snudda.CreateCubeMesh import CreateCubeMesh
 from snudda.Neuron_morphology import NeuronMorphology
 from snudda.input import SnuddaInput
 from snudda.load import SnuddaLoad
+from snudda.simulate import SnuddaSimulate
 from snudda.core import Snudda
 import numpy as np
+import timeit
 
 import matplotlib.pyplot as plt
 
@@ -40,8 +42,8 @@ class InputScaling(object):
 
         # TODO: Check baseline, close to threshold...
         # TODO: Check when at tonic activity, how sharp short burst can we get without depolarisation block
-        self.frequency_range = np.arange(0, 50, 1)  # to 50 Hz, or maybe 100Hz...
-        self.input_duration = 10.0
+        self.frequency_range = np.arange(0, 2, 1) # np.arange(0, 50, 1)  # to 50 Hz, or maybe 100Hz...
+        self.input_duration = 2.0  # 10.0
         self.max_time = self.input_duration * len(self.frequency_range)
 
         if not os.path.isdir(self.network_dir):
@@ -53,6 +55,9 @@ class InputScaling(object):
         self.network_file = os.path.join(self.network_dir, "network-pruned-synapses.hdf5")
         self.input_config_file = os.path.join(self.network_dir, "input-config.json")
         self.input_spikes_file = os.path.join(self.network_dir, 'input.hdf5')
+
+        self.output_spike_file = os.path.join(self.network_dir, 'ouput_spikes.txt')
+        self.output_volt_file = os.path.join(self.network_dir, 'output_volt.txt')
 
         self.core = Snudda(self.network_dir)
 
@@ -92,7 +97,6 @@ class InputScaling(object):
         synapse_density_thalamic_input = "0.05*np.exp(-d/200e-6)"
         #  synapse_density_thalamic_input = "(d > 100e-6)*1"  # TEST!!
 
-
         cortical_SPN_synapse_parameter_file = "data/synapses/v2/M1RH_Analysis_190925.h5-parameters-MS.json"
         thalamic_SPN_synapse_parameter_file = "data/synapses/v2/TH_Analysis_191001.h5-parameters-MS.json"
         cortical_FS_synapse_parameter_file = "data/synapses/v2/M1RH_Analysis_190925.h5-parameters-FS.json"
@@ -118,6 +122,7 @@ class InputScaling(object):
             print("Using thalamic synapse density for input")
         else:
             synapse_density = "1"
+            synapse_parameter_file = {}
             print("No density profile used for input.")
 
         self.create_input_config(input_config_file=self.input_config_file,
@@ -414,10 +419,37 @@ class InputScaling(object):
         network_data.close()
 
 
-    def simulate_neurons(self):
+    def simulate(self):
 
+        from neuron import h  # , gui
+        start = timeit.default_timer()
 
-        pass
+        pc = h.ParallelContext()
+
+        sim = SnuddaSimulate(network_file=self.network_file,
+                             input_file=self.input_spikes_file,
+                             log_file=None,  # Set log file?
+                             verbose=True)
+
+        sim.add_external_input()
+        sim.check_memory_status()
+
+        sim.add_recording()
+
+        t_sim = self.max_time * 1000  # Convert from s to ms for Neuron simulator
+
+        sim.check_memory_status()
+        print("Running simulation for " + str(t_sim) + " ms.")
+        sim.run(t_sim)  # In milliseconds
+
+        print("Simulation done, saving output")
+        sim.write_spikes(self.output_spike_file )
+        sim.write_voltage(self.output_volt_file)
+
+        stop = timeit.default_timer()
+        if sim.pc.id() == 0:
+            print("Program run time: " + str(stop - start))
+
 
 if __name__ == "__main__":
     from argparse import ArgumentParser, RawTextHelpFormatter
@@ -441,10 +473,7 @@ if __name__ == "__main__":
 
     elif args.action == "simulate":
         print("Run simulation...")
-        from snudda.core import Snudda
-
-        s = Snudda(args.networkpath)
-        s.simulate(args)
+        input_scaling.simulate()
 
     elif args.action == "analyse":
         input_scaling.plot_generated_input()
