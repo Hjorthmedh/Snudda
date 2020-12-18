@@ -1,0 +1,10 @@
+
+* Ability to set random seed for cell placement.
+* Ability to set random seed for pruning.
+
+* Double check that no randomness is used in detection, should not be...
+
+
+* Benchmarking
+* Proof of correctness (verification)
+
