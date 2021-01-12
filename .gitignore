@@ -12,6 +12,12 @@ __pycache__/
 *cache
 *~
 
+*.txt
+*.csv
+*.csv-meta
+*.swc
+*.bz2
+
 # C extensions
 *.so
 
