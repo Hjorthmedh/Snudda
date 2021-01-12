@@ -411,6 +411,15 @@ class SnuddaDetect(object):
 
     ############################################################################
 
+    def generate_neuron_distribution_random_seeds(self):
+
+        # Need different master seed than hyper voxel seed sequence
+        ss = np.random.SeedSequence(self.random_seed + 1337)
+        distribution_seeds = ss.generate_state(len(self.neurons))
+        return distribution_seeds
+
+    ############################################################################
+
     def setup_work_history(self, work_history_file=None):
 
         if self.role != "master":
@@ -1782,9 +1791,11 @@ class SnuddaDetect(object):
 
         # No old data, we need to calculate it
 
+        distribution_seeds = self.generate_neuron_distribution_random_seeds()
+
         if d_view is None:
             self.write_log("No dView specified, running distribute neurons in serial")
-            (min_coord, max_coord) = self.distribute_neurons()
+            (min_coord, max_coord) = self.distribute_neurons(distribution_seeds)
 
             self.generate_hyper_voxel_random_seeds()
 
@@ -1797,12 +1808,15 @@ class SnuddaDetect(object):
         (min_coord, max_coord) = self.find_min_max_coord_parallel(d_view=d_view,
                                                                   volume_id=self.volume_id)
 
-        # TODO: Make reproducible
+        # The order here should not affect reproducibility, each neuron has its own seed for distribution part
+        # but only those with probabilistic axon clouds will use it.
         neuron_idx = np.random.permutation(np.arange(0, len(self.neurons),
                                                      dtype=np.int32))
 
         # Split the neuronIdx between the workers
-        d_view.scatter("neuron_idx", neuron_idx, block=True)
+        d_view.scatter("neuron_idx", neuron_idx,
+                       "distribution_seeds", distribution_seeds[neuron_idx],  # Need to preserve order
+                       block=True)
         d_view.push({"min_coord": min_coord,
                      "max_coord": max_coord}, block=True)
 
@@ -1812,7 +1826,8 @@ class SnuddaDetect(object):
         # This sets up internal state of master
         self.distribute_neurons(neuron_idx=[], min_coord=min_coord, max_coord=max_coord)
 
-        cmd_str = "nc.distribute_neurons(neuron_idx=neuron_idx, min_coord=min_coord, max_coord=max_coord)"
+        cmd_str = ("nc.distribute_neurons(neuron_idx=neuron_idx, distribution_seeds=distribution_seeds, "
+                   "min_coord=min_coord, max_coord=max_coord)")
         d_view.execute(cmd_str, block=True)
 
         self.write_log("Gathering neuron distribution from workers")
@@ -1880,18 +1895,21 @@ class SnuddaDetect(object):
     # This creates a list for each hyper voxel for the neurons that
     # has any neurites within its border (here defined as vertices inside region)
 
-    def distribute_neurons(self, neuron_idx=None, min_coord=None, max_coord=None):
+    def distribute_neurons(self, neuron_idx=None, distribution_seeds=None, min_coord=None, max_coord=None):
 
         if neuron_idx is None:
             neuron_idx = np.arange(0, len(self.neurons), dtype=np.int32)
 
-        self.write_log("distributeNeurons: neuronIdx = " + str(neuron_idx)
+        assert len(neuron_idx) == len(distribution_seeds), \
+            "distribute_neurons - distribution seeds needed for reproducability"
+
+        self.write_log("distribute_neurons: neuronIdx = " + str(neuron_idx)
                        + " (n=" + str(len(neuron_idx)) + ")")
 
         start_time = timeit.default_timer()
 
         if max_coord is None or min_coord is None:
-            self.write_log("distributeNeurons: calculating min and max coords")
+            self.write_log("distribute_neurons: calculating min and max coords")
             (min_coord, max_coord) = self.find_min_max_coord()
 
         # Simulation origo is in meters
@@ -1936,7 +1954,7 @@ class SnuddaDetect(object):
         else:
             neurons = [self.neurons[idx] for idx in neuron_idx]
 
-        for n in neurons:
+        for n, seed in zip(neurons, distribution_seeds):
 
             ctr = ctr + 1
             if ctr % 10000 == 0:
@@ -1957,7 +1975,8 @@ class SnuddaDetect(object):
                                     / self.hyper_voxel_width).astype(int)
 
             elif neuron.axon_density_type == "r":
-                # axonLoc = np.zeros((0,3))
+
+                rng = np.random.default_rng(seed)
 
                 # We create a set of points corresponding approximately to the
                 # extent of the axonal density, and check which hyper voxels
@@ -1975,10 +1994,9 @@ class SnuddaDetect(object):
                 # Randomly place these many points within a sphere of the given radius
                 # and then check which hyper voxels these points belong to
 
-                # TODO: Make reproducible
-                theta = 2 * np.pi * np.random.rand(num_points)
-                phi = np.arccos(2 * np.random.rand(num_points) - 1)
-                r = neuron.max_axon_radius * (np.random.rand(num_points) ** (1 / 3))
+                theta = 2 * np.pi * rng.rand(num_points)
+                phi = np.arccos(2 * rng.rand(num_points) - 1)
+                r = neuron.max_axon_radius * (rng.rand(num_points) ** (1 / 3))
 
                 x = np.multiply(r, np.multiply(np.sin(phi), np.cos(theta)))
                 y = np.multiply(r, np.multiply(np.sin(phi), np.sin(theta)))
@@ -2021,8 +2039,9 @@ class SnuddaDetect(object):
 
             elif neuron.axon_density_type == "xyz":
 
+                rng = np.random.default_rng(seed)
+
                 # Estimate how many points we need to randomly place
-                # TODO: Make reproducible
                 num_points = 100 * np.prod(neuron.axon_density_bounds_xyz[1:6:2]
                                            - neuron.axon_density_bounds_xyz[0:6:2]) \
                              / ((self.hyper_voxel_size * self.voxel_size) ** 3)
@@ -2040,8 +2059,7 @@ class SnuddaDetect(object):
                 zwidth = neuron.axon_density_bounds_xyz[5] - neuron.axon_density_bounds_xyz[4]
 
                 # The purpose of this is to find out the range of the axon bounding box
-                # TODO: Make reproducible
-                axon_cloud = np.random.rand(num_points, 3)
+                axon_cloud = rng.rand(num_points, 3)
                 axon_cloud[:, 0] = axon_cloud[:, 0] * xwidth + xmin
                 axon_cloud[:, 1] = axon_cloud[:, 1] * ywidth + ymin
                 axon_cloud[:, 2] = axon_cloud[:, 2] * zwidth + zmin
