@@ -32,7 +32,8 @@ class SnuddaPlace(object):
                  log_file=None,
                  d_view=None,
                  lb_view=None,
-                 h5libver="latest"):
+                 h5libver="latest",
+                 random_seed=112):
 
         self.verbose = verbose
         self.log_file = log_file
@@ -46,6 +47,9 @@ class SnuddaPlace(object):
         # List of all neurons
         self.neurons = []
         self.neuronPrototypes = {}
+        self.random_seed = random_seed
+        self.random_generator = np.random.default_rng(self.random_seed + 115)
+
 
         # This defines the neuron units/channels. The dictionary lists all the
         # members of each unit, the neuronChannel gives the individual neurons
@@ -113,8 +117,8 @@ class SnuddaPlace(object):
             # parameter.json can be a list of lists, this allows you to select the
             # parameterset randomly
             # modulation.json is similarly formatted, pick a parameter set here
-            parameter_id = np.random.randint(1000000)
-            modulation_id = np.random.randint(1000000)
+            parameter_id = self.random_generator.integers(1000000)
+            modulation_id = self.random_generator.integers(1000000)
 
             if rotation_mode == "random":
                 rotation = nm.rand_rotation_matrix()
@@ -182,6 +186,15 @@ class SnuddaPlace(object):
         # First handle volume definitions
         volume_def = config["Volume"]
 
+        # Setup random seeds for all volumes
+        ss = np.random.SeedSequence(self.random_seed + 114)
+        all_seeds = ss.generate_state(len(volume_def))
+        all_vd = sorted(volume_def.keys())
+
+        vol_seed = dict()
+        for vd, seed in zip(all_vd, all_seeds):
+            vol_seed[vd] = seed
+
         for volume_id, vol_def in volume_def.items():
 
             self.volume[volume_id] = vol_def
@@ -214,7 +227,8 @@ class SnuddaPlace(object):
                                  raytrace_borders=False,
                                  d_min=vol_def["dMin"],
                                  bin_width=mesh_bin_width,
-                                 log_file=mesh_logfile)
+                                 log_file=mesh_logfile,
+                                 random_seed=vol_seed[volume_id])
 
             self.write_log("Using dimensions from config file")
 
@@ -515,7 +529,7 @@ class SnuddaPlace(object):
         if num_population_units is None:
             num_population_units = self.nPopulationUnits
 
-        self.population_unit = np.random.randint(num_population_units, size=len(self.neurons))
+        self.population_unit = self.random_generator.integers(num_population_units, size=len(self.neurons))
 
         self.population_units = dict([])
 
