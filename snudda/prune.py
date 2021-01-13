@@ -59,7 +59,7 @@ class SnuddaPrune(object):
                  scratch_path=None,
                  pre_merge_only=False,
                  h5libver="latest",
-                 random_seed=None,
+                 random_seed=112,
                  clean_voxel_files=True):
 
         # Help with parallel debugging, when workers cant print to screen:
@@ -82,6 +82,7 @@ class SnuddaPrune(object):
             self.write_log("Log file created.")
 
         self.write_log("Random seed: " + str(random_seed))
+        self.random_seed = random_seed
 
         self.h5driver = "sec2"  # "core" # "stdio", "sec2"
 
