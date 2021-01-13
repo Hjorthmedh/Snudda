@@ -81,8 +81,7 @@ class SnuddaPrune(object):
             self.logfile = open(logfile_name, 'w')
             self.write_log("Log file created.")
 
-        np.random.seed(random_seed)
-        self.write_log("Setting random seed: " + str(random_seed))
+        self.write_log("Random seed: " + str(random_seed))
 
         self.h5driver = "sec2"  # "core" # "stdio", "sec2"
 
@@ -1002,6 +1001,8 @@ class SnuddaPrune(object):
         synapse_ranges = self.find_ranges(synapse_file[h5_syn_mat],
                                           len(self.d_view))
 
+        # TODO: We need to make sure that regardless of how the synapse matrix is split we always get same result
+
         if synapse_ranges is None or synapse_ranges[-1][-1] is None:
             self.write_log("There are few synapses, we will run it in serial instead")
             return self.prune_synapses(synapse_file=synapse_file,
@@ -1111,7 +1112,15 @@ class SnuddaPrune(object):
         for idx in range(1, len(block_start)):
             start_row = block_start[idx]
 
-            while start_row < range_end and (synapses[block_start[idx] - 1, 0:2] == synapses[start_row, 0:2]).all():
+            # TODO: We have a problem. If we should be able to get same result given a fixed seed, regardless of how
+            # the work is split between workers, then we need to provide a unique seed for a "block".
+            # These blocks can be either a pair of neuron -- many, or each post synaptic neuron (in which case we
+            # need to change how we split the synapses here).
+            # while start_row < range_end and (synapses[block_start[idx] - 1, 0:2] == synapses[start_row, 0:2]).all():
+            #     start_row += 1
+
+            # UPDATE: Now we make sure all synapses on a post synaptic cell is on the same worker
+            while start_row < range_end and synapses[block_start[idx] - 1, 1] == synapses[start_row, 1]:
                 start_row += 1
 
             block_start[idx] = start_row
@@ -1953,6 +1962,10 @@ class SnuddaPrune(object):
         next_read_pos = 0
         read_end_of_range = synapses.shape[0]
 
+        # Random seeds for reproducability
+        neuron_seeds = self.get_neuron_random_seeds()
+        previous_post_synaptic_neuron_id = None
+
         # Init some stats
         n_all_removed = 0
         n_some_removed = 0
@@ -1983,14 +1996,18 @@ class SnuddaPrune(object):
                     and (synapses[next_read_pos:read_end_idx, 1] == synapses[next_read_pos, 1]).all()), \
                 "pruneSynapsesHelper: Internal error, more than one neuron pair"
 
-            # import pdb
-            # pdb.set_trace()
 
             # Stats
             n_pair_synapses = read_end_idx - next_read_pos
 
             src_id = synapses[next_read_pos, 0]
             dest_id = synapses[next_read_pos, 1]
+
+            if dest_id != previous_post_synaptic_neuron_id:
+                # New post synaptic cell, reseed random generator
+                self.write_log(f"Random seed set for neuron {dest_id}: {neuron_seeds[dest_id]}") # Temp logging
+                post_rng = np.random.default_rng(neuron_seeds[dest_id])
+                previous_post_synaptic_neuron_id = dest_id
 
             if merge_data_type == "gapJunctions":
                 # All are gap junctions
@@ -2036,7 +2053,7 @@ class SnuddaPrune(object):
             # 3. This is the last step of pruning, but we move it to the top
             # since there is no point doing the other steps if we going to
             # throw them away anyway
-            if a3 is not None and np.random.random() > a3:
+            if a3 is not None and post_rng.random() > a3:
                 # Prune all synapses between pair, do not add to synapse file
                 next_read_pos = read_end_idx
                 # No need to update keepRowFlag since default set to 0
@@ -2051,8 +2068,8 @@ class SnuddaPrune(object):
                 # distP contains d (variable for distance to soma)
                 d = synapses[next_read_pos:read_end_idx, 8] * 1e-6  # dendrite distance d, used in eval below
                 p = eval(dist_p)
-                frac_flag = np.random.random(n_pair_synapses) < f1
-                dist_flag = np.random.random(n_pair_synapses) < p
+                frac_flag = post_rng.random(n_pair_synapses) < f1
+                dist_flag = post_rng.random(n_pair_synapses) < p
 
                 keep_row_flag[next_read_pos:read_end_idx] = np.logical_and(frac_flag, dist_flag)
 
@@ -2061,8 +2078,7 @@ class SnuddaPrune(object):
                 n_dist_dep_pruning += n_frac - sum(keep_row_flag[next_read_pos:read_end_idx])
 
             else:
-                keep_row_flag[next_read_pos:read_end_idx] \
-                    = np.random.random(n_pair_synapses) < f1
+                keep_row_flag[next_read_pos:read_end_idx] = post_rng.random(n_pair_synapses) < f1
                 n_some_removed += n_pair_synapses - sum(keep_row_flag[next_read_pos:read_end_idx])
 
             # Check if too many synapses, trim it down a bit
@@ -2075,7 +2091,7 @@ class SnuddaPrune(object):
                 p_keep = np.divide(2 * soft_max, (1 + np.exp(-(n_keep - soft_max) / 5)) * n_keep)
 
                 keep_row_flag[next_read_pos:read_end_idx] = \
-                    np.logical_and(p_keep > np.random.random(n_pair_synapses),
+                    np.logical_and(p_keep > post_rng.random(n_pair_synapses),
                                    keep_row_flag[next_read_pos:read_end_idx])
 
                 # Stats
@@ -2088,7 +2104,7 @@ class SnuddaPrune(object):
             if mu2 is not None:
                 p_mu = 1.0 / (1.0 + np.exp(-8.0 / mu2 * (n_keep - mu2)))
 
-                if p_mu < np.random.random():
+                if p_mu < post_rng.random():
                     # Too few synapses, remove all -- need to update keepRowFlag
                     keep_row_flag[next_read_pos:read_end_idx] = 0
                     next_read_pos = read_end_idx
@@ -2311,6 +2327,19 @@ class SnuddaPrune(object):
                        unique_id)
 
             next_row_set = next(lookup_iterator, None)
+
+    def get_neuron_random_seeds(self):
+
+        # Cache using ... self.old_seed = self.random_seed
+
+        num_neurons = self.hist_file["network/neurons/neuronID"].shape[0]
+        assert num_neurons - 1 == self.hist_file["network/neurons/neuronID"][-1], \
+            "neuronID should start from 0 and the end should be n-1"
+
+        # Need different seeds for each post synaptic neuron
+        ss = np.random.SeedSequence(self.random_seed + 1338)
+        neuron_seeds = ss.generate_state(num_neurons)
+        return neuron_seeds
 
 
 ##############################################################################
