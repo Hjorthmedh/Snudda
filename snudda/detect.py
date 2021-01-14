@@ -1836,7 +1836,8 @@ class SnuddaDetect(object):
 
         # For the master node, run with empty list
         # This sets up internal state of master
-        self.distribute_neurons(neuron_idx=[], min_coord=min_coord, max_coord=max_coord)
+        self.distribute_neurons(neuron_idx=[], min_coord=min_coord, max_coord=max_coord,
+                                distribution_seeds=distribution_seeds)
 
         cmd_str = ("nc.distribute_neurons(neuron_idx=neuron_idx, distribution_seeds=distribution_seeds, "
                    "min_coord=min_coord, max_coord=max_coord)")
