@@ -1826,10 +1826,6 @@ class SnuddaDetect(object):
         neuron_idx = np.random.permutation(np.arange(0, len(self.neurons),
                                                      dtype=np.int32))
 
-        import pdb
-        pdb.set_trace()
-
-
         # Split the neuronIdx between the workers
         d_view.scatter("neuron_idx", neuron_idx, block=True)
         d_view.scatter("distribution_seeds", distribution_seeds[neuron_idx], block=True) # Need to preserve order
