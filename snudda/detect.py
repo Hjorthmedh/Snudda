@@ -56,7 +56,7 @@ class SnuddaDetect(object):
                  rc=None,
                  axon_stump_id_flag=False,
                  h5libver="latest",
-                 random_seed=112,
+                 random_seed=None,
                  debug_flag=False):
 
         if rc is not None:
@@ -1826,10 +1826,13 @@ class SnuddaDetect(object):
         neuron_idx = np.random.permutation(np.arange(0, len(self.neurons),
                                                      dtype=np.int32))
 
+        import pdb
+        pdb.set_trace()
+
+
         # Split the neuronIdx between the workers
-        d_view.scatter("neuron_idx", neuron_idx,
-                       "distribution_seeds", distribution_seeds[neuron_idx],  # Need to preserve order
-                       block=True)
+        d_view.scatter("neuron_idx", neuron_idx, block=True)
+        d_view.scatter("distribution_seeds", distribution_seeds[neuron_idx], block=True) # Need to preserve order
         d_view.push({"min_coord": min_coord,
                      "max_coord": max_coord}, block=True)
 
