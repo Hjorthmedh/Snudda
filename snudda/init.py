@@ -17,14 +17,30 @@ from .CreateSliceMesh import CreateSliceMesh
 import json
 
 
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            # return super(NumpyEncoder, self).default(obj)
+            return json.JSONEncoder.default(self, obj)
+
+
 class SnuddaInit(object):
 
     def __init__(self, struct_def, config_name,
-                 num_population_units=1, population_unit_centres="[[]]", population_unit_radius=None):
+                 num_population_units=1, population_unit_centres="[[]]", population_unit_radius=None,
+                 random_seed=None):
 
         print("CreateConfig")
 
         self.network_data = collections.OrderedDict([])
+
+        self.network_data["RandomSeed"] = SnuddaInit.setup_random_seeds(random_seed)
         self.network_data["Volume"] = collections.OrderedDict([])
         self.num_neurons_total = 0
         self.configName = config_name
@@ -458,7 +474,7 @@ class SnuddaInit(object):
 
         import json
         with open(filename, 'w') as f:
-            json.dump(self.network_data, f, indent=4)
+            json.dump(self.network_data, f, indent=4, cls=NumpyEncoder)
 
     ############################################################################
 
@@ -1248,6 +1264,21 @@ class SnuddaInit(object):
                                channel_param_dictionary=None)
 
     ############################################################################
+
+    @staticmethod
+    def setup_random_seeds(random_seed=None):
+
+        seed_types = ["init", "place", "detect", "prune", "input", "simulate"]
+
+        ss = np.random.SeedSequence(random_seed)
+        all_seeds = ss.generate_state(len(seed_types))
+
+        rand_seed_dict = collections.OrderedDict()
+
+        for st, s in zip(seed_types, all_seeds):
+            rand_seed_dict[st] = s
+
+        return rand_seed_dict
 
 
 if __name__ == "__main__":

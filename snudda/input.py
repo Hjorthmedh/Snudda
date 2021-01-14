@@ -111,7 +111,7 @@ class SnuddaInput(object):
         # Read the network position file
         self.read_neuron_positions()
 
-        # Read the network config file
+        # Read the network config file -- This also reads random seed
         self.read_network_config_file()
 
         # Only the master node should start the work
@@ -808,10 +808,21 @@ class SnuddaInput(object):
 
         self.write_log("Reading config file " + str(self.network_config_file))
 
-        import json
-
         with open(self.network_config_file, 'r') as f:
             self.network_config = json.load(f)
+
+        # This also loads random seed from config file while we have it open
+        if self.random_seed is None:
+            if "RandomSeed" in self.network_config and "input" in self.network_config["RandomSeed"]:
+                self.random_seed = self.network_config["RandomSeed"]["input"]
+                self.write_log(f"Reading random see from config file: {self.random_seed}")
+            else:
+                # No random seed given, invent one
+                self.random_seed = 1004
+                self.write_log(f"No random seed provided, using: {self.random_seed}")
+        else:
+            self.write_log(f"Using random seed provided by command line: {self.random_seed}")
+
 
     ############################################################################
 

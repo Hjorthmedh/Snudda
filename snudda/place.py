@@ -48,8 +48,7 @@ class SnuddaPlace(object):
         self.neurons = []
         self.neuronPrototypes = {}
         self.random_seed = random_seed
-        self.random_generator = np.random.default_rng(self.random_seed + 115)
-
+        self.random_generator = None
 
         # This defines the neuron units/channels. The dictionary lists all the
         # members of each unit, the neuronChannel gives the individual neurons
@@ -176,6 +175,19 @@ class SnuddaPlace(object):
             config = json.load(cfg_file, object_pairs_hook=OrderedDict)
         finally:
             cfg_file.close()
+
+        if self.random_seed is None:
+            if "RandomSeed" in config and "place" in config["RandomSeed"]:
+                self.random_seed = config["RandomSeed"]["place"]
+                self.write_log(f"Reading random see from config file: {self.random_seed}")
+            else:
+                # No random seed given, invent one
+                self.random_seed = 1001
+                self.write_log(f"No random seed provided, using: {self.random_seed}")
+        else:
+            self.write_log(f"Using random seed provided by command line: {self.random_seed}")
+
+        self.random_generator = np.random.default_rng(self.random_seed + 115)
 
         if self.log_file is None:
             mesh_log_filename = "mesh-log.txt"

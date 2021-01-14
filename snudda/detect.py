@@ -1512,6 +1512,18 @@ class SnuddaDetect(object):
         finally:
             cfg_file.close()
 
+        # This also loads random seed from config file while we have it open
+        if self.random_seed is None:
+            if "RandomSeed" in self.config and "detect" in self.config["RandomSeed"]:
+                self.random_seed = self.config["RandomSeed"]["detect"]
+                self.write_log(f"Reading random see from config file: {self.random_seed}")
+            else:
+                # No random seed given, invent one
+                self.random_seed = 1002
+                self.write_log(f"No random seed provided, using: {self.random_seed}")
+        else:
+            self.write_log(f"Using random seed provided by command line: {self.random_seed}")
+
         self.prototype_neurons = dict()
 
         for name, definition in self.config["Neurons"].items():

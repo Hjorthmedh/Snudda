@@ -59,7 +59,7 @@ class SnuddaPrune(object):
                  scratch_path=None,
                  pre_merge_only=False,
                  h5libver="latest",
-                 random_seed=112,
+                 random_seed=None,
                  clean_voxel_files=True):
 
         # Help with parallel debugging, when workers cant print to screen:
@@ -398,7 +398,19 @@ class SnuddaPrune(object):
         with open(self.hist_file["meta/configFile"][()], "r") as f:
             self.config = json.load(f)
 
-            ############################################################################
+        # This also loads random seed from config file while we have it open
+        if self.random_seed is None:
+            if "RandomSeed" in self.config and "prune" in self.config["RandomSeed"]:
+                self.random_seed = self.config["RandomSeed"]["prune"]
+                self.write_log(f"Reading random see from config file: {self.random_seed}")
+            else:
+                # No random seed given, invent one
+                self.random_seed = 1003
+                self.write_log(f"No random seed provided, using: {self.random_seed}")
+        else:
+            self.write_log(f"Using random seed provided by command line: {self.random_seed}")
+
+        ############################################################################
 
     def check_hyper_voxel_integrity(self, hypervoxel_file, hypervoxel_file_name, verbose=False):
 
@@ -1179,26 +1191,6 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    def set_seed(self, random_seed):
-
-        self.write_log("Setting random seed: " + str(random_seed))
-        np.random.seed(random_seed)
-
-    ############################################################################
-
-    def new_worker_seeds(self, d_view):
-
-        num_workers = len(self.d_view)
-        worker_seeds = np.random.randint(0, np.iinfo(np.uint32).max,
-                                         dtype=np.uint32,
-                                         size=(num_workers,))
-        self.d_view.scatter("worker_seed", worker_seeds, block=True)
-        self.d_view.execute("nw.set_seed(worker_seed[0])", block=True)
-
-        self.write_log("New worker seeds: " + str(worker_seeds))
-
-    ############################################################################
-
     def setup_parallel(self, d_view):
 
         assert self.role == "master", \
@@ -1224,13 +1216,12 @@ class SnuddaPrune(object):
             engine_log_file = [[] for x in range(0, len(d_view))]
 
         d_view.scatter('logfile_name', engine_log_file, block=True)
-        d_view.push({"work_history_file": self.work_history_file}, block=True)
+        d_view.push({"work_history_file": self.work_history_file,
+                     "random_seed": self.random_seed}, block=True)
 
-        cmd_str = "nw = SnuddaPrune(work_history_file=work_history_file, logfile_name=logfile_name[0],role='worker')"
+        cmd_str = ("nw = SnuddaPrune(work_history_file=work_history_file, logfile_name=logfile_name[0]," 
+                   "role='worker',random_seed=random_seed)")
         d_view.execute(cmd_str, block=True)
-
-        # Make sure we have different seeds for workers
-        self.new_worker_seeds(d_view)
 
         self.write_log("Workers setup: " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
 
