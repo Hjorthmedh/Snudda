@@ -2204,17 +2204,15 @@ class SnuddaDetect(object):
                      "hyper_voxel_size": self.hyper_voxel_size,
                      "verbose": self.verbose,
                      "slurm_id": self.slurm_id,
-                     "save_file": self.save_file},
+                     "save_file": self.save_file,
+                     "random_seed": self.random_seed},
                     block=True)
 
         self.write_log("Init values pushed to workers")
 
         cmd_str = "nc = SnuddaDetect(config_file=config_file, position_file=position_file,voxel_size=voxel_size," \
                   + "hyper_voxel_size=hyper_voxel_size,verbose=verbose,logfile_name=logfile_name[0]," \
-                  + "save_file=save_file,slurm_id=slurm_id,role='worker')"
-
-        # import pdb
-        # pdb.set_trace()
+                  + "save_file=save_file,slurm_id=slurm_id,role='worker', random_seed=random_seed)"
 
         d_view.execute(cmd_str, block=True)
 

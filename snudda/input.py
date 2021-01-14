@@ -71,9 +71,7 @@ class SnuddaInput(object):
 
         self.write_log("Time = " + str(time))
 
-        # We need to set the seed, to avoid same seed on workers
-        np.random.seed(random_seed)
-        self.write_log("Setting random seed: " + str(random_seed))
+        self.random_seed = random_seed
 
         self.h5libver = h5libver
         self.write_log("Using hdf5 version " + str(h5libver))
@@ -129,12 +127,6 @@ class SnuddaInput(object):
             # stored in self.neuronInput dictionary
 
             self.make_neuron_input_parallel()
-
-            # Consolidate code, so same code runs for serial and parallel case
-            # if(self.lbView is None):
-            #  self.makeNeuronInput()
-            # else:
-            #  self.makeNeuronInputParallell()
 
             # Write spikes to disk, HDF5 format
             self.write_hdf5()
@@ -823,7 +815,6 @@ class SnuddaInput(object):
         else:
             self.write_log(f"Using random seed provided by command line: {self.random_seed}")
 
-
     ############################################################################
 
     def verify_correlation(self, spike_trains, expected_corr=None, dt=0):
@@ -1021,7 +1012,8 @@ class SnuddaInput(object):
                           "position_file": self.position_file,
                           "spike_data_filename": self.spike_data_filename,
                           "is_master": False,
-                          "time": self.time})
+                          "time": self.time,
+                          "random_seed": self.random_seed})
 
         self.write_log("Scattering engineLogFile = " + str(engine_logfile))
 
@@ -1032,15 +1024,17 @@ class SnuddaInput(object):
                        + "',position_file='" + self.position_file
                        + "',spike_data_filename='" + self.spike_data_filename
                        + "',is_master=False "
+                       + ", random_seed=" + self.random_seed
                        + ",time=" + str(self.time) + ",logfile=log_filename[0])")
 
-        cmd_str = "global nl; nl = SnuddaInput(input_config_file=input_config_file," \
-                  + "network_config_file=network_config_file,position_file=position_file," \
-                  + " spike_data_filename=spike_data_filename,is_master=is_master,time=time,logfile=log_filename[0])"
+        cmd_str = ("global nl; nl = SnuddaInput(input_config_file=input_config_file," 
+                   "network_config_file=network_config_file,position_file=position_file," 
+                   " spike_data_filename=spike_data_filename,is_master=is_master,time=time," 
+                   " random_seed=random_seed, logfile=log_filename[0])")
 
         self.d_view.execute(cmd_str, block=True)
 
-        self.new_worker_seeds(self.d_view)
+        # self.new_worker_seeds(self.d_view)
 
         self.write_log("Workers set up")
 
