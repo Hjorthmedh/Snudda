@@ -120,7 +120,7 @@ class SnuddaPlace(object):
             modulation_id = self.random_generator.integers(1000000)
 
             if rotation_mode == "random":
-                rotation = nm.rand_rotation_matrix()
+                rotation = nm.rand_rotation_matrix(rand_nums=self.random_generator.random(size=(3,)))
             elif rotation_mode is None or rotation_mode == "":
                 self.write_log("Rotation mode: None (disabled) for " + name)
                 rotation = np.eye(3)
