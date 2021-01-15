@@ -1019,13 +1019,13 @@ class SnuddaInput(object):
 
         self.d_view.scatter('log_filename', engine_logfile, block=True)
 
-        self.write_log("nl = SnuddaInput(input_config_file='" + self.input_config_file
-                       + "',network_config_file='" + self.network_config_file
-                       + "',position_file='" + self.position_file
-                       + "',spike_data_filename='" + self.spike_data_filename
-                       + "',is_master=False "
-                       + ", random_seed=" + self.random_seed
-                       + ",time=" + str(self.time) + ",logfile=log_filename[0])")
+        self.write_log(f"nl = SnuddaInput(input_config_file='{self.input_config_file}'"
+                       f",network_config_file='{self.network_config_file}'"
+                       f",position_file='{self.position_file}'"
+                       f",spike_data_filename='{self.spike_data_filename}'"
+                       f",is_master=False "
+                       f", random_seed={self.random_seed}"
+                       f",time={self.time}, logfile=log_filename[0])")
 
         cmd_str = ("global nl; nl = SnuddaInput(input_config_file=input_config_file," 
                    "network_config_file=network_config_file,position_file=position_file," 
