@@ -1122,7 +1122,7 @@ class SnuddaDetect(object):
 
     def no_axon_points_sphere(self, soma_centre, r_cum_distribution, num_points):
 
-        uvr = self.hyper_voxel_rng.random(num_points, 3)
+        uvr = self.hyper_voxel_rng.random((num_points, 3))
         theta = 2 * np.pi * uvr[:, 0]
         phi = np.arccos(2 * uvr[:, 1] - 1)
 
@@ -1178,7 +1178,7 @@ class SnuddaDetect(object):
         z_min = axon_density_bounds_xyz[4]
         z_width = axon_density_bounds_xyz[5] - axon_density_bounds_xyz[4]
 
-        xyz = self.hyper_voxel_rng.random(num_points, 3)
+        xyz = self.hyper_voxel_rng.random((num_points, 3))
         xyz[:, 0] = x_min + x_width * xyz[:, 0]
         xyz[:, 1] = y_min + y_width * xyz[:, 1]
         xyz[:, 2] = z_min + z_width * xyz[:, 2]
@@ -1967,7 +1967,7 @@ class SnuddaDetect(object):
         else:
             neurons = [self.neurons[idx] for idx in neuron_idx]
 
-        for n, seed in zip(neurons, distribution_seeds):
+        for n, d_seed in zip(neurons, distribution_seeds):
 
             ctr = ctr + 1
             if ctr % 10000 == 0:
@@ -1989,7 +1989,7 @@ class SnuddaDetect(object):
 
             elif neuron.axon_density_type == "r":
 
-                rng = np.random.default_rng(seed)
+                rng = np.random.default_rng(d_seed)
 
                 # We create a set of points corresponding approximately to the
                 # extent of the axonal density, and check which hyper voxels
@@ -2052,7 +2052,7 @@ class SnuddaDetect(object):
 
             elif neuron.axon_density_type == "xyz":
 
-                rng = np.random.default_rng(seed)
+                rng = np.random.default_rng(d_seed)
 
                 # Estimate how many points we need to randomly place
                 num_points = 100 * np.prod(neuron.axon_density_bounds_xyz[1:6:2]
@@ -2072,7 +2072,7 @@ class SnuddaDetect(object):
                 zwidth = neuron.axon_density_bounds_xyz[5] - neuron.axon_density_bounds_xyz[4]
 
                 # The purpose of this is to find out the range of the axon bounding box
-                axon_cloud = rng.random(num_points, 3)
+                axon_cloud = rng.random((num_points, 3))
                 axon_cloud[:, 0] = axon_cloud[:, 0] * xwidth + xmin
                 axon_cloud[:, 1] = axon_cloud[:, 1] * ywidth + ymin
                 axon_cloud[:, 2] = axon_cloud[:, 2] * zwidth + zmin
