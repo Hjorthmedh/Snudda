@@ -43,7 +43,7 @@ def snudda_cli():
                         help="Name of spike output file (csv)")
     parser.add_argument("--disableGJ", action="store_true",
                         help="Disable gap junctions")
-    parser.add_argument("--randomseed", default=None, help="RandomSeed")
+    parser.add_argument("--randomseed", default=None, help="RandomSeed", type=int)
 
     # parser.add_argument("--ncores", default=12,
     #                    help="Number of cores used for simulation")

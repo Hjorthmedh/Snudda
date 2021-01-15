@@ -1269,6 +1269,7 @@ class SnuddaInit(object):
     def setup_random_seeds(random_seed=None):
 
         seed_types = ["init", "place", "detect", "prune", "input", "simulate"]
+        print(f"Seeding with rand_seed={random_seed}")
 
         ss = np.random.SeedSequence(random_seed)
         all_seeds = ss.generate_state(len(seed_types))
