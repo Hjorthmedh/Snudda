@@ -144,6 +144,7 @@ class InputScaling(object):
         pass
         # TODO: Run simulation
 
+
     def analyse_results(self):
         pass
     # TODO: Extract spiking frequency (skip first second for each interval to let network settle)

@@ -6,7 +6,6 @@ sleep 20
 
 simName=networks/tinySim_seedTest
 
-
 #snudda init $simName --size 1760000
 #snudda init $simName --size 100000
 snudda init $simName --size 1000 --overwrite
