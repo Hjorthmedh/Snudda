@@ -1883,16 +1883,12 @@ class SnuddaDetect(object):
                 # Increment counter
                 self.hyper_voxels[hID]["neuronCtr"] += num_neurons
 
-        # Sorting the list of neurons.
-        # -- check why this order matters to number of synapses detected,
-        #    it should not matter (except in case of voxel overflows).
-        # 2020-10-30 : TODO: Check if still an issue.
-        if False:
-            for hID in self.hyper_voxels:
-                n_ctr = self.hyper_voxels[hID]["neuronCtr"]
+        # Sorting the list of neurons (needed for reproducibility when axon is probability cloud and we sample them)
+        for hID in self.hyper_voxels:
+            n_ctr = self.hyper_voxels[hID]["neuronCtr"]
 
-                self.hyper_voxels[hID]["neurons"] = \
-                    np.sort(self.hyper_voxels[hID]["neurons"][:n_ctr])
+            self.hyper_voxels[hID]["neurons"] = \
+                np.sort(self.hyper_voxels[hID]["neurons"][:n_ctr])
 
         self.generate_hyper_voxel_random_seeds()
 
