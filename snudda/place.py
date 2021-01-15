@@ -33,7 +33,7 @@ class SnuddaPlace(object):
                  d_view=None,
                  lb_view=None,
                  h5libver="latest",
-                 random_seed=112):
+                 random_seed=None):
 
         self.verbose = verbose
         self.log_file = log_file

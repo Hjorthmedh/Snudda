@@ -37,7 +37,7 @@ class RegionMesh(object):
         self.num_bins = None
 
         self.random_seed = random_seed
-        self.random_generator = np.random.default_rng(self.random_seed + 113)
+        self.random_generator = np.random.default_rng(self.random_seed)
 
         # Set by load_mesh
         self.mesh_vec = None
