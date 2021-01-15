@@ -1997,7 +1997,7 @@ class SnuddaPrune(object):
 
             if dest_id != previous_post_synaptic_neuron_id:
                 # New post synaptic cell, reseed random generator
-                self.write_log(f"Random seed set for neuron {dest_id}: {neuron_seeds[dest_id]}") # Temp logging
+                self.write_log(f"Random seed set for neuron {dest_id}: {neuron_seeds[dest_id]}")  # Temp logging
                 post_rng = np.random.default_rng(neuron_seeds[dest_id])
                 previous_post_synaptic_neuron_id = dest_id
 

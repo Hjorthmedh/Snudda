@@ -17,7 +17,7 @@ snudda detect $simName --volumeID Striatum
 snudda prune $simName
 
 # Copy over template input
-cp -a data/config/input-tinytest-v9.json $simName/input.json
+cp -a data/config/input-tinytest-v9-freq-vectors.json $simName/input.json
 echo "Make sure the input config file was found, otherwise provide your own"
 
 # TODO, maybe use to get snudda base install dir:
