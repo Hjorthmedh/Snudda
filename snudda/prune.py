@@ -2329,7 +2329,7 @@ class SnuddaPrune(object):
             "neuronID should start from 0 and the end should be n-1"
 
         # Need different seeds for each post synaptic neuron
-        ss = np.random.SeedSequence(self.random_seed + 1338)
+        ss = np.random.SeedSequence(self.random_seed)
         neuron_seeds = ss.generate_state(num_neurons)
         return neuron_seeds
 

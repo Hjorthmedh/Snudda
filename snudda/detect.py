@@ -403,7 +403,7 @@ class SnuddaDetect(object):
     def generate_hyper_voxel_random_seeds(self):
         # https://albertcthomas.github.io/good-practices-random-number-generators/
 
-        ss = np.random.SeedSequence(self.random_seed + 112)
+        ss = np.random.SeedSequence(self.random_seed)
         all_seeds = ss.generate_state(len(self.hyper_voxels))
         all_hid = sorted(self.hyper_voxels.keys())
 

@@ -199,7 +199,7 @@ class SnuddaPlace(object):
         volume_def = config["Volume"]
 
         # Setup random seeds for all volumes
-        ss = np.random.SeedSequence(self.random_seed + 114)
+        ss = np.random.SeedSequence(self.random_seed)
         all_seeds = ss.generate_state(len(volume_def))
         all_vd = sorted(volume_def.keys())
 
