@@ -42,7 +42,7 @@ class TestCLI(unittest.TestCase):
         with self.subTest(stage="prune"):
             run_cli_command("prune tiny")
         from shutil import copyfile
-        copyfile("snudda/data/config/input-tinytest-v9-freq-vectors.json", "tiny/input.json")
+        copyfile("../snudda/data/config/input-tinytest-v9-freq-vectors.json", "tiny/input.json")
         with self.subTest(stage="input"):
             run_cli_command("input tiny --input tiny/input.json --time 1.0")
         with self.subTest(stage="simulate"):
