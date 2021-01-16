@@ -1277,7 +1277,7 @@ class SnuddaInit(object):
         rand_seed_dict = collections.OrderedDict()
 
         if random_seed is not None:
-            rand_seed_dict["main_seed"] = random_seed
+            rand_seed_dict["masterseed"] = random_seed
 
         for st, s in zip(seed_types, all_seeds):
             rand_seed_dict[st] = s
