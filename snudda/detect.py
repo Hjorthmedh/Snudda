@@ -56,6 +56,7 @@ class SnuddaDetect(object):
                  rc=None,
                  axon_stump_id_flag=False,
                  h5libver="latest",
+                 random_seed=None,
                  debug_flag=False):
 
         if rc is not None:
@@ -69,6 +70,8 @@ class SnuddaDetect(object):
         self.verbose = verbose
         self.h5libver = h5libver
         self.debug_flag = debug_flag
+
+        self.random_seed = random_seed
 
         self.logfile = logfile
         self.config_file = config_file
@@ -100,6 +103,7 @@ class SnuddaDetect(object):
 
         self.hyper_voxel_offset = None
         self.hyper_voxel_id = 0
+        self.hyper_voxel_rng = None
 
         self.num_bins = hyper_voxel_size * np.ones((3,), dtype=int)
         self.write_log("Each hyper voxel has %d x %d x %d voxels" % tuple(self.num_bins))
@@ -396,6 +400,27 @@ class SnuddaDetect(object):
 
     ############################################################################
 
+    def generate_hyper_voxel_random_seeds(self):
+        # https://albertcthomas.github.io/good-practices-random-number-generators/
+
+        ss = np.random.SeedSequence(self.random_seed)
+        all_seeds = ss.generate_state(len(self.hyper_voxels))
+        all_hid = sorted(self.hyper_voxels.keys())
+
+        for hi, s in zip(all_hid, all_seeds):
+            self.hyper_voxels[hi]["randomSeed"] = s
+
+    ############################################################################
+
+    def generate_neuron_distribution_random_seeds(self):
+
+        # Need different master seed than hyper voxel seed sequence
+        ss = np.random.SeedSequence(self.random_seed + 1337)
+        distribution_seeds = ss.generate_state(len(self.neurons))
+        return distribution_seeds
+
+    ############################################################################
+
     def setup_work_history(self, work_history_file=None):
 
         if self.role != "master":
@@ -417,13 +442,9 @@ class SnuddaDetect(object):
         # we also need to parse this string and recreate a tuple afterwards
 
         tmp_con_dist = dict([])
-        tmp_con_dist_gj = dict([])
 
         for keys in self.connectivity_distributions:
             tmp_con_dist["$$".join(keys)] = self.connectivity_distributions[keys]
-
-        # for keys in self.connectivityDistributionsGJ:
-        #  tmpConDistGJ["$$".join(keys)] = self.connectivityDistributionsGJ[keys]
 
         save_meta_data = [(self.slurm_id, "SlurmID"),
                           (self.config_file, "configFile"),
@@ -434,9 +455,6 @@ class SnuddaDetect(object):
                           (json.dumps(self.config), "config"),
                           (json.dumps(tmp_con_dist),
                            "connectivityDistributions")]
-        #    ,
-        #                    (json.dumps(tmpConDistGJ),
-        #                     "connectivityDistributionsGJ")]
 
         if "meta" not in self.work_history:
             self.write_log("Writing metadata to work history file")
@@ -472,7 +490,7 @@ class SnuddaDetect(object):
                                     'int', neuron_id_list)
 
         # Just make sure there is at least one neuron in volumeIDlist
-        # that i inside volumeID
+        # that is inside volumeID
 
         volume_set = set([n["volumeID"] for n in self.neurons])
         assert self.volume_id is None or self.volume_id in volume_set, "VolumeID contains no neurons: " + str(
@@ -619,10 +637,16 @@ class SnuddaDetect(object):
             all_hyper_id_list = valid_hyper_id
             remaining = self.sort_remaining_by_size(all_hyper_id_list)
 
-            assert (np.array([self.hyper_voxels[x]["neuronCtr"] for x in
-                              empty_hyper_id]) == 0).all(), "All hyperIDs marked as empty are not empty!"
+            if len(self.connectivity_distributions) == 0:
+                # We have no possible connections specified
+                self.write_log("No connections specified in connectivity_distribution.")
+                remaining = []
+            else:
 
-            self.write_log("Skipping " + str(len(empty_hyper_id)) + " empty hyper voxels")
+                assert (np.array([self.hyper_voxels[x]["neuronCtr"] for x in
+                                  empty_hyper_id]) == 0).all(), "All hyperIDs marked as empty are not empty!"
+
+                self.write_log("Skipping " + str(len(empty_hyper_id)) + " empty hyper voxels")
 
             self.work_history.create_dataset("allHyperIDs", data=all_hyper_id_list)
             self.work_history.create_dataset("nSynapses",
@@ -683,6 +707,9 @@ class SnuddaDetect(object):
                 hyper_voxels[h_id]["origo"] = \
                     self.work_history["hyperVoxels"][h_id_str]["origo"][()]
 
+                hyper_voxels[h_id]["randomSeed"] = \
+                    self.work_history["hyperVoxels"][h_id_str]["randomSeed"][()]
+
             hyper_voxel_id_lookup = self.work_history["meta/hyperVoxelIDs"][()]
             n_hyper_voxels = self.work_history["meta/nHyperVoxels"][()]
             simulation_origo = self.work_history["meta/simulationOrigo"][()]
@@ -715,9 +742,11 @@ class SnuddaDetect(object):
             neurons = hyper_voxels[hID]["neurons"]
             neuron_ctr = hyper_voxels[hID]["neuronCtr"]
             origo = hyper_voxels[hID]["origo"]
+            random_seed = hyper_voxels[hID]["randomSeed"]
             h_data.create_dataset("neurons", data=neurons[:neuron_ctr])
             h_data.create_dataset("neuronCtr", data=neuron_ctr)
             h_data.create_dataset("origo", data=origo)
+            h_data.create_dataset("randomSeed", data=random_seed)
 
     ############################################################################
 
@@ -739,6 +768,10 @@ class SnuddaDetect(object):
 
         # hypervoxel = a set of NxNxN voxels
         # hyperVoxelSynapses = list of all synapses detected in the hypervoxel
+
+        # Each hyper voxel has its own seed
+        random_seed = self.hyper_voxels[hyper_voxel_id]["randomSeed"]
+        self.hyper_voxel_rng = np.random.default_rng(random_seed)
 
         self.hyper_voxel_coords[hyper_voxel_id] = hyper_voxel_origo  # Used???
 
@@ -894,14 +927,13 @@ class SnuddaDetect(object):
                                 self.resize_hyper_voxel_synapses_matrix()
 
                             # Synapse conductance varies between synapses
-                            cond = np.random.normal(mean_synapse_cond,
-                                                    std_synapse_cond)
+                            cond = self.hyper_voxel_rng.normal(mean_synapse_cond, std_synapse_cond)
 
                             # Need to make sure the conductance is not negative,
                             # set lower cap at 10% of mean value
                             cond = np.maximum(cond, mean_synapse_cond * 0.1)
 
-                            param_id = np.random.randint(1000000)
+                            param_id = self.hyper_voxel_rng.integers(1000000)
 
                             # Add synapse
                             self.hyper_voxel_synapses[self.hyper_voxel_synapse_ctr, :] = \
@@ -1090,7 +1122,7 @@ class SnuddaDetect(object):
 
     def no_axon_points_sphere(self, soma_centre, r_cum_distribution, num_points):
 
-        uvr = np.random.rand(num_points, 3)
+        uvr = self.hyper_voxel_rng.random((num_points, 3))
         theta = 2 * np.pi * uvr[:, 0]
         phi = np.arccos(2 * uvr[:, 1] - 1)
 
@@ -1146,7 +1178,7 @@ class SnuddaDetect(object):
         z_min = axon_density_bounds_xyz[4]
         z_width = axon_density_bounds_xyz[5] - axon_density_bounds_xyz[4]
 
-        xyz = np.random.rand(num_points, 3)
+        xyz = self.hyper_voxel_rng.random((num_points, 3))
         xyz[:, 0] = x_min + x_width * xyz[:, 0]
         xyz[:, 1] = y_min + y_width * xyz[:, 1]
         xyz[:, 2] = z_min + z_width * xyz[:, 2]
@@ -1232,14 +1264,14 @@ class SnuddaDetect(object):
         if n_points >= n_tries:
             # We already have enough points, use a subset
             use_num = np.round(voxIdx.shape[0] * n_tries / n_points).astype(int)
-            picked_idx = np.where(np.random.rand(use_num)
+            picked_idx = np.where(self.hyper_voxel_rng.random(use_num)
                                   < density_inside[:use_num] / max_density)[0]
             axon_dist = np.sqrt(np.sum((xyz_inside[picked_idx, :]) ** 2, axis=1))
 
             return voxIdx[picked_idx, :], axon_dist
         else:
             # Not enough points, use the ones we have, then get more
-            picked_idx = np.where(np.random.rand(voxIdx.shape[0])
+            picked_idx = np.where(self.hyper_voxel_rng.random(voxIdx.shape[0])
                                   < density_inside / max_density)[0]
             axon_dist = np.sqrt(np.sum((xyz_inside[picked_idx, :]) ** 2, axis=1))
 
@@ -1252,7 +1284,7 @@ class SnuddaDetect(object):
                                                  n_tries - n_points)
 
             density_inside_b = axon_density_func(xyz_inside_b[:, 0], xyz_inside_b[:, 1], xyz_inside_b[:, 2])
-            picked_idx_b = np.where(np.random.rand(voxIdxB.shape[0]) < density_inside_b / max_density)[0]
+            picked_idx_b = np.where(self.hyper_voxel_rng.random(voxIdxB.shape[0]) < density_inside_b / max_density)[0]
             axon_dist_b = np.sqrt(np.sum((xyz_inside_b[picked_idx_b, :]) ** 2, axis=1))
 
             return (np.concatenate([voxIdx[picked_idx, :],
@@ -1402,7 +1434,7 @@ class SnuddaDetect(object):
 
                         # !!! Currently not using channelParamDict for GJ
 
-                        gj_cond = np.random.normal(mean_gj_cond, std_gj_cond)
+                        gj_cond = self.hyper_voxel_rng.normal(mean_gj_cond, std_gj_cond)
                         gj_cond = np.maximum(gj_cond, mean_gj_cond * 0.1)  # Avoid negative cond
 
                         self.hyper_voxel_gap_junctions[self.hyper_voxel_gap_junction_ctr, :] = \
@@ -1479,6 +1511,18 @@ class SnuddaDetect(object):
             self.config = json.load(cfg_file)
         finally:
             cfg_file.close()
+
+        # This also loads random seed from config file while we have it open
+        if self.random_seed is None:
+            if "RandomSeed" in self.config and "detect" in self.config["RandomSeed"]:
+                self.random_seed = self.config["RandomSeed"]["detect"]
+                self.write_log(f"Reading random see from config file: {self.random_seed}")
+            else:
+                # No random seed given, invent one
+                self.random_seed = 1002
+                self.write_log(f"No random seed provided, using: {self.random_seed}")
+        else:
+            self.write_log(f"Using random seed provided by command line: {self.random_seed}")
 
         self.prototype_neurons = dict()
 
@@ -1760,9 +1804,13 @@ class SnuddaDetect(object):
 
         # No old data, we need to calculate it
 
+        distribution_seeds = self.generate_neuron_distribution_random_seeds()
+
         if d_view is None:
             self.write_log("No dView specified, running distribute neurons in serial")
-            (min_coord, max_coord) = self.distribute_neurons()
+            (min_coord, max_coord) = self.distribute_neurons(distribution_seeds=distribution_seeds)
+
+            self.generate_hyper_voxel_random_seeds()
 
             self.save_neuron_distribution_history(hyper_voxels=self.hyper_voxels,
                                                   min_coord=min_coord,
@@ -1773,24 +1821,27 @@ class SnuddaDetect(object):
         (min_coord, max_coord) = self.find_min_max_coord_parallel(d_view=d_view,
                                                                   volume_id=self.volume_id)
 
+        # The order here should not affect reproducibility, each neuron has its own seed for distribution part
+        # but only those with probabilistic axon clouds will use it.
         neuron_idx = np.random.permutation(np.arange(0, len(self.neurons),
                                                      dtype=np.int32))
 
         # Split the neuronIdx between the workers
         d_view.scatter("neuron_idx", neuron_idx, block=True)
+        d_view.scatter("distribution_seeds", distribution_seeds[neuron_idx], block=True) # Need to preserve order
         d_view.push({"min_coord": min_coord,
                      "max_coord": max_coord}, block=True)
 
-        self.write_log("Distributing neurons, parallell.")
+        self.write_log("Distributing neurons, parallel.")
 
         # For the master node, run with empty list
         # This sets up internal state of master
-        self.distribute_neurons(neuron_idx=[], min_coord=min_coord, max_coord=max_coord)
+        self.distribute_neurons(neuron_idx=[], min_coord=min_coord, max_coord=max_coord,
+                                distribution_seeds=[])
 
-        cmdStr = "nc.distribute_neurons(neuron_idx=neuron_idx," \
-                 + "min_coord=min_coord," \
-                 + "max_coord=max_coord)"
-        d_view.execute(cmdStr, block=True)
+        cmd_str = ("nc.distribute_neurons(neuron_idx=neuron_idx, distribution_seeds=distribution_seeds, "
+                   "min_coord=min_coord, max_coord=max_coord)")
+        d_view.execute(cmd_str, block=True)
 
         self.write_log("Gathering neuron distribution from workers")
 
@@ -1832,16 +1883,14 @@ class SnuddaDetect(object):
                 # Increment counter
                 self.hyper_voxels[hID]["neuronCtr"] += num_neurons
 
-        # Sorting the list of neurons.
-        # -- check why this order matters to number of synapses detected,
-        #    it should not matter (except in case of voxel overflows).
-        # 2020-10-30 : TODO: Check if still an issue.
-        if False:
-            for hID in self.hyper_voxels:
-                n_ctr = self.hyper_voxels[hID]["neuronCtr"]
+        # Sorting the list of neurons (needed for reproducibility when axon is probability cloud and we sample them)
+        for hID in self.hyper_voxels:
+            n_ctr = self.hyper_voxels[hID]["neuronCtr"]
 
-                self.hyper_voxels[hID]["neurons"] = \
-                    np.sort(self.hyper_voxels[hID]["neurons"][:n_ctr])
+            self.hyper_voxels[hID]["neurons"] = \
+                np.sort(self.hyper_voxels[hID]["neurons"][:n_ctr])
+
+        self.generate_hyper_voxel_random_seeds()
 
         # Distribute the new list to all neurons
         d_view.push({"nc.hyper_voxels": self.hyper_voxels}, block=True)
@@ -1855,18 +1904,21 @@ class SnuddaDetect(object):
     # This creates a list for each hyper voxel for the neurons that
     # has any neurites within its border (here defined as vertices inside region)
 
-    def distribute_neurons(self, neuron_idx=None, min_coord=None, max_coord=None):
+    def distribute_neurons(self, neuron_idx=None, distribution_seeds=None, min_coord=None, max_coord=None):
 
         if neuron_idx is None:
             neuron_idx = np.arange(0, len(self.neurons), dtype=np.int32)
 
-        self.write_log("distributeNeurons: neuronIdx = " + str(neuron_idx)
+        assert distribution_seeds is not None and len(neuron_idx) == len(distribution_seeds), \
+            "distribute_neurons - distribution seeds needed for reproducability"
+
+        self.write_log("distribute_neurons: neuronIdx = " + str(neuron_idx)
                        + " (n=" + str(len(neuron_idx)) + ")")
 
         start_time = timeit.default_timer()
 
         if max_coord is None or min_coord is None:
-            self.write_log("distributeNeurons: calculating min and max coords")
+            self.write_log("distribute_neurons: calculating min and max coords")
             (min_coord, max_coord) = self.find_min_max_coord()
 
         # Simulation origo is in meters
@@ -1893,8 +1945,8 @@ class SnuddaDetect(object):
                     h_id = self.hyper_voxel_id_lookup[ix, iy, iz]
 
                     self.hyper_voxels[h_id] = dict([])
-                    self.hyper_voxels[h_id]["origo"] = self.simulation_origo + self.hyper_voxel_width \
-                                                        * np.array([ix, iy, iz])
+                    self.hyper_voxels[h_id]["origo"] = (self.simulation_origo
+                                                        + self.hyper_voxel_width * np.array([ix, iy, iz]))
 
                     # Changed so we preallocate only empty, to preserve memory
                     self.hyper_voxels[h_id]["neurons"] = np.zeros((0,), dtype=np.int32)
@@ -1911,7 +1963,7 @@ class SnuddaDetect(object):
         else:
             neurons = [self.neurons[idx] for idx in neuron_idx]
 
-        for n in neurons:
+        for n, d_seed in zip(neurons, distribution_seeds):
 
             ctr = ctr + 1
             if ctr % 10000 == 0:
@@ -1932,7 +1984,8 @@ class SnuddaDetect(object):
                                     / self.hyper_voxel_width).astype(int)
 
             elif neuron.axon_density_type == "r":
-                # axonLoc = np.zeros((0,3))
+
+                rng = np.random.default_rng(d_seed)
 
                 # We create a set of points corresponding approximately to the
                 # extent of the axonal density, and check which hyper voxels
@@ -1950,9 +2003,9 @@ class SnuddaDetect(object):
                 # Randomly place these many points within a sphere of the given radius
                 # and then check which hyper voxels these points belong to
 
-                theta = 2 * np.pi * np.random.rand(num_points)
-                phi = np.arccos(2 * np.random.rand(num_points) - 1)
-                r = neuron.max_axon_radius * (np.random.rand(num_points) ** (1 / 3))
+                theta = 2 * np.pi * rng.random(num_points)
+                phi = np.arccos(2 * rng.random(num_points) - 1)
+                r = neuron.max_axon_radius * (rng.random(num_points) ** (1 / 3))
 
                 x = np.multiply(r, np.multiply(np.sin(phi), np.cos(theta)))
                 y = np.multiply(r, np.multiply(np.sin(phi), np.sin(theta)))
@@ -1995,6 +2048,8 @@ class SnuddaDetect(object):
 
             elif neuron.axon_density_type == "xyz":
 
+                rng = np.random.default_rng(d_seed)
+
                 # Estimate how many points we need to randomly place
                 num_points = 100 * np.prod(neuron.axon_density_bounds_xyz[1:6:2]
                                            - neuron.axon_density_bounds_xyz[0:6:2]) \
@@ -2013,7 +2068,7 @@ class SnuddaDetect(object):
                 zwidth = neuron.axon_density_bounds_xyz[5] - neuron.axon_density_bounds_xyz[4]
 
                 # The purpose of this is to find out the range of the axon bounding box
-                axon_cloud = np.random.rand(num_points, 3)
+                axon_cloud = rng.random((num_points, 3))
                 axon_cloud[:, 0] = axon_cloud[:, 0] * xwidth + xmin
                 axon_cloud[:, 1] = axon_cloud[:, 1] * ywidth + ymin
                 axon_cloud[:, 2] = axon_cloud[:, 2] * zwidth + zmin
@@ -2145,17 +2200,15 @@ class SnuddaDetect(object):
                      "hyper_voxel_size": self.hyper_voxel_size,
                      "verbose": self.verbose,
                      "slurm_id": self.slurm_id,
-                     "save_file": self.save_file},
+                     "save_file": self.save_file,
+                     "random_seed": self.random_seed},
                     block=True)
 
         self.write_log("Init values pushed to workers")
 
         cmd_str = "nc = SnuddaDetect(config_file=config_file, position_file=position_file,voxel_size=voxel_size," \
                   + "hyper_voxel_size=hyper_voxel_size,verbose=verbose,logfile_name=logfile_name[0]," \
-                  + "save_file=save_file,slurm_id=slurm_id,role='worker')"
-
-        # import pdb
-        # pdb.set_trace()
+                  + "save_file=save_file,slurm_id=slurm_id,role='worker', random_seed=random_seed)"
 
         d_view.execute(cmd_str, block=True)
 
@@ -2173,8 +2226,7 @@ class SnuddaDetect(object):
 
         self.write_log("Finding min/max coords parallel")
 
-        neuron_idx = np.random.permutation(np.arange(0, len(self.neurons),
-                                                     dtype=np.int32))
+        neuron_idx = np.random.permutation(np.arange(0, len(self.neurons), dtype=np.int32))
 
         d_view.scatter("neuron_idx_find", neuron_idx, block=True)
         d_view.push({"volume_id": volume_id}, block=True)

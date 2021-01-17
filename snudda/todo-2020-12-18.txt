@@ -1,0 +1,21 @@
+
+* Ability to set random seed for cell placement.
+* Ability to set random seed for pruning.
+
+* Double check that no randomness is used in detection, should not be...
+
+
+* Benchmarking
+* Proof of correctness (verification)
+* Simpler examples, step by step.
+
+* Clearer explanation of how pruning is setup and tuned
+
+
+* Synaptic input, opaque -- clearer examples
+-- better documentation
+
+
+
+We are open source.
+We allow distance dependent pruning.

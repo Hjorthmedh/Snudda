@@ -17,14 +17,30 @@ from .CreateSliceMesh import CreateSliceMesh
 import json
 
 
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            # return super(NumpyEncoder, self).default(obj)
+            return json.JSONEncoder.default(self, obj)
+
+
 class SnuddaInit(object):
 
     def __init__(self, struct_def, config_name,
-                 num_population_units=1, population_unit_centres="[[]]", population_unit_radius=None):
+                 num_population_units=1, population_unit_centres="[[]]", population_unit_radius=None,
+                 random_seed=None):
 
         print("CreateConfig")
 
         self.network_data = collections.OrderedDict([])
+
+        self.network_data["RandomSeed"], self.init_rng = SnuddaInit.setup_random_seeds(random_seed)
         self.network_data["Volume"] = collections.OrderedDict([])
         self.num_neurons_total = 0
         self.configName = config_name
@@ -407,7 +423,7 @@ class SnuddaInit(object):
         n_of_each_ind = np.zeros((n_ind,))
         n_of_each_ind[:] = int(num_neurons / n_ind)
         still_to_add = int(num_neurons - np.sum(n_of_each_ind))
-        add_idx = np.random.permutation(n_ind)[0:still_to_add]
+        add_idx = self.init_rng.permutation(n_ind)[0:still_to_add]
         n_of_each_ind[add_idx] += 1
 
         # Add the neurons to config
@@ -458,7 +474,7 @@ class SnuddaInit(object):
 
         import json
         with open(filename, 'w') as f:
-            json.dump(self.network_data, f, indent=4)
+            json.dump(self.network_data, f, indent=4, cls=NumpyEncoder)
 
     ############################################################################
 
@@ -566,7 +582,7 @@ class SnuddaInit(object):
 
         if cell_spec_dir is None:
             cs_dir = self.data_path + "/cellspecs-v2"
-            # csDir = self.dataPath + "/cellspecs-var"
+            # cs_dir = self.data_path + "/data/resampling-test/"
         else:
             cs_dir = cell_spec_dir
 
@@ -1248,6 +1264,27 @@ class SnuddaInit(object):
                                channel_param_dictionary=None)
 
     ############################################################################
+
+    @staticmethod
+    def setup_random_seeds(random_seed=None):
+
+        seed_types = ["init", "place", "detect", "prune", "input", "simulate"]
+        print(f"Seeding with rand_seed={random_seed}")
+
+        ss = np.random.SeedSequence(random_seed)
+        all_seeds = ss.generate_state(len(seed_types))
+
+        rand_seed_dict = collections.OrderedDict()
+
+        if random_seed is not None:
+            rand_seed_dict["masterseed"] = random_seed
+
+        for st, s in zip(seed_types, all_seeds):
+            rand_seed_dict[st] = s
+
+        init_rng = np.random.default_rng(rand_seed_dict["init"])
+
+        return rand_seed_dict, init_rng
 
 
 if __name__ == "__main__":

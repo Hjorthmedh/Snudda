@@ -33,7 +33,7 @@
 
 #
 # This open source software code was developed in part or in whole in
-# the Human Brain Project, funded from the European Union’s Horizon
+# the Human Brain Project, funded from the European Union's Horizon
 # 2020 Framework Programme for Research and Innovation under Specific
 # Grant Agreements No. 720270 and No. 785907 (Human Brain Project SGA1
 # and SGA2).
@@ -107,13 +107,15 @@ class Snudda(object):
         num_population_units = args.NumPopulationUnits
         population_unit_centres = args.PopulationUnitCentres
         population_unit_radius = args.PopulationUnitRadius
+        random_seed = args.randomseed
 
         config_file = self.network_path + "/network-config.json"
         SnuddaInit(struct_def=struct_def,
                    config_name=config_file,
                    num_population_units=num_population_units,
                    population_unit_centres=population_unit_centres,
-                   population_unit_radius=population_unit_radius)
+                   population_unit_radius=population_unit_radius,
+                   random_seed=random_seed)
 
         if args.size > 1e5:
             print("Make sure there is enough disk space in " + str(self.network_path))
@@ -130,6 +132,8 @@ class Snudda(object):
         position_file = self.network_path + "/network-neuron-positions.hdf5"
         log_file_name = self.network_path + "/log/logFile-place-neurons.txt"
 
+        random_seed = args.randomseed
+
         self.setup_log_file(log_file_name)  # sets self.logFile
         self.setup_parallel()  # sets self.dView and self.lbView
 
@@ -144,7 +148,8 @@ class Snudda(object):
                           log_file=self.logfile,
                           verbose=True,
                           d_view=self.d_view,
-                          h5libver=h5libver)
+                          h5libver=h5libver,
+                          random_seed=random_seed)
 
         npn.write_data_HDF5(position_file)
 
@@ -175,6 +180,8 @@ class Snudda(object):
         log_filename = self.network_path + "/log/logFile-touch-detection.txt"
         save_file = self.network_path + "/voxels/network-putative-synapses.hdf5"
 
+        random_seed = args.randomseed
+
         voxel_dir = self.network_path + "/voxels"
         self.make_dir_if_needed(voxel_dir)
 
@@ -201,7 +208,8 @@ class Snudda(object):
                                rc=self.rc,
                                hyper_voxel_size=hyper_voxel_size,
                                h5libver=h5libver,
-                               restart_detection_flag=False)
+                               restart_detection_flag=False,
+                               random_seed=random_seed)
         else:
             ncv = SnuddaDetect(config_file=config_file,
                                position_file=position_file,
@@ -211,7 +219,8 @@ class Snudda(object):
                                volume_id=volume_id,
                                rc=self.rc,
                                h5libver=h5libver,
-                               hyper_voxel_size=hyper_voxel_size)
+                               hyper_voxel_size=hyper_voxel_size,
+                               random_seed=random_seed)
 
         self.stop_parallel()
         self.close_log_file()
@@ -228,6 +237,8 @@ class Snudda(object):
         log_filename = self.network_path + "/log/logFile-synapse-pruning.txt"
 
         work_log = self.network_path + "/log/network-detect-worklog.hdf5"
+
+        random_seed = args.randomseed
 
         self.setup_log_file(log_filename)  # sets self.logFile
         self.setup_parallel()  # sets self.dView and self.lbView
@@ -253,7 +264,8 @@ class Snudda(object):
                            d_view=self.d_view, lb_view=self.lb_view,
                            scratch_path=scratch_path,
                            h5libver=h5libver,
-                           pre_merge_only=pre_merge_only)
+                           pre_merge_only=pre_merge_only,
+                           random_seed=random_seed)
 
         self.stop_parallel()
         self.close_log_file()
@@ -292,13 +304,16 @@ class Snudda(object):
         if args.time:
             input_time = args.time
 
+        random_seed = args.randomseed
+
         print("Writing input spikes to " + spike_file)
 
         ni = SnuddaInput(input_config_file=input_config,
                          hdf5_network_file=network_file,
                          spike_data_filename=spike_file,
                          time=input_time,
-                         logfile=self.logfile)
+                         logfile=self.logfile,
+                         random_seed=random_seed)
 
         self.stop_parallel()
         self.close_log_file()
@@ -426,6 +441,7 @@ class Snudda(object):
 
         pc = h.ParallelContext()
 
+        # Simulate is deterministic, no random seed.
         sim = SnuddaSimulate(network_file=network_file,
                              input_file=input_file,
                              disable_gap_junctions=disable_gj,

@@ -11,10 +11,11 @@ class RegionMesh(object):
 
     def __init__(self, filename, d_view=None, lb_view=None, role="master",
                  use_cache=True, pickle_version=-1, raytrace_borders=True,
-                 d_min=15e-6, bin_width=1e-4, logfile_name=None, log_file=None):
+                 d_min=15e-6, bin_width=1e-4, logfile_name=None, log_file=None,
+                 random_seed=112):
 
         self.d_view = d_view
-        self.lbView = lb_view
+        self.lb_view = lb_view
 
         self.role = role
         self.workers_initialised = False
@@ -34,6 +35,9 @@ class RegionMesh(object):
         self.bin_width = bin_width
         self.padding = max(self.bin_width, d_min)
         self.num_bins = None
+
+        self.random_seed = random_seed
+        self.random_generator = np.random.default_rng(self.random_seed)
 
         # Set by load_mesh
         self.mesh_vec = None
@@ -409,7 +413,8 @@ class RegionMesh(object):
 
             else:
                 # Distribute the work to the workers
-                # Randomize order, to spread work load a bit better
+                # Randomize order, to spread work load a bit better -- order should not affect computation
+                # as computation is determenistic
                 all_x = np.random.permutation(np.arange(0, self.num_bins[0]))
 
                 self.d_view.scatter("x_range", all_x, block=True)
@@ -549,6 +554,7 @@ class RegionMesh(object):
         if self.role != "master":
             return
 
+        # Use default random number generator for verification, so different each run -- more chances to catch error
         x_test = np.random.uniform(self.min_coord[0], self.max_coord[0], num_points)
         y_test = np.random.uniform(self.min_coord[1], self.max_coord[1], num_points)
         z_test = np.random.uniform(self.min_coord[2], self.max_coord[2], num_points)
@@ -660,9 +666,9 @@ class RegionMesh(object):
 
             self.write_log("Regenerating new random pool")
             for i in range(0, 3):
-                self.random_pool[:, i] = np.random.uniform(low=self.min_coord[i],
-                                                           high=self.max_coord[i],
-                                                           size=self.max_rand)
+                self.random_pool[:, i] = self.random_generator.uniform(low=self.min_coord[i],
+                                                                       high=self.max_coord[i],
+                                                                       size=self.max_rand)
 
             self.rand_ctr = 0
 
@@ -1115,17 +1121,17 @@ if __name__ == "__main__":
         # http://davidmasad.com/blog/simulation-with-ipyparallel/
         # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
         print("Client IDs: " + str(rc.ids))
-        dView = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
-        lbView = rc.load_balanced_view(targets='all')
+        d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
+        lb_view = rc.load_balanced_view(targets='all')
     else:
         print("No IPYTHON_PROFILE enviroment variable set, running in serial")
-        dView = None
-        lbView = None
+        d_view = None
+        lb_view = None
         rc = None
 
     meshFile = 'mesh/striatum-mesh.obj'
     # meshFile = "mesh/cortex-mesh-200.obj"
-    sm = RegionMesh(meshFile, d_view=dView, lb_view=lbView,
+    sm = RegionMesh(meshFile, d_view=d_view, lb_view=lb_view,
                     raytrace_borders=False)
 
     # import cProfile
@@ -1146,5 +1152,5 @@ if __name__ == "__main__":
     # tp = (sm.minCoord + sm.maxCoord)/2
     # sm.rayCasting(np.array(tp))
 
-    if dView and rc:
+    if d_view and rc:
         rc.shutdown(hub=True)

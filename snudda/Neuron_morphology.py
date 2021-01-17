@@ -45,9 +45,9 @@ class NeuronMorphology(object):
         else:
             self.rotation = None
 
-        self.soma = []
-        self.axon = []
-        self.dend = []  # 0,1,2: x,y,z  3: radie, 4: dist to soma (all in meters)
+        self.soma = np.array([])
+        self.axon = np.array([])
+        self.dend = np.array([])  # 0,1,2: x,y,z  3: radie, 4: dist to soma (all in meters)
 
         self.axon_density_type = None
         self.dend_density = None
@@ -94,11 +94,11 @@ class NeuronMorphology(object):
         self.max_dend_radius = 0
 
         # Telling how the different points link together into lines
-        self.axon_links = []  # These should never be changed after CLONE
-        self.dend_links = []
+        self.axon_links = np.array((2, 0))  # These should never be changed after CLONE
+        self.dend_links = np.array((2, 0))
 
-        self.dend_sec_id = []
-        self.dend_sec_x = []
+        self.dend_sec_id = np.array((1,))
+        self.dend_sec_x = np.array((2, 0))
 
         if colour is None:
             self.colour = np.random.random((3,))
@@ -124,8 +124,7 @@ class NeuronMorphology(object):
                     tstr = traceback.format_exc()
                     print(tstr)
 
-                    self.write_log("!!! Failed to read cache file, loading: " \
-                                   + self.swc_filename)
+                    self.write_log("!!! Failed to read cache file, loading: " + self.swc_filename)
                     self.load_swc(self.swc_filename)
                     self.save_cache()
 
@@ -235,7 +234,8 @@ class NeuronMorphology(object):
     ############################################################################
 
     # http://blog.lostinmyterminal.com/python/2015/05/12/random-rotation-matrix.html
-    def rand_rotation_matrix(self, deflection=1.0, rand_nums=None):
+    @staticmethod
+    def rand_rotation_matrix(deflection=1.0, rand_nums=None):
         """
     Creates a random rotation matrix.
     
@@ -262,20 +262,16 @@ class NeuronMorphology(object):
         # has length sqrt(2) to eliminate the 2 in the Householder matrix.
 
         r = np.sqrt(z)
-        Vx, Vy, Vz = V = (
-            np.sin(phi) * r,
-            np.cos(phi) * r,
-            np.sqrt(2.0 - z)
-        )
+        vv = (np.sin(phi) * r, np.cos(phi) * r, np.sqrt(2.0 - z))
 
         st = np.sin(theta)
         ct = np.cos(theta)
 
-        R = np.array(((ct, st, 0), (-st, ct, 0), (0, 0, 1)))
+        rr = np.array(((ct, st, 0), (-st, ct, 0), (0, 0, 1)))
 
         # Construct the rotation matrix  ( V Transpose(V) - I ) R.
-        M = (np.outer(V, V) - np.eye(3)).dot(R)
-        return M
+        mm = (np.outer(vv, vv) - np.eye(3)).dot(rr)
+        return mm
 
     ############################################################################
 
@@ -329,8 +325,7 @@ class NeuronMorphology(object):
         self.position = position
 
         # Plot neuron post rotation
-        if False:
-            self.plot_neuron()
+        # self.plot_neuron()
 
         return self
 
@@ -702,11 +697,6 @@ class NeuronMorphology(object):
             # We also have sectionID, secX0 and secX1 saved in links[:,2:5]
             # if needed in the future
 
-        if False:
-            print("Inspect self.dend and axon")
-            import pdb
-            pdb.set_trace()
-
         if self.virtual_neuron:
             # For virtual neurons, skip the dendrites (save space)
             self.dend = np.zeros((0, self.dend.shape[1]))
@@ -718,11 +708,7 @@ class NeuronMorphology(object):
         self.find_radius()
         self.place()
 
-        if False:
-            print("Debug plot")
-            self.debug_plot()
-            import pdb
-            pdb.set_trace()
+        # self.debug_plot()
 
     ############################################################################
 
@@ -841,61 +827,13 @@ class NeuronMorphology(object):
                        c=soma_colour, alpha=alpha)
 
         # plt.axis('equal')
-        plt.title("Neuron: " + self.swc_filename.split("/")[-3] \
-                  + "_" + self.swc_filename.split('/').pop())
+        plt.title("Neuron: " + self.swc_filename.split("/")[-3] + "_" + self.swc_filename.split('/').pop())
         plt.ion()
         plt.show()
         plt.draw()
         plt.pause(0.001)
 
         return ax
-
-    ############################################################################
-
-    # !!! Is this function depricated?
-
-    def dendrite_density(self):
-
-        assert False, "Depricated function dendriteDensity?"
-
-        if len(self.dend) == 0:
-            assert self.virtual_neuron, \
-                "No dendrites in " + str(self.name) \
-                + ". Only virtual neurons are allowed to have no dendrites!"
-
-            # No dendrites, neuron is virtual
-            return None
-
-        if True or self.dend_density is None:
-
-            # Calculate all the segment lengths
-            dend_segment_length = \
-                np.sum(((self.dend[self.dend_links[:, 0].astype(int), :][:, 0:3]
-                         - self.dend[self.dend_links[:, 1].astype(int), :][:, 0:3]) ** 2),
-                       axis=-1) ** 0.5
-
-            # Calculate all segment centres distances to soma
-            dend_segment_dist = \
-                np.sum((((self.dend[self.dend_links[:, 0].astype(int), :][:, 0:3]
-                          + self.dend[self.dend_links[:, 1].astype(int), :][:, 0:3]) / 2
-                         - self.soma[0, 0:3]) ** 2),
-                       axis=-1) ** 0.5
-
-            bin_size = self.density_bin_size
-            max_dist = np.max(dend_segment_dist)
-            n_bins = int(np.ceil(max_dist / bin_size)) + 1
-
-            self.dend_density = np.zeros((n_bins, 1))
-
-            for sd, sl in zip(dend_segment_dist, dend_segment_length):
-                idx = int(np.floor(sd / bin_size))
-                self.dend_density[idx] += sl
-
-            # Divide by volume of shell to get density
-            for i in range(0, n_bins):
-                self.dend_density[i] /= 4 * np.pi / 3 * (((i + 1) * bin_size) ** 3 - (i * bin_size) ** 3)
-
-        return self.dend_density, self.density_bin_size
 
     ############################################################################
 
@@ -987,11 +925,13 @@ class NeuronMorphology(object):
             for j in range(0, nSyn):
                 # print('Compartment containing a synapse',iComp)
                 # print('Distance from soma',self.dend[iComp][4]*1e6,'$mum$')
-                dist_syn_soma = np.append(dist_syn_soma, self.dend[i_comp][4])
                 input_loc[syn_ctr, 3] = self.dend_sec_id[i_comp]
 
                 # Cant have at endpoints 0 or 1
                 comp_x = np.random.rand()
+                dist_syn_soma = np.append(dist_syn_soma,
+                                          d[self.dend_links[i_comp, 0]] * (1 - comp_x)
+                                          + d[self.dend_links[i_comp, 1]] * comp_x)
 
                 coords = self.dend[self.dend_links[i_comp, 0], :3] * (1 - comp_x) \
                          + self.dend[self.dend_links[i_comp, 1], :3] * comp_x
@@ -1000,8 +940,7 @@ class NeuronMorphology(object):
 
                 # Use compX (where between comp endpoints) to calculate sectionX
                 # (where between section end points)
-                input_loc[syn_ctr, 4] = self.dend_sec_x[i_comp, 0] * (1 - comp_x) \
-                                        + comp_x * self.dend_sec_x[i_comp, 1]
+                input_loc[syn_ctr, 4] = self.dend_sec_x[i_comp, 0] * (1 - comp_x) + comp_x * self.dend_sec_x[i_comp, 1]
 
                 syn_ctr += 1
 
@@ -1009,31 +948,8 @@ class NeuronMorphology(object):
             # Return xyz,secID,secX,iDensity,distSynSoma
             return input_loc[:, :3], input_loc[:, 3], input_loc[:, 4], i_density, dist_syn_soma
 
-        # Return xyz,secID,secX
-        return input_loc[:, :3], input_loc[:, 3], input_loc[:, 4]
-
-    ############################################################################
-
-    # !!! Add plot functon for density
-
-    # Now density is specified as an equation of d, this func needs to be rewritten
-
-    def plot_density_OLD(self):
-
-        d = [self.density_bin_size * x * 1e6 for x in range(0, len(self.dend_density))]
-
-        import matplotlib.pyplot as plt
-        plt.figure()
-        plt.step(d, self.dend_density * 1e-12)
-        plt.xlabel('Distance from soma (mum)')
-        plt.ylabel('Density (mum/mum3)')
-
-        if self.axon_density is not None:
-            da = [self.density_bin_size * x * 1e6 for x in range(0, len(self.axon_density))]
-            plt.figure()
-            plt.step(da, self.axon_density * 1e-12)
-            plt.xlabel('Distance from soma (mum)')
-            plt.ylabel('Axon density (mum/mum3)')
+        # Return xyz,secID,secX, dist_to_soma (update: now also added distance synapse to soma)
+        return input_loc[:, :3], input_loc[:, 3], input_loc[:, 4], dist_syn_soma
 
     ############################################################################
 
@@ -1081,8 +997,6 @@ class NeuronMorphology(object):
 if __name__ == "__main__":
     # The lines below are just for testing purposes
 
-    # nm = NeuronMorphology(swc_filename='morphology/network/FSN-BE79B-3ak-compact-5.swc',verbose=True,clusterFlag=True,nClustersDend=-1,nClustersAxon=-1)
-
     fName = "data/cellspecs/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/WT-1215MSN03-cor-rep-ax2.swc"
     # fName = "data/cellspecs/lts/LTS_Experiment-9862_20181211/lts_morp_2019-11-07_centered_noAxon.swc"
 
@@ -1105,8 +1019,6 @@ if __name__ == "__main__":
 
     nm2 = nm.clone(rotation=nm.rand_rotation_matrix(), position=np.array([0.001, 0.001, 0.001]))
     nm2.plot_neuron(ax1)
-
-    nm2.plot_density_OLD()
 
     # raw_input("Test")
 

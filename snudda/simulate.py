@@ -1167,54 +1167,6 @@ class SnuddaSimulate(object):
 
         assert False, "addVirtualNeuronInput not implemented"
 
-        ############################################################################
-
-    # TODO: Remove this old unused function add_external_input_old
-
-    # This adds external input (presumably cortical and thalamic)
-    def add_external_input_old(self, nInputs=50, freq=5.0):
-        self.write_log("Adding external (cortical, thalamic) input (OLD VERSION)")
-        assert False, "This uses neuron generated spikes, please use new function"
-
-        for neuron_id in self.neurons:
-            neuron = self.neurons[neuron_id]
-
-            self.external_stim[neuron_id] = []
-
-            for i in range(0, nInputs):
-                # if(neuronID != 1): # !!! TEST, only input to one neuron to see synapses work
-                #  continue
-                try:
-                    randComp = np.random.choice(neuron.icell.dend)
-                    randDist = np.random.random(1)
-
-                    netStim = self.sim.neuron.h.NetStim()
-                    netStim.start = 0
-                    netStim.interval = 1000.0 / freq  # units ms :(
-
-                    # self.writeLog("Interval " + str(netStim.interval) + " ms")
-
-                    netStim.noise = 1.0
-                    netStim.number = 10000
-
-                    self.external_stim[neuron_id].append(netStim)
-
-                    # self.writeLog("RandComp: " + str(randComp) \
-                    #               + "dist: " + str(randDist[0]))
-
-                    syn = self.sim.neuron.h.tmGlut(randComp(randDist[0]))
-                    nc = self.sim.neuron.h.NetCon(netStim, syn)
-                    nc.delay = 1
-                    nc.weight[0] = 0.1
-                    nc.threshold = 0.1
-
-                    self.net_con_list.append(nc)
-                    self.synapse_list.append(syn)
-                except Exception as e:
-                    self.write_log("Error! " + str(e))
-                    import pdb
-                    pdb.set_trace()
-
     ############################################################################
 
     def centre_neurons(self, side_len=None, neuron_id=None):

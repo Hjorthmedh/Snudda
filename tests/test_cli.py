@@ -3,6 +3,7 @@ import unittest, os, sys, argparse
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import snudda.cli
 
+
 # Duck punch the argument parser so it doesn't sys.exit
 def on_argparse_error(self, message):
     raise argparse.ArgumentError(None, message)
@@ -18,6 +19,7 @@ def run_cli_command(command):
     result = snudda.cli.snudda_cli()
     sys.argv = argv
     return result
+
 
 class TestCLI(unittest.TestCase):
     """
@@ -40,7 +42,7 @@ class TestCLI(unittest.TestCase):
         with self.subTest(stage="prune"):
             run_cli_command("prune tiny")
         from shutil import copyfile
-        copyfile("config/input-tinytest-v5.json", "tiny/input.json")
+        copyfile("../snudda/data/config/input-tinytest-v9-freq-vectors.json", "tiny/input.json")
         with self.subTest(stage="input"):
             run_cli_command("input tiny --input tiny/input.json --time 1.0")
         with self.subTest(stage="simulate"):

@@ -1,6 +1,5 @@
 import numpy as np
-from .load import SnuddaLoad
-
+from snudda.load import SnuddaLoad
 
 class SnuddaExportConnectionMatrix(object):
 

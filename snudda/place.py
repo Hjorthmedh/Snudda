@@ -32,7 +32,8 @@ class SnuddaPlace(object):
                  log_file=None,
                  d_view=None,
                  lb_view=None,
-                 h5libver="latest"):
+                 h5libver="latest",
+                 random_seed=None):
 
         self.verbose = verbose
         self.log_file = log_file
@@ -46,6 +47,8 @@ class SnuddaPlace(object):
         # List of all neurons
         self.neurons = []
         self.neuronPrototypes = {}
+        self.random_seed = random_seed
+        self.random_generator = None
 
         # This defines the neuron units/channels. The dictionary lists all the
         # members of each unit, the neuronChannel gives the individual neurons
@@ -113,11 +116,11 @@ class SnuddaPlace(object):
             # parameter.json can be a list of lists, this allows you to select the
             # parameterset randomly
             # modulation.json is similarly formatted, pick a parameter set here
-            parameter_id = np.random.randint(1000000)
-            modulation_id = np.random.randint(1000000)
+            parameter_id = self.random_generator.integers(1000000)
+            modulation_id = self.random_generator.integers(1000000)
 
             if rotation_mode == "random":
-                rotation = nm.rand_rotation_matrix()
+                rotation = nm.rand_rotation_matrix(rand_nums=self.random_generator.random(size=(3,)))
             elif rotation_mode is None or rotation_mode == "":
                 self.write_log("Rotation mode: None (disabled) for " + name)
                 rotation = np.eye(3)
@@ -173,6 +176,19 @@ class SnuddaPlace(object):
         finally:
             cfg_file.close()
 
+        if self.random_seed is None:
+            if "RandomSeed" in config and "place" in config["RandomSeed"]:
+                self.random_seed = config["RandomSeed"]["place"]
+                self.write_log(f"Reading random see from config file: {self.random_seed}")
+            else:
+                # No random seed given, invent one
+                self.random_seed = 1001
+                self.write_log(f"No random seed provided, using: {self.random_seed}")
+        else:
+            self.write_log(f"Using random seed provided by command line: {self.random_seed}")
+
+        self.random_generator = np.random.default_rng(self.random_seed + 115)
+
         if self.log_file is None:
             mesh_log_filename = "mesh-log.txt"
         else:
@@ -181,6 +197,15 @@ class SnuddaPlace(object):
 
         # First handle volume definitions
         volume_def = config["Volume"]
+
+        # Setup random seeds for all volumes
+        ss = np.random.SeedSequence(self.random_seed)
+        all_seeds = ss.generate_state(len(volume_def))
+        all_vd = sorted(volume_def.keys())
+
+        vol_seed = dict()
+        for vd, seed in zip(all_vd, all_seeds):
+            vol_seed[vd] = seed
 
         for volume_id, vol_def in volume_def.items():
 
@@ -214,7 +239,8 @@ class SnuddaPlace(object):
                                  raytrace_borders=False,
                                  d_min=vol_def["dMin"],
                                  bin_width=mesh_bin_width,
-                                 log_file=mesh_logfile)
+                                 log_file=mesh_logfile,
+                                 random_seed=vol_seed[volume_id])
 
             self.write_log("Using dimensions from config file")
 
@@ -232,67 +258,58 @@ class SnuddaPlace(object):
         # Read in the neurons
         for name, definition in config["Neurons"].items():
 
-            try:
-                neuron_name = name
-                morph = definition["morphology"]
-                param = definition["parameters"]
-                mech = definition["mechanisms"]
+            neuron_name = name
+            morph = definition["morphology"]
+            param = definition["parameters"]
+            mech = definition["mechanisms"]
 
-                if "modulation" in definition:
-                    modulation = definition["modulation"]
-                else:
-                    # Modulation optional
-                    modulation = None
+            if "modulation" in definition:
+                modulation = definition["modulation"]
+            else:
+                # Modulation optional
+                modulation = None
 
-                num = definition["num"]
-                volume_id = definition["volumeID"]
+            num = definition["num"]
+            volume_id = definition["volumeID"]
 
-                if "neuronType" in definition:
-                    # type is "neuron" or "virtual" (provides input only)
-                    model_type = definition["neuronType"]
-                else:
-                    model_type = "neuron"
+            if "neuronType" in definition:
+                # type is "neuron" or "virtual" (provides input only)
+                model_type = definition["neuronType"]
+            else:
+                model_type = "neuron"
 
-                if 'hoc' in definition:
-                    hoc = definition["hoc"]
-                else:
-                    hoc = None
+            if 'hoc' in definition:
+                hoc = definition["hoc"]
+            else:
+                hoc = None
 
-                if model_type == "virtual":
-                    # Virtual neurons gets spikes from a file
-                    mech = ""
-                    hoc = ""
-                    virtual_neuron = True
-                else:
-                    virtual_neuron = False
+            if model_type == "virtual":
+                # Virtual neurons gets spikes from a file
+                mech = ""
+                hoc = ""
+                virtual_neuron = True
+            else:
+                virtual_neuron = False
 
-                rotation_mode = definition["rotationMode"]
+            rotation_mode = definition["rotationMode"]
 
-                if "axonDensity" in definition:
-                    axon_density = definition["axonDensity"]
-                else:
-                    axon_density = None
+            if "axonDensity" in definition:
+                axon_density = definition["axonDensity"]
+            else:
+                axon_density = None
 
-                self.write_log(f"Adding: {num} {neuron_name}")
-                self.add_neurons(name=neuron_name,
-                                 swc_filename=morph,
-                                 param_data=param,
-                                 mech_filename=mech,
-                                 modulation=modulation,
-                                 num_neurons=num,
-                                 hoc=hoc,
-                                 volume_id=volume_id,
-                                 virtual_neuron=virtual_neuron,
-                                 rotation_mode=rotation_mode,
-                                 axon_density=axon_density)
-
-            except:
-                import traceback
-                tstr = traceback.format_exc()
-                print(tstr)
-                print("SnuddaPlace: problem reading config file")
-                import pdb
-                pdb.set_trace()
+            self.write_log(f"Adding: {num} {neuron_name}")
+            self.add_neurons(name=neuron_name,
+                             swc_filename=morph,
+                             param_data=param,
+                             mech_filename=mech,
+                             modulation=modulation,
+                             num_neurons=num,
+                             hoc=hoc,
+                             volume_id=volume_id,
+                             virtual_neuron=virtual_neuron,
+                             rotation_mode=rotation_mode,
+                             axon_density=axon_density)
 
         self.config_file = config_file
 
@@ -524,7 +541,7 @@ class SnuddaPlace(object):
         if num_population_units is None:
             num_population_units = self.nPopulationUnits
 
-        self.population_unit = np.random.randint(num_population_units, size=len(self.neurons))
+        self.population_unit = self.random_generator.integers(num_population_units, size=len(self.neurons))
 
         self.population_units = dict([])
 
