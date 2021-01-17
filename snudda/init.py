@@ -40,7 +40,7 @@ class SnuddaInit(object):
 
         self.network_data = collections.OrderedDict([])
 
-        self.network_data["RandomSeed"] = SnuddaInit.setup_random_seeds(random_seed)
+        self.network_data["RandomSeed"], self.init_rng = SnuddaInit.setup_random_seeds(random_seed)
         self.network_data["Volume"] = collections.OrderedDict([])
         self.num_neurons_total = 0
         self.configName = config_name
@@ -423,7 +423,7 @@ class SnuddaInit(object):
         n_of_each_ind = np.zeros((n_ind,))
         n_of_each_ind[:] = int(num_neurons / n_ind)
         still_to_add = int(num_neurons - np.sum(n_of_each_ind))
-        add_idx = np.random.permutation(n_ind)[0:still_to_add]
+        add_idx = self.init_rng.permutation(n_ind)[0:still_to_add]
         n_of_each_ind[add_idx] += 1
 
         # Add the neurons to config
@@ -1277,12 +1277,14 @@ class SnuddaInit(object):
         rand_seed_dict = collections.OrderedDict()
 
         if random_seed is not None:
-            rand_seed_dict["masterseed"] = random_seed
+            rand_seed_dict["master+seed"] = random_seed
 
         for st, s in zip(seed_types, all_seeds):
             rand_seed_dict[st] = s
 
-        return rand_seed_dict
+        init_rng = np.random.default_rng(rand_seed_dict["init"])
+
+        return rand_seed_dict, init_rng
 
 
 if __name__ == "__main__":
