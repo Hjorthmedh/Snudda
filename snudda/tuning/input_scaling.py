@@ -7,6 +7,7 @@ import h5py
 
 from snudda.CreateCubeMesh import CreateCubeMesh
 from snudda.Neuron_morphology import NeuronMorphology
+from snudda.init import SnuddaInit
 from snudda.input import SnuddaInput
 from snudda.load import SnuddaLoad
 from snudda.simulate import SnuddaSimulate
@@ -39,6 +40,7 @@ class InputScaling(object):
         self.neuron_id = None
         self.input_info = None
         self.neuron_info = None
+        self.init_rng = None
 
         # TODO: Check baseline, close to threshold...
         # TODO: Check when at tonic activity, how sharp short burst can we get without depolarisation block
@@ -78,9 +80,11 @@ class InputScaling(object):
         from snudda.detect import SnuddaDetect
         from snudda.prune import SnuddaPrune
 
-        SnuddaPlace(config_file=self.network_config_file_name)
+        position_file = os.path.join(self.network_dir, "network-neuron-positions.hdf5")
+        SnuddaPlace(config_file=self.network_config_file_name, verbose=True).write_data_HDF5(position_file)
+
         SnuddaDetect(config_file=self.network_config_file_name,
-                     position_file=os.path.join(self.network_dir, "network-neuron-positions.hdf5"),
+                     position_file=position_file,
                      save_file=os.path.join(self.network_dir, "voxels", "network-putative-synapses.hdf5"))
         SnuddaPrune(work_history_file=os.path.join(self.network_dir, "log", "network-detect-worklog.hdf5"))
 
@@ -212,15 +216,15 @@ class InputScaling(object):
 
         return len(nm.axon) > 0
 
-    def create_network_config(self, num_replicas=10):
+    def create_network_config(self, num_replicas=10, random_seed=None):
 
         config_def = collections.OrderedDict()
+        config_def["RandomSeed"], self.init_rng = SnuddaInit.setup_random_seeds(random_seed)
 
         volume_def = collections.OrderedDict()
-
         vol_name = "InputTest"
-
         volume_def[vol_name] = collections.OrderedDict()
+
         volume_def[vol_name]["type"] = "mesh"
         volume_def[vol_name]["dMin"] = 15e-6
         volume_def[vol_name]["meshFile"] = "data/mesh/InputTestMesh.obj"
