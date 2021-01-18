@@ -478,6 +478,8 @@ if __name__ == "__main__":
 
     elif args.action == "simulate":
         print("Run simulation...")
+        print("Tip, to run in parallel on your local machine use: "
+              "mpiexec -n 4 python3 tuning/input_scaling.py simulate <yournetworkhere>")
         input_scaling.simulate()
 
     elif args.action == "analyse":
