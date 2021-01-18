@@ -58,7 +58,7 @@ class InputScaling(object):
         self.input_config_file = os.path.join(self.network_dir, "input-config.json")
         self.input_spikes_file = os.path.join(self.network_dir, 'input.hdf5')
 
-        self.output_spike_file = os.path.join(self.network_dir, 'ouput_spikes.txt')
+        self.output_spike_file = os.path.join(self.network_dir, 'output_spikes.txt')
         self.output_volt_file = os.path.join(self.network_dir, 'output_volt.txt')
 
         self.core = Snudda(self.network_dir)
