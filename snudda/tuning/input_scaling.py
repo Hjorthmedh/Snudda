@@ -88,14 +88,9 @@ class InputScaling(object):
                      save_file=os.path.join(self.network_dir, "voxels", "network-putative-synapses.hdf5"))
         SnuddaPrune(work_history_file=os.path.join(self.network_dir, "log", "network-detect-worklog.hdf5"))
 
-        # TODO: Also run snudda place, detect, and prune
-        # TODO: Make it so that snudda detect and prune are fast if there are no allowed connections
         # TODO: Skip placing neurons that will not receive any inputs or distribute any inputs
 
     def setup_input(self, input_type=None):
-
-        # TODO: use create_input_config to create config file for input
-        # TODO: generate inputs
 
         synapse_density_cortical_input = "1.15*0.05/(1+np.exp(-(d-30e-6)/5e-6))"
         synapse_density_thalamic_input = "0.05*np.exp(-d/200e-6)"
@@ -144,13 +139,119 @@ class InputScaling(object):
                     spike_data_filename=self.input_spikes_file,
                     time=self.max_time)
 
-    def run_simulations(self):
-        pass
-        # TODO: Run simulation
-
-
     def analyse_results(self):
+
+        data = self.load_data()
+
+        # We need to extract which cell models correspond to what traces, and also what input the got
+        # Best to do it from the data in the files that were used.
+
         pass
+
+    def load_data(self, skip_time=0.0):
+
+        network_file = os.path.join(self.network_dir, "network-pruned-synapses.hdf5")
+        network_info = SnuddaLoad(network_file)
+
+        spike_data_file = os.path.join(self.network_dir, "output_spikes.txt")
+        n_neurons = network_info.data["nNeurons"]
+        spike_data = self.load_spike_data(spike_data_file, n_neurons)
+
+        # We need to figure out what neuronID correspond to that morphologies
+        # Then figure out what input frequencies the different runs had
+
+        neuron_id_list = [x["neuronID"] for x in network_info.data["neurons"]]
+        neuron_id_name_pairs = [(x["neuronID"], x["name"]) for x in network_info.data["neurons"]]
+
+        # For each morphology-model we have a list of the run with that model
+        neuron_lookup = dict()
+
+        for neuron_id, neuron_name in neuron_id_name_pairs:
+            if neuron_name in neuron_lookup:
+                neuron_lookup[neuron_name].append(neuron_id)
+            else:
+                neuron_lookup[neuron_name] = [neuron_id]
+
+        # Next identify number of inputs each run had
+        input_config = self.load_input_config()
+
+        n_inputs_lookup = dict()
+        for neuron_label in input_config.keys():
+            neuron_id = int(neuron_label)
+            n_inputs = 0
+            for input_types in input_config[neuron_label].keys():
+                n_inputs += input_config[neuron_label]["nInputs"]
+
+            n_inputs_lookup[neuron_id] = n_inputs
+
+        frequency_data = dict()
+        for neuron_name in neuron_lookup.keys():
+            frequency_data[neuron_name] = dict()
+
+        for neuron_id in neuron_id_list:
+            n_inputs = n_inputs_lookup[neuron_id]
+            frequency_data[neuron_id][n_inputs] = self.extract_spikes(spike_data=spike_data,
+                                                                      config_data=input_config,
+                                                                      neuron_id=neuron_id,
+                                                                      skip_time=skip_time)
+
+        # TO BE CONTINUED... next we need to plot this data.
+
+    # TODO: We should set skip_time to 1 second, 0 for now while testing
+    def extract_spikes(self, spike_data, config_data, neuron_id, skip_time=0.0):
+
+        # This function checks the config_data to find out what time ranges to extract
+
+        assert skip_time >= 0, "Time skipped at beginning of stimulus must be positive or zero"
+        assert len(config_data[str(neuron_id)].values()) == 1, "Analysis can only handle one input type at a time"
+        input_type = list(config_data[str(neuron_id)].keys())[0]
+
+        cfg_data = config_data[str(neuron_id)][input_type]
+
+        input_frequency = []
+        output_frequency = []
+
+        for start_time, end_time, input_freq in zip(cfg_data["start"], cfg_data["end"], cfg_data["frequency"]):
+
+            assert start_time + skip_time < end_time, "Too large skip time, no data to analyse"
+            spike_idx = np.where(start_time + skip_time <= spike_data[neuron_id] & spike_data[neuron_id] <= end_time)
+            output_freq = len(spike_idx)
+
+            input_frequency.append(input_freq)
+            output_frequency.append(output_freq)
+
+        input_frequency = np.array(input_frequency)
+        output_frequency = np.array(output_frequency)
+
+        return input_frequency, output_frequency
+
+
+    def load_input_config(self):
+
+        input_config_file = os.path.join(self.network_dir, "input-config.json")
+        with open(input_config_file) as f:
+            input_config = json.load(f)
+
+        return input_config
+
+    def load_spike_data(self, file_name, n_cells):
+
+        data = np.genfromtxt(self.fileName, delimiter='\t')
+        spike_time = data[:, 0] * 1e-3
+        spike_id = data[:, 1].astype(int)
+
+        spike_times = dict()
+        for nid in range(0, n_cells):
+            spike_times[nid] = []
+
+        for sid, t in zip(spike_id, spike_time):
+            spike_times[sid].append(t)
+
+        for nid in range(0, n_cells):
+            spike_times[nid] = np.array(sorted(spike_times[nid]))
+
+        return spike_times
+
     # TODO: Extract spiking frequency (skip first second for each interval to let network settle)
     # TODO: Create summary graphs
 
@@ -472,7 +573,6 @@ if __name__ == "__main__":
 
     if args.action == "setup":
         input_scaling.setup_network()
-        #input_scaling.setup_input(input_type=["thalamic", "cortical"])
         input_scaling.setup_input(input_type="thalamic")
         #input_scaling.setup_input(input_type="cortical")
 
