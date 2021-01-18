@@ -44,8 +44,8 @@ class InputScaling(object):
 
         # TODO: Check baseline, close to threshold...
         # TODO: Check when at tonic activity, how sharp short burst can we get without depolarisation block
-        self.frequency_range = np.arange(0, 2, 1) # np.arange(0, 50, 1)  # to 50 Hz, or maybe 100Hz...
-        self.input_duration = 2.0  # 10.0
+        self.frequency_range = np.arange(0, 5, 1) # np.arange(0, 50, 1)  # to 50 Hz, or maybe 100Hz...
+        self.input_duration = 3.0  # 10.0
         self.max_time = self.input_duration * len(self.frequency_range)
 
         if not os.path.isdir(self.network_dir):
@@ -65,8 +65,11 @@ class InputScaling(object):
 
     # Writes config files
 
+
     def setup_network(self):
 
+        # TODO: num_replicas should be set by a parameter, it affects how many duplicates of each neuron
+        # and thus how many steps we have between n_min and n_max number of inputs specified.
         config_def = self.create_network_config(num_replicas=10)
 
         print(f"Writing network config file to {self.network_config_file_name}")
@@ -197,6 +200,8 @@ class InputScaling(object):
 
         # TO BE CONTINUED... next we need to plot this data.
 
+        # !!! NEED TO RETURN DATA
+
     # TODO: We should set skip_time to 1 second, 0 for now while testing
     def extract_spikes(self, spike_data, config_data, neuron_id, skip_time=0.0):
 
@@ -224,7 +229,6 @@ class InputScaling(object):
         output_frequency = np.array(output_frequency)
 
         return input_frequency, output_frequency
-
 
     def load_input_config(self):
 
@@ -392,8 +396,9 @@ class InputScaling(object):
 
         for neuron_type in neuron_sets:
 
-            # For each neuron_type we want to run a range on number of inputs from n_input_min to n_input_max
-            # dynamically create a range depending on number of neurons of that morphology available
+            # For each neuron model we will have num_replicas copies (see other part of code), and this
+            # will determine how many steps we have between n_input_min and n_input_max
+
             neuron_id_list = neuron_sets[neuron_type]
             num_range = np.linspace(n_input_min, n_input_max, num=len(neuron_id_list)).astype(int)
 
