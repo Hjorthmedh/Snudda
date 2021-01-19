@@ -3,7 +3,7 @@ h5py
 ipyparallel
 matplotlib
 mpi4py
-numpy
+numpy>=1.19.3
 scipy
 sonata>=0.0.1
 pyzmq
