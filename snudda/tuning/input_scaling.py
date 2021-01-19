@@ -148,6 +148,9 @@ class InputScaling(object):
         self.plot_frequency_data(frequency_data, show_plots=False)
         self.plot_frequency_data_alt(frequency_data, show_plots=False)
 
+        # TODO: Add voltage trace plots for some runs...
+        # TODO: Add scaling to input generation code, nInputs ... 
+
         pass
 
     def load_data(self, skip_time=0.0):
@@ -300,7 +303,7 @@ class InputScaling(object):
                 plt.show()
                 plt.pause(0.001)
 
-            fig_name = os.path.join(self.network_dir, "figs", f"input-scaling-freq-{neuron_name}.pdf")
+            fig_name = os.path.join(self.network_dir, "figures", f"input-scaling-freq-{neuron_name}.pdf")
             if not os.path.exists(os.path.dirname(fig_name)):
                 os.mkdir(os.path.dirname(fig_name))
 
@@ -378,7 +381,7 @@ class InputScaling(object):
                 plt.show()
                 plt.pause(0.001)
 
-            fig_name = os.path.join(self.network_dir, "figs", f"input-scaling-ninputs-{neuron_name}.pdf")
+            fig_name = os.path.join(self.network_dir, "figures", f"input-scaling-ninputs-{neuron_name}.pdf")
             if not os.path.exists(os.path.dirname(fig_name)):
                 os.mkdir(os.path.dirname(fig_name))
 

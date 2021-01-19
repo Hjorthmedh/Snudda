@@ -1638,10 +1638,7 @@ class SnuddaPrune(object):
                     import traceback
                     tstr = traceback.format_exc()
                     self.write_log(tstr)
-
-                    print("Problems closing files")
-                    import pdb
-                    pdb.set_trace()
+                    self.write_log(f"Problems closing files {f}, {file_list[f]}")
 
             self.buffer_out_file.close()
 
@@ -1651,8 +1648,7 @@ class SnuddaPrune(object):
             tstr = traceback.format_exc()
             self.write_log(tstr)
             self.write_to_random_file(tstr)
-            import pdb
-            pdb.set_trace()
+            exit(-1)
 
         ############################################################################
 
