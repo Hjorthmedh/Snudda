@@ -592,3 +592,7 @@ if __name__ == "__main__":
 
     else:
         print(f"Unknown action {args.action}")
+
+
+    # python3 tuning/input_scaling.py setup networks/input_scaling_v1/ data/cellspecs-v2/
+    # mpiexec -n 4 python3 tuning/input_scaling.py simulate networks/input_scaling_v1/ data/cellspecs-v2/ < input.txt &> output-tuning.txt &
