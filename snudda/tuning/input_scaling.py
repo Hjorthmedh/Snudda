@@ -65,12 +65,11 @@ class InputScaling(object):
 
     # Writes config files
 
-
-    def setup_network(self):
+    def setup_network(self, num_replicas=10):
 
         # TODO: num_replicas should be set by a parameter, it affects how many duplicates of each neuron
         # and thus how many steps we have between n_min and n_max number of inputs specified.
-        config_def = self.create_network_config(num_replicas=10)
+        config_def = self.create_network_config(num_replicas=num_replicas)
 
         print(f"Writing network config file to {self.network_config_file_name}")
         with open(self.network_config_file_name, "w") as f:
@@ -93,7 +92,7 @@ class InputScaling(object):
 
         # TODO: Skip placing neurons that will not receive any inputs or distribute any inputs
 
-    def setup_input(self, input_type=None):
+    def setup_input(self, input_type=None, num_input_min=100, num_input_max=1000):
 
         synapse_density_cortical_input = "1.15*0.05/(1+np.exp(-(d-30e-6)/5e-6))"
         synapse_density_thalamic_input = "0.05*np.exp(-d/200e-6)"
@@ -130,8 +129,8 @@ class InputScaling(object):
         self.create_input_config(input_config_file=self.input_config_file,
                                  input_type=input_type,
                                  input_frequency=list(self.frequency_range),  #[1.0],
-                                 n_input_min=50,
-                                 n_input_max=1000,
+                                 n_input_min=num_input_min,
+                                 n_input_max=num_input_max,
                                  synapse_conductance=0.5e-9,
                                  synapse_density=synapse_density,
                                  input_duration=self.input_duration,
@@ -704,6 +703,10 @@ if __name__ == "__main__":
     parser.add_argument("cellspecsPath", help="Cellspecs path")
     parser.add_argument("--inputType", help="Type of external input",
                         choices=["thalamic", "cortical"], default="thalamic")
+    parser.add_argument("--numInputSteps", type=int, help="Number of steps for number of inputs to neurons",
+                        default=10)
+    parser.add_argument("--numInputMin", type=int, help="Minimum number of synaptic inputs of inputType", default=100)
+    parser.add_argument("--numInputMax", type=int, help="Maximum number of synaptic inputs of inputType", default=1000)
 
     args = parser.parse_args()
 
@@ -712,8 +715,10 @@ if __name__ == "__main__":
     input_scaling = InputScaling(args.networkPath, args.cellspecsPath)
 
     if args.action == "setup":
-        input_scaling.setup_network()
-        input_scaling.setup_input(input_type=args.inputType)
+        input_scaling.setup_network(num_replicas=args.numInputSteps)
+        input_scaling.setup_input(input_type=args.inputType,
+                                  num_input_min=args.numInputMin,
+                                  num_input_max=args.numInputMax)
         #input_scaling.setup_input(input_type="cortical")
 
     elif args.action == "simulate":
