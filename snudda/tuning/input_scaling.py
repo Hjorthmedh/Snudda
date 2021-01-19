@@ -149,7 +149,7 @@ class InputScaling(object):
         self.plot_frequency_data_alt(frequency_data, show_plots=False)
 
         # TODO: Add voltage trace plots for some runs...
-        # TODO: Add scaling to input generation code, nInputs ... 
+        # TODO: Add scaling to input generation code, nInputs ...
 
         pass
 
@@ -436,8 +436,8 @@ class InputScaling(object):
                 if os.path.isfile(modulation_file):
                     neuron_info["modulation"] = modulation_file
 
-                neuron_ctr += 1
                 neuron_name = f"{neuron_type}_{neuron_ctr}"
+                neuron_ctr += 1
 
                 all_neurons[neuron_name] = neuron_info
 
