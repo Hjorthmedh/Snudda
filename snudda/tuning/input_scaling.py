@@ -144,10 +144,9 @@ class InputScaling(object):
 
     def analyse_results(self):
 
-        data = self.load_data()
-
-        # We need to extract which cell models correspond to what traces, and also what input the got
-        # Best to do it from the data in the files that were used.
+        frequency_data = self.load_data()
+        self.plot_frequency_data(frequency_data, show_plots=False)
+        self.plot_frequency_data_alt(frequency_data, show_plots=False)
 
         pass
 
@@ -207,10 +206,9 @@ class InputScaling(object):
                                                                             neuron_id=neuron_id,
                                                                             skip_time=skip_time)
 
-        pass
-        # TO BE CONTINUED... next we need to plot this data.
+        # TODO: Load voltage trace and warn for depolarisation blocking
 
-        # !!! NEED TO RETURN DATA
+        return frequency_data
 
     # TODO: We should set skip_time to 1 second, 0 for now while testing
     def extract_spikes(self, spike_data, config_data, neuron_id, skip_time=0.0):
@@ -239,7 +237,7 @@ class InputScaling(object):
         input_frequency = np.array(input_frequency)
         output_frequency = np.array(output_frequency)
 
-        return input_frequency, output_frequency
+        return input_frequency, output_frequency, input_type
 
     def load_input_config(self):
 
@@ -269,6 +267,125 @@ class InputScaling(object):
 
     # TODO: Extract spiking frequency (skip first second for each interval to let network settle)
     # TODO: Create summary graphs
+
+    def plot_frequency_data(self, frequency_data, show_plots=True):
+
+
+        for neuron_name in frequency_data:
+            fig, ax = plt.subplots()
+            legend_text = []
+            input_type_all = None
+
+            cmap = plt.get_cmap("Reds")
+            ax.set_prop_cycle('color', [cmap(i) for i in np.linspace(0, 1, len(frequency_data))])
+
+            for num_input in frequency_data[neuron_name]:
+                input_freq, output_freq, input_type = frequency_data[neuron_name][num_input]
+
+                if input_type_all:
+                    assert input_type == input_type_all, "All input types must be the same for neuron"
+                else:
+                    input_type_all = input_type
+
+                legend_text.append(f"n={num_input}")
+                ax.plot(input_freq, output_freq)
+
+            plt.title(f"{neuron_name} receiving {input_type_all} input")
+            plt.xlabel("Input frequency (per synapse)")
+            plt.ylabel("Firing frequency")
+            ax.legend(legend_text)
+
+            if show_plots:
+                plt.ion()
+                plt.show()
+                plt.pause(0.001)
+
+            fig_name = os.path.join(self.network_dir, "figs", f"input-scaling-freq-{neuron_name}.pdf")
+            if not os.path.exists(os.path.dirname(fig_name)):
+                os.mkdir(os.path.dirname(fig_name))
+
+            plt.savefig(fig_name, dpi=300)
+
+            if not show_plots:
+                plt.close()
+
+    def plot_frequency_data_alt(self, frequency_data, show_plots=True):
+
+        _freq_data = dict()
+        _all_num_inputs = []
+        _all_input_freq = []
+
+        input_type_all = None
+
+        # Put everything in a dictionary structure first
+        for neuron_name in frequency_data:
+            _freq_data[neuron_name] = dict()
+
+            for num_inputs in frequency_data[neuron_name]:
+                input_freq, output_freq, input_type = frequency_data[neuron_name][num_inputs]
+
+                if input_type_all is not None:
+                    assert input_type == input_type_all, "All neurons must have same input type for this plot"
+                else:
+                    input_type_all = input_type
+
+                for in_freq, out_freq in zip(input_freq, output_freq):
+                    if in_freq not in _freq_data[neuron_name]:
+                        _freq_data[neuron_name][in_freq] = dict()
+
+                    _freq_data[neuron_name][in_freq][num_inputs] = out_freq
+                    _all_input_freq.append(in_freq)
+
+                _all_num_inputs.append(num_inputs)
+
+        # Extract the relevant data, make sure it is sorted in right order also
+        input_freq_list = np.array(sorted(list(set(_all_input_freq))))
+        num_input_list = np.array(sorted(list(set(_all_num_inputs))))
+
+        freq_data = dict()
+        for neuron_name in frequency_data:
+            freq_data[neuron_name] = dict()
+            for input_freq in input_freq_list:
+                num_in_list = []  # Number of inputs
+                out_f_list = []
+                for num_inputs in num_input_list:
+                    if input_freq in _freq_data[neuron_name] and \
+                            num_inputs in _freq_data[neuron_name][input_freq]:
+                        num_in_list.append(num_inputs)
+                        out_f_list.append(_freq_data[neuron_name][input_freq][num_inputs])
+
+                freq_data[neuron_name][input_freq] = np.array(num_in_list), np.array(out_f_list)
+
+        for neuron_name in frequency_data:
+            fig, ax = plt.subplots()
+            legend_text = []
+
+            cmap = plt.get_cmap("Reds")
+            ax.set_prop_cycle('color', [cmap(i) for i in np.linspace(0, 1, len(frequency_data))])
+
+            for input_freq in freq_data[neuron_name]:
+                num_input, output_freq = freq_data[neuron_name][input_freq]
+                legend_text.append(f"{input_freq} Hz input")
+                ax.plot(num_input, output_freq)
+
+            plt.title(f"{neuron_name} receiving {input_type_all} input")
+            plt.xlabel("Number of synapses")
+            plt.ylabel("Firing frequency")
+            ax.legend(legend_text)
+
+            if show_plots:
+                plt.ion()
+                plt.show()
+                plt.pause(0.001)
+
+            fig_name = os.path.join(self.network_dir, "figs", f"input-scaling-ninputs-{neuron_name}.pdf")
+            if not os.path.exists(os.path.dirname(fig_name)):
+                os.mkdir(os.path.dirname(fig_name))
+
+            plt.savefig(fig_name, dpi=300)
+
+            if not show_plots:
+                plt.close()
 
     # This loops through all neuron directories in cellspec in preparation of writing a network config file
     def gather_all_neurons(self):
