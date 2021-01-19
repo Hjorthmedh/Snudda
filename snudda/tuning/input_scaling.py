@@ -130,7 +130,7 @@ class InputScaling(object):
         self.create_input_config(input_config_file=self.input_config_file,
                                  input_type=input_type,
                                  input_frequency=list(self.frequency_range),  #[1.0],
-                                 n_input_min=0,
+                                 n_input_min=50,
                                  n_input_max=1000,
                                  synapse_conductance=0.5e-9,
                                  synapse_density=synapse_density,
@@ -164,16 +164,18 @@ class InputScaling(object):
         # Then figure out what input frequencies the different runs had
 
         neuron_id_list = [x["neuronID"] for x in network_info.data["neurons"]]
+        neuron_name_list = [x["name"] for x in network_info.data["neurons"]]
+
         neuron_id_name_pairs = [(x["neuronID"], x["name"]) for x in network_info.data["neurons"]]
 
         # For each morphology-model we have a list of the run with that model
-        neuron_lookup = dict()
+        neuron_id_lookup = dict()
 
         for neuron_id, neuron_name in neuron_id_name_pairs:
-            if neuron_name in neuron_lookup:
-                neuron_lookup[neuron_name].append(neuron_id)
+            if neuron_name in neuron_id_lookup:
+                neuron_id_lookup[neuron_name].append(neuron_id)
             else:
-                neuron_lookup[neuron_name] = [neuron_id]
+                neuron_id_lookup[neuron_name] = [neuron_id]
 
         # Next identify number of inputs each run had
         input_config = self.load_input_config()
@@ -182,22 +184,30 @@ class InputScaling(object):
         for neuron_label in input_config.keys():
             neuron_id = int(neuron_label)
             n_inputs = 0
-            for input_types in input_config[neuron_label].keys():
-                n_inputs += input_config[neuron_label]["nInputs"]
+
+            for input_type in input_config[neuron_label].keys():
+                n_inputs += input_config[neuron_label][input_type]["nInputs"]
 
             n_inputs_lookup[neuron_id] = n_inputs
 
         frequency_data = dict()
-        for neuron_name in neuron_lookup.keys():
+        for neuron_name in neuron_id_lookup.keys():
             frequency_data[neuron_name] = dict()
 
-        for neuron_id in neuron_id_list:
-            n_inputs = n_inputs_lookup[neuron_id]
-            frequency_data[neuron_id][n_inputs] = self.extract_spikes(spike_data=spike_data,
-                                                                      config_data=input_config,
-                                                                      neuron_id=neuron_id,
-                                                                      skip_time=skip_time)
+        for neuron_name in neuron_name_list:
+            for neuron_id in neuron_id_lookup[neuron_name]:
 
+                if neuron_id not in n_inputs_lookup:
+                    print(f"No inputs for neuron_id={neuron_id}, ignoring. Please update your setup.")
+                    continue
+
+                n_inputs = n_inputs_lookup[neuron_id]
+                frequency_data[neuron_name][n_inputs] = self.extract_spikes(spike_data=spike_data,
+                                                                            config_data=input_config,
+                                                                            neuron_id=neuron_id,
+                                                                            skip_time=skip_time)
+
+        pass
         # TO BE CONTINUED... next we need to plot this data.
 
         # !!! NEED TO RETURN DATA
@@ -219,8 +229,9 @@ class InputScaling(object):
         for start_time, end_time, input_freq in zip(cfg_data["start"], cfg_data["end"], cfg_data["frequency"]):
 
             assert start_time + skip_time < end_time, "Too large skip time, no data to analyse"
-            spike_idx = np.where(start_time + skip_time <= spike_data[neuron_id] & spike_data[neuron_id] <= end_time)
-            output_freq = len(spike_idx)
+            spike_idx = np.where((start_time + skip_time <= spike_data[neuron_id])
+                                 & (spike_data[neuron_id] <= end_time))[0]
+            output_freq = len(spike_idx) / (end_time - start_time)
 
             input_frequency.append(input_freq)
             output_frequency.append(output_freq)
@@ -240,7 +251,7 @@ class InputScaling(object):
 
     def load_spike_data(self, file_name, n_cells):
 
-        data = np.genfromtxt(self.fileName, delimiter='\t')
+        data = np.genfromtxt(file_name, delimiter='\t')
         spike_time = data[:, 0] * 1e-3
         spike_id = data[:, 1].astype(int)
 
@@ -390,6 +401,8 @@ class InputScaling(object):
                             synapse_conductance,
                             synapse_parameter_file,
                             input_duration=10.0):
+
+        assert n_input_min > 0, "No point using n_input_min=0, please instead use input_frequency 0."
 
         neuron_sets = self.collect_neurons()
         n_inputs = dict()
@@ -568,17 +581,19 @@ if __name__ == "__main__":
     parser = ArgumentParser("Input Scaling", formatter_class=RawTextHelpFormatter)
     parser.add_argument("action", choices=["setup", "simulate", "analyse"], help="Action to run.")
     parser.add_argument("networkPath", help="Network path")
-    parser.add_argument("cellspecspath", help="Cellspecs path")
+    parser.add_argument("cellspecsPath", help="Cellspecs path")
+    parser.add_argument("--inputType", help="Type of external input",
+                        choices=["thalamic", "cortical"], default="thalamic")
 
     args = parser.parse_args()
 
     # TODO: Let the user choose input type, duration for each "run", frequency range, number of input range
 
-    input_scaling = InputScaling(args.networkPath, args.cellspecspath)
+    input_scaling = InputScaling(args.networkPath, args.cellspecsPath)
 
     if args.action == "setup":
         input_scaling.setup_network()
-        input_scaling.setup_input(input_type="thalamic")
+        input_scaling.setup_input(input_type=args.inputType)
         #input_scaling.setup_input(input_type="cortical")
 
     elif args.action == "simulate":
@@ -588,7 +603,9 @@ if __name__ == "__main__":
         input_scaling.simulate()
 
     elif args.action == "analyse":
-        input_scaling.plot_generated_input()
+        # input_scaling.plot_generated_input()
+        input_scaling.analyse_results()
+
 
     else:
         print(f"Unknown action {args.action}")
