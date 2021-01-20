@@ -406,16 +406,21 @@ class InputScaling(object):
 
         self.neuron_types = []
 
+        if neuron_types is not None:
+            if type(neuron_types) == str:
+                neuron_types = [neuron_types]
+            neuron_types = [x.lower() for x in neuron_types]
+
         for ntd in neuron_type_dir:
 
             neuron_type = os.path.basename(os.path.normpath(ntd))
 
-            if neuron_types is None \
-                or (type(neuron_types) == str and neuron_type.lower() == neuron_types.lower()) \
-                    or (type(neuron_types) in [set, list] and neuron_type in neuron_types):
-                self.neuron_types.append(neuron_type)
-            else:
-                print(f"Skipping neuron type {neuron_type}")
+            if neuron_types is not None:
+                if neuron_type.lower() not in neuron_types:
+                    print(f"Skipping neuron type {neuron_type}")
+                    continue
+
+            self.neuron_types.append(neuron_type)
 
             neuron_dir = [d for d in glob.glob(os.path.join(ntd, '*')) if os.path.isdir(d)]
             neuron_ctr = 0
@@ -457,6 +462,9 @@ class InputScaling(object):
 
             if neuron_ctr > 0:
                 print(f"Found {neuron_ctr} neurons in {ntd}")
+
+        assert len(all_neurons) > 0, (f"No neurons selected. Did you specify an incorrect neuronType? {neuron_types}"
+                                      f"\nSee skipped neurons above error message for available ones.")
 
         return all_neurons
 
@@ -729,7 +737,7 @@ class InputScaling(object):
 
         tuning_info_file = os.path.join(self.network_dir, "tuning-info.json")
         with open(tuning_info_file, "wt") as f:
-            json.dump(tuning_meta_data, f)
+            json.dump(tuning_meta_data, f, indent=4, cls=NumpyEncoder)
 
 
 if __name__ == "__main__":
@@ -770,7 +778,10 @@ if __name__ == "__main__":
                                   num_input_max=args.numInputMax,
                                   input_duration=args.inputDuration,
                                   input_frequency_range=input_frequency)
-        #input_scaling.setup_input(input_type="cortical")
+
+        print("Tip, to run in parallel on your local machine use: "
+              "mpiexec -n 4 python3 tuning/input_scaling.py simulate <yournetworkhere>")
+
 
     elif args.action == "simulate":
         print("Run simulation...")
