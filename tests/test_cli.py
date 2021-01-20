@@ -42,7 +42,6 @@ class TestCLI(unittest.TestCase):
         with self.subTest(stage="prune"):
             run_cli_command("prune tiny")
         from shutil import copyfile
-        import os
         os.listdir()
         os.listdir("..")
         copyfile("../snudda/data/config/input-v10-scaled.json", "tiny/input.json")
