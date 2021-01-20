@@ -474,7 +474,7 @@ class Snudda(object):
             print("Program run time: " + str(stop - start))
 
         # sim.plot()
-        exit(0)
+        #exit(0)
 
         # cmdStr = "nrnivmodl " + mechDir + " && mpiexec -n " + str(nWorkers) + " -map-by socket:OVERSUBSCRIBE python3 " + os.path.dirname(__file__) + " simulate.py " + networkFile + " " + inputFile + " --time " + str(args.time)
 
