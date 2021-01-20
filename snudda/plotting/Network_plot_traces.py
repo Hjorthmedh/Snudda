@@ -169,7 +169,7 @@ class NetworkPlotTraces():
 
     #plt.savefig('figures/Network-spikes-' + str(self.ID) + "-colour.pdf")
     
-    figPath = os.path.dirname(os.path.realpath(self.networkFile)) + "/figs"
+    figPath = os.path.dirname(os.path.realpath(self.networkFile)) + "/figures"
     if(not os.path.exists(figPath)):
       os.makedirs(figPath)
  
@@ -177,10 +177,10 @@ class NetworkPlotTraces():
     
     if(len(typesInPlot) > 1):
       figName = figPath + '/Network-spikes-' + str(self.ID) \
-        + "-".join(typesInPlot) + "-colour.png"
+        + "-".join(typesInPlot) + "-colour.pdf"
     else:
       figName = figPath + '/Network-spikes-' + str(self.ID) \
-        + "-" + typesInPlot.pop() + "-colour.png"
+        + "-" + typesInPlot.pop() + "-colour.pdf"
       
     plt.savefig(figName,
                 dpi=300)
@@ -199,13 +199,13 @@ class NetworkPlotTraces():
     
     traceID = [x[0] for x in enumerate(neuronTypes) if x[1].lower() == neuronType.lower()]
     
-    nTraces = min(len(traceID),nTraces)
+    nTraces = min(len(traceID), nTraces)
 
     if(nTraces <= 0):
       print("No traces of " + str(neuronType) + " to show")
       return
     
-    self.plotTraces(offset=offset,traceID=traceID[:nTraces],skipTime=skipTime,
+    self.plotTraces(offset=offset, traceID=traceID[:nTraces], skipTime=skipTime,
                     title=self.neuronName(neuronType))
                                    
     time.sleep(1)
@@ -239,7 +239,7 @@ if __name__ == "__main__":
     
     npt.plotTraceNeuronType(neuronType="dSPN",nTraces=nTracesMax,offset=plotOffset,skipTime=skipTime)
     npt.plotTraceNeuronType(neuronType="iSPN",nTraces=nTracesMax,offset=plotOffset,skipTime=skipTime)
-    npt.plotTraceNeuronType(neuronType="FSN",nTraces=nTracesMax,offset=plotOffset,skipTime=skipTime)
+    npt.plotTraceNeuronType(neuronType="FS",nTraces=nTracesMax,offset=plotOffset,skipTime=skipTime)
     npt.plotTraceNeuronType(neuronType="LTS",nTraces=nTracesMax,offset=plotOffset,skipTime=skipTime)
     npt.plotTraceNeuronType(neuronType="ChIN",nTraces=nTracesMax,offset=plotOffset,skipTime=skipTime)
     

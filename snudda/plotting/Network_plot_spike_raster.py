@@ -101,14 +101,13 @@ class NetworkPlotSpikeRaster(object):
       
     import matplotlib.pyplot as plt
 
-    cellTypes = [n["name"].split("_")[0] \
-                 for n in self.networkInfo.data["neurons"]]
+    cellTypes = [n["name"].split("_")[0].lower() for n in self.networkInfo.data["neurons"]]
 
-    colours = {"dSPN" : (77./255,151./255,1.0),
-               "iSPN" : (67./255,55./255,181./255),
-               "FSN" : (6./255,31./255,85./255),
-               "ChIN" : (252./255,102./255,0.0),
-               "LTS" : (150./255,63./255,212./255)}
+    colours = {"dSPN".lower(): (77./255,151./255,1.0),
+               "iSPN".lower(): (67./255,55./255,181./255),
+               "FS".lower(): (6./255,31./255,85./255),
+               "ChIN".lower(): (252./255,102./255,0.0),
+               "LTS".lower(): (150./255,63./255,212./255)}
 
     cols = [colours[c] for c in cellTypes]
 
@@ -172,13 +171,13 @@ class NetworkPlotSpikeRaster(object):
     
     # TODO: this is not working if run from the same folder as the networkFile
     # if so -> figPath = "/figs"
-    figPath = os.path.dirname(self.networkFile) + "/figs"
+    figPath = os.path.dirname(self.networkFile) + "/figures"
     if(not os.path.exists(figPath)):
       os.makedirs(figPath)
     
     # have updated the name of the saved file to be the same as the fileName
     fn = os.path.basename(self.fileName)
-    figName = '{}/{}{}'.format(figPath, fn.split('.')[0], '-colour.png')
+    figName = '{}/{}{}'.format(figPath, fn.split('.')[0], '-colour.pdf')
     print("Saving " + figName)
     plt.savefig(figName,dpi=600)    
 
@@ -188,7 +187,7 @@ class NetworkPlotSpikeRaster(object):
 
     print("Sort the traces")
 
-    allTypes = [x["type"] for x in self.networkInfo.data["neurons"]]
+    allTypes = [x["type"].lower() for x in self.networkInfo.data["neurons"]]
 
     if(typeOrder is None):
       typeOrder = np.unique(allTypes)
@@ -256,9 +255,12 @@ if __name__ == "__main__":
     endTime = 2.0
     
   if(fileName is not None):
+    #type_order = ["FS", "dSPN", "LTS", "iSPN", "ChIN"]
+    type_order = ["fs", "dspn", "lts", "ispn", "chin"]
+
     npsr = NetworkPlotSpikeRaster(fileName,networkFile,skipTime=0.0,
                                   endTime=endTime,
-                                  typeOrder=["FSN","dSPN","LTS","iSPN","ChIN"])
+                                  typeOrder=type_order)
 
 
   #import pdb

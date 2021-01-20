@@ -164,8 +164,8 @@ class InputScaling(object):
         self.plot_frequency_data_alt(frequency_data, show_plots=False)
 
         print(f"To plot traces:\n" 
-              f"python3 plotting/Network_plot_traces.py {self.network_dir}/output_volt.txt " 
-              f"{self.network_dir}/network-pruned-synapses.hdf5 ")
+              f"python3 plotting/Network_plot_traces.py {self.network_dir}output_volt.txt " 
+              f"{self.network_dir}network-pruned-synapses.hdf5 ")
 
     def load_data(self, skip_time=0.0):
 
