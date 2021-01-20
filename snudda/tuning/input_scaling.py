@@ -1,3 +1,4 @@
+import ast
 import os
 import glob
 import collections
@@ -44,9 +45,9 @@ class InputScaling(object):
 
         # TODO: Check baseline, close to threshold...
         # TODO: Check when at tonic activity, how sharp short burst can we get without depolarisation block
-        self.frequency_range = np.arange(0, 5, 1) # np.arange(0, 50, 1)  # to 50 Hz, or maybe 100Hz...
-        self.input_duration = 3.0  # 10.0
-        self.max_time = self.input_duration * len(self.frequency_range)
+        self.frequency_range = None
+        self.input_duration = None
+        self.max_time = None  # self.input_duration * len(self.frequency_range)
 
         if not os.path.isdir(self.network_dir):
             os.mkdir(self.network_dir)
@@ -65,11 +66,11 @@ class InputScaling(object):
 
     # Writes config files
 
-    def setup_network(self, num_replicas=10):
+    def setup_network(self, num_replicas=10, neuron_types=None):
 
         # TODO: num_replicas should be set by a parameter, it affects how many duplicates of each neuron
         # and thus how many steps we have between n_min and n_max number of inputs specified.
-        config_def = self.create_network_config(num_replicas=num_replicas)
+        config_def = self.create_network_config(num_replicas=num_replicas, neuron_types=neuron_types)
 
         print(f"Writing network config file to {self.network_config_file_name}")
         with open(self.network_config_file_name, "w") as f:
@@ -92,7 +93,13 @@ class InputScaling(object):
 
         # TODO: Skip placing neurons that will not receive any inputs or distribute any inputs
 
-    def setup_input(self, input_type=None, num_input_min=100, num_input_max=1000):
+    def setup_input(self, input_type=None, num_input_min=100, num_input_max=1000,
+                    input_duration=10,
+                    input_frequency_range=[1.0]):
+
+        self.frequency_range = np.array(input_frequency_range)
+        self.input_duration = input_duration
+        self.max_time = self.input_duration * len(self.frequency_range)
 
         synapse_density_cortical_input = "1.15*0.05/(1+np.exp(-(d-30e-6)/5e-6))"
         synapse_density_thalamic_input = "0.05*np.exp(-d/200e-6)"
@@ -141,16 +148,18 @@ class InputScaling(object):
                     spike_data_filename=self.input_spikes_file,
                     time=self.max_time)
 
+        # Info we need to run right duration of simulation
+        self.write_tuning_info()
+
     def analyse_results(self):
 
         frequency_data = self.load_data()
         self.plot_frequency_data(frequency_data, show_plots=False)
         self.plot_frequency_data_alt(frequency_data, show_plots=False)
 
-        # TODO: Add voltage trace plots for some runs...
-        # TODO: Add scaling to input generation code, nInputs ...
-
-        pass
+        print(f"To plot traces:\n" 
+              f"python3 plotting/Network_plot_traces.py {self.network_dir}/output_volt.txt " 
+              f"{self.network_dir}/network-pruned-synapses.hdf5 ")
 
     def load_data(self, skip_time=0.0):
 
@@ -272,7 +281,6 @@ class InputScaling(object):
 
     def plot_frequency_data(self, frequency_data, show_plots=True):
 
-
         for neuron_name in frequency_data:
             fig, ax = plt.subplots()
             legend_text = []
@@ -389,8 +397,9 @@ class InputScaling(object):
             if not show_plots:
                 plt.close()
 
+    # TODO: Add option to only do specific neuron types instead of all!!
     # This loops through all neuron directories in cellspec in preparation of writing a network config file
-    def gather_all_neurons(self):
+    def gather_all_neurons(self, neuron_types=None):
         all_neurons = collections.OrderedDict()
 
         neuron_type_dir = [d for d in glob.glob(os.path.join(self.cellspec_dir, '*')) if os.path.isdir(d)]
@@ -400,7 +409,13 @@ class InputScaling(object):
         for ntd in neuron_type_dir:
 
             neuron_type = os.path.basename(os.path.normpath(ntd))
-            self.neuron_types.append(neuron_type)
+
+            if neuron_types is None \
+                or (type(neuron_types) == str and neuron_type.lower() == neuron_types.lower()) \
+                    or (type(neuron_types) in [set, list] and neuron_type in neuron_types):
+                self.neuron_types.append(neuron_type)
+            else:
+                print(f"Skipping neuron type {neuron_type}")
 
             neuron_dir = [d for d in glob.glob(os.path.join(ntd, '*')) if os.path.isdir(d)]
             neuron_ctr = 0
@@ -451,7 +466,7 @@ class InputScaling(object):
 
         return len(nm.axon) > 0
 
-    def create_network_config(self, num_replicas=10, random_seed=None):
+    def create_network_config(self, num_replicas=10, random_seed=None, neuron_types=None):
 
         config_def = collections.OrderedDict()
         config_def["RandomSeed"], self.init_rng = SnuddaInit.setup_random_seeds(random_seed)
@@ -468,7 +483,7 @@ class InputScaling(object):
         config_def["Volume"] = volume_def
         config_def["Connectivity"] = dict()  # Unconnected
 
-        neuron_def = self.gather_all_neurons()
+        neuron_def = self.gather_all_neurons(neuron_types=neuron_types)
 
         fake_axon_density = ["r", "1", 10e-6]
 
@@ -661,8 +676,10 @@ class InputScaling(object):
         input_spike_data.close()
         network_data.close()
 
-
     def simulate(self):
+
+        # Get info so we can set max_time correctly
+        self.read_tuning_info()
 
         from neuron import h  # , gui
         start = timeit.default_timer()
@@ -693,6 +710,27 @@ class InputScaling(object):
         if sim.pc.id() == 0:
             print("Program run time: " + str(stop - start))
 
+    def read_tuning_info(self):
+        tuning_info_file = os.path.join(self.network_dir, "tuning-info.json")
+        with open(tuning_info_file, 'rt') as f:
+            tuning_meta_data = json.load(f)
+
+        # max_time is the important one, we want to make sure we simulate correct duration without having the user
+        # provide the parameter twice
+        self.max_time = tuning_meta_data["MaxTime"]
+        self.input_duration = tuning_meta_data["InputDuration"]
+        self.frequency_range = tuning_meta_data["FrequencyRange"]
+
+    def write_tuning_info(self):
+        tuning_meta_data = collections.OrderedDict()
+        tuning_meta_data["InputDuration"] = self.input_duration
+        tuning_meta_data["MaxTime"] = self.max_time
+        tuning_meta_data["FrequencyRange"] = self.frequency_range
+
+        tuning_info_file = os.path.join(self.network_dir, "tuning-info.json")
+        with open(tuning_info_file, "wt") as f:
+            json.dump(tuning_meta_data, f)
+
 
 if __name__ == "__main__":
     from argparse import ArgumentParser, RawTextHelpFormatter
@@ -707,6 +745,12 @@ if __name__ == "__main__":
                         default=10)
     parser.add_argument("--numInputMin", type=int, help="Minimum number of synaptic inputs of inputType", default=100)
     parser.add_argument("--numInputMax", type=int, help="Maximum number of synaptic inputs of inputType", default=1000)
+    parser.add_argument("--inputDuration", type=float, default=10.0,
+                        help="Duration of each frequency test, longer need for irregularly firing neurons")
+    parser.add_argument("--inputFrequency", type=str, default="[0,1,2,5]",
+                        help="Input frequency, float or list of floats")
+    parser.add_argument("--neuronType", default=None, type=str,
+                        help="Optional, if only we want to simulate one neuron type, eg. FSN")
 
     args = parser.parse_args()
 
@@ -715,10 +759,17 @@ if __name__ == "__main__":
     input_scaling = InputScaling(args.networkPath, args.cellspecsPath)
 
     if args.action == "setup":
-        input_scaling.setup_network(num_replicas=args.numInputSteps)
+        input_frequency = ast.literal_eval(args.inputFrequency)
+        if type(input_frequency) != list:
+            input_frequency = np.array(list(input_frequency))
+
+        input_scaling.setup_network(num_replicas=args.numInputSteps,
+                                    neuron_types=args.neuronType)
         input_scaling.setup_input(input_type=args.inputType,
                                   num_input_min=args.numInputMin,
-                                  num_input_max=args.numInputMax)
+                                  num_input_max=args.numInputMax,
+                                  input_duration=args.inputDuration,
+                                  input_frequency_range=input_frequency)
         #input_scaling.setup_input(input_type="cortical")
 
     elif args.action == "simulate":

@@ -197,7 +197,7 @@ class NetworkPlotTraces():
 
     # Find numbers of the relevant neurons
     
-    traceID = [x[0] for x in enumerate(neuronTypes) if x[1] == neuronType]
+    traceID = [x[0] for x in enumerate(neuronTypes) if x[1].lower() == neuronType.lower()]
     
     nTraces = min(len(traceID),nTraces)
 
