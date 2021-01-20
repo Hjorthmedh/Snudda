@@ -48,4 +48,5 @@ class TestCLI(unittest.TestCase):
         with self.subTest(stage="input"):
             run_cli_command("input tiny --input tiny/input.json --time 1.0")
         with self.subTest(stage="simulate"):
+            os.system("nrnivmodl ../snudda/data/cellspecs-v2/mechanism")
             run_cli_command("simulate tiny --time 0.1")
