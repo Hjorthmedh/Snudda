@@ -112,10 +112,10 @@
 	    "modFile":"tmGlut",
 	    "parameterFile":"$DATA/synapses/v2/TH_Analysis_191001.h5-parameters-FS.json",
 	    "nInputs" : {
-		"FSN_0" : 200,
-		"FSN_1" : 400,
-		"FSN_2" : 700,
-		"FSN_3" : 400
+		"FSN_0" : 600,
+		"FSN_1" : 1000,
+		"FSN_2" : 1300,
+		"FSN_3" : 800
 	    }
 	}
 

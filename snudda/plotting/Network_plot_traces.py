@@ -68,7 +68,7 @@ class NetworkPlotTraces():
   
   
   def plotTraces(self,traceID=None,offset=150e-3,colours=None,skipTime=None,
-                 title=None):
+                 title=None, fig_name=None):
 
     if(skipTime is not None):
       print("!!! Excluding first " + str(skipTime) + "s from the plot")
@@ -174,18 +174,37 @@ class NetworkPlotTraces():
       os.makedirs(figPath)
  
     
-    
-    if(len(typesInPlot) > 1):
-      figName = figPath + '/Network-spikes-' + str(self.ID) \
-        + "-".join(typesInPlot) + "-colour.pdf"
-    else:
-      figName = figPath + '/Network-spikes-' + str(self.ID) \
-        + "-" + typesInPlot.pop() + "-colour.pdf"
+    if fig_name is None:
+      if(len(typesInPlot) > 1):
+        fig_name = figPath + '/Network-spikes-' + str(self.ID) \
+          + "-".join(typesInPlot) + "-colour.pdf"
+      else:
+        fig_name = figPath + '/Network-spikes-' + str(self.ID) \
+          + "-" + typesInPlot.pop() + "-colour.pdf"
       
-    plt.savefig(figName,
+    plt.savefig(fig_name,
                 dpi=300)
-    print("Saving to figure " + str(figName))
+    print("Saving to figure " + str(fig_name))
 
+  ############################################################################
+
+  def plotTraceNeuronName(self, neuron_name, num_traces=1, skip_time=0, plot_offset=0, fig_name=None):
+
+    assert self.networkInfo is not None, "You need to specify networkInfo file"
+
+    neuron_names = [x["name"] for x in self.networkInfo.data["neurons"]]
+    traceID = [x[0] for x in enumerate(neuron_names) if x[1].lower() == neuron_name.lower()]
+
+    num_traces = min(len(traceID), num_traces)
+
+    if num_traces <= 0:
+      print("No traces of neuron(s) " + str(neuron_name) + " to show")
+      return
+
+    self.plotTraces(offset=plot_offset, traceID=traceID[:num_traces], skipTime=skip_time,
+                    title=neuron_names[traceID[0]], fig_name=fig_name)
+
+    time.sleep(1)
 
   ############################################################################
 
@@ -243,8 +262,12 @@ if __name__ == "__main__":
     npt.plotTraceNeuronType(neuronType="LTS",nTraces=nTracesMax,offset=plotOffset,skipTime=skipTime)
     npt.plotTraceNeuronType(neuronType="ChIN",nTraces=nTracesMax,offset=plotOffset,skipTime=skipTime)
     
-    
-    
+    if True:
+      npt.plotTraceNeuronName(neuron_name="FS_0", plot_offset=plotOffset, fig_name="Traced-FS_0")
+      npt.plotTraceNeuronName(neuron_name="FS_1", plot_offset=plotOffset, fig_name="Traced-FS_1")
+      npt.plotTraceNeuronName(neuron_name="FS_2", plot_offset=plotOffset, fig_name="Traced-FS_2")
+      npt.plotTraceNeuronName(neuron_name="FS_3", plot_offset=plotOffset, fig_name="Traced-FS_3")
+
   else:
     print("Usage: " + sys.argv[0] + " network-voltage-XXX.csv")
     
