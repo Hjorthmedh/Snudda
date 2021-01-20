@@ -176,19 +176,19 @@ class NetworkPlotTraces():
     
     if fig_name is None:
       if(len(typesInPlot) > 1):
-        fig_name = figPath + '/Network-spikes-' + str(self.ID) \
+        fig_name = 'Network-spikes-' + str(self.ID) \
           + "-".join(typesInPlot) + "-colour.pdf"
       else:
-        fig_name = figPath + '/Network-spikes-' + str(self.ID) \
+        fig_name = 'Network-spikes-' + str(self.ID) \
           + "-" + typesInPlot.pop() + "-colour.pdf"
       
-    plt.savefig(fig_name,
+    plt.savefig(os.path.join(figPath, fig_name),
                 dpi=300)
     print("Saving to figure " + str(fig_name))
 
   ############################################################################
 
-  def plotTraceNeuronName(self, neuron_name, num_traces=1, skip_time=0, plot_offset=0, fig_name=None):
+  def plotTraceNeuronName(self, neuron_name, num_traces=1, skip_time=0, plot_offset=0, fig_name=None, num_offset=0):
 
     assert self.networkInfo is not None, "You need to specify networkInfo file"
 
@@ -201,7 +201,7 @@ class NetworkPlotTraces():
       print("No traces of neuron(s) " + str(neuron_name) + " to show")
       return
 
-    self.plotTraces(offset=plot_offset, traceID=traceID[:num_traces], skipTime=skip_time,
+    self.plotTraces(offset=plot_offset, traceID=traceID[num_offset:num_offset+num_traces], skipTime=skip_time,
                     title=neuron_names[traceID[0]], fig_name=fig_name)
 
     time.sleep(1)
@@ -255,21 +255,24 @@ if __name__ == "__main__":
     plotOffset = 0 # -0.2
     skipTime = 0 #0.5
     nTracesMax = 10
-    
-    npt.plotTraceNeuronType(neuronType="dSPN",nTraces=nTracesMax,offset=plotOffset,skipTime=skipTime)
-    npt.plotTraceNeuronType(neuronType="iSPN",nTraces=nTracesMax,offset=plotOffset,skipTime=skipTime)
-    npt.plotTraceNeuronType(neuronType="FS",nTraces=nTracesMax,offset=plotOffset,skipTime=skipTime)
-    npt.plotTraceNeuronType(neuronType="LTS",nTraces=nTracesMax,offset=plotOffset,skipTime=skipTime)
-    npt.plotTraceNeuronType(neuronType="ChIN",nTraces=nTracesMax,offset=plotOffset,skipTime=skipTime)
-    
+
     if True:
-      npt.plotTraceNeuronName(neuron_name="FS_0", plot_offset=plotOffset, fig_name="Traced-FS_0")
-      npt.plotTraceNeuronName(neuron_name="FS_1", plot_offset=plotOffset, fig_name="Traced-FS_1")
-      npt.plotTraceNeuronName(neuron_name="FS_2", plot_offset=plotOffset, fig_name="Traced-FS_2")
-      npt.plotTraceNeuronName(neuron_name="FS_3", plot_offset=plotOffset, fig_name="Traced-FS_3")
+      npt.plotTraceNeuronType(neuronType="dSPN",nTraces=nTracesMax,offset=plotOffset,skipTime=skipTime)
+      npt.plotTraceNeuronType(neuronType="iSPN",nTraces=nTracesMax,offset=plotOffset,skipTime=skipTime)
+      npt.plotTraceNeuronType(neuronType="FS",nTraces=nTracesMax,offset=plotOffset,skipTime=skipTime)
+      npt.plotTraceNeuronType(neuronType="LTS",nTraces=nTracesMax,offset=plotOffset,skipTime=skipTime)
+      npt.plotTraceNeuronType(neuronType="ChIN",nTraces=nTracesMax,offset=plotOffset,skipTime=skipTime)
+    
+    if False:
+      npt.plotTraceNeuronName(neuron_name="FS_0", plot_offset=plotOffset, fig_name="Traced-FS_0.pdf", num_offset=10)
+      npt.plotTraceNeuronName(neuron_name="FS_1", plot_offset=plotOffset, fig_name="Traced-FS_1.pdf")
+      npt.plotTraceNeuronName(neuron_name="FS_2", plot_offset=plotOffset, fig_name="Traced-FS_2.pdf")
+      npt.plotTraceNeuronName(neuron_name="FS_3", plot_offset=plotOffset, fig_name="Traced-FS_3.pdf")
 
   else:
     print("Usage: " + sys.argv[0] + " network-voltage-XXX.csv")
-    
+
+#  TODO: Need to clean up the code and make a new plot function
+  
   #import pdb
   #pdb.set_trace()
