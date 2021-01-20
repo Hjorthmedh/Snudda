@@ -32,10 +32,10 @@ class NumpyEncoder(json.JSONEncoder):
 
 class InputScaling(object):
 
-    def __init__(self, network_dir, cellspec_dir):
+    def __init__(self, network_dir):
 
         self.network_dir = network_dir
-        self.cellspec_dir = cellspec_dir
+        self.cellspec_path = None
 
         self.neuron_types = None
         self.neuron_id = None
@@ -52,8 +52,6 @@ class InputScaling(object):
         if not os.path.isdir(self.network_dir):
             os.mkdir(self.network_dir)
 
-        assert os.path.isdir(self.cellspec_dir), f"Cellspec directory {self.cellspec_dir} does not exist."
-
         self.network_config_file_name = os.path.join(self.network_dir, "network-config.json")
         self.network_file = os.path.join(self.network_dir, "network-pruned-synapses.hdf5")
         self.input_config_file = os.path.join(self.network_dir, "input-config.json")
@@ -66,11 +64,13 @@ class InputScaling(object):
 
     # Writes config files
 
-    def setup_network(self, num_replicas=10, neuron_types=None):
+    def setup_network(self, cellspec_path, num_replicas=10, neuron_types=None):
 
         # TODO: num_replicas should be set by a parameter, it affects how many duplicates of each neuron
         # and thus how many steps we have between n_min and n_max number of inputs specified.
-        config_def = self.create_network_config(num_replicas=num_replicas, neuron_types=neuron_types)
+        config_def = self.create_network_config(cellspec_path=cellspec_path,
+                                                num_replicas=num_replicas,
+                                                neuron_types=neuron_types)
 
         print(f"Writing network config file to {self.network_config_file_name}")
         with open(self.network_config_file_name, "w") as f:
@@ -78,6 +78,9 @@ class InputScaling(object):
 
         CreateCubeMesh("data/mesh/InputTestMesh.obj", [0, 0, 0], 1e-3,
                        description="Mesh file used for Input Scaling")
+
+        # Write the cellspec path to file
+        self.write_tuning_info()
 
         from snudda.place import SnuddaPlace
         from snudda.detect import SnuddaDetect
@@ -95,7 +98,10 @@ class InputScaling(object):
 
     def setup_input(self, input_type=None, num_input_min=100, num_input_max=1000,
                     input_duration=10,
-                    input_frequency_range=[1.0]):
+                    input_frequency_range=None):
+
+        if not input_frequency_range:
+            input_frequency_range = [1.0]
 
         self.frequency_range = np.array(input_frequency_range)
         self.input_duration = input_duration
@@ -402,7 +408,9 @@ class InputScaling(object):
     def gather_all_neurons(self, neuron_types=None):
         all_neurons = collections.OrderedDict()
 
-        neuron_type_dir = [d for d in glob.glob(os.path.join(self.cellspec_dir, '*')) if os.path.isdir(d)]
+        assert os.path.isdir(self.cellspec_path), f"Cellspec directory {self.cellspec_path} does not exist."
+
+        neuron_type_dir = [d for d in glob.glob(os.path.join(self.cellspec_path, '*')) if os.path.isdir(d)]
 
         self.neuron_types = []
 
@@ -474,7 +482,9 @@ class InputScaling(object):
 
         return len(nm.axon) > 0
 
-    def create_network_config(self, num_replicas=10, random_seed=None, neuron_types=None):
+    def create_network_config(self, cellspec_path, num_replicas=10, random_seed=None, neuron_types=None):
+
+        self.cellspec_path = cellspec_path
 
         config_def = collections.OrderedDict()
         config_def["RandomSeed"], self.init_rng = SnuddaInit.setup_random_seeds(random_seed)
@@ -720,20 +730,30 @@ class InputScaling(object):
 
     def read_tuning_info(self):
         tuning_info_file = os.path.join(self.network_dir, "tuning-info.json")
-        with open(tuning_info_file, 'rt') as f:
-            tuning_meta_data = json.load(f)
 
-        # max_time is the important one, we want to make sure we simulate correct duration without having the user
-        # provide the parameter twice
-        self.max_time = tuning_meta_data["MaxTime"]
-        self.input_duration = tuning_meta_data["InputDuration"]
-        self.frequency_range = tuning_meta_data["FrequencyRange"]
+        if not os.path.exists(tuning_info_file):
+            print("No tuning info file exists.")
+            return
+
+        try:
+            with open(tuning_info_file, 'rt') as f:
+                tuning_meta_data = json.load(f)
+
+            # max_time is the important one, we want to make sure we simulate correct duration without having the user
+            # provide the parameter twice
+            self.max_time = tuning_meta_data["MaxTime"]
+            self.input_duration = tuning_meta_data["InputDuration"]
+            self.frequency_range = tuning_meta_data["FrequencyRange"]
+            self.cellspec_path = tuning_meta_data["CellSpecDirectory"]
+        except:
+            print(f"Failed to read {tuning_info_file}")
 
     def write_tuning_info(self):
         tuning_meta_data = collections.OrderedDict()
         tuning_meta_data["InputDuration"] = self.input_duration
         tuning_meta_data["MaxTime"] = self.max_time
         tuning_meta_data["FrequencyRange"] = self.frequency_range
+        tuning_meta_data["CellSpecDirectory"] = self.cellspec_path
 
         tuning_info_file = os.path.join(self.network_dir, "tuning-info.json")
         with open(tuning_info_file, "wt") as f:
@@ -746,7 +766,7 @@ if __name__ == "__main__":
     parser = ArgumentParser("Input Scaling", formatter_class=RawTextHelpFormatter)
     parser.add_argument("action", choices=["setup", "simulate", "analyse"], help="Action to run.")
     parser.add_argument("networkPath", help="Network path")
-    parser.add_argument("cellspecsPath", help="Cellspecs path")
+    parser.add_argument("--cellspecs", help="Cellspecs path")
     parser.add_argument("--inputType", help="Type of external input",
                         choices=["thalamic", "cortical"], default="thalamic")
     parser.add_argument("--numInputSteps", type=int, help="Number of steps for number of inputs to neurons",
@@ -764,14 +784,15 @@ if __name__ == "__main__":
 
     # TODO: Let the user choose input type, duration for each "run", frequency range, number of input range
 
-    input_scaling = InputScaling(args.networkPath, args.cellspecsPath)
+    input_scaling = InputScaling(args.networkPath)
 
     if args.action == "setup":
         input_frequency = ast.literal_eval(args.inputFrequency)
         if type(input_frequency) != list:
             input_frequency = np.array(list(input_frequency))
 
-        input_scaling.setup_network(num_replicas=args.numInputSteps,
+        input_scaling.setup_network(cellspec_path=args.cellspecs,
+                                    num_replicas=args.numInputSteps,
                                     neuron_types=args.neuronType)
         input_scaling.setup_input(input_type=args.inputType,
                                   num_input_min=args.numInputMin,
@@ -799,4 +820,6 @@ if __name__ == "__main__":
 
 
     # python3 tuning/input_scaling.py setup networks/input_scaling_v1/ data/cellspecs-v2/
-    # mpiexec -n 4 python3 tuning/input_scaling.py simulate networks/input_scaling_v1/ data/cellspecs-v2/ < input.txt &> output-tuning.txt &
+    # mpiexec -n 4 python3 tuning/input_scaling.py simulate networks/input_scaling_v1/ < input.txt &> output-tuning.txt &
+
+    #
