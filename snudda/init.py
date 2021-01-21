@@ -197,7 +197,8 @@ class SnuddaInit(object):
 
     ############################################################################
 
-    def define_volume(self, mesh_file=None, d_min=15e-6, mesh_bin_width=1e-4):
+    @staticmethod
+    def define_volume(mesh_file=None, d_min=15e-6, mesh_bin_width=1e-4):
 
         vol = dict([])
         vol["type"] = "mesh"
@@ -225,10 +226,13 @@ class SnuddaInit(object):
                           soft_max_other=None,
                           mu2_other=None,
                           a3_other=None,
-                          conductance=[1.0e-9, 0],
+                          conductance=None,
                           mod_file=None,
                           parameter_file=None,
                           channel_param_dictionary=None):
+
+        if conductance is None:
+            conductance = [1.0e-9, 0]
 
         # if(connectionType == "GapJunction"):
         #  assert f1 is None and softMax is None and mu2 is None and a3 is None\
@@ -296,7 +300,7 @@ class SnuddaInit(object):
 
             pruning_info_other = dict([])
             pruning_info_other["f1"] = f1_other
-            pruning_info_other["softMax"] = soft_max
+            pruning_info_other["softMax"] = soft_max_other
             pruning_info_other["mu2"] = mu2_other
             pruning_info_other["a3"] = a3_other
             pruning_info_other["distPruning"] = dist_pruning_other
@@ -333,14 +337,14 @@ class SnuddaInit(object):
         if axon_density is not None:
             if axon_density[0] == "r":
                 # Verify axon density function
-                r = np.linspace(0, axon_density[2], 10)
+                r = np.linspace(0, axon_density[2], 10)  # r is used in eval
                 try:
                     eval(axon_density[1])
                 except:
                     print("!!! Axon density failed test: " + str(axon_density))
                     print("Inparameter: r = 1-D array of radius in meter")
             elif axon_density[0] == "xyz":
-                x = np.linspace(axon_density[2][0], axon_density[2][1], 10)
+                x = np.linspace(axon_density[2][0], axon_density[2][1], 10)  # x,y,z used in eval below
                 y = np.linspace(axon_density[2][2], axon_density[2][3], 10)
                 z = np.linspace(axon_density[2][4], axon_density[2][5], 10)
                 try:
@@ -504,7 +508,7 @@ class SnuddaInit(object):
                         num_LTS=None,
                         volume_type=None,
                         side_len=None,
-                        slice_depth=None,
+                        # slice_depth=None,
                         cell_spec_dir=None,
                         neuron_density=80500):
 
@@ -659,7 +663,7 @@ class SnuddaInit(object):
 
         # See plotLTSdensity.py
         LTS_axon_density = ("xyz",
-                          "12*3000*1e12*( 0.25*np.exp(-(((x-200e-6)/100e-6)**2 + ((y-0)/50e-6)**2 + ((z-0)/30e-6)**2)) + 1*np.exp(-(((x-300e-6)/300e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/10e-6)**2)) + 1*np.exp(-(((x-700e-6)/100e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/15e-6)**2)) )",
+                            "12*3000*1e12*( 0.25*np.exp(-(((x-200e-6)/100e-6)**2 + ((y-0)/50e-6)**2 + ((z-0)/30e-6)**2)) + 1*np.exp(-(((x-300e-6)/300e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/10e-6)**2)) + 1*np.exp(-(((x-700e-6)/100e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/15e-6)**2)) )",
                             [-200e-6, 900e-6, -100e-6, 100e-6, -30e-6, 30e-6])
 
         # !!! Remember to update bounding box
