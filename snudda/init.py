@@ -476,6 +476,11 @@ class SnuddaInit(object):
 
     def write_json(self, filename):
 
+        # Create directory if it does not already exist
+        dir_name = os.path.dirname(filename)
+        if not os.path.exists(dir_name):
+            os.makedirs(dir_name)
+
         print("Writing " + filename)
 
         import json
@@ -673,7 +678,7 @@ class SnuddaInit(object):
                          axon_density=LTS_axon_density,
                          volume_id="Striatum")
 
-        ## Define FS targets
+        # Define FS targets
 
         # Szydlowski SN, Pollak Dorocic I, Planert H, Carlen M, Meletis K,
         # Silberberg G (2013) Target selectivity of feedforward inhibition
