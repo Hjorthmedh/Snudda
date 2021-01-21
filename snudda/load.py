@@ -12,9 +12,6 @@ class SnuddaLoad(object):
 
     def __init__(self, network_file, load_synapses=True):
 
-        if network_file == "last":
-            network_file = self.find_latest_file()
-
         # This variable will only be set if the synapses are not kept in
         # memory so we can access them later, otherwise the hdf5 file is
         # automatically closed
@@ -585,20 +582,6 @@ class SnuddaLoad(object):
             synapse_coords = synapses[:, 2:5] * f["meta/voxelSize"][()] + f["meta/simulationOrigo"][()]
 
             return synapses, synapse_coords
-
-    ############################################################################
-
-    @staticmethod
-    def find_latest_file():
-
-        files = glob('save/network-connect-voxel-pruned-synapse-file-*.hdf5')
-
-        mod_time = [os.path.getmtime(f) for f in files]
-        idx = np.argsort(mod_time)
-
-        print("Using the newest file: " + files[idx[-1]])
-
-        return files[idx[-1]]
 
     ############################################################################
 
