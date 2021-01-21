@@ -42,8 +42,13 @@ class TestCLI(unittest.TestCase):
         with self.subTest(stage="prune"):
             run_cli_command("prune tiny")
         from shutil import copyfile
-        copyfile("../snudda/data/config/input-tinytest-v9-freq-vectors.json", "tiny/input.json")
+        print(f"listdir: {os.listdir()}")
+        print(f"parent listdir: {os.listdir('..')}")
+        copyfile("../snudda/data/config/input-v10-scaled.json", "tiny/input.json")
         with self.subTest(stage="input"):
             run_cli_command("input tiny --input tiny/input.json --time 1.0")
         with self.subTest(stage="simulate"):
+            print("Running nrnivmodl:")
+            os.system("nrnivmodl ../snudda/data/cellspecs-v2/mechanisms")
+            print("Time to run simulation...")
             run_cli_command("simulate tiny --time 0.1")

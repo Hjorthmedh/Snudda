@@ -427,7 +427,18 @@ class SnuddaInput(object):
                         cond = input_inf["conductance"]
 
                         if "nInputs" in input_inf:
-                            n_inp = input_inf["nInputs"]
+
+                            # If a dictionary, then extract the info for the relevant neuron
+                            if type(input_inf["nInputs"]) == dict:
+                                if neuron_name in input_inf["nInputs"]:
+                                    n_inp = input_inf["nInputs"][neuron_name]
+                                elif neuron_type in input_inf["nInputs"]:
+                                    n_inp = input_inf["nInputs"][neuron_type]
+                                else:
+                                    n_inp = None
+                            else:
+                                n_inp = input_inf["nInputs"]
+
                         else:
                             n_inp = None
 

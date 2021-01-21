@@ -228,10 +228,10 @@ class SnuddaDetect(object):
             if self.work_history_file is None:
                 work_dir = os.path.dirname(self.save_file)
                 work_dir = work_dir.replace("/voxels", "/")
-                log_dir = work_dir + "/log/"
+                log_dir = os.path.join(work_dir, "log")
                 # self.workHistoryFile = self.saveFile.replace(".hdf5","-worklog.hdf5")
                 # self.workHistoryFile = self.workHistoryFile.replace("/voxels/","/")
-                self.work_history_file = log_dir + "network-detect-worklog.hdf5"
+                self.work_history_file = os.path.join(log_dir, "network-detect-worklog.hdf5")
 
                 # workHistoryFile = re.sub("/voxels-\d+/","/",workHistoryFile)
 
@@ -431,6 +431,11 @@ class SnuddaDetect(object):
         else:
             # Update internal state
             self.work_history_file = work_history_file
+
+        dir_name = os.path.dirname(self.work_history_file)
+        if not os.path.exists(dir_name):
+            self.write_log(f"Creating directory {dir_name}")
+            os.mkdir(dir_name)
 
         self.write_log("Work history file: " + str(self.work_history_file))
 
@@ -1477,6 +1482,12 @@ class SnuddaDetect(object):
         if self.logfile is not None:
             self.write_log("Already have a log file setup, ignoring")
             return
+
+        # If directory does not exist, create
+        dir_name = os.path.dirname(logfile_name)
+        if not os.path.exists(dir_name):
+            self.write_log(f"Creating directory {dir_name}")
+            os.mkdir(dir_name)
 
         self.logfile = open(logfile_name, 'wt')
 
@@ -3116,3 +3127,4 @@ def next_run_id():
 if __name__ == "__main__":
     print("Please do not call this file directly, use snudda.py")
     exit(-1)
+

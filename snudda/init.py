@@ -381,6 +381,8 @@ class SnuddaInit(object):
                 #      + " axon points to place")
 
         print("Adding neurons: " + str(name) + " from dir " + str(neuron_dir))
+        # TODO: We should force users to use same name as the directory name
+        # ie, fs/FSN_0 directory should be named FSN_0
 
         # Find which neurons are available in neuronDir
         dir_list = glob.glob(neuron_dir + "/*")
