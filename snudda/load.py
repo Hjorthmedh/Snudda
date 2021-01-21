@@ -29,7 +29,7 @@ class SnuddaLoad(object):
             try:
                 self.hdf5File.close()
             except:
-                print("Unable to close HDF5, alread closed?")
+                print("Unable to close HDF5, already closed?")
 
     ############################################################################
 
@@ -81,8 +81,8 @@ class SnuddaLoad(object):
                     load_synapses = False
 
                 # Deprecated ??
-                if "network/GJIDoffset" in f:
-                    data["GJIDoffset"] = f["network/GJIDoffset"][()]
+                # if "network/GJIDoffset" in f:
+                #     data["GJIDoffset"] = f["network/GJIDoffset"][()]
 
                 if "network/hyperVoxelIDs" in f:
                     data["hyperVoxelIDs"] = f["network/hyperVoxelIDs"][()]
@@ -211,9 +211,6 @@ class SnuddaLoad(object):
 
     def extract_neurons(self, hdf5_file):
 
-        if "parameterID" not in hdf5_file["network/neurons"]:
-            return self.extract_neurons_OLD(hdf5_file)
-
         neurons = []
 
         for name, neuron_id, hoc, pos, rot, dend_radius, axon_radius, virtual, vID, \
@@ -238,15 +235,6 @@ class SnuddaLoad(object):
                        hdf5_file["network/neurons/modulationID"][:]):
 
             n = dict([])
-
-            if type(name) == np.ndarray:
-                assert False, "Can we remove this code segment now?"
-                # Old version of savefiles give different output
-                name = name[0]
-                neuron_id = neuron_id[0]
-                hoc = hoc[0]
-                dend_radius = dend_radius[0]
-                axon_radius = axon_radius[0]
 
             n["name"] = SnuddaLoad.to_str(name)
 
@@ -285,103 +273,6 @@ class SnuddaLoad(object):
 
             n["parameterID"] = parameter_id
             n["modulationID"] = modulation_id
-
-            neurons.append(n)
-
-        return neurons
-
-    ############################################################################
-
-    # OLD version does not include parameterID and modulationID
-
-    def extract_neurons_OLD(self, HDF5file):
-
-        assert False, "Can we remove extract_neurons_OLD?? -- if you see this, the answer is no."
-
-        neurons = []
-
-        for name, neuron_id, hoc, pos, rot, dend_radius, axon_radius, virtual, vID, \
-            axon_density_type, axon_density, axon_density_radius, \
-            axon_density_bounds_xyz, \
-            morph \
-                in zip(HDF5file["network/neurons/name"][:],
-                       HDF5file["network/neurons/neuronID"][:],
-                       HDF5file["network/neurons/hoc"][:],
-                       HDF5file["network/neurons/position"][()],
-                       HDF5file["network/neurons/rotation"][()],
-                       HDF5file["network/neurons/maxDendRadius"][:],
-                       HDF5file["network/neurons/maxAxonRadius"][:],
-                       HDF5file["network/neurons/virtualNeuron"][:],
-                       HDF5file["network/neurons/volumeID"][:],
-                       HDF5file["network/neurons/axonDensityType"][:],
-                       HDF5file["network/neurons/axonDensity"][:],
-                       HDF5file["network/neurons/axonDensityRadius"][:],
-                       HDF5file["network/neurons/axonDensityBoundsXYZ"][:],
-                       HDF5file["network/neurons/morphology"][:]):
-
-            n = dict([])
-
-            if type(name) == np.ndarray:
-                # Old version of savefiles give different output
-                name = name[0]
-                neuron_id = neuron_id[0]
-                hoc = hoc[0]
-                dend_radius = dend_radius[0]
-                axon_radius = axon_radius[0]
-
-            if type(name) in [bytes, np.bytes_]:
-                n["name"] = name.decode()
-            else:
-                n["name"] = name
-
-            if morph is not None:
-                if type(morph) in [bytes, np.bytes_]:
-                    n["morphology"] = morph.decode()
-                else:
-                    n["morphology"] = morph
-
-            # Naming convention is TYPE_X, where XX is a number starting from 0
-            n["type"] = n["name"].split("_")[0]
-
-            n["neuronID"] = neuron_id
-
-            if type(vID) in [bytes, np.bytes_]:
-                n["volumeID"] = vID.decode()
-            else:
-                n["volumeID"] = vID
-
-            if type(hoc) in [bytes, np.bytes_]:
-                n["hoc"] = hoc.decode()
-            else:
-                n["hoc"] = hoc
-
-            n["position"] = pos
-            n["rotation"] = rot.reshape(3, 3)
-            n["maxDendRadius"] = dend_radius
-            n["maxAxonRadius"] = axon_radius
-            n["virtualNeuron"] = virtual
-
-            if len(axon_density_type) == 0:
-                n["axonDensityType"] = None
-            elif type(axon_density_type) in [bytes, np.bytes_]:
-                n["axonDensityType"] = axon_density_type.decode()
-            else:
-                n["axonDensityType"] = axon_density_type
-
-            if len(axon_density) > 0:
-                if type(axon_density) in [bytes, np.bytes_]:
-                    n["axonDensity"] = axon_density.decode()
-                else:
-                    n["axonDensity"] = axon_density
-            else:
-                n["axonDensity"] = None
-
-            if n["axonDensityType"] == "xyz":
-                n["axonDensityBoundsXYZ"] = axon_density_bounds_xyz
-            else:
-                n["axonDensityBoundsXYZ"] = None
-
-            n["axonDensityRadius"] = axon_density_radius
 
             neurons.append(n)
 
