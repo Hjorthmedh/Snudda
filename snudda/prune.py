@@ -69,8 +69,7 @@ class SnuddaPrune(object):
 
         start_time = timeit.default_timer()
         self.work_history_file = work_history_file
-        self.base_path = os.path.dirname(self.work_history_file) + "/"
-        self.base_path = self.base_path.replace("/log/", "/")  # TODO: Fix so handles both / and \
+        self.base_path = os.path.dirname(self.work_history_file).replace(f"{os.path.sep}log", os.path.sep)
 
         self.logfile = logfile
         self.logfile_name = logfile_name
@@ -307,7 +306,7 @@ class SnuddaPrune(object):
             "Need to call openWorkHistoryFile before setScratchPath"
 
         if scratch_path is None:
-            self.scratch_path = self.base_path + "/temp/"
+            self.scratch_path = os.path.join(self.base_path, "temp")
 
             if not os.path.exists(self.scratch_path):
                 os.makedirs(self.scratch_path)
@@ -323,7 +322,7 @@ class SnuddaPrune(object):
     def write_to_random_file(text):
 
         import uuid
-        tmp = open(os.path.join("save",f"tmp-log-file-{uuid.uuid4()}"), 'w')
+        tmp = open(os.path.join("save", f"tmp-log-file-{uuid.uuid4()}"), 'w')
         tmp.write(text)
         tmp.close()
         print(text)
@@ -751,7 +750,7 @@ class SnuddaPrune(object):
     def find_latest_file(self):
 
         # files = glob('save/network_connect_voxel_log-*-worklog.hdf5')
-        files = glob('save/network-connect-synapse-voxel-file-*-worklog.hdf5')
+        files = glob(os.path.join('save","network-connect-synapse-voxel-file-*-worklog.hdf5'))
 
         mod_time = [os.path.getmtime(f) for f in files]
         idx = np.argsort(mod_time)
@@ -1559,7 +1558,7 @@ class SnuddaPrune(object):
         num_synapses = np.zeros((max_hyper_id,), dtype=np.int)
 
         # Open all files for reading
-        h_file_name_mask = self.base_path + "/voxels/network-putative-synapses-%s.hdf5"
+        h_file_name_mask = os.path.join(self.base_path, "voxels", "network-putative-synapses-%s.hdf5")
 
         max_axon_voxel_ctr = 0
         max_dend_voxel_ctr = 0
