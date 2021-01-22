@@ -438,13 +438,13 @@ class SnuddaInit(object):
             cell_data = dict([])
 
             if not os.path.isfile(par_file) and model_type is not "virtual":
-                self.write_log(f"Parameter file not found: {par_file}")
+                print(f"Parameter file not found: {par_file}")
 
             if not os.path.isfile(mech_file) and model_type is not "virtual":
-                self.write_log(f"Mechanism file not found: {mech_file}")
+                print(f"Mechanism file not found: {mech_file}")
 
             if hoc_file is not None and not os.path.isfile(hoc_file):
-                self.write_log(f"Hoc file not found: {hoc_file}")
+                print(f"Hoc file not found: {hoc_file}")
 
             cell_data["morphology"] = swc_file
             cell_data["parameters"] = par_file
@@ -475,7 +475,7 @@ class SnuddaInit(object):
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
 
-        self.write_log(f"Writing {filename}")
+        print(f"Writing {filename}")
 
         import json
         with open(filename, 'w') as f:
