@@ -222,7 +222,7 @@ class NeuronModel(ephys.models.CellModel):
             for ic, c in enumerate(self.icell.axon):
                 self.section_lookup[-ic - 1] = c
 
-            sec = [self.section_lookup[x] for x in section_id]
+        sec = [self.section_lookup[x] for x in section_id]
 
         return sec
 
