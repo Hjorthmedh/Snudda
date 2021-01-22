@@ -222,7 +222,7 @@ class SnuddaPlace(object):
                 else:
                     mesh_bin_width = vol_def["meshBinWidth"]
 
-                self.write_log("Using mesh_bin_width " + str(mesh_bin_width))
+                self.write_log(f"Using mesh_bin_width {mesh_bin_width}")
 
                 if "-cube-mesh-" in vol_def["meshFile"]:
                     self.write_log("Cube mesh, switching to serial processing.")
@@ -351,7 +351,7 @@ class SnuddaPlace(object):
 
     def write_data_HDF5(self, file_name):
 
-        self.write_log("Writing data to HDF5 file: " + file_name)
+        self.write_log(f"Writing data to HDF5 file: {file_name}")
 
         pos_file = h5py.File(file_name, "w", libver=self.h5libver)
 
@@ -499,7 +499,7 @@ class SnuddaPlace(object):
                     tstr = traceback.format_exc()
                     self.write_log(tstr)
 
-                    self.write_log("Incorrect density string: " + str(n.axon_density))
+                    self.write_log(f"Incorrect density string: {n.axon_density}")
                     exit(-1)
 
         neuron_group.create_dataset("axonDensityBoundsXYZ", data=axon_density_bounds_xyz)
