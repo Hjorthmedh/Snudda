@@ -1064,10 +1064,6 @@ class SnuddaDetect(object):
 
                     self.axon_cum_density_cache[na_neuron["type"]] = (na_cum_density, na_points)
 
-                # print("Check naPoints")
-                # import pdb
-                # pdb.set_trace()
-
                 # 4. Randomize the points
                 (na_voxel_coords, na_axon_dist) = \
                     self.no_axon_points_sphere(na_neuron["position"],
@@ -1155,10 +1151,6 @@ class SnuddaDetect(object):
 
         # Check which points are inside this hyper voxel
         vox_idx = np.floor((xyz - self.hyper_voxel_origo) / self.voxel_size).astype(int)
-
-        # print("Verify that the points are on a sphere, and that inside check is ok")
-        # import pdb
-        # pdb.set_trace()
 
         inside_idx = np.where(np.sum(np.bitwise_and(0 <= vox_idx, vox_idx < self.hyper_voxel_size), axis=1) == 3)[0]
 
@@ -2977,9 +2969,6 @@ class SnuddaDetect(object):
         plt.ion()
         plt.show()
 
-        # import pdb
-        # pdb.set_trace()
-
         plt.pause(0.001)
         fig_name = "figures/Hypervoxel-" + str(self.slurm_id) \
                    + "-" + str(self.hyper_voxel_id) + "-someNeurons.png"
@@ -3050,9 +3039,6 @@ class SnuddaDetect(object):
                                   voxel_sec_x=voxel_sec_x,
                                   soma_coord=np.array([[10, 10, 10, 8]]),
                                   neuron_id=14)
-
-        # import pdb
-        # pdb.set_trace()
 
         # We also need to check axon filling
 
