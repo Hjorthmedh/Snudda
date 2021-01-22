@@ -95,15 +95,7 @@ class NeuronModel(ephys.models.CellModel):
 
         # print("Using parameter config: " + parameter_config)
 
-        try:
-            param_configs = json.load(open(parameter_config))
-        except:
-            import traceback
-            tstr = traceback.format_exc()
-            print(tstr)
-            import pdb
-            pdb.set_trace()
-
+        param_configs = json.load(open(parameter_config))
         parameters = []
 
         if type(param_configs[0]) == list:
@@ -230,105 +222,9 @@ class NeuronModel(ephys.models.CellModel):
             for ic, c in enumerate(self.icell.axon):
                 self.section_lookup[-ic - 1] = c
 
-        try:
             sec = [self.section_lookup[x] for x in section_id]
-        except:
-            print("Missing section ID?")
-            print("sectionID = " + str(section_id))
-            print("sectionLookup = " + str(self.section_lookup))
-            import traceback
-            tstr = traceback.format_exc()
-            print(tstr)
-            import pdb
-            pdb.set_trace()
 
         return sec
-
-    ############################################################################
-
-    def find_dend_compartment(self, synapse_xyz, loc_type, sim):
-        """Locate where on dend sections each synapse is"""
-
-        assert False, "Depricated use mapIDtoCompartment"
-
-        dend_loc = []
-        sec_lookup = {}
-
-        num_points = 0
-        # Find out how many points we need to allocate space for
-        for sec in self.icell.dend:
-            for seg in sec:
-                # There must be a cleaner way to get the 3d points
-                # when we already have the section
-                num_points = num_points + int(sim.neuron.h.n3d(sec=sec))
-
-        sec_points = np.zeros(shape=(num_points, 5))  # x,y,z,isec,arclen
-        point_ctr = 0
-
-        # Create secPoints with a list of all segment points
-        for isec, sec in enumerate(self.icell.dend):
-            sec_lookup[isec] = sec  # Lookup table
-            # print("Parsing ", sec)
-
-            # TODO: I think the for seg in sec is redudant since we loop over range below
-            for seg in sec:
-                for i in range(int(sim.neuron.h.n3d(sec=sec))):
-                    sec_len = sim.neuron.h.arc3d(int(sim.neuron.h.n3d(sec=sec) - 1), sec=sec)
-                    # We work in SI units, so convert units from neuron
-                    sec_points[point_ctr, :] = [sim.neuron.h.x3d(i, sec=sec) * 1e-6,
-                                                sim.neuron.h.y3d(i, sec=sec) * 1e-6,
-                                                sim.neuron.h.z3d(i, sec=sec) * 1e-6,
-                                                isec,
-                                                (sim.neuron.h.arc3d(i, sec=sec) / sec_len)]
-                    point_ctr = point_ctr + 1
-
-        # Loop through all (axon-dendritic) synapse locations and find matching compartment
-
-        for row, l_type in zip(synapse_xyz, loc_type):  # [locType == 1]:
-            # type 1 = axon-dendritic
-            if l_type == 1:
-                dist = np.sum((sec_points[:, 0:3] - row) ** 2, axis=-1)
-                min_idx = np.argmin(dist)
-
-                # Just to double check, the synapse coordinate and the compartment
-                # we match it against should not be too far away
-                assert dist[min_idx] < 5e-6, \
-                    "Coords should be close to compartment"
-
-                min_info = sec_points[min_idx, :]
-                # Save section and distance within section
-                dend_loc.insert(len(dend_loc), [sec_lookup[min_info[3]], min_info[4]])
-
-            # axo-somatic synapses (type = 2)
-            if l_type == 2:
-                dend_loc.insert(len(dend_loc), [self.icell.soma[0], 0.5])
-
-            # For gap junctions (locType == 3) see how Network_simulate.py
-            # creates a list of coordinates and calls the function
-            if l_type == 4:
-                dist = np.sum((sec_points[:, 0:3] - row) ** 2, axis=-1)
-                min_idx = np.argmin(dist)
-
-                # Just to double check, the synapse coordinate and the compartment
-                # we match it against should not be too far away
-                assert (dist[min_idx] < 5e-6)
-
-                min_info = sec_points[min_idx, :]
-                dend_loc.insert(len(dend_loc), [sec_lookup[min_info[3]], min_info[4]])
-
-        # Currently only support axon-dend, and axon-soma synapses, not axon-axon
-        # check that there are none in indata
-        try:
-            assert (all(x == 1 or x == 2 or x == 4 for x in loc_type))
-        except:
-            print("Bad locTypes:")
-            print("locType: " + str(loc_type))
-            import pdb
-            pdb.set_trace()
-
-        return dend_loc
-
-    ############################################################################
 
     # OVERRIDE the create_empty_template from CellModel
     '''create an hoc template named template_name for an empty cell'''

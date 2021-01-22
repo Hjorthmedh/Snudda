@@ -33,9 +33,25 @@ class TestPlace(unittest.TestCase):
         self.assertTrue(config_data["RandomSeed"]["input"] == 507409703)
         self.assertTrue(config_data["RandomSeed"]["simulate"] == 2825158027)
 
+        self.assertTrue("Volume" in config_data)
+        self.assertTrue("PopulationUnits" in config_data)
+        self.assertTrue("Connectivity" in config_data)
+        self.assertTrue("Neurons" in config_data)
+
+        for neuron in config_data["Neurons"]:
+            self.assertTrue("morphology" in config_data["Neurons"][neuron])
+            self.assertTrue("parameters" in config_data["Neurons"][neuron])
+            self.assertTrue("mechanisms" in config_data["Neurons"][neuron])
+            self.assertTrue("modulation" in config_data["Neurons"][neuron])
+            self.assertTrue("num" in config_data["Neurons"][neuron])
+
 
 def test_place(self):
 
+        # Place neurons
+
+
+        # Load hdf5 file and check that data is what we expect
 
         pass
 
