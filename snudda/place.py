@@ -65,7 +65,7 @@ class SnuddaPlace(object):
         self.volume = dict([])
 
         self.config_file = config_file
-        self.read_config()
+        # self.read_config()
 
     ############################################################################
 
@@ -102,8 +102,7 @@ class SnuddaPlace(object):
                               virtual_neuron=virtual_neuron)
 
         neuron_type = name.split("_")[0]
-        neuron_coords = self.volume[volume_id]["mesh"].place_neurons(num_neurons,
-                                                                     neuron_type)
+        neuron_coords = self.volume[volume_id]["mesh"].place_neurons(num_neurons, neuron_type)
 
         first_added = True
 

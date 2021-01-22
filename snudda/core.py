@@ -151,6 +151,7 @@ class Snudda(object):
                           h5libver=h5libver,
                           random_seed=random_seed)
 
+        npn.read_config()
         npn.write_data_HDF5(position_file)
 
         self.stop_parallel()
