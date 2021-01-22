@@ -68,15 +68,9 @@ class SnuddaInit(object):
             # - the population units will be shifted according to this coordinate
 
             self.network_data["PopulationUnits"]["centres"] = eval(population_unit_centres)
-            try:
-                if len(self.network_data["PopulationUnits"]["centres"]) == num_population_units:
-                    pass
-                else:
-                    raise ValueError
-            except ValueError:
-                print("The number of Population Units does not equal the number of centres.")
-                import pdb
-                pdb.set_trace()
+            assert len(self.network_data["PopulationUnits"]["centres"]) == num_population_units, \
+                (f"The number of Population Units ({num_population_units}) "
+                 f"does not equal the number of centres ({len(self.network_data['PopulationUnits']['centres'])})")
 
             if population_unit_radius:
                 self.network_data["PopulationUnits"]["radius"] = population_unit_radius * 1e-6
@@ -581,10 +575,6 @@ class SnuddaInit(object):
                                   side_len=striatum_side_len,
                                   mesh_bin_width=mesh_bin_width)
 
-            # meshBinWidth=5e-5)
-
-            # import pdb
-            # pdb.set_trace()
         else:
             # Default, full size striatum
             self.define_structure(struct_name="Striatum",
