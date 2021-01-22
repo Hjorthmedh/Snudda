@@ -470,28 +470,14 @@ class SnuddaPlace(object):
         ad_str_type = "S" + str(max(1, max([len(x) if x is not None else 1
                                             for x in axon_density])))
 
-        try:
-            neuron_group.create_dataset("axonDensity", (len(axon_density),),
-                                        ad_str_type, data=axon_density, compression="gzip")
-        except:
-            import traceback
-            tstr = traceback.format_exc()
-            self.write_log(tstr)
-            import pdb
-            pdb.set_trace()
+        neuron_group.create_dataset("axonDensity", (len(axon_density),),
+                                    ad_str_type, data=axon_density, compression="gzip")
 
         axon_density_radius = [n.axon_density[2]
                                if n.axon_density is not None and n.axon_density[0] == "r"
                                else np.nan for n in self.neurons]
 
-        try:
-            neuron_group.create_dataset("axonDensityRadius", data=axon_density_radius)
-        except:
-            import traceback
-            tstr = traceback.format_exc()
-            self.write_log(tstr)
-            import pdb
-            pdb.set_trace()
+        neuron_group.create_dataset("axonDensityRadius", data=axon_density_radius)
 
         # We also need to save axonDensityBoundsXYZ, and nAxon points for the
         # non-spherical axon density option
@@ -514,6 +500,7 @@ class SnuddaPlace(object):
                     self.write_log(tstr)
 
                     self.write_log("Incorrect density string: " + str(n.axon_density))
+                    exit(-1)
 
         neuron_group.create_dataset("axonDensityBoundsXYZ", data=axon_density_bounds_xyz)
 
