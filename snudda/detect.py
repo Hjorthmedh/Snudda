@@ -47,21 +47,16 @@ class SnuddaDetect(object):
                  logfile=None,
                  save_file=None,
                  work_history_file=None,
-                 restart_detection_flag=True,  # False = continue old detection
                  slurm_id=0,
                  volume_id=None,
                  role="master",
-                 d_view=None,
-                 lb_view=None,
                  rc=None,
                  axon_stump_id_flag=False,
                  h5libver="latest",
                  random_seed=None,
                  debug_flag=False):
 
-        if rc is not None:
-            d_view = rc.direct_view(targets='all')
-            lb_view = rc.load_balanced_view(targets='all')
+        self.rc = rc
 
         assert role in ["master", "worker"], \
             "SnuddaDetect: Role must be master or worker"
@@ -219,7 +214,16 @@ class SnuddaDetect(object):
         # Read positions
         self.read_neuron_positions(position_file)
 
-        # Then we need to setup the workers
+    def detect(self, restart_detection_flag=True, rc=None):
+
+        # Normally rc is assigned in init, but let's have option to get it here also
+        if rc:
+            self.rc = rc
+
+        # We need to setup the workers
+        if self.rc is not None:
+            d_view = self.rc.direct_view(targets='all')
+            lb_view = self.rc.load_balanced_view(targets='all')
 
         if self.role == "master":
 
@@ -277,7 +281,7 @@ class SnuddaDetect(object):
                                                           exec_time=exec_time,
                                                           voxel_overflow_counter=voxel_overflow_ctr)
 
-        # We need to gather data from all the HDF5 files
+        # We need to gather data from all the HDF5 files -- that is done in prune
 
     ############################################################################
 

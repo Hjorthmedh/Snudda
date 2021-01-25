@@ -88,6 +88,19 @@ class SnuddaLoad(object):
                     data["hyperVoxelIDs"] = f["network/hyperVoxelIDs"][()]
 
                 if load_synapses:
+                    # 0: sourceCellID, 1: destCellID, 2: voxelX, 3: voxelY, 4: voxelZ,
+                    # 5: hyperVoxelID, 6: channelModelID,
+                    # 7: sourceAxonSomaDist (not SI scaled 1e6, micrometers),
+                    # 8: destDendSomaDist (not SI scalled 1e6, micrometers)
+                    # 9: destSegID, 10: destSegX (int 0 - 1000, SONATA wants float 0.0-1.0)
+                    # 11: conductance (int, not SI scaled 1e12, in pS)
+                    # 12: parameterID
+                    #
+                    # Note on parameterID:
+                    # If there are n parameter sets for the particular synapse type, then
+                    # the ID to use is parameterID % n, this way we can reuse connectivity
+                    # if we add more synapse parameter sets later.
+
                     data["synapses"] = f["network/synapses"][:]
                     data["gapJunctions"] = f["network/gapJunctions"][:]
 

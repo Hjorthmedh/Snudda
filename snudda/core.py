@@ -196,32 +196,23 @@ class Snudda(object):
 
         from .detect import SnuddaDetect
 
+        ncv = SnuddaDetect(config_file=config_file,
+                           position_file=position_file,
+                           logfile=self.logfile,
+                           save_file=save_file,
+                           slurm_id=self.SlurmID,
+                           volume_id=volume_id,
+                           rc=self.rc,
+                           hyper_voxel_size=hyper_voxel_size,
+                           h5libver=h5libver,
+                           random_seed=random_seed)
+
         if args.cont:
             # Continue previous run
             print("Continuing previous touch detection")
-
-            ncv = SnuddaDetect(config_file=config_file,
-                               position_file=position_file,
-                               logfile=self.logfile,
-                               save_file=save_file,
-                               slurm_id=self.SlurmID,
-                               volume_id=volume_id,
-                               rc=self.rc,
-                               hyper_voxel_size=hyper_voxel_size,
-                               h5libver=h5libver,
-                               restart_detection_flag=False,
-                               random_seed=random_seed)
+            ncv.detect(restart_detection_flag=False)
         else:
-            ncv = SnuddaDetect(config_file=config_file,
-                               position_file=position_file,
-                               logfile=self.logfile,
-                               save_file=save_file,
-                               slurm_id=self.SlurmID,
-                               volume_id=volume_id,
-                               rc=self.rc,
-                               h5libver=h5libver,
-                               hyper_voxel_size=hyper_voxel_size,
-                               random_seed=random_seed)
+            ncv.detect(restart_detection_flag=True)
 
         self.stop_parallel()
         self.close_log_file()

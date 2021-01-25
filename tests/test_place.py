@@ -80,10 +80,7 @@ class TestPlace(unittest.TestCase):
                 d_max = 1e4  # This is just for this simulation, to catch if there are some spurious neurons
                 self.assertTrue(np.sum(np.linalg.norm(all_pos - pos, axis=1) <= d_max) == all_pos.shape[0])
 
-
-        # Load hdf5 file and check that data is what we expect
-
-        pass
+        # TODO: Load hdf5 file and check that data is what we expect
 
 
 if __name__ == '__main__':
