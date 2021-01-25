@@ -224,6 +224,9 @@ class SnuddaDetect(object):
         if self.rc is not None:
             d_view = self.rc.direct_view(targets='all')
             lb_view = self.rc.load_balanced_view(targets='all')
+        else:
+            d_view = None
+            lb_view = None
 
         if self.role == "master":
 
