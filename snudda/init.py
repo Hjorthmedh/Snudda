@@ -11,7 +11,7 @@ import numpy as np
 import os.path
 import glob
 import collections
-from .CreateCubeMesh import CreateCubeMesh
+from .create_cube_mesh import create_cube_mesh
 from .CreateSliceMesh import CreateSliceMesh
 
 import json
@@ -150,10 +150,10 @@ class SnuddaInit(object):
                 mesh_bin_width = side_len / 3.0
                 print("Setting mesh_bin_width to " + str(mesh_bin_width))
 
-            CreateCubeMesh(file_name=struct_mesh,
-                           centre_point=struct_centre,
-                           side_len=side_len,
-                           description=f"{struct_name} cube mesh, centre: {struct_centre}, side: {side_len}")
+            create_cube_mesh(file_name=struct_mesh,
+                             centre_point=struct_centre,
+                             side_len=side_len,
+                             description=f"{struct_name} cube mesh, centre: {struct_centre}, side: {side_len}")
 
         elif struct_mesh == "slice":
 
