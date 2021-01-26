@@ -414,7 +414,7 @@ class Snudda(object):
 
         log_file = os.path.join(os.path.dirname(network_file), "log", "network-simulation-log.txt")
 
-        log_dir = os.path.join(os.path.dirname(network_file, "log"))
+        log_dir = os.path.join(os.path.dirname(network_file), "log")
         if not os.path.exists(log_dir):
             print(f"Creating directory {log_dir}")
             os.makedirs(log_dir, exist_ok=True)

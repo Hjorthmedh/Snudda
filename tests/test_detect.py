@@ -32,10 +32,10 @@ class TestDetect(unittest.TestCase):
         # We want to load in the ball and stick neuron that has 20 micrometer soma diameter, and axon (along y-axis),
         # and dendrite along (x-axis) out to 100 micrometer distance from centre of soma.
 
-        config_file = self.network_path + "/network-config.json"
-        position_file = self.network_path + "/network-neuron-positions.hdf5"
-        log_filename = self.network_path + "/log/logFile-touch-detection.txt"
-        save_file = self.network_path + "/voxels/network-putative-synapses.hdf5"
+        config_file = os.path.join(self.network_path, "network-config.json")
+        position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
+        log_filename = os.path.join(self.network_path, "log", "logFile-touch-detection.txt")
+        save_file = os.path.join(self.network_path, "voxels", "network-putative-synapses.hdf5")
 
 
         pass
