@@ -17,8 +17,8 @@ from collections import OrderedDict
 import h5py
 import json
 
-from .Neuron_morphology import NeuronMorphology
-from .RegionMesh import RegionMesh
+from .neuron_morphology import NeuronMorphology
+from .region_mesh import RegionMesh
 
 ''' This code places all neurons in space, but does not setup their
   connectivity. That is done in another script. '''

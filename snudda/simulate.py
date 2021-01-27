@@ -26,10 +26,10 @@ import json
 import timeit
 
 import bluepyopt.ephys as ephys
-from snudda.Neuron_model_extended import NeuronModel
+from snudda.neuron_model_extended import NeuronModel
 # from Network_place_neurons import NetworkPlaceNeurons
 import numpy as np
-from snudda.NrnSimulatorParallel import NrnSimulatorParallel
+from snudda.nrn_simulator_parallel import NrnSimulatorParallel
 
 from glob import glob
 import re

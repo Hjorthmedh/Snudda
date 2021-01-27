@@ -23,7 +23,7 @@ import itertools
 
 import matplotlib.pyplot as plt
 
-from .Neuron_morphology import NeuronMorphology
+from .neuron_morphology import NeuronMorphology
 from .load import SnuddaLoad
 
 nl = None

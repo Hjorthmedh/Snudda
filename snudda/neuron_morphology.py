@@ -225,7 +225,7 @@ class NeuronMorphology(object):
 
     def write_log(self, text):
         if self.logFile is not None:
-            self.logFile.write(text + "\n")
+            self.logFile.write(f"{text}\n")
             print(text)
         else:
             if self.verbose:
@@ -464,7 +464,7 @@ class NeuronMorphology(object):
 
         # swcVals -- 0: compID, 1: type, 2,3,4: xyz coords, 5: radius, 6: parentID
         assert (1 <= swc_vals[:num_comps, 1]).all() and (swc_vals[:num_comps, 1] <= 4).all(), \
-            "loadMorphology: Only types 1,2,3,4 are supported: " + str(swc_file)
+            f"loadMorphology: Only types 1,2,3,4 are supported: {swc_file}"
 
         # Subtract 1 from ID and parentID, so we get easier indexing
         swc_vals[:, 0] -= 1

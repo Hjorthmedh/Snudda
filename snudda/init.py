@@ -12,7 +12,7 @@ import os.path
 import glob
 import collections
 from .create_cube_mesh import create_cube_mesh
-from .CreateSliceMesh import CreateSliceMesh
+from .create_slice_mesh import CreateSliceMesh
 
 import json
 

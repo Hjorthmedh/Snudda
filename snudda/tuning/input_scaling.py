@@ -7,7 +7,7 @@ import json
 import h5py
 
 from snudda.create_cube_mesh import create_cube_mesh
-from snudda.Neuron_morphology import NeuronMorphology
+from snudda.neuron_morphology import NeuronMorphology
 from snudda.init import SnuddaInit
 from snudda.input import SnuddaInput
 from snudda.load import SnuddaLoad

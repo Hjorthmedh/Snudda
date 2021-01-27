@@ -24,7 +24,7 @@ import h5py
 import json
 import pickle
 
-from .Neuron_morphology import NeuronMorphology
+from .neuron_morphology import NeuronMorphology
 from .load import SnuddaLoad
 
 import snudda.utils.memory
