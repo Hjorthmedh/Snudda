@@ -318,6 +318,8 @@ class SnuddaPlace(object):
         if self.population_unit_placement_method is not None:
             self.define_population_units(method=self.population_unit_placement_method)
 
+        mesh_logfile.close()
+
     ############################################################################
 
     def all_neuron_positions(self):

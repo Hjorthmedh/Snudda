@@ -15,11 +15,11 @@ class TestDetect(unittest.TestCase):
 
     def setUp(self):
 
-        network_path = os.path.join("tests", "network_testing_detect")
+        network_ path = os.path.join("tests", "network_testing_detect")
 
         create_cube_mesh(file_name=os.path.join(network_path, "mesh", "simple_mesh.obj"),
                          centre_point=(0, 0, 0),
-                         side_len=100)
+                         side_len=500e-6)
 
         config_file = os.path.join(network_path, "network-config.json")
         position_file = os.path.join(network_path, "network-neuron-positions.hdf5")
@@ -40,6 +40,8 @@ class TestDetect(unittest.TestCase):
 
 
     def test_detect(self):
+
+        self.sd.neurons[0]
 
         import pdb
         pdb.set_trace()

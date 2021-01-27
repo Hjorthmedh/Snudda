@@ -21,6 +21,7 @@ class RegionMesh(object):
         self.workers_initialised = False
 
         self.verbose = True
+        self.close_log_file = False
 
         if log_file is not None:
             self.logfile = log_file
@@ -28,6 +29,7 @@ class RegionMesh(object):
         elif logfile_name is not None and len(logfile_name) > 0:
             self.logfile = open(logfile_name, 'wt')
             self.logfile_name = logfile_name
+            self.close_log_file = True
         else:
             self.logfile = None
             self.logfile_name = None
@@ -136,6 +138,10 @@ class RegionMesh(object):
                     self.voxel_mask_border[int(ic[0]), int(ic[1]), int(ic[2])] = 1
 
         self.write_log("maxN = " + str(max_num))
+
+    def __del__(self):
+        if self.close_log_file:
+            self.logfile.close()
 
     ############################################################################
 

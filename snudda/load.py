@@ -160,6 +160,7 @@ class SnuddaLoad(object):
                 data["minSynapseSpacing"] = f["parameters/minSynapseSpacing"][()]
 
             data["neuronPositions"] = f["network/neurons/position"][()]
+            data["name"] = [SnuddaLoad.to_str(x) for x in f["network/neurons/name"][()]]
 
             if "nPopulationUnits" in f["network/neurons"]:
                 data["nPopulationUnits"] = f["network/neurons/nPopulationUnits"][()]

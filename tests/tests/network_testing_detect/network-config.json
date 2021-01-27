@@ -13,7 +13,7 @@
 	    "type": "mesh",
 	    "dMin": 1e-5,
 	    "meshFile": "tests/network_testing_detect/mesh/simple_mesh.obj",
-	    "meshBinWidth": 10e-6
+	    "meshBinWidth": 5e-5
 	}
     },
     "Connectivity": {
@@ -34,6 +34,7 @@
 	}
     },
     "Neurons": {
+	"ballandstick_0": {
             "morphology": "../snudda/data/validation/ballandstick/simple.swc",
             "parameters": "",
             "mechanisms": "",
@@ -43,5 +44,7 @@
             "neuronType": "neuron",
             "rotationMode": "",
             "volumeID": "TestStriatum"
+
+	}
     }
 }
