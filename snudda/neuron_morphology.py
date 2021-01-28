@@ -791,6 +791,8 @@ class NeuronMorphology(object):
                         alpha=alpha,
                         c=axon_colour)
 
+                # TODO: Also connect first axon compartment to soma
+
         if plot_dendrite:
             dend_links = []
             for row in self.dend_links[:, :2].astype(int):
@@ -820,11 +822,22 @@ class NeuronMorphology(object):
                         alpha=alpha,
                         c=dend_colour)
 
+                # TODO: Also connect dendrites to soma for plot
+
         if len(self.soma) > 0:
-            ax.scatter((self.soma[:, 0] - plot_origo[0]) * plot_scale,
-                       (self.soma[:, 1] - plot_origo[1]) * plot_scale,
-                       (self.soma[:, 2] - plot_origo[2]) * plot_scale,
-                       c=soma_colour, alpha=alpha)
+
+            if self.soma.shape[0] == 1:
+                u, v = np.mgrid[0:2 * np.pi:20j, 0:np.pi:10j]
+                x = (self.soma[0, 3] * np.cos(u) * np.sin(v) + self.soma[0, 0] - plot_origo[0])*plot_scale
+                y = (self.soma[0, 3] * np.sin(u) * np.sin(v) + self.soma[0, 1] - plot_origo[1])*plot_scale
+                z = (self.soma[0, 3] * np.cos(v) + self.soma[0, 3] - plot_origo[2])*plot_scale
+
+                ax.plot_wireframe(x, y, z, color=soma_colour, alpha=alpha)
+            else:
+                ax.scatter((self.soma[:, 0] - plot_origo[0]) * plot_scale,
+                           (self.soma[:, 1] - plot_origo[1]) * plot_scale,
+                           (self.soma[:, 2] - plot_origo[2]) * plot_scale,
+                           c=soma_colour, alpha=alpha)
 
         # plt.axis('equal')
         plt.title("Neuron: " + self.swc_filename.split("/")[-3] + "_" + self.swc_filename.split('/').pop())

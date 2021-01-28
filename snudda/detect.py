@@ -230,6 +230,10 @@ class SnuddaDetect(object):
 
         if self.role == "master":
 
+            # Make sure path exists
+            if not os.path.exists(os.path.dirname(self.save_file)):
+                os.mkdir(os.path.dirname(self.save_file))
+
             self.setup_parallel(d_view=d_view)
 
             if self.work_history_file is None:
@@ -2776,12 +2780,13 @@ class SnuddaDetect(object):
                                    plot_dendrite=draw_dendrites,
                                    plot_origo=self.hyper_voxel_origo, plot_scale=1 / self.voxel_size)
 
+        plt.title("Scale is in voxels, not micrometers")
         plt.show()
         plt.ion()
 
         plt.pause(0.001)
-        fig_name = "figures/Hypervoxel-" + str(self.slurm_id) \
-                   + "-" + str(self.hyper_voxel_id) + ".png"
+        fig_name = os.path.join(os.path.dirname(self.config_file), "figures",
+                                f"Hypervoxel-{self.slurm_id}-{self.hyper_voxel_id}.png")
         plt.savefig(fig_name)
 
     ############################################################################

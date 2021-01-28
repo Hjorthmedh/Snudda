@@ -15,7 +15,7 @@ class TestDetect(unittest.TestCase):
 
     def setUp(self):
 
-        network_ path = os.path.join("tests", "network_testing_detect")
+        network_path = os.path.join("tests", "network_testing_detect")
 
         create_cube_mesh(file_name=os.path.join(network_path, "mesh", "simple_mesh.obj"),
                          centre_point=(0, 0, 0),
@@ -41,12 +41,47 @@ class TestDetect(unittest.TestCase):
 
     def test_detect(self):
 
-        self.sd.neurons[0]
+        neuron_positions = np.array([[0, 20, 0],
+                                     [0, 40, 0],
+                                     [0, 60, 0],
+                                     [0, 80, 0],
+                                     [-20, 100, 0],  # This one is intentionally pulled back
+                                     [20, 0, 0],
+                                     [40, 0, 0],
+                                     [60, 0, 0],
+                                     [80, 0, 0],
+                                     [100, 0, 0]])*1e-6
+
+        for idx, pos in enumerate(neuron_positions):
+            self.sd.neurons[idx]["position"] = pos
+
+        ang = np.pi/2
+        Rx = np.array([[1, 0, 0],
+                       [0, np.cos(ang), -np.sin(ang)],
+                       [0, np.sin(ang), np.cos(ang)]])
+
+        for idx in range(0, 5):
+            self.sd.neurons[idx]["rotation"] = Rx
+
+        self.sd.detect(restart_detection_flag=True)
+        self.assertEqual(self.sd.hyper_voxel_synapse_ctr, 24)  # 5x5 - 1 (one pulled back slightly)
+
+        synapse_voxel_loc = self.sd.hyper_voxel_synapses[:self.sd.hyper_voxel_synapse_ctr, 2:5]
+        synapse_coords = synapse_voxel_loc * self.sd.voxel_size + self.sd.hyper_voxel_origo
+
+        fig_path = os.path.join("tests", "network_testing_detect", "figures")
+
+        if not os.path.exists(fig_path):
+            os.mkdir(fig_path)
+
+        self.sd.plot_hyper_voxel(plot_neurons=True)
+
+        # TODO: Also add tests for gap junctions and for soma-axon synapses
+
 
         import pdb
         pdb.set_trace()
 
-        self.sd.detect(restart_detection_flag=True)
 
 if __name__ == '__main__':
     unittest.main()
