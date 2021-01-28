@@ -27,10 +27,18 @@
                     "a3": 1,
                     "distPruning": null
                 }
-		
-		
-	    }
-
+	    },
+            "GapJunction": {
+                "conductance": [5e-10, 1e-10],
+                "channelParameters": null,
+                "pruning": {
+                    "f1": 1,
+                    "softMax": 8,
+                    "mu2": 2,
+                    "a3": 1.0,
+                    "distPruning": null
+                }
+            }
 	}
     },
     "Neurons": {
@@ -39,7 +47,7 @@
             "parameters": "",
             "mechanisms": "",
             "modulation": "",
-            "num": 10,
+            "num": 21,
             "hoc": null,
             "neuronType": "neuron",
             "rotationMode": "",

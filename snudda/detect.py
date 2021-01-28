@@ -1388,10 +1388,8 @@ class SnuddaDetect(object):
 
                 if (pre_type, post_type) in self.connectivity_distributions:
 
-                    if ("GapJunction"
-                            in self.connectivity_distributions[pre_type, post_type]):
-                        con_info \
-                            = self.connectivity_distributions[pre_type, post_type]["GapJunction"]
+                    if "GapJunction" in self.connectivity_distributions[pre_type, post_type]:
+                        con_info = self.connectivity_distributions[pre_type, post_type]["GapJunction"]
 
                         seg_id1 = self.dend_sec_id[x, y, z, pairs[0]]
                         seg_id2 = self.dend_sec_id[x, y, z, pairs[1]]
