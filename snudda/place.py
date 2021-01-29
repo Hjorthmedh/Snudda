@@ -231,6 +231,14 @@ class SnuddaPlace(object):
                     d_view = self.d_view
                     lb_view = self.lb_view
 
+                if os.path.exists(vol_def["meshFile"]):
+                    mesh_file = vol_def["meshFile"]
+                elif os.path.exists(os.path.join(os.path.dirname(self.config_file), vol_def["meshFile"])):
+                    mesh_file = os.path.join(os.path.dirname(self.config_file), vol_def["meshFile"])
+                else:
+                    self.write_log(f"Unable to find mesh file {vol_def['meshFile']}")
+                    exit(-1)
+
                 self.volume[volume_id]["mesh"] \
                     = RegionMesh(vol_def["meshFile"],
                                  d_view=d_view,
