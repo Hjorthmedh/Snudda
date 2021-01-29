@@ -269,7 +269,8 @@ class SnuddaInput(object):
                     # Allow user to use $DATA to refer to snudda data directory
                     par_file = par_file.replace("$DATA", os.path.join(os.path.dirname(__file__), "data"))
 
-                    par_data_dict = json.load(open(par_file, 'r'))
+                    with open(par_file, 'r') as f:
+                        par_data_dict = json.load(f)
 
                     # Read in parameters into a list
                     par_data = []
@@ -1115,9 +1116,7 @@ class SnuddaInput(object):
             import traceback
             tstr = traceback.format_exc()
             self.write_log(tstr)
-
-            import pdb
-            pdb.set_trace()
+            exit(-1)
 
     ############################################################################
 
