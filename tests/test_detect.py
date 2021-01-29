@@ -17,6 +17,9 @@ class TestDetect(unittest.TestCase):
 
         network_path = os.path.join("tests", "network_testing_detect")
 
+        if not os.path.exists(network_path):
+            os.mkdir(network_path)
+
         print(f"Current directory: {os.path.dirname(os.path.realpath(__file__))}")
         print(f"network_path: {network_path}")
 
@@ -121,9 +124,9 @@ class TestDetect(unittest.TestCase):
                 for post_id in range(0, 10):
                     self.assertEqual(self.check_neuron_pair_has_synapses(pre_id, post_id), 1)
 
-        import pdb
-        pdb.set_trace()
-
+        # We should probably store the matrix as unsigned.
+        self.assertTrue((self.sd.hyper_voxel_synapses > 0).all())
+        self.assertTrue((self.sd.hyper_voxel_gap_junctions > 0).all())
 
     def check_neuron_pair_has_synapse(self, pre_neuron, post_neuron):
 
