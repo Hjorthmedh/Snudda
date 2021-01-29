@@ -251,8 +251,9 @@ class Snudda(object):
                          d_view=self.d_view, lb_view=self.lb_view,
                          scratch_path=scratch_path,
                          h5libver=h5libver,
-                         pre_merge_only=pre_merge_only,
                          random_seed=random_seed)
+
+        sp.prune(pre_merge_only=pre_merge_only)
 
         self.stop_parallel()
         self.close_log_file()

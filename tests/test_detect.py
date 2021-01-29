@@ -11,33 +11,12 @@ from snudda.place import SnuddaPlace
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 
-class NumpyEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.integer):
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            return float(obj)
-        elif isinstance(obj, np.ndarray):
-            return obj.tolist()
-        else:
-            # return super(NumpyEncoder, self).default(obj)
-            return json.JSONEncoder.default(self, obj)
-
-
 class TestDetect(unittest.TestCase):
 
     def setUp(self):
 
         os.chdir(os.path.dirname(__file__))
         network_path = os.path.join(os.path.dirname(__file__), "tests", "network_testing_detect")
-
-        print(f"Current directory (detect): {os.path.dirname(os.path.realpath(__file__))}")
-        print(f"network_path: {network_path}")
-
-        import glob
-        print(f"Current dir info {glob.glob(f'*')}")
-        print(f"Current directory path {os.getcwd()}")
-        print(f"Dir info {glob.glob(f'{network_path}/*')}")
 
         create_cube_mesh(file_name=os.path.join(network_path, "mesh", "simple_mesh.obj"),
                          centre_point=(0, 0, 0),

@@ -57,7 +57,7 @@ class SnuddaPrune(object):
                  logfile=None, logfile_name=None,
                  d_view=None, lb_view=None, role="master", verbose=True,
                  scratch_path=None,
-                 pre_merge_only=False,
+                 # pre_merge_only=False,
                  h5libver="latest",
                  random_seed=None,
                  clean_voxel_files=True):
@@ -67,7 +67,6 @@ class SnuddaPrune(object):
         #                       + "\nlog = " + str(logFileName) \
         #                       + "\nrole = " + role)
 
-        start_time = timeit.default_timer()
         self.work_history_file = work_history_file
         self.base_path = os.path.dirname(self.work_history_file).replace(f"{os.path.sep}log", os.path.sep)
 
@@ -169,6 +168,12 @@ class SnuddaPrune(object):
                          "gapJunctions": ("network/gapJunctions",
                                           "nGapJunctions",
                                           "network/gapJunctionLookup")}  # range(6,9))}
+
+        # TODO: Move this outside of init and into "prune"
+
+    def prune(self, pre_merge_only=False):
+
+        start_time = timeit.default_timer()
 
         if self.role == "master":
 
