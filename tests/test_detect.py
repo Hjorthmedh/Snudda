@@ -17,6 +17,9 @@ class TestDetect(unittest.TestCase):
 
         network_path = os.path.join("tests", "network_testing_detect")
 
+        print(f"Current directory: {os.path.dirname(os.path.realpath(__file__))}")
+        print(f"network_path: {network_path}")
+
         create_cube_mesh(file_name=os.path.join(network_path, "mesh", "simple_mesh.obj"),
                          centre_point=(0, 0, 0),
                          side_len=500e-6)
@@ -37,6 +40,8 @@ class TestDetect(unittest.TestCase):
         self.sd = SnuddaDetect(config_file=config_file, position_file=position_file,
                                save_file=save_file, rc=None,
                                hyper_voxel_size=120)
+
+
 
     def test_detect(self):
 
@@ -102,13 +107,46 @@ class TestDetect(unittest.TestCase):
         self.sd.plot_hyper_voxel(plot_neurons=True)
 
         # TODO: Also add tests for soma-axon synapses
-        self.assertEqual(self.sd.hyper_voxel_synapse_ctr, 101)
-        self.assertEqual(self.sd.hyper_voxel_gap_junction_ctr, 1)
+
+        # Check location and source, targets.
+        with self.subTest(stage="gap_junction_check"):
+            self.assertEqual(self.sd.hyper_voxel_gap_junction_ctr, 1)
+            self.assertTrue((self.sd.hyper_voxel_gap_junctions[0, 0:2] == [4, 20]).all())
+            self.assertTrue(self.compare_voxels_to_coordinates(self.sd.hyper_voxel_gap_junctions[0, 6:9],
+                                                               np.array([100, 100, 0])*1e-6))
+        with self.subTest(stage="synapses_check"):
+            self.assertEqual(self.sd.hyper_voxel_synapse_ctr, 101)
+
+            for pre_id in range(0, 10):
+                for post_id in range(0, 10):
+                    self.assertEqual(self.check_neuron_pair_has_synapses(pre_id, post_id), 1)
+
+        import pdb
+        pdb.set_trace()
 
 
-#        import pdb
-#        pdb.set_trace()
+    def check_neuron_pair_has_synapse(self, pre_neuron, post_neuron):
 
+        connections = dict()
+
+        for synapse_row in self.sd.hyper_voxel_synapses:
+
+            loc = (synapse_row[1], synapse_row[0])
+            if loc in connections:
+                connections[loc] += 1
+            else:
+                connections[loc] = 1
+
+        if (pre_neuron, post_neuron) in connections:
+            return connections[(pre_neuron, post_neuron)]
+        else:
+            return False
+
+    def convert_to_coordinates(self, voxel_xyz):
+        return np.array(voxel_xyz) * self.sd.voxel_size + self.sd.hyper_voxel_origo
+
+    def compare_voxels_to_coordinates(self, voxel_index, coordinates):
+        return (np.abs(self.convert_to_coordinates(voxel_index) - np.array(coordinates)) < self.sd.voxel_size).all()
 
 if __name__ == '__main__':
     unittest.main()
