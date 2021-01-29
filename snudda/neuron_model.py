@@ -20,15 +20,12 @@ def define_mechanisms(mechanism_config=None):
     assert (mechanism_config is not None)
     # print("Using mechanmism config: " + mechanism_config)
 
-    mech_definitions = json.load(
-        open(
-            os.path.join(
-                config_dir,
-                mechanism_config)))
+    with open(os.path.join(config_dir, mechanism_config), "r") as f:
+        mech_definitions = json.load(f)
 
     if "modpath" in mech_definitions:
         mod_path = os.path.join(script_dir, mech_definitions["modpath"])
-        print("mod_path set to " + mod_path + " (not yet implemented)")
+        print(f"mod_path set to {mod_path} (not yet implemented)")
     else:
         mod_path = None
 
@@ -65,7 +62,8 @@ def define_parameters(parameter_config=None):
 
     # print("Using parameter config: " + parameter_config)
 
-    param_configs = json.load(open(os.path.join(config_dir, parameter_config)))
+    with open(os.path.join(config_dir, parameter_config), "r") as f:
+        param_configs = json.load(f)
     parameters = []
 
     for param_config in param_configs:

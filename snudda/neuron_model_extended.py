@@ -52,7 +52,8 @@ class NeuronModel(ephys.models.CellModel):
         assert (mechanism_config is not None)
         # print("Using mechanmism config: " + mechanism_config)
 
-        mech_definitions = json.load(open(mechanism_config))
+        with open(mechanism_config, "r") as f:
+            mech_definitions = json.load(f)
 
         if "modpath" in mech_definitions:
             mod_path = os.path.join(self.script_dir, mech_definitions["modpath"])
@@ -95,7 +96,9 @@ class NeuronModel(ephys.models.CellModel):
 
         # print("Using parameter config: " + parameter_config)
 
-        param_configs = json.load(open(parameter_config))
+        with open(parameter_config, "r") as f:
+            param_configs = json.load(f)
+
         parameters = []
 
         if type(param_configs[0]) == list:
