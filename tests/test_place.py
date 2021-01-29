@@ -61,7 +61,7 @@ class TestPlace(unittest.TestCase):
                           h5libver="latest")
 
         npn.read_config()
-        npn.write_data_HDF5(position_file)
+        npn.write_data(position_file)
 
         with self.subTest(stage="neuron_count"):
             num_cells = 20

@@ -65,7 +65,7 @@ class SnuddaPlace(object):
         self.volume = dict([])
 
         self.config_file = config_file
-        # self.read_config()
+        # self.read_config()  # -- Now called from core.py
 
     ############################################################################
 
@@ -350,7 +350,7 @@ class SnuddaPlace(object):
 
     ############################################################################
 
-    def write_data_HDF5(self, file_name):
+    def write_data(self, file_name):
 
         self.write_log(f"Writing data to HDF5 file: {file_name}")
 

@@ -29,7 +29,7 @@ class TestDetect(unittest.TestCase):
         sp = SnuddaPlace(config_file=config_file, d_view=None)
 
         sp.read_config()
-        sp.write_data_HDF5(position_file)
+        sp.write_data(position_file)
 
         # We want to load in the ball and stick neuron that has 20 micrometer soma diameter, and axon (along y-axis),
         # and dendrite along (x-axis) out to 100 micrometer distance from centre of soma.
@@ -37,9 +37,6 @@ class TestDetect(unittest.TestCase):
         self.sd = SnuddaDetect(config_file=config_file, position_file=position_file,
                                save_file=save_file, rc=None,
                                hyper_voxel_size=120)
-
-        # Reposition the neurons for the
-
 
     def test_detect(self):
 

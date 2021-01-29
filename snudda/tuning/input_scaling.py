@@ -87,7 +87,7 @@ class InputScaling(object):
         from snudda.prune import SnuddaPrune
 
         position_file = os.path.join(self.network_dir, "network-neuron-positions.hdf5")
-        SnuddaPlace(config_file=self.network_config_file_name, verbose=True).write_data_HDF5(position_file)
+        SnuddaPlace(config_file=self.network_config_file_name, verbose=True).write_data(position_file)
 
         SnuddaDetect(config_file=self.network_config_file_name,
                      position_file=position_file,

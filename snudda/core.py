@@ -147,7 +147,7 @@ class Snudda(object):
                          random_seed=random_seed)
 
         sp.read_config()
-        sp.write_data_HDF5(position_file)
+        sp.write_data(position_file)
 
         self.stop_parallel()
         self.close_log_file()
