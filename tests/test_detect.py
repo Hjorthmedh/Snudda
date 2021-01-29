@@ -48,7 +48,7 @@ class TestDetect(unittest.TestCase):
         save_file = os.path.join(network_path, "voxels", "network-putative-synapses.hdf5")
 
 
-        if True:
+        if False:
             # We need to update neuron path in config file
             neuron_morph_swc = os.path.join(os.path.dirname(__file__), "validation", "ballandstick", "simple.swc")
 
