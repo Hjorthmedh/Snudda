@@ -47,15 +47,16 @@ class TestDetect(unittest.TestCase):
         position_file = os.path.join(network_path, "network-neuron-positions.hdf5")
         save_file = os.path.join(network_path, "voxels", "network-putative-synapses.hdf5")
 
-        # We need to update neuron path in config file
-        neuron_morph_swc = os.path.join(os.path.dirname(__file__), "validation", "ballandstick", "simple.swc")
 
-        print(f"neuron_morph dir content: {glob.glob(os.path.join(os.path.dirname(neuron_morph_swc), '*'))}")
-        print(f"neuron_morph dir: {os.path.dirname(neuron_morph_swc)}")
-        print(f"Current directory: {os.getcwd()}")
-        print(f"Parent directory content {glob.glob('../*')}")
+        if True:
+            # We need to update neuron path in config file
+            neuron_morph_swc = os.path.join(os.path.dirname(__file__), "validation", "ballandstick", "simple.swc")
 
-        if False:
+            print(f"neuron_morph dir content: {glob.glob(os.path.join(os.path.dirname(neuron_morph_swc), '*'))}")
+            print(f"neuron_morph dir: {os.path.dirname(neuron_morph_swc)}")
+            print(f"Current directory: {os.getcwd()}")
+            print(f"Parent directory content {glob.glob('../*')}")
+
             with open(config_file, 'r') as f:
                 config_data = json.load(f)
 
