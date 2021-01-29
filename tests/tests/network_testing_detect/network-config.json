@@ -9,20 +9,17 @@
         "simulate": 2825158027
     },
     "Volume": {
-        "TestStriatum": {
-            "type": "mesh",
-            "dMin": 1e-05,
-            "meshFile": "mesh/simple_mesh.obj",
-            "meshBinWidth": 5e-05
-        }
+	"TestStriatum": {
+	    "type": "mesh",
+	    "dMin": 1e-5,
+	    "meshFile": "mesh/simple_mesh.obj",
+	    "meshBinWidth": 5e-5
+	}
     },
     "Connectivity": {
-        "ballandstick,ballandstick": {
-            "GABA": {
-                "conductance": [
-                    1.1e-09,
-                    1.5e-09
-                ],
+	"ballandstick,ballandstick": {
+	    "GABA": {
+		"conductance": [1.1e-9, 1.5e-9],
                 "pruning": {
                     "f1": 1,
                     "softMax": 5,
@@ -30,12 +27,9 @@
                     "a3": 1,
                     "distPruning": null
                 }
-            },
+	    },
             "GapJunction": {
-                "conductance": [
-                    5e-10,
-                    1e-10
-                ],
+                "conductance": [5e-10, 1e-10],
                 "channelParameters": null,
                 "pruning": {
                     "f1": 1,
@@ -45,11 +39,11 @@
                     "distPruning": null
                 }
             }
-        }
+	}
     },
     "Neurons": {
-        "ballandstick_0": {
-            "morphology": "/home/hjorth/HBP/Snudda/tests/validation/ballandstick/simple.swc",
+	"ballandstick_0": {
+            "morphology": "validation/ballandstick/simple.swc",
             "parameters": "",
             "mechanisms": "",
             "modulation": "",
@@ -58,6 +52,7 @@
             "neuronType": "neuron",
             "rotationMode": "",
             "volumeID": "TestStriatum"
-        }
+
+	}
     }
 }

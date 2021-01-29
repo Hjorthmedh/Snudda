@@ -28,6 +28,7 @@ class TestDetect(unittest.TestCase):
 
     def setUp(self):
 
+        os.chdir(os.path.dirname(__file__))
         network_path = os.path.join(os.path.dirname(__file__), "tests", "network_testing_detect")
 
         print(f"Current directory (detect): {os.path.dirname(os.path.realpath(__file__))}")
@@ -54,13 +55,14 @@ class TestDetect(unittest.TestCase):
         print(f"Current directory: {os.getcwd()}")
         print(f"Parent directory content {glob.glob('../*')}")
 
-        with open(config_file, 'r') as f:
-            config_data = json.load(f)
+        if False:
+            with open(config_file, 'r') as f:
+                config_data = json.load(f)
 
-        config_data["Neurons"]["ballandstick_0"]["morphology"] = neuron_morph_swc
+            config_data["Neurons"]["ballandstick_0"]["morphology"] = neuron_morph_swc
 
-        with open(config_file, 'w') as f:
-            json.dump(config_data, f, indent=4, cls=NumpyEncoder)
+            with open(config_file, 'w') as f:
+                json.dump(config_data, f, indent=4, cls=NumpyEncoder)
 
         #  TODO: If d_view is None code run sin serial, add test parallel
         sp = SnuddaPlace(config_file=config_file, d_view=None)
@@ -74,8 +76,6 @@ class TestDetect(unittest.TestCase):
         self.sd = SnuddaDetect(config_file=config_file, position_file=position_file,
                                save_file=save_file, rc=None,
                                hyper_voxel_size=120)
-
-
 
     def test_detect(self):
 
@@ -138,7 +138,8 @@ class TestDetect(unittest.TestCase):
         if not os.path.exists(fig_path):
             os.mkdir(fig_path)
 
-        self.sd.plot_hyper_voxel(plot_neurons=True)
+        if False:   # Set to True to include plot
+            self.sd.plot_hyper_voxel(plot_neurons=True)
 
         # TODO: Also add tests for soma-axon synapses
 
@@ -149,21 +150,28 @@ class TestDetect(unittest.TestCase):
             self.assertTrue(self.compare_voxels_to_coordinates(self.sd.hyper_voxel_gap_junctions[0, 6:9],
                                                                np.array([100, 100, 0])*1e-6))
         with self.subTest(stage="synapses_check"):
+            print(f"synapse ctr {self.sd.hyper_voxel_synapse_ctr}")
+
+#            import pdb
+#            pdb.set_trace()
+
             self.assertEqual(self.sd.hyper_voxel_synapse_ctr, 101)
 
             for pre_id in range(0, 10):
-                for post_id in range(0, 10):
-                    self.assertEqual(self.check_neuron_pair_has_synapses(pre_id, post_id), 1)
+                for post_id in range(10, 20):
+                    self.assertEqual(self.check_neuron_pair_has_synapse(pre_id, post_id), 1)
 
         # We should probably store the matrix as unsigned.
-        self.assertTrue((self.sd.hyper_voxel_synapses > 0).all())
-        self.assertTrue((self.sd.hyper_voxel_gap_junctions > 0).all())
+        self.assertTrue((self.sd.hyper_voxel_synapses >= 0).all())
+        self.assertTrue((self.sd.hyper_voxel_gap_junctions >= 0).all())
+
+        print("Checking detect done.")
 
     def check_neuron_pair_has_synapse(self, pre_neuron, post_neuron):
 
         connections = dict()
 
-        for synapse_row in self.sd.hyper_voxel_synapses:
+        for synapse_row in self.sd.hyper_voxel_synapses[0:self.sd.hyper_voxel_synapse_ctr,:]:
 
             loc = (synapse_row[1], synapse_row[0])
             if loc in connections:
@@ -172,8 +180,10 @@ class TestDetect(unittest.TestCase):
                 connections[loc] = 1
 
         if (pre_neuron, post_neuron) in connections:
+            # print(f"pre: {pre_neuron}, post: {post_neuron}, connections: {connections[(pre_neuron, post_neuron)]}")
             return connections[(pre_neuron, post_neuron)]
         else:
+            # print(f"No connection between pre {pre_neuron} and post {post_neuron}")
             return False
 
     def convert_to_coordinates(self, voxel_xyz):
