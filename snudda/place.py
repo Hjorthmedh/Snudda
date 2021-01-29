@@ -240,7 +240,7 @@ class SnuddaPlace(object):
                     exit(-1)
 
                 self.volume[volume_id]["mesh"] \
-                    = RegionMesh(vol_def["meshFile"],
+                    = RegionMesh(mesh_file,
                                  d_view=d_view,
                                  lb_view=lb_view,
                                  raytrace_borders=False,

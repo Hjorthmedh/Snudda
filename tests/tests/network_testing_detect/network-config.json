@@ -12,7 +12,7 @@
 	"TestStriatum": {
 	    "type": "mesh",
 	    "dMin": 1e-5,
-	    "meshFile": "tests/network_testing_detect/mesh/simple_mesh.obj",
+	    "meshFile": "mesh/simple_mesh.obj",
 	    "meshBinWidth": 5e-5
 	}
     },
