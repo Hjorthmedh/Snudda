@@ -11,6 +11,19 @@ from snudda.place import SnuddaPlace
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            # return super(NumpyEncoder, self).default(obj)
+            return json.JSONEncoder.default(self, obj)
+
+
 class TestDetect(unittest.TestCase):
 
     def setUp(self):
@@ -32,6 +45,16 @@ class TestDetect(unittest.TestCase):
         config_file = os.path.join(network_path, "network-config.json")
         position_file = os.path.join(network_path, "network-neuron-positions.hdf5")
         save_file = os.path.join(network_path, "voxels", "network-putative-synapses.hdf5")
+
+        # We need to update neuron path in config file
+        neuron_morph_swc = os.path.join(os.path.dirname(__file__), "validation", "ballandstick", "simple.swc")
+        with open(config_file, 'r') as f:
+            config_data = json.load(f)
+
+        config_data["Neurons"]["ballandstick_0"]["morphology"] = neuron_morph_swc
+
+        with open(config_file, 'w') as f:
+            json.dump(config_data, f, indent=4, cls=NumpyEncoder)
 
         #  TODO: If d_view is None code run sin serial, add test parallel
         sp = SnuddaPlace(config_file=config_file, d_view=None)
