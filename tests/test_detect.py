@@ -17,11 +17,11 @@ class TestDetect(unittest.TestCase):
 
         network_path = os.path.join("tests", "network_testing_detect")
 
-        if not os.path.exists(network_path):
-            os.mkdir(network_path)
-
         print(f"Current directory: {os.path.dirname(os.path.realpath(__file__))}")
         print(f"network_path: {network_path}")
+
+        import glob
+        print(f"Dir info {glob.glob(f'{network_path}/*')}")
 
         create_cube_mesh(file_name=os.path.join(network_path, "mesh", "simple_mesh.obj"),
                          centre_point=(0, 0, 0),
