@@ -22,6 +22,7 @@ class TestDetect(unittest.TestCase):
 
         import glob
         print(f"Current dir info {glob.glob(f'*')}")
+        print(f"Current directory path {os.getcwd()}")
         print(f"Dir info {glob.glob(f'{network_path}/*')}")
 
         create_cube_mesh(file_name=os.path.join(network_path, "mesh", "simple_mesh.obj"),
