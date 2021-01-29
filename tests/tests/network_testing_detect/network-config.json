@@ -43,7 +43,7 @@
     },
     "Neurons": {
 	"ballandstick_0": {
-            "morphology": "../snudda/data/validation/ballandstick/simple.swc",
+            "morphology": "validation/ballandstick/simple.swc",
             "parameters": "",
             "mechanisms": "",
             "modulation": "",

@@ -14,7 +14,7 @@ class TestPlace(unittest.TestCase):
         print(f"Current directory (detect): {os.path.dirname(os.path.realpath(__file__))}")
 
         from snudda.init import SnuddaInit
-        cell_spec = os.path.join(os.path.dirname(__file__), "..", "snudda", "data", "validation")
+        cell_spec = os.path.join(os.path.dirname(__file__), "validation")
         self.sim_name = os.path.join("tests", "network_testing_place")
         self.config_file = os.path.join(self.sim_name, "network-config.json")
         cnc = SnuddaInit(struct_def={}, config_name=self.config_file, num_population_units=1, random_seed=1234)
