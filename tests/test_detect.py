@@ -48,6 +48,12 @@ class TestDetect(unittest.TestCase):
 
         # We need to update neuron path in config file
         neuron_morph_swc = os.path.join(os.path.dirname(__file__), "validation", "ballandstick", "simple.swc")
+
+        print(f"neuron_morph dir content: {os.path.join(glob.glob(os.dirname(neuron_morph_swc)), '*')}")
+        print(f"neuron_morph dir: {os.dirname(neuron_morph_swc)}")
+        print(f"Current directory: {os.getcwd()}")
+        print(f"Parent directory content {glob.glob('../*')}")
+
         with open(config_file, 'r') as f:
             config_data = json.load(f)
 
