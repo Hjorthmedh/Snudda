@@ -10,6 +10,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 class TestPlace(unittest.TestCase):
 
     def setUp(self):
+
+        print(f"Current directory (detect): {os.path.dirname(os.path.realpath(__file__))}")
+
         from snudda.init import SnuddaInit
         cell_spec = os.path.join(os.path.dirname(__file__), "..", "snudda", "data", "validation")
         self.sim_name = os.path.join("tests", "network_testing_place")

@@ -15,9 +15,9 @@ class TestDetect(unittest.TestCase):
 
     def setUp(self):
 
-        network_path = os.path.join("tests", "network_testing_detect")
+        network_path = os.path.join(os.path.dirname(__file__), "tests", "network_testing_detect")
 
-        print(f"Current directory: {os.path.dirname(os.path.realpath(__file__))}")
+        print(f"Current directory (detect): {os.path.dirname(os.path.realpath(__file__))}")
         print(f"network_path: {network_path}")
 
         import glob
