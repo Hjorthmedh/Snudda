@@ -3,23 +3,27 @@ import unittest
 
 from snudda.create_cube_mesh import create_cube_mesh
 from snudda.detect import SnuddaDetect
+from snudda.load import SnuddaLoad
 from snudda.place import SnuddaPlace
 import numpy as np
+
+from snudda.prune import SnuddaPrune
+
 
 class TestPrune(unittest.TestCase):
     
     def setUp(self):
 
         os.chdir(os.path.dirname(__file__))
-        network_path = os.path.join(os.path.dirname(__file__), "tests", "network_testing_prune")
+        self.network_path = os.path.join(os.path.dirname(__file__), "tests", "network_testing_prune")
 
-        create_cube_mesh(file_name=os.path.join(network_path, "mesh", "simple_mesh.obj"),
+        create_cube_mesh(file_name=os.path.join(self.network_path, "mesh", "simple_mesh.obj"),
                          centre_point=(0, 0, 0),
                          side_len=500e-6)
 
-        config_file = os.path.join(network_path, "network-config.json")
-        position_file = os.path.join(network_path, "network-neuron-positions.hdf5")
-        save_file = os.path.join(network_path, "voxels", "network-putative-synapses.hdf5")
+        config_file = os.path.join(self.network_path, "network-config.json")
+        position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
+        save_file = os.path.join(self.network_path, "voxels", "network-putative-synapses.hdf5")
 
         sp = SnuddaPlace(config_file=config_file, d_view=None)
 
@@ -79,5 +83,16 @@ class TestPrune(unittest.TestCase):
         
     def test_detect(self): 
 
-        # TODO: Add pruning and test here
+        work_log = os.path.join(self.network_path, "log", "network-detect-worklog.hdf5")
+
+        sp = SnuddaPrune(work_history_file=work_log)
+        sp.prune(pre_merge_only=False)
+
+        # Load the pruned data and check it
+
+        pruned_output = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
+        sl = SnuddaLoad(pruned_output)
+
+        # TODO: Add pruning tests
+        # TODO: Add option to set pruning rules after detection, so we can rerun different kinds quickly
         pass

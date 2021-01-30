@@ -23,7 +23,7 @@
                 "pruning": {
                     "f1": 1,
                     "softMax": 5,
-                    "mu2": 2,
+                    "mu2": null,
                     "a3": 1,
                     "distPruning": null
                 }
@@ -34,7 +34,7 @@
                 "pruning": {
                     "f1": 1,
                     "softMax": 8,
-                    "mu2": 2,
+                    "mu2": null,
                     "a3": 1.0,
                     "distPruning": null
                 }
