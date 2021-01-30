@@ -81,18 +81,29 @@ class TestPrune(unittest.TestCase):
 
         self.sd.detect(restart_detection_flag=True)
         
-    def test_detect(self): 
+    def test_prune(self):
 
         work_log = os.path.join(self.network_path, "log", "network-detect-worklog.hdf5")
+        pruned_output = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
 
-        sp = SnuddaPrune(work_history_file=work_log)
+        sp = SnuddaPrune(work_history_file=work_log, config_file=None)  # Use default config file
         sp.prune(pre_merge_only=False)
 
         # Load the pruned data and check it
 
-        pruned_output = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
         sl = SnuddaLoad(pruned_output)
+        # TODO: Here we should have all 100 synapses.
 
         # TODO: Add pruning tests
         # TODO: Add option to set pruning rules after detection, so we can rerun different kinds quickly
+        # TODO: Add neurons with two dendrites, stämmgafflar -- to test mu2 pruning
+
+        testing_config_file = os.path.join(self.network_path, "network-config-test-1.json")
+        sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
+        sp.prune(pre_merge_only=False)
+
+        # Load the pruned data and check it
+
+        sl = SnuddaLoad(pruned_output)
+
         pass
