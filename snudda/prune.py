@@ -56,6 +56,7 @@ class SnuddaPrune(object):
     def __init__(self, work_history_file,
                  logfile=None, logfile_name=None,
                  d_view=None, lb_view=None, role="master", verbose=True,
+                 config_file=None,  # Default is to use same config_file as for detect, but you can override it
                  scratch_path=None,
                  # pre_merge_only=False,
                  h5libver="latest",
@@ -156,10 +157,10 @@ class SnuddaPrune(object):
         self.voxel_overflow_counter = 0
         self.overflow_files = []
 
-        self.open_work_history_file(work_history_file=work_history_file)
+        self.open_work_history_file(work_history_file=work_history_file, config_file=config_file)
 
         self.set_scratch_path(scratch_path)
-        self.load_pruning_information()
+        self.load_pruning_information(config_file=config_file)
 
         # (locationOfMatrix,locationOfN,locationOfCoords)
         self.data_loc = {"synapses": ("network/synapses",
@@ -353,7 +354,7 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    def open_work_history_file(self, work_history_file=None):
+    def open_work_history_file(self, work_history_file=None, config_file=None):
 
         if work_history_file is None:
             work_history_file = self.work_history_file
@@ -392,11 +393,14 @@ class SnuddaPrune(object):
         self.num_synapses_total = np.sum(self.hist_file["nSynapses"][()])
         self.num_gap_junctions_total = np.sum(self.hist_file["nGapJunctions"][()])
 
-        self.config_file = self.hist_file["meta/configFile"][()]
+        if config_file is None:
+            self.config_file = self.hist_file["meta/configFile"][()]
+        else:
+            self.config_file = config_file
         self.position_file = self.hist_file["meta/positionFile"][()]
 
-        self.detect_config = json.loads(self.hist_file["meta/config"][()])
-        with open(self.hist_file["meta/configFile"][()], "r") as f:
+        self.detect_config = json.loads(self.hist_file["meta/config"][()])  # This was config data used for detection, might differ from pruning config
+        with open(self.config_file, "r") as f:
             self.config = json.load(f)
 
         # This also loads random seed from config file while we have it open
@@ -582,19 +586,19 @@ class SnuddaPrune(object):
     # in the detection. If some are missing in the detection phase, then they
     # would incorrectly be missing after pruning.
 
-    def check_network_config_integrity(self):
+    def check_network_config_integrity(self, config_file):
 
         detect_config = json.loads(self.hist_file["meta/config"][()])
-        with open(self.hist_file["meta/configFile"][()], "r") as f:
+        with open(config_file, "r") as f:
             prune_config = json.load(f)
 
         all_present = True
 
         for con in prune_config["Connectivity"]:
             if con not in detect_config["Connectivity"]:
-                self.write_log(f"!!! Connection {con} has been added to "
-                               f"{self.hist_file['meta/configFile'][()]} after detection," 
-                               f"please rerun snudda detect")
+                self.write_log(f"!!! Connection {con} is present in {config_file}, "
+                               f"but was not included in config file used for detect. " 
+                               f"Please rerun snudda detect")
                 all_present = False
 
         assert all_present, "Please rerun snudda detect."
@@ -602,10 +606,13 @@ class SnuddaPrune(object):
     ############################################################################
 
     # Parse the connection information in the config file
-    def load_pruning_information(self):
+    def load_pruning_information(self, config_file=None):
 
-        self.check_network_config_integrity()
-        with open(self.hist_file["meta/configFile"][()], "r") as f:
+        if config_file is None:
+            config_file = self.hist_file["meta/configFile"][()]
+
+        self.check_network_config_integrity(config_file=config_file)
+        with open(config_file, "r") as f:
             self.config = json.load(f)
 
         self.population_unit_id = self.hist_file["network/neurons/populationUnitID"][()]
