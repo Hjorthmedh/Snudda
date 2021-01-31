@@ -105,6 +105,7 @@ class TestPrune(unittest.TestCase):
         if False:
             self.sd.process_hyper_voxel(1)
             self.sd.plot_hyper_voxel(plot_neurons=True)
+            # TODO: Check why soma is plotted in wrong place? Mistake with origo plotoffset?
             import pdb
             pdb.set_trace()
 
