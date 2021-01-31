@@ -58,6 +58,14 @@ class TestPrune(unittest.TestCase):
                                      [160, 0, 0],
                                      [180, 0, 0],
                                      [200, 0, 0],
+                                     [70, 0, 500],  # For gap junction check
+                                     [110, 0, 500],
+                                     [150, 0, 500],
+                                     [190, 0, 500],
+                                     [0, 70, 500],
+                                     [0, 110, 500],
+                                     [0, 150, 500],
+                                     [0, 190, 500],
                                      ]) * 1e-6
 
         # TODO: Add potential for gap junctions also by having 5 + 5 neurons in other grid
@@ -81,10 +89,24 @@ class TestPrune(unittest.TestCase):
         for idx in range(10, 20):  # Presynaptic neurons
             self.sd.neurons[idx]["rotation"] = R_y
 
+        for idx in range(24, 28):  # GJ neurons
+            self.sd.neurons[idx]["rotation"] = R_x
+
+        ang = np.pi / 2
+        R_z = np.array([[np.cos(ang), -np.sin(ang), 0],
+                        [np.sin(ang), np.cos(ang), 0],
+                        [0, 0, 1]])
+
+        for idx in range(20, 24):  # GJ neurons
+            self.sd.neurons[idx]["rotation"] = np.matmul(R_z, R_x)
+
         self.sd.detect(restart_detection_flag=True)
 
-        if False:
+        if True:
+            self.sd.process_hyper_voxel(1)
             self.sd.plot_hyper_voxel(plot_neurons=True)
+            import pdb
+            pdb.set_trace()
 
     def test_prune(self):
 
@@ -109,6 +131,11 @@ class TestPrune(unittest.TestCase):
             syn_order = syn[:, 1] * len(self.sd.neurons) + syn[:, 0]
             self.assertTrue((np.diff(syn_order) >= 0).all())
 
+            self.assertEqual(sl.data["nGapJunctions"], 4*4*4)
+            gj = sl.data["gapJunctions"][:sl.data["nGapJunctions"], :2]
+            gj_order = gj[:, 1] * len(self.sd.neurons) + gj[:, 0]
+            self.assertTrue((np.diff(gj_order) >= 0).all())
+
         # It is important merge file has synapses sorted with dest_id, source_id as sort order since during pruning
         # we assume this to be able to quickly find all synapses on post synaptic cell.
         with self.subTest("Checking-merge-file-sorted"):
@@ -119,16 +146,9 @@ class TestPrune(unittest.TestCase):
             syn_order = syn[:, 1] * len(self.sd.neurons) + syn[:, 0]
             self.assertTrue((np.diff(syn_order) >= 0).all())
 
-            # TODO: In this test there are no gap junctions, we need to add them also to network for proper testing.
             gj = sl.data["gapJunctions"][:sl.data["nGapJunctions"], :2]
             gj_order = gj[:, 1] * len(self.sd.neurons) + gj[:, 0]
             self.assertTrue((np.diff(gj_order) >= 0).all())
-
-
-
-        # TODO: Add pruning tests
-        # TODO: Add option to set pruning rules after detection, so we can rerun different kinds quickly
-        # TODO: Add neurons with two dendrites, stämmgafflar -- to test mu2 pruning
 
         # Test of f1
         testing_config_file = os.path.join(self.network_path, "network-config-test-1.json")
@@ -183,3 +203,6 @@ class TestPrune(unittest.TestCase):
         # "1*(d >= 100e-6)" means we remove all synapses closer than 100 micrometers
         self.assertEqual(sl.data["nSynapses"], 20*6)
         self.assertTrue((sl.data["synapses"][:, 8] >= 100).all())  # Column 8 -- distance to soma in micrometers
+
+        # TODO: Need to do same tests for Gap Junctions also -- but should be same results, since same codebase
+        
