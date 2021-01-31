@@ -88,6 +88,7 @@ class TestPrune(unittest.TestCase):
 
         sp = SnuddaPrune(work_history_file=work_log, config_file=None)  # Use default config file
         sp.prune(pre_merge_only=False)
+        sp = []
 
         # Load the pruned data and check it
 

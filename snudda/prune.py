@@ -787,7 +787,7 @@ class SnuddaPrune(object):
 
                 merge_file_ok = True
 
-                f = h5py.File(merge_file_name)
+                f = h5py.File(merge_file_name, "r")
 
                 # Check that SlurmID matches
                 if f["meta/SlurmID"][()] != self.slurm_id:
@@ -805,7 +805,7 @@ class SnuddaPrune(object):
                     merge_file_ok = False
                 elif f["network/gapJunctions"].shape[0] != self.num_gap_junctions_total:
                     merge_file_ok = False
-                elif (f["network/gapJunctions"][-1, :] == 0).all():
+                elif self.num_gap_junctions_total > 0 and (f["network/gapJunctions"][-1, :] == 0).all():
                     # Last row not set, not complete
                     merge_file_ok = False
 
