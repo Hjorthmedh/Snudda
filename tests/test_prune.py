@@ -102,7 +102,7 @@ class TestPrune(unittest.TestCase):
 
         self.sd.detect(restart_detection_flag=True)
 
-        if True:
+        if False:
             self.sd.process_hyper_voxel(1)
             self.sd.plot_hyper_voxel(plot_neurons=True)
             import pdb
