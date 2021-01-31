@@ -407,7 +407,7 @@ class SnuddaPrune(object):
         if self.random_seed is None:
             if "RandomSeed" in self.config and "prune" in self.config["RandomSeed"]:
                 self.random_seed = self.config["RandomSeed"]["prune"]
-                self.write_log(f"Reading random see from config file: {self.random_seed}")
+                self.write_log(f"Reading random seed from config file: {self.random_seed}")
             else:
                 # No random seed given, invent one
                 self.random_seed = 1003
@@ -624,11 +624,14 @@ class SnuddaPrune(object):
         orig_connectivity_distributions = \
             json.loads(self.hist_file["meta/connectivityDistributions"][()])
 
+        config_connectivity_distributions = self.config["Connectivity"]
+
         self.connectivity_distributions = dict([])
 
         # For the pruning we merge the two into one
-        for keys in orig_connectivity_distributions:
-            (pre_type, post_type) = keys.split("$$")
+        for key in config_connectivity_distributions:
+            (pre_type, post_type) = key.split(",")  # key.split("$$") -- if we instead loop over orig_connectivity_distribution
+            orig_key = f"{pre_type}$${post_type}"
 
             # Need to handle if preType or postType don't exist, then skip this
             if pre_type not in self.type_id_lookup or post_type not in self.type_id_lookup:
@@ -638,8 +641,8 @@ class SnuddaPrune(object):
             pre_type_id = self.type_id_lookup[pre_type]
             post_type_id = self.type_id_lookup[post_type]
 
-            for con_type in orig_connectivity_distributions[keys]:
-                con_data = orig_connectivity_distributions[keys][con_type]
+            for con_type in config_connectivity_distributions[key]:
+                con_data = config_connectivity_distributions[key][con_type]
 
                 pruning = self.complete_pruning_info(con_data["pruning"])
 
@@ -648,7 +651,8 @@ class SnuddaPrune(object):
                 else:
                     pruning_other = None
 
-                synapse_type_id = con_data["channelModelID"]
+                # This data is added by detect, we need to take it from what was used during detection
+                synapse_type_id = orig_connectivity_distributions[orig_key][con_type]["channelModelID"]
 
                 self.connectivity_distributions[pre_type_id, post_type_id, synapse_type_id] \
                     = (pruning, pruning_other)

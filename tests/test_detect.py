@@ -114,9 +114,6 @@ class TestDetect(unittest.TestCase):
         with self.subTest(stage="synapses_check"):
             print(f"synapse ctr {self.sd.hyper_voxel_synapse_ctr}")
 
-#            import pdb
-#            pdb.set_trace()
-
             self.assertEqual(self.sd.hyper_voxel_synapse_ctr, 101)
 
             for pre_id in range(0, 10):

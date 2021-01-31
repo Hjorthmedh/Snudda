@@ -15,7 +15,7 @@ class TestPrune(unittest.TestCase):
     def setUp(self):
 
         os.chdir(os.path.dirname(__file__))
-        self.network_path = os.path.join(os.path.dirname(__file__), "tests", "network_testing_prune")
+        self.network_path = os.path.join(os.path.dirname(__file__), "tests", "network_testing_prune2")
 
         create_cube_mesh(file_name=os.path.join(self.network_path, "mesh", "simple_mesh.obj"),
                          centre_point=(0, 0, 0),
@@ -80,7 +80,10 @@ class TestPrune(unittest.TestCase):
             self.sd.neurons[idx]["rotation"] = R_y
 
         self.sd.detect(restart_detection_flag=True)
-        
+
+        if False:
+            self.sd.plot_hyper_voxel(plot_neurons=True)
+
     def test_prune(self):
 
         work_log = os.path.join(self.network_path, "log", "network-detect-worklog.hdf5")
@@ -93,12 +96,18 @@ class TestPrune(unittest.TestCase):
         # Load the pruned data and check it
 
         sl = SnuddaLoad(pruned_output)
+        # TODO: Call a plot function to plot entire network with synapses and all
+
+        self.assertEqual(sl.data["nSynapses"], 20*8 + 10*2)
+
+
         # TODO: Here we should have all 100 synapses.
 
         # TODO: Add pruning tests
         # TODO: Add option to set pruning rules after detection, so we can rerun different kinds quickly
         # TODO: Add neurons with two dendrites, stämmgafflar -- to test mu2 pruning
 
+        # Test of f1
         testing_config_file = os.path.join(self.network_path, "network-config-test-1.json")
         sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
         sp.prune(pre_merge_only=False)
@@ -106,5 +115,48 @@ class TestPrune(unittest.TestCase):
         # Load the pruned data and check it
 
         sl = SnuddaLoad(pruned_output)
+        # Setting f1=0.5 in config should remove 50% of synapses, but does so randomly
+        self.assertTrue((20*8 + 10*2)*0.5 - 10 < sl.data["nSynapses"] < (20*8 + 10*2)*0.5 + 10)
 
-        pass
+        # Test of softmax
+        testing_config_file = os.path.join(self.network_path, "network-config-test-2.json")
+        sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
+        sp.prune(pre_merge_only=False)
+
+        # Load the pruned data and check it
+        sl = SnuddaLoad(pruned_output)
+        # Softmax reduces number of synapses
+        self.assertTrue(sl.data["nSynapses"] < 20*8 + 10*2)
+
+        # Test of mu2
+        testing_config_file = os.path.join(self.network_path, "network-config-test-3.json")
+        sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
+        sp.prune(pre_merge_only=False)
+
+        # Load the pruned data and check it
+        sl = SnuddaLoad(pruned_output)
+        # With mu2 having 2 synapses means 50% chance to keep them, having 1 will be likely to have it removed
+        self.assertTrue(20*8*0.5 - 10 < sl.data["nSynapses"] < 20*8*0.5 + 10)
+
+        # Test of a3
+        testing_config_file = os.path.join(self.network_path, "network-config-test-4.json")
+        sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
+        sp.prune(pre_merge_only=False)
+
+        # Load the pruned data and check it
+        sl = SnuddaLoad(pruned_output)
+
+        # a3=0.6 means 40% chance to remove all synapses between a pair
+        self.assertTrue((20*8 + 10*2)*0.6 - 10 < sl.data["nSynapses"] < (20*8 + 10*2)*0.6 + 10)
+
+        # Testing distance dependent pruning
+        testing_config_file = os.path.join(self.network_path, "network-config-test-5.json")
+        sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
+        sp.prune(pre_merge_only=False)
+
+        # Load the pruned data and check it
+        sl = SnuddaLoad(pruned_output)
+
+        # "1*(d >= 100e-6)" means we remove all synapses closer than 100 micrometers
+        self.assertEqual(sl.data["nSynapses"], 20*6)
+        self.assertTrue((sl.data["synapses"][:, 8] >= 100).all())  # Column 8 -- distance to soma in micrometers

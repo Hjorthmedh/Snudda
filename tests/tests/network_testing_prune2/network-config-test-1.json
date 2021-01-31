@@ -17,11 +17,11 @@
 	}
     },
     "Connectivity": {
-	"ballandstick,ballandstick": {
+	"ballanddoublestick,ballanddoublestick": {
 	    "GABA": {
 		"conductance": [1.1e-9, 1.5e-9],
                 "pruning": {
-                    "f1": 1,
+                    "f1": 0.5,
                     "softMax": 5,
                     "mu2": null,
                     "a3": 1,
@@ -42,8 +42,8 @@
 	}
     },
     "Neurons": {
-	"ballandstick_0": {
-            "morphology": "validation/ballandstick/simple.swc",
+	"ballanddoublestick_0": {
+            "morphology": "validation/ballanddoublestick/double.swc",
             "parameters": "",
             "mechanisms": "",
             "modulation": "",

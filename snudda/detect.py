@@ -2785,6 +2785,10 @@ class SnuddaDetect(object):
         plt.pause(0.001)
         fig_name = os.path.join(os.path.dirname(self.config_file), "figures",
                                 f"Hypervoxel-{self.slurm_id}-{self.hyper_voxel_id}.png")
+
+        if not os.path.exists(os.path.dirname(fig_name)):
+            os.mkdir(os.path.dirname(fig_name))
+
         plt.savefig(fig_name)
 
     ############################################################################
