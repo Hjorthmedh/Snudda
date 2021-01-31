@@ -120,6 +120,18 @@ class TestDetect(unittest.TestCase):
                 for post_id in range(10, 20):
                     self.assertEqual(self.check_neuron_pair_has_synapse(pre_id, post_id), 1)
 
+        with self.subTest(stage="synapse_sorting_check"):
+            syn = self.sd.hyper_voxel_synapses[:self.sd.hyper_voxel_synapse_ctr, :2]
+            syn_order = syn[:, 1]*len(self.sd.neurons) + syn[:, 0]
+            self.assertTrue((np.diff(syn_order) >= 0).all())
+
+        with self.subTest(stage="gap_junction_sorting_check"):
+            gj = self.sd.hyper_voxel_gap_junctions[:self.sd.hyper_voxel_gap_junction_ctr, :2]
+            gj_order = gj[:, 1]*len(self.sd.neurons) + gj[:, 0]
+            self.assertTrue((np.diff(gj_order) >= 0).all())
+
+
+
         # We should probably store the matrix as unsigned.
         self.assertTrue((self.sd.hyper_voxel_synapses >= 0).all())
         self.assertTrue((self.sd.hyper_voxel_gap_junctions >= 0).all())

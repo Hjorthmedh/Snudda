@@ -59,7 +59,9 @@ class TestPrune(unittest.TestCase):
                                      [180, 0, 0],
                                      [200, 0, 0],
                                      ]) * 1e-6
-        
+
+        # TODO: Add potential for gap junctions also by having 5 + 5 neurons in other grid
+
         for idx, pos in enumerate(neuron_positions):
             self.sd.neurons[idx]["position"] = pos
         
@@ -89,19 +91,40 @@ class TestPrune(unittest.TestCase):
         work_log = os.path.join(self.network_path, "log", "network-detect-worklog.hdf5")
         pruned_output = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
 
-        sp = SnuddaPrune(work_history_file=work_log, config_file=None)  # Use default config file
-        sp.prune(pre_merge_only=False)
-        sp = []
+        with self.subTest(stage="No-pruning"):
 
-        # Load the pruned data and check it
+            sp = SnuddaPrune(work_history_file=work_log, config_file=None)  # Use default config file
+            sp.prune(pre_merge_only=False)
+            sp = []
 
-        sl = SnuddaLoad(pruned_output)
-        # TODO: Call a plot function to plot entire network with synapses and all
+            # Load the pruned data and check it
 
-        self.assertEqual(sl.data["nSynapses"], 20*8 + 10*2)
+            sl = SnuddaLoad(pruned_output)
+            # TODO: Call a plot function to plot entire network with synapses and all
+
+            self.assertEqual(sl.data["nSynapses"], 20*8 + 10*2)
+
+            # This checks that all synapses are in order
+            syn = sl.data["synapses"][:sl.data["nSynapses"], :2]
+            syn_order = syn[:, 1] * len(self.sd.neurons) + syn[:, 0]
+            self.assertTrue((np.diff(syn_order) >= 0).all())
+
+        # It is important merge file has synapses sorted with dest_id, source_id as sort order since during pruning
+        # we assume this to be able to quickly find all synapses on post synaptic cell.
+        with self.subTest("Checking-merge-file-sorted"):
+            merge_file = os.path.join(self.network_path, "network-putative-synapses-MERGED.hdf5")
+
+            sl = SnuddaLoad(merge_file)
+            syn = sl.data["synapses"][:sl.data["nSynapses"], :2]
+            syn_order = syn[:, 1] * len(self.sd.neurons) + syn[:, 0]
+            self.assertTrue((np.diff(syn_order) >= 0).all())
+
+            # TODO: In this test there are no gap junctions, we need to add them also to network for proper testing.
+            gj = sl.data["gapJunctions"][:sl.data["nGapJunctions"], :2]
+            gj_order = gj[:, 1] * len(self.sd.neurons) + gj[:, 0]
+            self.assertTrue((np.diff(gj_order) >= 0).all())
 
 
-        # TODO: Here we should have all 100 synapses.
 
         # TODO: Add pruning tests
         # TODO: Add option to set pruning rules after detection, so we can rerun different kinds quickly
