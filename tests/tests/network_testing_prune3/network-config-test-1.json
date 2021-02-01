@@ -28,6 +28,16 @@
                     "distPruning": null
                 }
 	    },
+	    "AMPA": {
+		"conductance": [1.1e-9, 1.5e-9],
+                "pruning": {
+                    "f1": 0.9,
+                    "softMax": 5,
+                    "mu2": null,
+                    "a3": 1,
+                    "distPruning": null
+                }
+	    },
             "GapJunction": {
                 "conductance": [5e-10, 1e-10],
                 "channelParameters": null,

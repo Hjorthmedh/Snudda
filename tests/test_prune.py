@@ -146,6 +146,7 @@ class TestPrune(unittest.TestCase):
 
         # It is important merge file has synapses sorted with dest_id, source_id as sort order since during pruning
         # we assume this to be able to quickly find all synapses on post synaptic cell.
+        # TODO: Also include the CannelModelID in sorting check
         with self.subTest("Checking-merge-file-sorted"):
             merge_file = os.path.join(self.network_path, "network-putative-synapses-MERGED.hdf5")
 
@@ -167,12 +168,19 @@ class TestPrune(unittest.TestCase):
             # Load the pruned data and check it
 
             sl = SnuddaLoad(pruned_output)
-            # Setting f1=0.5 in config should remove 50% of synapses, but does so randomly
-            self.assertTrue((20*8 + 10*2)*0.5 - 10 < sl.data["nSynapses"] < (20*8 + 10*2)*0.5 + 10)
+            # Setting f1=0.5 in config should remove 50% of GABA synapses, but does so randomly, for AMPA we used f1=0.9
+            gaba_id = sl.data["connectivityDistributions"]["ballanddoublestick","ballanddoublestick"]["GABA"]["channelModelID"]
+            ampa_id = sl.data["connectivityDistributions"]["ballanddoublestick","ballanddoublestick"]["AMPA"]["channelModelID"]
+
+            n_gaba = np.sum(sl.data["synapses"][:, 6] == gaba_id)
+            n_ampa = np.sum(sl.data["synapses"][:, 6] == ampa_id)
+
+            self.assertTrue((20*8 + 10*2)*0.5 - 10 < n_gaba < (20*8 + 10*2)*0.5 + 10)
+            self.assertTrue((20*8 + 10*2)*0.9 - 10 < n_ampa < (20*8 + 10*2)*0.9 + 10)
 
         with self.subTest("synapse-softmax"):
             # Test of softmax
-            testing_config_file = os.path.join(self.network_path, "network-config-test-2.json")
+            testing_config_file = os.path.join(self.network_path, "network-config-test-2.json")  # Only GABA synapses in this config
             sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
             sp.prune(pre_merge_only=False)
 
