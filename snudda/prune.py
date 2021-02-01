@@ -101,6 +101,8 @@ class SnuddaPrune(object):
         self.synapse_type_reverse_lookup = \
             {v: k for k, v in self.synapse_type_lookup.items()}
 
+        self.max_channel_type = None
+
         # Parameters for the HDF5 writing, this affects write speed
         self.synapse_chunk_size = 10000
         self.gap_junction_chunk_size = 10000
@@ -1365,7 +1367,7 @@ class SnuddaPrune(object):
     def big_merge_helper(self, neuron_range, merge_data_type):
 
         try:
-            self.write_log(f"Neuronrange = {neuron_range}")
+            self.write_log(f"Neuron_range = {neuron_range}")
 
             output_filename = os.path.join(self.scratch_path,
                                            f"{merge_data_type}-for-neurons-"
@@ -1415,6 +1417,13 @@ class SnuddaPrune(object):
                     # Low level opening hdf5 file, to have greater cache size #ACC_RDWR
                     fid = h5py.h5f.open(h_filename.encode(), flags=h5py.h5f.ACC_RDONLY, fapl=propfaid)
                     file_list[h_id] = h5py.File(fid, drive=self.h5driver)
+
+                    if self.max_channel_type:
+                        # These should be the same for all hypervoxels
+                        assert self.max_channel_type == file_list[h_id]["network/maxChannelTypeID"]
+                    else:
+                        self.max_channel_type = file_list[h_id]["network/maxChannelTypeID"]
+
 
                     chunk_size = 10000
                     lookup_iterator = \
@@ -1812,19 +1821,26 @@ class SnuddaPrune(object):
 
         while next_read_pos < read_end_of_range:
 
-            assert old_pos != next_read_pos, "pruneSynapsesHelper: Same again"
+            assert old_pos != next_read_pos, "prune_synapses_helper: Stuck in a loop."
             old_pos = next_read_pos
 
             # How many lines contain synapses between this pair of neurons
             read_end_idx = next_read_pos + 1
-            while (read_end_idx < read_end_of_range and
-                   (synapses[next_read_pos, 0:2] == synapses[read_end_idx, 0:2]).all()):
-                read_end_idx += 1
+
+            if merge_data_type == "gapJunctions":
+                while (read_end_idx < read_end_of_range and
+                       (synapses[next_read_pos, 0:2] == synapses[read_end_idx, 0:2]).all()):
+                    read_end_idx += 1
+            else:
+                while (read_end_idx < read_end_of_range and
+                       (synapses[next_read_pos, 0:2] == synapses[read_end_idx, 0:2]).all()  # Same neuron pair
+                        and synapses[next_read_pos, 6] == synapses[read_end_idx, 6]):       # Same synapse type
+                    read_end_idx += 1
 
             # Temp check
             assert ((synapses[next_read_pos:read_end_idx, 0] == synapses[next_read_pos, 0]).all()
                     and (synapses[next_read_pos:read_end_idx, 1] == synapses[next_read_pos, 1]).all()), \
-                "pruneSynapsesHelper: Internal error, more than one neuron pair"
+                "prune_synapses_helper: Internal error, more than one neuron pair"
 
             # Stats
             n_pair_synapses = read_end_idx - next_read_pos
@@ -1843,6 +1859,13 @@ class SnuddaPrune(object):
                 synapse_type = 3
             else:
                 synapse_type = synapses[next_read_pos, 6]
+
+                assert (synapses[next_read_pos:read_end_idx, 6] == synapse_type).all(), \
+                    (f"More than one synapse type connecting "
+                     f"{self.hist_file['network/neurons/name'][synapses[next_read_pos,0]]}  "
+                     f"(ID {synapses[next_read_pos,0]}) and "
+                     f"{self.hist_file['network/neurons/name'][synapses[next_read_pos,1]]} "
+                     f"(ID {synapses[next_read_pos,1]})")
 
             con_id = (self.type_id_list[src_id], self.type_id_list[dest_id], synapse_type)
 
@@ -1892,7 +1915,9 @@ class SnuddaPrune(object):
                 continue
 
             if dist_p is not None:
-                # Distance dependent pruning, used for FS->MS connections
+                assert synapse_type != 3, \
+                    "Distance dependent pruning currently only supported for synapses, not gap junctions"
+                # Distance dependent pruning, used for e.g. FS->MS connections
 
                 # distP contains d (variable for distance to soma)
                 d = synapses[next_read_pos:read_end_idx, 8] * 1e-6  # dendrite distance d, used in eval below
@@ -2006,8 +2031,8 @@ class SnuddaPrune(object):
     def file_row_lookup_iterator_subset(self, h5mat_lookup, min_dest_id, max_dest_id, chunk_size=10000):
 
         num_neurons = self.hist_file["network/neurons/neuronID"].shape[0]
-        min_unique_id = min_dest_id * num_neurons
-        max_unique_id = max_dest_id * num_neurons
+        min_unique_id = min_dest_id * num_neurons * self.max_channel_type
+        max_unique_id = max_dest_id * num_neurons * self.max_channel_type
 
         self.write_log(f"min_unique_id: {min_unique_id}, max_unique_id: {max_unique_id}")
         mat_size = h5mat_lookup.shape[0]

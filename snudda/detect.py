@@ -145,7 +145,7 @@ class SnuddaDetect(object):
         # 0: sourceCellID, 1: destCellID, 2: voxelX, 3: voxelY, 4: voxelZ,
         # 5: hyperVoxelID, 6: channelModelID,
         # 7: sourceAxonSomaDist (not SI scaled 1e6, micrometers),
-        # 8: destDendSomaDist (not SI scalled 1e6, micrometers)
+        # 8: destDendSomaDist (not SI scaled 1e6, micrometers)
         # 9: destSegID, 10: destSegX (int 0 - 1000, SONATA wants float 0.0-1.0)
         # 11: conductance (int, not SI scaled 1e12, in pS)
         # 12: parameterID
@@ -961,7 +961,8 @@ class SnuddaDetect(object):
         # These are used when doing the heap sort of the hyper voxels
         self.hyper_voxel_synapse_lookup \
             = self.create_lookup_table(data=self.hyper_voxel_synapses,
-                                       n_rows=self.hyper_voxel_synapse_ctr)
+                                       n_rows=self.hyper_voxel_synapse_ctr,
+                                       data_type="synapses")
 
         # if(self.hyperVoxelSynapseCtr > 0 and self.hyperVoxelSynapseCtr < 10):
         #  self.plotHyperVoxel()
@@ -1285,7 +1286,7 @@ class SnuddaDetect(object):
     def sort_synapses(self):
 
         sort_idx = np.lexsort(self.hyper_voxel_synapses[:self.hyper_voxel_synapse_ctr,
-                              [0, 1]].transpose())
+                              [6, 0, 1]].transpose())   # Sort order: columns 1 (dest), 0 (src), 6 (synapse type)
 
         self.hyper_voxel_synapses[:self.hyper_voxel_synapse_ctr, :] = \
             self.hyper_voxel_synapses[sort_idx, :]
@@ -1311,7 +1312,7 @@ class SnuddaDetect(object):
     # returns a matrix where first column is a UID = srcID*nNeurons + destID
     # and the following two columns are start row and end row (-1) in matrix
 
-    def create_lookup_table(self, data, n_rows):
+    def create_lookup_table(self, data, n_rows, data_type):
 
         self.write_log("Create lookup table")
         # nRows = data.shape[0] -- zero padded, cant use shape
@@ -1323,9 +1324,24 @@ class SnuddaDetect(object):
         lookup_idx = 0
         num_neurons = len(self.neurons)
 
+        if data_type == "synapses":
+            hardcoded_synapse_type = None
+        elif data_type == "gap_junctions":
+            hardcoded_synapse_type = 3      # Hardcoded for gap junctions
+        else:
+            assert False, f"Unknown data_type {data_type}, should be 'synapses' or ' gap_junctions'"
+
+        max_synapse_type = self.next_channel_model_id   # This needs to be saved in HDF5 file
+
         while next_idx < n_rows:
             src_id = data[next_idx, 0]
             dest_id = data[next_idx, 1]
+            
+            if hardcoded_synapse_type:
+                synapse_type = hardcoded_synapse_type
+            else:
+                synapse_type = data[next_idx, 6]
+
             next_idx += 1
 
             while (next_idx < n_rows
@@ -1333,7 +1349,8 @@ class SnuddaDetect(object):
                    and data[next_idx, 1] == dest_id):
                 next_idx += 1
 
-            lookup_table[lookup_idx, :] = [dest_id * num_neurons + src_id, start_idx, next_idx]
+            lookup_table[lookup_idx, :] = [(dest_id * num_neurons + src_id)*max_synapse_type + synapse_type,
+                                           start_idx, next_idx]
 
             start_idx = next_idx
             lookup_idx += 1
@@ -1420,7 +1437,8 @@ class SnuddaDetect(object):
         self.hyper_voxel_gap_junctions[:self.hyper_voxel_gap_junction_ctr, :][:, range(6, 9)] += hyper_voxel_offset
 
         self.hyper_voxel_gap_junction_lookup = self.create_lookup_table(data=self.hyper_voxel_gap_junctions,
-                                                                        n_rows=self.hyper_voxel_gap_junction_ctr)
+                                                                        n_rows=self.hyper_voxel_gap_junction_ctr,
+                                                                        data_type="gap_junctions")
         end_time = timeit.default_timer()
 
         self.write_log(f"detectGapJunctions: {end_time - start_time} s")
@@ -1707,6 +1725,8 @@ class SnuddaDetect(object):
             network_group.create_dataset("gapJunctionLookup",
                                          data=self.hyper_voxel_gap_junction_lookup,
                                          dtype=int)
+
+            network_group.create_dataset("maxChannelTypeID", data=self.next_channel_model_id, dtype=int)
 
             # Additional information useful for debugging
             if self.debug_flag:

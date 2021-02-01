@@ -151,59 +151,122 @@ class TestPrune(unittest.TestCase):
             gj_order = gj[:, 1] * len(self.sd.neurons) + gj[:, 0]
             self.assertTrue((np.diff(gj_order) >= 0).all())
 
-        # Test of f1
-        testing_config_file = os.path.join(self.network_path, "network-config-test-1.json")
-        sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
-        sp.prune(pre_merge_only=False)
+        with self.subTest("synapse-f1"):
+            # Test of f1
+            testing_config_file = os.path.join(self.network_path, "network-config-test-1.json")
+            sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
+            sp.prune(pre_merge_only=False)
 
-        # Load the pruned data and check it
+            # Load the pruned data and check it
 
-        sl = SnuddaLoad(pruned_output)
-        # Setting f1=0.5 in config should remove 50% of synapses, but does so randomly
-        self.assertTrue((20*8 + 10*2)*0.5 - 10 < sl.data["nSynapses"] < (20*8 + 10*2)*0.5 + 10)
+            sl = SnuddaLoad(pruned_output)
+            # Setting f1=0.5 in config should remove 50% of synapses, but does so randomly
+            self.assertTrue((20*8 + 10*2)*0.5 - 10 < sl.data["nSynapses"] < (20*8 + 10*2)*0.5 + 10)
 
-        # Test of softmax
-        testing_config_file = os.path.join(self.network_path, "network-config-test-2.json")
-        sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
-        sp.prune(pre_merge_only=False)
+        with self.subTest("synapse-softmax"):
+            # Test of softmax
+            testing_config_file = os.path.join(self.network_path, "network-config-test-2.json")
+            sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
+            sp.prune(pre_merge_only=False)
 
-        # Load the pruned data and check it
-        sl = SnuddaLoad(pruned_output)
-        # Softmax reduces number of synapses
-        self.assertTrue(sl.data["nSynapses"] < 20*8 + 10*2)
+            # Load the pruned data and check it
+            sl = SnuddaLoad(pruned_output)
+            # Softmax reduces number of synapses
+            self.assertTrue(sl.data["nSynapses"] < 20*8 + 10*2)
 
-        # Test of mu2
-        testing_config_file = os.path.join(self.network_path, "network-config-test-3.json")
-        sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
-        sp.prune(pre_merge_only=False)
+        with self.subTest("synapse-mu2"):
+            # Test of mu2
+            testing_config_file = os.path.join(self.network_path, "network-config-test-3.json")
+            sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
+            sp.prune(pre_merge_only=False)
 
-        # Load the pruned data and check it
-        sl = SnuddaLoad(pruned_output)
-        # With mu2 having 2 synapses means 50% chance to keep them, having 1 will be likely to have it removed
-        self.assertTrue(20*8*0.5 - 10 < sl.data["nSynapses"] < 20*8*0.5 + 10)
+            # Load the pruned data and check it
+            sl = SnuddaLoad(pruned_output)
+            # With mu2 having 2 synapses means 50% chance to keep them, having 1 will be likely to have it removed
+            self.assertTrue(20*8*0.5 - 10 < sl.data["nSynapses"] < 20*8*0.5 + 10)
 
-        # Test of a3
-        testing_config_file = os.path.join(self.network_path, "network-config-test-4.json")
-        sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
-        sp.prune(pre_merge_only=False)
+        with self.subTest("synapse-a3"):
+            # Test of a3
+            testing_config_file = os.path.join(self.network_path, "network-config-test-4.json")
+            sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
+            sp.prune(pre_merge_only=False)
 
-        # Load the pruned data and check it
-        sl = SnuddaLoad(pruned_output)
+            # Load the pruned data and check it
+            sl = SnuddaLoad(pruned_output)
 
-        # a3=0.6 means 40% chance to remove all synapses between a pair
-        self.assertTrue((20*8 + 10*2)*0.6 - 10 < sl.data["nSynapses"] < (20*8 + 10*2)*0.6 + 10)
+            # a3=0.6 means 40% chance to remove all synapses between a pair
+            self.assertTrue((20*8 + 10*2)*0.6 - 10 < sl.data["nSynapses"] < (20*8 + 10*2)*0.6 + 10)
 
-        # Testing distance dependent pruning
-        testing_config_file = os.path.join(self.network_path, "network-config-test-5.json")
-        sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
-        sp.prune(pre_merge_only=False)
+        with self.subTest("synapse-distance-dependent-pruning"):
+            # Testing distance dependent pruning
+            testing_config_file = os.path.join(self.network_path, "network-config-test-5.json")
+            sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
+            sp.prune(pre_merge_only=False)
 
-        # Load the pruned data and check it
-        sl = SnuddaLoad(pruned_output)
+            # Load the pruned data and check it
+            sl = SnuddaLoad(pruned_output)
 
-        # "1*(d >= 100e-6)" means we remove all synapses closer than 100 micrometers
-        self.assertEqual(sl.data["nSynapses"], 20*6)
-        self.assertTrue((sl.data["synapses"][:, 8] >= 100).all())  # Column 8 -- distance to soma in micrometers
+            # "1*(d >= 100e-6)" means we remove all synapses closer than 100 micrometers
+            self.assertEqual(sl.data["nSynapses"], 20*6)
+            self.assertTrue((sl.data["synapses"][:, 8] >= 100).all())  # Column 8 -- distance to soma in micrometers
 
         # TODO: Need to do same tests for Gap Junctions also -- but should be same results, since same codebase
-        
+        with self.subTest("gap-junction-f1"):
+            # Test of f1
+            testing_config_file = os.path.join(self.network_path, "network-config-test-6.json")
+            sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
+            sp.prune(pre_merge_only=False)
+
+            # Load the pruned data and check it
+
+            sl = SnuddaLoad(pruned_output)
+            # Setting f1=0.7 in config should remove 30% of gap junctions, but does so randomly
+            self.assertTrue(64*0.7 - 10 < sl.data["nGapJunctions"] < 64*0.7 + 10)
+
+        with self.subTest("gap-junction-softmax"):
+            # Test of softmax
+            testing_config_file = os.path.join(self.network_path, "network-config-test-7.json")
+            sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
+            sp.prune(pre_merge_only=False)
+
+            # Load the pruned data and check it
+            sl = SnuddaLoad(pruned_output)
+            # Softmax reduces number of synapses
+            self.assertTrue(sl.data["nGapJunctions"] < 16*2 + 10)
+
+        with self.subTest("gap-junction-mu2"):
+            # Test of mu2
+            testing_config_file = os.path.join(self.network_path, "network-config-test-8.json")
+            sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
+            sp.prune(pre_merge_only=False)
+
+            # Load the pruned data and check it
+            sl = SnuddaLoad(pruned_output)
+            # With mu2 having 4 synapses means 50% chance to keep them, having 1 will be likely to have it removed
+            self.assertTrue(64*0.5 - 10 < sl.data["nGapJunctions"] < 64*0.5 + 10)
+
+        with self.subTest("gap-junction-a3"):
+            # Test of a3
+            testing_config_file = os.path.join(self.network_path, "network-config-test-9.json")
+            sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
+            sp.prune(pre_merge_only=False)
+
+            # Load the pruned data and check it
+            sl = SnuddaLoad(pruned_output)
+
+            # a3=0.8 means 20% chance to remove all synapses between a pair
+            self.assertTrue(64*0.8 - 5 < sl.data["nGapJunctions"] < 64*0.8 + 5)
+
+        if False:  # Distance dependent pruning currently not implemented for gap junctions
+            with self.subTest("gap-junction-distance-dependent-pruning"):
+                # Testing distance dependent pruning
+                testing_config_file = os.path.join(self.network_path, "network-config-test-10.json")
+                sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
+                sp.prune(pre_merge_only=False)
+
+                # Load the pruned data and check it
+                sl = SnuddaLoad(pruned_output)
+
+                # "1*(d <= 120e-6)" means we remove all synapses further away than 100 micrometers
+                self.assertEqual(sl.data["nGapJunctions"], 2*4*4)
+                self.assertTrue((sl.data["gapJunctions"][:, 8] <= 120).all())  # Column 8 -- distance to soma in micrometers
