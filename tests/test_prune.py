@@ -15,7 +15,7 @@ class TestPrune(unittest.TestCase):
     def setUp(self):
 
         os.chdir(os.path.dirname(__file__))
-        self.network_path = os.path.join(os.path.dirname(__file__), "tests", "network_testing_prune2")
+        self.network_path = os.path.join(os.path.dirname(__file__), "tests", "network_testing_prune3")
 
         create_cube_mesh(file_name=os.path.join(self.network_path, "mesh", "simple_mesh.obj"),
                          centre_point=(0, 0, 0),
@@ -125,12 +125,19 @@ class TestPrune(unittest.TestCase):
             sl = SnuddaLoad(pruned_output)
             # TODO: Call a plot function to plot entire network with synapses and all
 
-            self.assertEqual(sl.data["nSynapses"], 20*8 + 10*2)
+            self.assertEqual(sl.data["nSynapses"], (20*8 + 10*2)*2)  # Update, now AMPA+GABA, hence *2 at end
 
             # This checks that all synapses are in order
-            syn = sl.data["synapses"][:sl.data["nSynapses"], :2]
-            syn_order = syn[:, 1] * len(self.sd.neurons) + syn[:, 0]
+            # The synapse sort order is destID, sourceID, synapsetype (channel model id).
+
+            syn = sl.data["synapses"][:sl.data["nSynapses"], :]
+            syn_order = (syn[:, 1] * len(self.sd.neurons) + syn[:, 0]) * 12 + syn[:, 6]  # The 12 is maxChannelModelID
             self.assertTrue((np.diff(syn_order) >= 0).all())
+
+            # Note that channel model id is dynamically allocated, starting from 10 (GJ have ID 3)
+            # Check that correct number of each type
+            self.assertEqual(np.sum(sl.data["synapses"][:, 6] == 10), 20*8 + 10*2)
+            self.assertEqual(np.sum(sl.data["synapses"][:, 6] == 11), 20*8 + 10*2)
 
             self.assertEqual(sl.data["nGapJunctions"], 4*4*4)
             gj = sl.data["gapJunctions"][:sl.data["nGapJunctions"], :2]
