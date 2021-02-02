@@ -285,3 +285,9 @@ class TestPrune(unittest.TestCase):
                 # "1*(d <= 120e-6)" means we remove all synapses further away than 100 micrometers
                 self.assertEqual(sl.data["nGapJunctions"], 2*4*4)
                 self.assertTrue((sl.data["gapJunctions"][:, 8] <= 120).all())  # Column 8 -- distance to soma in micrometers
+
+
+if __name__ == '__main__':
+    unittest.main()
+
+# python3 -m unittest test_prune

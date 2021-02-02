@@ -381,6 +381,11 @@ class SnuddaInput(object):
 
             for input_type in input_info:
 
+                if input_type[0] == '!':
+                    self.write_log(f"Disabling input {input_type} for neuron {neuron_name} "
+                                   f" (input_type was commented with ! before name)")
+                    continue
+
                 input_inf = input_info[input_type]
 
                 if "populationUnitID" in input_inf:
