@@ -178,6 +178,12 @@ class SnuddaInput(object):
             # nName = self.neuronName[neuronID]
 
             for input_type in self.neuron_input[neuron_id]:
+
+                if input_type[0] == '!':
+                    self.write_log(f"Disabling input {input_type} for neuron {neuron_id} "
+                                   f" (input_type was commented with ! before name)")
+                    continue
+
                 if input_type.lower() != "VirtualNeuron".lower():
                     it_group = nid_group.create_group(input_type)
 

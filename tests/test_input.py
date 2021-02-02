@@ -16,6 +16,7 @@ class MyTestCase(unittest.TestCase):
     #def test_something(self):
     #    self.assertEqual(True, False)
 
+    # TODO: Test the disabling of input by adding a ! mark in config file before input name
 
 if __name__ == '__main__':
     unittest.main()
