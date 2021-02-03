@@ -39,26 +39,26 @@ class PruningIllustration(object):
                                hyper_voxel_size=150)
 
         # Reposition the neurons so we know how many synapses and where they will be located before pruning
-        neuron_positions = np.array([[0, 60-1, 0],  # Postsynaptiska
-                                     [0, 84-1, 0],
-                                     [0, 108-1, 0],
-                                     [0, 132-1, 0],
-                                     [0, 156-1, 0],
-                                     [0, 180-1, 0],
-                                     [0, 204-1, 0],
-                                     [0, 228-1, 0],
-                                     [0, 252-1, 0],
-                                     [0, 276-1, 0],
-                                     [60-1, 0, 0],  # Presynaptiska
-                                     [84-1, 0, 0],
-                                     [108-1, 0, 0],
-                                     [132-1, 0, 0],
-                                     [156-1, 0, 0],
-                                     [180-1, 0, 0],
-                                     [204-1, 0, 0],
-                                     [228-1, 0, 0],
-                                     [252-1, 0, 0],
-                                     [276-1, 0, 0],
+        neuron_positions = np.array([[0, 59, 0],  # Postsynaptiska
+                                     [0, 89, 0],
+                                     [0, 119, 0],
+                                     [0, 149, 0],
+                                     [0, 179, 0],
+                                     [0, 209, 0],
+                                     [0, 239, 0],
+                                     [0, 269, 0],
+                                     [0, 299, 0],
+                                     [0, 329, 0],
+                                     [59, 0, 0],  # Presynaptiska
+                                     [89, 0, 0],
+                                     [119, 0, 0],
+                                     [149, 0, 0],
+                                     [179, 0, 0],
+                                     [209, 0, 0],
+                                     [239, 0, 0],
+                                     [269, 0, 0],
+                                     [299, 0, 0],
+                                     [329, 0, 0],
                                      ]) * 1e-6
 
         # TODO: Add potential for gap junctions also by having 5 + 5 neurons in other grid
