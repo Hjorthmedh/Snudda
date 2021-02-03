@@ -14,7 +14,9 @@ class TestPrune(unittest.TestCase):
     
     def setUp(self):
 
-        os.chdir(os.path.dirname(__file__))
+        if os.path.dirname(__file__):
+            os.chdir(os.path.dirname(__file__))
+
         self.network_path = os.path.join(os.path.dirname(__file__), "tests", "network_testing_prune3")
 
         create_cube_mesh(file_name=os.path.join(self.network_path, "mesh", "simple_mesh.obj"),

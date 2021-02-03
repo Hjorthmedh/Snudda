@@ -15,7 +15,9 @@ class TestDetect(unittest.TestCase):
 
     def setUp(self):
 
-        os.chdir(os.path.dirname(__file__))
+        if os.path.dirname(__file__):
+            os.chdir(os.path.dirname(__file__))
+
         network_path = os.path.join(os.path.dirname(__file__), "tests", "network_testing_detect")
 
         create_cube_mesh(file_name=os.path.join(network_path, "mesh", "simple_mesh.obj"),

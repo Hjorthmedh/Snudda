@@ -2746,7 +2746,7 @@ class SnuddaDetect(object):
     # hyperID is just needed if we want to plotNeurons also
 
     def plot_hyper_voxel(self, plot_neurons=False, draw_axons=True, draw_dendrites=True,
-                         detect_done=True):
+                         detect_done=True, elev_azim=None, show_axis=True, title=None):
 
         import matplotlib.pyplot as plt
         from mpl_toolkits.mplot3d import Axes3D
@@ -2782,6 +2782,12 @@ class SnuddaDetect(object):
                 syn_coord -= self.hyper_voxel_offset
             ax.scatter(syn_coord[:, 0], syn_coord[:, 1], syn_coord[:, 2], c="green")
 
+        if elev_azim:
+            ax.view_init(elev_azim[0], elev_azim[1])
+
+        if not show_axis:
+            plt.axis("off")
+
         plt.ion()
         plt.show()
 
@@ -2798,7 +2804,10 @@ class SnuddaDetect(object):
                                    plot_dendrite=draw_dendrites,
                                    plot_origo=self.hyper_voxel_origo, plot_scale=1 / self.voxel_size)
 
-        plt.title("Scale is in voxels, not micrometers")
+        if title is None:
+            plt.title("Scale is in voxels, not micrometers")
+        else:
+            plt.title(title)
         plt.show()
         plt.ion()
 
@@ -2810,6 +2819,8 @@ class SnuddaDetect(object):
             os.mkdir(os.path.dirname(fig_name))
 
         plt.savefig(fig_name)
+
+        return plt, ax
 
     ############################################################################
 

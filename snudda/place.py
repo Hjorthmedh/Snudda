@@ -28,7 +28,7 @@ class SnuddaPlace(object):
 
     def __init__(self,
                  config_file=None,
-                 verbose=False,
+                 verbose=True,
                  log_file=None,
                  d_view=None,
                  lb_view=None,
@@ -174,6 +174,9 @@ class SnuddaPlace(object):
             config = json.load(cfg_file, object_pairs_hook=OrderedDict)
         finally:
             cfg_file.close()
+
+        if not config:
+            self.write_log("Warning, empty network config.")
 
         if self.random_seed is None:
             if "RandomSeed" in config and "place" in config["RandomSeed"]:

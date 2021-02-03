@@ -10,7 +10,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 class TestPlace(unittest.TestCase):
 
     def setUp(self):
-        os.chdir(os.path.dirname(__file__))
+        if os.path.dirname(__file__):
+            os.chdir(os.path.dirname(__file__))
         print(f"Current directory (detect): {os.path.dirname(os.path.realpath(__file__))}")
 
         from snudda.init import SnuddaInit
