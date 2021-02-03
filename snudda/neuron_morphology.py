@@ -736,7 +736,7 @@ class NeuronMorphology(object):
                     plot_dendrite=True,
                     line_style='-',
                     alpha=1.0,
-                    plot_origo=np.array([0, 0, 0]),
+                    plot_origo=np.array([0, 0, 0]),  # Only use this when plotting hyper voxels
                     plot_scale=1.0,
                     axon_colour=None,
                     dend_colour=None,

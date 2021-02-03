@@ -14,7 +14,7 @@ class PlotNetwork(object):
         self.sl = SnuddaLoad(self.network_file)
         self.prototype_neurons = dict()
 
-    def plot(self, plot_axon=True, plot_dendrite=True):
+    def plot(self, plot_axon=True, plot_dendrite=True, plot_synapses=True):
 
         fig = plt.figure()
         ax = fig.gca(projection='3d')
@@ -30,24 +30,29 @@ class PlotNetwork(object):
             neuron.plot_neuron(axis=ax,
                                plot_axon=plot_axon,
                                plot_dendrite=plot_dendrite,
-                               plot_origo=simulation_origo,
                                soma_colour=(0, 0, 0),
                                axon_colour=(1, 0, 0),
-                               dend_colour=(0, 0, 0))        
-        
-        import pdb
-        pdb.set_trace()
+                               dend_colour=(0, 0, 0))
+
+        if plot_synapses and "synapseCoords" in self.sl.data:
+            ax.scatter(self.sl.data["synapseCoords"][:, 0],
+                       self.sl.data["synapseCoords"][:, 1],
+                       self.sl.data["synapseCoords"][:, 2], c="royalblue")
 
         # Plot synapses
 
         plt.ion()
         plt.show()
 
+        import pdb
+        pdb.set_trace()
+
     def load_neuron(self, neuron_info=None, neuron_id=None):
 
         assert (neuron_info is None) + (neuron_id is None) == 1, "Specify neuron_info or neuron_id"
 
-        if neuron_id:
+        if neuron_id is not None:
+            print(f"Using id {neuron_id}")
             neuron_info = self.sl.data["neurons"][neuron_id]
 
         neuron_name = neuron_info["name"]
@@ -61,6 +66,7 @@ class PlotNetwork(object):
                      position=neuron_info["position"])
 
         return neuron
+
 
 if __name__ == "__main__":
 
