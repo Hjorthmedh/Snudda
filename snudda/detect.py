@@ -2807,7 +2807,7 @@ class SnuddaDetect(object):
                                    plot_origo=self.hyper_voxel_origo, plot_scale=1 / self.voxel_size,
                                    soma_colour=(0, 0, 0),
                                    axon_colour=(1, 0, 0),
-                                   dend_colour=(0, 0, 1))
+                                   dend_colour=(0, 0, 0))
 
         if title is None:
             plt.title("Scale is in voxels, not micrometers")

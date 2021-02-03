@@ -4,6 +4,8 @@ import numpy as np
 from snudda.create_cube_mesh import create_cube_mesh
 from snudda.detect import SnuddaDetect
 from snudda.place import SnuddaPlace
+from snudda.prune import SnuddaPrune
+from snudda.utils.reposition_neurons import RepositionNeurons
 
 
 class PruningIllustration(object):
@@ -82,27 +84,41 @@ class PruningIllustration(object):
 
         self.sd.detect(restart_detection_flag=True)
 
-        if True:
+        # Also update so that the new positions are saved in the place file
+        rn = RepositionNeurons(self.position_file)
+        for neuron_info in self.sd.neurons:
+            rn.place(neuron_info["neuronID"], position=neuron_info["position"], rotation=neuron_info["rotation"])
+        rn.close()
+
+        if False:
             self.sd.process_hyper_voxel(1)
             plt, ax = self.sd.plot_hyper_voxel(plot_neurons=True, elev_azim=(90, 0),
                                                draw_axon_voxels=False, draw_dendrite_voxels=False,
                                                draw_axons=True, draw_dendrites=True,
-                                               show_axis=True, title="", fig_file_name="Pruning-fig-1")
-            # TODO: Check why soma is plotted in wrong place? Mistake with origo plotoffset?
+                                               show_axis=False, title="No pruning", fig_file_name="Pruning-fig-1-no-pruning")
             import pdb
             pdb.set_trace()
 
+    def prune_network(self, pruning_config=None):
 
-# Create a network with double axon and double dendrites (tuning fork style)
+        work_log = os.path.join(self.network_path, "log", "network-detect-worklog.hdf5")
+        pruned_output = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
 
-    def setup_network(self):
+        sp = SnuddaPrune(work_history_file=work_log, config_file=pruning_config)  # Use default config file
+        sp.prune(pre_merge_only=False)
+        sp = []
+
+        # Load the pruned data and check it
+        # sl = SnuddaLoad(pruned_output)
+
 
         pass
-# Position the neurons
 
 
 if __name__ == "__main__":
 
     pil = PruningIllustration()
+    pil.prune_network()
+
     import pdb
     pdb.set_trace()
