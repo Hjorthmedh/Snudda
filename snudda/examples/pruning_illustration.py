@@ -34,29 +34,29 @@ class PruningIllustration(object):
 
         self.sd = SnuddaDetect(config_file=self.config_file, position_file=self.position_file,
                                save_file=self.save_file, rc=None,
-                               hyper_voxel_size=100)
+                               hyper_voxel_size=150)
 
         # Reposition the neurons so we know how many synapses and where they will be located before pruning
-        neuron_positions = np.array([[0, 60, 0],  # Postsynaptiska
-                                     [0, 80, 0],
-                                     [0, 100, 0],
-                                     [0, 120, 0],
-                                     [0, 140, 0],
-                                     [0, 160, 0],
-                                     [0, 180, 0],
-                                     [0, 200, 0],
-                                     [0, 220, 0],
-                                     [0, 240, 0],
-                                     [60, 0, 0],  # Presynaptiska
-                                     [80, 0, 0],
-                                     [100, 0, 0],
-                                     [120, 0, 0],
-                                     [140, 0, 0],
-                                     [160, 0, 0],
-                                     [180, 0, 0],
-                                     [200, 0, 0],
-                                     [220, 0, 0],
-                                     [240, 0, 0],
+        neuron_positions = np.array([[0, 60-1, 0],  # Postsynaptiska
+                                     [0, 84-1, 0],
+                                     [0, 108-1, 0],
+                                     [0, 132-1, 0],
+                                     [0, 156-1, 0],
+                                     [0, 180-1, 0],
+                                     [0, 204-1, 0],
+                                     [0, 228-1, 0],
+                                     [0, 252-1, 0],
+                                     [0, 276-1, 0],
+                                     [60-1, 0, 0],  # Presynaptiska
+                                     [84-1, 0, 0],
+                                     [108-1, 0, 0],
+                                     [132-1, 0, 0],
+                                     [156-1, 0, 0],
+                                     [180-1, 0, 0],
+                                     [204-1, 0, 0],
+                                     [228-1, 0, 0],
+                                     [252-1, 0, 0],
+                                     [276-1, 0, 0],
                                      ]) * 1e-6
 
         # TODO: Add potential for gap junctions also by having 5 + 5 neurons in other grid
@@ -85,7 +85,9 @@ class PruningIllustration(object):
         if True:
             self.sd.process_hyper_voxel(1)
             plt, ax = self.sd.plot_hyper_voxel(plot_neurons=True, elev_azim=(90, 0),
-                                               show_axis=False, title="", fig_file_name="Pruning-fig-1")
+                                               draw_axon_voxels=False, draw_dendrite_voxels=False,
+                                               draw_axons=True, draw_dendrites=True,
+                                               show_axis=True, title="", fig_file_name="Pruning-fig-1")
             # TODO: Check why soma is plotted in wrong place? Mistake with origo plotoffset?
             import pdb
             pdb.set_trace()

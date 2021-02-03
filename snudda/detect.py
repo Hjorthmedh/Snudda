@@ -2746,8 +2746,9 @@ class SnuddaDetect(object):
     # hyperID is just needed if we want to plotNeurons also
 
     def plot_hyper_voxel(self, plot_neurons=False, draw_axons=True, draw_dendrites=True,
+                         draw_axon_voxels=True, draw_dendrite_voxels=True,
                          detect_done=True, elev_azim=None, show_axis=True, title=None,
-                         fig_file_name=None):
+                         fig_file_name=None, dpi=300):
 
         import matplotlib.pyplot as plt
         from mpl_toolkits.mplot3d import Axes3D
@@ -2761,11 +2762,11 @@ class SnuddaDetect(object):
                                self.dend_voxel_ctr.shape[1],
                                self.dend_voxel_ctr.shape[2]))
 
-        if draw_axons:
+        if draw_axon_voxels:
             colors[:, :, :, 0] = self.axon_voxel_ctr / max(np.max(self.axon_voxel_ctr), 1)
             voxel_data += self.axon_voxel_ctr
 
-        if draw_dendrites:
+        if draw_dendrite_voxels:
             colors[:, :, :, 2] = self.dend_voxel_ctr / max(np.max(self.dend_voxel_ctr), 1)
             voxel_data += self.dend_voxel_ctr
 
@@ -2803,7 +2804,10 @@ class SnuddaDetect(object):
                 neuron.plot_neuron(axis=ax,
                                    plot_axon=draw_axons,
                                    plot_dendrite=draw_dendrites,
-                                   plot_origo=self.hyper_voxel_origo, plot_scale=1 / self.voxel_size)
+                                   plot_origo=self.hyper_voxel_origo, plot_scale=1 / self.voxel_size,
+                                   soma_colour=(0, 0, 0),
+                                   axon_colour=(1, 0, 0),
+                                   dend_colour=(0, 0, 1))
 
         if title is None:
             plt.title("Scale is in voxels, not micrometers")
@@ -2822,7 +2826,7 @@ class SnuddaDetect(object):
         if not os.path.exists(os.path.dirname(fig_name)):
             os.mkdir(os.path.dirname(fig_name))
 
-        plt.savefig(fig_name)
+        plt.savefig(fig_name, dpi=dpi)
 
         return plt, ax
 
