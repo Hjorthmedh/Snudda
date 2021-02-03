@@ -4,6 +4,7 @@ import numpy as np
 from snudda.create_cube_mesh import create_cube_mesh
 from snudda.detect import SnuddaDetect
 from snudda.place import SnuddaPlace
+from snudda.plotting.plot_network import PlotNetwork
 from snudda.prune import SnuddaPrune
 from snudda.utils.reposition_neurons import RepositionNeurons
 
@@ -99,26 +100,35 @@ class PruningIllustration(object):
             import pdb
             pdb.set_trace()
 
-    def prune_network(self, pruning_config=None):
+    def prune_network(self, pruning_config=None, fig_name=None):
 
         work_log = os.path.join(self.network_path, "log", "network-detect-worklog.hdf5")
         pruned_output = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
+
+        if pruning_config is not None and not os.path.exist(pruning_config):
+            pruning_config = os.path.join(self.network_path, pruning_config)
 
         sp = SnuddaPrune(work_history_file=work_log, config_file=pruning_config)  # Use default config file
         sp.prune(pre_merge_only=False)
         sp = []
 
+        pn = PlotNetwork(pruned_output)
+        pn.plot(fig_name=fig_name, show_axis=False, elev_azim=(90, 0))
+
         # Load the pruned data and check it
         # sl = SnuddaLoad(pruned_output)
 
 
-        pass
+
 
 
 if __name__ == "__main__":
 
     pil = PruningIllustration()
-    pil.prune_network()
+    pil.prune_network(fig_name="0-No-Pruning.pdf")
+
+    # Add rest of pruning versions here
+    # pil.prune_network(pruning_config="mypruningconfig-1.json", fig_name="1-my-rpuning.pdf")
 
     import pdb
     pdb.set_trace()

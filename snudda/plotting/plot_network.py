@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from snudda.load import SnuddaLoad
 import matplotlib.pyplot as plt
@@ -14,7 +15,9 @@ class PlotNetwork(object):
         self.sl = SnuddaLoad(self.network_file)
         self.prototype_neurons = dict()
 
-    def plot(self, plot_axon=True, plot_dendrite=True, plot_synapses=True):
+    def plot(self, plot_axon=True, plot_dendrite=True, plot_synapses=True,
+             title=None, show_axis=True,
+             elev_azim=None, fig_name=None, dpi=300):
 
         fig = plt.figure()
         ax = fig.gca(projection='3d')
@@ -34,15 +37,30 @@ class PlotNetwork(object):
                                axon_colour=(1, 0, 0),
                                dend_colour=(0, 0, 0))
 
+        # Plot synapses
         if plot_synapses and "synapseCoords" in self.sl.data:
             ax.scatter(self.sl.data["synapseCoords"][:, 0],
                        self.sl.data["synapseCoords"][:, 1],
                        self.sl.data["synapseCoords"][:, 2], c="royalblue")
 
-        # Plot synapses
+        if elev_azim:
+            ax.view_init(elev_azim[0], elev_azim[1])
+
+        if not show_axis:
+            plt.axis("off")
+
+        if title is None:
+            title = ""
+        plt.title(title)
 
         plt.ion()
         plt.show()
+
+        if fig_name is not None:
+            fig_path = os.path.join(os.path.dirname(self.network_file), "figures", fig_name)
+            if not os.path.exists(os.path.dirname(fig_path)):
+                os.mkdir(os.path.dirname(fig_path))
+            plt.savefig(fig_path, dpi=dpi)
 
         import pdb
         pdb.set_trace()
