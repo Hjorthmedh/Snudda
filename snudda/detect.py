@@ -2746,7 +2746,8 @@ class SnuddaDetect(object):
     # hyperID is just needed if we want to plotNeurons also
 
     def plot_hyper_voxel(self, plot_neurons=False, draw_axons=True, draw_dendrites=True,
-                         detect_done=True, elev_azim=None, show_axis=True, title=None):
+                         detect_done=True, elev_azim=None, show_axis=True, title=None,
+                         fig_file_name=None):
 
         import matplotlib.pyplot as plt
         from mpl_toolkits.mplot3d import Axes3D
@@ -2812,8 +2813,11 @@ class SnuddaDetect(object):
         plt.ion()
 
         plt.pause(0.001)
-        fig_name = os.path.join(os.path.dirname(self.config_file), "figures",
-                                f"Hypervoxel-{self.slurm_id}-{self.hyper_voxel_id}.png")
+
+        if fig_file_name is None:
+            fig_file_name = f"Hypervoxel-{self.slurm_id}-{self.hyper_voxel_id}.png"
+
+        fig_name = os.path.join(os.path.dirname(self.config_file), "figures", fig_file_name)
 
         if not os.path.exists(os.path.dirname(fig_name)):
             os.mkdir(os.path.dirname(fig_name))

@@ -84,7 +84,8 @@ class PruningIllustration(object):
 
         if True:
             self.sd.process_hyper_voxel(1)
-            plt, ax = self.sd.plot_hyper_voxel(plot_neurons=True, elev_azim=(90, 0), show_axis=False, title="")
+            plt, ax = self.sd.plot_hyper_voxel(plot_neurons=True, elev_azim=(90, 0),
+                                               show_axis=False, title="", fig_file_name="Pruning-fig-1")
             # TODO: Check why soma is plotted in wrong place? Mistake with origo plotoffset?
             import pdb
             pdb.set_trace()
