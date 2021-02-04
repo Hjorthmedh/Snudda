@@ -112,13 +112,23 @@ class PruningIllustration(object):
         sp.prune(pre_merge_only=False)
         sp = []
 
+        plot_axon = np.ones((20,), dtype=bool)
+        plot_dendrite = np.ones((20,), dtype=bool)
+
+        #plot_axon[:10] = False
+        #plot_dendrite[10:] = False
+
         pn = PlotNetwork(pruned_output)
-        pn.plot(fig_name=fig_name, show_axis=False, elev_azim=(90, 0))
+        plt, ax = pn.plot(fig_name=fig_name, show_axis=False,
+                          plot_axon=plot_axon, plot_dendrite=plot_dendrite,
+                          elev_azim=(89.5, 0))
 
         # Load the pruned data and check it
         # sl = SnuddaLoad(pruned_output)
 
 
+        import pdb
+        pdb.set_trace()
 
 
 

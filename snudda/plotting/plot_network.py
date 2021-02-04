@@ -19,6 +19,14 @@ class PlotNetwork(object):
              title=None, show_axis=True,
              elev_azim=None, fig_name=None, dpi=300):
 
+        if type(plot_axon) == bool:
+            plot_axon = np.ones((self.sl.data["nNeurons"],), dtype=bool) * plot_axon
+
+        if type(plot_dendrite) == bool:
+            plot_dendrite = np.ones((self.sl.data["nNeurons"],), dtype=bool) * plot_dendrite
+
+        assert len(plot_axon) == len(plot_dendrite) == len(self.sl.data["neurons"])
+
         fig = plt.figure()
         ax = fig.gca(projection='3d')
 
@@ -28,20 +36,20 @@ class PlotNetwork(object):
             simulation_origo = np.array([0, 0, 0])
 
         # Plot neurons
-        for neuron_info in self.sl.data["neurons"]:
+        for neuron_info, pa, pd in zip(self.sl.data["neurons"], plot_axon, plot_dendrite):
             neuron = self.load_neuron(neuron_info)
             neuron.plot_neuron(axis=ax,
-                               plot_axon=plot_axon,
-                               plot_dendrite=plot_dendrite,
+                               plot_axon=pa,
+                               plot_dendrite=pd,
                                soma_colour=(0, 0, 0),
-                               axon_colour=(1, 0, 0),
-                               dend_colour=(0, 0, 0))
+                               axon_colour="maroon",
+                               dend_colour="black")   # Can also write colours as (0, 0, 0) -- rgb
 
         # Plot synapses
         if plot_synapses and "synapseCoords" in self.sl.data:
             ax.scatter(self.sl.data["synapseCoords"][:, 0],
                        self.sl.data["synapseCoords"][:, 1],
-                       self.sl.data["synapseCoords"][:, 2], c="royalblue")
+                       self.sl.data["synapseCoords"][:, 2], c="forestgreen")
 
         if elev_azim:
             ax.view_init(elev_azim[0], elev_azim[1])
@@ -62,8 +70,8 @@ class PlotNetwork(object):
                 os.mkdir(os.path.dirname(fig_path))
             plt.savefig(fig_path, dpi=dpi)
 
-        import pdb
-        pdb.set_trace()
+        return plt, ax
+
 
     def load_neuron(self, neuron_info=None, neuron_id=None):
 

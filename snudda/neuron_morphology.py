@@ -830,7 +830,7 @@ class NeuronMorphology(object):
                 u, v = np.mgrid[0:2 * np.pi:20j, 0:np.pi:10j]
                 x = (self.soma[0, 3] * np.cos(u) * np.sin(v) + self.soma[0, 0] - plot_origo[0])*plot_scale
                 y = (self.soma[0, 3] * np.sin(u) * np.sin(v) + self.soma[0, 1] - plot_origo[1])*plot_scale
-                z = (self.soma[0, 3] * np.cos(v) + self.soma[0, 3] - plot_origo[2])*plot_scale
+                z = (self.soma[0, 3] * np.cos(v) + self.soma[0, 2] - plot_origo[2])*plot_scale
 
                 ax.plot_wireframe(x, y, z, color=soma_colour, alpha=alpha)
             else:
@@ -839,12 +839,12 @@ class NeuronMorphology(object):
                            (self.soma[:, 2] - plot_origo[2]) * plot_scale,
                            c=soma_colour, alpha=alpha)
 
-        # plt.axis('equal')
-        plt.title("Neuron: " + self.swc_filename.split("/")[-3] + "_" + self.swc_filename.split('/').pop())
-        plt.ion()
-        plt.show()
-        plt.draw()
-        plt.pause(0.001)
+        if axis is None:
+            plt.title("Neuron: " + self.swc_filename.split("/")[-3] + "_" + self.swc_filename.split('/').pop())
+            plt.ion()
+            plt.show()
+            plt.draw()
+            plt.pause(0.001)
 
         return ax
 
