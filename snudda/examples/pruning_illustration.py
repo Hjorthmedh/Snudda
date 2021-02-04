@@ -167,40 +167,58 @@ if __name__ == "__main__":
                       title="f1 = 0.25, mu2 = 3",
                       fig_name="2-Pruning-f1-0.25-mu2-3.pdf")
 
+
+    # Softmax
+    pil.prune_network(pruning_config="network-config-softmax-4.json",
+                      title="softmax=4",
+                      fig_name="3-Pruning-softmax-4.pdf")
+
+    pil.prune_network(pruning_config="network-config-softmax-3.json",
+                      title="softmax=3",
+                      fig_name="3-Pruning-softmax-3.pdf")
+
+    pil.prune_network(pruning_config="network-config-softmax-2.json",
+                      title="softmax=2",
+                      fig_name="3-Pruning-softmax-2.pdf")
+
+    pil.prune_network(pruning_config="network-config-softmax-1.json",
+                      title="softmax=1",
+                      fig_name="3-Pruning-softmax-1.pdf")
+
     # Adding a3 pruning
-    pil.prune_network(pruning_config="network-config-f1-1-mu2-3-a3-0.5.json",
-                      title="a3 = 0.5, f1 = 1, mu2 = 3",
-                      fig_name="3-Pruning-f1-1-mu2-3-a3-0.5.pdf")
+    pil.prune_network(pruning_config="network-config-a3-1.json",
+                      title="a3 = 1",
+                      fig_name="4-Pruning-a3-1.pdf")
 
-    pil.prune_network(pruning_config="network-config-f1-0.75-mu2-3-a3-0.5.json",
-                      title="a3 = 0.5, f1 = 0.75, mu2 = 3",
-                      fig_name="3-Pruning-f1-0.75-mu2-3-a3-0.5.pdf")
+    pil.prune_network(pruning_config="network-config-a3-0.75.json",
+                      title="a3 = 0.75",
+                      fig_name="4-Pruning-a3-0.75.pdf")
 
-    pil.prune_network(pruning_config="network-config-f1-0.5-mu2-3-a3-0.5.json",
-                      title="a3 = 0.5, f1 = 0.5, mu2 = 3",
-                      fig_name="3-Pruning-f1-0.5-mu2-3-a3-0.5.pdf")
+    pil.prune_network(pruning_config="network-config-a3-0.5.json",
+                      title="a3 = 0.5",
+                      fig_name="4-Pruning-a3-0.5.pdf")
 
-    pil.prune_network(pruning_config="network-config-f1-0.25-mu2-3-a3-0.5.json",
-                      title="a3 = 0.5, f1 = 0.25, mu2 = 3",
-                      fig_name="3-Pruning-f1-0.25-mu2-3-a3-0.5.pdf")
+    pil.prune_network(pruning_config="network-config-a3-0.25.json",
+                      title="a3 = 0.25",
+                      fig_name="4-Pruning-a3-0.25.pdf")
 
 
     # Distance dependent examples
     pil.prune_network(pruning_config="network-config-distance-dep-1.json",
                       title="exp(-(0.5*d/60e-6)^2)",
-                      fig_name="4-Pruning-distance-dep-1.pdf")
+                      fig_name="5-Pruning-distance-dep-1.pdf")
 
     pil.prune_network(pruning_config="network-config-distance-dep-2.json",
                       title="exp(-(0.5*d/100e-6)^2)",
-                      fig_name="4-Pruning-distance-dep-2.pdf")
+                      fig_name="5-Pruning-distance-dep-2.pdf")
 
     pil.prune_network(pruning_config="network-config-distance-dep-3.json",
                       title="1/(1+np.exp(-(d-200e-6)/30e-6))",
-                      fig_name="4-Pruning-distance-dep-3.pdf")
+                      fig_name="5-Pruning-distance-dep-3.pdf")
 
     pil.prune_network(pruning_config="network-config-distance-dep-4.json",
                       title="1/(1+np.exp(-(d-300e-6)/30e-6))",
-                      fig_name="4-Pruning-distance-dep-4.pdf")
+                      fig_name="5-Pruning-distance-dep-4.pdf")
 
 
     import pdb

@@ -27,7 +27,7 @@ class PlotNetwork(object):
 
         assert len(plot_axon) == len(plot_dendrite) == len(self.sl.data["neurons"])
 
-        fig = plt.figure(figsize=(5, 5))
+        fig = plt.figure(figsize=(6, 6.5))
         ax = fig.gca(projection='3d')
 
         if "simulationOrigo" in self.sl.data:
