@@ -16,7 +16,7 @@ class PruningIllustration(object):
         if os.path.dirname(__file__):
             os.chdir(os.path.dirname(__file__))
 
-        self.network_path = os.path.join(os.path.dirname(__file__), "pruning_illustration_network")
+        self.network_path = "pruning_illustration_network"
         self.config_file = os.path.join(self.network_path, "network-config.json")
         self.position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
         self.save_file = os.path.join(self.network_path, "voxels", "network-putative-synapses.hdf5")
@@ -184,6 +184,23 @@ if __name__ == "__main__":
                       title="a3 = 0.5, f1 = 0.25, mu2 = 3",
                       fig_name="3-Pruning-f1-0.25-mu2-3-a3-0.5.pdf")
 
+
+    # Distance dependent examples
+    pil.prune_network(pruning_config="network-config-distance-dep-1.json",
+                      title="exp(-(0.5*d/60e-6)^2)",
+                      fig_name="4-Pruning-distance-dep-1.pdf")
+
+    pil.prune_network(pruning_config="network-config-distance-dep-2.json",
+                      title="exp(-(0.5*d/100e-6)^2)",
+                      fig_name="4-Pruning-distance-dep-2.pdf")
+
+    pil.prune_network(pruning_config="network-config-distance-dep-3.json",
+                      title="1/(1+np.exp(-(d-200e-6)/30e-6))",
+                      fig_name="4-Pruning-distance-dep-3.pdf")
+
+    pil.prune_network(pruning_config="network-config-distance-dep-4.json",
+                      title="1/(1+np.exp(-(d-300e-6)/30e-6))",
+                      fig_name="4-Pruning-distance-dep-4.pdf")
 
 
     import pdb
