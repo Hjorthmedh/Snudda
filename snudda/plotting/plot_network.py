@@ -57,11 +57,13 @@ class PlotNetwork(object):
         if not show_axis:
             plt.axis("off")
 
+        plt.tight_layout()
+
         if title is None:
             title = ""
         plt.title(title)
 
-        ax.dist = 8
+        # ax.dist = 8
 
         plt.ion()
         plt.show()

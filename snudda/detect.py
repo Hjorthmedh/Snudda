@@ -217,7 +217,7 @@ class SnuddaDetect(object):
     def detect(self, restart_detection_flag=True, rc=None):
 
         # Normally rc is assigned in init, but let's have option to get it here also
-        if rc:
+        if rc is not None:
             self.rc = rc
 
         # We need to setup the workers
@@ -264,7 +264,7 @@ class SnuddaDetect(object):
             self.distribute_neurons_parallel(d_view=d_view)
 
             if d_view is not None:
-                self.parallel_process_hyper_voxels(rc=rc, d_view=d_view)
+                self.parallel_process_hyper_voxels(rc=self.rc, d_view=d_view)
 
             else:
                 # We are running it in serial
