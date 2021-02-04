@@ -17,7 +17,7 @@ class PlotNetwork(object):
 
     def plot(self, plot_axon=True, plot_dendrite=True, plot_synapses=True,
              title=None, show_axis=True,
-             elev_azim=None, fig_name=None, dpi=300):
+             elev_azim=None, fig_name=None, dpi=600):
 
         if type(plot_axon) == bool:
             plot_axon = np.ones((self.sl.data["nNeurons"],), dtype=bool) * plot_axon
@@ -41,7 +41,7 @@ class PlotNetwork(object):
             neuron.plot_neuron(axis=ax,
                                plot_axon=pa,
                                plot_dendrite=pd,
-                               soma_colour=(0, 0, 0),
+                               soma_colour="black",
                                axon_colour="maroon",
                                dend_colour="black")   # Can also write colours as (0, 0, 0) -- rgb
 
@@ -49,7 +49,7 @@ class PlotNetwork(object):
         if plot_synapses and "synapseCoords" in self.sl.data:
             ax.scatter(self.sl.data["synapseCoords"][:, 0],
                        self.sl.data["synapseCoords"][:, 1],
-                       self.sl.data["synapseCoords"][:, 2], c="forestgreen")
+                       self.sl.data["synapseCoords"][:, 2], c=(0.1, 0.1, 0.1))
 
         if elev_azim:
             ax.view_init(elev_azim[0], elev_azim[1])

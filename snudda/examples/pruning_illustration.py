@@ -100,42 +100,59 @@ class PruningIllustration(object):
             import pdb
             pdb.set_trace()
 
-    def prune_network(self, pruning_config=None, fig_name=None):
+    def prune_network(self, pruning_config=None, fig_name=None, title=None):
 
         work_log = os.path.join(self.network_path, "log", "network-detect-worklog.hdf5")
         pruned_output = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
 
-        if pruning_config is not None and not os.path.exist(pruning_config):
+        if pruning_config is not None and not os.path.exists(pruning_config):
             pruning_config = os.path.join(self.network_path, pruning_config)
 
         sp = SnuddaPrune(work_history_file=work_log, config_file=pruning_config)  # Use default config file
         sp.prune(pre_merge_only=False)
         sp = []
 
-        plot_axon = np.ones((20,), dtype=bool)
-        plot_dendrite = np.ones((20,), dtype=bool)
-
+        plot_axon = True
+        plot_dendrite = True
+        #plot_axon = np.ones((20,), dtype=bool)
+        #plot_dendrite = np.ones((20,), dtype=bool)
         #plot_axon[:10] = False
         #plot_dendrite[10:] = False
 
         pn = PlotNetwork(pruned_output)
         plt, ax = pn.plot(fig_name=fig_name, show_axis=False,
                           plot_axon=plot_axon, plot_dendrite=plot_dendrite,
-                          elev_azim=(89.5, 0))
+                          title=title,
+                          elev_azim=(90, 0))
 
         # Load the pruned data and check it
         # sl = SnuddaLoad(pruned_output)
 
-
-        import pdb
-        pdb.set_trace()
-
-
-
 if __name__ == "__main__":
 
     pil = PruningIllustration()
-    pil.prune_network(fig_name="0-No-Pruning.pdf")
+    pil.prune_network(fig_name="0-No-Pruning.pdf", title="No pruning")
+
+    pil.prune_network(pruning_config="network-config-f1-1.json",
+                      title="f1 = 1",
+                      fig_name="1-Pruning-f1-1-No-pruning.pdf")
+
+    pil.prune_network(pruning_config="network-config-f1-0.75.json",
+                      title="f1 = 0.75",
+                      fig_name="1-Pruning-f1-0.75.pdf")
+
+    pil.prune_network(pruning_config="network-config-f1-0.5.json", 
+                      title="f1 = 0.5",
+                      fig_name="1-Pruning-f1-0.5.pdf")
+
+    pil.prune_network(pruning_config="network-config-f1-0.25.json",
+                      title="f1 = 0.25",
+                      fig_name="1-Pruning-f1-0.25.pdf")
+
+
+
+    import pdb
+    pdb.set_trace()
 
     # Add rest of pruning versions here
     # pil.prune_network(pruning_config="mypruningconfig-1.json", fig_name="1-my-rpuning.pdf")
