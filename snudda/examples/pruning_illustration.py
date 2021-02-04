@@ -169,19 +169,19 @@ if __name__ == "__main__":
 
     # Adding a3 pruning
     pil.prune_network(pruning_config="network-config-f1-1-mu2-3-a3-0.5.json",
-                      title="f1 = 1, mu2 = 3, a3 = 0.5",
+                      title="a3 = 0.5, f1 = 1, mu2 = 3",
                       fig_name="3-Pruning-f1-1-mu2-3-a3-0.5.pdf")
 
     pil.prune_network(pruning_config="network-config-f1-0.75-mu2-3-a3-0.5.json",
-                      title="f1 = 0.75, mu2 = 3, a3 = 0.5",
+                      title="a3 = 0.5, f1 = 0.75, mu2 = 3",
                       fig_name="3-Pruning-f1-0.75-mu2-3-a3-0.5.pdf")
 
     pil.prune_network(pruning_config="network-config-f1-0.5-mu2-3-a3-0.5.json",
-                      title="f1 = 0.5, mu2 = 3, a3 = 0.5",
+                      title="a3 = 0.5, f1 = 0.5, mu2 = 3",
                       fig_name="3-Pruning-f1-0.5-mu2-3-a3-0.5.pdf")
 
     pil.prune_network(pruning_config="network-config-f1-0.25-mu2-3-a3-0.5.json",
-                      title="f1 = 0.25, mu2 = 3, a3 = 0.5",
+                      title="a3 = 0.5, f1 = 0.25, mu2 = 3",
                       fig_name="3-Pruning-f1-0.25-mu2-3-a3-0.5.pdf")
 
 
