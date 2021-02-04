@@ -133,6 +133,7 @@ if __name__ == "__main__":
     pil = PruningIllustration()
     pil.prune_network(fig_name="0-No-Pruning.pdf", title="No pruning")
 
+    # Showing f1 pruning
     pil.prune_network(pruning_config="network-config-f1-1.json",
                       title="f1 = 1",
                       fig_name="1-Pruning-f1-1-No-pruning.pdf")
@@ -148,6 +149,40 @@ if __name__ == "__main__":
     pil.prune_network(pruning_config="network-config-f1-0.25.json",
                       title="f1 = 0.25",
                       fig_name="1-Pruning-f1-0.25.pdf")
+
+    # Adding mu2 pruning
+    pil.prune_network(pruning_config="network-config-f1-1-mu2-3.json",
+                      title="f1 = 1, mu2 = 3",
+                      fig_name="2-Pruning-f1-1-mu2-3.pdf")
+
+    pil.prune_network(pruning_config="network-config-f1-0.75-mu2-3.json",
+                      title="f1 = 0.75, mu2 = 3",
+                      fig_name="2-Pruning-f1-0.75-mu2-3.pdf")
+
+    pil.prune_network(pruning_config="network-config-f1-0.5-mu2-3.json",
+                      title="f1 = 0.5, mu2 = 3",
+                      fig_name="2-Pruning-f1-0.5-mu2-3.pdf")
+
+    pil.prune_network(pruning_config="network-config-f1-0.25-mu2-3.json",
+                      title="f1 = 0.25, mu2 = 3",
+                      fig_name="2-Pruning-f1-0.25-mu2-3.pdf")
+
+    # Adding a3 pruning
+    pil.prune_network(pruning_config="network-config-f1-1-mu2-3-a3-0.5.json",
+                      title="f1 = 1, mu2 = 3, a3 = 0.5",
+                      fig_name="3-Pruning-f1-1-mu2-3-a3-0.5.pdf")
+
+    pil.prune_network(pruning_config="network-config-f1-0.75-mu2-3-a3-0.5.json",
+                      title="f1 = 0.75, mu2 = 3, a3 = 0.5",
+                      fig_name="3-Pruning-f1-0.75-mu2-3-a3-0.5.pdf")
+
+    pil.prune_network(pruning_config="network-config-f1-0.5-mu2-3-a3-0.5.json",
+                      title="f1 = 0.5, mu2 = 3, a3 = 0.5",
+                      fig_name="3-Pruning-f1-0.5-mu2-3-a3-0.5.pdf")
+
+    pil.prune_network(pruning_config="network-config-f1-0.25-mu2-3-a3-0.5.json",
+                      title="f1 = 0.25, mu2 = 3, a3 = 0.5",
+                      fig_name="3-Pruning-f1-0.25-mu2-3-a3-0.5.pdf")
 
 
 
