@@ -66,9 +66,9 @@ class MyTestCase(unittest.TestCase):
         input_data = h5py.File(spike_file,'r')
         config_data = json.loads(input_data["config"][()])
 
-
-        import pdb
-        pdb.set_trace()
+        #TODO: Add checks
+        #import pdb
+        #pdb.set_trace()
 
         pass
 
