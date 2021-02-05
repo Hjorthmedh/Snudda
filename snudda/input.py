@@ -103,6 +103,10 @@ class SnuddaInput(object):
 
         self.neuron_cache = dict([])
 
+        self.is_master = is_master
+
+    def generate(self):
+
         # Read in the input configuration information from JSON file
         self.read_input_config_file()
 
@@ -113,7 +117,7 @@ class SnuddaInput(object):
         self.read_network_config_file()
 
         # Only the master node should start the work
-        if is_master:
+        if self.is_master:
             # Initialises lbView and dView (load balance, and direct view)
             self.setup_parallel()
 

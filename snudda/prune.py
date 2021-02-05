@@ -377,6 +377,14 @@ class SnuddaPrune(object):
         self.simulation_origo = self.hist_file["meta/simulationOrigo"][()]
         self.hyper_voxel_width = self.voxel_size * self.hyper_voxel_size
 
+        # We need to make sure that detect finished correctly, that all hyper voxels are done
+        all_id = set(self.hist_file["allHyperIDs"])
+        n_completed = int(self.hist_file["nCompleted"][0])
+        completed_id = set(self.hist_file["completed"][:n_completed])
+        remaining = all_id - completed_id
+        assert len(remaining) == 0, (f"Detection not done. There are {len(remaining)} hypervoxels "
+                                     f"not completed: {', '.join([str(x) for x in remaining])}")
+
         # Network_simulate.py uses axonStumpIDFlag = True
         # Neurodamus uses axonStumpIDFlag = False
         self.axon_stump_id_flag = self.hist_file["meta/axonStumpIDFlag"]

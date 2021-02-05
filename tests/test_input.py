@@ -1,5 +1,7 @@
 import unittest
 import os
+import h5py
+import json
 
 from snudda.detect import SnuddaDetect
 from snudda.input import SnuddaInput
@@ -59,6 +61,14 @@ class MyTestCase(unittest.TestCase):
                          hdf5_network_file=self.network_file,
                          spike_data_filename=spike_file,
                          time=input_time)
+        si.generate()
+
+        input_data = h5py.File(spike_file,'r')
+        config_data = json.loads(input_data["config"][()])
+
+
+        import pdb
+        pdb.set_trace()
 
         pass
 

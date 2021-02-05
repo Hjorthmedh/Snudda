@@ -301,6 +301,7 @@ class Snudda(object):
                          time=input_time,
                          logfile=self.logfile,
                          random_seed=random_seed)
+        si.generate()
 
         self.stop_parallel()
         self.close_log_file()
