@@ -2,6 +2,7 @@ import unittest
 import os
 import h5py
 import json
+import numpy as np
 
 from snudda.detect import SnuddaDetect
 from snudda.input import SnuddaInput
@@ -67,12 +68,52 @@ class MyTestCase(unittest.TestCase):
         config_data = json.loads(input_data["config"][()])
 
         #TODO: Add checks
-        #import pdb
-        #pdb.set_trace()
 
-        pass
+        # Loop through all inputs, and verify them
 
-    # TODO: Test the disabling of input by adding a ! mark in config file before input name
+        for neuron_id_str in input_data["input"].keys():
+            neuron_id = int(neuron_id_str)
+            neuron_name = si.network_info["neurons"][neuron_id]["name"]
+            neuron_type = neuron_name.split("_")[0]
+
+            # Check frequency is as advertised...
+            for input_type in input_data["input"][neuron_id_str]:
+                input_info = input_data["input"][neuron_id_str][input_type]
+
+                start_time = input_info["start"][()].copy()
+                end_time = input_info["end"][()].copy()
+                freq = input_info["freq"][()].copy()
+                spikes = input_info["spikes"][()]
+                n_traces = spikes.shape[0]
+
+                max_len = 1
+                if type(start_time) is np.ndarray:
+                    max_len = np.maximum(max_len, len(start_time))
+
+                if type(end_time) is np.ndarray:
+                    max_len = np.maximum(max_len, len(end_time))
+
+                if type(freq) is np.ndarray:
+                    max_len = np.maximum(max_len, len(freq))
+
+                if type(start_time) != np.ndarray:
+                    start_time = np.array([start_time]*max_len)
+
+                if type(end_time) != np.ndarray:
+                    end_time = np.array([end_time]*max_len)
+
+                if type(freq) != np.ndarray:
+                    freq = np.array([freq]*max_len)
+
+                for st, et, f in zip(start_time, end_time, freq):
+                    idx_x, idx_y = np.where(np.logical_and(st <= spikes, spikes <= et))
+
+                    f_gen = len(idx_x)/(n_traces * (et-st))
+                    print(f"ID {neuron_id_str} {neuron_name} {input_type} f={f}, f_gen={f_gen}")
+
+                    self.assertTrue(f_gen > f - 3*np.sqrt(f)/np.sqrt(n_traces))
+                    self.assertTrue(f_gen < f + 3*np.sqrt(f)/np.sqrt(n_traces))
+
 
 if __name__ == '__main__':
     unittest.main()
