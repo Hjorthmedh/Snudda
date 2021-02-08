@@ -2784,6 +2784,12 @@ class SnuddaDetect(object):
                 syn_coord -= self.hyper_voxel_offset
             ax.scatter(syn_coord[:, 0], syn_coord[:, 1], syn_coord[:, 2], c="green")
 
+        if self.hyper_voxel_gap_junction_ctr > 0:
+            gj_coord = self.hyper_voxel_gap_junctions[:self.hyper_voxel_gap_junction_ctr, 6:9]
+            if self.hyper_voxel_offset is not None:
+                gj_coord -= self.hyper_voxel_offset
+            ax.scatter(gj_coord[:, 0], gj_coord[:, 1], gj_coord[:, 2], c="yellow")
+
         if elev_azim:
             ax.view_init(elev_azim[0], elev_azim[1])
 

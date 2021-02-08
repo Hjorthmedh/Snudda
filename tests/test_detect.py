@@ -39,7 +39,7 @@ class TestDetect(unittest.TestCase):
 
         self.sd = SnuddaDetect(config_file=config_file, position_file=position_file,
                                save_file=save_file, rc=None,
-                               hyper_voxel_size=120)
+                               hyper_voxel_size=130)
 
     def test_detect(self):
 
@@ -132,8 +132,6 @@ class TestDetect(unittest.TestCase):
             gj_order = gj[:, 1]*len(self.sd.neurons) + gj[:, 0]
             self.assertTrue((np.diff(gj_order) >= 0).all())
 
-
-
         # We should probably store the matrix as unsigned.
         self.assertTrue((self.sd.hyper_voxel_synapses >= 0).all())
         self.assertTrue((self.sd.hyper_voxel_gap_junctions >= 0).all())
@@ -164,6 +162,86 @@ class TestDetect(unittest.TestCase):
 
     def compare_voxels_to_coordinates(self, voxel_index, coordinates):
         return (np.abs(self.convert_to_coordinates(voxel_index) - np.array(coordinates)) < self.sd.voxel_size).all()
+
+    def test_detect_lines(self):
+
+        # Cases to test
+        # id 0-9 connecting to id 10-19
+        # id 20 is 4 micrometer and parallel to another dendrite, no intersection
+
+        neuron_positions = np.array([[0, 0, 0],    # Postsynaptiska
+                                     [10, 10, 15],
+                                     [20, 20, 30],
+                                     [30, 30, 45],
+                                     [40, 40, 60],
+                                     [50, 50, 75],
+                                     [60, 60, 90],
+                                     [70, 70, 105],
+                                     [80, 80, 120],
+                                     [90, 90, 135],
+                                     [50, -100, 0],    # Presynaptiska
+                                     [60, -90, 15],
+                                     [70, -80, 30],
+                                     [80, -70, 45],
+                                     [90, -60, 60],
+                                     [100, -50, 75],
+                                     [110, -40, 90],
+                                     [120, -30, 105],
+                                     [130, -20, 120],
+                                     [140, -10, 135],
+                                     [230, 0, 4],  # 4 micrometers from first neuron
+                                     ])*1e-6
+
+        for idx, pos in enumerate(neuron_positions):
+            self.sd.neurons[idx]["position"] = pos
+
+        ang = -np.pi/2
+        R_x = np.array([[1, 0, 0],
+                        [0, np.cos(ang), -np.sin(ang)],
+                        [0, np.sin(ang), np.cos(ang)]])
+
+        ang = np.pi/2
+        R_y = np.array([[np.cos(ang), 0, np.sin(ang)],
+                        [0, 1, 0],
+                        [-np.sin(ang), 0, np.cos(ang)]])
+
+        for idx in range(0, 10):    # Post synaptic neurons
+            self.sd.neurons[idx]["rotation"] = R_x
+
+        for idx, ang in zip(range(10, 20), np.linspace(0, -np.pi/4, 10)):   # Presynaptic neurons
+
+            R_z = np.array([[np.cos(ang), -np.sin(ang), 0],
+                            [np.sin(ang), np.cos(ang), 0],
+                            [0, 0, 1]])
+
+            print(f"idx = {idx}, ang = {ang}")
+
+            self.sd.neurons[idx]["rotation"] = np.matmul(R_z, R_y)
+
+        ang = np.pi / 2
+        R_z = np.array([[np.cos(ang), -np.sin(ang), 0],
+                        [np.sin(ang), np.cos(ang), 0],
+                        [0, 0, 1]])
+
+        self.sd.neurons[20]["rotation"] = np.matmul(R_z, R_y)
+
+        self.sd.detect(restart_detection_flag=True)
+
+        synapse_voxel_loc = self.sd.hyper_voxel_synapses[:self.sd.hyper_voxel_synapse_ctr, 2:5]
+        synapse_coords = synapse_voxel_loc * self.sd.voxel_size + self.sd.hyper_voxel_origo
+
+        if False:   # Set to True to include plot
+            self.sd.plot_hyper_voxel(plot_neurons=True)
+
+        with self.subTest(stage="synapses_check"):
+            print(f"synapse ctr {self.sd.hyper_voxel_synapse_ctr}")
+
+            self.assertEqual(self.sd.hyper_voxel_synapse_ctr, 10)
+
+            for pre_id in range(0, 10):
+                post_id = pre_id + 10
+                self.assertEqual(self.check_neuron_pair_has_synapse(pre_id, post_id), 1)
+
 
 if __name__ == '__main__':
     unittest.main()

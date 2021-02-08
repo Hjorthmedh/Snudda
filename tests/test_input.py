@@ -63,7 +63,7 @@ class MyTestCase(unittest.TestCase):
                          time=input_time)
         si.generate()
 
-        input_data = h5py.File(spike_file,'r')
+        input_data = h5py.File(spike_file, 'r')
         config_data = json.loads(input_data["config"][()])
 
         #TODO: Add checks

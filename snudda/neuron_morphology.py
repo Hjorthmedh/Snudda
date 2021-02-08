@@ -298,6 +298,9 @@ class NeuronMorphology(object):
         # We subtract soma before rotating to centre neuron
         if rotation is not None:
 
+            assert np.abs(np.linalg.det(rotation) - 1) < 1e-6, \
+                "place: determinant of rotation matrix should be 1 (did you miss matmul when multiplying?)"
+
             self.rotated_flag = True
 
             if len(self.axon) > 0:
