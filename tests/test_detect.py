@@ -102,8 +102,8 @@ class TestDetect(unittest.TestCase):
         if not os.path.exists(fig_path):
             os.mkdir(fig_path)
 
-        if False:   # Set to True to include plot
-            self.sd.plot_hyper_voxel(plot_neurons=True)
+        if True:   # Set to True to include plot
+            self.sd.plot_hyper_voxel(plot_neurons=True, fig_file_name="touch-detection-validation")
 
         # TODO: Also add tests for soma-axon synapses
 
@@ -166,7 +166,7 @@ class TestDetect(unittest.TestCase):
     def test_detect_lines(self):
 
         # Cases to test
-        # id 0-9 connecting to id 10-19
+        # id 0-9 connecting to id 10-19, connection angle is 0-45 degrees
         # id 20 is 4 micrometer and parallel to another dendrite, no intersection
 
         neuron_positions = np.array([[0, 0, 0],    # Postsynaptiska
@@ -230,8 +230,8 @@ class TestDetect(unittest.TestCase):
         synapse_voxel_loc = self.sd.hyper_voxel_synapses[:self.sd.hyper_voxel_synapse_ctr, 2:5]
         synapse_coords = synapse_voxel_loc * self.sd.voxel_size + self.sd.hyper_voxel_origo
 
-        if False:   # Set to True to include plot
-            self.sd.plot_hyper_voxel(plot_neurons=True)
+        if True:   # Set to True to include plot
+            self.sd.plot_hyper_voxel(plot_neurons=True, fig_file_name="axon_dend_intersection_angle_0_45")
 
         with self.subTest(stage="synapses_check"):
             print(f"synapse ctr {self.sd.hyper_voxel_synapse_ctr}")
