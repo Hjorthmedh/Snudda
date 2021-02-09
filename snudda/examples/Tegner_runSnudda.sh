@@ -67,7 +67,7 @@ else
     fi
 
     echo ">>> Place: "`date`
-    snudda place ${JOBDIR}
+    snudda place ${JOBDIR} --parallel
 
     if [ $? != 0 ]; then
 	echo "Something went wrong during placement, aborting!"
@@ -76,7 +76,7 @@ else
     fi
 
     echo ">>> Detect: "`date`
-    snudda detect ${JOBDIR} --hvsize 50 
+    snudda detect ${JOBDIR} --hvsize 50 --parallel
 
     if [ $? != 0 ]; then
 	echo "Something went wrong during detection, aborting!"
@@ -85,7 +85,7 @@ else
     fi
 
     echo ">>> Prune: "`date`
-    snudda prune ${JOBDIR}
+    snudda prune ${JOBDIR} --parallel
 
     if [ $? != 0 ]; then
 	echo "Something went wrong during pruning, aborting!"

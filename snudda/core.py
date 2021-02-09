@@ -313,6 +313,7 @@ class Snudda(object):
                          spike_data_filename=spike_file,
                          time=input_time,
                          logfile=self.logfile,
+                         rc=self.rc,
                          random_seed=random_seed)
         si.generate()
 

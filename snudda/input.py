@@ -31,6 +31,7 @@ nl = None
 # When specifying vectors for start and end time, they should normally not overlap
 # if we want to allow that, set time_interval_overlap_warning = False
 
+
 class SnuddaInput(object):
 
     def __init__(self, spike_data_filename, input_config_file,
@@ -40,6 +41,7 @@ class SnuddaInput(object):
                  time=10.0,
                  is_master=True,
                  h5libver="latest",
+                 rc=None,
                  random_seed=None,
                  time_interval_overlap_warning=True,
                  logfile=None,
@@ -51,6 +53,8 @@ class SnuddaInput(object):
             self.logfile = logfile
 
         self.verbose = verbose
+        self.rc = rc
+
         self.time_interval_overlap_warning = time_interval_overlap_warning
         self.input_info = None
         self.population_unit_spikes = None
@@ -1000,7 +1004,6 @@ class SnuddaInput(object):
 
     def setup_parallel(self):
 
-        import os
         slurm_job_id = os.getenv("SLURM_JOBID")
 
         if slurm_job_id is None:
@@ -1008,12 +1011,7 @@ class SnuddaInput(object):
         else:
             self.slurm_id = int(slurm_job_id)
 
-        self.write_log("IPYTHON_PROFILE = " + str(os.getenv('IPYTHON_PROFILE')))
-
-        if os.getenv('IPYTHON_PROFILE') is not None:
-            from ipyparallel import Client
-            self.rc = Client(profile=os.getenv('IPYTHON_PROFILE'))
-
+        if self.rc is not None:
             # http://davidmasad.com/blog/simulation-with-ipyparallel/
             # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
             self.write_log("Client IDs: " + str(self.rc.ids))
@@ -1026,7 +1024,7 @@ class SnuddaInput(object):
             else:
                 engine_logfile = [None for x in range(0, len(self.d_view))]
         else:
-            self.write_log("No IPYTHON_PROFILE environment variable set, running in serial")
+            self.write_log("Running in serial")
             self.d_view = None
             self.lb_view = None
             return

@@ -1322,8 +1322,11 @@ class SnuddaPrune(object):
 
             for idx in order:
                 data_file = results[idx][0]
-                num_synapses = results[idx][2]
+                num_synapses = results[idx][2]   # This is synapses first iteration, gap junction 2nd iteration
                 end_pos = start_pos + num_synapses
+
+                if num_synapses == 0:
+                    continue  # No synapses, skip this file.
 
                 assert data_file is not None or num_synapses == 0, \
                     f"!!! Missing merge file {data_file}, internal problem"
