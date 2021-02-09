@@ -1422,7 +1422,7 @@ class SnuddaPrune(object):
                     # Verify hyper voxel
                     if merge_data_type == "synapses":
                         # No need to do it for both synapses and gap junctions, since same hyper voxels
-                        self.check_hyper_voxel_integrity(fid, h_filename.encode(), verbose=True)
+                        self.check_hyper_voxel_integrity(file_list[h_id], h_filename.encode(), verbose=True)
 
                     if self.max_channel_type:
                         # These should be the same for all hypervoxels
