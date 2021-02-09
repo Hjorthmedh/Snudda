@@ -70,7 +70,7 @@ class TestCLI(unittest.TestCase):
             run_cli_command("simulate tiny_parallel --time 0.1")
 
         with self.subTest(stage="init-serial"):
-            run_cli_command("init tiny_serial --size 10 --overwrite")
+            run_cli_command("init tiny_serial --size 100 --overwrite")
 
         with self.subTest(stage="place-serial"):
             run_cli_command("place tiny_serial")
