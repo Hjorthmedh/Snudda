@@ -7,16 +7,16 @@
 # snudda init <networkPath> --size XXX
 # -- Creates an a json config file
 #
-# snudda place <networkPath>
+# snudda place <networkPath> [--parallel]
 # -- Cell placement within volumes specified
 #
-# snudda detect <networkPath> [--hvsize hyperVoxelSize]
+# snudda detect <networkPath> [--hvsize hyperVoxelSize] [--parallel]
 # -- Touch detection of putative synapses
 #
-# snudda prune <networkPath> [--mergeonly]
+# snudda prune <networkPath> [--mergeonly] [--parallel]
 # -- Prune the synapses
 #
-# snudda input <networkPath> [--input yourInputConfig]
+# snudda input <networkPath> [--input yourInputConfig] [--parallel]
 #
 # snudda export <networkPath>
 # -- Export to SONATA format (optional)
@@ -62,6 +62,10 @@ class Snudda(object):
     def __init__(self, network_path):
 
         self.network_path = network_path
+        self.d_view = None
+        self.lb_view = None
+        self.rc = None
+        self.slurm_id = 0
 
         # Add current dir to python path
         sys.path.append(os.getcwd())
@@ -130,7 +134,9 @@ class Snudda(object):
         random_seed = args.randomseed
 
         self.setup_log_file(log_file_name)  # sets self.logFile
-        self.setup_parallel()  # sets self.dView and self.lbView
+
+        if args.parallel:
+            self.setup_parallel()  # sets self.d_view and self.lb_view
 
         from .place import SnuddaPlace
 
@@ -181,8 +187,10 @@ class Snudda(object):
         voxel_dir = os.path.join(self.network_path, "voxels")
         self.make_dir_if_needed(voxel_dir)
 
-        self.setup_log_file(log_filename)  # sets self.logFile
-        self.setup_parallel()  # sets self.dView and self.lbView
+        self.setup_log_file(log_filename)  # sets self.logfile
+
+        if args.parallel:
+            self.setup_parallel()  # sets self.d_view and self.lb_view
 
         if args.h5legacy:
             h5libver = "earliest"
@@ -227,8 +235,10 @@ class Snudda(object):
 
         random_seed = args.randomseed
 
-        self.setup_log_file(log_filename)  # sets self.logFile
-        self.setup_parallel()  # sets self.dView and self.lbView
+        self.setup_log_file(log_filename)  # sets self.logfile
+
+        if args.parallel:
+            self.setup_parallel()  # sets self.d_view and self.lb_view
 
         # Optionally set this
         scratch_path = None
@@ -266,8 +276,10 @@ class Snudda(object):
 
         print("Setting up inputs, assuming input.json exists")
         log_filename = os.path.join(self.network_path, "log", "logFile-setup-input.log")
-        self.setup_log_file(log_filename)  # sets self.logFile
-        self.setup_parallel()  # sets self.dView and self.lbView
+        self.setup_log_file(log_filename)  # sets self.logfile
+
+        if args.parallel:
+            self.setup_parallel()  # sets self.d_view and self.lb_view
 
         if "input" in args:
             input_config = args.input
@@ -300,6 +312,7 @@ class Snudda(object):
                          spike_data_filename=spike_file,
                          time=input_time,
                          logfile=self.logfile,
+                         rc=self.rc,
                          random_seed=random_seed)
         si.generate()
 
@@ -376,7 +389,7 @@ class Snudda(object):
         make_mods_str = f"nrnivmodl {mech_dir}"
         if not os.path.exists('x86_64'):
             print(f"Please first run: {make_mods_str}")
-            exit(-1)
+            os.sys.exit(-1)
             # I was having problems when running nrnivmodl in the script, but
             # running it manually in bash works... WHY?!!
 
@@ -459,7 +472,7 @@ class Snudda(object):
             print("Program run time: " + str(stop - start))
 
         # sim.plot()
-        #exit(0)
+        #os.sys.exit(0)
 
         # cmdStr = "nrnivmodl " + mechDir + " && mpiexec -n " + str(nWorkers) + " -map-by socket:OVERSUBSCRIBE python3 " + os.path.dirname(__file__) + " simulate.py " + networkFile + " " + inputFile + " --time " + str(args.time)
 
@@ -477,6 +490,7 @@ class Snudda(object):
     ############################################################################
 
     def setup_parallel(self):
+
         self.slurm_id = os.getenv('SLURM_JOBID')
 
         if self.slurm_id is None:
@@ -486,33 +500,34 @@ class Snudda(object):
 
         self.logfile.write(f"Using slurm_id: {self.slurm_id}")
 
-        if os.getenv('IPYTHON_PROFILE') is not None:
+        ipython_profile = os.getenv('IPYTHON_PROFILE')
+        if not ipython_profile:
+            ipython_profile = "Snudda"
 
-            self.logfile.write('Creating ipyparallel client\n')
+        ipython_dir = os.getenv('IPYTHONDIR')
+        if not ipython_dir:
+            ipython_dir = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
 
-            from ipyparallel import Client
-            # self.rc = Client(profile=os.getenv('IPYTHON_PROFILE'),
-            #            # sshserver='127.0.0.1',
-            #            debug=False)
+        self.logfile.write('Creating ipyparallel client\n')
 
-            u_file = os.getenv('IPYTHONDIR') + "/profile_" + os.getenv('IPYTHON_PROFILE') \
-                      + "/security/ipcontroller-client.json"
-            self.rc = Client(url_file=u_file, timeout=120, debug=False)
+        from ipyparallel import Client
+        # self.rc = Client(profile=os.getenv('IPYTHON_PROFILE'),
+        #            # sshserver='127.0.0.1',
+        #            debug=False)
 
-            self.logfile.write('Client IDs: ' + str(self.rc.ids))
+        u_file = os.path.join(ipython_dir, f"profile_{ipython_profile}",
+                              "security", "ipcontroller-client.json")
+        self.rc = Client(url_file=u_file, timeout=120, debug=False)
 
-            # http://davidmasad.com/blog/simulation-with-ipyparallel/
-            # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
-            self.d_view = self.rc.direct_view(targets='all')  # rc[:] # Direct view into clients
-            self.lb_view = self.rc.load_balanced_view(targets='all')
+        self.logfile.write(f'Client IDs: {self.rc.ids}')
 
-            # Define nc globally
-            # self.dView.execute("nc = None",block=True)
-        else:
-            self.logfile.write("No IPYTHON_PROFILE enviroment variable set, running in serial")
-            self.d_view = None
-            self.lb_view = None
-            self.rc = None
+        # http://davidmasad.com/blog/simulation-with-ipyparallel/
+        # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
+        self.d_view = self.rc.direct_view(targets='all')  # rc[:] # Direct view into clients
+        self.lb_view = self.rc.load_balanced_view(targets='all')
+
+        # Define nc globally
+        # self.d_view.execute("nc = None",block=True)
 
     ############################################################################
 

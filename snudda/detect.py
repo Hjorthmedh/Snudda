@@ -134,7 +134,7 @@ class SnuddaDetect(object):
         self.hyper_voxels = None
         self.hyper_voxel_id_lookup = None
         self.num_hyper_voxels = None
-        self.hyper_voxel_width = None
+        self.hyper_voxel_width = self.hyper_voxel_size * self.voxel_size
         self.simulation_origo = None
 
         self.population_units = dict([])
@@ -337,8 +337,8 @@ class SnuddaDetect(object):
 
                 # We have an async result, check status of it
                 if worker_status[worker_idx].ready():
+                    
                     # Result is ready, get it
-
                     hyper_voxel_data = rc[worker_idx]["result"]
 
                     hyper_id = hyper_voxel_data[0]
@@ -455,6 +455,7 @@ class SnuddaDetect(object):
                           (self.position_file, "positionFile"),
                           (self.voxel_size, "voxelSize"),
                           (self.hyper_voxel_size, "hyperVoxelSize"),
+                          (self.hyper_voxel_width, "hyperVoxelWidth"),
                           (self.axon_stump_id_flag, "axonStumpIDFlag"),
                           (json.dumps(self.config), "config"),
                           (json.dumps(tmp_con_dist),
@@ -634,7 +635,7 @@ class SnuddaDetect(object):
 
             # Could not rewrite scalars, so saving nCompleted as a vector of length 1
             self.work_history.create_dataset("nCompleted", data=np.zeros(1, ))
-            all_hyper_id_list = np.array([x for x in self.hyper_voxels.keys()], dtype=np.int)
+            all_hyper_id_list = np.array([x for x in self.hyper_voxels.keys()], dtype=np.int32)
 
             # Remove the empty hyper IDs
             (valid_hyper_id, empty_hyper_id) = self.remove_empty(all_hyper_id_list)
@@ -653,9 +654,9 @@ class SnuddaDetect(object):
                 self.write_log(f"Skipping {len(empty_hyper_id)} empty hyper voxels")
 
             self.work_history.create_dataset("allHyperIDs", data=all_hyper_id_list)
-            self.work_history.create_dataset("nSynapses", data=np.zeros(num_hyper_voxels, ), dtype=np.int)
-            self.work_history.create_dataset("nGapJunctions", data=np.zeros(num_hyper_voxels, ), dtype=np.int)
-            self.work_history.create_dataset("voxelOverflowCounter", data=np.zeros(num_hyper_voxels, ), dtype=np.int)
+            self.work_history.create_dataset("nSynapses", data=np.zeros(num_hyper_voxels, ), dtype=np.int64)
+            self.work_history.create_dataset("nGapJunctions", data=np.zeros(num_hyper_voxels, ), dtype=np.int64)
+            self.work_history.create_dataset("voxelOverflowCounter", data=np.zeros(num_hyper_voxels, ), dtype=np.int64)
 
         return all_hyper_id_list, num_completed, remaining, voxel_overflow_counter
 
@@ -1779,11 +1780,12 @@ class SnuddaDetect(object):
             self.num_hyper_voxels = num_hyper_voxels
             self.simulation_origo = simulation_origo
 
-            # We need to push the data to the workers also
-            d_view.push({"simulation_origo": simulation_origo,
-                         "nc.hyper_voxels": hyper_voxels,
-                         "nc.hyper_voxel_id_lookup": hyper_voxel_id_lookup,
-                         "nc.num_hyper_voxels": num_hyper_voxels}, block=True)
+            if d_view:
+                # We need to push the data to the workers also
+                d_view.push({"nc.simulation_origo": simulation_origo,
+                             "nc.hyper_voxels": hyper_voxels,
+                             "nc.hyper_voxel_id_lookup": hyper_voxel_id_lookup,
+                             "nc.num_hyper_voxels": num_hyper_voxels}, block=True)
             return
 
         # No old data, we need to calculate it
@@ -1908,7 +1910,6 @@ class SnuddaDetect(object):
 
         assert ((self.num_bins - self.num_bins[0]) == 0).all(), "Hyper voxels should be cubes"
 
-        self.hyper_voxel_width = self.num_bins[0] * self.voxel_size
         self.num_hyper_voxels = np.ceil((max_coord - min_coord) / self.hyper_voxel_width).astype(int) + 1
         self.hyper_voxel_id_lookup = np.zeros(self.num_hyper_voxels, dtype=int)
 
@@ -1954,15 +1955,13 @@ class SnuddaDetect(object):
             neuron_id = n["neuronID"]
 
             if neuron.dend.shape[0] > 0:
-                dend_loc = np.floor((neuron.dend[:, :3] - self.simulation_origo)
-                                    / self.hyper_voxel_width).astype(int)
+                dend_loc = np.floor((neuron.dend[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(int)
             else:
                 dend_loc = np.zeros((0, 3))
 
             if neuron.axon.shape[0] > 0:
                 # We have an axon, use it
-                axon_loc = np.floor((neuron.axon[:, :3] - self.simulation_origo)
-                                    / self.hyper_voxel_width).astype(int)
+                axon_loc = np.floor((neuron.axon[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(int)
 
             elif neuron.axon_density_type == "r":
 
@@ -1997,8 +1996,7 @@ class SnuddaDetect(object):
                 axon_cloud[:, 1] = y + neuron.soma[0, 1]
                 axon_cloud[:, 2] = z + neuron.soma[0, 2]
 
-                axon_loc = np.floor((axon_cloud[:, :3] - self.simulation_origo)
-                                    / self.hyper_voxel_width).astype(int)
+                axon_loc = np.floor((axon_cloud[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(int)
 
                 axon_inside_flag = [0 <= xa < self.hyper_voxel_id_lookup.shape[0]
                                     and 0 <= ya < self.hyper_voxel_id_lookup.shape[1]
@@ -2057,8 +2055,7 @@ class SnuddaDetect(object):
                 axon_cloud = np.matmul(neuron.rotation,
                                        axon_cloud.transpose()).transpose() + neuron.position
 
-                axon_loc = np.floor((axon_cloud[:, :3] - self.simulation_origo)
-                                    / self.hyper_voxel_width).astype(int)
+                axon_loc = np.floor((axon_cloud[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(int)
 
                 axon_inside_flag = [0 <= x < self.hyper_voxel_id_lookup.shape[0]
                                     and 0 <= y < self.hyper_voxel_id_lookup.shape[1]
@@ -2672,70 +2669,79 @@ class SnuddaDetect(object):
 
         start_time = timeit.default_timer()
 
-        if self.hyper_voxels[hyper_id]["neuronCtr"] == 0:
-            # No neurons, return quickly - do not write hdf5 file
+        try:
+            if self.hyper_voxels[hyper_id]["neuronCtr"] == 0:
+                # No neurons, return quickly - do not write hdf5 file
+                end_time = timeit.default_timer()
+                return hyper_id, 0, 0, end_time - start_time, 0
+
+            hyp_origo = self.hyper_voxels[hyper_id]["origo"]
+            self.setup_hyper_voxel(hyp_origo, hyper_id)
+
+            num_neurons = self.hyper_voxels[hyper_id]["neuronCtr"]
+
+            self.write_log(f"Processing hyper voxel : {hyper_id}/{self.hyper_voxel_id_lookup.size}"
+                           f"({num_neurons} neurons)")
+
+            # !!! Suggestion for optimisation. Place neurons with GJ first, then do
+            # GJ touch detection, after that add rest of neurons (to get complete set)
+            # and then do axon-dend synapse touch detection
+
+            for neuron_id in self.hyper_voxels[hyper_id]["neurons"][:num_neurons]:
+
+                neuron = self.load_neuron(self.neurons[neuron_id])
+
+                self.fill_voxels_axon(self.axon_voxels,
+                                      self.axon_voxel_ctr,
+                                      self.axon_soma_dist,
+                                      neuron.axon,
+                                      neuron.axon_links,
+                                      neuron_id)
+
+                self.fill_voxels_soma(self.dend_voxels,
+                                      self.dend_voxel_ctr,
+                                      self.dend_sec_id,
+                                      self.dend_sec_x,
+                                      neuron.soma,
+                                      neuron_id)
+
+                self.fill_voxels_dend(self.dend_voxels,
+                                      self.dend_voxel_ctr,
+                                      self.dend_sec_id,
+                                      self.dend_sec_x,
+                                      self.dend_soma_dist,
+                                      neuron.dend,
+                                      neuron.dend_links,
+                                      neuron.dend_sec_id,
+                                      neuron.dend_sec_x,
+                                      neuron_id)
+
+            # This should be outside the neuron loop
+            # This places axon voxels for neurons without axon morphologies
+            self.place_synapses_no_axon(hyper_id,
+                                        self.axon_voxels,
+                                        self.axon_voxel_ctr,
+                                        self.axon_soma_dist)
+
+            # This detects the synapses where we use a density distribution for axons
+            # self.detectSynapsesNoAxonSLOW (hyperID) # --replaced by placeSynapseNoAxon
+
+            # The normal voxel synapse detection
+            self.detect_synapses()
+
+            self.detect_gap_junctions()
+
+            self.write_hyper_voxel_to_hdf5()
+
             end_time = timeit.default_timer()
-            return hyper_id, 0, 0, end_time - start_time, 0
 
-        hyp_origo = self.hyper_voxels[hyper_id]["origo"]
-        self.setup_hyper_voxel(hyp_origo, hyper_id)
+        except Exception as e:
+            # Write error to log file to help trace it.
+            import traceback
+            tstr = traceback.format_exc()
+            self.write_log(tstr)
 
-        num_neurons = self.hyper_voxels[hyper_id]["neuronCtr"]
-
-        self.write_log(f"Processing hyper voxel : {hyper_id}/{self.hyper_voxel_id_lookup.size}"
-                       f"({num_neurons} neurons)")
-
-        # !!! Suggestion for optimisation. Place neurons with GJ first, then do
-        # GJ touch detection, after that add rest of neurons (to get complete set)
-        # and then do axon-dend synapse touch detection
-
-        for neuron_id in self.hyper_voxels[hyper_id]["neurons"][:num_neurons]:
-
-            neuron = self.load_neuron(self.neurons[neuron_id])
-
-            self.fill_voxels_axon(self.axon_voxels,
-                                  self.axon_voxel_ctr,
-                                  self.axon_soma_dist,
-                                  neuron.axon,
-                                  neuron.axon_links,
-                                  neuron_id)
-
-            self.fill_voxels_soma(self.dend_voxels,
-                                  self.dend_voxel_ctr,
-                                  self.dend_sec_id,
-                                  self.dend_sec_x,
-                                  neuron.soma,
-                                  neuron_id)
-
-            self.fill_voxels_dend(self.dend_voxels,
-                                  self.dend_voxel_ctr,
-                                  self.dend_sec_id,
-                                  self.dend_sec_x,
-                                  self.dend_soma_dist,
-                                  neuron.dend,
-                                  neuron.dend_links,
-                                  neuron.dend_sec_id,
-                                  neuron.dend_sec_x,
-                                  neuron_id)
-
-        # This should be outside the neuron loop
-        # This places axon voxels for neurons without axon morphologies
-        self.place_synapses_no_axon(hyper_id,
-                                    self.axon_voxels,
-                                    self.axon_voxel_ctr,
-                                    self.axon_soma_dist)
-
-        # This detects the synapses where we use a density distribution for axons
-        # self.detectSynapsesNoAxonSLOW (hyperID) # --replaced by placeSynapseNoAxon
-
-        # The normal voxel synapse detection
-        self.detect_synapses()
-
-        self.detect_gap_junctions()
-
-        self.write_hyper_voxel_to_hdf5()
-
-        end_time = timeit.default_timer()
+            os.sys.exit(-1)
 
         return (hyper_id, self.hyper_voxel_synapse_ctr,
                 self.hyper_voxel_gap_junction_ctr, end_time - start_time,

@@ -575,7 +575,7 @@ if __name__ == "__main__":
 
         if synapses[0] is None:
             # Nothing to display
-            exit(0)
+            os.sys.exit(0)
 
         preID = np.unique(synapses[0][:, 0])
 

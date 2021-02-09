@@ -53,6 +53,7 @@ def snudda_cli():
     parser.add_argument("--mechDir", help="mechanism directory if not default",
                         default=None)
     parser.add_argument("--verbose", action="store_true")
+    parser.add_argument("--parallel", action="store_true", default=False)
 
     args = parser.parse_args()
 

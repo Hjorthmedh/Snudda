@@ -71,7 +71,7 @@ else
     sleep 120 #60
 
     echo ">>> Input: "`date`
-    snudda input ${JOBDIR} --input ../data/config/input-tinytest-v6.json
+    snudda input ${JOBDIR} --input ../data/config/input-tinytest-v6.json --parallel
 
     #.. Shut down cluster
     ipcluster stop	

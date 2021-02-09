@@ -326,17 +326,6 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    @staticmethod
-    def write_to_random_file(text):
-
-        import uuid
-        tmp = open(os.path.join("save", f"tmp-log-file-{uuid.uuid4()}"), 'w')
-        tmp.write(text)
-        tmp.close()
-        print(text)
-
-    ############################################################################
-
     def __del__(self):
 
         try:
@@ -1322,8 +1311,11 @@ class SnuddaPrune(object):
 
             for idx in order:
                 data_file = results[idx][0]
-                num_synapses = results[idx][2]
+                num_synapses = results[idx][2]   # This is synapses first iteration, gap junction 2nd iteration
                 end_pos = start_pos + num_synapses
+
+                if num_synapses == 0:
+                    continue  # No synapses, skip this file.
 
                 assert data_file is not None or num_synapses == 0, \
                     f"!!! Missing merge file {data_file}, internal problem"
@@ -1371,6 +1363,7 @@ class SnuddaPrune(object):
     ############################################################################
 
     # Needs to handle both gap junctions and synapses
+    # This is called using d_view for parallel execution, the code coverage algorithm does not understand that
 
     def big_merge_helper(self, neuron_range, merge_data_type):
 
@@ -1426,12 +1419,18 @@ class SnuddaPrune(object):
                     fid = h5py.h5f.open(h_filename.encode(), flags=h5py.h5f.ACC_RDONLY, fapl=propfaid)
                     file_list[h_id] = h5py.File(fid, drive=self.h5driver)
 
+                    # Verify hyper voxel
+                    if merge_data_type == "synapses":
+                        # No need to do it for both synapses and gap junctions, since same hyper voxels
+                        self.check_hyper_voxel_integrity(file_list[h_id], h_filename.encode(), verbose=True)
+
                     if self.max_channel_type:
                         # These should be the same for all hypervoxels
-                        assert self.max_channel_type == file_list[h_id]["network/maxChannelTypeID"]
+                        assert self.max_channel_type == file_list[h_id]["network/maxChannelTypeID"][()], \
+                            (f"max_channel_type = {self.max_channel_type} "
+                             f"(differ with what is in file {file_list[h_id]['network/maxChannelTypeID'][()]})")
                     else:
-                        self.max_channel_type = file_list[h_id]["network/maxChannelTypeID"]
-
+                        self.max_channel_type = file_list[h_id]["network/maxChannelTypeID"][()]
 
                     chunk_size = 10000
                     lookup_iterator = \
@@ -1558,8 +1557,7 @@ class SnuddaPrune(object):
             import traceback
             tstr = traceback.format_exc()
             self.write_log(tstr)
-            self.write_to_random_file(tstr)
-            exit(-1)
+            os.sys.exit(-1)
 
         ############################################################################
 
@@ -1588,7 +1586,7 @@ class SnuddaPrune(object):
         # fileMat = [None] * maxHyperID # points to the synapse matrix in each file
         # fileMatLookup = [None] * maxHyperID # points to the matrix lookup in file
 
-        num_synapses = np.zeros((max_hyper_id,), dtype=np.int)
+        num_synapses = np.zeros((max_hyper_id,), dtype=np.int64)
 
         # Open all files for reading
         h_file_name_mask = os.path.join(self.base_path, "voxels", "network-putative-synapses-%s.hdf5")
@@ -2180,4 +2178,4 @@ class SnuddaPrune(object):
 
 if __name__ == "__main__":
     print("Please do not call this file directly, use snudda.py")
-    exit(-1)
+    os.sys.exit(-1)
