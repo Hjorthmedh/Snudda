@@ -78,6 +78,9 @@ class TestCLI(unittest.TestCase):
         with self.subTest(stage="detect-serial"):
             run_cli_command("detect tiny_serial --volumeID Striatum")
 
+        with self.subTest(stage="prune-serial-merge-only"):
+            run_cli_command("prune tiny_serial --mergeonly")  # Testing the merge only code
+
         with self.subTest(stage="prune-serial"):
             run_cli_command("prune tiny_serial")
 

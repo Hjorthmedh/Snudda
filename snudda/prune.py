@@ -326,17 +326,6 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    @staticmethod
-    def write_to_random_file(text):
-
-        import uuid
-        tmp = open(os.path.join("save", f"tmp-log-file-{uuid.uuid4()}"), 'w')
-        tmp.write(text)
-        tmp.close()
-        print(text)
-
-    ############################################################################
-
     def __del__(self):
 
         try:
@@ -1562,7 +1551,6 @@ class SnuddaPrune(object):
             import traceback
             tstr = traceback.format_exc()
             self.write_log(tstr)
-            self.write_to_random_file(tstr)
             os.sys.exit(-1)
 
         ############################################################################
