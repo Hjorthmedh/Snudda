@@ -111,8 +111,8 @@ class MyTestCase(unittest.TestCase):
                     f_gen = len(idx_x)/(n_traces * (et-st))
                     print(f"ID {neuron_id_str} {neuron_name} {input_type} f={f}, f_gen={f_gen}")
 
-                    self.assertTrue(f_gen > f - 3*np.sqrt(f)/np.sqrt(n_traces))
-                    self.assertTrue(f_gen < f + 3*np.sqrt(f)/np.sqrt(n_traces))
+                    self.assertTrue(f_gen > f - 4*np.sqrt(f)/np.sqrt(n_traces))
+                    self.assertTrue(f_gen < f + 4*np.sqrt(f)/np.sqrt(n_traces))
 
 
 if __name__ == '__main__':
