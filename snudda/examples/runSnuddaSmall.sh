@@ -4,16 +4,16 @@ export IPYTHON_PROFILE=Snudda_LOCAL
 ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20
 
-simName=networks/tinySim_seedTest
+simName=networks/tinySim_partest
 
 #snudda init $simName --size 1760000
 #snudda init $simName --size 100000
 snudda init $simName --size 1000 --overwrite
 
-snudda place $simName 
+snudda place $simName --parallel
 #snudda detect $simName --hvsize 50 --volumeID Striatum
-snudda detect $simName --volumeID Striatum
-snudda prune $simName
+snudda detect $simName --volumeID Striatum --parallel
+snudda prune $simName --parallel
 
 # Copy over template input
 cp -a data/config/input-tinytest-v9-freq-vectors.json $simName/input.json
@@ -26,7 +26,7 @@ echo "Make sure the input config file was found, otherwise provide your own"
 
 
 # Uncomment this to generate input
-snudda input $simName --input $simName/input.json
+snudda input $simName --input $simName/input.json --parallel
 
 ipcluster stop
 
