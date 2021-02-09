@@ -337,6 +337,7 @@ class SnuddaDetect(object):
 
                 # We have an async result, check status of it
                 if worker_status[worker_idx].ready():
+                    
                     # Result is ready, get it
                     hyper_voxel_data = rc[worker_idx]["result"]
 
@@ -1781,7 +1782,7 @@ class SnuddaDetect(object):
 
             if d_view:
                 # We need to push the data to the workers also
-                d_view.push({"simulation_origo": simulation_origo,
+                d_view.push({"nc.simulation_origo": simulation_origo,
                              "nc.hyper_voxels": hyper_voxels,
                              "nc.hyper_voxel_id_lookup": hyper_voxel_id_lookup,
                              "nc.num_hyper_voxels": num_hyper_voxels}, block=True)
@@ -2668,70 +2669,79 @@ class SnuddaDetect(object):
 
         start_time = timeit.default_timer()
 
-        if self.hyper_voxels[hyper_id]["neuronCtr"] == 0:
-            # No neurons, return quickly - do not write hdf5 file
+        try:
+            if self.hyper_voxels[hyper_id]["neuronCtr"] == 0:
+                # No neurons, return quickly - do not write hdf5 file
+                end_time = timeit.default_timer()
+                return hyper_id, 0, 0, end_time - start_time, 0
+
+            hyp_origo = self.hyper_voxels[hyper_id]["origo"]
+            self.setup_hyper_voxel(hyp_origo, hyper_id)
+
+            num_neurons = self.hyper_voxels[hyper_id]["neuronCtr"]
+
+            self.write_log(f"Processing hyper voxel : {hyper_id}/{self.hyper_voxel_id_lookup.size}"
+                           f"({num_neurons} neurons)")
+
+            # !!! Suggestion for optimisation. Place neurons with GJ first, then do
+            # GJ touch detection, after that add rest of neurons (to get complete set)
+            # and then do axon-dend synapse touch detection
+
+            for neuron_id in self.hyper_voxels[hyper_id]["neurons"][:num_neurons]:
+
+                neuron = self.load_neuron(self.neurons[neuron_id])
+
+                self.fill_voxels_axon(self.axon_voxels,
+                                      self.axon_voxel_ctr,
+                                      self.axon_soma_dist,
+                                      neuron.axon,
+                                      neuron.axon_links,
+                                      neuron_id)
+
+                self.fill_voxels_soma(self.dend_voxels,
+                                      self.dend_voxel_ctr,
+                                      self.dend_sec_id,
+                                      self.dend_sec_x,
+                                      neuron.soma,
+                                      neuron_id)
+
+                self.fill_voxels_dend(self.dend_voxels,
+                                      self.dend_voxel_ctr,
+                                      self.dend_sec_id,
+                                      self.dend_sec_x,
+                                      self.dend_soma_dist,
+                                      neuron.dend,
+                                      neuron.dend_links,
+                                      neuron.dend_sec_id,
+                                      neuron.dend_sec_x,
+                                      neuron_id)
+
+            # This should be outside the neuron loop
+            # This places axon voxels for neurons without axon morphologies
+            self.place_synapses_no_axon(hyper_id,
+                                        self.axon_voxels,
+                                        self.axon_voxel_ctr,
+                                        self.axon_soma_dist)
+
+            # This detects the synapses where we use a density distribution for axons
+            # self.detectSynapsesNoAxonSLOW (hyperID) # --replaced by placeSynapseNoAxon
+
+            # The normal voxel synapse detection
+            self.detect_synapses()
+
+            self.detect_gap_junctions()
+
+            self.write_hyper_voxel_to_hdf5()
+
             end_time = timeit.default_timer()
-            return hyper_id, 0, 0, end_time - start_time, 0
 
-        hyp_origo = self.hyper_voxels[hyper_id]["origo"]
-        self.setup_hyper_voxel(hyp_origo, hyper_id)
+        except Exception as e:
+            # Write error to log file to help trace it.
+            import traceback
+            tstr = traceback.format_exc()
+            self.write_log(tstr)
 
-        num_neurons = self.hyper_voxels[hyper_id]["neuronCtr"]
-
-        self.write_log(f"Processing hyper voxel : {hyper_id}/{self.hyper_voxel_id_lookup.size}"
-                       f"({num_neurons} neurons)")
-
-        # !!! Suggestion for optimisation. Place neurons with GJ first, then do
-        # GJ touch detection, after that add rest of neurons (to get complete set)
-        # and then do axon-dend synapse touch detection
-
-        for neuron_id in self.hyper_voxels[hyper_id]["neurons"][:num_neurons]:
-
-            neuron = self.load_neuron(self.neurons[neuron_id])
-
-            self.fill_voxels_axon(self.axon_voxels,
-                                  self.axon_voxel_ctr,
-                                  self.axon_soma_dist,
-                                  neuron.axon,
-                                  neuron.axon_links,
-                                  neuron_id)
-
-            self.fill_voxels_soma(self.dend_voxels,
-                                  self.dend_voxel_ctr,
-                                  self.dend_sec_id,
-                                  self.dend_sec_x,
-                                  neuron.soma,
-                                  neuron_id)
-
-            self.fill_voxels_dend(self.dend_voxels,
-                                  self.dend_voxel_ctr,
-                                  self.dend_sec_id,
-                                  self.dend_sec_x,
-                                  self.dend_soma_dist,
-                                  neuron.dend,
-                                  neuron.dend_links,
-                                  neuron.dend_sec_id,
-                                  neuron.dend_sec_x,
-                                  neuron_id)
-
-        # This should be outside the neuron loop
-        # This places axon voxels for neurons without axon morphologies
-        self.place_synapses_no_axon(hyper_id,
-                                    self.axon_voxels,
-                                    self.axon_voxel_ctr,
-                                    self.axon_soma_dist)
-
-        # This detects the synapses where we use a density distribution for axons
-        # self.detectSynapsesNoAxonSLOW (hyperID) # --replaced by placeSynapseNoAxon
-
-        # The normal voxel synapse detection
-        self.detect_synapses()
-
-        self.detect_gap_junctions()
-
-        self.write_hyper_voxel_to_hdf5()
-
-        end_time = timeit.default_timer()
+            os.sys.exit(-1)
 
         return (hyper_id, self.hyper_voxel_synapse_ctr,
                 self.hyper_voxel_gap_junction_ctr, end_time - start_time,
