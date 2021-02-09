@@ -134,7 +134,7 @@ class SnuddaDetect(object):
         self.hyper_voxels = None
         self.hyper_voxel_id_lookup = None
         self.num_hyper_voxels = None
-        self.hyper_voxel_width = None
+        self.hyper_voxel_width = self.hyper_voxel_size * self.voxel_size
         self.simulation_origo = None
 
         self.population_units = dict([])
@@ -338,7 +338,6 @@ class SnuddaDetect(object):
                 # We have an async result, check status of it
                 if worker_status[worker_idx].ready():
                     # Result is ready, get it
-
                     hyper_voxel_data = rc[worker_idx]["result"]
 
                     hyper_id = hyper_voxel_data[0]
@@ -455,6 +454,7 @@ class SnuddaDetect(object):
                           (self.position_file, "positionFile"),
                           (self.voxel_size, "voxelSize"),
                           (self.hyper_voxel_size, "hyperVoxelSize"),
+                          (self.hyper_voxel_width, "hyperVoxelWidth"),
                           (self.axon_stump_id_flag, "axonStumpIDFlag"),
                           (json.dumps(self.config), "config"),
                           (json.dumps(tmp_con_dist),
@@ -1909,7 +1909,6 @@ class SnuddaDetect(object):
 
         assert ((self.num_bins - self.num_bins[0]) == 0).all(), "Hyper voxels should be cubes"
 
-        self.hyper_voxel_width = self.num_bins[0] * self.voxel_size
         self.num_hyper_voxels = np.ceil((max_coord - min_coord) / self.hyper_voxel_width).astype(int) + 1
         self.hyper_voxel_id_lookup = np.zeros(self.num_hyper_voxels, dtype=int)
 
@@ -1955,15 +1954,13 @@ class SnuddaDetect(object):
             neuron_id = n["neuronID"]
 
             if neuron.dend.shape[0] > 0:
-                dend_loc = np.floor((neuron.dend[:, :3] - self.simulation_origo)
-                                    / self.hyper_voxel_width).astype(int)
+                dend_loc = np.floor((neuron.dend[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(int)
             else:
                 dend_loc = np.zeros((0, 3))
 
             if neuron.axon.shape[0] > 0:
                 # We have an axon, use it
-                axon_loc = np.floor((neuron.axon[:, :3] - self.simulation_origo)
-                                    / self.hyper_voxel_width).astype(int)
+                axon_loc = np.floor((neuron.axon[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(int)
 
             elif neuron.axon_density_type == "r":
 
@@ -1998,8 +1995,7 @@ class SnuddaDetect(object):
                 axon_cloud[:, 1] = y + neuron.soma[0, 1]
                 axon_cloud[:, 2] = z + neuron.soma[0, 2]
 
-                axon_loc = np.floor((axon_cloud[:, :3] - self.simulation_origo)
-                                    / self.hyper_voxel_width).astype(int)
+                axon_loc = np.floor((axon_cloud[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(int)
 
                 axon_inside_flag = [0 <= xa < self.hyper_voxel_id_lookup.shape[0]
                                     and 0 <= ya < self.hyper_voxel_id_lookup.shape[1]
@@ -2058,8 +2054,7 @@ class SnuddaDetect(object):
                 axon_cloud = np.matmul(neuron.rotation,
                                        axon_cloud.transpose()).transpose() + neuron.position
 
-                axon_loc = np.floor((axon_cloud[:, :3] - self.simulation_origo)
-                                    / self.hyper_voxel_width).astype(int)
+                axon_loc = np.floor((axon_cloud[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(int)
 
                 axon_inside_flag = [0 <= x < self.hyper_voxel_id_lookup.shape[0]
                                     and 0 <= y < self.hyper_voxel_id_lookup.shape[1]
@@ -2175,6 +2170,7 @@ class SnuddaDetect(object):
                      "config_file": self.config_file,
                      "voxel_size": self.voxel_size,
                      "hyper_voxel_size": self.hyper_voxel_size,
+                     "hyper_voxel_width": self.hyper_voxel_width,
                      "verbose": self.verbose,
                      "slurm_id": self.slurm_id,
                      "save_file": self.save_file,

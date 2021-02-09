@@ -41,7 +41,7 @@ class TestCLI(unittest.TestCase):
             time.sleep(10)
 
         with self.subTest(stage="init-parallel"):
-            run_cli_command("init tiny_parallel --size 10 --overwrite")
+            run_cli_command("init tiny_parallel --size 100 --overwrite")
 
         with self.subTest(stage="place-parallel"):
             run_cli_command("place tiny_parallel --parallel")
