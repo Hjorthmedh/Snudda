@@ -1363,6 +1363,7 @@ class SnuddaPrune(object):
     ############################################################################
 
     # Needs to handle both gap junctions and synapses
+    # This is called using d_view for parallel execution, the code coverage algorithm does not understand that
 
     def big_merge_helper(self, neuron_range, merge_data_type):
 
@@ -1417,6 +1418,11 @@ class SnuddaPrune(object):
                     # Low level opening hdf5 file, to have greater cache size #ACC_RDWR
                     fid = h5py.h5f.open(h_filename.encode(), flags=h5py.h5f.ACC_RDONLY, fapl=propfaid)
                     file_list[h_id] = h5py.File(fid, drive=self.h5driver)
+
+                    # Verify hyper voxel
+                    if merge_data_type == "synapses":
+                        # No need to do it for both synapses and gap junctions, since same hyper voxels
+                        self.check_hyper_voxel_integrity(fid, h_filename.encode(), verbose=True)
 
                     if self.max_channel_type:
                         # These should be the same for all hypervoxels

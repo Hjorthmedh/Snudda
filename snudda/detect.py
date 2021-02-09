@@ -1779,11 +1779,12 @@ class SnuddaDetect(object):
             self.num_hyper_voxels = num_hyper_voxels
             self.simulation_origo = simulation_origo
 
-            # We need to push the data to the workers also
-            d_view.push({"simulation_origo": simulation_origo,
-                         "nc.hyper_voxels": hyper_voxels,
-                         "nc.hyper_voxel_id_lookup": hyper_voxel_id_lookup,
-                         "nc.num_hyper_voxels": num_hyper_voxels}, block=True)
+            if d_view:
+                # We need to push the data to the workers also
+                d_view.push({"simulation_origo": simulation_origo,
+                             "nc.hyper_voxels": hyper_voxels,
+                             "nc.hyper_voxel_id_lookup": hyper_voxel_id_lookup,
+                             "nc.num_hyper_voxels": num_hyper_voxels}, block=True)
             return
 
         # No old data, we need to calculate it
