@@ -7,16 +7,16 @@
 # snudda init <networkPath> --size XXX
 # -- Creates an a json config file
 #
-# snudda place <networkPath>
+# snudda place <networkPath> [--parallel]
 # -- Cell placement within volumes specified
 #
-# snudda detect <networkPath> [--hvsize hyperVoxelSize]
+# snudda detect <networkPath> [--hvsize hyperVoxelSize] [--parallel]
 # -- Touch detection of putative synapses
 #
-# snudda prune <networkPath> [--mergeonly]
+# snudda prune <networkPath> [--mergeonly] [--parallel]
 # -- Prune the synapses
 #
-# snudda input <networkPath> [--input yourInputConfig]
+# snudda input <networkPath> [--input yourInputConfig] [--parallel]
 #
 # snudda export <networkPath>
 # -- Export to SONATA format (optional)
@@ -59,13 +59,12 @@ class Snudda(object):
 
     ############################################################################
 
-    def __init__(self, network_path, run_parallel=False):
+    def __init__(self, network_path):
 
         self.network_path = network_path
         self.d_view = None
         self.lb_view = None
         self.rc = None
-        self.run_parallel = run_parallel
         self.slurm_id = 0
 
         # Add current dir to python path
