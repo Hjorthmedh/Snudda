@@ -136,7 +136,7 @@ class Snudda(object):
         self.setup_log_file(log_file_name)  # sets self.logFile
 
         if args.parallel:
-            self.setup_parallel()  # sets self.dView and self.lbView
+            self.setup_parallel()  # sets self.d_view and self.lb_view
 
         from .place import SnuddaPlace
 
@@ -187,10 +187,10 @@ class Snudda(object):
         voxel_dir = os.path.join(self.network_path, "voxels")
         self.make_dir_if_needed(voxel_dir)
 
-        self.setup_log_file(log_filename)  # sets self.logFile
+        self.setup_log_file(log_filename)  # sets self.logfile
 
         if args.parallel:
-            self.setup_parallel()  # sets self.dView and self.lbView
+            self.setup_parallel()  # sets self.d_view and self.lb_view
 
         if args.h5legacy:
             h5libver = "earliest"
@@ -235,10 +235,10 @@ class Snudda(object):
 
         random_seed = args.randomseed
 
-        self.setup_log_file(log_filename)  # sets self.logFile
+        self.setup_log_file(log_filename)  # sets self.logfile
 
         if args.parallel:
-            self.setup_parallel()  # sets self.dView and self.lbView
+            self.setup_parallel()  # sets self.d_view and self.lb_view
 
         # Optionally set this
         scratch_path = None
@@ -276,10 +276,10 @@ class Snudda(object):
 
         print("Setting up inputs, assuming input.json exists")
         log_filename = os.path.join(self.network_path, "log", "logFile-setup-input.log")
-        self.setup_log_file(log_filename)  # sets self.logFile
+        self.setup_log_file(log_filename)  # sets self.logfile
 
         if args.parallel:
-            self.setup_parallel()  # sets self.dView and self.lbView
+            self.setup_parallel()  # sets self.d_view and self.lb_view
 
         if "input" in args:
             input_config = args.input
@@ -527,7 +527,7 @@ class Snudda(object):
         self.lb_view = self.rc.load_balanced_view(targets='all')
 
         # Define nc globally
-        # self.dView.execute("nc = None",block=True)
+        # self.d_view.execute("nc = None",block=True)
 
     ############################################################################
 
