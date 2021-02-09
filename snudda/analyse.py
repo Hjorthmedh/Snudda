@@ -2187,7 +2187,7 @@ class SnuddaAnalyse(object):
 
     def _dend_density(self, swc_file, num_bins, bin_width):
 
-        from .Neuron_morphology import NeuronMorphology
+        from .neuron_morphology import NeuronMorphology
 
         dend_hist = np.zeros((num_bins,))
 

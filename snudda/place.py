@@ -17,8 +17,8 @@ from collections import OrderedDict
 import h5py
 import json
 
-from .Neuron_morphology import NeuronMorphology
-from .RegionMesh import RegionMesh
+from .neuron_morphology import NeuronMorphology
+from .region_mesh import RegionMesh
 
 ''' This code places all neurons in space, but does not setup their
   connectivity. That is done in another script. '''
@@ -28,7 +28,7 @@ class SnuddaPlace(object):
 
     def __init__(self,
                  config_file=None,
-                 verbose=False,
+                 verbose=True,
                  log_file=None,
                  d_view=None,
                  lb_view=None,
@@ -65,7 +65,7 @@ class SnuddaPlace(object):
         self.volume = dict([])
 
         self.config_file = config_file
-        self.read_config()
+        # self.read_config()  # -- Now called from core.py
 
     ############################################################################
 
@@ -102,8 +102,7 @@ class SnuddaPlace(object):
                               virtual_neuron=virtual_neuron)
 
         neuron_type = name.split("_")[0]
-        neuron_coords = self.volume[volume_id]["mesh"].place_neurons(num_neurons,
-                                                                     neuron_type)
+        neuron_coords = self.volume[volume_id]["mesh"].place_neurons(num_neurons, neuron_type)
 
         first_added = True
 
@@ -176,6 +175,9 @@ class SnuddaPlace(object):
         finally:
             cfg_file.close()
 
+        if not config:
+            self.write_log("Warning, empty network config.")
+
         if self.random_seed is None:
             if "RandomSeed" in config and "place" in config["RandomSeed"]:
                 self.random_seed = config["RandomSeed"]["place"]
@@ -222,7 +224,7 @@ class SnuddaPlace(object):
                 else:
                     mesh_bin_width = vol_def["meshBinWidth"]
 
-                self.write_log("Using mesh_bin_width " + str(mesh_bin_width))
+                self.write_log(f"Using mesh_bin_width {mesh_bin_width}")
 
                 if "-cube-mesh-" in vol_def["meshFile"]:
                     self.write_log("Cube mesh, switching to serial processing.")
@@ -232,8 +234,16 @@ class SnuddaPlace(object):
                     d_view = self.d_view
                     lb_view = self.lb_view
 
+                if os.path.exists(vol_def["meshFile"]):
+                    mesh_file = vol_def["meshFile"]
+                elif os.path.exists(os.path.join(os.path.dirname(self.config_file), vol_def["meshFile"])):
+                    mesh_file = os.path.join(os.path.dirname(self.config_file), vol_def["meshFile"])
+                else:
+                    self.write_log(f"Unable to find mesh file {vol_def['meshFile']}")
+                    exit(-1)
+
                 self.volume[volume_id]["mesh"] \
-                    = RegionMesh(vol_def["meshFile"],
+                    = RegionMesh(mesh_file,
                                  d_view=d_view,
                                  lb_view=lb_view,
                                  raytrace_borders=False,
@@ -319,6 +329,8 @@ class SnuddaPlace(object):
         if self.population_unit_placement_method is not None:
             self.define_population_units(method=self.population_unit_placement_method)
 
+        mesh_logfile.close()
+
     ############################################################################
 
     def all_neuron_positions(self):
@@ -349,9 +361,9 @@ class SnuddaPlace(object):
 
     ############################################################################
 
-    def write_data_HDF5(self, file_name):
+    def write_data(self, file_name):
 
-        self.write_log("Writing data to HDF5 file: " + file_name)
+        self.write_log(f"Writing data to HDF5 file: {file_name}")
 
         pos_file = h5py.File(file_name, "w", libver=self.h5libver)
 
@@ -470,28 +482,14 @@ class SnuddaPlace(object):
         ad_str_type = "S" + str(max(1, max([len(x) if x is not None else 1
                                             for x in axon_density])))
 
-        try:
-            neuron_group.create_dataset("axonDensity", (len(axon_density),),
-                                        ad_str_type, data=axon_density, compression="gzip")
-        except:
-            import traceback
-            tstr = traceback.format_exc()
-            self.write_log(tstr)
-            import pdb
-            pdb.set_trace()
+        neuron_group.create_dataset("axonDensity", (len(axon_density),),
+                                    ad_str_type, data=axon_density, compression="gzip")
 
         axon_density_radius = [n.axon_density[2]
                                if n.axon_density is not None and n.axon_density[0] == "r"
                                else np.nan for n in self.neurons]
 
-        try:
-            neuron_group.create_dataset("axonDensityRadius", data=axon_density_radius)
-        except:
-            import traceback
-            tstr = traceback.format_exc()
-            self.write_log(tstr)
-            import pdb
-            pdb.set_trace()
+        neuron_group.create_dataset("axonDensityRadius", data=axon_density_radius)
 
         # We also need to save axonDensityBoundsXYZ, and nAxon points for the
         # non-spherical axon density option
@@ -513,7 +511,8 @@ class SnuddaPlace(object):
                     tstr = traceback.format_exc()
                     self.write_log(tstr)
 
-                    self.write_log("Incorrect density string: " + str(n.axon_density))
+                    self.write_log(f"Incorrect density string: {n.axon_density}")
+                    exit(-1)
 
         neuron_group.create_dataset("axonDensityBoundsXYZ", data=axon_density_bounds_xyz)
 

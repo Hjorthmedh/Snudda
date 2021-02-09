@@ -3,8 +3,8 @@ export IPYTHON_PROFILE=Snudda_LOCAL
 
 numNeurons=3000
 simNamePart=20210107
-# cellspecDir=data/parkinson-2021-12-17
-cellspecDir=data/parkinson-2021-01-07
+cellspecDir=data/parkinson-2020-12-17
+# cellspecDir=data/parkinson-2021-01-07
 
 ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20
@@ -15,7 +15,7 @@ sleep 20
 
 ######################
 
-simName=networks/pd0_$simNamePart
+simName=networks/pd0_100k_$simNamePart
 
 # snudda init $simName --size $numNeurons --overwrite
 python3 init_custom.py $simName --cellspec $cellspecDir/pd0/

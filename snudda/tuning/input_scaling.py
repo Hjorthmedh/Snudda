@@ -6,8 +6,8 @@ import json
 
 import h5py
 
-from snudda.CreateCubeMesh import CreateCubeMesh
-from snudda.Neuron_morphology import NeuronMorphology
+from snudda.create_cube_mesh import create_cube_mesh
+from snudda.neuron_morphology import NeuronMorphology
 from snudda.init import SnuddaInit
 from snudda.input import SnuddaInput
 from snudda.load import SnuddaLoad
@@ -76,8 +76,8 @@ class InputScaling(object):
         with open(self.network_config_file_name, "w") as f:
             json.dump(config_def, f, indent=2, cls=NumpyEncoder)
 
-        CreateCubeMesh("data/mesh/InputTestMesh.obj", [0, 0, 0], 1e-3,
-                       description="Mesh file used for Input Scaling")
+        create_cube_mesh("data/mesh/InputTestMesh.obj", [0, 0, 0], 1e-3,
+                         description="Mesh file used for Input Scaling")
 
         # Write the cellspec path to file
         self.write_tuning_info()
@@ -87,7 +87,7 @@ class InputScaling(object):
         from snudda.prune import SnuddaPrune
 
         position_file = os.path.join(self.network_dir, "network-neuron-positions.hdf5")
-        SnuddaPlace(config_file=self.network_config_file_name, verbose=True).write_data_HDF5(position_file)
+        SnuddaPlace(config_file=self.network_config_file_name, verbose=True).write_data(position_file)
 
         SnuddaDetect(config_file=self.network_config_file_name,
                      position_file=position_file,

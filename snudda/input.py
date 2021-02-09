@@ -23,7 +23,7 @@ import itertools
 
 import matplotlib.pyplot as plt
 
-from .Neuron_morphology import NeuronMorphology
+from .neuron_morphology import NeuronMorphology
 from .load import SnuddaLoad
 
 nl = None
@@ -103,6 +103,10 @@ class SnuddaInput(object):
 
         self.neuron_cache = dict([])
 
+        self.is_master = is_master
+
+    def generate(self):
+
         # Read in the input configuration information from JSON file
         self.read_input_config_file()
 
@@ -113,7 +117,7 @@ class SnuddaInput(object):
         self.read_network_config_file()
 
         # Only the master node should start the work
-        if is_master:
+        if self.is_master:
             # Initialises lbView and dView (load balance, and direct view)
             self.setup_parallel()
 
@@ -178,6 +182,12 @@ class SnuddaInput(object):
             # nName = self.neuronName[neuronID]
 
             for input_type in self.neuron_input[neuron_id]:
+
+                if input_type[0] == '!':
+                    self.write_log(f"Disabling input {input_type} for neuron {neuron_id} "
+                                   f" (input_type was commented with ! before name)")
+                    continue
+
                 if input_type.lower() != "VirtualNeuron".lower():
                     it_group = nid_group.create_group(input_type)
 
@@ -269,7 +279,8 @@ class SnuddaInput(object):
                     # Allow user to use $DATA to refer to snudda data directory
                     par_file = par_file.replace("$DATA", os.path.join(os.path.dirname(__file__), "data"))
 
-                    par_data_dict = json.load(open(par_file, 'r'))
+                    with open(par_file, 'r') as f:
+                        par_data_dict = json.load(f)
 
                     # Read in parameters into a list
                     par_data = []
@@ -379,6 +390,11 @@ class SnuddaInput(object):
             # if dSPN_3 --> use specific neuron morphology corresponding to dSPN_3
 
             for input_type in input_info:
+
+                if input_type[0] == '!':
+                    self.write_log(f"Disabling input {input_type} for neuron {neuron_name} "
+                                   f" (input_type was commented with ! before name)")
+                    continue
 
                 input_inf = input_info[input_type]
 
@@ -1115,9 +1131,7 @@ class SnuddaInput(object):
             import traceback
             tstr = traceback.format_exc()
             self.write_log(tstr)
-
-            import pdb
-            pdb.set_trace()
+            exit(-1)
 
     ############################################################################
 
