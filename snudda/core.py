@@ -389,7 +389,7 @@ class Snudda(object):
         make_mods_str = f"nrnivmodl {mech_dir}"
         if not os.path.exists('x86_64'):
             print(f"Please first run: {make_mods_str}")
-            exit(-1)
+            os.sys.exit(-1)
             # I was having problems when running nrnivmodl in the script, but
             # running it manually in bash works... WHY?!!
 
@@ -472,7 +472,7 @@ class Snudda(object):
             print("Program run time: " + str(stop - start))
 
         # sim.plot()
-        #exit(0)
+        #os.sys.exit(0)
 
         # cmdStr = "nrnivmodl " + mechDir + " && mpiexec -n " + str(nWorkers) + " -map-by socket:OVERSUBSCRIBE python3 " + os.path.dirname(__file__) + " simulate.py " + networkFile + " " + inputFile + " --time " + str(args.time)
 

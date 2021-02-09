@@ -1131,7 +1131,7 @@ class SnuddaInput(object):
             import traceback
             tstr = traceback.format_exc()
             self.write_log(tstr)
-            exit(-1)
+            os.sys.exit(-1)
 
     ############################################################################
 
@@ -1274,4 +1274,4 @@ class SnuddaInput(object):
 
 if __name__ == "__main__":
     print("Please do not call this file directly, use snudda command line")
-    exit(-1)
+    os.sys.exit(-1)

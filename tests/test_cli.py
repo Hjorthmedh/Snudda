@@ -40,16 +40,16 @@ class TestCLI(unittest.TestCase):
             os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
             time.sleep(10)
 
-        with self.subTest(stage="init"):
+        with self.subTest(stage="init-parallel"):
             run_cli_command("init tiny_parallel --size 10 --overwrite")
 
-        with self.subTest(stage="place"):
+        with self.subTest(stage="place-parallel"):
             run_cli_command("place tiny_parallel --parallel")
 
-        with self.subTest(stage="detect"):
+        with self.subTest(stage="detect-parallel"):
             run_cli_command("detect tiny_parallel --volumeID Striatum --parallel")
 
-        with self.subTest(stage="prune"):
+        with self.subTest(stage="prune-parallel"):
             run_cli_command("prune tiny_parallel --parallel")
 
         from shutil import copyfile

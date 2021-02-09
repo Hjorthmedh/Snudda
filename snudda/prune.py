@@ -1428,10 +1428,11 @@ class SnuddaPrune(object):
 
                     if self.max_channel_type:
                         # These should be the same for all hypervoxels
-                        assert self.max_channel_type == file_list[h_id]["network/maxChannelTypeID"]
+                        assert self.max_channel_type == file_list[h_id]["network/maxChannelTypeID"][()], \
+                            (f"max_channel_type = {self.max_channel_type} "
+                             f"(differ with what is in file {file_list[h_id]['network/maxChannelTypeID'][()]})")
                     else:
-                        self.max_channel_type = file_list[h_id]["network/maxChannelTypeID"]
-
+                        self.max_channel_type = file_list[h_id]["network/maxChannelTypeID"][()]
 
                     chunk_size = 10000
                     lookup_iterator = \
@@ -1559,7 +1560,7 @@ class SnuddaPrune(object):
             tstr = traceback.format_exc()
             self.write_log(tstr)
             self.write_to_random_file(tstr)
-            exit(-1)
+            os.sys.exit(-1)
 
         ############################################################################
 
@@ -2180,4 +2181,4 @@ class SnuddaPrune(object):
 
 if __name__ == "__main__":
     print("Please do not call this file directly, use snudda.py")
-    exit(-1)
+    os.sys.exit(-1)

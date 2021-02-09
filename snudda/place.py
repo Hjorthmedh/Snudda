@@ -159,12 +159,12 @@ class SnuddaPlace(object):
 
         if config_file is None:
             self.write_log("No configuration file specified")
-            exit(-1)
+            os.sys.exit(-1)
 
         if not os.path.exists(config_file):
             self.write_log("Config file does not exist: " + str(config_file))
             self.write_log("Run snudda init <your directory> first")
-            exit(-1)
+            os.sys.exit(-1)
 
         self.write_log("Parsing configuration file " + config_file)
 
@@ -240,7 +240,7 @@ class SnuddaPlace(object):
                     mesh_file = os.path.join(os.path.dirname(self.config_file), vol_def["meshFile"])
                 else:
                     self.write_log(f"Unable to find mesh file {vol_def['meshFile']}")
-                    exit(-1)
+                    os.sys.exit(-1)
 
                 self.volume[volume_id]["mesh"] \
                     = RegionMesh(mesh_file,
@@ -512,7 +512,7 @@ class SnuddaPlace(object):
                     self.write_log(tstr)
 
                     self.write_log(f"Incorrect density string: {n.axon_density}")
-                    exit(-1)
+                    os.sys.exit(-1)
 
         neuron_group.create_dataset("axonDensityBoundsXYZ", data=axon_density_bounds_xyz)
 
