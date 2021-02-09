@@ -2170,7 +2170,6 @@ class SnuddaDetect(object):
                      "config_file": self.config_file,
                      "voxel_size": self.voxel_size,
                      "hyper_voxel_size": self.hyper_voxel_size,
-                     "hyper_voxel_width": self.hyper_voxel_width,
                      "verbose": self.verbose,
                      "slurm_id": self.slurm_id,
                      "save_file": self.save_file,
