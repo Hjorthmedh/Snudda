@@ -634,7 +634,7 @@ class SnuddaDetect(object):
 
             # Could not rewrite scalars, so saving nCompleted as a vector of length 1
             self.work_history.create_dataset("nCompleted", data=np.zeros(1, ))
-            all_hyper_id_list = np.array([x for x in self.hyper_voxels.keys()], dtype=np.int)
+            all_hyper_id_list = np.array([x for x in self.hyper_voxels.keys()], dtype=np.int32)
 
             # Remove the empty hyper IDs
             (valid_hyper_id, empty_hyper_id) = self.remove_empty(all_hyper_id_list)
@@ -653,9 +653,9 @@ class SnuddaDetect(object):
                 self.write_log(f"Skipping {len(empty_hyper_id)} empty hyper voxels")
 
             self.work_history.create_dataset("allHyperIDs", data=all_hyper_id_list)
-            self.work_history.create_dataset("nSynapses", data=np.zeros(num_hyper_voxels, ), dtype=np.int)
-            self.work_history.create_dataset("nGapJunctions", data=np.zeros(num_hyper_voxels, ), dtype=np.int)
-            self.work_history.create_dataset("voxelOverflowCounter", data=np.zeros(num_hyper_voxels, ), dtype=np.int)
+            self.work_history.create_dataset("nSynapses", data=np.zeros(num_hyper_voxels, ), dtype=np.int64)
+            self.work_history.create_dataset("nGapJunctions", data=np.zeros(num_hyper_voxels, ), dtype=np.int64)
+            self.work_history.create_dataset("voxelOverflowCounter", data=np.zeros(num_hyper_voxels, ), dtype=np.int64)
 
         return all_hyper_id_list, num_completed, remaining, voxel_overflow_counter
 

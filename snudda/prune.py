@@ -1588,7 +1588,7 @@ class SnuddaPrune(object):
         # fileMat = [None] * maxHyperID # points to the synapse matrix in each file
         # fileMatLookup = [None] * maxHyperID # points to the matrix lookup in file
 
-        num_synapses = np.zeros((max_hyper_id,), dtype=np.int)
+        num_synapses = np.zeros((max_hyper_id,), dtype=np.int64)
 
         # Open all files for reading
         h_file_name_mask = os.path.join(self.base_path, "voxels", "network-putative-synapses-%s.hdf5")
