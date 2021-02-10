@@ -104,12 +104,9 @@ class TestPrune(unittest.TestCase):
 
         self.sd.detect(restart_detection_flag=True)
 
-        if False:
+        if True:
             self.sd.process_hyper_voxel(1)
             self.sd.plot_hyper_voxel(plot_neurons=True)
-            # TODO: Check why soma is plotted in wrong place? Mistake with origo plotoffset?
-            import pdb
-            pdb.set_trace()
 
     def test_prune(self):
 
@@ -148,7 +145,7 @@ class TestPrune(unittest.TestCase):
 
         # It is important merge file has synapses sorted with dest_id, source_id as sort order since during pruning
         # we assume this to be able to quickly find all synapses on post synaptic cell.
-        # TODO: Also include the CannelModelID in sorting check
+        # TODO: Also include the ChannelModelID in sorting check
         with self.subTest("Checking-merge-file-sorted"):
             merge_file = os.path.join(self.network_path, "network-putative-synapses-MERGED.hdf5")
 

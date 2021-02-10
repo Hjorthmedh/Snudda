@@ -16,7 +16,7 @@ class PlotNetwork(object):
         self.prototype_neurons = dict()
 
     def plot(self, plot_axon=True, plot_dendrite=True, plot_synapses=True,
-             title=None, show_axis=True,
+             title=None, title_pad=None, show_axis=True,
              elev_azim=None, fig_name=None, dpi=600):
 
         if type(plot_axon) == bool:
@@ -42,8 +42,8 @@ class PlotNetwork(object):
                                plot_axon=pa,
                                plot_dendrite=pd,
                                soma_colour="black",
-                               axon_colour="maroon",
-                               dend_colour="black")   # Can also write colours as (0, 0, 0) -- rgb
+                               axon_colour="darksalmon",  #"maroon",
+                               dend_colour="silver")   # Can also write colours as (0, 0, 0) -- rgb
 
         # Plot synapses
         if plot_synapses and "synapseCoords" in self.sl.data:
@@ -51,6 +51,10 @@ class PlotNetwork(object):
                        self.sl.data["synapseCoords"][:, 1],
                        self.sl.data["synapseCoords"][:, 2], c=(0.1, 0.1, 0.1))
 
+            plt.figtext(0.5, 0.15, f"{self.sl.data['nSynapses']} synapses",
+                        ha="center", fontsize=18) #, bbox={"facecolor":"orange", "alpha":0.5, "pad":5})
+
+            
         if elev_azim:
             ax.view_init(elev_azim[0], elev_azim[1])
 
@@ -61,7 +65,14 @@ class PlotNetwork(object):
 
         if title is None:
             title = ""
-        plt.title(title)
+
+        if title_pad is not None:
+            plt.rcParams['axes.titley'] = 1.0  # y is in axes-relative co-ordinates.
+            plt.rcParams['axes.titlepad'] = title_pad  # pad is in points...
+
+
+        
+        plt.title(title, fontsize=18)
 
         # ax.dist = 8
 
