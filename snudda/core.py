@@ -176,6 +176,9 @@ class Snudda(object):
             volume_id = None
 
         log_dir = os.path.join(self.network_path, "log")
+        if not os.path.exists(log_dir):
+            print(f"Creating directory {log_dir}")
+            os.makedirs(log_dir, exist_ok=True)
 
         config_file = os.path.join(self.network_path, "network-config.json")
         position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
@@ -302,8 +305,15 @@ class Snudda(object):
 
         if args.time:
             input_time = args.time
+        else:
+            input_time = None
 
         random_seed = args.randomseed
+
+        if args.h5legacy:
+            h5libver = "earliest"
+        else:
+            h5libver = "latest"  # default
 
         print(f"Writing input spikes to {spike_file}")
 
@@ -313,7 +323,8 @@ class Snudda(object):
                          time=input_time,
                          logfile=self.logfile,
                          rc=self.rc,
-                         random_seed=random_seed)
+                         random_seed=random_seed,
+                         h5libver=h5libver)
         si.generate()
 
         self.stop_parallel()
@@ -372,7 +383,7 @@ class Snudda(object):
         # Problems with nested symbolic links when the second one is a relative
         # path going beyond the original base path
         if args.mech_dir is None:
-            mech_dir = os.path.join(os.path.dirname(network_file), "mechanisms")
+            # mech_dir = os.path.join(os.path.dirname(network_file), "mechanisms")
 
             # TODO!!! problem with paths, testing to create mechanism dir in current dir
             mech_dir = "mechanisms"
@@ -472,14 +483,6 @@ class Snudda(object):
             print("Program run time: " + str(stop - start))
 
         # sim.plot()
-        #os.sys.exit(0)
-
-        # cmdStr = "nrnivmodl " + mechDir + " && mpiexec -n " + str(nWorkers) + " -map-by socket:OVERSUBSCRIBE python3 " + os.path.dirname(__file__) + " simulate.py " + networkFile + " " + inputFile + " --time " + str(args.time)
-
-        # if(args.voltOut is not None):
-        #  cmdStr += " --voltOut " + args.voltOut
-
-        # os.system(cmdStr)
 
     ############################################################################
 
@@ -536,9 +539,9 @@ class Snudda(object):
         # Disable this function, keep the pool running for now
         return
 
-        if self.rc is not None:
-            print("Stopping ipyparallel")
-            self.rc.shutdown(hub=True)
+        # if self.rc is not None:
+        #    print("Stopping ipyparallel")
+        #    self.rc.shutdown(hub=True)
 
     ############################################################################
 
