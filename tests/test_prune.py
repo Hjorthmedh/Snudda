@@ -4,6 +4,7 @@ import unittest
 from snudda.create_cube_mesh import create_cube_mesh
 from snudda.detect import SnuddaDetect
 from snudda.load import SnuddaLoad
+from snudda.neuron_morphology import NeuronMorphology
 from snudda.place import SnuddaPlace
 import numpy as np
 
@@ -142,6 +143,40 @@ class TestPrune(unittest.TestCase):
             gj = sl.data["gapJunctions"][:sl.data["nGapJunctions"], :2]
             gj_order = gj[:, 1] * len(self.sd.neurons) + gj[:, 0]
             self.assertTrue((np.diff(gj_order) >= 0).all())
+
+        with self.subTest(stage="load-testing"):
+            sl = SnuddaLoad(pruned_output)
+
+            # Try and load a neuron
+            n = sl.load_neuron(0)
+            self.assertTrue(type(n) == NeuronMorphology)
+
+            syn_ctr = 0
+            for s in sl.synapse_iterator(chunk_size=50):
+                syn_ctr += s.shape[0]
+            self.assertEqual(syn_ctr, sl.data["nSynapses"])
+        
+            gj_ctr = 0
+            for gj in sl.gap_junction_iterator(chunk_size=50):
+                gj_ctr += gj.shape[0]
+            self.assertEqual(gj_ctr, sl.data["nGapJunctions"])
+
+            syn, syn_coords = sl.find_synapses(pre_id=14)
+            self.assertTrue((syn[:, 0] == 14).all())
+            self.assertEqual(syn.shape[0], 40)
+
+            syn, syn_coords = sl.find_synapses(post_id=3)
+            self.assertTrue((syn[:, 1] == 3).all())
+            self.assertEqual(syn.shape[0], 36)
+
+            cell_id_perm = sl.get_cell_id_of_type("ballanddoublestick", random_permute=True, num_neurons=28)
+            cell_id = sl.get_cell_id_of_type("ballanddoublestick", random_permute=False)
+
+            self.assertEqual(len(cell_id_perm), 28)
+            self.assertEqual(len(cell_id), 28)
+            
+            for cid in cell_id_perm:
+                self.assertTrue(cid in cell_id)
 
         # It is important merge file has synapses sorted with dest_id, source_id as sort order since during pruning
         # we assume this to be able to quickly find all synapses on post synaptic cell.

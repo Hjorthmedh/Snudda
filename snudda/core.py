@@ -515,12 +515,8 @@ class Snudda(object):
         self.logfile.write('Creating ipyparallel client\n')
 
         from ipyparallel import Client
-        # self.rc = Client(profile=os.getenv('IPYTHON_PROFILE'),
-        #            # sshserver='127.0.0.1',
-        #            debug=False)
 
-        u_file = os.path.join(ipython_dir, f"profile_{ipython_profile}",
-                              "security", "ipcontroller-client.json")
+        u_file = os.path.join(ipython_dir, f"profile_{ipython_profile}", "security", "ipcontroller-client.json")
         self.rc = Client(url_file=u_file, timeout=120, debug=False)
 
         self.logfile.write(f'Client IDs: {self.rc.ids}')
@@ -529,9 +525,6 @@ class Snudda(object):
         # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
         self.d_view = self.rc.direct_view(targets='all')  # rc[:] # Direct view into clients
         self.lb_view = self.rc.load_balanced_view(targets='all')
-
-        # Define nc globally
-        # self.d_view.execute("nc = None",block=True)
 
     ############################################################################
 
@@ -600,10 +593,7 @@ class Snudda(object):
             import traceback
             tstr = traceback.format_exc()
             print(tstr)
-
             print("Problem reading .runID.pickle file, setting runID to 0")
-            import pdb
-            pdb.set_trace()
             return 0
 
         print("Using runID = " + str(next_id))
@@ -612,7 +602,8 @@ class Snudda(object):
 
     ############################################################################
 
-    def make_dir_if_needed(self, dir_path):
+    @staticmethod
+    def make_dir_if_needed(dir_path):
 
         if not os.path.exists(dir_path):
             print("Creating missing directory " + dir_path)
