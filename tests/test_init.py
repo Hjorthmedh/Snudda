@@ -26,6 +26,8 @@ class TestInit(unittest.TestCase):
                                 volume_type="cube")
             cnc.write_json(config_name)
 
+            # TODO: This only checks that the code runs. Add check for output
+
         with self.subTest(stage="init_slice"):
             network_path = os.path.join(os.path.dirname(__file__), "tests", "network_testing_init_slice")
 

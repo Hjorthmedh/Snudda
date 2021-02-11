@@ -307,7 +307,7 @@ class SnuddaLoad(object):
         neuron_info = self.data["neurons"][neuron_id]
         self.load_config_file()
 
-        prototype_info = self.config[neuron_info["name"]]
+        prototype_info = self.config["Neurons"][neuron_info["name"]]
 
         from snudda.neuron_morphology import NeuronMorphology
         neuron = NeuronMorphology(name=neuron_info["name"],
@@ -495,6 +495,8 @@ class SnuddaLoad(object):
     def get_cell_id_of_type(self, neuron_type, num_neurons=None, random_permute=False):
 
         cell_id = [x["neuronID"] for x in self.data["neurons"] if x["type"] == neuron_type]
+
+        assert not random_permute or num_neurons is not None, "random_permute is only valid when num_neurons is given"
 
         if num_neurons is not None:
             if random_permute:
