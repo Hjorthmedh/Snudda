@@ -256,8 +256,7 @@ class SnuddaDetect(object):
             else:
                 # Open old file with work history
                 print("Reusing old work history file " + str(self.work_history_file))
-                self.work_history = h5py.File(self.work_history_file, "r+",
-                                              libver=self.h5libver)
+                self.work_history = h5py.File(self.work_history_file, "r+", libver=self.h5libver)
 
             # For each neuron we need to find which hyper voxel it belongs to
             # (can be more than one)
@@ -2970,33 +2969,14 @@ class SnuddaDetect(object):
         plt.show()
 
         plt.pause(0.001)
-        fig_name = "figures/Hypervoxel-" + str(self.slurm_id) \
-                   + "-" + str(self.hyper_voxel_id) + "-someNeurons.png"
-        plt.savefig(fig_name, dpi=900)
 
-    ############################################################################
+        fig_name = os.path.join(os.path.dirname(self.config_file), "figures",
+                                f"Hypervoxel-{self.slurm_id}-{self.hyper_voxel_id}-someNeurons.png")
 
-    def trivial_example(self):
+        if not os.path.exists(os.path.dirname(fig_name)):
+            os.mkdir(os.path.dirname(fig_name))
 
-        # This places two neurons in a hyper voxel and tests it
-        # --- It destroys the current state of the program.
-
-        self.hyper_voxels[0]["neuronCtr"] = 2
-        self.hyper_voxels[0]["origo"] = np.array([0, 0, 0])
-        self.neurons[50]["position"] = np.array([-10e-6, 120e-6, -10e-6])
-        self.neurons[51]["position"] = np.array([120e-6, 120e-6, -10e-6])
-        self.hyper_voxels[0]["neurons"] = np.array([50, 51])
-
-        self.process_hyper_voxel(0)
-
-        # self.plotHyperVoxel(plotNeurons=True)
-        self.plot_hyper_voxel(plot_neurons=False)
-
-        print("Synapses: " + str(self.hyper_voxel_synapse_ctr))
-        print(str(self.hyper_voxel_synapses[:self.hyper_voxel_synapse_ctr, :]))
-
-        import pdb
-        pdb.set_trace()
+        plt.savefig(fig_name, dpi=300)  #dpi = 900
 
     ############################################################################
 
@@ -3020,7 +3000,7 @@ class SnuddaDetect(object):
         seg_id = np.array([1, 2, 3], dtype=int)
         seg_x = np.array([[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]], dtype=float)
 
-        if False:
+        if True:
             self.fill_voxels_dend(voxel_space=voxels,
                                   voxel_space_ctr=voxel_ctr,
                                   voxel_sec_id=voxel_sec_id,
@@ -3032,7 +3012,7 @@ class SnuddaDetect(object):
                                   seg_x=seg_x,
                                   neuron_id=13)
 
-        if False:
+        if True:
             self.fill_voxels_soma(voxel_space=voxels,
                                   voxel_space_ctr=voxel_ctr,
                                   voxel_sec_id=voxel_sec_id,
@@ -3053,8 +3033,6 @@ class SnuddaDetect(object):
                               links=links,
                               neuron_id=13)
 
-        import pdb
-        pdb.set_trace()
 
     ############################################################################
 

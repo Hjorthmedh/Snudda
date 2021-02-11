@@ -3,6 +3,7 @@ import unittest, os, sys, argparse, time
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import snudda.cli
 
+
 # Duck punch the argument parser so it doesn't sys.exit
 def on_argparse_error(self, message):
     raise argparse.ArgumentError(None, message)
@@ -44,10 +45,10 @@ class TestCLI(unittest.TestCase):
             run_cli_command("init tiny_parallel --size 100 --overwrite")
 
         with self.subTest(stage="place-parallel"):
-            run_cli_command("place tiny_parallel --parallel")
+            run_cli_command("place tiny_parallel --parallel --raytraceBorders")
 
         with self.subTest(stage="detect-parallel"):
-            run_cli_command("detect tiny_parallel --volumeID Striatum --parallel")
+            run_cli_command("detect tiny_parallel --parallel")
 
         with self.subTest(stage="prune-parallel"):
             run_cli_command("prune tiny_parallel --parallel")
@@ -70,13 +71,16 @@ class TestCLI(unittest.TestCase):
             run_cli_command("simulate tiny_parallel --time 0.1")
 
         with self.subTest(stage="init-serial"):
-            run_cli_command("init tiny_serial --size 100 --overwrite")
+            run_cli_command("init tiny_serial --size 100 --overwrite --profile")
 
         with self.subTest(stage="place-serial"):
-            run_cli_command("place tiny_serial")
+            run_cli_command("place tiny_serial --h5legacy")
 
         with self.subTest(stage="detect-serial"):
-            run_cli_command("detect tiny_serial --volumeID Striatum")
+            run_cli_command("detect tiny_serial --volumeID Striatum --hvsize 120 --randomseed 123 --verbose")
+
+        with self.subTest(stage="detect-serial-cont"):
+            run_cli_command("detect tiny_serial --volumeID Striatum --hvsize 120 --cont")
 
         with self.subTest(stage="prune-serial-merge-only"):
             run_cli_command("prune tiny_serial --mergeonly")  # Testing the merge only code

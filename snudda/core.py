@@ -150,6 +150,7 @@ class Snudda(object):
                          verbose=True,
                          d_view=self.d_view,
                          h5libver=h5libver,
+                         raytrace_borders=args.raytrace_borders,
                          random_seed=random_seed)
 
         sp.read_config()
@@ -176,6 +177,9 @@ class Snudda(object):
             volume_id = None
 
         log_dir = os.path.join(self.network_path, "log")
+        if not os.path.exists(log_dir):
+            print(f"Creating directory {log_dir}")
+            os.makedirs(log_dir, exist_ok=True)
 
         config_file = os.path.join(self.network_path, "network-config.json")
         position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
@@ -243,7 +247,7 @@ class Snudda(object):
         # Optionally set this
         scratch_path = None
 
-        if args.mergeonly:
+        if args.merge_only:
             pre_merge_only = True
         else:
             pre_merge_only = False
@@ -290,20 +294,27 @@ class Snudda(object):
             print(f"Missing input config file: {input_config}")
             return
 
-        if args.networkFile:
-            network_file = args.networkFile
+        if args.network_file:
+            network_file = args.network_file
         else:
             network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
 
-        if args.inputFile:
-            spike_file = args.inputFile
+        if args.input_file:
+            spike_file = args.input_file
         else:
             spike_file = os.path.join(self.network_path, "input-spikes.hdf5")
 
         if args.time:
             input_time = args.time
+        else:
+            input_time = None
 
         random_seed = args.randomseed
+
+        if args.h5legacy:
+            h5libver = "earliest"
+        else:
+            h5libver = "latest"  # default
 
         print(f"Writing input spikes to {spike_file}")
 
@@ -313,7 +324,8 @@ class Snudda(object):
                          time=input_time,
                          logfile=self.logfile,
                          rc=self.rc,
-                         random_seed=random_seed)
+                         random_seed=random_seed,
+                         h5libver=h5libver)
         si.generate()
 
         self.stop_parallel()
@@ -329,7 +341,7 @@ class Snudda(object):
         print(f"Network path: {self.network_path}")
 
         if args.networkFile:
-            network_file = args.networkFile
+            network_file = args.network_file
         else:
             network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
 
@@ -352,13 +364,13 @@ class Snudda(object):
 
         from .simulate import SnuddaSimulate
 
-        if args.networkFile:
-            network_file = args.networkFile
+        if args.network_file:
+            network_file = args.network_file
         else:
             network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
 
-        if args.inputFile:
-            input_file = args.inputFile
+        if args.input_file:
+            input_file = args.input_file
         else:
             input_file = os.path.join(self.network_path, "input-spikes.hdf5")
 
@@ -371,8 +383,8 @@ class Snudda(object):
 
         # Problems with nested symbolic links when the second one is a relative
         # path going beyond the original base path
-        if args.mechDir is None:
-            mech_dir = os.path.join(os.path.dirname(network_file), "mechanisms")
+        if args.mech_dir is None:
+            # mech_dir = os.path.join(os.path.dirname(network_file), "mechanisms")
 
             # TODO!!! problem with paths, testing to create mechanism dir in current dir
             mech_dir = "mechanisms"
@@ -381,7 +393,7 @@ class Snudda(object):
                 m_dir = os.path.join(os.path.dirname(__file__), "data", "cellspecs-v2", "mechanisms")
                 os.symlink(m_dir, mech_dir)
         else:
-            mech_dir = args.mechDir
+            mech_dir = args.mech_dir
 
         # !!! These are saved in current directory x86_64
         # --- problem since nrnivmodl seems to want a relative path...
@@ -409,21 +421,21 @@ class Snudda(object):
 
         print(f"args: {args}")
 
-        if args.voltOut is not None:
+        if args.volt_out is not None:
             # Save neuron voltage
-            if args.voltOut == "default":
+            if args.volt_out == "default":
                 volt_file = os.path.join(save_dir, f"network-voltage-{slurm_id}.csv")
             else:
-                volt_file = args.voltOut
+                volt_file = args.volt_out
         else:
             volt_file = None
 
-        if args.spikesOut is None or args.spikesOut == "default":
+        if args.spikes_out is None or args.spikes_out == "default":
             spikes_file = os.path.join(save_dir, f"network-output-spikes-{slurm_id}.txt")
         else:
-            spikes_file = args.spikesOut
+            spikes_file = args.spikes_out
 
-        disable_gj = args.disableGJ
+        disable_gj = args.disable_gj
         if disable_gj:
             print("!!! WE HAVE DISABLED GAP JUNCTIONS !!!")
 
@@ -454,11 +466,11 @@ class Snudda(object):
             sim.add_recording(side_len=None)  # Side len let you record from a subset
             # sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
 
-        tSim = args.time * 1000  # Convert from s to ms for Neuron simulator
+        t_sim = args.time * 1000  # Convert from s to ms for Neuron simulator
 
         sim.check_memory_status()
-        print("Running simulation for " + str(tSim) + " ms.")
-        sim.run(tSim)  # In milliseconds
+        print("Running simulation for " + str(t_sim) + " ms.")
+        sim.run(t_sim)  # In milliseconds
 
         print("Simulation done, saving output")
         if spikes_file is not None:
@@ -472,14 +484,6 @@ class Snudda(object):
             print("Program run time: " + str(stop - start))
 
         # sim.plot()
-        #os.sys.exit(0)
-
-        # cmdStr = "nrnivmodl " + mechDir + " && mpiexec -n " + str(nWorkers) + " -map-by socket:OVERSUBSCRIBE python3 " + os.path.dirname(__file__) + " simulate.py " + networkFile + " " + inputFile + " --time " + str(args.time)
-
-        # if(args.voltOut is not None):
-        #  cmdStr += " --voltOut " + args.voltOut
-
-        # os.system(cmdStr)
 
     ############################################################################
 
@@ -536,9 +540,9 @@ class Snudda(object):
         # Disable this function, keep the pool running for now
         return
 
-        if self.rc is not None:
-            print("Stopping ipyparallel")
-            self.rc.shutdown(hub=True)
+        # if self.rc is not None:
+        #    print("Stopping ipyparallel")
+        #    self.rc.shutdown(hub=True)
 
     ############################################################################
 
