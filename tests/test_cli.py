@@ -31,9 +31,6 @@ class TestCLI(unittest.TestCase):
 
     def test_workflow(self):
 
-        with self.subTest(stage="help"):
-            run_cli_command("-h")
-
         with self.subTest(stage="create"):
             run_cli_command("create test-project --overwrite")
         os.chdir('test-project')
@@ -48,7 +45,7 @@ class TestCLI(unittest.TestCase):
             run_cli_command("init tiny_parallel --size 100 --overwrite")
 
         with self.subTest(stage="place-parallel"):
-            run_cli_command("place tiny_parallel --parallel --rayTraceBorders")
+            run_cli_command("place tiny_parallel --parallel --raytraceBorders")
 
         with self.subTest(stage="detect-parallel"):
             run_cli_command("detect tiny_parallel --parallel")

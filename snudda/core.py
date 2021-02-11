@@ -294,13 +294,13 @@ class Snudda(object):
             print(f"Missing input config file: {input_config}")
             return
 
-        if args.networkFile:
-            network_file = args.networkFile
+        if args.network_file:
+            network_file = args.network_file
         else:
             network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
 
-        if args.inputFile:
-            spike_file = args.inputFile
+        if args.input_file:
+            spike_file = args.input_file
         else:
             spike_file = os.path.join(self.network_path, "input-spikes.hdf5")
 
