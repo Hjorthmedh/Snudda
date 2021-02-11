@@ -17,6 +17,9 @@ def snudda_cli():
     parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
     parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
 
+    create_parser = sub_parsers.add_parser("create")
+    create_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory",
+                             action="store_true")
     init_parser = sub_parsers.add_parser("init")
     init_parser.add_argument("-size", "--size", dest="size",
                              type=int, help="Number of neurons in network", default=None)
