@@ -39,6 +39,8 @@ def snudda_cli():
     place_parser = sub_parsers.add_parser("place")
     place_parser.add_argument("path", help="Location of network")
     place_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
+    place_parser.add_argument("--raytraceBorders", help="Ray traces for more precise mesh edge detection",
+                              action="store_true", dest="raytrace_borders", default=False)
     place_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     place_parser.add_argument("--verbose", action="store_true")
     place_parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")

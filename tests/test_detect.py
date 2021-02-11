@@ -136,6 +136,26 @@ class TestDetect(unittest.TestCase):
         self.assertTrue((self.sd.hyper_voxel_synapses >= 0).all())
         self.assertTrue((self.sd.hyper_voxel_gap_junctions >= 0).all())
 
+        with self.subTest(stage="resiz_matrix_check"):
+            old = self.sd.hyper_voxel_synapses.copy()
+            self.sd.resize_hyper_voxel_synapses_matrix()
+            # Check all synapses are preserved when resizing
+            self.assertTrue((self.sd.hyper_voxel_synapses[:old.shape[0], :] == old).all())
+            # Check new rows are empty
+            self.assertTrue((self.sd.hyper_voxel_synapses[old.shape[0]:, :] == 0).all())
+
+        with self.subTest(stage="export_voxel_vis"):
+            self.sd.export_voxel_visualisation_csv(neuron_id=np.arange(0, 10))
+
+        with self.subTest(stage="plot_hyper_voxel"):
+            # Matplotlib is kind of slow
+            self.sd.plot_neurons_in_hyper_voxel(neuron_id=np.arange(0, 10),
+                                                neuron_colour=np.zeros((10, 3)))
+
+        with self.subTest(stage="example-draw"):
+            # Just checking that the drawing works -- matplotlib is kind of slow
+            self.sd.test_voxel_draw()
+
         print("Checking detect done.")
 
     def check_neuron_pair_has_synapse(self, pre_neuron, post_neuron):

@@ -33,6 +33,7 @@ class SnuddaPlace(object):
                  d_view=None,
                  lb_view=None,
                  h5libver="latest",
+                 raytrace_borders=False,
                  random_seed=None):
 
         self.verbose = verbose
@@ -49,6 +50,8 @@ class SnuddaPlace(object):
         self.neuronPrototypes = {}
         self.random_seed = random_seed
         self.random_generator = None
+
+        self.raytrace_borders = raytrace_borders
 
         # This defines the neuron units/channels. The dictionary lists all the
         # members of each unit, the neuronChannel gives the individual neurons
@@ -246,7 +249,7 @@ class SnuddaPlace(object):
                     = RegionMesh(mesh_file,
                                  d_view=d_view,
                                  lb_view=lb_view,
-                                 raytrace_borders=False,
+                                 raytrace_borders=self.raytrace_borders,
                                  d_min=vol_def["dMin"],
                                  bin_width=mesh_bin_width,
                                  log_file=mesh_logfile,

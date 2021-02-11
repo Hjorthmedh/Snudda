@@ -150,6 +150,7 @@ class Snudda(object):
                          verbose=True,
                          d_view=self.d_view,
                          h5libver=h5libver,
+                         raytrace_borders=args.raytrace_borders,
                          random_seed=random_seed)
 
         sp.read_config()
