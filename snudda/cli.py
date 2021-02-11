@@ -6,54 +6,67 @@ import os
 
 def snudda_cli():
 
-    parser = ArgumentParser(description="Microcircuit generation\n\n" + snudda_help_text(),
+    parser = ArgumentParser(description=f"Snudda microcircuit generator\n\n{snudda_help_text()}",
                             formatter_class=RawTextHelpFormatter)
-    parser.add_argument("action", choices=["init", "create", "place", "detect",
-                                           "prune", "input", "export", "analyse", "convert", "simulate", "help"],
-                        help="Action to do")
-    parser.add_argument("path", help="Storage path for network files")
-    parser.add_argument("--size", type=int, help="Number of neurons",
-                        default=None)
-    parser.add_argument("-cont", "--cont", help="Continue partial touch detection",
-                        action="store_true")
-    parser.add_argument("-hvsize", "--hvsize",
-                        help="Hyper voxel size, 100 good value for full striatum, for small runs, use smaller values to more evenly distribute the workload between workers")
-    parser.add_argument("--volumeID", help="Specify volume ID for detection step")
-    parser.add_argument("--mergeonly", "--onlymerge",
-                        help="Only merge synapses in hyper voxels into a big file. Pre-processing to pruning, normally run before. This allows the user to run this separately.",
-                        action="store_true")
-    parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
-    parser.add_argument("--profile", help="Run python cProfile", action="store_true")
-    parser.add_argument("--NumPopulationUnits", type=int,
-                        help="Number of Population Units in the structure, affects connectivity and input correlation",
-                        default=1)
-    parser.add_argument("--PopulationUnitCentres", help="A list which defines the population unit centres",
-                        default="[[]]")
-    parser.add_argument("--PopulationUnitRadius", type=float, help="Radius of population units", default=1)
-    parser.add_argument("--input", help="Input json config file (for input setup)")
-    parser.add_argument("--inputFile", help="Input hdf5 file (for simulation)")
-    parser.add_argument("--networkFile", help="Network file, if not network-pruned-synapses.hdf5")
-    parser.add_argument("--time", type=float, default=2.5,
-                        help="Duration of simulation in seconds")
-    parser.add_argument("--voltOut", "--voltout",
-                        default=None,
-                        help="Name of voltage output file (csv)")
-    parser.add_argument("--spikesOut", "--spikesout",
-                        default=None,
-                        help="Name of spike output file (csv)")
-    parser.add_argument("--disableGJ", action="store_true",
-                        help="Disable gap junctions")
-    parser.add_argument("--randomseed", default=None, help="RandomSeed", type=int)
 
-    # parser.add_argument("--ncores", default=12,
-    #                    help="Number of cores used for simulation")
-    parser.add_argument("--overwrite",
-                        help="Skips check if network directory already exists",
-                        action="store_true")
-    parser.add_argument("--mechDir", help="mechanism directory if not default",
-                        default=None)
+    sub_parsers = parser.add_subparsers(help="action", dest="action")
+    parser.add_argument("path", help="Location of network", default=None)
+    parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
+    parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     parser.add_argument("--verbose", action="store_true")
-    parser.add_argument("--parallel", action="store_true", default=False)
+    parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
+    parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
+
+    init_parser = sub_parsers.add_parser("init")
+    init_parser.add_argument("-size", "--size", dest="size",
+                             type=int, help="Number of neurons in network", default=None)
+    init_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory",
+                             action="store_true")
+    init_parser.add_argument("--NumPopulationUnits", type=int,
+                             help="Number of Population Units in the structure, affects connectivity and input correlation",
+                             default=1)
+    init_parser.add_argument("--PopulationUnitCentres", help="A list which defines the population unit centres",
+                             default="[[]]")
+    init_parser.add_argument("--PopulationUnitRadius", type=float, help="Radius of population units", default=1)
+
+    place_parser = sub_parsers.add_parser("place")
+
+    detect_parser = sub_parsers.add_parser("detect")
+    detect_parser.add_argument("-cont", "--cont", help="Continue partial touch detection", action="store_true")
+    detect_parser.add_argument("-hvsize", "--hvsize", default=100,
+                               help="Hyper voxel size, eg. 100 = 100x100x100 voxels in hypervoxel")
+    detect_parser.add_argument("--volumeID", help="Specify volume ID for detection step")
+
+    prune_parser = sub_parsers.add_parser("prune")
+    prune_parser.add_argument("--mergeonly", "--onlymerge", dest="merge_only",
+                              help="Merge hyper voxel synapse files, skipping pruning step", action="store_true")
+
+    input_parser = sub_parsers.add_parser("input")
+    input_parser.add_argument("--input", help="Input json config file (for input setup)")
+    input_parser.add_argument("--inputFile", help="Input hdf5 file (for simulation)",
+                              dest="input_file")
+    input_parser.add_argument("--networkFile", help="Network file, if not network-pruned-synapses.hdf5",
+                              dest="network_file")
+    input_parser.add_argument("--time", type=float, default=2.5, help="Duration of simulation in seconds")
+
+    simulate_parser = sub_parsers.add_parser("simulate")
+    simulate_parser.add_argument("--time", type=float, default=2.5, help="Duration of simulation in seconds")
+
+    simulate_parser.add_argument("--voltOut", "--voltout", dest="volt_out", default=None,
+                                 help="Name of voltage output file (csv)")
+    simulate_parser.add_argument("--spikesOut", "--spikesout", dest="spikes_out", default=None,
+                                 help="Name of spike output file (csv)")
+    simulate_parser.add_argument("--disableGJ", action="store_true", dest="disable_gj",
+                                 help="Disable gap junctions")
+
+    simulate_parser.add_argument("-mechdir", "--mechDir", dest="mech_dir",
+                                 help="mechanism directory if not default", default=None)
+
+    export_parser = sub_parsers.add_parser("export")
+    export_parser.add_argument("--inputFile", help="Input hdf5 file (for simulation)",
+                               dest="input_file")
+    export_parser.add_argument("--networkFile", help="Network file, if not network-pruned-synapses.hdf5",
+                               dest="network_file")
 
     args = parser.parse_args()
 
