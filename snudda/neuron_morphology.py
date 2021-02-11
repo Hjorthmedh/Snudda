@@ -892,7 +892,7 @@ class NeuronMorphology(object):
 
     ############################################################################
 
-    def dendrite_input_locations(self, synapse_density, num_locations=None, return_density=False):
+    def dendrite_input_locations(self, synapse_density, rng, num_locations=None, return_density=False):
 
         # Calculate the input density at each point in dendrite morphology
         d = self.dend[:, 4]
@@ -922,13 +922,10 @@ class NeuronMorphology(object):
 
         # Number of input synapses on each compartment
         number_of_synapses = (expected_synapses + ((expected_synapses % 1)
-                                                   > np.random.rand(len(expected_synapses)))).astype(int)
+                                                   > rng.random(len(expected_synapses)))).astype(int)
 
         n_syn_tot = np.sum(number_of_synapses)
         dist_syn_soma = []
-
-        # import pdb
-        # pdb.set_trace()
 
         # x,y,z, secID, secX
         input_loc = np.zeros((n_syn_tot, 5))
@@ -944,13 +941,13 @@ class NeuronMorphology(object):
                 input_loc[syn_ctr, 3] = self.dend_sec_id[i_comp]
 
                 # Cant have at endpoints 0 or 1
-                comp_x = np.random.rand()
+                comp_x = rng.random()
                 dist_syn_soma = np.append(dist_syn_soma,
                                           d[self.dend_links[i_comp, 0]] * (1 - comp_x)
                                           + d[self.dend_links[i_comp, 1]] * comp_x)
 
-                coords = self.dend[self.dend_links[i_comp, 0], :3] * (1 - comp_x) \
-                         + self.dend[self.dend_links[i_comp, 1], :3] * comp_x
+                coords = (self.dend[self.dend_links[i_comp, 0], :3] * (1 - comp_x)
+                          + self.dend[self.dend_links[i_comp, 1], :3] * comp_x)
 
                 input_loc[syn_ctr, :3] = coords
 

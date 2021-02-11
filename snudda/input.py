@@ -129,7 +129,8 @@ class SnuddaInput(object):
             # TODO: Having common spikes within a population unit caused problems, a lot of neurons fired at same
             # time. To avoid this the population_spike_list is cleared in make_neuron_input_parallel
             # Should rewrite this later.
-            self.make_population_unit_spike_trains()
+            rng = self.get_master_node_rng()
+            self.make_population_unit_spike_trains(rng=rng)
 
             # Generate the actual input spikes, and the locations
             # stored in self.neuronInput dictionary
@@ -301,7 +302,7 @@ class SnuddaInput(object):
     # taken from a stream of spikes unique to that particular population unit
     # This function generates these correlated spikes
 
-    def make_population_unit_spike_trains(self, num_population_units=None):
+    def make_population_unit_spike_trains(self, rng, num_population_units=None):
 
         self.write_log("Running makePopulationUnitSpikeTrains")
 
@@ -342,7 +343,7 @@ class SnuddaInput(object):
 
                     for idxPopUnit in pop_unit_list:
                         self.population_unit_spikes[cell_type][input_type][idxPopUnit] = \
-                            self.generate_spikes(freq=freq, time_range=(start_time, end_time))
+                            self.generate_spikes(freq=freq, time_range=(start_time, end_time), rng=rng)
 
         return self.population_unit_spikes
 
@@ -508,6 +509,8 @@ class SnuddaInput(object):
                     self.write_log("Unknown input generator: " + input_inf["generator"]
                                    + " for " + str(neuron_id))
 
+        seed_list = self.generate_seeds(num_states=len(neuron_id_list))
+
         # The old code had so that all neurons within a population unit shared the same
         # mother process, which caused them all to activate at the same time
         # with high probability. By setting channelSpikeList to None we disable it
@@ -540,7 +543,8 @@ class SnuddaInput(object):
                                   correlation_list,
                                   mod_file_list,
                                   parameter_file_list,
-                                  parameter_list_list))
+                                  parameter_list_list,
+                                  seed_list))
 
             self.d_view.scatter("input_list", input_list, block=True)
             cmd_str = "inpt = list(map(nl.make_input_helper_parallel,input_list))"
@@ -568,7 +572,8 @@ class SnuddaInput(object):
                       correlation_list,
                       mod_file_list,
                       parameter_file_list,
-                      parameter_list_list)
+                      parameter_list_list,
+                      seed_list)
 
         # Gather the spikes that were generated in parallel
         for neuron_id, input_type, spikes, loc, synapse_density, frq, \
@@ -605,16 +610,16 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    def generate_spikes_helper(self, frequencies, time_ranges):
+    def generate_spikes_helper(self, frequencies, time_ranges, rng):
         t_spikes = []
 
         for f, t_start, t_end in zip(frequencies, time_ranges[0], time_ranges[1]):
-            t_spikes.append(self.generate_spikes(f, (t_start, t_end)))
+            t_spikes.append(self.generate_spikes(f, (t_start, t_end), rng))
 
         # Double check correct dimension
         return np.sort(np.concatenate(t_spikes))
 
-    def generate_spikes(self, freq, time_range):
+    def generate_spikes(self, freq, time_range, rng):
         # This generates poisson spikes with frequency freq, for a given time range
 
         if type(time_range[0]) == list:
@@ -631,7 +636,7 @@ class SnuddaInput(object):
                 assert (np.array(time_range[0][1:]) - np.array(time_range[1][0:-1]) >= 0).all(), \
                     f"Time range should not overlap: start: {time_range[0]}, end: {time_range[1]}"
 
-            return self.generate_spikes_helper(frequencies=freq, time_ranges=time_range)
+            return self.generate_spikes_helper(frequencies=freq, time_ranges=time_range, rng=rng)
 
         # https://stackoverflow.com/questions/5148635/how-to-simulate-poisson-arrival
         start_time = time_range[0]
@@ -641,13 +646,13 @@ class SnuddaInput(object):
         assert duration > 0, f"Start time {start_time} and end time {end_time} incorrect (duration > 0 required)"
 
         if freq > 0:
-            t_diff = -np.log(1.0 - np.random.random(int(np.ceil(max(1, freq * duration))))) / freq
+            t_diff = -np.log(1.0 - rng.random(int(np.ceil(max(1, freq * duration))))) / freq
 
             t_spikes = [start_time + np.cumsum(t_diff)]
 
             # Is last spike after end of duration
             while t_spikes[-1][-1] <= end_time:
-                t_diff = -np.log(1.0 - np.random.random(int(np.ceil(freq * duration * 0.1)))) / freq
+                t_diff = -np.log(1.0 - rng.random(int(np.ceil(freq * duration * 0.1)))) / freq
                 t_spikes.append(t_spikes[-1][-1] + np.cumsum(t_diff))
 
             # Prune away any spikes after end
@@ -674,9 +679,9 @@ class SnuddaInput(object):
     ############################################################################
 
     @staticmethod
-    def cull_spikes(spikes, p_keep):
+    def cull_spikes(spikes, p_keep, rng):
 
-        return spikes[np.random.random(spikes.shape) < p_keep]
+        return spikes[rng.random(spikes.shape) < p_keep]
 
     ############################################################################
 
@@ -690,14 +695,14 @@ class SnuddaInput(object):
     #                  (population unit Spikes are the spikes shared between correlated
     #                   spike trains)
 
-    def make_correlated_spikes(self, freq, time_range, num_spike_trains, p_keep,
+    def make_correlated_spikes(self, freq, time_range, num_spike_trains, p_keep, rng,
                                population_unit_spikes=None, 
                                ret_pop_unit_spikes=False, jitter_dt=None):
 
         assert (0 <= p_keep <= 1)
 
         if population_unit_spikes is None:
-            population_unit_spikes = self.generate_spikes(freq, time_range)
+            population_unit_spikes = self.generate_spikes(freq, time_range, rng=rng)
 
         if type(freq) == list:
             unique_freq = [f * (1 - p_keep) for f in freq]
@@ -706,8 +711,8 @@ class SnuddaInput(object):
         spike_trains = []
 
         for i in range(0, num_spike_trains):
-            t_unique = self.generate_spikes(unique_freq, time_range)
-            t_population_unit = self.cull_spikes(population_unit_spikes, p_keep)
+            t_unique = self.generate_spikes(unique_freq, time_range, rng)
+            t_population_unit = self.cull_spikes(population_unit_spikes, p_keep, rng)
 
             spike_trains.append(self.mix_spikes([t_unique, t_population_unit]))
 
@@ -715,7 +720,7 @@ class SnuddaInput(object):
         # self.verifyCorrelation(spikeTrains=spikeTrains) # THIS STEP IS VERY VERY SLOW
 
         if jitter_dt is not None:
-            spike_trains = self.jitter_spikes(spike_trains, jitter_dt, time_range=time_range)
+            spike_trains = self.jitter_spikes(spike_trains, jitter_dt, time_range=time_range, rng=rng)
 
         if ret_pop_unit_spikes:
             return spike_trains, population_unit_spikes
@@ -724,12 +729,12 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    def make_uncorrelated_spikes(self, freq, t_start, t_end, n_spike_trains):
+    def make_uncorrelated_spikes(self, freq, t_start, t_end, n_spike_trains, rng):
 
         spike_trains = []
 
         for i in range(0, n_spike_trains):
-            spike_trains.append(self.generate_spikes(freq, (t_start, t_end)))
+            spike_trains.append(self.generate_spikes(freq, (t_start, t_end), rng))
 
         return spike_trains
 
@@ -740,12 +745,12 @@ class SnuddaInput(object):
     # they wrap around and appear at end of the timeline
 
     @staticmethod
-    def jitter_spikes(spike_trains, dt, time_range=None):
+    def jitter_spikes(spike_trains, dt, rng, time_range=None):
 
         jittered_spikes = []
 
         for i in range(0, len(spike_trains)):
-            spikes = spike_trains[i] + np.random.normal(0, dt, spike_trains[i].shape)
+            spikes = spike_trains[i] + rng.normal(0, dt, spike_trains[i].shape)
 
             # No modulo time jittering if list of times specified
             if time_range is not None and type(time_range[0]) != list:
@@ -846,6 +851,19 @@ class SnuddaInput(object):
         else:
             self.write_log(f"Using random seed provided by command line: {self.random_seed}")
 
+    def generate_seeds(self, num_states):
+
+        ss = np.random.SeedSequence(self.random_seed)
+        all_seeds = ss.generate_state(num_states+1)
+
+        return all_seeds[1:]  # First seed in sequence is reserved for master
+
+    def get_master_node_rng(self):
+
+        ss = np.random.SeedSequence(self.random_seed)
+        master_node_seed = ss.generate_state(1)
+        return np.random.default_rng(master_node_seed)
+
     ############################################################################
 
     def verify_correlation(self, spike_trains, expected_corr=None, dt=0):
@@ -888,6 +906,7 @@ class SnuddaInput(object):
 
     def dendrite_input_locations(self,
                                  neuron_id,
+                                 rng,
                                  synapse_density="1",
                                  num_spike_trains=None):
 
@@ -903,14 +922,17 @@ class SnuddaInput(object):
             self.neuron_cache[swc_file] = morphology
 
         return morphology.dendrite_input_locations(synapse_density=synapse_density,
-                                                   num_locations=num_spike_trains)
+                                                   num_locations=num_spike_trains,
+                                                   rng=rng)
 
     ############################################################################
 
     # Returns random dendrite compartments
     # Pdist = function of d (micrometers), e.g. "1", "2*d", ... etc
 
-    def random_compartment(self, neuron_id, num_locations, p_dist="1"):
+    def random_compartment(self, neuron_id, num_locations, rng, p_dist="1"):
+
+        assert False, "obsolete, remove! Use dendrite_input_locations in NeuronMorphology"
 
         neuron_name = self.neuron_name[neuron_id]
         swc_file = self.network_config[neuron_name]["morphology"]
@@ -944,7 +966,7 @@ class SnuddaInput(object):
         # Randomize locations. Here we then sort the locations, this is to make
         # it quicker to locate where they are (one pass in the Pxcumsum array)
         p_x_cumsum = np.cumsum(p_comp)
-        x = np.random.uniform(low=0, high=p_x_cumsum[-1], size=num_locations)
+        x = rng.uniform(low=0, high=p_x_cumsum[-1], size=num_locations)
         x_sort = np.sort(x)
 
         n_comps = len(d)
@@ -960,8 +982,7 @@ class SnuddaInput(object):
                 comp_idx += 1
 
             sec_id[ix] = morphology.dend_sec_id[comp_idx]
-            sec_x[ix] = (np.random.rand() * (morphology.dend_sec_x[comp_idx, 1]
-                                             - morphology.dend_sec_x[comp_idx, 0])
+            sec_x[ix] = (rng.random() * (morphology.dend_sec_x[comp_idx, 1] - morphology.dend_sec_x[comp_idx, 0])
                          + morphology.dend_sec_x[comp_idx, 0])
 
             comp_coords[ix, :3] = (morphology.dend[morphology.dend_links[comp_idx, 0], :3]
@@ -978,27 +999,6 @@ class SnuddaInput(object):
             plt.show()
 
         return comp_coords, sec_id, sec_x
-
-    ############################################################################
-
-    def set_seed(self, random_seed):
-
-        self.write_log("Setting random seed: " + str(random_seed))
-        np.random.seed(random_seed)
-
-    ############################################################################
-
-    def new_worker_seeds(self, d_view=None):
-
-        if not d_view:
-            d_view = self.d_view
-
-        n_workers = len(d_view)
-        worker_seeds = np.random.randint(0, np.iinfo(np.uint32).max, dtype=np.uint32, size=(n_workers,))
-        d_view.scatter("worker_seed", worker_seeds, block=True)
-        d_view.execute("nl.set_seed(worker_seed[0])", block=True)
-
-        self.write_log("New worker seeds: " + str(worker_seeds))
 
     ############################################################################
 
@@ -1058,8 +1058,6 @@ class SnuddaInput(object):
                    " random_seed=random_seed, logfile=log_filename[0])")
 
         self.d_view.execute(cmd_str, block=True)
-
-        # self.new_worker_seeds(self.d_view)
 
         self.write_log("Workers set up")
 
@@ -1152,7 +1150,7 @@ class SnuddaInput(object):
 
             neuron_id, input_type, freq, start, end, synapse_density, num_spike_trains, p_keep, \
                 population_unit_spikes, jitter_dt, population_unit_id, conductance, correlation, mod_file, \
-                parameter_file, parameter_list = args
+                parameter_file, parameter_list, random_seed = args
 
             return self.make_input_helper_serial(neuron_id=neuron_id,
                                                  input_type=input_type,
@@ -1169,7 +1167,8 @@ class SnuddaInput(object):
                                                  correlation=correlation,
                                                  mod_file=mod_file,
                                                  parameter_file=parameter_file,
-                                                 parameter_list=parameter_list)
+                                                 parameter_list=parameter_list,
+                                                 random_seed=random_seed)
 
         except:
             import traceback
@@ -1202,12 +1201,15 @@ class SnuddaInput(object):
                                  correlation,
                                  mod_file,
                                  parameter_file,
-                                 parameter_list):
+                                 parameter_list,
+                                 random_seed):
 
         # First, find out how many inputs and where, based on morphology and
         # synapse density
 
         time_range = (t_start, t_end)
+
+        rng = np.random.default_rng(random_seed)
 
         if input_type.lower() == "VirtualNeuron".lower():
             # This specifies activity of a virtual neuron
@@ -1225,14 +1227,16 @@ class SnuddaInput(object):
                                                  num_spike_trains=1,
                                                  p_keep=p_keep,
                                                  population_unit_spikes=population_unit_spikes,
-                                                 jitter_dt=jitter_dt)
+                                                 jitter_dt=jitter_dt,
+                                                 rng=rng)
             num_inputs = 1
         else:
 
             # (x,y,z), secID, secX, dist_to_soma
             input_loc = self.dendrite_input_locations(neuron_id=neuron_id,
                                                       synapse_density=synapse_density,
-                                                      num_spike_trains=num_spike_trains)
+                                                      num_spike_trains=num_spike_trains,
+                                                      rng=rng)
 
             num_inputs = input_loc[0].shape[0]
             print("Generating " + str(num_inputs) + " inputs for " + self.neuron_name[neuron_id])
@@ -1243,10 +1247,11 @@ class SnuddaInput(object):
                                                  num_spike_trains=num_inputs,
                                                  p_keep=p_keep,
                                                  population_unit_spikes=population_unit_spikes,
-                                                 jitter_dt=jitter_dt)
+                                                 jitter_dt=jitter_dt,
+                                                 rng=rng)
 
         # We need to pick which parameter set to use for the input also
-        parameter_id = np.random.randint(1e6, size=num_inputs)
+        parameter_id = rng.integers(1e6, size=num_inputs)
 
         # We need to keep track of the neuronID, since it will all be jumbled
         # when doing asynchronous parallelisation
