@@ -593,10 +593,7 @@ class Snudda(object):
             import traceback
             tstr = traceback.format_exc()
             print(tstr)
-
             print("Problem reading .runID.pickle file, setting runID to 0")
-            import pdb
-            pdb.set_trace()
             return 0
 
         print("Using runID = " + str(next_id))
@@ -605,7 +602,8 @@ class Snudda(object):
 
     ############################################################################
 
-    def make_dir_if_needed(self, dir_path):
+    @staticmethod
+    def make_dir_if_needed(dir_path):
 
         if not os.path.exists(dir_path):
             print("Creating missing directory " + dir_path)

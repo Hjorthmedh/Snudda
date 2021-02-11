@@ -12,7 +12,7 @@ import os.path
 import glob
 import collections
 from .create_cube_mesh import create_cube_mesh
-from .create_slice_mesh import CreateSliceMesh
+from .create_slice_mesh import create_slice_mesh
 
 import json
 
@@ -174,12 +174,12 @@ class SnuddaInit(object):
                 mesh_bin_width = np.minimum(side_len, slice_depth) / 3.0
                 print("Setting meshBinWidth to " + str(mesh_bin_width))
 
-            CreateSliceMesh(fileName=struct_mesh,
-                            centrePoint=np.array([0, 0, 0]),
-                            xLen=side_len,
-                            yLen=side_len,
-                            zLen=slice_depth,
-                            description=struct_name + " slice mesh")
+            create_slice_mesh(file_name=struct_mesh,
+                              centre_point=np.array([0, 0, 0]),
+                              x_len=side_len,
+                              y_len=side_len,
+                              z_len=slice_depth,
+                              description=struct_name + " slice mesh")
 
         assert struct_name not in self.network_data["Volume"], \
             "defineStruct: Volume " + struct_name + " is already defined."
