@@ -108,10 +108,6 @@ def snudda_cli():
 
     args = parser.parse_args()
 
-    if args.path is not None:
-        if args.path[-1] == "/":
-            args.path = args.path[:-1]
-
     snudda = Snudda(args.path)
 
     actions = {"init": snudda.init_config,
@@ -130,7 +126,7 @@ def snudda_cli():
         prof_file = "profile-" + args.action + ".prof"
         print("Saving profile data to: " + prof_file)
         import cProfile
-        cProfile.run("actions[args.action](args)", prof_file)
+        cProfile.runctx("actions[args.action](args)", None, locals(), filename=prof_file)
 
         # To analyse profile data:
         import pstats
