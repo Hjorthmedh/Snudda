@@ -1,5 +1,6 @@
 import unittest
 import os
+import numpy as np
 
 from snudda.init import SnuddaInit
 
@@ -18,7 +19,9 @@ class TestInit(unittest.TestCase):
             network_path = os.path.join(os.path.dirname(__file__), "tests", "network_testing_init_cube")
     
             config_name = os.path.join(network_path, "network-config.json")
-            cnc = SnuddaInit(struct_def={}, config_name=config_name, num_population_units=1)
+            cnc = SnuddaInit(struct_def={}, config_name=config_name, num_population_units=2,
+                             population_unit_centres="np.array([[3009, 4114, 4550], [4070, 5175, 5611]])*1e-6",
+                             population_unit_radius=1400)
             cnc.define_striatum(num_dSPN=47500, num_iSPN=47500, num_FS=1300, num_LTS=0, num_ChIN=0,
                                 volume_type="cube")
             cnc.write_json(config_name)

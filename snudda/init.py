@@ -67,7 +67,10 @@ class SnuddaInit(object):
             # Centre of striatum mesh is [3540e-6,4645e-6,5081e-6]
             # - the population units will be shifted according to this coordinate
 
-            self.network_data["PopulationUnits"]["centres"] = eval(population_unit_centres)
+            if type(population_unit_centres) == str:
+                population_unit_centres = eval(population_unit_centres)
+
+            self.network_data["PopulationUnits"]["centres"] = population_unit_centres
             assert len(self.network_data["PopulationUnits"]["centres"]) == num_population_units, \
                 (f"The number of Population Units ({num_population_units}) "
                  f"does not equal the number of centres ({len(self.network_data['PopulationUnits']['centres'])})")
