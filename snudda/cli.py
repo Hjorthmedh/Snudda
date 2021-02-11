@@ -16,6 +16,8 @@ def snudda_cli():
     create_parser.add_argument("path", help="Location of network")
     create_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory",
                                action="store_true")
+    create_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
+
 
     init_parser = sub_parsers.add_parser("init")
     init_parser.add_argument("path", help="Location of network")
@@ -63,7 +65,6 @@ def snudda_cli():
     prune_parser.add_argument("--verbose", action="store_true")
     prune_parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
     prune_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
-
 
     input_parser = sub_parsers.add_parser("input")
     input_parser.add_argument("path", help="Location of network")
