@@ -51,9 +51,7 @@ class PlotNetwork(object):
                        self.sl.data["synapseCoords"][:, 1],
                        self.sl.data["synapseCoords"][:, 2], c=(0.1, 0.1, 0.1))
 
-            plt.figtext(0.5, 0.15, f"{self.sl.data['nSynapses']} synapses",
-                        ha="center", fontsize=18) #, bbox={"facecolor":"orange", "alpha":0.5, "pad":5})
-
+            plt.figtext(0.5, 0.15, f"{self.sl.data['nSynapses']} synapses", ha="center", fontsize=18)
             
         if elev_azim:
             ax.view_init(elev_azim[0], elev_azim[1])
@@ -70,12 +68,9 @@ class PlotNetwork(object):
             plt.rcParams['axes.titley'] = 1.0  # y is in axes-relative co-ordinates.
             plt.rcParams['axes.titlepad'] = title_pad  # pad is in points...
 
-
-        
         plt.title(title, fontsize=18)
 
         # ax.dist = 8
-
         plt.ion()
         plt.show()
 
