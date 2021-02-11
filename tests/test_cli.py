@@ -70,6 +70,8 @@ class TestCLI(unittest.TestCase):
             print("Time to run simulation...")
             run_cli_command("simulate tiny_parallel --time 0.1")
 
+        os.environ["SLURM_JOBID"] = "1234"
+
         with self.subTest(stage="init-serial"):
             run_cli_command("init tiny_serial --size 100 --overwrite --profile")
 
