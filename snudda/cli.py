@@ -10,7 +10,8 @@ def snudda_cli():
                             formatter_class=RawTextHelpFormatter)
 
     sub_parsers = parser.add_subparsers(help="action", dest="action")
-    parser.add_argument("path", help="Location of network", default=None)
+    sub_parsers.required = True
+
     parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
     parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     parser.add_argument("--verbose", action="store_true")
@@ -18,9 +19,13 @@ def snudda_cli():
     parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
 
     create_parser = sub_parsers.add_parser("create")
+    create_parser.add_argument("path", help="Location of network")
     create_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory",
-                             action="store_true")
+                               action="store_true")
+
     init_parser = sub_parsers.add_parser("init")
+    init_parser.add_argument("path", help="Location of network")
+    #init_parser.add_argument("size", type=int, help="Number of neurons in network", default=None)
     init_parser.add_argument("-size", "--size", dest="size",
                              type=int, help="Number of neurons in network", default=None)
     init_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory",
@@ -33,18 +38,22 @@ def snudda_cli():
     init_parser.add_argument("--PopulationUnitRadius", type=float, help="Radius of population units", default=1)
 
     place_parser = sub_parsers.add_parser("place")
+    place_parser.add_argument("path", help="Location of network")
 
     detect_parser = sub_parsers.add_parser("detect")
+    detect_parser.add_argument("path", help="Location of network")
     detect_parser.add_argument("-cont", "--cont", help="Continue partial touch detection", action="store_true")
     detect_parser.add_argument("-hvsize", "--hvsize", default=100,
                                help="Hyper voxel size, eg. 100 = 100x100x100 voxels in hypervoxel")
     detect_parser.add_argument("--volumeID", help="Specify volume ID for detection step")
 
     prune_parser = sub_parsers.add_parser("prune")
+    prune_parser.add_argument("path", help="Location of network")
     prune_parser.add_argument("--mergeonly", "--onlymerge", dest="merge_only",
                               help="Merge hyper voxel synapse files, skipping pruning step", action="store_true")
 
     input_parser = sub_parsers.add_parser("input")
+    input_parser.add_argument("path", help="Location of network")
     input_parser.add_argument("--input", help="Input json config file (for input setup)")
     input_parser.add_argument("--inputFile", help="Input hdf5 file (for simulation)",
                               dest="input_file")
@@ -53,6 +62,7 @@ def snudda_cli():
     input_parser.add_argument("--time", type=float, default=2.5, help="Duration of simulation in seconds")
 
     simulate_parser = sub_parsers.add_parser("simulate")
+    simulate_parser.add_argument("path", help="Location of network")
     simulate_parser.add_argument("--time", type=float, default=2.5, help="Duration of simulation in seconds")
 
     simulate_parser.add_argument("--voltOut", "--voltout", dest="volt_out", default=None,
@@ -66,6 +76,7 @@ def snudda_cli():
                                  help="mechanism directory if not default", default=None)
 
     export_parser = sub_parsers.add_parser("export")
+    export_parser.add_argument("path", help="Location of network")
     export_parser.add_argument("--inputFile", help="Input hdf5 file (for simulation)",
                                dest="input_file")
     export_parser.add_argument("--networkFile", help="Network file, if not network-pruned-synapses.hdf5",
