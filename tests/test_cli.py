@@ -61,8 +61,16 @@ class TestCLI(unittest.TestCase):
         with self.subTest(stage="input"):
             run_cli_command("input tiny_parallel --input tiny_parallel/input.json --time 1.0 --parallel")
 
+        with self.subTest(stage="init-parallel-full"):
+            run_cli_command("init large_parallel --size 1670000 --overwrite")
+
+        with self.subTest(stage="place-parallel-full"):
+            run_cli_command("place large_parallel --parallel")
+
         with self.subTest(stage="parallel-stop"):
             os.system("ipcluster stop")
+
+        #  Only serial tests below this line, we stopped ipcluster.
 
         with self.subTest(stage="simulate"):
             print("Running nrnivmodl:")
