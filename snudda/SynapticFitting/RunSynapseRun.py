@@ -33,8 +33,8 @@ class RunSynapseRun(object):
                params={},
                time=2,
                logFile=None,
-               verbose=True):
-    
+               verbose=True,
+               rng=None):
 
     self.logFile = logFile # File pointer
     self.verbose = verbose
@@ -84,9 +84,13 @@ class RunSynapseRun(object):
     # We need to set the params also
     self.params = params
     self.defaultCond = 5e-7
+    self.rng = rng
+
+    assert rng, " Code has been updated, rng must be a random number generator, eg. rng = np.random.default_rng(random_seed)"
 
     self.addSynapseDensity(synapseType,synapseDensity,nSynapses,
-                           synapseSectionID,synapseSectionX)
+                           synapseSectionID,synapseSectionX,
+                           rng=self.rng)
           
     self.stimTimes = stimTimes*1e3
 
@@ -201,6 +205,7 @@ class RunSynapseRun(object):
 
   def addSynapseDensity(self,synapseType,
                         synapseDensity,
+                        rng,
                         nSynapses=None,
                         plotFlag=False,
                         sectionID=None,
@@ -217,7 +222,8 @@ class RunSynapseRun(object):
                                     self.morphology.dendrite_input_locations( \
                                                 synapse_density=synapseDensity,
                                                 num_locations=nSynapses,
-                                                return_density=True)
+                                                return_density=True,
+                                                rng=rng)
 
       self.synapseLocations=inputCoords
       distFromSoma = self.morphology.dend[:,4]
@@ -243,7 +249,8 @@ class RunSynapseRun(object):
 
       inputCoords,sectionID,sectionX =\
         self.morphology.dendrite_input_locations(synapse_density=synapseDensity,
-                                                 num_locations=nSynapses)
+                                                 num_locations=nSynapses,
+                                                 rng=rng)
 
       
       self.synapseLocations=inputCoords

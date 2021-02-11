@@ -96,7 +96,8 @@ class PruningIllustration(object):
             plt, ax = self.sd.plot_hyper_voxel(plot_neurons=True, elev_azim=(90, 0),
                                                draw_axon_voxels=False, draw_dendrite_voxels=False,
                                                draw_axons=True, draw_dendrites=True,
-                                               show_axis=False, title="No pruning", fig_file_name="Pruning-fig-1-no-pruning")
+                                               show_axis=False, title="No pruning",
+                                               fig_file_name="Pruning-fig-1-no-pruning")
             import pdb
             pdb.set_trace()
 
@@ -122,7 +123,7 @@ class PruningIllustration(object):
         pn = PlotNetwork(pruned_output)
         plt, ax = pn.plot(fig_name=fig_name, show_axis=False,
                           plot_axon=plot_axon, plot_dendrite=plot_dendrite,
-                          title=title,
+                          title=title, title_pad=-14,
                           elev_azim=(90, 0))
 
         # Load the pruned data and check it
@@ -205,27 +206,23 @@ if __name__ == "__main__":
 
     # Distance dependent examples
     pil.prune_network(pruning_config="network-config-distance-dep-1.json",
-                      title="exp(-(0.5*d/60e-6)^2)",
+                      title='"np.exp(-(0.5*d/60e-6)^2)"',
                       fig_name="5-Pruning-distance-dep-1.pdf")
 
     pil.prune_network(pruning_config="network-config-distance-dep-2.json",
-                      title="exp(-(0.5*d/100e-6)^2)",
+                      title='"np.exp(-(0.5*d/100e-6)^2)"',
                       fig_name="5-Pruning-distance-dep-2.pdf")
 
     pil.prune_network(pruning_config="network-config-distance-dep-3.json",
-                      title="1/(1+np.exp(-(d-200e-6)/30e-6))",
+                      title='"1/(1+np.exp(-(d-200e-6)/30e-6))"',
                       fig_name="5-Pruning-distance-dep-3.pdf")
 
     pil.prune_network(pruning_config="network-config-distance-dep-4.json",
-                      title="1/(1+np.exp(-(d-300e-6)/30e-6))",
+                      title='"1/(1+np.exp(-(d-300e-6)/30e-6))"',
                       fig_name="5-Pruning-distance-dep-4.pdf")
 
+    print(f"\n --> Figures written to {os.path.join(pil.network_path,'figures')}\n")
 
-    import pdb
-    pdb.set_trace()
+    #import pdb
+    #pdb.set_trace()
 
-    # Add rest of pruning versions here
-    # pil.prune_network(pruning_config="mypruningconfig-1.json", fig_name="1-my-rpuning.pdf")
-
-    import pdb
-    pdb.set_trace()
