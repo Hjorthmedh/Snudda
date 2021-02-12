@@ -262,6 +262,7 @@ class Snudda(object):
         sp = SnuddaPrune(work_history_file=work_log,
                          logfile=self.logfile,
                          logfile_name=log_filename,
+                         config_file=args.config_file,
                          d_view=self.d_view, lb_view=self.lb_view,
                          scratch_path=scratch_path,
                          h5libver=h5libver,
