@@ -19,34 +19,34 @@ simName=networks/pd0_100k_$simNamePart
 
 # snudda init $simName --size $numNeurons --overwrite
 python3 init_custom.py $simName --cellspec $cellspecDir/pd0/
-snudda place $simName 
-snudda detect $simName --volumeID Striatum
-snudda prune $simName
+snudda place $simName --parallel
+snudda detect $simName --parallel
+snudda prune $simName --parallel
 
 simName=networks/pd1_$simNamePart
 
 # snudda init $simName --size $numNeurons --overwrite
 python3 init_custom.py $simName --cellspec $cellspecDir/pd1/
-snudda place $simName 
-snudda detect $simName --volumeID Striatum
-snudda prune $simName
+snudda place $simName --parallel
+snudda detect $simName --parallel
+snudda prune $simName --parallel
 
 simName=networks/pd2_$simNamePart
 
 # snudda init $simName --size $numNeurons --overwrite
 python3 init_custom.py $simName --cellspec $cellspecDir/pd2/
-snudda place $simName 
-snudda detect $simName --volumeID Striatum
-snudda prune $simName
+snudda place $simName --parallel
+snudda detect $simName --parallel
+snudda prune $simName --parallel
 
 
 simName=networks/pd3_$simNamePart
 
 # snudda init $simName --size $numNeurons --overwrite
 python3 init_custom.py $simName --cellspec $cellspecDir/pd3/
-snudda place $simName 
-snudda detect $simName --volumeID Striatum
-snudda prune $simName
+snudda place $simName --parallel
+snudda detect $simName --parallel
+snudda prune $simName --parallel
 
 
 ipcluster stop

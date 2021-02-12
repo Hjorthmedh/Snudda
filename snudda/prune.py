@@ -341,7 +341,7 @@ class SnuddaPrune(object):
         except:
             print("Out file already closed?")
 
-        self.clean_up_merge_files()
+        # self.clean_up_merge_files()  # -- This caused old files to be cleaned up when aborting. Bad for debugging.
 
     ############################################################################
 
@@ -1425,12 +1425,19 @@ class SnuddaPrune(object):
                         self.check_hyper_voxel_integrity(file_list[h_id], h_filename.encode(), verbose=True)
 
                     if self.max_channel_type:
+                        if self.max_channel_type != file_list[h_id]["network/maxChannelTypeID"][()]:
+                            print("Investigate")
+                            print(f"{self.max_channel_type} != {file_list[h_id]['network/maxChannelTypeID'][()]}")
+                            # import pdb
+                            # pdb.set_trace()
+
                         # These should be the same for all hypervoxels
                         assert self.max_channel_type == file_list[h_id]["network/maxChannelTypeID"][()], \
                             (f"max_channel_type = {self.max_channel_type} "
                              f"(differ with what is in file {file_list[h_id]['network/maxChannelTypeID'][()]})")
                     else:
                         self.max_channel_type = file_list[h_id]["network/maxChannelTypeID"][()]
+                        print(f"Setting max_channel_type to {self.max_channel_type} from h_id={h_id}")
 
                     chunk_size = 10000
                     lookup_iterator = \
@@ -1636,6 +1643,23 @@ class SnuddaPrune(object):
                                                                     chunk_size=10000)
 
                 num_synapses[h_id] = nSyn
+
+
+                if self.max_channel_type:
+                    if self.max_channel_type != file_list[h_id]["network/maxChannelTypeID"][()]:
+                        print("Investigate")
+                        print(f"{self.max_channel_type} != {file_list[h_id]['network/maxChannelTypeID'][()]}")
+                        # import pdb
+                        # pdb.set_trace()
+
+                    # These should be the same for all hypervoxels
+                    assert self.max_channel_type == file_list[h_id]["network/maxChannelTypeID"][()], \
+                        (f"max_channel_type = {self.max_channel_type} "
+                         f"(differ with what is in file {file_list[h_id]['network/maxChannelTypeID'][()]})")
+                else:
+                    self.max_channel_type = file_list[h_id]["network/maxChannelTypeID"][()]
+                    print(f"Setting max_channel_type to {self.max_channel_type} from h_id={h_id}")
+                
 
                 # There should be at least the first row, otherwise nSyn = 0
                 syn_set, unique_id = next(file_mat_iterator[h_id], None)
