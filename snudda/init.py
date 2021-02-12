@@ -1280,6 +1280,7 @@ class SnuddaInit(object):
 
         for st, s in zip(seed_types, all_seeds):
             rand_seed_dict[st] = s
+            print(f"Random seed {st} to {s}")
 
         init_rng = np.random.default_rng(rand_seed_dict["init"])
 
