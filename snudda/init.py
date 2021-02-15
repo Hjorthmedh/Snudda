@@ -585,7 +585,7 @@ class SnuddaInit(object):
                                   mesh_bin_width=1e-4)
 
         if cell_spec_dir is None:
-            cs_dir = os.path.join(self.data_path, "cellspecs-v2")
+            cs_dir = os.path.join(self.data_path, "cellspecs")
         else:
             cs_dir = cell_spec_dir
 

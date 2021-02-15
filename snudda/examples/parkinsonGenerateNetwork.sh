@@ -1,10 +1,11 @@
 export IPYTHONDIR="`pwd`/.ipython"
 export IPYTHON_PROFILE=Snudda_LOCAL
 
-numNeurons=3000
+# OBS, currently init is commented out, so numneurons not used
+numNeurons=100000
 simNamePart=20210107
-cellspecDir=data/parkinson-2020-12-17
-# cellspecDir=data/parkinson-2021-01-07
+#cellspecDir=data/parkinson-2020-12-17
+cellspecDir=data/parkinson-2021-01-07
 
 ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20
@@ -23,7 +24,7 @@ snudda place $simName --parallel
 snudda detect $simName --parallel
 snudda prune $simName --parallel
 
-simName=networks/pd1_$simNamePart
+simName=networks/pd1_100k_$simNamePart
 
 # snudda init $simName --size $numNeurons --overwrite
 python3 init_custom.py $simName --cellspec $cellspecDir/pd1/
@@ -31,7 +32,7 @@ snudda place $simName --parallel
 snudda detect $simName --parallel
 snudda prune $simName --parallel
 
-simName=networks/pd2_$simNamePart
+simName=networks/pd2_100k_$simNamePart
 
 # snudda init $simName --size $numNeurons --overwrite
 python3 init_custom.py $simName --cellspec $cellspecDir/pd2/
@@ -40,7 +41,7 @@ snudda detect $simName --parallel
 snudda prune $simName --parallel
 
 
-simName=networks/pd3_$simNamePart
+simName=networks/pd3_100k_$simNamePart
 
 # snudda init $simName --size $numNeurons --overwrite
 python3 init_custom.py $simName --cellspec $cellspecDir/pd3/
