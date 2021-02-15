@@ -49,7 +49,7 @@ class PlotNetwork(object):
         if plot_synapses and "synapseCoords" in self.sl.data:
             ax.scatter(self.sl.data["synapseCoords"][:, 0],
                        self.sl.data["synapseCoords"][:, 1],
-                       self.sl.data["synapseCoords"][:, 2], c=(0.1, 0.1, 0.1))
+                       self.sl.data["synapseCoords"][:, 2], color=(0.1, 0.1, 0.1))
 
             plt.figtext(0.5, 0.15, f"{self.sl.data['nSynapses']} synapses", ha="center", fontsize=18)
             
