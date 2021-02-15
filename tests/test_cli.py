@@ -74,7 +74,7 @@ class TestCLI(unittest.TestCase):
 
         with self.subTest(stage="simulate"):
             print("Running nrnivmodl:")
-            os.system("nrnivmodl ../snudda/data/cellspecs-v2/mechanisms")
+            os.system("nrnivmodl ../snudda/data/cellspecs/mechanisms")
             print("Time to run simulation...")
             run_cli_command("simulate tiny_parallel --time 0.1")
 

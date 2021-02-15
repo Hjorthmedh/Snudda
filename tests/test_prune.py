@@ -274,7 +274,7 @@ class TestPrune(unittest.TestCase):
         with self.subTest("gap-junction-softmax"):
             # Test of softmax
             testing_config_file = os.path.join(self.network_path, "network-config-test-7.json")
-            sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
+            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file)  # Use default config file
             sp.prune(pre_merge_only=False)
 
             # Load the pruned data and check it
@@ -285,7 +285,7 @@ class TestPrune(unittest.TestCase):
         with self.subTest("gap-junction-mu2"):
             # Test of mu2
             testing_config_file = os.path.join(self.network_path, "network-config-test-8.json")
-            sp = SnuddaPrune(work_history_file=work_log, config_file=testing_config_file)  # Use default config file
+            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file)  # Use default config file
             sp.prune(pre_merge_only=False)
 
             # Load the pruned data and check it
