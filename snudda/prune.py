@@ -160,7 +160,7 @@ class SnuddaPrune(object):
         self.voxel_overflow_counter = 0
         self.overflow_files = []
 
-        self.open_work_history_file(work_history_file=work_history_file, config_file=config_file)
+        self.open_work_history_file(work_history_file=self.work_history_file, config_file=config_file)
 
         self.set_scratch_path(scratch_path)
         self.load_pruning_information(config_file=config_file)
