@@ -121,7 +121,7 @@ class SnuddaCalibrateSynapses(object):
     from .init import SnuddaInit
 
     configName= simName + "/network-config.json"
-    cnc = SnuddaInit(struct_def={}, config_name=configName, nChannels=1)
+    cnc = SnuddaInit(struct_def={}, config_file=configName, nChannels=1)
     cnc.define_striatum(num_dSPN=nMSD1, num_iSPN=nMSD2, num_FS=nFS, num_LTS=nLTS, num_ChIN=nChIN,
                         volume_type="slice", side_len=200e-6, slice_depth=150e-6)
 

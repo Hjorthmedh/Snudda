@@ -32,7 +32,7 @@ class NumpyEncoder(json.JSONEncoder):
 
 class SnuddaInit(object):
 
-    def __init__(self, struct_def, config_name,
+    def __init__(self, struct_def, config_file,
                  num_population_units=1, population_unit_centres="[[]]", population_unit_radius=None,
                  random_seed=None):
 
@@ -43,10 +43,10 @@ class SnuddaInit(object):
         self.network_data["RandomSeed"], self.init_rng = SnuddaInit.setup_random_seeds(random_seed)
         self.network_data["Volume"] = collections.OrderedDict([])
         self.num_neurons_total = 0
-        self.configName = config_name
+        self.config_file = config_file
 
-        if config_name is not None:
-            self.basePath = os.path.dirname(config_name)
+        if config_file is not None:
+            self.basePath = os.path.dirname(config_file)
         else:
             self.basePath = ""
 
@@ -123,7 +123,7 @@ class SnuddaInit(object):
                 struct_func[sn](num_neurons=struct_def[sn])
 
             # Only write JSON file if the structDef was not empty
-            self.write_json(self.configName)
+            self.write_json(self.config_file)
         else:
             print("No structDef defined, not writing JSON file in init")
 
@@ -1345,4 +1345,4 @@ if __name__ == "__main__":
 
     fName = os.path.join("config", f"basal-ganglia-config-{nTotals}.json")
 
-    SnuddaInit(struct_def=structDef, config_name=fName, num_population_units=1)
+    SnuddaInit(struct_def=structDef, config_file=fName, num_population_units=1)

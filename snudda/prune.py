@@ -53,7 +53,8 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    def __init__(self, work_history_file,
+    def __init__(self,
+                 network_path,
                  logfile=None, logfile_name=None,
                  d_view=None, lb_view=None, role="master", verbose=True,
                  config_file=None,  # Default is to use same config_file as for detect, but you can override it
@@ -68,8 +69,8 @@ class SnuddaPrune(object):
         #                       + "\nlog = " + str(logFileName) \
         #                       + "\nrole = " + role)
 
-        self.work_history_file = work_history_file
-        self.base_path = os.path.dirname(self.work_history_file).replace(f"{os.path.sep}log", os.path.sep)
+        self.work_history_file = os.path.join(network_path, "log", "network-detect-worklog.hdf5")    
+        self.network_path = network_path
 
         self.logfile = logfile
         self.logfile_name = logfile_name
@@ -314,7 +315,7 @@ class SnuddaPrune(object):
             "Need to call openWorkHistoryFile before setScratchPath"
 
         if scratch_path is None:
-            self.scratch_path = os.path.join(self.base_path, "temp")
+            self.scratch_path = os.path.join(self.network_path, "temp")
 
             if not os.path.exists(self.scratch_path):
                 os.makedirs(self.scratch_path)
@@ -457,7 +458,7 @@ class SnuddaPrune(object):
         if verbose:
             self.write_log(f"Reading hypervoxel {hyper_voxel_id}")
 
-        h_file_name = os.path.join(self.base_path, "voxels", f"network-putative-synapse-{hyper_voxel_id}.hdf5")
+        h_file_name = os.path.join(self.network_path, "voxels", f"network-putative-synapse-{hyper_voxel_id}.hdf5")
         h_file = h5py.File(h_file_name)
 
         # Just make sure the data we open is OK and match the other data
@@ -515,7 +516,7 @@ class SnuddaPrune(object):
     ############################################################################
 
     def get_con_mat_cache_filename(self):
-        cache_file = os.path.join(self.base_path, "connection-matrix-cache.pickle")
+        cache_file = os.path.join(self.network_path, "connection-matrix-cache.pickle")
         return cache_file
 
     ############################################################################
@@ -709,7 +710,7 @@ class SnuddaPrune(object):
             return
 
         if output_file is None:
-            output_file = os.path.join(self.base_path, "network-pruned-synapses.hdf5")
+            output_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
 
         self.write_log(f"Writing to {output_file}")
         out_file = h5py.File(output_file, "w", libver=self.h5libver, driver=self.h5driver)
@@ -779,7 +780,7 @@ class SnuddaPrune(object):
     def merge_file_exists(self):
 
         # check if merge file exists
-        merge_file_name = os.path.join(self.base_path, "network-putative-synapses-MERGED.hdf5")
+        merge_file_name = os.path.join(self.network_path, "network-putative-synapses-MERGED.hdf5")
 
         merge_file_ok = False
 
@@ -843,7 +844,7 @@ class SnuddaPrune(object):
                          delete_after=True):
 
         if outfile_name is None:
-            outfile_name = os.path.join(self.base_path, "network-putative-synapses-MERGED.hdf5")
+            outfile_name = os.path.join(self.network_path, "network-putative-synapses-MERGED.hdf5")
 
         #  Make a list of all temporary files so we can remove them
         if delete_after:
@@ -1164,10 +1165,10 @@ class SnuddaPrune(object):
             engine_log_file = [[] for x in range(0, len(d_view))]
 
         d_view.scatter('logfile_name', engine_log_file, block=True)
-        d_view.push({"work_history_file": self.work_history_file,
+        d_view.push({"network_path": self.network_path,
                      "random_seed": self.random_seed}, block=True)
 
-        cmd_str = ("nw = SnuddaPrune(work_history_file=work_history_file, logfile_name=logfile_name[0]," 
+        cmd_str = ("nw = SnuddaPrune(network_path=network_path, logfile_name=logfile_name[0]," 
                    "role='worker',random_seed=random_seed)")
         d_view.execute(cmd_str, block=True)
 
@@ -1387,7 +1388,7 @@ class SnuddaPrune(object):
             file_mat_iterator = dict([])
 
             # Next we need to open all the relevant files
-            h_file_name_mask = os.path.join(self.base_path, "voxels", "network-putative-synapses-%s.hdf5")
+            h_file_name_mask = os.path.join(self.network_path, "voxels", "network-putative-synapses-%s.hdf5")
 
             max_axon_voxel_ctr = 0
             max_dend_voxel_ctr = 0
@@ -1596,7 +1597,7 @@ class SnuddaPrune(object):
         num_synapses = np.zeros((max_hyper_id,), dtype=np.int64)
 
         # Open all files for reading
-        h_file_name_mask = os.path.join(self.base_path, "voxels", "network-putative-synapses-%s.hdf5")
+        h_file_name_mask = os.path.join(self.network_path, "voxels", "network-putative-synapses-%s.hdf5")
 
         max_axon_voxel_ctr = 0
         max_dend_voxel_ctr = 0
