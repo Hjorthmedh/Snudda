@@ -120,11 +120,11 @@ class NeuronMorphology(object):
                     self.load_cache()
                 except Exception as e:
 
-                    import traceback
-                    tstr = traceback.format_exc()
-                    print(tstr)
+                    # import traceback
+                    # tstr = traceback.format_exc()
+                    # print(tstr)
 
-                    self.write_log("!!! Failed to read cache file, loading: " + self.swc_filename)
+                    self.write_log("Failed to read cache file, loading: " + self.swc_filename)
                     self.load_swc(self.swc_filename)
                     self.save_cache()
 

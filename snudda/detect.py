@@ -125,6 +125,8 @@ class SnuddaDetect(object):
         self.dend_sec_x = None
         self.dend_soma_dist = None
 
+        self.axon_stump_id_flag = axon_stump_id_flag
+
         self.neurons = None
         self.neuron_positions = None
         self.num_population_units = None
@@ -1058,6 +1060,7 @@ class SnuddaDetect(object):
             else:
                 self.write_log(f"Unknown axonDensityType: {na_neuron['axonDensityType']}\n{na_neuron}")
                 na_voxel_coords = np.zeros((0, 3))
+                na_axon_dist = []
 
             neuron_id = na_neuron["neuronID"]
 
@@ -1578,6 +1581,7 @@ class SnuddaDetect(object):
             # distributions also
 
         self.write_log("Loading connectivity information")
+        self.next_channel_model_id = 10  # Reset counter
 
         for name, definition in self.config["Connectivity"].items():
 

@@ -110,7 +110,7 @@ class Snudda(object):
 
         config_file = os.path.join(self.network_path, "network-config.json")
         SnuddaInit(struct_def=struct_def,
-                   config_name=config_file,
+                   config_file=config_file,
                    num_population_units=num_population_units,
                    population_unit_centres=population_unit_centres,
                    population_unit_radius=population_unit_radius,
@@ -235,8 +235,6 @@ class Snudda(object):
 
         log_filename = os.path.join(self.network_path, "log", "logFile-synapse-pruning.txt")
 
-        work_log = os.path.join(self.network_path, "log", "network-detect-worklog.hdf5")
-
         random_seed = args.randomseed
 
         self.setup_log_file(log_filename)  # sets self.logfile
@@ -259,9 +257,10 @@ class Snudda(object):
         else:
             h5libver = "latest"  # default
 
-        sp = SnuddaPrune(work_history_file=work_log,
+        sp = SnuddaPrune(network_path=self.network_path,
                          logfile=self.logfile,
                          logfile_name=log_filename,
+                         config_file=args.config_file,
                          d_view=self.d_view, lb_view=self.lb_view,
                          scratch_path=scratch_path,
                          h5libver=h5libver,

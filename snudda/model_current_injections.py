@@ -107,7 +107,7 @@ class SnuddaModelCurrentInjections(object):
       simType = self.simType
             
     configName= simName + "/network-config.json"
-    cnc = SnuddaInit(struct_def={}, config_name=configName, nChannels=1)
+    cnc = SnuddaInit(struct_def={}, config_file=configName, nChannels=1)
 
     # In a 1x1x0.15 mm slice there are 12000 neurons normally
     # We want 10% of MS population only, since those are the ones being
