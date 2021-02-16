@@ -874,10 +874,16 @@ class SnuddaAnalyse(object):
             exp_max_dist = []
 
         if not exp_data:
-            exp_data = []
+            if exp_data_detailed:
+                exp_data = [x[0]/x[1] for x in exp_data_detailed]
+            else:
+                exp_data = []
 
         if not exp_data_detailed:
             exp_data_detailed = None
+        else:
+            assert (np.array(exp_data )== np.array([x[0]/x[1] for x in exp_data_detailed])).all(), \
+                f"exp_data = {exp_data }and exp_data_detailed {exp_data_detailed} do not match"
 
         if side_len is None:
             side_len = self.side_len
@@ -2916,3 +2922,4 @@ if __name__ == "__main__":
     print("All done, exiting")
     # import pdb
     # pdb.set_trace()
+
