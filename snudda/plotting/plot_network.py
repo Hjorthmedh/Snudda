@@ -15,6 +15,9 @@ class PlotNetwork(object):
         self.sl = SnuddaLoad(self.network_file)
         self.prototype_neurons = dict()
 
+    def close(self):
+        self.sl.close()
+
     def plot(self, plot_axon=True, plot_dendrite=True, plot_synapses=True,
              title=None, title_pad=None, show_axis=True,
              elev_azim=None, fig_name=None, dpi=600):

@@ -213,7 +213,8 @@ class SnuddaPrune(object):
             # in a separate run, hence this option that allows us to prepare
             # the data for parallel execution.
             if pre_merge_only:
-                self.write_log(f"Pre-merge of synapses done. preMergeOnly = {pre_merge_only}, exiting.")
+                self.write_log(f"Pre-merge of synapses done. preMergeOnly = {pre_merge_only}, exiting.",
+                               force_print=True)
 
                 if self.hist_file is not None:
                     self.hist_file.close()
@@ -254,13 +255,13 @@ class SnuddaPrune(object):
                                     merge_data_type="gapJunctions")
 
             if self.out_file is None:
-                self.write_log("No output file created, no synapses exist?")
-                self.write_log("Creating symbolic link to MERGE file instead")
+                self.write_log("No output file created, no synapses exist?", force_print=True)
+                self.write_log("Creating symbolic link to MERGE file instead", force_print=True)
 
                 f_dest = os.path.join(os.path.dirname(self.work_history_file).replace(f"{os.path.sep}log", os.path.sep),
                                       "network-pruned-synapses.hdf5")
                 f_src = os.path.basename(f_name)
-                self.write_log(f"{f_dest} -> {f_src}")
+                self.write_log(f"{f_dest} -> {f_src}", force_print=True)
 
                 if os.path.exists(f_dest):
                     os.remove(f_dest)
@@ -276,21 +277,21 @@ class SnuddaPrune(object):
             n_gj_before = np.sum(self.hist_file["nGapJunctions"][()])
             n_gj_after = self.out_file["network/nGapJunctions"][0]
 
-            self.write_log(f"Voxel overflows: {n_overflow} (should be zero)")
+            self.write_log(f"Voxel overflows: {n_overflow} (should be zero)", is_error=(n_overflow > 0))
 
             if n_syn_before > 0:
-                self.write_log(f"Synapses before pruning: {n_syn_before}")
+                self.write_log(f"Synapses before pruning: {n_syn_before}", force_print=True)
                 self.write_log(f"Synapses after pruning: {n_syn_after}"
-                               f" ({round(100.0 * n_syn_after / n_syn_before, 2)} % kept)")
+                               f" ({round(100.0 * n_syn_after / n_syn_before, 2)} % kept)", force_print=True)
             else:
-                self.write_log("No synapses to prune")
+                self.write_log("No synapses to prune", force_print=True)
 
             if n_gj_before > 0:
-                self.write_log(f"Gap junctions before pruning {n_gj_before}")
+                self.write_log(f"Gap junctions before pruning {n_gj_before}", force_print=True)
                 self.write_log(f"Gap junctions after pruning {n_gj_after}"
-                               f" ({round(100.0 * n_gj_after / n_gj_before, 2)} % kept)")
+                               f" ({round(100.0 * n_gj_after / n_gj_before, 2)} % kept)", force_print=True)
             else:
-                self.write_log("No gap junctions to prune.")
+                self.write_log("No gap junctions to prune.", force_print=True)
 
             self.clean_up_merge_files()
 
@@ -303,9 +304,9 @@ class SnuddaPrune(object):
             self.write_log(f"Total duration: {end_time - start_time}")
 
             if self.voxel_overflow_counter > 0:
-                self.write_log(f"Voxel overflows: {self.voxel_overflow_counter}\nIn files: ")
+                self.write_log(f"Voxel overflows: {self.voxel_overflow_counter}\nIn files: ", is_error=True)
                 for f in self.overflow_files:
-                    self.write_log(f"Overflow in {f}")
+                    self.write_log(f"Overflow in {f}", is_error=True)
 
     ############################################################################
 
@@ -449,7 +450,7 @@ class SnuddaPrune(object):
         if ofc > 0:
             self.voxel_overflow_counter += ofc
             self.overflow_files.append(hypervoxel_file_name)
-            self.write_log(f"Overflow of {ofc} in {hypervoxel_file_name}")
+            self.write_log(f"Overflow of {ofc} in {hypervoxel_file_name}", is_error=True)
 
     ############################################################################
 
@@ -598,7 +599,7 @@ class SnuddaPrune(object):
             if con not in detect_config["Connectivity"]:
                 self.write_log(f"!!! Connection {con} is present in {config_file}, "
                                f"but was not included in config file used for detect. " 
-                               f"Please rerun snudda detect")
+                               f"Please rerun snudda detect", is_error=True)
                 all_present = False
 
         assert all_present, "Please rerun snudda detect."
@@ -962,7 +963,7 @@ class SnuddaPrune(object):
         h5_syn_mat, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
 
         if synapse_file[h5_syn_mat].shape[0] == 0:
-            self.write_log(f"prune_synapses_parallel: No {merge_data_type} skipping pruning")
+            self.write_log(f"prune_synapses_parallel: No {merge_data_type} skipping pruning", force_print=True)
             return
         else:
             self.write_log(f"prune_synapses_parallel, before pruning : "
@@ -991,7 +992,7 @@ class SnuddaPrune(object):
         synapse_ranges = self.find_ranges(synapse_file[h5_syn_mat], len(self.d_view))
 
         if synapse_ranges is None or synapse_ranges[-1][-1] is None:
-            self.write_log("There are few synapses, we will run it in serial instead")
+            self.write_log("There are few synapses, we will run it in serial instead", force_print=True)
             return self.prune_synapses(synapse_file=synapse_file,
                                        output_filename=None, row_range=None,
                                        close_out_file=False,
@@ -1125,7 +1126,7 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    def write_log(self, text, flush=True):  # Change flush to False in future, debug
+    def write_log(self, text, flush=True, is_error=False, force_print=False):  # Change flush to False in future, debug
         try:
             if self.logfile is not None:
                 self.logfile.write(f"{text}\n")
@@ -1133,7 +1134,7 @@ class SnuddaPrune(object):
                 if flush:
                     self.logfile.flush()
             else:
-                if self.verbose:
+                if self.verbose or is_error or force_print:
                     print(text)
         except:
             print(text)
@@ -1520,7 +1521,8 @@ class SnuddaPrune(object):
                 old_unique_id = unique_id
 
                 if loop_ctr % 1000000 == 0:
-                    self.write_log(f"Worker synapses: {syn_ctr}/{n_total} (heap size: {len(synapse_heap)})")
+                    self.write_log(f"Worker synapses: {syn_ctr}/{n_total} (heap size: {len(synapse_heap)})",
+                                   force_print=True)
 
                 # Get the next set of synapses from this file from the iterator
                 next_row_set = next(file_mat_iterator[h_id], None)
@@ -1542,8 +1544,8 @@ class SnuddaPrune(object):
                 syn_ctr += syn_set.shape[0]
                 loop_ctr += 1
 
-            self.write_log(f"Worker synapses: {syn_ctr}/{n_total} (heap size: {len(synapse_heap)})")
-            self.write_log(f"Read {syn_ctr} out of total {n_total} synapses")
+            self.write_log(f"Worker synapses: {syn_ctr}/{n_total} (heap size: {len(synapse_heap)})", force_print=True)
+            self.write_log(f"Read {syn_ctr} out of total {n_total} synapses", force_print=True)
 
             self.buffer_merge_write(h5_syn_mat, flush=True)
             self.write_log("bigMergeHelper: done")
@@ -1564,7 +1566,7 @@ class SnuddaPrune(object):
         except:
             import traceback
             tstr = traceback.format_exc()
-            self.write_log(tstr)
+            self.write_log(tstr, is_error=True)
             os.sys.exit(-1)
 
         ############################################################################
@@ -1720,7 +1722,8 @@ class SnuddaPrune(object):
         while not done:
 
             if loop_ctr % 1000000 == 0:
-                self.write_log(f"Synapses: {syn_ctr}/{num_syn_total} (heap size: {len(synapse_heap)})")
+                self.write_log(f"Synapses: {syn_ctr}/{num_syn_total} (heap size: {len(synapse_heap)})",
+                               force_print=True)
 
             # Get the next set of synapses from this file from the iterator
             next_row_set = next(file_mat_iterator[h_id], None)
@@ -2025,7 +2028,7 @@ class SnuddaPrune(object):
                        f"\nNumber of synapses removed due to too few synapses between connected pairs: "
                        f"{n_too_few_removed}"
                        f"\nNumber of synapses removed where all synapses between pairs are removed: "
-                       f"{n_all_removed}")
+                       f"{n_all_removed}", force_print=True)
 
     ############################################################################
 

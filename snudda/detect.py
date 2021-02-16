@@ -359,7 +359,7 @@ class SnuddaDetect(object):
 
                     if voxel_overflow_ctr > 0:
                         self.write_log(f"!!! HyperID {hyper_id} OVERFLOWED {voxel_overflow_ctr} TIMES"
-                                       f"(execution time {exec_time} s)")
+                                       f"(execution time {exec_time} s)", is_error=True)
                         self.voxel_overflow_counter += voxel_overflow_ctr
                     else:
                         self.write_log(f"HyperID {hyper_id}  completed - {num_syn} synapses found ({exec_time} s)")
@@ -367,7 +367,7 @@ class SnuddaDetect(object):
             # Check that there are neurons in the hyper voxel, otherwise skip it.
             if worker_status[worker_idx] is None and job_idx < len(remaining):
                 self.write_log(f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}"
-                               f" Starting hyper voxel {remaining[job_idx]} on worker {worker_idx}")
+                               f" Starting hyper voxel {remaining[job_idx]} on worker {worker_idx}", force_print=True)
 
                 cmd_str = f"result = nc.process_hyper_voxel({remaining[job_idx]})"
                 worker_status[worker_idx] = rc[worker_idx].execute(cmd_str, block=False)
@@ -393,7 +393,7 @@ class SnuddaDetect(object):
 
         end_time = timeit.default_timer()
 
-        self.write_log(f"Voxel overflows: {self.voxel_overflow_counter}")
+        self.write_log(f"Voxel overflows: {self.voxel_overflow_counter}", is_error=(self.voxel_overflow_counter>0))
         self.write_log(f"Total number of synapses: {np.sum(self.work_history['nSynapses'][:])}")
         self.write_log(f"parallelProcessHyperVoxels: {end_time - start_time} s")
 
@@ -645,7 +645,7 @@ class SnuddaDetect(object):
 
             if len(self.connectivity_distributions) == 0:
                 # We have no possible connections specified
-                self.write_log("No connections specified in connectivity_distribution.")
+                self.write_log("No connections specified in connectivity_distribution.", is_error=True)
                 remaining = []
             else:
 
@@ -1058,7 +1058,7 @@ class SnuddaDetect(object):
                                                                           axon_density_func,
                                                                           na_neuron["axonDensityBoundsXYZ"])
             else:
-                self.write_log(f"Unknown axonDensityType: {na_neuron['axonDensityType']}\n{na_neuron}")
+                self.write_log(f"Unknown axonDensityType: {na_neuron['axonDensityType']}\n{na_neuron}", is_error=True)
                 na_voxel_coords = np.zeros((0, 3))
                 na_axon_dist = []
 
@@ -1081,7 +1081,8 @@ class SnuddaDetect(object):
                     voxel_space_ctr[x_idx, y_idx, z_idx] += 1
                 except:
                     self.voxel_overflow_counter += 1
-                    self.write_log(f"!!! Axon voxel space overflow: {voxel_space_ctr[x_idx, y_idx, z_idx]}")
+                    self.write_log(f"!!! Axon voxel space overflow: {voxel_space_ctr[x_idx, y_idx, z_idx]}",
+                                   is_error=True)
 
             # if(True):
             #  # Debug plot
@@ -1227,9 +1228,8 @@ class SnuddaDetect(object):
                            / np.sum(density_inside / max_density)).astype(int)
 
         if n_tries > 1e6:
-            self.write_log("!!! noAxonPointsXYZ: Warning trying to place "
-                           + str(n_tries) + " points. Bounds: "
-                           + str(axon_density_bounds_xyz))
+            self.write_log(f"!!! noAxonPointsXYZ: Warning trying to place {n_tries} points. " 
+                           "Bounds: {axon_density_bounds_xyz}")
 
         # Only print this in verbose mode
         if self.verbose:
@@ -1473,14 +1473,14 @@ class SnuddaDetect(object):
 
         ############################################################################
 
-    def write_log(self, text, flush=True):  # Change flush to False in future, debug
+    def write_log(self, text, flush=True, is_error=False, force_print=False):  # Change flush to False in future, debug
         if self.logfile is not None:
             self.logfile.write(f"{text}\n")
             print(text)
             if flush:
                 self.logfile.flush()
         else:
-            if self.verbose:
+            if self.verbose or is_error or force_print:
                 print(text)
 
     ############################################################################
@@ -1507,7 +1507,7 @@ class SnuddaDetect(object):
         if self.random_seed is None:
             if "RandomSeed" in self.config and "detect" in self.config["RandomSeed"]:
                 self.random_seed = self.config["RandomSeed"]["detect"]
-                self.write_log(f"Reading random see from config file: {self.random_seed}")
+                self.write_log(f"Reading random seed from config file: {self.random_seed}")
             else:
                 # No random seed given, invent one
                 self.random_seed = 1002
@@ -1568,7 +1568,7 @@ class SnuddaDetect(object):
 
                 else:
                     self.write_log(f"{name}: Unknown axon density type : {axon_density_type}\n"
-                                   f"{definition['axonDensity']}")
+                                   f"{definition['axonDensity']}", is_error=True)
 
             else:
                 # If no axon density specified, then axon must be present in morphology
@@ -1706,7 +1706,7 @@ class SnuddaDetect(object):
                 meta_data.create_dataset("maxDendVoxelCtr", data=self.max_dend_voxel_ctr)
 
             if self.voxel_overflow_counter > 0:
-                self.write_log("!!! Voxel overflow detected, please increase maxAxon and maxDend")
+                self.write_log("!!! Voxel overflow detected, please increase maxAxon and maxDend", is_error=True)
 
             network_group = outFile.create_group("network")
             network_group.create_dataset("synapses",
@@ -1796,7 +1796,7 @@ class SnuddaDetect(object):
         distribution_seeds = self.generate_neuron_distribution_random_seeds()
 
         if d_view is None:
-            self.write_log("No d_view specified, running distribute neurons in serial")
+            self.write_log("No d_view specified, running distribute neurons in serial", force_print=True)
             (min_coord, max_coord) = self.distribute_neurons(distribution_seeds=distribution_seeds)
 
             self.generate_hyper_voxel_random_seeds()
@@ -2083,7 +2083,7 @@ class SnuddaDetect(object):
 
             else:
                 self.write_log(f"{neuron.name}: No axon and unknown axon density type: "
-                               f"{neuron.axon_density_type}")
+                               f"{neuron.axon_density_type}", is_error=True)
                 assert False, f"No axon for {neuron.name}"
 
             # Find unique hyper voxel coordinates
@@ -2098,7 +2098,7 @@ class SnuddaDetect(object):
                                 and 0 <= y < self.hyper_voxel_id_lookup.shape[1]
                                 and 0 <= z < self.hyper_voxel_id_lookup.shape[2]]
                 except:
-                    self.write_log("Hyper ID problem")
+                    self.write_log("Hyper ID problem. x={x}, y={y}, z={z}", is_error=True)
                     assert False, f"Hyper ID problem. x={x}, y={y}, z={z}"
 
             else:
@@ -2108,10 +2108,10 @@ class SnuddaDetect(object):
                 except Exception as e:
                     import traceback
                     tstr = traceback.format_exc()
-                    self.write_log(tstr)
-                    self.write_log("Affected neuron: " + str(n))
-                    self.write_log(f"Range check fuckup : x={x}, y={y}, z={z}")
-                    assert False, f"Range check fuckup : x={x}, y={y}, z={z}"
+                    self.write_log(tstr, is_error=True)
+                    self.write_log("Affected neuron: " + str(n), is_error=True)
+                    self.write_log(f"Range check failed : x={x}, y={y}, z={z}", is_error=True)
+                    assert False, f"Range check failed : x={x}, y={y}, z={z}"
 
             # Add the neuron to the hyper voxel's list over neurons
             for h_id in hyper_id:
@@ -2316,7 +2316,7 @@ class SnuddaDetect(object):
                         except:
                             self.voxel_overflow_counter += 1
                             self.write_log("!!! If you see this you need to increase max_dend above "
-                                           f"{voxel_space_ctr[vx, vy, vz]}")
+                                           f"{voxel_space_ctr[vx, vy, vz]}", is_error=True)
                             continue
 
     ############################################################################
@@ -2375,7 +2375,7 @@ class SnuddaDetect(object):
                 except:
                     self.voxel_overflow_counter += 1
                     self.write_log("!!! If you see this you need to increase max_dend above "
-                                   + f"{voxel_space_ctr[vp1[0], vp1[1], vp1[2]]}")
+                                   + f"{voxel_space_ctr[vp1[0], vp1[1], vp1[2]]}", is_error=True)
                     continue
 
                 # Done, next voxel
@@ -2417,7 +2417,7 @@ class SnuddaDetect(object):
                         except:
                             # Increase maxAxon and maxDend
                             self.write_log(f"!!! If you see this you need to increase max_dend above "
-                                           + f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}")
+                                           + f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}", is_error=True)
                             self.voxel_overflow_counter += 1
                             continue
 
@@ -2453,7 +2453,7 @@ class SnuddaDetect(object):
                         voxel_space_ctr[vp[0], vp[1], vp[2]] += 1
                     except:
                         self.write_log("!!! If you see this you need to increase max_dend above "
-                                       f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}")
+                                       f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}", is_error=True)
                         self.voxel_overflow_counter += 1
                         continue
 
@@ -2484,7 +2484,7 @@ class SnuddaDetect(object):
                         voxel_space_ctr[vp[0], vp[1], vp[2]] += 1
                     except:
                         self.write_log("!!! If you see this you need to increase max_dend above "
-                                       f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}")
+                                       f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}", is_error=True)
                         self.voxel_overflow_counter += 1
                         continue
 
@@ -2544,7 +2544,7 @@ class SnuddaDetect(object):
 
                     self.voxel_overflow_counter += 1
                     self.write_log("!!! If you see this you need to increase max_axon above "
-                                   f"{voxel_space_ctr[vp1[0], vp1[1], vp1[2]]}")
+                                   f"{voxel_space_ctr[vp1[0], vp1[1], vp1[2]]}", is_error=True)
                     continue
 
                 # Done, next voxel
@@ -2586,7 +2586,7 @@ class SnuddaDetect(object):
 
                             # Increase maxAxon and maxDend
                             self.write_log("!!! If you see this you need to increase max_axon above "
-                                           f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}")
+                                           f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}", is_error=True)
                             self.voxel_overflow_counter += 1
                             continue
 
@@ -2622,7 +2622,7 @@ class SnuddaDetect(object):
                         print(tstr)
 
                         self.write_log("!!! If you see this you need to increase max_axon above "
-                                       f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}")
+                                       f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}", is_error=True)
                         self.voxel_overflow_counter += 1
                         continue
 
@@ -2652,7 +2652,7 @@ class SnuddaDetect(object):
                         print(tstr)
 
                         self.write_log("!!! If you see this you need to increase max_axon above "
-                                       f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}")
+                                       f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}", is_error=True)
                         self.voxel_overflow_counter += 1
                         continue
 
@@ -2684,7 +2684,7 @@ class SnuddaDetect(object):
             num_neurons = self.hyper_voxels[hyper_id]["neuronCtr"]
 
             self.write_log(f"Processing hyper voxel : {hyper_id}/{self.hyper_voxel_id_lookup.size}"
-                           f"({num_neurons} neurons)")
+                           f"({num_neurons} neurons)", force_print=True)
 
             # !!! Suggestion for optimisation. Place neurons with GJ first, then do
             # GJ touch detection, after that add rest of neurons (to get complete set)
@@ -2742,7 +2742,7 @@ class SnuddaDetect(object):
             # Write error to log file to help trace it.
             import traceback
             tstr = traceback.format_exc()
-            self.write_log(tstr)
+            self.write_log(tstr, is_error=True)
 
             os.sys.exit(-1)
 

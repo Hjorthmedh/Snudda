@@ -23,6 +23,13 @@ class SnuddaLoad(object):
 
     ############################################################################
 
+    def close(self):
+        if self.hdf5File:
+            self.hdf5File.close()
+            self.hdf5File = None
+
+    ############################################################################
+
     def __del__(self):
 
         if self.hdf5File is not None:

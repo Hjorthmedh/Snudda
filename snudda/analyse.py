@@ -385,9 +385,10 @@ class SnuddaAnalyse(object):
         num_gj_total = self.network["nGapJunctions"]
 
         for gjList in self.network_load.gap_junction_iterator(chunk_size=100000):
-            print("GJ row : " + str(row_ctr)
-                  + " - " + str(100 * row_ctr / float(num_gj_total)) + " % "
-                  + " time : " + str(timeit.default_timer() - t0) + " seconds")
+
+            if num_gj_total > 0:
+                print(f"GJ row : {row_ctr} - {100 * row_ctr / float(num_gj_total)} % "
+                      f" time : {timeit.default_timer() - t0} seconds")
 
             for gjRow in gjList:
                 row_ctr += 1
