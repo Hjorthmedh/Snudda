@@ -662,7 +662,7 @@ class SnuddaAnalyse(object):
         plt.tight_layout()
         plt.pause(0.001)
         plt.savefig(full_fig_name)
-        plt.savefig(full_fig_name.replace('.pdf', '.eps'))
+        # plt.savefig(full_fig_name.replace('.pdf', '.eps'))
 
         print("Wrote " + full_fig_name)
 
@@ -682,13 +682,11 @@ class SnuddaAnalyse(object):
         print("Plotting number of connections")
 
         if pre_type not in self.populations:
-            print("plotNumSynapsesPerPair: " + str(pre_type)
-                  + " is not in the simulation")
+            print(f"plotNumSynapsesPerPair: {pre_type} is not in the simulation")
             return
 
         if post_type not in self.populations:
-            print("plotNumSynapsesPerPair: " + str(post_type)
-                  + " is not in the simulation")
+            print(f"plotNumSynapsesPerPair: {post_type} is not in the simulation")
             return
 
         pre_pop = self.populations[pre_type]
@@ -700,15 +698,14 @@ class SnuddaAnalyse(object):
             con_mat = self.connection_matrix_gj
         else:
             con_mat = None
-            print("Unknown connection_type: " + str(connection_type))
+            print(f"Unknown connection_type: {connection_type}")
             print("Please use 'synapses' or 'gapjunctions'")
-            import pdb
-            pdb.set_trace()
+            sys.exit(-1)
 
         if side_len is not None:
             # We are only looking at post synaptic neurons at the centre,
             # to avoid edge effects
-            print("Only analysing centre post synaptic neurons, sideLen = " + str(side_len))
+            print(f"Only analysing centre post synaptic neurons, sideLen = {side_len}")
             # postPop = self.centreNeurons(neuronID=postPop,sideLen=sideLen)
             post_pop = self.get_sub_pop(volume_type=self.volume_type,
                                         volume_part="centre",
@@ -736,10 +733,7 @@ class SnuddaAnalyse(object):
                     and existing_con.getnnz() == 0)):
             return
 
-        print("Plotting " + str(existing_con.shape[0]) + " connections")
-
-        # import pdb
-        # pdb.set_trace()
+        print(f"Plotting {existing_con.shape[0]} connections")
 
         plt.figure()
         matplotlib.rcParams.update({'font.size': 22})
@@ -755,17 +749,16 @@ class SnuddaAnalyse(object):
         plt.title(self.neuron_name(pre_type) + " to " + self.neuron_name(post_type))
 
         plt.tight_layout()
-
-        plt.ion()
         plt.draw()
-        if self.show_plots:
-            plt.show()
 
-        plt.pause(0.001)
-        fig_name = "Network-number-of-" + connection_type + "-from-" \
-                   + pre_type + "-to-" + post_type + "-per-cell"
+        fig_name = f"Network-number-of-{connection_type}-from-{pre_type}-to-{post_type}-per-cell"
 
         self.save_figure(plt, fig_name)
+
+        if self.show_plots:
+            plt.ion()
+            plt.show()
+            plt.pause(0.001)
 
     ############################################################################
 
@@ -778,16 +771,14 @@ class SnuddaAnalyse(object):
         assert pre_type is not None
         assert post_type is not None
 
-        print("Plotting connection probability " + pre_type + " to " + post_type)
+        print(f"Plotting connection probability {pre_type} to {post_type}")
 
         if pre_type not in self.populations:
-            print("plotConnectionProbability: " + str(pre_type)
-                  + " is not in the simulation")
+            print(f"plotConnectionProbability: {pre_type} is not in the simulation")
             return
 
         if post_type not in self.populations:
-            print("plotConnectionProbability: " + str(post_type)
-                  + " is not in the simulation")
+            print(f"plotConnectionProbability: {post_type} is not in the simulation")
             return
 
         pre_id = self.populations[pre_type]
@@ -802,15 +793,15 @@ class SnuddaAnalyse(object):
 
         for iThread in range(0, num_threads):
             worker_pre_id = pre_id[range(iThread, len(pre_id), num_threads)]
-            print("Worker " + str(iThread) + " PreID: " + str(worker_pre_id))
+            print(f"Worker {iThread} PreID: {worker_pre_id}")
             t = threading.Thread(target=self.connection_probability_wrapper,
                                  args=(worker_pre_id, post_id, num_bins, 1000000.0, dist_3d))
             threads.append(t)
-            print("Starting " + t.getName())
+            print(f"Starting {t.getName()}")
             t.start()
 
         for t in threads:
-            print("Joining " + t.getName())
+            print(f"Joining {t.getName()}")
             t.join()
 
         # Gather all the data
@@ -831,8 +822,7 @@ class SnuddaAnalyse(object):
         plt.xlabel("Distance ($\mu$m)")
         plt.ylabel("Connection probability")
 
-        plt.title(self.neuron_name(pre_type) + " to "
-                  + self.neuron_name(post_type) + " connections")
+        plt.title(f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)} connections")
         plt.tight_layout()
 
         plt.xlim([0, 250])
@@ -841,14 +831,13 @@ class SnuddaAnalyse(object):
         plt.ion()
         plt.draw()
 
-        if self.show_plots:
-            plt.show()
-
         plt.pause(0.001)
-        fig_name = 'Network-distance-dependent-connection-probability-' \
-                   + str(pre_type) + "-to-" + str(post_type)
+        fig_name = f"Network-distance-dependent-connection-probability-{pre_type}-to-{post_type}"
 
         self.save_figure(plt, fig_name)
+
+        if self.show_plots:
+            plt.show()
 
     ############################################################################
 
@@ -883,19 +872,17 @@ class SnuddaAnalyse(object):
         if not exp_data_detailed:
             exp_data_detailed = None
         else:
-            assert (np.array(exp_data )== np.array([x[0]/x[1] for x in exp_data_detailed])).all(), \
+            assert (np.array(exp_data) == np.array([x[0]/x[1] for x in exp_data_detailed])).all(), \
                 f"exp_data = {exp_data }and exp_data_detailed {exp_data_detailed} do not match"
 
         if side_len is None:
             side_len = self.side_len
 
         if pre_type not in self.populations or post_type not in self.populations:
-            print("Missing " + pre_type + " or " + post_type + " in network, "
-                  + "skipping plot with their connectivity")
+            print(f"Missing {pre_type} or {post_type} in network, skipping plot with their connectivity")
             return
 
-        print("Plotting connection probability " + pre_type + " to " + post_type
-              + " (" + str(connection_type) + ")")
+        print(f"Plotting connection probability {pre_type} to {post_type} ({connection_type})")
 
         pre_id = self.populations[pre_type]
         post_id = self.populations[post_type]
@@ -910,13 +897,11 @@ class SnuddaAnalyse(object):
                                    volume_id=volume_id)
 
         if pre_type not in self.populations:
-            print("plotConnectionProbabilityChannels: " + str(pre_type)
-                  + " is not in the simulation")
+            print(f"plotConnectionProbabilityChannels: {pre_type} is not in the simulation")
             return
 
         if post_type not in self.populations:
-            print("plotConnectionProbabilityChannels: " + str(post_type)
-                  + " is not in the simulation")
+            print(f"plotConnectionProbabilityChannels: {post_type} is not in the simulation")
             return
 
         if len(exp_data) == 0 and len(exp_data_detailed) > 0:
@@ -1102,27 +1087,25 @@ class SnuddaAnalyse(object):
 
         plt.yticks(locs, new_labels)
 
-        plt.title(self.neuron_name(pre_type) + " to " + self.neuron_name(post_type))
+        plt.title(f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)}")
         plt.tight_layout()
         plt.ion()
         plt.draw()
-
-        if self.show_plots:
-            plt.show()
-
-        plt.pause(0.001)
 
         if dist_3d:
             proj_text = '-3D-dist'
         else:
             proj_text = '-2D-dist'
 
-        fig_name = ('Network-distance-dependent-connection-probability-'
-                    + str(pre_type) + "-to-" + str(post_type)
-                    + "-" + str(connection_type)
-                    + proj_text)
+        fig_name = (f"Network-distance-dependent-connection-probability-{pre_type}"
+                    f"-to-{post_type}-{connection_type}{proj_text}")
 
         self.save_figure(plt, fig_name)
+
+        if self.show_plots:
+            plt.show()
+
+        plt.pause(0.001)
 
     ############################################################################
 
@@ -1143,13 +1126,11 @@ class SnuddaAnalyse(object):
                                              volume_id="Striatum"):
 
         if pre_type not in self.populations:
-            print("plotConnectionProbabilityChannels: " + str(pre_type)
-                  + " is not in the simulation")
+            print(f"plotConnectionProbabilityChannels: {pre_type} is not in the simulation")
             return
 
         if post_type not in self.populations:
-            print("plotConnectionProbabilityChannels: " + str(post_type)
-                  + " is not in the simulation")
+            print(f"plotConnectionProbabilityChannels: {post_type} is not in the simulation")
             return
 
         if not exp_max_dist:
@@ -1177,7 +1158,7 @@ class SnuddaAnalyse(object):
         assert pre_type is not None
         assert post_type is not None
 
-        print("Plotting connection probability " + pre_type + " to " + post_type)
+        print(f"Plotting connection probability {pre_type} to {post_type}")
 
         pre_id = self.populations[pre_type]
         post_id = self.populations[post_type]
@@ -1249,9 +1230,9 @@ class SnuddaAnalyse(object):
 
             p_total = float(cnt_within + cnt_between) / float(cnt_all_within + cnt_all_between)
 
-            print("Pwithin(d<" + str(dLimit) + ")=" + str(p_within))
-            print("Pbetween(d<" + str(dLimit) + ")=" + str(p_between))
-            print("Ptotal(d<" + str(dLimit) + ")=" + str(p_total))
+            print(f"Pwithin(d<{dLimit}) = {p_within}")
+            print(f"Pbetween(d<{dLimit}) = {p_between}")
+            print(f"Ptotal(d<{dLimit}) = {p_total}")
             # ax = fig.get_axes()
 
             if Pexp is not None:
@@ -1323,11 +1304,6 @@ class SnuddaAnalyse(object):
         plt.ion()
         plt.draw()
 
-        if self.show_plots:
-            plt.show()
-
-        plt.pause(0.001)
-
         if dist_3d:
             proj_text = '-3D-dist'
         else:
@@ -1338,6 +1314,11 @@ class SnuddaAnalyse(object):
                    + proj_text
 
         self.save_figure(plt, fig_name)
+
+        if self.show_plots:
+            plt.show()
+
+        plt.pause(0.001)
 
     ############################################################################
 
@@ -1666,15 +1647,15 @@ class SnuddaAnalyse(object):
         plt.ion()
         plt.draw()
 
-        if self.show_plots:
-            plt.show()
-
-        plt.pause(0.001)
-
         fig_name = "Network-" + connection_type + "-input-to-" \
                    + neuron_type + "-from-" + pre_type
 
         self.save_figure(plt, fig_name)
+
+        if self.show_plots:
+            plt.show()
+
+        plt.pause(0.001)
 
         # Plotting number of input synapses
         plt.figure()
@@ -1705,13 +1686,14 @@ class SnuddaAnalyse(object):
         plt.ion()
         plt.draw()
 
+        fig_name = "Network-" + connection_type + "-to-" + neuron_type + "-from-" + pre_type
+
+        self.save_figure(plt, fig_name)
+
         if self.show_plots:
             plt.show()
 
         plt.pause(0.001)
-        fig_name = "Network-" + connection_type + "-to-" + neuron_type + "-from-" + pre_type
-
-        self.save_figure(plt, fig_name)
 
         return fig
 
@@ -2107,9 +2089,6 @@ class SnuddaAnalyse(object):
 
                 plt.ion()
 
-                if self.show_plots:
-                    plt.show()
-
                 plt.draw()
                 plt.pause(0.0001)
 
@@ -2121,6 +2100,9 @@ class SnuddaAnalyse(object):
                               + pre_type + "-to-" + post_type
 
                 self.save_figure(plt, fig_name)
+
+                if self.show_plots:
+                    plt.show()
 
             except Exception:
                 import traceback
@@ -2267,12 +2249,12 @@ class SnuddaAnalyse(object):
             plt.ion()
             plt.draw()
 
-            if self.show_plots:
-                plt.show()
-
             fig_name = "VirtuaAxon-synapses-" + axonType + "-to-" + post_neuron_type
 
             self.save_figure(plt, fig_name)
+
+            if self.show_plots:
+                plt.show()
 
             # import pdb
             # pdb.set_trace()
@@ -2556,16 +2538,16 @@ class SnuddaAnalyse(object):
         plt.ion()
         plt.draw()
 
-        if self.show_plots:
-            plt.show()
-
-        plt.pause(0.001)
-
         fig_name = "Nearest-presynaptic-slice-neighbour-to-" \
                   + str(post_type) + "-from-" + str(pre_type) + "-ID-" \
                   + str(self.network["SlurmID"]) + name_str + ".pdf"
 
         self.save_figure(plt, fig_name)
+
+        if self.show_plots:
+            plt.show()
+
+        plt.pause(0.001)
 
         if self.close_plots:
             time.sleep(1)
@@ -2631,15 +2613,15 @@ class SnuddaAnalyse(object):
         plt.ion()
         plt.draw()
 
-        if self.show_plots:
-            plt.show()
-
-        plt.pause(0.001)
-
         fig_name = "figures/Nearest-presynaptic-neighbour-to-" \
                    + str(post_type) + "-from-" + str(pre_type)
 
         self.save_figure(plt, fig_name)
+
+        if self.show_plots:
+            plt.show()
+
+        plt.pause(0.001)
 
     ############################################################################
 
