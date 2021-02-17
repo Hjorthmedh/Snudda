@@ -96,7 +96,7 @@ class TouchDetectionIllustration(object):
         plt, ax = pn.plot(fig_name=fig_name, show_axis=False,
                           plot_axon=plot_axon, plot_dendrite=plot_dendrite,
                           title="", title_pad=-14,
-                          elev_azim=(90, 0))
+                          elev_azim=(-71, -35))
 
 if __name__ == "__main__":
 
