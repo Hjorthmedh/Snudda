@@ -31,7 +31,7 @@ class TouchDetectionHypervoxelIllustration(object):
 
         self.sd = SnuddaDetect(config_file=self.config_file, position_file=self.position_file,
                                save_file=self.save_file, rc=None,
-                               hyper_voxel_size=50)
+                               hyper_voxel_size=60)
 
         neuron_positions = np.array([[10, 30, 70],  # Postsynaptiska
                                      [50, 60, 70],  # Presynaptiska
@@ -73,10 +73,18 @@ class TouchDetectionHypervoxelIllustration(object):
         plt, ax = self.sd.plot_hyper_voxel(plot_neurons=False,
                                            draw_axon_voxels=True,
                                            draw_dendrite_voxels=True,
-                                           fig_file_name="voxel_touch_detection_illustration")
+                                           elev_azim=(50, -22),
+                                           fig_file_name="touch_detection_illustration-voxels")
 
-        import pdb
-        pdb.set_trace()
+        plt, ax = self.sd.plot_hyper_voxel(plot_neurons=True,
+                                           draw_axon_voxels=False,
+                                           draw_dendrite_voxels=False,
+                                           elev_azim=(50, -22),
+                                           fig_file_name="touch_detection_illustration-morph")
+
+
+        #import pdb
+        #pdb.set_trace()
 
 
 if __name__ == "__main__":

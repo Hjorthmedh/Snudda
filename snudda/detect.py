@@ -2802,19 +2802,24 @@ class SnuddaDetect(object):
             # to draw within the hyper voxel
             if self.hyper_voxel_offset is not None:
                 syn_coord -= self.hyper_voxel_offset
-            ax.scatter(syn_coord[:, 0]+0.5, syn_coord[:, 1]+0.5, syn_coord[:, 2]+0.5, c="green")
+            ax.scatter(syn_coord[:, 0]+0.5, syn_coord[:, 1]+0.5, syn_coord[:, 2]+0.5, c="green", s=64)
 
         if self.hyper_voxel_gap_junction_ctr > 0:
             gj_coord = self.hyper_voxel_gap_junctions[:self.hyper_voxel_gap_junction_ctr, 6:9]
             if self.hyper_voxel_offset is not None:
                 gj_coord -= self.hyper_voxel_offset
-            ax.scatter(gj_coord[:, 0]+0.5, gj_coord[:, 1]+0.5, gj_coord[:, 2]+0.5, c="yellow")
+            ax.scatter(gj_coord[:, 0]+0.5, gj_coord[:, 1]+0.5, gj_coord[:, 2]+0.5, c="yellow", s=64)
 
         if elev_azim:
             ax.view_init(elev_azim[0], elev_azim[1])
 
         if not show_axis:
             plt.axis("off")
+
+        # If plot is empty then this might be problem (ie axis scaled wrong)
+        ax.set_xlim3d(0, self.hyper_voxel_size)
+        ax.set_ylim3d(0, self.hyper_voxel_size)
+        ax.set_zlim3d(0, self.hyper_voxel_size)
 
         plt.ion()
 
