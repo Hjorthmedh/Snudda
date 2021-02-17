@@ -6,10 +6,12 @@ from mpl_toolkits.mplot3d import Axes3D
 
 from snudda.neuron_morphology import NeuronMorphology
 
-
 class PlotNetwork(object):
 
     def __init__(self, network_file):
+
+        if os.path.isdir(network_file):
+            network_file = os.path.join(network_file, "network-pruned-synapses.hdf5")
 
         self.network_file = network_file
         self.sl = SnuddaLoad(self.network_file)

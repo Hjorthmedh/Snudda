@@ -109,7 +109,7 @@ class PruningIllustration(object):
         if pruning_config is not None and not os.path.exists(pruning_config):
             pruning_config = os.path.join(self.network_path, pruning_config)
 
-        sp = SnuddaPrune(work_history_file=work_log, config_file=pruning_config)  # Use default config file
+        sp = SnuddaPrune(network_path=self.network_path, config_file=pruning_config)  # Use default config file
         sp.prune(pre_merge_only=False)
         sp = []
 

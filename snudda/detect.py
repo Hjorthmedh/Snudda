@@ -39,6 +39,7 @@ class SnuddaDetect(object):
 
     def __init__(self,
                  config_file=None,
+                 network_path=None,
                  position_file=None,
                  voxel_size=3e-6,  # 2e-6,
                  hyper_voxel_size=100,  # 250, #100,
@@ -69,6 +70,26 @@ class SnuddaDetect(object):
         self.random_seed = random_seed
 
         self.logfile = logfile
+
+        if network_path:
+            self.network_path = network_path
+
+            # Setting default config, position, save and log file if not user provided
+            if not config_file:
+                config_file = os.path.join(network_path, "network-config.json")
+
+            if not position_file:
+                position_file = os.path.join(network_path, "network-neuron-positions.hdf5")
+
+            if not save_file:
+                save_file = os.path.join(network_path, "voxels", "network-putative-synapses.hdf5")
+
+            if not logfile and not logfile_name:
+                log_filename = os.path.join(network_path, "log", "logFile-touch-detection.txt")
+
+        elif config_file:
+            self.network_path = os.path.dirname(config_file)
+
         self.config_file = config_file
         self.position_file = position_file
         self.save_file = save_file
@@ -239,14 +260,8 @@ class SnuddaDetect(object):
             self.setup_parallel(d_view=d_view)
 
             if self.work_history_file is None:
-                work_dir = os.path.dirname(self.save_file)
-                work_dir = work_dir.replace(f"{os.path.sep}voxels", os.path.sep)
-                log_dir = os.path.join(work_dir, "log")
+                log_dir = os.path.join(self.network_path, "log")
                 self.work_history_file = os.path.join(log_dir, "network-detect-worklog.hdf5")
-
-                if self.work_history_file == self.save_file:
-                    self.write_log("Unable to set a good worklog name, using worklog.hdf5")
-                    self.work_history_file = "worklog.hdf5"
 
             if restart_detection_flag:
                 if os.path.isfile(self.work_history_file):
@@ -1656,14 +1671,10 @@ class SnuddaDetect(object):
     def delete_old_merge(self):
 
         if self.role == "master":
-
-            work_dir = os.path.dirname(self.save_file)
-            work_dir = work_dir.replace(f"{os.path.sep}voxels", os.path.sep)
-
-            del_files = [os.path.join(work_dir, "network-putative-synapses-MERGED.hdf5"),
-                         os.path.join(work_dir, "network-putative-synapses-MERGED.hdf5-cache"),
-                         os.path.join(work_dir, "network-pruned-synapses.hdf5"),
-                         os.path.join(work_dir, "network-pruned-synapses.hdf5-cache")]
+            del_files = [os.path.join(self.network_path, "network-putative-synapses-MERGED.hdf5"),
+                         os.path.join(self.network_path, "network-putative-synapses-MERGED.hdf5-cache"),
+                         os.path.join(self.network_path, "network-pruned-synapses.hdf5"),
+                         os.path.join(self.network_path, "network-pruned-synapses.hdf5-cache")]
 
             for f in del_files:
                 if os.path.exists(f):
@@ -2836,7 +2847,7 @@ class SnuddaDetect(object):
         if fig_file_name is None:
             fig_file_name = f"Hypervoxel-{self.slurm_id}-{self.hyper_voxel_id}.png"
 
-        fig_name = os.path.join(os.path.dirname(self.config_file), "figures", fig_file_name)
+        fig_name = os.path.join(self.network_path, "figures", fig_file_name)
 
         if not os.path.exists(os.path.dirname(fig_name)):
             os.mkdir(os.path.dirname(fig_name))
@@ -2974,7 +2985,7 @@ class SnuddaDetect(object):
 
         plt.pause(0.001)
 
-        fig_name = os.path.join(os.path.dirname(self.config_file), "figures",
+        fig_name = os.path.join(self.network_path, "figures",
                                 f"Hypervoxel-{self.slurm_id}-{self.hyper_voxel_id}-someNeurons.png")
 
         if not os.path.exists(os.path.dirname(fig_name)):
