@@ -6,14 +6,19 @@ from mpl_toolkits.mplot3d import Axes3D
 
 from snudda.neuron_morphology import NeuronMorphology
 
-
 class PlotNetwork(object):
 
     def __init__(self, network_file):
 
+        if os.path.isdir(network_file):
+            network_file = os.path.join(network_file, "network-pruned-synapses.hdf5")
+
         self.network_file = network_file
         self.sl = SnuddaLoad(self.network_file)
         self.prototype_neurons = dict()
+
+    def close(self):
+        self.sl.close()
 
     def plot(self, plot_axon=True, plot_dendrite=True, plot_synapses=True,
              title=None, title_pad=None, show_axis=True,
@@ -51,7 +56,7 @@ class PlotNetwork(object):
                        self.sl.data["synapseCoords"][:, 1],
                        self.sl.data["synapseCoords"][:, 2], color=(0.1, 0.1, 0.1))
 
-            plt.figtext(0.5, 0.15, f"{self.sl.data['nSynapses']} synapses", ha="center", fontsize=18)
+            plt.figtext(0.5, 0.20, f"{self.sl.data['nSynapses']} synapses", ha="center", fontsize=18)
             
         if elev_azim:
             ax.view_init(elev_azim[0], elev_azim[1])
@@ -65,20 +70,21 @@ class PlotNetwork(object):
             title = ""
 
         if title_pad is not None:
-            plt.rcParams['axes.titley'] = 1.0  # y is in axes-relative co-ordinates.
+            plt.rcParams['axes.titley'] = 0.95  # y is in axes-relative co-ordinates.
             plt.rcParams['axes.titlepad'] = title_pad  # pad is in points...
 
         plt.title(title, fontsize=18)
 
         # ax.dist = 8
-        plt.ion()
-        plt.show()
 
         if fig_name is not None:
             fig_path = os.path.join(os.path.dirname(self.network_file), "figures", fig_name)
             if not os.path.exists(os.path.dirname(fig_path)):
                 os.mkdir(os.path.dirname(fig_path))
-            plt.savefig(fig_path, dpi=dpi)
+            plt.savefig(fig_path, dpi=dpi, bbox_inches="tight")
+
+        plt.ion()
+        plt.show()
 
         return plt, ax
 

@@ -28,6 +28,7 @@ class SnuddaPlace(object):
 
     def __init__(self,
                  config_file=None,
+                 network_path=None,
                  verbose=True,
                  log_file=None,
                  d_view=None,
@@ -35,6 +36,15 @@ class SnuddaPlace(object):
                  h5libver="latest",
                  raytrace_borders=False,
                  random_seed=None):
+
+        if not config_file and network_path:
+            config_file = os.path.join(network_path, "network-config.json")
+
+        if not network_path and config_file:
+            network_path = os.path.dirname(config_file)
+
+        self.network_path = network_path
+        self.config_file = config_file
 
         self.verbose = verbose
         self.log_file = log_file
@@ -67,7 +77,6 @@ class SnuddaPlace(object):
         # at the edges
         self.volume = dict([])
 
-        self.config_file = config_file
         # self.read_config()  # -- Now called from core.py
 
     ############################################################################
@@ -239,8 +248,8 @@ class SnuddaPlace(object):
 
                 if os.path.exists(vol_def["meshFile"]):
                     mesh_file = vol_def["meshFile"]
-                elif os.path.exists(os.path.join(os.path.dirname(self.config_file), vol_def["meshFile"])):
-                    mesh_file = os.path.join(os.path.dirname(self.config_file), vol_def["meshFile"])
+                elif os.path.exists(os.path.join(self.network_path, vol_def["meshFile"])):
+                    mesh_file = os.path.join(self.network_path, vol_def["meshFile"])
                 else:
                     self.write_log(f"Unable to find mesh file {vol_def['meshFile']}")
                     os.sys.exit(-1)
