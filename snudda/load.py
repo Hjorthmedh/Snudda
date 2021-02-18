@@ -53,7 +53,7 @@ class SnuddaLoad(object):
     ############################################################################
 
     def load_hdf5(self, network_file, load_synapses=True, load_morph=True):
-        print("Loading " + network_file)
+        print(f"Loading {network_file}")
 
         start_time = timeit.default_timer()
         data = dict([])
@@ -199,15 +199,12 @@ class SnuddaLoad(object):
 
             if "synapses" in data:
                 if "gapJunctions" in data:
-                    print(str(len(data["neurons"])) + " neurons with "
-                          + str(data["nSynapses"]) + " synapses"
-                          + " and " + str(data["nGapJunctions"])
-                          + " gap junctions")
+                    print(f"{len(data['neurons'])} neurons with {data['nSynapses']} synapses" 
+                          f" and {data['nGapJunctions']} gap junctions")
                 else:
-                    print(str(len(data["neurons"])) + " neurons with "
-                          + str(data["synapses"].shape[0]) + " synapses")
+                    print(f"{len(data['neurons'])} neurons with {data['synapses'].shape[0]} synapses")
 
-            print("Load done. " + str(timeit.default_timer() - start_time))
+            print(f"Load done. {timeit.default_timer() - start_time}")
 
         if load_synapses:
             f.close()
@@ -380,7 +377,7 @@ class SnuddaLoad(object):
 
     def find_synapses_SLOW(self, pre_id, n_max=1000000):
 
-        print("Finding synapses originating from " + str(pre_id) + ", this is slow")
+        print(f"Finding synapses originating from {pre_id}, this is slow")
 
         synapses = np.zeros((n_max, 13), dtype=np.int32)
         syn_ctr = 0
@@ -487,8 +484,8 @@ class SnuddaLoad(object):
             synapses = f["network/synapses"][idx_b1:idx_b2 + 1, :].copy()
 
             if not silent:
-                print("Synapse range, first " + str(idx_b1) + ", last " + str(idx_b2))
-                print(str(synapses))
+                print(f"Synapse range, first {idx_b1}, last {idx_b2}")
+                print(f"{synapses}")
 
             # Calculate coordinates
             synapse_coords = synapses[:, 2:5] * f["meta/voxelSize"][()] + f["meta/simulationOrigo"][()]
@@ -516,9 +513,8 @@ class SnuddaLoad(object):
                 cell_id = np.array([cell_id[x] for x in range(num_neurons)])
 
             if len(cell_id) < num_neurons:
-                print("get_cell_id_of_type: wanted " + str(num_neurons)
-                      + " only got " + str(len(cell_id))
-                      + " neurons of type " + str(neuron_type))
+                print(f"get_cell_id_of_type: wanted {num_neurons} only got {len(cell_id)} " 
+                      f"neurons of type {neuron_type}")
 
         # Double check that all of the same type
         assert np.array([self.data["neurons"][x]["type"] == neuron_type for x in cell_id]).all()
@@ -568,18 +564,18 @@ if __name__ == "__main__":
             nTypes = np.unique([x["type"] for x in nl.data["neurons"]])
             for nt in nTypes:
                 num = len([x["type"] for x in nl.data["neurons"] if x["type"] == nt])
-                print(nt + " (" + str(num) + " total)")
+                print(f"{nt} ({num} total)")
 
         else:
-            print("Neurons of type " + args.listT + ":")
+            print(f"Neurons of type {args.listT}:")
             nOfType = [(x["neuronID"], x["name"]) for x in nl.data["neurons"]
                        if x["type"] == args.listT]
             for nid, name in nOfType:
                 print("%d : %s" % (nid, name))
 
     if args.listPre is not None:
-        print("List neurons pre-synaptic to neuronID = " + str(args.listPre)
-              + " (" + str(nl.data["neurons"][args.listPre]["name"]) + ")")
+        print(f"List neurons pre-synaptic to neuronID = {args.listPre} "
+              f"({nl.data['neurons'][args.listPre]['name']})")
         synapses = nl.find_synapses(post_id=args.listPre)
 
         if synapses[0] is None:

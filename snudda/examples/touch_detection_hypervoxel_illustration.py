@@ -74,17 +74,19 @@ class TouchDetectionHypervoxelIllustration(object):
                                            draw_axon_voxels=True,
                                            draw_dendrite_voxels=True,
                                            elev_azim=(50, -22),
+                                           title="",
                                            fig_file_name="touch_detection_illustration-voxels")
 
         plt, ax = self.sd.plot_hyper_voxel(plot_neurons=True,
                                            draw_axon_voxels=False,
                                            draw_dendrite_voxels=False,
                                            elev_azim=(50, -22),
+                                           title="",
                                            fig_file_name="touch_detection_illustration-morph")
 
 
-        #import pdb
-        #pdb.set_trace()
+        import pdb
+        pdb.set_trace()
 
 
 if __name__ == "__main__":

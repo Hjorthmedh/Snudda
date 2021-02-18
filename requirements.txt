@@ -3,13 +3,13 @@ h5py
 ipyparallel
 matplotlib
 mpi4py
-numpy>=1.19.3
+numpy>=1.20.1
 scipy
-sonata>=0.0.1
+sonata>=0.0.2
 pyzmq
 
 argparse
-# snudda
+snudda
 NEURON
 pyswarms
 setuptools

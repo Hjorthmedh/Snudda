@@ -2790,7 +2790,7 @@ class SnuddaDetect(object):
             colors[:, :, :, 2] = self.dend_voxel_ctr / max(np.max(self.dend_voxel_ctr), 1)
             voxel_data += self.dend_voxel_ctr
 
-        fig = plt.figure()
+        fig = plt.figure(figsize=(6, 6.5))
         ax = fig.gca(projection='3d')
         ax.voxels(voxel_data > 0,
                   facecolors=colors, edgecolor=None)
@@ -2821,6 +2821,11 @@ class SnuddaDetect(object):
         ax.set_ylim3d(0, self.hyper_voxel_size)
         ax.set_zlim3d(0, self.hyper_voxel_size)
 
+        ax.xaxis.set_tick_params(labelsize=18)
+        ax.yaxis.set_tick_params(labelsize=18)
+        ax.zaxis.set_tick_params(labelsize=18)
+
+        plt.tight_layout()
         plt.ion()
 
         if plot_neurons:
