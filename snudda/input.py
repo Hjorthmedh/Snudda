@@ -472,6 +472,9 @@ class SnuddaInput(object):
                             n_inp = None
 
                         mod_file = input_inf["modFile"]
+                        if type(mod_file) in [bytes, np.bytes_]:
+                            mod_file = mod_file.decode()
+
                         if "parameterFile" in input_inf:
                             parameter_file = input_inf["parameterFile"]
                         else:
