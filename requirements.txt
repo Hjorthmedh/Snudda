@@ -12,5 +12,5 @@ argparse
 snudda
 NEURON
 pyswarms
-setuptools>53.0.0
+setuptools
 psutil

@@ -43,7 +43,7 @@ setuptools.setup(
         "scipy>=1.6.1",
         "sonata>=0.0.2",
         "pyzmq>=22.0.3",
-        "setuptools>=53.0.0",
+        "setuptools",
         "psutil",
         "argparse"
     ],
