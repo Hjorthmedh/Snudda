@@ -34,16 +34,16 @@ setuptools.setup(
     },
     entry_points={"console_scripts": ["snudda = snudda.cli:snudda_cli"]},
     install_requires=[
-        "bluepyopt>=1.8.21",
-        "h5py>=2.8.0",
-        "ipyparallel>=6.2.3",
-        "matplotlib>=3.0.2",
-        "mpi4py>=3.0.1",
-        "numpy>=1.15.4",
-        "scipy>=1.2.0",
-        "sonata>=0.0.1",
-        "pyzmq>=18.0.0",
-        "setuptools>=40.0.0"
+        "bluepyopt>=1.9.126",
+        "h5py>=3.1.0",
+        "ipyparallel>=6.3.0",
+        "matplotlib>=3.3.4",
+        "mpi4py>=3.0.3",
+        "numpy>=1.20.1",
+        "scipy>=1.6.1",
+        "sonata>=0.0.2",
+        "pyzmq>=22.0.3",
+        "setuptools>=53.0.0"
     ],
     extras_require={"dev": ["sphinx"]},
 )
