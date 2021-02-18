@@ -4,7 +4,7 @@ export IPYTHON_PROFILE=Snudda_LOCAL
 ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20
 
-simName=networks/why_prune_fails_PD
+simName=networks/PD_run_2021
 
 #snudda init $simName --size 1760000
 #snudda init $simName --size 100000

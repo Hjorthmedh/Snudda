@@ -421,8 +421,16 @@ class SnuddaInput(object):
                     neuron_id_list.append(neuron_id)
                     input_type_list.append(input_type)
                     freq_list.append(input_inf["frequency"])
-                    p_keep_list.append(np.sqrt(input_inf["populationUnitCorrelation"]))
-                    jitter_dt_list.append(input_inf["jitter"])
+
+                    if "populationUnitCorrelation" in input_inf:
+                        p_keep_list.append(np.sqrt(input_inf["populationUnitCorrelation"]))
+                    else:
+                        p_keep_list.append(0)
+
+                    if "jitter" in input_inf:
+                        jitter_dt_list.append(input_inf["jitter"])
+                    else:
+                        jitter_dt_list.append(None)
 
                     if "start" in input_inf:
                         start_list.append(input_inf["start"])
@@ -484,7 +492,11 @@ class SnuddaInput(object):
 
                     population_unit_id_list.append(populationUnitID)
                     conductance_list.append(cond)
-                    correlation_list.append(input_inf["populationUnitCorrelation"])
+
+                    if "populationUnitCorrelation" in input_inf:
+                        correlation_list.append(input_inf["populationUnitCorrelation"])
+                    else:
+                        correlation_list.append(0)
 
                     if neuron_type in self.population_unit_spikes:
                         # TODO: These are cleared at the end anyway, so not currently used. Remove altogether?
