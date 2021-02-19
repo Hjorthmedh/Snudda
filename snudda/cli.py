@@ -86,10 +86,10 @@ def snudda_cli():
 
     simulate_parser = sub_parsers.add_parser("simulate")
     simulate_parser.add_argument("path", help="Location of network")
-    simulate_parser.add_argument("--inputFile", help="Input hdf5 file (for simulation)",
-                                 dest="input_file")
     simulate_parser.add_argument("--networkFile", help="Network file, if not network-pruned-synapses.hdf5",
-                                 dest="network_file")
+                                 dest="network_file", default=None)
+    simulate_parser.add_argument("--inputFile", help="Input hdf5 file (for simulation)",
+                                 dest="input_file", default=None)
 
     simulate_parser.add_argument("--time", type=float, default=2.5, help="Duration of simulation in seconds")
 
