@@ -139,7 +139,7 @@ if __name__ == "__main__":
                       title="f1 = 1",
                       fig_name="1-Pruning-f1-1-No-pruning.pdf")
 
-    pil.prune_network(pruning_config="network-config-f1-0.75.json",
+    pil.prune_network(pruning_config="network-config-f1-0.75.json",     # Not used in figure anymore
                       title="f1 = 0.75",
                       fig_name="1-Pruning-f1-0.75.pdf")
 
@@ -156,7 +156,7 @@ if __name__ == "__main__":
                       title="f1 = 1, mu2 = 3",
                       fig_name="2-Pruning-f1-1-mu2-3.pdf")
 
-    pil.prune_network(pruning_config="network-config-f1-0.75-mu2-3.json",
+    pil.prune_network(pruning_config="network-config-f1-0.75-mu2-3.json",   # Not used in figure anymore
                       title="f1 = 0.75, mu2 = 3",
                       fig_name="2-Pruning-f1-0.75-mu2-3.pdf")
 
@@ -170,7 +170,7 @@ if __name__ == "__main__":
 
 
     # Softmax
-    pil.prune_network(pruning_config="network-config-softmax-4.json",
+    pil.prune_network(pruning_config="network-config-softmax-4.json",   # Not used in figure anymore
                       title="softmax=4",
                       fig_name="3-Pruning-softmax-4.pdf")
 
@@ -187,7 +187,7 @@ if __name__ == "__main__":
                       fig_name="3-Pruning-softmax-1.pdf")
 
     # Adding a3 pruning
-    pil.prune_network(pruning_config="network-config-a3-1.json",
+    pil.prune_network(pruning_config="network-config-a3-1.json",    # Not used in figure anymore
                       title="a3 = 1",
                       fig_name="4-Pruning-a3-1.pdf")
 
@@ -205,21 +205,18 @@ if __name__ == "__main__":
 
 
     # Distance dependent examples
-    pil.prune_network(pruning_config="network-config-distance-dep-1.json",
-                      title='"np.exp(-(0.5*d/60e-6)^2)"',
+    pil.prune_network(pruning_config="network-config-distance-dep-v3-1.json",
+                      title='"np.exp(-(0.5*d/70e-6)^2)"',
                       fig_name="5-Pruning-distance-dep-1.pdf")
 
-    pil.prune_network(pruning_config="network-config-distance-dep-2.json",
-                      title='"np.exp(-(0.5*d/100e-6)^2)"',
+    pil.prune_network(pruning_config="network-config-distance-dep-v3-2.json",
+                      title='"np.exp(-(d-190e-6)**2/(2*40e-6**2))"',
                       fig_name="5-Pruning-distance-dep-2.pdf")
 
-    pil.prune_network(pruning_config="network-config-distance-dep-3.json",
-                      title='"1/(1+np.exp(-(d-200e-6)/30e-6))"',
+    pil.prune_network(pruning_config="network-config-distance-dep-v3-3.json",
+                      title='"1/(1+np.exp(-(d-280e-6)/30e-6))"',
                       fig_name="5-Pruning-distance-dep-3.pdf")
 
-    pil.prune_network(pruning_config="network-config-distance-dep-4.json",
-                      title='"1/(1+np.exp(-(d-300e-6)/30e-6))"',
-                      fig_name="5-Pruning-distance-dep-4.pdf")
 
     print(f"\n --> Figures written to {os.path.join(pil.network_path,'figures')}\n")
 

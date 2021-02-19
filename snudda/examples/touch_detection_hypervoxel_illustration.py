@@ -75,18 +75,19 @@ class TouchDetectionHypervoxelIllustration(object):
                                            draw_dendrite_voxels=True,
                                            elev_azim=(50, -22),
                                            title="",
-                                           fig_file_name="touch_detection_illustration-voxels")
+                                           fig_file_name="touch_detection_illustration-voxels.pdf",
+                                           dpi=300)
 
         plt, ax = self.sd.plot_hyper_voxel(plot_neurons=True,
                                            draw_axon_voxels=False,
                                            draw_dendrite_voxels=False,
                                            elev_azim=(50, -22),
                                            title="",
-                                           fig_file_name="touch_detection_illustration-morph")
+                                           fig_file_name="touch_detection_illustration-morph.pdf",
+                                           dpi=300)
 
+        print(f"\n--> Figures written to {self.sd.network_path}/figures")
 
-        import pdb
-        pdb.set_trace()
 
 
 if __name__ == "__main__":
