@@ -398,7 +398,9 @@ class Snudda(object):
         # --- problem since nrnivmodl seems to want a relative path...
 
         make_mods_str = f"nrnivmodl {mech_dir}"
-        if not os.path.exists('x86_64'):
+
+        # x86_64 on linux, nrnmech.dll on windows...
+        if not os.path.exists("x86_64") and not os.path.exists("nrnmech.dll"):
             print(f"Please first run: {make_mods_str}")
             os.sys.exit(-1)
             # I was having problems when running nrnivmodl in the script, but
