@@ -1010,8 +1010,7 @@ class NeuronMorphology(object):
 if __name__ == "__main__":
     # The lines below are just for testing purposes
 
-    fName = "data/cellspecs/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/WT-1215MSN03-cor-rep-ax2.swc"
-    # fName = "data/cellspecs/lts/LTS_Experiment-9862_20181211/lts_morp_2019-11-07_centered_noAxon.swc"
+    fName = "data/neurons/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc"
 
     nm = NeuronMorphology(swc_filename=fName, verbose=True, use_cache=False)
 

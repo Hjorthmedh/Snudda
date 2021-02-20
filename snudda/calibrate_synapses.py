@@ -26,7 +26,7 @@
 #
 # * Compile mod files (we now have failure rates for GABA)
 #
-# nrnivmodl cellspecs/mechanisms/
+# nrnivmodl data/neurons/mechanisms/
 #
 # * Cut the slice, so z > 0.00504 is kept
 #
@@ -141,7 +141,7 @@ class SnuddaCalibrateSynapses(object):
 
     print("\nThe last command will pop up a figure and enter debug mode, press ctrl+D in the terminal window after inspecting the plot to continue")
 
-    print("\n!!! Remember to compile the mod files: nrnivmodl cellspecs/mechanisms")
+    print("\n!!! Remember to compile the mod files: nrnivmodl data/neurons/mechanisms")
 
     print("\nTo run for example dSPN -> iSPN (and dSPN->dSPN) calibration:")
     print("mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run " + str(expType) + " " + str(simName) + "/network-cut-slice.hdf5 dSPN iSPN")
