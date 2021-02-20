@@ -54,7 +54,7 @@ class InputScaling(object):
 
         self.network_config_file_name = os.path.join(self.network_dir, "network-config.json")
         self.network_file = os.path.join(self.network_dir, "network-pruned-synapses.hdf5")
-        self.input_config_file = os.path.join(self.network_dir, "input-config.json")
+        self.input_config_file = os.path.join(self.network_dir, "input_config.json")
         self.input_spikes_file = os.path.join(self.network_dir, 'input.hdf5')
 
         self.output_spike_file = os.path.join(self.network_dir, 'output_spikes.txt')
@@ -258,7 +258,7 @@ class InputScaling(object):
 
     def load_input_config(self):
 
-        input_config_file = os.path.join(self.network_dir, "input-config.json")
+        input_config_file = os.path.join(self.network_dir, "input_config.json")
         with open(input_config_file) as f:
             input_config = json.load(f)
 
@@ -819,7 +819,7 @@ if __name__ == "__main__":
         print(f"Unknown action {args.action}")
 
 
-    # python3 tuning/input_scaling.py setup networks/input_scaling_v1/ data/cellspecs-v2/
-    # mpiexec -n 4 python3 tuning/input_scaling.py simulate networks/input_scaling_v1/ < input.txt &> output-tuning.txt &
+    # python3 input_tuning/input_scaling.py setup networks/input_scaling_v1/ data/neurons/striatum/
+    # mpiexec -n 4 python3 input_tuning/input_scaling.py simulate networks/input_scaling_v1/ < input.txt &> output-tuning.txt &
 
     #
