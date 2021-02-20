@@ -131,6 +131,7 @@ class SnuddaPlace(object):
             modulation_id = self.random_generator.integers(1000000)
 
             if rotation_mode == "random":
+                # We pass 3 random numbers from our random generator
                 rotation = nm.rand_rotation_matrix(rand_nums=self.random_generator.random(size=(3,)))
             elif rotation_mode is None or rotation_mode == "":
                 self.write_log("Rotation mode: None (disabled) for " + name)

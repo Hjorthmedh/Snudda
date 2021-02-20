@@ -9,7 +9,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Init custom network")
     parser.add_argument("network", type=str, help="Network path")
-    parser.add_argument("--cellspec", type=str, help="Cell spec directory", default=None)
+    parser.add_argument("--cellspec", "--neurons", type=str, help="Cell spec directory",
+                        target=cellspec, default=None)
     # TODO: Add cell number parameters
     args = parser.parse_args()
 

@@ -389,7 +389,7 @@ class SnuddaInit(object):
         dir_list = glob.glob(neuron_dir + "/*")
         neuron_file_list = []
 
-        assert len(dir_list) > 0, "Neuron dir " + str(neuron_dir) + " is empty!"
+        assert len(dir_list) > 0, f"Neuron dir {neuron_dir} is empty!"
 
         for d in dir_list:
 
@@ -403,9 +403,9 @@ class SnuddaInit(object):
                 swc_file = glob.glob(os.path.join(d, "*swc"))
                 hoc_file = glob.glob(os.path.join(d, "*hoc"))
 
-                assert len(swc_file) == 1, "Morph dir " + d + " should contain one swc file"
+                assert len(swc_file) == 1, f"Morph dir {d} should contain one swc file"
 
-                assert len(hoc_file) <= 1, "Morph dir " + d + " contains more than one hoc file"
+                assert len(hoc_file) <= 1, f"Morph dir {d} contains more than one hoc file"
 
                 if len(hoc_file) == 0:
                     hoc_file = [None]
@@ -585,15 +585,15 @@ class SnuddaInit(object):
                                   mesh_bin_width=1e-4)
 
         if cell_spec_dir is None:
-            cs_dir = os.path.join(self.data_path, "cellspecs")
+            cs_dir = os.path.join(self.data_path, "neurons")
         else:
             cs_dir = cell_spec_dir
 
-        FS_dir = os.path.join(cs_dir, "fs")
-        dSPN_dir = os.path.join(cs_dir, "dspn")
-        iSPN_dir = os.path.join(cs_dir, "ispn")
-        ChIN_dir = os.path.join(cs_dir, "chin")
-        LTS_dir = os.path.join(cs_dir, "lts")
+        FS_dir = os.path.join(cs_dir, "striatum", "fs")
+        dSPN_dir = os.path.join(cs_dir, "striatum", "dspn")
+        iSPN_dir = os.path.join(cs_dir, "striatum", "ispn")
+        ChIN_dir = os.path.join(cs_dir, "striatum", "chin")
+        LTS_dir = os.path.join(cs_dir, "striatum", "lts")
 
         self.reg_size = 5
 

@@ -56,7 +56,7 @@ class TestCLI(unittest.TestCase):
         from shutil import copyfile
         print(f"listdir: {os.listdir()}")
         print(f"parent listdir: {os.listdir('..')}")
-        copyfile("../snudda/data/config/input-v10-scaled.json", "tiny_parallel/input.json")
+        copyfile("../snudda/data/input-config/input-v10-scaled.json", "tiny_parallel/input.json")
 
         with self.subTest(stage="input"):
             run_cli_command("input tiny_parallel --input tiny_parallel/input.json --time 1.0 --parallel")
@@ -74,7 +74,7 @@ class TestCLI(unittest.TestCase):
 
         with self.subTest(stage="simulate"):
             print("Running nrnivmodl:")
-            os.system("nrnivmodl ../snudda/data/cellspecs/mechanisms")
+            os.system("nrnivmodl ../snudda/data/neurons/mechanisms")
             print("Time to run simulation...")
             run_cli_command("simulate tiny_parallel --time 0.1")
 
@@ -98,6 +98,6 @@ class TestCLI(unittest.TestCase):
         with self.subTest(stage="prune-serial"):
             run_cli_command("prune tiny_serial")
 
-        copyfile("../snudda/data/config/input-v10-scaled.json", "tiny_serial/input.json")
+        copyfile("../snudda/data/input-config/input-v10-scaled.json", "tiny_serial/input.json")
         with self.subTest(stage="input"):
             run_cli_command("input tiny_serial --input tiny_serial/input.json --time 1.0")
