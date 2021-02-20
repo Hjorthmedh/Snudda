@@ -94,7 +94,7 @@ else
     fi
 
     # echo ">>> Input: "`date`
-    # snudda input ${JOBDIR} --input ../data/input-config/input-tinytest-v6.json
+    # snudda input ${JOBDIR} --input ../data/input_config/input-tinytest-v6.jso
     echo "Use Tegner_setupInput_SERIAL.job to generate the input spikes"
 
     #.. Shut down cluster

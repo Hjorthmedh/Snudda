@@ -1,0 +1,129 @@
+{
+    "dSPN": {
+	"Cortical" : {
+	    "generator" : "poisson",
+	    "start" : 1.5,
+	    "end" : 2.0,
+	    "type: " : "AMPA_NMDA",
+	    "nInputs" : 260,
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.002,
+	    "conductance" : 1.5e-9,
+	    "location": "1/(1+np.exp(-(d-30e-6)/5e-6))",
+	    "modFile": "tmGlut",
+	    "parameterFile": "synapses/M1_Analysis_RH_extr_UP.pxp-traceList-MSND1-require-H20-model-parameters.json"
+	},
+	"Thalamic" : {
+	    "generator" : "poisson",	    
+	    "type: " : "AMPA_NMDA",
+	    "nInputs" : 260,
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.01,
+	    "conductance" : 1.5e-9,
+	    "location" : "np.exp(-d/200e-6)",
+	    "modFile": "tmGlut",
+	    "parameterFile":"synapses/TH_Analysis_extr_UP.pxp-traceList-MSND1-require-H20-model-parameters.json"
+	}	
+    },
+
+    "iSPN": {
+	"Cortical" : {
+	    "generator" : "poisson",
+	    "start" : 1.5,
+	    "end" : 2.0,
+	    "type: " : "AMPA_NMDA",
+	    "nInputs" : 200,
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.003,
+	    "conductance" : 1.5e-9,
+	    "location": "1/(1+np.exp(-(d-30e-6)/5e-6))",
+	    "modFile":"tmGlut",
+	    "parameterFile": "synapses/M1_Analysis_RH_extr_UP.pxp-traceList-MSND2-require-H20-model-parameters.json"
+	},
+	"Thalamic" : {
+	    "generator" : "poisson",	    
+	    "type: " : "AMPA_NMDA",
+	    "nInputs" : 200,
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.01,
+	    "conductance" : 1.5e-9,
+	    "location" : "np.exp(-d/200e-6)",
+	    "modFile": "tmGlut",
+	    "parameterFile":"synapses/TH_Analysis_extr_UP.pxp-traceList-MSND2-require-H20-model-parameters.json"
+	}	
+    },
+
+    
+    "FSN": {
+	"Cortical" : {
+	    "generator" : "poisson",	    
+	    "type: " : "AMPA_NMDA",
+	    "nInputs" : 100,	    
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.001,
+	    "conductance" : 4e-9,	    
+	    "location": "1-np.exp(-d/200e-6)",
+	    "modFile": "tmGlut",
+	    "parameterFile": "synapses/M1_Analysis_RH_extr_UP.pxp-traceList-FS-require-H20-model-parameters.json"
+	},
+	"Thalamic" : {
+	    "generator" : "poisson",	    
+	    "type: " : "AMPA_NMDA",
+	    "nInputs" : 100,
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.001,	    
+	    "conductance" : 4e-9,	    
+	    "location" : "np.exp(-d/200e-6)",
+	    "modFile":"tmGlut",
+	    "parameterFile":"synapses/TH_Analysis_extr_UP.pxp-traceList-FS-require-H20-model-parameters.json"
+	}
+
+	
+    },
+
+    "ChIN": {
+	"Cortical" : {
+	    "generator" : "poisson",	    
+	    "type: " : "AMPA_NMDA",
+	    "nInputs" : 200,
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.001,	    
+	    "conductance" : 0.5e-9,	    
+	    "location": "1-np.exp(-d/200e-6)",
+	    "modFile": "tmGlut"
+	},
+	"Thalamic" : {
+	    "generator" : "poisson",	    
+	    "type: " : "AMPA_NMDA",
+	    "nInputs" : 200,
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.001,	    
+	    "conductance" : 0.5e-9,	    
+	    "location" : "np.exp(-d/200e-6)",
+	    "modFile": "tmGlut"
+	}
+    },
+
+    "LTS": {
+	"Cortical" : {
+	    "generator" : "poisson",	    
+	    "type: " : "AMPA_NMDA",
+	    "nInputs" : 100,
+	    "frequency" : 1,
+	    "channelCorrelation" : 0.0,
+	    "jitter" : 0.001,	    
+	    "conductance" : 0.05e-9,	    
+	    "location": "1-np.exp(-d/200e-6)",
+	    "modFile": "tmGlut"
+	}
+    }
+    
+}
