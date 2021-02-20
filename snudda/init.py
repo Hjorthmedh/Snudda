@@ -589,11 +589,11 @@ class SnuddaInit(object):
         else:
             cs_dir = cell_spec_dir
 
-        FS_dir = os.path.join(cs_dir, "fs")
-        dSPN_dir = os.path.join(cs_dir, "dspn")
-        iSPN_dir = os.path.join(cs_dir, "ispn")
-        ChIN_dir = os.path.join(cs_dir, "chin")
-        LTS_dir = os.path.join(cs_dir, "lts")
+        FS_dir = os.path.join(cs_dir, "striatum", "fs")
+        dSPN_dir = os.path.join(cs_dir, "striatum", "dspn")
+        iSPN_dir = os.path.join(cs_dir, "striatum", "ispn")
+        ChIN_dir = os.path.join(cs_dir, "striatum", "chin")
+        LTS_dir = os.path.join(cs_dir, "striatum", "lts")
 
         self.reg_size = 5
 
