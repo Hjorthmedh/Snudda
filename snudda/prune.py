@@ -1051,7 +1051,7 @@ class SnuddaPrune(object):
 
         tmp_files = [h5py.File(f, 'r') for f in temp_output_file_name]
 
-        num_syn = np.sum(np.fromiter(f[h5_syn_mat].shape[0] for f in tmp_files))
+        num_syn = np.sum(np.fromiter(iterable=(f[h5_syn_mat].shape[0] for f in tmp_files), dtype=int))
         mat_width_all = [f[h5_syn_mat].shape[1] for f in tmp_files]
 
         assert (np.array(mat_width_all) == mat_width_all[0]).all(), \

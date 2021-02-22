@@ -9,7 +9,7 @@
 	    "jitter" : 0.002,
 	    "conductance" : 0.5e-9,
 	    "modFile": "tmGlut",
-	    "parameterFile": "$DATA/synapses/v2/M1RH_Analysis_190925.h5-parameters-MS.json"
+	    "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
 	},
 	"CorticalSignal" : {
 	    "generator" : "poisson",
@@ -22,7 +22,7 @@
 	    "jitter" : 0.002,
 	    "conductance" : 0.5e-9,
 	    "modFile": "tmGlut",
-	    "parameterFile": "$DATA/synapses/v2/M1RH_Analysis_190925.h5-parameters-MS.json"
+	    "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
 	},
 	"Thalamic" : {
 	    "generator" : "poisson",	    
@@ -33,7 +33,7 @@
 	    "jitter" : 0.01,
 	    "conductance" : 0.5e-9,
 	    "modFile": "tmGlut",
-	    "parameterFile":"$DATA/synapses/v2/TH_Analysis_191001.h5-parameters-MS.json"
+	    "parameterFile":"$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
 	}	
     },
 
@@ -47,7 +47,7 @@
 	    "jitter" : 0.003,
 	    "conductance" : 0.5e-9,
         "modFile":"tmGlut",
-	    "parameterFile": "$DATA/synapses/v2/M1RH_Analysis_190925.h5-parameters-MS.json"
+	    "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
 	},
 	"CorticalSignal" : {
 	    "generator" : "poisson",
@@ -60,7 +60,7 @@
 	    "jitter" : 0.003,
 	    "conductance" : 0.5e-9,
         "modFile":"tmGlut",
-	    "parameterFile": "$DATA/synapses/v2/M1RH_Analysis_190925.h5-parameters-MS.json"
+	    "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
 	},
 	"Thalamic" : {
 	    "generator" : "poisson",	    
@@ -71,7 +71,7 @@
 	    "jitter" : 0.01,
 	    "conductance" : 0.5e-9,
 	    "modFile": "tmGlut",
-	    "parameterFile":"$DATA/synapses/v2/TH_Analysis_191001.h5-parameters-MS.json"
+	    "parameterFile":"$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
 	}	
     },
 
@@ -86,7 +86,7 @@
 	    "jitter" : 0.001,
 	    "conductance" : 1.5e-9,	    
 	    "modFile": "tmGlut",
-	    "parameterFile": "$DATA/synapses/v2/M1RH_Analysis_190925.h5-parameters-FS.json"
+	    "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json"
 	},
 	"CorticalSignal" : {
 	    "generator" : "poisson",
@@ -99,7 +99,7 @@
 	    "jitter" : 0.003,
 	    "conductance" : 1.5e-9,
 	    "modFile":"tmGlut",
-	    "parameterFile": "$DATA/synapses/v2/M1RH_Analysis_190925.h5-parameters-FS.json"
+	    "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json"
 	},
 	"Thalamic" : {
 	    "generator" : "poisson",	    
@@ -110,7 +110,7 @@
 	    "jitter" : 0.001,	    
 	    "conductance" : 1.5e-9,	    
 	    "modFile":"tmGlut",
-	    "parameterFile":"$DATA/synapses/v2/TH_Analysis_191001.h5-parameters-FS.json",
+	    "parameterFile":"$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-FS.json",
 	    "nInputs" : {
 		"FSN_0" : 600,
 		"FSN_1" : 1000,
@@ -132,7 +132,7 @@
 	    "jitter" : 0.001,	    
 	    "conductance" : 0.5e-9,	    
 	    "modFile": "tmGlut",
-	    "parameterFile":"$DATA/synapses/v2/M1RH_Analysis_190925.h5-parameters-CHAT.json"
+	    "parameterFile":"$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-CHAT.json"
 	},
 	"CorticalSignal" : {
 	    "generator" : "poisson",	    
@@ -143,7 +143,7 @@
 	    "jitter" : 0.001,	    
 	    "conductance" : 0.5e-9,	    
 	    "modFile": "tmGlut",
-	    "parameterFile":"$DATA/synapses/v2/M1RH_Analysis_190925.h5-parameters-CHAT.json"
+	    "parameterFile":"$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-CHAT.json"
 	},
 	"Thalamic" : {
 	    "generator" : "poisson",	    
@@ -154,7 +154,7 @@
 	    "jitter" : 0.001,	    
 	    "conductance" : 0.5e-9,	    
 	    "modFile": "tmGlut",
-	    "parameterFile":"$DATA/synapses/v2/TH_Analysis_191001.h5-parameters-CHAT.json"
+	    "parameterFile":"$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-CHAT.json"
 	}
     },
 
@@ -168,7 +168,7 @@
 	    "jitter" : 0.001,	    
 	    "conductance" : 0.5e-9,	    
 	    "modFile": "tmGlut",
-	    "parameterFile":"$DATA/synapses/v2/M1RH_Analysis_190925.h5-parameters-LTS.json"
+	    "parameterFile":"$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-LTS.json"
 	},
 	"CorticalSignal" : {
 	    "generator" : "poisson",
@@ -181,7 +181,7 @@
 	    "jitter" : 0.003,
 	    "conductance" : 0.5e-9,
 	    "modFile":"tmGlut",
-	    "parameterFile": "$DATA/synapses/v2/M1RH_Analysis_190925.h5-parameters-LTS.json"
+	    "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-LTS.json"
 	}
     }
     
