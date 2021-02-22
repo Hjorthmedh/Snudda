@@ -1122,7 +1122,7 @@ class SnuddaPrune(object):
 
     def clean_up_merge_files(self):
 
-        if self.role == "master":
+        if self.role == "master" and self.d_view:
             # Make workers clean up their files also
             cmd_str = "nw.clean_up_merge_files()"
             self.d_view.execute(cmd_str, block=True)
