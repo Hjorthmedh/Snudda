@@ -341,7 +341,7 @@ class Snudda(object):
         print("Exporting to SONATA format")
         print(f"Network path: {self.network_path}")
 
-        if args.networkFile:
+        if args.network_file:
             network_file = args.network_file
         else:
             network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
