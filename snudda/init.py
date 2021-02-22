@@ -693,8 +693,8 @@ class SnuddaInit(object):
 
         # pfFSdSPN = "synapses/v1/trace_table.txt-FD-model-parameters.json"
         # pfFSiSPN = "synapses/v1/trace_table.txt-FI-model-parameters.json"
-        pfFSdSPN = os.path.join(self.data_path, "synapses", "v2", "PlanertFitting-FD-tmgaba-fit.json")
-        pfFSiSPN = os.path.join(self.data_path, "synapses", "v2", "PlanertFitting-FI-tmgaba-fit.json")
+        pfFSdSPN = os.path.join(self.data_path, "synapses", "striatum", "PlanertFitting-FD-tmgaba-fit.json")
+        pfFSiSPN = os.path.join(self.data_path, "synapses", "striatum", "PlanertFitting-FI-tmgaba-fit.json")
 
         # Increased from a3=0.1 to a3=0.7 to match FS-FS connectivity from Gittis
         self.add_neuron_target(neuron_name="FSN",
@@ -783,8 +783,8 @@ class SnuddaInit(object):
 
         # pfdSPNdSPN = "synapses/v1/trace_table.txt-DD-model-parameters.json"
         # pfdSPNiSPN = "synapses/v1/trace_table.txt-DI-model-parameters.json"
-        pfdSPNdSPN = os.path.join(self.data_path, "synapses", "v2", "PlanertFitting-DD-tmgaba-fit.json")
-        pfdSPNiSPN = os.path.join(self.data_path, "synapses", "v2", "PlanertFitting-DI-tmgaba-fit.json")
+        pfdSPNdSPN = os.path.join(self.data_path, "synapses", "striatum", "PlanertFitting-DD-tmgaba-fit.json")
+        pfdSPNiSPN = os.path.join(self.data_path, "synapses", "striatum", "PlanertFitting-DI-tmgaba-fit.json")
         pfdSPNChIN = None
 
         # Argument for distance dependent SPN-SPN synapses:
@@ -892,8 +892,8 @@ class SnuddaInit(object):
         P22withinUnit = MSP22 * self.population_unit_SPN_modifier
         P22betweenUnit = MSP22 * (1 + (1 - self.population_unit_SPN_modifier) / self.n_population_units)
 
-        pfiSPNdSPN = os.path.join(self.data_path, "synapses", "v2", "PlanertFitting-ID-tmgaba-fit.json")
-        pfiSPNiSPN = os.path.join(self.data_path, "synapses", "v2", "PlanertFitting-II-tmgaba-fit.json")
+        pfiSPNdSPN = os.path.join(self.data_path, "synapses", "striatum", "PlanertFitting-ID-tmgaba-fit.json")
+        pfiSPNiSPN = os.path.join(self.data_path, "synapses", "striatum", "PlanertFitting-II-tmgaba-fit.json")
         pfiSPNChIN = None
 
         # GABA decay från Taverna 2008
@@ -1160,8 +1160,8 @@ class SnuddaInit(object):
 
         # We should have both ipsi and contra, M1 and S1 input, for now
         # picking one
-        cortexSynParMS = os.path.join(self.data_path, "synapses", "v2", "M1RH_Analysis_190925.h5-parameters-MS.json")
-        cortexSynParFS = os.path.join(self.data_path, "synapses", "v2", "M1RH_Analysis_190925.h5-parameters-FS.json")
+        cortexSynParMS = os.path.join(self.data_path, "synapses", "striatum", "M1RH_Analysis_190925.h5-parameters-MS.json")
+        cortexSynParFS = os.path.join(self.data_path, "synapses", "striatum", "M1RH_Analysis_190925.h5-parameters-FS.json")
 
         self.add_neuron_target(neuron_name="CortexAxon",
                                target_name="dSPN",
@@ -1226,8 +1226,8 @@ class SnuddaInit(object):
 
         # Define targets
 
-        thalamusSynParMS = os.path.join(self.data_path, "synapses", "v2", "TH_Analysis_191001.h5-parameters-MS.json")
-        thalamusSynParFS = os.path.join(self.data_path, "synapses", "v2", "TH_Analysis_191001.h5-parameters-FS.json")
+        thalamusSynParMS = os.path.join(self.data_path, "synapses", "striatum", "TH_Analysis_191001.h5-parameters-MS.json")
+        thalamusSynParFS = os.path.join(self.data_path, "synapses", "striatum", "TH_Analysis_191001.h5-parameters-FS.json")
 
         ThalamusGlutCond = [1e-9, 0.1e-9]
 

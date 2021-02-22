@@ -111,13 +111,13 @@ class InputScaling(object):
         synapse_density_thalamic_input = "0.05*np.exp(-d/200e-6)"
         #  synapse_density_thalamic_input = "(d > 100e-6)*1"  # TEST!!
 
-        cortical_SPN_synapse_parameter_file = "data/synapses/v2/M1RH_Analysis_190925.h5-parameters-MS.json"
-        thalamic_SPN_synapse_parameter_file = "data/synapses/v2/TH_Analysis_191001.h5-parameters-MS.json"
-        cortical_FS_synapse_parameter_file = "data/synapses/v2/M1RH_Analysis_190925.h5-parameters-FS.json"
-        thalamic_FS_synapse_parameter_file = "data/synapses/v2/TH_Analysis_191001.h5-parameters-FS.json"
-        cortical_ChIN_synapse_parameter_file = "data/synapses/v2/M1RH_Analysis_190925.h5-parameters-CHAT.json"
-        thalamic_ChIN_synapse_parameter_file = "data/synapses/v2/TH_Analysis_191001.h5-parameters-CHAT.json"
-        cortical_LTS_synapse_parameter_file = "data/synapses/v2/M1RH_Analysis_190925.h5-parameters-LTS.json"
+        cortical_SPN_synapse_parameter_file = "data/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+        thalamic_SPN_synapse_parameter_file = "data/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+        cortical_FS_synapse_parameter_file = "data/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json"
+        thalamic_FS_synapse_parameter_file = "data/synapses/striatum/TH_Analysis_191001.h5-parameters-FS.json"
+        cortical_ChIN_synapse_parameter_file = "data/synapses/striatum/M1RH_Analysis_190925.h5-parameters-CHAT.json"
+        thalamic_ChIN_synapse_parameter_file = "data/synapses/striatum/TH_Analysis_191001.h5-parameters-CHAT.json"
+        cortical_LTS_synapse_parameter_file = "data/synapses/striatum/M1RH_Analysis_190925.h5-parameters-LTS.json"
 
         if input_type == 'cortical':
             synapse_density = synapse_density_cortical_input
