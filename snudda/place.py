@@ -31,6 +31,7 @@ class SnuddaPlace(object):
                  network_path=None,
                  verbose=True,
                  log_file=None,
+                 rc=None,
                  d_view=None,
                  lb_view=None,
                  h5libver="latest",
@@ -49,8 +50,21 @@ class SnuddaPlace(object):
         self.verbose = verbose
         self.log_file = log_file
 
+        if self.network_path:
+            self.position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
+        else:
+            self.write_log("No network_path given, not setting position_file. Remember to pass it to write_data.")
+            self.position_file = None
+
+        self.rc = rc
         self.d_view = d_view
         self.lb_view = lb_view
+
+        if self.rc and not self.d_view:
+            self.d_view = self.rc.direct_view(targets='all')
+
+        if self.rc and not self.lb_view:
+            self.lb_view = self.rc.load_balanced_view(targets='all')
 
         self.h5libver = h5libver
         self.write_log("Using hdf5 version: " + str(self.h5libver))
@@ -374,7 +388,10 @@ class SnuddaPlace(object):
 
     ############################################################################
 
-    def write_data(self, file_name):
+    def write_data(self, file_name=None):
+
+        if not file_name:
+            file_name = self.position_file
 
         self.write_log(f"Writing data to HDF5 file: {file_name}")
 

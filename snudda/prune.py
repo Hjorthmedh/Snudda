@@ -56,7 +56,7 @@ class SnuddaPrune(object):
     def __init__(self,
                  network_path,
                  logfile=None, logfile_name=None,
-                 d_view=None, lb_view=None, role="master", verbose=True,
+                 rc=None, d_view=None, lb_view=None, role="master", verbose=True,
                  config_file=None,  # Default is to use same config_file as for detect, but you can override it
                  scratch_path=None,
                  # pre_merge_only=False,
@@ -73,13 +73,19 @@ class SnuddaPrune(object):
         self.network_path = network_path
 
         self.logfile = logfile
-        self.logfile_name = logfile_name
         self.verbose = verbose
         self.h5libver = h5libver
 
-        if logfile is None and logfile_name is not None:
-            self.logfile = open(logfile_name, 'w')
-            self.write_log("Log file created.")
+        if logfile_name:
+            self.logfile_name = logfile_name
+        elif logfile is not None:
+            self.logfile_name = logfile.name
+        else:
+            self.logfile_name = os.path.join(self.network_path, "log", "logFile-synapse-pruning.txt")
+
+        if self.logfile is None and self.logfile_name is not None:
+            self.logfile = open(self.logfile_name, 'w')
+            self.write_log(f"Log file {self.logfile_name} created.")
 
         self.write_log(f"Random seed: {random_seed}")
         self.random_seed = random_seed
@@ -88,8 +94,16 @@ class SnuddaPrune(object):
 
         self.write_log(f"Using hdf5 driver {self.h5driver}, {self.h5libver} version")
 
+        self.rc = rc
         self.d_view = d_view
         self.lb_view = lb_view
+
+        if self.rc and not self.d_view:
+            self.d_view = self.rc.direct_view(targets='all')
+
+        if self.rc and not self.lb_view:
+            self.lb_view = self.rc.load_balanced_view(targets='all')
+
         self.role = role
         self.workers_initialised = False
 

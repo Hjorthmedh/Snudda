@@ -69,8 +69,6 @@ class SnuddaDetect(object):
 
         self.random_seed = random_seed
 
-        self.logfile = logfile
-
         if network_path:
             self.network_path = network_path
 
@@ -97,10 +95,14 @@ class SnuddaDetect(object):
         self.work_history_file = work_history_file  # Name of work history file
         self.work_history = None  # File pointer for actual file
 
-        if logfile_name is None and logfile is not None:
+        if logfile_name:
+            self.logfile_name = logfile_name
+        elif logfile is not None:
             self.logfile_name = logfile.name
         else:
-            self.logfile_name = logfile_name
+            self.logfile_name = os.path.join(self.network_path, "log", "logFile-touch-detection.txt")
+
+        self.logfile = logfile
 
         self.setup_log()
 
