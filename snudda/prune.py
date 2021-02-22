@@ -387,8 +387,6 @@ class SnuddaPrune(object):
         n_completed = int(self.hist_file["nCompleted"][0])
         completed_id = set(self.hist_file["completed"][:n_completed])
         remaining = all_id - completed_id
-        assert len(remaining) == 0, (f"Detection not done. There are {len(remaining)} hypervoxels "
-                                     f"not completed: {', '.join([str(x) for x in remaining])}")
 
         # Network_simulate.py uses axonStumpIDFlag = True
         # Neurodamus uses axonStumpIDFlag = False
@@ -417,6 +415,13 @@ class SnuddaPrune(object):
         self.detect_config = json.loads(self.hist_file["meta/config"][()])  # This was config data used for detection, might differ from pruning config
         with open(self.config_file, "r") as f:
             self.config = json.load(f)
+
+        # If connectivity is empty, then there was nothing to do touch detection on
+        # But if it is non-empty, then there should be no remaining hyper voxels
+        assert len(remaining) == 0 or len(self.config["Connectivity"]) == 0, \
+            (f"Detection not done. There are {len(remaining)} hypervoxels "
+             f"not completed: {', '.join([str(x) for x in remaining])}")
+
 
         # This also loads random seed from config file while we have it open
         if self.random_seed is None:

@@ -661,7 +661,7 @@ class SnuddaDetect(object):
             remaining = self.sort_remaining_by_size(all_hyper_id_list)
 
             if len(self.connectivity_distributions) == 0:
-                # We have no possible connections specified
+                # We have no possible connections specified -- mark all voxels as done
                 self.write_log("No connections specified in connectivity_distribution.", is_error=True)
                 remaining = []
             else:

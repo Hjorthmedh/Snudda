@@ -12,7 +12,7 @@
 	    "conductance" : 5e-10,
 	    "modFile": "tmGlut",
 	    "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json",
-	    "functionalChannelID" : 1
+	    "populationUnitID" : 1
 	},
 	"CorticalSignalTwo" : {
 	    "generator" : "poisson",
@@ -26,7 +26,7 @@
 	    "conductance" : 5e-10,
 	    "modFile": "tmGlut",
 	    "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json",
-	    "functionalChannelID" : 2
+	    "populationUnitID" : 2
 	}	
     },
 
@@ -43,7 +43,7 @@
 	    "conductance" : 5e-10,
             "modFile":"tmGlut",
 	    "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json",
-	    "functionalChannelID" : 1
+	    "populationUnitID" : 1
 	},
 	"CorticalSignalFour" : {
 	    "generator" : "poisson",
@@ -57,7 +57,7 @@
 	    "conductance" : 5e-10,
             "modFile":"tmGlut",
 	    "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json",
-	    "functionalChannelID" : 2
+	    "populationUnitID" : 2
 	}
     }
     

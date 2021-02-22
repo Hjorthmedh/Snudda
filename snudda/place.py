@@ -393,6 +393,8 @@ class SnuddaPlace(object):
         if not file_name:
             file_name = self.position_file
 
+        assert len(self.neurons) > 0, "No neurons to save!"
+
         self.write_log(f"Writing data to HDF5 file: {file_name}")
 
         pos_file = h5py.File(file_name, "w", libver=self.h5libver)

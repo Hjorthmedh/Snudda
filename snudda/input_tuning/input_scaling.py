@@ -32,9 +32,9 @@ class NumpyEncoder(json.JSONEncoder):
 
 class InputScaling(object):
 
-    def __init__(self, network_dir):
+    def __init__(self, network_path):
 
-        self.network_dir = network_dir
+        self.network_path = network_path
         self.cellspec_path = None
 
         self.neuron_types = None
@@ -49,18 +49,18 @@ class InputScaling(object):
         self.input_duration = None
         self.max_time = None  # self.input_duration * len(self.frequency_range)
 
-        if not os.path.isdir(self.network_dir):
-            os.mkdir(self.network_dir)
+        if not os.path.isdir(self.network_path):
+            os.mkdir(self.network_path)
 
-        self.network_config_file_name = os.path.join(self.network_dir, "network-config.json")
-        self.network_file = os.path.join(self.network_dir, "network-pruned-synapses.hdf5")
-        self.input_config_file = os.path.join(self.network_dir, "input_config.json")
-        self.input_spikes_file = os.path.join(self.network_dir, 'input.hdf5')
+        self.network_config_file_name = os.path.join(self.network_path, "network-config.json")
+        self.network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
+        self.input_config_file = os.path.join(self.network_path, "input_config.json")
+        self.input_spikes_file = os.path.join(self.network_path, 'input.hdf5')
 
-        self.output_spike_file = os.path.join(self.network_dir, 'output_spikes.txt')
-        self.output_volt_file = os.path.join(self.network_dir, 'output_volt.txt')
+        self.output_spike_file = os.path.join(self.network_path, 'output_spikes.txt')
+        self.output_volt_file = os.path.join(self.network_path, 'output_volt.txt')
 
-        self.core = Snudda(self.network_dir)
+        self.core = Snudda(self.network_path)
 
     # Writes config files
 
@@ -86,13 +86,15 @@ class InputScaling(object):
         from snudda.detect import SnuddaDetect
         from snudda.prune import SnuddaPrune
 
-        position_file = os.path.join(self.network_dir, "network-neuron-positions.hdf5")
-        SnuddaPlace(config_file=self.network_config_file_name, verbose=True).write_data(position_file)
+        sp = SnuddaPlace(network_path=self.network_path, verbose=True)
+        sp.read_config()
+        sp.write_data()
 
-        SnuddaDetect(config_file=self.network_config_file_name,
-                     position_file=position_file,
-                     save_file=os.path.join(self.network_dir, "voxels", "network-putative-synapses.hdf5"))
-        SnuddaPrune(work_history_file=os.path.join(self.network_dir, "log", "network-detect-worklog.hdf5"))
+        sd = SnuddaDetect(network_path=self.network_path)
+        sd.detect()
+
+        sp = SnuddaPrune(network_path=self.network_path)
+        sp.prune()
 
         # TODO: Skip placing neurons that will not receive any inputs or distribute any inputs
 
@@ -111,13 +113,13 @@ class InputScaling(object):
         synapse_density_thalamic_input = "0.05*np.exp(-d/200e-6)"
         #  synapse_density_thalamic_input = "(d > 100e-6)*1"  # TEST!!
 
-        cortical_SPN_synapse_parameter_file = "data/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
-        thalamic_SPN_synapse_parameter_file = "data/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
-        cortical_FS_synapse_parameter_file = "data/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json"
-        thalamic_FS_synapse_parameter_file = "data/synapses/striatum/TH_Analysis_191001.h5-parameters-FS.json"
-        cortical_ChIN_synapse_parameter_file = "data/synapses/striatum/M1RH_Analysis_190925.h5-parameters-CHAT.json"
-        thalamic_ChIN_synapse_parameter_file = "data/synapses/striatum/TH_Analysis_191001.h5-parameters-CHAT.json"
-        cortical_LTS_synapse_parameter_file = "data/synapses/striatum/M1RH_Analysis_190925.h5-parameters-LTS.json"
+        cortical_SPN_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+        thalamic_SPN_synapse_parameter_file = "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+        cortical_FS_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json"
+        thalamic_FS_synapse_parameter_file = "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-FS.json"
+        cortical_ChIN_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-CHAT.json"
+        thalamic_ChIN_synapse_parameter_file = "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-CHAT.json"
+        cortical_LTS_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-LTS.json"
 
         if input_type == 'cortical':
             synapse_density = synapse_density_cortical_input
@@ -137,7 +139,7 @@ class InputScaling(object):
         else:
             synapse_density = "1"
             synapse_parameter_file = {}
-            print("No density profile used for input.")
+            print("No density profile used for input    .")
 
         self.create_input_config(input_config_file=self.input_config_file,
                                  input_type=input_type,
@@ -149,30 +151,31 @@ class InputScaling(object):
                                  input_duration=self.input_duration,
                                  synapse_parameter_file=synapse_parameter_file)
 
-        SnuddaInput(input_config_file=self.input_config_file,
-                    hdf5_network_file=os.path.join(self.network_dir, 'network-pruned-synapses.hdf5'),
-                    spike_data_filename=self.input_spikes_file,
-                    time=self.max_time)
+        si = SnuddaInput(input_config_file=self.input_config_file,
+                         hdf5_network_file=os.path.join(self.network_path, 'network-pruned-synapses.hdf5'),
+                         spike_data_filename=self.input_spikes_file,
+                         time=self.max_time)
+        si.generate()
 
         # Info we need to run right duration of simulation
         self.write_tuning_info()
 
-    def analyse_results(self):
+    def analyse_results(self, show_plots=False):
 
         frequency_data = self.load_data()
-        self.plot_frequency_data(frequency_data, show_plots=False)
-        self.plot_frequency_data_alt(frequency_data, show_plots=False)
+        self.plot_frequency_data(frequency_data, show_plots=show_plots)
+        self.plot_frequency_data_alt(frequency_data, show_plots=show_plots)
 
         print(f"To plot traces:\n" 
-              f"python3 plotting/Network_plot_traces.py {self.network_dir}output_volt.txt " 
-              f"{self.network_dir}network-pruned-synapses.hdf5 ")
+              f"python3 plotting/Network_plot_traces.py {self.network_path}output_volt.txt " 
+              f"{self.network_path}network-pruned-synapses.hdf5 ")
 
     def load_data(self, skip_time=0.0):
 
-        network_file = os.path.join(self.network_dir, "network-pruned-synapses.hdf5")
+        network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
         network_info = SnuddaLoad(network_file)
 
-        spike_data_file = os.path.join(self.network_dir, "output_spikes.txt")
+        spike_data_file = os.path.join(self.network_path, "output_spikes.txt")
         n_neurons = network_info.data["nNeurons"]
         spike_data = self.load_spike_data(spike_data_file, n_neurons)
 
@@ -258,7 +261,7 @@ class InputScaling(object):
 
     def load_input_config(self):
 
-        input_config_file = os.path.join(self.network_dir, "input_config.json")
+        input_config_file = os.path.join(self.network_path, "input_config.json")
         with open(input_config_file) as f:
             input_config = json.load(f)
 
@@ -316,7 +319,7 @@ class InputScaling(object):
                 plt.show()
                 plt.pause(0.001)
 
-            fig_name = os.path.join(self.network_dir, "figures", f"input-scaling-freq-{neuron_name}.pdf")
+            fig_name = os.path.join(self.network_path, "figures", f"input-scaling-freq-{neuron_name}.pdf")
             if not os.path.exists(os.path.dirname(fig_name)):
                 os.mkdir(os.path.dirname(fig_name))
 
@@ -394,7 +397,7 @@ class InputScaling(object):
                 plt.show()
                 plt.pause(0.001)
 
-            fig_name = os.path.join(self.network_dir, "figures", f"input-scaling-ninputs-{neuron_name}.pdf")
+            fig_name = os.path.join(self.network_path, "figures", f"input-scaling-ninputs-{neuron_name}.pdf")
             if not os.path.exists(os.path.dirname(fig_name)):
                 os.mkdir(os.path.dirname(fig_name))
 
@@ -668,11 +671,11 @@ class InputScaling(object):
             plt.show()
             plt.pause(0.001)
 
-            fig_dir = os.path.join(self.network_dir, "figures")
+            fig_dir = os.path.join(self.network_path, "figures")
             if not os.path.isdir(fig_dir):
                 os.mkdir(fig_dir)
 
-            fig_name1 = os.path.join(self.network_dir, "figures", f"{nt}-binned-input.pdf")
+            fig_name1 = os.path.join(self.network_path, "figures", f"{nt}-binned-input.pdf")
             plt.savefig(fig_name1)
 
             fig2, ax2 = plt.subplots()
@@ -688,7 +691,7 @@ class InputScaling(object):
             plt.show()
             plt.pause(0.001)
 
-            fig_name2 = os.path.join(self.network_dir, "figures", f"{nt}-input-distance-to-soma.pdf")
+            fig_name2 = os.path.join(self.network_path, "figures", f"{nt}-input-distance-to-soma.pdf")
             plt.savefig(fig_name2)
 
         input_spike_data.close()
@@ -699,6 +702,7 @@ class InputScaling(object):
         # Get info so we can set max_time correctly
         self.read_tuning_info()
 
+        from mpi4py import MPI
         from neuron import h  # , gui
         start = timeit.default_timer()
 
@@ -729,7 +733,7 @@ class InputScaling(object):
             print("Program run time: " + str(stop - start))
 
     def read_tuning_info(self):
-        tuning_info_file = os.path.join(self.network_dir, "tuning-info.json")
+        tuning_info_file = os.path.join(self.network_path, "tuning-info.json")
 
         if not os.path.exists(tuning_info_file):
             print("No tuning info file exists.")
@@ -755,7 +759,7 @@ class InputScaling(object):
         tuning_meta_data["FrequencyRange"] = self.frequency_range
         tuning_meta_data["CellSpecDirectory"] = self.cellspec_path
 
-        tuning_info_file = os.path.join(self.network_dir, "tuning-info.json")
+        tuning_info_file = os.path.join(self.network_path, "tuning-info.json")
         with open(tuning_info_file, "wt") as f:
             json.dump(tuning_meta_data, f, indent=4, cls=NumpyEncoder)
 
@@ -802,7 +806,6 @@ if __name__ == "__main__":
 
         print("Tip, to run in parallel on your local machine use: "
               "mpiexec -n 4 python3 tuning/input_scaling.py simulate <yournetworkhere>")
-
 
     elif args.action == "simulate":
         print("Run simulation...")
