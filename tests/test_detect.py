@@ -18,7 +18,7 @@ class TestDetect(unittest.TestCase):
         if os.path.dirname(__file__):
             os.chdir(os.path.dirname(__file__))
 
-        network_path = os.path.join(os.path.dirname(__file__), "tests", "network_testing_detect")
+        network_path = os.path.join(os.path.dirname(__file__), "networks", "network_testing_detect")
 
         create_cube_mesh(file_name=os.path.join(network_path, "mesh", "simple_mesh.obj"),
                          centre_point=(0, 0, 0),
@@ -97,7 +97,7 @@ class TestDetect(unittest.TestCase):
         synapse_voxel_loc = self.sd.hyper_voxel_synapses[:self.sd.hyper_voxel_synapse_ctr, 2:5]
         synapse_coords = synapse_voxel_loc * self.sd.voxel_size + self.sd.hyper_voxel_origo
 
-        fig_path = os.path.join("tests", "network_testing_detect", "figures")
+        fig_path = os.path.join("networks", "network_testing_detect", "figures")
 
         if not os.path.exists(fig_path):
             os.mkdir(fig_path)

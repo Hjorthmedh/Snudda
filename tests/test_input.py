@@ -15,7 +15,7 @@ class MyTestCase(unittest.TestCase):
 
         os.chdir(os.path.dirname(__file__))
 
-        self.network_path = os.path.join("tests", "network_testing_input")
+        self.network_path = os.path.join("networks", "network_testing_input")
         self.config_file = os.path.join(self.network_path, "network-config.json")
         self.position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
         self.save_file = os.path.join(self.network_path, "voxels", "network-putative-synapses.hdf5")
