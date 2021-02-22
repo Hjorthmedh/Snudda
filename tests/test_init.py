@@ -16,7 +16,7 @@ class TestInit(unittest.TestCase):
         
         with self.subTest(stage="init_cube"):
 
-            network_path = os.path.join(os.path.dirname(__file__), "tests", "network_testing_init_cube")
+            network_path = os.path.join(os.path.dirname(__file__), "networks", "network_testing_init_cube")
     
             config_name = os.path.join(network_path, "network-config.json")
             cnc = SnuddaInit(struct_def={}, config_file=config_name, num_population_units=2,
@@ -29,7 +29,7 @@ class TestInit(unittest.TestCase):
             # TODO: This only checks that the code runs. Add check for output
 
         with self.subTest(stage="init_slice"):
-            network_path = os.path.join(os.path.dirname(__file__), "tests", "network_testing_init_slice")
+            network_path = os.path.join(os.path.dirname(__file__), "networks", "network_testing_init_slice")
 
             config_name = os.path.join(network_path, "network-config.json")
             cnc = SnuddaInit(struct_def={}, config_file=config_name, num_population_units=1)
@@ -38,7 +38,7 @@ class TestInit(unittest.TestCase):
             cnc.write_json(config_name)
             
         with self.subTest(stage="init_full"):
-            network_path = os.path.join(os.path.dirname(__file__), "tests", "network_testing_init_full")
+            network_path = os.path.join(os.path.dirname(__file__), "networks", "network_testing_init_full")
 
             config_name = os.path.join(network_path, "network-config.json")
             cnc = SnuddaInit(struct_def={}, config_file=config_name, num_population_units=1)

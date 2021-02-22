@@ -203,6 +203,8 @@ class Snudda(object):
 
         from .detect import SnuddaDetect
 
+        # You can now setup SnuddaDetect with only network_path and it will use default values
+        # for config_file, position_file, logfile, save_file
         sd = SnuddaDetect(config_file=config_file,
                           position_file=position_file,
                           logfile=self.logfile,
@@ -339,7 +341,7 @@ class Snudda(object):
         print("Exporting to SONATA format")
         print(f"Network path: {self.network_path}")
 
-        if args.networkFile:
+        if args.network_file:
             network_file = args.network_file
         else:
             network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")

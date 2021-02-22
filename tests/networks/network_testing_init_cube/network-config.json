@@ -1,0 +1,531 @@
+{
+    "RandomSeed": {
+        "init": 49833174,
+        "place": 3006521968,
+        "detect": 4065758425,
+        "prune": 1730179887,
+        "input": 3776979326,
+        "simulate": 1745497321
+    },
+    "Volume": {
+        "Striatum": {
+            "type": "mesh",
+            "dMin": 1.5e-05,
+            "meshFile": "/home/hjorth/HBP/Snudda/tests/tests/network_testing_init_cube/mesh/Striatum-cube-mesh-0.0010615573678040226.obj",
+            "meshBinWidth": 0.00010615573678040226
+        }
+    },
+    "PopulationUnits": {
+        "nPopulationUnits": 2,
+        "method": "populationUnitSpheres",
+        "centres": [
+            [
+                0.003009,
+                0.004114,
+                0.00455
+            ],
+            [
+                0.00407,
+                0.005175,
+                0.005611
+            ]
+        ],
+        "radius": 0.0014
+    },
+    "Connectivity": {
+        "FSN,FSN": {
+            "GABA": {
+                "conductance": [
+                    1.1e-09,
+                    1.5e-09
+                ],
+                "channelParameters": {
+                    "tau1": [
+                        0.00133,
+                        1000.0
+                    ],
+                    "tau2": [
+                        0.0057,
+                        1000.0
+                    ],
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.15,
+                    "softMax": 5,
+                    "mu2": 2,
+                    "a3": 1,
+                    "distPruning": null
+                }
+            },
+            "GapJunction": {
+                "conductance": [
+                    5e-10,
+                    1e-10
+                ],
+                "channelParameters": null,
+                "pruning": {
+                    "f1": 0.7,
+                    "softMax": 8,
+                    "mu2": 2,
+                    "a3": 1.0,
+                    "distPruning": null
+                }
+            }
+        },
+        "FSN,dSPN": {
+            "GABA": {
+                "conductance": [
+                    1.1e-09,
+                    1.5e-09
+                ],
+                "channelParameters": {
+                    "tau1": [
+                        0.0012,
+                        1000.0
+                    ],
+                    "tau2": [
+                        0.008,
+                        1000.0
+                    ],
+                    "parameterFile": "/home/hjorth/HBP/Snudda/snudda/data/synapses/v2/PlanertFitting-FD-tmgaba-fit.json",
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.5,
+                    "softMax": 5,
+                    "mu2": 2,
+                    "a3": 1.0,
+                    "distPruning": "np.exp(-(0.5*d/60e-6)**2)"
+                }
+            }
+        },
+        "FSN,iSPN": {
+            "GABA": {
+                "conductance": [
+                    1.1e-09,
+                    1.5e-09
+                ],
+                "channelParameters": {
+                    "tau1": [
+                        0.0012,
+                        1000.0
+                    ],
+                    "tau2": [
+                        0.008,
+                        1000.0
+                    ],
+                    "parameterFile": "/home/hjorth/HBP/Snudda/snudda/data/synapses/v2/PlanertFitting-FI-tmgaba-fit.json",
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.5,
+                    "softMax": 5,
+                    "mu2": 2,
+                    "a3": 0.9,
+                    "distPruning": "np.exp(-(0.5*d/60e-6)**2)"
+                }
+            }
+        },
+        "FSN,LTS": {
+            "GABA": {
+                "conductance": [
+                    1.1e-10,
+                    1.5e-10
+                ],
+                "channelParameters": {
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.15,
+                    "softMax": 3,
+                    "mu2": 2,
+                    "a3": 1.0,
+                    "distPruning": null
+                }
+            }
+        },
+        "dSPN,dSPN": {
+            "GABA": {
+                "conductance": [
+                    2.4e-10,
+                    1e-10
+                ],
+                "channelParameters": {
+                    "tau1": [
+                        0.0013,
+                        1000.0
+                    ],
+                    "tau2": [
+                        0.0124,
+                        1000.0
+                    ],
+                    "failRate": 0.7,
+                    "parameterFile": "/home/hjorth/HBP/Snudda/snudda/data/synapses/v2/PlanertFitting-DD-tmgaba-fit.json",
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.38,
+                    "softMax": 3,
+                    "mu2": 2.4,
+                    "a3": 0.2,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                },
+                "pruningOther": {
+                    "f1": 0.38,
+                    "softMax": 3,
+                    "mu2": 2.4,
+                    "a3": 1.4,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                }
+            }
+        },
+        "dSPN,iSPN": {
+            "GABA": {
+                "conductance": [
+                    2.4e-10,
+                    1e-10
+                ],
+                "channelParameters": {
+                    "tau1": [
+                        0.0013,
+                        1000.0
+                    ],
+                    "tau2": [
+                        0.0124,
+                        1000.0
+                    ],
+                    "failRate": 0.7,
+                    "parameterFile": "/home/hjorth/HBP/Snudda/snudda/data/synapses/v2/PlanertFitting-DI-tmgaba-fit.json",
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.2,
+                    "softMax": 3,
+                    "mu2": 2.4,
+                    "a3": 0.2,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                },
+                "pruningOther": {
+                    "f1": 0.2,
+                    "softMax": 3,
+                    "mu2": 2.4,
+                    "a3": 1.4,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                }
+            }
+        },
+        "dSPN,ChIN": {
+            "GABA": {
+                "conductance": [
+                    2.4e-10,
+                    1e-10
+                ],
+                "channelParameters": {
+                    "failRate": 0.7,
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.1,
+                    "softMax": 3,
+                    "mu2": 2.4,
+                    "a3": 0.1,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                }
+            }
+        },
+        "iSPN,dSPN": {
+            "GABA": {
+                "conductance": [
+                    2.4e-10,
+                    1e-10
+                ],
+                "channelParameters": {
+                    "tau1": [
+                        0.0013,
+                        1000.0
+                    ],
+                    "tau2": [
+                        0.0124,
+                        1000.0
+                    ],
+                    "failRate": 0.4,
+                    "parameterFile": "/home/hjorth/HBP/Snudda/snudda/data/synapses/v2/PlanertFitting-ID-tmgaba-fit.json",
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.3,
+                    "softMax": 4,
+                    "mu2": 2.4,
+                    "a3": 0.2,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                },
+                "pruningOther": {
+                    "f1": 0.3,
+                    "softMax": 4,
+                    "mu2": 2.4,
+                    "a3": 1.4,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                }
+            }
+        },
+        "iSPN,iSPN": {
+            "GABA": {
+                "conductance": [
+                    2.4e-10,
+                    1e-10
+                ],
+                "channelParameters": {
+                    "tau1": [
+                        0.0013,
+                        1000.0
+                    ],
+                    "tau2": [
+                        0.0124,
+                        1000.0
+                    ],
+                    "failRate": 0.4,
+                    "parameterFile": "/home/hjorth/HBP/Snudda/snudda/data/synapses/v2/PlanertFitting-II-tmgaba-fit.json",
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.55,
+                    "softMax": 4,
+                    "mu2": 2.4,
+                    "a3": 0.2,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                },
+                "pruningOther": {
+                    "f1": 0.55,
+                    "softMax": 4,
+                    "mu2": 2.4,
+                    "a3": 1.4,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                }
+            }
+        },
+        "iSPN,ChIN": {
+            "GABA": {
+                "conductance": [
+                    2.4e-10,
+                    1e-10
+                ],
+                "channelParameters": {
+                    "failRate": 0.4,
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.1,
+                    "softMax": 3,
+                    "mu2": 2.4,
+                    "a3": 0.1,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                }
+            }
+        },
+        "LTS,dSPN": {
+            "GABA": {
+                "conductance": [
+                    1e-09,
+                    0
+                ],
+                "channelParameters": {
+                    "tau1": [
+                        0.003,
+                        1000.0
+                    ],
+                    "tau2": [
+                        0.038,
+                        1000.0
+                    ],
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 1.0,
+                    "softMax": 15,
+                    "mu2": 3,
+                    "a3": 0.3,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                }
+            }
+        },
+        "LTS,iSPN": {
+            "GABA": {
+                "conductance": [
+                    1e-09,
+                    0
+                ],
+                "channelParameters": {
+                    "tau1": [
+                        0.003,
+                        1000.0
+                    ],
+                    "tau2": [
+                        0.038,
+                        1000.0
+                    ],
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 1.0,
+                    "softMax": 15,
+                    "mu2": 3,
+                    "a3": 0.3,
+                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                }
+            }
+        },
+        "LTS,ChIN": {
+            "GABA": {
+                "conductance": [
+                    1e-09,
+                    0
+                ],
+                "channelParameters": {
+                    "modFile": "tmGabaA"
+                },
+                "pruning": {
+                    "f1": 0.5,
+                    "softMax": 10,
+                    "mu2": 3,
+                    "a3": 0.4,
+                    "distPruning": null
+                }
+            }
+        }
+    },
+    "Neurons": {
+        "FSN_0": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226/MTC180800A-IDB-cor-rep.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226/modulation.json",
+            "num": 325,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_1": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/MTC180800A-IDB-cor-rep.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/modulation.json",
+            "num": 325,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_2": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301/MTC251001A-IDB-cor-rep.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301/modulation.json",
+            "num": 325,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FSN_3": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/DR-rat-Mar-13-08-1-536-R-cor-rep.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/modulation.json",
+            "num": 325,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_0": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503/21-6-DE-cor-rep-ax.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503/modulation.json",
+            "num": 11875,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_1": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/WT-P270-20-15ak-cor.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/modulation.json",
+            "num": 11875,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_2": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/WT-1215MSN03-cor-rep-ax2.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/modulation.json",
+            "num": 11875,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "dSPN_3": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/modulation.json",
+            "num": 11875,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_0": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611/51-5-DE-cor-rep-ax.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611/modulation.json",
+            "num": 11875,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_1": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/WT-P270-09-15ak-cor.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/modulation.json",
+            "num": 11875,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_2": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529/46-3-DE-cor-rep-ax.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529/modulation.json",
+            "num": 11875,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "iSPN_3": {
+            "morphology": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603/WT-MSN1-cor-rep-ax.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/snudda/data/cellspecs-v2/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603/modulation.json",
+            "num": 11875,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        }
+    }
+}

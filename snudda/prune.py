@@ -56,7 +56,7 @@ class SnuddaPrune(object):
     def __init__(self,
                  network_path,
                  logfile=None, logfile_name=None,
-                 d_view=None, lb_view=None, role="master", verbose=True,
+                 rc=None, d_view=None, lb_view=None, role="master", verbose=True,
                  config_file=None,  # Default is to use same config_file as for detect, but you can override it
                  scratch_path=None,
                  # pre_merge_only=False,
@@ -73,13 +73,19 @@ class SnuddaPrune(object):
         self.network_path = network_path
 
         self.logfile = logfile
-        self.logfile_name = logfile_name
         self.verbose = verbose
         self.h5libver = h5libver
 
-        if logfile is None and logfile_name is not None:
-            self.logfile = open(logfile_name, 'w')
-            self.write_log("Log file created.")
+        if logfile_name:
+            self.logfile_name = logfile_name
+        elif logfile is not None:
+            self.logfile_name = logfile.name
+        else:
+            self.logfile_name = os.path.join(self.network_path, "log", "logFile-synapse-pruning.txt")
+
+        if self.logfile is None and self.logfile_name is not None:
+            self.logfile = open(self.logfile_name, 'w')
+            self.write_log(f"Log file {self.logfile_name} created.")
 
         self.write_log(f"Random seed: {random_seed}")
         self.random_seed = random_seed
@@ -88,8 +94,16 @@ class SnuddaPrune(object):
 
         self.write_log(f"Using hdf5 driver {self.h5driver}, {self.h5libver} version")
 
+        self.rc = rc
         self.d_view = d_view
         self.lb_view = lb_view
+
+        if self.rc and not self.d_view:
+            self.d_view = self.rc.direct_view(targets='all')
+
+        if self.rc and not self.lb_view:
+            self.lb_view = self.rc.load_balanced_view(targets='all')
+
         self.role = role
         self.workers_initialised = False
 
@@ -373,8 +387,6 @@ class SnuddaPrune(object):
         n_completed = int(self.hist_file["nCompleted"][0])
         completed_id = set(self.hist_file["completed"][:n_completed])
         remaining = all_id - completed_id
-        assert len(remaining) == 0, (f"Detection not done. There are {len(remaining)} hypervoxels "
-                                     f"not completed: {', '.join([str(x) for x in remaining])}")
 
         # Network_simulate.py uses axonStumpIDFlag = True
         # Neurodamus uses axonStumpIDFlag = False
@@ -403,6 +415,13 @@ class SnuddaPrune(object):
         self.detect_config = json.loads(self.hist_file["meta/config"][()])  # This was config data used for detection, might differ from pruning config
         with open(self.config_file, "r") as f:
             self.config = json.load(f)
+
+        # If connectivity is empty, then there was nothing to do touch detection on
+        # But if it is non-empty, then there should be no remaining hyper voxels
+        assert len(remaining) == 0 or len(self.config["Connectivity"]) == 0, \
+            (f"Detection not done. There are {len(remaining)} hypervoxels "
+             f"not completed: {', '.join([str(x) for x in remaining])}")
+
 
         # This also loads random seed from config file while we have it open
         if self.random_seed is None:
@@ -1037,7 +1056,7 @@ class SnuddaPrune(object):
 
         tmp_files = [h5py.File(f, 'r') for f in temp_output_file_name]
 
-        num_syn = np.sum(f[h5_syn_mat].shape[0] for f in tmp_files)
+        num_syn = np.sum(np.fromiter(iter=(f[h5_syn_mat].shape[0] for f in tmp_files), dtype=int))
         mat_width_all = [f[h5_syn_mat].shape[1] for f in tmp_files]
 
         assert (np.array(mat_width_all) == mat_width_all[0]).all(), \
@@ -1107,6 +1126,11 @@ class SnuddaPrune(object):
     ############################################################################
 
     def clean_up_merge_files(self):
+
+        if self.role == "master" and self.d_view:
+            # Make workers clean up their files also
+            cmd_str = "nw.clean_up_merge_files()"
+            self.d_view.execute(cmd_str, block=True)
 
         if self.temp_file_list is None:
             # Nothing to do

@@ -24,7 +24,7 @@ if __name__ == "__main__":
     # simName = "LTStest"
     # simName = "networks/twoFS"
     # simName = "networks/FSmorphTest4"
-    # simName = "networks/3types-v2"
+    # simName = "networks/3types-striatum"
     # simName = "networks/SynTest-v6" # MSMS tuning
     # simName = "networks/SynTest-v15"
 

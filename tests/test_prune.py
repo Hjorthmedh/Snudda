@@ -18,7 +18,7 @@ class TestPrune(unittest.TestCase):
         if os.path.dirname(__file__):
             os.chdir(os.path.dirname(__file__))
 
-        self.network_path = os.path.join(os.path.dirname(__file__), "tests", "network_testing_prune3")
+        self.network_path = os.path.join(os.path.dirname(__file__), "networks", "network_testing_prune3")
 
         create_cube_mesh(file_name=os.path.join(self.network_path, "mesh", "simple_mesh.obj"),
                          centre_point=(0, 0, 0),
@@ -258,7 +258,7 @@ class TestPrune(unittest.TestCase):
             self.assertEqual(sl.data["nSynapses"], 20*6)
             self.assertTrue((sl.data["synapses"][:, 8] >= 100).all())  # Column 8 -- distance to soma in micrometers
 
-        # TODO: Need to do same tests for Gap Junctions also -- but should be same results, since same codebase
+        # TODO: Need to do same test for Gap Junctions also -- but should be same results, since same codebase
         with self.subTest("gap-junction-f1"):
             # Test of f1
             testing_config_file = os.path.join(self.network_path, "network-config-test-6.json")
