@@ -282,7 +282,7 @@ class SnuddaPlace(object):
             self.write_log("Using dimensions from config file")
 
         if "PopulationUnits" in config:
-            self.population_unit_placement_method = config["vol_seeds"]["method"]
+            self.population_unit_placement_method = config["PopulationUnits"]["method"]
             self.nPopulationUnits = config["PopulationUnits"]["nPopulationUnits"]
 
             if self.population_unit_placement_method == "populationUnitSpheres":
