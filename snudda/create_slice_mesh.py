@@ -80,9 +80,9 @@ def create_slice_mesh(file_name,
 
 
 if __name__ == "__main__":
-    create_slice_mesh(file_name="test-slice.obj",
-                      centre_point=[1, 2, 3],
-                      x_len=0.5,
-                      y_len=0.5,
-                      z_len=0.5,
-                      description="This is a test slice")
+    create_slice_mesh(file_name="test-slice-alex.obj",
+                      centre_point=[0.5, 0.5, 0.0],
+                      x_len=1e-3,
+                      y_len=1e-3,
+                      z_len=25e-6,
+                      description="This is a test slice for Alex")
