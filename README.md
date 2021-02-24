@@ -40,9 +40,6 @@ https://github.com/Hjorthmedh/Snudda/tree/master/examples/notebooks
   snudda input <networkPath> [--input yourInputConfig]
   -- Setup the input, obs you need to manually pick a input config file
 
-  snudda export <networkPath>
-  -- Export to SONATA format (optional)
-
   snudda simulate <networkPath>
   -- Run the network simulation using neuron
 
@@ -51,4 +48,3 @@ https://github.com/Hjorthmedh/Snudda/tree/master/examples/notebooks
   snudda help me
   -- Show this help text
 
-Example of a small simulation of the striatal circuitry can be found in Jupyter notebook [StriatumScaffoldExample-tiny.ipynb](./snudda/examples/StriatumScaffoldExample-tiny.ipynb).
