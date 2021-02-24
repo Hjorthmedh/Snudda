@@ -2014,6 +2014,7 @@ class SnuddaPrune(object):
 
             # If too few synapses, remove all synapses
             if mu2 is not None:
+                # Markram et al, Cell 2015
                 p_mu = 1.0 / (1.0 + np.exp(-8.0 / mu2 * (n_keep - mu2)))
 
                 if p_mu < post_rng.random():
