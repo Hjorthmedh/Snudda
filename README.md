@@ -13,6 +13,14 @@ the Human Brain Project, funded from the European Union's Horizon
 Grant Agreements No. 720270 and No. 785907 (Human Brain Project SGA1
 and SGA2).
 
+# Installation
+
+https://github.com/Hjorthmedh/Snudda/wiki/1.-User-installation
+
+# Jupyter Notebook examples
+
+https://github.com/Hjorthmedh/Snudda/tree/master/examples/notebooks
+
 # Usage
 
   Usage:
