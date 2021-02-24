@@ -13,6 +13,14 @@ the Human Brain Project, funded from the European Union's Horizon
 Grant Agreements No. 720270 and No. 785907 (Human Brain Project SGA1
 and SGA2).
 
+# Installation
+
+https://github.com/Hjorthmedh/Snudda/wiki/1.-User-installation
+
+# Jupyter Notebook examples
+
+https://github.com/Hjorthmedh/Snudda/tree/master/examples/notebooks
+
 # Usage
 
   Usage:
@@ -32,9 +40,6 @@ and SGA2).
   snudda input <networkPath> [--input yourInputConfig]
   -- Setup the input, obs you need to manually pick a input config file
 
-  snudda export <networkPath>
-  -- Export to SONATA format (optional)
-
   snudda simulate <networkPath>
   -- Run the network simulation using neuron
 
@@ -43,4 +48,3 @@ and SGA2).
   snudda help me
   -- Show this help text
 
-Example of a small simulation of the striatal circuitry can be found in Jupyter notebook [StriatumScaffoldExample-tiny.ipynb](./snudda/examples/StriatumScaffoldExample-tiny.ipynb).
