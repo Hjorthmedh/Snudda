@@ -12,7 +12,7 @@
         "Striatum": {
             "type": "mesh",
             "dMin": 1.5e-05,
-            "meshFile": "tests/network_testing_place/mesh/Striatum-cube-mesh-6.286535491496336e-05.obj",
+            "meshFile": "networks/network_testing_place/mesh/Striatum-cube-mesh-6.286535491496336e-05.obj",
             "meshBinWidth": 6.286535491496336e-05
         }
     },
@@ -80,7 +80,7 @@
                         0.008,
                         1000.0
                     ],
-                    "parameterFile": "/home/hjorth/HBP/Snudda/tests/../snudda/data/synapses/v2/PlanertFitting-FD-tmgaba-fit.json",
+                    "parameterFile": "/home/hjorth/HBP/Snudda/tests/../snudda/data/synapses/striatum/PlanertFitting-FD-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -107,7 +107,7 @@
                         0.008,
                         1000.0
                     ],
-                    "parameterFile": "/home/hjorth/HBP/Snudda/tests/../snudda/data/synapses/v2/PlanertFitting-FI-tmgaba-fit.json",
+                    "parameterFile": "/home/hjorth/HBP/Snudda/tests/../snudda/data/synapses/striatum/PlanertFitting-FI-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -153,7 +153,7 @@
                         1000.0
                     ],
                     "failRate": 0.7,
-                    "parameterFile": "/home/hjorth/HBP/Snudda/tests/../snudda/data/synapses/v2/PlanertFitting-DD-tmgaba-fit.json",
+                    "parameterFile": "/home/hjorth/HBP/Snudda/tests/../snudda/data/synapses/striatum/PlanertFitting-DD-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -188,7 +188,7 @@
                         1000.0
                     ],
                     "failRate": 0.7,
-                    "parameterFile": "/home/hjorth/HBP/Snudda/tests/../snudda/data/synapses/v2/PlanertFitting-DI-tmgaba-fit.json",
+                    "parameterFile": "/home/hjorth/HBP/Snudda/tests/../snudda/data/synapses/striatum/PlanertFitting-DI-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -242,7 +242,7 @@
                         1000.0
                     ],
                     "failRate": 0.4,
-                    "parameterFile": "/home/hjorth/HBP/Snudda/tests/../snudda/data/synapses/v2/PlanertFitting-ID-tmgaba-fit.json",
+                    "parameterFile": "/home/hjorth/HBP/Snudda/tests/../snudda/data/synapses/striatum/PlanertFitting-ID-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -277,7 +277,7 @@
                         1000.0
                     ],
                     "failRate": 0.4,
-                    "parameterFile": "/home/hjorth/HBP/Snudda/tests/../snudda/data/synapses/v2/PlanertFitting-II-tmgaba-fit.json",
+                    "parameterFile": "/home/hjorth/HBP/Snudda/tests/../snudda/data/synapses/striatum/PlanertFitting-II-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -388,10 +388,10 @@
     },
     "Neurons": {
         "FSN_0": {
-            "morphology": "/home/hjorth/HBP/Snudda/tests/validation/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/MTC180800A-IDB-cor-rep.swc",
-            "parameters": "/home/hjorth/HBP/Snudda/tests/validation/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/parameters.json",
-            "mechanisms": "/home/hjorth/HBP/Snudda/tests/validation/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/mechanisms.json",
-            "modulation": "/home/hjorth/HBP/Snudda/tests/validation/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/modulation.json",
+            "morphology": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/MTC180800A-IDB-cor-rep.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/modulation.json",
             "num": 10,
             "hoc": null,
             "neuronType": "neuron",
@@ -399,10 +399,10 @@
             "volumeID": "Striatum"
         },
         "dSPN_0": {
-            "morphology": "/home/hjorth/HBP/Snudda/tests/validation/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc",
-            "parameters": "/home/hjorth/HBP/Snudda/tests/validation/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/parameters.json",
-            "mechanisms": "/home/hjorth/HBP/Snudda/tests/validation/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/mechanisms.json",
-            "modulation": "/home/hjorth/HBP/Snudda/tests/validation/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/modulation.json",
+            "morphology": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc",
+            "parameters": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/parameters.json",
+            "mechanisms": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/mechanisms.json",
+            "modulation": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/modulation.json",
             "num": 10,
             "hoc": null,
             "neuronType": "neuron",

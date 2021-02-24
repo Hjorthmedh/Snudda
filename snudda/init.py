@@ -32,8 +32,10 @@ class NumpyEncoder(json.JSONEncoder):
 
 class SnuddaInit(object):
 
-    def __init__(self, struct_def, config_file,
-                 num_population_units=1, population_unit_centres="[[]]", population_unit_radius=None,
+    def __init__(self,
+                 network_path=None,
+                 struct_def=None, config_file=None,
+                 num_population_units=None, population_unit_centres="[[]]", population_unit_radius=None,
                  random_seed=None):
 
         print("CreateConfig")
@@ -43,57 +45,70 @@ class SnuddaInit(object):
         self.network_data["RandomSeed"], self.init_rng = SnuddaInit.setup_random_seeds(random_seed)
         self.network_data["Volume"] = collections.OrderedDict([])
         self.num_neurons_total = 0
-        self.config_file = config_file
 
-        if config_file is not None:
-            self.basePath = os.path.dirname(config_file)
+        if config_file:
+            self.config_file = config_file
+        elif network_path:
+            self.config_file = os.path.join(network_path, "network-config.json")
         else:
-            self.basePath = ""
+            self.config_file = None
+
+        if network_path:
+            self.network_path = network_path
+        elif config_file:
+            self.network_path = os.path.dirname(config_file)
+        else:
+            self.network_path = ""
+
+        if self.config_file and self.network_path:
+            assert self.network_path == os.path.dirname(self.config_file), \
+               f"network_path {self.network_path} and config_file path {self.config_file} must match"
 
         self.data_path = os.path.join(os.path.dirname(__file__), "data")
 
         # Population Units here refer to processing units, where the neurons within a Population Unit
         # might have different connectivity than neurons belonging to different population Units
-        self.network_data["PopulationUnits"] = collections.OrderedDict([])
-        self.network_data["PopulationUnits"]["nPopulationUnits"] = num_population_units
+        if num_population_units:
+            self.network_data["PopulationUnits"] = collections.OrderedDict([])
+            self.network_data["PopulationUnits"]["nPopulationUnits"] = num_population_units
 
-        use_random_population_units = False
+            use_random_population_units = False
 
-        if use_random_population_units:
-            self.network_data["PopulationUnits"]["method"] = "random"
-        else:
-            self.network_data["PopulationUnits"]["method"] = "populationUnitSpheres"
-
-            # Centre of striatum mesh is [3540e-6,4645e-6,5081e-6]
-            # - the population units will be shifted according to this coordinate
-
-            if type(population_unit_centres) == str:
-                population_unit_centres = eval(population_unit_centres)
-
-            self.network_data["PopulationUnits"]["centres"] = population_unit_centres
-            assert len(self.network_data["PopulationUnits"]["centres"]) == num_population_units, \
-                (f"The number of Population Units ({num_population_units}) "
-                 f"does not equal the number of centres ({len(self.network_data['PopulationUnits']['centres'])})")
-
-            if population_unit_radius:
-                self.network_data["PopulationUnits"]["radius"] = population_unit_radius * 1e-6
+            if use_random_population_units:
+                self.network_data["PopulationUnits"]["method"] = "random"
             else:
-                self.network_data["PopulationUnits"]["radius"] = None
+                self.network_data["PopulationUnits"]["method"] = "populationUnitSpheres"
 
-            print("Overriding the number of population units")
+                # Centre of striatum mesh is [3540e-6,4645e-6,5081e-6]
+                # - the population units will be shifted according to this coordinate
 
-            self.network_data["PopulationUnits"]["nPopulationUnits"] \
-                = len(self.network_data["PopulationUnits"]["centres"])
+                if type(population_unit_centres) == str:
+                    population_unit_centres = eval(population_unit_centres)
+
+                self.network_data["PopulationUnits"]["centres"] = population_unit_centres
+                assert len(self.network_data["PopulationUnits"]["centres"]) == num_population_units, \
+                    (f"The number of Population Units ({num_population_units}) "
+                     f"does not equal the number of centres ({len(self.network_data['PopulationUnits']['centres'])})")
+
+                if population_unit_radius:
+                    self.network_data["PopulationUnits"]["radius"] = population_unit_radius * 1e-6
+                else:
+                    self.network_data["PopulationUnits"]["radius"] = None
+
+                print("Overriding the number of population units")
+
+                self.network_data["PopulationUnits"]["nPopulationUnits"] \
+                    = len(self.network_data["PopulationUnits"]["centres"])
 
         self.network_data["Connectivity"] = dict([])
         self.network_data["Neurons"] = dict([])
 
         # self.neuronTargets = collections.OrderedDict([])
 
-        print("Using " + str(num_population_units) + " Population Units")
-
-        if num_population_units > 1:
+        if num_population_units and num_population_units > 1:
             from scipy import spatial
+
+            print(f"Using {num_population_units} Population Units")
 
             distance_between_population_units = spatial.distance.cdist(self.network_data["PopulationUnits"]["centres"],
                                                                        self.network_data["PopulationUnits"]["centres"],
@@ -106,7 +121,7 @@ class SnuddaInit(object):
             print("Using distance between Population Unit Centres" + str(
                 distance_between_population_units * 1e6) + " microns")
 
-        self.n_population_units = num_population_units  # 5
+        self.num_population_units = num_population_units
 
         struct_func = {"Striatum": self.define_striatum,
                        "GPe": self.define_GPe,
@@ -147,7 +162,7 @@ class SnuddaInit(object):
             assert side_len is not None, "define_structure: cube needs sideLen specified"
             assert struct_centre is not None, "define_structure: cube needs a structCentre"
 
-            struct_mesh = os.path.join(self.basePath, "mesh", f"{struct_name}-cube-mesh-{side_len}.obj")
+            struct_mesh = os.path.join(self.network_path, "mesh", f"{struct_name}-cube-mesh-{side_len}.obj")
 
             if mesh_bin_width is None:
                 mesh_bin_width = side_len / 3.0
@@ -160,7 +175,7 @@ class SnuddaInit(object):
 
         elif struct_mesh == "slice":
 
-            struct_mesh = os.path.join(self.basePath, "mesh", f"{struct_name}-slice-mesh-150mum-depth.obj")
+            struct_mesh = os.path.join(self.network_path, "mesh", f"{struct_name}-slice-mesh-150mum-depth.obj")
 
             # 2019-11-26 : Anya said that her sagital striatal slices
             # were 2.36 x 2.36 mm. So that can be an upper limit
@@ -183,6 +198,9 @@ class SnuddaInit(object):
                               y_len=side_len,
                               z_len=slice_depth,
                               description=struct_name + " slice mesh")
+
+        if not os.path.exists(struct_mesh):
+            print(f"Warning struct mesh {struct_mesh} is missing!")
 
         assert struct_name not in self.network_data["Volume"], \
             "defineStruct: Volume " + struct_name + " is already defined."
@@ -471,7 +489,10 @@ class SnuddaInit(object):
 
     ############################################################################
 
-    def write_json(self, filename):
+    def write_json(self, filename=None):
+
+        if not filename:
+            filename = self.config_file
 
         # Create directory if it does not already exist
         dir_name = os.path.dirname(filename)
@@ -597,7 +618,7 @@ class SnuddaInit(object):
 
         self.reg_size = 5
 
-        if self.n_population_units == 1:
+        if self.num_population_units == 1:
             self.population_unit_SPN_modifier = 1
         else:
             print("!!! OBS, modifying probaiblities within and between channe")
@@ -777,9 +798,9 @@ class SnuddaInit(object):
         # OLD: std ~ +/- 8 receptors, we used before:  [1.15e-9, 0.18e-9]
 
         P11withinUnit = MSP11 * self.population_unit_SPN_modifier
-        P11betweenUnit = MSP11 * (1 + (1 - self.population_unit_SPN_modifier) / self.n_population_units)
+        P11betweenUnit = MSP11 * (1 + (1 - self.population_unit_SPN_modifier) / self.num_population_units)
         P12withinUnit = MSP12 * self.population_unit_SPN_modifier
-        P12betweenUnit = MSP12 * (1 + (1 - self.population_unit_SPN_modifier) / self.n_population_units)
+        P12betweenUnit = MSP12 * (1 + (1 - self.population_unit_SPN_modifier) / self.num_population_units)
 
         # pfdSPNdSPN = "synapses/v1/trace_table.txt-DD-model-parameters.json"
         # pfdSPNiSPN = "synapses/v1/trace_table.txt-DI-model-parameters.json"
@@ -888,9 +909,9 @@ class SnuddaInit(object):
 
         # Voxel method
         P21withinUnit = MSP21 * self.population_unit_SPN_modifier
-        P21betweenUnit = MSP21 * (1 + (1 - self.population_unit_SPN_modifier) / self.n_population_units)
+        P21betweenUnit = MSP21 * (1 + (1 - self.population_unit_SPN_modifier) / self.num_population_units)
         P22withinUnit = MSP22 * self.population_unit_SPN_modifier
-        P22betweenUnit = MSP22 * (1 + (1 - self.population_unit_SPN_modifier) / self.n_population_units)
+        P22betweenUnit = MSP22 * (1 + (1 - self.population_unit_SPN_modifier) / self.num_population_units)
 
         pfiSPNdSPN = os.path.join(self.data_path, "synapses", "striatum", "PlanertFitting-ID-tmgaba-fit.json")
         pfiSPNiSPN = os.path.join(self.data_path, "synapses", "striatum", "PlanertFitting-II-tmgaba-fit.json")
@@ -1312,7 +1333,7 @@ if __name__ == "__main__":
     # Nsnr=189
 
     if full_striatum:
-        structDef = {"Striatum": 1730000,
+        struct_def = {"Striatum": 1730000,
                      "GPe": 28500,
                      "GPi": 2000,
                      "SNr": 20800,
@@ -1321,7 +1342,7 @@ if __name__ == "__main__":
                      "Thalamus": 1}
 
         # !!! TEMP, only do stratium for now
-        structDef = {"Striatum": 1730000,
+        struct_def = {"Striatum": 1730000,
                      "GPe": 0,
                      "GPi": 0,
                      "SNr": 0,
@@ -1331,7 +1352,7 @@ if __name__ == "__main__":
 
 
     else:
-        structDef = {"Striatum": 100000,
+        struct_def = {"Striatum": 100000,
                      "GPe": 0,
                      "GPi": 0,
                      "SNr": 0,
@@ -1340,9 +1361,9 @@ if __name__ == "__main__":
                      "Thalamus": 0}
 
     nTotals = 0
-    for x in structDef:
-        nTotals += structDef[x]
+    for x in struct_def:
+        nTotals += struct_def[x]
 
     fName = os.path.join("config", f"basal-ganglia-config-{nTotals}.json")
 
-    SnuddaInit(struct_def=structDef, config_file=fName, num_population_units=1)
+    SnuddaInit(struct_def=struct_def, config_file=fName, num_population_units=1)
