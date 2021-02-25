@@ -35,9 +35,10 @@ nl = None
 
 class SnuddaInput(object):
 
-    def __init__(self, spike_data_filename, input_config_file,
-                 network_config_file=None,
-                 position_file=None,
+    def __init__(self,
+                 network_path=None,
+                 spike_data_filename=None,
+                 input_config_file=None,
                  hdf5_network_file=None,
                  time=10.0,
                  is_master=True,
@@ -55,6 +56,30 @@ class SnuddaInput(object):
 
         self.verbose = verbose
         self.rc = rc
+
+        if network_path:
+            self.network_path = network_path
+        elif hdf5_network_file:
+            self.network_path = os.path.basedir(hdf5_network_file)
+        elif input_config_file:
+            self.network_path = os.path.basedir(input_config_file)
+        else:
+            self.network_path = ""
+
+        if input_config_file:
+            self.input_config_file = input_config_file
+        else:
+            self.input_config_file = os.path.join(self.network_path, "input.json")
+
+        if spike_data_filename:
+            self.spike_data_filename = spike_data_filename
+        else:
+            self.spike_data_filename = os.path.join(self.network_path, "input-spikes.hdf5")
+
+        if hdf5_network_file:
+            self.hdf5_network_file = hdf5_network_file
+        else:
+            self.hdf5_network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
 
         self.time_interval_overlap_warning = time_interval_overlap_warning
         self.input_info = None
@@ -85,29 +110,7 @@ class SnuddaInput(object):
 
         self.h5libver = h5libver
         self.write_log(f"Using hdf5 version {h5libver}")
-
-        if hdf5_network_file is not None:
-            assert network_config_file is None and position_file is None, \
-                "If HDF5networkFile specified then positionFile " + \
-                "and networkConfigFile should be left empty."
-
-            if hdf5_network_file == "last":
-                hdf5_network_file = self.find_latest_file()
-
-            self.hdf5_network_file = hdf5_network_file
-            self.read_hdf5_info(hdf5_network_file)
-        else:
-            self.network_config_file = network_config_file
-            self.position_file = position_file
-
-            # self.writeLog("Assuming axonStumpIDFlag is True (Running Network_simulate.py)")
-            self.axon_stump_id_flag = False
-
-        self.input_config_file = input_config_file
-
-        if spike_data_filename is None:
-            spike_data_filename = "save/input-spikes-" + str(self.network_slurm_id) + ".hdf5"
-        self.spike_data_filename = spike_data_filename
+        self.read_hdf5_info(hdf5_network_file)
 
         self.neuron_cache = dict([])
 
