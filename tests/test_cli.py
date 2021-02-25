@@ -81,12 +81,17 @@ class TestCLI(unittest.TestCase):
         os.environ["SLURM_JOBID"] = "1234"
 
         with self.subTest(stage="init-serial"):
-            run_cli_command("create tiny_serial --overwrite")
+
+            # Remove the old folder if it exists
+            if os.path.exists("tiny_serial"):
+                import shutil
+                shutil.rmtree("tiny_serial")
+
             run_cli_command("init tiny_serial --size 100 --profile")
 
         with self.subTest(stage="init-overwrite-fail"):
             # Should not allow overwriting of existing folder if --overwrite is not specified
-            self.assertRaise(AssertionError, run_cli_command, "init tiny_serial --size 100")
+            self.assertRaises(AssertionError, run_cli_command, "init tiny_serial --size 100")
 
         with self.subTest(stage="place-serial"):
             run_cli_command("place tiny_serial --h5legacy")

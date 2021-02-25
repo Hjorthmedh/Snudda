@@ -288,7 +288,7 @@ class Snudda(object):
         if args.parallel:
             self.setup_parallel()  # sets self.d_view and self.lb_view
 
-        if "input" in args:
+        if "input" in args and args.input:
             input_config = args.input
         else:
             input_config = os.path.join(self.network_path, "input.json")
