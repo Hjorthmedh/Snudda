@@ -911,9 +911,10 @@ class NeuronMorphology(object):
             self.write_log(tstr)
             assert False, f"Problem with synapse density {synapse_density}"
 
-        if type(i_density) in (int, float):
+        # if type(i_density) in (int, float): -- this worked for eval, but not for numexpr.evaluate
+        if i_density.ndim == 0:
             # If iDensity is a constant, we need to set it for all points
-            i_density *= np.ones(d.shape)
+            i_density = float(i_density) * np.ones(d.shape)
 
         comp_density = (i_density[self.dend_links[:, 0]] + i_density[self.dend_links[:, 1]]) / 2
         comp_len = self.compartment_length(comp_type="dend")

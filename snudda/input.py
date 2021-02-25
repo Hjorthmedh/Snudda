@@ -215,8 +215,13 @@ class SnuddaInput(object):
 
                     it_group.create_dataset("freq", data=neuron_in["freq"])
                     it_group.create_dataset("correlation", data=neuron_in["correlation"])
-                    it_group.create_dataset("jitter", data=neuron_in["jitter"])
-                    it_group.create_dataset("synapseDensity", data=neuron_in["synapseDensity"])
+
+                    if "jitter" in neuron_in and neuron_in["jitter"]:
+                        it_group.create_dataset("jitter", data=neuron_in["jitter"])
+
+                    if "synapseDensity" in neuron_in and neuron_in["synapseDensity"]:
+                        it_group.create_dataset("synapseDensity", data=neuron_in["synapseDensity"])
+
                     it_group.create_dataset("start", data=neuron_in["start"])
                     it_group.create_dataset("end", data=neuron_in["end"])
                     it_group.create_dataset("conductance", data=neuron_in["conductance"])
