@@ -111,8 +111,8 @@ class InputScaling(object):
         self.input_duration = input_duration
         self.max_time = self.input_duration * len(self.frequency_range)
 
-        synapse_density_cortical_input = "1.15*0.05/(1+np.exp(-(d-30e-6)/5e-6))"
-        synapse_density_thalamic_input = "0.05*np.exp(-d/200e-6)"
+        synapse_density_cortical_input = "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))"
+        synapse_density_thalamic_input = "0.05*exp(-d/200e-6)"
         #  synapse_density_thalamic_input = "(d > 100e-6)*1"  # TEST!!
 
         cortical_SPN_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
