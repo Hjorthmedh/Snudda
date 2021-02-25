@@ -80,7 +80,7 @@
                         0.008,
                         1000.0
                     ],
-                    "parameterFile": "/home/hjorth/HBP/Snudda/tests/../snudda/data/synapses/striatum/PlanertFitting-FD-tmgaba-fit.json",
+                    "parameterFile": "$DATA/synapses/striatum/PlanertFitting-FD-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -88,7 +88,7 @@
                     "softMax": 5,
                     "mu2": 2,
                     "a3": 1.0,
-                    "distPruning": "np.exp(-(0.5*d/60e-6)**2)"
+                    "distPruning": "exp(-(0.5*d/60e-6)**2)"
                 }
             }
         },
@@ -107,7 +107,7 @@
                         0.008,
                         1000.0
                     ],
-                    "parameterFile": "/home/hjorth/HBP/Snudda/tests/../snudda/data/synapses/striatum/PlanertFitting-FI-tmgaba-fit.json",
+                    "parameterFile": "$DATA/synapses/striatum/PlanertFitting-FI-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -115,7 +115,7 @@
                     "softMax": 5,
                     "mu2": 2,
                     "a3": 0.9,
-                    "distPruning": "np.exp(-(0.5*d/60e-6)**2)"
+                    "distPruning": "exp(-(0.5*d/60e-6)**2)"
                 }
             }
         },
@@ -153,7 +153,7 @@
                         1000.0
                     ],
                     "failRate": 0.7,
-                    "parameterFile": "/home/hjorth/HBP/Snudda/tests/../snudda/data/synapses/striatum/PlanertFitting-DD-tmgaba-fit.json",
+                    "parameterFile": "$DATA/synapses/striatum/PlanertFitting-DD-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -161,14 +161,14 @@
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 },
                 "pruningOther": {
                     "f1": 0.38,
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 }
             }
         },
@@ -188,7 +188,7 @@
                         1000.0
                     ],
                     "failRate": 0.7,
-                    "parameterFile": "/home/hjorth/HBP/Snudda/tests/../snudda/data/synapses/striatum/PlanertFitting-DI-tmgaba-fit.json",
+                    "parameterFile": "$DATA/synapses/striatum/PlanertFitting-DI-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -196,14 +196,14 @@
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 },
                 "pruningOther": {
                     "f1": 0.2,
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 }
             }
         },
@@ -222,7 +222,7 @@
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 0.1,
-                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 }
             }
         },
@@ -242,7 +242,7 @@
                         1000.0
                     ],
                     "failRate": 0.4,
-                    "parameterFile": "/home/hjorth/HBP/Snudda/tests/../snudda/data/synapses/striatum/PlanertFitting-ID-tmgaba-fit.json",
+                    "parameterFile": "$DATA/synapses/striatum/PlanertFitting-ID-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -250,14 +250,14 @@
                     "softMax": 4,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 },
                 "pruningOther": {
                     "f1": 0.3,
                     "softMax": 4,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 }
             }
         },
@@ -277,7 +277,7 @@
                         1000.0
                     ],
                     "failRate": 0.4,
-                    "parameterFile": "/home/hjorth/HBP/Snudda/tests/../snudda/data/synapses/striatum/PlanertFitting-II-tmgaba-fit.json",
+                    "parameterFile": "$DATA/synapses/striatum/PlanertFitting-II-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -285,14 +285,14 @@
                     "softMax": 4,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 },
                 "pruningOther": {
                     "f1": 0.55,
                     "softMax": 4,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 }
             }
         },
@@ -311,7 +311,7 @@
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 0.1,
-                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 }
             }
         },
@@ -337,7 +337,7 @@
                     "softMax": 15,
                     "mu2": 3,
                     "a3": 0.3,
-                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 }
             }
         },
@@ -363,7 +363,7 @@
                     "softMax": 15,
                     "mu2": 3,
                     "a3": 0.3,
-                    "distPruning": "1-np.exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 }
             }
         },

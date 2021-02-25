@@ -1,0 +1,11 @@
+{
+    "dSPN": {
+	"Cortical" : {
+	    "generator" : "poisson",
+	    "frequency" : 1,
+	    "conductance" : 0.5e-9,
+	    "nInputs" : 20,
+	    "modFile": "tmGlut"
+	}
+    }
+}

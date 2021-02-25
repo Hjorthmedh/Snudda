@@ -6,8 +6,9 @@
 #
 # Add a function so that $SNUDDADATA refers to the base datapath for snudda
 #
-
 import numpy as np
+import numexpr
+import sys
 import os.path
 import glob
 import collections
@@ -39,7 +40,7 @@ class SnuddaInit(object):
     def __init__(self,
                  network_path=None,
                  struct_def=None, config_file=None,
-                 num_population_units=None, population_unit_centres="[[]]", population_unit_radius=None,
+                 num_population_units=None, population_unit_centres=[[]], population_unit_radius=None,
                  random_seed=None):
 
         print("CreateConfig")
@@ -84,8 +85,9 @@ class SnuddaInit(object):
                 # Centre of striatum mesh is [3540e-6,4645e-6,5081e-6]
                 # - the population units will be shifted according to this coordinate
 
-                if type(population_unit_centres) == str:
-                    population_unit_centres = eval(population_unit_centres)
+                # Removing eval of string
+                assert not type(population_unit_centres) == str, \
+                    f"population_unit_centres should not be a string: {population_unit_centres}"
 
                 self.network_data["PopulationUnits"]["centres"] = population_unit_centres
                 assert len(self.network_data["PopulationUnits"]["centres"]) == num_population_units, \
@@ -356,23 +358,27 @@ class SnuddaInit(object):
                 # Verify axon density function
                 r = np.linspace(0, axon_density[2], 10)  # r is used in eval
                 try:
-                    eval(axon_density[1])
+                    numexpr.evaluate(axon_density[1])
                 except:
                     print("!!! Axon density failed test: " + str(axon_density))
                     print("Inparameter: r = 1-D array of radius in meter")
+                    import traceback
+                    tstr = traceback.format_exc()
+                    print(tstr)
+                    sys.exit(-1)
             elif axon_density[0] == "xyz":
                 x = np.linspace(axon_density[2][0], axon_density[2][1], 10)  # x,y,z used in eval below
                 y = np.linspace(axon_density[2][2], axon_density[2][3], 10)
                 z = np.linspace(axon_density[2][4], axon_density[2][5], 10)
                 try:
-                    eval(axon_density[1])
+                    numexpr.evaluate(axon_density[1])
                 except:
                     print("!!! Axon density failed test: " + str(axon_density))
                     print("Inparameters: x,y,z three 1-D arrays (units in meter)")
                     import traceback
                     tstr = traceback.format_exc()
                     print(tstr)
-                    exit(-1)
+                    sys.exit(-1)
 
                 print("Checking boundaries, to make sure P is not too high")
                 x = np.zeros((8, 1))
@@ -388,7 +394,8 @@ class SnuddaInit(object):
                             z[ctr] = zz
                             ctr += 1
 
-                p_corner = eval(axon_density[1]) * (3e-6 ** 3)
+                # axon_density function of x,y,z defined above
+                p_corner = numexpr.evaluate(axon_density[1]) * (3e-6 ** 3)
 
                 for P, xx, yy, zz in zip(p_corner, x, y, z):
                     print(name + " axon density P(" + str(xx) + "," + str(yy) + "," + str(zz) + ") = " + str(P))
@@ -673,7 +680,8 @@ class SnuddaInit(object):
         # ChINaxonDensity = ("6*5000*1e12/3*np.exp(-d/60e-6)",350e-6)
 
         # func type, density function, max axon radius
-        ChIN_axon_density = ("r", "5000*1e12/3*np.exp(-r/120e-6)", 350e-6)
+        # OLD: ChIN_axon_density = ("r", "5000*1e12/3*np.exp(-r/120e-6)", 350e-6)
+        ChIN_axon_density = ("r", "5000*1e12/3*exp(-r/120e-6)", 350e-6)
 
         self.add_neurons(name="ChIN", neuron_dir=ChIN_dir,
                          num_neurons=self.num_ChIN,
@@ -688,8 +696,15 @@ class SnuddaInit(object):
         # Func type, Density function, [[xmin,xmax,ymin,ymax,zmin,zmax]], nAxonPoints
 
         # See plotLTSdensity.py
+
+        # LTS_density_str = "12*3000*1e12*( 0.25*np.exp(-(((x-200e-6)/100e-6)**2 + ((y-0)/50e-6)**2 + ((z-0)/30e-6)**2)) + 1*np.exp(-(((x-300e-6)/300e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/10e-6)**2)) + 1*np.exp(-(((x-700e-6)/100e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/15e-6)**2)) )",
+        LTS_density_str = ("12*3000*1e12*( 0.25*exp(-(((x-200e-6)/100e-6)**2 " 
+                           "+ ((y-0)/50e-6)**2 + ((z-0)/30e-6)**2)) "
+                           "+ 1*exp(-(((x-300e-6)/300e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/10e-6)**2)) "
+                           "+ 1*exp(-(((x-700e-6)/100e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/15e-6)**2)) )")
+
         LTS_axon_density = ("xyz",
-                            "12*3000*1e12*( 0.25*np.exp(-(((x-200e-6)/100e-6)**2 + ((y-0)/50e-6)**2 + ((z-0)/30e-6)**2)) + 1*np.exp(-(((x-300e-6)/300e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/10e-6)**2)) + 1*np.exp(-(((x-700e-6)/100e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/15e-6)**2)) )",
+                            LTS_density_str,
                             [-200e-6, 900e-6, -100e-6, 100e-6, -30e-6, 30e-6])
 
         # !!! Remember to update bounding box
@@ -706,8 +721,8 @@ class SnuddaInit(object):
         # by striatal fast-spiking interneurons. J Neurosci
         # --> FS does not target ChIN
 
-        # FSDistDepPruning = "np.exp(-(0.3*d/60e-6)**2)"
-        FS_dist_dep_pruning = "np.exp(-(0.5*d/60e-6)**2)"  # updated 2019-10-31
+        # FS_dist_dep_pruning = "np.exp(-(0.5*d/60e-6)**2)"  # updated 2019-10-31
+        FS_dist_dep_pruning = "exp(-(0.5*d/60e-6)**2)"  # Using numexpr.evaluate now, so no np. needed
         # Temp disable dist dep pruning
         # FSDistDepPruning = None
         FS_gGABA = [1.1e-9, 1.5e-9]  # cond (1nS Gittis et al 2010), condStd
@@ -837,11 +852,14 @@ class SnuddaInit(object):
         # With Taverna conductances, we see that the response is much stronger than Planert 2010.
         # We try to introduce distance dependent pruning to see if removing strong proximal synapses
         # will give a better match to experimental data.
-        SPN2SPNdistDepPruning = "1-np.exp(-(0.4*d/60e-6)**2)"
+
+        # SPN2SPNdistDepPruning = "1-np.exp(-(0.4*d/60e-6)**2)"
+        SPN2SPNdistDepPruning = "1-exp(-(0.4*d/60e-6)**2)"
 
         # Chuhma about 20pA response from 10% SPN, we need to reduce activity, try dist dep pruning
         # (already so few synapses and connectivity)
-        SPN2ChINDistDepPruning = "1-np.exp(-(0.4*d/60e-6)**2)"
+        # SPN2ChINDistDepPruning = "1-np.exp(-(0.4*d/60e-6)**2)"
+        SPN2ChINDistDepPruning = "1-exp(-(0.4*d/60e-6)**2)"
 
         # old f1 = 0.15
         self.add_neuron_target(neuron_name="dSPN",
@@ -1044,7 +1062,8 @@ class SnuddaInit(object):
         LTSgGABA = 1e-9  # !!! FIXME
         # LTSgNO = 1e-9
 
-        LTSDistDepPruning = "1-np.exp(-(0.4*d/60e-6)**2)"  # updated 2019-10-31
+        # LTSDistDepPruning = "1-np.exp(-(0.4*d/60e-6)**2)"  # updated 2019-10-31
+        LTSDistDepPruning = "1-exp(-(0.4*d/60e-6)**2)"  # using numexpr.evaluate now, so no np.
 
         # !!! Straub, Sabatini 2016
         # No LTS synapses within 70 micrometers of proximal MS dendrite

@@ -122,6 +122,14 @@ class TestDetect(unittest.TestCase):
                 for post_id in range(10, 20):
                     self.assertEqual(self.check_neuron_pair_has_synapse(pre_id, post_id), 1)
 
+            for pre_id in range(0, 10):
+                for post_id in range(0, 10):
+                    self.assertFalse(self.check_neuron_pair_has_synapse(pre_id, post_id))
+
+            for pre_id in range(10, 20):
+                for post_id in range(10, 20):
+                    self.assertFalse(self.check_neuron_pair_has_synapse(pre_id, post_id))
+
         with self.subTest(stage="synapse_sorting_check"):
             syn = self.sd.hyper_voxel_synapses[:self.sd.hyper_voxel_synapse_ctr, :2]
             syn_order = syn[:, 1]*len(self.sd.neurons) + syn[:, 0]
@@ -150,10 +158,11 @@ class TestDetect(unittest.TestCase):
         with self.subTest(stage="plot_hyper_voxel"):
             # Matplotlib is kind of slow
             self.sd.plot_neurons_in_hyper_voxel(neuron_id=np.arange(0, 10),
-                                                neuron_colour=np.zeros((10, 3)))
+                                                neuron_colour=np.zeros((10, 3)),
+                                                show_plot=False, dpi=90)
 
         with self.subTest(stage="example-draw"):
-            # Just checking that the drawing works -- matplotlib is kind of slow
+            # Just checking that the drawing works
             self.sd.test_voxel_draw()
 
         print("Checking detect done.")

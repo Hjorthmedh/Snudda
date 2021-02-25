@@ -45,7 +45,8 @@ setuptools.setup(
         "pyzmq>=22.0.3",
         "setuptools",
         "psutil",
-        "argparse"
+        "argparse",
+        "numexpr"
     ],
     extras_require={"dev": ["sphinx"]},
 )

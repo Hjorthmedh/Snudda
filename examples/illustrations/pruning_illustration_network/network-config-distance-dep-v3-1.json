@@ -25,7 +25,7 @@
                     "softMax": 5,
                     "mu2": null,
                     "a3": 1,
-                    "distPruning": "np.exp(-(0.5*d/70e-6)**2)"
+                    "distPruning": "exp(-(0.5*d/70e-6)**2)"
                 }
             }
         }

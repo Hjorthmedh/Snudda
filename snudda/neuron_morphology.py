@@ -8,6 +8,7 @@
 #
 
 import numpy as np
+import numexpr
 from snudda.utils.snudda_path import snudda_parse_path
 
 
@@ -902,17 +903,18 @@ class NeuronMorphology(object):
         d = self.dend[:, 4]
         try:
             # d is now distance from some, so synapseDensity is a func of d
-            i_density = eval(synapse_density)
+            i_density = numexpr.evaluate(synapse_density)
         except:
-            self.write_log("Bad synapse density string: " + str(synapse_density))
+            self.write_log(f"Bad synapse density string: {synapse_density}")
             import traceback
             tstr = traceback.format_exc()
             self.write_log(tstr)
             assert False, f"Problem with synapse density {synapse_density}"
 
-        if type(i_density) in (int, float):
+        # if type(i_density) in (int, float): -- this worked for eval, but not for numexpr.evaluate
+        if i_density.ndim == 0:
             # If iDensity is a constant, we need to set it for all points
-            i_density *= np.ones(d.shape)
+            i_density = float(i_density) * np.ones(d.shape)
 
         comp_density = (i_density[self.dend_links[:, 0]] + i_density[self.dend_links[:, 1]]) / 2
         comp_len = self.compartment_length(comp_type="dend")
