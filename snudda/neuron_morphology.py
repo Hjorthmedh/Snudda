@@ -8,6 +8,7 @@
 #
 
 import numpy as np
+import numexpr
 from snudda.utils.snudda_path import snudda_parse_path
 
 
@@ -902,9 +903,9 @@ class NeuronMorphology(object):
         d = self.dend[:, 4]
         try:
             # d is now distance from some, so synapseDensity is a func of d
-            i_density = eval(synapse_density)
+            i_density = numexpr.evaluate(synapse_density)
         except:
-            self.write_log("Bad synapse density string: " + str(synapse_density))
+            self.write_log(f"Bad synapse density string: {synapse_density}")
             import traceback
             tstr = traceback.format_exc()
             self.write_log(tstr)

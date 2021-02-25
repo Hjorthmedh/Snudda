@@ -20,10 +20,11 @@
 # sort ignoring all other neurons but their own
 # Finally, the resulting files from the workers are merged together
 
+import os
 import numpy as np
 import scipy
 import math
-import os
+import numexpr
 from glob import glob
 import collections
 
@@ -1983,7 +1984,8 @@ class SnuddaPrune(object):
 
                 # distP contains d (variable for distance to soma)
                 d = synapses[next_read_pos:read_end_idx, 8] * 1e-6  # dendrite distance d, used in eval below
-                p = eval(dist_p)
+                p = numexpr.evaluate(dist_p)
+
                 frac_flag = post_rng.random(n_pair_synapses) < f1
                 dist_flag = post_rng.random(n_pair_synapses) < p
 

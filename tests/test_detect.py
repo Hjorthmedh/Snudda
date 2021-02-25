@@ -158,10 +158,11 @@ class TestDetect(unittest.TestCase):
         with self.subTest(stage="plot_hyper_voxel"):
             # Matplotlib is kind of slow
             self.sd.plot_neurons_in_hyper_voxel(neuron_id=np.arange(0, 10),
-                                                neuron_colour=np.zeros((10, 3)))
+                                                neuron_colour=np.zeros((10, 3)),
+                                                show_plot=False, dpi=90)
 
         with self.subTest(stage="example-draw"):
-            # Just checking that the drawing works -- matplotlib is kind of slow
+            # Just checking that the drawing works
             self.sd.test_voxel_draw()
 
         print("Checking detect done.")

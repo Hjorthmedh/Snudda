@@ -250,7 +250,8 @@ class SnuddaSimulate(object):
                     channel_param_dict = info_dict["channelParameters"].copy()
                     mod_file = channel_param_dict["modFile"]
 
-                    eval_str = "self.sim.neuron.h." + mod_file
+                    # TODO: Sanity check on the mod_file string
+                    eval_str = f"self.sim.neuron.h.{mod_file}"
                     channel_module = eval(eval_str)  # If this fails, check that NEURON modules are compiled
 
                     # These are not variables to set in the modFile
@@ -830,10 +831,6 @@ class SnuddaSimulate(object):
 
                     setattr(syn, par, val)
 
-                    # evalStr = "syn." + par + "=" + str(parSet[par])
-                    # self.writeLog("Updating synapse: " + evalStr)
-                    # !!! Can we avoid an eval here, it is soooo SLOW
-                    # exec(evalStr)
                 except:
                     import traceback
                     tstr = traceback.format_exc()
@@ -952,7 +949,8 @@ class SnuddaSimulate(object):
                 mod_file = SnuddaLoad.to_str(neuron_input["modFile"][()])
                 param_list = json.loads(neuron_input["parameterList"][()])
 
-                eval_str = "self.sim.neuron.h." + mod_file
+                # TODO: Sanity check mod_file string
+                eval_str = f"self.sim.neuron.h.{mod_file}"
                 channel_module = eval(eval_str)
 
                 for inputID, (section, section_x, paramID, nSpikes) \
@@ -1016,10 +1014,11 @@ class SnuddaSimulate(object):
                                 # one specified in the input information instead
                                 continue
 
-                            eval_str = "syn." + par + "=" + str(syn_params[par])
+                            setattr(syn, par, syn_params[par])
+                            # eval_str = "syn." + par + "=" + str(syn_params[par])
                             # self.writeLog("Updating synapse: " + evalStr)
                             # !!! Can we avoid an eval here, it is soooo SLOW
-                            exec(eval_str)
+                            # exec(eval_str)
 
                     # !!! Set parameters in synParams
 

@@ -27,12 +27,6 @@ def snudda_cli():
     init_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory",
                              action="store_true")
     init_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
-    init_parser.add_argument("--NumPopulationUnits", type=int,
-                             help="Number of Population Units in the structure, affects connectivity and input correlation",
-                             default=1)
-    init_parser.add_argument("--PopulationUnitCentres", help="A list which defines the population unit centres",
-                             default="[[]]")
-    init_parser.add_argument("--PopulationUnitRadius", type=float, help="Radius of population units", default=1)
     init_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     init_parser.add_argument("--verbose", action="store_true")
 

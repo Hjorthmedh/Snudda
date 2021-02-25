@@ -206,15 +206,15 @@ if __name__ == "__main__":
 
     # Distance dependent examples
     pil.prune_network(pruning_config="network-config-distance-dep-v3-1.json",
-                      title='"np.exp(-(0.5*d/70e-6)^2)"',
+                      title='"exp(-(0.5*d/70e-6)^2)"',
                       fig_name="5-Pruning-distance-dep-1.pdf")
 
     pil.prune_network(pruning_config="network-config-distance-dep-v3-2.json",
-                      title='"np.exp(-(d-190e-6)**2/(2*40e-6**2))"',
+                      title='"exp(-(d-190e-6)**2/(2*40e-6**2))"',
                       fig_name="5-Pruning-distance-dep-2.pdf")
 
     pil.prune_network(pruning_config="network-config-distance-dep-v3-3.json",
-                      title='"1/(1+np.exp(-(d-280e-6)/30e-6))"',
+                      title='"1/(1+exp(-(d-280e-6)/30e-6))"',
                       fig_name="5-Pruning-distance-dep-3.pdf")
 
 

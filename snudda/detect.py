@@ -11,8 +11,7 @@
 # Grant Agreements No. 720270 and No. 785907 (Human Brain Project SGA1
 # and SGA2).
 #
-
-
+import numexpr
 import numpy as np
 import os
 import itertools
@@ -1038,9 +1037,14 @@ class SnuddaDetect(object):
                     self.write_log(f"Placing {na_points} random axon points for {na_neuron['name']} (cached)")
 
                 else:
-                    radius = np.arange(0, na_neuron["axonDensityRadius"] + self.voxel_size, self.voxel_size)
-                    density_as_func = eval('lambda r: ' + na_neuron["axonDensity"])
-                    na_p_density = np.array([density_as_func(r) for r in radius])
+                    # r is used in numexpr.evaluate below
+                    r = radius = np.arange(0, na_neuron["axonDensityRadius"] + self.voxel_size, self.voxel_size)
+
+                    # old way using eval, replaced with numpexpr.evaluate (safer, faster?)
+                    # density_as_func = eval('lambda r: ' + na_neuron["axonDensity"])
+                    # na_p_density = np.array([density_as_func(r) for r in radius])
+
+                    na_p_density = numexpr.evaluate(na_neuron["axonDensity"])
 
                     # We need to scale by distance squared, since in the shell at distance
                     # d further from the soma has more voxels in it than a shell closer
@@ -1068,11 +1072,11 @@ class SnuddaDetect(object):
 
             elif na_neuron["axonDensityType"] == "xyz":
 
-                axon_density_func = eval("lambda x,y,z: " + na_neuron["axonDensity"])
+                #OLD: axon_density_func = eval("lambda x,y,z: " + na_neuron["axonDensity"])
 
                 (na_voxel_coords, na_axon_dist) = self.no_axon_points_xyz(na_neuron["position"],
                                                                           na_neuron["rotation"],
-                                                                          axon_density_func,
+                                                                          na_neuron["axonDensity"],  # axon_density_func,
                                                                           na_neuron["axonDensityBoundsXYZ"])
             else:
                 self.write_log(f"Unknown axonDensityType: {na_neuron['axonDensityType']}\n{na_neuron}", is_error=True)
@@ -1219,8 +1223,10 @@ class SnuddaDetect(object):
             self.write_log("Bounding box appears to be outside hyper voxel")
             return np.zeros((0, 3), dtype=int), np.zeros((0, 1))
 
-            # Calculate density at each of the points inside HV
-        density_inside = axon_density_func(xyz_inside[:, 0], xyz_inside[:, 1], xyz_inside[:, 2])
+        # Calculate density at each of the points inside HV
+        x, y, z = xyz_inside[:, 0], xyz_inside[:, 1], xyz_inside[:, 2]
+        density_inside = numexpr.evaluate(axon_density_func)
+        # OLD: density_inside = axon_density_func(xyz_inside[:, 0], xyz_inside[:, 1], xyz_inside[:, 2])
 
         # Estimate number of synapses from density, in this case we use a volume
         # equal to bounding box volume / nPoints for each point.
@@ -1274,7 +1280,11 @@ class SnuddaDetect(object):
                                                  axon_density_bounds_xyz,
                                                  n_tries - n_points)
 
-            density_inside_b = axon_density_func(xyz_inside_b[:, 0], xyz_inside_b[:, 1], xyz_inside_b[:, 2])
+            # OLD: density_inside_b = axon_density_func(xyz_inside_b[:, 0], xyz_inside_b[:, 1], xyz_inside_b[:, 2])
+
+            # x,y,z used in axon_density_func below
+            x, y, z = xyz_inside_b[:, 0], xyz_inside_b[:, 1], xyz_inside_b[:, 2]
+            density_inside_b = numexpr.evaluate(axon_density_func)
             picked_idx_b = np.where(self.hyper_voxel_rng.random(voxIdxB.shape[0]) < density_inside_b / max_density)[0]
             axon_dist_b = np.sqrt(np.sum((xyz_inside_b[picked_idx_b, :]) ** 2, axis=1))
 
@@ -2918,7 +2928,8 @@ class SnuddaDetect(object):
     # each row in neuronColour is a colour for a neuron
 
     def plot_neurons_in_hyper_voxel(self, neuron_id, neuron_colour,
-                                    axon_alpha=None, dend_alpha=None):
+                                    axon_alpha=None, dend_alpha=None,
+                                    show_plot=True, dpi=300):
 
         if axon_alpha is None:
             axon_alpha = np.ones((len(neuron_id),))
@@ -2982,10 +2993,6 @@ class SnuddaDetect(object):
             ax.scatter(s_coord[:, 0] + 0.5, s_coord[:, 1] + 0.5, s_coord[:, 2] + 0.5, c="red", s=100)
 
         plt.axis("off")
-        plt.ion()
-        plt.show()
-
-        plt.pause(0.001)
 
         fig_name = os.path.join(self.network_path, "figures",
                                 f"Hypervoxel-{self.slurm_id}-{self.hyper_voxel_id}-someNeurons.png")
@@ -2993,7 +3000,13 @@ class SnuddaDetect(object):
         if not os.path.exists(os.path.dirname(fig_name)):
             os.mkdir(os.path.dirname(fig_name))
 
-        plt.savefig(fig_name, dpi=300)  #dpi = 900
+        plt.savefig(fig_name, dpi=dpi)  #dpi = 900
+
+        if show_plot:
+            plt.ion()
+            plt.show()
+            plt.pause(0.001)
+
 
     ############################################################################
 

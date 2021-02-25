@@ -37,8 +37,8 @@ class SnuddaInput(object):
 
     def __init__(self,
                  network_path=None,
-                 spike_data_filename=None,
                  input_config_file=None,
+                 spike_data_filename=None,
                  hdf5_network_file=None,
                  time=10.0,
                  is_master=True,
@@ -60,9 +60,9 @@ class SnuddaInput(object):
         if network_path:
             self.network_path = network_path
         elif hdf5_network_file:
-            self.network_path = os.path.basedir(hdf5_network_file)
+            self.network_path = os.path.basename(hdf5_network_file)
         elif input_config_file:
-            self.network_path = os.path.basedir(input_config_file)
+            self.network_path = os.path.basename(input_config_file)
         else:
             self.network_path = ""
 
@@ -110,7 +110,7 @@ class SnuddaInput(object):
 
         self.h5libver = h5libver
         self.write_log(f"Using hdf5 version {h5libver}")
-        self.read_hdf5_info(hdf5_network_file)
+        self.read_hdf5_info()
 
         self.neuron_cache = dict([])
 
@@ -216,8 +216,7 @@ class SnuddaInput(object):
                     it_group.create_dataset("freq", data=neuron_in["freq"])
                     it_group.create_dataset("correlation", data=neuron_in["correlation"])
                     it_group.create_dataset("jitter", data=neuron_in["jitter"])
-                    it_group.create_dataset("synapseDensity",
-                                            data=neuron_in["synapseDensity"])
+                    it_group.create_dataset("synapseDensity", data=neuron_in["synapseDensity"])
                     it_group.create_dataset("start", data=neuron_in["start"])
                     it_group.create_dataset("end", data=neuron_in["end"])
                     it_group.create_dataset("conductance", data=neuron_in["conductance"])
@@ -278,7 +277,7 @@ class SnuddaInput(object):
 
     def read_input_config_file(self):
 
-        self.write_log("Loading input configuration from " + str(self.input_config_file))
+        self.write_log(f"Loading input configuration from {self.input_config_file}")
 
         with open(snudda_parse_path(self.input_config_file), 'rt') as f:
             self.input_info = json.load(f)
@@ -970,7 +969,7 @@ class SnuddaInput(object):
 
         # morphology.dend -- 0-2: x,y,z 3: r, 4: dist to soma
         d = morphology.dend[:, 4]
-        p_x = eval(p_dist)
+        p_x = numexpr.evaluate(p_dist)
 
         if type(p_x) in (int, float):
             # If Px is a constant, we need to set it for all points
@@ -1130,8 +1129,12 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    def read_hdf5_info(self, hdf5_file):
-        self.write_log("Loading HDF5-file: " + hdf5_file)
+    def read_hdf5_info(self, hdf5_file=None):
+
+        if not hdf5_file:
+            hdf5_file = self.hdf5_network_file
+
+        self.write_log(f"Loading HDF5-file: {hdf5_file}")
 
         try:
             with h5py.File(hdf5_file, 'r') as f:

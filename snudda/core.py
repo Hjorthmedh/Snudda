@@ -105,17 +105,11 @@ class Snudda(object):
 
         self.make_dir_if_needed(self.network_path)
 
-        num_population_units = args.NumPopulationUnits
-        population_unit_centres = args.PopulationUnitCentres
-        population_unit_radius = args.PopulationUnitRadius
         random_seed = args.randomseed
 
         config_file = os.path.join(self.network_path, "network-config.json")
         SnuddaInit(struct_def=struct_def,
                    config_file=config_file,
-                   num_population_units=num_population_units,
-                   population_unit_centres=population_unit_centres,
-                   population_unit_radius=population_unit_radius,
                    random_seed=random_seed)
 
         if args.size > 1e5:
