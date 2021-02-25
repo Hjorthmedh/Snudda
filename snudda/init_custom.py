@@ -9,13 +9,12 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Init custom network")
     parser.add_argument("network", type=str, help="Network path")
-    parser.add_argument("--cellspec", "--neurons", type=str, help="Cell spec directory",
-                        target=cellspec, default=None)
+    parser.add_argument("--neurons", "--cellspec", type=str, help="Neurons directory", default=None)
     # TODO: Add cell number parameters
     args = parser.parse_args()
 
     sim_name = args.network
-    cell_spec = args.cellspec
+    neurons_dir = args.neurons
 
     connect_neurons = False
 
@@ -39,9 +38,9 @@ if __name__ == "__main__":
 
     # cnc.defineStriatum(nMSD1=500,nMSD2=500,nFS=0,nLTS=0,nChIN=500,volumeType="cube")
 #    cnc.define_striatum(num_dSPN=1500, num_iSPN=1500, num_FS=0, num_LTS=0, num_ChIN=0,
-#                        volume_type="cube", cell_spec_dir=cell_spec)
+#                        volume_type="cube", neurons_dir=neurons_dir)
     cnc.define_striatum(num_dSPN=47500, num_iSPN=47500, num_FS=1300, num_LTS=0, num_ChIN=0,
-                        volume_type="cube", cell_spec_dir=cell_spec)
+                        volume_type="cube", neurons_dir=neurons_dir)
     cnc.write_json(config_name)
 
     if not connect_neurons:

@@ -47,6 +47,7 @@ import snudda.utils.memory
 
 # If simulationConfig is set, those values override other values
 from snudda.load import SnuddaLoad
+from snudda.utils.snudda_path import snudda_parse_path
 
 
 class SnuddaSimulate(object):
@@ -170,19 +171,7 @@ class SnuddaSimulate(object):
 
         self.network_file = network_file
 
-        if False:
-            # We need to check if a split network file exists
-            split_file = network_file.replace('save/', 'save/TEMP/').replace('.hdf5', '-%d.hdf5') % int(self.pc.id())
-
-            import os.path
-            if os.path.isfile(split_file):
-                network_file = split_file
-            else:
-                self.write_log("Unable to find " + split_file + " using "
-                               + network_file)
-
-        self.write_log("Worker " + str(int(self.pc.id()))
-                       + ": Loading network from " + network_file)
+        self.write_log(f"Worker {int(self.pc.id())} : Loading network from {network_file}")
 
         from snudda.load import SnuddaLoad
         self.snudda_loader = SnuddaLoad(network_file)
@@ -197,10 +186,10 @@ class SnuddaSimulate(object):
         self.num_neurons = self.network_info["nNeurons"]
 
         if config_file is None:
-            config_file = self.get_path(self.network_info["configFile"])
+            config_file = snudda_parse_path(self.network_info["configFile"])
 
         self.config_file = config_file
-        self.write_log("Loading config file " + config_file)
+        self.write_log(f"Loading config file {config_file}")
 
         # Add checks to see that config file and networkFile matches
 
@@ -277,7 +266,7 @@ class SnuddaSimulate(object):
                                   + str(synapse_type_id)
 
                 if "parameterFile" in info_dict and info_dict["parameterFile"] is not None:
-                    par_file = self.get_path(info_dict["parameterFile"])
+                    par_file = snudda_parse_path(info_dict["parameterFile"])
                     par_data_dict = json.load(open(par_file, 'r'))
 
                     # Save data as a list, we dont need the keys
@@ -327,12 +316,12 @@ class SnuddaSimulate(object):
 
             config = self.config["Neurons"][name]
 
-            morph = self.get_path(config["morphology"])
-            param = self.get_path(config["parameters"])
-            mech = self.get_path(config["mechanisms"])
+            morph = snudda_parse_path(config["morphology"])
+            param = snudda_parse_path(config["parameters"])
+            mech = snudda_parse_path(config["mechanisms"])
 
             if "modulation" in config:
-                modulation = self.get_path(config["modulation"])
+                modulation = snudda_parse_path(config["modulation"])
             else:
                 modulation = None
 
@@ -340,8 +329,8 @@ class SnuddaSimulate(object):
             if self.network_info["neurons"][ID]["virtualNeuron"]:
 
                 if self.input_data is None:
-                    self.write_log("Using " + self.input_file + " for virtual neurons")
-                    self.input_data = h5py.File(self.get_path(self.input_file), 'r')
+                    self.write_log(f"Using {self.input_file} for virtual neurons")
+                    self.input_data = h5py.File(snudda_parse_path(self.input_file), 'r')
 
                 name = self.network_info["neurons"][ID]["name"]
                 spikes = self.input_data["input"][ID]["activity"]["spikes"][:, 0]
@@ -1570,12 +1559,6 @@ class SnuddaSimulate(object):
             for comp in [c.icell.dend, c.icell.axon, c.icell.soma]:
                 for sec in comp:
                     self.set_dopamine_modulation(sec, transient_vector)
-
-    ############################################################################
-
-    def get_path(self, path_str):
-
-        return path_str.replace("$DATA", os.path.dirname(__file__) + "/data")
 
     ############################################################################
 

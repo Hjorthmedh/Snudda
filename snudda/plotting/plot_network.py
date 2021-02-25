@@ -6,6 +6,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 from snudda.neuron_morphology import NeuronMorphology
 
+
 class PlotNetwork(object):
 
     def __init__(self, network_file):
@@ -87,7 +88,6 @@ class PlotNetwork(object):
         plt.show()
 
         return plt, ax
-
 
     def load_neuron(self, neuron_info=None, neuron_id=None):
 

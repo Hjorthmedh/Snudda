@@ -25,12 +25,12 @@ if __name__ == "__main__":
   # simName = "networks/SynTest-v6" # MSMS tuning
   #simName = "networks/SynTest-v15"  
 
-  cellSpecDir = "cellspecs.parkinson/" +str(args.level) + "/"
+  neuronsDir = "cellspecs.parkinson/" + str(args.level) + "/"
   
   configName= simName + "/network-config.json"
   cnc = SnuddaInit(struct_def={}, config_file=configName, nChannels=1)
   cnc.define_striatum(num_dSPN=1500, num_iSPN=1500, num_FS=0, num_LTS=0, num_ChIN=0,
-                      cell_spec_dir=cellSpecDir,
+                      neurons_dir=neuronsDir,
                       volume_type="cube")
 
   # cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=100,nLTS=100,nChIN=0,volumeType="slice")

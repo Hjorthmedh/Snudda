@@ -8,6 +8,7 @@
 #
 
 import numpy as np
+from snudda.utils.snudda_path import snudda_parse_path
 
 
 class NeuronMorphology(object):
@@ -124,19 +125,19 @@ class NeuronMorphology(object):
                     # tstr = traceback.format_exc()
                     # print(tstr)
 
-                    self.write_log("Failed to read cache file, loading: " + self.swc_filename)
-                    self.load_swc(self.swc_filename)
+                    self.write_log(f"Failed to read cache file, loading: {self.swc_filename}")
+                    self.load_swc()
                     self.save_cache()
 
             else:
                 self.write_log("No cache found, create it.")
                 # Load SWC and save cache file
-                self.load_swc(self.swc_filename)
+                self.load_swc()
                 self.save_cache()
         else:
             # Load SWC file
             self.write_log("Ignoring old cache, rewriting new cache file")
-            self.load_swc(self.swc_filename)
+            self.load_swc()
             self.save_cache()
 
         self.place()  # Updates position and rotation
@@ -337,7 +338,7 @@ class NeuronMorphology(object):
     def save_cache(self, cache_file=None):
 
         if cache_file is None:
-            cache_file = self.cache_filename
+            cache_file = snudda_parse_path(self.cache_filename)
 
         assert not self.rotated_flag, \
             "saveCache: The neuron should not be rotated when saving cache"
@@ -371,7 +372,7 @@ class NeuronMorphology(object):
     def cache_exist(self, cache_file=None):
 
         if cache_file is None:
-            cache_file = self.cache_filename
+            cache_file = snudda_parse_path(self.cache_filename)
 
         cache_flag = False
 
@@ -379,7 +380,7 @@ class NeuronMorphology(object):
 
         if os.path.isfile(cache_file):
 
-            swc_time = os.path.getmtime(self.swc_filename)
+            swc_time = os.path.getmtime(snudda_parse_path(self.swc_filename))
             cache_time = os.path.getmtime(cache_file)
 
             if cache_time > swc_time:
@@ -398,7 +399,7 @@ class NeuronMorphology(object):
     def load_cache(self, cache_file=None):
 
         if cache_file is None:
-            cache_file = self.cache_filename
+            cache_file = snudda_parse_path(self.cache_filename)
 
         import pickle
         with open(cache_file, 'rb') as cache_file:
@@ -450,7 +451,10 @@ class NeuronMorphology(object):
     # if it is set to True, each axon will have the same sectionID throughout
     # if there are multiple axons they will have separate sectionIDs
 
-    def load_swc(self, swc_file):
+    def load_swc(self, swc_file=None):
+
+        if not swc_file:
+            swc_file = snudda_parse_path(self.swc_filename)
 
         with open(swc_file, 'r') as f:
             lines = f.readlines()
@@ -1010,7 +1014,7 @@ class NeuronMorphology(object):
 if __name__ == "__main__":
     # The lines below are just for testing purposes
 
-    fName = "data/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc"
+    fName = "$DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc"
 
     nm = NeuronMorphology(swc_filename=fName, verbose=True, use_cache=False)
 

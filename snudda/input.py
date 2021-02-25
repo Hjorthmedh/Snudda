@@ -23,6 +23,7 @@ import itertools
 
 import matplotlib.pyplot as plt
 
+from snudda.utils.snudda_path import snudda_parse_path
 from .neuron_morphology import NeuronMorphology
 from .load import SnuddaLoad
 
@@ -273,16 +274,14 @@ class SnuddaInput(object):
 
         self.write_log("Loading input configuration from " + str(self.input_config_file))
 
-        with open(self.input_config_file, 'rt') as f:
+        with open(snudda_parse_path(self.input_config_file), 'rt') as f:
             self.input_info = json.load(f)
 
         for neuron_type in self.input_info:
             for input_type in self.input_info[neuron_type]:
                 if "parameterFile" in self.input_info[neuron_type][input_type]:
-                    par_file = self.input_info[neuron_type][input_type]["parameterFile"]
-
                     # Allow user to use $DATA to refer to snudda data directory
-                    par_file = par_file.replace("$DATA", os.path.join(os.path.dirname(__file__), "data"))
+                    par_file = snudda_parse_path(self.input_info[neuron_type][input_type]["parameterFile"])
 
                     with open(par_file, 'r') as f:
                         par_data_dict = json.load(f)
@@ -514,7 +513,7 @@ class SnuddaInput(object):
                     parameter_list_list.append(parameter_list)
 
                 elif input_inf["generator"] == "csv":
-                    csv_file = input_inf["csvFile"] % neuron_id
+                    csv_file = snudda_parse_path(input_inf["csvFile"] % neuron_id)
 
                     self.neuron_input[neuron_id][input_type]["spikes"] \
                         = np.genfromtxt(csv_file, delimiter=',')

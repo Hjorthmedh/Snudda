@@ -17,6 +17,7 @@ from collections import OrderedDict
 import h5py
 import json
 
+from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists
 from .neuron_morphology import NeuronMorphology
 from .region_mesh import RegionMesh
 
@@ -261,8 +262,8 @@ class SnuddaPlace(object):
                     d_view = self.d_view
                     lb_view = self.lb_view
 
-                if os.path.exists(vol_def["meshFile"]):
-                    mesh_file = vol_def["meshFile"]
+                if snudda_path_exists(vol_def["meshFile"]):
+                    mesh_file = snudda_parse_path(vol_def["meshFile"])
                 elif os.path.exists(os.path.join(self.network_path, vol_def["meshFile"])):
                     mesh_file = os.path.join(self.network_path, vol_def["meshFile"])
                 else:
