@@ -18,6 +18,8 @@ import timeit
 
 import matplotlib.pyplot as plt
 
+from snudda.utils.snudda_path import snudda_isdir, snudda_parse_path, snudda_simplify_path
+
 
 class NumpyEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -35,7 +37,7 @@ class InputScaling(object):
     def __init__(self, network_path):
 
         self.network_path = network_path
-        self.cellspec_path = None
+        self.neurons_path = None
 
         self.neuron_types = None
         self.neuron_id = None
@@ -64,11 +66,11 @@ class InputScaling(object):
 
     # Writes config files
 
-    def setup_network(self, cellspec_path, num_replicas=10, neuron_types=None):
+    def setup_network(self, neurons_path, num_replicas=10, neuron_types=None):
 
         # TODO: num_replicas should be set by a parameter, it affects how many duplicates of each neuron
         # and thus how many steps we have between n_min and n_max number of inputs specified.
-        config_def = self.create_network_config(cellspec_path=cellspec_path,
+        config_def = self.create_network_config(neurons_path=neurons_path,
                                                 num_replicas=num_replicas,
                                                 neuron_types=neuron_types)
 
@@ -76,10 +78,10 @@ class InputScaling(object):
         with open(self.network_config_file_name, "w") as f:
             json.dump(config_def, f, indent=2, cls=NumpyEncoder)
 
-        create_cube_mesh("data/mesh/InputTestMesh.obj", [0, 0, 0], 1e-3,
+        create_cube_mesh(os.path.join("data", "mesh", "InputTestMesh.obj"), [0, 0, 0], 1e-3,
                          description="Mesh file used for Input Scaling")
 
-        # Write the cellspec path to file
+        # Write the neurons path to file
         self.write_tuning_info()
 
         from snudda.place import SnuddaPlace
@@ -406,14 +408,16 @@ class InputScaling(object):
             if not show_plots:
                 plt.close()
 
-    # TODO: Add option to only do specific neuron types instead of all!!
-    # This loops through all neuron directories in cellspec in preparation of writing a network config file
+    # This loops through all single neuron directories in neurons_path
+    # in preparation of writing a network config file
+
     def gather_all_neurons(self, neuron_types=None):
         all_neurons = collections.OrderedDict()
 
-        assert os.path.isdir(self.cellspec_path), f"Cellspec directory {self.cellspec_path} does not exist."
+        assert snudda_isdir(self.neurons_path), f"Neurons directory {self.neurons_path} does not exist."
 
-        neuron_type_dir = [d for d in glob.glob(os.path.join(self.cellspec_path, '*')) if os.path.isdir(d)]
+        neuron_type_dir = [d for d in glob.glob(os.path.join(snudda_parse_path(self.neurons_path), '*'))
+                           if snudda_isdir(d)]
 
         self.neuron_types = []
 
@@ -458,13 +462,13 @@ class InputScaling(object):
                 assert os.path.isfile(parameter_file), f"Missing parameter file {parameter_file}"
                 assert os.path.isfile(mechanism_file), f"Missing mechanism file {mechanism_file}"
 
-                neuron_info["morphology"] = neuron_morph_list[0]
-                neuron_info["parameters"] = parameter_file
-                neuron_info["mechanisms"] = mechanism_file
+                neuron_info["morphology"] = snudda_simplify_path(neuron_morph_list[0])
+                neuron_info["parameters"] = snudda_simplify_path(parameter_file)
+                neuron_info["mechanisms"] = snudda_simplify_path(mechanism_file)
 
                 # Modulation file is optional
                 if os.path.isfile(modulation_file):
-                    neuron_info["modulation"] = modulation_file
+                    neuron_info["modulation"] = snudda_simplify_path(modulation_file)
 
                 neuron_name = f"{neuron_type}_{neuron_ctr}"
                 neuron_ctr += 1
@@ -481,13 +485,13 @@ class InputScaling(object):
 
     @staticmethod
     def has_axon(swc_file):
-        nm = NeuronMorphology(swc_filename=swc_file)
+        nm = NeuronMorphology(swc_filename=snudda_parse_path(swc_file))
 
         return len(nm.axon) > 0
 
-    def create_network_config(self, cellspec_path, num_replicas=10, random_seed=None, neuron_types=None):
+    def create_network_config(self, neurons_path, num_replicas=10, random_seed=None, neuron_types=None):
 
-        self.cellspec_path = cellspec_path
+        self.neurons_path = neurons_path
 
         config_def = collections.OrderedDict()
         config_def["RandomSeed"], self.init_rng = SnuddaInit.setup_random_seeds(random_seed)
@@ -748,7 +752,7 @@ class InputScaling(object):
             self.max_time = tuning_meta_data["MaxTime"]
             self.input_duration = tuning_meta_data["InputDuration"]
             self.frequency_range = tuning_meta_data["FrequencyRange"]
-            self.cellspec_path = tuning_meta_data["CellSpecDirectory"]
+            self.neurons_path = tuning_meta_data["NeuronsDirectory"]
         except:
             print(f"Failed to read {tuning_info_file}")
 
@@ -757,7 +761,7 @@ class InputScaling(object):
         tuning_meta_data["InputDuration"] = self.input_duration
         tuning_meta_data["MaxTime"] = self.max_time
         tuning_meta_data["FrequencyRange"] = self.frequency_range
-        tuning_meta_data["CellSpecDirectory"] = self.cellspec_path
+        tuning_meta_data["NeuronsDirectory"] = self.neurons_path
 
         tuning_info_file = os.path.join(self.network_path, "tuning-info.json")
         with open(tuning_info_file, "wt") as f:
@@ -770,7 +774,7 @@ if __name__ == "__main__":
     parser = ArgumentParser("Input Scaling", formatter_class=RawTextHelpFormatter)
     parser.add_argument("action", choices=["setup", "simulate", "analyse"], help="Action to run.")
     parser.add_argument("networkPath", help="Network path")
-    parser.add_argument("--cellspecs", help="Cellspecs path")
+    parser.add_argument("--neurons", help="Neurons path", target="neurons")
     parser.add_argument("--inputType", help="Type of external input",
                         choices=["thalamic", "cortical"], default="thalamic")
     parser.add_argument("--numInputSteps", type=int, help="Number of steps for number of inputs to neurons",
@@ -795,7 +799,7 @@ if __name__ == "__main__":
         if type(input_frequency) != list:
             input_frequency = np.array(list(input_frequency))
 
-        input_scaling.setup_network(cellspec_path=args.cellspecs,
+        input_scaling.setup_network(neurons_path=args.neurons,
                                     num_replicas=args.numInputSteps,
                                     neuron_types=args.neuronType)
         input_scaling.setup_input(input_type=args.inputType,

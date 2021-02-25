@@ -541,7 +541,7 @@ class SnuddaInit(object):
                         volume_type=None,
                         side_len=None,
                         # slice_depth=None,
-                        cell_spec_dir=None,
+                        neurons_dir=None,
                         neuron_density=80500):
 
         get_val = lambda x: 0 if x is None else x
@@ -614,20 +614,19 @@ class SnuddaInit(object):
                                   struct_mesh=os.path.join("$DATA", "mesh", "Striatum-mesh.obj"),
                                   mesh_bin_width=1e-4)
 
-        if cell_spec_dir is None:
-            cs_dir = os.path.join("$DATA", "neurons")
-        else:
-            cs_dir = cell_spec_dir
+        if neurons_dir is None:
+            neurons_dir = os.path.join("$DATA", "neurons")
 
-        FS_dir = os.path.join(cs_dir, "striatum", "fs")
-        dSPN_dir = os.path.join(cs_dir, "striatum", "dspn")
-        iSPN_dir = os.path.join(cs_dir, "striatum", "ispn")
-        ChIN_dir = os.path.join(cs_dir, "striatum", "chin")
-        LTS_dir = os.path.join(cs_dir, "striatum", "lts")
+        FS_dir = os.path.join(neurons_dir, "striatum", "fs")
+        dSPN_dir = os.path.join(neurons_dir, "striatum", "dspn")
+        iSPN_dir = os.path.join(neurons_dir, "striatum", "ispn")
+        ChIN_dir = os.path.join(neurons_dir, "striatum", "chin")
+        LTS_dir = os.path.join(neurons_dir, "striatum", "lts")
 
         self.reg_size = 5
 
-        if self.num_population_units == 1:
+        if not self.num_population_units or self.num_population_units == 1:
+            self.num_population_units = 1
             self.population_unit_SPN_modifier = 1
         else:
             print("!!! OBS, modifying probaiblities within and between channe")

@@ -25,7 +25,7 @@ class MyTestCase(unittest.TestCase):
         cell_spec = os.path.join(os.path.dirname(__file__), "validation")
         cnc = SnuddaInit(struct_def={}, config_file=self.config_file, num_population_units=1, random_seed=1234)
         cnc.define_striatum(num_dSPN=10, num_iSPN=0, num_FS=10, num_LTS=0, num_ChIN=0,
-                            volume_type="cube", cell_spec_dir=cell_spec)
+                            volume_type="cube", neurons_dir=cell_spec)
         cnc.write_json(self.config_file)
 
         # Place neurons
