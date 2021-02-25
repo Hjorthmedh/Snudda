@@ -72,12 +72,12 @@ def snudda_cli():
 
     input_parser = sub_parsers.add_parser("input")
     input_parser.add_argument("path", help="Location of network")
-    input_parser.add_argument("--input", help="Input json config file (for input setup)")
+    input_parser.add_argument("--input", help="Input json config file (for input setup)", default=None)
     input_parser.add_argument("--inputFile", help="Input hdf5 file (for simulation)",
-                              dest="input_file")
+                              dest="input_file", defualt=None)
     input_parser.add_argument("--networkFile", help="Network file, if not network-pruned-synapses.hdf5",
                               dest="network_file")
-    input_parser.add_argument("--time", type=float, default=2.5, help="Duration of simulation in seconds")
+    input_parser.add_argument("--time", type=float, default=None, help="Duration of simulation in seconds")
     input_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
     input_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     input_parser.add_argument("--verbose", action="store_true")

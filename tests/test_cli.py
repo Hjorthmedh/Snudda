@@ -59,7 +59,7 @@ class TestCLI(unittest.TestCase):
         copyfile("../snudda/data/input_config/input-v10-scaled.json", "tiny_parallel/input.json")
 
         with self.subTest(stage="input"):
-            run_cli_command("input tiny_parallel --input tiny_parallel/input.json --time 1.0 --parallel")
+            run_cli_command("input tiny_parallel --input tiny_parallel/input.json --parallel")
 
         # with self.subTest(stage="init-parallel-full"):
         #     run_cli_command("init large_parallel --size 1670000 --overwrite")
@@ -76,28 +76,33 @@ class TestCLI(unittest.TestCase):
             print("Running nrnivmodl:")
             os.system("nrnivmodl ../snudda/data/neurons/mechanisms")
             print("Time to run simulation...")
-            run_cli_command("simulate tiny_parallel --time 0.1")
+            run_cli_command("simulate tiny_parallel --time 0.1 --voltOut default")
 
         os.environ["SLURM_JOBID"] = "1234"
 
         with self.subTest(stage="init-serial"):
-            run_cli_command("init tiny_serial --size 100 --overwrite --profile")
+            run_cli_command("create tiny_serial --overwrite")
+            run_cli_command("init tiny_serial --size 100 --profile")
+
+        with self.subTest(stage="init-overwrite-fail"):
+            # Should not allow overwriting of existing folder if --overwrite is not specified
+            self.assertRaise(AssertionError, run_cli_command, "init tiny_serial --size 100")
 
         with self.subTest(stage="place-serial"):
             run_cli_command("place tiny_serial --h5legacy")
 
         with self.subTest(stage="detect-serial"):
-            run_cli_command("detect tiny_serial --volumeID Striatum --hvsize 120 --randomseed 123 --verbose")
+            run_cli_command("detect tiny_serial --volumeID Striatum --hvsize 120 --randomseed 123 --verbose --h5legacy")
 
         with self.subTest(stage="detect-serial-cont"):
-            run_cli_command("detect tiny_serial --volumeID Striatum --hvsize 120 --cont")
+            run_cli_command("detect tiny_serial --volumeID Striatum --hvsize 120 --cont --h5legacy")
 
         with self.subTest(stage="prune-serial-merge-only"):
-            run_cli_command("prune tiny_serial --mergeonly")  # Testing the merge only code
+            run_cli_command("prune tiny_serial --mergeonly --h5legacy")  # Testing the merge only code
 
         with self.subTest(stage="prune-serial"):
-            run_cli_command("prune tiny_serial")
+            run_cli_command("prune tiny_serial --h5legacy")
 
         copyfile("../snudda/data/input_config/input-v10-scaled.json", "tiny_serial/input.json")
         with self.subTest(stage="input"):
-            run_cli_command("input tiny_serial --input tiny_serial/input.json --time 1.0")
+            run_cli_command("input tiny_serial --time 1.0 --inputFile tiny_serial/input-spikes.hdf5")

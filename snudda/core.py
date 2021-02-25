@@ -514,7 +514,7 @@ class Snudda(object):
 
         ipython_profile = os.getenv('IPYTHON_PROFILE')
         if not ipython_profile:
-            ipython_profile = "Snudda"
+            ipython_profile = "default"
 
         ipython_dir = os.getenv('IPYTHONDIR')
         if not ipython_dir:

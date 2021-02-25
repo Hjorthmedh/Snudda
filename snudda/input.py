@@ -74,12 +74,17 @@ class SnuddaInput(object):
         self.neuron_input = None
         self.slurm_id = None
 
-        self.write_log("Time = " + str(time))
+        if time:
+            self.time = time  # How long time to generate inputs for
+        else:
+            self.time = 10
+
+        self.write_log(f"Time = {time}")
 
         self.random_seed = random_seed
 
         self.h5libver = h5libver
-        self.write_log("Using hdf5 version " + str(h5libver))
+        self.write_log(f"Using hdf5 version {h5libver}")
 
         if hdf5_network_file is not None:
             assert network_config_file is None and position_file is None, \
@@ -103,8 +108,6 @@ class SnuddaInput(object):
         if spike_data_filename is None:
             spike_data_filename = "save/input-spikes-" + str(self.network_slurm_id) + ".hdf5"
         self.spike_data_filename = spike_data_filename
-
-        self.time = time  # How long time to generate inputs for
 
         self.neuron_cache = dict([])
 
