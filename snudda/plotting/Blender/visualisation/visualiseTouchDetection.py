@@ -5,6 +5,8 @@ import bpy
 import mathutils
 import numpy as np
 import h5py
+from snudda.utils.snudda_path import snudda_parse_path
+
 
 # networkFile = "/home/hjorth/HBP/StriatumNetwork/model/SmallTest2/network-connect-voxel-pruned-synapse-file.hdf5"
 networkFile = "/home/hjorth/HBP/StriatumNetwork/model/SmallTest2/network-connect-voxel-pruned-synapse-file.hdf5"
@@ -86,7 +88,7 @@ matSynapse.node_tree.links.new(material_output.inputs[0], emission.outputs[0])
 for ps,rt,mo,nm,nID in zip(pos,rot,morph,name,neuronID):
 
   eRot = mathutils.Matrix(rt.reshape(3,3)).to_euler()
-  bpy.ops.import_mesh.swc(filepath=mo)
+  bpy.ops.import_mesh.swc(filepath=snudda_parse_path(mo))
   obj = bpy.context.selected_objects[0]
   
   obj.rotation_euler = eRot

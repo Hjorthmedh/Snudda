@@ -1507,8 +1507,6 @@ class SnuddaDetect(object):
         if config_file is None:
             config_file = self.config_file
 
-        config_file = self.get_path(config_file)
-
         self.axon_stump_id_flag = axon_stump_id_flag
 
         print("Loading from " + config_file)
@@ -1538,9 +1536,9 @@ class SnuddaDetect(object):
 
             self.write_log(f"Reading prototype for: {name}")
 
-            morph = self.get_path(definition["morphology"])
-            param = self.get_path(definition["parameters"])
-            mech = self.get_path(definition["mechanisms"])
+            morph = definition["morphology"]
+            param = definition["parameters"]
+            mech = definition["mechanisms"]
 
             if "neuronType" in definition:
                 neuron_type = definition["neuronType"]
@@ -2671,13 +2669,6 @@ class SnuddaDetect(object):
 
             # Potentially faster?
             # http://code.activestate.com/recipes/578112-bresenhams-line-algorithm-in-n-dimensions/
-
-    ############################################################################
-
-    @staticmethod
-    def get_path(path_str):
-
-        return path_str.replace("$DATA", os.path.join(os.path.dirname(__file__), "data"))
 
     ############################################################################
 

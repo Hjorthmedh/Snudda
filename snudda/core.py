@@ -47,6 +47,8 @@ import numpy as np
 import zmq
 import pkg_resources
 
+from snudda.utils.snudda_path import snudda_isfile
+
 
 def get_data_file(*dirs):
     path = os.path.join("data", *dirs)
@@ -291,7 +293,7 @@ class Snudda(object):
         else:
             input_config = os.path.join(self.network_path, "input.json")
 
-        if not os.path.isfile(input_config):
+        if not snudda_isfile(input_config):
             print(f"Missing input config file: {input_config}")
             return
 

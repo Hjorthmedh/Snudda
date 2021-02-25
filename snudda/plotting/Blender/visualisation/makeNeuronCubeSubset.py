@@ -3,6 +3,8 @@ import mathutils
 import numpy as np
 import h5py
 
+from snudda.utils.snudda_path import snudda_parse_path
+
 # The script loads this position file and renders it
 # Note that you might need to reposition the camera manually
 # if your neurons are centred around a different position
@@ -87,7 +89,7 @@ for ps,rt,mo,nm,nID in zip(pos,rot,morph,name,neuronID):
     
   else:
     print("Loading morphology " + str(mo))
-    bpy.ops.import_mesh.swc(filepath=mo)
+    bpy.ops.import_mesh.swc(filepath=snudda_parse_path(mo))
     obj = bpy.context.selected_objects[0]
     # obj = bpy.data.objects[-1]
     objLookup[mo] = obj

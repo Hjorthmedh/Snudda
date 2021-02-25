@@ -48,6 +48,8 @@ import pickle
 # !!! This also performs the pruning, since it requires knowledge of all
 #     synapses between the neurons, something not possible within a hyper voxel
 #     if the neuron crosses borders
+from snudda.utils.snudda_path import snudda_parse_path
+
 
 class SnuddaPrune(object):
 
@@ -723,7 +725,7 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    def setup_output_file(self, output_file=None):
+    def setup_output_file(self, output_file=None, save_morphologies=True):
 
         if self.out_file is not None:
             self.write_log(f"Output file already set: {self.out_file.filename}")
@@ -745,13 +747,15 @@ class SnuddaPrune(object):
         for name, definition in cfg["Neurons"].items():
             morph_file = definition["morphology"]
 
-            with open(morph_file, "r") as f:
+            with open(snudda_parse_path(morph_file), "r") as f:
                 swc_data = f.read()
 
-            self.write_log(f"Saving morphology in HDF5 file: {morph_file}")
             swc_group = morph_group.create_group(name)
-            swc_group.create_dataset("swc", data=swc_data)
             swc_group.create_dataset("location", data=morph_file)
+
+            if save_morphologies:
+                self.write_log(f"Saving morphology in HDF5 file: {morph_file}")
+                swc_group.create_dataset("swc", data=swc_data)
 
         network_group = out_file.create_group("network")
 
@@ -910,7 +914,7 @@ class SnuddaPrune(object):
             for name, definition in cfg["Neurons"].items():
                 morph_file = definition["morphology"]
 
-                with open(morph_file, "r") as f:
+                with open(snudda_parse_path(morph_file), "r") as f:
                     swc_data = f.read()
 
                 self.write_log(f"Saving morphology in HDF5 file: {morph_file}")

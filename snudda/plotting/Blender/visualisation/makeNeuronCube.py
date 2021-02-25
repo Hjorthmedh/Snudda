@@ -8,12 +8,14 @@ import h5py
 # if your neurons are centred around a different position
 
 # posFile = "../SmallTest2/network-neuron-positions.hdf5"
+from snudda.utils.snudda_path import snudda_parse_path
+
 posFile = "/home/hjorth/HBP/StriatumNetwork/model/Article-cube-2160/network-neuron-positions.hdf5"
 
 # 2174 neurons
 # posFile = "/home/hjorth/HBP/StriatumNetwork/model/Article2019HyperVoxel/network-neuron-positions.hdf5"
 
-fi = h5py.File(posFile,"r")
+fi = h5py.File(posFile, "r")
 
 neuronID = fi["network/neurons/neuronID"].value
 pos = fi["network/neurons/position"].value
@@ -74,7 +76,7 @@ for ps,rt,mo,nm,nID in zip(pos,rot,morph,name,neuronID):
     
   else:
     print("Loading morphology " + str(mo))
-    bpy.ops.import_mesh.swc(filepath=mo)
+    bpy.ops.import_mesh.swc(filepath=snudda_parse_path(mo))
     obj = bpy.context.selected_objects[0]
     # obj = bpy.data.objects[-1]
     objLookup[mo] = obj

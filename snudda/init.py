@@ -15,6 +15,10 @@ from .create_cube_mesh import create_cube_mesh
 from .create_slice_mesh import create_slice_mesh
 
 import json
+from snudda.utils.snudda_path import snudda_parse_path, snudda_simplify_path
+from snudda.utils.snudda_path import snudda_path_exists
+from snudda.utils.snudda_path import snudda_isdir
+from snudda.utils.snudda_path import snudda_isfile
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -63,8 +67,6 @@ class SnuddaInit(object):
         if self.config_file and self.network_path:
             assert self.network_path == os.path.dirname(self.config_file), \
                f"network_path {self.network_path} and config_file path {self.config_file} must match"
-
-        self.data_path = os.path.join(os.path.dirname(__file__), "data")
 
         # Population Units here refer to processing units, where the neurons within a Population Unit
         # might have different connectivity than neurons belonging to different population Units
@@ -199,7 +201,7 @@ class SnuddaInit(object):
                               z_len=slice_depth,
                               description=struct_name + " slice mesh")
 
-        if not os.path.exists(struct_mesh):
+        if not snudda_path_exists(struct_mesh):
             print(f"Warning struct mesh {struct_mesh} is missing!")
 
         assert struct_name not in self.network_data["Volume"], \
@@ -404,26 +406,33 @@ class SnuddaInit(object):
         # ie, fs/FSN_0 directory should be named FSN_0
 
         # Find which neurons are available in neuronDir
-        dir_list = glob.glob(neuron_dir + "/*")
+        dir_list = glob.glob(snudda_parse_path(neuron_dir) + "/*")
         neuron_file_list = []
 
-        assert len(dir_list) > 0, f"Neuron dir {neuron_dir} is empty!"
+        assert len(dir_list) > 0, f"Neuron dir {snudda_parse_path(neuron_dir)} is empty!"
 
-        for d in dir_list:
+        for fd in dir_list:
 
-            if os.path.isdir(d):
+            d = snudda_simplify_path(fd)
+
+            if snudda_isdir(d):
+                # We want to maintain the $DATA keyword in the path so that the user can move
+                # the config file between systems and still run it.
                 par_file = os.path.join(d, "parameters.json")
                 mech_file = os.path.join(d, "mechanisms.json")
                 modulation_file = os.path.join(d, "modulation.json")
-                if not os.path.exists(modulation_file):
+                if not snudda_path_exists(modulation_file):
                     modulation_file = None
 
-                swc_file = glob.glob(os.path.join(d, "*swc"))
-                hoc_file = glob.glob(os.path.join(d, "*hoc"))
+                sd = snudda_parse_path(d)
+                swc_file = glob.glob(os.path.join(sd, "*swc"))
+                swc_file = [snudda_simplify_path(sf) for sf in swc_file]
+                hoc_file = glob.glob(os.path.join(sd, "*hoc"))
+                hoc_file = [snudda_simplify_path(hf) for hf in hoc_file]
 
-                assert len(swc_file) == 1, f"Morph dir {d} should contain one swc file"
+                assert len(swc_file) == 1, f"Morph dir {sd} should contain one swc file"
 
-                assert len(hoc_file) <= 1, f"Morph dir {d} contains more than one hoc file"
+                assert len(hoc_file) <= 1, f"Morph dir {sd} contains more than one hoc file"
 
                 if len(hoc_file) == 0:
                     hoc_file = [None]
@@ -458,13 +467,13 @@ class SnuddaInit(object):
             unique_name = name + "_" + str(ctr)
             cell_data = dict([])
 
-            if not os.path.isfile(par_file) and model_type is not "virtual":
+            if not snudda_isfile(par_file) and model_type is not "virtual":
                 print(f"Parameter file not found: {par_file}")
 
-            if not os.path.isfile(mech_file) and model_type is not "virtual":
+            if not snudda_isfile(mech_file) and model_type is not "virtual":
                 print(f"Mechanism file not found: {mech_file}")
 
-            if hoc_file is not None and not os.path.isfile(hoc_file):
+            if hoc_file is not None and not snudda_isfile(hoc_file):
                 print(f"Hoc file not found: {hoc_file}")
 
             cell_data["morphology"] = swc_file
@@ -570,7 +579,7 @@ class SnuddaInit(object):
 
         if volume_type == "mouseStriatum":
             self.define_structure(struct_name="Striatum",
-                                  struct_mesh=os.path.join(self.data_path, "mesh", "Striatum-mesh.obj"),
+                                  struct_mesh=os.path.join("$DATA", "mesh", "Striatum-mesh.obj"),
                                   mesh_bin_width=1e-4)
 
         elif volume_type == "slice":
@@ -602,11 +611,11 @@ class SnuddaInit(object):
         else:
             # Default, full size striatum
             self.define_structure(struct_name="Striatum",
-                                  struct_mesh=os.path.join(self.data_path, "mesh", "Striatum-mesh.obj"),
+                                  struct_mesh=os.path.join("$DATA", "mesh", "Striatum-mesh.obj"),
                                   mesh_bin_width=1e-4)
 
         if cell_spec_dir is None:
-            cs_dir = os.path.join(self.data_path, "neurons")
+            cs_dir = os.path.join("$DATA", "neurons")
         else:
             cs_dir = cell_spec_dir
 
@@ -714,8 +723,8 @@ class SnuddaInit(object):
 
         # pfFSdSPN = "synapses/v1/trace_table.txt-FD-model-parameters.json"
         # pfFSiSPN = "synapses/v1/trace_table.txt-FI-model-parameters.json"
-        pfFSdSPN = os.path.join(self.data_path, "synapses", "striatum", "PlanertFitting-FD-tmgaba-fit.json")
-        pfFSiSPN = os.path.join(self.data_path, "synapses", "striatum", "PlanertFitting-FI-tmgaba-fit.json")
+        pfFSdSPN = os.path.join("$DATA", "synapses", "striatum", "PlanertFitting-FD-tmgaba-fit.json")
+        pfFSiSPN = os.path.join("$DATA", "synapses", "striatum", "PlanertFitting-FI-tmgaba-fit.json")
 
         # Increased from a3=0.1 to a3=0.7 to match FS-FS connectivity from Gittis
         self.add_neuron_target(neuron_name="FSN",
@@ -804,8 +813,8 @@ class SnuddaInit(object):
 
         # pfdSPNdSPN = "synapses/v1/trace_table.txt-DD-model-parameters.json"
         # pfdSPNiSPN = "synapses/v1/trace_table.txt-DI-model-parameters.json"
-        pfdSPNdSPN = os.path.join(self.data_path, "synapses", "striatum", "PlanertFitting-DD-tmgaba-fit.json")
-        pfdSPNiSPN = os.path.join(self.data_path, "synapses", "striatum", "PlanertFitting-DI-tmgaba-fit.json")
+        pfdSPNdSPN = os.path.join("$DATA", "synapses", "striatum", "PlanertFitting-DD-tmgaba-fit.json")
+        pfdSPNiSPN = os.path.join("$DATA", "synapses", "striatum", "PlanertFitting-DI-tmgaba-fit.json")
         pfdSPNChIN = None
 
         # Argument for distance dependent SPN-SPN synapses:
@@ -913,8 +922,8 @@ class SnuddaInit(object):
         P22withinUnit = MSP22 * self.population_unit_SPN_modifier
         P22betweenUnit = MSP22 * (1 + (1 - self.population_unit_SPN_modifier) / self.num_population_units)
 
-        pfiSPNdSPN = os.path.join(self.data_path, "synapses", "striatum", "PlanertFitting-ID-tmgaba-fit.json")
-        pfiSPNiSPN = os.path.join(self.data_path, "synapses", "striatum", "PlanertFitting-II-tmgaba-fit.json")
+        pfiSPNdSPN = os.path.join("$DATA", "synapses", "striatum", "PlanertFitting-ID-tmgaba-fit.json")
+        pfiSPNiSPN = os.path.join("$DATA", "synapses", "striatum", "PlanertFitting-II-tmgaba-fit.json")
         pfiSPNChIN = None
 
         # GABA decay från Taverna 2008
@@ -1166,7 +1175,7 @@ class SnuddaInit(object):
                               side_len=200e-6,
                               mesh_bin_width=5e-5)
 
-        cortex_dir = "morphology/InputAxons/Cortex/Reg10/"
+        cortex_dir = os.path.join("$DATA", "InputAxons", "Cortex", "Reg10")
 
         # Add cortex axon
 
@@ -1181,8 +1190,8 @@ class SnuddaInit(object):
 
         # We should have both ipsi and contra, M1 and S1 input, for now
         # picking one
-        cortexSynParMS = os.path.join(self.data_path, "synapses", "striatum", "M1RH_Analysis_190925.h5-parameters-MS.json")
-        cortexSynParFS = os.path.join(self.data_path, "synapses", "striatum", "M1RH_Analysis_190925.h5-parameters-FS.json")
+        cortexSynParMS = os.path.join("$DATA", "synapses", "striatum", "M1RH_Analysis_190925.h5-parameters-MS.json")
+        cortexSynParFS = os.path.join("$DATA", "synapses", "striatum", "M1RH_Analysis_190925.h5-parameters-FS.json")
 
         self.add_neuron_target(neuron_name="CortexAxon",
                                target_name="dSPN",
@@ -1238,7 +1247,7 @@ class SnuddaInit(object):
 
         # Define neurons
 
-        thalamus_dir = "morphology/InputAxons/Thalamus/Reg10/"
+        thalamus_dir = os.path.join("$DATA","morphology","InputAxons", "Thalamus", "Reg10")
 
         self.add_neurons("ThalamusAxon", thalamus_dir, self.num_thalamus_neurons,
                          model_type="virtual",
@@ -1247,8 +1256,8 @@ class SnuddaInit(object):
 
         # Define targets
 
-        thalamusSynParMS = os.path.join(self.data_path, "synapses", "striatum", "TH_Analysis_191001.h5-parameters-MS.json")
-        thalamusSynParFS = os.path.join(self.data_path, "synapses", "striatum", "TH_Analysis_191001.h5-parameters-FS.json")
+        thalamusSynParMS = os.path.join("$DATA", "synapses", "striatum", "TH_Analysis_191001.h5-parameters-MS.json")
+        thalamusSynParFS = os.path.join("$DATA", "synapses", "striatum", "TH_Analysis_191001.h5-parameters-FS.json")
 
         ThalamusGlutCond = [1e-9, 0.1e-9]
 
