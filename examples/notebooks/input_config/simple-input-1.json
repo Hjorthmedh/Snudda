@@ -1,6 +1,6 @@
 {
     "dSPN": {
-	"Cortical" : {
+	"Ctx" : {
 	    "generator" : "poisson",
 	    "frequency" : 1,
 	    "conductance" : 0.5e-9,

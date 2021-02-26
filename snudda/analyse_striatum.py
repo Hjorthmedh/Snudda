@@ -20,7 +20,7 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
         if os.path.isfile(sim_dir):
             # We allow the user to also send in a hdf5 file as simDir...
             hdf5_file = sim_dir
-            self.simDir = os.path.basename(sim_dir)
+            self.simDir = os.path.dirname(sim_dir)
         else:
             self.simDir = sim_dir
             hdf5_file = sim_dir + "/network-pruned-synapses.hdf5"

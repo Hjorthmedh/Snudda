@@ -225,12 +225,12 @@ class NeuronMorphology(object):
 
     ############################################################################
 
-    def write_log(self, text):
+    def write_log(self, text, is_error=False):
         if self.logFile is not None:
             self.logFile.write(f"{text}\n")
             print(text)
         else:
-            if self.verbose:
+            if self.verbose or is_error:
                 print(text)
 
     ############################################################################
@@ -385,13 +385,13 @@ class NeuronMorphology(object):
             cache_time = os.path.getmtime(cache_file)
 
             if cache_time > swc_time:
-                print("Found cache file: " + cache_file)
+                self.write_log("Found cache file: " + cache_file)
                 cache_flag = True
             else:
-                print("Found old cache file: " + cache_file)
+                self.write_log("Found old cache file: " + cache_file)
 
         else:
-            print("No cache file found.")
+            self.write_log("No cache file found.")
 
         return cache_flag
 
@@ -528,7 +528,8 @@ class NeuronMorphology(object):
                 # Increment parents child counter
                 points[int(points[idx, 6]), 9] += 1
             except:
-                print("Are there gaps in the numbering of the compartments in the SWC file: " + str(swc_file))
+                self.write_log(f"Are there gaps in the numbering of the compartments in the SWC file: {swc_file}",
+                               is_error=True)
                 import traceback
                 tstr = traceback.format_exc()
                 self.write_log(tstr)
@@ -733,8 +734,8 @@ class NeuronMorphology(object):
             self.max_dend_radius = 0
 
         if self.verbose:
-            print("Max axon radius = " + str(self.max_axon_radius))
-            print("Max dend radius = " + str(self.max_dend_radius))
+            self.write_log("Max axon radius = " + str(self.max_axon_radius))
+            self.write_log("Max dend radius = " + str(self.max_dend_radius))
 
     ############################################################################
 
@@ -750,8 +751,7 @@ class NeuronMorphology(object):
                     dend_colour=None,
                     soma_colour=None):
 
-        if self.verbose:
-            print("Plotting neuron " + self.swc_filename)
+        self.write_log(f"Plotting neuron {self.swc_filename}")
 
         if axon_colour is None:
             axon_colour = self.colour
@@ -860,7 +860,7 @@ class NeuronMorphology(object):
 
     def set_axon_voxel_radial_density(self, density, max_axon_radius):
 
-        print("Only saving equation now")
+        self.write_log("Only saving equation now")
 
         self.axon_density_type = "r"
         self.axon_density = density
@@ -872,7 +872,7 @@ class NeuronMorphology(object):
                                    density,
                                    axon_density_bounds_xyz):
 
-        print("Only saving equation now")
+        self.write_log("Only saving equation now")
 
         self.axon_density_type = "xyz"
         self.axon_density = density
@@ -923,7 +923,7 @@ class NeuronMorphology(object):
         expected_synapses = comp_density * comp_len * 1e6
 
         if num_locations is not None:
-            print("Trying to set nLocations = " + str(num_locations) + " (approx)")
+            # self.write_log("Trying to set nLocations = " + str(num_locations) + " (approx)")
             expected_synapses *= num_locations / np.sum(expected_synapses)
 
         # Number of input synapses on each compartment
@@ -986,7 +986,7 @@ class NeuronMorphology(object):
                 # ax.text(x=x1[0],y=x1[1],z=x1[2],s=str(np.around(a[4],2)),color='red')
                 ax.text(x=x[0], y=x[1], z=x[2], s=str(a[2]), color='black')
 
-                print("ID: " + str(a[2]))
+                self.write_log(f"ID: {a[2]}")
                 input(" ")
 
         ctr = 0
@@ -1002,8 +1002,8 @@ class NeuronMorphology(object):
                 ax.text(x=x[0], y=x[1], z=x[2], s=str(dID), color='black')
             ctr += 1
 
-            print("ID: " + str(dID) + " X = " + str(np.around(dX[0], 2)) + " - "
-                  + str(np.around(dX[1], 2)))
+            self.write_log("ID: " + str(dID) + " X = " + str(np.around(dX[0], 2)) + " - "
+                           + str(np.around(dX[1], 2)))
 
             if wait_flag:
                 input(" ")

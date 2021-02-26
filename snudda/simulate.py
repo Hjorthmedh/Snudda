@@ -1466,14 +1466,14 @@ class SnuddaSimulate(object):
 
     def get_spike_file_name(self):
 
-        spike_file = os.path.basename(self.network_file) + "/simulation/spike-data.txt"
+        spike_file = os.path.join(os.path.dirname(self.network_file), "simulation", "spike-data.txt")
         return spike_file
 
     ############################################################################
 
     def get_volt_file_name(self):
 
-        volt_file = os.path.basename(self.network_file) + "/simulation/simulation-volt.txt"
+        volt_file = os.path.join(os.path.dirname(self.network_file), "simulation", "simulation-volt.txt")
 
         return volt_file
 
