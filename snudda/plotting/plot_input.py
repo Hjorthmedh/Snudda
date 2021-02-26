@@ -105,6 +105,7 @@ class PlotInput(object):
 
         # Add yticks
         ax = plt.gca()
+        ax.invert_yaxis()
         ax.set_yticks(ytick_pos)
         ax.set_yticklabels(ytick_label)
         ax.set_xlabel("Time (s)")

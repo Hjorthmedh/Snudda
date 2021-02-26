@@ -668,7 +668,7 @@ class SnuddaInput(object):
         end_time = time_range[1]
         duration = end_time - start_time
 
-        assert duration > 0, f"Start time {start_time} and end time {end_time} incorrect (duration > 0 required)"
+        assert duration > 0, f"Start time = {start_time} and end time = {end_time} incorrect (duration > 0 required)"
 
         if freq > 0:
             t_diff = -np.log(1.0 - rng.random(int(np.ceil(max(1, freq * duration))))) / freq
