@@ -36,7 +36,7 @@ class PlotInput(object):
 
         # Make sure each target is a str
         input_target = [str(x) for x in input_target]
-        viridis = cm.get_cmap('tab20', len(input_target)*2)
+        colours = cm.get_cmap('tab20', len(input_target) * 2)
 
         synapse_ctr = 0
         input_ctr = 0
@@ -49,7 +49,7 @@ class PlotInput(object):
             for input_type in data:
                 for spike_train in data[input_type]:
                     idx = np.where(spike_train > 0)[0]
-                    plt.scatter(spike_train[idx], synapse_ctr * np.ones((len(idx),)), color=viridis(input_ctr))
+                    plt.scatter(spike_train[idx], synapse_ctr * np.ones((len(idx),)), color=colours(input_ctr))
                     synapse_ctr += 1
 
                 input_ctr += 1

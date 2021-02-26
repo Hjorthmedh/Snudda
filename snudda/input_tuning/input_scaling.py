@@ -297,8 +297,8 @@ class InputScaling(object):
             legend_text = []
             input_type_all = None
 
-            cmap = plt.get_cmap("Reds")
-            ax.set_prop_cycle('color', [cmap(i) for i in np.linspace(0, 1, len(frequency_data))])
+            cmap = plt.get_cmap('tab20', len(frequency_data))
+            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(frequency_data))])
 
             for num_input in frequency_data[neuron_name]:
                 input_freq, output_freq, input_type = frequency_data[neuron_name][num_input]
