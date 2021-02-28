@@ -282,14 +282,6 @@ class SnuddaPlace(object):
 
             self.write_log("Using dimensions from config file")
 
-        if "PopulationUnits" in config:
-            self.population_unit_placement_method = config["PopulationUnits"]["method"]
-            self.nPopulationUnits = config["PopulationUnits"]["nPopulationUnits"]
-
-            if self.population_unit_placement_method == "populationUnitSpheres":
-                self.population_unit_radius = config["PopulationUnits"]["radius"]
-                self.population_unit_centres = config["PopulationUnits"]["centres"]
-
         assert "Neurons" in config, \
             "No neurons defined. Is this config file old format?"
 
@@ -354,8 +346,8 @@ class SnuddaPlace(object):
         # We reorder neurons, sorting their IDs after position
         self.sort_neurons()
 
-        if self.population_unit_placement_method is not None:
-            self.define_population_units(method=self.population_unit_placement_method)
+        if "PopulationUnits" in config:
+            self.define_population_units(config["PopulationUnits"])
 
         mesh_logfile.close()
 
@@ -553,14 +545,32 @@ class SnuddaPlace(object):
 
     ############################################################################
 
-    def define_population_units(self, method="random", num_population_units=None):
+    def define_population_units(self, population_unit_info):
+
+        method_lookup = {"random" : self.random_labeling,
+                         "populationUnitSphere" : self.population_unit_spheres_labeling }
+
+        for volume_id in population_unit_info:
+
+            neuron_id = self.volume_neurons(volume_id)
+
+            method_name =  population_unit_info[volume_id]["method"]
+
+            assert method_name in method_lookup, \
+                (f"Unknown population placement method {method_name}. "
+                 f"Valid options are {', '.join([x for x in method_lookup])}")
+
+            method_lookup[method_name](population_unit_info[volume_id], neuron_id)
+
 
         if num_population_units is None:
             num_population_units = self.nPopulationUnits
 
         if method == "random":
+            assert False, "This needs to be done now on a structure by structure basis"
             self.random_labeling()
         elif method == "populationUnitSpheres":
+            assert False, "This needs to be done on a structure by structure basis -- update code"
             self.population_unit_spheres_labeling(self.population_unit_centres, self.population_unit_radius)
         else:
             self.population_unit = np.zeros((len(self.neurons),), dtype=int)
@@ -568,17 +578,54 @@ class SnuddaPlace(object):
 
     ############################################################################
 
-    def random_labeling(self, num_population_units=None):
+    def random_labeling(self, population_unit_info, neuron_id):
 
-        if num_population_units is None:
-            num_population_units = self.nPopulationUnits
+        unit_id = population_unit_info["UnitID"]
+        fraction_of_neurons = population_unit_info["fractionOfNeurons"]
+        neuron_types = population_unit_info["neuronTypes"]  # list of neuron types that belong to this population unit
+        structure_name = population_unit_info["structureName"]
 
-        self.population_unit = self.random_generator.integers(num_population_units, size=len(self.neurons))
+        # First we need to generate unit lists (with fractions) for each neuron type
+        units_available = dict()
+        for uid, fon, neuron_type_list in zip(unit_id, fraction_of_neurons, neuron_types):
+            for nt in neuron_type_list:
+                if nt not in units_available:
+                    units_available[nt] = dict()
+                    units_available[nt]["unit"] = []
+                    units_available[nt]["fraction"] = []
 
-        self.population_units = dict([])
+                units_available[nt]["unit"].append(uid)
+                units_available[nt]["fraction"].append(fon)
 
-        for i in range(0, num_population_units):
-            self.population_units[i] = np.where(self.population_unit == i)[0]
+        # Next we check that no fraction sum is larger than 1
+
+        for neuron_type in units_available:
+            assert np.sum(units_available[neuron_type]["fraction"]) <= 1, \
+                (f"Population unit fraction sum for Neuron type {neuron_type} "
+                 f"in structure {structure_name} sums to more than 1.")
+
+            assert (units_available[neuron_type]["fraction"] >= 0).all(), \
+                f"Population unit fractions must be >= 0. Please check {neuron_type} in {structure_name}"
+
+            cum_fraction = np.cumsum(units_available[neuron_type]["fraction"])
+
+            neurons_of_type = [self.neurons[nid].neuron_id for nid in neuron_id
+                               if self.neurons[nid].neuron_type == neuron_type]
+
+            rand_num = self.random_generator.uniform(len(neurons_of_type))
+
+            for nid, rn in zip(neurons_of_type, rand_num):
+                # If our randum number is smaller than the first fraction, then neuron in first pop unit
+                # if random number is between first and second cumulative fraction, then second pop unit
+                # If larger than last cum_fraction, then no pop unit was picked (and we get -1)
+                idx = np.sum(rand_num < cum_fraction) - 1
+
+                if idx >= 0:
+                    unit_id = units_available[nt]["unit"][idx]
+                    self.population_unit[nid] = unit_id
+                    self.population_units[unit_id].append(nid)
+                else:
+                    self.population_unit[nid] = 0
 
     ############################################################################
 
@@ -625,6 +672,11 @@ class SnuddaPlace(object):
         for idx, n in enumerate(self.neurons):
             assert idx == self.neurons[idx].neuron_id, \
                 "Something went wrong with sorting"
+
+    def volume_neurons(self, volume_id):
+
+        return [n.neuron_id for n in self.neurons if n.volume_id == volume_id]
+
 
     ############################################################################
 
