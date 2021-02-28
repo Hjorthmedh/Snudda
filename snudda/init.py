@@ -476,7 +476,7 @@ class SnuddaInit(object):
                                    structure_name,
                                    neuron_types,
                                    unit_centre,
-                                   unit_radius=None,
+                                   probability_function,  # Function of d (distance to centre) as string
                                    unit_id=None,):
 
         unit_id = self.setup_population_unit(unit_id)
@@ -486,12 +486,12 @@ class SnuddaInit(object):
             self.network_data["PopulationUnits"][structure_name]["method"] = "populationUnitSpheres"
 
             self.network_data["PopulationUnits"][structure_name]["centres"] = [unit_centre]
-            self.network_data["PopulationUnits"][structure_name]["radius"] = [unit_radius]
+            self.network_data["PopulationUnits"][structure_name]["ProbabilityFunctions"] = [probability_function]
             self.network_data["PopulationUnits"][structure_name]["unitID"] = [unit_id]
             self.network_data["PopulationUnits"][structure_name]["neuronTypes"] = neuron_types
         else:
             self.network_data["PopulationUnits"][structure_name]["centres"].append(unit_centre)
-            self.network_data["PopulationUnits"][structure_name]["radius"].append(unit_radius)
+            self.network_data["PopulationUnits"][structure_name]["ProbabilityFunctions"].append(probability_function)
             self.network_data["PopulationUnits"][structure_name]["unitID"].append(unit_id)
             self.network_data["PopulationUnits"][structure_name]["neuronTypes"].append(neuron_types)
 
