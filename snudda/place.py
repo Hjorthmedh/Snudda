@@ -654,6 +654,9 @@ class SnuddaPlace(object):
             rand_num = self.random_generator.uniform(size=len(unit_probability))
             member_flag = rand_num < unit_probability
 
+            #import pdb
+            #pdb.set_trace()
+
             # Currently we only allow a neuron to be member of one population unit
             n_flags = np.sum(member_flag)
             if n_flags == 0:
