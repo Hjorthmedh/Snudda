@@ -7,11 +7,7 @@ Human Brain Project 2019
 hjorth@kth.se
 
 # Funding
-This open source software code was developed in part or in whole in
-the Human Brain Project, funded from the European Union's Horizon
-2020 Framework Programme for Research and Innovation under Specific
-Grant Agreements No. 720270 and No. 785907 (Human Brain Project SGA1
-and SGA2).
+Horizon 2020 Framework Programme (785907, HBP SGA2); Horizon 2020 Framework Programme (945539, HBP SGA3); Vetenskapsrådet (VR-M-2017-02806); Swedish e-science Research Center (SeRC); KTH Digital Futures.
 
 # Installation
 
