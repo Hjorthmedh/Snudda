@@ -7,7 +7,7 @@ Human Brain Project 2019
 hjorth@kth.se
 
 # Funding
-Horizon 2020 Framework Programme (785907, HBP SGA2); Horizon 2020 Framework Programme (945539, HBP SGA3); Vetenskapsrådet (VR-M-2017-02806); Swedish e-science Research Center (SeRC); KTH Digital Future.
+Horizon 2020 Framework Programme (785907, HBP SGA2); Horizon 2020 Framework Programme (945539, HBP SGA3); Vetenskapsrådet (VR-M-2017-02806); Swedish e-science Research Center (SeRC); KTH Digital Futures.
 
 # Installation
 
