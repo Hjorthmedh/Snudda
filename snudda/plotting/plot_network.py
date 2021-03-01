@@ -130,6 +130,31 @@ class PlotNetwork(object):
 
         return neuron
 
+    def plot_populations(self):
+
+        fig = plt.figure(figsize=(6, 6.5))
+        ax = fig.gca(projection='3d')
+
+        assert "populationUnit" in self.sl.data
+
+        population_unit = self.sl.data["populationUnit"]
+        pop_units = sorted(list(set(population_unit)))
+        cmap = plt.get_cmap('tab20', len(pop_units))
+        neuron_colours = []
+
+        for idx, pu in enumerate(population_unit):
+            if pu > 0:
+                neuron_colours.append(list(cmap(pu)))
+            else:
+                neuron_colours.append([0.7, 0.7, 0.7])
+
+        neuron_colours = np.array(neuron_colours)
+
+        positions = self.sl.data["neuronPositions"]
+        cmap_helper = lambda x : cmap(population_unit[x]) if population_unit[x] > 0 else 'lightgrey'
+
+        ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], c=neuron_colours,
+                    marker='o', s=20)
 
 if __name__ == "__main__":
 
