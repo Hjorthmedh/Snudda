@@ -53,7 +53,7 @@ class PlotNetwork(object):
             for idx, pu in enumerate(population_unit):
                 colour_lookup_helper[idx] = cmap(pu)
 
-            colour_lookup = lambda x: colour_lookup_helper[x]
+            colour_lookup = lambda x: colour_lookup_helper[x] if x > 0 else 'lightgrey'
         else:
             colour_lookup = lambda x: 'black'
 
