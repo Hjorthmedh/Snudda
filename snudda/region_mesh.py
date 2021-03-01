@@ -468,7 +468,7 @@ class RegionMesh(object):
 
     def _voxel_mask_helper(self, x_range):
 
-        # Need the extra dimension at the top to make gather work
+        # Need the extra dimension at the top for "gather" work
         vm_inner = np.zeros((1, self.num_bins[0], self.num_bins[1], self.num_bins[2]), dtype=bool)
 
         for ix in x_range:

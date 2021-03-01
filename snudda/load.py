@@ -173,16 +173,12 @@ class SnuddaLoad(object):
             data["neuronPositions"] = f["network/neurons/position"][()]
             data["name"] = [SnuddaLoad.to_str(x) for x in f["network/neurons/name"][()]]
 
-            if "nPopulationUnits" in f["network/neurons"]:
-                data["nPopulationUnits"] = f["network/neurons/nPopulationUnits"][()]
+            if "populationUnitID" in f["network/neurons"]:
                 data["populationUnit"] = f["network/neurons/populationUnitID"][()]
-                data["populationUnitPlacementMethod"] = f["network/neurons/populationUnitPlacementMethod"][()]
             else:
                 if self.verbose:
                     print("No Population Units detected.")
-                data["nPopulationUnits"] = 0
-                data["populationUnit"] = np.zeros(data["nNeurons"])
-                data["populationUnitPlacementMethod"] = "none"
+                data["populationUnit"] = np.zeros(data["nNeurons"], dtype=int)
 
             if load_morph and "morphologies" in f:
                 data["morph"] = dict([])

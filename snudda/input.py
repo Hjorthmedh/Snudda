@@ -311,12 +311,9 @@ class SnuddaInput(object):
     # taken from a stream of spikes unique to that particular population unit
     # This function generates these correlated spikes
 
-    def make_population_unit_spike_trains(self, rng, num_population_units=None):
+    def make_population_unit_spike_trains(self, rng):
 
         self.write_log("Running makePopulationUnitSpikeTrains")
-
-        if num_population_units is None:
-            num_population_units = self.num_population_units
 
         self.population_unit_spikes = dict([])
 
@@ -348,7 +345,9 @@ class SnuddaInput(object):
                         if type(pop_unit_list) != list:
                             pop_unit_list = [pop_unit_list]
                     else:
-                        pop_unit_list = range(0, num_population_units)
+                        # TODO: Should this list contain all population units instead?
+                        #  -- how to retreive all pop units for cell type?
+                        pop_unit_list = [0]  # 0 = ID for cells not in a population unit
 
                     for idxPopUnit in pop_unit_list:
                         self.population_unit_spikes[cell_type][input_type][idxPopUnit] = \
@@ -423,6 +422,8 @@ class SnuddaInput(object):
                         # We have a single functional channel, but this neuron is not
                         # in that functional channel
                         continue
+                else:
+                    pop_unit_id = None
 
                 self.neuron_input[neuron_id][input_type] = dict([])
 
@@ -510,10 +511,11 @@ class SnuddaInput(object):
                     else:
                         correlation_list.append(0)
 
-                    if neuron_type in self.population_unit_spikes:
-                        # TODO: These are cleared at the end anyway, so not currently used. Remove altogether?
-                        c_spikes = self.population_unit_spikes[neuron_type][input_type][populationUnitID]
-                        population_unit_spikes_list.append(c_spikes)
+                    if neuron_type in self.population_unit_spikes \
+                            and populationUnitID in self.population_unit_spikes[neuron_type][input_type]:
+
+                            c_spikes = self.population_unit_spikes[neuron_type][input_type][populationUnitID]
+                            population_unit_spikes_list.append(c_spikes)
                     else:
                         self.write_log(f"No population spikes specified for neuron type {neuron_type}")
                         population_unit_spikes_list.append(np.array([]))
@@ -847,7 +849,6 @@ class SnuddaInput(object):
         # Make sure the position file matches the network config file
         assert (pos_info["configFile"] == self.network_config_file)
 
-        self.num_population_units = pos_info["nPopulationUnits"]
         self.population_unit_id = pos_info["populationUnit"]
 
         self.neuron_id = [n["neuronID"] for n in self.neuron_info]

@@ -151,9 +151,7 @@ class SnuddaDetect(object):
 
         self.neurons = None
         self.neuron_positions = None
-        self.num_population_units = None
         self.population_unit = None
-        self.population_unit_placement_method = None
 
         self.hyper_voxels = None
         self.hyper_voxel_id_lookup = None
@@ -161,7 +159,6 @@ class SnuddaDetect(object):
         self.hyper_voxel_width = self.hyper_voxel_size * self.voxel_size
         self.simulation_origo = None
 
-        self.population_units = dict([])
 
         self.config = None
 
@@ -592,9 +589,6 @@ class SnuddaDetect(object):
         # Store input information
         neuron_group.create_dataset("populationUnitID", data=self.population_unit,
                                     compression=self.h5compression, dtype=int)
-
-        neuron_group.create_dataset("nPopulationUnits", data=self.num_population_units)
-        neuron_group.create_dataset("populationUnitPlacementMethod", data=self.population_unit_placement_method)
 
         # Variable for axon density "r", "xyz" or "" (No axon density)
         axon_density_type = [n["axonDensityType"].encode("ascii", "ignore") if n["axonDensityType"] is not None else b""
@@ -1670,14 +1664,8 @@ class SnuddaDetect(object):
             assert neuron["name"] in self.prototype_neurons, \
                 f"Neuron type {neuron['name']} not in prototype_neurons: {self.prototype_neurons}"
 
-        # Also load the channel data
-        self.num_population_units = pos_info["nPopulationUnits"]
+        # Also load population_unit data
         self.population_unit = pos_info["populationUnit"]
-        self.population_unit_placement_method = pos_info["populationUnitPlacementMethod"]
-
-        self.population_units = dict([])
-        for i in range(0, self.num_population_units):
-            self.population_units[i] = np.where(self.population_unit == i)[0]
 
         self.write_log("Position file read.")
         del pos_info
@@ -2707,7 +2695,7 @@ class SnuddaDetect(object):
 
             # TODO: Should we not force print this?
             self.write_log(f"Processing hyper voxel : {hyper_id}/{self.hyper_voxel_id_lookup.size}"
-                           f"({num_neurons} neurons)", force_print=True)
+                           f" ({num_neurons} neurons)", force_print=True)
 
             # !!! Suggestion for optimisation. Place neurons with GJ first, then do
             # GJ touch detection, after that add rest of neurons (to get complete set)

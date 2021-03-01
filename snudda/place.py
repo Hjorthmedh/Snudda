@@ -253,8 +253,8 @@ class SnuddaPlace(object):
 
                 self.write_log(f"Using mesh_bin_width {mesh_bin_width}")
 
-                if "-cube-mesh-" in vol_def["meshFile"]:
-                    self.write_log("Cube mesh, switching to serial processing.")
+                if "-cube-mesh-" in vol_def["meshFile"] or "slice.obj" in vol_def["meshFile"]:
+                    self.write_log("Cube or slice mesh, switching to serial processing.")
                     d_view = None
                     lb_view = None
                 else:
