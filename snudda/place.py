@@ -548,6 +548,9 @@ class SnuddaPlace(object):
         method_lookup = {"random": self.random_labeling,
                          "radialDensity": self.population_unit_density_labeling}
 
+        for unit_id in population_unit_info["AllUnitID"]:
+            self.population_units[unit_id] = []
+
         for volume_id in population_unit_info:
             if volume_id in ["AllUnitID"]:
                 continue  # Not a population unit, metadata.
@@ -565,12 +568,12 @@ class SnuddaPlace(object):
 
     def random_labeling(self, population_unit_info, neuron_id):
 
-        self.init_population_units()  # This initialises population unit labelling if not alraedy allocated
+        self.init_population_units()  # This initialises population unit labelling if not already allocated
 
-        unit_id = population_unit_info["UnitID"]
+        unit_id = population_unit_info["unitID"]
         fraction_of_neurons = population_unit_info["fractionOfNeurons"]
         neuron_types = population_unit_info["neuronTypes"]  # list of neuron types that belong to this population unit
-        structure_name = population_unit_info["structureName"]
+        structure_name = population_unit_info["structure"]
 
         # First we need to generate unit lists (with fractions) for each neuron type
         units_available = dict()
@@ -592,7 +595,7 @@ class SnuddaPlace(object):
                 (f"Population unit fraction sum for Neuron type {neuron_type} "
                  f"in structure {structure_name} sums to more than 1.")
 
-            assert (units_available[neuron_type]["fraction"] >= 0).all(), \
+            assert (np.array(units_available[neuron_type]["fraction"]) >= 0).all(), \
                 f"Population unit fractions must be >= 0. Please check {neuron_type} in {structure_name}"
 
             cum_fraction = np.cumsum(units_available[neuron_type]["fraction"])
@@ -607,9 +610,9 @@ class SnuddaPlace(object):
                 # If our randum number is smaller than the first fraction, then neuron in first pop unit
                 # if random number is between first and second cumulative fraction, then second pop unit
                 # If larger than last cum_fraction, then no pop unit was picked (and we get -1)
-                idx = np.sum(rand_num < cum_fraction) - 1
+                idx = len(cum_fraction) - np.sum(rn <= cum_fraction)
 
-                if idx >= 0:
+                if idx < len(cum_fraction):
                     unit_id = units_available[nt]["unit"][idx]
                     self.population_unit[nid] = unit_id
                     self.population_units[unit_id].append(nid)

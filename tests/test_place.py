@@ -42,7 +42,6 @@ class TestPlace(unittest.TestCase):
         self.assertTrue(config_data["RandomSeed"]["simulate"] == 2825158027)
 
         self.assertTrue("Volume" in config_data)
-        self.assertTrue("PopulationUnits" in config_data)
         self.assertTrue("Connectivity" in config_data)
         self.assertTrue("Neurons" in config_data)
 
@@ -87,12 +86,12 @@ class TestPlace(unittest.TestCase):
 
         # TODO: Load hdf5 file and check that data is what we expect
 
-    def test_populatin_units(self, stage="place-pop-unit-random"):
+    def test_population_units(self, stage="place-pop-unit-random"):
 
         network_path = os.path.join(os.path.dirname(__file__), "networks", "network_place_pop_unit_random")
         cnc = SnuddaInit(struct_def={}, network_path=network_path)
         cnc.define_striatum(num_dSPN=1000, num_iSPN=1000, num_FS=20, num_LTS=0, num_ChIN=0,
-                            volume_type="slice")
+                            volume_type="cube")
         cnc.add_population_unit_random(structure_name="Striatum", neuron_types=["dSPN", "iSPN"],
                                        fraction_of_neurons=0.5)
         cnc.add_population_unit_random(structure_name="Striatum", neuron_types=["dSPN", "iSPN"],
