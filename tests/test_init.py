@@ -66,20 +66,20 @@ class TestInit(unittest.TestCase):
             cnc.define_striatum(num_dSPN=10000, num_iSPN=10000, num_FS=200, num_LTS=0, num_ChIN=0,
                                 volume_type="slice")
 
-            cnc.add_population_unit_sphere(structure_name="Striatum",
-                                           neuron_types=["dSPN", "iSPN"],
-                                           unit_centre=[0, 0, 0],
-                                           probability_function="(d < 100e-6)*1")
+            cnc.add_population_unit_density(structure_name="Striatum",
+                                            neuron_types=["dSPN", "iSPN"],
+                                            unit_centre=[0, 0, 0],
+                                            probability_function="(d < 100e-6)*1")
 
-            cnc.add_population_unit_sphere(structure_name="Striatum",
-                                           neuron_types=["dSPN", "iSPN"],
-                                           unit_centre=[300e-6, 0, 0],
-                                           probability_function="exp(-d/200e-6)")
+            cnc.add_population_unit_density(structure_name="Striatum",
+                                            neuron_types=["dSPN", "iSPN"],
+                                            unit_centre=[300e-6, 0, 0],
+                                            probability_function="exp(-d/200e-6)")
 
-            cnc.add_population_unit_sphere(structure_name="Striatum",
-                                           neuron_types=["dSPN"],
-                                           unit_centre=[0, 300e-6, 0],
-                                           probability_function="exp(-d/150e-6)")
+            cnc.add_population_unit_density(structure_name="Striatum",
+                                            neuron_types=["dSPN"],
+                                            unit_centre=[0, 300e-6, 0],
+                                            probability_function="exp(-d/150e-6)")
 
             cnc.write_json()
 

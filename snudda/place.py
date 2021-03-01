@@ -479,7 +479,7 @@ class SnuddaPlace(object):
             neuron_modulation_id[i] = n.modulation_id
 
         # Store input information
-        if not self.population_unit:
+        if self.population_unit is None:
             # If no population units were defined, then set them all to 0 (= no population unit)
             self.population_unit = np.zeros((len(self.neurons),), dtype=int)
 
@@ -546,9 +546,11 @@ class SnuddaPlace(object):
     def define_population_units(self, population_unit_info):
 
         method_lookup = {"random": self.random_labeling,
-                         "populationUnitSphere": self.population_unit_spheres_labeling }
+                         "radialDensity": self.population_unit_density_labeling}
 
         for volume_id in population_unit_info:
+            if volume_id in ["AllUnitID"]:
+                continue  # Not a population unit, metadata.
 
             neuron_id = self.volume_neurons(volume_id)
             method_name = population_unit_info[volume_id]["method"]
@@ -582,6 +584,7 @@ class SnuddaPlace(object):
                 units_available[nt]["unit"].append(uid)
                 units_available[nt]["fraction"].append(fon)
 
+        all_neuron_types = [n.name.split("_")[0] for n in self.neurons]
         # Next we check that no fraction sum is larger than 1
 
         for neuron_type in units_available:
@@ -594,10 +597,11 @@ class SnuddaPlace(object):
 
             cum_fraction = np.cumsum(units_available[neuron_type]["fraction"])
 
-            neurons_of_type = [self.neurons[nid].neuron_id for nid in neuron_id
-                               if self.neurons[nid].neuron_type == neuron_type]
+            neurons_of_type = [self.neurons[nid].neuron_id
+                               for (nid, n_type) in zip(neuron_id, all_neuron_types)
+                               if n_type == neuron_type]
 
-            rand_num = self.random_generator.uniform(len(neurons_of_type))
+            rand_num = self.random_generator.uniform(size=len(neurons_of_type))
 
             for nid, rn in zip(neurons_of_type, rand_num):
                 # If our randum number is smaller than the first fraction, then neuron in first pop unit
@@ -614,9 +618,9 @@ class SnuddaPlace(object):
 
     ############################################################################
 
-    def population_unit_spheres_labeling(self, population_unit_info, neuron_id):
+    def population_unit_density_labeling(self, population_unit_info, neuron_id):
 
-        assert population_unit_info["method"] == "populationUnitCentres"
+        assert population_unit_info["method"] == "radialDensity"
         self.init_population_units()  # This initialises population unit labelling if not alraedy allocated
 
         neuron_types = population_unit_info["neuronTypes"]
@@ -627,23 +631,24 @@ class SnuddaPlace(object):
         assert len(neuron_types) == len(centres) == len(probability_functions) == len(unit_id)
 
         # xyz = self.all_neuron_positions()
-        unit_probability = np.zeros(centres)
+        unit_probability = np.zeros(centres.shape[0])
 
         for nid in neuron_id:
 
-            pos = self.neurons[neuron_id].position
-            neuron_type = self.neurons[neuron_id.neuron_types]
+            pos = self.neurons[nid].position
+            neuron_type = self.neurons[nid].name.split("_")[0]
 
             for idx, (centre_pos, neuron_type_list, p_func) \
                     in enumerate(zip(centres, neuron_types, probability_functions)):
+
                 if neuron_type in neuron_type_list:
                     d = np.linalg.norm(pos-centre_pos)
-                    unit_probability[idx] = numexpr.evaluate(probability_functions)
+                    unit_probability[idx] = numexpr.evaluate(p_func)
                 else:
                     unit_probability[idx] = 0  # That unit does not contain this neuron type
 
             # Next we randomise membership
-            rand_num = self.random_generator.uniform(len(unit_probability))
+            rand_num = self.random_generator.uniform(size=len(unit_probability))
             member_flag = rand_num < unit_probability
 
             # Currently we only allow a neuron to be member of one population unit
@@ -651,7 +656,7 @@ class SnuddaPlace(object):
             if n_flags == 0:
                 self.population_unit[nid] = 0
             elif n_flags == 1:
-                self.population_unit[nid] = unit_id[member_flag]
+                self.population_unit[nid] = unit_id[np.where(member_flag)[0][0]]
             else:
                 # More than one unit, pick the one that had smallest relative randnum
                 idx = np.argmax(np.multiply(np.divide(unit_probability, rand_num), member_flag))

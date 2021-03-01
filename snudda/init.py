@@ -473,12 +473,12 @@ class SnuddaInit(object):
     # Centre of striatum mesh is [3540e-6,4645e-6,5081e-6]
     # Radius is now in SI units also (meters)
 
-    def add_population_unit_sphere(self,
-                                   structure_name,
-                                   neuron_types,
-                                   unit_centre,
-                                   probability_function,  # Function of d (distance to centre) as string
-                                   unit_id=None):
+    def add_population_unit_density(self,
+                                    structure_name,
+                                    neuron_types,
+                                    unit_centre,
+                                    probability_function,  # Function of d (distance to centre) as string
+                                    unit_id=None):
 
         if type(neuron_types) != list:
             neuron_types = list(neuron_types)
@@ -487,7 +487,7 @@ class SnuddaInit(object):
             
         if structure_name not in self.network_data["PopulationUnits"]:
             self.network_data["PopulationUnits"][structure_name] = collections.OrderedDict()
-            self.network_data["PopulationUnits"][structure_name]["method"] = "populationUnitSpheres"
+            self.network_data["PopulationUnits"][structure_name]["method"] = "radialDensity"
 
             self.network_data["PopulationUnits"][structure_name]["centres"] = [unit_centre]
             self.network_data["PopulationUnits"][structure_name]["ProbabilityFunctions"] = [probability_function]
@@ -525,13 +525,13 @@ class SnuddaInit(object):
 
         if "PopulationUnits" not in self.network_data:
             self.network_data["PopulationUnits"] = collections.OrderedDict([])
-            self.network_data["PopulationUnits"]["nPopulationUnits"] = 1
             self.network_data["PopulationUnits"]["AllUnitID"] = []
-        else:
-            self.network_data["PopulationUnits"]["nPopulationUnits"] += 1
 
         if not unit_id:
-            unit_id = self.network_data["PopulationUnits"]["nPopulationUnits"]
+            if self.network_data["PopulationUnits"]["AllUnitID"]:
+                unit_id = np.max(self.network_data["PopulationUnits"]["AllUnitID"]) + 1
+            else:
+                unit_id = 1
 
         assert unit_id not in self.network_data["PopulationUnits"]["AllUnitID"], f"Unit id {unit_id} already in use"
         self.network_data["PopulationUnits"]["AllUnitID"].append(unit_id)

@@ -9,10 +9,12 @@ from snudda.neuron_morphology import NeuronMorphology
 
 class PlotNetwork(object):
 
-    def __init__(self, network_file):
+    def __init__(self, network):
 
-        if os.path.isdir(network_file):
-            network_file = os.path.join(network_file, "network-pruned-synapses.hdf5")
+        if os.path.isdir(network):
+            network_file = os.path.join(network, "network-pruned-synapses.hdf5")
+        else:
+            network_file = network
 
         self.network_file = network_file
         self.sl = SnuddaLoad(self.network_file)
@@ -23,7 +25,8 @@ class PlotNetwork(object):
 
     def plot(self, plot_axon=True, plot_dendrite=True, plot_synapses=True,
              title=None, title_pad=None, show_axis=True,
-             elev_azim=None, fig_name=None, dpi=600):
+             elev_azim=None, fig_name=None, dpi=600,
+             colour_population_unit=False):
 
         if type(plot_axon) == bool:
             plot_axon = np.ones((self.sl.data["nNeurons"],), dtype=bool) * plot_axon
@@ -41,13 +44,28 @@ class PlotNetwork(object):
         else:
             simulation_origo = np.array([0, 0, 0])
 
+        if "populationUnit" in self.sl.data and colour_population_unit:
+            population_unit = self.sl.data["populationUnit"]
+            pop_units = sorted(list(set(population_unit)))
+            cmap = plt.get_cmap('tab20', len(pop_units))
+            colour_lookup_helper = dict()
+
+            for idx, pu in enumerate(population_unit):
+                colour_lookup_helper[idx] = cmap(pu)
+
+            colour_lookup = lambda x: colour_lookup_helper[x]
+        else:
+            colour_lookup = lambda x: 'black'
+
         # Plot neurons
         for neuron_info, pa, pd in zip(self.sl.data["neurons"], plot_axon, plot_dendrite):
+
+            soma_colour = colour_lookup(neuron_info["neuronID"])
             neuron = self.load_neuron(neuron_info)
             neuron.plot_neuron(axis=ax,
                                plot_axon=pa,
                                plot_dendrite=pd,
-                               soma_colour="black",
+                               soma_colour=soma_colour,
                                axon_colour="darksalmon",  #"maroon",
                                dend_colour="silver")   # Can also write colours as (0, 0, 0) -- rgb
 
