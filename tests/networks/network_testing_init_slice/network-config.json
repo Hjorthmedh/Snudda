@@ -1,11 +1,11 @@
 {
     "RandomSeed": {
-        "init": 688795421,
-        "place": 2549192170,
-        "detect": 1465292351,
-        "prune": 17277735,
-        "input": 2708483651,
-        "simulate": 3069324713
+        "init": 3968204766,
+        "place": 931038116,
+        "detect": 2239613266,
+        "prune": 1148269863,
+        "input": 67699154,
+        "simulate": 2461255673
     },
     "Volume": {
         "Striatum": {
@@ -14,14 +14,6 @@
             "meshFile": "/home/hjorth/HBP/Snudda/tests/networks/network_testing_init_slice/mesh/Striatum-slice-mesh-150mum-depth.obj",
             "meshBinWidth": 4.9999999999999996e-05
         }
-    },
-    "PopulationUnits": {
-        "nPopulationUnits": 1,
-        "method": "populationUnitSpheres",
-        "centres": [
-            []
-        ],
-        "radius": null
     },
     "Connectivity": {
         "FSN,FSN": {

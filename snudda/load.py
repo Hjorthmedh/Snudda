@@ -10,7 +10,7 @@ class SnuddaLoad(object):
 
     ############################################################################
 
-    def __init__(self, network_file, load_synapses=True, verbose=True):
+    def __init__(self, network_file, load_synapses=True, verbose=False):
 
         # This variable will only be set if the synapses are not kept in
         # memory so we can access them later, otherwise the hdf5 file is
@@ -204,12 +204,13 @@ class SnuddaLoad(object):
 
             if "synapses" in data:
                 if "gapJunctions" in data:
-                    print(f"{len(data['neurons'])} neurons with {data['nSynapses']} synapses" 
+                    print(f"Loading {len(data['neurons'])} neurons with {data['nSynapses']} synapses" 
                           f" and {data['nGapJunctions']} gap junctions")
                 else:
-                    print(f"{len(data['neurons'])} neurons with {data['synapses'].shape[0]} synapses")
+                    print(f"Loading {len(data['neurons'])} neurons with {data['synapses'].shape[0]} synapses")
 
-            print(f"Load done. {timeit.default_timer() - start_time}")
+            if self.verbose:
+                print(f"Load done. {timeit.default_timer() - start_time}")
 
         if load_synapses:
             f.close()

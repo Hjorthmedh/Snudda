@@ -30,7 +30,7 @@ class SnuddaPlace(object):
     def __init__(self,
                  config_file=None,
                  network_path=None,
-                 verbose=True,
+                 verbose=False,
                  log_file=None,
                  rc=None,
                  d_view=None,
@@ -99,10 +99,9 @@ class SnuddaPlace(object):
     def write_log(self, text):
         if self.log_file is not None:
             self.log_file.write(text + "\n")
+
+        if self.verbose:
             print(text)
-        else:
-            if self.verbose:
-                print(text)
 
     ############################################################################
 
@@ -180,7 +179,7 @@ class SnuddaPlace(object):
 
     ############################################################################
 
-    def read_config(self, config_file=None):
+    def parse_config(self, config_file=None):
 
         if config_file is None:
             config_file = self.config_file

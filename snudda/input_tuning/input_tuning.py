@@ -32,7 +32,7 @@ class NumpyEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-class InputScaling(object):
+class InputTuning(object):
 
     def __init__(self, network_path):
 
@@ -88,8 +88,8 @@ class InputScaling(object):
         from snudda.detect import SnuddaDetect
         from snudda.prune import SnuddaPrune
 
-        sp = SnuddaPlace(network_path=self.network_path, verbose=True)
-        sp.read_config()
+        sp = SnuddaPlace(network_path=self.network_path)
+        sp.parse_config()
         sp.write_data()
 
         sd = SnuddaDetect(network_path=self.network_path)
@@ -381,8 +381,8 @@ class InputScaling(object):
             fig, ax = plt.subplots()
             legend_text = []
 
-            cmap = plt.get_cmap("Reds")
-            ax.set_prop_cycle('color', [cmap(i) for i in np.linspace(0, 1, len(frequency_data))])
+            cmap = plt.get_cmap("tab20")
+            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(frequency_data))])
 
             for input_freq in freq_data[neuron_name]:
                 num_input, output_freq = freq_data[neuron_name][input_freq]
@@ -713,9 +713,7 @@ class InputScaling(object):
         pc = h.ParallelContext()
 
         sim = SnuddaSimulate(network_file=self.network_file,
-                             input_file=self.input_spikes_file,
-                             log_file=None,  # Set log file?
-                             verbose=True)
+                             input_file=self.input_spikes_file)
 
         sim.add_external_input()
         sim.check_memory_status()
@@ -792,7 +790,7 @@ if __name__ == "__main__":
 
     # TODO: Let the user choose input type, duration for each "run", frequency range, number of input range
 
-    input_scaling = InputScaling(args.networkPath)
+    input_scaling = InputTuning(args.networkPath)
 
     if args.action == "setup":
         input_frequency = ast.literal_eval(args.inputFrequency)
@@ -809,12 +807,12 @@ if __name__ == "__main__":
                                   input_frequency_range=input_frequency)
 
         print("Tip, to run in parallel on your local machine use: "
-              "mpiexec -n 4 python3 tuning/input_scaling.py simulate <yournetworkhere>")
+              "mpiexec -n 4 python3 tuning/input_tuning.py simulate <yournetworkhere>")
 
     elif args.action == "simulate":
         print("Run simulation...")
         print("Tip, to run in parallel on your local machine use: "
-              "mpiexec -n 4 python3 tuning/input_scaling.py simulate <yournetworkhere>")
+              "mpiexec -n 4 python3 tuning/input_tuning.py simulate <yournetworkhere>")
         input_scaling.simulate()
 
     elif args.action == "analyse":
@@ -826,7 +824,7 @@ if __name__ == "__main__":
         print(f"Unknown action {args.action}")
 
 
-    # python3 input_tuning/input_scaling.py setup networks/input_scaling_v1/ data/neurons/striatum/
-    # mpiexec -n 4 python3 input_tuning/input_scaling.py simulate networks/input_scaling_v1/ < input.txt &> output-tuning.txt &
+    # python3 input_tuning/input_tuning.py setup networks/input_scaling_v1/ data/neurons/striatum/
+    # mpiexec -n 4 python3 input_tuning/input_tuning.py simulate networks/input_scaling_v1/ < input.txt &> output-tuning.txt &
 
     #

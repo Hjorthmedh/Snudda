@@ -59,7 +59,7 @@ class SnuddaPrune(object):
     def __init__(self,
                  network_path,
                  logfile=None, logfile_name=None,
-                 rc=None, d_view=None, lb_view=None, role="master", verbose=True,
+                 rc=None, d_view=None, lb_view=None, role="master", verbose=False,
                  config_file=None,  # Default is to use same config_file as for detect, but you can override it
                  scratch_path=None,
                  # pre_merge_only=False,
@@ -1149,7 +1149,7 @@ class SnuddaPrune(object):
                 if os.path.exists(f):
                     os.remove(f)
             except:
-                print(f"Closing of file failed: {f}")
+                self.write_log(f"Closing of file failed: {f}")
 
         self.temp_file_list = None
 
@@ -1159,12 +1159,11 @@ class SnuddaPrune(object):
         try:
             if self.logfile is not None:
                 self.logfile.write(f"{text}\n")
-                print(text)
                 if flush:
                     self.logfile.flush()
-            else:
-                if self.verbose or is_error or force_print:
-                    print(text)
+
+            if self.verbose or is_error or force_print:
+                print(text)
         except:
             print(text)
             print("Unable to write to log file. Is log file closed?")
@@ -1457,8 +1456,9 @@ class SnuddaPrune(object):
 
                     if self.max_channel_type:
                         if self.max_channel_type != file_list[h_id]["network/maxChannelTypeID"][()]:
-                            print("Investigate")
-                            print(f"{self.max_channel_type} != {file_list[h_id]['network/maxChannelTypeID'][()]}")
+                            self.write_log("Investigate", is_error=True)
+                            self.write_log(f"{self.max_channel_type} != "
+                                           f"{file_list[h_id]['network/maxChannelTypeID'][()]}", is_error=True)
                             # import pdb
                             # pdb.set_trace()
 
@@ -1468,7 +1468,7 @@ class SnuddaPrune(object):
                              f"(differ with what is in file {file_list[h_id]['network/maxChannelTypeID'][()]})")
                     else:
                         self.max_channel_type = file_list[h_id]["network/maxChannelTypeID"][()]
-                        print(f"Setting max_channel_type to {self.max_channel_type} from h_id={h_id}")
+                        self.write_log(f"Setting max_channel_type to {self.max_channel_type} from h_id={h_id}")
 
                     chunk_size = 10000
                     lookup_iterator = \
@@ -1549,7 +1549,7 @@ class SnuddaPrune(object):
 
                 old_unique_id = unique_id
 
-                if loop_ctr % 1000000 == 0:
+                if loop_ctr % 1000000 == 0 and n_total > 1000000:
                     self.write_log(f"Worker synapses: {syn_ctr}/{n_total} (heap size: {len(synapse_heap)})",
                                    force_print=True)
 
@@ -1573,7 +1573,9 @@ class SnuddaPrune(object):
                 syn_ctr += syn_set.shape[0]
                 loop_ctr += 1
 
-            self.write_log(f"Worker synapses: {syn_ctr}/{n_total} (heap size: {len(synapse_heap)})", force_print=True)
+            if n_total > 1000000:
+                self.write_log(f"Worker synapses: {syn_ctr}/{n_total} (heap size: {len(synapse_heap)})", force_print=True)
+
             self.write_log(f"Read {syn_ctr} out of total {n_total} synapses", force_print=True)
 
             self.buffer_merge_write(h5_syn_mat, flush=True)
@@ -1639,13 +1641,13 @@ class SnuddaPrune(object):
         # !!! Special code to increase h5py cache size
         propfaid = h5py.h5p.create(h5py.h5p.FILE_ACCESS)
         settings = list(propfaid.get_cache())
-        print(settings)
+        self.write_log(settings)
         # [0, 521, 1048576, 0.75]
 
         settings[2] *= 20
         propfaid.set_cache(*settings)
         settings = propfaid.get_cache()
-        print(settings)
+        self.write_log(settings)
         # (0, 521, 5242880, 0.75)
 
         for h_id, nSyn, nOverflow in zip(self.hist_file["completed"], num_syn_hist,
@@ -1666,7 +1668,7 @@ class SnuddaPrune(object):
 
                 # !!! Temp print to check cache size
                 settings = list(fid.get_access_plist().get_cache())
-                print(settings)
+                self.write_log(settings)
 
                 # fileList[hID] = h5py.File(hFileName,'r')
                 file_list[h_id] = h5py.File(fid, drive=self.h5driver)
@@ -1676,11 +1678,11 @@ class SnuddaPrune(object):
 
                 num_synapses[h_id] = nSyn
 
-
                 if self.max_channel_type:
                     if self.max_channel_type != file_list[h_id]["network/maxChannelTypeID"][()]:
-                        print("Investigate")
-                        print(f"{self.max_channel_type} != {file_list[h_id]['network/maxChannelTypeID'][()]}")
+                        self.write_log("Investigate:", is_error=True)
+                        self.write_log(f"{self.max_channel_type} != "
+                                       f"{file_list[h_id]['network/maxChannelTypeID'][()]}", is_error=True)
                         # import pdb
                         # pdb.set_trace()
 
@@ -1690,7 +1692,7 @@ class SnuddaPrune(object):
                          f"(differ with what is in file {file_list[h_id]['network/maxChannelTypeID'][()]})")
                 else:
                     self.max_channel_type = file_list[h_id]["network/maxChannelTypeID"][()]
-                    print(f"Setting max_channel_type to {self.max_channel_type} from h_id={h_id}")
+                    self.write_log(f"Setting max_channel_type to {self.max_channel_type} from h_id={h_id}")
                 
 
                 # There should be at least the first row, otherwise nSyn = 0
@@ -1750,7 +1752,7 @@ class SnuddaPrune(object):
 
         while not done:
 
-            if loop_ctr % 1000000 == 0:
+            if loop_ctr % 1000000 == 0 and num_syn_total > 100000:
                 self.write_log(f"Synapses: {syn_ctr}/{num_syn_total} (heap size: {len(synapse_heap)})",
                                force_print=True)
 
@@ -1771,6 +1773,9 @@ class SnuddaPrune(object):
             self.buffer_merge_write(h5_syn_mat, syn_set)
             syn_ctr += syn_set.shape[0]
             loop_ctr += 1
+
+        if num_syn_total > 100000:
+            self.write_log(f"Synapses: {syn_ctr}/{num_syn_total} (heap size: {len(synapse_heap)})", force_print=True)
 
         # Flush the buffers to file
         self.buffer_merge_write(h5_syn_mat, flush=True)
@@ -2059,7 +2064,7 @@ class SnuddaPrune(object):
                        f"\nNumber of synapses removed due to too few synapses between connected pairs: "
                        f"{n_too_few_removed}"
                        f"\nNumber of synapses removed where all synapses between pairs are removed: "
-                       f"{n_all_removed}", force_print=True)
+                       f"{n_all_removed}")
 
     ############################################################################
 

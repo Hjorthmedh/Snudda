@@ -228,10 +228,9 @@ class NeuronMorphology(object):
     def write_log(self, text, is_error=False):
         if self.logFile is not None:
             self.logFile.write(f"{text}\n")
+
+        if self.verbose or is_error:
             print(text)
-        else:
-            if self.verbose or is_error:
-                print(text)
 
     ############################################################################
 
@@ -362,7 +361,8 @@ class NeuronMorphology(object):
         morph["version"] = self.cache_version
 
         assert (cache_file != self.swc_filename)
-        print("Saving cache file: " + cache_file)
+
+        self.write_log("Saving cache file: " + cache_file)
 
         import pickle
         with open(cache_file, 'wb') as cache_file:

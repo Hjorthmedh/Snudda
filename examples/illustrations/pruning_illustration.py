@@ -28,7 +28,7 @@ class PruningIllustration(object):
         sp = SnuddaPlace(config_file=self.config_file, d_view=None)
 
         print("Calling read_config")
-        sp.read_config()
+        sp.parse_config()
         print("Read done")
         sp.write_data(self.position_file)
 

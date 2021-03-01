@@ -47,7 +47,7 @@ class SnuddaInput(object):
                  random_seed=None,
                  time_interval_overlap_warning=True,
                  logfile=None,
-                 verbose=True):
+                 verbose=False):
 
         if type(logfile) == str:
             self.logfile = open(logfile, "w")
@@ -226,7 +226,7 @@ class SnuddaInput(object):
                     it_group.create_dataset("end", data=neuron_in["end"])
                     it_group.create_dataset("conductance", data=neuron_in["conductance"])
 
-                    population_unit_id = neuron_in["populationUnitID"]
+                    population_unit_id = int(neuron_in["populationUnitID"])
                     it_group.create_dataset("populationUnitID", data=population_unit_id)
 
                     # TODO: What to do with population_unit_spikes, should we have mandatory jittering for them?
@@ -413,7 +413,7 @@ class SnuddaInput(object):
                 input_inf = input_info[input_type]
 
                 if "populationUnitID" in input_inf:
-                    pop_unit_id = input_inf["populationUnitID"]
+                    pop_unit_id = int(input_inf["populationUnitID"])
 
                     if type(pop_unit_id) == list and populationUnitID not in pop_unit_id:
                         # We have a list of functional channels, but this neuron
@@ -1217,14 +1217,14 @@ class SnuddaInput(object):
     ############################################################################
 
     def write_log(self, text, flush=True, is_error=False, force_print=False):  # Change flush to False in future, debug
+
         if self.logfile is not None:
             self.logfile.write(text + "\n")
-            print(text)
             if flush:
                 self.logfile.flush()
-        else:
-            if self.verbose or is_error or force_print:
-                print(text)
+
+        if self.verbose or is_error or force_print:
+            print(text)
 
     ############################################################################
 

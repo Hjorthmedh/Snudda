@@ -1,11 +1,11 @@
 {
     "RandomSeed": {
-        "init": 124734999,
-        "place": 1681906543,
-        "detect": 895595758,
-        "prune": 2521001369,
-        "input": 3702679610,
-        "simulate": 3145506908
+        "init": 3770933207,
+        "place": 2771740452,
+        "detect": 2350501940,
+        "prune": 1179643956,
+        "input": 3585579603,
+        "simulate": 1064581061
     },
     "Volume": {
         "Striatum": {
@@ -14,23 +14,6 @@
             "meshFile": "/home/hjorth/HBP/Snudda/tests/networks/network_testing_init_cube/mesh/Striatum-cube-mesh-0.0010615573678040226.obj",
             "meshBinWidth": 0.00010615573678040226
         }
-    },
-    "PopulationUnits": {
-        "nPopulationUnits": 2,
-        "method": "populationUnitSpheres",
-        "centres": [
-            [
-                0.003009,
-                0.004114,
-                0.00455
-            ],
-            [
-                0.00407,
-                0.005175,
-                0.005611
-            ]
-        ],
-        "radius": 0.0014
     },
     "Connectivity": {
         "FSN,FSN": {
@@ -168,14 +151,14 @@
                     "f1": 0.38,
                     "softMax": 3,
                     "mu2": 2.4,
-                    "a3": 0.2,
+                    "a3": 1.0,
                     "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 },
                 "pruningOther": {
                     "f1": 0.38,
                     "softMax": 3,
                     "mu2": 2.4,
-                    "a3": 1.4,
+                    "a3": 1.0,
                     "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 }
             }
@@ -203,14 +186,14 @@
                     "f1": 0.2,
                     "softMax": 3,
                     "mu2": 2.4,
-                    "a3": 0.2,
+                    "a3": 1.0,
                     "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 },
                 "pruningOther": {
                     "f1": 0.2,
                     "softMax": 3,
                     "mu2": 2.4,
-                    "a3": 1.4,
+                    "a3": 1.0,
                     "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 }
             }
@@ -257,14 +240,14 @@
                     "f1": 0.3,
                     "softMax": 4,
                     "mu2": 2.4,
-                    "a3": 0.2,
+                    "a3": 1.0,
                     "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 },
                 "pruningOther": {
                     "f1": 0.3,
                     "softMax": 4,
                     "mu2": 2.4,
-                    "a3": 1.4,
+                    "a3": 1.0,
                     "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 }
             }
@@ -292,14 +275,14 @@
                     "f1": 0.55,
                     "softMax": 4,
                     "mu2": 2.4,
-                    "a3": 0.2,
+                    "a3": 1.0,
                     "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 },
                 "pruningOther": {
                     "f1": 0.55,
                     "softMax": 4,
                     "mu2": 2.4,
-                    "a3": 1.4,
+                    "a3": 1.0,
                     "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
                 }
             }

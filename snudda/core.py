@@ -149,7 +149,7 @@ class Snudda(object):
                          raytrace_borders=args.raytrace_borders,
                          random_seed=random_seed)
 
-        sp.read_config()
+        sp.parse_config()
         sp.write_data(position_file)
 
         self.stop_parallel()

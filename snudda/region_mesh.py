@@ -12,7 +12,7 @@ class RegionMesh(object):
     def __init__(self, filename, d_view=None, lb_view=None, role="master",
                  use_cache=True, pickle_version=-1, raytrace_borders=True,
                  d_min=15e-6, bin_width=1e-4, logfile_name=None, log_file=None,
-                 random_seed=112):
+                 random_seed=112, verbose=False):
 
         self.d_view = d_view
         self.lb_view = lb_view
@@ -20,7 +20,7 @@ class RegionMesh(object):
         self.role = role
         self.workers_initialised = False
 
-        self.verbose = True
+        self.verbose = False
         self.close_log_file = False
 
         if log_file is not None:
@@ -92,14 +92,13 @@ class RegionMesh(object):
 
             t_b = timeit.default_timer()
 
-            self.write_log("Calculation time: " + str(t_b - t_a) + " s")
+            self.write_log(f"Calculation time: {t_b - t_a} s")
 
         self.setup_voxel_list()
 
         self.setup_place_neurons(d_min=d_min)
 
-        self.write_log("Inner voxel bin volume: " \
-                       + str(np.round(self.inner_voxel_volume() * 1e9, 1)) + " mm³")
+        self.write_log(f"Inner voxel bin volume: {np.round(self.inner_voxel_volume() * 1e9, 1)} mm³")
         # !!! RUN THIS
         # self.verifyInside(100)
 
@@ -137,7 +136,7 @@ class RegionMesh(object):
                     ic = np.floor((x_point - self.min_coord) / self.bin_width)
                     self.voxel_mask_border[int(ic[0]), int(ic[1]), int(ic[2])] = 1
 
-        self.write_log("maxN = " + str(max_num))
+        self.write_log(f"maxN = {max_num}")
 
     def __del__(self):
         if self.close_log_file:
@@ -192,7 +191,7 @@ class RegionMesh(object):
             tmp.write("Exception: " + str(e))
             tmp.write("Trace:" + tstr)
             tmp.close()
-            self.write_log(tstr)
+            self.write_log(tstr, is_error=True)
             import pdb
             pdb.set_trace()
 
@@ -210,12 +209,12 @@ class RegionMesh(object):
             cache_time = os.path.getmtime(self.cache_file)
 
             if cache_time > obj_time:
-                self.write_log("Found cache file " + self.cache_file)
+                self.write_log(f"Found cache file {self.cache_file}")
                 cache_flag = True
             else:
-                self.write_log("Found old cache file (" + str(self.cache_file) + "), ignoring.")
+                self.write_log(f"Found old cache file ({self.cache_file}), ignoring.")
         else:
-            self.write_log("No mesh cache file found (" + str(self.cache_file) + ")")
+            self.write_log(f"No mesh cache file found ({self.cache_file})")
 
         return cache_flag
 
@@ -223,7 +222,7 @@ class RegionMesh(object):
 
     def load_cache(self):
 
-        self.write_log("Loading cache file: " + self.cache_file)
+        self.write_log(f"Loading cache file: {self.cache_file}")
 
         with open(self.cache_file, 'rb') as f:
             data = pickle.load(f)
@@ -269,7 +268,7 @@ class RegionMesh(object):
         data["binWidth"] = self.bin_width
         data["raytraceBorders"] = self.raytrace_borders
 
-        self.write_log("Saving mesh cache file " + self.cache_file)
+        self.write_log(f"Saving mesh cache file {self.cache_file}")
         with open(self.cache_file, 'wb') as f:
             pickle.dump(data, f, self.pickle_version)
 
@@ -311,8 +310,8 @@ class RegionMesh(object):
                     try:
                         all_faces.append([int(d) - 1 for d in digits[0]])
                     except:
-                        self.write_log("Problem with reading digits")
-                        self.write_log(row + "\nread: " + str(digits))
+                        self.write_log("Problem with reading digits", is_error=True)
+                        self.write_log(f"{row}\nread: {digits}", is_error=True)
                         import pdb
                         pdb.set_trace()
 
@@ -385,8 +384,7 @@ class RegionMesh(object):
         self.num_bins = np.array(np.ceil((self.max_coord - self.min_coord) / self.bin_width + 1),
                                  dtype=int)
 
-        self.write_log("Voxel mask: " + str(self.num_bins[0]) + "x" + str(self.num_bins[1])
-                       + "x" + str(self.num_bins[2]))
+        self.write_log(f"Voxel mask: {self.num_bins[0]} x {self.num_bins[1]} x {self.num_bins[2]}")
 
         self.voxel_mask_inner = np.zeros(self.num_bins, dtype=bool)
         self.voxel_mask_border = np.zeros(self.num_bins, dtype=bool)
@@ -432,15 +430,14 @@ class RegionMesh(object):
                 for m in inner_mask:
                     self.voxel_mask_inner = np.logical_or(self.voxel_mask_inner, m)
 
-        self.write_log("Fraction of border voxels: "
-                       + str(np.sum(self.voxel_mask_border)
-                             / np.prod(self.voxel_mask_border.shape)))
+        self.write_log(f"Fraction of border voxels: " 
+                       f"{np.sum(self.voxel_mask_border)/np.prod(self.voxel_mask_border.shape)}")
 
         self.save_cache()
 
         if np.sum(self.voxel_mask_inner) == 0:
-            self.write_log("Warning no inner voxels in mesh, check your meshBinWidth")
-            self.write_log("mesh file: " + self.filename)
+            self.write_log("Warning no inner voxels in mesh, check your meshBinWidth", is_error=True)
+            self.write_log(f"mesh file: {self.filename}", is_error=True)
 
     ############################################################################
 
@@ -475,7 +472,7 @@ class RegionMesh(object):
         vm_inner = np.zeros((1, self.num_bins[0], self.num_bins[1], self.num_bins[2]), dtype=bool)
 
         for ix in x_range:
-            self.write_log("Processing x = " + str(ix))
+            self.write_log(f"Processing x = {ix}")
 
             for iy in range(0, self.num_bins[1]):
                 for iz in range(0, self.num_bins[2]):
@@ -569,15 +566,15 @@ class RegionMesh(object):
 
         for i in range(0, num_points):
 
-            self.write_log(str(i) + "/" + str(num_points))
+            self.write_log(f"{i}/{num_points}")
             coords = np.array([x_test[i], y_test[i], z_test[i]])
 
             try:
                 assert (self.check_inside(coords) == self.ray_casting(coords))
             except:
-                self.write_log("Mismatch for coordinates: " + str(coords))
-                self.write_log("Cached: " + str(self.check_inside(coords)))
-                self.write_log("RC: " + str(self.ray_casting(coords)))
+                self.write_log(f"Mismatch for coordinates: {coords}", is_error=True)
+                self.write_log(f"Cached: {self.check_inside(coords)}", is_error=True)
+                self.write_log(f"RC: {self.ray_casting(coords)}", is_error=True)
                 import pdb
                 pdb.set_trace()
 
@@ -713,12 +710,10 @@ class RegionMesh(object):
             self.rand_ctr += 1
 
             if self.rand_ctr % 100000 == 0:
-                self.write_log("Neurons: " + str(self.neuron_ctr)
-                               + " Rejected: " + str(self.reject_ctr)
-                               + " Padding: " + str(self.padding_ctr))
+                self.write_log(f"Neurons: {self.neuron_ctr} Rejected: {self.reject_ctr} Padding: {self.padding_ctr}")
 
                 if self.neuron_ctr == 0:
-                    self.write_log("No neurons placed, check why!")
+                    self.write_log("No neurons placed, check why!", is_error=True)
                     import pdb
                     pdb.set_trace()
 
@@ -812,7 +807,7 @@ class RegionMesh(object):
                 self.reject_ctr += 1
 
         tB = timeit.default_timer()
-        self.write_log("Placed " + str(num_cells) + " in " + str(tB - t_a) + " s")
+        self.write_log(f"Placed {num_cells} in {tB - t_a} s")
 
         return self.neuron_coords[start_ctr:end_ctr, :]
 
@@ -837,15 +832,15 @@ class RegionMesh(object):
         elif shape == "sphere":
             dist = np.sqrt(np.sum(np.square(coords - centre), axis=1))
         else:
-            assert False, "Unknown shape " + str(shape) + " use cube or sphere"
+            assert False, f"Unknown shape {shape} use cube or sphere"
 
         sorted_idx = np.argsort(dist)
 
         if radius is not None:
-            self.write_log("Using radius " + str(radius))
+            self.write_log(f"Using radius {radius}")
             idx = sorted_idx[np.where(dist[sorted_idx] <= radius)]
         else:
-            self.write_log("Selecting " + str(num_neurons) + " closest neuron")
+            self.write_log(f"Selecting {num_neurons} closest neuron")
             idx = sorted_idx[:num_neurons]
 
         # Next we need to return them in the order they were originally sorted
@@ -932,7 +927,7 @@ class RegionMesh(object):
 
         for i in range(0, n_points):
 
-            self.write_log("Checking " + str(i + 1) + "/" + str(n_points))
+            self.write_log(f"Checking {i + 1}/{n_points}")
 
             if self.ray_casting(np.array([x_test[i], y_test[i], z_test[i]])):
                 self.write_log("Inside!")
@@ -971,7 +966,7 @@ class RegionMesh(object):
             cached_val = self.check_inside(coord)
 
             if ray_val == cached_val:
-                self.write_log("Checking " + str(i + 1) + "/" + str(n_points))
+                self.write_log(f"Checking {i + 1}/{n_points}")
 
             elif ray_val:
                 # Inside, but cached was wrong
@@ -1006,7 +1001,7 @@ class RegionMesh(object):
 
             ctr = ctr + 1
             if ctr % 10000 == 0:
-                self.write_log(str(ctr) + "/" + str(len(neuron_range)))
+                self.write_log(f"{ctr}/{len(neuron_range)}")
 
             d = np.sqrt(np.sum(np.square(self.neuron_coords[:self.neuron_ctr, :]
                                          - self.neuron_coords[i_neuron, :]),
@@ -1014,7 +1009,7 @@ class RegionMesh(object):
             d[i_neuron] = 1e6  # Dont count self distance
             min_dist[i_neuron] = np.min(d)
 
-        self.write_log("Closest neighbour, min = " + str(np.min(min_dist)))
+        self.write_log(f"Closest neighbour, min = {np.min(min_dist)}")
 
         import matplotlib.pyplot as plt
         from mpl_toolkits.mplot3d import Axes3D
@@ -1022,7 +1017,7 @@ class RegionMesh(object):
         if True:
             fig = plt.figure()
             plt.hist(min_dist)
-            plt.title("Closest neighbour " + str(np.min(min_dist)))
+            plt.title(f"Closest neighbour {np.min(min_dist)}")
             plt.ylabel("Count")
             plt.xlabel("Distance")
             plt.ion()
@@ -1079,8 +1074,8 @@ class RegionMesh(object):
             inside_flag = self.ray_casting(test_point)
 
             if not inside_flag:
-                self.write_log("Test point = " + str(test_point))
-                self.write_log("wrong!")
+                self.write_log(f"Test point = {test_point}", is_error=True)
+                self.write_log("wrong!", is_error=True)
                 import pdb
                 pdb.set_trace()
 
@@ -1091,16 +1086,15 @@ class RegionMesh(object):
 
     ############################################################################
 
-    def write_log(self, text, flush=True):  # Change flush to False in future, debug
+    def write_log(self, text, flush=True, is_error=False):  # Change flush to False in future, debug
 
         if self.logfile is not None:
             self.logfile.write(text + "\n")
-            print(text)
             if flush:
                 self.logfile.flush()
-        else:
-            if self.verbose:
-                print(text)
+
+        if self.verbose or is_error:
+            print(text)
 
     ############################################################################
 
