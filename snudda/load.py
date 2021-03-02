@@ -537,14 +537,10 @@ class SnuddaLoad(object):
 
         if num_neurons:
             if random_permute:
-                keep_idx = np.random.permutation(len(cell_id))
+                cell_id = np.random.permutation(cell_id)
 
-                if len(keep_idx) > num_neurons:
-                    keep_idx = keep_idx[:num_neurons]
-
-                cell_id = np.array([cell_id[x] for x in keep_idx])
-            else:
-                cell_id = np.array([cell_id[x] for x in range(num_neurons)])
+            if len(cell_id) > num_neurons:
+                cell_id = cell_id[:num_neurons]
 
         # Just double check
         assert (self.data["populationUnit"][cell_id] == population_unit).all()

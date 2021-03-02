@@ -76,9 +76,10 @@ class PlotInput(object):
 
         neuron_id = self.network_info.get_population_unit_members(population_unit_id, num_neurons,
                                                                   random_permute=True)
+
         if neuron_type:
             neuron_id2 = self.network_info.get_cell_id_of_type(neuron_type)
-            id_list = set(neuron_id).intersection(set(neuron_id2))
+            id_list = list(set(neuron_id).intersection(set(neuron_id2)))
 
             if num_neurons:
                 num_neurons = min(num_neurons, len(id_list))
