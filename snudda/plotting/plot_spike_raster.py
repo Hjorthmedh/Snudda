@@ -12,18 +12,18 @@ from snudda.load import SnuddaLoad
 import time
 
 
-class NetworkPlotSpikeRaster(object):
+class SnuddaPlotSpikeRaster(object):
 
-    def __init__(self, file_name, network_file=None, skip_time=0.0, type_order=None, end_time=2.0):
+    def __init__(self, spike_file_name, network_file=None, skip_time=0.0, type_order=None, end_time=2.0):
 
-        self.file_name = file_name
+        self.spike_file_name = spike_file_name
 
         self.time = []
         self.spike_id = []
         self.end_time = end_time
 
         try:
-            self.ID = int(re.findall('\d+', ntpath.basename(file_name))[0])
+            self.ID = int(re.findall('\d+', ntpath.basename(spike_file_name))[0])
         except:
             self.ID = 0
 
@@ -63,7 +63,7 @@ class NetworkPlotSpikeRaster(object):
 
     def read_csv(self):
 
-        data = np.genfromtxt(self.file_name, delimiter='\t')
+        data = np.genfromtxt(self.spike_file_name, delimiter='\t')
         self.time = data[:, 0] * 1e-3
         self.spike_id = data[:, 1].astype(int)
 
@@ -106,6 +106,7 @@ class NetworkPlotSpikeRaster(object):
         colours = {"dSPN".lower(): (77. / 255, 151. / 255, 1.0),
                    "iSPN".lower(): (67. / 255, 55. / 255, 181. / 255),
                    "FS".lower(): (6. / 255, 31. / 255, 85. / 255),
+                   "FSN".lower(): (6. / 255, 31. / 255, 85. / 255),
                    "ChIN".lower(): (252. / 255, 102. / 255, 0.0),
                    "LTS".lower(): (150. / 255, 63. / 255, 212. / 255)}
 
@@ -121,7 +122,7 @@ class NetworkPlotSpikeRaster(object):
         cols2 = [colours[cell_types[int(s)]] for s in self.spike_id]
 
         ax.scatter(self.time[t_idx] - skip_time,
-                   plot_lookup[self.spike_id[t_idx]],
+                   [plot_lookup[x] for x in self.spike_id[t_idx]],
                    color=[cols2[t] for t in t_idx], s=1,
                    linewidths=0.1)
 
@@ -175,7 +176,7 @@ class NetworkPlotSpikeRaster(object):
             os.makedirs(fig_path)
 
         # have updated the name of the saved file to be the same as the fileName
-        fn = os.path.basename(self.file_name)
+        fn = os.path.basename(self.spike_file_name)
         fig_name = '{}/{}{}'.format(fig_path, fn.split('.')[0], '-colour.pdf')
         print(f"Saving {fig_name}")
         plt.savefig(fig_name, dpi=600)
@@ -220,7 +221,7 @@ class NetworkPlotSpikeRaster(object):
 
     def make_plot_lookup(self, plot_idx):
 
-        plot_lookup = np.nan * np.zeros(len(plot_idx))
+        plot_lookup = dict()  # np.nan * np.zeros(len(plot_idx))
 
         for i, p in enumerate(plot_idx):
             plot_lookup[p] = i
@@ -254,11 +255,11 @@ if __name__ == "__main__":
 
     if file_name is not None:
         # type_order = ["FS", "dSPN", "LTS", "iSPN", "ChIN"]
-        type_order = ["fs", "dspn", "lts", "ispn", "chin"]
+        type_order = ["fs", "fsn", "dspn", "lts", "ispn", "chin"]
 
-        npsr = NetworkPlotSpikeRaster(file_name, network_file, skip_time=0.0,
-                                      end_time=end_time,
-                                      type_order=type_order)
+        npsr = SnuddaPlotSpikeRaster(file_name, network_file, skip_time=0.0,
+                                     end_time=end_time,
+                                     type_order=type_order)
 
     # import pdb
     # pdb.set_trace()

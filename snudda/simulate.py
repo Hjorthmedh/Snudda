@@ -52,16 +52,34 @@ from snudda.utils.snudda_path import snudda_parse_path
 
 class SnuddaSimulate(object):
 
-    def __init__(self, network_file, input_file=None,
-                 verbose=False, log_file=None,
+    def __init__(self,
+                 network_path=None,
+                 network_file=None,
+                 input_file=None,
+                 verbose=False,
+                 log_file=None,
                  disable_gap_junctions=True,
                  simulation_config=None):
 
         self.verbose = verbose
         self.log_file = log_file
 
-        self.network_file = network_file
-        self.input_file = input_file
+        if network_path:
+            self.network_path = network_path
+        elif network_file:
+            self.network_path = os.path.dirname(network_file)
+        else:
+            self.network_path = ""
+
+        if not network_file:
+            self.network_file = os.path.join(network_path, "network-pruned-synapses.hdf5")
+        else:
+            self.network_file = network_file
+
+        if not input_file:
+            self.input_file = os.path.join(network_path, "input-spikes.hdf5")
+        else:
+            self.input_file = input_file
 
         # Init
         self.snudda_loader = None
@@ -83,19 +101,19 @@ class SnuddaSimulate(object):
             sim_info = json.load(simulation_config)
 
             if "networkFile" in sim_info:
-                self.network_file = network_file
+                self.network_file = sim_info["networkFile"]
 
             if "inputFile" in sim_info:
-                self.input_file = input_file
+                self.input_file = sim_info["inputFile"]
 
-            if log_file in sim_info:
-                self.log_file = open(log_file, "w")
+            if "logFile" in sim_info:
+                self.log_file = open(sim_info["logFile"], "w")
 
         if type(self.log_file) == str:
             self.log_file = open(self.log_file, "w")
 
-        self.write_log(f"Using networkFile: {network_file}")
-        self.write_log(f"Using inputFile: {input_file}")
+        self.write_log(f"Using networkFile: {self.network_file}")
+        self.write_log(f"Using inputFile: {self.input_file}")
 
         if self.log_file is not None:
             self.write_log(f"Using logFile: {self.log_file.name}")
@@ -147,7 +165,7 @@ class SnuddaSimulate(object):
 
         # We need to initialise random streams, see Lytton el at 2016 (p2072)
 
-        self.load_network_info(network_file)
+        self.load_network_info(self.network_file)
 
         self.check_memory_status()
         self.distribute_neurons()
@@ -171,9 +189,12 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def load_network_info(self, network_file, config_file=None):
+    def load_network_info(self, network_file=None, config_file=None):
 
-        self.network_file = network_file
+        if network_file:
+            self.network_file = network_file
+        else:
+            network_file = self.network_file
 
         self.write_log(f"Worker {int(self.pc.id())} : Loading network from {network_file}")
 
