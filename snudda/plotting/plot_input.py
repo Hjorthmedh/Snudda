@@ -74,22 +74,26 @@ class PlotInput(object):
 
         assert type(population_unit_id) == int
 
-        neuron_id = self.network_info.get_population_unit_members(population_unit_id, num_neurons,
-                                                                  random_permute=True)
+        neuron_id = self.network_info.get_population_unit_members(population_unit_id)
+
+        assert np.array([self.network_info.data["populationUnit"][x] == population_unit_id for x in neuron_id]).all()
 
         if neuron_type:
             neuron_id2 = self.network_info.get_cell_id_of_type(neuron_type)
-            id_list = list(set(neuron_id).intersection(set(neuron_id2)))
+            neuron_id = list(set(neuron_id).intersection(set(neuron_id2)))
 
-            if num_neurons:
-                num_neurons = min(num_neurons, len(id_list))
-                neuron_id = np.random.permutation(id_list)[:num_neurons]
+        if num_neurons:
+            num_neurons = min(num_neurons, len(neuron_id))
+            neuron_id = np.random.permutation(neuron_id)[:num_neurons]
 
         target_id = [str(x) for x in np.sort(neuron_id)]
 
         if len(target_id) == 0:
             print(f"No neurons with population id {population_unit_id}")
             return
+
+        assert np.array([self.network_info.data["populationUnit"][int(x)] == population_unit_id
+                         for x in target_id]).all()
 
         self.plot_input_to_target(target_id, fig_size=fig_size)
 
@@ -122,7 +126,7 @@ class PlotInput(object):
                 for spike_train in data[input_type]:
                     idx = np.where(spike_train > 0)[0]
                     plt.scatter(spike_train[idx], y_pos * np.ones((len(idx),)),
-                                color=colours(input_ctr), marker='.')
+                                color=colours(input_ctr), marker='.', s=7)
                     y_pos += 1
 
                 y_pos_avg = (y_pos + y_pos_start)/2

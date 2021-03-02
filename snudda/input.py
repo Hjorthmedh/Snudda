@@ -511,11 +511,12 @@ class SnuddaInput(object):
                     else:
                         correlation_list.append(0)
 
-                    if neuron_type in self.population_unit_spikes \
-                            and populationUnitID in self.population_unit_spikes[neuron_type][input_type]:
+                    if (neuron_type in self.population_unit_spikes
+                         and input_type in self.population_unit_spikes[neuron_type]
+                             and populationUnitID in self.population_unit_spikes[neuron_type][input_type]):
 
-                            c_spikes = self.population_unit_spikes[neuron_type][input_type][populationUnitID]
-                            population_unit_spikes_list.append(c_spikes)
+                        c_spikes = self.population_unit_spikes[neuron_type][input_type][populationUnitID]
+                        population_unit_spikes_list.append(c_spikes)
                     else:
                         # self.write_log(f"No population spikes specified for neuron type {neuron_type}")
                         population_unit_spikes_list.append(None)
