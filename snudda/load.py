@@ -499,6 +499,7 @@ class SnuddaLoad(object):
     ############################################################################
 
     # Returns cellID of all neurons of neuronType
+    # OBS, random_permute is not using a controled rng, so not affected by random seed set
 
     def get_cell_id_of_type(self, neuron_type, num_neurons=None, random_permute=False):
 
@@ -510,8 +511,12 @@ class SnuddaLoad(object):
             if random_permute:
                 # Do not use this if you have a simulation with multiple
                 # workers... they might randomize differently, and you might
-                # get more or less neurons in total than you wanted
-                keep_idx = np.random.permutation(len(cell_id))[:num_neurons]
+                # fewer neurons in total than you wanted
+                keep_idx = np.random.permutation(len(cell_id))
+
+                if len(keep_idx) > num_neurons:
+                    keep_idx = keep_idx[:num_neurons]
+
                 cell_id = np.array([cell_id[x] for x in keep_idx])
             else:
                 cell_id = np.array([cell_id[x] for x in range(num_neurons)])
@@ -523,6 +528,26 @@ class SnuddaLoad(object):
 
         # Double check that all of the same type
         assert np.array([self.data["neurons"][x]["type"] == neuron_type for x in cell_id]).all()
+
+        return cell_id
+
+    def get_population_unit_members(self, population_unit, num_neurons=None, random_permute=False):
+
+        cell_id = np.where(self.data["populationUnit"] == population_unit)[0]
+
+        if num_neurons:
+            if random_permute:
+                keep_idx = np.random.permutation(len(cell_id))
+
+                if len(keep_idx) > num_neurons:
+                    keep_idx = keep_idx[:num_neurons]
+
+                cell_id = np.array([cell_id[x] for x in keep_idx])
+            else:
+                cell_id = np.array([cell_id[x] for x in range(num_neurons)])
+
+        # Just double check
+        assert (self.data["populationUnit"][cell_id] == population_unit).all()
 
         return cell_id
 

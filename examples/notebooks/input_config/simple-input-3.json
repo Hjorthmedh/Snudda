@@ -5,8 +5,21 @@
 	    "frequency" : 1,
 	    "conductance" : 0.5e-9,
 	    "nInputs" : 20,
-	    "populationCorrelation" : 1,
+	    "populationUnitCorrelation" : 1,
 	    "modFile": "tmGlut"
 	}
     }
+
+    "iSPN": {
+	"Ctx" : {
+	    "generator" : "poisson",
+	    "frequency" : 1,
+	    "conductance" : 0.5e-9,
+	    "nInputs" : 20,
+	    "populationUnitID" : 1,
+	    "populationUnitCorrelation" : 0.2,
+	    "modFile": "tmGlut"
+	}
+    }
+
 }

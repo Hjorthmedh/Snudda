@@ -35,10 +35,11 @@ class PlotInput(object):
 
         data = OrderedDict()
 
-        for input_type in self.input_data["input"][input_target]:
-            input_info = self.input_data["input"][input_target][input_type]
+        if input_target in self.input_data["input"]:
+            for input_type in self.input_data["input"][input_target]:
+                input_info = self.input_data["input"][input_target][input_type]
 
-            data[input_type] = input_info["spikes"][()]
+                data[input_type] = input_info["spikes"][()]
 
         return data
     
@@ -59,6 +60,35 @@ class PlotInput(object):
                                                           num_neurons=num_neurons,
                                                           random_permute=True)
         target_id = [str(x) for x in np.sort(neuron_id)]
+
+        if len(target_id) == 0:
+            print(f"No neurons of type {neuron_type}")
+            return
+
+        self.plot_input_to_target(target_id, fig_size=fig_size)
+
+    def plot_input_population_unit(self, population_unit_id, num_neurons, neuron_type=None, fig_size=None):
+
+        if not population_unit_id:
+            population_unit_id = 0  # 0 = no population
+
+        assert type(population_unit_id) == int
+
+        neuron_id = self.network_info.get_population_unit_members(population_unit_id, num_neurons,
+                                                                  random_permute=True)
+        if neuron_type:
+            neuron_id2 = self.network_info.get_cell_id_of_type(neuron_type)
+            id_list = set(neuron_id).intersection(set(neuron_id2))
+
+            if num_neurons:
+                num_neurons = min(num_neurons, len(id_list))
+                neuron_id = np.random.permutation(id_list)[:num_neurons]
+
+        target_id = [str(x) for x in np.sort(neuron_id)]
+
+        if len(target_id) == 0:
+            print(f"No neurons with population id {population_unit_id}")
+            return
 
         self.plot_input_to_target(target_id, fig_size=fig_size)
 

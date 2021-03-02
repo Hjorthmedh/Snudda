@@ -146,15 +146,13 @@ class PlotNetwork(object):
             if pu > 0:
                 neuron_colours.append(list(cmap(pu)))
             else:
-                neuron_colours.append([0.7, 0.7, 0.7])
+                neuron_colours.append([0.7, 0.7, 0.7, 1.0])
 
         neuron_colours = np.array(neuron_colours)
-
         positions = self.sl.data["neuronPositions"]
-        cmap_helper = lambda x : cmap(population_unit[x]) if population_unit[x] > 0 else 'lightgrey'
 
-        ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], c=neuron_colours,
-                    marker='o', s=20)
+        ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], c=neuron_colours, marker='o', s=20)
+
 
 if __name__ == "__main__":
 

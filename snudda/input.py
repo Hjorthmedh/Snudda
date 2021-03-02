@@ -84,6 +84,8 @@ class SnuddaInput(object):
         self.time_interval_overlap_warning = time_interval_overlap_warning
         self.input_info = None
         self.population_unit_spikes = None
+        self.all_population_units = None # List of all population units in simulation
+
         self.network_info = None
         self.neuron_info = None
         self.num_population_units = None
@@ -151,8 +153,6 @@ class SnuddaInput(object):
             # self.verifyCorrelation()
 
             self.check_sorted()
-
-        # !!! TODO
 
         # 1. Define what the within correlation, and between correlation should be
         #    for each neuron type. Also what input frequency should we have for each
@@ -230,7 +230,9 @@ class SnuddaInput(object):
                     it_group.create_dataset("populationUnitID", data=population_unit_id)
 
                     # TODO: What to do with population_unit_spikes, should we have mandatory jittering for them?
-                    if neuron_type in self.population_unit_spikes:
+
+                    # population_unit_id = 0 means not population unit membership, so no population spikes available
+                    if neuron_type in self.population_unit_spikes and population_unit_id > 0:
                         chan_spikes = self.population_unit_spikes[neuron_type][input_type][population_unit_id]
                     else:
                         chan_spikes = np.array([])
@@ -345,9 +347,7 @@ class SnuddaInput(object):
                         if type(pop_unit_list) != list:
                             pop_unit_list = [pop_unit_list]
                     else:
-                        # TODO: Should this list contain all population units instead?
-                        #  -- how to retreive all pop units for cell type?
-                        pop_unit_list = [0]  # 0 = ID for cells not in a population unit
+                        pop_unit_list = self.all_population_units
 
                     for idxPopUnit in pop_unit_list:
                         self.population_unit_spikes[cell_type][input_type][idxPopUnit] = \
@@ -518,7 +518,7 @@ class SnuddaInput(object):
                             population_unit_spikes_list.append(c_spikes)
                     else:
                         self.write_log(f"No population spikes specified for neuron type {neuron_type}")
-                        population_unit_spikes_list.append(np.array([]))
+                        population_unit_spikes_list.append(None)
 
                     mod_file_list.append(mod_file)
                     parameter_file_list.append(parameter_file)
@@ -877,6 +877,27 @@ class SnuddaInput(object):
         else:
             self.write_log(f"Using random seed provided by command line: {self.random_seed}")
 
+        if "PopulationUnits" in self.network_config:
+
+            all_id = []
+            for volume in self.network_config["PopulationUnits"]:
+                if "unitID" in self.network_config["PopulationUnits"][volume]:
+                    all_id += self.network_config["PopulationUnits"][volume]["unitID"]
+
+            all_id = sorted(all_id)
+
+            if "AllUnitID" in self.network_config["PopulationUnits"]:
+                self.all_population_units = sorted(self.network_config["PopulationUnits"]["AllUnitID"])
+                assert all_id == self.all_population_units, \
+                    (f"Inconsistency: AllUnitID = {self.all_population_units}, "
+                     f"but all units in unitID blocks = {all_id}")
+            else:
+                self.write_log("Missing AllUnitID tag, deriving it from unitID tag for volumes")
+                self.all_population_units = all_id
+
+        else:
+            self.all_population_units = [0]
+
     def generate_seeds(self, num_states):
 
         ss = np.random.SeedSequence(self.random_seed)
@@ -1171,8 +1192,8 @@ class SnuddaInput(object):
             conductance = None
 
             assert num_spike_trains is None or num_spike_trains == 1, \
-                "Virtual neuron " + self.neuron_name[neuron_id] \
-                + " should have only one spike train, fix nSpikeTrains in config"
+                (f"Virtual neuron {self.neuron_name[neuron_id]}"
+                 f" should have only one spike train, fix nSpikeTrains in config")
 
             # Virtual neurons input handled through touch detection
             input_loc = None
