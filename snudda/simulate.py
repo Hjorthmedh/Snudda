@@ -67,7 +67,7 @@ class SnuddaSimulate(object):
         if network_path:
             self.network_path = network_path
         elif network_file:
-            self.network_path = os.path.basedir(network_file)
+            self.network_path = os.path.dirname(network_file)
         else:
             self.network_path = ""
 

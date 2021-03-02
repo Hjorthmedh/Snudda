@@ -106,6 +106,7 @@ class SnuddaPlotSpikeRaster(object):
         colours = {"dSPN".lower(): (77. / 255, 151. / 255, 1.0),
                    "iSPN".lower(): (67. / 255, 55. / 255, 181. / 255),
                    "FS".lower(): (6. / 255, 31. / 255, 85. / 255),
+                   "FSN".lower(): (6. / 255, 31. / 255, 85. / 255),
                    "ChIN".lower(): (252. / 255, 102. / 255, 0.0),
                    "LTS".lower(): (150. / 255, 63. / 255, 212. / 255)}
 
@@ -121,7 +122,7 @@ class SnuddaPlotSpikeRaster(object):
         cols2 = [colours[cell_types[int(s)]] for s in self.spike_id]
 
         ax.scatter(self.time[t_idx] - skip_time,
-                   plot_lookup[self.spike_id[t_idx]],
+                   [plot_lookup[x] for x in self.spike_id[t_idx]],
                    color=[cols2[t] for t in t_idx], s=1,
                    linewidths=0.1)
 
@@ -220,7 +221,7 @@ class SnuddaPlotSpikeRaster(object):
 
     def make_plot_lookup(self, plot_idx):
 
-        plot_lookup = np.nan * np.zeros(len(plot_idx))
+        plot_lookup = dict()  # np.nan * np.zeros(len(plot_idx))
 
         for i, p in enumerate(plot_idx):
             plot_lookup[p] = i
@@ -254,7 +255,7 @@ if __name__ == "__main__":
 
     if file_name is not None:
         # type_order = ["FS", "dSPN", "LTS", "iSPN", "ChIN"]
-        type_order = ["fs", "dspn", "lts", "ispn", "chin"]
+        type_order = ["fs", "fsn", "dspn", "lts", "ispn", "chin"]
 
         npsr = SnuddaPlotSpikeRaster(file_name, network_file, skip_time=0.0,
                                      end_time=end_time,
