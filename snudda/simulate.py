@@ -53,7 +53,7 @@ from snudda.utils.snudda_path import snudda_parse_path
 class SnuddaSimulate(object):
 
     def __init__(self, network_file, input_file=None,
-                 verbose=True, log_file=None,
+                 verbose=False, log_file=None,
                  disable_gap_junctions=True,
                  simulation_config=None):
 
@@ -75,6 +75,10 @@ class SnuddaSimulate(object):
         self.neuron_id = None
         self.synapse_parameters = None
 
+        self.sim_start_time = 0
+        self.fih_time = None
+        self.last_sim_report_time = 0
+
         if simulation_config:
             sim_info = json.load(simulation_config)
 
@@ -90,11 +94,11 @@ class SnuddaSimulate(object):
         if type(self.log_file) == str:
             self.log_file = open(self.log_file, "w")
 
-        self.write_log("Using networkFile: " + str(network_file))
-        self.write_log("Using inputFile: " + str(input_file))
+        self.write_log(f"Using networkFile: {network_file}")
+        self.write_log(f"Using inputFile: {input_file}")
 
         if self.log_file is not None:
-            self.write_log("Using logFile: " + str(self.log_file.name))
+            self.write_log(f"Using logFile: {self.log_file.name}")
 
         # !!! What value to use for synaptic weight and synapse delay?
         # !!! different for AMPA and GABA?
@@ -368,8 +372,7 @@ class SnuddaSimulate(object):
                 # Register ID as belonging to this worker node
                 self.pc.set_gid2node(ID, int(self.pc.id()))
 
-                if True or False:
-                    self.write_log("Node " + str(int(self.pc.id())) + " - cell " + str(ID) + " " + name)
+                self.write_log(f"Node {int(self.pc.id())} - cell {ID} {name}")
 
                 # We need to instantiate the cell
                 self.neurons[ID].instantiate(sim=self.sim)
@@ -463,7 +466,7 @@ class SnuddaSimulate(object):
         except:
             import traceback
             tstr = traceback.format_exc()
-            self.write_log(tstr)
+            self.write_log(tstr, is_error=True)
 
             assert False, "find_next_synapse_group: If synapses was not loaded into memory, your problem is probably " \
                           + "that the HDF5 file that holds the synapses were closed. Sorry."
@@ -555,7 +558,7 @@ class SnuddaSimulate(object):
             except:
                 import traceback
                 tstr = traceback.format_exc()
-                self.write_log(tstr)
+                self.write_log(tstr, is_error=True)
                 import pdb
                 pdb.set_trace()
 
@@ -655,8 +658,6 @@ class SnuddaSimulate(object):
     def connect_network_gap_junctions(self):
 
         self.write_log("connectNetworkGapJunctions")
-
-        self.write_log("!!! Please verify connectNeuronGapJunctions function, that currents go bidirectionally")
 
         # This loops through all the synapses, and connects the relevant ones
         next_row = 0
@@ -774,7 +775,7 @@ class SnuddaSimulate(object):
 
             if gj_coords.shape[0] > 0:
 
-                self.write_log("Looking for " + str(gj_coords.shape[0]) + " gap junctions")
+                self.write_log(f"Looking for {gj_coords.shape[0]} gap junctions")
 
                 # Get the compartment location of each coordinate
                 gj_dend_loc = self.neurons[ID].find_dend_compartment(gj_coords,
@@ -857,7 +858,7 @@ class SnuddaSimulate(object):
         else:
             synapse_delay = self.synapse_delay
 
-        #    self.write_log("Synapse delay: " + str(synapse_delay) + " ms")
+        #    self.write_log(f"Synapse delay: {synapse_delay} ms")
 
         # What do we do if the GID does not exist?
         # print("GID exists:" + str(self.pc.gid_exists(cellIDsource)))
@@ -925,7 +926,7 @@ class SnuddaSimulate(object):
         if input_file is None:
             input_file = self.input_file
 
-        self.write_log("Adding external (cortical, thalamic) input from " + input_file)
+        self.write_log(f"Adding external (cortical, thalamic) input from {input_file}")
 
         self.input_data = h5py.File(input_file, 'r')
 
@@ -935,7 +936,7 @@ class SnuddaSimulate(object):
             name = neuron.name
 
             if str(neuron_id) not in self.input_data["input"]:
-                self.write_log("Warning - No input specified for " + name)
+                self.write_log(f"Warning - No input specified for {name}", is_error=True)
                 continue
 
             for inputType in self.input_data["input"][str(neuron_id)]:
@@ -1037,7 +1038,7 @@ class SnuddaSimulate(object):
         if rest_volt is None:
             # If no resting voltage is given, extract it from parameters
             rest_volt = [x for x in self.neurons[neuron_id].parameters if x["param_name"] == "v_init"][0]["value"]
-            self.write_log("Neuron " + self.neurons[neuron_id].name + " resting voltage = " + str(rest_volt))
+            self.write_log(f"Neuron {self.neurons[neuron_id].name} resting voltage = {rest_volt}")
 
         soma = [x for x in self.neurons[neuron_id].icell.soma]
         axon = [x for x in self.neurons[neuron_id].icell.axon]
@@ -1123,18 +1124,18 @@ class SnuddaSimulate(object):
             except:
                 import traceback
                 tstr = traceback.format_exc()
-                self.write_log(tstr)
+                self.write_log(tstr, is_error=True)
                 import pdb
                 pdb.set_trace()
 
-            self.write_log("Adding voltage clamp to " + str(cID))
+            self.write_log(f"Adding voltage clamp to {cID}")
             s = self.neurons[cID].icell.soma[0]
             vc = neuron.h.SEClamp(s(0.5))
             vc.rs = rs
             vc.amp1 = v * 1e3
             vc.dur1 = dur * 1e3
 
-            self.write_log("Resistance: " + str(rs) + ", voltage: " + str(vc.amp1) + "mV")
+            self.write_log(f"Resistance: {rs}, voltage: {vc.amp1}mV")
 
             self.v_clamp_list.append(vc)
 
@@ -1176,7 +1177,7 @@ class SnuddaSimulate(object):
                 self.v_save.append(v)
                 self.v_key.append(cellKey)
             except Exception as e:
-                self.write_log("Error: " + str(e))
+                self.write_log(f"Error: {e}", is_error=True)
                 import pdb
                 pdb.set_trace()
 
@@ -1195,7 +1196,7 @@ class SnuddaSimulate(object):
         if hold_v is None:
             self.sim.neuron.h.finitialize()
         else:
-            self.write_log("User override for holding voltage: " + str(hold_v * 1e3) + " mV")
+            self.write_log(f"User override for holding voltage: {hold_v * 1e3} mV")
             self.sim.neuron.h.finitialize(hold_v * 1e3)
 
         # Asked on neuron, check answer:
@@ -1203,14 +1204,14 @@ class SnuddaSimulate(object):
 
         # Make sure all processes are synchronised
         self.pc.barrier()
-        self.write_log("Running simulation for " + str(t / 1000) + " s")
+        self.write_log(f"Running simulation for {t / 1000} s", force_print=True)
         # self.sim.psolve(t)
         self.sim.run(t, dt=0.025)
         self.pc.barrier()
         self.write_log("Simulation done.")
 
         end_time = timeit.default_timer()
-        self.write_log("Simulation run time: " + str(end_time - start_time) + " s")
+        self.write_log(f"Simulation run time: {end_time - start_time} s", force_print=True)
 
     ############################################################################
 
@@ -1239,7 +1240,7 @@ class SnuddaSimulate(object):
         if output_file is None:
             output_file = self.get_spike_file_name()
 
-        self.write_log("Writing spike times to " + output_file)
+        self.write_log(f"Writing spike times to {output_file}", force_print=True)
 
         for i in range(int(self.pc.nhost())):
             self.pc.barrier()  # sync all processes
@@ -1307,7 +1308,8 @@ class SnuddaSimulate(object):
                            + "( " + str(dest_id) + ") "
                            + " that are further than " + str(bad_threshold) + "mum away."
                            + " morphology: "
-                           + self.network_info["neurons"][dest_id]["morphology"])
+                           + self.network_info["neurons"][dest_id]["morphology"],
+                           is_error=True)
 
             ### DEBUG PLOT!!!
 
@@ -1425,15 +1427,14 @@ class SnuddaSimulate(object):
 
     ##############################################################################
 
-    def write_log(self, text, flush=True):
+    def write_log(self, text, flush=True, is_error=False, force_print=False):
         if self.log_file is not None:
             self.log_file.write(text + "\n")
-            print(text)
             if flush:
                 self.log_file.flush()
-        else:
-            if self.verbose:
-                print(text)
+
+        if self.verbose or is_error or force_print:
+            print(text)
 
     ############################################################################
 
@@ -1466,14 +1467,14 @@ class SnuddaSimulate(object):
 
     def get_spike_file_name(self):
 
-        spike_file = os.path.basename(self.network_file) + "/simulation/spike-data.txt"
+        spike_file = os.path.join(os.path.dirname(self.network_file), "simulation", "spike-data.txt")
         return spike_file
 
     ############################################################################
 
     def get_volt_file_name(self):
 
-        volt_file = os.path.basename(self.network_file) + "/simulation/simulation-volt.txt"
+        volt_file = os.path.join(os.path.dirname(self.network_file), "simulation", "simulation-volt.txt")
 
         return volt_file
 
@@ -1488,6 +1489,7 @@ class SnuddaSimulate(object):
             self.t_max = t_max
             self.sim_start_time = timeit.default_timer()
             self.fih_time = h.FInitializeHandler((self._setup_print_sim_time_helper, t_max))
+            self.last_sim_report_time = 0
 
     ############################################################################
 
@@ -1504,8 +1506,15 @@ class SnuddaSimulate(object):
         fraction_done = h.t / self.t_max
         time_left = elapsed_time * ((self.t_max - h.t) / h.t)
 
+        # Do not print status update too often
+        if cur_time - self.last_sim_report_time > 100 or fraction_done > 0.99:
+            force_print = True
+            self.last_sim_report_time = cur_time
+        else:
+            force_print = False
+
         self.write_log("%.0f%% done. Elapsed: %.1f s, estimated time left: %.1f s"
-                       % (fraction_done * 100, elapsed_time, time_left))
+                       % (fraction_done * 100, elapsed_time, time_left), force_print=force_print)
 
     ############################################################################
 
@@ -1515,8 +1524,7 @@ class SnuddaSimulate(object):
 
         memory_ratio = mem_available / mem_total
 
-        self.write_log(str(self.pc.id()) + ": Memory status: "
-                       + str(int(memory_ratio * 100)) + "% free")
+        self.write_log(f"{self.pc.id()} : Memory status: {int(memory_ratio * 100)}% free")
 
         return memory_ratio < threshold
 

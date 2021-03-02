@@ -1,0 +1,37 @@
+{
+	"dSPN": {
+		"Ctx": {
+			"generator": "poisson",
+			"start": [2, 5],
+			"end": [3, 7],
+			"frequency": [4, 2],
+			"conductance": 0.5e-9,
+			"nInputs": 20,
+			"modFile": "tmGlut"
+		}
+	},
+
+	"dSPN_0": {
+		"Ctx": {
+			"generator": "poisson",
+			"start": 0,
+			"end": 10,
+			"frequency": 1,
+			"conductance": 0.5e-9,
+			"nInputs": 20,
+			"modFile": "tmGlut"
+		}
+	},
+
+	"5": {
+		"Ctx": {
+			"generator": "poisson",
+			"start": 2,
+			"end": 10,
+			"frequency": 3,
+			"conductance": 0.5e-9,
+			"nInputs": 25,
+			"modFile": "tmGlut"
+		}
+	}
+}

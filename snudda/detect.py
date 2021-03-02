@@ -42,7 +42,7 @@ class SnuddaDetect(object):
                  position_file=None,
                  voxel_size=3e-6,  # 2e-6,
                  hyper_voxel_size=100,  # 250, #100,
-                 verbose=True,
+                 verbose=False,
                  logfile_name=None,
                  logfile=None,
                  save_file=None,
@@ -151,9 +151,7 @@ class SnuddaDetect(object):
 
         self.neurons = None
         self.neuron_positions = None
-        self.num_population_units = None
         self.population_unit = None
-        self.population_unit_placement_method = None
 
         self.hyper_voxels = None
         self.hyper_voxel_id_lookup = None
@@ -161,7 +159,6 @@ class SnuddaDetect(object):
         self.hyper_voxel_width = self.hyper_voxel_size * self.voxel_size
         self.simulation_origo = None
 
-        self.population_units = dict([])
 
         self.config = None
 
@@ -273,7 +270,7 @@ class SnuddaDetect(object):
                 self.setup_work_history(self.work_history_file)
             else:
                 # Open old file with work history
-                print("Reusing old work history file " + str(self.work_history_file))
+                self.write_log(f"Reusing old work history file {self.work_history_file}")
                 self.work_history = h5py.File(self.work_history_file, "r+", libver=self.h5libver)
 
             # For each neuron we need to find which hyper voxel it belongs to
@@ -348,6 +345,8 @@ class SnuddaDetect(object):
 
         self.write_log(f"parallel_process_hyper_voxels: Using {n_workers} worker")
 
+        info_msg_written = False
+
         while job_idx < len(remaining) or busy_ctr > 0:
 
             if worker_status[worker_idx] is not None:
@@ -378,12 +377,20 @@ class SnuddaDetect(object):
                                        f"(execution time {exec_time} s)", is_error=True)
                         self.voxel_overflow_counter += voxel_overflow_ctr
                     else:
-                        self.write_log(f"HyperID {hyper_id}  completed - {num_syn} synapses found ({exec_time} s)")
+                        if exec_time > 100 or self.verbose:
+                            # Only print the long running hyper voxels
+                            self.write_log(f"HyperID {hyper_id} completed " 
+                                           f"- {num_syn} synapses found ({np.around(exec_time,1)} s)",
+                                           force_print=True)
+                        elif not info_msg_written:
+                            self.write_log(f"Suppressing printouts for hyper voxels that complete in < 100 seconds.",
+                                           force_print=True)
+                            info_msg_written = True
 
             # Check that there are neurons in the hyper voxel, otherwise skip it.
             if worker_status[worker_idx] is None and job_idx < len(remaining):
                 self.write_log(f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}"
-                               f" Starting hyper voxel {remaining[job_idx]} on worker {worker_idx}", force_print=True)
+                               f" Starting hyper voxel {remaining[job_idx]} on worker {worker_idx}")
 
                 cmd_str = f"result = nc.process_hyper_voxel({remaining[job_idx]})"
                 worker_status[worker_idx] = rc[worker_idx].execute(cmd_str, block=False)
@@ -494,7 +501,7 @@ class SnuddaDetect(object):
                     data_name + " mismatch " + str(data) + " vs " \
                     + str(self.work_history["meta/" + data_name][()])
 
-        print("Write neuron data to file")
+        self.write_log("Write neuron data to file")
 
         network_group = self.work_history.create_group("network")
 
@@ -582,9 +589,6 @@ class SnuddaDetect(object):
         # Store input information
         neuron_group.create_dataset("populationUnitID", data=self.population_unit,
                                     compression=self.h5compression, dtype=int)
-
-        neuron_group.create_dataset("nPopulationUnits", data=self.num_population_units)
-        neuron_group.create_dataset("populationUnitPlacementMethod", data=self.population_unit_placement_method)
 
         # Variable for axon density "r", "xyz" or "" (No axon density)
         axon_density_type = [n["axonDensityType"].encode("ascii", "ignore") if n["axonDensityType"] is not None else b""
@@ -996,7 +1000,7 @@ class SnuddaDetect(object):
             print("Second plot same, but for axons")
             self.plot_hyper_voxel(plot_neurons=True, draw_axons=False)
             self.plot_hyper_voxel(plot_neurons=True, draw_dendrites=False)
-
+            # This is for debug purposes
             import pdb
             pdb.set_trace()
 
@@ -1132,7 +1136,7 @@ class SnuddaDetect(object):
         r_p = np.sort(uvr[:, 2] * r_cum_distribution[-1], axis=0)
         next_idx = 0
 
-        print("nPoints = " + str(num_points))
+        self.write_log(f"nPoints = {num_points}")
 
         r = np.zeros((num_points,))
 
@@ -1503,12 +1507,11 @@ class SnuddaDetect(object):
     def write_log(self, text, flush=True, is_error=False, force_print=False):  # Change flush to False in future, debug
         if self.logfile is not None:
             self.logfile.write(f"{text}\n")
-            print(text)
             if flush:
                 self.logfile.flush()
-        else:
-            if self.verbose or is_error or force_print:
-                print(text)
+
+        if self.verbose or is_error or force_print:
+            print(text)
 
     ############################################################################
 
@@ -1519,7 +1522,7 @@ class SnuddaDetect(object):
 
         self.axon_stump_id_flag = axon_stump_id_flag
 
-        print("Loading from " + config_file)
+        self.write_log(f"Loading from {config_file}")
 
         cfg_file = open(str(config_file), 'r')
 
@@ -1661,14 +1664,8 @@ class SnuddaDetect(object):
             assert neuron["name"] in self.prototype_neurons, \
                 f"Neuron type {neuron['name']} not in prototype_neurons: {self.prototype_neurons}"
 
-        # Also load the channel data
-        self.num_population_units = pos_info["nPopulationUnits"]
+        # Also load population_unit data
         self.population_unit = pos_info["populationUnit"]
-        self.population_unit_placement_method = pos_info["populationUnitPlacementMethod"]
-
-        self.population_units = dict([])
-        for i in range(0, self.num_population_units):
-            self.population_units[i] = np.where(self.population_unit == i)[0]
 
         self.write_log("Position file read.")
         del pos_info
@@ -1973,7 +1970,7 @@ class SnuddaDetect(object):
 
             ctr = ctr + 1
             if ctr % 10000 == 0:
-                print("Assignment counter: " + str(ctr))
+                self.write_log(f"Assignment counter: {ctr}")
 
             neuron = self.load_neuron(n)
             neuron_id = n["neuronID"]
@@ -2251,7 +2248,7 @@ class SnuddaDetect(object):
         if volume_id is None:
             volume_id = self.volume_id
 
-        print(f"Finding minMax coord in volumeID = {volume_id}")
+        self.write_log(f"Finding minMax coord in volumeID = {volume_id}")
 
         max_coord = -1e6 * np.ones((3,))
         min_coord = 1e6 * np.ones((3,))
@@ -2308,8 +2305,7 @@ class SnuddaDetect(object):
         vz_min = max(0, v_coords[2] - v_radius)
         vz_max = min(self.hyper_voxel_size, v_coords[2] + v_radius + 1)
 
-        if verbose:
-            print(f"Soma check x: {vx_min} - {vx_max} y: {vy_min} - {vy_max} z: {vz_min} - {vz_max}")
+        self.write_log(f"Soma check x: {vx_min} - {vx_max} y: {vy_min} - {vy_max} z: {vz_min} - {vz_max}")
 
         for vx in range(vx_min, vx_max):
             for vy in range(vy_min, vy_max):
@@ -2561,7 +2557,7 @@ class SnuddaDetect(object):
 
                     import traceback
                     tstr = traceback.format_exc()
-                    print(tstr)
+                    self.write_log(tstr, is_error=True)
 
                     self.voxel_overflow_counter += 1
                     self.write_log("!!! If you see this you need to increase max_axon above "
@@ -2603,7 +2599,7 @@ class SnuddaDetect(object):
                         except Exception as e:
                             import traceback
                             tstr = traceback.format_exc()
-                            print(tstr)
+                            self.write_log(tstr, is_error=True)
 
                             # Increase maxAxon and maxDend
                             self.write_log("!!! If you see this you need to increase max_axon above "
@@ -2640,7 +2636,7 @@ class SnuddaDetect(object):
 
                         import traceback
                         tstr = traceback.format_exc()
-                        print(tstr)
+                        self.write_log(tstr, is_error=True)
 
                         self.write_log("!!! If you see this you need to increase max_axon above "
                                        f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}", is_error=True)
@@ -2670,7 +2666,7 @@ class SnuddaDetect(object):
                     except Exception as e:
                         import traceback
                         tstr = traceback.format_exc()
-                        print(tstr)
+                        self.write_log(tstr, is_error=True)
 
                         self.write_log("!!! If you see this you need to increase max_axon above "
                                        f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}", is_error=True)
@@ -2697,8 +2693,9 @@ class SnuddaDetect(object):
 
             num_neurons = self.hyper_voxels[hyper_id]["neuronCtr"]
 
+            # TODO: Should we not force print this?
             self.write_log(f"Processing hyper voxel : {hyper_id}/{self.hyper_voxel_id_lookup.size}"
-                           f"({num_neurons} neurons)", force_print=True)
+                           f" ({num_neurons} neurons)", force_print=True)
 
             # !!! Suggestion for optimisation. Place neurons with GJ first, then do
             # GJ touch detection, after that add rest of neurons (to get complete set)

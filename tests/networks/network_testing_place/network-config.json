@@ -16,14 +16,6 @@
             "meshBinWidth": 6.286535491496336e-05
         }
     },
-    "PopulationUnits": {
-        "nPopulationUnits": 1,
-        "method": "populationUnitSpheres",
-        "centres": [
-            []
-        ],
-        "radius": null
-    },
     "Connectivity": {
         "FSN,FSN": {
             "GABA": {

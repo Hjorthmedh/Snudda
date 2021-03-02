@@ -10,13 +10,13 @@ class SnuddaLoad(object):
 
     ############################################################################
 
-    def __init__(self, network_file, load_synapses=True):
+    def __init__(self, network_file, load_synapses=True, verbose=False):
 
         # This variable will only be set if the synapses are not kept in
         # memory so we can access them later, otherwise the hdf5 file is
         # automatically closed
         self.hdf5File = None
-
+        self.verbose = verbose
         self.config = None
         self.data = self.load_hdf5(network_file, load_synapses)
         self.network_file = network_file
@@ -53,7 +53,9 @@ class SnuddaLoad(object):
     ############################################################################
 
     def load_hdf5(self, network_file, load_synapses=True, load_morph=True):
-        print(f"Loading {network_file}")
+
+        if self.verbose:
+            print(f"Loading {network_file}")
 
         start_time = timeit.default_timer()
         data = dict([])
@@ -64,7 +66,8 @@ class SnuddaLoad(object):
         if True:  # Need f open when loadSynapses = False, "with" doesnt work then
 
             if "config" in f:
-                print("Loading config data from HDF5")
+                if self.verbose:
+                    print("Loading config data from HDF5")
                 data["config"] = f["config"][()]
                 self.config = json.loads(f["config"][()])
 
@@ -145,7 +148,8 @@ class SnuddaLoad(object):
                     data["SlurmID"] = int(f["meta/SlurmID"][()])
 
             else:
-                print("No SlurmID set, using -1")
+                if self.verbose:
+                    print("No SlurmID set, using -1")
                 data["SlurmID"] = -1
 
             if "meta/simulationOrigo" in f:
@@ -169,15 +173,12 @@ class SnuddaLoad(object):
             data["neuronPositions"] = f["network/neurons/position"][()]
             data["name"] = [SnuddaLoad.to_str(x) for x in f["network/neurons/name"][()]]
 
-            if "nPopulationUnits" in f["network/neurons"]:
-                data["nPopulationUnits"] = f["network/neurons/nPopulationUnits"][()]
+            if "populationUnitID" in f["network/neurons"]:
                 data["populationUnit"] = f["network/neurons/populationUnitID"][()]
-                data["populationUnitPlacementMethod"] = f["network/neurons/populationUnitPlacementMethod"][()]
             else:
-                print("No Population Units detected.")
-                data["nPopulationUnits"] = 0
-                data["populationUnit"] = np.zeros(data["nNeurons"])
-                data["populationUnitPlacementMethod"] = "none"
+                if self.verbose:
+                    print("No Population Units detected.")
+                data["populationUnit"] = np.zeros(data["nNeurons"], dtype=int)
 
             if load_morph and "morphologies" in f:
                 data["morph"] = dict([])
@@ -199,12 +200,13 @@ class SnuddaLoad(object):
 
             if "synapses" in data:
                 if "gapJunctions" in data:
-                    print(f"{len(data['neurons'])} neurons with {data['nSynapses']} synapses" 
+                    print(f"Loading {len(data['neurons'])} neurons with {data['nSynapses']} synapses" 
                           f" and {data['nGapJunctions']} gap junctions")
                 else:
-                    print(f"{len(data['neurons'])} neurons with {data['synapses'].shape[0]} synapses")
+                    print(f"Loading {len(data['neurons'])} neurons with {data['synapses'].shape[0]} synapses")
 
-            print(f"Load done. {timeit.default_timer() - start_time}")
+            if self.verbose:
+                print(f"Load done. {timeit.default_timer() - start_time}")
 
         if load_synapses:
             f.close()
@@ -377,7 +379,8 @@ class SnuddaLoad(object):
 
     def find_synapses_SLOW(self, pre_id, n_max=1000000):
 
-        print(f"Finding synapses originating from {pre_id}, this is slow")
+        if self.verbose:
+            print(f"Finding synapses originating from {pre_id}, this is slow")
 
         synapses = np.zeros((n_max, 13), dtype=np.int32)
         syn_ctr = 0
@@ -460,7 +463,8 @@ class SnuddaLoad(object):
 
             if idx_found is None:
                 # No synapses found
-                print("No synapses found")
+                if self.verbose:
+                    print("No synapses found")
                 return None, None
 
             # Find start of synapse range
@@ -483,7 +487,7 @@ class SnuddaLoad(object):
 
             synapses = f["network/synapses"][idx_b1:idx_b2 + 1, :].copy()
 
-            if not silent:
+            if not silent and self.verbose:
                 print(f"Synapse range, first {idx_b1}, last {idx_b2}")
                 print(f"{synapses}")
 
@@ -495,6 +499,7 @@ class SnuddaLoad(object):
     ############################################################################
 
     # Returns cellID of all neurons of neuronType
+    # OBS, random_permute is not using a controled rng, so not affected by random seed set
 
     def get_cell_id_of_type(self, neuron_type, num_neurons=None, random_permute=False):
 
@@ -506,18 +511,39 @@ class SnuddaLoad(object):
             if random_permute:
                 # Do not use this if you have a simulation with multiple
                 # workers... they might randomize differently, and you might
-                # get more or less neurons in total than you wanted
-                keep_idx = np.random.permutation(len(cell_id))[:num_neurons]
+                # fewer neurons in total than you wanted
+                keep_idx = np.random.permutation(len(cell_id))
+
+                if len(keep_idx) > num_neurons:
+                    keep_idx = keep_idx[:num_neurons]
+
                 cell_id = np.array([cell_id[x] for x in keep_idx])
             else:
                 cell_id = np.array([cell_id[x] for x in range(num_neurons)])
 
             if len(cell_id) < num_neurons:
-                print(f"get_cell_id_of_type: wanted {num_neurons} only got {len(cell_id)} " 
-                      f"neurons of type {neuron_type}")
+                if self.verbose:
+                    print(f"get_cell_id_of_type: wanted {num_neurons} only got {len(cell_id)} " 
+                          f"neurons of type {neuron_type}")
 
         # Double check that all of the same type
         assert np.array([self.data["neurons"][x]["type"] == neuron_type for x in cell_id]).all()
+
+        return cell_id
+
+    def get_population_unit_members(self, population_unit, num_neurons=None, random_permute=False):
+
+        cell_id = np.where(self.data["populationUnit"] == population_unit)[0]
+
+        if num_neurons:
+            if random_permute:
+                cell_id = np.random.permutation(cell_id)
+
+            if len(cell_id) > num_neurons:
+                cell_id = cell_id[:num_neurons]
+
+        # Just double check
+        assert (self.data["populationUnit"][cell_id] == population_unit).all()
 
         return cell_id
 

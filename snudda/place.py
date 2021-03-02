@@ -10,7 +10,7 @@
 # (Human Brain Project SGA1, SGA2, SGA3).
 
 #
-
+import numexpr
 import numpy as np
 import os
 from collections import OrderedDict
@@ -30,7 +30,7 @@ class SnuddaPlace(object):
     def __init__(self,
                  config_file=None,
                  network_path=None,
-                 verbose=True,
+                 verbose=False,
                  log_file=None,
                  rc=None,
                  d_view=None,
@@ -99,10 +99,9 @@ class SnuddaPlace(object):
     def write_log(self, text):
         if self.log_file is not None:
             self.log_file.write(text + "\n")
+
+        if self.verbose:
             print(text)
-        else:
-            if self.verbose:
-                print(text)
 
     ############################################################################
 
@@ -180,7 +179,7 @@ class SnuddaPlace(object):
 
     ############################################################################
 
-    def read_config(self, config_file=None):
+    def parse_config(self, config_file=None):
 
         if config_file is None:
             config_file = self.config_file
@@ -254,8 +253,8 @@ class SnuddaPlace(object):
 
                 self.write_log(f"Using mesh_bin_width {mesh_bin_width}")
 
-                if "-cube-mesh-" in vol_def["meshFile"]:
-                    self.write_log("Cube mesh, switching to serial processing.")
+                if "-cube-mesh-" in vol_def["meshFile"] or "slice.obj" in vol_def["meshFile"]:
+                    self.write_log("Cube or slice mesh, switching to serial processing.")
                     d_view = None
                     lb_view = None
                 else:
@@ -281,14 +280,6 @@ class SnuddaPlace(object):
                                  random_seed=vol_seed[volume_id])
 
             self.write_log("Using dimensions from config file")
-
-        if "PopulationUnits" in config:
-            self.population_unit_placement_method = config["PopulationUnits"]["method"]
-            self.nPopulationUnits = config["PopulationUnits"]["nPopulationUnits"]
-
-            if self.population_unit_placement_method == "populationUnitSpheres":
-                self.population_unit_radius = config["PopulationUnits"]["radius"]
-                self.population_unit_centres = config["PopulationUnits"]["centres"]
 
         assert "Neurons" in config, \
             "No neurons defined. Is this config file old format?"
@@ -354,8 +345,8 @@ class SnuddaPlace(object):
         # We reorder neurons, sorting their IDs after position
         self.sort_neurons()
 
-        if self.population_unit_placement_method is not None:
-            self.define_population_units(method=self.population_unit_placement_method)
+        if "PopulationUnits" in config:
+            self.define_population_units(config["PopulationUnits"])
 
         mesh_logfile.close()
 
@@ -488,13 +479,12 @@ class SnuddaPlace(object):
             neuron_modulation_id[i] = n.modulation_id
 
         # Store input information
-        neuron_group.create_dataset("populationUnitID", data=self.population_unit, dtype=int)
-        neuron_group.create_dataset("nPopulationUnits", data=self.nPopulationUnits, dtype=int)
+        if self.population_unit is None:
+            # If no population units were defined, then set them all to 0 (= no population unit)
+            self.population_unit = np.zeros((len(self.neurons),), dtype=int)
 
-        if self.population_unit_placement_method is not None:
-            neuron_group.create_dataset("populationUnitPlacementMethod", data=self.population_unit_placement_method)
-        else:
-            neuron_group.create_dataset("populationUnitPlacementMethod", data="")
+        neuron_group.create_dataset("populationUnitID", data=self.population_unit, dtype=int)
+        # neuron_group.create_dataset("nPopulationUnits", data=self.nPopulationUnits, dtype=int)
 
         # Variable for axon density "r", "xyz" or "" (No axon density)
         axon_density_type = [n.axon_density[0].encode("ascii", "ignore")
@@ -553,60 +543,143 @@ class SnuddaPlace(object):
 
     ############################################################################
 
-    def define_population_units(self, method="random", num_population_units=None):
+    def define_population_units(self, population_unit_info):
 
-        if num_population_units is None:
-            num_population_units = self.nPopulationUnits
+        method_lookup = {"random": self.random_labeling,
+                         "radialDensity": self.population_unit_density_labeling}
 
-        if method == "random":
-            self.random_labeling()
-        elif method == "populationUnitSpheres":
-            self.population_unit_spheres_labeling(self.population_unit_centres, self.population_unit_radius)
-        else:
-            self.population_unit = np.zeros((len(self.neurons),), dtype=int)
-            self.population_units = dict([])
+        for unit_id in population_unit_info["AllUnitID"]:
+            self.population_units[unit_id] = []
 
-    ############################################################################
+        for volume_id in population_unit_info:
+            if volume_id in ["AllUnitID"]:
+                continue  # Not a population unit, metadata.
 
-    def random_labeling(self, num_population_units=None):
+            neuron_id = self.volume_neurons(volume_id)
+            method_name = population_unit_info[volume_id]["method"]
 
-        if num_population_units is None:
-            num_population_units = self.nPopulationUnits
+            assert method_name in method_lookup, \
+                (f"Unknown population placement method {method_name}. "
+                 f"Valid options are {', '.join([x for x in method_lookup])}")
 
-        self.population_unit = self.random_generator.integers(num_population_units, size=len(self.neurons))
-
-        self.population_units = dict([])
-
-        for i in range(0, num_population_units):
-            self.population_units[i] = np.where(self.population_unit == i)[0]
+            method_lookup[method_name](population_unit_info[volume_id], neuron_id)
 
     ############################################################################
 
-    def population_unit_spheres_labeling(self, population_unit_centres, population_unit_radius):
+    def random_labeling(self, population_unit_info, neuron_id):
 
-        xyz = self.all_neuron_positions()
+        self.init_population_units()  # This initialises population unit labelling if not already allocated
 
-        centres = np.array(population_unit_centres)
-        self.population_unit = np.zeros((xyz.shape[0],), dtype=int)
+        unit_id = population_unit_info["unitID"]
+        fraction_of_neurons = population_unit_info["fractionOfNeurons"]
+        neuron_types = population_unit_info["neuronTypes"]  # list of neuron types that belong to this population unit
+        structure_name = population_unit_info["structure"]
 
-        if centres.shape[1] == 0:
-            print("No population centres specified.")
-            return
+        # First we need to generate unit lists (with fractions) for each neuron type
+        units_available = dict()
+        for uid, fon, neuron_type_list in zip(unit_id, fraction_of_neurons, neuron_types):
+            for nt in neuron_type_list:
+                if nt not in units_available:
+                    units_available[nt] = dict()
+                    units_available[nt]["unit"] = []
+                    units_available[nt]["fraction"] = []
 
-        for (ctr, pos) in enumerate(xyz):
-            d = [np.linalg.norm(pos - c) for c in centres]
-            idx = np.argsort(d)
+                units_available[nt]["unit"].append(uid)
+                units_available[nt]["fraction"].append(fon)
 
-            if d[idx[0]] <= population_unit_radius:
-                self.population_unit[ctr] = idx[0] + 1  # We reserve 0 for no channel
+        all_neuron_types = [n.name.split("_")[0] for n in self.neurons]
+        # Next we check that no fraction sum is larger than 1
 
-        num_population_units = np.max(self.population_unit) + 1
+        for neuron_type in units_available:
+            assert np.sum(units_available[neuron_type]["fraction"]) <= 1, \
+                (f"Population unit fraction sum for Neuron type {neuron_type} "
+                 f"in structure {structure_name} sums to more than 1.")
 
-        for i in range(0, num_population_units):
+            assert (np.array(units_available[neuron_type]["fraction"]) >= 0).all(), \
+                f"Population unit fractions must be >= 0. Please check {neuron_type} in {structure_name}"
+
+            cum_fraction = np.cumsum(units_available[neuron_type]["fraction"])
+
+            neurons_of_type = [self.neurons[nid].neuron_id
+                               for (nid, n_type) in zip(neuron_id, all_neuron_types)
+                               if n_type == neuron_type]
+
+            rand_num = self.random_generator.uniform(size=len(neurons_of_type))
+
+            for nid, rn in zip(neurons_of_type, rand_num):
+                # If our randum number is smaller than the first fraction, then neuron in first pop unit
+                # if random number is between first and second cumulative fraction, then second pop unit
+                # If larger than last cum_fraction, then no pop unit was picked (and we get -1)
+                idx = len(cum_fraction) - np.sum(rn <= cum_fraction)
+
+                if idx < len(cum_fraction):
+                    unit_id = units_available[nt]["unit"][idx]
+                    self.population_unit[nid] = unit_id
+                    self.population_units[unit_id].append(nid)
+                else:
+                    self.population_unit[nid] = 0
+
+    ############################################################################
+
+    def population_unit_density_labeling(self, population_unit_info, neuron_id):
+
+        assert population_unit_info["method"] == "radialDensity"
+        self.init_population_units()  # This initialises population unit labelling if not alraedy allocated
+
+        neuron_types = population_unit_info["neuronTypes"]
+        centres = np.array(population_unit_info["centres"])
+        probability_functions = population_unit_info["ProbabilityFunctions"]
+        unit_id = population_unit_info["unitID"]
+
+        assert len(neuron_types) == len(centres) == len(probability_functions) == len(unit_id)
+
+        # xyz = self.all_neuron_positions()
+        unit_probability = np.zeros(centres.shape[0])
+
+        for nid in neuron_id:
+
+            pos = self.neurons[nid].position
+            neuron_type = self.neurons[nid].name.split("_")[0]
+
+            for idx, (centre_pos, neuron_type_list, p_func) \
+                    in enumerate(zip(centres, neuron_types, probability_functions)):
+
+                if neuron_type in neuron_type_list:
+                    d = np.linalg.norm(pos-centre_pos)
+                    unit_probability[idx] = numexpr.evaluate(p_func)
+                else:
+                    unit_probability[idx] = 0  # That unit does not contain this neuron type
+
+            # Next we randomise membership
+            rand_num = self.random_generator.uniform(size=len(unit_probability))
+            member_flag = rand_num < unit_probability
+
+            #import pdb
+            #pdb.set_trace()
+
+            # Currently we only allow a neuron to be member of one population unit
+            n_flags = np.sum(member_flag)
+            if n_flags == 0:
+                self.population_unit[nid] = 0
+            elif n_flags == 1:
+                self.population_unit[nid] = unit_id[np.where(member_flag)[0][0]]
+            else:
+                # More than one unit, pick the one that had smallest relative randnum
+                idx = np.argmax(np.multiply(np.divide(unit_probability, rand_num), member_flag))
+                self.population_unit[nid] = unit_id[idx]
+
+        # Also update dictionary with lists of neurons of that unit
+        for uid in unit_id:
             # Channel 0 is unassigned, no channel, poor homeless neurons!
-            self.population_units[i] = np.where(self.population_unit == i)[0]
+            self.population_units[uid] = np.where(self.population_unit == uid)[0]
 
     ############################################################################
+
+    def init_population_units(self):
+
+        if not self.population_unit:
+            # If no population units were defined, then set them all to 0 (= no population unit)
+            self.population_unit = np.zeros((len(self.neurons),), dtype=int)
 
     def sort_neurons(self):
 
@@ -625,6 +698,11 @@ class SnuddaPlace(object):
         for idx, n in enumerate(self.neurons):
             assert idx == self.neurons[idx].neuron_id, \
                 "Something went wrong with sorting"
+
+    def volume_neurons(self, volume_id):
+
+        return [n.neuron_id for n in self.neurons if n.volume_id == volume_id]
+
 
     ############################################################################
 

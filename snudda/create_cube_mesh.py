@@ -2,7 +2,7 @@ import numpy as np
 import os
 
 
-def create_cube_mesh(file_name, centre_point, side_len, description=None):
+def create_cube_mesh(file_name, centre_point, side_len, description=None, verbose=False):
 
     mesh_dir = os.path.dirname(file_name)
     if len(mesh_dir) > 0 and not os.path.exists(mesh_dir):
@@ -11,11 +11,12 @@ def create_cube_mesh(file_name, centre_point, side_len, description=None):
     if type(centre_point) is not np.ndarray:
         centre_point = np.array(centre_point)
 
-    print("Creating cube mesh")
-    print("File: " + str(file_name))
-    print("Centre: " + str(centre_point))
-    print("Side: " + str(side_len))
-    print("Description: " + str(description))
+    if verbose:
+        print("Creating cube mesh")
+        print("File: " + str(file_name))
+        print("Centre: " + str(centre_point))
+        print("Side: " + str(side_len))
+        print("Description: " + str(description))
 
     vertex = np.array([[0.0, 0.0, 0.0],
                        [0.0, 0.0, 1.0],

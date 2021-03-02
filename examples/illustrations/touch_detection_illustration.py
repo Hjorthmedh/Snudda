@@ -26,7 +26,7 @@ class TouchDetectionIllustration(object):
                          side_len=500e-6)
 
         sp = SnuddaPlace(config_file=self.config_file, d_view=None)
-        sp.read_config()
+        sp.parse_config()
         sp.write_data(self.position_file)
 
         self.sd = SnuddaDetect(config_file=self.config_file, position_file=self.position_file,

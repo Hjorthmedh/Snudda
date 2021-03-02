@@ -47,7 +47,7 @@ class SnuddaInput(object):
                  random_seed=None,
                  time_interval_overlap_warning=True,
                  logfile=None,
-                 verbose=True):
+                 verbose=False):
 
         if type(logfile) == str:
             self.logfile = open(logfile, "w")
@@ -60,9 +60,9 @@ class SnuddaInput(object):
         if network_path:
             self.network_path = network_path
         elif hdf5_network_file:
-            self.network_path = os.path.basename(hdf5_network_file)
+            self.network_path = os.path.dirname(hdf5_network_file)
         elif input_config_file:
-            self.network_path = os.path.basename(input_config_file)
+            self.network_path = os.path.dirname(input_config_file)
         else:
             self.network_path = ""
 
@@ -84,6 +84,8 @@ class SnuddaInput(object):
         self.time_interval_overlap_warning = time_interval_overlap_warning
         self.input_info = None
         self.population_unit_spikes = None
+        self.all_population_units = None # List of all population units in simulation
+
         self.network_info = None
         self.neuron_info = None
         self.num_population_units = None
@@ -152,8 +154,6 @@ class SnuddaInput(object):
 
             self.check_sorted()
 
-        # !!! TODO
-
         # 1. Define what the within correlation, and between correlation should be
         #    for each neuron type. Also what input frequency should we have for each
         #    neuron. --- Does it depend on size of dendritic tree?
@@ -180,7 +180,7 @@ class SnuddaInput(object):
 
     def write_hdf5(self):
 
-        self.write_log("Writing spikes to " + self.spike_data_filename)
+        self.write_log(f"Writing spikes to {self.spike_data_filename}", force_print=True)
 
         out_file = h5py.File(self.spike_data_filename, 'w', libver=self.h5libver)
         config_data = out_file.create_dataset("config", data=json.dumps(self.input_info, indent=4))
@@ -226,11 +226,13 @@ class SnuddaInput(object):
                     it_group.create_dataset("end", data=neuron_in["end"])
                     it_group.create_dataset("conductance", data=neuron_in["conductance"])
 
-                    population_unit_id = neuron_in["populationUnitID"]
+                    population_unit_id = int(neuron_in["populationUnitID"])
                     it_group.create_dataset("populationUnitID", data=population_unit_id)
 
                     # TODO: What to do with population_unit_spikes, should we have mandatory jittering for them?
-                    if neuron_type in self.population_unit_spikes:
+
+                    # population_unit_id = 0 means not population unit membership, so no population spikes available
+                    if neuron_type in self.population_unit_spikes and population_unit_id > 0:
                         chan_spikes = self.population_unit_spikes[neuron_type][input_type][population_unit_id]
                     else:
                         chan_spikes = np.array([])
@@ -311,12 +313,9 @@ class SnuddaInput(object):
     # taken from a stream of spikes unique to that particular population unit
     # This function generates these correlated spikes
 
-    def make_population_unit_spike_trains(self, rng, num_population_units=None):
+    def make_population_unit_spike_trains(self, rng):
 
         self.write_log("Running makePopulationUnitSpikeTrains")
-
-        if num_population_units is None:
-            num_population_units = self.num_population_units
 
         self.population_unit_spikes = dict([])
 
@@ -348,7 +347,7 @@ class SnuddaInput(object):
                         if type(pop_unit_list) != list:
                             pop_unit_list = [pop_unit_list]
                     else:
-                        pop_unit_list = range(0, num_population_units)
+                        pop_unit_list = self.all_population_units
 
                     for idxPopUnit in pop_unit_list:
                         self.population_unit_spikes[cell_type][input_type][idxPopUnit] = \
@@ -413,7 +412,7 @@ class SnuddaInput(object):
                 input_inf = input_info[input_type]
 
                 if "populationUnitID" in input_inf:
-                    pop_unit_id = input_inf["populationUnitID"]
+                    pop_unit_id = int(input_inf["populationUnitID"])
 
                     if type(pop_unit_id) == list and populationUnitID not in pop_unit_id:
                         # We have a list of functional channels, but this neuron
@@ -423,6 +422,8 @@ class SnuddaInput(object):
                         # We have a single functional channel, but this neuron is not
                         # in that functional channel
                         continue
+                else:
+                    pop_unit_id = None
 
                 self.neuron_input[neuron_id][input_type] = dict([])
 
@@ -510,13 +511,15 @@ class SnuddaInput(object):
                     else:
                         correlation_list.append(0)
 
-                    if neuron_type in self.population_unit_spikes:
-                        # TODO: These are cleared at the end anyway, so not currently used. Remove altogether?
+                    if (neuron_type in self.population_unit_spikes
+                         and input_type in self.population_unit_spikes[neuron_type]
+                             and populationUnitID in self.population_unit_spikes[neuron_type][input_type]):
+
                         c_spikes = self.population_unit_spikes[neuron_type][input_type][populationUnitID]
                         population_unit_spikes_list.append(c_spikes)
                     else:
-                        print(f"No population spikes specified for neuron type {neuron_type}")
-                        population_unit_spikes_list.append(np.array([]))
+                        # self.write_log(f"No population spikes specified for neuron type {neuron_type}")
+                        population_unit_spikes_list.append(None)
 
                     mod_file_list.append(mod_file)
                     parameter_file_list.append(parameter_file)
@@ -530,17 +533,18 @@ class SnuddaInput(object):
                     self.neuron_input[neuron_id][input_type]["generator"] = "csv"
 
                 else:
-                    self.write_log("Unknown input generator: " + input_inf["generator"]
-                                   + " for " + str(neuron_id))
+                    self.write_log(f"Unknown input generator: {input_inf['generator']} for {neuron_id}", is_error=True)
 
         seed_list = self.generate_seeds(num_states=len(neuron_id_list))
 
         # The old code had so that all neurons within a population unit shared the same
         # mother process, which caused them all to activate at the same time
         # with high probability. By setting channelSpikeList to None we disable it
-        self.write_log(
-            "Clearing populationUnitSpikesList, thus all neurons will have their own mother process for each input")
-        population_unit_spikes_list = [None for x in population_unit_spikes_list]
+        if False:
+            self.write_log("Clearing populationUnitSpikesList, " 
+                           "thus all neurons will have their own mother process for each input",  force_print=True)
+            population_unit_spikes_list = [None for x in population_unit_spikes_list]
+
         amr = None
 
         # Lets try and swap self.lbView for self.dView
@@ -603,7 +607,7 @@ class SnuddaInput(object):
         for neuron_id, input_type, spikes, loc, synapse_density, frq, \
             jdt, p_uid, cond, corr, timeRange, \
                 mod_file, paramFile, paramList, paramID in amr:
-            self.write_log("Gathering " + str(neuron_id) + " - " + str(input_type))
+            self.write_log(f"Gathering {neuron_id} - {input_type}")
             self.neuron_input[neuron_id][input_type]["spikes"] = spikes
 
             if input_type.lower() != "VirtualNeuron".lower():
@@ -667,7 +671,7 @@ class SnuddaInput(object):
         end_time = time_range[1]
         duration = end_time - start_time
 
-        assert duration > 0, f"Start time {start_time} and end time {end_time} incorrect (duration > 0 required)"
+        assert duration > 0, f"Start time = {start_time} and end time = {end_time} incorrect (duration > 0 required)"
 
         if freq > 0:
             t_diff = -np.log(1.0 - rng.random(int(np.ceil(max(1, freq * duration))))) / freq
@@ -836,7 +840,7 @@ class SnuddaInput(object):
 
         self.write_log("Reading neuron postions")
 
-        pos_info = SnuddaLoad(self.position_file).data
+        pos_info = SnuddaLoad(self.position_file, verbose=self.verbose).data
         self.network_info = pos_info
         self.neuron_info = pos_info["neurons"]
 
@@ -846,7 +850,6 @@ class SnuddaInput(object):
         # Make sure the position file matches the network config file
         assert (pos_info["configFile"] == self.network_config_file)
 
-        self.num_population_units = pos_info["nPopulationUnits"]
         self.population_unit_id = pos_info["populationUnit"]
 
         self.neuron_id = [n["neuronID"] for n in self.neuron_info]
@@ -858,7 +861,7 @@ class SnuddaInput(object):
 
     def read_network_config_file(self):
 
-        self.write_log("Reading config file " + str(self.network_config_file))
+        self.write_log(f"Reading config file {self.network_config_file}")
 
         with open(self.network_config_file, 'r') as f:
             self.network_config = json.load(f)
@@ -867,13 +870,34 @@ class SnuddaInput(object):
         if self.random_seed is None:
             if "RandomSeed" in self.network_config and "input" in self.network_config["RandomSeed"]:
                 self.random_seed = self.network_config["RandomSeed"]["input"]
-                self.write_log(f"Reading random see from config file: {self.random_seed}")
+                self.write_log(f"Reading random seed from config file: {self.random_seed}")
             else:
                 # No random seed given, invent one
                 self.random_seed = 1004
                 self.write_log(f"No random seed provided, using: {self.random_seed}")
         else:
             self.write_log(f"Using random seed provided by command line: {self.random_seed}")
+
+        if "PopulationUnits" in self.network_config:
+
+            all_id = []
+            for volume in self.network_config["PopulationUnits"]:
+                if "unitID" in self.network_config["PopulationUnits"][volume]:
+                    all_id += self.network_config["PopulationUnits"][volume]["unitID"]
+
+            all_id = sorted(all_id)
+
+            if "AllUnitID" in self.network_config["PopulationUnits"]:
+                self.all_population_units = sorted(self.network_config["PopulationUnits"]["AllUnitID"])
+                assert all_id == self.all_population_units, \
+                    (f"Inconsistency: AllUnitID = {self.all_population_units}, "
+                     f"but all units in unitID blocks = {all_id}")
+            else:
+                self.write_log("Missing AllUnitID tag, deriving it from unitID tag for volumes")
+                self.all_population_units = all_id
+
+        else:
+            self.all_population_units = [0]
 
     def generate_seeds(self, num_states):
 
@@ -905,7 +929,7 @@ class SnuddaInput(object):
                 corr_vec.append(self.estimate_correlation(s, s2, dt=dt))
 
         # print("corr = " + str(corrVec))
-        self.write_log("meanCorr = " + str(np.mean(corr_vec)))
+        self.write_log(f"meanCorr = {np.mean(corr_vec)}")
 
     ############################################################################
 
@@ -951,81 +975,6 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    # Returns random dendrite compartments
-    # Pdist = function of d (micrometers), e.g. "1", "2*d", ... etc
-
-    def random_compartment(self, neuron_id, num_locations, rng, p_dist="1"):
-
-        assert False, "obsolete, remove! Use dendrite_input_locations in NeuronMorphology"
-
-        neuron_name = self.neuron_name[neuron_id]
-        swc_file = self.network_config[neuron_name]["morphology"]
-
-        if swc_file in self.neuron_cache:
-            morphology = self.neuron_cache[swc_file]
-        else:
-            # !!! Should I use NeuronMorphology, or maybe the loadSWC in ConvertNetwork
-            #                      -- maybe move loadSWC out to a separate file
-
-            morphology = NeuronMorphology(name=neuron_id,
-                                          swc_filename=swc_file,
-                                          axon_stump_id_flag=self.axon_stump_id_flag)
-            self.neuron_cache[swc_file] = morphology
-
-        # morphology.dend -- 0-2: x,y,z 3: r, 4: dist to soma
-        d = morphology.dend[:, 4]
-        p_x = numexpr.evaluate(p_dist)
-
-        if type(p_x) in (int, float):
-            # If Px is a constant, we need to set it for all points
-            p_x *= np.ones(d.shape)
-
-        p_comp = (p_x[morphology.dend_links[:, 0]] + p_x[morphology.dend_links[:, 1]]) / 2
-        comp_len = morphology.compartment_length(comp_type="dend")
-
-        # Multiply by length, so longer compartments are proportionally more likely to be
-        # connected to
-        p_comp = np.multiply(p_comp, comp_len)
-
-        # Randomize locations. Here we then sort the locations, this is to make
-        # it quicker to locate where they are (one pass in the Pxcumsum array)
-        p_x_cumsum = np.cumsum(p_comp)
-        x = rng.uniform(low=0, high=p_x_cumsum[-1], size=num_locations)
-        x_sort = np.sort(x)
-
-        n_comps = len(d)
-        last_valid_idx = n_comps - 1
-        comp_idx = 0
-
-        sec_id = np.zeros((num_locations,), dtype=int)
-        sec_x = np.zeros((num_locations,))
-        comp_coords = np.zeros((num_locations, 3))
-
-        for ix, xval in enumerate(x_sort):
-            while xval > p_x_cumsum[comp_idx] and comp_idx < last_valid_idx:
-                comp_idx += 1
-
-            sec_id[ix] = morphology.dend_sec_id[comp_idx]
-            sec_x[ix] = (rng.random() * (morphology.dend_sec_x[comp_idx, 1] - morphology.dend_sec_x[comp_idx, 0])
-                         + morphology.dend_sec_x[comp_idx, 0])
-
-            comp_coords[ix, :3] = (morphology.dend[morphology.dend_links[comp_idx, 0], :3]
-                                   + morphology.dend[morphology.dend_links[comp_idx, 1], :3]) / 2
-
-        # The probability of picking a compartment is dependent on a distance
-        # dependent probability function, and the length of the compartment
-
-        # Plot synapses and segments, as a verification
-        if False:
-            plt.hist(d[compID], label="synapses")
-            plt.hist(d, label="segments")
-            plt.legend(loc='upper right')
-            plt.show()
-
-        return comp_coords, sec_id, sec_x
-
-    ############################################################################
-
     def setup_parallel(self):
 
         slurm_job_id = os.getenv("SLURM_JOBID")
@@ -1038,7 +987,7 @@ class SnuddaInput(object):
         if self.rc is not None:
             # http://davidmasad.com/blog/simulation-with-ipyparallel/
             # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
-            self.write_log("Client IDs: " + str(self.rc.ids))
+            self.write_log(f"Client IDs: {self.rc.ids}")
             self.d_view = self.rc[:]  # Direct view into clients
             self.lb_view = self.rc.load_balanced_view()
 
@@ -1064,7 +1013,7 @@ class SnuddaInput(object):
                           "time": self.time,
                           "random_seed": self.random_seed})
 
-        self.write_log("Scattering engineLogFile = " + str(engine_logfile))
+        self.write_log(f"Scattering engineLogFile = {engine_logfile}")
 
         self.d_view.scatter('log_filename', engine_logfile, block=True)
 
@@ -1118,7 +1067,7 @@ class SnuddaInput(object):
 
     def plot_spikes(self, neuron_id=None):
 
-        self.write_log("Plotting spikes for neuronID: " + str(neuron_id))
+        self.write_log(f"Plotting spikes for neuronID: {neuron_id}")
 
         if neuron_id is None:
             neuron_id = self.neuron_input
@@ -1149,12 +1098,12 @@ class SnuddaInput(object):
 
                 self.axon_stump_id_flag = f["meta/axonStumpIDFlag"][()]
         except Exception as e:
-            self.write_log("Error in readHDF5info: " + str(e))
-            self.write_log("Opening: " + hdf5_file)
+            self.write_log(f"Error in readHDF5info: {e}", is_error=True)
+            self.write_log(f"Opening: {hdf5_file}", is_error=True)
 
             import traceback
             tstr = traceback.format_exc()
-            self.write_log(tstr)
+            self.write_log(tstr, is_error=True)
             os.sys.exit(-1)
 
     ############################################################################
@@ -1201,7 +1150,7 @@ class SnuddaInput(object):
         except:
             import traceback
             tstr = traceback.format_exc()
-            self.write_log(tstr)
+            self.write_log(tstr, is_error=True)
             import pdb
             pdb.set_trace()
 
@@ -1244,8 +1193,8 @@ class SnuddaInput(object):
             conductance = None
 
             assert num_spike_trains is None or num_spike_trains == 1, \
-                "Virtual neuron " + self.neuron_name[neuron_id] \
-                + " should have only one spike train, fix nSpikeTrains in config"
+                (f"Virtual neuron {self.neuron_name[neuron_id]}"
+                 f" should have only one spike train, fix nSpikeTrains in config")
 
             # Virtual neurons input handled through touch detection
             input_loc = None
@@ -1267,7 +1216,7 @@ class SnuddaInput(object):
                                                       rng=rng)
 
             num_inputs = input_loc[0].shape[0]
-            print("Generating " + str(num_inputs) + " inputs for " + self.neuron_name[neuron_id])
+            self.write_log(f"Generating {num_inputs} inputs for {self.neuron_name[neuron_id]}")
 
             # OBS, nInputs might differ slightly from nSpikeTrains if that is given
             spikes = self.make_correlated_spikes(freq=freq,
@@ -1290,15 +1239,15 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    def write_log(self, text, flush=True):  # Change flush to False in future, debug
+    def write_log(self, text, flush=True, is_error=False, force_print=False):  # Change flush to False in future, debug
+
         if self.logfile is not None:
             self.logfile.write(text + "\n")
-            print(text)
             if flush:
                 self.logfile.flush()
-        else:
-            if self.verbose:
-                print(text)
+
+        if self.verbose or is_error or force_print:
+            print(text)
 
     ############################################################################
 

@@ -30,7 +30,6 @@ class TestCLI(unittest.TestCase):
         self.assertRaises(argparse.ArgumentError, run_cli_command, "doesntexist")
 
     def test_workflow(self):
-
         with self.subTest(stage="create"):
             run_cli_command("create test-project --overwrite")
         os.chdir('test-project')
@@ -81,7 +80,6 @@ class TestCLI(unittest.TestCase):
         os.environ["SLURM_JOBID"] = "1234"
 
         with self.subTest(stage="init-serial"):
-
             # Remove the old folder if it exists
             if os.path.exists("tiny_serial"):
                 import shutil

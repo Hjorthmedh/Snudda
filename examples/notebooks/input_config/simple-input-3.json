@@ -1,0 +1,26 @@
+{
+    "dSPN": {
+        "Ctx" : {
+            "generator" : "poisson",
+            "frequency" : 1,
+            "conductance" : 0.5e-9,
+            "nInputs" : 10,
+            "populationUnitCorrelation" : 0.5,
+            "jitter" : 0.01,	    
+            "modFile": "tmGlut"
+        }
+    },
+
+    "iSPN": {
+        "Ctx" : {
+            "generator" : "poisson",
+            "frequency" : 1,
+            "conductance" : 0.5e-9,
+            "nInputs" : 10,
+            "jitter" : 0.01,
+            "populationUnitCorrelation" : 0.2,
+            "populationUnitID" : 1,
+            "modFile": "tmGlut"
+        }
+    }
+}
