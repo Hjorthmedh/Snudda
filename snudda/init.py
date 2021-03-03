@@ -605,7 +605,7 @@ class SnuddaInit(object):
 
         if volume_type == "mouseStriatum":
             self.define_structure(struct_name="Striatum",
-                                  struct_mesh=os.path.join("$DATA", "mesh", "Striatum-mesh.obj"),
+                                  struct_mesh=os.path.join("$DATA", "mesh", "Striatum-d.obj"),
                                   mesh_bin_width=1e-4)
 
         elif volume_type == "slice":
