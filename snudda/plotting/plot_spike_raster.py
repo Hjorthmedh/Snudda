@@ -14,7 +14,8 @@ import time
 
 class SnuddaPlotSpikeRaster(object):
 
-    def __init__(self, spike_file_name, network_file=None, skip_time=0.0, type_order=None, end_time=2.0):
+    def __init__(self, spike_file_name, network_file=None, skip_time=0.0, type_order=None, end_time=2.0,
+                 figsize=None):
 
         self.spike_file_name = spike_file_name
 
@@ -69,28 +70,33 @@ class SnuddaPlotSpikeRaster(object):
 
     ############################################################################
 
-    def plot_raster(self, skip_time=0):
+    def plot_raster(self, skip_time=0, figsize=None):
+
+        if not figsize:
+            figsize = (6, 4)
 
         import matplotlib.pyplot as plt
-        plt.figure()
+        plt.figure(figsize=figsize)
         plt.scatter(self.time - skip_time, self.spike_id, color='black', s=1)
         plt.xlabel('Time (s)')
         plt.ylabel('Neurons')
         xl = plt.xlim()
         newx = (0, np.max(self.time) - skip_time)
         plt.xlim(newx)
+        # plt.savefig('figures/Network-spike-raster-' + str(self.ID) + ".pdf")
+        plt.savefig(f"figures/Network-spike-raster-{self.ID}.png", dpi=600)
+
         plt.ion()
         plt.show()
         plt.draw()
         plt.pause(0.001)
-        # plt.savefig('figures/Network-spike-raster-' + str(self.ID) + ".pdf")
-        plt.savefig(f"figures/Network-spike-raster-{self.ID}.png", dpi=600)
+
 
         print("Figure done")
 
     ############################################################################
 
-    def plot_colour_raster(self, skip_time, plot_idx="sort", type_order=None):
+    def plot_colour_raster(self, skip_time, plot_idx="sort", type_order=None, figsize=None):
 
         if plot_idx == "sort":
           plot_idx, tick_pos, tick_text, type_dict = self.sort_traces(type_order)
@@ -112,7 +118,9 @@ class SnuddaPlotSpikeRaster(object):
 
         cols = [colours[c] for c in cell_types]
 
-        fig = plt.figure(figsize=(6, 4))
+        if not figsize:
+            figsize = (6,4)
+        fig = plt.figure(figsize=figsize)
         r = 4
         grid = plt.GridSpec(r, r, hspace=0, wspace=0)
         ax = fig.add_subplot(grid[1:, :])
@@ -163,10 +171,6 @@ class SnuddaPlotSpikeRaster(object):
         offset = m * 0.05  # 5%
         ax.set_ylim([-offset, m + offset])
         # -----------------------------------------------------------
-        plt.ion()
-        plt.show()
-        plt.draw()
-        plt.pause(0.001)
         # plt.savefig('figures/Network-spike-raster-' + str(self.ID) + "-colour.pdf")
 
         # TODO: this is not working if run from the same folder as the networkFile
@@ -180,6 +184,12 @@ class SnuddaPlotSpikeRaster(object):
         fig_name = '{}/{}{}'.format(fig_path, fn.split('.')[0], '-colour.pdf')
         print(f"Saving {fig_name}")
         plt.savefig(fig_name, dpi=600)
+
+        plt.ion()
+        plt.show()
+        plt.draw()
+        plt.pause(0.001)
+
 
         ############################################################################
 
