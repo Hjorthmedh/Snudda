@@ -99,6 +99,8 @@ class PlotNetwork(object):
 
         # ax.dist = 8
 
+        self.equal_axis(ax)
+
         if fig_name is not None:
             fig_path = os.path.join(os.path.dirname(self.network_file), "figures", fig_name)
             if not os.path.exists(os.path.dirname(fig_path)):
@@ -153,6 +155,23 @@ class PlotNetwork(object):
 
         ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], c=neuron_colours, marker='o', s=20)
 
+        self.equal_axis(ax)
+
+    def equal_axis(self, ax):
+
+        x_min, x_max = ax.get_xlim()
+        y_min, y_max = ax.get_ylim()
+        z_min, z_max = ax.get_zlim()
+
+        x_mean = (x_min + x_max)/2
+        y_mean = (y_min + y_max)/2
+        z_mean = (z_min + z_max)/2
+
+        max_half_width = np.max([x_max-x_min, y_max-y_min, z_max-z_min])/2
+
+        ax.set_xlim(x_mean-max_half_width, x_mean+max_half_width)
+        ax.set_ylim(y_mean-max_half_width, y_mean+max_half_width)
+        ax.set_zlim(z_mean-max_half_width, z_mean+max_half_width)
 
 if __name__ == "__main__":
 
