@@ -8,7 +8,7 @@ scipy>=1.6.1
 sonata>=0.0.2
 pyzmq>=22.0.3
 numexpr
-allensdk
+# allensdk  # Optional, only needed for downloading meshes from Allen Institute
 argparse
 snudda
 NEURON
