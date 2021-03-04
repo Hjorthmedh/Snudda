@@ -25,7 +25,8 @@ class RepositionNeurons(object):
         if rotation is not None:
             info += f" setting rotation to {rotation}"
 
-        print(info)
+        if verbose:
+            print(info)
 
         self.hdf5_file["network/neurons/position"][neuron_id] = position
 
