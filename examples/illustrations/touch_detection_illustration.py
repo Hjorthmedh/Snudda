@@ -80,7 +80,8 @@ class TouchDetectionIllustration(object):
         # Also update so that the new positions are saved in the place file
         rn = RepositionNeurons(self.position_file)
         for neuron_info in self.sd.neurons:
-            rn.place(neuron_info["neuronID"], position=neuron_info["position"], rotation=neuron_info["rotation"])
+            rn.place(neuron_info["neuronID"], position=neuron_info["position"], rotation=neuron_info["rotation"],
+                     verbose=False)
         rn.close()
 
         sp = SnuddaPrune(network_path=self.network_path)  # Use default config file
