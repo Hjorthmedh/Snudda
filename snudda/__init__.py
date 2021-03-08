@@ -1,4 +1,4 @@
 from .core import Snudda
 
-__version__ = "1.0.9"
+__version__ = "1.0.10"
 
