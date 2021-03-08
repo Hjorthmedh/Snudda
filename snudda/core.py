@@ -459,7 +459,7 @@ class Snudda(object):
                              disable_gap_junctions=disable_gj,
                              log_file=log_file,
                              verbose=args.verbose)
-
+        sim.setup()
         sim.add_external_input()
 
         sim.check_memory_status()

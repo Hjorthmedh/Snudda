@@ -167,6 +167,9 @@ class SnuddaSimulate(object):
 
         self.load_network_info(self.network_file)
 
+
+    def setup(self):
+
         self.check_memory_status()
         self.distribute_neurons()
         self.setup_neurons()
@@ -186,6 +189,8 @@ class SnuddaSimulate(object):
         # READ ABOUT PARALLEL NEURON
 
     # https://www.neuron.yale.edu/neuron/static/new_doc/modelspec/programmatic/network/parcon.html#paralleltransfer
+
+        
 
     ############################################################################
 
