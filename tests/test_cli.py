@@ -73,7 +73,8 @@ class TestCLI(unittest.TestCase):
 
         with self.subTest(stage="simulate"):
             print("Running nrnivmodl:")
-            os.system("nrnivmodl ../snudda/data/neurons/mechanisms")
+            #os.system("nrnivmodl ../snudda/data/neurons/mechanisms")
+            os.system("nrnivmodl ../snudda/data/neurons/mechanisms-modulation")
             print("Time to run simulation...")
             run_cli_command("simulate tiny_parallel --time 0.1 --voltOut default")
 
