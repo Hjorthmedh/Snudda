@@ -159,7 +159,6 @@ class SnuddaDetect(object):
         self.hyper_voxel_width = self.hyper_voxel_size * self.voxel_size
         self.simulation_origo = None
 
-
         self.config = None
 
         # Columns in hyperVoxelSynapses:
@@ -321,9 +320,6 @@ class SnuddaDetect(object):
                 print("Log file already closed")
 
     ############################################################################
-
-    # The original code had problems with not being able to access the nc
-    # object on the worker from the map call.
 
     def parallel_process_hyper_voxels(self, rc=None, d_view=None):
 
@@ -1076,8 +1072,6 @@ class SnuddaDetect(object):
 
             elif na_neuron["axonDensityType"] == "xyz":
 
-                #OLD: axon_density_func = eval("lambda x,y,z: " + na_neuron["axonDensity"])
-
                 (na_voxel_coords, na_axon_dist) = self.no_axon_points_xyz(na_neuron["position"],
                                                                           na_neuron["rotation"],
                                                                           na_neuron["axonDensity"],  # axon_density_func,
@@ -1303,7 +1297,7 @@ class SnuddaDetect(object):
         if new_size is None:
             new_size = int(np.ceil(1.5 * self.max_synapses))
 
-        assert new_size >= self.hyper_voxel_synapse_ctr, " Can not shrink below existing number of synapses"
+        assert new_size >= self.hyper_voxel_synapse_ctr, " Cannot shrink below existing number of synapses"
 
         # We need to increase matrix size
         old = self.hyper_voxel_synapses
@@ -1330,8 +1324,7 @@ class SnuddaDetect(object):
     def sort_gap_junctions(self):
 
         sort_idx = \
-            np.lexsort(self.hyper_voxel_gap_junctions[:self.hyper_voxel_gap_junction_ctr,
-                       [0, 1]].transpose())
+            np.lexsort(self.hyper_voxel_gap_junctions[:self.hyper_voxel_gap_junction_ctr, [0, 1]].transpose())
 
         self.hyper_voxel_gap_junctions[:self.hyper_voxel_gap_junction_ctr, :] = \
             self.hyper_voxel_gap_junctions[sort_idx, :]
@@ -2026,26 +2019,6 @@ class SnuddaDetect(object):
 
                 axon_loc = axon_loc[axon_inside_flag, :]
 
-                # We need to remove the axon volumes outside the modelled volume
-
-                if False:
-                    # Verify
-                    import matplotlib.pyplot as plt
-                    from mpl_toolkits.mplot3d import Axes3D
-
-                    fig = plt.figure()
-                    ax = fig.gca(projection='3d')
-                    ax.scatter(axon_cloud[:, 0], axon_cloud[:, 1], axon_cloud[:, 2])
-                    plt.ion()
-                    plt.show()
-
-                    import pdb
-                    pdb.set_trace()
-
-                # !!! If there is no axon, and we use probability density,
-                #     then we need to include the neuron in hyper voxels
-                #     within the axon volume specified
-
             elif neuron.axon_density_type == "xyz":
 
                 rng = np.random.default_rng(d_seed)
@@ -2084,20 +2057,6 @@ class SnuddaDetect(object):
                                     for x, y, z in axon_loc]
 
                 axon_loc = axon_loc[axon_inside_flag, :]
-
-                if False:
-                    # Verify
-                    import matplotlib.pyplot as plt
-                    from mpl_toolkits.mplot3d import Axes3D
-
-                    fig = plt.figure()
-                    ax = fig.gca(projection='3d')
-                    ax.scatter(axon_cloud[:, 0], axon_cloud[:, 1], axon_cloud[:, 2])
-                    plt.ion()
-                    plt.show()
-
-                    import pdb
-                    pdb.set_trace()
 
             else:
                 self.write_log(f"{neuron.name}: No axon and unknown axon density type: "
@@ -2228,7 +2187,6 @@ class SnuddaDetect(object):
         d_view.execute(cmd_str, block=True)
 
         self.write_log("Execution of min/max complete")
-        # allMinMax = dView.gather("minMax",block=True)
         all_min_max = d_view["min_max"]
         self.write_log("Gathered min/max - complete.")
 
@@ -3004,7 +2962,6 @@ class SnuddaDetect(object):
             plt.show()
             plt.pause(0.001)
 
-
     ############################################################################
 
     def test_voxel_draw(self):
@@ -3059,7 +3016,6 @@ class SnuddaDetect(object):
                               coords=coords,
                               links=links,
                               neuron_id=13)
-
 
     ############################################################################
 
