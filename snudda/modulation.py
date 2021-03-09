@@ -75,15 +75,12 @@ def alpha_background(parameter=None):
     mag = list()
 
     for t_step in ht:
+        mag_intermediate = 0
 
-        for start in tstart:
-
-            mag_intermediate = 0
-
-            if t_step >= tstart:
-                t = (t_step - tstart) / tau
-                e = np.exp(1 - t)
-                mag_intermediate = mag_intermediate + gmax_decrease * t * e
+        if t_step >= tstart:
+            t = (t_step - tstart) / tau
+            e = np.exp(1 - t)
+            mag_intermediate = mag_intermediate + gmax_decrease * t * e
 
         if mag_intermediate > 0.99:
             mag_intermediate = 1
