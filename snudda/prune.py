@@ -1693,7 +1693,6 @@ class SnuddaPrune(object):
                 else:
                     self.max_channel_type = file_list[h_id]["network/maxChannelTypeID"][()]
                     self.write_log(f"Setting max_channel_type to {self.max_channel_type} from h_id={h_id}")
-                
 
                 # There should be at least the first row, otherwise nSyn = 0
                 syn_set, unique_id = next(file_mat_iterator[h_id], None)
