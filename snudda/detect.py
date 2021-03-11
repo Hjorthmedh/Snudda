@@ -49,21 +49,30 @@ class SnuddaDetect(object):
                  work_history_file=None,
                  slurm_id=0,
                  volume_id=None,
-                 role="master",
+                 role=None,  # Default: "master"
                  rc=None,
                  axon_stump_id_flag=False,
-                 h5libver="latest",
+                 h5libver=None,  # Default: "latest"
                  random_seed=None,
                  debug_flag=False):
 
         self.rc = rc
 
-        assert role in ["master", "worker"], \
+        if not role:
+            self.role = "master"
+        else:
+            self.role = role
+
+        assert self.role in ["master", "worker"], \
             "SnuddaDetect: Role must be master or worker"
-        self.role = role
 
         self.verbose = verbose
-        self.h5libver = h5libver
+
+        if not h5libver:
+            self.h5libver = "latest"
+        else:
+            self.h5libver = h5libver
+
         self.debug_flag = debug_flag
 
         self.random_seed = random_seed
@@ -1689,11 +1698,11 @@ class SnuddaDetect(object):
 
         output_name = self.save_file.replace(".hdf5", f"-{self.hyper_voxel_id}.hdf5")
 
-        with h5py.File(output_name, "w", libver=self.h5libver) as outFile:
+        with h5py.File(output_name, "w", libver=self.h5libver) as out_file:
 
-            config_data = outFile.create_dataset("config", data=json.dumps(self.config))
+            out_file.create_dataset("config", data=json.dumps(self.config))
 
-            meta_data = outFile.create_group("meta")
+            meta_data = out_file.create_group("meta")
             meta_data.create_dataset("hyperVoxelID", data=self.hyper_voxel_id)
             meta_data.create_dataset("hyperVoxelOrigo", data=self.hyper_voxel_origo)
             meta_data.create_dataset("simulationOrigo", data=self.simulation_origo)
@@ -1719,7 +1728,7 @@ class SnuddaDetect(object):
             if self.voxel_overflow_counter > 0:
                 self.write_log("!!! Voxel overflow detected, please increase maxAxon and maxDend", is_error=True)
 
-            network_group = outFile.create_group("network")
+            network_group = out_file.create_group("network")
             network_group.create_dataset("synapses",
                                          data=self.hyper_voxel_synapses[:self.hyper_voxel_synapse_ctr, :],
                                          dtype=np.int32,
@@ -1745,7 +1754,7 @@ class SnuddaDetect(object):
 
             # Additional information useful for debugging
             if self.debug_flag:
-                debug_group = outFile.create_group("debug")
+                debug_group = out_file.create_group("debug")
 
                 debug_group.create_dataset("dendVoxels", data=self.dend_voxels)
                 debug_group.create_dataset("axonVoxels", data=self.axon_voxels)
@@ -1755,7 +1764,7 @@ class SnuddaDetect(object):
 
             end_time = timeit.default_timer()
 
-            outFile.close()
+            out_file.close()
 
         self.write_log(f"Wrote hyper voxel {self.hyper_voxel_id}"
                        f" ({self.hyper_voxel_synapse_ctr} synapses, "
