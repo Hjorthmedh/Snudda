@@ -215,3 +215,8 @@ class SnuddaConnect(object):
                                          compression=self.h5compression)
 
 
+if __name__ == "__main__":
+
+    print("This main function is only here for testing that things work.")
+
+    sc = SnuddaConnect(network_path=os.path.join("networks", "con_test"))
