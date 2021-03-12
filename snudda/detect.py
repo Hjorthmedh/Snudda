@@ -2645,6 +2645,10 @@ class SnuddaDetect(object):
 
     ############################################################################
 
+    # TODO: Add a filter, neurons that are not included in connectivity definition as either
+    #       source or target are excluded. Also, if none of their sources/targets are in hypervoxel
+    #       then the neurons are also excluded.
+
     def process_hyper_voxel(self, hyper_id):
 
         start_time = timeit.default_timer()
