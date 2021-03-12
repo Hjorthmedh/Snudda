@@ -217,6 +217,12 @@ class SnuddaConnect(object):
 
     def write(self):
 
+        # Before writing synapses, lets make sure they are sorted.
+        # Sort order: columns 1 (dest), 0 (src), 6 (synapse type)
+        sort_idx = np.lexsort(self.synapses[:self.synapse_ctr, [6, 0, 1]].transpose())
+        self.synapses[:self.synapse_ctr, :] = self.synapses[sort_idx, :]
+
+        # Write synapses to file
         output_file_name = os.path.join(self.network_path, "network-connection-synapses.hdf5")
         with h5py.File(output_file_name, "w", libver=self.h5libver) as out_file:
 
