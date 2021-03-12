@@ -236,6 +236,15 @@ class SnuddaConnect(object):
                                          maxshape=(None, 13),
                                          compression=self.h5compression)
 
+            # This is useful so the merge_helper knows if they need to search this file for synapses
+            all_target_id = np.unique(self.synapses[:self.synapses_ctr, 1])
+
+            network_group.create_dataset("all_target_id",
+                                         data=all_target_id)
+
+            # TODO: Prepare target_start, target_end with same length as all_target_id
+            #       so we can use it for faster lookup to find synapses relevant for each worker
+
 
 if __name__ == "__main__":
 
