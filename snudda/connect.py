@@ -163,7 +163,9 @@ class SnuddaConnect(object):
                                       values=projection_destination,
                                       xi=pre_positions, method="linear")
 
-            num_targets = self.rng.normal(number_of_targets[0], number_of_targets[1], len(pre_id_list))
+            num_targets = self.rng.normal(number_of_targets[0],
+                                          number_of_targets[1],
+                                          len(pre_id_list)).astype(int)
 
             # For each presynaptic neuron, using the supplied map, find the potential post synaptic targets
             for pre_id, centre_pos, n_targets in zip(pre_id_list, target_centres, num_targets):
@@ -174,35 +176,39 @@ class SnuddaConnect(object):
                 if projection_radius:
                     d_idx = d_idx[np.where(d[d_idx] <= projection_radius)[0]]
                     if len(d_idx) > n_targets:
-                        d_idx = np.randperm(d_idx)[:n_targets]
+                        d_idx = self.rng.permutation(d_idx)[:n_targets]
 
                 elif len(d_idx) > n_targets:
                     d_idx = d_idx[:n_targets]
 
-                target_id = post_id_list[d_idx]
-                target_name = post_name_list[d_idx]
+                target_id = [post_id_list[x] for x in d_idx]
+                target_name = [post_name_list[x] for x in d_idx]
                 axon_dist = d[d_idx]
 
-                n_synapses = self.rng.normal(number_of_synapses[0], number_of_synapses[1], len(target_id))
+                n_synapses = self.rng.normal(number_of_synapses[0],
+                                             number_of_synapses[1],
+                                             len(target_id)).astype(int)
 
                 for t_id, t_name, n_syn, ax_dist in zip(target_id, target_name, n_synapses, axon_dist):
-                    morph = self.read_prototypes()[t_name]
+
+                    morph = self.prototype_neurons[t_name]
 
                     # We are not guaranteed to get n_syn positions, so use len(sec_x) to get how many after
+                    # TODO: Fix so dendrite_input_locations always returns  n_syn synapses
                     xyz, sec_id, sec_x, dist_to_soma = morph.dendrite_input_locations(dendrite_synapse_density,
                                                                                       self.rng,
                                                                                       num_locations=n_syn)
 
                     cond = self.rng.normal(conductance_mean, conductance_std, len(sec_x))
                     cond = np.maximum(cond, conductance_mean*0.1)  # Lower bound, prevent negative.
-                    param_id = self.hyper_voxel_rng.integers(1000000, size=len(sec_x))
+                    param_id = self.rng.integers(1000000, size=len(sec_x))
 
                     # TODO: Add code to extend synapses matrix if it is full
                     for i in range(len(sec_id)):
                         self.synapses[self.synapse_ctr, :] = \
                             [pre_id, t_id,
                              xyz[i, 0], xyz[i, 1], xyz[i, 2],
-                             np.nan,  # Hypervoxelid
+                             -1,  # Hypervoxelid
                              channel_model_id,
                              ax_dist, dist_to_soma[i],
                              sec_id[i], sec_x[i] * 1000,

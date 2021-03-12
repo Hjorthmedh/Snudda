@@ -897,6 +897,8 @@ class NeuronMorphology(object):
 
     ############################################################################
 
+    # TODO: Update the code so that it gives exactly num_locations positions (currently it varies)
+
     def dendrite_input_locations(self, synapse_density, rng, num_locations=None, return_density=False):
 
         # Calculate the input density at each point in dendrite morphology
