@@ -1350,7 +1350,7 @@ class SnuddaDetect(object):
     # returns a matrix where first column is a UID = srcID*nNeurons + destID
     # and the following two columns are start row and end row (-1) in matrix
 
-    # Turned the method into static so connect.py can use it also
+    # Turned the method into static so project.py can use it also
 
     @staticmethod
     def create_lookup_table(data, n_rows, data_type, num_neurons, max_synapse_type):

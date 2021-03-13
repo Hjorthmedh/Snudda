@@ -219,6 +219,14 @@ class Snudda(object):
         else:
             sd.detect(restart_detection_flag=True)
 
+        # Also run SnuddaProject to handle projections between volume
+
+        from snudda.project import SnuddaProject
+
+        sp = SnuddaProject(network_path=self.network_path)
+        sp.project()
+        sp.write()
+
         self.stop_parallel()
         self.close_log_file()
 

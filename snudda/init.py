@@ -1399,7 +1399,7 @@ class SnuddaInit(object):
     @staticmethod
     def setup_random_seeds(random_seed=None):
 
-        seed_types = ["init", "place", "detect", "prune", "input", "simulate"]
+        seed_types = ["init", "place", "detect", "project", "prune", "input", "simulate"]
         # print(f"Seeding with rand_seed={random_seed}")
 
         ss = np.random.SeedSequence(random_seed)

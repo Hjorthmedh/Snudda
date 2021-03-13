@@ -1376,8 +1376,7 @@ class SnuddaPrune(object):
                 start_pos = end_pos
 
         # We should check that the number of synapses in output file is correct
-        assert self.buffer_out_file["network/synapses"].shape[0] \
-               == np.sum(self.hist_file["nHypervoxelSynapses"][:]), \
+        assert self.buffer_out_file["network/synapses"].shape[0] == self.num_synapses_total, \
             "Not all synapses kept in merge, internal problem."
         assert self.buffer_out_file["network/gapJunctions"].shape[0] \
                == np.sum(self.hist_file["nHypervoxelGapJunctions"][:]), \
@@ -1516,7 +1515,7 @@ class SnuddaPrune(object):
                     if "maxDendVoxelCtr" in file_list[h_id]["meta"]:
                         max_dend_voxel_ctr = max(max_dend_voxel_ctr, file_list[h_id]["meta/maxDendVoxelCtr"][()])
 
-            # --- Start of special code for projection synapses from connect.py
+            # --- Start of special code for projection synapses from project.py
 
             if merge_data_type == "synapses" and self.num_projection_synapses > 0:
 
@@ -1774,7 +1773,7 @@ class SnuddaPrune(object):
         assert np.sum(num_synapses) == num_syn_total, \
             f"Mismatch between work log file and data files: {num_syn_total} vs {np.sum(num_synapses)} synapses"
 
-        # --- Special code for the projection synapses from connect.py
+        # --- Special code for the projection synapses from project.py
 
         if merge_data_type == "synapses" and self.num_projection_synapses > 0:
 

@@ -1,6 +1,6 @@
 # In addition to adding synapses using touch detection we also want the ability to add connections
 # when we do not have an axon, for example over long range between structures, to connect them together.
-# This is what connect.py is responsible for.
+# This is what project.py is responsible for.
 
 import numpy as np
 import scipy
@@ -14,9 +14,9 @@ from snudda.detect import SnuddaDetect
 from snudda.neuron_morphology import NeuronMorphology
 from snudda.load import SnuddaLoad
 
+class SnuddaProject(object):
 
-class SnuddaConnect(object):
-
+    # TODO: Add support for log files!!
     def __init__(self, network_path, rng=None, random_seed=None, h5libver=None):
 
         self.network_path = network_path
@@ -52,7 +52,8 @@ class SnuddaConnect(object):
         elif random_seed:
             self.rng = np.random.default_rng(random_seed)
         else:
-            self.rng = np.random.default_rng()
+            random_seed = self.config["RandomSeed"]["project"]
+            self.rng = np.random.default_rng(random_seed)
 
         self.read_neuron_positions()
         self.read_prototypes()
@@ -91,7 +92,7 @@ class SnuddaConnect(object):
 
             self.connectivity_distributions[pre_type, post_type] = con_def
 
-    def connect(self):
+    def project(self):
 
         for (pre_type, post_type), connection_info in self.connectivity_distributions.items():
             print(f"pre {pre_type}, post {post_type}")
@@ -267,9 +268,3 @@ class SnuddaConnect(object):
                 hist_file.create_dataset("nProjectionSynapses", data=self.synapse_ctr, dtype=int)
 
 
-
-if __name__ == "__main__":
-
-    print("This main function is only here for testing that things work.")
-
-    sc = SnuddaConnect(network_path=os.path.join("networks", "con_test"))
