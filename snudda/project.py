@@ -263,7 +263,7 @@ class SnuddaProject(object):
 
         with h5py.File(self.work_history_file, "a", libver=self.h5libver) as hist_file:
             if "nProjectionSynapses" in hist_file:
-                hist_file["nProjectionSynapses"] = self.synapse_ctr
+                hist_file["nProjectionSynapses"][()] = self.synapse_ctr
             else:
                 hist_file.create_dataset("nProjectionSynapses", data=self.synapse_ctr, dtype=int)
 
