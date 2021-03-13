@@ -237,14 +237,30 @@ class SnuddaConnect(object):
                                          compression=self.h5compression)
 
             # This is useful so the merge_helper knows if they need to search this file for synapses
-            all_target_id = np.unique(self.synapses[:self.synapses_ctr, 1])
+            all_target_id, synapse_lookup = self.get_synapse_lookup()
 
-            network_group.create_dataset("all_target_id",
-                                         data=all_target_id)
+            network_group.create_dataset("all_target_id", data=all_target_id)
+            network_group.create_dataset("synapse_lookup", data=synapse_lookup)
 
             # TODO: Prepare target_start, target_end with same length as all_target_id
             #       so we can use it for faster lookup to find synapses relevant for each worker
 
+    def get_synapse_lookup(self):
+
+        all_target_id = np.unique(self.synapses[:self.synapses_ctr, 1])
+
+        start_pos = np.zeros(all_target_id.shape)
+
+        assert (np.diff(self.synapses[:, 1]) >= 0).all(), "Synapses should be sorted"
+
+        syn_idx = 0
+        for t_idx, tid in enumerate(all_target_id):
+            while tid < self.synapses[syn_idx, 1] and syn_idx < self.synapses.shape[0]:
+                syn_idx += 1
+
+            start_pos[t_idx] = syn_idx
+
+        return all_target_id, start_pos
 
 if __name__ == "__main__":
 
