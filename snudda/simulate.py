@@ -72,7 +72,7 @@ class SnuddaSimulate(object):
             self.network_path = ""
 
         if not network_file:
-            self.network_file = os.path.join(network_path, "network-pruned-synapses.hdf5")
+            self.network_file = os.path.join(network_path, "network-synapses.hdf5")
         else:
             self.network_file = network_file
 

@@ -20,7 +20,7 @@
 
 # * Figure out where to put the slcie cut (with plotOnly equation is ignored)
 # 
-#  python3 snudda_cut.py networks/Planert2010-v1/network-pruned-synapses.hdf5 "z>0" --plotOnly
+#  python3 snudda_cut.py networks/Planert2010-v1/network-synapses.hdf5 "z>0" --plotOnly
 #
 # * Look at networks/Planert2010-v1/network-cut-slice.hdf5.pdf to decide cut plane
 #
@@ -30,7 +30,7 @@
 #
 # * Cut the slice, so z > 0.00504 is kept
 #
-#  python3 snudda_cut.py networks/Planert2010-v1/network-pruned-synapses.hdf5 "abs(z)<100e-6"
+#  python3 snudda_cut.py networks/Planert2010-v1/network-synapses.hdf5 "abs(z)<100e-6"
 #
 # * Look at networks/Planert2010-v1/network-cut-slice.hdf5.pdf to verify cut plane
 #
@@ -78,7 +78,7 @@ class SnuddaCalibrateSynapses(object):
                logFile=None):
 
     if(os.path.isdir(networkFile)):
-      self.networkFile = networkFile + "/network-pruned-synapses.hdf5"
+      self.networkFile = networkFile + "/network-synapses.hdf5"
     else:
       self.networkFile = networkFile
       
@@ -137,7 +137,7 @@ class SnuddaCalibrateSynapses(object):
     print("python3 snudda.py detect " + str(simName))
     print("python3 snudda.py prune " + str(simName))
     print("python3 snudda_cut.py " + str(simName) \
-          + '/network-pruned-synapses.hdf5 "abs(z)<100e-6"')
+          + '/network-synapses.hdf5 "abs(z)<100e-6"')
 
     print("\nThe last command will pop up a figure and enter debug mode, press ctrl+D in the terminal window after inspecting the plot to continue")
 

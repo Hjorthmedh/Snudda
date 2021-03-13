@@ -23,7 +23,7 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
             self.simDir = os.path.dirname(sim_dir)
         else:
             self.simDir = sim_dir
-            hdf5_file = sim_dir + "/network-pruned-synapses.hdf5"
+            hdf5_file = sim_dir + "/network-synapses.hdf5"
 
             if not os.path.exists(hdf5_file):
                 alt_hdf5_file = sim_dir + "/network-connect-voxel-pruned-synapse-file.hdf5"
