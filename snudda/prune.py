@@ -1415,6 +1415,7 @@ class SnuddaPrune(object):
             synapse_heap = []
             file_list = dict([])
             file_mat_iterator = dict([])
+            chunk_size = 10000
 
             # Next we need to open all the relevant files
             h_file_name_mask = os.path.join(self.network_path, "voxels", "network-putative-synapses-%s.hdf5")
@@ -1470,7 +1471,6 @@ class SnuddaPrune(object):
                         self.max_channel_type = file_list[h_id]["network/maxChannelTypeID"][()]
                         self.write_log(f"Setting max_channel_type to {self.max_channel_type} from h_id={h_id}")
 
-                    chunk_size = 10000
                     lookup_iterator = \
                         self.file_row_lookup_iterator_subset(h5mat_lookup=file_list[h_id][h5_syn_lookup],
                                                              min_dest_id=neuron_range[0],
@@ -1500,6 +1500,56 @@ class SnuddaPrune(object):
                         max_axon_voxel_ctr = max(max_axon_voxel_ctr, file_list[h_id]["meta/maxAxonVoxelCtr"][()])
                     if "maxDendVoxelCtr" in file_list[h_id]["meta"]:
                         max_dend_voxel_ctr = max(max_dend_voxel_ctr, file_list[h_id]["meta/maxDendVoxelCtr"][()])
+
+            synapse_connection_file = os.path.join(self.network_path, "network-connection-synapses.hdf5")
+
+            ### Special code for projection synapses from connect.py
+            if merge_data_type == "synapses" and os.path.exists(synapse_connection_file):
+
+                self.write_log(f"Adding projection synapses from {synapse_connection_file}")
+                # There is also a file with synapse connections, add it to the merge set
+                # Since they were not created using hyper voxels, they get the special h_id = "con"
+
+                fid = h5py.h5f.open(synapse_connection_file, flags=h5py.h5f.ACC_RDONLY, fapl=propfaid)
+                file_list["con"] = h5py.File(fid, drive=self.h5driver)
+
+                if file_list["con"]["network/nSynapses"][0] > 0:
+                    n_total += file_list["con"]["network/nSynapses"][0]
+
+                    # Currently all neuron connections of this type are in one file, thus
+                    # min_dest_id and max_dest_id include all neurons for this iterator
+                    lookup_iterator = \
+                        self.file_row_lookup_iterator_subset(h5mat_lookup=file_list["con"][h5_syn_lookup],
+                                                             min_dest_id=0,
+                                                             max_dest_id=self.network_info.data["nNeurons"],
+                                                             chunk_size=chunk_size)
+
+                    file_mat_iterator["con"] \
+                        = self.synapse_set_iterator(h5mat_lookup=file_list["con"][h5_syn_lookup],
+                                                    h5mat=file_list["con"][h5_syn_mat],
+                                                    chunk_size=chunk_size,
+                                                    lookup_iterator=lookup_iterator)
+
+                    syn_set, unique_id = next(file_mat_iterator["con"], (None, None))
+
+                    if syn_set is None:
+                        assert syn_set is not None, \
+                            ("Volume projection synapses: syn_set should return a synapse," 
+                             " we already know nSynapses > 0")
+
+                        # Clear file List and fileMatIterator for this worker
+                        del file_list["con"]
+                        del file_mat_iterator["con"]
+                    else:
+                        # Create a heap containing the first subset of all files
+                        heapq.heappush(synapse_heap, (unique_id, "con", syn_set))
+
+                else:
+                    # No synapses in file, close it.
+                    file_list["con"].close()
+                    del file_list["con"]
+
+            ### End of code for projection synapses
 
             if merge_data_type == "synapses":
                 num_synapses = n_total

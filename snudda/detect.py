@@ -989,7 +989,9 @@ class SnuddaDetect(object):
         self.hyper_voxel_synapse_lookup \
             = self.create_lookup_table(data=self.hyper_voxel_synapses,
                                        n_rows=self.hyper_voxel_synapse_ctr,
-                                       data_type="synapses")
+                                       data_type="synapses",
+                                       num_neurons=len(self.neurons),
+                                       max_synapse_type=self.next_channel_model_id)
 
         # if(self.hyperVoxelSynapseCtr > 0 and self.hyperVoxelSynapseCtr < 10):
         #  self.plotHyperVoxel()
@@ -1348,9 +1350,12 @@ class SnuddaDetect(object):
     # returns a matrix where first column is a UID = srcID*nNeurons + destID
     # and the following two columns are start row and end row (-1) in matrix
 
-    def create_lookup_table(self, data, n_rows, data_type):
+    # Turned the method into static so connect.py can use it also
 
-        self.write_log("Create lookup table")
+    @staticmethod
+    def create_lookup_table(self, data, n_rows, data_type, num_neurons, max_synapse_type):
+
+        # self.write_log("Create lookup table")
         # nRows = data.shape[0] -- zero padded, cant use shape
         lookup_table = np.zeros((data.shape[0], 3), dtype=int)
 
@@ -1358,7 +1363,7 @@ class SnuddaDetect(object):
         start_idx = 0
 
         lookup_idx = 0
-        num_neurons = len(self.neurons)
+        # num_neurons = len(self.neurons)
 
         if data_type == "synapses":
             hardcoded_synapse_type = None
@@ -1367,7 +1372,7 @@ class SnuddaDetect(object):
         else:
             assert False, f"Unknown data_type {data_type}, should be 'synapses' or ' gap_junctions'"
 
-        max_synapse_type = self.next_channel_model_id   # This needs to be saved in HDF5 file
+        # max_synapse_type = self.next_channel_model_id   # This needs to be saved in HDF5 file
 
         while next_idx < n_rows:
             src_id = data[next_idx, 0]
@@ -1474,7 +1479,9 @@ class SnuddaDetect(object):
 
         self.hyper_voxel_gap_junction_lookup = self.create_lookup_table(data=self.hyper_voxel_gap_junctions,
                                                                         n_rows=self.hyper_voxel_gap_junction_ctr,
-                                                                        data_type="gap_junctions")
+                                                                        data_type="gap_junctions",
+                                                                        num_neurons=len(self.neurons),
+                                                                        max_synapse_type=self.next_channel_model_id)
         end_time = timeit.default_timer()
 
         self.write_log(f"detectGapJunctions: {end_time - start_time} s")
