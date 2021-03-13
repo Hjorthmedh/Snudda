@@ -1353,7 +1353,7 @@ class SnuddaDetect(object):
     # Turned the method into static so connect.py can use it also
 
     @staticmethod
-    def create_lookup_table(self, data, n_rows, data_type, num_neurons, max_synapse_type):
+    def create_lookup_table(data, n_rows, data_type, num_neurons, max_synapse_type):
 
         # self.write_log("Create lookup table")
         # nRows = data.shape[0] -- zero padded, cant use shape

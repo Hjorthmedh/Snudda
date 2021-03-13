@@ -10,7 +10,7 @@ import h5py
 
 from scipy.interpolate import griddata
 
-import snudda
+from snudda.detect import SnuddaDetect
 from snudda.neuron_morphology import NeuronMorphology
 from snudda.load import SnuddaLoad
 
@@ -238,18 +238,19 @@ class SnuddaConnect(object):
                                          maxshape=(None, 13),
                                          compression=self.h5compression)
 
-            network_group.create_dataset("nSynapses", data=self.synapse_ctr)
+            network_group.create_dataset("nSynapses", data=self.synapse_ctr, dtype=int)
+            network_group.create_dataset("nNeurons", data=self.network_info.data["nNeurons"], dtype=int)
 
             # This is useful so the merge_helper knows if they need to search this file for synapses
-            all_target_id = np.unique(self.synapses[:self.synapses_ctr, 1])
+            all_target_id = np.unique(self.synapses[:self.synapse_ctr, 1])
             network_group.create_dataset("allTargetId", data=all_target_id)
 
             # This creates a lookup that is used for merging later
-            synapse_lookup = snudda.detect.create_lookup_table(data=self.synapses,
-                                                               n_rows=self.synapse_ctr,
-                                                               data_type="synapses",
-                                                               num_neurons=self.network_info.data["nNeurons"],
-                                                               max_synapse_type=self.next_channel_model_id)
+            synapse_lookup = SnuddaDetect.create_lookup_table(data=self.synapses,
+                                                              n_rows=self.synapse_ctr,
+                                                              data_type="synapses",
+                                                              num_neurons=self.network_info.data["nNeurons"],
+                                                              max_synapse_type=self.next_channel_model_id)
 
             network_group.create_dataset("synapseLookup", data=synapse_lookup)
             network_group.create_dataset("maxChannelTypeID", data=self.next_channel_model_id, dtype=int)
