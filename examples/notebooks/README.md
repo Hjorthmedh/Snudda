@@ -10,6 +10,7 @@ Here is a collection of Jupyter Notebooks, some of the workflows are split over 
 
 * [population_unit_network](population_unit_network.ipynb) how to define population units.
 * [custom_slice_example](custom_slice_example.ipynb) shows how to create custom slice and define your own connectivity rules for neuron types.
+* [connect_structures_example](connect_structures_example.ipynb) shows how to create neuron projections between volumes when no-axon data is available.
 
 ## Input creation
 * [input_generation_example_1](input_generation_example_1.ipynb) generate constant Poisson input (uses [simple_network_creation](simple_network_creation.ipynb))
