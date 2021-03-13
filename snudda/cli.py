@@ -69,7 +69,7 @@ def snudda_cli():
     input_parser.add_argument("--input", help="Input json config file (for input setup)", default=None)
     input_parser.add_argument("--inputFile", help="Input hdf5 file (for simulation)",
                               dest="input_file", default=None)
-    input_parser.add_argument("--networkFile", help="Network file, if not network-pruned-synapses.hdf5",
+    input_parser.add_argument("--networkFile", help="Network file, if not network-synapses.hdf5",
                               dest="network_file")
     input_parser.add_argument("--time", type=float, default=None, help="Duration of simulation in seconds")
     input_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
@@ -80,7 +80,7 @@ def snudda_cli():
 
     simulate_parser = sub_parsers.add_parser("simulate")
     simulate_parser.add_argument("path", help="Location of network")
-    simulate_parser.add_argument("--networkFile", help="Network file, if not network-pruned-synapses.hdf5",
+    simulate_parser.add_argument("--networkFile", help="Network file, if not network-synapses.hdf5",
                                  dest="network_file", default=None)
     simulate_parser.add_argument("--inputFile", help="Input hdf5 file (for simulation)",
                                  dest="input_file", default=None)
@@ -104,7 +104,7 @@ def snudda_cli():
     export_parser.add_argument("path", help="Location of network")
     export_parser.add_argument("--inputFile", help="Input hdf5 file (for simulation)",
                                dest="input_file")
-    export_parser.add_argument("--networkFile", help="Network file, if not network-pruned-synapses.hdf5",
+    export_parser.add_argument("--networkFile", help="Network file, if not network-synapses.hdf5",
                                dest="network_file")
     export_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     export_parser.add_argument("--verbose", action="store_true")

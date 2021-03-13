@@ -21,6 +21,9 @@ class SnuddaConnect(object):
 
         self.network_path = network_path
         self.network_info = None
+        self.work_history_file = os.path.join(self.network_path, "log", "network-detect-worklog.hdf5")
+        self.output_file_name = os.path.join(self.network_path, "network-projection-synapses.hdf5")
+
         max_synapses = 100000
         self.synapses = np.zeros((max_synapses, 13), dtype=np.int32)
         self.synapse_ctr = 0
@@ -225,8 +228,7 @@ class SnuddaConnect(object):
         self.synapses[:self.synapse_ctr, :] = self.synapses[sort_idx, :]
 
         # Write synapses to file
-        output_file_name = os.path.join(self.network_path, "network-connection-synapses.hdf5")
-        with h5py.File(output_file_name, "w", libver=self.h5libver) as out_file:
+        with h5py.File(self.output_file_name, "w", libver=self.h5libver) as out_file:
 
             out_file.create_dataset("config", data=json.dumps(self.config))
 
@@ -254,6 +256,16 @@ class SnuddaConnect(object):
 
             network_group.create_dataset("synapseLookup", data=synapse_lookup)
             network_group.create_dataset("maxChannelTypeID", data=self.next_channel_model_id, dtype=int)
+
+        # We also need to update the work history file with how many synapses we created
+        # for the projections between volumes
+
+        with h5py.File(self.work_history_file, "a", libver=self.h5libver) as hist_file:
+            if "nProjectionSynapses" in hist_file:
+                hist_file["nProjectionSynapses"] = self.synapse_ctr
+            else:
+                hist_file.create_dataset("nProjectionSynapses", data=self.synapse_ctr, dtype=int)
+
 
 
 if __name__ == "__main__":

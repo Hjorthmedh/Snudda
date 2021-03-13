@@ -212,7 +212,7 @@ class SnuddaModelCurrentInjections(object):
       if(os.path.exists(cutFile)):
         self.networkFile = cutFile
       else:
-        self.networkFile = simName + "/network-pruned-synapses.hdf5"
+        self.networkFile = simName + "/network-synapses.hdf5"
 
       print("Using network file: " + str(self.networkFile))
       
@@ -262,7 +262,7 @@ class SnuddaModelCurrentInjections(object):
 
     if(self.snuddaSim is None):
       logFile = simName + "/log/simlog.txt"
-      self.networkFile = simName + "/network-pruned-synapses.hdf5"
+      self.networkFile = simName + "/network-synapses.hdf5"
       
       self.snuddaSim = SnuddaSimulate(network_file=self.networkFile,
                                       input_file=None,
@@ -296,7 +296,7 @@ class SnuddaModelCurrentInjections(object):
 
     if(self.snuddaSim is None):
       logFile = simName + "/log/simlog.txt"
-      self.networkFile = simName + "/network-pruned-synapses.hdf5"
+      self.networkFile = simName + "/network-synapses.hdf5"
       
       self.snuddaSim = SnuddaSimulate(network_file=self.networkFile,
                                       input_file=None,
@@ -320,7 +320,7 @@ class SnuddaModelCurrentInjections(object):
 
     if(self.snuddaSim is None):
       logFile = simName + "/log/simlog.txt"
-      self.networkFile = simName + "/network-pruned-synapses.hdf5"
+      self.networkFile = simName + "/network-synapses.hdf5"
           
       self.snuddaSim = SnuddaSimulate(network_file=self.networkFile,
                                       input_file=None,
@@ -496,7 +496,7 @@ class SnuddaModelCurrentInjections(object):
     # Data in time, current now
 
     # Read the network info
-    networkFile = simName + "/network-pruned-synapses.hdf5"    
+    networkFile = simName + "/network-synapses.hdf5"
     self.snuddaLoad = SnuddaLoad(networkFile)
     self.data = self.snuddaLoad.data
     

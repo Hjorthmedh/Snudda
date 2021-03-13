@@ -422,7 +422,7 @@ class SnuddaDetect(object):
         end_time = timeit.default_timer()
 
         self.write_log(f"Voxel overflows: {self.voxel_overflow_counter}", is_error=(self.voxel_overflow_counter>0))
-        self.write_log(f"Total number of synapses: {np.sum(self.work_history['nSynapses'][:])}")
+        self.write_log(f"Total number of synapses: {np.sum(self.work_history['nHypervoxelSynapses'][:])}")
         self.write_log(f"parallelProcessHyperVoxels: {end_time - start_time} s")
 
         self.work_history.close()
@@ -645,8 +645,6 @@ class SnuddaDetect(object):
             num_completed = int(self.work_history["nCompleted"][0])
             completed = set(self.work_history["completed"][:num_completed])
             remaining = self.sort_remaining_by_size(all_hyper_id_list - completed)
-            num_synapses = int(self.work_history["nSynapses"][0])
-            num_gap_junctions = int(self.work_history["nGapJunctions"][0])
             voxel_overflow_counter = self.work_history["voxelOverflowCounter"][0]
 
         else:
@@ -680,8 +678,10 @@ class SnuddaDetect(object):
                 self.write_log(f"Skipping {len(empty_hyper_id)} empty hyper voxels")
 
             self.work_history.create_dataset("allHyperIDs", data=all_hyper_id_list)
-            self.work_history.create_dataset("nSynapses", data=np.zeros(num_hyper_voxels, ), dtype=np.int64)
-            self.work_history.create_dataset("nGapJunctions", data=np.zeros(num_hyper_voxels, ), dtype=np.int64)
+            self.work_history.create_dataset("nHypervoxelSynapses",
+                                             data=np.zeros(num_hyper_voxels, ), dtype=np.int64)
+            self.work_history.create_dataset("nHypervoxelGapJunctions",
+                                             data=np.zeros(num_hyper_voxels, ), dtype=np.int64)
             self.work_history.create_dataset("voxelOverflowCounter", data=np.zeros(num_hyper_voxels, ), dtype=np.int64)
 
         return all_hyper_id_list, num_completed, remaining, voxel_overflow_counter
@@ -771,8 +771,8 @@ class SnuddaDetect(object):
         num_completed = int(self.work_history["nCompleted"][0])
 
         self.work_history["completed"][num_completed] = hyper_id
-        self.work_history["nSynapses"][num_completed] = num_syn
-        self.work_history["nGapJunctions"][num_completed] = num_gj
+        self.work_history["nHypervoxelSynapses"][num_completed] = num_syn
+        self.work_history["nHypervoxelGapJunctions"][num_completed] = num_gj
         self.work_history["voxelOverflowCounter"][num_completed] = voxel_overflow_counter
 
         num_completed += 1
@@ -1689,8 +1689,11 @@ class SnuddaDetect(object):
         if self.role == "master":
             del_files = [os.path.join(self.network_path, "network-putative-synapses-MERGED.hdf5"),
                          os.path.join(self.network_path, "network-putative-synapses-MERGED.hdf5-cache"),
-                         os.path.join(self.network_path, "network-pruned-synapses.hdf5"),
-                         os.path.join(self.network_path, "network-pruned-synapses.hdf5-cache")]
+                         os.path.join(self.network_path, "network-synapses.hdf5"),
+                         os.path.join(self.network_path, "network-synapses.hdf5-cache"),
+                         os.path.join(self.network_path, "network-synapses.hdf5"),
+                         os.path.join(self.network_path,"network-projection-synapses.hdf5"),
+                         ]
 
             for f in del_files:
                 if os.path.exists(f):
