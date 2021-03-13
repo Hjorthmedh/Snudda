@@ -46,7 +46,7 @@ class MyTestCase(unittest.TestCase):
         self.sd.detect(restart_detection_flag=True)
 
         # Prune
-        self.network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
+        self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
 
         sp = SnuddaPrune(network_path=self.network_path, config_file=None)  # Use default config file
         sp.prune(pre_merge_only=False)
