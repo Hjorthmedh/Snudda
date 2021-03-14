@@ -103,7 +103,7 @@ class TestProject(unittest.TestCase):
         sp.write_data()
 
         from snudda.detect import SnuddaDetect
-        sd = SnuddaDetect(network_path=self.network_path, hyper_voxel_size=200, verbose=True)
+        sd = SnuddaDetect(network_path=self.network_path, hyper_voxel_size=100, verbose=True)
         sd.detect()
 
         from snudda.project import SnuddaProject
@@ -194,6 +194,9 @@ class TestProject(unittest.TestCase):
         with self.subTest(stage="check-parallel-identical"):
             sl2 = SnuddaLoad(network_file)
             parallel_synapses = sl2.data["synapses"].copy()
+
+            # ParameterID, sec_X etc are randomised in hyper voxel, so you need to use same
+            # hypervoxel size for reproducability between serial and parallel execution
 
             # All synapses should be identical regardless of serial or parallel execution path
             self.assertTrue((serial_synapses == parallel_synapses).all())
