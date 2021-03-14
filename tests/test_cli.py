@@ -41,11 +41,11 @@ class TestCLI(unittest.TestCase):
             os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
             time.sleep(10)
 
-        with self.subTest(stage="init-parallel-BIG"):
-            run_cli_command("init tiny_parallel --size 1000000 --overwrite")
+        # with self.subTest(stage="init-parallel-BIG"):
+        #     run_cli_command("init tiny_parallel --size 1000000 --overwrite")
 
-        with self.subTest(stage="place-parallel-BIG"):
-            run_cli_command("place tiny_parallel --parallel")
+        # with self.subTest(stage="place-parallel-BIG"):
+        #     run_cli_command("place tiny_parallel --parallel")
 
         with self.subTest(stage="init-parallel"):
             run_cli_command("init tiny_parallel --size 100 --overwrite")
