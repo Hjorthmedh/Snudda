@@ -2,6 +2,7 @@ import unittest, os, sys, argparse, time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import snudda.cli
+from snudda.init import SnuddaInit
 
 
 # Duck punch the argument parser so it doesn't sys.exit
@@ -40,8 +41,22 @@ class TestCLI(unittest.TestCase):
             os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
             time.sleep(10)
 
+        # with self.subTest(stage="init-parallel-BIG"):
+        #     run_cli_command("init tiny_parallel --size 1000000 --overwrite")
+
+        # with self.subTest(stage="place-parallel-BIG"):
+        #     run_cli_command("place tiny_parallel --parallel")
+
         with self.subTest(stage="init-parallel"):
             run_cli_command("init tiny_parallel --size 100 --overwrite")
+
+        # Lets reinit but a smaller network that contains all types of cells, to speed things up
+        with self.subTest(stage="small-reinit-1"):
+            config_name = os.path.join("tiny_parallel", "network-config.json")
+            cnc = SnuddaInit(struct_def={}, config_file=config_name, random_seed=123456)
+            cnc.define_striatum(num_dSPN=5, num_iSPN=5, num_FS=5, num_LTS=5, num_ChIN=5,
+                                volume_type="cube")
+            cnc.write_json(config_name)
 
         with self.subTest(stage="place-parallel"):
             run_cli_command("place tiny_parallel --parallel --raytraceBorders")
@@ -90,6 +105,14 @@ class TestCLI(unittest.TestCase):
         with self.subTest(stage="init-overwrite-fail"):
             # Should not allow overwriting of existing folder if --overwrite is not specified
             self.assertRaises(AssertionError, run_cli_command, "init tiny_serial --size 100")
+
+        # Again, let us reinit to a smaller network to speed things up
+        with self.subTest(stage="small-reinit-2"):
+            config_name = os.path.join("tiny_serial", "network-config.json")
+            cnc = SnuddaInit(struct_def={}, config_file=config_name, random_seed=123456)
+            cnc.define_striatum(num_dSPN=5, num_iSPN=5, num_FS=5, num_LTS=5, num_ChIN=5,
+                                volume_type="cube")
+            cnc.write_json(config_name)
 
         with self.subTest(stage="place-serial"):
             run_cli_command("place tiny_serial --h5legacy")

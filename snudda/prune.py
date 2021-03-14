@@ -938,7 +938,6 @@ class SnuddaPrune(object):
         chunk_size = self.synapse_chunk_size
 
         if num_synapses is None:
-            # !!! TODO: We need to include the connect synapses also in the num_synapses
             num_synapses = self.num_synapses_total
 
         if num_gap_junctions is None:
@@ -1370,7 +1369,16 @@ class SnuddaPrune(object):
                 assert f_in[location].shape[0] == num_synapses, "Internal inconsistency in number of rows stored"
                 assert not (f_in[location][-1, :] == 0).all(), "Last row all zero, that should not happen"
 
-                self.buffer_out_file[location][start_pos:end_pos, :] = f_in[location][:, :]
+                try:
+                    self.buffer_out_file[location][start_pos:end_pos, :] = f_in[location][:, :]
+                except:
+                    print("   !!! This should never happen!!")
+                    import traceback
+                    tstr = traceback.format_exc()
+                    self.write_log(tstr, is_error=True)
+                    import pdb
+                    pdb.set_trace()
+
 
                 f_in.close()
                 start_pos = end_pos
@@ -1537,18 +1545,22 @@ class SnuddaPrune(object):
                 if file_list["con"]["network/nSynapses"][()] > 0:
                     n_total += file_list["con"]["network/nSynapses"][()]
 
+                    lookup_iterator = \
+                        self.file_row_lookup_iterator_subset(h5mat_lookup=file_list["con"][h5_syn_lookup],
+                                                             min_dest_id=neuron_range[0],
+                                                             max_dest_id=neuron_range[1],
+                                                             chunk_size=chunk_size)
+
                     file_mat_iterator["con"] \
                         = self.synapse_set_iterator(h5mat_lookup=file_list["con"][h5_syn_lookup],
                                                     h5mat=file_list["con"][h5_syn_mat],
-                                                    chunk_size=chunk_size)
+                                                    chunk_size=chunk_size,
+                                                    lookup_iterator=lookup_iterator)
 
                     syn_set, unique_id = next(file_mat_iterator["con"], (None, None))
 
                     if syn_set is None:
-                        assert syn_set is not None, \
-                            ("Volume projection synapses: syn_set should return a synapse," 
-                             " we already know nSynapses > 0")
-
+                        # No synapse in our range, let this worker skip the file
                         # Clear file List and fileMatIterator for this worker
                         del file_list["con"]
                         del file_mat_iterator["con"]

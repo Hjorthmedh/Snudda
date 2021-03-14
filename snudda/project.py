@@ -14,6 +14,7 @@ from snudda.detect import SnuddaDetect
 from snudda.neuron_morphology import NeuronMorphology
 from snudda.load import SnuddaLoad
 
+
 class SnuddaProject(object):
 
     # TODO: Add support for log files!!
@@ -30,6 +31,9 @@ class SnuddaProject(object):
         self.connectivity_distributions = dict()
         self.prototype_neurons = dict()
         self.next_channel_model_id = 10
+
+        self.simulation_origo = None
+        self.voxel_size = None
 
         # Parameters for the HDF5 writing, this affects write speed
         self.synapse_chunk_size = 10000
@@ -62,6 +66,12 @@ class SnuddaProject(object):
 
         position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
         self.network_info = SnuddaLoad(position_file)
+
+        # We also need simulation origo and voxel size
+        work_history_file = os.path.join(self.network_path, "log", "network-detect-worklog.hdf5")
+        with h5py.File(work_history_file, "r") as work_hist:
+            self.simulation_origo = work_hist["meta/simulationOrigo"][()]
+            self.voxel_size = work_hist["meta/voxelSize"][()]
 
     # This is a simplified version of the prototype load in detect
     def read_prototypes(self):
@@ -197,13 +207,21 @@ class SnuddaProject(object):
 
                 for t_id, t_name, n_syn, ax_dist in zip(target_id, target_name, n_synapses, axon_dist):
 
-                    morph = self.prototype_neurons[t_name]
+                    # We need to place neuron correctly in space (work on clone),
+                    # so that synapse coordinates are correct
+                    morph_prototype = self.prototype_neurons[t_name]
+                    position = self.network_info.data["neurons"][0]["position"]
+                    rotation = self.network_info.data["neurons"][0]["rotation"]
+                    morph = morph_prototype.clone(position=position, rotation=rotation)
 
                     # We are not guaranteed to get n_syn positions, so use len(sec_x) to get how many after
                     # TODO: Fix so dendrite_input_locations always returns  n_syn synapses
                     xyz, sec_id, sec_x, dist_to_soma = morph.dendrite_input_locations(dendrite_synapse_density,
                                                                                       self.rng,
                                                                                       num_locations=n_syn)
+
+                    # We need to convert xyz into voxel coordinates to match data format of synapse matrix
+                    xyz = np.round((xyz - self.simulation_origo) / self.voxel_size)
 
                     cond = self.rng.normal(conductance_mean, conductance_std, len(sec_x))
                     cond = np.maximum(cond, conductance_mean*0.1)  # Lower bound, prevent negative.
