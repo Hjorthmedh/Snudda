@@ -54,7 +54,7 @@ class TestCLI(unittest.TestCase):
         with self.subTest(stage="small-reinit-1"):
             config_name = os.path.join("tiny_parallel", "network-config.json")
             cnc = SnuddaInit(struct_def={}, config_file=config_name, random_seed=123456)
-            cnc.define_striatum(num_dSPN=5, num_iSPN=5, num_FS=5, num_LTS=5, num_ChIN=5,
+            cnc.define_striatum(num_dSPN=4, num_iSPN=4, num_FS=2, num_LTS=2, num_ChIN=2,
                                 volume_type="cube")
             cnc.write_json(config_name)
 
@@ -109,8 +109,8 @@ class TestCLI(unittest.TestCase):
         # Again, let us reinit to a smaller network to speed things up
         with self.subTest(stage="small-reinit-2"):
             config_name = os.path.join("tiny_serial", "network-config.json")
-            cnc = SnuddaInit(struct_def={}, config_file=config_name, random_seed=123456)
-            cnc.define_striatum(num_dSPN=5, num_iSPN=5, num_FS=5, num_LTS=5, num_ChIN=5,
+            cnc = SnuddaInit(struct_def={}, config_file=config_name, random_seed=1234)
+            cnc.define_striatum(num_dSPN=3, num_iSPN=3, num_FS=2, num_LTS=2, num_ChIN=2,
                                 volume_type="cube")
             cnc.write_json(config_name)
 
