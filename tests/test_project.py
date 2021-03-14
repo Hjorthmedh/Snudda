@@ -1,5 +1,6 @@
 import unittest
 import os
+import time
 
 
 class TestProject(unittest.TestCase):
@@ -8,7 +9,7 @@ class TestProject(unittest.TestCase):
         from snudda.create_cube_mesh import create_cube_mesh
 
         # Create cube meshes
-        self.network_path = os.path.join("networks", "testing_project")
+        self.network_path = os.path.join("networks", "network_testing_project")
         mesh_file_a = os.path.join(self.network_path, "mesh", "volume_A.obj")
         mesh_file_b = os.path.join(self.network_path, "mesh", "volume_B.obj")
 
@@ -97,12 +98,12 @@ class TestProject(unittest.TestCase):
         # Place neurons, then detect, project and prune
 
         from snudda.place import SnuddaPlace
-        sp = SnuddaPlace(network_path=self.network_path, verbose=False)
+        sp = SnuddaPlace(network_path=self.network_path, verbose=True)
         sp.parse_config()
         sp.write_data()
 
         from snudda.detect import SnuddaDetect
-        sd = SnuddaDetect(network_path=self.network_path, hyper_voxel_size=200)
+        sd = SnuddaDetect(network_path=self.network_path, hyper_voxel_size=200, verbose=True)
         sd.detect()
 
         from snudda.project import SnuddaProject
@@ -111,7 +112,7 @@ class TestProject(unittest.TestCase):
         sp.write()
 
         from snudda.prune import SnuddaPrune
-        sp = SnuddaPrune(network_path=self.network_path)
+        sp = SnuddaPrune(network_path=self.network_path, verbose=True)
         sp.prune()
 
     def test_project(self):
@@ -158,6 +159,46 @@ class TestProject(unittest.TestCase):
             # synapses
             self.assertTrue(tot_dd_syn_ctr > 0)
             self.assertTrue(tot_ii_syn_ctr > 0)
+
+        # We need to run in parallel also to verify we get same result (same random seed)
+
+        serial_synapses = sl.data["synapses"].copy()
+        del sl  # Close old file so we can overwrite it
+
+        os.environ["IPYTHONDIR"] = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
+        os.environ["IPYTHON_PROFILE"] = "default"
+        os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
+        time.sleep(10)
+
+        # Run place, detect and prune in parallel by passing rc
+        from ipyparallel import Client
+        u_file = os.path.join(".ipython", "profile_default", "security", "ipcontroller-client.json")
+        rc = Client(url_file=u_file, timeout=120, debug=False)
+        d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
+
+        from snudda.detect import SnuddaDetect
+        sd = SnuddaDetect(network_path=self.network_path, hyper_voxel_size=100, rc=rc, verbose=True)
+        sd.detect()
+
+        from snudda.project import SnuddaProject
+        # TODO: Currently SnuddaProject only runs in serial
+        sp = SnuddaProject(network_path=self.network_path)
+        sp.project()
+        sp.write()
+
+        from snudda.prune import SnuddaPrune
+        # Prune has different methods for serial and parallel execution, important to test it!
+        sp = SnuddaPrune(network_path=self.network_path, rc=rc, verbose=True)
+        sp.prune()
+
+        with self.subTest(stage="check-parallel-identical"):
+            sl2 = SnuddaLoad(network_file)
+            parallel_synapses = sl2.data["synapses"].copy()
+
+            # All synapses should be identical regardless of serial or parallel execution path
+            self.assertTrue((serial_synapses == parallel_synapses).all())
+
+        os.system("ipcluster stop")
 
 
 if __name__ == '__main__':
