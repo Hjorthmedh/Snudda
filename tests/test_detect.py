@@ -102,7 +102,7 @@ class TestDetect(unittest.TestCase):
         if not os.path.exists(fig_path):
             os.mkdir(fig_path)
 
-        if True:   # Set to True to include plot
+        if False:   # Set to True to include plot
             self.sd.plot_hyper_voxel(plot_neurons=True, fig_file_name="touch-detection-validation")
 
         # TODO: Also add tests for soma-axon synapses
@@ -152,18 +152,21 @@ class TestDetect(unittest.TestCase):
             # Check new rows are empty
             self.assertTrue((self.sd.hyper_voxel_synapses[old.shape[0]:, :] == 0).all())
 
-        with self.subTest(stage="export_voxel_vis"):
-            self.sd.export_voxel_visualisation_csv(neuron_id=np.arange(0, 10))
+# These test drawing not essential to Snudda, quite slow.
 
-        with self.subTest(stage="plot_hyper_voxel"):
-            # Matplotlib is kind of slow
-            self.sd.plot_neurons_in_hyper_voxel(neuron_id=np.arange(0, 10),
-                                                neuron_colour=np.zeros((10, 3)),
-                                                show_plot=False, dpi=90)
+        if False:
+            with self.subTest(stage="export_voxel_vis"):
+                self.sd.export_voxel_visualisation_csv(neuron_id=np.arange(0, 10))
 
-        with self.subTest(stage="example-draw"):
-            # Just checking that the drawing works
-            self.sd.test_voxel_draw()
+            with self.subTest(stage="plot_hyper_voxel"):
+                # Matplotlib is kind of slow
+                self.sd.plot_neurons_in_hyper_voxel(neuron_id=np.arange(0, 10),
+                                                    neuron_colour=np.zeros((10, 3)),
+                                                    show_plot=False, dpi=90)
+
+            with self.subTest(stage="example-draw"):
+                # Just checking that the drawing works
+                self.sd.test_voxel_draw()
 
         print("Checking detect done.")
 
@@ -259,7 +262,7 @@ class TestDetect(unittest.TestCase):
         synapse_voxel_loc = self.sd.hyper_voxel_synapses[:self.sd.hyper_voxel_synapse_ctr, 2:5]
         synapse_coords = synapse_voxel_loc * self.sd.voxel_size + self.sd.hyper_voxel_origo
 
-        if True:   # Set to True to include plot
+        if False:   # Set to True to include plot
             self.sd.plot_hyper_voxel(plot_neurons=True, fig_file_name="axon_dend_intersection_angle_0_45")
 
         with self.subTest(stage="synapses_check"):

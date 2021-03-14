@@ -208,7 +208,7 @@ class SnuddaPlace(object):
         if self.random_seed is None:
             if "RandomSeed" in config and "place" in config["RandomSeed"]:
                 self.random_seed = config["RandomSeed"]["place"]
-                self.write_log(f"Reading random see from config file: {self.random_seed}")
+                self.write_log(f"Reading random seed from config file: {self.random_seed}")
             else:
                 # No random seed given, invent one
                 self.random_seed = 1001
