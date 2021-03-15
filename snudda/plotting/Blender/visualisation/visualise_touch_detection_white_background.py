@@ -5,6 +5,7 @@ import bpy
 import mathutils
 import numpy as np
 import h5py
+from snudda.load import SnuddaLoad
 from snudda.utils.snudda_path import snudda_parse_path
 
 network_file = "/home/hjorth/HBP/Snudda/snudda/examples/networks/Net10062/networ-synapses.hdf5"
@@ -13,21 +14,16 @@ output_file = "twoNeurons-synapses-white-2020.blend"
 visualise_id = [443, 7]
 
 # Load the neuron positions
-fi = h5py.File(network_file, "r")
+sl = SnuddaLoad(network_file)
 
-neuron_id = fi["network/neurons/neuronID"].value
+neuron_id = sl.data["neuronID"]
 keep_idx = np.array([(x in visualise_id) for x in neuron_id])
 neuron_id = neuron_id[keep_idx]
 
-pos = fi["network/neurons/position"][keep_idx, :]
-rot = fi["network/neurons/rotation"][keep_idx, :]
-morph = fi["network/neurons/morphology"][keep_idx]
-name = fi["network/neurons/name"][keep_idx]
+neurons = [sl.data["neurons"][x] for x in keep_idx]
+origo = sl.data["simulationOrigo"]
+voxel_size = sl.data["voxelSize"]
 
-origo = fi["meta/simulationOrigo"].value
-voxel_size = fi["meta/voxelSize"].value
-
-synapses = fi["network/synapses"]
 
 # Remove the start cube
 bpy.ops.object.delete()
@@ -83,35 +79,29 @@ if not white_background:
     material_output = mat_synapse.node_tree.nodes.get('Material Output')
     mat_synapse.node_tree.links.new(material_output.inputs[0], emission.outputs[0])
 
-for ps, rt, mo, nm, n_id in zip(pos, rot, morph, name, neuron_id):
+material_lookup = { "dspn": mat_msd1,
+                    "ispn": mat_msd2,
+                    "fsn:" mat_fs,
+                    "fs": mat_fs,
+                    "chin": mat_chin,
+                    "lts": mat_lts,
+                    "other": mat_other}
 
-    e_rot = mathutils.Matrix(rt.reshape(3, 3)).to_euler()
+for neuron in neurons:
+
+    e_rot = mathutils.Matrix(neuron["rotation"].reshape(3, 3)).to_euler()
     bpy.ops.import_mesh.swc(filepath=snudda_parse_path(mo))
     obj = bpy.context.selected_objects[0]
 
     obj.rotation_euler = e_rot
-    print(f"Setting position: {ps * 1e3}")
-    obj.location = ps * 1e3
+    print(f"Setting position: {neuron['position'] * 1e3}")
+    obj.location = neuron["position"] * 1e3
 
-    n_type = nm.decode().split("_")[0]
-    if n_type == "dSPN" or n_type == "MSD1":
-        print(f"{n_id} dSPN")
-        mat = mat_msd1
-    elif n_type == "iSPN" or n_type == "MSD2":
-        print(f"{n_id} iSPN")
-        mat = mat_msd2
-    elif n_type == "FSN":
-        print(f"{n_id} FSN")
-        mat = mat_fs
-    elif n_type == "ChIN":
-        print(f"{n_id} ChIN")
-        mat = mat_chin
-    elif n_type == "LTS":
-        print(f"{n_id} LTS")
-        mat = mat_lts
+    n_type = neuron["type"].lower()
+    if n_type in material_lookup:
+      mat = material_lookup[n_type]
     else:
-        print(f"{n_id} other")
-        mat = mat_other
+      mat = material_lookup["other"]
 
     for ch in obj.children:
         ch.active_material = mat
@@ -125,26 +115,31 @@ n_synapses = 0
 for ob in bpy.context.selected_objects:
     ob.select = False
 
-for syn in synapses:
-    pre_id = syn[0]
-    post_id = syn[1]
+for vis_pre_id in visualise_id:
+    for vis_post_id in visualise_id:
+        synapses = sl.find_synapses(pre_id=vis_pre_id, post_id=vis_post_id)
 
-    if pre_id in visualise_id and post_id in visualise_id:
-        # Draw this neuron (the SWC import scales from micrometers to mm), the
-        # positions in the simulation are in meters, need to scale it to mm for
-        # blender to have same units.
-        x = (origo[0] + voxel_size * syn[2]) * 1e3
-        y = (origo[1] + voxel_size * syn[3]) * 1e3
-        z = (origo[2] + voxel_size * syn[4]) * 1e3
+        for syn in synapses:
+            pre_id = syn[0]
+            post_id = syn[1]
 
-        bpy.ops.mesh.primitive_uv_sphere_add(location=(x, y, z), size=0.001 * 4)
-        ob = bpy.context.selected_objects[0]
-        ob.active_material = mat_synapse
-        ob.select = False
+            assert pre_id == vis_pre_id and post_id == vis_post_id  # Just sanity check, should be true
 
-        n_synapses += 1
+            # Draw this neuron (the SWC import scales from micrometers to mm), the
+            # positions in the simulation are in meters, need to scale it to mm for
+            # blender to have same units.
+            x = (origo[0] + voxel_size * syn[2]) * 1e3
+            y = (origo[1] + voxel_size * syn[3]) * 1e3
+            z = (origo[2] + voxel_size * syn[4]) * 1e3
 
-        print(f"Added synapse at {[x, y, z]})
+            bpy.ops.mesh.primitive_uv_sphere_add(location=(x, y, z), size=0.001 * 4)
+            ob = bpy.context.selected_objects[0]
+            ob.active_material = mat_synapse
+            ob.select = False
+
+            n_synapses += 1
+
+            print(f"Added synapse at {[x, y, z]}")
 
 print(f"nSynapses = {n_synapses}")
 

@@ -75,6 +75,7 @@ class SnuddaLoad(object):
             # does not have the network group yet
             if "network/synapses" in f:
                 data["nNeurons"] = f["network/neurons/neuronID"].shape[0]
+                data["neuronID"] = f["network/neurons/neuronID"][()]
 
                 try:
                     data["nSynapses"] = f["network/nSynapses"][0]

@@ -152,8 +152,7 @@ class TestDetect(unittest.TestCase):
             # Check new rows are empty
             self.assertTrue((self.sd.hyper_voxel_synapses[old.shape[0]:, :] == 0).all())
 
-# These test drawing not essential to Snudda, quite slow.
-
+        # These test drawing not essential to Snudda, quite slow.
         if False:
             with self.subTest(stage="export_voxel_vis"):
                 self.sd.export_voxel_visualisation_csv(neuron_id=np.arange(0, 10))
