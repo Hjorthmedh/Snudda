@@ -12,7 +12,7 @@ class PlotNetwork(object):
     def __init__(self, network):
 
         if os.path.isdir(network):
-            network_file = os.path.join(network, "network-pruned-synapses.hdf5")
+            network_file = os.path.join(network, "network-synapses.hdf5")
         else:
             network_file = network
 

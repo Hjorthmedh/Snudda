@@ -55,7 +55,7 @@ class InputTuning(object):
             os.mkdir(self.network_path)
 
         self.network_config_file_name = os.path.join(self.network_path, "network-config.json")
-        self.network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
+        self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         self.input_config_file = os.path.join(self.network_path, "input_config.json")
         self.input_spikes_file = os.path.join(self.network_path, 'input.hdf5')
 
@@ -154,7 +154,7 @@ class InputTuning(object):
                                  synapse_parameter_file=synapse_parameter_file)
 
         si = SnuddaInput(input_config_file=self.input_config_file,
-                         hdf5_network_file=os.path.join(self.network_path, 'network-pruned-synapses.hdf5'),
+                         hdf5_network_file=os.path.join(self.network_path, 'network-synapses.hdf5'),
                          spike_data_filename=self.input_spikes_file,
                          time=self.max_time)
         si.generate()
@@ -170,11 +170,11 @@ class InputTuning(object):
 
         print(f"To plot traces:\n" 
               f"python3 plotting/Network_plot_traces.py {self.network_path}output_volt.txt " 
-              f"{self.network_path}network-pruned-synapses.hdf5 ")
+              f"{self.network_path}network-synapses.hdf5 ")
 
     def load_data(self, skip_time=0.0):
 
-        network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
+        network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         network_info = SnuddaLoad(network_file)
 
         spike_data_file = os.path.join(self.network_path, "output_spikes.txt")
