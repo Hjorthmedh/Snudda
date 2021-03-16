@@ -5,6 +5,7 @@ import bpy
 import os
 import mathutils
 import numpy as np
+import json
 from snudda.load import SnuddaLoad
 from snudda.utils.snudda_path import snudda_parse_path
 
@@ -12,10 +13,17 @@ from snudda.utils.snudda_path import snudda_parse_path
 class VisualiseNetwork(object):
 
     # You need to provide neuron
-    def __init__(self, network_path, blender_save_file=None, blender_output_image=None):
+    def __init__(self, network_path, blender_save_file=None, blender_output_image=None,
+                 network_json=None):
 
         self.network_path = network_path
-        self.network_file = os.path.join(network_path, "network-synapses.hdf5")
+
+        if network_json:
+            self.network_json = network_json
+            self.network_file = None
+        else:
+            self.network_json = None
+            self.network_file = os.path.join(network_path, "network-synapses.hdf5")
 
         if blender_save_file:
             self.blender_save_file = blender_save_file
@@ -25,19 +33,25 @@ class VisualiseNetwork(object):
         self.blender_output_image = blender_output_image
 
         # Load the neuron positions
-        self.sl = SnuddaLoad(self.network_file)
+        if self.network_file:
+            self.sl = SnuddaLoad(self.network_file)
+            self.data = self.sl.data
+        elif self.network_json:
+            from snudda.utils.fake_load import FakeLoad
+            self.sl = FakeLoad()
+            self.sl.import_json(self.network_json)
+            self.data = self.sl.data
 
-    def visualise(self, neuron_id=None,
-                  white_background=True):
+    def visualise(self, neuron_id=None, white_background=True):
 
         if neuron_id:
-            neurons = [self.sl.data["neurons"][x] for x in neuron_id]
+            neurons = [self.data["neurons"][x] for x in neuron_id]
         else:
-            neurons = self.sl.data["neurons"]
-            neuron_id = self.sl.data["neuronID"]
+            neurons = self.data["neurons"]
+            neuron_id = self.data["neuronID"]
 
-        origo = self.sl.data["simulationOrigo"]
-        voxel_size = self.sl.data["voxelSize"]
+        origo = self.data["simulationOrigo"]
+        voxel_size = self.data["voxelSize"]
 
         # Remove the start cube
         bpy.ops.object.delete()
@@ -127,7 +141,11 @@ class VisualiseNetwork(object):
 
         for vis_pre_id in neuron_id:
             for vis_post_id in neuron_id:
-                synapses = self.sl.find_synapses(pre_id=vis_pre_id, post_id=vis_post_id)
+                synapses, synapse_coords = self.sl.find_synapses(pre_id=vis_pre_id, post_id=vis_post_id)
+
+                if synapses is None:
+                    # No synapses between pair
+                    continue
 
                 for syn in synapses:
                     pre_id = syn[0]
