@@ -44,7 +44,8 @@ class VisualiseNetwork(object):
             self.sl.import_json(self.network_json)
             self.data = self.sl.data
 
-    def visualise(self, neuron_id=None, blender_output_image=None, white_background=True):
+    def visualise(self, neuron_id=None, blender_output_image=None, white_background=True,
+                  show_synapses=True):
 
         if neuron_id:
             neurons = [self.data["neurons"][x] for x in neuron_id]
@@ -128,18 +129,17 @@ class VisualiseNetwork(object):
                 if self.neuron_cache[neuron["name"]].data:
                     obj.data = self.neuron_cache[neuron["name"]].data.copy()
 
+                VisualiseNetwork.copy_children(self.neuron_cache[neuron["name"]], obj)
                 obj.animation_data_clear()
+
+                # Will return None if there is no obj named CUBe
                 obj.name = f"{neuron['name']}-{neuron['neuronID']}"
-                try:
-                    # Blender 2.7
-                    bpy.context.scene.objects.link(obj)
-                except:
-                    print("Blender 2.7 failed, switch over to only use Blender 2.8 syntax")
-                    # Blender 2.8
-                    bpy.context.collection.objects.link(obj)
+                VisualiseNetwork.link_object(obj)
             else:
                 bpy.ops.import_mesh.swc(filepath=snudda_parse_path(neuron["morphology"]))
                 obj = bpy.context.selected_objects[0]
+                obj.name = f"{neuron['name']}-{neuron['neuronID']}"
+                
                 self.neuron_cache[neuron["name"]] = obj
 
             obj.rotation_euler = e_rot
@@ -157,62 +157,61 @@ class VisualiseNetwork(object):
 
             obj.select = False
 
-        # Draw the synapses
-        n_synapses = 0
+        if show_synapses:
+            print("Adding synapses...")
 
-        for ob in bpy.context.selected_objects:
-            ob.select = False
+            # Draw the synapses
+            n_synapses = 0
 
-        synapse_obj = None
+            for ob in bpy.context.selected_objects:
+                ob.select = False
 
-        for vis_pre_id in neuron_id:
-            for vis_post_id in neuron_id:
-                synapses, synapse_coords = self.sl.find_synapses(pre_id=vis_pre_id, post_id=vis_post_id)
+            synapse_obj = None
 
-                if synapses is None:
-                    # No synapses between pair
-                    continue
+            for vis_pre_id in neuron_id:
+                for vis_post_id in neuron_id:
+                    synapses, synapse_coords = self.sl.find_synapses(pre_id=vis_pre_id, post_id=vis_post_id)
 
-                for syn in synapses:
-                    pre_id = syn[0]
-                    post_id = syn[1]
+                    if synapses is None:
+                        # No synapses between pair
+                        continue
 
-                    assert pre_id == vis_pre_id and post_id == vis_post_id  # Just sanity check, should be true
+                    for syn in synapses:
+                        pre_id = syn[0]
+                        post_id = syn[1]
 
-                    # Draw this neuron (the SWC import scales from micrometers to mm), the
-                    # positions in the simulation are in meters, need to scale it to mm for
-                    # blender to have same units.
-                    x = (origo[0] + voxel_size * syn[2]) * 1e3
-                    y = (origo[1] + voxel_size * syn[3]) * 1e3
-                    z = (origo[2] + voxel_size * syn[4]) * 1e3
+                        assert pre_id == vis_pre_id and post_id == vis_post_id  # Just sanity check, should be true
 
-                    if synapse_obj:
-                        obj = synapse_obj.copy()
-                        if synapse_obj.data:
-                            obj.data = synapse_obj.data.copy()
-                        obj.animation_data_clear()
-                        obj.location = (x, y, z)
-                        obj.name = f"synapse-{n_synapses}"
-                        try:
-                            # Blender 2.7
-                            bpy.context.scene.objects.link(obj)
-                        except:
-                            print("Blender 2.7 failed, switch over to only use Blender 2.8 syntax")
-                            # Blender 2.8
-                            bpy.context.collection.objects.link(obj)
+                        # Draw this neuron (the SWC import scales from micrometers to mm), the
+                        # positions in the simulation are in meters, need to scale it to mm for
+                        # blender to have same units.
+                        x = (origo[0] + voxel_size * syn[2]) * 1e3
+                        y = (origo[1] + voxel_size * syn[3]) * 1e3
+                        z = (origo[2] + voxel_size * syn[4]) * 1e3
 
-                    else:
-                        bpy.ops.mesh.primitive_uv_sphere_add(location=(x, y, z), size=0.001 * 4)
-                        obj = bpy.context.selected_objects[0]
-                        obj.active_material = mat_synapse
-                        obj.select = False
-                        synapse_obj = obj
+                        if synapse_obj:
+                            obj = synapse_obj.copy()
+                            if synapse_obj.data:
+                                obj.data = synapse_obj.data.copy()
+                            obj.animation_data_clear()
+                            obj.location = (x, y, z)
+                            obj.name = f"synapse-{n_synapses}"
+                            VisualiseNetwork.link_object(obj)
 
-                    n_synapses += 1
+                        else:
+                            bpy.ops.mesh.primitive_uv_sphere_add(location=(x, y, z), size=0.001 * 4)
+                            obj = bpy.context.selected_objects[0]
+                            obj.active_material = mat_synapse
+                            obj.select = False
+                            synapse_obj = obj
 
-                    print(f"Added synapse #{n_synapses} at {[x, y, z]}")
+                        n_synapses += 1
 
-        print(f"nSynapses = {n_synapses}")
+                        # print(f"Added synapse #{n_synapses} at {[x, y, z]}")
+                        if n_synapses % 5000 == 0:
+                            print(f"Synapses added so far: {n_synapses}")
+
+            print(f"nSynapses = {n_synapses}")
 
         # Add a light source
 
@@ -240,3 +239,19 @@ class VisualiseNetwork(object):
             bpy.data.images['Render Result'].save_render(filepath=self.blender_output_image)
 
         bpy.ops.wm.save_as_mainfile(filepath=self.blender_save_file)
+
+    @staticmethod
+    def copy_children(parent, parent_copy):
+        for child in parent.children:
+            child_copy = child.copy()
+            child_copy.parent = parent_copy
+            VisualiseNetwork.link_object(child_copy)
+            VisualiseNetwork.copy_children(child, child_copy)
+
+    @staticmethod
+    def link_object(obj):
+        try:
+            bpy.context.scene.objects.link(obj)  # Blender 2.7
+        except:
+            print("Blender 2.7 failed, switch over to only use Blender 2.8 syntax")
+            bpy.context.collection.objects.link(obj)  # Blender 2.8
