@@ -60,7 +60,8 @@ class VisualiseNetwork(object):
         voxel_size = self.data["voxelSize"]
 
         # Remove the start cube
-        bpy.ops.object.delete()
+        # bpy.ops.object.delete()
+        VisualiseNetwork.clean_scene()
 
         bpy.data.scenes['Scene'].render.engine = 'CYCLES'
         world = bpy.data.worlds['World']
@@ -139,11 +140,11 @@ class VisualiseNetwork(object):
                 bpy.ops.import_mesh.swc(filepath=snudda_parse_path(neuron["morphology"]))
                 obj = bpy.context.selected_objects[0]
                 obj.name = f"{neuron['name']}-{neuron['neuronID']}"
-                
+
                 self.neuron_cache[neuron["name"]] = obj
 
             obj.rotation_euler = e_rot
-            print(f"Setting position: {neuron['position'] * 1e3}")
+            print(f"Setting neuron {neuron['neuronID']} ({neuron['name']}) position: {neuron['position'] * 1e3}")
             obj.location = neuron["position"] * 1e3
 
             n_type = neuron["type"].lower()
@@ -233,12 +234,12 @@ class VisualiseNetwork(object):
         # Is this needed?
         bpy.context.scene.update()
 
+        bpy.ops.wm.save_as_mainfile(filepath=self.blender_save_file)
+
         if self.blender_output_image:
             print("Rendering image.")
             bpy.ops.render.render()
             bpy.data.images['Render Result'].save_render(filepath=self.blender_output_image)
-
-        bpy.ops.wm.save_as_mainfile(filepath=self.blender_save_file)
 
     @staticmethod
     def copy_children(parent, parent_copy):
@@ -255,3 +256,11 @@ class VisualiseNetwork(object):
         except:
             print("Blender 2.7 failed, switch over to only use Blender 2.8 syntax")
             bpy.context.collection.objects.link(obj)  # Blender 2.8
+
+    @staticmethod
+    def clean_scene():
+        # TODO: This does not seem to remove everything. Had some leftover synapses present still in notebook.
+        print("Cleaning the scene.")
+        del_list = bpy.context.copy()
+        del_list['selected_objects'] = list(bpy.context.scene.objects)
+        bpy.ops.object.delete(del_list)
