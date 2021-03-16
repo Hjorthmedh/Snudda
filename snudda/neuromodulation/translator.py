@@ -12,18 +12,6 @@ re_translation ={
 }
 
 
-conductance = {
-	"naf_ms": "gbar",
-	"kir_ms": "gbar",
-	"kas_ms": "gbar",
-	"kaf_ms": "gbar",
-	"cal12_ms": "pbar",
-	"cal13_ms": "pbar",
-	"can_ms": "pbar",
-	"car_ms": "pbar"
-}
-
-
 def translate(word):
 
     return translation[word]

@@ -1,8 +1,8 @@
 from snudda.simulate import SnuddaSimulate
 import json
 import numpy as np
-import snudda.modulation as modulation
-import snudda.translator as translator
+import snudda.neuromodulation.modulation as modulation
+import snudda.neuromodulation.translator as translator
 
 
 class SnuddaNeuromodulation(SnuddaSimulate):
