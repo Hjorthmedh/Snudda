@@ -42,13 +42,16 @@ class VisualiseNetwork(object):
             self.sl.import_json(self.network_json)
             self.data = self.sl.data
 
-    def visualise(self, neuron_id=None, white_background=True):
+    def visualise(self, neuron_id=None, blender_output_image=None, white_background=True):
 
         if neuron_id:
             neurons = [self.data["neurons"][x] for x in neuron_id]
         else:
             neurons = self.data["neurons"]
             neuron_id = self.data["neuronID"]
+
+        if blender_output_image:
+            self.blender_output_image = blender_output_image
 
         origo = self.data["simulationOrigo"]
         voxel_size = self.data["voxelSize"]

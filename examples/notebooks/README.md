@@ -29,3 +29,6 @@ Here is a collection of Jupyter Notebooks, some of the workflows are split over 
 * [touch_detection_hypervoxel_illustration](../illustrations/touch_detection_hypervoxel_illustration.ipynb) - Panel 2A,B
 * [touch_detection_illustration](../illustrations/touch_detection_illustration.ipynb) - Panel 2C
 * [pruning_illustration](../illustrations/pruning_illustration.ipynb) - Panel 2D-G
+
+## Visualisation
+* [blender_example](blender_example.ipynb) - Use Blender to visualise a network, or part of a network
