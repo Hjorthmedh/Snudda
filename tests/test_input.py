@@ -24,7 +24,7 @@ class MyTestCase(unittest.TestCase):
         from snudda.init import SnuddaInit
         cell_spec = os.path.join(os.path.dirname(__file__), "validation")
         cnc = SnuddaInit(struct_def={}, config_file=self.config_file, random_seed=1234)
-        cnc.define_striatum(num_dSPN=10, num_iSPN=0, num_FS=10, num_LTS=0, num_ChIN=0,
+        cnc.define_striatum(num_dSPN=5, num_iSPN=0, num_FS=5, num_LTS=0, num_ChIN=0,
                             volume_type="cube", neurons_dir=cell_spec)
         cnc.write_json(self.config_file)
 
@@ -46,7 +46,7 @@ class MyTestCase(unittest.TestCase):
         self.sd.detect(restart_detection_flag=True)
 
         # Prune
-        self.network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
+        self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
 
         sp = SnuddaPrune(network_path=self.network_path, config_file=None)  # Use default config file
         sp.prune(pre_merge_only=False)

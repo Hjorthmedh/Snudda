@@ -79,7 +79,7 @@ class SnuddaInput(object):
         if hdf5_network_file:
             self.hdf5_network_file = hdf5_network_file
         else:
-            self.hdf5_network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
+            self.hdf5_network_file = os.path.join(self.network_path, "network-synapses.hdf5")
 
         self.time_interval_overlap_warning = time_interval_overlap_warning
         self.input_info = None

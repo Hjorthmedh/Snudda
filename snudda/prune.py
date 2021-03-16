@@ -121,6 +121,8 @@ class SnuddaPrune(object):
 
         self.max_channel_type = None
 
+        self.projection_synapse_file = os.path.join(self.network_path, "network-projection-synapses.hdf5")
+
         # Parameters for the HDF5 writing, this affects write speed
         self.synapse_chunk_size = 10000
         self.gap_junction_chunk_size = 10000
@@ -154,6 +156,7 @@ class SnuddaPrune(object):
         self.hyper_voxel_offset = None
         self.num_synapses_total = None
         self.num_gap_junctions_total = None
+        self.num_projection_synapses = None
         self.config_file = None
         self.position_file = None
         self.detect_config = None
@@ -184,9 +187,11 @@ class SnuddaPrune(object):
 
         # (locationOfMatrix,locationOfN,locationOfCoords)
         self.data_loc = {"synapses": ("network/synapses",
+                                      "nHypervoxelSynapses",
                                       "nSynapses",
                                       "network/synapseLookup"),  # range(2,5)),
                          "gapJunctions": ("network/gapJunctions",
+                                          "nHypervoxelGapJunctions",
                                           "nGapJunctions",
                                           "network/gapJunctionLookup")}  # range(6,9))}
 
@@ -276,7 +281,7 @@ class SnuddaPrune(object):
                 self.write_log("Creating symbolic link to MERGE file instead", force_print=True)
 
                 f_dest = os.path.join(os.path.dirname(self.work_history_file).replace(f"{os.path.sep}log", os.path.sep),
-                                      "network-pruned-synapses.hdf5")
+                                      "network-synapses.hdf5")
                 f_src = os.path.basename(f_name)
                 self.write_log(f"{f_dest} -> {f_src}", force_print=True)
 
@@ -287,11 +292,11 @@ class SnuddaPrune(object):
 
                 return
 
-            n_syn_before = np.sum(self.hist_file["nSynapses"][()])
+            n_syn_before = self.num_synapses_total
             n_syn_after = self.out_file["network/nSynapses"][0]
 
             n_overflow = np.sum(self.hist_file["voxelOverflowCounter"][()])
-            n_gj_before = np.sum(self.hist_file["nGapJunctions"][()])
+            n_gj_before = np.sum(self.hist_file["nHypervoxelGapJunctions"][()])
             n_gj_after = self.out_file["network/nGapJunctions"][0]
 
             self.write_log(f"Voxel overflows: {n_overflow} (should be zero)", is_error=(n_overflow > 0))
@@ -406,8 +411,15 @@ class SnuddaPrune(object):
         # OBS the synapse and gap junction numbers are listed not in order of
         # hyperID but in order they were completed, to find out hyperID for
         # a particular one check self.histFile["completed"]
-        self.num_synapses_total = np.sum(self.hist_file["nSynapses"][()])
-        self.num_gap_junctions_total = np.sum(self.hist_file["nGapJunctions"][()])
+
+        # Also, we need to add any synapses from projections between volumes to the total
+        if "nProjectionSynapses" in self.hist_file:
+            self.num_projection_synapses = self.hist_file["nProjectionSynapses"][()]
+        else:
+            self.num_projection_synapses = 0
+
+        self.num_synapses_total = np.sum(self.hist_file["nHypervoxelSynapses"][()]) + self.num_projection_synapses
+        self.num_gap_junctions_total = np.sum(self.hist_file["nHypervoxelGapJunctions"][()])
 
         if config_file is None:
             self.config_file = self.hist_file["meta/configFile"][()]
@@ -574,7 +586,7 @@ class SnuddaPrune(object):
 
                 assert self.num_synapses_total == data["nSynapsesTotal"] \
                     and self.num_gap_junctions_total == data["nGapJunctionsTotal"], \
-                        " Synapse or gap junction count mismatch -- corrupt file?"
+                    " Synapse or gap junction count mismatch -- corrupt file?"
 
         else:
             con_mat = None
@@ -733,7 +745,7 @@ class SnuddaPrune(object):
             return
 
         if output_file is None:
-            output_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
+            output_file = os.path.join(self.network_path, "network-synapses.hdf5")
 
         self.write_log(f"Writing to {output_file}")
         out_file = h5py.File(output_file, "w", libver=self.h5libver, driver=self.h5driver)
@@ -984,7 +996,7 @@ class SnuddaPrune(object):
                                 setup_out_file=True,
                                 close_input_file=True):
 
-        h5_syn_mat, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
+        h5_syn_mat, h5_hyp_syn_n, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
 
         if synapse_file[h5_syn_mat].shape[0] == 0:
             self.write_log(f"prune_synapses_parallel: No {merge_data_type} skipping pruning", force_print=True)
@@ -1357,15 +1369,25 @@ class SnuddaPrune(object):
                 assert f_in[location].shape[0] == num_synapses, "Internal inconsistency in number of rows stored"
                 assert not (f_in[location][-1, :] == 0).all(), "Last row all zero, that should not happen"
 
-                self.buffer_out_file[location][start_pos:end_pos, :] = f_in[location][:, :]
+                try:
+                    self.buffer_out_file[location][start_pos:end_pos, :] = f_in[location][:, :]
+                except:
+                    print("   !!! This should never happen!!")
+                    import traceback
+                    tstr = traceback.format_exc()
+                    self.write_log(tstr, is_error=True)
+                    import pdb
+                    pdb.set_trace()
+
 
                 f_in.close()
                 start_pos = end_pos
 
         # We should check that the number of synapses in output file is correct
-        assert self.buffer_out_file["network/synapses"].shape[0] == np.sum(self.hist_file["nSynapses"][:]), \
+        assert self.buffer_out_file["network/synapses"].shape[0] == self.num_synapses_total, \
             "Not all synapses kept in merge, internal problem."
-        assert self.buffer_out_file["network/gapJunctions"].shape[0] == np.sum(self.hist_file["nGapJunctions"][:]), \
+        assert self.buffer_out_file["network/gapJunctions"].shape[0] \
+               == np.sum(self.hist_file["nHypervoxelGapJunctions"][:]), \
             "Not all gap junctions kept in merge, internal problem."
 
         self.write_log("big_merge_parallel: done")
@@ -1410,11 +1432,12 @@ class SnuddaPrune(object):
             hv_list = self.get_hyper_voxel_list(neuron_range)
 
             # Locations of data within the file
-            h5_syn_mat, h5_syn_n, h5_syn_lookup = self.data_loc[merge_data_type]
+            h5_syn_mat, h5_hyp_syn_n, h5_syn_n, h5_syn_lookup = self.data_loc[merge_data_type]
 
             synapse_heap = []
             file_list = dict([])
             file_mat_iterator = dict([])
+            chunk_size = 10000
 
             # Next we need to open all the relevant files
             h_file_name_mask = os.path.join(self.network_path, "voxels", "network-putative-synapses-%s.hdf5")
@@ -1433,7 +1456,7 @@ class SnuddaPrune(object):
             n_total = 0
 
             for h_id, n_syn, n_overflow in zip(self.hist_file["completed"][:n_hv],
-                                               self.hist_file[h5_syn_n][:n_hv],
+                                               self.hist_file[h5_hyp_syn_n][:n_hv],
                                                self.hist_file["voxelOverflowCounter"][:n_hv]):
                 n_total += n_syn
 
@@ -1470,7 +1493,6 @@ class SnuddaPrune(object):
                         self.max_channel_type = file_list[h_id]["network/maxChannelTypeID"][()]
                         self.write_log(f"Setting max_channel_type to {self.max_channel_type} from h_id={h_id}")
 
-                    chunk_size = 10000
                     lookup_iterator = \
                         self.file_row_lookup_iterator_subset(h5mat_lookup=file_list[h_id][h5_syn_lookup],
                                                              min_dest_id=neuron_range[0],
@@ -1500,6 +1522,58 @@ class SnuddaPrune(object):
                         max_axon_voxel_ctr = max(max_axon_voxel_ctr, file_list[h_id]["meta/maxAxonVoxelCtr"][()])
                     if "maxDendVoxelCtr" in file_list[h_id]["meta"]:
                         max_dend_voxel_ctr = max(max_dend_voxel_ctr, file_list[h_id]["meta/maxDendVoxelCtr"][()])
+
+            # --- Start of special code for projection synapses from project.py
+
+            if merge_data_type == "synapses" and self.num_projection_synapses > 0:
+
+                assert os.path.exists(self.projection_synapse_file), \
+                  f"Missing projection connection file: {self.projection_synapse_file}"
+
+                self.write_log(f"Adding projection synapses from {self.projection_synapse_file}")
+                # There is also a file with synapse connections, add it to the merge set
+                # Since they were not created using hyper voxels, they get the special h_id = "con"
+
+                fid = h5py.h5f.open(self.projection_synapse_file.encode(),
+                                    flags=h5py.h5f.ACC_RDONLY, fapl=propfaid)
+                file_list["con"] = h5py.File(fid, drive=self.h5driver)
+
+                assert file_list["con"]["network/nSynapses"][()] == self.num_projection_synapses, \
+                    (f"Mismatch between work history file and data file. "
+                     f"nProjectionSynapses: {self.num_projection_synapses} vs {self.num_projection_synapses}")
+
+                if file_list["con"]["network/nSynapses"][()] > 0:
+                    n_total += file_list["con"]["network/nSynapses"][()]
+
+                    lookup_iterator = \
+                        self.file_row_lookup_iterator_subset(h5mat_lookup=file_list["con"][h5_syn_lookup],
+                                                             min_dest_id=neuron_range[0],
+                                                             max_dest_id=neuron_range[1],
+                                                             chunk_size=chunk_size)
+
+                    file_mat_iterator["con"] \
+                        = self.synapse_set_iterator(h5mat_lookup=file_list["con"][h5_syn_lookup],
+                                                    h5mat=file_list["con"][h5_syn_mat],
+                                                    chunk_size=chunk_size,
+                                                    lookup_iterator=lookup_iterator)
+
+                    syn_set, unique_id = next(file_mat_iterator["con"], (None, None))
+
+                    if syn_set is None:
+                        # No synapse in our range, let this worker skip the file
+                        # Clear file List and fileMatIterator for this worker
+                        del file_list["con"]
+                        del file_mat_iterator["con"]
+                    else:
+                        # Create a heap containing the first subset of all files
+                        heapq.heappush(synapse_heap, (unique_id, "con", syn_set))
+
+                else:
+                    # No synapses in file, close it.
+                    file_list["con"].close()
+                    del file_list["con"]
+
+            # --- End of code for projection synapses
 
             if merge_data_type == "synapses":
                 num_synapses = n_total
@@ -1606,10 +1680,10 @@ class SnuddaPrune(object):
 
         # Since we want the code to work for both synapses and gap junction
         # we need to know location of synapse matrix, eg "network/synapses",
-        # number of synapses, eg "nSynapses", the lookup table to quickly
+        # number of synapses, eg "nHypervoxelSynapses", the lookup table to quickly
         # find which synapse rows belongs to each pair of connected neurons
         # eg "network/synapseLookup"
-        h5_syn_mat, h5_syn_n, h5_syn_lookup = self.data_loc[merge_data_type]
+        h5_syn_mat, h5_hyp_syn_n, h5_syn_n, h5_syn_lookup = self.data_loc[merge_data_type]
 
         self.merge_data_type = merge_data_type
         self.write_log(f"Doing big_merge_loopup for {merge_data_type}")
@@ -1621,8 +1695,9 @@ class SnuddaPrune(object):
             "bigMerge (lookup): There are neuron IDs missing"
 
         max_hyper_id = np.max(self.all_hyper_id_list) + 1
-        file_list = [None] * max_hyper_id
-        file_mat_iterator = [None] * max_hyper_id
+        file_list = dict()
+        file_mat_iterator = dict()
+        chunk_size = 10000
 
         # fileMat = [None] * maxHyperID # points to the synapse matrix in each file
         # fileMatLookup = [None] * maxHyperID # points to the matrix lookup in file
@@ -1635,7 +1710,7 @@ class SnuddaPrune(object):
         max_axon_voxel_ctr = 0
         max_dend_voxel_ctr = 0
 
-        num_syn_hist = self.hist_file[h5_syn_n]
+        num_syn_hist = self.hist_file[h5_hyp_syn_n]
         num_syn_total = np.sum(num_syn_hist)
 
         # !!! Special code to increase h5py cache size
@@ -1674,7 +1749,7 @@ class SnuddaPrune(object):
                 file_list[h_id] = h5py.File(fid, drive=self.h5driver)
                 file_mat_iterator[h_id] = self.synapse_set_iterator(h5mat_lookup=file_list[h_id][h5_syn_lookup],
                                                                     h5mat=file_list[h_id][h5_syn_mat],
-                                                                    chunk_size=10000)
+                                                                    chunk_size=chunk_size)
 
                 num_synapses[h_id] = nSyn
 
@@ -1693,7 +1768,6 @@ class SnuddaPrune(object):
                 else:
                     self.max_channel_type = file_list[h_id]["network/maxChannelTypeID"][()]
                     self.write_log(f"Setting max_channel_type to {self.max_channel_type} from h_id={h_id}")
-                
 
                 # There should be at least the first row, otherwise nSyn = 0
                 syn_set, unique_id = next(file_mat_iterator[h_id], None)
@@ -1707,8 +1781,57 @@ class SnuddaPrune(object):
                 if "maxDendVoxelCtr" in file_list[h_id]["meta"]:
                     max_dend_voxel_ctr = max(max_dend_voxel_ctr, file_list[h_id]["meta/maxDendVoxelCtr"][()])
 
+        # This only includes hyper voxel synapses in the count, not projection synapses (from connecty.py)
         assert np.sum(num_synapses) == num_syn_total, \
             f"Mismatch between work log file and data files: {num_syn_total} vs {np.sum(num_synapses)} synapses"
+
+        # --- Special code for the projection synapses from project.py
+
+        if merge_data_type == "synapses" and self.num_projection_synapses > 0:
+
+            assert os.path.exists(self.projection_synapse_file), \
+              f"Missing projection connection file: {self.projection_synapse_file}"
+
+            self.write_log(f"Adding projection synapses from {self.projection_synapse_file}")
+            # There is also a file with synapse connections, add it to the merge set
+            # Since they were not created using hyper voxels, they get the special h_id = "con"
+
+            fid = h5py.h5f.open(self.projection_synapse_file.encode(),
+                                flags=h5py.h5f.ACC_RDONLY, fapl=propfaid)
+            file_list["con"] = h5py.File(fid, drive=self.h5driver)
+
+            assert file_list["con"]["network/nSynapses"][()] == self.num_projection_synapses, \
+                (f"Mismatch between work history file and data file. " 
+                 f"nProjectionSynapses: {self.num_projection_synapses} vs {self.num_projection_synapses}")
+
+            if file_list["con"]["network/nSynapses"][()] > 0:
+                # n_total += file_list["con"]["network/nSynapses"][0]
+
+                file_mat_iterator["con"] \
+                    = self.synapse_set_iterator(h5mat_lookup=file_list["con"][h5_syn_lookup],
+                                                h5mat=file_list["con"][h5_syn_mat],
+                                                chunk_size=chunk_size)
+
+                syn_set, unique_id = next(file_mat_iterator["con"], (None, None))
+
+                if syn_set is None:
+                    assert syn_set is not None, \
+                        ("Volume projection synapses: syn_set should return a synapse,"
+                         " we already know nSynapses > 0")
+
+                    # Clear file List and fileMatIterator for this worker
+                    del file_list["con"]
+                    del file_mat_iterator["con"]
+                else:
+                    # Create a heap containing the first subset of all files
+                    heapq.heappush(synapse_heap, (unique_id, "con", syn_set))
+
+            else:
+                # No synapses in file, close it.
+                file_list["con"].close()
+                del file_list["con"]
+
+        # --- end of special code for the projection synapses
 
         if self.buffer_out_file is None:
             # Create output file
@@ -1759,6 +1882,8 @@ class SnuddaPrune(object):
             # Get the next set of synapses from this file from the iterator
             next_row_set = next(file_mat_iterator[h_id], None)
 
+            # print(f"next_row_set={next_row_set}")
+
             if next_row_set is not None:
                 # More synapses in file, push next pair to heap, and pop top pair
                 syn_set, unique_id = next_row_set
@@ -1790,7 +1915,7 @@ class SnuddaPrune(object):
                        close_input_file=True,
                        close_out_file=True):
 
-        h5_syn_mat, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
+        h5_syn_mat, h5_hyp_syn_n, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
 
         if row_range is None:
             row_start = 0
@@ -1866,7 +1991,7 @@ class SnuddaPrune(object):
 
     def prune_synapses_helper(self, synapses, output_file, merge_data_type):
 
-        h5_syn_mat, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
+        h5_syn_mat, h5_hyp_syn_n, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
 
         keep_row_flag = np.zeros((synapses.shape[0],), dtype=bool)
 
@@ -2101,6 +2226,7 @@ class SnuddaPrune(object):
     def file_row_lookup_iterator_subset(self, h5mat_lookup, min_dest_id, max_dest_id, chunk_size=10000):
 
         num_neurons = self.hist_file["network/neurons/neuronID"].shape[0]
+
         min_unique_id = min_dest_id * num_neurons * self.max_channel_type
         max_unique_id = max_dest_id * num_neurons * self.max_channel_type
 

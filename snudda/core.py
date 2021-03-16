@@ -219,6 +219,14 @@ class Snudda(object):
         else:
             sd.detect(restart_detection_flag=True)
 
+        # Also run SnuddaProject to handle projections between volume
+
+        from snudda.project import SnuddaProject
+
+        sp = SnuddaProject(network_path=self.network_path)
+        sp.project()
+        sp.write()
+
         self.stop_parallel()
         self.close_log_file()
 
@@ -294,7 +302,7 @@ class Snudda(object):
         if args.network_file:
             network_file = args.network_file
         else:
-            network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
+            network_file = os.path.join(self.network_path, "network-synapses.hdf5")
 
         if args.input_file:
             spike_file = args.input_file
@@ -340,7 +348,7 @@ class Snudda(object):
         if args.network_file:
             network_file = args.network_file
         else:
-            network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
+            network_file = os.path.join(self.network_path, "network-synapses.hdf5")
 
         if args.input_file:
             input_file = args.input_file
@@ -364,7 +372,7 @@ class Snudda(object):
         if args.network_file:
             network_file = args.network_file
         else:
-            network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
+            network_file = os.path.join(self.network_path, "network-synapses.hdf5")
 
         if args.input_file:
             input_file = args.input_file

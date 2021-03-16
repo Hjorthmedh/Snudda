@@ -4,9 +4,10 @@
         "init": 693650678,
         "place": 2973253328,
         "detect": 387799215,
-        "prune": 2723177262,
-        "input": 1950554525,
-        "simulate": 2259100799
+        "project": 2723177262,
+        "prune": 1950554525,
+        "input": 2259100799,
+        "simulate": 3240087069
     },
     "Volume": {
         "Striatum": {

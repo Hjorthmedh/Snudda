@@ -111,7 +111,7 @@ class TestPrune(unittest.TestCase):
 
     def test_prune(self):
 
-        pruned_output = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
+        pruned_output = os.path.join(self.network_path, "network-synapses.hdf5")
 
         with self.subTest(stage="No-pruning"):
 

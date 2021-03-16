@@ -272,7 +272,7 @@ class SnuddaInit(object):
             con_info["pruningOther"] = pruning_info_other
 
         # Json did not like tuples in keys, so we separate by comma
-        nt_key = neuron_name + "," + target_name
+        nt_key = f"{neuron_name},{target_name}"
         if nt_key not in self.network_data["Connectivity"]:
             self.network_data["Connectivity"][nt_key] = dict([])
 
@@ -464,6 +464,66 @@ class SnuddaInit(object):
         import json
         with open(filename, 'w') as f:
             json.dump(self.network_data, f, indent=4, cls=NumpyEncoder)
+
+    ###########################################################################################################
+
+    def neuron_projection(self, neuron_name, target_name,
+                          projection_name,
+                          projection_file,
+                          source_volume,
+                          dest_volume,
+                          projection_radius,
+                          number_of_targets,
+                          number_of_synapses,
+                          dendrite_synapse_density,
+                          connection_type,
+                          dist_pruning=None,
+                          f1=None,
+                          soft_max=None,
+                          mu2=None,
+                          a3=None,
+                          dist_pruning_other=None,
+                          f1_other=None,
+                          soft_max_other=None,
+                          mu2_other=None,
+                          a3_other=None,
+                          conductance=None,
+                          mod_file=None,
+                          parameter_file=None,
+                          channel_param_dictionary=None):
+
+        self.add_neuron_target(neuron_name, target_name,
+                               connection_type,
+                               dist_pruning,
+                               f1,
+                               soft_max,
+                               mu2,
+                               a3,
+                               dist_pruning_other=None,
+                               f1_other=None,
+                               soft_max_other=None,
+                               mu2_other=None,
+                               a3_other=None,
+                               conductance=None,
+                               mod_file=None,
+                               parameter_file=None,
+                               channel_param_dictionary=None)
+
+        # Next we need to add the connection mapping specific parameters
+
+        nt_key = f"{neuron_name},{target_name}"
+        con_info = self.network_data["Connectivity"][nt_key][connection_type]
+
+        con_info["projectionFile"] = projection_file
+        con_info["projectionName"] = projection_name
+        con_info["source"] = source_volume
+        con_info["destination"] = dest_volume
+        con_info["projectionRadius"] = projection_radius
+        con_info["numberOfTargets"] = number_of_targets
+        con_info["numberOfSynapses"] = number_of_synapses
+        con_info["dendriteSynapseDensity"] = dendrite_synapse_density
+
+
 
     ############################################################################
 
@@ -1339,7 +1399,7 @@ class SnuddaInit(object):
     @staticmethod
     def setup_random_seeds(random_seed=None):
 
-        seed_types = ["init", "place", "detect", "prune", "input", "simulate"]
+        seed_types = ["init", "place", "detect", "project", "prune", "input", "simulate"]
         # print(f"Seeding with rand_seed={random_seed}")
 
         ss = np.random.SeedSequence(random_seed)
