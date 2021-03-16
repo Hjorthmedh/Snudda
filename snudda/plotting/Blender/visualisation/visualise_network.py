@@ -32,6 +32,8 @@ class VisualiseNetwork(object):
 
         self.blender_output_image = blender_output_image
 
+        self.neuron_cache = dict([])
+
         # Load the neuron positions
         if self.network_file:
             self.sl = SnuddaLoad(self.network_file)
@@ -118,8 +120,27 @@ class VisualiseNetwork(object):
         for neuron in neurons:
 
             e_rot = mathutils.Matrix(neuron["rotation"].reshape(3, 3)).to_euler()
-            bpy.ops.import_mesh.swc(filepath=snudda_parse_path(neuron["morphology"]))
-            obj = bpy.context.selected_objects[0]
+
+            if neuron["name"] in self.neuron_cache:
+                # If we already have the object in memory, copy it.
+                obj = self.neuron_cache[neuron["name"]].copy()
+
+                if self.neuron_cache[neuron["name"]].data:
+                    obj.data = self.neuron_cache[neuron["name"]].data.copy()
+
+                obj.animation_data_clear()
+                obj.name = f"{neuron['name']}-{neuron['neuronID']}"
+                try:
+                    # Blender 2.7
+                    bpy.context.scene.objects.link(obj)
+                except:
+                    print("Blender 2.7 failed, switch over to only use Blender 2.8 syntax")
+                    # Blender 2.8
+                    bpy.context.collection.objects.link(obj)
+            else:
+                bpy.ops.import_mesh.swc(filepath=snudda_parse_path(neuron["morphology"]))
+                obj = bpy.context.selected_objects[0]
+                self.neuron_cache[neuron["name"]] = obj
 
             obj.rotation_euler = e_rot
             print(f"Setting position: {neuron['position'] * 1e3}")
@@ -142,6 +163,8 @@ class VisualiseNetwork(object):
         for ob in bpy.context.selected_objects:
             ob.select = False
 
+        synapse_obj = None
+
         for vis_pre_id in neuron_id:
             for vis_post_id in neuron_id:
                 synapses, synapse_coords = self.sl.find_synapses(pre_id=vis_pre_id, post_id=vis_post_id)
@@ -163,14 +186,31 @@ class VisualiseNetwork(object):
                     y = (origo[1] + voxel_size * syn[3]) * 1e3
                     z = (origo[2] + voxel_size * syn[4]) * 1e3
 
-                    bpy.ops.mesh.primitive_uv_sphere_add(location=(x, y, z), size=0.001 * 4)
-                    ob = bpy.context.selected_objects[0]
-                    ob.active_material = mat_synapse
-                    ob.select = False
+                    if synapse_obj:
+                        obj = synapse_obj.copy()
+                        if synapse_obj.data:
+                            obj.data = synapse_obj.data.copy()
+                        obj.animation_data_clear()
+                        obj.location = (x, y, z)
+                        obj.name = f"synapse-{n_synapses}"
+                        try:
+                            # Blender 2.7
+                            bpy.context.scene.objects.link(obj)
+                        except:
+                            print("Blender 2.7 failed, switch over to only use Blender 2.8 syntax")
+                            # Blender 2.8
+                            bpy.context.collection.objects.link(obj)
+
+                    else:
+                        bpy.ops.mesh.primitive_uv_sphere_add(location=(x, y, z), size=0.001 * 4)
+                        obj = bpy.context.selected_objects[0]
+                        obj.active_material = mat_synapse
+                        obj.select = False
+                        synapse_obj = obj
 
                     n_synapses += 1
 
-                    print(f"Added synapse at {[x, y, z]}")
+                    print(f"Added synapse #{n_synapses} at {[x, y, z]}")
 
         print(f"nSynapses = {n_synapses}")
 
@@ -191,7 +231,11 @@ class VisualiseNetwork(object):
         cam.location = (3.19, 3.46, 4.96)
         cam.rotation_euler = (96.7 * np.pi / 180, 0, -14.3 * np.pi / 180)
 
+        # Is this needed?
+        bpy.context.scene.update()
+
         if self.blender_output_image:
+            print("Rendering image.")
             bpy.ops.render.render()
             bpy.data.images['Render Result'].save_render(filepath=self.blender_output_image)
 
