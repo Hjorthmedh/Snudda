@@ -31,6 +31,11 @@ class TestCLI(unittest.TestCase):
         self.assertRaises(argparse.ArgumentError, run_cli_command, "doesntexist")
 
     def test_workflow(self):
+
+        if os.path.exists("test-project"):
+            import shutil
+            shutil.rmtree("test-project")
+
         with self.subTest(stage="create"):
             run_cli_command("create test-project --overwrite")
         os.chdir('test-project')

@@ -156,10 +156,9 @@ def create_project(args):
             import shutil
             shutil.rmtree(args.path)
 
-    from distutils.dir_util import copy_tree
-
     # Copy the root data files folder to the specified path.
     # The root data folder is the "snudda/data" folder, containing config, synapses & neurons
+    from distutils.dir_util import copy_tree
     copy_tree(get_data_file(), args.path)
 
 
