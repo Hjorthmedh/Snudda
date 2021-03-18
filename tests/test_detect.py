@@ -33,7 +33,7 @@ class TestDetect(unittest.TestCase):
         sp.parse_config()
         sp.write_data(position_file)
 
-        # We want to load in the ball and stick neurons that has 20 micrometer soma diameter, and axon (along y-axis),
+        # We want to load in the ball and stick neuron that has 20 micrometer soma diameter, and axon (along y-axis),
         # and dendrite along (x-axis) out to 100 micrometer distance from centre of soma.
 
         self.sd = SnuddaDetect(config_file=config_file, position_file=position_file,
@@ -219,7 +219,7 @@ class TestDetect(unittest.TestCase):
                                      [120, -30, 105],
                                      [130, -20, 120],
                                      [140, -10, 135],
-                                     [230, 0, 4],  # 4 micrometers from first neurons
+                                     [230, 0, 4],  # 4 micrometers from first neuron
                                      ])*1e-6
 
         for idx, pos in enumerate(neuron_positions):

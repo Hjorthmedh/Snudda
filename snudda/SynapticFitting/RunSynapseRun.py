@@ -54,7 +54,7 @@ class RunSynapseRun(object):
     
     # Should we use weak reference for garbage collection? (weakref package)
 
-    # We load the neurons morphology object also, used to place synapses
+    # We load the neuron morphology object also, used to place synapses
     self.writeLog("Using morphology: " + str(neuronMorphology))    
     self.morphology = NeuronMorphology(swc_filename = neuronMorphology)
 
@@ -145,7 +145,7 @@ class RunSynapseRun(object):
     # self.writeLog("VClamp duration: " + str(self.VClamp.dur1))
 
     neuron.h.finitialize(self.holdingVoltage*1e3)
-    # !!! There is a WEIRD neurons bug, that if this tstop here is
+    # !!! There is a WEIRD neuron bug, that if this tstop here is
     # different from duration of simulation, then the *SECOND* time
     # a model is initialised we get the length of tSave set by this
     # value, and not by the tStop of that simulation --- go figure!
@@ -306,7 +306,7 @@ class RunSynapseRun(object):
         
       setattr(syn,p,val)
       self.writeLog("Setting parameters: " + str(p) + " = " + str(val) \
-            + " (neurons natural units)")
+            + " (neuron natural units)")
       
       
   ############################################################################

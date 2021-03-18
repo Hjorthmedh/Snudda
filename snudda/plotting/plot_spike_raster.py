@@ -42,7 +42,7 @@ class PlotSpikeRaster(object):
             self.network_file = None
 
         if self.network_info is None:
-            print("If you also give network file, then the plot shows neurons types")
+            print("If you also give network file, then the plot shows neuron types")
             self.plot_raster(skip_time=skip_time)
             time.sleep(1)
         else:

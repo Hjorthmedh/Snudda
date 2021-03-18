@@ -38,6 +38,8 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
+import neuron
+
 
 class SnuddaModelCurrentInjections(object):
 

@@ -465,7 +465,7 @@ class OptimiseSynapsesFull(object):
       cellType = cellTypeString
       
     assert cellType in self.cellProperties, \
-      "Error neurons type '" + str(cellType) + "' not in " + self.neuronSetFile
+      "Error neuron type '" + str(cellType) + "' not in " + self.neuronSetFile
 
     cProp = self.cellProperties[cellType].copy()
     cProp["baselineDepol"] = baselineDepol
@@ -698,7 +698,7 @@ class OptimiseSynapsesFull(object):
       if(self.synapseType == "glut"):
         pIdx = tIdx[np.argmax(volt[tIdx])]
       elif(self.synapseType == "gaba"):
-        # We assume that neurons is more depolarised than -65, ie gaba is
+        # We assume that neuron is more depolarised than -65, ie gaba is
         # also depolarising
         pIdx = tIdx[np.argmax(volt[tIdx])]
       else:
@@ -849,7 +849,7 @@ class OptimiseSynapsesFull(object):
     
     tStim = self.getStimTime(dataType,cellID)  
 
-    # Read the info needed to setup the neurons hosting the synapses
+    # Read the info needed to setup the neuron hosting the synapses
     cProp = self.getCellProperties(dataType,cellID)
 
     if(synapseDensityOverride is not None):
@@ -1095,7 +1095,7 @@ class OptimiseSynapsesFull(object):
                params = {},
                returnTrace=False):
 
-    # self.writeLog("Running neurons model")
+    # self.writeLog("Running neuron model")
     
     assert self.rsrSynapseModel is not None, \
       "!!! Need to call setupModel first"
@@ -1940,7 +1940,7 @@ if __name__ == "__main__":
         import traceback
         tstr = traceback.format_exc()
         print(tstr)
-        print("!!! Something went wrong. Skipping neurons " + str(idx))
+        print("!!! Something went wrong. Skipping neuron " + str(idx))
   
     ly.saveParameterCache()
   

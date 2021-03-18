@@ -1,4 +1,4 @@
-# This code writes the input spikes for the neurons simulation --
+# This code writes the input spikes for the NEURON simulation --
 #
 #
 # If nInputs is given then synapseDensity is scaled to give approximately
@@ -155,15 +155,15 @@ class SnuddaInput(object):
             self.check_sorted()
 
         # 1. Define what the within correlation, and between correlation should be
-        #    for each neurons type. Also what input frequency should we have for each
-        #    neurons. --- Does it depend on size of dendritic tree?
+        #    for each neuron type. Also what input frequency should we have for each
+        #    neuron. --- Does it depend on size of dendritic tree?
         #    Store the info in an internal dict.
 
         # 2. Read the position file, so we know what neurons are in the network
 
         # 3. Create the "master input" for each population unit.
 
-        # 4. Mix the master input with random input, for each neurons, to create
+        # 4. Mix the master input with random input, for each neuron, to create
         #    the appropriate correlations
 
         # 5. Randomize which compartments each synaptic input should be on
@@ -196,7 +196,7 @@ class SnuddaInput(object):
             for input_type in self.neuron_input[neuron_id]:
 
                 if input_type[0] == '!':
-                    self.write_log(f"Disabling input {input_type} for neurons {neuron_id} "
+                    self.write_log(f"Disabling input {input_type} for neuron {neuron_id} "
                                    f" (input_type was commented with ! before name)")
                     continue
 
@@ -249,7 +249,7 @@ class SnuddaInput(object):
 
                 else:
 
-                    # Input is activity of a virtual neurons
+                    # Input is activity of a virtual neuron
                     a_group = nid_group.create_group("activity")
                     spikes = self.neuron_input[neuron_id][input_type]["spikes"]
 
@@ -394,18 +394,18 @@ class SnuddaInput(object):
             elif neuron_type in self.input_info:
                 input_info = self.input_info[neuron_type]
             else:
-                self.write_log(f"!!! Warning, no synaptic input for neurons ID {neuron_id}, "
+                self.write_log(f"!!! Warning, no synaptic input for neuron ID {neuron_id}, "
                                f"name {neuron_name} or type {neuron_type}")
                 continue
 
-            # if a number --> use a specific neurons with that given ID
+            # if a number --> use a specific neuron with that given ID
             # if dSPN --> use neuron_type dSPN
-            # if dSPN_3 --> use specific neurons morphology corresponding to dSPN_3
+            # if dSPN_3 --> use specific neuron morphology corresponding to dSPN_3
 
             for input_type in input_info:
 
                 if input_type[0] == '!':
-                    self.write_log(f"Disabling input {input_type} for neurons {neuron_name} "
+                    self.write_log(f"Disabling input {input_type} for neuron {neuron_name} "
                                    f" (input_type was commented with ! before name)")
                     continue
 
@@ -415,11 +415,11 @@ class SnuddaInput(object):
                     pop_unit_id = int(input_inf["populationUnitID"])
 
                     if type(pop_unit_id) == list and populationUnitID not in pop_unit_id:
-                        # We have a list of functional channels, but this neurons
+                        # We have a list of functional channels, but this neuron
                         # does not belong to a functional channel in that list
                         continue
                     elif populationUnitID != pop_unit_id:
-                        # We have a single functional channel, but this neurons is not
+                        # We have a single functional channel, but this neuron is not
                         # in that functional channel
                         continue
                 else:
@@ -467,7 +467,7 @@ class SnuddaInput(object):
 
                         if "nInputs" in input_inf:
 
-                            # If a dictionary, then extract the info for the relevant neurons
+                            # If a dictionary, then extract the info for the relevant neuron
                             if type(input_inf["nInputs"]) == dict:
                                 if neuron_name in input_inf["nInputs"]:
                                     n_inp = input_inf["nInputs"][neuron_name]
@@ -518,7 +518,7 @@ class SnuddaInput(object):
                         c_spikes = self.population_unit_spikes[neuron_type][input_type][populationUnitID]
                         population_unit_spikes_list.append(c_spikes)
                     else:
-                        # self.write_log(f"No population spikes specified for neurons type {neuron_type}")
+                        # self.write_log(f"No population spikes specified for neuron type {neuron_type}")
                         population_unit_spikes_list.append(None)
 
                     mod_file_list.append(mod_file)
@@ -612,7 +612,7 @@ class SnuddaInput(object):
 
             if input_type.lower() != "VirtualNeuron".lower():
                 # Virtual neurons have no location of their input, as the "input"
-                # specifies the spike times of the virtual neurons itself
+                # specifies the spike times of the virtual neuron itself
                 self.neuron_input[neuron_id][input_type]["location"] = loc
                 self.neuron_input[neuron_id][input_type]["synapseDensity"] = synapse_density
                 self.neuron_input[neuron_id][input_type]["conductance"] = cond
@@ -838,7 +838,7 @@ class SnuddaInput(object):
 
     def read_neuron_positions(self):
 
-        self.write_log("Reading neurons postions")
+        self.write_log("Reading neuron postions")
 
         pos_info = SnuddaLoad(self.position_file, verbose=self.verbose).data
         self.network_info = pos_info
@@ -1189,11 +1189,11 @@ class SnuddaInput(object):
         rng = np.random.default_rng(random_seed)
 
         if input_type.lower() == "VirtualNeuron".lower():
-            # This specifies activity of a virtual neurons
+            # This specifies activity of a virtual neuron
             conductance = None
 
             assert num_spike_trains is None or num_spike_trains == 1, \
-                (f"Virtual neurons {self.neuron_name[neuron_id]}"
+                (f"Virtual neuron {self.neuron_name[neuron_id]}"
                  f" should have only one spike train, fix nSpikeTrains in config")
 
             # Virtual neurons input handled through touch detection

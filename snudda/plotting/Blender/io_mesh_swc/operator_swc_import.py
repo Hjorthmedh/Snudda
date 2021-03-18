@@ -28,9 +28,9 @@ def read_some_data(context, filepath):
     somaR = float(data[5])
     somaParent = int(data[6])
 
-    # We centre the neurons
+    # We centre the neuron
     neuron = {somaID: [somaType,0.0,0.0,0.0,somaR,somaParent]}
-    # neurons = {float(data[0]): [float(data[1]), float(data[2]), float(data[3]), float(data[4]), float(data[5]), float(data[6])]}
+    # neuron = {float(data[0]): [float(data[1]), float(data[2]), float(data[3]), float(data[4]), float(data[5]), float(data[6])]}
     x += 1
         
     ''' Read the rest of the lines to the dictionary '''
@@ -45,7 +45,7 @@ def read_some_data(context, filepath):
         compR = float(data[5])
         compParent = int(data[6])
 
-        # Centre neurons, so soma is at 0,0,0
+        # Centre neuron, so soma is at 0,0,0
         neuron[compID] = [compType,
                           compX-somaX,
                           compY-somaY,
@@ -53,7 +53,7 @@ def read_some_data(context, filepath):
                           compR,
                           compParent]
         
-        #neurons[float(data[0])] = [float(data[1]), float(data[2]), float(data[3]), float(data[4]), float(data[5]), float(data[6])]
+        #neuron[float(data[0])] = [float(data[1]), float(data[2]), float(data[3]), float(data[4]), float(data[5]), float(data[6])]
         
     bpy.ops.object.empty_add(type='ARROWS', location=(neuron[1][1] / scale_f, neuron[1][2] / scale_f, neuron[1][3] / scale_f), rotation=(0, 0, 0))
     a = bpy.context.selected_objects[0]    

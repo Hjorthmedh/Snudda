@@ -113,7 +113,7 @@ class SnuddaCut(object):
 
         # Double check that it is OK, should be in order after
         assert (np.diff(neuronGroup["neuronID"][()]) == 1).all(), \
-          "Problem with neurons remapping!"
+          "Problem with neuron remapping!"
         
       else:
         try:
@@ -316,8 +316,8 @@ class SnuddaCut(object):
       outSyn = self.outFile["network/synapses"][:,2:5]*voxelSize + simOrigo    
       outGJ = self.outFile["network/gapJunctions"][:,6:9]*voxelSize + simOrigo
 
-    
     import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')

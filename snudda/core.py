@@ -77,7 +77,7 @@ class Snudda(object):
 
     @staticmethod
     def help_info(args):
-        pass
+        from snudda.help import snudda_help_text
 
     ############################################################################
 
@@ -339,6 +339,8 @@ class Snudda(object):
 
     def export_to_SONATA(self, args):
 
+        assert False, "Old export to SONATA borken, fixme!"
+        # TODO: Fix this
         from snudda.ConvertNetwork import ConvertNetwork
 
         print("Exporting to SONATA format")
@@ -383,7 +385,7 @@ class Snudda(object):
         print(f"Using input file {input_file}")
 
         # nWorkers = args.ncores
-        # print("Using " + str(nWorkers) + " workers for neurons")
+        # print("Using " + str(nWorkers) + " workers for neuron")
 
         # Problems with nested symbolic links when the second one is a relative
         # path going beyond the original base path
@@ -431,7 +433,7 @@ class Snudda(object):
         print(f"args: {args}")
 
         if args.volt_out is not None:
-            # Save neurons voltage
+            # Save neuron voltage
             if args.volt_out == "default":
                 volt_file = os.path.join(save_dir, f"network-voltage-{slurm_id}.csv")
             else:
@@ -627,7 +629,7 @@ class Snudda(object):
 
 if __name__ == "__main__":
 
-    # This is fix to handle if user calles python from within neurons
+    # This is fix to handle if user calles python from within neuron
     import sys
 
     if '-python' in sys.argv:

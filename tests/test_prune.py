@@ -33,7 +33,7 @@ class TestPrune(unittest.TestCase):
         sp.parse_config()
         sp.write_data(position_file)
 
-        # We want to load in the ball and stick neurons that has 20 micrometer soma diameter, and axon (along y-axis),
+        # We want to load in the ball and stick neuron that has 20 micrometer soma diameter, and axon (along y-axis),
         # and dendrite along (x-axis) out to 100 micrometer distance from centre of soma.
 
         self.sd = SnuddaDetect(config_file=config_file, position_file=position_file,
@@ -146,7 +146,7 @@ class TestPrune(unittest.TestCase):
         with self.subTest(stage="load-testing"):
             sl = SnuddaLoad(pruned_output, verbose=True)
 
-            # Try and load a neurons
+            # Try and load a neuron
             n = sl.load_neuron(0)
             self.assertTrue(type(n) == NeuronMorphology)
 

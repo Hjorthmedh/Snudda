@@ -17,7 +17,7 @@
 # Plot all sections
 # [neuron.h.psection(x) for x in neuron.h.allsec()]
 
-from mpi4py import MPI
+from mpi4py import MPI  # This must be imported before neuron, to run parallel
 from neuron import h  # , gui
 import neuron
 import bluepyopt.ephys as ephys
@@ -39,7 +39,7 @@ import snudda.utils.memory
 # !!! Need to gracefully handle the situation where there are more workers than
 # number of neurons, currently we get problem when adding the voltage saving
 
-# !!! Have added code for dopamine modulation of neurons intrinsic channels
+# !!! Have added code for dopamine modulation of neuron intrinsic channels
 #     need to add dopamine modulation for the synaptic channels also !!!
 
 ##############################################################################
@@ -377,7 +377,7 @@ class SnuddaSimulate(object):
                 self.pc.cell(ID, nc, 1)  # The 1 means broadcast spikes to other machines
 
             else:
-                # A real neuron (not a virtual neurons that just provides input)
+                # A real neuron (not a virtual neuron that just provides input)
                 parameter_id = self.network_info["neurons"][ID]["parameterID"]
                 modulation_id = self.network_info["neurons"][ID]["modulationID"]
 
@@ -1282,7 +1282,7 @@ class SnuddaSimulate(object):
     # voxel coords are the voxel that the synapse is in
 
     # We want to check that voxel coords transformed to local coordinate system
-    # of neurons matches with where neurons places the synapse
+    # of neuron matches with where neuron places the synapse
 
     def verify_synapse_placement(self, sec_list, sec_x_list, dest_id, voxel_coords):
 
@@ -1343,6 +1343,7 @@ class SnuddaSimulate(object):
                 plt.show()
                 plt.title(self.network_info["neurons"][dest_id]["name"])
 
+                from mpl_toolkits.mplot3d import Axes3D
                 fig = plt.figure()
                 ax = fig.add_subplot(111, projection='3d')
 

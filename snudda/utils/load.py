@@ -571,7 +571,7 @@ if __name__ == "__main__":
 
     if args.listT is not None:
         if args.listT == "?":
-            print("List neurons types in network:")
+            print("List neuron types in network:")
 
             nTypes = np.unique([x["type"] for x in nl.data["neurons"]])
             for nt in nTypes:

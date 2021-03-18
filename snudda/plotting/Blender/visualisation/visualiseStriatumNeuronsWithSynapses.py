@@ -11,18 +11,18 @@ from snudda.utils.snudda_path import snudda_parse_path
 # Note that you might need to reposition the camera manually
 # if your neurons are centred around a different position
 
-# posFile = "../SmallTest2/network-neurons-positions.hdf5"
+# posFile = "../SmallTest2/network-neuron-positions.hdf5"
 if(False):
-   posFile = "/home/hjorth/HBP/StriatumNetwork/model/Visualise17300/network-neurons-positions.hdf5"
+   posFile = "/home/hjorth/HBP/StriatumNetwork/model/Visualise17300/network-neuron-positions.hdf5"
    outFile = "Visualise17300.blend"
 elif(False):
-   posFile = "/home/hjorth/HBP/StriatumNetwork/model/Visualise1000/network-neurons-positions.hdf5"
+   posFile = "/home/hjorth/HBP/StriatumNetwork/model/Visualise1000/network-neuron-positions.hdf5"
    outFile = "Visualise1000.blend"
 else:
-   posFile = "/home/hjorth/HBP/StriatumNetwork/model/Vis100/network-neurons-positions.hdf5"
+   posFile = "/home/hjorth/HBP/StriatumNetwork/model/Vis100/network-neuron-positions.hdf5"
    outFile = "Visualise100.blend"
 
-   #posFile = "/home/hjorth/HBP/StriatumNetwork/model/Vis30/network-neurons-positions.hdf5"
+   #posFile = "/home/hjorth/HBP/StriatumNetwork/model/Vis30/network-neuron-positions.hdf5"
    #outFile = "Visualise30.blend"
 
 pngFile = outFile.replace(".blend",".png")
@@ -102,7 +102,7 @@ for ps,rt,mo,nm,nID in zip(pos,rot,morph,name,neuronID):
   eRot = mathutils.Matrix(rt.reshape(3,3)).to_euler()    
   obj.rotation_euler = eRot
      
-  # Draw this neurons (the SWC import scales from micrometers to mm), the
+  # Draw this neuron (the SWC import scales from micrometers to mm), the
   # positions in the simulation are in meters, need to scale it to mm for
   # blender to have same units.
   

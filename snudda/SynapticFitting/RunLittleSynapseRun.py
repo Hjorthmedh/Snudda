@@ -97,7 +97,7 @@ class RunLittleSynapseRun(object):
         
       setattr(self.littleSynapse,p,val)
       print("Setting parameters: " + str(p) + " = " + str(val) \
-            + " (neurons natural units)")
+            + " (neuron natural units)")
       
     self.vecStim  = neuron.h.VecStim()
     
@@ -132,7 +132,7 @@ class RunLittleSynapseRun(object):
     # print("VClamp duration: " + str(self.VClamp.dur1))
 
     neuron.h.finitialize(self.holdingVoltage*1e3)
-    # !!! There is a WEIRD neurons bug, that if this tstop here is
+    # !!! There is a WEIRD neuron bug, that if this tstop here is
     # different from duration of simulation, then the *SECOND* time
     # a model is initialised we get the length of tSave set by this
     # value, and not by the tStop of that simulation --- go figure!
@@ -209,7 +209,7 @@ class RunLittleSynapseRun(object):
     # print("VClamp duration: " + str(self.VClamp.dur1))
 
     neuron.h.finitialize(self.holdingVoltage*1e3)
-    # !!! There is a WEIRD neurons bug, that if this tstop here is
+    # !!! There is a WEIRD neuron bug, that if this tstop here is
     # different from duration of simulation, then the *SECOND* time
     # a model is initialised we get the length of tSave set by this
     # value, and not by the tStop of that simulation --- go figure!

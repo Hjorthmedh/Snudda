@@ -2,7 +2,7 @@
 # setup current injections
 #
 #
-# OBS! We set a holding current to keep neurons at around -80mV
+# OBS! We set a holding current to keep neuron at around -80mV
 # We also change GABA reversal potential to -40mV, since internal Cl is 30mM
 # and external Cl is 135 mM, temperature is 306K
 #

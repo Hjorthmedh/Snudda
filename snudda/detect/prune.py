@@ -15,7 +15,7 @@
 # New idea for how to speed up the merge:
 #
 # Divide neurons into groups depending on spatial location.
-# We have a list with which hyper voxel each neurons is in.
+# We have a list with which hyper voxel each neuron is in.
 # Each worker opens their files, and does an n-way merge
 # sort ignoring all other neurons but their own
 # Finally, the resulting files from the workers are merged together
@@ -48,7 +48,7 @@ import pickle
 # This code combines multiple voxel files
 # !!! This also performs the pruning, since it requires knowledge of all
 #     synapses between the neurons, something not possible within a hyper voxel
-#     if the neurons crosses borders
+#     if the neuron crosses borders
 from snudda.utils.snudda_path import snudda_parse_path
 
 
@@ -772,7 +772,7 @@ class SnuddaPrune(object):
 
         network_group = out_file.create_group("network")
 
-        # Copy over neurons data
+        # Copy over neuron data
         self.hist_file.copy("network/neurons", network_group)
 
         network_group.create_dataset("synapses",
@@ -914,7 +914,7 @@ class SnuddaPrune(object):
         # Copy over meta data
         self.hist_file.copy("meta", out_file)
 
-        # Copy over neurons data
+        # Copy over neuron data
         # self.histFile.copy("neurons",outFile)
         self.hist_file.copy("network/neurons", network_group)
 
@@ -1692,7 +1692,7 @@ class SnuddaPrune(object):
 
         num_neurons = len(self.hist_file["network/neurons/neuronID"])
         assert np.max(self.hist_file["network/neurons/neuronID"]) + 1 == num_neurons, \
-            "bigMerge (lookup): There are neurons IDs missing"
+            "bigMerge (lookup): There are neuron IDs missing"
 
         max_hyper_id = np.max(self.all_hyper_id_list) + 1
         file_list = dict()
@@ -2026,14 +2026,14 @@ class SnuddaPrune(object):
                     read_end_idx += 1
             else:
                 while (read_end_idx < read_end_of_range and
-                       (synapses[next_read_pos, 0:2] == synapses[read_end_idx, 0:2]).all()  # Same neurons pair
+                       (synapses[next_read_pos, 0:2] == synapses[read_end_idx, 0:2]).all()  # Same neuron pair
                         and synapses[next_read_pos, 6] == synapses[read_end_idx, 6]):       # Same synapse type
                     read_end_idx += 1
 
             # Temp check
             assert ((synapses[next_read_pos:read_end_idx, 0] == synapses[next_read_pos, 0]).all()
                     and (synapses[next_read_pos:read_end_idx, 1] == synapses[next_read_pos, 1]).all()), \
-                "prune_synapses_helper: Internal error, more than one neurons pair"
+                "prune_synapses_helper: Internal error, more than one neuron pair"
 
             # Stats
             n_pair_synapses = read_end_idx - next_read_pos
@@ -2043,7 +2043,7 @@ class SnuddaPrune(object):
 
             if dest_id != previous_post_synaptic_neuron_id:
                 # New post synaptic cell, reseed random generator
-                # self.write_log(f"Random seed set for neurons {dest_id}: {neuron_seeds[dest_id]}")  # Temp logging
+                # self.write_log(f"Random seed set for neuron {dest_id}: {neuron_seeds[dest_id]}")  # Temp logging
                 post_rng = np.random.default_rng(neuron_seeds[dest_id])
                 previous_post_synaptic_neuron_id = dest_id
 
@@ -2087,7 +2087,7 @@ class SnuddaPrune(object):
                 a3 = c_info["a3"]
 
             else:
-                # Not listed in connectivityDistribution, skip neurons pair
+                # Not listed in connectivityDistribution, skip neuron pair
                 next_read_pos = read_end_idx
                 # No need to update keepRowFlag since default set to 0
 
@@ -2358,7 +2358,7 @@ class SnuddaPrune(object):
         assert num_neurons - 1 == self.hist_file["network/neurons/neuronID"][-1], \
             "neuronID should start from 0 and the end should be n-1"
 
-        # Need different seeds for each post synaptic neurons
+        # Need different seeds for each post synaptic neuron
         ss = np.random.SeedSequence(self.random_seed)
         neuron_seeds = ss.generate_state(num_neurons)
         return neuron_seeds

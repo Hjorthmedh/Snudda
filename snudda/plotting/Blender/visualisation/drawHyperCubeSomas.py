@@ -5,12 +5,12 @@ import numpy as np
 
 # Start by loading the positions from file
 
-#fi = h5py.File("../FullStriatumPos/network-neurons-positions.hdf5","r")
-#fi = h5py.File("/home/hjorth/HBP/StriatumNetwork/model/Article-cube-2160/network-neurons-positions.hdf5","r")
+#fi = h5py.File("../FullStriatumPos/network-neuron-positions.hdf5","r")
+#fi = h5py.File("/home/hjorth/HBP/StriatumNetwork/model/Article-cube-2160/network-neuron-positions.hdf5","r")
 
 # 2174 neurons, density 80500... 0.3x0.3x0.3
-# hFile = "/home/hjorth/HBP/StriatumNetwork/model/Article2019HyperVoxel/network-neurons-positions.hdf5"
-hFile = "/home/hjorth/HBP/Snudda/snudda/examples/networks/Net10062/network-neurons-positions.hdf5"
+# hFile = "/home/hjorth/HBP/StriatumNetwork/model/Article2019HyperVoxel/network-neuron-positions.hdf5"
+hFile = "/home/hjorth/HBP/Snudda/snudda/examples/networks/Net10062/network-neuron-positions.hdf5"
 fi = h5py.File(hFile,"r")
 
 keepAll = True

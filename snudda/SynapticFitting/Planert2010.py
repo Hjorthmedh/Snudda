@@ -3,7 +3,7 @@
 # Randomise dtau, ftau, U -- check that it is within the ranges specified
 # for pair pulse ratio, and recovery test ratio
 #
-# Fit the neurons synapse model to the modelled traces
+# Fit the neuron synapse model to the modelled traces
 #
 #
 

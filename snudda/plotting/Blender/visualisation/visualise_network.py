@@ -11,7 +11,7 @@ from snudda.utils.snudda_path import snudda_parse_path
 
 class VisualiseNetwork(object):
 
-    # You need to provide neurons
+    # You need to provide neuron
     def __init__(self, network_path, blender_save_file=None, blender_output_image=None,
                  network_json=None):
 
@@ -33,7 +33,7 @@ class VisualiseNetwork(object):
 
         self.neuron_cache = dict([])
 
-        # Load the neurons positions
+        # Load the neuron positions
         if self.network_file:
             self.sl = SnuddaLoad(self.network_file)
             self.data = self.sl.data
@@ -182,7 +182,7 @@ class VisualiseNetwork(object):
 
                         assert pre_id == vis_pre_id and post_id == vis_post_id  # Just sanity check, should be true
 
-                        # Draw this neurons (the SWC import scales from micrometers to mm), the
+                        # Draw this neuron (the SWC import scales from micrometers to mm), the
                         # positions in the simulation are in meters, need to scale it to mm for
                         # blender to have same units.
                         x = (origo[0] + voxel_size * syn[2]) * 1e3

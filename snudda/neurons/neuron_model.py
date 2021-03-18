@@ -237,4 +237,4 @@ def find_dend_compartment(neuron, synapse_xyz, loc_type, sim):
     return dend_loc
 
 # Add a generic synapse to location
-# def addSynapse(neurons, location):
+# def addSynapse(neuron, location):

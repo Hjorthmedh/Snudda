@@ -172,7 +172,7 @@ class SnuddaProject(object):
             post_name_list = [self.network_info.data["name"][x] for x in post_id_list]
             post_positions = self.network_info.data["neuronPositions"][post_id_list, :]
 
-            # For each presynaptic neurons, find their target regions.
+            # For each presynaptic neuron, find their target regions.
             # -- if you want two distinct target regions, you have to create two separate maps
             target_centres = griddata(points=projection_source,
                                       values=projection_destination,
@@ -182,7 +182,7 @@ class SnuddaProject(object):
                                           number_of_targets[1],
                                           len(pre_id_list)).astype(int)
 
-            # For each presynaptic neurons, using the supplied map, find the potential post synaptic targets
+            # For each presynaptic neuron, using the supplied map, find the potential post synaptic targets
             for pre_id, centre_pos, n_targets in zip(pre_id_list, target_centres, num_targets):
 
                 d = np.linalg.norm(centre_pos - post_positions, axis=1)  # !! Double check right axis
@@ -206,7 +206,7 @@ class SnuddaProject(object):
 
                 for t_id, t_name, n_syn, ax_dist in zip(target_id, target_name, n_synapses, axon_dist):
 
-                    # We need to place neurons correctly in space (work on clone),
+                    # We need to place neuron correctly in space (work on clone),
                     # so that synapse coordinates are correct
                     morph_prototype = self.prototype_neurons[t_name]
                     position = self.network_info.data["neurons"][0]["position"]
