@@ -2,7 +2,7 @@ import neuron
 import numpy as np
 
 # Plot all sections
-# [neurons.h.psection(x) for x in neurons.h.allsec()]
+# [neuron.h.psection(x) for x in neuron.h.allsec()]
 
 ##############################################################################
 
@@ -19,10 +19,10 @@ class RunLittleSynapseRun(object):
 
     # This just clears the sections, just to be on the safe side
     # !!! Didnt work... still problem
-    #for s in neurons.h.allsec():
+    #for s in neuron.h.allsec():
     #  import pdb
     #  pdb.set_trace()
-    #  neurons.h.delete_section(sec=s)
+    #  neuron.h.delete_section(sec=s)
     
     print("Holding voltage: " + str(holdingVoltage) + " V")
     print("Stim times: " + str(stimTimes) + " s")
@@ -139,9 +139,9 @@ class RunLittleSynapseRun(object):
     neuron.h.tstop = self.time*1e3 # Must set tstop
     neuron.h.run()
     
-    #neurons.h.tstop = 2001
-    #neurons.h.finitialize(self.holdingVoltage*1e3)
-    #neurons.h.run()
+    #neuron.h.tstop = 2001
+    #neuron.h.finitialize(self.holdingVoltage*1e3)
+    #neuron.h.run()
     
     if(False):
       import matplotlib.pyplot as plt

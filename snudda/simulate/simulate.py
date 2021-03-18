@@ -15,7 +15,7 @@
 ############################################################################
 
 # Plot all sections
-# [neurons.h.psection(x) for x in neurons.h.allsec()]
+# [neuron.h.psection(x) for x in neuron.h.allsec()]
 
 
 from neuron import h  # , gui
@@ -274,7 +274,7 @@ class SnuddaSimulate(object):
                     mod_file = channel_param_dict["modFile"]
 
                     # TODO: Sanity check on the mod_file string
-                    eval_str = f"self.sim.neurons.h.{mod_file}"
+                    eval_str = f"self.sim.neuron.h.{mod_file}"
                     channel_module = eval(eval_str)  # If this fails, check that NEURON modules are compiled
 
                     # These are not variables to set in the modFile
@@ -400,7 +400,7 @@ class SnuddaSimulate(object):
                 # !!! DIRTY FIX for
                 # https://github.com/BlueBrain/BluePyOpt/blob/master/bluepyopt/ephys/morphologies.py
                 # This is likely the offending line, that pushes a segment to the stack
-                # --> sim.neurons.h.execute('create axon[2]', icell)
+                # --> sim.neuron.h.execute('create axon[2]', icell)
 
                 self.write_log("!!! Popping extra segment from neurons -- temp fix!")
                 h.execute("pop_section()")
@@ -861,11 +861,11 @@ class SnuddaSimulate(object):
         # Just create a default expsyn for test, will need to create proper GABA
         # synapses later
         # if(synapseType == 'ExpSyn'):
-        #  syn = self.sim.neurons.h.ExpSyn(dendCompartment(sectionDist))
+        #  syn = self.sim.neuron.h.ExpSyn(dendCompartment(sectionDist))
         # elif(synapseType == 'GABA'):
-        #  syn = self.sim.neurons.h.tmGabaA(dendCompartment(sectionDist))
+        #  syn = self.sim.neuron.h.tmGabaA(dendCompartment(sectionDist))
         # elif(synapseType == "AMPA_NMDA"):
-        #  syn = self.sim.neurons.h.tmGlut(dendCompartment(sectionDist))
+        #  syn = self.sim.neuron.h.tmGlut(dendCompartment(sectionDist))
         # else:
         #  self.writeLog("Synapse type not implemented: ", synapseType)
         #  import pdb
@@ -970,7 +970,7 @@ class SnuddaSimulate(object):
                 param_list = json.loads(neuron_input["parameterList"][()])
 
                 # TODO: Sanity check mod_file string
-                eval_str = f"self.sim.neurons.h.{mod_file}"
+                eval_str = f"self.sim.neuron.h.{mod_file}"
                 channel_module = eval(eval_str)
 
                 for inputID, (section, section_x, paramID, nSpikes) \
@@ -1010,7 +1010,7 @@ class SnuddaSimulate(object):
 
                     # !!! Parameters for the tmGlut should be possible to set in the
                     # input specification !!!
-                    # syn = self.sim.neurons.h.tmGlut(section(sectionX))
+                    # syn = self.sim.neuron.h.tmGlut(section(sectionX))
                     syn = channel_module(section(section_x))
                     nc = h.NetCon(vs, syn)
 
@@ -1210,8 +1210,8 @@ class SnuddaSimulate(object):
 
         # If we want to use a non-default initialisation voltage, we need to
         # explicitly set: h.v_init
-        # self.sim.neurons.h.v_init = -78
-        # self.sim.neurons.h.finitialize(-78)
+        # self.sim.neuron.h.v_init = -78
+        # self.sim.neuron.h.finitialize(-78)
         if hold_v is None:
             self.sim.neuron.h.finitialize()
         else:

@@ -7,7 +7,7 @@ from snudda.neurons.neuron_model_extended import NeuronModel
 from snudda.neurons.neuron_morphology import NeuronMorphology
 
 # Plot all sections
-# [neurons.h.psection(x) for x in neurons.h.allsec()]
+# [neuron.h.psection(x) for x in neuron.h.allsec()]
 
 ##############################################################################
 
@@ -48,7 +48,7 @@ class RunSynapseRun(object):
     self.ncSyn = None
 
     # Done in NrnSimulatorParallel
-    # neurons.h.load_file('stdrun.hoc')
+    # neuron.h.load_file('stdrun.hoc')
 
     self.sim = NrnSimulatorParallel(cvode_active=False)
     
