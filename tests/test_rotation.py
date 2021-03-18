@@ -20,7 +20,7 @@ class TestRotation(unittest.TestCase):
         vec_facit = np.array([-1, -1, -1])
         self.assertTrue(np.allclose(vec_rot / np.linalg.norm(vec_rot), vec_facit / np.linalg.norm(vec_facit)))
 
-        rot2 = self.sr.get_rotation(volume_name="Striatum", neuron_type="LTS", neuron_position=[0, 0, 0.5])
+        rot2 = self.sr.get_rotation(volume_name="Striatum", neuron_type="LTS", neuron_position=[0, 0, 0.5e-3])
         self.assertEqual(np.linalg.det(rot), 1)
 
         vec_rot2 = rot2.dot(vec_test)

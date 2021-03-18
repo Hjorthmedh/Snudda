@@ -101,7 +101,7 @@ class SnuddaRotate(object):
 
         assert not np.isnan(np.sum(rotation_vector)), \
             (f"Invalid rotation vector for volume {volume_name}, neuron {neuron_type}, "
-             f"is neuron position outside the field? Neuron position: {neuron_position}"
+             f"is neuron position outside the field?\nNeuron position: {neuron_position}"
              f" (must be inside convex hull of the field's positions points)")
 
         # We need to rotate z-axis to point to rotation_vector
