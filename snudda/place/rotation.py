@@ -2,7 +2,7 @@ import numpy as np
 import json
 from scipy.interpolate import griddata
 
-from snudda.neuron.neuron_morphology import NeuronMorphology
+from snudda.neurons.neuron_morphology import NeuronMorphology
 
 
 class SnuddaRotate(object):

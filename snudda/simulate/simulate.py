@@ -15,7 +15,7 @@
 ############################################################################
 
 # Plot all sections
-# [neuron.h.psection(x) for x in neuron.h.allsec()]
+# [neurons.h.psection(x) for x in neurons.h.allsec()]
 
 
 from neuron import h  # , gui
@@ -24,7 +24,7 @@ import h5py
 import json
 import timeit
 
-from snudda.neuron.neuron_model_extended import NeuronModel
+from snudda.neurons.neuron_model_extended import NeuronModel
 # from Network_place_neurons import NetworkPlaceNeurons
 import numpy as np
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
@@ -38,7 +38,7 @@ import snudda.utils.memory
 # !!! Need to gracefully handle the situation where there are more workers than
 # number of neurons, currently we get problem when adding the voltage saving
 
-# !!! Have added code for dopamine modulation of neuron intrinsic channels
+# !!! Have added code for dopamine modulation of neurons intrinsic channels
 #     need to add dopamine modulation for the synaptic channels also !!!
 
 ##############################################################################
@@ -221,7 +221,7 @@ class SnuddaSimulate(object):
             self.config = json.load(config_file)
 
         # I do not know if the gap junction GIDs are a separate entity from the
-        # neuron cell GIDs, so to be on safe side, let's make sure they
+        # neurons cell GIDs, so to be on safe side, let's make sure they
         # do not overlap
         self.gap_junction_next_gid = self.num_neurons + 100000000
 
@@ -274,7 +274,7 @@ class SnuddaSimulate(object):
                     mod_file = channel_param_dict["modFile"]
 
                     # TODO: Sanity check on the mod_file string
-                    eval_str = f"self.sim.neuron.h.{mod_file}"
+                    eval_str = f"self.sim.neurons.h.{mod_file}"
                     channel_module = eval(eval_str)  # If this fails, check that NEURON modules are compiled
 
                     # These are not variables to set in the modFile
@@ -376,7 +376,7 @@ class SnuddaSimulate(object):
                 self.pc.cell(ID, nc, 1)  # The 1 means broadcast spikes to other machines
 
             else:
-                # A real neuron (not a virtual neuron that just provides input)
+                # A real neurons (not a virtual neurons that just provides input)
                 parameter_id = self.network_info["neurons"][ID]["parameterID"]
                 modulation_id = self.network_info["neurons"][ID]["modulationID"]
 
@@ -400,9 +400,9 @@ class SnuddaSimulate(object):
                 # !!! DIRTY FIX for
                 # https://github.com/BlueBrain/BluePyOpt/blob/master/bluepyopt/ephys/morphologies.py
                 # This is likely the offending line, that pushes a segment to the stack
-                # --> sim.neuron.h.execute('create axon[2]', icell)
+                # --> sim.neurons.h.execute('create axon[2]', icell)
 
-                self.write_log("!!! Popping extra segment from neuron -- temp fix!")
+                self.write_log("!!! Popping extra segment from neurons -- temp fix!")
                 h.execute("pop_section()")
 
                 # !!! END OF DIRTY FIX
@@ -454,7 +454,7 @@ class SnuddaSimulate(object):
         next_row_set = self.find_next_synapse_group(next_row)
 
         while next_row_set is not None:
-            # Add the synapses to the neuron
+            # Add the synapses to the neurons
             self.connect_neuron_synapses(start_row=next_row_set[0], end_row=next_row_set[1])
 
             # Find the next group of synapses
@@ -464,7 +464,7 @@ class SnuddaSimulate(object):
     ############################################################################
 
     # This function starts at nextRow, then returns all synapses onto
-    # a neuron which is located on the worker
+    # a neurons which is located on the worker
 
     # This works for synapses, but it will not work for gap junctions, because
     # we need to connect the gap junctions from both sides
@@ -685,7 +685,7 @@ class SnuddaSimulate(object):
                                                     connection_type="gapjunctions")
 
         while next_row_set is not None:
-            # Add the synapses to the neuron
+            # Add the synapses to the neurons
             self.connect_neuron_gap_junctions(start_row=next_row_set[0],
                                               end_row=next_row_set[1])
 
@@ -861,11 +861,11 @@ class SnuddaSimulate(object):
         # Just create a default expsyn for test, will need to create proper GABA
         # synapses later
         # if(synapseType == 'ExpSyn'):
-        #  syn = self.sim.neuron.h.ExpSyn(dendCompartment(sectionDist))
+        #  syn = self.sim.neurons.h.ExpSyn(dendCompartment(sectionDist))
         # elif(synapseType == 'GABA'):
-        #  syn = self.sim.neuron.h.tmGabaA(dendCompartment(sectionDist))
+        #  syn = self.sim.neurons.h.tmGabaA(dendCompartment(sectionDist))
         # elif(synapseType == "AMPA_NMDA"):
-        #  syn = self.sim.neuron.h.tmGlut(dendCompartment(sectionDist))
+        #  syn = self.sim.neurons.h.tmGlut(dendCompartment(sectionDist))
         # else:
         #  self.writeLog("Synapse type not implemented: ", synapseType)
         #  import pdb
@@ -883,7 +883,7 @@ class SnuddaSimulate(object):
         # print("GID exists:" + str(self.pc.gid_exists(cellIDsource)))
 
         if self.is_virtual_neuron[cell_id_source]:
-            # Source is a virtual neuron, need to read and connect input
+            # Source is a virtual neurons, need to read and connect input
             src_name = self.network_info["neurons"][cell_id_source]["name"]
 
             nc = self.pc.gid_connect(cell_id_source, syn)
@@ -917,7 +917,7 @@ class SnuddaSimulate(object):
                          g_gap_junction=0.5e-9,
                          gid=None):  # GID unused??
 
-        # If neuron complains, make sure you have par_ggap.mod
+        # If neurons complains, make sure you have par_ggap.mod
         gj = h.gGapPar(section(section_dist))
         self.gap_junction_list.append(gj)
 
@@ -970,7 +970,7 @@ class SnuddaSimulate(object):
                 param_list = json.loads(neuron_input["parameterList"][()])
 
                 # TODO: Sanity check mod_file string
-                eval_str = f"self.sim.neuron.h.{mod_file}"
+                eval_str = f"self.sim.neurons.h.{mod_file}"
                 channel_module = eval(eval_str)
 
                 for inputID, (section, section_x, paramID, nSpikes) \
@@ -983,7 +983,7 @@ class SnuddaSimulate(object):
                     idx = inputID
                     spikes = neuron_input["spikes"][inputID, :nSpikes] * 1e3  # Neuron uses ms
                     assert (spikes >= 0).all(), \
-                        "Negative spike times for neuron " + str(neuron_id) + " " + inputType
+                        "Negative spike times for neurons " + str(neuron_id) + " " + inputType
 
                     # Creating NEURON VecStim and vector
                     # https://www.neuron.yale.edu/phpBB/viewtopic.php?t=3125
@@ -1010,7 +1010,7 @@ class SnuddaSimulate(object):
 
                     # !!! Parameters for the tmGlut should be possible to set in the
                     # input specification !!!
-                    # syn = self.sim.neuron.h.tmGlut(section(sectionX))
+                    # syn = self.sim.neurons.h.tmGlut(section(sectionX))
                     syn = channel_module(section(section_x))
                     nc = h.NetCon(vs, syn)
 
@@ -1043,7 +1043,7 @@ class SnuddaSimulate(object):
                     # !!! Set parameters in synParams
 
                     # Need to save references, otherwise they will be freed
-                    # So sorry, but that is how neuron is
+                    # So sorry, but that is how neurons is
                     self.external_stim[neuron_id].append((v, vs, nc, syn, spikes))
 
                     # ps = h.PatternStim()
@@ -1176,7 +1176,7 @@ class SnuddaSimulate(object):
         # the centre)
         cell_id = self.centre_neurons(side_len=side_len, neuron_id=cell_id)
 
-        # Only include neuron IDs on this worker, ie those in self.neuronID
+        # Only include neurons IDs on this worker, ie those in self.neuronID
         # (filtering in the if statement)
         cells = dict((k, self.neurons[k])
                      for k in cell_id if (not self.is_virtual_neuron[k]
@@ -1210,15 +1210,15 @@ class SnuddaSimulate(object):
 
         # If we want to use a non-default initialisation voltage, we need to
         # explicitly set: h.v_init
-        # self.sim.neuron.h.v_init = -78
-        # self.sim.neuron.h.finitialize(-78)
+        # self.sim.neurons.h.v_init = -78
+        # self.sim.neurons.h.finitialize(-78)
         if hold_v is None:
             self.sim.neuron.h.finitialize()
         else:
             self.write_log(f"User override for holding voltage: {hold_v * 1e3} mV")
             self.sim.neuron.h.finitialize(hold_v * 1e3)
 
-        # Asked on neuron, check answer:
+        # Asked on neurons, check answer:
         # https://www.neuron.yale.edu/phpBB/viewtopic.php?f=2&t=4161&p=18021
 
         # Make sure all processes are synchronised
@@ -1277,11 +1277,11 @@ class SnuddaSimulate(object):
 
     # secList is a list of sections
     # secXList is a list of X values 0 to 1.0
-    # destID is the ID of the neuron receiving synapse (one value!)
+    # destID is the ID of the neurons receiving synapse (one value!)
     # voxel coords are the voxel that the synapse is in
 
     # We want to check that voxel coords transformed to local coordinate system
-    # of neuron matches with where neuron places the synapse
+    # of neurons matches with where neurons places the synapse
 
     def verify_synapse_placement(self, sec_list, sec_x_list, dest_id, voxel_coords):
 
@@ -1292,7 +1292,7 @@ class SnuddaSimulate(object):
         neuron_position = self.network_info["neurons"][dest_id]["position"]
         neuron_rotation = self.network_info["neurons"][dest_id]["rotation"]
 
-        # Transform voxel coordinates to local neuron coordinates to match neuron
+        # Transform voxel coordinates to local neurons coordinates to match neurons
         synapse_pos = (voxel_size * voxel_coords + simulation_origo - neuron_position) * 1e6
 
         syn_pos_nrn = np.zeros((len(sec_list), 3))
@@ -1309,7 +1309,7 @@ class SnuddaSimulate(object):
             syn_pos_nrn[i, 1] = h.y3d(idx, sec=sec)
             syn_pos_nrn[i, 2] = h.z3d(idx, sec=sec)
 
-        # We need to rotate the neuron to match the big simulation
+        # We need to rotate the neurons to match the big simulation
         # !!! OBS, this assumes that some is in 0,0,0 local coordinates
         syn_pos_nrn_rot = np.transpose(np.matmul(neuron_rotation,
                                                  np.transpose(syn_pos_nrn)))
@@ -1353,7 +1353,7 @@ class SnuddaSimulate(object):
                            syn_pos_nrn_rot[:, 2], color="black", s=50)
 
                 if False:
-                    # Draw neuron
+                    # Draw neurons
                     all_sec = [x for x in neuron.h.allsec() if "axon" not in str(x)]
                     for x in np.linspace(0, 1, 10):
                         sec_pos = np.array([[h.x3d(x, sec=sec),
@@ -1368,7 +1368,7 @@ class SnuddaSimulate(object):
 
         # voxelCoords *
 
-        # Get local neuron position
+        # Get local neurons position
         # self.neurons["position"]
 
         # for sec,secX
@@ -1469,7 +1469,7 @@ class SnuddaSimulate(object):
     def add_current_injection(self, neuron_id, start_time, end_time, amplitude):
 
         if neuron_id not in self.neuron_id:
-            # The neuron ID does not exist on this worker
+            # The neurons ID does not exist on this worker
             return
 
         assert end_time > start_time, "add_current_injection: End time must be after start time"
@@ -1660,10 +1660,10 @@ if __name__ == "__main__":
             slurm_id = str(666)
 
     if args.voltOut is None:
-        # Do not save neuron soma voltage
+        # Do not save neurons soma voltage
         volt_file = None
     else:
-        # Save neuron voltage
+        # Save neurons voltage
         if args.voltOut == "default":
             volt_file = save_dir + 'network-voltage-' + slurm_id + '.csv'
         else:
@@ -1722,5 +1722,5 @@ if __name__ == "__main__":
     exit(0)
 
 # Check this code example
-# Why are spikes not propagated from one neuron to another
+# Why are spikes not propagated from one neurons to another
 # https://senselab.med.yale.edu/modeldb/ShowModel.cshtml?model=188544&file=%2FLyttonEtAl2016%2FREADME.html#tabs-2

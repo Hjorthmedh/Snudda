@@ -4,7 +4,7 @@ import unittest
 from snudda.place.create_cube_mesh import create_cube_mesh
 from snudda.detect.detect import SnuddaDetect
 from snudda.utils.load import SnuddaLoad
-from snudda.neuron.neuron_morphology import NeuronMorphology
+from snudda.neurons.neuron_morphology import NeuronMorphology
 from snudda.place.place import SnuddaPlace
 import numpy as np
 
@@ -25,7 +25,7 @@ class TestPrune(unittest.TestCase):
                          side_len=500e-6)
 
         config_file = os.path.join(self.network_path, "network-config.json")
-        position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
+        position_file = os.path.join(self.network_path, "network-neurons-positions.hdf5")
         save_file = os.path.join(self.network_path, "voxels", "network-putative-synapses.hdf5")
 
         sp = SnuddaPlace(config_file=config_file, d_view=None, verbose=True)
@@ -33,7 +33,7 @@ class TestPrune(unittest.TestCase):
         sp.parse_config()
         sp.write_data(position_file)
 
-        # We want to load in the ball and stick neuron that has 20 micrometer soma diameter, and axon (along y-axis),
+        # We want to load in the ball and stick neurons that has 20 micrometer soma diameter, and axon (along y-axis),
         # and dendrite along (x-axis) out to 100 micrometer distance from centre of soma.
 
         self.sd = SnuddaDetect(config_file=config_file, position_file=position_file,
@@ -146,7 +146,7 @@ class TestPrune(unittest.TestCase):
         with self.subTest(stage="load-testing"):
             sl = SnuddaLoad(pruned_output, verbose=True)
 
-            # Try and load a neuron
+            # Try and load a neurons
             n = sl.load_neuron(0)
             self.assertTrue(type(n) == NeuronMorphology)
 

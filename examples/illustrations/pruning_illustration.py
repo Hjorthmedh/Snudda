@@ -18,7 +18,7 @@ class PruningIllustration(object):
 
         self.network_path = "pruning_illustration_network"
         self.config_file = os.path.join(self.network_path, "network-config.json")
-        self.position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
+        self.position_file = os.path.join(self.network_path, "network-neurons-positions.hdf5")
         self.save_file = os.path.join(self.network_path, "voxels", "network-synapses.hdf5")
 
         create_cube_mesh(file_name=os.path.join(self.network_path, "mesh", "simple_mesh.obj"),
@@ -32,7 +32,7 @@ class PruningIllustration(object):
         print("Read done")
         sp.write_data(self.position_file)
 
-        # We want to load in the ball and stick neuron that has 20 micrometer soma diameter, and axon (along y-axis),
+        # We want to load in the ball and stick neurons that has 20 micrometer soma diameter, and axon (along y-axis),
         # and dendrite along (x-axis) out to 200 micrometer distance from centre of soma.
 
         self.sd = SnuddaDetect(config_file=self.config_file, position_file=self.position_file,

@@ -379,7 +379,7 @@ if __name__ == "__main__":
                                         dist_3d=dist3D,
                                         y_max=None)
 
-        # A MS neuron receives 1e4 assymetrical synapses (Kincaid et al 1998),
+        # A MS neurons receives 1e4 assymetrical synapses (Kincaid et al 1998),
         # and 2500 symmetrical synapses (Ingham et al 1998). Symmetrical synapses
         # can be dopaminergic, cholinergic or GABAergic, with dopaminergic
         # being 13% (Roberts et al 2002). Assuming that cholinergic inputs are

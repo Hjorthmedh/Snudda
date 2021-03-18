@@ -1730,7 +1730,7 @@ class SnuddaAnalyse(object):
 
     ############################################################################
 
-    # Plots neuronID neuron, and all presynaptic partners
+    # Plots neuronID neurons, and all presynaptic partners
 
     def plot_neurons(self, neuron_id, show_synapses=True, plot_pre_neurons=True):
 
@@ -2174,7 +2174,7 @@ class SnuddaAnalyse(object):
 
     def _dend_density(self, swc_file, num_bins, bin_width):
 
-        from snudda.neuron.neuron_morphology import NeuronMorphology
+        from snudda.neurons.neuron_morphology import NeuronMorphology
 
         dend_hist = np.zeros((num_bins,))
 
@@ -2292,7 +2292,7 @@ class SnuddaAnalyse(object):
             i_b = i_b_all[i_rep]
             i_c = i_c_all[i_rep]
 
-            # In case the same neuron was picked twice, redo sampling
+            # In case the same neurons was picked twice, redo sampling
             while i_a == i_b or i_b == i_c or i_c == i_a:
                 i_a = np.random.randint(len(ida))
                 i_b = np.random.randint(len(idb))
@@ -2455,7 +2455,7 @@ class SnuddaAnalyse(object):
 
     ############################################################################
 
-    # Pick a post synaptic neuron, find out the distance to its closest
+    # Pick a post synaptic neurons, find out the distance to its closest
     # presynaptic neighbour
 
     def nearest_pre_neighbour_distance(self, pre_type, post_type, rabies_rate=1.0,
@@ -2626,7 +2626,7 @@ class SnuddaAnalyse(object):
     # Inspired by:
     # Nao Chuhma, Kenji F. Tanaka, Rene Hen and Stephen Rayport 2011
     #
-    # 10% of a neuron type are marked, fraction of presynaptic neurons
+    # 10% of a neurons type are marked, fraction of presynaptic neurons
     # out of total population
 
     def chuhma_virtual_experiment(self, tagged_type=["dSPN", "iSPN"], tag_fraction=0.1):

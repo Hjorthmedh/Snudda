@@ -7,7 +7,7 @@ import json
 import h5py
 
 from snudda.place.create_cube_mesh import create_cube_mesh
-from snudda.neuron.neuron_morphology import NeuronMorphology
+from snudda.neurons.neuron_morphology import NeuronMorphology
 from snudda.init.init import SnuddaInit
 from snudda.input.input import SnuddaInput
 from snudda.utils.load import SnuddaLoad
@@ -68,7 +68,7 @@ class InputTuning(object):
 
     def setup_network(self, neurons_path, num_replicas=10, neuron_types=None):
 
-        # TODO: num_replicas should be set by a parameter, it affects how many duplicates of each neuron
+        # TODO: num_replicas should be set by a parameter, it affects how many duplicates of each neurons
         # and thus how many steps we have between n_min and n_max number of inputs specified.
         config_def = self.create_network_config(neurons_path=neurons_path,
                                                 num_replicas=num_replicas,
@@ -304,7 +304,7 @@ class InputTuning(object):
                 input_freq, output_freq, input_type = frequency_data[neuron_name][num_input]
 
                 if input_type_all:
-                    assert input_type == input_type_all, "All input types must be the same for neuron"
+                    assert input_type == input_type_all, "All input types must be the same for neurons"
                 else:
                     input_type_all = input_type
 
@@ -408,7 +408,7 @@ class InputTuning(object):
             if not show_plots:
                 plt.close()
 
-    # This loops through all single neuron directories in neurons_path
+    # This loops through all single neurons directories in neurons_path
     # in preparation of writing a network config file
 
     def gather_all_neurons(self, neuron_types=None):
@@ -432,7 +432,7 @@ class InputTuning(object):
 
             if neuron_types is not None:
                 if neuron_type.lower() not in neuron_types:
-                    print(f"Skipping neuron type {neuron_type}")
+                    print(f"Skipping neurons type {neuron_type}")
                     continue
 
             self.neuron_types.append(neuron_type)
@@ -443,7 +443,7 @@ class InputTuning(object):
             for nd in neuron_dir:
                 neuron_info = collections.OrderedDict()
 
-                # Find neuron morphology swc file, obs currently assume lowercase(!)
+                # Find neurons morphology swc file, obs currently assume lowercase(!)
                 neuron_morph_list = glob.glob(os.path.join(nd, '*swc'))
 
                 parameter_file = os.path.join(nd, "parameters.json")
@@ -568,7 +568,7 @@ class InputTuning(object):
 
         for neuron_type in neuron_sets:
 
-            # For each neuron model we will have num_replicas copies (see other part of code), and this
+            # For each neurons model we will have num_replicas copies (see other part of code), and this
             # will determine how many steps we have between n_input_min and n_input_max
 
             neuron_id_list = neuron_sets[neuron_type]
@@ -783,7 +783,7 @@ if __name__ == "__main__":
     parser.add_argument("--inputFrequency", type=str, default="[0,1,2,5]",
                         help="Input frequency, float or list of floats")
     parser.add_argument("--neuronType", default=None, type=str,
-                        help="Optional, if only we want to simulate one neuron type, eg. FSN")
+                        help="Optional, if only we want to simulate one neurons type, eg. FSN")
 
     args = parser.parse_args()
 

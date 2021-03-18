@@ -113,7 +113,7 @@ class SnuddaCut(object):
 
         # Double check that it is OK, should be in order after
         assert (np.diff(neuronGroup["neuronID"][()]) == 1).all(), \
-          "Problem with neuron remapping!"
+          "Problem with neurons remapping!"
         
       else:
         try:

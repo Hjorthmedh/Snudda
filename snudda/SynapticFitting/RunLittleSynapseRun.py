@@ -2,7 +2,7 @@ import neuron
 import numpy as np
 
 # Plot all sections
-# [neuron.h.psection(x) for x in neuron.h.allsec()]
+# [neurons.h.psection(x) for x in neurons.h.allsec()]
 
 ##############################################################################
 
@@ -19,10 +19,10 @@ class RunLittleSynapseRun(object):
 
     # This just clears the sections, just to be on the safe side
     # !!! Didnt work... still problem
-    #for s in neuron.h.allsec():
+    #for s in neurons.h.allsec():
     #  import pdb
     #  pdb.set_trace()
-    #  neuron.h.delete_section(sec=s)
+    #  neurons.h.delete_section(sec=s)
     
     print("Holding voltage: " + str(holdingVoltage) + " V")
     print("Stim times: " + str(stimTimes) + " s")
@@ -97,7 +97,7 @@ class RunLittleSynapseRun(object):
         
       setattr(self.littleSynapse,p,val)
       print("Setting parameters: " + str(p) + " = " + str(val) \
-            + " (neuron natural units)")
+            + " (neurons natural units)")
       
     self.vecStim  = neuron.h.VecStim()
     
@@ -132,16 +132,16 @@ class RunLittleSynapseRun(object):
     # print("VClamp duration: " + str(self.VClamp.dur1))
 
     neuron.h.finitialize(self.holdingVoltage*1e3)
-    # !!! There is a WEIRD neuron bug, that if this tstop here is
+    # !!! There is a WEIRD neurons bug, that if this tstop here is
     # different from duration of simulation, then the *SECOND* time
     # a model is initialised we get the length of tSave set by this
     # value, and not by the tStop of that simulation --- go figure!
     neuron.h.tstop = self.time*1e3 # Must set tstop
     neuron.h.run()
     
-    #neuron.h.tstop = 2001
-    #neuron.h.finitialize(self.holdingVoltage*1e3)
-    #neuron.h.run()
+    #neurons.h.tstop = 2001
+    #neurons.h.finitialize(self.holdingVoltage*1e3)
+    #neurons.h.run()
     
     if(False):
       import matplotlib.pyplot as plt
@@ -209,7 +209,7 @@ class RunLittleSynapseRun(object):
     # print("VClamp duration: " + str(self.VClamp.dur1))
 
     neuron.h.finitialize(self.holdingVoltage*1e3)
-    # !!! There is a WEIRD neuron bug, that if this tstop here is
+    # !!! There is a WEIRD neurons bug, that if this tstop here is
     # different from duration of simulation, then the *SECOND* time
     # a model is initialised we get the length of tSave set by this
     # value, and not by the tStop of that simulation --- go figure!

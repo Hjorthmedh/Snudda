@@ -188,7 +188,7 @@ class PlotTraces:
         num_traces = min(len(traceID), num_traces)
 
         if num_traces <= 0:
-            print("No traces of neuron(s) " + str(neuron_name) + " to show")
+            print("No traces of neurons(s) " + str(neuron_name) + " to show")
             return
 
         self.plot_traces(offset=plot_offset, trace_id=traceID[num_offset:num_offset + num_traces], skip_time=skip_time,

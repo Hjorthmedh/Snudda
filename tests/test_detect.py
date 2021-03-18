@@ -24,7 +24,7 @@ class TestDetect(unittest.TestCase):
                          side_len=500e-6)
 
         config_file = os.path.join(network_path, "network-config.json")
-        position_file = os.path.join(network_path, "network-neuron-positions.hdf5")
+        position_file = os.path.join(network_path, "network-neurons-positions.hdf5")
         save_file = os.path.join(network_path, "voxels", "network-putative-synapses.hdf5")
 
         #  TODO: If d_view is None code run sin serial, add test parallel
@@ -33,7 +33,7 @@ class TestDetect(unittest.TestCase):
         sp.parse_config()
         sp.write_data(position_file)
 
-        # We want to load in the ball and stick neuron that has 20 micrometer soma diameter, and axon (along y-axis),
+        # We want to load in the ball and stick neurons that has 20 micrometer soma diameter, and axon (along y-axis),
         # and dendrite along (x-axis) out to 100 micrometer distance from centre of soma.
 
         self.sd = SnuddaDetect(config_file=config_file, position_file=position_file,
@@ -219,7 +219,7 @@ class TestDetect(unittest.TestCase):
                                      [120, -30, 105],
                                      [130, -20, 120],
                                      [140, -10, 135],
-                                     [230, 0, 4],  # 4 micrometers from first neuron
+                                     [230, 0, 4],  # 4 micrometers from first neurons
                                      ])*1e-6
 
         for idx, pos in enumerate(neuron_positions):

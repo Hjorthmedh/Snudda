@@ -9,7 +9,7 @@
 #SBATCH --ntasks-per-node=32
 
 # 16 workers were too few, got section stack overflow (there is a hidden
-# push to the stack somewhere in the neuron code)
+# push to the stack somewhere in the neurons code)
 let N_WORKERS="$SLURM_NNODES * 32"
 
 HOME=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda
@@ -34,14 +34,14 @@ echo "Network dir: "$NETWORK_DIR
 # Updated 2020-08-25
 module sw PrgEnv-cray PrgEnv-intel/6.0.5
 module add mpi4py/3.0.2/py37
-module add neuron/7.7-py37
+module add neurons/7.7-py37
 
 
 export CRAYPE_LINK_TYPE=dynamic
 export CRAY_ROOTFS=DSL
 
-#/pdc/vol/neuron/7.4-py27/x86_64/bin/nrnivmodl
-#/pdc/vol/neuron/7.5-py37/x86_64/bin/nrnivmodl -loadflags "-dynamic" cellspecs/mechanisms
+#/pdc/vol/neurons/7.4-py27/x86_64/bin/nrnivmodl
+#/pdc/vol/neurons/7.5-py37/x86_64/bin/nrnivmodl -loadflags "-dynamic" cellspecs/mechanisms
 #nrnivmodl -loadflags "-dynamic" cellspecs/mechanisms
 
 # Remove "special" old directory
@@ -79,7 +79,7 @@ export PYTHONPATH=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/beskow/lib/pyth
 srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 0.1 --spikesOut $NETWORK_SPIKE_FILE --voltOut $NETWORK_VOLTAGE_FILE
 
 
-# Original version, start neuron from python, does not work on beskow
+# Original version, start neurons from python, does not work on beskow
 #aprun -n  $N_WORKERS /cfs/klemming/nobackup/h/hjorth/ChINopt/model/x86_64/special -mpi -python snudda_simulate.py /cfs/klemming/nobackup/h/hjorth/ChINopt/model/save/save/network-connect-synapse-file-1749867.pickle
 
 NETWORK_TAR = $NETWORK_DIR.tar.gz

@@ -9,9 +9,9 @@ from snudda.utils.snudda_path import snudda_parse_path
 # Note that you might need to reposition the camera manually
 # if your neurons are centred around a different position
 
-# posFile = "../SmallTest2/network-neuron-positions.hdf5"
-#posFile = "/home/hjorth/HBP/StriatumNetwork/model/Article-cube-2160/network-neuron-positions.hdf5"
-posFile = "/home/hjorth/HBP/StriatumNetwork/model/Article2019HyperVoxel/network-neuron-positions.hdf5"
+# posFile = "../SmallTest2/network-neurons-positions.hdf5"
+#posFile = "/home/hjorth/HBP/StriatumNetwork/model/Article-cube-2160/network-neurons-positions.hdf5"
+posFile = "/home/hjorth/HBP/StriatumNetwork/model/Article2019HyperVoxel/network-neurons-positions.hdf5"
 
 fi = h5py.File(posFile,"r")
 
@@ -97,7 +97,7 @@ for ps,rt,mo,nm,nID in zip(pos,rot,morph,name,neuronID):
   eRot = mathutils.Matrix(rt.reshape(3,3)).to_euler()    
   obj.rotation_euler = eRot
 
-  # Draw this neuron (the SWC import scales from micrometers to mm), the
+  # Draw this neurons (the SWC import scales from micrometers to mm), the
   # positions in the simulation are in meters, need to scale it to mm for
   # blender to have same units.
   

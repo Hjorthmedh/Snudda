@@ -154,7 +154,7 @@ class OptimiseSynapsesPlanert(OptimiseSynapses):
 
   ############################################################################
 
-  # We do not know these properties for the neuron, so assume some values
+  # We do not know these properties for the neurons, so assume some values
   # that are not too far off for MS and FS
   
   def getCellProperties(self,dataType,cellID):

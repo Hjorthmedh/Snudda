@@ -288,7 +288,7 @@ class SnuddaInit(object):
             pruning_info_other["a3"] = a3_other
             pruning_info_other["distPruning"] = dist_pruning_other
 
-            # Different pruning rules for within and between neuron units
+            # Different pruning rules for within and between neurons units
             con_info["pruningOther"] = pruning_info_other
 
         # Json did not like tuples in keys, so we separate by comma
@@ -300,7 +300,7 @@ class SnuddaInit(object):
 
     ############################################################################
 
-    # modelType is "neuron" or "virtual" (= just provides input to network)
+    # modelType is "neurons" or "virtual" (= just provides input to network)
     # For axonDensity when it is "xyz" we assume that soma is at 0,0,0
 
     # neuronDir contains all the neurons in separate directories
@@ -310,7 +310,7 @@ class SnuddaInit(object):
                     neuron_dir,
                     num_neurons,
                     axon_density=None,
-                    model_type="neuron",
+                    model_type="neurons",
                     volume_id=None,
                     rotation_mode="random"):
 
@@ -792,7 +792,7 @@ class SnuddaInit(object):
 
         ############################################################################
 
-        # Add LTS neuron
+        # Add LTS neurons
 
         # OBS, the SWC coordinates assume that the soma is centred at 0,0,0
         # Func type, Density function, [[xmin,xmax,ymin,ymax,zmin,zmax]], nAxonPoints
@@ -1288,7 +1288,7 @@ class SnuddaInit(object):
 
         self.num_neurons_total += num_neurons
 
-        # Using start location of neuron  DOI: 10.25378/janelia.5521780 for centre
+        # Using start location of neurons  DOI: 10.25378/janelia.5521780 for centre
         # !!! If we use a larger mesh for cortex, we will need to reduce
         #     meshBinWidth to 1e-4 (or risk getting memory error)
         self.define_structure(struct_name="Cortex",
@@ -1360,7 +1360,7 @@ class SnuddaInit(object):
 
         self.num_neurons_total += num_neurons
 
-        # Using start location of neuron DOI: 10.25378/janelia.5521765 for centre
+        # Using start location of neurons DOI: 10.25378/janelia.5521765 for centre
         self.define_structure(struct_name="Thalamus",
                               struct_mesh="cube",
                               struct_centre=np.array([4997e-6, 4260e-6, 7019e-6]),

@@ -35,7 +35,7 @@ class NrnSimulatorParallel(ephys.simulators.NrnSimulator):
         self.neuron.h.steps_per_ms = 1.0 / dt
 
         try:
-            # self.neuron.h.stdinit()
+            # self.neurons.h.stdinit()
             self.neuron.h.finitialize()
 
             self.pc.psolve(tstop)

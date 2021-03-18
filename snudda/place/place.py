@@ -18,7 +18,7 @@ import h5py
 import json
 
 from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists
-from snudda.neuron.neuron_morphology import NeuronMorphology
+from snudda.neurons.neuron_morphology import NeuronMorphology
 from snudda.place.region_mesh import RegionMesh
 from snudda.place.rotation import SnuddaRotate
 
@@ -53,7 +53,7 @@ class SnuddaPlace(object):
         self.log_file = log_file
 
         if self.network_path:
-            self.position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
+            self.position_file = os.path.join(self.network_path, "network-neurons-positions.hdf5")
         else:
             self.write_log("No network_path given, not setting position_file. Remember to pass it to write_data.")
             self.position_file = None
@@ -80,7 +80,7 @@ class SnuddaPlace(object):
 
         self.raytrace_borders = raytrace_borders
 
-        # This defines the neuron units/channels. The dictionary lists all the
+        # This defines the neurons units/channels. The dictionary lists all the
         # members of each unit, the neuronChannel gives the individual neurons
         # channel membership
         self.nPopulationUnits = 1
@@ -120,7 +120,7 @@ class SnuddaPlace(object):
                     virtual_neuron=False,
                     axon_density=None):
 
-        assert volume_id is not None, "You must specify a volume for neuron " + name
+        assert volume_id is not None, "You must specify a volume for neurons " + name
 
         nm = NeuronMorphology(swc_filename=swc_filename,
                               param_data=param_data,
@@ -310,10 +310,10 @@ class SnuddaPlace(object):
             volume_id = definition["volumeID"]
 
             if "neuronType" in definition:
-                # type is "neuron" or "virtual" (provides input only)
+                # type is "neurons" or "virtual" (provides input only)
                 model_type = definition["neuronType"]
             else:
-                model_type = "neuron"
+                model_type = "neurons"
 
             if 'hoc' in definition:
                 hoc = definition["hoc"]
@@ -580,10 +580,10 @@ class SnuddaPlace(object):
 
         unit_id = population_unit_info["unitID"]
         fraction_of_neurons = population_unit_info["fractionOfNeurons"]
-        neuron_types = population_unit_info["neuronTypes"]  # list of neuron types that belong to this population unit
+        neuron_types = population_unit_info["neuronTypes"]  # list of neurons types that belong to this population unit
         structure_name = population_unit_info["structure"]
 
-        # First we need to generate unit lists (with fractions) for each neuron type
+        # First we need to generate unit lists (with fractions) for each neurons type
         units_available = dict()
         for uid, fon, neuron_type_list in zip(unit_id, fraction_of_neurons, neuron_types):
             for nt in neuron_type_list:
@@ -615,7 +615,7 @@ class SnuddaPlace(object):
             rand_num = self.random_generator.uniform(size=len(neurons_of_type))
 
             for nid, rn in zip(neurons_of_type, rand_num):
-                # If our randum number is smaller than the first fraction, then neuron in first pop unit
+                # If our randum number is smaller than the first fraction, then neurons in first pop unit
                 # if random number is between first and second cumulative fraction, then second pop unit
                 # If larger than last cum_fraction, then no pop unit was picked (and we get -1)
                 idx = len(cum_fraction) - np.sum(rn <= cum_fraction)
@@ -656,7 +656,7 @@ class SnuddaPlace(object):
                     d = np.linalg.norm(pos-centre_pos)
                     unit_probability[idx] = numexpr.evaluate(p_func)
                 else:
-                    unit_probability[idx] = 0  # That unit does not contain this neuron type
+                    unit_probability[idx] = 0  # That unit does not contain this neurons type
 
             # Next we randomise membership
             rand_num = self.random_generator.uniform(size=len(unit_probability))
@@ -665,7 +665,7 @@ class SnuddaPlace(object):
             #import pdb
             #pdb.set_trace()
 
-            # Currently we only allow a neuron to be member of one population unit
+            # Currently we only allow a neurons to be member of one population unit
             n_flags = np.sum(member_flag)
             if n_flags == 0:
                 self.population_unit[nid] = 0
@@ -691,12 +691,12 @@ class SnuddaPlace(object):
 
     def sort_neurons(self):
 
-        # This changes the neuron IDs so the neurons are sorted along x,y or z
+        # This changes the neurons IDs so the neurons are sorted along x,y or z
         xyz = self.all_neuron_positions()
 
         sort_idx = np.lexsort(xyz[:, [2, 1, 0]].transpose())  # x, y, z sort order
 
-        self.write_log("Re-sorting the neuron IDs after location")
+        self.write_log("Re-sorting the neurons IDs after location")
 
         for newIdx, oldIdx in enumerate(sort_idx):
             self.neurons[oldIdx].neuron_id = newIdx

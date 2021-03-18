@@ -16,7 +16,7 @@ outFile = "cubeOfNeurons-synapses-white.blend"
 
 visualiseID = range(0,1800) #[20,1217]
 
-# Load the neuron positions
+# Load the neurons positions
 fi = h5py.File(networkFile,"r")
 
 neuronID = fi["network/neurons/neuronID"].value
@@ -147,7 +147,7 @@ if(drawSynapses):
     postID = syn[1]
 
     if(preID in visualiseID and postID in visualiseID):
-      # Draw this neuron (the SWC import scales from micrometers to mm), the
+      # Draw this neurons (the SWC import scales from micrometers to mm), the
       # positions in the simulation are in meters, need to scale it to mm for
       # blender to have same units.
       x = (origo[0] + voxelSize*syn[2]) * 1e3

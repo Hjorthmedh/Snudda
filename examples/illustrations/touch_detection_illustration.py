@@ -18,7 +18,7 @@ class TouchDetectionIllustration(object):
 
         self.network_path = "touch_detection_illustration_network"
         self.config_file = os.path.join(self.network_path, "network-config.json")
-        self.position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
+        self.position_file = os.path.join(self.network_path, "network-neurons-positions.hdf5")
         self.save_file = os.path.join(self.network_path, "voxels", "network-putative-synapses.hdf5")
 
         create_cube_mesh(file_name=os.path.join(self.network_path, "mesh", "simple_mesh.obj"),

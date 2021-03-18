@@ -623,7 +623,7 @@ class OptimiseSynapses(object):
     (inputResSteadyState,tauDelta,baselineDepol) \
       = self.getCellProperties(dataType,cellID)
 
-    # Setup neuron model
+    # Setup neurons model
     self.setupModelDeltaPulse(dataType,cellID)
 
     p0 = [16e-6,0.0003e4]
@@ -749,7 +749,7 @@ class OptimiseSynapses(object):
       if(self.synapseType == "glut"):
         pIdx = tIdx[np.argmax(volt[tIdx])]
       elif(self.synapseType == "gaba"):
-        # We assume that neuron is more depolarised than -65, ie gaba is
+        # We assume that neurons is more depolarised than -65, ie gaba is
         # also depolarising
         pIdx = tIdx[np.argmax(volt[tIdx])]
       else:
@@ -1131,7 +1131,7 @@ class OptimiseSynapses(object):
                          params = {},
                          returnTrace=False):
 
-    # self.writeLog("Running neuron model")
+    # self.writeLog("Running neurons model")
     
     assert self.rsrSynapseModel is not None, \
       "!!! Need to call setupModelSynapseFitting first"
@@ -2015,7 +2015,7 @@ if __name__ == "__main__":
         import traceback
         tstr = traceback.format_exc()
         print(tstr)
-        print("!!! Something went wrong. Skipping neuron " + str(idx))
+        print("!!! Something went wrong. Skipping neurons " + str(idx))
   
     ly.saveParameterCache()
   

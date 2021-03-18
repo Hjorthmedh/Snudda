@@ -108,7 +108,7 @@ class NeuronMorphology(object):
             self.colour = colour
 
         if load_morphology:
-            # This loads, rotates and places neuron
+            # This loads, rotates and places neurons
             self.load_neuron_morphology()
 
     ############################################################################
@@ -191,7 +191,7 @@ class NeuronMorphology(object):
             new_neuron.dend = np.copy(self.dend)
             new_neuron.soma = np.copy(self.soma)
 
-            # Warn the user if the neuron is already rotated
+            # Warn the user if the neurons is already rotated
             new_neuron.rotated_flag = self.rotated_flag
 
             new_neuron.place()
@@ -280,7 +280,7 @@ class NeuronMorphology(object):
     def place(self, rotation=None, position=None):
 
         if self.rotated_flag:
-            self.write_log("!!! WARNING, rotating a rotated neuron...")
+            self.write_log("!!! WARNING, rotating a rotated neurons...")
 
         if rotation is None:
             rotation = self.rotation
@@ -296,7 +296,7 @@ class NeuronMorphology(object):
 
         # rotation = self.randRotationMatrix()
 
-        # We subtract soma before rotating to centre neuron
+        # We subtract soma before rotating to centre neurons
         if rotation is not None:
 
             assert np.abs(np.linalg.det(rotation) - 1) < 1e-6, \
@@ -314,7 +314,7 @@ class NeuronMorphology(object):
                 self.soma[:, 0:3] = \
                     np.transpose(np.matmul(rotation, np.transpose(self.soma[:, 0:3] - self.soma[0, 0:3])))
 
-        # Place neuron in correct position
+        # Place neurons in correct position
         if len(self.axon) > 0:
             self.axon[:, 0:3] = self.axon[:, 0:3] - self.soma[0, 0:3] + position
 
@@ -328,7 +328,7 @@ class NeuronMorphology(object):
         self.rotation = rotation
         self.position = position
 
-        # Plot neuron post rotation
+        # Plot neurons post rotation
         # self.plot_neuron()
 
         return self
@@ -341,7 +341,7 @@ class NeuronMorphology(object):
             cache_file = snudda_parse_path(self.cache_filename)
 
         assert not self.rotated_flag, \
-            "saveCache: The neuron should not be rotated when saving cache"
+            "saveCache: The neurons should not be rotated when saving cache"
 
         morph = dict([])
 
@@ -442,7 +442,7 @@ class NeuronMorphology(object):
         else:
             self.axon_density = None
 
-        # Place neuron -- Do not place neuron, loadNeuronMorphology does that
+        # Place neurons -- Do not place neurons, loadNeuronMorphology does that
         # self.place()
 
     ############################################################################
@@ -751,7 +751,7 @@ class NeuronMorphology(object):
                     dend_colour=None,
                     soma_colour=None):
 
-        self.write_log(f"Plotting neuron {self.swc_filename}")
+        self.write_log(f"Plotting neurons {self.swc_filename}")
 
         if axon_colour is None:
             axon_colour = self.colour

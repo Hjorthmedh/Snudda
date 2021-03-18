@@ -317,7 +317,7 @@ class SnuddaLoad(object):
 
         prototype_info = self.config["Neurons"][neuron_info["name"]]
 
-        from snudda.neuron.neuron_morphology import NeuronMorphology
+        from snudda.neurons.neuron_morphology import NeuronMorphology
         neuron = NeuronMorphology(name=neuron_info["name"],
                                   position=neuron_info["position"],
                                   rotation=neuron_info["rotation"],
@@ -571,7 +571,7 @@ if __name__ == "__main__":
 
     if args.listT is not None:
         if args.listT == "?":
-            print("List neuron types in network:")
+            print("List neurons types in network:")
 
             nTypes = np.unique([x["type"] for x in nl.data["neurons"]])
             for nt in nTypes:

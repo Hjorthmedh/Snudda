@@ -5,7 +5,7 @@ import numpy as np
 
 # Start by loading the positions from file
 
-fi = h5py.File("../FullStriatumPos/network-neuron-positions.hdf5","r")
+fi = h5py.File("../FullStriatumPos/network-neurons-positions.hdf5","r")
 
 xm = 0.005
 ym = 0.0035

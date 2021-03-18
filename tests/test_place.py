@@ -57,7 +57,7 @@ class TestPlace(unittest.TestCase):
 
         # Place neurons
 
-        position_file = os.path.join(self.sim_name, "network-neuron-positions.hdf5")
+        position_file = os.path.join(self.sim_name, "network-neurons-positions.hdf5")
 
         npn = SnuddaPlace(config_file=self.config_file,
                           log_file=None,

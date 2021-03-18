@@ -122,7 +122,7 @@ class Snudda(object):
         print(f"Network path: {self.network_path}")
 
         config_file = os.path.join(self.network_path, "network-config.json")
-        position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
+        position_file = os.path.join(self.network_path, "network-neurons-positions.hdf5")
         log_file_name = os.path.join(self.network_path, "log", "logFile-place-neurons.txt")
 
         random_seed = args.randomseed
@@ -176,7 +176,7 @@ class Snudda(object):
             os.makedirs(log_dir, exist_ok=True)
 
         config_file = os.path.join(self.network_path, "network-config.json")
-        position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
+        position_file = os.path.join(self.network_path, "network-neurons-positions.hdf5")
         log_filename = os.path.join(self.network_path, "log", "logFile-touch-detection.txt")
         save_file = os.path.join(self.network_path, "voxels", "network-putative-synapses.hdf5")
 
@@ -382,7 +382,7 @@ class Snudda(object):
         print(f"Using input file {input_file}")
 
         # nWorkers = args.ncores
-        # print("Using " + str(nWorkers) + " workers for neuron")
+        # print("Using " + str(nWorkers) + " workers for neurons")
 
         # Problems with nested symbolic links when the second one is a relative
         # path going beyond the original base path
@@ -430,7 +430,7 @@ class Snudda(object):
         print(f"args: {args}")
 
         if args.volt_out is not None:
-            # Save neuron voltage
+            # Save neurons voltage
             if args.volt_out == "default":
                 volt_file = os.path.join(save_dir, f"network-voltage-{slurm_id}.csv")
             else:
@@ -626,7 +626,7 @@ class Snudda(object):
 
 if __name__ == "__main__":
 
-    # This is fix to handle if user calles python from within neuron
+    # This is fix to handle if user calles python from within neurons
     import sys
 
     if '-python' in sys.argv:

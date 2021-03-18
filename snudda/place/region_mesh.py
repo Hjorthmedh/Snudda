@@ -678,7 +678,7 @@ class RegionMesh(object):
     ############################################################################
 
     # neuronType is included since in future versions we might want varying
-    # density depending on the type of neuron
+    # density depending on the type of neurons
 
     def place_neurons(self, num_cells, neuron_type=None, d_min=None):
 
@@ -723,7 +723,7 @@ class RegionMesh(object):
             inside_flag = self.check_inside(coords=putative_loc)
 
             if not inside_flag and not self.check_padding_zone(putative_loc):
-                # We are outside, go to next neuron
+                # We are outside, go to next neurons
                 self.reject_ctr += 1
                 continue
 
@@ -782,14 +782,14 @@ class RegionMesh(object):
                     min_dist2 = min(min_dist2, np.min(np.sum(np.square(tmp), axis=1)))
 
             if d_min2 < min_dist2:
-                # Ok neuron is not too close to any neighbours
+                # Ok neurons is not too close to any neighbours
 
                 if inside_flag:
                     # We are inside, add to inside points
                     self.neuron_coords[self.neuron_ctr, :] = putative_loc
                     self.neuron_type[self.neuron_ctr] = neuron_id
                     self.neuron_ctr += 1
-                    # self.writeLog("Placed neuron " + str(self.neuronCtr))
+                    # self.writeLog("Placed neurons " + str(self.neuronCtr))
                 else:
                     self.padding_ctr += 1
 
@@ -840,7 +840,7 @@ class RegionMesh(object):
             self.write_log(f"Using radius {radius}")
             idx = sorted_idx[np.where(dist[sorted_idx] <= radius)]
         else:
-            self.write_log(f"Selecting {num_neurons} closest neuron")
+            self.write_log(f"Selecting {num_neurons} closest neurons")
             idx = sorted_idx[:num_neurons]
 
         # Next we need to return them in the order they were originally sorted
@@ -1028,7 +1028,7 @@ class RegionMesh(object):
 
         xc = (self.neuron_coords[bad_idx, :] - self.min_coord) % self.bin_width
         ax.scatter(xc[:, 0], xc[:, 1], xc[:, 2], 'black')
-        plt.title("Bad neuron locations: " + str(xc.shape[0]))
+        plt.title("Bad neurons locations: " + str(xc.shape[0]))
         plt.axis('tight')
         plt.xlabel('X')
         plt.ylabel('Y')

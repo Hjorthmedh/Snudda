@@ -2,7 +2,7 @@
 # setup current injections
 #
 #
-# OBS! We set a holding current to keep neuron at around -80mV
+# OBS! We set a holding current to keep neurons at around -80mV
 # We also change GABA reversal potential to -40mV, since internal Cl is 30mM
 # and external Cl is 135 mM, temperature is 306K
 #
@@ -326,7 +326,7 @@ class SnuddaCalibrateSynapses(object):
                        self.injSpacing\
                        +self.injSpacing*np.arange(0,len(self.preID)))
     
-    # For each pre synaptic neuron, find the voltage deflection in each
+    # For each pre synaptic neurons, find the voltage deflection in each
     # of its post synaptic neurons
 
     synapseData = []
@@ -497,12 +497,12 @@ if __name__ == "__main__":
   parser.add_argument("networkFile", \
                       help="Network file (hdf5) or network directory")
   parser.add_argument("--preType","--pre",
-                      help="Pre synaptic neuron type",
+                      help="Pre synaptic neurons type",
                       default="dSPN")
   parser.add_argument("--postType","--post",
-                      help="Post synaptic neuron type (for run task, postType can be 'ALL' to record from all neurons)",
+                      help="Post synaptic neurons type (for run task, postType can be 'ALL' to record from all neurons)",
                       default="ALL")
-  parser.add_argument("--maxDist",help="Only check neuron pairs within (mum)",
+  parser.add_argument("--maxDist",help="Only check neurons pairs within (mum)",
                       type=float,default=None)
   args = parser.parse_args()
   

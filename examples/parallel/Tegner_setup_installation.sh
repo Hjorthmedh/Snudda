@@ -20,7 +20,7 @@ rm -rf $L/build
 mkdir -pv $L/build
 pushd $L/build
 
-  # build parallel neuron with python interface
+  # build parallel neurons with python interface
   mkdir neuron
   pushd neuron
     git clone -q https://github.com/nrnhines/nrn

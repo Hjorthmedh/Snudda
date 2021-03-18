@@ -17,7 +17,7 @@ class MyTestCase(unittest.TestCase):
 
         self.network_path = os.path.join("networks", "network_testing_input")
         self.config_file = os.path.join(self.network_path, "network-config.json")
-        self.position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
+        self.position_file = os.path.join(self.network_path, "network-neurons-positions.hdf5")
         self.save_file = os.path.join(self.network_path, "voxels", "network-putative-synapses.hdf5")
 
         # Setup network so we can test input generation

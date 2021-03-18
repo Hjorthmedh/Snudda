@@ -190,7 +190,7 @@ def find_dend_compartment(neuron, synapse_xyz, loc_type, sim):
         for seg in sec:
             for i in range(int(sim.neuron.h.n3d(sec=sec))):
                 sec_len = sim.neuron.h.arc3d(int(sim.neuron.h.n3d(sec=sec) - 1), sec=sec)
-                # We work in SI units, so convert units from neuron
+                # We work in SI units, so convert units from neurons
                 sec_points[point_ctr, :] = [sim.neuron.h.x3d(i, sec=sec) * 1e-6,
                                             sim.neuron.h.y3d(i, sec=sec) * 1e-6,
                                             sim.neuron.h.z3d(i, sec=sec) * 1e-6,
@@ -237,4 +237,4 @@ def find_dend_compartment(neuron, synapse_xyz, loc_type, sim):
     return dend_loc
 
 # Add a generic synapse to location
-# def addSynapse(neuron, location):
+# def addSynapse(neurons, location):

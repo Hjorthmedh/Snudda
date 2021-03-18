@@ -33,7 +33,7 @@ swcVals[:,6] -= 1
 
 swcVals[:,2:6] *= 1e-6 # Convert to meter x,y,z, radie
 
-# Plot neuron
+# Plot neurons
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 

@@ -168,7 +168,7 @@ class Planert2010part2(object):
       "Inconsistent data lengths for fitPeaks"
     sigma = np.ones(len(peakHeight))
     
-    # Setup neuron model
+    # Setup neurons model
     self.setupModelSynapseFitting(dataType)
 
     # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR)
@@ -432,7 +432,7 @@ class Planert2010part2(object):
                          params = {},
                          returnTrace=False):
 
-    # print("Running neuron model")
+    # print("Running neurons model")
     
     assert self.rsrSynapseModel is not None, \
       "!!! Need to call setupModelSynapseFitting first"
@@ -509,7 +509,7 @@ class Planert2010part2(object):
 
       tIdx = np.where(np.logical_and(tStart <= time,time <= tEnd))[0]
 
-      # We assume that neuron is more depolarised than -65, ie gaba is
+      # We assume that neurons is more depolarised than -65, ie gaba is
       # also depolarising
       pIdx = tIdx[np.argmax(volt[tIdx])]
         

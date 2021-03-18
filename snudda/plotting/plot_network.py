@@ -3,7 +3,7 @@ import numpy as np
 from snudda.utils.load import SnuddaLoad
 import matplotlib.pyplot as plt
 
-from snudda.neuron.neuron_morphology import NeuronMorphology
+from snudda.neurons.neuron_morphology import NeuronMorphology
 
 
 class PlotNetwork(object):
