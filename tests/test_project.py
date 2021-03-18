@@ -5,8 +5,8 @@ import time
 
 class TestProject(unittest.TestCase):
 
-    def setUp(self) -> None:
-        from snudda.create_cube_mesh import create_cube_mesh
+    def setUp(self):
+        from snudda.place.create_cube_mesh import create_cube_mesh
 
         # Create cube meshes
         self.network_path = os.path.join("networks", "network_testing_project")
@@ -18,7 +18,7 @@ class TestProject(unittest.TestCase):
 
         # Define network
 
-        from snudda.init import SnuddaInit
+        from snudda.init.init import SnuddaInit
 
         cnc = SnuddaInit(network_path=self.network_path, random_seed=123)
 
@@ -97,28 +97,28 @@ class TestProject(unittest.TestCase):
 
         # Place neurons, then detect, project and prune
 
-        from snudda.place import SnuddaPlace
+        from snudda.place.place import SnuddaPlace
         sp = SnuddaPlace(network_path=self.network_path, verbose=True)
         sp.parse_config()
         sp.write_data()
 
-        from snudda.detect import SnuddaDetect
+        from snudda.detect.detect import SnuddaDetect
         sd = SnuddaDetect(network_path=self.network_path, hyper_voxel_size=100, verbose=True)
         sd.detect()
 
-        from snudda.project import SnuddaProject
+        from snudda.detect.project import SnuddaProject
         sp = SnuddaProject(network_path=self.network_path)
         sp.project()
         sp.write()
 
-        from snudda.prune import SnuddaPrune
+        from snudda.detect.prune import SnuddaPrune
         sp = SnuddaPrune(network_path=self.network_path, verbose=True)
         sp.prune()
 
     def test_project(self):
 
         # Are there connections dSPN->iSPN
-        from snudda.load import SnuddaLoad
+        from snudda.utils.load import SnuddaLoad
         network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         sl = SnuddaLoad(network_file)
 
@@ -176,17 +176,17 @@ class TestProject(unittest.TestCase):
         rc = Client(url_file=u_file, timeout=120, debug=False)
         d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
 
-        from snudda.detect import SnuddaDetect
+        from snudda.detect.detect import SnuddaDetect
         sd = SnuddaDetect(network_path=self.network_path, hyper_voxel_size=100, rc=rc, verbose=True)
         sd.detect()
 
-        from snudda.project import SnuddaProject
+        from snudda.detect.project import SnuddaProject
         # TODO: Currently SnuddaProject only runs in serial
         sp = SnuddaProject(network_path=self.network_path)
         sp.project()
         sp.write()
 
-        from snudda.prune import SnuddaPrune
+        from snudda.detect.prune import SnuddaPrune
         # Prune has different methods for serial and parallel execution, important to test it!
         sp = SnuddaPrune(network_path=self.network_path, rc=rc, verbose=True)
         sp.prune()

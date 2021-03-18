@@ -5,8 +5,7 @@ import bpy
 import os
 import mathutils
 import numpy as np
-import json
-from snudda.load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 from snudda.utils.snudda_path import snudda_parse_path
 
 

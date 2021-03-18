@@ -1,6 +1,6 @@
 import os
 import h5py
-from snudda.load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 
 class InspectInput(object):
 

@@ -6,8 +6,8 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from snudda.init import SnuddaInit
-from snudda.place import SnuddaPlace
+from snudda.init.init import SnuddaInit
+from snudda.place.place import SnuddaPlace
 
 
 class TestPlace(unittest.TestCase):

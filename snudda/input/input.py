@@ -1,4 +1,4 @@
-# This code writes the input spikes for the neuron simulation --
+# This code writes the input spikes for the NEURON simulation --
 #
 #
 # If nInputs is given then synapseDensity is scaled to give approximately
@@ -24,8 +24,8 @@ import itertools
 import matplotlib.pyplot as plt
 
 from snudda.utils.snudda_path import snudda_parse_path
-from .neuron_morphology import NeuronMorphology
-from .load import SnuddaLoad
+from snudda.neurons.neuron_morphology import NeuronMorphology
+from snudda.utils.load import SnuddaLoad
 
 nl = None
 
@@ -1003,7 +1003,7 @@ class SnuddaInput(object):
             return
 
         with self.d_view.sync_imports():
-            from snudda.input import SnuddaInput
+            from snudda.input.input import SnuddaInput
 
         self.d_view.push({"input_config_file": self.input_config_file,
                           "network_config_file": self.network_config_file,

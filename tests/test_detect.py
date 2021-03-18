@@ -1,12 +1,11 @@
 import unittest
 import os
 import sys
-import json
 import numpy as np
 
-from snudda.create_cube_mesh import create_cube_mesh
-from snudda.detect import SnuddaDetect
-from snudda.place import SnuddaPlace
+from snudda.place.create_cube_mesh import create_cube_mesh
+from snudda.detect.detect import SnuddaDetect
+from snudda.place.place import SnuddaPlace
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 

@@ -1,4 +1,4 @@
-from .init import SnuddaInit
+from snudda.init.init import SnuddaInit
 from collections import OrderedDict
 import json
 import os

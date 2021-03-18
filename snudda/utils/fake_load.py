@@ -1,7 +1,6 @@
-import os
 import json
 import numpy as np
-from snudda.load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 from snudda.utils.numpy_encoder import NumpyEncoder
 from collections import OrderedDict
 

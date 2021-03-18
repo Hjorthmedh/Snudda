@@ -6,6 +6,8 @@ import os
 
 def snudda_cli():
 
+    # print(f"Current working directory: {os.getcwd()}")
+    
     parser = ArgumentParser(description=f"Snudda microcircuit generator\n\n{snudda_help_text()}",
                             formatter_class=RawTextHelpFormatter)
 

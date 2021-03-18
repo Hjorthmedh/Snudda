@@ -41,10 +41,9 @@
 
 
 import os
-import sys  # Used in __init__
+import sys
 import timeit
 import numpy as np
-import zmq
 import pkg_resources
 
 from snudda.utils.snudda_path import snudda_isfile
@@ -89,7 +88,7 @@ class Snudda(object):
 
         assert args.size is not None, "You need to specify --size when initialising config for the network"
 
-        from .init import SnuddaInit
+        from snudda.init.init import SnuddaInit
         struct_def = {"Striatum": args.size,
                       "GPe": 0,
                       "GPi": 0,
@@ -134,7 +133,7 @@ class Snudda(object):
         if args.parallel:
             self.setup_parallel()  # sets self.d_view and self.lb_view
 
-        from .place import SnuddaPlace
+        from snudda.place.place import SnuddaPlace
 
         if args.h5legacy:
             h5libver = "earliest"
@@ -197,7 +196,7 @@ class Snudda(object):
         else:
             h5libver = "latest"  # default
 
-        from .detect import SnuddaDetect
+        from snudda.detect.detect import SnuddaDetect
 
         # You can now setup SnuddaDetect with only network_path and it will use default values
         # for config_file, position_file, logfile, save_file
@@ -221,7 +220,7 @@ class Snudda(object):
 
         # Also run SnuddaProject to handle projections between volume
 
-        from snudda.project import SnuddaProject
+        from snudda.detect.project import SnuddaProject
 
         sp = SnuddaProject(network_path=self.network_path)
         sp.project()
@@ -237,7 +236,7 @@ class Snudda(object):
         print("Prune synapses")
         print("Network path: " + str(self.network_path))
 
-        from .prune import SnuddaPrune
+        from snudda.detect.prune import SnuddaPrune
 
         log_filename = os.path.join(self.network_path, "log", "logFile-synapse-pruning.txt")
 
@@ -281,7 +280,7 @@ class Snudda(object):
 
     def setup_input(self, args):
 
-        from .input import SnuddaInput
+        from snudda.input.input import SnuddaInput
 
         print("Setting up inputs, assuming input.json exists")
         log_filename = os.path.join(self.network_path, "log", "logFile-setup-input.log")
@@ -340,6 +339,8 @@ class Snudda(object):
 
     def export_to_SONATA(self, args):
 
+        assert False, "Old export to SONATA borken, fixme!"
+        # TODO: Fix this
         from snudda.ConvertNetwork import ConvertNetwork
 
         print("Exporting to SONATA format")
@@ -367,7 +368,7 @@ class Snudda(object):
 
         start = timeit.default_timer()
 
-        from .simulate import SnuddaSimulate
+        from snudda.simulate.simulate import SnuddaSimulate
 
         if args.network_file:
             network_file = args.network_file

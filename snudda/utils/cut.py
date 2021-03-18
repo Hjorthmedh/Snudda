@@ -11,7 +11,6 @@
 import os
 import h5py
 import numpy as np
-from .load import SnuddaLoad
 import time
 
 
@@ -317,7 +316,6 @@ class SnuddaCut(object):
       outSyn = self.outFile["network/synapses"][:,2:5]*voxelSize + simOrigo    
       outGJ = self.outFile["network/gapJunctions"][:,6:9]*voxelSize + simOrigo
 
-    
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
 

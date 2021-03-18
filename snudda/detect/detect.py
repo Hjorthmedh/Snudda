@@ -23,8 +23,8 @@ import h5py
 import json
 import pickle
 
-from .neuron_morphology import NeuronMorphology
-from .load import SnuddaLoad
+from snudda.neurons.neuron_morphology import NeuronMorphology
+from snudda.utils.load import SnuddaLoad
 
 import snudda.utils.memory
 
@@ -2152,7 +2152,7 @@ class SnuddaDetect(object):
             return
 
         with d_view.sync_imports():
-            from snudda.detect import SnuddaDetect
+            from snudda.detect.detect import SnuddaDetect
 
         self.write_log(f"Setting up workers: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
 

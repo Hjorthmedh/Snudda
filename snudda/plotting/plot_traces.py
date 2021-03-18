@@ -4,7 +4,7 @@
 import sys
 import os
 import numpy as np
-from snudda.load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 import re
 import ntpath
 import time

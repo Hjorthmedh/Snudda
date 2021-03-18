@@ -50,8 +50,8 @@
 import os
 import glob
 import numpy as np
-from snudda.simulate import SnuddaSimulate
-from snudda.load import SnuddaLoad
+from snudda.simulate.simulate import SnuddaSimulate
+from snudda.utils.load import SnuddaLoad
 import matplotlib
 import matplotlib.pyplot as plt
 import neuron
@@ -118,7 +118,7 @@ class SnuddaCalibrateSynapses(object):
 
   def setup(self,simName,expType,nMSD1=120,nMSD2=120,nFS=20,nLTS=0,nChIN=0):
 
-    from .init import SnuddaInit
+    from snudda.init.init import SnuddaInit
 
     configName= simName + "/network-config.json"
     cnc = SnuddaInit(struct_def={}, config_file=configName, nChannels=1)
@@ -333,7 +333,7 @@ class SnuddaCalibrateSynapses(object):
     tooFarAway = 0
     
     for (preID,t) in self.injInfo:
-      # Post synaptic neurons to preID
+      # Post synaptic neuron to preID
       synapses,coords = self.snuddaLoad.find_synapses(pre_id=preID)
 
       postIDset = set(synapses[:,1]).intersection(self.possiblePostID)
@@ -492,18 +492,18 @@ if __name__ == "__main__":
 
   parser = ArgumentParser(description="Calibrate synapse conductances")
   parser.add_argument("task", choices=["setup","run","analyse"])
-  parser.add_argument("expType",help="Experiment we replicate",
+  parser.add_argument("expType", help="Experiment we replicate",
                       choices=["Planert2010","Szydlowski2013"])
   parser.add_argument("networkFile", \
                       help="Network file (hdf5) or network directory")
-  parser.add_argument("--preType","--pre",
+  parser.add_argument("--preType", "--pre",
                       help="Pre synaptic neuron type",
                       default="dSPN")
-  parser.add_argument("--postType","--post",
-                      help="Post synaptic neuron type (for run task, postType can be 'ALL' to record from all neurons)",
+  parser.add_argument("--postType", "--post",
+                      help="Post synaptic neuron type (for run task, postType can be 'ALL' to record from all neuron)",
                       default="ALL")
-  parser.add_argument("--maxDist",help="Only check neuron pairs within (mum)",
-                      type=float,default=None)
+  parser.add_argument("--maxDist", help="Only check neuron pairs within (mum)",
+                      type=float, default=None)
   args = parser.parse_args()
   
   if(args.maxDist is None):

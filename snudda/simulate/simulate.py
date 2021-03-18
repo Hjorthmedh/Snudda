@@ -17,19 +17,18 @@
 # Plot all sections
 # [neuron.h.psection(x) for x in neuron.h.allsec()]
 
-
 from mpi4py import MPI  # This must be imported before neuron, to run parallel
 from neuron import h  # , gui
 import neuron
+import bluepyopt.ephys as ephys
 import h5py
 import json
 import timeit
 
-import bluepyopt.ephys as ephys
-from snudda.neuron_model_extended import NeuronModel
+from snudda.neurons.neuron_model_extended import NeuronModel
 # from Network_place_neurons import NetworkPlaceNeurons
 import numpy as np
-from snudda.nrn_simulator_parallel import NrnSimulatorParallel
+from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
 
 from glob import glob
 import re
@@ -46,7 +45,7 @@ import snudda.utils.memory
 ##############################################################################
 
 # If simulationConfig is set, those values override other values
-from snudda.load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 from snudda.utils.snudda_path import snudda_parse_path
 
 
@@ -198,7 +197,7 @@ class SnuddaSimulate(object):
 
         self.write_log(f"Worker {int(self.pc.id())} : Loading network from {network_file}")
 
-        from snudda.load import SnuddaLoad
+        from snudda.utils.load import SnuddaLoad
         self.snudda_loader = SnuddaLoad(network_file)
         self.network_info = self.snudda_loader.data
 

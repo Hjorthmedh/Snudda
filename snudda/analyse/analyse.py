@@ -11,14 +11,13 @@ from glob import glob
 import os
 import sys
 import json
-import pickle
 
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from mpl_toolkits.mplot3d import Axes3D
 
-from .load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 
 
 # !!! We need to parallelise the analysis script also!
@@ -2176,7 +2175,7 @@ class SnuddaAnalyse(object):
 
     def _dend_density(self, swc_file, num_bins, bin_width):
 
-        from .neuron_morphology import NeuronMorphology
+        from snudda.neurons.neuron_morphology import NeuronMorphology
 
         dend_hist = np.zeros((num_bins,))
 

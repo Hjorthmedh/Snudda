@@ -3,16 +3,15 @@
 # This is what project.py is responsible for.
 
 import numpy as np
-import scipy
 import json
 import os
 import h5py
 
 from scipy.interpolate import griddata
 
-from snudda.detect import SnuddaDetect
-from snudda.neuron_morphology import NeuronMorphology
-from snudda.load import SnuddaLoad
+from snudda.detect.detect import SnuddaDetect
+from snudda.neurons.neuron_morphology import NeuronMorphology
+from snudda.utils.load import SnuddaLoad
 
 
 class SnuddaProject(object):
