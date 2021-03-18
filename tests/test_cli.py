@@ -100,6 +100,8 @@ class TestCLI(unittest.TestCase):
             print(f"Running: {eval_str}")
             os.system(eval_str)
             print("Time to run simulation...")
+            #import pdb
+            #pdb.set_trace()
             run_cli_command("simulate tiny_parallel --time 0.1 --voltOut default")
 
         os.environ["SLURM_JOBID"] = "1234"
