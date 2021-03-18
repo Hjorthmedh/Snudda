@@ -51,7 +51,7 @@ import os
 import glob
 import numpy as np
 from snudda.simulate import SnuddaSimulate
-from snudda.load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 import matplotlib
 import matplotlib.pyplot as plt
 import neuron

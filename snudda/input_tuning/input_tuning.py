@@ -10,7 +10,7 @@ from snudda.create_cube_mesh import create_cube_mesh
 from snudda.neuron_morphology import NeuronMorphology
 from snudda.init import SnuddaInit
 from snudda.input import SnuddaInput
-from snudda.load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 from snudda.simulate import SnuddaSimulate
 from snudda.core import Snudda
 import numpy as np
@@ -706,7 +706,6 @@ class InputTuning(object):
         # Get info so we can set max_time correctly
         self.read_tuning_info()
 
-        from mpi4py import MPI
         from neuron import h  # , gui
         start = timeit.default_timer()
 

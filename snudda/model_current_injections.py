@@ -29,7 +29,7 @@
 import os
 
 from snudda.simulate import SnuddaSimulate
-from snudda.load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 from snudda.init import SnuddaInit
 from snudda import Snudda
 
@@ -38,7 +38,6 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
-import neuron
 
 class SnuddaModelCurrentInjections(object):
 

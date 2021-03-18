@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 
 from snudda.utils.snudda_path import snudda_parse_path
 from .neuron_morphology import NeuronMorphology
-from .load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 
 nl = None
 
@@ -1003,7 +1003,7 @@ class SnuddaInput(object):
             return
 
         with self.d_view.sync_imports():
-            from snudda.input import SnuddaInput
+            pass
 
         self.d_view.push({"input_config_file": self.input_config_file,
                           "network_config_file": self.network_config_file,

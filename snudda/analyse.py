@@ -11,14 +11,12 @@ from glob import glob
 import os
 import sys
 import json
-import pickle
 
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from mpl_toolkits.mplot3d import Axes3D
 
-from .load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 
 
 # !!! We need to parallelise the analysis script also!

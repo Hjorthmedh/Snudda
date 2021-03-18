@@ -24,7 +24,7 @@ import json
 import pickle
 
 from .neuron_morphology import NeuronMorphology
-from .load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 
 import snudda.utils.memory
 
@@ -2152,7 +2152,7 @@ class SnuddaDetect(object):
             return
 
         with d_view.sync_imports():
-            from snudda.detect import SnuddaDetect
+            pass
 
         self.write_log(f"Setting up workers: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
 
@@ -2752,7 +2752,6 @@ class SnuddaDetect(object):
                          fig_file_name=None, dpi=300):
 
         import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
 
         colors = np.zeros((self.dend_voxel_ctr.shape[0],
                            self.dend_voxel_ctr.shape[1],
@@ -2925,7 +2924,6 @@ class SnuddaDetect(object):
             neuron_colour_lookup[ni] = nc
 
         import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
 
         colours = np.zeros((self.dend_voxel_ctr.shape[0],
                             self.dend_voxel_ctr.shape[1],

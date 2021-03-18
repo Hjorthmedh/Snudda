@@ -369,7 +369,7 @@ class SnuddaLoad(object):
 
     ############################################################################
 
-    def find_synapses_SLOW(self, pre_id, n_max=1000000):
+    def find_synapses_slow(self, pre_id, n_max=1000000):
 
         if self.verbose:
             print(f"Finding synapses originating from {pre_id}, this is slow")
@@ -378,22 +378,22 @@ class SnuddaLoad(object):
         syn_ctr = 0
 
         if np.issubdtype(type(pre_id), np.integer):
-            for synList in self.synapse_iterator():
-                for syn in synList:
+            for syn_list in self.synapse_iterator():
+                for syn in syn_list:
                     if syn[0] == pre_id:
                         synapses[syn_ctr, :] = syn
                         syn_ctr += 1
 
         else:
-            for synList in self.synapse_iterator():
-                for syn in synList:
+            for syn_list in self.synapse_iterator():
+                for syn in syn_list:
                     if syn[0] in pre_id:
                         synapses[syn_ctr, :] = syn
                         syn_ctr += 1
 
-        synapseCoords = synapses[:, 2:5][:syn_ctr, :] * self.data["voxelSize"] + self.data["simulationOrigo"]
+        synapse_coords = synapses[:, 2:5][:syn_ctr, :] * self.data["voxelSize"] + self.data["simulationOrigo"]
 
-        return synapses[:syn_ctr, :], synapseCoords
+        return synapses[:syn_ctr, :], synapse_coords
 
     ############################################################################
 
@@ -402,7 +402,7 @@ class SnuddaLoad(object):
     def find_synapses(self, pre_id=None, post_id=None, silent=True):
 
         if post_id is None:
-            return self.find_synapses_SLOW(pre_id=pre_id)
+            return self.find_synapses_slow(pre_id=pre_id)
 
         assert post_id is not None, "Must specify at least postID"
 

@@ -8,7 +8,7 @@ import os
 import numpy as np
 import re
 import ntpath
-from snudda.load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 import time
 
 

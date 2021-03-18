@@ -118,7 +118,7 @@ class TestProject(unittest.TestCase):
     def test_project(self):
 
         # Are there connections dSPN->iSPN
-        from snudda.load import SnuddaLoad
+        from snudda.utils.load import SnuddaLoad
         network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         sl = SnuddaLoad(network_file)
 

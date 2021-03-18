@@ -3,7 +3,7 @@ import unittest
 
 from snudda.create_cube_mesh import create_cube_mesh
 from snudda.detect import SnuddaDetect
-from snudda.load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 from snudda.neuron_morphology import NeuronMorphology
 from snudda.place import SnuddaPlace
 import numpy as np

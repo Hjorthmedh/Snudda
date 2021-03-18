@@ -5,7 +5,7 @@ from collections import OrderedDict
 import matplotlib.pyplot as plt
 from matplotlib import cm
 
-from snudda.load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 
 
 class PlotInput(object):

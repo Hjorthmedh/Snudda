@@ -1,8 +1,7 @@
 import os
 import numpy as np
-from snudda.load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 from snudda.neuron_morphology import NeuronMorphology
 
