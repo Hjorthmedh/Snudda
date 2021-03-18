@@ -20,6 +20,7 @@ import json
 from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists
 from .neuron_morphology import NeuronMorphology
 from .region_mesh import RegionMesh
+from snudda.rotation import SnuddaRotate
 
 ''' This code places all neurons in space, but does not setup their
   connectivity. That is done in another script. '''
@@ -75,6 +76,7 @@ class SnuddaPlace(object):
         self.neuronPrototypes = {}
         self.random_seed = random_seed
         self.random_generator = None
+        self.rotate_helper = None
 
         self.raytrace_borders = raytrace_borders
 
@@ -144,16 +146,19 @@ class SnuddaPlace(object):
             parameter_id = self.random_generator.integers(1000000)
             modulation_id = self.random_generator.integers(1000000)
 
-            if rotation_mode == "random":
-                # We pass 3 random numbers from our random generator
-                rotation = nm.rand_rotation_matrix(rand_nums=self.random_generator.random(size=(3,)))
-            elif rotation_mode is None or rotation_mode == "":
-                self.write_log("Rotation mode: None (disabled) for " + name)
-                rotation = np.eye(3)
-            else:
-                self.write_log("Unknown rotation mode: " + str(rotation_mode)
-                               + ", valid modes '' or 'random'.")
-                assert False, "Unknown rotation mode: " + str(rotation_mode)
+            rotation = self.rotate_helper.rotate_neuron(volume_name=volume_id, neuron_type=neuron_type.lower(),
+                                                        position=coords, rng=self.random_generator)
+
+#            if rotation_mode == "random":
+#                # We pass 3 random numbers from our random generator
+#                rotation = nm.rand_rotation_matrix(rand_nums=self.random_generator.random(size=(3,)))
+#            elif rotation_mode is None or rotation_mode == "":
+#                self.write_log("Rotation mode: None (disabled) for " + name)
+#                rotation = np.eye(3)
+#            else:
+#                self.write_log("Unknown rotation mode: " + str(rotation_mode)
+#                               + ", valid modes '' or 'random'.")
+#                assert False, "Unknown rotation mode: " + str(rotation_mode)
 
             n = nm.clone(position=coords,
                          rotation=rotation,
@@ -280,6 +285,9 @@ class SnuddaPlace(object):
                                  random_seed=vol_seed[volume_id])
 
             self.write_log("Using dimensions from config file")
+
+        # Setup for rotations
+        self.rotate_helper = SnuddaRotate(self.config_file)
 
         assert "Neurons" in config, \
             "No neurons defined. Is this config file old format?"

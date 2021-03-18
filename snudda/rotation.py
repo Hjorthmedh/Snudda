@@ -44,7 +44,11 @@ class SnuddaRotate(object):
     def default_rotation(position, rng):
         return NeuronMorphology.rand_rotation_matrix(rand_nums=rng.random(size=(3,)))
 
-    def add_neuron_rotation(self, volume_name, neuron_types, rotation_mode, rotation_field_file=None):
+    @staticmethod
+    def no_rotation(position, rng):
+        return np.eye(3)
+
+    def add_neuron_rotation(self, volume_name: str, neuron_types, rotation_mode, rotation_field_file=None):
 
         for neuron_type in neuron_types:
 
@@ -71,6 +75,8 @@ class SnuddaRotate(object):
                         lambda neuron_pos, rng: self.get_rotation(volume_name=volume_name,
                                                                   neuron_type=neuron_type,
                                                                   position=neuron_pos)
+            elif rotation_mode is None or rotation_mode == "":
+                    self.rotation_lookup[volume_name, neuron_type] = SnuddaRotate.no_rotation()
             else:
                 assert False, f"Unknown rotation mode {rotation_mode}"
 
