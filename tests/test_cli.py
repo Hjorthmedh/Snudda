@@ -92,7 +92,9 @@ class TestCLI(unittest.TestCase):
             print("Running nrnivmodl:")
             mech_dir = os.path.join(os.path.dirname(__file__), os.path.pardir,
                                     "snudda", "data", "neurons", "mechanisms")
-            os.system(f"nrnivmodl {mech_dir}")
+            eval_str = f"nrnivmodl {mech_dir}"
+            print(f"Running: {eval_str}")
+            os.system(eval_str)
             print("Time to run simulation...")
             run_cli_command("simulate tiny_parallel --time 0.1 --voltOut default")
 
