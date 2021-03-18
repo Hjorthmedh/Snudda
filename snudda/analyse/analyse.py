@@ -15,6 +15,7 @@ import json
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from mpl_toolkits.mplot3d import Axes3D
 
 from snudda.utils.load import SnuddaLoad
 
@@ -1730,7 +1731,7 @@ class SnuddaAnalyse(object):
 
     ############################################################################
 
-    # Plots neuronID neurons, and all presynaptic partners
+    # Plots neuronID neuron, and all presynaptic partners
 
     def plot_neurons(self, neuron_id, show_synapses=True, plot_pre_neurons=True):
 
@@ -2626,7 +2627,7 @@ class SnuddaAnalyse(object):
     # Inspired by:
     # Nao Chuhma, Kenji F. Tanaka, Rene Hen and Stephen Rayport 2011
     #
-    # 10% of a neuron type are marked, fraction of presynaptic neuron
+    # 10% of a neuron type are marked, fraction of presynaptic neurons
     # out of total population
 
     def chuhma_virtual_experiment(self, tagged_type=["dSPN", "iSPN"], tag_fraction=0.1):

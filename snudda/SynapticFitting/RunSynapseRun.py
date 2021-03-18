@@ -1,6 +1,7 @@
 import neuron
 import numpy as np
 
+import bluepyopt.ephys as ephys
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
 
 from snudda.neurons.neuron_model_extended import NeuronModel

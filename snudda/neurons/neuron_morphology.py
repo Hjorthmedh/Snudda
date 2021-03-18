@@ -108,7 +108,7 @@ class NeuronMorphology(object):
             self.colour = colour
 
         if load_morphology:
-            # This loads, rotates and places neurons
+            # This loads, rotates and places neuron
             self.load_neuron_morphology()
 
     ############################################################################

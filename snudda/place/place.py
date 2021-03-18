@@ -696,7 +696,7 @@ class SnuddaPlace(object):
 
         sort_idx = np.lexsort(xyz[:, [2, 1, 0]].transpose())  # x, y, z sort order
 
-        self.write_log("Re-sorting the neurons IDs after location")
+        self.write_log("Re-sorting the neuron IDs after location")
 
         for newIdx, oldIdx in enumerate(sort_idx):
             self.neurons[oldIdx].neuron_id = newIdx

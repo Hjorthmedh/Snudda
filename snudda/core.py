@@ -457,6 +457,7 @@ class Snudda(object):
             print(f"Creating directory {log_dir}")
             os.makedirs(log_dir, exist_ok=True)
 
+        from mpi4py import MPI  # This must be imported before neuron, to run parallel
         from neuron import h  # , gui
 
         pc = h.ParallelContext()

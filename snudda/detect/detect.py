@@ -743,7 +743,7 @@ class SnuddaDetect(object):
 
     def save_neuron_distribution_history(self, hyper_voxels, min_coord, max_coord):
 
-        self.write_log("Writing neurons distribution history to file")
+        self.write_log("Writing neuron distribution history to file")
 
         assert "hyper_voxels" not in self.work_history, "saveNeuronDistributionHistory should only be called once"
 
@@ -1865,7 +1865,7 @@ class SnuddaDetect(object):
         self.write_log("Gathering neuron distribution from workers")
 
         # Collect all the neurons in the list from the workers
-        # For each neurons we found out which hyper voxels it occupies,
+        # For each neuron we found out which hyper voxels it occupies,
         # now we want for each hyper voxel to know which neurons are in there
         hyper_voxel_list = d_view.gather("nc.hyper_voxels", block=True)
 
@@ -2752,6 +2752,7 @@ class SnuddaDetect(object):
                          fig_file_name=None, dpi=300):
 
         import matplotlib.pyplot as plt
+        from mpl_toolkits.mplot3d import Axes3D
 
         colors = np.zeros((self.dend_voxel_ctr.shape[0],
                            self.dend_voxel_ctr.shape[1],
@@ -2924,6 +2925,7 @@ class SnuddaDetect(object):
             neuron_colour_lookup[ni] = nc
 
         import matplotlib.pyplot as plt
+        from mpl_toolkits.mplot3d import Axes3D
 
         colours = np.zeros((self.dend_voxel_ctr.shape[0],
                             self.dend_voxel_ctr.shape[1],

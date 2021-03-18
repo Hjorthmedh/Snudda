@@ -7,7 +7,7 @@ import h5py
 # Note that you might need to reposition the camera manually
 # if your neurons are centred around a different position
 
-# posFile = "../SmallTest2/network-neurons-positions.hdf5"
+# posFile = "../SmallTest2/network-neuron-positions.hdf5"
 from snudda.utils.snudda_path import snudda_parse_path
 
 posFile = "/home/hjorth/HBP/StriatumNetwork/model/Article-cube-2160/network-neuron-positions.hdf5"

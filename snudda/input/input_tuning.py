@@ -568,7 +568,7 @@ class InputTuning(object):
 
         for neuron_type in neuron_sets:
 
-            # For each neurons model we will have num_replicas copies (see other part of code), and this
+            # For each neuron model we will have num_replicas copies (see other part of code), and this
             # will determine how many steps we have between n_input_min and n_input_max
 
             neuron_id_list = neuron_sets[neuron_type]
@@ -706,6 +706,7 @@ class InputTuning(object):
         # Get info so we can set max_time correctly
         self.read_tuning_info()
 
+        from mpi4py import MPI
         from neuron import h  # , gui
         start = timeit.default_timer()
 
