@@ -94,7 +94,7 @@ class TestCLI(unittest.TestCase):
                                     "snudda", "data", "neurons", "mechanisms")
 
             if not os.path.exists("mechanisms"):
-                os.path.symlink(mech_dir, "mechanisms")
+                os.symlink(mech_dir, "mechanisms")
 
             eval_str = f"nrnivmodl mechanisms"  # f"nrnivmodl {mech_dir}
             print(f"Running: {eval_str}")
