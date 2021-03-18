@@ -90,7 +90,9 @@ class TestCLI(unittest.TestCase):
 
         with self.subTest(stage="simulate"):
             print("Running nrnivmodl:")
-            os.system("nrnivmodl ../snudda/data/neurons/mechanisms")
+            mech_dir = os.path.join(os.path.dirname(__file__), os.path.pardir,
+                                    "snudda", "data", "neurons", "mechanisms")
+            os.system(f"nrnivmodl {mech_dir}")
             print("Time to run simulation...")
             run_cli_command("simulate tiny_parallel --time 0.1 --voltOut default")
 
