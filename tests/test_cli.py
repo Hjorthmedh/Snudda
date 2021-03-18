@@ -131,6 +131,8 @@ class TestCLI(unittest.TestCase):
         with self.subTest(stage="prune-serial"):
             run_cli_command("prune tiny_serial --h5legacy")
 
-        copyfile("../snudda/data/input_config/input-v10-scaled.json", "tiny_serial/input.json")
+        input_file = os.path.join(os.path.dirname(__file__), os.path.pardir,
+                                  "snudda", "data", "input_config", "input-v10-scaled.json")
+        copyfile(input_file, "tiny_serial/input.json")
         with self.subTest(stage="input"):
             run_cli_command("input tiny_serial --time 1.0 --inputFile tiny_serial/input-spikes.hdf5")

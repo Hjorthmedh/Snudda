@@ -32,7 +32,7 @@ class PruningIllustration(object):
         print("Read done")
         sp.write_data(self.position_file)
 
-        # We want to load in the ball and stick neurons that has 20 micrometer soma diameter, and axon (along y-axis),
+        # We want to load in the ball and stick neuron that has 20 micrometer soma diameter, and axon (along y-axis),
         # and dendrite along (x-axis) out to 200 micrometer distance from centre of soma.
 
         self.sd = SnuddaDetect(config_file=self.config_file, position_file=self.position_file,

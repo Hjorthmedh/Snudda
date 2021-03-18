@@ -326,14 +326,14 @@ class SnuddaCalibrateSynapses(object):
                        self.injSpacing\
                        +self.injSpacing*np.arange(0,len(self.preID)))
     
-    # For each pre synaptic neurons, find the voltage deflection in each
+    # For each pre synaptic neuron, find the voltage deflection in each
     # of its post synaptic neurons
 
     synapseData = []
     tooFarAway = 0
     
     for (preID,t) in self.injInfo:
-      # Post synaptic neurons to preID
+      # Post synaptic neuron to preID
       synapses,coords = self.snuddaLoad.find_synapses(pre_id=preID)
 
       postIDset = set(synapses[:,1]).intersection(self.possiblePostID)
@@ -492,18 +492,18 @@ if __name__ == "__main__":
 
   parser = ArgumentParser(description="Calibrate synapse conductances")
   parser.add_argument("task", choices=["setup","run","analyse"])
-  parser.add_argument("expType",help="Experiment we replicate",
+  parser.add_argument("expType", help="Experiment we replicate",
                       choices=["Planert2010","Szydlowski2013"])
   parser.add_argument("networkFile", \
                       help="Network file (hdf5) or network directory")
-  parser.add_argument("--preType","--pre",
-                      help="Pre synaptic neurons type",
+  parser.add_argument("--preType", "--pre",
+                      help="Pre synaptic neuron type",
                       default="dSPN")
-  parser.add_argument("--postType","--post",
-                      help="Post synaptic neurons type (for run task, postType can be 'ALL' to record from all neurons)",
+  parser.add_argument("--postType", "--post",
+                      help="Post synaptic neuron type (for run task, postType can be 'ALL' to record from all neuron)",
                       default="ALL")
-  parser.add_argument("--maxDist",help="Only check neurons pairs within (mum)",
-                      type=float,default=None)
+  parser.add_argument("--maxDist", help="Only check neuron pairs within (mum)",
+                      type=float, default=None)
   args = parser.parse_args()
   
   if(args.maxDist is None):

@@ -61,7 +61,7 @@ class TouchDetectionHypervoxelIllustration(object):
         # Post synaptic
         self.sd.neurons[0]["rotation"] = R_z0
 
-        # Presynaptic neurons
+        # Presynaptic neuron
         self.sd.neurons[1]["rotation"] = np.matmul(R_z1, R_y)
 
         self.sd.detect(restart_detection_flag=True)
