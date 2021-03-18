@@ -70,7 +70,9 @@ class TestCLI(unittest.TestCase):
         from shutil import copyfile
         print(f"listdir: {os.listdir()}")
         print(f"parent listdir: {os.listdir('..')}")
-        copyfile("../snudda/data/input_config/input-v10-scaled.json", "tiny_parallel/input.json")
+        input_file = os.path.join(os.path.dirname(__file__), os.path.pardir,
+                                  "snudda", "data", "input_config", "input-v10-scaled.json")
+        copyfile(input_file, os.path.join("tiny_parallel", "input.json"))
 
         with self.subTest(stage="input"):
             run_cli_command("input tiny_parallel --input tiny_parallel/input.json --parallel")
