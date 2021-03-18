@@ -24,7 +24,7 @@ class TestDetect(unittest.TestCase):
                          side_len=500e-6)
 
         config_file = os.path.join(network_path, "network-config.json")
-        position_file = os.path.join(network_path, "network-neurons-positions.hdf5")
+        position_file = os.path.join(network_path, "network-neuron-positions.hdf5")
         save_file = os.path.join(network_path, "voxels", "network-putative-synapses.hdf5")
 
         #  TODO: If d_view is None code run sin serial, add test parallel

@@ -7,11 +7,9 @@ from .place import SnuddaPlace
 from .detect import SnuddaDetect
 from .detect import SnuddaProject
 from .detect import SnuddaPrune
-from .input import SnuddaInput
 
-# The user has to explicity import SnuddaSimulate
+# The user has to explicity import snudda.input and snudda.simulate
+# We dont want to have NEURON dependencies for the standard imports
 
-# Network creation should work without having NEURON installed, you only need
-# it to run the simulation
-
+# from .input import SnuddaInput
 # from .simulate import SnuddaSimulate

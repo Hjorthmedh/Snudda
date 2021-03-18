@@ -25,7 +25,7 @@ class TestPrune(unittest.TestCase):
                          side_len=500e-6)
 
         config_file = os.path.join(self.network_path, "network-config.json")
-        position_file = os.path.join(self.network_path, "network-neurons-positions.hdf5")
+        position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
         save_file = os.path.join(self.network_path, "voxels", "network-putative-synapses.hdf5")
 
         sp = SnuddaPlace(config_file=config_file, d_view=None, verbose=True)

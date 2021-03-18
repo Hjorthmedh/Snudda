@@ -63,7 +63,7 @@ class SnuddaProject(object):
 
     def read_neuron_positions(self):
 
-        position_file = os.path.join(self.network_path, "network-neurons-positions.hdf5")
+        position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
         self.network_info = SnuddaLoad(position_file)
 
         # We also need simulation origo and voxel size

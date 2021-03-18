@@ -85,7 +85,7 @@ class SnuddaDetect(object):
                 config_file = os.path.join(network_path, "network-config.json")
 
             if not position_file:
-                position_file = os.path.join(network_path, "network-neurons-positions.hdf5")
+                position_file = os.path.join(network_path, "network-neuron-positions.hdf5")
 
             if not save_file:
                 save_file = os.path.join(network_path, "voxels", "network-putative-synapses.hdf5")

@@ -53,7 +53,7 @@ class SnuddaPlace(object):
         self.log_file = log_file
 
         if self.network_path:
-            self.position_file = os.path.join(self.network_path, "network-neurons-positions.hdf5")
+            self.position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
         else:
             self.write_log("No network_path given, not setting position_file. Remember to pass it to write_data.")
             self.position_file = None

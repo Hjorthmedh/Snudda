@@ -123,7 +123,7 @@ class Snudda(object):
         print(f"Network path: {self.network_path}")
 
         config_file = os.path.join(self.network_path, "network-config.json")
-        position_file = os.path.join(self.network_path, "network-neurons-positions.hdf5")
+        position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
         log_file_name = os.path.join(self.network_path, "log", "logFile-place-neurons.txt")
 
         random_seed = args.randomseed
@@ -177,7 +177,7 @@ class Snudda(object):
             os.makedirs(log_dir, exist_ok=True)
 
         config_file = os.path.join(self.network_path, "network-config.json")
-        position_file = os.path.join(self.network_path, "network-neurons-positions.hdf5")
+        position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
         log_filename = os.path.join(self.network_path, "log", "logFile-touch-detection.txt")
         save_file = os.path.join(self.network_path, "voxels", "network-putative-synapses.hdf5")
 
