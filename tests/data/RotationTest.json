@@ -4,7 +4,7 @@
 	"DummyVolume" : {},
 	
 	"Striatum" : {
-	    "NeuronOrientation" : {
+	    "neuronOrientation" : {
 		"dSPN,iSPN,FS" : {
 		    "rotationMode" : "vectorFieldAndZ",
 		    "rotationFieldFile" : "data/TestField.json"
