@@ -92,7 +92,11 @@ class TestCLI(unittest.TestCase):
             print("Running nrnivmodl:")
             mech_dir = os.path.join(os.path.dirname(__file__), os.path.pardir,
                                     "snudda", "data", "neurons", "mechanisms")
-            eval_str = f"nrnivmodl {mech_dir}"
+
+            if not os.path.exists("mechanisms"):
+                os.path.symlink(mech_dir, "mechanisms")
+
+            eval_str = f"nrnivmodl mechanisms"  # f"nrnivmodl {mech_dir}
             print(f"Running: {eval_str}")
             os.system(eval_str)
             print("Time to run simulation...")
