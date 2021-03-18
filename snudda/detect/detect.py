@@ -2152,7 +2152,7 @@ class SnuddaDetect(object):
             return
 
         with d_view.sync_imports():
-            pass
+            from snudda.detect.detect import SnuddaDetect
 
         self.write_log(f"Setting up workers: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
 

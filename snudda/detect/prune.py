@@ -1195,7 +1195,7 @@ class SnuddaPrune(object):
             return
 
         with d_view.sync_imports():
-            pass
+            from snudda.detect.prune import SnuddaPrune
 
         self.write_log(f"Setting up workers: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
 

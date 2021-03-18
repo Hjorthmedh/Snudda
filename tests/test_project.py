@@ -5,7 +5,7 @@ import time
 
 class TestProject(unittest.TestCase):
 
-    def setUp(self) -> None:
+    def setUp(self):
         from snudda.place.create_cube_mesh import create_cube_mesh
 
         # Create cube meshes

@@ -41,6 +41,7 @@
 
 
 import os
+import sys
 import timeit
 import numpy as np
 import pkg_resources

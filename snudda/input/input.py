@@ -1003,7 +1003,7 @@ class SnuddaInput(object):
             return
 
         with self.d_view.sync_imports():
-            pass
+            from snudda.input.input import SnuddaInput
 
         self.d_view.push({"input_config_file": self.input_config_file,
                           "network_config_file": self.network_config_file,
