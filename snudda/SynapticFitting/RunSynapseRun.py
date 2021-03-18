@@ -1,11 +1,10 @@
 import neuron
 import numpy as np
 
-from snudda.nrn_simulator_parallel import NrnSimulatorParallel
+from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
 
-import bluepyopt.ephys as ephys
-from snudda.neuron_model_extended import NeuronModel
-from snudda.neuron_morphology import NeuronMorphology
+from snudda.neuron.neuron_model_extended import NeuronModel
+from snudda.neuron.neuron_morphology import NeuronMorphology
 
 # Plot all sections
 # [neuron.h.psection(x) for x in neuron.h.allsec()]

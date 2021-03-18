@@ -12,8 +12,8 @@ import sys
 import os.path
 import glob
 import collections
-from .create_cube_mesh import create_cube_mesh
-from .create_slice_mesh import create_slice_mesh
+from snudda.place.create_cube_mesh import create_cube_mesh
+from snudda.place.create_slice_mesh import create_slice_mesh
 
 import json
 from snudda.utils.snudda_path import snudda_parse_path, snudda_simplify_path

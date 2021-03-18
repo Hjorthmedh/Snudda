@@ -164,7 +164,7 @@ class RegionMesh(object):
             return
 
         with d_view.sync_imports():
-            from snudda.region_mesh import RegionMesh
+            pass
 
         try:
             self.write_log("Setting up RegionMesh on workers")
@@ -857,7 +857,6 @@ class RegionMesh(object):
     def plot_struct(self, pdf_name=None):
 
         import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
 
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
@@ -883,7 +882,6 @@ class RegionMesh(object):
     def plot_neurons(self, plot_idx=None, pdf_name=None):
 
         import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
 
         if plot_idx is None:
             plot_idx = range(0, self.neuron_ctr)
@@ -914,7 +912,6 @@ class RegionMesh(object):
         # !!! NEXT ADD dMIN TO THIS
 
         import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
 
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
@@ -948,7 +945,6 @@ class RegionMesh(object):
         # !!! NEXT ADD dMIN TO THIS
 
         import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
 
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
@@ -1012,7 +1008,6 @@ class RegionMesh(object):
         self.write_log(f"Closest neighbour, min = {np.min(min_dist)}")
 
         import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
 
         if True:
             fig = plt.figure()

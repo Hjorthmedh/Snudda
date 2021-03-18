@@ -1,14 +1,14 @@
 import os
 import unittest
 
-from snudda.create_cube_mesh import create_cube_mesh
-from snudda.detect import SnuddaDetect
+from snudda.place.create_cube_mesh import create_cube_mesh
+from snudda.detect.detect import SnuddaDetect
 from snudda.utils.load import SnuddaLoad
-from snudda.neuron_morphology import NeuronMorphology
-from snudda.place import SnuddaPlace
+from snudda.neuron.neuron_morphology import NeuronMorphology
+from snudda.place.place import SnuddaPlace
 import numpy as np
 
-from snudda.prune import SnuddaPrune
+from snudda.detect.prune import SnuddaPrune
 
 
 class TestPrune(unittest.TestCase):

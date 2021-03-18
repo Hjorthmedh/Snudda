@@ -2,7 +2,6 @@ import numpy as np
 import timeit
 import json
 import os
-from glob import glob
 
 
 class SnuddaLoad(object):
@@ -318,7 +317,7 @@ class SnuddaLoad(object):
 
         prototype_info = self.config["Neurons"][neuron_info["name"]]
 
-        from snudda.neuron_morphology import NeuronMorphology
+        from snudda.neuron.neuron_morphology import NeuronMorphology
         neuron = NeuronMorphology(name=neuron_info["name"],
                                   position=neuron_info["position"],
                                   rotation=neuron_info["rotation"],

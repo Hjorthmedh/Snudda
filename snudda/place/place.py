@@ -18,9 +18,9 @@ import h5py
 import json
 
 from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists
-from .neuron_morphology import NeuronMorphology
-from .region_mesh import RegionMesh
-from snudda.rotation import SnuddaRotate
+from snudda.neuron.neuron_morphology import NeuronMorphology
+from snudda.place.region_mesh import RegionMesh
+from snudda.place.rotation import SnuddaRotate
 
 ''' This code places all neurons in space, but does not setup their
   connectivity. That is done in another script. '''

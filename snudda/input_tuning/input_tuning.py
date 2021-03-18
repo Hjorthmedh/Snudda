@@ -6,12 +6,12 @@ import json
 
 import h5py
 
-from snudda.create_cube_mesh import create_cube_mesh
-from snudda.neuron_morphology import NeuronMorphology
-from snudda.init import SnuddaInit
-from snudda.input import SnuddaInput
+from snudda.place.create_cube_mesh import create_cube_mesh
+from snudda.neuron.neuron_morphology import NeuronMorphology
+from snudda.init.init import SnuddaInit
+from snudda.input.input import SnuddaInput
 from snudda.utils.load import SnuddaLoad
-from snudda.simulate import SnuddaSimulate
+from snudda.simulate.simulate import SnuddaSimulate
 from snudda.core import Snudda
 import numpy as np
 import timeit
@@ -84,9 +84,9 @@ class InputTuning(object):
         # Write the neurons path to file
         self.write_tuning_info()
 
-        from snudda.place import SnuddaPlace
-        from snudda.detect import SnuddaDetect
-        from snudda.prune import SnuddaPrune
+        from snudda.place.place import SnuddaPlace
+        from snudda.detect.detect import SnuddaDetect
+        from snudda.detect.prune import SnuddaPrune
 
         sp = SnuddaPlace(network_path=self.network_path)
         sp.parse_config()

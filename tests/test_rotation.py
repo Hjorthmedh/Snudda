@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from snudda.rotation import SnuddaRotate
+from snudda.place.rotation import SnuddaRotate
 
 
 class TestRotation(unittest.TestCase):

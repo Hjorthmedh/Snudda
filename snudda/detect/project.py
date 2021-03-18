@@ -9,8 +9,8 @@ import h5py
 
 from scipy.interpolate import griddata
 
-from snudda.detect import SnuddaDetect
-from snudda.neuron_morphology import NeuronMorphology
+from snudda.detect.detect import SnuddaDetect
+from snudda.neuron.neuron_morphology import NeuronMorphology
 from snudda.utils.load import SnuddaLoad
 
 

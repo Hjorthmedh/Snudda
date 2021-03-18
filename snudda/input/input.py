@@ -24,7 +24,7 @@ import itertools
 import matplotlib.pyplot as plt
 
 from snudda.utils.snudda_path import snudda_parse_path
-from .neuron_morphology import NeuronMorphology
+from snudda.neuron.neuron_morphology import NeuronMorphology
 from snudda.utils.load import SnuddaLoad
 
 nl = None

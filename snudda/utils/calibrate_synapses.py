@@ -50,7 +50,7 @@
 import os
 import glob
 import numpy as np
-from snudda.simulate import SnuddaSimulate
+from snudda.simulate.simulate import SnuddaSimulate
 from snudda.utils.load import SnuddaLoad
 import matplotlib
 import matplotlib.pyplot as plt
@@ -118,7 +118,7 @@ class SnuddaCalibrateSynapses(object):
 
   def setup(self,simName,expType,nMSD1=120,nMSD2=120,nFS=20,nLTS=0,nChIN=0):
 
-    from .init import SnuddaInit
+    from snudda.init.init import SnuddaInit
 
     configName= simName + "/network-config.json"
     cnc = SnuddaInit(struct_def={}, config_file=configName, nChannels=1)

@@ -1,8 +1,7 @@
 import unittest
 import os
-import numpy as np
 
-from snudda.init import SnuddaInit
+from snudda.init.init import SnuddaInit
 
 
 class TestInit(unittest.TestCase):

@@ -2,7 +2,7 @@ import unittest, os, sys, argparse, time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import snudda.cli
-from snudda.init import SnuddaInit
+from snudda.init.init import SnuddaInit
 
 
 # Duck punch the argument parser so it doesn't sys.exit

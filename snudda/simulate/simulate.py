@@ -24,10 +24,10 @@ import h5py
 import json
 import timeit
 
-from snudda.neuron_model_extended import NeuronModel
+from snudda.neuron.neuron_model_extended import NeuronModel
 # from Network_place_neurons import NetworkPlaceNeurons
 import numpy as np
-from snudda.nrn_simulator_parallel import NrnSimulatorParallel
+from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
 
 from glob import glob
 import re
