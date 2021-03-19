@@ -31,9 +31,17 @@ class TestCLI(unittest.TestCase):
         self.assertRaises(argparse.ArgumentError, run_cli_command, "doesntexist")
 
     def test_workflow(self):
-        with self.subTest(stage="create"):
-            run_cli_command("create test-project --overwrite")
-        os.chdir('test-project')
+
+        #with self.subTest(stage="create"):
+        #    run_cli_command("create test-project --overwrite")
+
+        network_path = "test-project"
+        if os.path.exists(network_path):
+            import shutil
+            shutil.rmtree(network_path)
+        
+        os.mkdir(network_path)
+        os.chdir(network_path)
 
         with self.subTest(stage="setup-parallel"):
             os.environ["IPYTHONDIR"] = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
@@ -94,7 +102,12 @@ class TestCLI(unittest.TestCase):
                                     "snudda", "data", "neurons", "mechanisms")
 
             if not os.path.exists("mechanisms"):
-                os.symlink(mech_dir, "mechanisms")
+                print("----> Copying mechanisms")
+                # os.symlink(mech_dir, "mechanisms")
+                from distutils.dir_util import copy_tree
+                copy_tree(mech_dir, "mechanisms")
+            else:
+                print("------------->   !!! mechanisms already exists")
 
             eval_str = f"nrnivmodl mechanisms"  # f"nrnivmodl {mech_dir}
             print(f"Running: {eval_str}")
