@@ -14,7 +14,7 @@ def snudda_parse_path(path):
         else:
             data_path_str = os.path.join(os.path.dirname(__file__), os.pardir, "data")
 
-        path = os.path.abspath(path.replace("$DATA", data_path_str))
+        path = os.path.realpath(path.replace("$DATA", data_path_str))
 
     return path
 
@@ -34,8 +34,9 @@ def snudda_path_exists(path):
 def snudda_simplify_path(path):
 
     data_path = snudda_parse_path("$DATA")
+    real_path = os.path.realpath(path)
     
-    if path and data_path in path:
-        path = path.replace(data_path, "$DATA")
+    if path and data_path in real_path:
+        path = real_path.replace(data_path, "$DATA")
 
     return path
