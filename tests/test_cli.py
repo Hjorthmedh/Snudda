@@ -35,13 +35,14 @@ class TestCLI(unittest.TestCase):
         #with self.subTest(stage="create"):
         #    run_cli_command("create test-project --overwrite")
 
-        network_path = "test-project"
-        if os.path.exists(network_path):
-            import shutil
-            shutil.rmtree(network_path)
+        if True:
+            network_path = "test-project"
+            if os.path.exists(network_path):
+                import shutil
+                shutil.rmtree(network_path)
         
-        os.mkdir(network_path)
-        os.chdir(network_path)
+                os.mkdir(network_path)
+                os.chdir(network_path)
 
         with self.subTest(stage="setup-parallel"):
             os.environ["IPYTHONDIR"] = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
@@ -112,9 +113,42 @@ class TestCLI(unittest.TestCase):
             eval_str = f"nrnivmodl mechanisms"  # f"nrnivmodl {mech_dir}
             print(f"Running: {eval_str}")
             os.system(eval_str)
+
+            # print("---> Testing to run simulate using os.system instead")
+            # os.system("snudda simulate tiny_parallel --time 0.1 --voltOut default")
+
+
+            # For the unittest we for some reason need to load mechansism
+            # separately
+            from mpi4py import MPI  # This must be imported before neuron, to run parallel
+            from neuron import h  # , gui
+            import neuron
+
+            # For some reason we need to import modules manually
+            # when running the unit test.
+            if os.path.exists("x86_64/.libs/libnrnmech.so"):
+                print("!!! Manually loading libraries")
+                try:
+                    h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
+                except:
+                    import traceback
+                    tstr = traceback.format_exc()
+                    print(tstr)
+
+            if False:
+                try:
+                    from snudda.simulate.simulate import SnuddaSimulate
+                    ss = SnuddaSimulate(network_path="tiny_parallel")
+                    ss.run(100)
+                    ss.write_spikes()
+                except:
+                    import traceback
+                    tstr = traceback.format_exc()
+                    print(tstr)
+                    import pdb
+                    pdb.set_trace()
+                
             print("Time to run simulation...")
-            #import pdb
-            #pdb.set_trace()
             run_cli_command("simulate tiny_parallel --time 0.1 --voltOut default")
 
         os.environ["SLURM_JOBID"] = "1234"

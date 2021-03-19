@@ -159,7 +159,7 @@ class SnuddaSimulate(object):
         self.create_dir("save/traces")
 
         self.pc = h.ParallelContext()
-
+        
         # self.writeLog("I am node " + str(int(self.pc.id())))
 
         # We need to initialise random streams, see Lytton el at 2016 (p2072)
