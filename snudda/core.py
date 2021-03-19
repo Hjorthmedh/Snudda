@@ -397,7 +397,7 @@ class Snudda(object):
 
             if not os.path.exists(mech_dir):
                 try:
-                    m_dir = os.path.join(os.path.dirname(__file__), "data", "neurons", "mechanisms")
+                    m_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), "data", "neurons", "mechanisms"))
                     os.symlink(m_dir, mech_dir)
                 except:
                     print(f"Failed to create symlink {mech_dir} -> {m_dir}")
