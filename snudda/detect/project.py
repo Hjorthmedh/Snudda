@@ -209,8 +209,8 @@ class SnuddaProject(object):
                     # We need to place neuron correctly in space (work on clone),
                     # so that synapse coordinates are correct
                     morph_prototype = self.prototype_neurons[t_name]
-                    position = self.network_info.data["neurons"][0]["position"]
-                    rotation = self.network_info.data["neurons"][0]["rotation"]
+                    position = self.network_info.data["neurons"][t_id]["position"]
+                    rotation = self.network_info.data["neurons"][t_id]["rotation"]
                     morph = morph_prototype.clone(position=position, rotation=rotation)
 
                     # We are not guaranteed to get n_syn positions, so use len(sec_x) to get how many after
