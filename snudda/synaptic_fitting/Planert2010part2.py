@@ -7,7 +7,7 @@ import scipy.optimize
 
 import pyswarms as ps
 from pyswarms.utils.functions import single_obj as fx
-from RunLittleSynapseRun import RunLittleSynapseRun
+from run_little_synapse_run import RunLittleSynapseRun
 import matplotlib.pyplot as plt
 import matplotlib
 
@@ -420,9 +420,9 @@ class Planert2010part2(object):
     
     baselineDepol = -80e-3
 
-    self.rsrSynapseModel = RunLittleSynapseRun(stimTimes=tStim,
-                                               holdingVoltage=baselineDepol,
-                                               synapseType="GABA",
+    self.rsrSynapseModel = RunLittleSynapseRun(stim_times=tStim,
+                                               holding_voltage=baselineDepol,
+                                               synapse_type="GABA",
                                                params=params,
                                                time=maxTime)
 

@@ -200,7 +200,7 @@ class OptimiseSynapsesPlanert(OptimiseSynapses):
       return
     
     with self.dView.sync_imports():
-      from RunLittleSynapseRun import RunLittleSynapseRun
+      from run_little_synapse_run import RunLittleSynapseRun
       from OptimiseSynapses import NumpyEncoder
       from OptimiseSynapsesPlanert import OptimiseSynapsesPlanert
 
@@ -253,10 +253,10 @@ if __name__ == "__main__":
   osp = OptimiseSynapsesPlanert(traceList,dView=dView,
                                 logFileName=logFile)
   
-  osp.parallelOptimiseCells("planert",
-                            np.arange(0,len(osp.nameList)))
+  osp.parallel_optimise_cells("planert",
+                              np.arange(0,len(osp.nameList)))
 
-  ops.saveParameterCache()
+  ops.save_parameter_cache()
   
   # osp.optimiseCell("planert",0)
 
