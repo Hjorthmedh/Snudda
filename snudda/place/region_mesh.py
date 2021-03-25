@@ -707,8 +707,14 @@ class RegionMesh(object):
 
     ############################################################################
 
-    # neuronType is included since in future versions we might want varying
+    # neuron_type is included since in future versions we might want varying
     # density depending on the type of neuron
+
+    # TODO: When we draw from the random_pool, we need to reject a fraction of the neurons
+    #       so as to match the density profile for that neuron type.
+    #       in addition, we also need to keep track of the placed neuron density profile
+    #       as these get harder to place the more dense the region is.
+    #       Also, this must be done separately for all neuron types.
 
     def place_neurons(self, num_cells, neuron_type=None, d_min=None):
 
@@ -766,7 +772,7 @@ class RegionMesh(object):
 
             border_voxel = np.zeros((3,), dtype=int)
 
-            for idx in range(0, 3):
+            for idx in range(0, 3):  # Looping over x,y,z coordinates
                 if (putative_loc[idx] - self.min_coord[idx]) % self.bin_width < d_min:
                     border_voxel[idx] = -1
                     new_idx = np.copy(voxel_idx)
