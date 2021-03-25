@@ -2,7 +2,7 @@ export IPYTHONDIR="`pwd`/.ipython"
 export IPYTHON_PROFILE=Snudda_LOCAL
 
 # OBS, currently init is commented out, so numneurons not used
-numNeurons=100000
+numNeurons=50000
 simNamePart=20210319
 #cellspecDir=data/parkinson-2020-12-17
 #cellspecDir=data/parkinson-2021-01-07
@@ -17,7 +17,7 @@ sleep 20
 
 ######################
 
-simName=networks/pd0_100k_$simNamePart
+simName=networks/pd0_50k_$simNamePart
 
 # snudda init $simName --size $numNeurons --overwrite
 python3 ../snudda/init/init_custom.py $simName --cellspec $cellspecDir/pd0/
@@ -25,7 +25,7 @@ snudda place $simName --parallel
 snudda detect $simName --parallel
 snudda prune $simName --parallel
 
-simName=networks/pd1_100k_$simNamePart
+simName=networks/pd1_50k_$simNamePart
 
 # snudda init $simName --size $numNeurons --overwrite
 python3 ../snudda/init/init_custom.py $simName --cellspec $cellspecDir/pd1/
@@ -33,7 +33,7 @@ snudda place $simName --parallel
 snudda detect $simName --parallel
 snudda prune $simName --parallel
 
-simName=networks/pd2_100k_$simNamePart
+simName=networks/pd2_50k_$simNamePart
 
 # snudda init $simName --size $numNeurons --overwrite
 python3 ../snudda/init/init_custom.py $simName --cellspec $cellspecDir/pd2/
@@ -42,7 +42,7 @@ snudda detect $simName --parallel
 snudda prune $simName --parallel
 
 
-simName=networks/pd3_100k_$simNamePart
+simName=networks/pd3_50k_$simNamePart
 
 # snudda init $simName --size $numNeurons --overwrite
 python3 ../snudda/init/init_custom.py $simName --cellspec $cellspecDir/pd3/
