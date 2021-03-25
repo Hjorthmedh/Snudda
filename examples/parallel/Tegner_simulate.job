@@ -32,44 +32,16 @@ echo "This is the conda we have:"
 echo `which conda`
 conda activate
 
-export IPYTHONDIR="$L/.ipython"
-
-# !!! OBS, you need to have done a dev installation using the line below:
-echo "You need to have done the following:"
-echo "pip install --user -e .[dev]"
-
-# Delete the old .ipython directory
-echo "Removing old .ipython directory"
-rm -r $IPYTHONDIR
-
-export IPYTHON_PROFILE=mpi
-
-# export PYTHONPATH="$PYTHONPATH:/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/"
-
-echo "This is my path:"
-echo $PATH
 
 # These need to match what is in Tegner_runSnudda.sh
 SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
-JOBDIR=$SNUDDA_DIR/../networks/TegnerRun.${SLURM_JOBID}
-
-#.. Let's try to run on infiniband connection
-./Tegner_runSnudda.sh
-
-
-echo ">>> Compile NEURON modules: "`date`    
-# Remove "special" old directory
-rm -r x86_64
-nrnivmodl $SNUDDA_DIR/data/neurons/mechanisms
-
-echo ">>> Run NEURON: "`date`
+JOBDIR=$SNUDDA_DIR/../networks/TegnerRun.956075
 
 module load gcc/9.2.0
 module load openmpi/4.1-gcc-9.2
-    
+
+rm -r x86_64
+nrnivmodl $SNUDDA_DIR/data/neurons/mechanisms
+
 # Lets try to run simulation also
 srun -n $SLURM_NTASKS x86_64/special -mpi -python snudda simulate ${JOBDIR}   
-
-echo "exiting submit script"
-
-# source deactivate
