@@ -722,12 +722,12 @@ class RegionMesh(object):
             "2*dMin (2 * " + str(d_min) + ") must be smaller than binWidth (" + str(self.bin_width) + ")"
 
         if neuron_type in self.neuron_types:
-            neuron_id = self.neuron_types[neuron_type]
+            neuron_type_id = self.neuron_types[neuron_type]
         else:
-            neuron_id = self.next_neuron_type
+            neuron_type_id = self.next_neuron_type
             self.next_neuron_type += 1
 
-            self.neuron_types[neuron_type] = neuron_id
+            self.neuron_types[neuron_type] = neuron_type_id
 
         start_ctr = self.neuron_ctr
         end_ctr = self.neuron_ctr + num_cells
@@ -814,7 +814,7 @@ class RegionMesh(object):
                 if inside_flag:
                     # We are inside, add to inside points
                     self.neuron_coords[self.neuron_ctr, :] = putative_loc
-                    self.neuron_type[self.neuron_ctr] = neuron_id
+                    self.neuron_type[self.neuron_ctr] = neuron_type_id
                     self.neuron_ctr += 1
                     # self.writeLog("Placed neuron " + str(self.neuronCtr))
                 else:
@@ -830,8 +830,8 @@ class RegionMesh(object):
             else:
                 self.reject_ctr += 1
 
-        tB = timeit.default_timer()
-        self.write_log(f"Placed {num_cells} in {tB - t_a} s")
+        t_b = timeit.default_timer()
+        self.write_log(f"Placed {num_cells} in {t_b - t_a} s")
 
         return self.neuron_coords[start_ctr:end_ctr, :]
 
