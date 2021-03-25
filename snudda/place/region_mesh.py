@@ -35,6 +35,7 @@ class RegionMesh(object):
             self.logfile_name = None
 
         self.bin_width = bin_width
+        self.d_min = d_min
         self.padding = max(self.bin_width, d_min)
         self.num_bins = None
 
@@ -60,6 +61,32 @@ class RegionMesh(object):
         self.mesh_uu = None
         self.mesh_denom = None
         self.mesh_nrm = None
+
+        # Used by setup_place_neurons
+        self.max_rand = 1000000
+        self.max_neurons = 3000000
+        self.max_reject = 100e6
+
+        # Set by setup_place_neurons
+        self.rand_ctr = None
+        self.random_pool = None
+        self.neuron_coords = None
+        self.neuron_ctr = None
+        self.padding_coords = None
+        self.padding_ctr = None
+        self.neuron_types = None
+        self.neuron_type = None
+        self.next_neuron_type = 1
+        self.reject_ctr = None
+
+        # Used or set by setup_voxel_list
+        self.max_neurons_voxel = 10000
+        self.voxel_next_neuron = None
+        self.voxel_neurons = None
+
+        # Set by update_padding_mask
+        self.voxel_mask_padding = None
+
 
         # This determines if we ray trace the border voxels, for finer detail
         # or not (activating this is SLOW)
@@ -596,12 +623,9 @@ class RegionMesh(object):
 
         self.d_min = d_min
 
-        self.max_rand = 1000000
         self.rand_ctr = self.max_rand + 1
 
         self.random_pool = np.zeros((self.max_rand, 3))
-
-        self.max_neurons = 3000000
 
         self.neuron_coords = np.zeros((self.max_neurons, 3))
         self.neuron_ctr = 0
@@ -613,7 +637,6 @@ class RegionMesh(object):
         self.neuron_type = np.zeros((self.max_neurons,))
         self.next_neuron_type = 1
 
-        self.max_reject = 100e6
         self.reject_ctr = 0
 
         self.num_bins = self.voxel_mask_inner.shape
@@ -628,8 +651,6 @@ class RegionMesh(object):
     def setup_voxel_list(self):
 
         self.write_log("Setup voxel list")
-
-        self.max_neurons_voxel = 10000
 
         self.voxel_next_neuron = np.zeros(self.num_bins, dtype=int)
         self.voxel_neurons = np.zeros((self.num_bins[0], self.num_bins[1],
@@ -659,7 +680,6 @@ class RegionMesh(object):
             dilated_mask = scipy.ndimage.binary_dilation(self.voxel_mask_inner,
                                                          structure=s,
                                                          iterations=n_dist)
-
             self.voxel_mask_padding = \
                 np.logical_xor(dilated_mask, self.voxel_mask_inner)
 
@@ -783,11 +803,8 @@ class RegionMesh(object):
 
                 if self.voxel_next_neuron[vox_idx[0], vox_idx[1], vox_idx[2]] > 0:
                     tmp = self.voxel_neurons[vox_idx[0], vox_idx[1], vox_idx[2],
-                          0:self.voxel_next_neuron[vox_idx[0],
-                                                   vox_idx[1],
-                                                   vox_idx[2]],
-                          :] \
-                          - putative_loc
+                                             0:self.voxel_next_neuron[vox_idx[0], vox_idx[1], vox_idx[2]],
+                                             :] - putative_loc
 
                     min_dist2 = min(min_dist2, np.min(np.sum(np.square(tmp), axis=1)))
 
@@ -806,11 +823,8 @@ class RegionMesh(object):
                 # Also save the point in the specific voxel, this way we can ignore
                 # lots of distance comparisons
                 self.voxel_neurons[voxel_idx[0], voxel_idx[1], voxel_idx[2],
-                self.voxel_next_neuron[voxel_idx[0],
-                                       voxel_idx[1],
-                                       voxel_idx[2]],
-                :] = putative_loc
-
+                                   self.voxel_next_neuron[voxel_idx[0], voxel_idx[1], voxel_idx[2]], :] \
+                    = putative_loc
                 self.voxel_next_neuron[voxel_idx[0], voxel_idx[1], voxel_idx[2]] += 1
 
             else:
