@@ -51,6 +51,16 @@ class RegionMesh(object):
         self.voxel_mask_border = None
         self.point_out = None
 
+        # Set by pre_compute
+        self.mesh_u = None
+        self.mesh_v = None
+        self.mesh_v0 = None
+        self.mesh_uv = None
+        self.mesh_vv = None
+        self.mesh_uu = None
+        self.mesh_denom = None
+        self.mesh_nrm = None
+
         # This determines if we ray trace the border voxels, for finer detail
         # or not (activating this is SLOW)
         self.raytrace_borders = raytrace_borders
@@ -351,23 +361,23 @@ class RegionMesh(object):
         i1 = self.mesh_faces[:, 1]
         i2 = self.mesh_faces[:, 2]
 
-        self.u = self.mesh_vec[i1, :] - self.mesh_vec[i0, :]
-        self.v = self.mesh_vec[i2, :] - self.mesh_vec[i0, :]
+        self.mesh_u = self.mesh_vec[i1, :] - self.mesh_vec[i0, :]
+        self.mesh_v = self.mesh_vec[i2, :] - self.mesh_vec[i0, :]
 
-        self.v0 = self.mesh_vec[i0, :]
+        self.mesh_v0 = self.mesh_vec[i0, :]
 
-        self.uv = np.sum(np.multiply(self.u, self.v), axis=1)
-        self.vv = np.sum(np.multiply(self.v, self.v), axis=1)
-        self.uu = np.sum(np.multiply(self.u, self.u), axis=1)
+        self.mesh_uv = np.sum(np.multiply(self.mesh_u, self.mesh_v), axis=1)
+        self.mesh_vv = np.sum(np.multiply(self.mesh_v, self.mesh_v), axis=1)
+        self.mesh_uu = np.sum(np.multiply(self.mesh_u, self.mesh_u), axis=1)
 
-        self.denom = np.multiply(self.uv, self.uv) - np.multiply(self.uu, self.vv)
+        self.mesh_denom = np.multiply(self.mesh_uv, self.mesh_uv) - np.multiply(self.mesh_uu, self.mesh_vv)
 
         # Normal of triangle
-        self.nrm = np.cross(self.u, self.v)
+        self.mesh_nrm = np.cross(self.mesh_u, self.mesh_v)
 
         # We need to normalise it
-        nl = np.repeat(np.reshape(self.uv, [self.uv.shape[0], 1]), 3, axis=1)
-        self.nrm = np.divide(self.nrm, nl)
+        nl = np.repeat(np.reshape(self.mesh_uv, [self.mesh_uv.shape[0], 1]), 3, axis=1)
+        self.mesh_nrm = np.divide(self.mesh_nrm, nl)
 
     ############################################################################
 
@@ -499,8 +509,8 @@ class RegionMesh(object):
 
         P = self.point_out - point
         # rn = nominator, rd = denominator
-        rn = np.sum(np.multiply(self.nrm, self.v0 - point), axis=1)
-        rd = np.dot(self.nrm, P)
+        rn = np.sum(np.multiply(self.mesh_nrm, self.mesh_v0 - point), axis=1)
+        rd = np.dot(self.mesh_nrm, P)
 
         # r = np.divide(rn,rd)
 
@@ -521,17 +531,17 @@ class RegionMesh(object):
             if 0 <= rI <= 1:
                 # Crosses the plane, but is it within triangle?
 
-                w = point + rI * P - self.v0[i, :]
+                w = point + rI * P - self.mesh_v0[i, :]
 
-                si = (self.uv[i] * np.inner(w, self.v[i, :])
-                      - self.vv[i] * np.inner(w, self.u[i, :])) / self.denom[i]
+                si = (self.mesh_uv[i] * np.inner(w, self.mesh_v[i, :])
+                      - self.mesh_vv[i] * np.inner(w, self.mesh_u[i, :])) / self.mesh_denom[i]
 
                 if si < 0 or si > 1:
                     # outside of triangle
                     continue
 
-                ti = (self.uv[i] * np.inner(w, self.u[i, :])
-                      - self.uu[i] * np.inner(w, self.v[i, :])) / self.denom[i]
+                ti = (self.mesh_uv[i] * np.inner(w, self.mesh_u[i, :])
+                      - self.mesh_uu[i] * np.inner(w, self.mesh_v[i, :])) / self.mesh_denom[i]
 
                 if ti < 0 or (si + ti) > 1:
                     # outside of triangle
