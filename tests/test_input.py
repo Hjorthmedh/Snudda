@@ -4,9 +4,9 @@ import h5py
 import json
 import numpy as np
 
-from snudda.detect import SnuddaDetect
-from snudda.input import SnuddaInput
-from snudda.prune import SnuddaPrune
+from snudda.detect.detect import SnuddaDetect
+from snudda.input.input import SnuddaInput
+from snudda.detect.prune import SnuddaPrune
 
 
 class MyTestCase(unittest.TestCase):
@@ -21,7 +21,7 @@ class MyTestCase(unittest.TestCase):
         self.save_file = os.path.join(self.network_path, "voxels", "network-putative-synapses.hdf5")
 
         # Setup network so we can test input generation
-        from snudda.init import SnuddaInit
+        from snudda.init.init import SnuddaInit
         cell_spec = os.path.join(os.path.dirname(__file__), "validation")
         cnc = SnuddaInit(struct_def={}, config_file=self.config_file, random_seed=1234)
         cnc.define_striatum(num_dSPN=5, num_iSPN=0, num_FS=5, num_LTS=0, num_ChIN=0,
@@ -29,7 +29,7 @@ class MyTestCase(unittest.TestCase):
         cnc.write_json(self.config_file)
 
         # Place neurons
-        from snudda.place import SnuddaPlace
+        from snudda.place.place import SnuddaPlace
         npn = SnuddaPlace(config_file=self.config_file,
                           log_file=None,
                           verbose=True,

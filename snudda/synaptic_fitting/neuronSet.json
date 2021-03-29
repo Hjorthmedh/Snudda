@@ -1,0 +1,74 @@
+{
+    "dSPN" : {
+	"neuronMorphology" : "../data/cellspecs-v2/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/WT-P270-20-15ak-cor.swc",
+	"neuronParameters" : "../data/cellspecs-v2/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/parameters.json",
+	"neuronMechanisms" : "../data/cellspecs-v2/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/mechanisms.json",
+	"neuronModulation" : "../data/cellspecs-v2/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/modulation.json",
+	"neuronParameterID" : 0,
+	"neuronModulationID": 0,
+	"synapseDensity" : "0.05/(1+np.exp(-(d-150e-6)/5e-6))",
+	"nSynapses" : 20,
+	"baselineVoltage" : -80e-3
+    },
+    
+    "iSPN" : {
+	"neuronMorphology" : "../data/cellspecs-v2/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/WT-P270-09-15ak-cor.swc",
+	"neuronParameters" : "../data/cellspecs-v2/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/parameters.json",
+	"neuronMechanisms" : "../data/cellspecs-v2/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/mechanisms.json",
+	"neuronModulation" : "../data/cellspecs-v2/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/modulation.json",
+	"neuronParameterID" : 0,
+	"neuronModulationID": 0,
+	"synapseDensity" : "0.05/(1+np.exp(-(d-150e-6)/5e-6))",
+	"nSynapses" : 20,
+	"baselineVoltage" : -80e-3	
+    },
+
+    "SPN" : {
+	"neuronMorphology" : "../data/../data/cellspecs-v2/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/WT-P270-20-15ak-cor.swc",
+	"neuronParameters" : "../data/cellspecs-v2/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/parameters.json",
+	"neuronMechanisms" : "../data/cellspecs-v2/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/mechanisms.json",
+	"neuronModulation" : "../data/cellspecs-v2/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/modulation.json",
+	"neuronParameterID" : 0,
+	"neuronModulationID": 0,
+	"synapseDensity" : "0.05/(1+np.exp(-(d-150e-6)/5e-6))",
+	"nSynapses" : 20,
+	"baselineVoltage" : -80e-3	
+    },
+
+    "FSN" : {
+	"neuronMorphology" : "../data/cellspecs-v2/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/DR-rat-Mar-13-08-1-536-R-cor-rep.swc",
+	"neuronParameters" : "../data/cellspecs-v2/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/parameters.json",
+	"neuronMechanisms" : "../data/cellspecs-v2/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/mechanisms.json",
+	"neuronModulation" : "../data/cellspecs-v2/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/modulation.json",
+	"neuronParameterID" : 0,
+	"neuronModulationID": 0,
+	"synapseDensity" : "0.05/(1+np.exp(-(d-150e-6)/5e-6))",
+	"nSynapses" : 20,
+	"baselineVoltage" : -80e-3	
+    },
+
+    "ChIN" : {
+	"neuronMorphology" : "../data/cellspecs-v2/chin/str-chin-e170614_cell6-m17JUL301751_170614_no6_MD_cell_1_x63-v20190710/17JUL301751_170614_no6_MD_cell_1_x63-cor-noaxon.swc",
+	"neuronParameters" : "../data/cellspecs-v2/chin/str-chin-e170614_cell6-m17JUL301751_170614_no6_MD_cell_1_x63-v20190710/parameters.json",
+	"neuronMechanisms" : "../data/cellspecs-v2/chin/str-chin-e170614_cell6-m17JUL301751_170614_no6_MD_cell_1_x63-v20190710/mechanisms.json",
+	"neuronModulation" : "../data/cellspecs-v2/chin/str-chin-e170614_cell6-m17JUL301751_170614_no6_MD_cell_1_x63-v20190710/modulation.json",
+	"neuronParameterID" : 0,
+	"neuronModulationID": 0,
+	"synapseDensity" : "0.05/(1+np.exp(-(d-150e-6)/5e-6))",
+	"nSynapses" : 20,
+	"baselineVoltage" : -80e-3	
+    },
+
+    "LTS" : {
+	"neuronMorphology" : "../data/cellspecs-v2/lts/LTS_Experiment-9862_20181211/lts_morp_2019-11-07_centered_noAxon.swc",
+	"neuronParameters" : "../data/cellspecs-v2/lts/LTS_Experiment-9862_20181211/parameters.json",
+	"neuronMechanisms" : "../data/cellspecs-v2/lts/LTS_Experiment-9862_20181211/mechanisms.json",
+	"neuronModulation" : "../data/cellspecs-v2/lts/LTS_Experiment-9862_20181211/modulation.json",
+	"neuronParameterID" : 0,
+	"neuronModulationID": 0,
+	"synapseDensity" : "0.05/(1+np.exp(-(d-150e-6)/5e-6))",
+	"nSynapses" : 20,
+	"baselineVoltage" : -80e-3	
+    }
+
+}

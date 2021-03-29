@@ -1,10 +1,9 @@
 import os
 import numpy as np
-from snudda.load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
-from snudda.neuron_morphology import NeuronMorphology
+from snudda.neurons.neuron_morphology import NeuronMorphology
 
 
 class PlotNetwork(object):
@@ -12,7 +11,7 @@ class PlotNetwork(object):
     def __init__(self, network):
 
         if os.path.isdir(network):
-            network_file = os.path.join(network, "network-pruned-synapses.hdf5")
+            network_file = os.path.join(network, "network-synapses.hdf5")
         else:
             network_file = network
 

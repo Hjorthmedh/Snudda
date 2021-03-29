@@ -1,12 +1,11 @@
 import unittest
 import os
 import sys
-import json
 import numpy as np
 
-from snudda.create_cube_mesh import create_cube_mesh
-from snudda.detect import SnuddaDetect
-from snudda.place import SnuddaPlace
+from snudda.place.create_cube_mesh import create_cube_mesh
+from snudda.detect.detect import SnuddaDetect
+from snudda.place.place import SnuddaPlace
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -152,8 +151,7 @@ class TestDetect(unittest.TestCase):
             # Check new rows are empty
             self.assertTrue((self.sd.hyper_voxel_synapses[old.shape[0]:, :] == 0).all())
 
-# These test drawing not essential to Snudda, quite slow.
-
+        # These test drawing not essential to Snudda, quite slow.
         if False:
             with self.subTest(stage="export_voxel_vis"):
                 self.sd.export_voxel_visualisation_csv(neuron_id=np.arange(0, 10))

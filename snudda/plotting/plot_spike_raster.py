@@ -8,11 +8,11 @@ import os
 import numpy as np
 import re
 import ntpath
-from snudda.load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 import time
 
 
-class SnuddaPlotSpikeRaster(object):
+class PlotSpikeRaster(object):
 
     def __init__(self, spike_file_name, network_file=None, skip_time=0.0, type_order=None, end_time=2.0,
                  figsize=None):
@@ -267,9 +267,9 @@ if __name__ == "__main__":
         # type_order = ["FS", "dSPN", "LTS", "iSPN", "ChIN"]
         type_order = ["fs", "fsn", "dspn", "lts", "ispn", "chin"]
 
-        npsr = SnuddaPlotSpikeRaster(file_name, network_file, skip_time=0.0,
-                                     end_time=end_time,
-                                     type_order=type_order)
+        npsr = PlotSpikeRaster(file_name, network_file, skip_time=0.0,
+                               end_time=end_time,
+                               type_order=type_order)
 
     # import pdb
     # pdb.set_trace()

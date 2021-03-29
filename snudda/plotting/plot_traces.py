@@ -4,7 +4,7 @@
 import sys
 import os
 import numpy as np
-from snudda.load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 import re
 import ntpath
 import time
@@ -266,7 +266,7 @@ if __name__ == "__main__":
             npt.plot_trace_neuron_name(neuron_name="FS_3", plot_offset=plot_offset, fig_name="Traced-FS_3.pdf")
 
     else:
-        print(f"Usage: {sys.argv[0]} network-voltage-XXX.csv my_network/network-pruned-synapses.hdf5")
+        print(f"Usage: {sys.argv[0]} network-voltage-XXX.csv my_network/network-synapses.hdf5")
 
 #  TODO: Need to clean up the code and make a new plot function
 

@@ -1,12 +1,9 @@
 import os
 
 import numpy as np
-from snudda.create_cube_mesh import create_cube_mesh
-from snudda.detect import SnuddaDetect
-from snudda.place import SnuddaPlace
-from snudda.plotting.plot_network import PlotNetwork
-from snudda.prune import SnuddaPrune
-from snudda.utils.reposition_neurons import RepositionNeurons
+from snudda.place.create_cube_mesh import create_cube_mesh
+from snudda.detect.detect import SnuddaDetect
+from snudda.place.place import SnuddaPlace
 
 
 class TouchDetectionHypervoxelIllustration(object):
