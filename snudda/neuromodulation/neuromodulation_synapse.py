@@ -20,7 +20,7 @@ class SnuddaNeuromodulation(SnuddaSimulate):
                  verbose=False,
                  log_file=None,
                  disable_gap_junctions=True,
-                 simulation_config=None, neuromodulators=None, neuromodulator_description=None):
+                 simulation_config=None, neuromodulators=None, neuromodulator_description=None,neuromodulation_conductance=None):
 
         self.input_data = h5py.File(snudda_parse_path(input_file), 'r')
         self.verbose = verbose
@@ -30,6 +30,7 @@ class SnuddaNeuromodulation(SnuddaSimulate):
         self.current_cell = None
         self.syn_gpcrs = list()
         self.cell_modulator = dict()
+        self.neuromodulation_conductance = neuromodulation_conductance
 
         super(SnuddaNeuromodulation, self).__init__(network_path=network_path,
                                                     network_file=network_file,
@@ -320,7 +321,7 @@ class SnuddaNeuromodulation(SnuddaSimulate):
 
                             nc = self.pc.gid_connect(cell_id_source, sgr)
 
-                            nc.weight[0] = 1e-3
+                            nc.weight[0] = self.neuromodulation_conductance
                             nc.delay = 1
                             nc.threshold = -20
 
