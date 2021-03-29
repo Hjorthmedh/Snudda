@@ -1,8 +1,5 @@
 from .core import Snudda
 
-<<<<<<< HEAD
-__version__ = "1.0.9"
-=======
 __version__ = "1.0.11"
 
 from .init import SnuddaInit
@@ -16,4 +13,3 @@ from .detect import SnuddaPrune
 
 # from .input import SnuddaInput
 # from .simulate import SnuddaSimulate
->>>>>>> origin/dev
