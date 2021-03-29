@@ -152,7 +152,6 @@ class TestCLI(unittest.TestCase):
                     import pdb
                     pdb.set_trace()
                 
->>>>>>> origin/dev
             print("Time to run simulation...")
             run_cli_command("simulate tiny_parallel --time 0.1 --voltOut default")
 
