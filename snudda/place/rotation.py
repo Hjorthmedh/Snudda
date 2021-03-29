@@ -113,7 +113,7 @@ class SnuddaRotate(object):
     def rotation_matrix_from_vectors(vec1, vec2):
 
         # Special case, which gives cross product zero
-        if vec1 == vec2:
+        if (vec1 == vec2).all():
             return np.eye(3)
 
         # Taken from stackoverflow:
