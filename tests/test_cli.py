@@ -99,10 +99,10 @@ class TestCLI(unittest.TestCase):
 
         with self.subTest(stage="simulate"):
             print("Running nrnivmodl:")
-<<<<<<< HEAD
+            
             #os.system("nrnivmodl ../snudda/data/neurons/mechanisms")
             os.system("nrnivmodl ../snudda/data/neurons/mechanisms-modulation")
-=======
+            
             mech_dir = os.path.join(os.path.dirname(__file__), os.path.pardir,
                                     "snudda", "data", "neurons", "mechanisms")
 
