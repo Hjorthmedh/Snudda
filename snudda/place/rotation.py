@@ -111,6 +111,11 @@ class SnuddaRotate(object):
 
     @staticmethod
     def rotation_matrix_from_vectors(vec1, vec2):
+
+        # Special case, which gives cross product zero
+        if (vec1 == vec2).all():
+            return np.eye(3)
+
         # Taken from stackoverflow:
         # https://stackoverflow.com/questions/45142959/calculate-rotation-matrix-to-align-two-vectors-in-3d-space
         """ Find the rotation matrix that aligns vec1 to vec2

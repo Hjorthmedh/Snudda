@@ -13,7 +13,7 @@ import time
 
 # !!! Add check that if the voltage is 0 or 5, then the trace is skipped entirely
 
-from RunLittleSynapseRun import RunLittleSynapseRun
+from run_little_synapse_run import RunLittleSynapseRun
 
 ############################################################################
 
@@ -333,9 +333,9 @@ class OptimiseSynapses(object):
 
         tStim = self.getStimTime(dataType,cellID)
     
-        plotModel = RunLittleSynapseRun(stimTimes=tStim,
-                                        holdingVoltage=baselineDepol,
-                                        synapseType=self.synapseType,
+        plotModel = RunLittleSynapseRun(stim_times=tStim,
+                                        holding_voltage=baselineDepol,
+                                        synapse_type=self.synapseType,
                                         params=params,
                                         time=self.simTime)
     
@@ -528,9 +528,9 @@ class OptimiseSynapses(object):
     #(1.0 / tauDelta) / (np.pi*2*16*16) # !!! Check me!!
 
     params = { "somaDiameter" : somaDiam, "somaGleak" : somaGleak }
-    self.rsrDeltaModel = RunLittleSynapseRun(stimTimes=np.array([]),
-                                             holdingVoltage=baselineDepol,
-                                             synapseType=self.synapseType,
+    self.rsrDeltaModel = RunLittleSynapseRun(stim_times=np.array([]),
+                                             holding_voltage=baselineDepol,
+                                             synapse_type=self.synapseType,
                                              params=params,
                                              time=self.simTime)
     # tau = R * C
@@ -546,11 +546,11 @@ class OptimiseSynapses(object):
     self.baseEnd = 0.3
 
     # Neuron uses natural units !
-    self.rsrDeltaModel.IClamp2 = neuron.h.IClamp(self.rsrDeltaModel.soma(0.5))
+    self.rsrDeltaModel.IClamp2 = neuron.h.i_clamp(self.rsrDeltaModel.soma(0.5))
     self.rsrDeltaModel.IClamp2.amp = self.curInj*1e9
     self.rsrDeltaModel.IClamp2.delay = self.curStart*1e3
     self.rsrDeltaModel.IClamp2.dur = self.curDuration*1e3
-    neuron.h.finitialize(self.rsrDeltaModel.holdingVoltage*1e3) # OLD : -70
+    neuron.h.finitialize(self.rsrDeltaModel.holding_voltage * 1e3) # OLD : -70
 
   ############################################################################
 
@@ -579,7 +579,7 @@ class OptimiseSynapses(object):
     # We probably dont need to disable the short hyperpolarising pulse...
     
     # Update the holding current (use same holding voltage as before by default)
-    self.rsrDeltaModel.updateHoldingCurrent()
+    self.rsrDeltaModel.update_holding_current()
 
     # Run the simulation    
     neuron.h.tstop = self.rsrDeltaModel.time *1e3# Must set tstop
@@ -914,9 +914,9 @@ class OptimiseSynapses(object):
 
     # !!! We need to get the baseline depolarisation in another way
 
-    self.rsrSynapseModel = RunLittleSynapseRun(stimTimes=tStim,
-                                               holdingVoltage=baselineDepol,
-                                               synapseType=self.synapseType,
+    self.rsrSynapseModel = RunLittleSynapseRun(stim_times=tStim,
+                                               holding_voltage=baselineDepol,
+                                               synapse_type=self.synapseType,
                                                params=params,
                                                time=self.simTime)
 
@@ -1252,11 +1252,11 @@ class OptimiseSynapses(object):
         #modelBounds = self.getModelBounds(cellID)
         
         # Call best random, to find a good set of starting points
-        p0 = self.bestRandom(synapseModel=synapseModel,
-                             cellID=cellID,
-                             tPeak = stimTime,
-                             hPeak = peakHeight,
-                             modelBounds=modelBounds)
+        p0 = self.best_random(synapse_model=synapseModel,
+                              cellID=cellID,
+                              tPeak = stimTime,
+                              h_peak= peakHeight,
+                              model_bounds=modelBounds)
 
 
 #        fitParams,pcov = scipy.optimize.curve_fit(self.neuronSynapseHelper,
@@ -1265,7 +1265,7 @@ class OptimiseSynapses(object):
 #                                                  absolute_sigma=False,
 #                                                  p0=p0,
 #                                                  bounds=modelBounds)
-        fitParams,pcov = scipy.optimize.minimize(self.neuronSynapseHelper,
+        fitParams,pcov = scipy.optimize.minimize(self.neuron_synapse_helper,
                                                  stimTime,
                                                  x0=p0,
                                                  bounds=modelBounds)
@@ -1273,12 +1273,12 @@ class OptimiseSynapses(object):
         # tau < tauR, so we use tauRatio for optimisation
         fitParams[3] *= fitParams[1] # tau = tauR * tauRatio
 
-        modelHeights = self.neuronSynapseHelper(stimTime,
-                                                U=fitParams[0],
-                                                tauR=fitParams[1],
-                                                tauF=fitParams[2],
-                                                tau=fitParams[3],
-                                                cond=fitParams[4])
+        modelHeights = self.neuron_synapse_helper(stimTime,
+                                                  u=fitParams[0],
+                                                  tau_r=fitParams[1],
+                                                  tau_f=fitParams[2],
+                                                  tau=fitParams[3],
+                                                  cond=fitParams[4])
 
 
         self.write_log("Parameters: U = %.3g, tauR = %.3g, tauF = %.3g, tau = %.3g, cond = %3.g" % tuple(fitParams))
@@ -1807,7 +1807,7 @@ class OptimiseSynapses(object):
       return
     
     with self.dView.sync_imports():
-      from RunLittleSynapseRun import RunLittleSynapseRun
+      from run_little_synapse_run import RunLittleSynapseRun
       from OptimiseSynapses import NumpyEncoder
       from OptimiseSynapses import OptimiseSynapses
 
@@ -2005,19 +2005,19 @@ if __name__ == "__main__":
   if(False):
     optHelper = lambda x : ly.optimiseCell( "GBZ_CC_H20", x)
 
-    for idx in ly.getAllCellID():
+    for idx in ly.get_all_cell_id():
       try:
         if(not ly.checkValidData("GBZ_CC_H20", idx)):
           # Skip invalid trace
           continue
-        ly.optimiseCell("GBZ_CC_H20", idx)
+        ly.optimise_cell("GBZ_CC_H20", idx)
       except:
         import traceback
         tstr = traceback.format_exc()
         print(tstr)
         print("!!! Something went wrong. Skipping neuron " + str(idx))
   
-    ly.saveParameterCache()
+    ly.save_parameter_cache()
   
   print("Did we get all the parameters in the file?")
   #import pdb

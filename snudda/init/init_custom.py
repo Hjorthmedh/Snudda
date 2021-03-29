@@ -28,7 +28,7 @@ if __name__ == "__main__":
     # simName = "networks/SynTest-v15"
 
     config_name = os.path.join(sim_name, "network-config.json")
-    cnc = SnuddaInit(struct_def={}, config_file=config_name, num_population_units=1)
+    cnc = SnuddaInit(struct_def={}, config_file=config_name)
     # cnc.defineStriatum(nMSD1=500,nMSD2=500,nFS=0,nLTS=0,nChIN=30,volumeType="cube")
     # cnc.defineStriatum(nMSD1=120,nMSD2=120,nFS=20,nLTS=0,nChIN=0,volumeType="slice")
     # cnc.defineStriatum(nMSD1=0,nMSD2=0,nFS=10000,nLTS=0,nChIN=0,volumeType="slice")
@@ -39,7 +39,9 @@ if __name__ == "__main__":
     # cnc.defineStriatum(nMSD1=500,nMSD2=500,nFS=0,nLTS=0,nChIN=500,volumeType="cube")
 #    cnc.define_striatum(num_dSPN=1500, num_iSPN=1500, num_FS=0, num_LTS=0, num_ChIN=0,
 #                        volume_type="cube", neurons_dir=neurons_dir)
-    cnc.define_striatum(num_dSPN=47500, num_iSPN=47500, num_FS=1300, num_LTS=0, num_ChIN=0,
+    # cnc.define_striatum(num_dSPN=47500, num_iSPN=47500, num_FS=1300, num_LTS=0, num_ChIN=0,
+    #                     volume_type="cube", neurons_dir=neurons_dir)
+    cnc.define_striatum(num_dSPN=25000, num_iSPN=25000, num_FS=0, num_LTS=0, num_ChIN=0,
                         volume_type="cube", neurons_dir=neurons_dir)
     cnc.write_json(config_name)
 

@@ -160,7 +160,7 @@ class RunSynapseRun(object):
       plt.figure()
       plt.plot(self.t_save, self.v_save)
       plt.title("Holding voltage should be " \
-                + str(self.holdingVoltage*1e3) + "mV")
+                + str(self.holding_voltage * 1e3) + "mV")
       plt.xlabel("time (ms)")
       plt.ylabel("volt (mV)")
       plt.ion()
@@ -175,7 +175,7 @@ class RunSynapseRun(object):
     self.VClamp = None
 
     if(self.IClamp is None):
-      self.IClamp = neuron.h.IClamp(self.neuron.icell.soma[0](0.5))
+      self.IClamp = neuron.h.i_clamp(self.neuron.icell.soma[0](0.5))
     
     # Update current on iClamp
     self.IClamp.amp = cur
@@ -361,7 +361,7 @@ class RunSynapseRun(object):
       self.time = time
 
     if(cond is None):
-      cond = self.defaultCond
+      cond = self.default_cond
       
     # print(vars())
     
@@ -370,20 +370,20 @@ class RunSynapseRun(object):
     
     
     # Convert from SI units to natural units that Neuron uses
-    for ncs in self.ncSyn:
+    for ncs in self.nc_syn:
       ncs.weight[0] = 1*cond*1e6
 
     for syn in self.synapses:
       syn.tau = tau*1e3
-      syn.tauR = tauR*1e3
-      syn.tauF = tauF*1e3
-      syn.U = U
+      syn.tau_r = tauR * 1e3
+      syn.tau_f = tauF * 1e3
+      syn.u = U
     
     # print(self.littleSynapse.tau)
 
 
     # print("Initialise voltage to " + str(self.holdingVoltage*1e3) + " mV")
-    neuron.h.finitialize(self.holdingVoltage*1e3) # OLD : -70
+    neuron.h.finitialize(self.holding_voltage * 1e3) # OLD : -70
     neuron.h.tstop = time*1e3
 
     
@@ -599,7 +599,7 @@ if __name__== "__main__":
     import LoadExpData
 
     led = LoadExpData.LoadExpData(expData)
-    cellType = led.getCellType(expCellID)
+    cellType = led.get_cell_type(expCellID)
     plt.title("ExpData is cellType : " + str(cellType))
     expV,expT = led.getData("GBZ_CC_H20",expCellID)
     plt.plot(expT,expV,'r-')

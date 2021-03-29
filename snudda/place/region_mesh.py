@@ -35,6 +35,7 @@ class RegionMesh(object):
             self.logfile_name = None
 
         self.bin_width = bin_width
+        self.d_min = d_min
         self.padding = max(self.bin_width, d_min)
         self.num_bins = None
 
@@ -50,6 +51,42 @@ class RegionMesh(object):
         self.voxel_mask_inner = None
         self.voxel_mask_border = None
         self.point_out = None
+
+        # Set by pre_compute
+        self.mesh_u = None
+        self.mesh_v = None
+        self.mesh_v0 = None
+        self.mesh_uv = None
+        self.mesh_vv = None
+        self.mesh_uu = None
+        self.mesh_denom = None
+        self.mesh_nrm = None
+
+        # Used by setup_place_neurons
+        self.max_rand = 1000000
+        self.max_neurons = 3000000
+        self.max_reject = 100e6
+
+        # Set by setup_place_neurons
+        self.rand_ctr = None
+        self.random_pool = None
+        self.neuron_coords = None
+        self.neuron_ctr = None
+        self.padding_coords = None
+        self.padding_ctr = None
+        self.neuron_types = None
+        self.neuron_type = None
+        self.next_neuron_type = 1
+        self.reject_ctr = None
+
+        # Used or set by setup_voxel_list
+        self.max_neurons_voxel = 10000
+        self.voxel_next_neuron = None
+        self.voxel_neurons = None
+
+        # Set by update_padding_mask
+        self.voxel_mask_padding = None
+
 
         # This determines if we ray trace the border voxels, for finer detail
         # or not (activating this is SLOW)
@@ -351,23 +388,23 @@ class RegionMesh(object):
         i1 = self.mesh_faces[:, 1]
         i2 = self.mesh_faces[:, 2]
 
-        self.u = self.mesh_vec[i1, :] - self.mesh_vec[i0, :]
-        self.v = self.mesh_vec[i2, :] - self.mesh_vec[i0, :]
+        self.mesh_u = self.mesh_vec[i1, :] - self.mesh_vec[i0, :]
+        self.mesh_v = self.mesh_vec[i2, :] - self.mesh_vec[i0, :]
 
-        self.v0 = self.mesh_vec[i0, :]
+        self.mesh_v0 = self.mesh_vec[i0, :]
 
-        self.uv = np.sum(np.multiply(self.u, self.v), axis=1)
-        self.vv = np.sum(np.multiply(self.v, self.v), axis=1)
-        self.uu = np.sum(np.multiply(self.u, self.u), axis=1)
+        self.mesh_uv = np.sum(np.multiply(self.mesh_u, self.mesh_v), axis=1)
+        self.mesh_vv = np.sum(np.multiply(self.mesh_v, self.mesh_v), axis=1)
+        self.mesh_uu = np.sum(np.multiply(self.mesh_u, self.mesh_u), axis=1)
 
-        self.denom = np.multiply(self.uv, self.uv) - np.multiply(self.uu, self.vv)
+        self.mesh_denom = np.multiply(self.mesh_uv, self.mesh_uv) - np.multiply(self.mesh_uu, self.mesh_vv)
 
         # Normal of triangle
-        self.nrm = np.cross(self.u, self.v)
+        self.mesh_nrm = np.cross(self.mesh_u, self.mesh_v)
 
         # We need to normalise it
-        nl = np.repeat(np.reshape(self.uv, [self.uv.shape[0], 1]), 3, axis=1)
-        self.nrm = np.divide(self.nrm, nl)
+        nl = np.repeat(np.reshape(self.mesh_uv, [self.mesh_uv.shape[0], 1]), 3, axis=1)
+        self.mesh_nrm = np.divide(self.mesh_nrm, nl)
 
     ############################################################################
 
@@ -499,8 +536,8 @@ class RegionMesh(object):
 
         P = self.point_out - point
         # rn = nominator, rd = denominator
-        rn = np.sum(np.multiply(self.nrm, self.v0 - point), axis=1)
-        rd = np.dot(self.nrm, P)
+        rn = np.sum(np.multiply(self.mesh_nrm, self.mesh_v0 - point), axis=1)
+        rd = np.dot(self.mesh_nrm, P)
 
         # r = np.divide(rn,rd)
 
@@ -521,17 +558,17 @@ class RegionMesh(object):
             if 0 <= rI <= 1:
                 # Crosses the plane, but is it within triangle?
 
-                w = point + rI * P - self.v0[i, :]
+                w = point + rI * P - self.mesh_v0[i, :]
 
-                si = (self.uv[i] * np.inner(w, self.v[i, :])
-                      - self.vv[i] * np.inner(w, self.u[i, :])) / self.denom[i]
+                si = (self.mesh_uv[i] * np.inner(w, self.mesh_v[i, :])
+                      - self.mesh_vv[i] * np.inner(w, self.mesh_u[i, :])) / self.mesh_denom[i]
 
                 if si < 0 or si > 1:
                     # outside of triangle
                     continue
 
-                ti = (self.uv[i] * np.inner(w, self.u[i, :])
-                      - self.uu[i] * np.inner(w, self.v[i, :])) / self.denom[i]
+                ti = (self.mesh_uv[i] * np.inner(w, self.mesh_u[i, :])
+                      - self.mesh_uu[i] * np.inner(w, self.mesh_v[i, :])) / self.mesh_denom[i]
 
                 if ti < 0 or (si + ti) > 1:
                     # outside of triangle
@@ -586,12 +623,9 @@ class RegionMesh(object):
 
         self.d_min = d_min
 
-        self.max_rand = 1000000
         self.rand_ctr = self.max_rand + 1
 
         self.random_pool = np.zeros((self.max_rand, 3))
-
-        self.max_neurons = 3000000
 
         self.neuron_coords = np.zeros((self.max_neurons, 3))
         self.neuron_ctr = 0
@@ -603,7 +637,6 @@ class RegionMesh(object):
         self.neuron_type = np.zeros((self.max_neurons,))
         self.next_neuron_type = 1
 
-        self.max_reject = 100e6
         self.reject_ctr = 0
 
         self.num_bins = self.voxel_mask_inner.shape
@@ -618,8 +651,6 @@ class RegionMesh(object):
     def setup_voxel_list(self):
 
         self.write_log("Setup voxel list")
-
-        self.max_neurons_voxel = 10000
 
         self.voxel_next_neuron = np.zeros(self.num_bins, dtype=int)
         self.voxel_neurons = np.zeros((self.num_bins[0], self.num_bins[1],
@@ -649,7 +680,6 @@ class RegionMesh(object):
             dilated_mask = scipy.ndimage.binary_dilation(self.voxel_mask_inner,
                                                          structure=s,
                                                          iterations=n_dist)
-
             self.voxel_mask_padding = \
                 np.logical_xor(dilated_mask, self.voxel_mask_inner)
 
@@ -677,8 +707,14 @@ class RegionMesh(object):
 
     ############################################################################
 
-    # neuronType is included since in future versions we might want varying
+    # neuron_type is included since in future versions we might want varying
     # density depending on the type of neuron
+
+    # TODO: When we draw from the random_pool, we need to reject a fraction of the neurons
+    #       so as to match the density profile for that neuron type.
+    #       in addition, we also need to keep track of the placed neuron density profile
+    #       as these get harder to place the more dense the region is.
+    #       Also, this must be done separately for all neuron types.
 
     def place_neurons(self, num_cells, neuron_type=None, d_min=None):
 
@@ -692,12 +728,12 @@ class RegionMesh(object):
             "2*dMin (2 * " + str(d_min) + ") must be smaller than binWidth (" + str(self.bin_width) + ")"
 
         if neuron_type in self.neuron_types:
-            neuron_id = self.neuron_types[neuron_type]
+            neuron_type_id = self.neuron_types[neuron_type]
         else:
-            neuron_id = self.next_neuron_type
+            neuron_type_id = self.next_neuron_type
             self.next_neuron_type += 1
 
-            self.neuron_types[neuron_type] = neuron_id
+            self.neuron_types[neuron_type] = neuron_type_id
 
         start_ctr = self.neuron_ctr
         end_ctr = self.neuron_ctr + num_cells
@@ -736,7 +772,7 @@ class RegionMesh(object):
 
             border_voxel = np.zeros((3,), dtype=int)
 
-            for idx in range(0, 3):
+            for idx in range(0, 3):  # Looping over x,y,z coordinates
                 if (putative_loc[idx] - self.min_coord[idx]) % self.bin_width < d_min:
                     border_voxel[idx] = -1
                     new_idx = np.copy(voxel_idx)
@@ -773,11 +809,8 @@ class RegionMesh(object):
 
                 if self.voxel_next_neuron[vox_idx[0], vox_idx[1], vox_idx[2]] > 0:
                     tmp = self.voxel_neurons[vox_idx[0], vox_idx[1], vox_idx[2],
-                          0:self.voxel_next_neuron[vox_idx[0],
-                                                   vox_idx[1],
-                                                   vox_idx[2]],
-                          :] \
-                          - putative_loc
+                                             0:self.voxel_next_neuron[vox_idx[0], vox_idx[1], vox_idx[2]],
+                                             :] - putative_loc
 
                     min_dist2 = min(min_dist2, np.min(np.sum(np.square(tmp), axis=1)))
 
@@ -787,7 +820,7 @@ class RegionMesh(object):
                 if inside_flag:
                     # We are inside, add to inside points
                     self.neuron_coords[self.neuron_ctr, :] = putative_loc
-                    self.neuron_type[self.neuron_ctr] = neuron_id
+                    self.neuron_type[self.neuron_ctr] = neuron_type_id
                     self.neuron_ctr += 1
                     # self.writeLog("Placed neuron " + str(self.neuronCtr))
                 else:
@@ -796,18 +829,15 @@ class RegionMesh(object):
                 # Also save the point in the specific voxel, this way we can ignore
                 # lots of distance comparisons
                 self.voxel_neurons[voxel_idx[0], voxel_idx[1], voxel_idx[2],
-                self.voxel_next_neuron[voxel_idx[0],
-                                       voxel_idx[1],
-                                       voxel_idx[2]],
-                :] = putative_loc
-
+                                   self.voxel_next_neuron[voxel_idx[0], voxel_idx[1], voxel_idx[2]], :] \
+                    = putative_loc
                 self.voxel_next_neuron[voxel_idx[0], voxel_idx[1], voxel_idx[2]] += 1
 
             else:
                 self.reject_ctr += 1
 
-        tB = timeit.default_timer()
-        self.write_log(f"Placed {num_cells} in {tB - t_a} s")
+        t_b = timeit.default_timer()
+        self.write_log(f"Placed {num_cells} in {t_b - t_a} s")
 
         return self.neuron_coords[start_ctr:end_ctr, :]
 

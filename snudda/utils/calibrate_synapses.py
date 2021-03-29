@@ -185,7 +185,7 @@ class SnuddaCalibrateSynapses(object):
     # Setup iClamps    
     for s,vc in somaVClamp:
       cur = float(vc.i)
-      ic = neuron.h.IClamp(s(0.5))
+      ic = neuron.h.i_clamp(s(0.5))
       ic.amp = cur
       ic.dur = 2*simEnd*1e3
       self.holdingIClampList.append(ic)
