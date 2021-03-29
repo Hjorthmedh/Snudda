@@ -1,4 +1,4 @@
-from snudda.simulate import SnuddaSimulate
+from snudda.simulate.simulate import SnuddaSimulate
 import json
 import numpy as np
 import snudda.neuromodulation.modulation as modulation

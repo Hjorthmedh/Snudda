@@ -1,13 +1,13 @@
-from snudda.simulate import SnuddaSimulate
+from snudda.simulate.simulate import SnuddaSimulate
 import json
 import numpy as np
 import snudda.neuromodulation.modulation as modulation
 import snudda.neuromodulation.translator as translator
-from snudda.nrn_simulator_parallel import NrnSimulatorParallel
+from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
 from snudda.utils.snudda_path import snudda_parse_path
 import h5py
-from snudda.neuron_model_extended import NeuronModel
-from snudda.load import SnuddaLoad
+from snudda.neurons.neuron_model_extended import NeuronModel
+from snudda.utils.load import SnuddaLoad
 from neuron import h
 
 
