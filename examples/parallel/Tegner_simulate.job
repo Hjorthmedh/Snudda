@@ -41,7 +41,8 @@ module load gcc/9.2.0
 module load openmpi/4.1-gcc-9.2
 
 rm -r x86_64
-nrnivmodl $SNUDDA_DIR/data/neurons/mechanisms
+ln -s $SNUDDA_DIR/data/neurons/mechanisms
+nrnivmodl mechanisms
 
 # Lets try to run simulation also
 srun -n $SLURM_NTASKS x86_64/special -mpi -python snudda simulate ${JOBDIR}   

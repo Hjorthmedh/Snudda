@@ -5,7 +5,7 @@ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 chmod u+x Miniconda3-latest-Linux-x86_64.sh
 
 module load snic-env
-L=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/$SNIC_RESOURCE/local/
+L=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/$SNIC_RESOURCE
 
 ./Miniconda3-latest-Linux-x86_64.sh -b -p $L/miniconda3
 
