@@ -27,6 +27,7 @@ pushd $L
 git clone git@github.com:Hjorthmedh/Snudda.git
 cd Snudda
 pip install -r requirements.txt
+pip install cython
 
 popd
 

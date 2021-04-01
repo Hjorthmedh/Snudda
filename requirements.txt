@@ -15,3 +15,4 @@ NEURON
 pyswarms
 setuptools
 psutil
+cython  # Needed for compiling NEURON
