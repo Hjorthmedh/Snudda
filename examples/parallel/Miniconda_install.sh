@@ -12,13 +12,19 @@ L=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/$SNIC_RESOURCE
 source activate_miniconda.txt
 conda activate
 
+conda install wget -y
+conda install git -y
+conda install cmake -y
+
+
 # This is needed to compile mpi4py
 if [ $SNIC_RESOURCE == "tegner" ]; then
     module load gcc/9.2.0
     module load openmpi/4.1-gcc-9.2
 elif [ $SNIC_RESOURCE == "beskow" ]; then
-    module load gcc/10.1.0
-    module load ??? # What is openmpi module on Beskow?
+    echo "On Beskow"
+    # module load gcc/10.1.0
+    # module load ??? # What is openmpi module on Beskow?
    #do something
 fi
 
