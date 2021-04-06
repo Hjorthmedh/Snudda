@@ -473,7 +473,9 @@ class RegionMesh(object):
         self.save_cache()
 
         if np.sum(self.voxel_mask_inner) == 0:
-            self.write_log("Warning no inner voxels in mesh, check your meshBinWidth", is_error=True)
+            self.write_log(f"!!! Warning no inner voxels in mesh, is your meshBinWidth={self.bin_width} too large?"
+                           f"\nThis will prevent neurons from being placed in the volume.",
+                           is_error=True)
             self.write_log(f"mesh file: {self.filename}", is_error=True)
 
     ############################################################################
