@@ -74,6 +74,7 @@ class SnuddaPrune(object):
 
         self.work_history_file = os.path.join(network_path, "log", "network-detect-worklog.hdf5")    
         self.network_path = network_path
+        self.clean_voxel_files = clean_voxel_files
 
         self.logfile = logfile
         self.verbose = verbose
@@ -225,11 +226,11 @@ class SnuddaPrune(object):
 
                     (synapses, synapse_file) = \
                         self.big_merge_lookup(merge_data_type="synapses",
-                                              clean_voxel_files=True)
+                                              clean_voxel_files=self.clean_voxel_files)
 
                     (gap_junctions, gap_junction_file) = \
                         self.big_merge_lookup(merge_data_type="gapJunctions",
-                                              clean_voxel_files=True)
+                                              clean_voxel_files=self.clean_voxel_files)
 
             # When running on a cluster, we might want to do the serial parts
             # in a separate run, hence this option that allows us to prepare
@@ -1683,7 +1684,10 @@ class SnuddaPrune(object):
 
         ############################################################################
 
-    def big_merge_lookup(self, merge_data_type="synapses", clean_voxel_files=True):
+    def big_merge_lookup(self, merge_data_type="synapses", clean_voxel_files=None):
+
+        if clean_voxel_files is None:
+            clean_voxel_files = self.clean_voxel_files
 
         # Since we want the code to work for both synapses and gap junction
         # we need to know location of synapse matrix, eg "network/synapses",
