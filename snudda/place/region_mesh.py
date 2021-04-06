@@ -87,7 +87,6 @@ class RegionMesh(object):
         # Set by update_padding_mask
         self.voxel_mask_padding = None
 
-
         # This determines if we ray trace the border voxels, for finer detail
         # or not (activating this is SLOW)
         self.raytrace_borders = raytrace_borders
