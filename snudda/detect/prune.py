@@ -283,7 +283,7 @@ class SnuddaPrune(object):
 
                 f_dest = os.path.join(os.path.dirname(self.work_history_file).replace(f"{os.path.sep}log", os.path.sep),
                                       "network-synapses.hdf5")
-                f_src = os.path.basename(f_name)
+                f_src = f_name  # os.path.basename(f_name)
                 self.write_log(f"{f_dest} -> {f_src}", force_print=True)
 
                 if os.path.exists(f_dest):
