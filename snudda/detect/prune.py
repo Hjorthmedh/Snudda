@@ -288,7 +288,13 @@ class SnuddaPrune(object):
                 if os.path.exists(f_dest):
                     os.remove(f_dest)
 
-                os.symlink(f_src, f_dest)
+                try:
+                    os.symlink(f_src, f_dest)
+                except:
+                    # Windows have problems with symbolic links it seems
+                    self.write_log("Failed to create symbolic link, falling back to copying file.", force_print=True)
+                    import shutil
+                    shutil.copy2(f_src, f_dest)
 
                 return
 
