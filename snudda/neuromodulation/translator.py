@@ -21,6 +21,3 @@ def re_translate(word):
 
     return re_translation[word]
 
-def conductance_translate(word):
-
-    return conductance[word]

@@ -11,7 +11,7 @@ from snudda.utils.load import SnuddaLoad
 from neuron import h
 
 
-class SnuddaNeuromodulation(SnuddaSimulate):
+class SnuddaNeuromodulationSynapse(SnuddaSimulate):
 
     def __init__(self,
                  network_path=None,

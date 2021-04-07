@@ -1,0 +1,2 @@
+from snudda.neuromodulation.neuromodulation import SnuddaNeuromodulation
+from snudda.neuromodulation.neuromodulation_synapse import SnuddaNeuromodulationSynapse

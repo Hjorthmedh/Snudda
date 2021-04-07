@@ -1,7 +1,7 @@
 import json
 import pathlib
 
-class networkWide:
+class NetworkWideNeuromodulation:
 
     def __init__(self):
 

@@ -1,7 +1,7 @@
 import json
 import pathlib
 
-class synapseWise:
+class SynapseWiseNeuromodulation:
 
     def __init__(self):
 

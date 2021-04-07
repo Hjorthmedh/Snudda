@@ -94,7 +94,7 @@ class SnuddaNeuromodulation(SnuddaSimulate):
                                     getattr(mech, "_ref_level" + modulation_key.replace("mod", "")),
                                     self.sim.neuron.h.dt)
 
-    def modulate_synapses(self, modulation, synapses, intrinsic=False, extrinsic=False):
+    def modulate_synapses(self, modulation, synapses, intrinsic=None, extrinsic=None):
 
         modulation_key = modulation.replace('ulation', '')
 

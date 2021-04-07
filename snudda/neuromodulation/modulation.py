@@ -1,25 +1,28 @@
+
+'''
+
+Different functions for modulating the cells
+
+The functions return array which contain the modulation level per time step of the simulation
+
+
+'''
+
+
 import numpy as np
 
 def alpha(parameter=None):
 
-    ht = parameter['ht']
+    time_step_array = parameter['time_step_array']
     tstart = parameter['tstart']
     gmax = parameter['gmax']
     tau = parameter['tau']
 
+    mag = np.zeros_like(time_step_array)
+
     mag = list()
-    
-    '''
-    calc and returns a "magnitude" using an alpha function -> used for modulation
-        transients
 
-    ht      = simulation time (h.t)
-    tstart  = time when triggering the function
-    gmax    = maximal amplitude of curve (default 1; transient must lie between 0-1)
-    tau     = time constant of alpha function
-    '''
-
-    for t_step in ht:
+    for t_step in time_step_array:
 
         if t_step >= tstart:
             t = (t_step - tstart) / tau
@@ -33,15 +36,15 @@ def alpha(parameter=None):
 
 def step(parameter=None):
 
-    ht = parameter['ht']
+    time_step_array = parameter['time_step_array']
     tstart = parameter['tstart']
-    tstop = parameter['tstop']
+    step_stop = parameter['duration'] + parameter['tstart']
     gmax = parameter['gmax']
 
     mag = list()
     
-    for t_step in ht:
-        if ht > tstart and ht < tstop:
+    for t_step in time_step_array:
+        if t_step > tstart and t_step < step_stop:
             mag.append(gmax)
         else:
             mag.append(0)
@@ -52,12 +55,12 @@ def step(parameter=None):
 
 def bath_application(parameter=None):
 
-    ht = parameter['ht']
+    time_step_array = parameter['time_step_array']
     gmax = parameter['gmax']
 
     mag = list()
 
-    for t_step in ht:
+    for t_step in time_step_array:
 
         mag.append(gmax)
 
@@ -66,7 +69,7 @@ def bath_application(parameter=None):
 
 def alpha_background(parameter=None):
 
-    ht = parameter['ht']
+    time_step_array = parameter['time_step_array']
     tstart = parameter['tstart']
     gmax_decrease = parameter['gmax_decrease']
     tau = parameter['tau']
@@ -74,7 +77,8 @@ def alpha_background(parameter=None):
 
     mag = list()
 
-    for t_step in ht:
+    for t_step in time_step_array:
+
         mag_intermediate = 0
 
         if t_step >= tstart:
