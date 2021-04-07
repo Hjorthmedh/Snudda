@@ -3,7 +3,7 @@ from snudda.utils.load import SnuddaLoad
 
 class SnuddaExportConnectionMatrix(object):
 
-    def __init__(self, in_file, out_file):
+    def __init__(self, in_file, out_file, save_sparse=True):
 
         self.sl = SnuddaLoad(in_file)
 
@@ -17,7 +17,18 @@ class SnuddaExportConnectionMatrix(object):
         pos = data["neuronPositions"]
 
         print("Writing " + self.outFile + " (row = src, column=dest)")
-        np.savetxt(self.outFile, con_mat, delimiter=",", fmt="%d")
+        if save_sparse:
+            x_pos, y_pos = np.where(con_mat)
+            sparse_data = np.zeros((len(x_pos), 3))
+            for idx, (x, y) in enumerate(zip(x_pos, y_pos)):
+                sparse_data[idx, :] = [x, y, con_mat[x, y]]
+                np.savetxt(self.outFile, sparse_data, delimiter=",", fmt="%d")
+
+            # Test to verify
+            for row in sparse_data:
+                assert con_mat[row[0], row[1]] == row[2]
+        else:
+            np.savetxt(self.outFile, con_mat, delimiter=",", fmt="%d")
 
         print("Writing " + self.out_file_meta)
         with open(self.out_file_meta, "w") as f_out_meta:
@@ -67,6 +78,7 @@ if __name__ == "__main__":
     parser = ArgumentParser(description="Export connection matrix to CSV file")
     parser.add_argument("inFile", help="Snudda HDF5 file with network")
     parser.add_argument("outFile", help="CSV output file")
+    parser.add_argument("--sparse", action="store_true", default=False)
     args = parser.parse_args()
 
-    secm = SnuddaExportConnectionMatrix(args.inFile, args.outFile)
+    secm = SnuddaExportConnectionMatrix(args.inFile, args.outFile, save_sparse=args.sparse)
