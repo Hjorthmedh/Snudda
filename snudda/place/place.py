@@ -284,6 +284,17 @@ class SnuddaPlace(object):
                                  log_file=mesh_logfile,
                                  random_seed=vol_seed[volume_id])
 
+                if "density" in self.volume[volume_id]:
+                    # We need to set up the neuron density functions also
+                    # TODO: Here density for each neuron type in the volume is defined
+                    #       as a numexpr evaluated string of x,y,z stored in a dictionary
+                    #       with the neuron type as key.
+                    #       Add ability to also specify a density file.
+                    for neuron_type in self.volume[volume_id]["density"]:
+                        density_str = self.volume[volume_id]["density"][neuron_type]
+                        density_func = lambda x, y, z: numexpr.evaluate(density_str)
+                        self.volume[volume_id]["mesh"].define_density(neuron_type, density_func)
+
             self.write_log("Using dimensions from config file")
 
         # Setup for rotations
