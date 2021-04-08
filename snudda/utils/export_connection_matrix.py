@@ -19,7 +19,7 @@ class SnuddaExportConnectionMatrix(object):
         print("Writing " + self.outFile + " (row = src, column=dest)")
         if save_sparse:
             x_pos, y_pos = np.where(con_mat)
-            sparse_data = np.zeros((len(x_pos), 3))
+            sparse_data = np.zeros((len(x_pos), 3), dtype=int)
             for idx, (x, y) in enumerate(zip(x_pos, y_pos)):
                 sparse_data[idx, :] = [x, y, con_mat[x, y]]
 
