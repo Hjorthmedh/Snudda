@@ -22,7 +22,8 @@ class SnuddaExportConnectionMatrix(object):
             sparse_data = np.zeros((len(x_pos), 3))
             for idx, (x, y) in enumerate(zip(x_pos, y_pos)):
                 sparse_data[idx, :] = [x, y, con_mat[x, y]]
-                np.savetxt(self.outFile, sparse_data, delimiter=",", fmt="%d")
+
+            np.savetxt(self.outFile, sparse_data, delimiter=",", fmt="%d")
 
             # Test to verify
             for row in sparse_data:
