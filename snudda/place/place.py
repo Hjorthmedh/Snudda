@@ -291,8 +291,34 @@ class SnuddaPlace(object):
                     #       with the neuron type as key.
                     #       Add ability to also specify a density file.
                     for neuron_type in self.volume[volume_id]["density"]:
-                        density_str = self.volume[volume_id]["density"][neuron_type]
-                        density_func = lambda x, y, z: numexpr.evaluate(density_str)
+                        if "densityFunction" in self.volume[volume_id]["density"][neuron_type]:
+                            density_str = self.volume[volume_id]["density"][neuron_type]["densityFunction"]
+                            density_func = lambda x, y, z: numexpr.evaluate(density_str)
+
+                        if "densityFile" in self.volume[volume_id]["density"][neuron_type]:
+                            density_file = self.volume[volume_id]["density"][neuron_type]["densityFile"]
+
+                            # We need to load the data from the file
+                            from scipy.interpolate import griddata
+                            with open(density_file, "r") as f:
+                                density_data = json.load(f)
+
+                                assert volume_id in density_data and neuron_type in density_data[volume_id], \
+                                    f"Volume {volume_id} does not contain data for neuron type {neuron_type}"
+
+                                assert "Coordinates" in density_data[volume_id][neuron_type] \
+                                       and "Density" in density_data[volume_id][neuron_type], \
+                                    (f"Missing Coordinates and/or Density data for "
+                                     f"volume {volume_id}, neuron type {neuron_type}")
+
+                                coord = density_data[volume_id][neuron_type]["Coordinates"] * 1e-6  # Convert to SI
+                                density = density_data[volume_id][neuron_type]["Density"]
+
+                                density_func_helper = lambda pos: griddata(points=coord, values=density,
+                                                                           xi=pos, method="linear")
+
+                                density_func = lambda x, y, z: density_func_helper(np.array([x, y, z]))
+
                         self.volume[volume_id]["mesh"].define_density(neuron_type, density_func)
 
             self.write_log("Using dimensions from config file")
