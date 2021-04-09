@@ -291,6 +291,9 @@ class SnuddaPlace(object):
                     #       with the neuron type as key.
                     #       Add ability to also specify a density file.
                     for neuron_type in self.volume[volume_id]["density"]:
+
+                        density_func = None
+
                         if "densityFunction" in self.volume[volume_id]["density"][neuron_type]:
                             density_str = self.volume[volume_id]["density"][neuron_type]["densityFunction"]
                             density_func = lambda x, y, z: numexpr.evaluate(density_str)

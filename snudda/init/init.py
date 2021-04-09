@@ -467,7 +467,25 @@ class SnuddaInit(object):
 
             self.network_data["Neurons"][unique_name] = cell_data
 
-    ############################################################################
+    def add_neuron_density(self, volume_id, neuron_type, density_func=None, density_file=None):
+
+        assert volume_id in self.network_data["Volume"], f"Volume {volume_id} not defined"
+
+        assert (density_func is None) + (density_file is None) == 1, \
+            f"Volume {volume_id}, neuron type {neuron_type}: Only one of density_func and density_file should be set"
+
+        if "Density" not in self.network_data["Volume"][volume_id]:
+            self.network_data["Volume"][volume_id]["Density"] = dict()
+
+        self.network_data["Volume"][volume_id]["Density"][neuron_type] = dict()
+
+        if density_func:
+            self.network_data["Volume"][volume_id]["Density"][neuron_type]["densityFunction"] = density_func
+
+        if density_file:
+            self.network_data["Volume"][volume_id]["Density"][neuron_type]["densityFile"] = density_file
+
+        ############################################################################
 
     def write_json(self, filename=None):
 
