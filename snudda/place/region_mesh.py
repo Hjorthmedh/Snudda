@@ -45,7 +45,8 @@ class RegionMesh(object):
         self.density_total_sum = dict()
         self.placed_voxel = dict()
         self.placed_total = dict()
-
+        self.density_voxel_n_sample = dict()
+        self.density_total_n_sample = dict()
 
         self.random_seed = random_seed
         self.random_generator = np.random.default_rng(self.random_seed)
@@ -462,7 +463,7 @@ class RegionMesh(object):
             else:
                 # Distribute the work to the workers
                 # Randomize order, to spread work load a bit better -- order should not affect computation
-                # as computation is determenistic
+                # as computation is deterministic
                 all_x = np.random.permutation(np.arange(0, self.num_bins[0]))
 
                 self.d_view.scatter("x_range", all_x, block=True)
@@ -723,6 +724,8 @@ class RegionMesh(object):
         self.density_function[neuron_type] = density_function
         self.density_voxel_sum[neuron_type] = np.zeros(self.num_bins, dtype=float)
         self.density_total_sum[neuron_type] = 0
+        self.density_voxel_n_sample[neuron_type] = np.zeros(self.num_bins, dtype=int)
+        self.density_total_n_sample[neuron_type] = 0
         self.placed_voxel[neuron_type] = np.zeros(self.num_bins, dtype=int)
         self.placed_total[neuron_type] = 0
 
@@ -786,12 +789,20 @@ class RegionMesh(object):
 
                 self.density_voxel_sum[neuron_type][vx, vy, vz] += df
                 self.density_total_sum[neuron_type] += df
+                self.density_voxel_n_sample[neuron_type][vx, vy, vz] += 1
+                self.density_total_n_sample[neuron_type] += 1
 
-                n_expected = (self.density_voxel_sum[neuron_type][vx, vy, vz]
-                              / self.density_total_sum[neuron_type]
+                # n_expected = (self.density_voxel_sum[neuron_type][vx, vy, vz]
+                #               / self.density_total_sum[neuron_type]
+                #               * (self.placed_total[neuron_type] + 1))
+
+                # This assumes all of mesh voxels have same volume
+                n_expected = ((self.density_voxel_sum[neuron_type][vx, vy, vz]
+                              / self.density_voxel_n_sample[neuron_type][vx, vy, vz])
+                              / (self.density_total_sum[neuron_type] / self.density_total_n_sample[neuron_type])
                               * (self.placed_total[neuron_type] + 1))
 
-                if self.placed_voxel[neuron_type][vx, vy, vz] > np.ceil(n_expected):
+                if self.placed_voxel[neuron_type][vx, vy, vz] > np.ceil(n_expected) + 1:
                     # We have too many neurons in this part of the volume already, reject
                     self.reject_ctr += 1
                     continue
@@ -871,6 +882,12 @@ class RegionMesh(object):
 
         t_b = timeit.default_timer()
         self.write_log(f"Placed {num_cells} in {t_b - t_a} s")
+
+        for neuron_type in self.placed_voxel:
+            if np.max(self.placed_voxel[neuron_type]) < 5 \
+                    and neuron_type in self.density_function and self.density_function[neuron_type]:
+                self.write_log(f"Warning, mesh_bin_width might be too small to setup accurate {neuron_type} density",
+                               is_error=True)
 
         return self.neuron_coords[start_ctr:end_ctr, :]
 
