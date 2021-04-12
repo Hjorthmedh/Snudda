@@ -41,8 +41,11 @@ class RegionMesh(object):
         self.num_bins = None
 
         self.density_function = dict()
-        self.density_count = dict()
-        self.density_total_count = dict()
+        self.density_voxel_sum = dict()
+        self.density_total_sum = dict()
+        self.placed_voxel = dict()
+        self.placed_total = dict()
+
 
         self.random_seed = random_seed
         self.random_generator = np.random.default_rng(self.random_seed)
@@ -718,7 +721,7 @@ class RegionMesh(object):
     def define_density(self, neuron_type, density_function):
 
         self.density_function[neuron_type] = density_function
-        self.density_voxel_sum[neuron_type] = np.zeros(self.num_bins, dtype=int)
+        self.density_voxel_sum[neuron_type] = np.zeros(self.num_bins, dtype=float)
         self.density_total_sum[neuron_type] = 0
         self.placed_voxel[neuron_type] = np.zeros(self.num_bins, dtype=int)
         self.placed_total[neuron_type] = 0
@@ -776,7 +779,7 @@ class RegionMesh(object):
                                           / self.bin_width), dtype=int)
 
             # Density check is fast, do that to get an early rejection if needed
-            if neuron_type in self.density_function:
+            if inside_flag and neuron_type in self.density_function:
                 xp, yp, zp = putative_loc
                 df = self.density_function[neuron_type](x=xp, y=yp, z=zp)
                 vx, vy, vz = voxel_idx
@@ -786,9 +789,9 @@ class RegionMesh(object):
 
                 n_expected = (self.density_voxel_sum[neuron_type][vx, vy, vz]
                               / self.density_total_sum[neuron_type]
-                              * self.placed_total[neuron_type])
+                              * (self.placed_total[neuron_type] + 1))
 
-                if self.placed_total[neuron_type][vx, vy, vz] > np.ceil(n_expected) + 1:
+                if self.placed_voxel[neuron_type][vx, vy, vz] > np.ceil(n_expected):
                     # We have too many neurons in this part of the volume already, reject
                     self.reject_ctr += 1
                     continue
