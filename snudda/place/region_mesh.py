@@ -11,7 +11,8 @@ class RegionMesh(object):
 
     def __init__(self, filename, d_view=None, lb_view=None, role="master",
                  use_cache=True, pickle_version=-1, raytrace_borders=True,
-                 d_min=15e-6, bin_width=1e-4, logfile_name=None, log_file=None,
+                 d_min=15e-6, bin_width=1e-4,
+                 logfile_name=None, log_file=None,
                  random_seed=112, verbose=False):
 
         self.d_view = d_view
@@ -38,6 +39,14 @@ class RegionMesh(object):
         self.d_min = d_min
         self.padding = max(self.bin_width, d_min)
         self.num_bins = None
+
+        self.density_function = dict()
+        self.density_voxel_sum = dict()
+        self.density_total_sum = dict()
+        self.placed_voxel = dict()
+        self.placed_total = dict()
+        self.density_voxel_n_sample = dict()
+        self.density_total_n_sample = dict()
 
         self.random_seed = random_seed
         self.random_generator = np.random.default_rng(self.random_seed)
@@ -271,7 +280,9 @@ class RegionMesh(object):
         self.voxel_mask_inner = data["voxelMaskInner"]
         self.voxel_mask_border = data["voxelMaskBorder"]
 
-        self.point_out = self.max_coord + 1e-2
+        self.point_out = self.max_coord + np.array([1e-1, 1e-2, 1e-3])
+        # self.point_out = self.max_coord + 1e-2
+
 
         assert self.bin_width == data["binWidth"], \
             "Mismatch binWidth: " + str(self.bin_width) + " vs " + str(data["binWidth"])
@@ -377,7 +388,8 @@ class RegionMesh(object):
                 pdb.set_trace()
 
             # Used by ray casting when checking if another point is interior
-            self.point_out = self.max_coord + 1e-2
+            self.point_out = self.max_coord + np.array([1e-1, 1e-2, 1e-3])
+            # self.point_out = self.max_coord + 1e-2
 
     ############################################################################
 
@@ -454,7 +466,7 @@ class RegionMesh(object):
             else:
                 # Distribute the work to the workers
                 # Randomize order, to spread work load a bit better -- order should not affect computation
-                # as computation is determenistic
+                # as computation is deterministic
                 all_x = np.random.permutation(np.arange(0, self.num_bins[0]))
 
                 self.d_view.scatter("x_range", all_x, block=True)
@@ -530,6 +542,10 @@ class RegionMesh(object):
     # if an odd number of intersections, then it is an inner point
     #
     # Based on: https://www.erikrotteveel.com/python/three-dimensional-ray-tracing-in-python/
+    # which is based on : source: http://geomalgorithms.com/a06-_intersect-2.html
+
+    # TODO: When the line between the interior and exterior point crosses the line between two vertexes this code
+    #       might incorrectly say the line is outside by considering it crosses both lines
 
     def ray_casting(self, point):
 
@@ -579,12 +595,6 @@ class RegionMesh(object):
                 # print("si = " +str(si) + ", ti = " + str(ti))
 
                 intersect_count += 1
-
-                if self.debug_flag:
-                    import pdb
-                    pdb.set_trace()
-
-        # print("intersection count = " + str(intersectCount))
 
         return np.mod(intersect_count, 2) == 1
 
@@ -708,14 +718,17 @@ class RegionMesh(object):
 
     ############################################################################
 
-    # neuron_type is included since in future versions we might want varying
-    # density depending on the type of neuron
+    # density_function is either None, or a function of pos = [x,y,z] (in SI units)
 
-    # TODO: When we draw from the random_pool, we need to reject a fraction of the neurons
-    #       so as to match the density profile for that neuron type.
-    #       in addition, we also need to keep track of the placed neuron density profile
-    #       as these get harder to place the more dense the region is.
-    #       Also, this must be done separately for all neuron types.
+    def define_density(self, neuron_type, density_function):
+
+        self.density_function[neuron_type] = density_function
+        self.density_voxel_sum[neuron_type] = np.zeros(self.num_bins, dtype=float)
+        self.density_total_sum[neuron_type] = 0
+        self.density_voxel_n_sample[neuron_type] = np.zeros(self.num_bins, dtype=int)
+        self.density_total_n_sample[neuron_type] = 0
+        self.placed_voxel[neuron_type] = np.zeros(self.num_bins, dtype=int)
+        self.placed_total[neuron_type] = 0
 
     def place_neurons(self, num_cells, neuron_type=None, d_min=None):
 
@@ -768,6 +781,32 @@ class RegionMesh(object):
             # Only check the neighbouring voxels, to speed things up
             voxel_idx = np.array(np.floor((putative_loc - self.min_coord)
                                           / self.bin_width), dtype=int)
+
+            # Density check is fast, do that to get an early rejection if needed
+            if inside_flag and neuron_type in self.density_function:
+                xp, yp, zp = putative_loc
+                df = self.density_function[neuron_type](x=xp, y=yp, z=zp)
+                vx, vy, vz = voxel_idx
+
+                self.density_voxel_sum[neuron_type][vx, vy, vz] += df
+                self.density_total_sum[neuron_type] += df
+                self.density_voxel_n_sample[neuron_type][vx, vy, vz] += 1
+                self.density_total_n_sample[neuron_type] += 1
+
+                n_expected = (self.density_voxel_sum[neuron_type][vx, vy, vz]
+                              / self.density_total_sum[neuron_type]
+                              * (self.placed_total[neuron_type] + 1))
+
+                # This assumes all of mesh voxels have same volume
+                # n_expected = ((self.density_voxel_sum[neuron_type][vx, vy, vz]
+                #               / self.density_voxel_n_sample[neuron_type][vx, vy, vz])
+                #               / (self.density_total_sum[neuron_type] / self.density_total_n_sample[neuron_type])
+                #               * (self.placed_total[neuron_type] + 1))
+
+                if self.placed_voxel[neuron_type][vx, vy, vz] > np.ceil(n_expected):
+                    # We have too many neurons in this part of the volume already, reject
+                    self.reject_ctr += 1
+                    continue
 
             voxel_idx_list = [voxel_idx]
 
@@ -824,6 +863,11 @@ class RegionMesh(object):
                     self.neuron_type[self.neuron_ctr] = neuron_type_id
                     self.neuron_ctr += 1
                     # self.writeLog("Placed neuron " + str(self.neuronCtr))
+
+                    # Update counts if we have a density function defined
+                    if neuron_type in self.density_function:
+                        self.placed_voxel[neuron_type][vx, vy, vz] += 1
+                        self.placed_total[neuron_type] += 1
                 else:
                     self.padding_ctr += 1
 
@@ -839,6 +883,12 @@ class RegionMesh(object):
 
         t_b = timeit.default_timer()
         self.write_log(f"Placed {num_cells} in {t_b - t_a} s")
+
+        for neuron_type in self.placed_voxel:
+            if np.max(self.placed_voxel[neuron_type]) < 5 \
+                    and neuron_type in self.density_function and self.density_function[neuron_type]:
+                self.write_log(f"Warning, mesh_bin_width might be too small to setup accurate {neuron_type} density",
+                               is_error=True)
 
         return self.neuron_coords[start_ctr:end_ctr, :]
 
