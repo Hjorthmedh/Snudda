@@ -29,7 +29,7 @@ class SnuddaDensityTest(unittest.TestCase):
 
         mesh_file = os.path.join(self.network_path, "mesh", "slice.obj")
 
-        cnc.define_striatum(num_dSPN=0, num_iSPN=0, num_FS=1000, num_LTS=0, num_ChIN=0,
+        cnc.define_striatum(num_dSPN=0, num_iSPN=0, num_FS=2000, num_LTS=0, num_ChIN=0,
                             mesh_file=mesh_file, mesh_bin_width=5e-4, neurons_dir=neuron_dir)
 
         create_slice_mesh(file_name=mesh_file,
@@ -79,6 +79,11 @@ class SnuddaDensityTest(unittest.TestCase):
             plt.figure()
             plt.hist(neuron_pos[:, coord])
             plt.savefig(os.path.join("figures", f"density-hist-{coord_str}.png"))
+
+        binned, bin_edges = np.histogram(neuron_pos[:, 0], 5)
+        # Density should increase with x-coordinate
+        self.assertTrue((np.diff(binned) > 0).all())
+        self.assertTrue(binned[0]*3 < binned[-1])
 
         # import pdb
         # pdb.set_trace()

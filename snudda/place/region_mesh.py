@@ -674,12 +674,6 @@ class RegionMesh(object):
 
                 intersect_count += 1
 
-                if self.debug_flag:
-                    import pdb
-                    pdb.set_trace()
-
-        # print("intersection count = " + str(intersectCount))
-
         return np.mod(intersect_count, 2) == 1
 
     ############################################################################
@@ -887,7 +881,7 @@ class RegionMesh(object):
                 #               / (self.density_total_sum[neuron_type] / self.density_total_n_sample[neuron_type])
                 #               * (self.placed_total[neuron_type] + 1))
 
-                if self.placed_voxel[neuron_type][vx, vy, vz] > np.ceil(n_expected) + 1:
+                if self.placed_voxel[neuron_type][vx, vy, vz] > np.ceil(n_expected):
                     # We have too many neurons in this part of the volume already, reject
                     self.reject_ctr += 1
                     continue
