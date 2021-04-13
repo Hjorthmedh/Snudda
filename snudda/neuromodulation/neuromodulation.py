@@ -41,7 +41,7 @@ class SnuddaNeuromodulation(SnuddaSimulate):
             duration = np.arange(0, description_neuromodulation['duration'], 0.025)
             method = getattr(modulation, description_neuromodulation['method'])
 
-            description_neuromodulation['parameters'].update({"ht": duration})
+            description_neuromodulation['parameters'].update({"time_step_array": duration})
 
             modulation_vector = method(description_neuromodulation['parameters'])
 
