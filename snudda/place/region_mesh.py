@@ -786,6 +786,7 @@ class RegionMesh(object):
             if inside_flag and neuron_type in self.density_function:
                 xp, yp, zp = putative_loc
                 df = self.density_function[neuron_type](x=xp, y=yp, z=zp)
+                assert df >= 0, f"Error your density for {neuron_type} is negative {df} at {putative_loc}"
                 vx, vy, vz = voxel_idx
 
                 self.density_voxel_sum[neuron_type][vx, vy, vz] += df
