@@ -1311,7 +1311,7 @@ class SnuddaSimulate(object):
             syn_pos_nrn[i, 2] = h.z3d(idx, sec=sec)
 
         # We need to rotate the neuron to match the big simulation
-        # !!! OBS, this assumes that some is in 0,0,0 local coordinates
+        # !!! OBS, this assumes that soma is in 0,0,0 local coordinates
         syn_pos_nrn_rot = np.transpose(np.matmul(neuron_rotation,
                                                  np.transpose(syn_pos_nrn)))
 
