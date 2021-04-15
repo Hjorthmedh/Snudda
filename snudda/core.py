@@ -109,8 +109,7 @@ class Snudda(object):
         config_file = os.path.join(self.network_path, "network-config.json")
         SnuddaInit(struct_def=struct_def,
                    config_file=config_file,
-                   random_seed=random_seed,
-                   verbose=args.verbose)
+                   random_seed=random_seed)
 
         if args.size > 1e5:
             print(f"Make sure there is enough disk space in {self.network_path}")
