@@ -36,7 +36,7 @@ class SnuddaExportConnectionMatrix(object):
         print("Writing " + self.out_file_meta)
         with open(self.out_file_meta, "w") as f_out_meta:
             for i, (nt, nn, p, mf) in enumerate(zip(neuron_type, neuron_name, pos, morph_file)):
-                s = "%d,%s,%f,%f,%f,%s\n" % (i, nt, nn, p[0], p[1], p[2], mf)
+                s = "%d,%s,%s,%f,%f,%f,%s\n" % (i, nt, nn, p[0], p[1], p[2], mf)
                 f_out_meta.write(s)
             f_out_meta.close()
 
