@@ -341,7 +341,7 @@ class SnuddaPrune(object):
 
     def set_scratch_path(self, scratch_path=None):
 
-        assert self.work_history_file is not None and self.work_history_file is not "last", \
+        assert self.work_history_file is not None and self.work_history_file != "last", \
             "Need to call openWorkHistoryFile before setScratchPath"
 
         if scratch_path is None:
