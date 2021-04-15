@@ -1,0 +1,11 @@
+#!/bin/bash -l
+#SBATCH -t 0:19:00
+#SBATCH --time-min=0:19:00
+#SBATCH -J snudda_simulate
+#SBATCH -A 2020-5-449
+#SBATCH -o save/output-compile-NEURON.o%j
+#SBATCH -e save/error-compile-NEURON.e%j
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=32
+
+./Beskow_install.sh

@@ -2282,7 +2282,7 @@ class SnuddaDetect(object):
         vz_min = max(0, v_coords[2] - v_radius)
         vz_max = min(self.hyper_voxel_size, v_coords[2] + v_radius + 1)
 
-        self.write_log(f"Soma check x: {vx_min} - {vx_max} y: {vy_min} - {vy_max} z: {vz_min} - {vz_max}")
+        # self.write_log(f"Soma check x: {vx_min} - {vx_max} y: {vy_min} - {vy_max} z: {vz_min} - {vz_max}")
 
         for vx in range(vx_min, vx_max):
             for vy in range(vy_min, vy_max):
