@@ -12,12 +12,16 @@ L=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/$SNIC_RESOURCE
 source activate_miniconda.txt
 conda activate
 
+conda update -n base conda -y
 conda install wget -y
 conda install git -y
 conda install cmake -y
+# There is a bug in 3.3.2 which does not handle non-numeric host names correctly
+# conda install mpich=3.2.1 -y
+conda install openmpi -y
 
 
-# This is needed to compile mpi4py
+# This is needed to compile mpi4py -- is it really?
 if [ $SNIC_RESOURCE == "tegner" ]; then
     module load gcc/9.2.0
     module load openmpi/4.1-gcc-9.2

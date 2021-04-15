@@ -56,7 +56,8 @@ pushd $L/build
 
   echo "About to run"
   echo `which cmake`
-    cmake .. \
+  cmake .. \
+	  -DCMAKE_BUILD_TYPE=Debug \
 	  -DNRN_ENABLE_INTERVIEWS=OFF \
 	  -DNRN_ENABLE_PYTHON=ON \
 	  -DNRN_ENABLE_MPI=ON \

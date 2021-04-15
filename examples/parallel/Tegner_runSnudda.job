@@ -1,11 +1,11 @@
 #!/bin/bash -l
-#SBATCH -t 0-3:59:00
-#SBATCH --time-min=1:59:00
+#SBATCH -t 0-11:59:00
+#SBATCH --time-min=9:59:00
 #SBATCH -J Snudda
 #SBATCH -A 2020-5-636
 #SBATCH -o save/output-runSnudda.o%j
 #SBATCH -e save/error-runSnudda.e%j
-#SBATCH --nodes=1
+#SBATCH --nodes=10-12
 #SBATCH --ntasks-per-node=24
 
 # --- Tegner has 24 cores per node
@@ -56,6 +56,12 @@ JOBDIR=$SNUDDA_DIR/../networks/TegnerRun.${SLURM_JOBID}
 #.. Let's try to run on infiniband connection
 ./Tegner_runSnudda.sh
 
+exit
+
+echo "This should not show up"
+
+
+# ---------------------- LAST PART NOT RUN
 
 echo ">>> Compile NEURON modules: "`date`    
 # Remove "special" old directory
@@ -69,7 +75,7 @@ module load gcc/9.2.0
 module load openmpi/4.1-gcc-9.2
     
 # Lets try to run simulation also
-srun -n $SLURM_NTASKS x86_64/special -mpi -python snudda simulate ${JOBDIR}   
+# srun -n $SLURM_NTASKS x86_64/special -mpi -python snudda simulate ${JOBDIR}   
 
 echo "exiting submit script"
 

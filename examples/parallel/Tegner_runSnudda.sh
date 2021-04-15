@@ -6,8 +6,8 @@ JOBDIR=$SNUDDA_DIR/../networks/TegnerRun.${SLURM_JOBID}
 
 #SIMSIZE=120000
 #SIMSIZE=10062
-SIMSIZE=2000
-#SIMSIZE=1760000
+#SIMSIZE=2000
+SIMSIZE=1760000
 
 mkdir -p $JOBDIR
 
@@ -39,6 +39,8 @@ else
 	ipcluster stop	
 	exit -1
     fi
+
+    echo "SLURM_NODELIST = $SLURM_NODELIST"
     
     #.. Obtain infiniband ip - this is faster and also internal
     /sbin/ifconfig ib0 | head -n 2 | tail -n 1 | awk '{print $2}' > controller_ip.txt
@@ -47,7 +49,7 @@ else
     let NWORKERS="$SLURM_NTASKS - 1"
 
     echo ">>> NWORKERS " $NWORKERS
-    echo ">>> Starting ipcluster"
+    echo ">>> Starting ipcluster `date`"
     
     #.. Start the ipcluster
     ipcluster start -n ${NWORKERS} \
@@ -67,7 +69,7 @@ else
     #${ANACONDA_HOME}/bin/python3 badExample.py 
 
     echo ">>> Place: "`date`
-    snudda place ${JOBDIR} --parallel
+    snudda place ${JOBDIR} --parallel --verbose
 
     if [ $? != 0 ]; then
 	echo "Something went wrong during placement, aborting!"
@@ -93,9 +95,12 @@ else
 	exit -1
     fi
 
-    echo ">>> Input: "`date`
-    cp -a $SNUDDA_DIR/data/input_config/input-v10-scaled.json ${JOBDIR}/input.json
-    snudda input ${JOBDIR} --parallel --time 5
+    # Disable input generation at the moment
+
+    # echo ">>> Input: "`date`
+    # cp -a $SNUDDA_DIR/data/input_config/input-v10-scaled.json ${JOBDIR}/input.json
+    # snudda input ${JOBDIR} --parallel --time 5
+
     
     #.. Shut down cluster
     ipcluster stop	
