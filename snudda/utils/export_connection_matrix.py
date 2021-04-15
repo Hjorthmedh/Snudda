@@ -15,7 +15,7 @@ class SnuddaExportConnectionMatrix(object):
         con_mat = self.create_con_mat()
         neuron_type = [x["type"] for x in data["neurons"]]
         neuron_name = [x["name"] for x in data["neurons"]]
-        morph_file = [data["morph"][nn]["swc"] for nn in neuron_name]
+        morph_file = [data["morph"][nn]["location"] for nn in neuron_name]
         pos = data["neuronPositions"]
 
         print("Writing " + self.outFile + " (row = src, column=dest)")
