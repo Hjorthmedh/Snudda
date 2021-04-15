@@ -438,10 +438,10 @@ class SnuddaInit(object):
             unique_name = name + "_" + str(ctr)
             cell_data = dict([])
 
-            if not snudda_isfile(par_file) and model_type is not "virtual":
+            if not snudda_isfile(par_file) and model_type != "virtual":
                 print(f"Parameter file not found: {par_file}")
 
-            if not snudda_isfile(mech_file) and model_type is not "virtual":
+            if not snudda_isfile(mech_file) and model_type != "virtual":
                 print(f"Mechanism file not found: {mech_file}")
 
             if hoc_file is not None and not snudda_isfile(hoc_file):
