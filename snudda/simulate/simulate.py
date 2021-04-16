@@ -1279,8 +1279,6 @@ class SnuddaSimulate(object):
 
     def export_to_core_neuron(self):
 
-        pc = h.ParallelContext()
-
         core_data_path = os.path.join(self.network_path, "CoreNeuronModule")
         rank = self.pc.id()
         self.pc.barrier()
