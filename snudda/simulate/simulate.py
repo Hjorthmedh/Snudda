@@ -1279,23 +1279,21 @@ class SnuddaSimulate(object):
 
     def export_to_core_neuron(self):
 
-        pc = h.ParallelContext()
-
         core_data_path = os.path.join(self.network_path, "CoreNeuronModule")
-        rank = sim.pc.id()
-        sim.pc.barrier()
+        rank = self.pc.id()
+        self.pc.barrier()
 
         self.write_log(f"Exporting core neuron module to {core_data_path}")
         if rank == 0 and core_data_path is not None and not os.path.isdir(core_data_path):
             os.mkdir(core_data_path)
 
-        sim.pc.barrier()
+        self.pc.barrier()
         h.secondorder = 1
         h.cvode.cache_efficient(1)
-        sim.pc.set_maxstep(10)
+        self.pc.set_maxstep(10)
         h.stdinit()
-        sim.pc.nrnbbcore_write(core_data_path)
-        sim.pc.barrier()
+        self.pc.nrnbbcore_write(core_data_path)
+        self.pc.barrier()
 
     ############################################################################
 
