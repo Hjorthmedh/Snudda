@@ -8,7 +8,7 @@ simName=networks/PD_run_2021
 
 #snudda init $simName --size 1760000
 #snudda init $simName --size 100000
-snudda init $simName --size 20000 --overwrite
+snudda init $simName --size 200 --overwrite
 
 snudda place $simName --parallel
 #snudda detect $simName --hvsize 50 --volumeID Striatum
@@ -16,7 +16,7 @@ snudda detect $simName --volumeID Striatum --parallel
 snudda prune $simName --parallel
 
 # Copy over template input
-cp -a data/input_config/input-tinytest-v9-freq-vectors.json $simName/input.json
+cp -a ../snudda/data/input_config/input-tinytest-v9-freq-vectors.json $simName/input.json
 echo "Make sure the input config file was found, otherwise provide your own"
 
 # TODO, maybe use to get snudda base install dir:
