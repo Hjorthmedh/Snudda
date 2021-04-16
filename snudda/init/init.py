@@ -749,7 +749,7 @@ class SnuddaInit(object):
         else:
             # Default, full size striatum
             self.define_structure(struct_name="Striatum",
-                                  struct_mesh=os.path.join("$DATA", "mesh", "Striatum-mesh.obj"),
+                                  struct_mesh=os.path.join("$DATA", "mesh", "Striatum-d.obj"),
                                   mesh_bin_width=1e-4)
 
         if neurons_dir is None:

@@ -482,6 +482,10 @@ class Snudda(object):
 
         t_sim = args.time * 1000  # Convert from s to ms for Neuron simulator
 
+        if args.exportCoreNeuron:
+            sim.export_to_core_neuron()
+            return  # We do not run simulation when exporting to core neuron
+
         sim.check_memory_status()
         print("Running simulation for " + str(t_sim) + " ms.")
         sim.run(t_sim)  # In milliseconds
