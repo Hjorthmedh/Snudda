@@ -75,7 +75,7 @@ module load gcc/9.2.0
 module load openmpi/4.1-gcc-9.2
     
 # Lets try to run simulation also
-# srun -n $SLURM_NTASKS x86_64/special -mpi -python snudda simulate ${JOBDIR}   
+# srun -n $SLURM_NTASKS x86_64/special -mpi -python snudda simulate ${JOBDIR}  # UPDATE: PDC recommends using mpirun instead of srun 
 
 echo "exiting submit script"
 
