@@ -15,7 +15,7 @@ let N_WORKERS="$SLURM_NNODES * 32"
 HOME=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda
 
 # Synapse file
-SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
+SNUDDA_DIR=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/snudda
 
 NETWORK_DIR=$SNUDDA_DIR/../../networks/TegnerRun.959380
 
