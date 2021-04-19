@@ -1,0 +1,56 @@
+#!/bin/bash -l
+#SBATCH -t 2:59:00
+#SBATCH --time-min=1:59:00
+#SBATCH -J snudda_simulate
+#SBATCH -A 2020-5-449
+#SBATCH -o save/output-snudda_simulate.o%j
+#SBATCH -e save/error-snudda_simulate.e%j
+#SBATCH --nodes=15-20
+#SBATCH --ntasks-per-node=32
+
+# 16 workers were too few, got section stack overflow (there is a hidden
+# push to the stack somewhere in the neuron code)
+let N_WORKERS="$SLURM_NNODES * 32"
+
+HOME=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda
+
+# Synapse file
+SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
+
+NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.904373
+
+NETWORK_INFO_FILE=$NETWORK_DIR/network-pruned-synapses.hdf5
+NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
+NETWORK_VOLTAGE_FILE=$NETWORK_DIR/simulation/voltage-trace-${SLURM_JOBID}.txt
+
+echo "Network dir: "$NETWORK_DIR
+
+
+##############
+
+source activate_miniconda.txt
+
+module load snic-env
+
+# --- I have tried with the gnu compiler, and also with the cray compiler
+module swap PrgEnv-cray PrgEnv-gnu
+module unload cray-libsci atp
+export CRAYPE_LINK_TYPE=dynamic
+export CRAY_ROOTFS=DSL
+
+conda activate
+
+# Remove "special" old directory
+rm -r x86_64
+nrnivmodl mechanisms
+
+# Snudda bin gets installed here, when we use the user flag above
+export PATH=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/beskow/miniconda3/bin:$PATH
+export PYTHONPATH=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/beskow/miniconda3/lib/python3.8/site-packages:$PYTHONPATH
+
+
+srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
+
+
+# Original version, start neuron from python, does not work on beskow
+#aprun -n  $N_WORKERS /cfs/klemming/nobackup/h/hjorth/ChINopt/model/x86_64/special -mpi -python snudda_simulate.py /cfs/klemming/nobackup/h/hjorth/ChINopt/model/save/save/network-connect-synapse-file-1749867.pickle
