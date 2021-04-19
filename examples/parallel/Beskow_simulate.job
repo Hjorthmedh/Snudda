@@ -17,7 +17,7 @@ HOME=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda
 # Synapse file
 SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
 
-NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.904373
+NETWORK_DIR=$SNUDDA_DIR/../../networks/TegnerRun.959380
 
 NETWORK_INFO_FILE=$NETWORK_DIR/network-pruned-synapses.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
@@ -49,7 +49,7 @@ export PATH=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/beskow/miniconda3/b
 export PYTHONPATH=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/beskow/miniconda3/lib/python3.8/site-packages:$PYTHONPATH
 
 
-srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
+srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
 
 
 # Original version, start neuron from python, does not work on beskow
