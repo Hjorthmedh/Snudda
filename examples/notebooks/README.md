@@ -5,9 +5,7 @@ Here is a collection of Jupyter Notebooks, some of the workflows are split over 
 ## Network creation
 * [simple_network_creation](simple_network_creation.ipynb) first example of network creation
 * [analyse_network_connectivity](analyse_network_connectivity.ipynb) analyses network connectivity created by [simple_network_creation](simple_network_creation.ipynb).
-
 * [simple_network_parallel](simple_network_parallel.ipynb) how to use ipyparallel when running Snudda
-
 * [custom_slice_example](custom_slice_example.ipynb) shows how to create custom slice and define your own connectivity rules for neuron types.
 * [population_unit_network](population_unit_network.ipynb) how to define population units.
 * [example_of_density_function](example_of_density_function.ipynb) how to specify density variations using a function of (x,y,z) in a volume.
@@ -19,7 +17,6 @@ Here is a collection of Jupyter Notebooks, some of the workflows are split over 
 * [input_generation_example_1](input_generation_example_1.ipynb) generate constant Poisson input (uses [simple_network_creation](simple_network_creation.ipynb))
 * [input_generation_example_2_frequency_vectors](input_generation_example_2_frequency_vectors.ipynb) define Poisson input with multiple start/stop times (uses [simple_network_creation](simple_network_creation.ipynb)).
 * [input_generation_example_3_correlation](input_generation_example_3_correlation.ipynb) finer control in input targeting (uses [population_unit_network](population_unit_network.ipynb))
-
 * [input_tuning_example](input_tuning_example.ipynb) explore what input number and frequency are good neurons, e.g to avoid depolarisation block.
 
 
