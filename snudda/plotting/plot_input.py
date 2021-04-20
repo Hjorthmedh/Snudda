@@ -5,7 +5,7 @@ from collections import OrderedDict
 import matplotlib.pyplot as plt
 from matplotlib import cm
 
-from snudda.load import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 
 
 class PlotInput(object):
@@ -20,7 +20,7 @@ class PlotInput(object):
         if not network_path:
             network_path = os.path.dirname(input_file)
 
-        network_file = os.path.join(network_path, "network-pruned-synapses.hdf5")
+        network_file = os.path.join(network_path, "network-synapses.hdf5")
 
         if os.path.exists(network_file):
             self.network_info = SnuddaLoad(network_file)

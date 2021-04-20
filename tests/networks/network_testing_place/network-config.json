@@ -4,16 +4,22 @@
         "init": 2906597030,
         "place": 1602421836,
         "detect": 216676975,
-        "prune": 2698621808,
-        "input": 507409703,
-        "simulate": 2825158027
+        "project": 2698621808,
+        "prune": 507409703,
+        "input": 2825158027,
+        "simulate": 3613074
     },
     "Volume": {
         "Striatum": {
             "type": "mesh",
             "dMin": 1.5e-05,
-            "meshFile": "networks/network_testing_place/mesh/Striatum-cube-mesh-6.286535491496336e-05.obj",
-            "meshBinWidth": 6.286535491496336e-05
+            "meshFile": "networks/network_testing_place/mesh/slice.obj",
+            "meshBinWidth": 0.0001,
+            "Density": {
+                "fs": {
+                    "densityFunction": "x"
+                }
+            }
         }
     },
     "Connectivity": {
@@ -384,18 +390,7 @@
             "parameters": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/parameters.json",
             "mechanisms": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/mechanisms.json",
             "modulation": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/modulation.json",
-            "num": 10,
-            "hoc": null,
-            "neuronType": "neuron",
-            "rotationMode": "random",
-            "volumeID": "Striatum"
-        },
-        "dSPN_0": {
-            "morphology": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc",
-            "parameters": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/parameters.json",
-            "mechanisms": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/mechanisms.json",
-            "modulation": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/modulation.json",
-            "num": 10,
+            "num": 1000,
             "hoc": null,
             "neuronType": "neuron",
             "rotationMode": "random",

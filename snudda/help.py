@@ -22,7 +22,7 @@ def snudda_help_text():
   -- Export to SONATA format (optional)
 
   snudda simulate <networkPath>
-  -- Run the network simulation using neuron
+  -- Run the network simulation using NEURON
 
   snudda analyse <networkPath>
 

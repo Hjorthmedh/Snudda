@@ -41,10 +41,9 @@
 
 
 import os
-import sys  # Used in __init__
+import sys
 import timeit
 import numpy as np
-import zmq
 import pkg_resources
 
 from snudda.utils.snudda_path import snudda_isfile
@@ -89,7 +88,7 @@ class Snudda(object):
 
         assert args.size is not None, "You need to specify --size when initialising config for the network"
 
-        from .init import SnuddaInit
+        from snudda.init.init import SnuddaInit
         struct_def = {"Striatum": args.size,
                       "GPe": 0,
                       "GPi": 0,
@@ -134,7 +133,7 @@ class Snudda(object):
         if args.parallel:
             self.setup_parallel()  # sets self.d_view and self.lb_view
 
-        from .place import SnuddaPlace
+        from snudda.place.place import SnuddaPlace
 
         if args.h5legacy:
             h5libver = "earliest"
@@ -143,7 +142,7 @@ class Snudda(object):
 
         sp = SnuddaPlace(config_file=config_file,
                          log_file=self.logfile,
-                         verbose=True,
+                         verbose=args.verbose,
                          d_view=self.d_view,
                          h5libver=h5libver,
                          raytrace_borders=args.raytrace_borders,
@@ -197,7 +196,7 @@ class Snudda(object):
         else:
             h5libver = "latest"  # default
 
-        from .detect import SnuddaDetect
+        from snudda.detect.detect import SnuddaDetect
 
         # You can now setup SnuddaDetect with only network_path and it will use default values
         # for config_file, position_file, logfile, save_file
@@ -210,7 +209,8 @@ class Snudda(object):
                           rc=self.rc,
                           hyper_voxel_size=hyper_voxel_size,
                           h5libver=h5libver,
-                          random_seed=random_seed)
+                          random_seed=random_seed,
+                          verbose=args.verbose)
 
         if args.cont:
             # Continue previous run
@@ -218,6 +218,14 @@ class Snudda(object):
             sd.detect(restart_detection_flag=False)
         else:
             sd.detect(restart_detection_flag=True)
+
+        # Also run SnuddaProject to handle projections between volume
+
+        from snudda.detect.project import SnuddaProject
+
+        sp = SnuddaProject(network_path=self.network_path)
+        sp.project()
+        sp.write()
 
         self.stop_parallel()
         self.close_log_file()
@@ -229,7 +237,7 @@ class Snudda(object):
         print("Prune synapses")
         print("Network path: " + str(self.network_path))
 
-        from .prune import SnuddaPrune
+        from snudda.detect.prune import SnuddaPrune
 
         log_filename = os.path.join(self.network_path, "log", "logFile-synapse-pruning.txt")
 
@@ -262,7 +270,8 @@ class Snudda(object):
                          d_view=self.d_view, lb_view=self.lb_view,
                          scratch_path=scratch_path,
                          h5libver=h5libver,
-                         random_seed=random_seed)
+                         random_seed=random_seed,
+                         verbose=args.verbose)
 
         sp.prune(pre_merge_only=pre_merge_only)
 
@@ -273,7 +282,7 @@ class Snudda(object):
 
     def setup_input(self, args):
 
-        from .input import SnuddaInput
+        from snudda.input.input import SnuddaInput
 
         print("Setting up inputs, assuming input.json exists")
         log_filename = os.path.join(self.network_path, "log", "logFile-setup-input.log")
@@ -294,7 +303,7 @@ class Snudda(object):
         if args.network_file:
             network_file = args.network_file
         else:
-            network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
+            network_file = os.path.join(self.network_path, "network-synapses.hdf5")
 
         if args.input_file:
             spike_file = args.input_file
@@ -322,7 +331,8 @@ class Snudda(object):
                          logfile=self.logfile,
                          rc=self.rc,
                          random_seed=random_seed,
-                         h5libver=h5libver)
+                         h5libver=h5libver,
+                         verbose=args.verbose)
         si.generate()
 
         self.stop_parallel()
@@ -332,6 +342,8 @@ class Snudda(object):
 
     def export_to_SONATA(self, args):
 
+        assert False, "Old export to SONATA borken, fixme!"
+        # TODO: Fix this
         from snudda.ConvertNetwork import ConvertNetwork
 
         print("Exporting to SONATA format")
@@ -340,7 +352,7 @@ class Snudda(object):
         if args.network_file:
             network_file = args.network_file
         else:
-            network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
+            network_file = os.path.join(self.network_path, "network-synapses.hdf5")
 
         if args.input_file:
             input_file = args.input_file
@@ -359,12 +371,12 @@ class Snudda(object):
 
         start = timeit.default_timer()
 
-        from .simulate import SnuddaSimulate
+        from snudda.simulate.simulate import SnuddaSimulate
 
         if args.network_file:
             network_file = args.network_file
         else:
-            network_file = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
+            network_file = os.path.join(self.network_path, "network-synapses.hdf5")
 
         if args.input_file:
             input_file = args.input_file
@@ -388,7 +400,7 @@ class Snudda(object):
 
             if not os.path.exists(mech_dir):
                 try:
-                    m_dir = os.path.join(os.path.dirname(__file__), "data", "neurons", "mechanisms")
+                    m_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), "data", "neurons", "mechanisms"))
                     os.symlink(m_dir, mech_dir)
                 except:
                     print(f"Failed to create symlink {mech_dir} -> {m_dir}")
@@ -469,6 +481,10 @@ class Snudda(object):
             # sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
 
         t_sim = args.time * 1000  # Convert from s to ms for Neuron simulator
+
+        if args.exportCoreNeuron:
+            sim.export_to_core_neuron()
+            return  # We do not run simulation when exporting to core neuron
 
         sim.check_memory_status()
         print("Running simulation for " + str(t_sim) + " ms.")

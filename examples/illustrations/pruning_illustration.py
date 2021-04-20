@@ -1,11 +1,11 @@
 import os
 
 import numpy as np
-from snudda.create_cube_mesh import create_cube_mesh
-from snudda.detect import SnuddaDetect
-from snudda.place import SnuddaPlace
+from snudda.place.create_cube_mesh import create_cube_mesh
+from snudda.detect.detect import SnuddaDetect
+from snudda.place.place import SnuddaPlace
 from snudda.plotting.plot_network import PlotNetwork
-from snudda.prune import SnuddaPrune
+from snudda.detect.prune import SnuddaPrune
 from snudda.utils.reposition_neurons import RepositionNeurons
 
 
@@ -19,7 +19,7 @@ class PruningIllustration(object):
         self.network_path = "pruning_illustration_network"
         self.config_file = os.path.join(self.network_path, "network-config.json")
         self.position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
-        self.save_file = os.path.join(self.network_path, "voxels", "network-putative-synapses.hdf5")
+        self.save_file = os.path.join(self.network_path, "voxels", "network-synapses.hdf5")
 
         create_cube_mesh(file_name=os.path.join(self.network_path, "mesh", "simple_mesh.obj"),
                          centre_point=(0, 0, 0),
@@ -105,7 +105,7 @@ class PruningIllustration(object):
     def prune_network(self, pruning_config=None, fig_name=None, title=None):
 
         work_log = os.path.join(self.network_path, "log", "network-detect-worklog.hdf5")
-        pruned_output = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
+        pruned_output = os.path.join(self.network_path, "network-synapses.hdf5")
 
         if pruning_config is not None and not os.path.exists(pruning_config):
             pruning_config = os.path.join(self.network_path, pruning_config)

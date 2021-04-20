@@ -1,14 +1,14 @@
 import os
 import unittest
 
-from snudda.create_cube_mesh import create_cube_mesh
-from snudda.detect import SnuddaDetect
-from snudda.load import SnuddaLoad
-from snudda.neuron_morphology import NeuronMorphology
-from snudda.place import SnuddaPlace
+from snudda.place.create_cube_mesh import create_cube_mesh
+from snudda.detect.detect import SnuddaDetect
+from snudda.utils.load import SnuddaLoad
+from snudda.neurons.neuron_morphology import NeuronMorphology
+from snudda.place.place import SnuddaPlace
 import numpy as np
 
-from snudda.prune import SnuddaPrune
+from snudda.detect.prune import SnuddaPrune
 
 
 class TestPrune(unittest.TestCase):
@@ -111,7 +111,7 @@ class TestPrune(unittest.TestCase):
 
     def test_prune(self):
 
-        pruned_output = os.path.join(self.network_path, "network-pruned-synapses.hdf5")
+        pruned_output = os.path.join(self.network_path, "network-synapses.hdf5")
 
         with self.subTest(stage="No-pruning"):
 

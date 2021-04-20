@@ -20,7 +20,9 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
     - name: Install MPI
-      run: sudo apt-get install openmpi-bin libopenmpi-dev
+      run: |
+        sudo apt-get update
+        sudo apt-get install openmpi-bin libopenmpi-dev
     - name: Install NEURON
       run: |
         wget https://neuron.yale.edu/ftp/neuron/versions/v7.7/7.7.2/nrn-7.7.2.x86_64-linux-py-37-36-35-27.deb

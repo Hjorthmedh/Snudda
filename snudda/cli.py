@@ -6,12 +6,15 @@ import os
 
 def snudda_cli():
 
+    # print(f"Current working directory: {os.getcwd()}")
+    
     parser = ArgumentParser(description=f"Snudda microcircuit generator\n\n{snudda_help_text()}",
                             formatter_class=RawTextHelpFormatter)
 
     sub_parsers = parser.add_subparsers(help="action", dest="action")
     sub_parsers.required = True
 
+    # TODO: Remove the create_parser
     create_parser = sub_parsers.add_parser("create")
     create_parser.add_argument("path", help="Location of network")
     create_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory",
@@ -69,7 +72,7 @@ def snudda_cli():
     input_parser.add_argument("--input", help="Input json config file (for input setup)", default=None)
     input_parser.add_argument("--inputFile", help="Input hdf5 file (for simulation)",
                               dest="input_file", default=None)
-    input_parser.add_argument("--networkFile", help="Network file, if not network-pruned-synapses.hdf5",
+    input_parser.add_argument("--networkFile", help="Network file, if not network-synapses.hdf5",
                               dest="network_file")
     input_parser.add_argument("--time", type=float, default=None, help="Duration of simulation in seconds")
     input_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
@@ -80,7 +83,7 @@ def snudda_cli():
 
     simulate_parser = sub_parsers.add_parser("simulate")
     simulate_parser.add_argument("path", help="Location of network")
-    simulate_parser.add_argument("--networkFile", help="Network file, if not network-pruned-synapses.hdf5",
+    simulate_parser.add_argument("--networkFile", help="Network file, if not network-synapses.hdf5",
                                  dest="network_file", default=None)
     simulate_parser.add_argument("--inputFile", help="Input hdf5 file (for simulation)",
                                  dest="input_file", default=None)
@@ -99,12 +102,13 @@ def snudda_cli():
                                  help="mechanism directory if not default", default=None)
     simulate_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     simulate_parser.add_argument("--verbose", action="store_true")
+    simulate_parser.add_argument("--exportCoreNeuron", action="store_true")
 
     export_parser = sub_parsers.add_parser("export")
     export_parser.add_argument("path", help="Location of network")
     export_parser.add_argument("--inputFile", help="Input hdf5 file (for simulation)",
                                dest="input_file")
-    export_parser.add_argument("--networkFile", help="Network file, if not network-pruned-synapses.hdf5",
+    export_parser.add_argument("--networkFile", help="Network file, if not network-synapses.hdf5",
                                dest="network_file")
     export_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     export_parser.add_argument("--verbose", action="store_true")
@@ -144,6 +148,8 @@ def snudda_cli():
 
 def create_project(args):
 
+    assert False, "This function will be removed"
+
     if not args.overwrite and os.path.exists(args.path):
         if input("Directory '{}' exists. Are you sure you wish to overwrite it? [y/n] ".format(
                 args.path)).lower() != "y":
@@ -153,12 +159,13 @@ def create_project(args):
             # Delete the existing folder
             import shutil
             shutil.rmtree(args.path)
-
-    from distutils.dir_util import copy_tree
-
-    # Copy the root data files folder to the specified path.
-    # The root data folder is the "snudda/data" folder, containing config, synapses & neurons
-    copy_tree(get_data_file(), args.path)
+            os.mkdir(args.path)
+            
+    if os.path.exists(args.path):
+        import shutil
+        shutil.rmtree(args.path)
+        
+    os.mkdir(args.path)
 
 
 if __name__ == "__main__":

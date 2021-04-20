@@ -2,7 +2,7 @@ import os
 import unittest
 import numpy as np
 
-from snudda.neuron_morphology import NeuronMorphology
+from snudda.neurons.neuron_morphology import NeuronMorphology
 
 
 class MyTestCase(unittest.TestCase):

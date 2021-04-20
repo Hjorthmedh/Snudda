@@ -2,6 +2,7 @@ import unittest, os, sys, argparse, time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import snudda.cli
+from snudda.init.init import SnuddaInit
 
 
 # Duck punch the argument parser so it doesn't sys.exit
@@ -30,9 +31,18 @@ class TestCLI(unittest.TestCase):
         self.assertRaises(argparse.ArgumentError, run_cli_command, "doesntexist")
 
     def test_workflow(self):
-        with self.subTest(stage="create"):
-            run_cli_command("create test-project --overwrite")
-        os.chdir('test-project')
+
+        #with self.subTest(stage="create"):
+        #    run_cli_command("create test-project --overwrite")
+
+        if True:
+            network_path = "test-project"
+            if os.path.exists(network_path):
+                import shutil
+                shutil.rmtree(network_path)
+        
+                os.mkdir(network_path)
+                os.chdir(network_path)
 
         with self.subTest(stage="setup-parallel"):
             os.environ["IPYTHONDIR"] = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
@@ -40,8 +50,22 @@ class TestCLI(unittest.TestCase):
             os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
             time.sleep(10)
 
+        # with self.subTest(stage="init-parallel-BIG"):
+        #     run_cli_command("init tiny_parallel --size 1000000 --overwrite")
+
+        # with self.subTest(stage="place-parallel-BIG"):
+        #     run_cli_command("place tiny_parallel --parallel")
+
         with self.subTest(stage="init-parallel"):
             run_cli_command("init tiny_parallel --size 100 --overwrite")
+
+        # Lets reinit but a smaller network that contains all types of cells, to speed things up
+        with self.subTest(stage="small-reinit-1"):
+            config_name = os.path.join("tiny_parallel", "network-config.json")
+            cnc = SnuddaInit(struct_def={}, config_file=config_name, random_seed=123456)
+            cnc.define_striatum(num_dSPN=4, num_iSPN=4, num_FS=2, num_LTS=2, num_ChIN=2,
+                                volume_type="cube")
+            cnc.write_json(config_name)
 
         with self.subTest(stage="place-parallel"):
             run_cli_command("place tiny_parallel --parallel --raytraceBorders")
@@ -55,7 +79,9 @@ class TestCLI(unittest.TestCase):
         from shutil import copyfile
         print(f"listdir: {os.listdir()}")
         print(f"parent listdir: {os.listdir('..')}")
-        copyfile("../snudda/data/input_config/input-v10-scaled.json", "tiny_parallel/input.json")
+        input_file = os.path.join(os.path.dirname(__file__), os.path.pardir,
+                                  "snudda", "data", "input_config", "input-v10-scaled.json")
+        copyfile(input_file, os.path.join("tiny_parallel", "input.json"))
 
         with self.subTest(stage="input"):
             run_cli_command("input tiny_parallel --input tiny_parallel/input.json --parallel")
@@ -73,7 +99,55 @@ class TestCLI(unittest.TestCase):
 
         with self.subTest(stage="simulate"):
             print("Running nrnivmodl:")
-            os.system("nrnivmodl ../snudda/data/neurons/mechanisms")
+            mech_dir = os.path.join(os.path.dirname(__file__), os.path.pardir,
+                                    "snudda", "data", "neurons", "mechanisms")
+
+            if not os.path.exists("mechanisms"):
+                print("----> Copying mechanisms")
+                # os.symlink(mech_dir, "mechanisms")
+                from distutils.dir_util import copy_tree
+                copy_tree(mech_dir, "mechanisms")
+            else:
+                print("------------->   !!! mechanisms already exists")
+
+            eval_str = f"nrnivmodl mechanisms"  # f"nrnivmodl {mech_dir}
+            print(f"Running: {eval_str}")
+            os.system(eval_str)
+
+            # print("---> Testing to run simulate using os.system instead")
+            # os.system("snudda simulate tiny_parallel --time 0.1 --voltOut default")
+
+
+            # For the unittest we for some reason need to load mechansism
+            # separately
+            from mpi4py import MPI  # This must be imported before neuron, to run parallel
+            from neuron import h  # , gui
+            import neuron
+
+            # For some reason we need to import modules manually
+            # when running the unit test.
+            if os.path.exists("x86_64/.libs/libnrnmech.so"):
+                print("!!! Manually loading libraries")
+                try:
+                    h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
+                except:
+                    import traceback
+                    tstr = traceback.format_exc()
+                    print(tstr)
+
+            if False:
+                try:
+                    from snudda.simulate.simulate import SnuddaSimulate
+                    ss = SnuddaSimulate(network_path="tiny_parallel")
+                    ss.run(100)
+                    ss.write_spikes()
+                except:
+                    import traceback
+                    tstr = traceback.format_exc()
+                    print(tstr)
+                    import pdb
+                    pdb.set_trace()
+                
             print("Time to run simulation...")
             run_cli_command("simulate tiny_parallel --time 0.1 --voltOut default")
 
@@ -91,6 +165,14 @@ class TestCLI(unittest.TestCase):
             # Should not allow overwriting of existing folder if --overwrite is not specified
             self.assertRaises(AssertionError, run_cli_command, "init tiny_serial --size 100")
 
+        # Again, let us reinit to a smaller network to speed things up
+        with self.subTest(stage="small-reinit-2"):
+            config_name = os.path.join("tiny_serial", "network-config.json")
+            cnc = SnuddaInit(struct_def={}, config_file=config_name, random_seed=1234)
+            cnc.define_striatum(num_dSPN=3, num_iSPN=3, num_FS=2, num_LTS=2, num_ChIN=2,
+                                volume_type="cube")
+            cnc.write_json(config_name)
+
         with self.subTest(stage="place-serial"):
             run_cli_command("place tiny_serial --h5legacy")
 
@@ -106,6 +188,8 @@ class TestCLI(unittest.TestCase):
         with self.subTest(stage="prune-serial"):
             run_cli_command("prune tiny_serial --h5legacy")
 
-        copyfile("../snudda/data/input_config/input-v10-scaled.json", "tiny_serial/input.json")
+        input_file = os.path.join(os.path.dirname(__file__), os.path.pardir,
+                                  "snudda", "data", "input_config", "input-v10-scaled.json")
+        copyfile(input_file, "tiny_serial/input.json")
         with self.subTest(stage="input"):
             run_cli_command("input tiny_serial --time 1.0 --inputFile tiny_serial/input-spikes.hdf5")
