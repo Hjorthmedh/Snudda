@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# !!! OBS you need to make sure you git clone manually, it seems that command
+# stalls when running on Beskow compute nodes?
+
 source activate_miniconda.txt
 
 module load snic-env
@@ -40,15 +43,19 @@ export PYTHONPATH=$LN/lib/python:$LM/lib/python3.8/
 # Från MDJs gamla buildscript
 # export CFLAGS="-dynamic -O3 -funroll-loops -march=corei7-avx -mavx  -ffast-math -DCACHEVEC=1" 
 
-rm -rf $L/build
-mkdir -pv $L/build
+# Maybe git clone does not work on compute nodes?
+
+# rm -rf $L/build
+# mkdir -pv $L/build
 pushd $L/build
 
   # build parallel neuron with python interface
-  mkdir neuron
+  # mkdir neuron
   pushd neuron
-  # git clone -q https://github.com/nrnhines/nrn
-  git clone https://github.com/neuronsimulator/nrn -b 7.8.2
+  # OLD: git clone -q https://github.com/nrnhines/nrn
+
+  # You have to do git clone manually!!
+  # git clone https://github.com/neuronsimulator/nrn -b 7.8.2
   
   cd nrn
   mkdir build
@@ -68,7 +75,11 @@ pushd $L/build
 	  -DPYTHON_EXECUTABLE=`which python3` \
 	  -DCMAKE_C_COMPILER:FILEPATH=cc \
 	  -DCMAKE_CXX_COMPILER:FILEPATH=CC \
-#	  -DNRN_ENABLE_CORENEURON=ON \
+          -DCMAKE_C_FLAGS="-DDEBUG -g" \
+          -DCMAKE_CXX_FLAGS="-DDEBUG -g" \
+	  # -DCMAKE_C_FLAGS="-mavx2" \
+          # -DCMAKE_CXX_FLAGS="-mavx2" \
+	  #	  -DNRN_ENABLE_CORENEURON=ON \
 
 
 
@@ -96,14 +107,6 @@ pushd $L/build
     popd
     rm -r $L/share/nrn/{demo,examples}
   popd
-
-  # install pandoc
-  version=2.1.1
-  rm -rf pandoc* $LM/{bin,lib}/pandoc*
-  wget https://github.com/jgm/pandoc/releases/download/$version/pandoc-$version-linux.tar.gz
-  tar -C $LM/lib -xvf pandoc-$version-linux.tar.gz pandoc-$version/bin/pandoc{,-citeproc}
-  ln -sv ../lib/pandoc-$version/bin/pandoc{,-citeproc} $LM/bin/
-  rm -fv pandoc*
 
   # install pypandoc
   # pip install pypandoc --install-option="--prefix=$L"
