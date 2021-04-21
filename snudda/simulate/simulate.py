@@ -63,6 +63,8 @@ class SnuddaSimulate(object):
         self.verbose = verbose
         self.log_file = log_file
 
+        self.custom_connection = True
+
         if network_path:
             self.network_path = network_path
         elif network_file:
@@ -433,9 +435,6 @@ class SnuddaSimulate(object):
 
         self.pc.barrier()
 
-        # Add synapses
-        self.connect_network_synapses()
-
         # Add gap junctions
         if self.disable_gap_junctions:
             self.write_log("!!! Gap junctions disabled.")
@@ -446,9 +445,20 @@ class SnuddaSimulate(object):
             # TODO: Check difference with old non-local version
             self.connect_network_gap_junctions_local()
             self.pc.setup_transfer()
+
+        if self.custom_connection:
+            self.custom_connect_network_synapses()
+
+        # Add synapses
+        self.connect_network_synapses()
+
         self.pc.barrier()
 
     ############################################################################
+
+    def custom_connect_network_synapses(self):
+        
+        pass
 
     def connect_network_synapses(self):
 

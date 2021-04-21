@@ -99,22 +99,21 @@ class TestCLI(unittest.TestCase):
 
         with self.subTest(stage="simulate"):
             print("Running nrnivmodl:")
-            
-            #os.system("nrnivmodl ../snudda/data/neurons/mechanisms")
+
             os.system("nrnivmodl ../snudda/data/neurons/mechanisms-modulation")
             
             mech_dir = os.path.join(os.path.dirname(__file__), os.path.pardir,
-                                    "snudda", "data", "neurons", "mechanisms")
+                                    "snudda", "data", "neurons", "mechanisms-modulation")
 
             if not os.path.exists("mechanisms"):
                 print("----> Copying mechanisms")
                 # os.symlink(mech_dir, "mechanisms")
                 from distutils.dir_util import copy_tree
-                copy_tree(mech_dir, "mechanisms")
+                copy_tree(mech_dir, "mechanisms-modulation")
             else:
                 print("------------->   !!! mechanisms already exists")
 
-            eval_str = f"nrnivmodl mechanisms"  # f"nrnivmodl {mech_dir}
+            eval_str = f"nrnivmodl mechanisms-modulation"  # f"nrnivmodl {mech_dir}
             print(f"Running: {eval_str}")
             os.system(eval_str)
 
