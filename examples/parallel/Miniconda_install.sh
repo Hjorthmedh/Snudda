@@ -16,10 +16,13 @@ conda update -n base conda -y
 conda install wget -y
 conda install git -y
 conda install cmake -y
-# There is a bug in 3.3.2 which does not handle non-numeric host names correctly
-# conda install mpich=3.2.1 -y
+conda install bison -y
+conda install pandoc -y
 conda install openmpi -y
 
+# There is a bug in 3.3.2 which does not handle non-numeric host names correctly
+# conda install mpich=3.2.1 -y
+# Update, we use openmpi instead!
 
 # This is needed to compile mpi4py -- is it really?
 if [ $SNIC_RESOURCE == "tegner" ]; then

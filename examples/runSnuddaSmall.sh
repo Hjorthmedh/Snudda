@@ -14,10 +14,6 @@ snudda place $simName --parallel
 snudda detect $simName --volumeID Striatum --parallel
 snudda prune $simName --parallel
 
-echo "For now, just generate network. To do all, comment out the exit below"
-exit
-
-
 # Copy over template input, you might need to update the path here if not
 # run from the examples directory
 cp -a ../snudda/data/input_config/input-tinytest-v9-freq-vectors.json $simName/input.json
