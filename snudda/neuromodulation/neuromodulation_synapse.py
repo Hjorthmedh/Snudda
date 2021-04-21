@@ -32,7 +32,7 @@ class SnuddaNeuromodulationSynapse(SnuddaSimulate):
         self.cell_modulator = dict()
         self.neuromodulation_conductance = neuromodulation_conductance
 
-        super(SnuddaNeuromodulation, self).__init__(network_path=network_path,
+        super(SnuddaNeuromodulationSynapse, self).__init__(network_path=network_path,
                                                     network_file=network_file,
                                                     input_file=input_file,
                                                     verbose=False,
@@ -217,7 +217,7 @@ class SnuddaNeuromodulationSynapse(SnuddaSimulate):
 
                             if synapse_gpcr in str(x).split('[')[0]:
 
-                                channel_module_p = eval(eval_str + "_p")
+                                channel_module_p = eval(eval_str + "_ptr")
 
                                 syn = channel_module_p(section(section_x))
 
@@ -237,8 +237,6 @@ class SnuddaNeuromodulationSynapse(SnuddaSimulate):
                     if syn is None:
 
                         syn = channel_module(section(section_x))
-
-                    print(syn)
 
                     nc = h.NetCon(vs, syn)
 
@@ -357,7 +355,7 @@ class SnuddaNeuromodulationSynapse(SnuddaSimulate):
 
                 for mechanism_name, values in sec.psection()['density_mechs'].items():
 
-                    if mechanism_name in ion_channels and mechanism_name + "_p" not in sec.psection()['density_mechs'].keys():
+                    if mechanism_name in ion_channels and mechanism_name + "_ptr" not in sec.psection()['density_mechs'].keys():
 
                         leve_list = list()
 
@@ -368,7 +366,7 @@ class SnuddaNeuromodulationSynapse(SnuddaSimulate):
 
                         key_list = list()
 
-                        sec.insert(mechanism_name + "_p")
+                        sec.insert(mechanism_name + "_ptr")
 
                         for syn in self.neuromodulators:
 
@@ -381,17 +379,17 @@ class SnuddaNeuromodulationSynapse(SnuddaSimulate):
                                 for type_r in leve_list:
                                     tr = type_r.replace('level', '')
 
-                                    setattr(seg, 'mod' + tr + "_" + mechanism_name + "_p", 1)
+                                    setattr(seg, 'mod' + tr + "_" + mechanism_name + "_ptr", 1)
 
                                     self.sim.neuron.h.setpointer(pointer, 'level' + tr,
-                                                                 getattr(seg, mechanism_name + "_p"))
+                                                                 getattr(seg, mechanism_name + "_ptr"))
 
                         for param, val in values.items():
 
                             for i, seg in enumerate(sec):
 
                                 if 'level' not in param and param not in key_list:
-                                    setattr(seg, param + "_" + mechanism_name + "_p", val[i])
+                                    setattr(seg, param + "_" + mechanism_name + "_ptr", val[i])
 
             for mech_name in ion_channels:
                 sec.uninsert(mech_name)
@@ -601,7 +599,7 @@ class SnuddaNeuromodulationSynapse(SnuddaSimulate):
 
                     if synapse_gpcr in str(x).split('[')[0]:
 
-                        channel_module_p = eval('self.sim.neuron.h.' + str(channel_module).split('()')[0] + '_p')
+                        channel_module_p = eval('self.sim.neuron.h.' + str(channel_module).split('()')[0] + "_ptr")
 
                         syn = channel_module_p(dend_compartment(section_dist))
 

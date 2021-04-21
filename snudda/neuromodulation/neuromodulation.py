@@ -74,8 +74,6 @@ class SnuddaNeuromodulation(SnuddaSimulate):
 
         cells = dict((k, self.neurons[k]) for k in self.neuron_id if not self.is_virtual_neuron[k])
 
-        modulation_key = modulation.replace('ulation', '')
-
         for index, cell in cells.items():
 
             cell_name = cell.name.split("_")[0]
@@ -89,14 +87,12 @@ class SnuddaNeuromodulation(SnuddaSimulate):
                     for seg in comp:
                         for mech in seg:
                             if mech.name() in modulate_section:
-                                setattr(mech, modulation_key, 1)
+                                setattr(mech, "mod" + modulation, 1)
                                 self.neuromodulation[modulation]['modulation_vector'].play(
-                                    getattr(mech, "_ref_level" + modulation_key.replace("mod", "")),
+                                    getattr(mech, "_ref_level" + modulation),
                                     self.sim.neuron.h.dt)
 
     def modulate_synapses(self, modulation, synapses, intrinsic=None, extrinsic=None):
-
-        modulation_key = modulation.replace('ulation', '')
 
         if extrinsic:
             for neuronID, synlist in self.external_stim.items():

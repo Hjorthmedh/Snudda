@@ -1,15 +1,14 @@
 
-'''
-
-Different functions for modulating the cells
-
-The functions return array which contain the modulation level per time step of the simulation
-
-
-'''
-
 
 import numpy as np
+
+def alpha_sub_function(t_step,tau,tstart,gmax):
+
+    t = (t_step - tstart) / tau
+    e = np.exp(1 - t)
+    magnitude = gmax * t * e
+
+    return magnitude
 
 def alpha(parameter=None):
 
@@ -18,20 +17,13 @@ def alpha(parameter=None):
     gmax = parameter['gmax']
     tau = parameter['tau']
 
-    mag = np.zeros_like(time_step_array)
+    magnitude = np.zeros_like(time_step_array)
 
-    mag = list()
+    index = np.where(time_step_array > tstart)
 
-    for t_step in time_step_array:
+    magnitude[min(index[0]):max(index[0]) + 1] = alpha_sub_function(np.take(time_step_array, index), tau, tstart, gmax)
 
-        if t_step >= tstart:
-            t = (t_step - tstart) / tau
-            e = np.exp(1 - t)
-            mag.append(gmax * t * e)
-
-        else:
-            mag.append(0)
-    return mag
+    return magnitude
 
 
 def step(parameter=None):
@@ -41,16 +33,13 @@ def step(parameter=None):
     step_stop = parameter['duration'] + parameter['tstart']
     gmax = parameter['gmax']
 
-    mag = list()
-    
-    for t_step in time_step_array:
-        if t_step > tstart and t_step < step_stop:
-            mag.append(gmax)
-        else:
-            mag.append(0)
-            
+    magnitude = np.zeros_like(time_step_array)
 
-    return mag
+    index = np.where(np.logical_and(time_step_array > tstart, time_step_array < step_stop))
+
+    magnitude[min(index[0]):max(index[0]) + 1] = gmax
+    
+    return magnitude
 
 
 def bath_application(parameter=None):
@@ -58,43 +47,37 @@ def bath_application(parameter=None):
     time_step_array = parameter['time_step_array']
     gmax = parameter['gmax']
 
-    mag = list()
+    magnitude = np.ones_like(time_step_array) * gmax
 
-    for t_step in time_step_array:
-
-        mag.append(gmax)
-
-    return mag
+    return magnitude
 
 
 def alpha_background(parameter=None):
 
     time_step_array = parameter['time_step_array']
     tstart = parameter['tstart']
-    gmax_decrease = parameter['gmax_decrease']
+    if 'gmax_decrease' in parameter.keys():
+        gmax_shift = parameter['gmax_decrease'] * (-1)
+    elif 'gmax_increase' in parameter.keys():
+        gmax_shift = parameter['gmax_increase']
+
     tau = parameter['tau']
     tonic = parameter['tonic']
 
-    mag = list()
+    magnitude = np.ones_like(time_step_array) * tonic
 
-    for t_step in time_step_array:
+    index = np.where(time_step_array > tstart)
 
-        mag_intermediate = 0
+    magnitude[min(index[0]):max(index[0]) + 1] = tonic + alpha_sub_function(np.take(time_step_array, index), tau, tstart, gmax_shift)
 
-        if t_step >= tstart:
-            t = (t_step - tstart) / tau
-            e = np.exp(1 - t)
-            mag_intermediate = mag_intermediate + gmax_decrease * t * e
+    if min(magnitude) < 0 or max(magnitude) > 1:
+        raise ValueError(' Modulation is outside the range (0,1). Modify parameters')
 
-        if mag_intermediate > 0.99:
-            mag_intermediate = 1
-        mag.append(tonic - mag_intermediate)
-
-    return mag
+    return magnitude
 
 
 def time_series(parameter=None):
 
-    mag = eval(parameter['array'])
+    magnitude = eval(parameter['array'])
     
-    return mag
+    return magnitude
