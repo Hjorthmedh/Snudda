@@ -4,19 +4,23 @@ export IPYTHON_PROFILE=Snudda_LOCAL
 ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20
 
-simName=networks/PD_run_2021
+simName=networks/small-run
 
 #snudda init $simName --size 1760000
 #snudda init $simName --size 100000
-snudda init $simName --size 20000 --overwrite
+snudda init $simName --size 1000 --overwrite
 
 snudda place $simName --parallel
-#snudda detect $simName --hvsize 50 --volumeID Striatum
 snudda detect $simName --volumeID Striatum --parallel
 snudda prune $simName --parallel
 
-# Copy over template input
-cp -a data/input_config/input-tinytest-v9-freq-vectors.json $simName/input.json
+echo "For now, just generate network. To do all, comment out the exit below"
+exit
+
+
+# Copy over template input, you might need to update the path here if not
+# run from the examples directory
+cp -a ../snudda/data/input_config/input-tinytest-v9-freq-vectors.json $simName/input.json
 echo "Make sure the input config file was found, otherwise provide your own"
 
 # TODO, maybe use to get snudda base install dir:
