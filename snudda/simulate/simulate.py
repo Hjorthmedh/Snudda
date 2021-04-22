@@ -922,7 +922,11 @@ class SnuddaSimulate(object):
         gj = h.gGapPar(section(section_dist))
         self.gap_junction_list.append(gj)
 
-        self.pc.target_var(gj._ref_vgap, gid_dest_gj)
+        # https://neuronsimulator.github.io/nrn/python/modelspec/programmatic/network/parcon.html?highlight=target_var
+        # Update thanks to Lizhixin
+        self.pc.target_var(targetPointProcess=gj,
+                           _ref_target_variable=gj._ref_vgap,
+                           source_global_index=gid_dest_gj)
 
         self.pc.source_var(section(section_dist)._ref_v, gid_source_gj, sec=section)
 
