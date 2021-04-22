@@ -927,16 +927,6 @@ class SnuddaSimulate(object):
 
         self.pc.target_var(gj, gj._ref_vgap, gid_dest_gj)
 
-#        try:
-#            self.pc.target_var(targetPointProcess=gj,
-#                               _ref_target_variable=gj._ref_vgap,
-#                               source_global_index=gid_dest_gj)
-#        except:
-#            assert self.pc.nhost == 1, "pc.target_var problem"
-#            self.write_log("Error with pc.target_var, only one thread? fallback option")
-#            self.pc.target_var(_ref_target_variable=gj._ref_vgap,
-#                               source_global_index=gid_dest_gj)
-
         self.pc.source_var(section(section_dist)._ref_v, gid_source_gj, sec=section)
 
         gj.g = g_gap_junction
