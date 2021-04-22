@@ -5,18 +5,12 @@ from scipy.interpolate import griddata
 from snudda.neurons.neuron_morphology import NeuronMorphology
 
 
-class SnuddaRotate(object):
+class SnuddaRotate:
 
-    def __init__(self, config_file=None, default_rotation_mode=None):
+    def __init__(self, config_file=None):
 
         self.rotation_lookup = dict()
-        self.rotation_field_cache = dict()
         self.config = None
-
-        if not default_rotation_mode:
-            default_rotation_mode = SnuddaRotate.default_rotation
-
-        self.rotation_lookup["default"] = default_rotation_mode
 
         if config_file:
             self.parse_config_file(config_file=config_file)
@@ -27,87 +21,65 @@ class SnuddaRotate(object):
             self.config = json.load(f)
 
         # Parse the config
-        for volume in self.config["Volume"]:
-            if "neuronOrientation" in self.config["Volume"][volume]:
-                for neuron_types in self.config["Volume"][volume]["neuronOrientation"]:
+        for volume_name in self.config["Volume"]:
+            if "neuronOrientation" in self.config["Volume"][volume_name]:
+                for neuron_type in self.config["Volume"][volume_name]["neuronOrientation"]:
 
-                    orientation_info = self.config["Volume"][volume]["neuronOrientation"][neuron_types]
+                    orientation_info = self.config["Volume"][volume_name]["neuronOrientation"][neuron_type]
                     rotation_mode = orientation_info["rotationMode"]
-                    vector_file = orientation_info["rotationFieldFile"] \
-                        if "rotationFieldFile" in orientation_info else None
+                    rotation_field_file = orientation_info["rotationFieldFile"] if "rotationFieldFile" \
+                                                                                   in orientation_info else None
+                    if rotation_field_file:
+                        position, rotation = self.load_rotation_field(rotation_field_file, volume_name)
+                    else:
+                        position, rotation = None, None
 
-                    neuron_types = [x.strip().lower() for x in neuron_types.split(",")]
-                    self.add_neuron_rotation(volume_name=volume, neuron_types=neuron_types,
-                                             rotation_mode=rotation_mode, rotation_field_file=vector_file)
-
-    @staticmethod
-    def default_rotation(position, rng):
-        return NeuronMorphology.rand_rotation_matrix(rand_nums=rng.random(size=(3,)))
-
-    @staticmethod
-    def no_rotation(position, rng):
-        return np.eye(3)
-
-    def add_neuron_rotation(self, volume_name: str, neuron_types, rotation_mode, rotation_field_file=None):
-
-        for neuron_type in neuron_types:
-
-            if rotation_mode == "random":
-                self.rotation_lookup[volume_name, neuron_type] = SnuddaRotate.default_rotation
-
-            elif "vectorField" in rotation_mode:
-                assert rotation_field_file, \
-                    f"You need to specify rotation_field_file (rotationFieldFile) for {neuron_type} in {volume_name}"
-
-                position, rotation = self.load_rotation_field(rotation_field_file, volume_name)
-                # Since our volume obj files are given in micrometers, we also specify positions in the
-                # rotation file in micrometer, so correct for that when we read in so internally SI-units
-                self.rotation_field_cache[volume_name, neuron_type] = np.array(position)*1e-6, np.array(rotation)
-
-                if rotation_mode == "vectorFieldAndZ":
-                    # Combine rotation around z-axis with rotation based on location in volume
-                    self.rotation_lookup[volume_name, neuron_type] = \
-                        lambda neuron_pos, rng: np.matmul(self.get_rotation(volume_name=volume_name,
-                                                                            neuron_type=neuron_type,
-                                                                            neuron_position=neuron_pos),
-                                                          self.random_z_rotate(rng))
-                else:
-                    # Rotation based on position in volume
-                    self.rotation_lookup[volume_name, neuron_type] = \
-                        lambda neuron_pos, rng: self.get_rotation(volume_name=volume_name,
-                                                                  neuron_type=neuron_type,
-                                                                  neuron_position=neuron_pos)
-            elif rotation_mode is None or rotation_mode == "" or rotation_mode == "none":
-                    self.rotation_lookup[volume_name, neuron_type] = SnuddaRotate.no_rotation()
-            else:
-                assert False, f"Unknown rotation mode {rotation_mode}"
+                    self.rotation_lookup[volume_name, neuron_type] = (rotation_mode, position, rotation)
 
     @staticmethod
     def random_z_rotate(rng):
-
         ang = 2*np.pi*rng.uniform()
 
         return np.array([[np.cos(ang), -np.sin(ang), 0],
                          [np.sin(ang), np.cos(ang), 0],
                          [0, 0, 1]])
 
-    def get_rotation(self, volume_name, neuron_type, neuron_position):
+    def get_rotations(self, volume_name, neuron_type, neuron_positions, rng):
 
-        field_position, field_rotation = self.rotation_field_cache[volume_name, neuron_type.lower()]
+        if (volume_name, neuron_type) in self.rotation_lookup:
+            rotation_mode, field_position, field_rotation = self.rotation_lookup[volume_name, neuron_type]
+        else:
+            rotation_mode, field_position, field_rotation = "random", None, None
 
-        rotation_vector = griddata(points=field_position,
-                                   values=field_rotation,
-                                   xi=neuron_position, method="linear")
+        if not rotation_mode or rotation_mode.lower() == "none":
+            rotation_matrices = [np.eye]*neuron_positions.shape[0]
 
-        assert not np.isnan(np.sum(rotation_vector)), \
-            (f"Invalid rotation vector for volume {volume_name}, neuron {neuron_type}, "
-             f"is neuron position outside the field?\nNeuron position: {neuron_position}"
-             f" (must be inside convex hull of the field's positions points)")
+        elif rotation_mode in ["random", "default"]:
+            rotation_matrices = [NeuronMorphology.rand_rotation_matrix(rand_nums=rng.random(size=(3,)))
+                                 for x in range(0, neuron_positions.shape[0])]
 
-        # We need to rotate z-axis to point to rotation_vector
-        rotation_matrix = SnuddaRotate.rotation_matrix_from_vectors(np.array([0, 0, 1]), rotation_vector)
+        elif "vectorField" in rotation_mode:
+            rotation_vectors = griddata(points=field_position,
+                                        values=field_rotation,
+                                        xi=neuron_positions, method="linear")
 
-        return rotation_matrix
+            assert not np.isnan(np.sum(rotation_vectors)), \
+                (f"Invalid rotation vector for volume {volume_name}, neuron {neuron_type}, "
+                 f"is neuron position outside the field?\nNeuron positions: {neuron_positions}"
+                 f" (must be inside convex hull of the field's positions points)")
+
+            if rotation_mode == "vectorFieldAndZ":
+                rotation_matrices = [np.matmul(SnuddaRotate.rotation_matrix_from_vectors(np.array([0, 0, 1]), rv),
+                                               self.random_z_rotate(rng))
+                                     for rv in rotation_vectors]
+            else:
+                # We need to rotate z-axis to point to rotation_vector
+                rotation_matrices = [SnuddaRotate.rotation_matrix_from_vectors(np.array([0, 0, 1]), rv)
+                                     for rv in rotation_vectors]
+        else:
+            raise TypeError(f"Unknown rotation mode {rotation_mode}")
+
+        return rotation_matrices
 
     @staticmethod
     def rotation_matrix_from_vectors(vec1, vec2):
@@ -157,10 +129,3 @@ class SnuddaRotate(object):
         else:
             print(f"No volume name, assuming position and rotation is for {volume_name}")
             return rotation_field_data["position"], rotation_field_data["rotation"]
-
-    def rotate_neuron(self, volume_name, neuron_type, position, rng):
-
-        if (volume_name, neuron_type) in self.rotation_lookup:
-            return self.rotation_lookup[volume_name, neuron_type](position, rng)
-        else:
-            return self.rotation_lookup["default"](position, rng)
