@@ -58,6 +58,7 @@ pushd $L/build
   # git clone https://github.com/neuronsimulator/nrn -b 7.8.2
   
   cd nrn
+  rm -r build
   mkdir build
   cd build
 
@@ -71,12 +72,12 @@ pushd $L/build
 	  -DNRN_ENABLE_RX3D=OFF \
 	  -DCMAKE_INSTALL_PREFIX=$LN \
 	  -DNRN_ENABLE_BINARY_SPECIAL=ON \
-	  -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo \
 	  -DPYTHON_EXECUTABLE=`which python3` \
 	  -DCMAKE_C_COMPILER:FILEPATH=cc \
 	  -DCMAKE_CXX_COMPILER:FILEPATH=CC \
           -DCMAKE_C_FLAGS="-DDEBUG -g" \
           -DCMAKE_CXX_FLAGS="-DDEBUG -g" \
+#	  -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo \
 	  # -DCMAKE_C_FLAGS="-mavx2" \
           # -DCMAKE_CXX_FLAGS="-mavx2" \
 	  #	  -DNRN_ENABLE_CORENEURON=ON \
