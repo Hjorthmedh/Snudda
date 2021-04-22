@@ -124,8 +124,9 @@ class SnuddaRotate:
                 and "rotation" in rotation_field_data[volume_name], \
                 f"Missing position and/or rotation tag in volume {volume_name}"
 
-            return rotation_field_data[volume_name]["position"], rotation_field_data[volume_name]["rotation"]
+            return np.array(rotation_field_data[volume_name]["position"]) * 1e-6, \
+                   np.array(rotation_field_data[volume_name]["rotation"])
 
         else:
             print(f"No volume name, assuming position and rotation is for {volume_name}")
-            return rotation_field_data["position"], rotation_field_data["rotation"]
+            return np.array(rotation_field_data["position"]) * 1e-6, np.array(rotation_field_data["rotation"])
