@@ -182,7 +182,8 @@ class SnuddaInit(object):
         else:
             types_str = neuron_types
 
-        self.network_data["Volume"][volume_id]["neuronOrientation"] = collections.OrderedDict()
+        if not "neuronOrientation" in self.network_data["Volume"][volume_id]:
+            self.network_data["Volume"][volume_id]["neuronOrientation"] = collections.OrderedDict()
 
         self.network_data["Volume"][volume_id]["neuronOrientation"][types_str] = collections.OrderedDict()
         self.network_data["Volume"][volume_id]["neuronOrientation"][types_str]["rotationMode"] = rotation_mode
