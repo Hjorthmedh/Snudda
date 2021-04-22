@@ -130,11 +130,14 @@ class SnuddaPlace(object):
                               virtual_neuron=virtual_neuron)
 
         neuron_type = name.split("_")[0]
-        neuron_coords = self.volume[volume_id]["mesh"].place_neurons(num_neurons, neuron_type)
+        neuron_positions = self.volume[volume_id]["mesh"].place_neurons(num_neurons, neuron_type)
 
         first_added = True
 
-        for coords in neuron_coords:
+        neuron_rotations = self.rotate_helper.get_rotations(volume_name=volume_id, neuron_type=neuron_type,
+                                                            neuron_positions=neuron_positions, rng=self.random_generator)
+
+        for coords, rotation in zip(neuron_positions, neuron_rotations):
             # We set loadMorphology = False, to preserve memory
             # Only morphology loaded for nm then, to get axon and dend
             # radius needed for connectivity
@@ -145,20 +148,6 @@ class SnuddaPlace(object):
             # modulation.json is similarly formatted, pick a parameter set here
             parameter_id = self.random_generator.integers(1000000)
             modulation_id = self.random_generator.integers(1000000)
-
-            rotation = self.rotate_helper.rotate_neuron(volume_name=volume_id, neuron_type=neuron_type.lower(),
-                                                        position=coords, rng=self.random_generator)
-
-#            if rotation_mode == "random":
-#                # We pass 3 random numbers from our random generator
-#                rotation = nm.rand_rotation_matrix(rand_nums=self.random_generator.random(size=(3,)))
-#            elif rotation_mode is None or rotation_mode == "":
-#                self.write_log("Rotation mode: None (disabled) for " + name)
-#                rotation = np.eye(3)
-#            else:
-#                self.write_log("Unknown rotation mode: " + str(rotation_mode)
-#                               + ", valid modes '' or 'random'.")
-#                assert False, "Unknown rotation mode: " + str(rotation_mode)
 
             n = nm.clone(position=coords,
                          rotation=rotation,
