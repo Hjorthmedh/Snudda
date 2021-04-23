@@ -19,6 +19,7 @@ conda install cmake -y
 conda install bison -y
 conda install pandoc -y
 conda install openmpi -y
+conda update --all -y
 
 # There is a bug in 3.3.2 which does not handle non-numeric host names correctly
 # conda install mpich=3.2.1 -y
