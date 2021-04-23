@@ -75,8 +75,8 @@ pushd $L/build
 	  -DPYTHON_EXECUTABLE=`which python3` \
 	  -DCMAKE_C_COMPILER:FILEPATH=cc \
 	  -DCMAKE_CXX_COMPILER:FILEPATH=CC \
-          -DCMAKE_C_FLAGS="-DDEBUG -g" \
-          -DCMAKE_CXX_FLAGS="-DDEBUG -g" \
+#          -DCMAKE_C_FLAGS="-DDEBUG -g" \
+#          -DCMAKE_CXX_FLAGS="-DDEBUG -g" \
 #	  -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo \
 	  # -DCMAKE_C_FLAGS="-mavx2" \
           # -DCMAKE_CXX_FLAGS="-mavx2" \
