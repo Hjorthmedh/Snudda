@@ -298,23 +298,15 @@ class SnuddaNeuromodulationSynapse(SnuddaSimulate):
                 pdb.set_trace()
 
 
-    def add_synapse(self, cell_id_source, dend_compartment, section_dist, conductance,
-                    parameter_id, synapse_type_id, axon_dist=None):
+    def add_custom_synapse(self, syn_name,channel_module,dend_compartment, section_dist):
 
-        # You can not locate a point process at
-        # position 0 or 1 if it needs an ion
-        if section_dist == 0.0:
-            section_dist = 0.01
-        if section_dist == 1.0:
-            section_dist = 0.99
-
-        (channel_module, par_data) = self.synapse_parameters[synapse_type_id]
-
-        syn_name = str(channel_module).split('()')[0]
+        self.write_log('using new function')
 
         syn = None
 
         if syn_name not in self.neuromodulators:
+
+            self.write_log('inside the important function')
 
             for synapse_gpcr in self.neuromodulators:
 
@@ -340,246 +332,43 @@ class SnuddaNeuromodulationSynapse(SnuddaSimulate):
 
                             self.sim.neuron.h.setpointer(pointer, tr, syn)
 
-            if syn is None:
-                syn = channel_module(dend_compartment(section_dist))
+        if syn is None:
+            syn = channel_module(dend_compartment(section_dist))
+            self.write_log('doing it normal way')
 
-            if par_data is not None:
-                # Picking one of the parameter sets stored in parData
-                par_id = parameter_id % len(par_data)
+        return syn
 
-                par_set = par_data[par_id]
-                for par in par_set:
-                    if par == "expdata" or par == "cond":
-                        # expdata is not a parameter, and cond we take from synapse matrix
-                        continue
+    def add_custom_external_input_synapse(self,eval_str,section,section_x,channel_module):
 
-                    try:
-                        # Can be value, or a tuple/list, if so second value is scale factor
-                        # for SI -> natural units conversion
-                        val = par_set[par]
+        syn = None
 
-                        # Do we need to convert from SI to natural units?
-                        if type(val) == tuple or type(val) == list:
-                            val = val[0] * val[1]
+        self.write_log('ADDING EXTERNAL inside function')
 
-                        setattr(syn, par, val)
+        for synapse_gpcr in self.neuromodulators:
 
-                    except:
-                        import traceback
-                        tstr = traceback.format_exc()
-                        print(tstr)
-                        import pdb
-                        pdb.set_trace()
+            for x in section(section_x).point_processes():
 
-            if axon_dist is not None:
-                # axon dist is in micrometer, want delay in ms
-                synapse_delay = (1e3 * 1e-6 * axon_dist) / self.axon_speed + self.synapse_delay
-            else:
-                synapse_delay = self.synapse_delay
+                if synapse_gpcr in str(x).split('[')[0]:
 
-            #    self.write_log(f"Synapse delay: {synapse_delay} ms")
+                    channel_module_p = eval(eval_str + "_ptr")
 
-            # What do we do if the GID does not exist?
-            # print("GID exists:" + str(self.pc.gid_exists(cellIDsource)))
+                    syn = channel_module_p(section(section_x))
 
-            if self.is_virtual_neuron[cell_id_source]:
-                # Source is a virtual neuron, need to read and connect input
+                    level = list()
 
-                nc = self.pc.gid_connect(cell_id_source, syn)
-                nc.weight[0] = conductance
-                nc.delay = synapse_delay
-                nc.threshold = self.spike_threshold
+                    for type_param in dir(syn):
 
-                # Prevent garbage collection in python
-                self.net_con_list.append(nc)
-                self.synapse_list.append(syn)
+                        if 'level' in type_param:
+                            level.append(type_param)
 
-            else:
+                    pointer = x._ref_concentration
 
-                nc = self.pc.gid_connect(cell_id_source, syn)
-                nc.weight[0] = conductance
-                nc.delay = synapse_delay
-                nc.threshold = self.spike_threshold
+                    for tr in level:
+                        setattr(syn, 'mod' + tr.replace('level', ''), 1)
 
-                self.net_con_list.append(nc)
-                self.synapse_list.append(syn)
+                        self.sim.neuron.h.setpointer(pointer, tr, syn)
+        if syn is None:
+            syn = channel_module(section(section_x))
 
-            return syn
-    
-    def recording_gpcr(self):
+        return syn
 
-        self.recording_synapse_gpcr = list()
-        for syn in self.syn_gpcrs:
-
-            v = self.sim.neuron.h.Vector()
-
-            v.record(syn._ref_concentration)
-            self.recording_synapse_gpcr.append(v)
-
-    def write_gpcr_synapses(self,filename):
-
-        np.savetxt(filename,self.recording_synapse_gpcr)
-
-
-    def check_mod(self,filename):
-
-        cells = dict((k, self.neurons[k]) for k in self.neuron_id if not self.is_virtual_neuron[k])
-
-        data = dict()
-
-        for index, cell in cells.items():
-
-            for tpart in ['axon','basal','soma']:
-            
-                for comp in getattr(cell.icell, tpart):
-                    for seg in comp:
-                        for mech in seg:
-                            if 'ptr' in mech.name():
-
-                                for d in dir(mech):
-
-                                    for k in ['level','mod','maxMod']:
-
-                                        if k in d:
-                                            data.update({'_'.join([str(comp),str(seg),str(mech),str(d)]) : getattr(mech,d)})
-
-
-        import json
-        with open(filename,'w') as df:
-            json.dump(data,df)
-
-    def add_external_input(self, input_file=None):
-
-        if input_file is None:
-            input_file = self.input_file
-
-        self.write_log(f"Adding external (cortical, thalamic) input from {input_file}")
-
-        self.input_data = h5py.File(input_file, 'r')
-
-        for neuron_id, neuron in self.neurons.items():
-
-            self.external_stim[neuron_id] = []
-            name = neuron.name
-
-            if str(neuron_id) not in self.input_data["input"]:
-                self.write_log(f"Warning - No input specified for {name}", is_error=True)
-                continue
-
-            for inputType in self.input_data["input"][str(neuron_id)]:
-
-                neuron_input = self.input_data["input"][str(neuron_id)][inputType]
-
-                1 * np.ones((neuron_input["sectionID"].shape[0],))
-
-                sections = self.neurons[neuron_id].map_id_to_compartment(neuron_input["sectionID"])
-
-                # Setting individual parameters for synapses
-                mod_file = SnuddaLoad.to_str(neuron_input["modFile"][()])
-                param_list = json.loads(neuron_input["parameterList"][()])
-
-                # TODO: Sanity check mod_file string
-                eval_str = f"self.sim.neuron.h.{mod_file}"
-                channel_module = eval(eval_str)
-
-                for inputID, (section, section_x, paramID, nSpikes) \
-                        in enumerate(zip(sections,
-                                         neuron_input["sectionX"],
-                                         neuron_input["parameterID"],
-                                         neuron_input["nSpikes"])):
-                    # We need to find cellID (int) from neuronID (string, eg. MSD1_3)
-
-                    spikes = neuron_input["spikes"][inputID, :nSpikes] * 1e3  # Neuron uses ms
-                    assert (spikes >= 0).all(), \
-                        "Negative spike times for neuron " + str(neuron_id) + " " + inputType
-
-                    # Creating NEURON VecStim and vector
-                    # https://www.neuron.yale.edu/phpBB/viewtopic.php?t=3125
-                    # import pdb
-                    # pdb.set_trace()
-                    # noinspection PyBroadException
-                    try:
-                        vs = h.VecStim()
-                        v = h.Vector(spikes.size)
-                        v.from_python(spikes)
-                        vs.play(v)
-                    except:
-                        import traceback
-                        tstr = traceback.format_exc()
-                        print(tstr)
-
-                        assert False, "!!! If you see this, make sure that vecevent.mod is included in nrnivmodl compilation"
-
-                    # NEURON: You can not locate a point process at position 0 or 1
-                    # if it needs an ion
-                    if section_x == 0.0:
-                        section_x = 0.01
-                    elif section_x == 1.0:
-                        section_x = 0.99
-
-                    # !!! Parameters for the tmGlut should be possible to set in the
-                    # input specification !!!
-                    # syn = self.sim.neuron.h.tmGlut(section(sectionX))
-
-                    syn = None
-
-                    for synapse_gpcr in self.neuromodulators:
-
-                        for x in section(section_x).point_processes():
-
-                            if synapse_gpcr in str(x).split('[')[0]:
-
-                                channel_module_p = eval(eval_str + "_ptr")
-
-                                syn = channel_module_p(section(section_x))
-
-                                level = list()
-
-                                for type_param in dir(syn):
-
-                                    if 'level' in type_param:
-                                        level.append(type_param)
-
-                                pointer = x._ref_concentration
-
-                                for tr in level:
-                                    setattr(syn, 'mod' + tr.replace('level', ''), 1)
-
-                                    self.sim.neuron.h.setpointer(pointer, tr, syn)
-                    if syn is None:
-
-                        syn = channel_module(section(section_x))
-
-                    nc = h.NetCon(vs, syn)
-
-                    nc.delay = 0.0
-                    # Should weight be between 0 and 1, or in microsiemens?
-                    nc.weight[0] = neuron_input["conductance"][()] * 1e6  # !! what is unit? microsiemens?
-                    nc.threshold = 0.1
-
-                    # Get the modifications of synapse parameters, specific to
-                    # this synapse
-                    if param_list is not None and len(param_list) > 0:
-                        syn_params = param_list[paramID % len(param_list)]["synapse"]
-
-                        for par in syn_params:
-                            if par == "expdata":
-                                # Not a parameter
-                                continue
-
-                            if par == "cond":
-                                # Ignoring cond value specified for synapse, using the
-                                # one specified in the input information instead
-                                continue
-
-                            setattr(syn, par, syn_params[par])
-
-                    self.external_stim[neuron_id].append((v, vs, nc, syn, spikes))
-
-                                                    
-
-        
-        
-                     
-            
-                                     

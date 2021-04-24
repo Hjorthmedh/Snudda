@@ -457,7 +457,7 @@ class SnuddaSimulate(object):
     ############################################################################
 
     def custom_connect_network_synapses(self):
-        
+
         pass
 
     def connect_network_synapses(self):
@@ -832,9 +832,11 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
+
     def add_synapse(self, cell_id_source, dend_compartment, section_dist, conductance,
                     parameter_id, synapse_type_id, axon_dist=None):
 
+        self.write_log('ADDING SYNAPSE LIKE BEFORE - running the main function')
         # You can not locate a point process at
         # position 0 or 1 if it needs an ion
         if section_dist == 0.0:
@@ -844,7 +846,9 @@ class SnuddaSimulate(object):
 
         (channel_module, par_data) = self.synapse_parameters[synapse_type_id]
 
-        syn = channel_module(dend_compartment(section_dist))
+        syn_name = str(channel_module).split('()')[0]
+
+        syn = self.add_custom_synapse(syn_name, channel_module, dend_compartment, section_dist)
 
         if par_data is not None:
             # Picking one of the parameter sets stored in parData
@@ -958,6 +962,8 @@ class SnuddaSimulate(object):
 
     def add_external_input(self, input_file=None):
 
+        self.write_log('ADDING EXTERNAL  using main function')
+
         if input_file is None:
             input_file = self.input_file
 
@@ -1027,7 +1033,7 @@ class SnuddaSimulate(object):
                     # !!! Parameters for the tmGlut should be possible to set in the
                     # input specification !!!
                     # syn = self.sim.neuron.h.tmGlut(section(sectionX))
-                    syn = channel_module(section(section_x))
+                    syn = self.add_custom_external_input_synapse(eval_str, section, section_x,channel_module)
                     nc = h.NetCon(vs, syn)
 
                     nc.delay = 0.0
