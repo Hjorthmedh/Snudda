@@ -1,3 +1,3 @@
-from analyse.analyse import SnuddaAnalyse
-from analyse.analyse_striatum import SnuddaAnalyseStriatum
+from snudda.analyse.analyse import SnuddaAnalyse
+from snudda.analyse.analyse_striatum import SnuddaAnalyseStriatum
 

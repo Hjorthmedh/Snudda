@@ -64,7 +64,7 @@ pushd $L/build
   echo "About to run"
   echo `which cmake`
   cmake .. \
-	  -DCMAKE_BUILD_TYPE=Debug \
+  	  -DCMAKE_BUILD_TYPE:STRING=Debug \
 	  -DNRN_ENABLE_INTERVIEWS=OFF \
 	  -DNRN_ENABLE_PYTHON=ON \
 	  -DNRN_ENABLE_MPI=ON \
@@ -81,6 +81,8 @@ pushd $L/build
           # -DCMAKE_CXX_FLAGS="-mavx2" \
 	  #	  -DNRN_ENABLE_CORENEURON=ON \
 
+	  #-DCMAKE_BUILD_TYPE=Debug \
+	  
 
 
 
@@ -99,7 +101,8 @@ pushd $L/build
     echo "About to run"
     echo `which make`
 	  
-    make -j
+    # make -j   # -j parallel compilation
+    make
     make install
     pushd src/nrnpython
       # python setup.py install --prefix=$L
