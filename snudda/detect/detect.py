@@ -1507,7 +1507,7 @@ class SnuddaDetect(object):
         dir_name = os.path.dirname(logfile_name)
         if not os.path.exists(dir_name):
             self.write_log(f"Creating directory {dir_name}")
-            os.mkdir(dir_name)
+            os.makedirs(dir_name)
 
         self.logfile = open(logfile_name, 'wt')
 
