@@ -175,20 +175,16 @@ class SnuddaInit(object):
 
     # This allows the user to specify a rotation field for neurons,
     # see examples/notebooks/example_of_neuronrotations.ipynb
-    def define_rotation(self, volume_id, neuron_types, rotation_mode, rotation_field_file=None):
+    def define_rotation(self, volume_id, neuron_type, rotation_mode, rotation_field_file=None):
 
-        if type(neuron_types) == list:
-            types_str = ",".join(neuron_types)
-        else:
-            types_str = neuron_types
+        if "neuronOrientation" not in self.network_data["Volume"][volume_id]:
+            self.network_data["Volume"][volume_id]["neuronOrientation"] = collections.OrderedDict()
 
-        self.network_data["Volume"][volume_id]["neuronOrientation"] = collections.OrderedDict()
-
-        self.network_data["Volume"][volume_id]["neuronOrientation"][types_str] = collections.OrderedDict()
-        self.network_data["Volume"][volume_id]["neuronOrientation"][types_str]["rotationMode"] = rotation_mode
+        self.network_data["Volume"][volume_id]["neuronOrientation"][neuron_type] = collections.OrderedDict()
+        self.network_data["Volume"][volume_id]["neuronOrientation"][neuron_type]["rotationMode"] = rotation_mode
 
         if rotation_field_file:
-            self.network_data["Volume"][volume_id]["neuronOrientation"][types_str]["rotationFieldFile"] \
+            self.network_data["Volume"][volume_id]["neuronOrientation"][neuron_type]["rotationFieldFile"] \
                 = rotation_field_file
 
     ############################################################################
@@ -438,10 +434,10 @@ class SnuddaInit(object):
             unique_name = name + "_" + str(ctr)
             cell_data = dict([])
 
-            if not snudda_isfile(par_file) and model_type is not "virtual":
+            if not snudda_isfile(par_file) and model_type != "virtual":
                 print(f"Parameter file not found: {par_file}")
 
-            if not snudda_isfile(mech_file) and model_type is not "virtual":
+            if not snudda_isfile(mech_file) and model_type != "virtual":
                 print(f"Mechanism file not found: {mech_file}")
 
             if hoc_file is not None and not snudda_isfile(hoc_file):
@@ -467,7 +463,25 @@ class SnuddaInit(object):
 
             self.network_data["Neurons"][unique_name] = cell_data
 
-    ############################################################################
+    def add_neuron_density(self, volume_id, neuron_type, density_func=None, density_file=None):
+
+        assert volume_id in self.network_data["Volume"], f"Volume {volume_id} not defined"
+
+        assert (density_func is None) + (density_file is None) == 1, \
+            f"Volume {volume_id}, neuron type {neuron_type}: Only one of density_func and density_file should be set"
+
+        if "density" not in self.network_data["Volume"][volume_id]:
+            self.network_data["Volume"][volume_id]["density"] = dict()
+
+        self.network_data["Volume"][volume_id]["density"][neuron_type] = dict()
+
+        if density_func:
+            self.network_data["Volume"][volume_id]["density"][neuron_type]["densityFunction"] = density_func
+
+        if density_file:
+            self.network_data["Volume"][volume_id]["density"][neuron_type]["densityFile"] = density_file
+
+        ############################################################################
 
     def write_json(self, filename=None):
 
@@ -631,6 +645,8 @@ class SnuddaInit(object):
     # Divide by fTot since we are not including all neurons and we want the
     # proportions to sum to 1.0 (f means fraction)
 
+    # mesh_file can be used to override default mesh file
+
     def define_striatum(self,
                         num_neurons=None,
                         f_dSPN=0.475,
@@ -648,7 +664,9 @@ class SnuddaInit(object):
                         # slice_depth=None,
                         neurons_dir=None,
                         neuron_density=80500,
-                        population_unit_SPN_modifier=1):
+                        population_unit_SPN_modifier=1,
+                        mesh_file=None,
+                        mesh_bin_width=None):
 
         get_val = lambda x: 0 if x is None else x
         if num_neurons is None:
@@ -683,7 +701,17 @@ class SnuddaInit(object):
                 print("Striatum should have " + str(num_neurons) + " but " + str(self.num_neurons_total) \
                       + " are being requested, check fractions set for defineStriatum.")
 
-        if volume_type == "mouseStriatum":
+        assert volume_type is None or mesh_file is None, "You should not specify both volume_type and mesh_file"
+
+        if mesh_file:
+
+            assert mesh_bin_width, "If you specify mesh_file you need to specify mesh_bin_width (e.g 1e-4)"
+
+            self.define_structure(struct_name="Striatum",
+                                  struct_mesh=mesh_file,
+                                  mesh_bin_width=mesh_bin_width)
+
+        elif volume_type == "mouseStriatum":
             self.define_structure(struct_name="Striatum",
                                   struct_mesh=os.path.join("$DATA", "mesh", "Striatum-d.obj"),
                                   mesh_bin_width=1e-4)
@@ -717,7 +745,7 @@ class SnuddaInit(object):
         else:
             # Default, full size striatum
             self.define_structure(struct_name="Striatum",
-                                  struct_mesh=os.path.join("$DATA", "mesh", "Striatum-mesh.obj"),
+                                  struct_mesh=os.path.join("$DATA", "mesh", "Striatum-d.obj"),
                                   mesh_bin_width=1e-4)
 
         if neurons_dir is None:

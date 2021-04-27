@@ -1507,7 +1507,7 @@ class SnuddaDetect(object):
         dir_name = os.path.dirname(logfile_name)
         if not os.path.exists(dir_name):
             self.write_log(f"Creating directory {dir_name}")
-            os.mkdir(dir_name)
+            os.makedirs(dir_name)
 
         self.logfile = open(logfile_name, 'wt')
 
@@ -2282,7 +2282,7 @@ class SnuddaDetect(object):
         vz_min = max(0, v_coords[2] - v_radius)
         vz_max = min(self.hyper_voxel_size, v_coords[2] + v_radius + 1)
 
-        self.write_log(f"Soma check x: {vx_min} - {vx_max} y: {vy_min} - {vy_max} z: {vz_min} - {vz_max}")
+        # self.write_log(f"Soma check x: {vx_min} - {vx_max} y: {vy_min} - {vy_max} z: {vz_min} - {vz_max}")
 
         for vx in range(vx_min, vx_max):
             for vy in range(vy_min, vy_max):

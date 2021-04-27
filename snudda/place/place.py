@@ -130,11 +130,14 @@ class SnuddaPlace(object):
                               virtual_neuron=virtual_neuron)
 
         neuron_type = name.split("_")[0]
-        neuron_coords = self.volume[volume_id]["mesh"].place_neurons(num_neurons, neuron_type)
+        neuron_positions = self.volume[volume_id]["mesh"].place_neurons(num_neurons, neuron_type)
 
         first_added = True
 
-        for coords in neuron_coords:
+        neuron_rotations = self.rotate_helper.get_rotations(volume_name=volume_id, neuron_type=neuron_type,
+                                                            neuron_positions=neuron_positions, rng=self.random_generator)
+
+        for coords, rotation in zip(neuron_positions, neuron_rotations):
             # We set loadMorphology = False, to preserve memory
             # Only morphology loaded for nm then, to get axon and dend
             # radius needed for connectivity
@@ -145,20 +148,6 @@ class SnuddaPlace(object):
             # modulation.json is similarly formatted, pick a parameter set here
             parameter_id = self.random_generator.integers(1000000)
             modulation_id = self.random_generator.integers(1000000)
-
-            rotation = self.rotate_helper.rotate_neuron(volume_name=volume_id, neuron_type=neuron_type.lower(),
-                                                        position=coords, rng=self.random_generator)
-
-#            if rotation_mode == "random":
-#                # We pass 3 random numbers from our random generator
-#                rotation = nm.rand_rotation_matrix(rand_nums=self.random_generator.random(size=(3,)))
-#            elif rotation_mode is None or rotation_mode == "":
-#                self.write_log("Rotation mode: None (disabled) for " + name)
-#                rotation = np.eye(3)
-#            else:
-#                self.write_log("Unknown rotation mode: " + str(rotation_mode)
-#                               + ", valid modes '' or 'random'.")
-#                assert False, "Unknown rotation mode: " + str(rotation_mode)
 
             n = nm.clone(position=coords,
                          rotation=rotation,
@@ -283,6 +272,46 @@ class SnuddaPlace(object):
                                  bin_width=mesh_bin_width,
                                  log_file=mesh_logfile,
                                  random_seed=vol_seed[volume_id])
+
+                if "density" in self.volume[volume_id]:
+                    # We need to set up the neuron density functions also
+                    # TODO: Here density for each neuron type in the volume is defined
+                    #       as a numexpr evaluated string of x,y,z stored in a dictionary
+                    #       with the neuron type as key.
+                    #       Add ability to also specify a density file.
+                    for neuron_type in self.volume[volume_id]["density"]:
+
+                        density_func = None
+
+                        if "densityFunction" in self.volume[volume_id]["density"][neuron_type]:
+                            density_str = self.volume[volume_id]["density"][neuron_type]["densityFunction"]
+                            density_func = lambda x, y, z: numexpr.evaluate(density_str)
+
+                        if "densityFile" in self.volume[volume_id]["density"][neuron_type]:
+                            density_file = self.volume[volume_id]["density"][neuron_type]["densityFile"]
+
+                            # We need to load the data from the file
+                            from scipy.interpolate import griddata
+                            with open(density_file, "r") as f:
+                                density_data = json.load(f)
+
+                                assert volume_id in density_data and neuron_type in density_data[volume_id], \
+                                    f"Volume {volume_id} does not contain data for neuron type {neuron_type}"
+
+                                assert "Coordinates" in density_data[volume_id][neuron_type] \
+                                       and "Density" in density_data[volume_id][neuron_type], \
+                                    (f"Missing Coordinates and/or Density data for "
+                                     f"volume {volume_id}, neuron type {neuron_type}")
+
+                                coord = density_data[volume_id][neuron_type]["Coordinates"] * 1e-6  # Convert to SI
+                                density = density_data[volume_id][neuron_type]["Density"]
+
+                                density_func_helper = lambda pos: griddata(points=coord, values=density,
+                                                                           xi=pos, method="linear")
+
+                                density_func = lambda x, y, z: density_func_helper(np.array([x, y, z]))
+
+                        self.volume[volume_id]["mesh"].define_density(neuron_type, density_func)
 
             self.write_log("Using dimensions from config file")
 

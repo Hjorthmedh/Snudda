@@ -947,7 +947,10 @@ class SnuddaSimulate(object):
         gj = h.gGapPar(section(section_dist))
         self.gap_junction_list.append(gj)
 
-        self.pc.target_var(gj._ref_vgap, gid_dest_gj)
+        # https://neuronsimulator.github.io/nrn/python/modelspec/programmatic/network/parcon.html?highlight=target_var
+        # Update thanks to Lizhixin
+
+        self.pc.target_var(gj, gj._ref_vgap, gid_dest_gj)
 
         self.pc.source_var(section(section_dist)._ref_v, gid_source_gj, sec=section)
 
@@ -1308,6 +1311,27 @@ class SnuddaSimulate(object):
             self.pc.barrier()
 
     ############################################################################
+    # export_to_core_neuron contributed by Zhixin, email: 2001210624@pku.edu.cn
+
+    def export_to_core_neuron(self):
+
+        core_data_path = os.path.join(self.network_path, "CoreNeuronModule")
+        rank = self.pc.id()
+        self.pc.barrier()
+
+        self.write_log(f"Exporting core neuron module to {core_data_path}")
+        if rank == 0 and core_data_path is not None and not os.path.isdir(core_data_path):
+            os.mkdir(core_data_path)
+
+        self.pc.barrier()
+        h.secondorder = 1
+        h.cvode.cache_efficient(1)
+        self.pc.set_maxstep(10)
+        h.stdinit()
+        self.pc.nrnbbcore_write(core_data_path)
+        self.pc.barrier()
+
+    ############################################################################
 
     # secList is a list of sections
     # secXList is a list of X values 0 to 1.0
@@ -1344,7 +1368,7 @@ class SnuddaSimulate(object):
             syn_pos_nrn[i, 2] = h.z3d(idx, sec=sec)
 
         # We need to rotate the neuron to match the big simulation
-        # !!! OBS, this assumes that some is in 0,0,0 local coordinates
+        # !!! OBS, this assumes that soma is in 0,0,0 local coordinates
         syn_pos_nrn_rot = np.transpose(np.matmul(neuron_rotation,
                                                  np.transpose(syn_pos_nrn)))
 

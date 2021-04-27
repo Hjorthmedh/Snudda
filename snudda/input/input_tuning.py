@@ -772,7 +772,7 @@ if __name__ == "__main__":
     parser = ArgumentParser("Input Scaling", formatter_class=RawTextHelpFormatter)
     parser.add_argument("action", choices=["setup", "simulate", "analyse"], help="Action to run.")
     parser.add_argument("networkPath", help="Network path")
-    parser.add_argument("--neurons", help="Neurons path", target="neurons")
+    parser.add_argument("--neurons", help="Neurons path")
     parser.add_argument("--inputType", help="Type of external input",
                         choices=["thalamic", "cortical"], default="thalamic")
     parser.add_argument("--numInputSteps", type=int, help="Number of steps for number of inputs to neurons",

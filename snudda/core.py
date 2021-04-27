@@ -142,7 +142,7 @@ class Snudda(object):
 
         sp = SnuddaPlace(config_file=config_file,
                          log_file=self.logfile,
-                         verbose=True,
+                         verbose=args.verbose,
                          d_view=self.d_view,
                          h5libver=h5libver,
                          raytrace_borders=args.raytrace_borders,
@@ -209,7 +209,8 @@ class Snudda(object):
                           rc=self.rc,
                           hyper_voxel_size=hyper_voxel_size,
                           h5libver=h5libver,
-                          random_seed=random_seed)
+                          random_seed=random_seed,
+                          verbose=args.verbose)
 
         if args.cont:
             # Continue previous run
@@ -269,7 +270,8 @@ class Snudda(object):
                          d_view=self.d_view, lb_view=self.lb_view,
                          scratch_path=scratch_path,
                          h5libver=h5libver,
-                         random_seed=random_seed)
+                         random_seed=random_seed,
+                         verbose=args.verbose)
 
         sp.prune(pre_merge_only=pre_merge_only)
 
@@ -329,7 +331,8 @@ class Snudda(object):
                          logfile=self.logfile,
                          rc=self.rc,
                          random_seed=random_seed,
-                         h5libver=h5libver)
+                         h5libver=h5libver,
+                         verbose=args.verbose)
         si.generate()
 
         self.stop_parallel()
@@ -478,6 +481,10 @@ class Snudda(object):
             # sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
 
         t_sim = args.time * 1000  # Convert from s to ms for Neuron simulator
+
+        if args.exportCoreNeuron:
+            sim.export_to_core_neuron()
+            return  # We do not run simulation when exporting to core neuron
 
         sim.check_memory_status()
         print("Running simulation for " + str(t_sim) + " ms.")

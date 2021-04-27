@@ -16,6 +16,8 @@ class PlotNetwork(object):
             network_file = network
 
         self.network_file = network_file
+        self.network_path = os.path.dirname(self.network_file)
+
         self.sl = SnuddaLoad(self.network_file)
         self.prototype_neurons = dict()
 
@@ -101,7 +103,7 @@ class PlotNetwork(object):
         self.equal_axis(ax)
 
         if fig_name is not None:
-            fig_path = os.path.join(os.path.dirname(self.network_file), "figures", fig_name)
+            fig_path = os.path.join(self.network_path, "figures", fig_name)
             if not os.path.exists(os.path.dirname(fig_path)):
                 os.mkdir(os.path.dirname(fig_path))
             plt.savefig(fig_path, dpi=dpi, bbox_inches="tight")
