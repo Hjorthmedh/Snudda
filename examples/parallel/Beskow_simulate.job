@@ -5,7 +5,7 @@
 #SBATCH -A 2020-5-449
 #SBATCH -o save/output-snudda_simulate.o%j
 #SBATCH -e save/error-snudda_simulate.e%j
-#SBATCH --nodes=15-20
+#SBATCH --nodes=5-10
 #SBATCH --ntasks-per-node=32
 
 # 16 workers were too few, got section stack overflow (there is a hidden

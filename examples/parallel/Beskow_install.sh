@@ -106,12 +106,12 @@ pushd $L/build
     echo `which make`
 	  
     # make -j   # -j parallel compilation
-    make
+    make -j
     make install
-    pushd src/nrnpython
-      # python setup.py install --prefix=$L
-      python setup.py install
-    popd
+
+#    pushd src/nrnpython
+#      python setup.py install
+#    popd
     rm -r $L/share/nrn/{demo,examples}
   popd
 
