@@ -773,6 +773,7 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
+
     def find_gap_junction_compartments(self):
 
         all_loc = dict([])
@@ -832,6 +833,11 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
+    def add_custom_synapse(self,syn_name,channel_module,dend_compartment,section_dist):
+
+        syn = channel_module(dend_compartment(section_dist))
+
+        return syn
 
     def add_synapse(self, cell_id_source, dend_compartment, section_dist, conductance,
                     parameter_id, synapse_type_id, axon_dist=None):
@@ -959,6 +965,12 @@ class SnuddaSimulate(object):
     # Ingham et al 1998, approx 1 glutamatergic synapse per 0.92 mum3
     # --> ~11000 glutamate synapses per MS
     # Kemp 1971 -- The synaptic organization of the caudate nucleus (85% glu)
+
+    def add_custom_external_input_synapse(self,eval_str, section, section_x,channel_module):
+
+        syn = channel_module(section(section_x))
+
+        return syn
 
     def add_external_input(self, input_file=None):
 
