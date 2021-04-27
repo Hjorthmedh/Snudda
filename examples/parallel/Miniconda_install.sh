@@ -18,7 +18,7 @@ conda install git -y
 conda install cmake -y
 conda install bison -y
 conda install pandoc -y
-conda install openmpi -y
+# conda install openmpi -y
 conda update --all -y
 
 # There is a bug in 3.3.2 which does not handle non-numeric host names correctly
@@ -35,6 +35,12 @@ elif [ $SNIC_RESOURCE == "beskow" ]; then
     # module load ??? # What is openmpi module on Beskow?
    #do something
 fi
+
+# Recompile mpi4py using MPICH
+export MPICC=cc
+export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+pip install mpi4py --ignore-installed
+
 
 # Install Snudda
 pushd $L

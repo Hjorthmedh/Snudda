@@ -34,11 +34,14 @@ export MPICXX=CC
 conda activate
 
 export PATH=$LM/bin:$LN/bin:$PATH
-export LD_LIBRARY_PATH=$LN/lib:$LD_LIBRARY_PATH
-# export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
+# export LD_LIBRARY_PATH=$LN/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
 export PYTHONPATH=$LN/lib/python:$LM/lib/python3.8/
 
-
+# We need to recompile mpi4py to use mpich libraries of beskow
+# UPDATE: This is now done in Miniconda_install.sh
+# pip install mpi4py --ignore-installed
 
 # Från MDJs gamla buildscript
 # export CFLAGS="-dynamic -O3 -funroll-loops -march=corei7-avx -mavx  -ffast-math -DCACHEVEC=1" 
