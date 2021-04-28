@@ -720,7 +720,7 @@ class SnuddaInit(object):
 
             self.add_neuron_density(volume_id="Striatum", neuron_type="dSPN", density_file=density_file)
             self.add_neuron_density(volume_id="Striatum", neuron_type="iSPN", density_file=density_file)
-            self.add_neuron_density(volume_id="Striatum", neuron_type="FS", density_file=density_file)
+            self.add_neuron_density(volume_id="Striatum", neuron_type="FSN", density_file=density_file)
             self.add_neuron_density(volume_id="Striatum", neuron_type="LTS", density_file=density_file)
             self.add_neuron_density(volume_id="Striatum", neuron_type="ChIN", density_file=density_file)
 
@@ -760,7 +760,7 @@ class SnuddaInit(object):
 
             self.add_neuron_density(volume_id="Striatum", neuron_type="dSPN", density_file=density_file)
             self.add_neuron_density(volume_id="Striatum", neuron_type="iSPN", density_file=density_file)
-            self.add_neuron_density(volume_id="Striatum", neuron_type="FS", density_file=density_file)
+            self.add_neuron_density(volume_id="Striatum", neuron_type="FSN", density_file=density_file)
             self.add_neuron_density(volume_id="Striatum", neuron_type="LTS", density_file=density_file)
             self.add_neuron_density(volume_id="Striatum", neuron_type="ChIN", density_file=density_file)
 

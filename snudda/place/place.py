@@ -307,7 +307,8 @@ class SnuddaPlace(object):
                                 density = np.array(density_data[volume_id][neuron_type]["Density"])
 
                                 density_func_helper = lambda pos: griddata(points=coord, values=density,
-                                                                           xi=pos, method="linear")
+                                                                           xi=pos, method="linear",
+                                                                           fill_value=0)
 
                                 density_func = lambda x, y, z: density_func_helper(np.array([x, y, z]).transpose())
 
