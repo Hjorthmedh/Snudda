@@ -772,7 +772,7 @@ class RegionMesh(object):
         while self.neuron_ctr < end_ctr and self.reject_ctr < self.max_reject:
 
             putative_loc = self.random_pool[self.rand_ctr, :]
-            df = self.density_lookup[self.rand_ctr, :]
+            df = self.density_lookup[self.rand_ctr]
 
             self.rand_ctr += 1
 
