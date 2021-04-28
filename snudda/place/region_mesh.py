@@ -92,7 +92,7 @@ class RegionMesh(object):
         self.reject_ctr = None
 
         # Used or set by setup_voxel_list
-        self.max_neurons_voxel = 10000
+        self.max_neurons_voxel = int(np.ceil(200000*(self.bin_width/1e-3)**3))  # We assume no more than 200k neurons per mm3
         self.voxel_next_neuron = None
         self.voxel_neurons = None
 
