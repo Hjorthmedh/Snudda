@@ -34,11 +34,14 @@ export MPICXX=CC
 conda activate
 
 export PATH=$LM/bin:$LN/bin:$PATH
-export LD_LIBRARY_PATH=$LN/lib:$LD_LIBRARY_PATH
-# export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
+# export LD_LIBRARY_PATH=$LN/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
 export PYTHONPATH=$LN/lib/python:$LM/lib/python3.8/
 
-
+# We need to recompile mpi4py to use mpich libraries of beskow
+# UPDATE: This is now done in Miniconda_install.sh
+# pip install mpi4py --ignore-installed
 
 # Från MDJs gamla buildscript
 # export CFLAGS="-dynamic -O3 -funroll-loops -march=corei7-avx -mavx  -ffast-math -DCACHEVEC=1" 
@@ -58,6 +61,7 @@ pushd $L/build
   # git clone https://github.com/neuronsimulator/nrn -b 7.8.2
   
   cd nrn
+  rm -r build
   mkdir build
   cd build
 
@@ -71,12 +75,12 @@ pushd $L/build
 	  -DNRN_ENABLE_RX3D=OFF \
 	  -DCMAKE_INSTALL_PREFIX=$LN \
 	  -DNRN_ENABLE_BINARY_SPECIAL=ON \
-	  -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo \
 	  -DPYTHON_EXECUTABLE=`which python3` \
 	  -DCMAKE_C_COMPILER:FILEPATH=cc \
 	  -DCMAKE_CXX_COMPILER:FILEPATH=CC \
-          -DCMAKE_C_FLAGS="-DDEBUG -g" \
-          -DCMAKE_CXX_FLAGS="-DDEBUG -g" \
+#          -DCMAKE_C_FLAGS="-DDEBUG -g" \
+#          -DCMAKE_CXX_FLAGS="-DDEBUG -g" \
+#	  -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo \
 	  # -DCMAKE_C_FLAGS="-mavx2" \
           # -DCMAKE_CXX_FLAGS="-mavx2" \
 	  #	  -DNRN_ENABLE_CORENEURON=ON \
@@ -102,12 +106,12 @@ pushd $L/build
     echo `which make`
 	  
     # make -j   # -j parallel compilation
-    make
+    make -j
     make install
-    pushd src/nrnpython
-      # python setup.py install --prefix=$L
-      python setup.py install
-    popd
+
+#    pushd src/nrnpython
+#      python setup.py install
+#    popd
     rm -r $L/share/nrn/{demo,examples}
   popd
 

@@ -1,6 +1,7 @@
 from argparse import ArgumentParser, RawTextHelpFormatter
 from snudda.core import Snudda, get_data_file
 from snudda.help import snudda_help_text
+from snudda.utils.benchmark_logging import BenchmarkLogging
 import os
 
 
@@ -21,10 +22,9 @@ def snudda_cli():
                                action="store_true")
     create_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
 
-
     init_parser = sub_parsers.add_parser("init")
     init_parser.add_argument("path", help="Location of network")
-    #init_parser.add_argument("size", type=int, help="Number of neurons in network", default=None)
+    # init_parser.add_argument("size", type=int, help="Number of neurons in network", default=None)
     init_parser.add_argument("-size", "--size", dest="size",
                              type=int, help="Number of neurons in network", default=None)
     init_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory",
@@ -142,8 +142,14 @@ def snudda_cli():
         p.strip_dirs().sort_stats(SortKey.CUMULATIVE).print_stats(30)
 
     else:
-        # Performing the requested action
+        bl = BenchmarkLogging(args.path)
+        bl.start_timer(args.action)
+
+        # Perform the requested action
         actions[args.action](args)
+
+        bl.stop_timer(args.action)
+        bl.write_log()
 
 
 def create_project(args):
