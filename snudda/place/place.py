@@ -292,7 +292,7 @@ class SnuddaPlace(object):
 
                             # We need to load the data from the file
                             from scipy.interpolate import griddata
-                            with open(density_file, "r") as f:
+                            with open(snudda_parse_path(density_file), "r") as f:
                                 density_data = json.load(f)
 
                                 assert volume_id in density_data and neuron_type in density_data[volume_id], \

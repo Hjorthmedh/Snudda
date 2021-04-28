@@ -48,6 +48,9 @@ class RegionMesh(object):
         self.density_voxel_n_sample = dict()
         self.density_total_n_sample = dict()
 
+        self.last_neuron_type_added = None
+        self.density_lookup = None
+
         self.random_seed = random_seed
         self.random_generator = np.random.default_rng(self.random_seed)
 
@@ -637,6 +640,7 @@ class RegionMesh(object):
         self.rand_ctr = self.max_rand + 1
 
         self.random_pool = np.zeros((self.max_rand, 3))
+        self.density_lookup = np.zeros((self.max_rand,))
 
         self.neuron_coords = np.zeros((self.max_neurons, 3))
         self.neuron_ctr = 0
@@ -732,6 +736,9 @@ class RegionMesh(object):
 
     def place_neurons(self, num_cells, neuron_type=None, d_min=None):
 
+        # TODO: We need to pre-calculate griddata density for the remainder of the random pool...
+        #       or find a way to speedup griddata
+
         if d_min is None:
             d_min = self.d_min
 
@@ -754,9 +761,19 @@ class RegionMesh(object):
 
         t_a = timeit.default_timer()
 
+        if neuron_type in self.density_function and neuron_type != self.last_neuron_type_added:
+            # Precalculate density function for potential putative locations
+            xv = self.random_pool[self.rand_ctr:, 0]
+            yv = self.random_pool[self.rand_ctr:, 1]
+            zv = self.random_pool[self.rand_ctr:, 2]
+            self.density_lookup[self.rand_ctr:] = self.density_function[neuron_type](x=xv, y=yv, z=zv)
+            self.last_neuron_type_added = neuron_type
+
         while self.neuron_ctr < end_ctr and self.reject_ctr < self.max_reject:
 
             putative_loc = self.random_pool[self.rand_ctr, :]
+            df = self.density_lookup[self.rand_ctr, :]
+
             self.rand_ctr += 1
 
             if self.rand_ctr % 100000 == 0:
@@ -769,6 +786,12 @@ class RegionMesh(object):
 
             if self.rand_ctr >= self.max_rand:
                 self.update_random_pool()
+                xv = self.random_pool[:, 0]
+                yv = self.random_pool[:, 1]
+                zv = self.random_pool[:, 2]
+                self.density_lookup[:] = self.density_function[neuron_type](x=xv, y=yv, z=zv)
+
+                # TODO: We should recalculate griddata density for these points
 
             inside_flag = self.check_inside(coords=putative_loc)
 
@@ -783,9 +806,12 @@ class RegionMesh(object):
                                           / self.bin_width), dtype=int)
 
             # Density check is fast, do that to get an early rejection if needed
+            # TODO: When a function is defined it is relatively fast, but when griddata is used
+            #       it is slooow...
             if inside_flag and neuron_type in self.density_function:
-                xp, yp, zp = putative_loc
-                df = self.density_function[neuron_type](x=xp, y=yp, z=zp)
+                # Update: df, density function value is now precomputed above
+                # xp, yp, zp = putative_loc
+                # df = self.density_function[neuron_type](x=xp, y=yp, z=zp)
                 assert df >= 0, f"Error your density for {neuron_type} is negative {df} at {putative_loc}"
                 vx, vy, vz = voxel_idx
 
