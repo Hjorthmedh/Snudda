@@ -550,7 +550,8 @@ class RegionMesh(object):
     # TODO: When the line between the interior and exterior point crosses the line between two vertexes this code
     #       might incorrectly say the line is outside by considering it crosses both lines
 
-    def ray_casting(self, point):
+    # TODO: Vectorise this to speed it up
+    def ray_casting_OLD(self, point):
 
         n_tri = self.mesh_faces.shape[0]
 
@@ -598,6 +599,45 @@ class RegionMesh(object):
                 # print("si = " +str(si) + ", ti = " + str(ti))
 
                 intersect_count += 1
+
+        return np.mod(intersect_count, 2) == 1
+
+    ############################################################################
+
+    def ray_casting(self, point):
+
+        n_tri = self.mesh_faces.shape[0]
+
+        p = self.point_out - point
+        # rn = nominator, rd = denominator
+        rn = np.sum(np.multiply(self.mesh_nrm, self.mesh_v0 - point), axis=1)
+        rd = np.dot(self.mesh_nrm, p)
+
+        # If rd == 0 and rn != 0 --> r = -1, parallel to plane, but outside, mark -1 to avoid counting
+        # If rd == 0 and rn == 0 --> r = 0, parallel and lies in plane
+        idx0 = (rd == 0)
+        idx1 = np.logical_and(idx0, rn != 0)
+
+        rn[idx1] = -1
+        rd[idx0] = 1
+        r = np.divide(rn, rd)
+
+        intersect_count = 0
+
+        idx = np.where(np.logical_and(0 <= r, r <= 1))[0]
+
+        w = point + r.reshape(len(r), 1) * P.reshape(1, 3) - self.mesh_v0
+        n_points = len(r)
+
+        s = np.divide(np.multiply(self.mesh_uv, np.sum(np.multiply(w, self.mesh_v), axis=1).reshape(n_points, ))
+                      - np.multiply(self.mesh_vv, np.sum(np.multiply(w, self.mesh_u), axis=1).reshape(n_points, )),
+                      self.mesh_denom)
+
+        t = np.divide(np.multiply(self.mesh_uv, np.sum(np.multiply(w, self.mesh_v), axis=1).reshape(n_points, ))
+                      - np.multiply(self.mesh_uu, np.sum(np.multiply(w, self.mesh_u), axis=1).reshape(n_points, )),
+                      self.mesh_denom)
+
+        intersect_count = np.sum((0 <= r) * (r <= 1) * (0 <= s) * (s <= 1) * (0 <= t) * (s + t <= 1))
 
         return np.mod(intersect_count, 2) == 1
 
@@ -1237,7 +1277,7 @@ if __name__ == "__main__":
         lb_view = None
         rc = None
 
-    meshFile = 'mesh/striatum-mesh.obj'
+    meshFile = '../data/mesh/Striatum-d.obj'
     # meshFile = "mesh/cortex-mesh-200.obj"
     sm = RegionMesh(meshFile, d_view=d_view, lb_view=lb_view,
                     raytrace_borders=False)
