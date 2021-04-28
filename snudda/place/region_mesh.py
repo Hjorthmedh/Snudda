@@ -626,7 +626,7 @@ class RegionMesh(object):
 
         idx = np.where(np.logical_and(0 <= r, r <= 1))[0]
 
-        w = point + r.reshape(len(r), 1) * P.reshape(1, 3) - self.mesh_v0
+        w = point + r.reshape(len(r), 1) * p.reshape(1, 3) - self.mesh_v0
         n_points = len(r)
 
         s = np.divide(np.multiply(self.mesh_uv, np.sum(np.multiply(w, self.mesh_v), axis=1).reshape(n_points, ))
