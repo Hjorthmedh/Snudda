@@ -528,7 +528,10 @@ class RegionMesh(object):
             self.write_log(f"Processing x = {ix}")
 
             for iy in range(0, self.num_bins[1]):
+                print(f"Processing x = {ix}/{self.num_bins[0]}, y = {iy}/{self.num_bins[1]}")
+
                 for iz in range(0, self.num_bins[2]):
+
                     if not self.voxel_mask_border[ix, iy, iz]:
                         # Inner or outer point, check centre
                         xyz = np.array([self.min_coord[0] + (ix + 0.5) * self.bin_width,
@@ -600,11 +603,14 @@ class RegionMesh(object):
 
                 intersect_count += 1
 
+        print(f"ray_casting_OLD - intersection count {intersect_count}")
         return np.mod(intersect_count, 2) == 1
 
     ############################################################################
 
     def ray_casting(self, point):
+
+        # print(f"Processing {point}")
 
         n_tri = self.mesh_faces.shape[0]
 
@@ -633,11 +639,19 @@ class RegionMesh(object):
                       - np.multiply(self.mesh_vv, np.sum(np.multiply(w, self.mesh_u), axis=1).reshape(n_points, )),
                       self.mesh_denom)
 
-        t = np.divide(np.multiply(self.mesh_uv, np.sum(np.multiply(w, self.mesh_v), axis=1).reshape(n_points, ))
-                      - np.multiply(self.mesh_uu, np.sum(np.multiply(w, self.mesh_u), axis=1).reshape(n_points, )),
+        t = np.divide(np.multiply(self.mesh_uv, np.sum(np.multiply(w, self.mesh_u), axis=1).reshape(n_points, ))
+                      - np.multiply(self.mesh_uu, np.sum(np.multiply(w, self.mesh_v), axis=1).reshape(n_points, )),
                       self.mesh_denom)
 
         intersect_count = np.sum((0 <= r) * (r <= 1) * (0 <= s) * (s <= 1) * (0 <= t) * (s + t <= 1))
+
+        # print(f"{point} intersection count {intersect_count}")
+
+        # if np.random.uniform() < 0.05:
+        #     if (np.mod(intersect_count, 2) == 1) != self.ray_casting_OLD(point):
+        #         print(f"New function differs from old for point {point}... check why")
+        #         import pdb
+        #         pdb.set_trace()
 
         return np.mod(intersect_count, 2) == 1
 
@@ -1280,7 +1294,7 @@ if __name__ == "__main__":
     meshFile = '../data/mesh/Striatum-d.obj'
     # meshFile = "mesh/cortex-mesh-200.obj"
     sm = RegionMesh(meshFile, d_view=d_view, lb_view=lb_view,
-                    raytrace_borders=False)
+                    raytrace_borders=False, verbose=True)
 
     # import cProfile
     # cProfile.run("neuronPos = sm.placeNeurons(1000)")
