@@ -968,7 +968,7 @@ class RegionMesh(object):
         t_b = timeit.default_timer()
         self.write_log(f"Placed {num_cells} in {t_b - t_a} s")
 
-        for neuron_type in self.placed_voxel:
+        if neuron_type in self.placed_voxel:
             if np.max(self.placed_voxel[neuron_type]) < 5 \
                     and neuron_type in self.density_function and self.density_function[neuron_type]:
                 self.write_log(f"Warning, mesh_bin_width might be too small to setup accurate {neuron_type} density",
