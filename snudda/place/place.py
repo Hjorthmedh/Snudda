@@ -303,13 +303,13 @@ class SnuddaPlace(object):
                                     (f"Missing Coordinates and/or Density data for "
                                      f"volume {volume_id}, neuron type {neuron_type}")
 
-                                coord = density_data[volume_id][neuron_type]["Coordinates"] * 1e-6  # Convert to SI
-                                density = density_data[volume_id][neuron_type]["Density"]
+                                coord = np.array(density_data[volume_id][neuron_type]["Coordinates"]) * 1e-6  # Convert to SI
+                                density = np.array(density_data[volume_id][neuron_type]["Density"])
 
                                 density_func_helper = lambda pos: griddata(points=coord, values=density,
                                                                            xi=pos, method="linear")
 
-                                density_func = lambda x, y, z: density_func_helper(np.array([x, y, z]))
+                                density_func = lambda x, y, z: density_func_helper(np.array([x, y, z]).transpose())
 
                         self.volume[volume_id]["mesh"].define_density(neuron_type, density_func)
 

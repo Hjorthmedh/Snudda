@@ -3,6 +3,8 @@ from collections import OrderedDict
 import json
 from snudda.utils.numpy_encoder import NumpyEncoder
 
+volume_name = "Striatum"
+
 file_lookup = { "LTS" : "1001_STRd_Sst_dens_smooth.csv",
                 "ChIN" : "252_STRd_Chat_dens_smooth.csv",
                 "dSPN" : "352_STRd_Drd1_dens_smooth.csv",
@@ -24,7 +26,10 @@ for neuron_type, density_file in file_lookup.items():
     density_data[neuron_type]["Coordinates"] = coord
     density_data[neuron_type]["Density"] = density
 
+volume_density_data = OrderedDict()
+volume_density_data[volume_name] = density_data
+    
 with open(output_file, "w") as f:
-    json.dump(density_data, f, indent=4, cls=NumpyEncoder)
+    json.dump(volume_density_data, f, indent=4, cls=NumpyEncoder)
 
 print(f"Wrote {output_file}")

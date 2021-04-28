@@ -840,10 +840,12 @@ class RegionMesh(object):
 
             if self.rand_ctr >= self.max_rand:
                 self.update_random_pool()
-                xv = self.random_pool[:, 0]
-                yv = self.random_pool[:, 1]
-                zv = self.random_pool[:, 2]
-                self.density_lookup[:] = self.density_function[neuron_type](x=xv, y=yv, z=zv)
+
+                if neuron_type in self.density_function:
+                    xv = self.random_pool[:, 0]
+                    yv = self.random_pool[:, 1]
+                    zv = self.random_pool[:, 2]
+                    self.density_lookup[:] = self.density_function[neuron_type](x=xv, y=yv, z=zv)
 
                 # TODO: We should recalculate griddata density for these points
 
