@@ -9,7 +9,7 @@ file_lookup = { "LTS" : "1001_STRd_Sst_dens_smooth.csv",
                 "ChIN" : "252_STRd_Chat_dens_smooth.csv",
                 "dSPN" : "352_STRd_Drd1_dens_smooth.csv",
                 "iSPN" : "72109410_STRd_Adora2a_dens_smooth.csv",
-                "FS" : "79556738_STRd_Pvalb_dens_smooth.csv"}
+                "FSN" : "79556738_STRd_Pvalb_dens_smooth.csv"}
 
 output_file = "dorsal_striatum_density.json"
 
