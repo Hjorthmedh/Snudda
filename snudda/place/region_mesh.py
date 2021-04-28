@@ -75,7 +75,7 @@ class RegionMesh(object):
         self.mesh_nrm = None
 
         # Used by setup_place_neurons
-        self.max_rand = 1000000
+        self.max_rand = 10000
         self.max_neurons = 3000000
         self.max_reject = 100e6
 
@@ -790,9 +790,6 @@ class RegionMesh(object):
 
     def place_neurons(self, num_cells, neuron_type=None, d_min=None):
 
-        # TODO: We need to pre-calculate griddata density for the remainder of the random pool...
-        #       or find a way to speedup griddata
-
         if d_min is None:
             d_min = self.d_min
 
@@ -822,6 +819,10 @@ class RegionMesh(object):
             zv = self.random_pool[self.rand_ctr:, 2]
             self.density_lookup[self.rand_ctr:] = self.density_function[neuron_type](x=xv, y=yv, z=zv)
             self.last_neuron_type_added = neuron_type
+
+            if np.sum(self.density_lookup[self.rand_ctr:]) == 0:
+                self.write_log(f"Density zero for {len(xv)} {neuron_type} neurons -- error with density?",
+                               is_error=True)
 
         while self.neuron_ctr < end_ctr and self.reject_ctr < self.max_reject:
 
