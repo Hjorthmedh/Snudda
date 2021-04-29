@@ -716,6 +716,14 @@ class SnuddaInit(object):
                                   struct_mesh=os.path.join("$DATA", "mesh", "Striatum-d.obj"),
                                   mesh_bin_width=1e-4)
 
+            density_file = os.path.join("$DATA", "density", "dorsal_striatum_density.json")
+
+            self.add_neuron_density(volume_id="Striatum", neuron_type="dSPN", density_file=density_file)
+            self.add_neuron_density(volume_id="Striatum", neuron_type="iSPN", density_file=density_file)
+            self.add_neuron_density(volume_id="Striatum", neuron_type="FSN", density_file=density_file)
+            self.add_neuron_density(volume_id="Striatum", neuron_type="LTS", density_file=density_file)
+            self.add_neuron_density(volume_id="Striatum", neuron_type="ChIN", density_file=density_file)
+
         elif volume_type == "slice":
             self.define_structure(struct_name="Striatum",
                                   struct_mesh="slice",
@@ -747,6 +755,15 @@ class SnuddaInit(object):
             self.define_structure(struct_name="Striatum",
                                   struct_mesh=os.path.join("$DATA", "mesh", "Striatum-d.obj"),
                                   mesh_bin_width=1e-4)
+
+            density_file = os.path.join("$DATA", "density", "dorsal_striatum_density.json")
+
+            self.add_neuron_density(volume_id="Striatum", neuron_type="dSPN", density_file=density_file)
+            self.add_neuron_density(volume_id="Striatum", neuron_type="iSPN", density_file=density_file)
+            self.add_neuron_density(volume_id="Striatum", neuron_type="FSN", density_file=density_file)
+            self.add_neuron_density(volume_id="Striatum", neuron_type="LTS", density_file=density_file)
+            self.add_neuron_density(volume_id="Striatum", neuron_type="ChIN", density_file=density_file)
+
 
         if neurons_dir is None:
             neurons_dir = os.path.join("$DATA", "neurons")
