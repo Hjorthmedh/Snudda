@@ -2390,7 +2390,7 @@ class SnuddaDetect(object):
                     # Voxel already has neuronID, skip
                     continue
 
-                if voxel_space_ctr[vp1[0], vp1[1], vp1[2]] < self_max_dend:
+                if v_ctr < self_max_dend:
                     voxel_space[vp1[0], vp1[1], vp1[2], v_ctr] = neuron_id
                     voxel_sec_id[vp1[0], vp1[1], vp1[2], v_ctr] = segmentID
                     voxel_sec_x[vp1[0], vp1[1], vp1[2], v_ctr] = segmentX[0]
