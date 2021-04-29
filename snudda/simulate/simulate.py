@@ -39,9 +39,6 @@ import snudda.utils.memory
 # !!! Need to gracefully handle the situation where there are more workers than
 # number of neurons, currently we get problem when adding the voltage saving
 
-# !!! Have added code for dopamine modulation of neuron intrinsic channels
-#     need to add dopamine modulation for the synaptic channels also !!!
-
 ##############################################################################
 
 # If simulationConfig is set, those values override other values
@@ -63,7 +60,7 @@ class SnuddaSimulate(object):
         self.verbose = verbose
         self.log_file = log_file
 
-        self.custom_connection = True
+        self.custom_setup = None
 
         if network_path:
             self.network_path = network_path
@@ -446,8 +443,9 @@ class SnuddaSimulate(object):
             self.connect_network_gap_junctions_local()
             self.pc.setup_transfer()
 
-        if self.custom_connection:
-            self.custom_connect_network_synapses()
+        if self.custom_setup:
+            # Neuromodulation requires this to be run, before connect_network_synapses
+            self.custom_setup()
 
         # Add synapses
         self.connect_network_synapses()
@@ -455,10 +453,6 @@ class SnuddaSimulate(object):
         self.pc.barrier()
 
     ############################################################################
-
-    def custom_connect_network_synapses(self):
-
-        pass
 
     def connect_network_synapses(self):
 
@@ -833,11 +827,9 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def add_custom_synapse(self,syn_name,channel_module,dend_compartment,section_dist):
-
-        syn = channel_module(dend_compartment(section_dist))
-
-        return syn
+    def add_custom_synapse(self, syn_name, channel_module, dend_compartment, section_dist):
+        # TODO: RENAME TO get_synapse
+        return channel_module(dend_compartment(section_dist))
 
     def add_synapse(self, cell_id_source, dend_compartment, section_dist, conductance,
                     parameter_id, synapse_type_id, axon_dist=None):
@@ -969,11 +961,9 @@ class SnuddaSimulate(object):
     # --> ~11000 glutamate synapses per MS
     # Kemp 1971 -- The synaptic organization of the caudate nucleus (85% glu)
 
-    def add_custom_external_input_synapse(self,eval_str, section, section_x,channel_module):
-
-        syn = channel_module(section(section_x))
-
-        return syn
+    def add_custom_external_input_synapse(self, eval_str, section, section_x, channel_module):
+        # TODO: rename get_external_input_synapse
+        return channel_module(section(section_x))
 
     def add_external_input(self, input_file=None):
 
@@ -1606,46 +1596,6 @@ class SnuddaSimulate(object):
         return memory_ratio < threshold
 
     ############################################################################
-
-    def set_dopamine_modulation(self, sec, transient_vector=None):
-
-        if not transient_vector:
-            transient_vector = []
-
-        channel_list = {'spn': ['naf_ms', 'kas_ms', 'kaf_ms', 'kir_ms', 'cal12_ms', 'cal13_ms', 'can_ms', 'car_ms'],
-                        'fs': ['kir_fs', 'kas_fs', 'kaf_fs', 'naf_fs'],
-                        'chin': ['na_ch', 'na2_ch', 'kv4_ch', 'kir2_ch', 'hcn12_ch', 'cap_ch'],
-                        'lts': ['na3_lts', 'hd_lts']}
-
-        for cell_type in channel_list:
-            for seg in sec:
-                for mech in seg:
-                    if mech.name in channel_list[cell_type]:
-                        if len(transient_vector) == 0:
-                            mech.damod = 1
-                        else:
-                            transient_vector.play(mech._ref_damod,
-                                                  self.sim.neuron.h.dt)
-
-    ############################################################################
-
-    def apply_dopamine(self, cell_id=None, transient_vector=None):
-
-        if not transient_vector:
-            transient_vector = []
-
-        if cell_id is None:
-            cell_id = self.neuron_id
-
-        cells = dict((k, self.neurons[k]) for k in cell_id if not self.is_virtual_neuron[k])
-
-        for c in cells.values():
-            for comp in [c.icell.dend, c.icell.axon, c.icell.soma]:
-                for sec in comp:
-                    self.set_dopamine_modulation(sec, transient_vector)
-
-    ############################################################################
-
 
 def find_latest_file(file_mask):
     files = glob(file_mask)

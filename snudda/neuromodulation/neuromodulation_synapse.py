@@ -33,13 +33,12 @@ class SnuddaNeuromodulationSynapse(SnuddaSimulate):
         self.neuromodulation_conductance = neuromodulation_conductance
 
         super(SnuddaNeuromodulationSynapse, self).__init__(network_path=network_path,
-                                                    network_file=network_file,
-                                                    input_file=input_file,
-                                                    verbose=False,
-                                                    log_file=log_file,
-                                                    disable_gap_junctions=disable_gap_junctions,
-                                                    simulation_config=simulation_config)
-
+                                                           network_file=network_file,
+                                                           input_file=input_file,
+                                                           verbose=False,
+                                                           log_file=log_file,
+                                                           disable_gap_junctions=disable_gap_junctions,
+                                                           simulation_config=simulation_config)
 
     def reorder_cell_info(self, cell_modulator):
 
@@ -172,8 +171,6 @@ class SnuddaNeuromodulationSynapse(SnuddaSimulate):
                                     print(param)
                                     setattr(seg, param + "_" + mechanism_name + "_ptr", val[i])
 
-                                    
-
             for mech_name in ion_channels:
                 sec.uninsert(mech_name)
 
@@ -234,9 +231,9 @@ class SnuddaNeuromodulationSynapse(SnuddaSimulate):
         if syn_name in self.neuromodulators:
             self.add_gpcr_synapse(channel_module, par_data, cell_id_source, dend_compartment, section_dist, conductance, parameter_id, synapse_type_id, axon_dist)
 
-    def custom_connect_network_synapses(self):
+    def custom_setup(self):
 
-        self.write_log("connectNetworkSynapses")
+        self.write_log("custom setup")
 
         # This loops through all the synapses, and connects the relevant ones
         next_row = 0
@@ -327,7 +324,9 @@ class SnuddaNeuromodulationSynapse(SnuddaSimulate):
 
                         pointer = x._ref_concentration
 
-                        for tr in level:
+                        # for n in [x for x in dir(np) if "sin" in x]: print(n)
+
+                        for tr in level: # [x for x in dir(syn) if 'level' in x]
                             setattr(syn, 'mod' + tr.replace('level', ''), 1)
 
                             self.sim.neuron.h.setpointer(pointer, tr, syn)

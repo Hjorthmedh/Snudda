@@ -1,16 +1,18 @@
 import numpy as np
 import json
 
+
 class MeasureNeuromodulation:
 
-    def __init__(self,snudda_simulate_obj):
+    def __init__(self, snudda_simulate_obj):
 
         self.snudda_simulate_obj = snudda_simulate_obj
-
+        self.recording_synapse_gpcr = None
 
     def recording_gpcr(self):
 
         self.recording_synapse_gpcr = list()
+
         for syn in self.snudda_simulate_obj.syn_gpcrs:
             v = self.snudda_simulate_obj.sim.neuron.h.Vector()
 
@@ -46,6 +48,3 @@ class MeasureNeuromodulation:
 
         with open(filename, 'w') as df:
             json.dump(data, df)
-
-        
-
