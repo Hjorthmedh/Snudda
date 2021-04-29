@@ -2347,7 +2347,7 @@ class SnuddaDetect(object):
     # !!! OBS segX must be an integer here, so to get true segX divide by 10000
 
     @staticmethod
-    @jit(nopython=True)
+    @jit(nopython=True, fastmath=True, cache=True)
     def fill_voxels_dend_helper(voxel_space, voxel_space_ctr,
                                 voxel_sec_id, voxel_sec_x,
                                 voxel_soma_dist,
@@ -2542,7 +2542,7 @@ class SnuddaDetect(object):
         self.voxel_overflow_counter += voxel_overflow_ctr
 
     @staticmethod
-    @jit(nopython=True)
+    @jit(nopython=True, fastmath=True, cache=True)
     def fill_voxels_axon_helper(voxel_space, voxel_space_ctr,
                                 voxel_axon_dist,
                                 coords, links,
