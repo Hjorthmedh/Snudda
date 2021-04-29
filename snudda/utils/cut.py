@@ -142,7 +142,7 @@ class SnuddaCut(object):
         network_group.create_dataset("nGapJunctions", data=num_gap_junctions,
                                      dtype=np.uint64)
 
-        # TODO: !!!! might need to handle cunk size differently based on size...
+        # TODO: !!!! might need to handle chunk size differently based on size...
 
         syn_mat = self.in_file["network/synapses"]
         gj_mat = self.in_file["network/gapJunctions"]
