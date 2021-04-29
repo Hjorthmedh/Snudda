@@ -3,16 +3,16 @@ import json
 
 class MeasureNeuromodulation:
 
-    def __init__(self,obj):
+    def __init__(self,snudda_simulate_obj):
 
-        self.obj = obj
+        self.snudda_simulate_obj = snudda_simulate_obj
 
 
     def recording_gpcr(self):
 
         self.recording_synapse_gpcr = list()
-        for syn in self.obj.syn_gpcrs:
-            v = self.obj.sim.neuron.h.Vector()
+        for syn in self.snudda_simulate_obj.syn_gpcrs:
+            v = self.snudda_simulate_obj.sim.neuron.h.Vector()
 
             v.record(syn._ref_concentration)
             self.recording_synapse_gpcr.append(v)
@@ -23,7 +23,7 @@ class MeasureNeuromodulation:
 
     def check_mod(self, filename):
 
-        cells = dict((k, self.obj.neurons[k]) for k in self.obj.neuron_id if not self.obj.is_virtual_neuron[k])
+        cells = dict((k, self.snudda_simulate_obj.neurons[k]) for k in self.snudda_simulate_obj.neuron_id if not self.snudda_simulate_obj.is_virtual_neuron[k])
 
         data = dict()
 
