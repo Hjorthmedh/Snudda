@@ -528,7 +528,7 @@ class RegionMesh(object):
             self.write_log(f"Processing x = {ix}")
 
             for iy in range(0, self.num_bins[1]):
-                print(f"Processing x = {ix}/{self.num_bins[0]}, y = {iy}/{self.num_bins[1]}")
+                # print(f"Processing x = {ix}/{self.num_bins[0]}, y = {iy}/{self.num_bins[1]}")
 
                 for iz in range(0, self.num_bins[2]):
 
