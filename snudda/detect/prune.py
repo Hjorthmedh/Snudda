@@ -880,6 +880,8 @@ class SnuddaPrune(object):
             return False, None, None
 
     ############################################################################
+    # TODO: We dont need to save morphologies in every merge file, only in final one (if at all)
+    #       go through code and update so intermediate merge files do not save SWC morphologies.
 
     def setup_merge_file(self, verbose=False, big_cache=False,
                          outfile_name=None, save_morphologies=True,
