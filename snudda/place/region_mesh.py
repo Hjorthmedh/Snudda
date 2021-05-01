@@ -766,7 +766,7 @@ class RegionMesh(object):
 
         if self.rand_ctr >= self.max_rand:
 
-            self.write_log("Regenerating new random pool")
+            # self.write_log("Regenerating new random pool")
             for i in range(0, 3):
                 self.random_pool[:, i] = self.random_generator.uniform(low=self.min_coord[i],
                                                                        high=self.max_coord[i],
