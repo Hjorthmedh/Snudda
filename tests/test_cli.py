@@ -50,21 +50,28 @@ class TestCLI(unittest.TestCase):
             os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
             time.sleep(10)
 
+            os.system('git clone https://github.com/Hjorthmedh/BasalGangliaData.git')
+            neuron_dir = 'BasalGangliaData/data/'
+
         # with self.subTest(stage="init-parallel-BIG"):
         #     run_cli_command("init tiny_parallel --size 1000000 --overwrite")
 
         # with self.subTest(stage="place-parallel-BIG"):
         #     run_cli_command("place tiny_parallel --parallel")
 
-        with self.subTest(stage="init-parallel"):
-            run_cli_command("init tiny_parallel --size 100 --overwrite")
+        #with self.subTest(stage="init-parallel"):
+        #    run_cli_command("init tiny_parallel --size 100 --overwrite")
 
         # Lets reinit but a smaller network that contains all types of cells, to speed things up
-        with self.subTest(stage="small-reinit-1"):
+        with self.subTest(stage="init-parallel"):
             config_name = os.path.join("tiny_parallel", "network-config.json")
-            cnc = SnuddaInit(struct_def={}, config_file=config_name, random_seed=123456)
+            print(neuron_dir)
+            print('here')
+            print(config_name)
+            cnc = SnuddaInit(config_file=config_name, random_seed=123456)
             cnc.define_striatum(num_dSPN=4, num_iSPN=4, num_FS=2, num_LTS=2, num_ChIN=2,
-                                volume_type="cube")
+                                volume_type="cube", neurons_dir=neuron_dir)
+            print(config_name)
             cnc.write_json(config_name)
 
         with self.subTest(stage="place-parallel"):
@@ -100,7 +107,7 @@ class TestCLI(unittest.TestCase):
         with self.subTest(stage="simulate"):
             print("Running nrnivmodl:")
 
-            os.system("nrnivmodl ../snudda/data/neurons/mechanisms-modulation")
+            os.system("nrnivmodl BasalGangliaData/mod-files")
             
             mech_dir = os.path.join(os.path.dirname(__file__), os.path.pardir,
                                     "snudda", "data", "neurons", "mechanisms-modulation")

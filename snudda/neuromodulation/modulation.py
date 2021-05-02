@@ -1,14 +1,10 @@
-
-
 import numpy as np
+
 
 def alpha_sub_function(t_step,tau,tstart,gmax):
 
-    t = (t_step - tstart) / tau
-    e = np.exp(1 - t)
-    magnitude = gmax * t * e
+    return gmax * ((t_step - tstart) / tau) * np.exp(1 - t)
 
-    return magnitude
 
 def alpha(parameter=None):
 
@@ -19,9 +15,9 @@ def alpha(parameter=None):
 
     magnitude = np.zeros_like(time_step_array)
 
-    index = np.where(time_step_array > tstart)
+    start_index = np.where(time_step_array > tstart)[0][0]
 
-    magnitude[min(index[0]):max(index[0]) + 1] = alpha_sub_function(np.take(time_step_array, index), tau, tstart, gmax)
+    magnitude[start_index:] = alpha_sub_function(np.take(time_step_array, index), tau, tstart, gmax)
 
     return magnitude
 
@@ -35,9 +31,9 @@ def step(parameter=None):
 
     magnitude = np.zeros_like(time_step_array)
 
-    index = np.where(np.logical_and(time_step_array > tstart, time_step_array < step_stop))
+    start_index = np.where(np.logical_and(time_step_array > tstart, time_step_array < step_stop))[0][0]
 
-    magnitude[min(index[0]):max(index[0]) + 1] = gmax
+    magnitude[start_index:] = gmax
     
     return magnitude
 
@@ -60,15 +56,17 @@ def alpha_background(parameter=None):
         gmax_shift = parameter['gmax_decrease'] * (-1)
     elif 'gmax_increase' in parameter.keys():
         gmax_shift = parameter['gmax_increase']
+    else:
+        raise ValueError('Include a gmax increase or decrease')
 
     tau = parameter['tau']
     tonic = parameter['tonic']
 
     magnitude = np.ones_like(time_step_array) * tonic
 
-    index = np.where(time_step_array > tstart)
+    start_index = np.where(time_step_array > tstart)[0][0]
 
-    magnitude[min(index[0]):max(index[0]) + 1] = tonic + alpha_sub_function(np.take(time_step_array, index), tau, tstart, gmax_shift)
+    magnitude[start_index:] = tonic + alpha_sub_function(np.take(time_step_array, index), tau, tstart, gmax_shift)
 
     if min(magnitude) < 0 or max(magnitude) > 1:
         raise ValueError(' Modulation is outside the range (0,1). Modify parameters')
@@ -78,6 +76,6 @@ def alpha_background(parameter=None):
 
 def time_series(parameter=None):
 
-    magnitude = eval(parameter['array'])
+    magnitude = numexpr.evalute(parameter['array'])
     
     return magnitude

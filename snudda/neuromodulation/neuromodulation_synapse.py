@@ -22,7 +22,6 @@ class SnuddaNeuromodulationSynapse(SnuddaSimulate):
                  disable_gap_junctions=True,
                  simulation_config=None, neuromodulators=None, neuromodulator_description=None,neuromodulation_conductance=None):
 
-        self.input_data = h5py.File(snudda_parse_path(input_file), 'r')
         self.verbose = verbose
         self.neuromodulators = neuromodulators
         self.neuro_desc = neuromodulator_description
@@ -39,6 +38,7 @@ class SnuddaNeuromodulationSynapse(SnuddaSimulate):
                                                            log_file=log_file,
                                                            disable_gap_junctions=disable_gap_junctions,
                                                            simulation_config=simulation_config)
+        self.custom_setup_bool = True
 
     def reorder_cell_info(self, cell_modulator):
 

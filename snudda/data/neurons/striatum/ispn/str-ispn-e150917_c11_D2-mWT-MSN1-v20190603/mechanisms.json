@@ -19,8 +19,7 @@
     ],
     "axonal": [
         "naf_ms",
-        "kas_ms",
-	"Im_ms"
+        "kas_ms"
     ],
     "basal": [
         "naf_ms",

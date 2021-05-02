@@ -60,7 +60,7 @@ class SnuddaSimulate(object):
         self.verbose = verbose
         self.log_file = log_file
 
-        self.custom_setup = None
+        self.custom_setup_bool = None
 
         if network_path:
             self.network_path = network_path
@@ -443,8 +443,9 @@ class SnuddaSimulate(object):
             self.connect_network_gap_junctions_local()
             self.pc.setup_transfer()
 
-        if self.custom_setup:
+        if self.custom_setup_bool:
             # Neuromodulation requires this to be run, before connect_network_synapses
+            self.write_log('Doing gpcr network')
             self.custom_setup()
 
         # Add synapses
