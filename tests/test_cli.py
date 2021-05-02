@@ -59,11 +59,11 @@ class TestCLI(unittest.TestCase):
         # with self.subTest(stage="place-parallel-BIG"):
         #     run_cli_command("place tiny_parallel --parallel")
 
-        #with self.subTest(stage="init-parallel"):
-        #    run_cli_command("init tiny_parallel --size 100 --overwrite")
+        with self.subTest(stage="init-parallel"):
+            run_cli_command("init tiny_parallel --size 100 --overwrite")
 
         # Lets reinit but a smaller network that contains all types of cells, to speed things up
-        with self.subTest(stage="init-parallel"):
+        with self.subTest(stage="small-reinit-1"):
             config_name = os.path.join("tiny_parallel", "network-config.json")
             print(neuron_dir)
             print('here')
