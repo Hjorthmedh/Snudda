@@ -50,7 +50,7 @@ class TestCLI(unittest.TestCase):
             os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
             time.sleep(10)
 
-            os.system('git clone https://github.com/Hjorthmedh/BasalGangliaData.git')
+            os.system('git clone https://github.com/jofrony/BasalGangliaData.git')
             neuron_dir = 'BasalGangliaData/data/'
 
         # with self.subTest(stage="init-parallel-BIG"):
@@ -109,18 +109,17 @@ class TestCLI(unittest.TestCase):
 
             os.system("nrnivmodl BasalGangliaData/mod-files")
             
-            mech_dir = os.path.join(os.path.dirname(__file__), os.path.pardir,
-                                    "snudda", "data", "neurons", "mechanisms-modulation")
+            mech_dir = os.path.join("BasalGangliaData", "mod-files")
 
             if not os.path.exists("mechanisms"):
                 print("----> Copying mechanisms")
                 # os.symlink(mech_dir, "mechanisms")
                 from distutils.dir_util import copy_tree
-                copy_tree(mech_dir, "mechanisms-modulation")
+                copy_tree(mech_dir, "mod-files")
             else:
                 print("------------->   !!! mechanisms already exists")
 
-            eval_str = f"nrnivmodl mechanisms-modulation"  # f"nrnivmodl {mech_dir}
+            eval_str = f"nrnivmodl BasalGangliaData/mod-files"  # f"nrnivmodl {mech_dir}
             print(f"Running: {eval_str}")
             os.system(eval_str)
 
