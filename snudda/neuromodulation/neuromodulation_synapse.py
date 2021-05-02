@@ -294,10 +294,11 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                 import pdb
                 pdb.set_trace()
 
-
-    def get_synapse(self, syn_name,channel_module,dend_compartment, section_dist):
+    def get_synapse(self, channel_module,dend_compartment, section_dist):
 
         self.write_log('using new function')
+
+        syn_name = str(channel_module).split('()')[0]
 
         syn = None
 

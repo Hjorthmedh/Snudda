@@ -768,7 +768,6 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-
     def find_gap_junction_compartments(self):
 
         all_loc = dict([])
@@ -845,9 +844,7 @@ class SnuddaSimulate(object):
 
         (channel_module, par_data) = self.synapse_parameters[synapse_type_id]
 
-        syn_name = str(channel_module).split('()')[0]
-
-        syn = self.get_synapse(syn_name, channel_module, dend_compartment, section_dist)
+        syn = self.get_synapse(channel_module, dend_compartment, section_dist)
 
         if par_data is not None:
             # Picking one of the parameter sets stored in parData
