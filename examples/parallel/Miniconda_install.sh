@@ -18,6 +18,8 @@ conda install git -y
 conda install cmake -y
 conda install bison -y
 conda install pandoc -y
+conda install flex -y
+conda install ncurses -y
 # conda install openmpi -y
 conda update --all -y
 
