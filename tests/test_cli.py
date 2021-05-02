@@ -65,9 +65,6 @@ class TestCLI(unittest.TestCase):
         # Lets reinit but a smaller network that contains all types of cells, to speed things up
         with self.subTest(stage="small-reinit-1"):
             config_name = os.path.join("tiny_parallel", "network-config.json")
-            print(neuron_dir)
-            print('here')
-            print(config_name)
             cnc = SnuddaInit(config_file=config_name, random_seed=123456)
             cnc.define_striatum(num_dSPN=4, num_iSPN=4, num_FS=2, num_LTS=2, num_ChIN=2,
                                 volume_type="cube", neurons_dir=neuron_dir)
