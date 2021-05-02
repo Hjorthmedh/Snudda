@@ -5,7 +5,7 @@ import snudda.neuromodulation.modulation as modulation
 import snudda.neuromodulation.translator as translator
 
 
-class SnuddaNeuromodulation(SnuddaSimulate):
+class SnuddaSimulateNeuromodulation(SnuddaSimulate):
 
     def __init__(self,
                  network_path=None,
@@ -19,7 +19,7 @@ class SnuddaNeuromodulation(SnuddaSimulate):
         self.verbose = verbose
         self.neuromodulation = dict()
 
-        super(SnuddaNeuromodulation, self).__init__(network_path=network_path,
+        super(SnuddaSimulateNeuromodulation, self).__init__(network_path=network_path,
                                                     network_file=network_file,
                                                     input_file=input_file,
                                                     verbose=False,

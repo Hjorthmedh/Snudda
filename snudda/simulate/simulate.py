@@ -828,8 +828,8 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def add_custom_synapse(self, syn_name, channel_module, dend_compartment, section_dist):
-        # TODO: RENAME TO get_synapse
+    def get_synapse(self, syn_name, channel_module, dend_compartment, section_dist):
+
         return channel_module(dend_compartment(section_dist))
 
     def add_synapse(self, cell_id_source, dend_compartment, section_dist, conductance,
@@ -847,7 +847,7 @@ class SnuddaSimulate(object):
 
         syn_name = str(channel_module).split('()')[0]
 
-        syn = self.add_custom_synapse(syn_name, channel_module, dend_compartment, section_dist)
+        syn = self.get_synapse(syn_name, channel_module, dend_compartment, section_dist)
 
         if par_data is not None:
             # Picking one of the parameter sets stored in parData
@@ -962,7 +962,7 @@ class SnuddaSimulate(object):
     # --> ~11000 glutamate synapses per MS
     # Kemp 1971 -- The synaptic organization of the caudate nucleus (85% glu)
 
-    def add_custom_external_input_synapse(self, eval_str, section, section_x, channel_module):
+    def get_external_input_synapse(self, eval_str, section, section_x, channel_module):
         # TODO: rename get_external_input_synapse
         return channel_module(section(section_x))
 
@@ -1039,7 +1039,7 @@ class SnuddaSimulate(object):
                     # !!! Parameters for the tmGlut should be possible to set in the
                     # input specification !!!
                     # syn = self.sim.neuron.h.tmGlut(section(sectionX))
-                    syn = self.add_custom_external_input_synapse(eval_str, section, section_x,channel_module)
+                    syn = self.get_external_input_synapse(eval_str, section, section_x,channel_module)
                     nc = h.NetCon(vs, syn)
 
                     nc.delay = 0.0

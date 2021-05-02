@@ -1,5 +1,5 @@
 import json
-import pathlib
+import os
 
 class NetworkWideNeuromodulation:
 
@@ -44,8 +44,7 @@ class NetworkWideNeuromodulation:
                 
         self.network_wide[neurotransmitter]['presynaptic'][cell_type].update({receptor : modulation})
 
-    def save(self,dir_path,name):
+    def save(self, dir_path, name):
 
-        out_file = open(pathlib.Path(dir_path) / name,'w')
-
-        json.dump(self.network_wide,out_file)
+        with open(os.path.join(dir_path,name),'w') as out_file:
+            json.dump(self.network_wide,out_file)

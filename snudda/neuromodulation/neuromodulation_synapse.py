@@ -11,7 +11,7 @@ from snudda.utils.load import SnuddaLoad
 from neuron import h
 
 
-class SnuddaNeuromodulationSynapse(SnuddaSimulate):
+class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
     def __init__(self,
                  network_path=None,
@@ -31,7 +31,7 @@ class SnuddaNeuromodulationSynapse(SnuddaSimulate):
         self.cell_modulator = dict()
         self.neuromodulation_conductance = neuromodulation_conductance
 
-        super(SnuddaNeuromodulationSynapse, self).__init__(network_path=network_path,
+        super(SnuddaSimulateNeuromodulationSynapse, self).__init__(network_path=network_path,
                                                            network_file=network_file,
                                                            input_file=input_file,
                                                            verbose=False,
@@ -295,7 +295,7 @@ class SnuddaNeuromodulationSynapse(SnuddaSimulate):
                 pdb.set_trace()
 
 
-    def add_custom_synapse(self, syn_name,channel_module,dend_compartment, section_dist):
+    def get_synapse(self, syn_name,channel_module,dend_compartment, section_dist):
 
         self.write_log('using new function')
 
@@ -337,7 +337,7 @@ class SnuddaNeuromodulationSynapse(SnuddaSimulate):
 
         return syn
 
-    def add_custom_external_input_synapse(self,eval_str,section,section_x,channel_module):
+    def get_external_input_synapse(self,eval_str,section,section_x,channel_module):
 
         syn = None
 
