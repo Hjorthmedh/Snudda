@@ -73,19 +73,13 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                 self.modulate_synapses(modulation=type_modulation, synapses=modulation_items['presynaptic'],
                                        extrinsic=True)
 
-    @staticmethod
-    def get_type(cell):
-        return cell.name.split("_")[0]
-
-        # TODO: this instead self.networkInfo["neurons"][neuron_id]["type"]
-
     def modulate_ion_channels(self, modulation, ion_channels):
 
         cells = dict((k, self.neurons[k]) for k in self.neuron_id if not self.is_virtual_neuron[k])
 
         for index, cell in cells.items():
 
-            cell_name = self.get_type(cell)
+            cell_name = cell.type
 
             cell_modulation = ion_channels[cell_name]
 
@@ -114,7 +108,7 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
             for neuronID, synlist in self.external_stim.items():
                 for syntuple in synlist:
 
-                    cell_name = self.get_type(self.neurons[neuronID])
+                    cell_name = self.neurons[neuronID].type
                     syn_name = self.get_syn_name(syntuple[3])
 
                     if cell_name in synapses.keys() and syn_name in synapses[cell_name].keys():

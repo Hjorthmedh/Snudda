@@ -68,7 +68,7 @@ class NetworkWideNeuromodulation:
             raise ValueError(' Set time step for simulation')
         else:
             for neurotransmitter in self.network_wide.keys():
-                self.network_wide[self.name_to_key[neurotransmitter]].update({'dt': self.dt})
+                self.network_wide[neurotransmitter].update({'dt': self.dt})
 
         with open(os.path.join(dir_path, name), 'w') as out_file:
             json.dump(self.network_wide, out_file)

@@ -1,5 +1,5 @@
 import json
-import pathlib
+import os
 
 class SynapseWiseNeuromodulation:
 
