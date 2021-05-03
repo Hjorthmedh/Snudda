@@ -68,7 +68,6 @@ class TestCLI(unittest.TestCase):
             cnc = SnuddaInit(struct_def={}, config_file=config_name, random_seed=123456)
             cnc.define_striatum(num_dSPN=4, num_iSPN=4, num_FS=2, num_LTS=2, num_ChIN=2,
                                 volume_type="cube", neurons_dir=neuron_dir)
-            print(config_name)
             cnc.write_json(config_name)
 
         with self.subTest(stage="place-parallel"):
