@@ -209,10 +209,12 @@ class SnuddaPrune(object):
             merge_files_gj, merge_neuron_range_gj, merge_gj_ctr = self.gather_synapses()
 
         self.prune_synapses_parallel(synapse_file=merge_files_syn,
+                                     synapse_ctr = merge_syn_ctr,
                                      merge_data_type="synapses",
                                      close_input_file=False)
 
         self.prune_synapses_parallel(synapse_file=merge_files_gj,
+                                     synapse_ctr=merge_gj_ctr,
                                      merge_data_type="gapJunctions",
                                      close_input_file=True)
 
@@ -693,17 +695,27 @@ class SnuddaPrune(object):
     ############################################################################
 
     def prune_synapses_parallel(self, synapse_file,
+                                synapse_ctr,
                                 merge_data_type="synapses",
                                 close_input_file=True):
 
+        if type(synapse_ctr) == list:
+            synapse_ctr = np.array(synapse_ctr)
+
         if type(synapse_file) != list:
             # Run in serial
-            return self.prune_synapses(synapse_file=synapse_file,
-                                       output_filename=None,
-                                       row_range=None,
-                                       close_out_file=False,
-                                       close_input_file=close_input_file,
-                                       merge_data_type=merge_data_type)
+            syn_before, syn_after = self.prune_synapses(synapse_file=synapse_file,
+                                                        output_filename=None,
+                                                        row_range=None,
+                                                        close_out_file=False,
+                                                        close_input_file=close_input_file,
+                                                        merge_data_type=merge_data_type)
+
+            # Just add a sanity check, that all synapses promised before pruning are accounted for
+            assert syn_before == synapse_ctr, \
+                f"prune_synapse_parallel: serial run, received {syn_before}, expected {synapse_ctr}"
+
+            return
 
         if self.d_view:
             self.setup_parallel(d_view=self.d_view)
@@ -719,13 +731,19 @@ class SnuddaPrune(object):
             self.d_view.scatter("output_filename", temp_output_file_name, block=True)
             self.d_view.push({"merge_data_type": merge_data_type}, block=True)
 
-            cmd_str = ("nw.prune_synapses(synapse_file=synapse_filename[0],"
-                       "output_filename=output_filename[0],"
-                       "merge_data_type=merge_data_type)")
+            cmd_str = ("syn_before, syn_after = nw.prune_synapses(synapse_file=synapse_filename[0],"
+                       "                                          output_filename=output_filename[0],"
+                       "                                          merge_data_type=merge_data_type)")
 
             start_time = timeit.default_timer()
 
             self.d_view.execute(cmd_str, block=True)
+            syn_before = np.array(self.d_view.gather("syn_before"))
+            syn_after = np.array(self.d_view.gather("syn_after"))
+
+            # Check all synapses prior to pruning existed
+            assert (syn_before == synapse_ctr).all(), \
+                f"prune_synapse_parallel: parallel run, received {syn_before.sum()}, expected {synapse_ctr.sum()}"
 
             end_time2 = timeit.default_timer()
             self.write_log(f"prune_synapses_parallel ({merge_data_type}): {end_time2 - start_time}s")
@@ -734,17 +752,24 @@ class SnuddaPrune(object):
             for f in temp_output_file_name:
                 self.temp_file_list.append(f)
 
-            self.combine_files(temp_output_file_name, merge_data_type)
+            syn_after_merge = self.combine_files(temp_output_file_name, merge_data_type)
+
+            assert syn_after_merge == syn_after.sum(), \
+                f"prune_synapses_parallel: parallel run, gathered {syn_after_merge}, expected {syn_after.sum()}"
 
         else:
             # Multiple files but we are running in serial
             self.write_log(f"Warning, multiple_files but running {merge_data_type} in serial", force_print=True)
 
+            syn_before_total = 0
             for syn_file in synapse_file:
-                self.prune_synapses(synapse_file=syn_file, output_filename=None, merge_data_type=merge_data_type,
-                                    close_input_file=close_input_file, close_out_file=False)
-
-            return
+                syn_before, syn_after = self.prune_synapses(synapse_file=syn_file, output_filename=None,
+                                                            merge_data_type=merge_data_type,
+                                                            close_input_file=close_input_file, close_out_file=False)
+                syn_before_total += syn_before
+                assert syn_before == synapse_ctr.sum(), \
+                    (f"prune_synapse_parallel: serial run (multi files), "
+                     f"received {syn_before_total}, expected {synapse_ctr.sum()}")
 
     ############################################################################
 
@@ -782,6 +807,9 @@ class SnuddaPrune(object):
 
         end_time2 = timeit.default_timer()
         self.write_log(f"combine_files ({merge_data_type}): {end_time2 - start_time}s")
+
+        # Number of synapses in total
+        return next_syn
 
     ############################################################################
 
@@ -1425,11 +1453,11 @@ class SnuddaPrune(object):
 
         if row_start is None or row_end is None:
             self.write_log("prune_synapses: Nothing to do, empty row range")
-            return
+            return 0, 0
 
         if synapse_file[h5_syn_mat].shape[0] == 0:
             self.write_log(f"prune_synapses: No {merge_data_type} skipping pruning")
-            return
+            return 0, 0
 
         self.write_log(f"prune_synapses: synapseFile={synapse_file}, outputFileName={output_filename}"
                        f", rowRange={row_range} ({merge_data_type})")
@@ -1453,12 +1481,14 @@ class SnuddaPrune(object):
 
         self.setup_output_file(output_filename)  # Sets self.outFile
 
+        num_syn_kept = 0
+
         for synRange in block_ranges:
             self.write_log(f"Pruning range: {synRange}")
 
             synapses = synapse_file[h5_syn_mat][synRange[0]:synRange[-1]]
-            self.prune_synapses_helper(synapses=synapses, output_file=self.out_file,
-                                       merge_data_type=merge_data_type)
+            num_syn_kept += self.prune_synapses_helper(synapses=synapses, output_file=self.out_file,
+                                                       merge_data_type=merge_data_type)
 
         # Close synapse input file
         if close_input_file:
@@ -1467,6 +1497,8 @@ class SnuddaPrune(object):
         if close_out_file:
             self.out_file.close()
             self.out_file = None
+
+        return num_syn, num_syn_kept
 
     ############################################################################
 
@@ -1680,6 +1712,8 @@ class SnuddaPrune(object):
                        f"{n_too_few_removed}"
                        f"\nNumber of synapses removed where all synapses between pairs are removed: "
                        f"{n_all_removed}")
+
+        return n_keep_tot
 
     ############################################################################
 
