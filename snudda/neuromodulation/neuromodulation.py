@@ -1,6 +1,7 @@
 from snudda.simulate.simulate import SnuddaSimulate
 import json
 import numpy as np
+import os
 import snudda.neuromodulation.modulation as modulation
 import snudda.neuromodulation.translator as translator
 
@@ -33,12 +34,14 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
 
     def apply_neuromodulation(self, neuromodulation_file):
 
-        from pathlib import Path
+        with open(neuromodulation_file, 'r') as read_neuromod_file:
+            define_neuro_modulation = json.load(read_neuromod_file)
 
-        define_neuro_modulation = json.load(open(Path(neuromodulation_file), 'r'))
+        # Rewrite for event handling
+        # https://github.com/Hjorthmedh/Snudda/blob/master/snudda/simulate/simulate.py#L1529
 
         for type_modulation, description_neuromodulation in define_neuro_modulation.items():
-            duration = np.arange(0, description_neuromodulation['duration'], 0.025)
+            duration = np.arange(0, description_neuromodulation['duration'], description_neuromodulation['dt'])
             method = getattr(modulation, description_neuromodulation['method'])
 
             description_neuromodulation['parameters'].update({"time_step_array": duration})
@@ -70,16 +73,23 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                 self.modulate_synapses(modulation=type_modulation, synapses=modulation_items['presynaptic'],
                                        extrinsic=True)
 
+    def return_type(self,cell):
+
+        return cell.name.split("_")[0]
+
     def modulate_ion_channels(self, modulation, ion_channels):
 
         cells = dict((k, self.neurons[k]) for k in self.neuron_id if not self.is_virtual_neuron[k])
 
         for index, cell in cells.items():
 
-            cell_name = cell.name.split("_")[0]
+            cell_name = self.return_type(cell)
+
             cell_modulation = ion_channels[cell_name]
 
             for part, modulate_section in cell_modulation.items():
+
+                # translate, translates the neuron section into the parameters defined using swc file.
 
                 tpart = translator.translate(part)
 
@@ -92,15 +102,18 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                                     getattr(mech, "_ref_level" + modulation),
                                     self.sim.neuron.h.dt)
 
+    def return_syn_name(self, syn):
+
+        return str(syn).split("[")[0]
+
     def modulate_synapses(self, modulation, synapses, intrinsic=None, extrinsic=None):
 
         if extrinsic:
             for neuronID, synlist in self.external_stim.items():
                 for syntuple in synlist:
 
-                    cell_name = self.neurons[neuronID].name.split("_")[0]
-                    syn = syntuple[3]
-                    syn_name = str(syn).split("[")[0]
+                    cell_name = self.return_type(self.neurons[neuronID])
+                    syn_name = self.return_syn_name(syntuple[3])
 
                     if cell_name in synapses.keys() and syn_name in synapses[cell_name].keys():
                         self.modulate_receptor(syn=syn, modulation=modulation,
@@ -110,7 +123,7 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
             for syn in self.synapse_list:
 
                 cell_name = str(syn.get_segment()).split("_")[0]
-                syn_name = str(syn).split("[")[0]
+                syn_name = self.return_syn_name(syn)
 
                 if cell_name in synapses.keys() and syn_name in synapses[cell_name].keys():
                     self.modulate_receptor(syn=syn, modulation=modulation,

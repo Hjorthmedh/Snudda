@@ -1,9 +1,9 @@
 import numpy as np
 
 
-def alpha_sub_function(t_step,tau,tstart,gmax):
+def alpha_sub_function(t_step, tau, tstart, gmax):
 
-    return gmax * ((t_step - tstart) / tau) * np.exp(1 - t)
+    return gmax * ((t_step - tstart) / tau) * np.exp(1 - ((t_step - tstart) / tau))
 
 
 def alpha(parameter=None):
@@ -14,8 +14,8 @@ def alpha(parameter=None):
     tau = parameter['tau']
 
     magnitude = np.zeros_like(time_step_array)
-
-    start_index = np.where(time_step_array > tstart)[0][0]
+    index = np.where(time_step_array > tstart)
+    start_index = index[0][0]
 
     magnitude[start_index:] = alpha_sub_function(np.take(time_step_array, index), tau, tstart, gmax)
 

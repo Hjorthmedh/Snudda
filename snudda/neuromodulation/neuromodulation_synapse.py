@@ -32,12 +32,12 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
         self.neuromodulation_conductance = neuromodulation_conductance
 
         super(SnuddaSimulateNeuromodulationSynapse, self).__init__(network_path=network_path,
-                                                           network_file=network_file,
-                                                           input_file=input_file,
-                                                           verbose=False,
-                                                           log_file=log_file,
-                                                           disable_gap_junctions=disable_gap_junctions,
-                                                           simulation_config=simulation_config)
+                                                                   network_file=network_file,
+                                                                   input_file=input_file,
+                                                                   verbose=False,
+                                                                   log_file=log_file,
+                                                                   disable_gap_junctions=disable_gap_junctions,
+                                                                   simulation_config=simulation_config)
         self.custom_setup_bool = True
 
     def reorder_cell_info(self, cell_modulator):
@@ -74,7 +74,6 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
         self.chose_implementation(reorder)
 
-    # noinspection PyAssignmentToLoopOrWithParameter
     def chose_implementation(self, reorder):
 
         added_synapses = dict()
@@ -294,7 +293,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                 import pdb
                 pdb.set_trace()
 
-    def get_synapse(self, channel_module,dend_compartment, section_dist):
+    def get_synapse(self, channel_module, dend_compartment, section_dist):
 
         self.write_log('using new function')
 
@@ -338,7 +337,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
         return syn
 
-    def get_external_input_synapse(self,eval_str,section,section_x,channel_module):
+    def get_external_input_synapse(self, eval_str, section, section_x, channel_module):
 
         syn = None
 

@@ -827,7 +827,7 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def get_synapse(self, syn_name, channel_module, dend_compartment, section_dist):
+    def get_synapse(self, channel_module, dend_compartment, section_dist):
 
         return channel_module(dend_compartment(section_dist))
 
