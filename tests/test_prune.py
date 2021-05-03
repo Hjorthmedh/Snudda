@@ -184,7 +184,6 @@ class TestPrune(unittest.TestCase):
 
             for mf in ["temp/synapses-for-neurons-0-to-28-MERGE-ME.hdf5",
                        "temp/gapJunctions-for-neurons-0-to-28-MERGE-ME.hdf5",
-                       "temp/worker-temp-synapses-file-0",
                        "network-synapses.hdf5"]:
 
                 merge_file = os.path.join(self.network_path, mf)
