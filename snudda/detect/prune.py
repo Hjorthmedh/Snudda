@@ -1509,6 +1509,8 @@ class SnuddaPrune(object):
     # outputFile -- where to write synapses, assumed to already exist
     # outFilePos -- which position to start writing from
 
+    # TODO: Try to optimise using numba, also pre-generate random numbers instead of calling function repeatedly
+
     def prune_synapses_helper(self, synapses, output_file, merge_data_type):
 
         h5_syn_mat, h5_hyp_syn_n, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
