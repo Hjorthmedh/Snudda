@@ -90,7 +90,6 @@ class SnuddaPrune(object):
             self.logfile = open(self.logfile_name, 'w')
             self.write_log(f"Log file {self.logfile_name} created.")
 
-        self.write_log(f"Random seed: {random_seed}")
         self.random_seed = random_seed
 
         self.h5driver = "sec2"  # "core" # "stdio", "sec2"
