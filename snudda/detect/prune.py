@@ -1433,7 +1433,7 @@ class SnuddaPrune(object):
 
         if synapse_file is None:
             self.write_log(f"prune_synapses: No synapse_file specified for {merge_data_type} -- none detected?")
-            return
+            return 0, 0
 
         if type(synapse_file) == str:
             self.write_log(f"Opening synapse file: {synapse_file}")
