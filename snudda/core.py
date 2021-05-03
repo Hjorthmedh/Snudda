@@ -251,13 +251,6 @@ class Snudda(object):
         # Optionally set this
         scratch_path = None
 
-        if args.merge_only:
-            pre_merge_only = True
-        else:
-            pre_merge_only = False
-
-        print(f"preMergeOnly : {pre_merge_only}")
-
         if args.h5legacy:
             h5libver = "earliest"
         else:
@@ -273,7 +266,7 @@ class Snudda(object):
                          random_seed=random_seed,
                          verbose=args.verbose)
 
-        sp.prune(pre_merge_only=pre_merge_only)
+        sp.prune()
 
         self.stop_parallel()
         self.close_log_file()

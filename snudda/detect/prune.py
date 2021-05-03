@@ -196,9 +196,9 @@ class SnuddaPrune(object):
                                           "nGapJunctions",
                                           "network/gapJunctionLookup")}  # range(6,9))}
 
-        # TODO: Move this outside of init and into "prune"
+    ############################################################################
 
-    def prune(self, pre_merge_only=False):
+    def prune_OLD(self, pre_merge_only=False):
 
         start_time = timeit.default_timer()
 
@@ -336,6 +336,27 @@ class SnuddaPrune(object):
                 self.write_log(f"Voxel overflows: {self.voxel_overflow_counter}\nIn files: ", is_error=True)
                 for f in self.overflow_files:
                     self.write_log(f"Overflow in {f}", is_error=True)
+
+    ############################################################################
+
+    def prune(self):
+
+        start_time = timeit.default_timer()
+
+        if self.role != "master":
+            self.write_log("prune should only be called on master")
+            return
+
+        merge_files_syn, merge_neuron_range_syn, merge_syn_ctr, \
+            merge_files_gj, merge_neuron_range_gj, merge_gj_ctr = self.gather_synapses()
+
+        self.prune_synapses_parallel(synapse_file=merge_files_syn,
+                                     merge_data_type="synapses",
+                                     close_input_file=False)
+
+        self.prune_synapses_parallel(synapse_file=merge_files_gj,
+                                     merge_data_type="gapJunctions",
+                                     close_input_file=True)
 
     ############################################################################
 
@@ -880,6 +901,8 @@ class SnuddaPrune(object):
             return False, None, None
 
     ############################################################################
+    # TODO: We dont need to save morphologies in every merge file, only in final one (if at all)
+    #       go through code and update so intermediate merge files do not save SWC morphologies.
 
     def setup_merge_file(self, verbose=False, big_cache=False,
                          outfile_name=None, save_morphologies=True,
@@ -997,11 +1020,11 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    def prune_synapses_parallel(self, synapse_file,
-                                output_file=None,
-                                merge_data_type="synapses",
-                                setup_out_file=True,
-                                close_input_file=True):
+    def prune_synapses_parallel_OLD(self, synapse_file,
+                                    output_file=None,
+                                    merge_data_type="synapses",
+                                    setup_out_file=True,
+                                    close_input_file=True):
 
         h5_syn_mat, h5_hyp_syn_n, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
 
@@ -1070,22 +1093,88 @@ class SnuddaPrune(object):
         #    are already sorted in the file
         self.write_log("Merging parallel pruning results")
 
-        if setup_out_file:
-            assert self.out_file is None, "prune_synapses_parallel: Output file already setup"
-            self.setup_output_file(output_file=output_file)
+        self.combine_files(temp_output_file_name, merge_data_type)
+
+        end_time2 = timeit.default_timer()
+        self.write_log(f"Parallel pruning + merging: {end_time2 - start_time}")
+
+    ############################################################################
+
+    def prune_synapses_parallel(self, synapse_file,
+                                merge_data_type="synapses",
+                                close_input_file=True):
+
+        if type(synapse_file) != list:
+            # Run in serial
+            return self.prune_synapses(synapse_file=synapse_file,
+                                       output_filename=None,
+                                       row_range=None,
+                                       close_out_file=False,
+                                       close_input_file=close_input_file,
+                                       merge_data_type=merge_data_type)
+
+        if self.d_view:
+            self.setup_parallel(d_view=self.d_view)
+
+            assert len(synapse_file) == len(self.d_view), \
+                f"Internal mismatch, n_workers={len(self.d_view)}, n_synapse_files={len(synapse_file)}"
+
+            self.d_view.scatter("synapse_filename", synapse_file, block=True)
+
+            # 1. Pick names for the workers
+            temp_output_file_name = [os.path.join(self.scratch_path, f"worker-temp-{merge_data_type}-file-{x}")
+                                     for x in range(0, len(self.d_view))]
+            self.d_view.scatter("output_filename", temp_output_file_name, block=True)
+            self.d_view.push({"merge_data_type": merge_data_type}, block=True)
+
+            cmd_str = ("nw.prune_synapses(synapse_file=synapse_filename[0],"
+                       "output_filename=output_filename[0],"
+                       "merge_data_type=merge_data_type)")
+
+            start_time = timeit.default_timer()
+
+            self.d_view.execute(cmd_str, block=True)
+
+            end_time2 = timeit.default_timer()
+            self.write_log(f"prune_synapses_parallel ({merge_data_type}): {end_time2 - start_time}s")
+
+            # Add the files to a delete list, so we remove them after
+            for f in temp_output_file_name:
+                self.temp_file_list.append(f)
+
+            self.combine_files(temp_output_file_name, merge_data_type)
+
         else:
-            # If there were no synapses, but there are gap junctions
-            # then this assert could theoretically happen
-            assert self.out_file is not None, "prune_synapses_parallel: Out file not set up"
+            # Multiple files but we are running in serial
+            self.write_log(f"Warning, multiple_files but running {merge_data_type} in serial", force_print=True)
 
-        tmp_files = [h5py.File(f, 'r') for f in temp_output_file_name]
+            for syn_file in synapse_file:
+                self.prune_synapses(synapse_file=syn_file, output_filename=None, merge_data_type=merge_data_type,
+                                    close_input_file=close_input_file, close_out_file=False)
 
+            return
+
+    ############################################################################
+
+    def combine_files(self, source_file_names, merge_data_type):
+
+        start_time = timeit.default_timer()
+
+        if not self.out_file:
+            self.setup_output_file()
+
+        h5_syn_mat, h5_hyp_syn_n, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
+
+        tmp_files = [h5py.File(f, 'r') for f in source_file_names if os.path.isfile(f)]
         num_syn = np.sum(np.fromiter(iter=(f[h5_syn_mat].shape[0] for f in tmp_files), dtype=int))
         mat_width_all = [f[h5_syn_mat].shape[1] for f in tmp_files]
 
-        assert (np.array(mat_width_all) == mat_width_all[0]).all(), \
-            "prune_synapses_parallel: Internal error, width does not match"
-        mat_width = mat_width_all[0]
+        if mat_width_all:
+            assert (np.array(mat_width_all) == mat_width_all[0]).all(), \
+                "combine_files: Internal error, width does not match"
+            mat_width = mat_width_all[0]
+        else:
+            mat_width = 0
 
         self.out_file[h5_syn_mat].resize((num_syn, mat_width))
         next_syn = 0
@@ -1100,7 +1189,7 @@ class SnuddaPrune(object):
         self.out_file["network/" + h5_syn_n][0] = next_syn
 
         end_time2 = timeit.default_timer()
-        self.write_log(f"Parallel pruning + merging: {end_time2 - start_time}")
+        self.write_log(f"combine_files ({merge_data_type}): {end_time2 - start_time}s")
 
     ############################################################################
 
@@ -1297,6 +1386,80 @@ class SnuddaPrune(object):
 
     ############################################################################
 
+    # This goes through the hyper voxel synapse files, extracts a range of neurons,
+    # and puts their synapses in its own file. Parallel execution, all neurons.
+
+    def gather_synapses(self):
+
+        if self.role != "master":
+            self.write_log("gather_synapses is only run on master node, aborting")
+            return
+
+        # Split neurons between nodes, we need the neurons to be in order
+        num_neurons = self.hist_file["network/neurons/neuronID"].shape[0]
+        assert num_neurons - 1 == self.hist_file["network/neurons/neuronID"][-1], \
+            "neuronID should start from 0 and the end should be n-1"
+
+        if not self.d_view:
+
+            # Run in serial, save as a list to make result compatible with parallel version of code
+            merge_results_syn = [self.big_merge_helper(neuron_range=np.array([0, num_neurons]),
+                                                      merge_data_type='synapses')]
+            merge_results_gj = [self.big_merge_helper(neuron_range=np.array([0, num_neurons]),
+                                                     merge_data_type='gapJunctions')]
+
+        else:
+            self.setup_parallel(d_view=self.d_view)
+
+            n_workers = len(self.d_view)
+
+            neuron_ranges = []
+            range_borders = np.linspace(0, num_neurons, n_workers + 1).astype(int)
+
+            for idx in range(0, n_workers):
+                neuron_ranges.append((range_borders[idx], range_borders[idx + 1]))
+
+            assert neuron_ranges[-1][-1] == num_neurons, \
+                "gather_synapses: Problem with neuron_ranges, last element incorrect"
+            assert len(neuron_ranges) == n_workers, \
+                "gather_synapses: Problem with neuron_ranges, bad length"
+
+            # Send list of neurons to workers
+            self.d_view.scatter("neuron_range", neuron_ranges, block=True)
+
+            # Each worker sorts a subset of the neurons and write it to separate files
+            cmd_str_syn = "merge_result_syn = nw.big_merge_helper(neuron_range=neuron_range[0], merge_data_type='synapses')"
+
+            self.d_view.execute(cmd_str_syn, block=True)
+            merge_results_syn = self.d_view["merge_result_syn"]
+
+            # When we do scatter, it embeds the result in a list
+            cmd_str_gj = "merge_result_gj = nw.big_merge_helper(neuron_range=neuron_range[0], merge_data_type='gapJunctions')"
+            self.d_view.execute(cmd_str_gj, block=True)
+            merge_results_gj = self.d_view["merge_result_gj"]
+
+        # Sort the files in order
+        merge_start_syn = [x[1][0] for x in merge_results_syn]
+        merge_start_gj = [x[1][0] for x in merge_results_gj]
+
+        merge_order_syn = np.argsort(merge_start_syn)
+        merge_order_gj = np.argsort(merge_start_gj)
+
+        # Extract data, and return it in more meaningful format
+        merge_files_syn = [merge_results_syn[idx][0] for idx in merge_order_syn]
+        merge_files_gj = [merge_results_gj[idx][0] for idx in merge_order_gj]
+
+        merge_neuron_range_syn = [merge_results_syn[idx][1] for idx in merge_order_syn]
+        merge_neuron_range_gj = [merge_results_gj[idx][1] for idx in merge_order_gj]
+
+        merge_syn_ctr = [merge_results_syn[idx][2] for idx in merge_order_syn]
+        merge_gj_ctr = [merge_results_gj[idx][2] for idx in merge_order_gj]
+
+        return merge_files_syn, merge_neuron_range_syn, merge_syn_ctr, \
+            merge_files_gj, merge_neuron_range_gj, merge_gj_ctr
+
+    ############################################################################
+
     def big_merge_parallel(self):
 
         if self.role != "master":
@@ -1305,62 +1468,20 @@ class SnuddaPrune(object):
 
         self.write_log(f"big_merge_parallel, starting {self.role}")
 
-        if self.d_view:
-            self.setup_parallel(d_view=self.d_view)
-
-        # Split neurons between nodes, we need the neurons to be in order
-        num_neurons = self.hist_file["network/neurons/neuronID"].shape[0]
-        assert num_neurons - 1 == self.hist_file["network/neurons/neuronID"][-1], \
-            "neuronID should start from 0 and the end should be n-1"
-
-        n_workers = len(self.d_view)
-
-        neuron_ranges = []
-        range_borders = np.linspace(0, num_neurons, n_workers + 1).astype(int)
-
-        for idx in range(0, n_workers):
-            neuron_ranges.append((range_borders[idx], range_borders[idx + 1]))
-
-        assert neuron_ranges[-1][-1] == num_neurons, \
-            "big_merge_parallel: Problem with neuron_ranges, last element incorrect"
-        assert len(neuron_ranges) == n_workers, \
-            "big_merge_parallel: Problem with neuron_ranges, bad length"
-
-        # Send list of neurons to workers
-        self.d_view.scatter("neuron_range", neuron_ranges, block=True)
-
-        # Each worker sorts a subset of the neurons and write it to separate files
-        cmd_str_syn = "merge_result_syn = nw.big_merge_helper(neuron_range=neuron_range[0],merge_data_type='synapses')"
-
-        self.d_view.execute(cmd_str_syn, block=True)
-        merge_results_syn = self.d_view["merge_result_syn"]
-
-        # When we do scatter, it embeds the result in a list
-        cmd_str_gj = "merge_result_gj = nw.big_merge_helper(neuron_range=neuron_range[0],merge_data_type='gapJunctions')"
-        self.d_view.execute(cmd_str_gj, block=True)
-        merge_results_gj = self.d_view["merge_result_gj"]
-
-        # We need to sort the files in order, so we know how to add them
-        self.write_log("Processing merge...")
-
-        merge_start_syn = [x[1][0] for x in merge_results_syn]
-        merge_start_gj = [x[1][0] for x in merge_results_gj]
-
-        merge_order_syn = np.argsort(merge_start_syn)
-        merge_order_gj = np.argsort(merge_start_gj)
+        merge_files_syn, merge_neuron_range_syn, merge_syn_ctr, \
+            merge_files_gj, merge_neuron_range_gj, merge_gj_ctr = self.gather_synapses()
 
         # We then need the file to merge them in
         (self.buffer_out_file, outFileName) = self.setup_merge_file(big_cache=False, delete_after=False)
 
         # Copy the data to the file
-        for order, results, location in zip([merge_order_syn, merge_order_gj],
-                                            [merge_results_syn, merge_results_gj],
-                                            ["network/synapses", "network/gapJunctions"]):
+        for merge_files, merge_ctr, location in zip([merge_files_syn, merge_files_gj],
+                                                    [merge_syn_ctr, merge_gj_ctr],
+                                                    ["network/synapses", "network/gapJunctions"]):
             start_pos = 0
 
-            for idx in order:
-                data_file = results[idx][0]
-                num_synapses = results[idx][2]   # This is synapses first iteration, gap junction 2nd iteration
+            for data_file, num_synapses in zip(merge_files, merge_ctr):
+                # num_synapses is synapses first iteration, gap junction 2nd iteration
                 end_pos = start_pos + num_synapses
 
                 if num_synapses == 0:
@@ -1385,7 +1506,6 @@ class SnuddaPrune(object):
                     self.write_log(tstr, is_error=True)
                     import pdb
                     pdb.set_trace()
-
 
                 f_in.close()
                 start_pos = end_pos
@@ -1923,12 +2043,25 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    def prune_synapses(self, synapse_file, output_filename, row_range,
-                       merge_data_type,
+    def prune_synapses(self, synapse_file, output_filename,
+                       merge_data_type, row_range=None,
                        close_input_file=True,
                        close_out_file=True):
 
         h5_syn_mat, h5_hyp_syn_n, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
+
+        if synapse_file is None:
+            self.write_log(f"prune_synapses: No synapse_file specified for {merge_data_type} -- none detected?")
+            return
+
+        if type(synapse_file) == str:
+            self.write_log(f"Opening synapse file: {synapse_file}")
+            synapse_file = h5py.File(synapse_file, 'r')
+            # if self.role != "master":
+            #     # SWMR = one writer, multiple readers
+            #     synapse_file = h5py.File(synapse_file, 'r', swmr=True)
+            # else:
+            #    synapse_file = h5py.File(synapse_file, 'r')
 
         if row_range is None:
             row_start = 0
@@ -1938,25 +2071,15 @@ class SnuddaPrune(object):
             row_end = row_range[-1]
 
         if row_start is None or row_end is None:
-            self.write_log("Nothing to do, empty row range")
+            self.write_log("prune_synapses: Nothing to do, empty row range")
             return
 
-        self.write_log("pruneSynapses called.")
-
-        if type(synapse_file) != str and synapse_file[h5_syn_mat].shape[0] == 0:
-            self.write_log(f"pruneSynapses: No {merge_data_type} skipping pruning")
+        if synapse_file[h5_syn_mat].shape[0] == 0:
+            self.write_log(f"prune_synapses: No {merge_data_type} skipping pruning")
             return
 
-        self.write_log(f"pruneSynapses: synapseFile={synapse_file}, outputFileName={output_filename}"
+        self.write_log(f"prune_synapses: synapseFile={synapse_file}, outputFileName={output_filename}"
                        f", rowRange={row_range} ({merge_data_type})")
-
-        if type(synapse_file) == str:
-            self.write_log(f"Opening synapse file: {synapse_file}")
-            if self.role != "master":
-                # SWMR = one writer, multiple readers
-                synapse_file = h5py.File(synapse_file, 'r', swmr=True)
-            else:
-                synapse_file = h5py.File(synapse_file, 'r')
 
         num_syn = row_end - row_start
 

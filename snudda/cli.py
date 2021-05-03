@@ -60,8 +60,6 @@ def snudda_cli():
     prune_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
     prune_parser.add_argument("--configFile", dest="config_file", default=None,
                               help="Prune using different network config file, useful when tuning pruning")
-    prune_parser.add_argument("--mergeonly", "--onlymerge", dest="merge_only",
-                              help="Merge hyper voxel synapse files, skipping pruning step", action="store_true")
     prune_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     prune_parser.add_argument("--verbose", action="store_true")
     prune_parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
