@@ -1072,21 +1072,27 @@ class SnuddaPrune(object):
         #    are already sorted in the file
         self.write_log("Merging parallel pruning results")
 
-        if setup_out_file:
-            assert self.out_file is None, "prune_synapses_parallel: Output file already setup"
-            self.setup_output_file(output_file=output_file)
-        else:
-            # If there were no synapses, but there are gap junctions
-            # then this assert could theoretically happen
-            assert self.out_file is not None, "prune_synapses_parallel: Out file not set up"
+        self.combine_files(temp_output_file_name, merge_data_type)
 
-        tmp_files = [h5py.File(f, 'r') for f in temp_output_file_name]
+        end_time2 = timeit.default_timer()
+        self.write_log(f"Parallel pruning + merging: {end_time2 - start_time}")
+
+    ############################################################################
+
+    def combine_files(self, source_file_names, merge_data_type):
+
+        if not self.out_file:
+            self.setup_output_file()
+
+        h5_syn_mat, h5_hyp_syn_n, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
+
+        tmp_files = [h5py.File(f, 'r') for f in source_file_names]
 
         num_syn = np.sum(np.fromiter(iter=(f[h5_syn_mat].shape[0] for f in tmp_files), dtype=int))
         mat_width_all = [f[h5_syn_mat].shape[1] for f in tmp_files]
 
         assert (np.array(mat_width_all) == mat_width_all[0]).all(), \
-            "prune_synapses_parallel: Internal error, width does not match"
+            "combine_files: Internal error, width does not match"
         mat_width = mat_width_all[0]
 
         self.out_file[h5_syn_mat].resize((num_syn, mat_width))
@@ -1100,9 +1106,6 @@ class SnuddaPrune(object):
             f.close()
 
         self.out_file["network/" + h5_syn_n][0] = next_syn
-
-        end_time2 = timeit.default_timer()
-        self.write_log(f"Parallel pruning + merging: {end_time2 - start_time}")
 
     ############################################################################
 
