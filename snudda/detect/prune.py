@@ -200,6 +200,8 @@ class SnuddaPrune(object):
 
     def prune_OLD(self, pre_merge_only=False):
 
+        assert False, "prune_OLD: Deprecated, not in use... remove."
+
         start_time = timeit.default_timer()
 
         if self.role == "master":
@@ -401,9 +403,6 @@ class SnuddaPrune(object):
 
         if work_history_file is None:
             work_history_file = self.work_history_file
-
-        if work_history_file == "last":
-            work_history_file = self.find_latest_file()
 
         self.write_log(f"Opening work history file: {work_history_file}")
 
@@ -828,21 +827,9 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    def find_latest_file(self):
-
-        # files = glob('save/network_connect_voxel_log-*-worklog.hdf5')
-        files = glob(os.path.join('save","network-connect-synapse-voxel-file-*-worklog.hdf5'))
-
-        mod_time = [os.path.getmtime(f) for f in files]
-        idx = np.argsort(mod_time)
-
-        self.write_log("Using the newest file: " + files[idx[-1]])
-
-        return files[idx[-1]]
-
-    ############################################################################
-
     def merge_file_exists(self):
+
+        assert False, "merge_file_exists: Deprecated, remove."
 
         # check if merge file exists
         merge_file_name = os.path.join(self.network_path, "network-putative-synapses-MERGED.hdf5")
@@ -1025,6 +1012,8 @@ class SnuddaPrune(object):
                                     merge_data_type="synapses",
                                     setup_out_file=True,
                                     close_input_file=True):
+
+        assert False, "prune_synapse_parallel_OLD: deprecated, remove"
 
         h5_syn_mat, h5_hyp_syn_n, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
 
@@ -1404,9 +1393,9 @@ class SnuddaPrune(object):
 
             # Run in serial, save as a list to make result compatible with parallel version of code
             merge_results_syn = [self.big_merge_helper(neuron_range=np.array([0, num_neurons]),
-                                                      merge_data_type='synapses')]
+                                                       merge_data_type='synapses')]
             merge_results_gj = [self.big_merge_helper(neuron_range=np.array([0, num_neurons]),
-                                                     merge_data_type='gapJunctions')]
+                                                      merge_data_type='gapJunctions')]
 
         else:
             self.setup_parallel(d_view=self.d_view)
@@ -1805,6 +1794,8 @@ class SnuddaPrune(object):
         ############################################################################
 
     def big_merge_lookup(self, merge_data_type="synapses", clean_voxel_files=None):
+
+        assert False, "big_merge_lookup, deprecated: remove"
 
         if clean_voxel_files is None:
             clean_voxel_files = self.clean_voxel_files
