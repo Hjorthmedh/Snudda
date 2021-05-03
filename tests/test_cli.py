@@ -104,9 +104,9 @@ class TestCLI(unittest.TestCase):
         with self.subTest(stage="simulate"):
             print("Running nrnivmodl:")
 
-            os.system("nrnivmodl BasalGangliaData/mod-files")
+            os.system("nrnivmodl testdata/mod-files")
             
-            mech_dir = os.path.join("BasalGangliaData", "mod-files")
+            mech_dir = os.path.join("testdata", "mod-files")
 
             if not os.path.exists("mechanisms"):
                 print("----> Copying mechanisms")
@@ -116,7 +116,7 @@ class TestCLI(unittest.TestCase):
             else:
                 print("------------->   !!! mechanisms already exists")
 
-            eval_str = f"nrnivmodl BasalGangliaData/mod-files"  # f"nrnivmodl {mech_dir}
+            eval_str = f"nrnivmodl testdata/mod-files"  # f"nrnivmodl {mech_dir}
             print(f"Running: {eval_str}")
             os.system(eval_str)
 
