@@ -1299,13 +1299,14 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    def big_merge_parallel(self):
+    # This goes through the hyper voxel synapse files, extracts a range of neurons,
+    # and puts their synapses in its own file. Parallel execution, all neurons.
+
+    def gather_synapses_parallel(self):
 
         if self.role != "master":
-            self.write_log("big_merge_parallel is only run on master node, aborting")
+            self.write_log("gather_synapses_parallel is only run on master node, aborting")
             return
-
-        self.write_log(f"big_merge_parallel, starting {self.role}")
 
         if self.d_view:
             self.setup_parallel(d_view=self.d_view)
@@ -1324,32 +1325,47 @@ class SnuddaPrune(object):
             neuron_ranges.append((range_borders[idx], range_borders[idx + 1]))
 
         assert neuron_ranges[-1][-1] == num_neurons, \
-            "big_merge_parallel: Problem with neuron_ranges, last element incorrect"
+            "gather_synapses_parallel: Problem with neuron_ranges, last element incorrect"
         assert len(neuron_ranges) == n_workers, \
-            "big_merge_parallel: Problem with neuron_ranges, bad length"
+            "gather_synapses_parallel: Problem with neuron_ranges, bad length"
 
         # Send list of neurons to workers
         self.d_view.scatter("neuron_range", neuron_ranges, block=True)
 
         # Each worker sorts a subset of the neurons and write it to separate files
-        cmd_str_syn = "merge_result_syn = nw.big_merge_helper(neuron_range=neuron_range[0],merge_data_type='synapses')"
+        cmd_str_syn = "merge_result_syn = nw.big_merge_helper(neuron_range=neuron_range[0], merge_data_type='synapses')"
 
         self.d_view.execute(cmd_str_syn, block=True)
         merge_results_syn = self.d_view["merge_result_syn"]
 
         # When we do scatter, it embeds the result in a list
-        cmd_str_gj = "merge_result_gj = nw.big_merge_helper(neuron_range=neuron_range[0],merge_data_type='gapJunctions')"
+        cmd_str_gj = "merge_result_gj = nw.big_merge_helper(neuron_range=neuron_range[0], merge_data_type='gapJunctions')"
         self.d_view.execute(cmd_str_gj, block=True)
         merge_results_gj = self.d_view["merge_result_gj"]
 
         # We need to sort the files in order, so we know how to add them
-        self.write_log("Processing merge...")
+        self.write_log("Gathering of synapses and gap junctions from hypervoxels into multiple merge files done.")
 
         merge_start_syn = [x[1][0] for x in merge_results_syn]
         merge_start_gj = [x[1][0] for x in merge_results_gj]
 
         merge_order_syn = np.argsort(merge_start_syn)
         merge_order_gj = np.argsort(merge_start_gj)
+
+        return merge_start_syn, merge_start_gj, merge_order_syn, merge_order_gj, merge_results_syn, merge_results_gj
+
+    ############################################################################
+
+    def big_merge_parallel(self):
+
+        if self.role != "master":
+            self.write_log("big_merge_parallel is only run on master node, aborting")
+            return
+
+        self.write_log(f"big_merge_parallel, starting {self.role}")
+
+        merge_start_syn, merge_start_gj, merge_order_syn, merge_order_gj, merge_results_syn, merge_results_gj \
+            = self.gather_synapses_parallel()
 
         # We then need the file to merge them in
         (self.buffer_out_file, outFileName) = self.setup_merge_file(big_cache=False, delete_after=False)
@@ -1387,7 +1403,6 @@ class SnuddaPrune(object):
                     self.write_log(tstr, is_error=True)
                     import pdb
                     pdb.set_trace()
-
 
                 f_in.close()
                 start_pos = end_pos
