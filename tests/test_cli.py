@@ -50,8 +50,8 @@ class TestCLI(unittest.TestCase):
             os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
             time.sleep(10)
 
-            os.system('git clone https://github.com/jofrony/BasalGangliaData.git')
-            neuron_dir = 'BasalGangliaData/data/'
+            os.system('git clone https://github.com/jofrony/testdata.git')
+            neuron_dir = 'testdata/data/'
 
         # with self.subTest(stage="init-parallel-BIG"):
         #     run_cli_command("init tiny_parallel --size 1000000 --overwrite")
