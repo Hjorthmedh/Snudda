@@ -73,9 +73,11 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                 self.modulate_synapses(modulation=type_modulation, synapses=modulation_items['presynaptic'],
                                        extrinsic=True)
 
-    def return_type(self,cell):
-
+    @staticmethod
+    def get_type(cell):
         return cell.name.split("_")[0]
+
+        # TODO: this instead self.networkInfo["neurons"][neuron_id]["type"]
 
     def modulate_ion_channels(self, modulation, ion_channels):
 
@@ -83,7 +85,7 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
 
         for index, cell in cells.items():
 
-            cell_name = self.return_type(cell)
+            cell_name = self.get_type(cell)
 
             cell_modulation = ion_channels[cell_name]
 
@@ -102,8 +104,8 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                                     getattr(mech, "_ref_level" + modulation),
                                     self.sim.neuron.h.dt)
 
-    def return_syn_name(self, syn):
-
+    @staticmethod
+    def get_syn_name(syn):
         return str(syn).split("[")[0]
 
     def modulate_synapses(self, modulation, synapses, intrinsic=None, extrinsic=None):
@@ -112,8 +114,8 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
             for neuronID, synlist in self.external_stim.items():
                 for syntuple in synlist:
 
-                    cell_name = self.return_type(self.neurons[neuronID])
-                    syn_name = self.return_syn_name(syntuple[3])
+                    cell_name = self.get_type(self.neurons[neuronID])
+                    syn_name = self.get_syn_name(syntuple[3])
 
                     if cell_name in synapses.keys() and syn_name in synapses[cell_name].keys():
                         self.modulate_receptor(syn=syn, modulation=modulation,
@@ -123,7 +125,7 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
             for syn in self.synapse_list:
 
                 cell_name = str(syn.get_segment()).split("_")[0]
-                syn_name = self.return_syn_name(syn)
+                syn_name = self.get_syn_name(syn)
 
                 if cell_name in synapses.keys() and syn_name in synapses[cell_name].keys():
                     self.modulate_receptor(syn=syn, modulation=modulation,

@@ -60,7 +60,7 @@ class SnuddaSimulate(object):
         self.verbose = verbose
         self.log_file = log_file
 
-        self.custom_setup_bool = None
+        self.custom_setup = None
 
         if network_path:
             self.network_path = network_path
@@ -165,7 +165,6 @@ class SnuddaSimulate(object):
 
         self.load_network_info(self.network_file)
 
-
     def setup(self):
 
         self.check_memory_status()
@@ -187,8 +186,6 @@ class SnuddaSimulate(object):
         # READ ABOUT PARALLEL NEURON
 
     # https://www.neuron.yale.edu/neuron/static/new_doc/modelspec/programmatic/network/parcon.html#paralleltransfer
-
-        
 
     ############################################################################
 
@@ -432,6 +429,10 @@ class SnuddaSimulate(object):
 
         self.pc.barrier()
 
+        if self.custom_setup:
+            # Neuromodulation requires this to be run, before connect_network_synapses
+            self.custom_setup()
+
         # Add gap junctions
         if self.disable_gap_junctions:
             self.write_log("!!! Gap junctions disabled.")
@@ -442,11 +443,6 @@ class SnuddaSimulate(object):
             # TODO: Check difference with old non-local version
             self.connect_network_gap_junctions_local()
             self.pc.setup_transfer()
-
-        if self.custom_setup_bool:
-            # Neuromodulation requires this to be run, before connect_network_synapses
-            self.write_log('Doing gpcr network')
-            self.custom_setup()
 
         # Add synapses
         self.connect_network_synapses()
@@ -827,14 +823,13 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def get_synapse(self, channel_module, dend_compartment, section_dist):
-
+    @staticmethod
+    def get_synapse(channel_module, dend_compartment, section_dist):
         return channel_module(dend_compartment(section_dist))
 
     def add_synapse(self, cell_id_source, dend_compartment, section_dist, conductance,
                     parameter_id, synapse_type_id, axon_dist=None):
 
-        self.write_log('ADDING SYNAPSE LIKE BEFORE - running the main function')
         # You can not locate a point process at
         # position 0 or 1 if it needs an ion
         if section_dist == 0.0:
@@ -959,13 +954,11 @@ class SnuddaSimulate(object):
     # --> ~11000 glutamate synapses per MS
     # Kemp 1971 -- The synaptic organization of the caudate nucleus (85% glu)
 
-    def get_external_input_synapse(self, eval_str, section, section_x, channel_module):
-        # TODO: rename get_external_input_synapse
+    @staticmethod
+    def get_external_input_synapse(channel_module, section, section_x):
         return channel_module(section(section_x))
 
     def add_external_input(self, input_file=None):
-
-        self.write_log('ADDING EXTERNAL  using main function')
 
         if input_file is None:
             input_file = self.input_file
@@ -1036,7 +1029,7 @@ class SnuddaSimulate(object):
                     # !!! Parameters for the tmGlut should be possible to set in the
                     # input specification !!!
                     # syn = self.sim.neuron.h.tmGlut(section(sectionX))
-                    syn = self.get_external_input_synapse(eval_str, section, section_x,channel_module)
+                    syn = self.get_external_input_synapse(channel_module, section, section_x)
                     nc = h.NetCon(vs, syn)
 
                     nc.delay = 0.0

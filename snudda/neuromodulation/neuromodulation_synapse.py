@@ -38,7 +38,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                                                                    log_file=log_file,
                                                                    disable_gap_junctions=disable_gap_junctions,
                                                                    simulation_config=simulation_config)
-        self.custom_setup_bool = True
+        self.custom_setup = self.custom_setup_function
 
     def reorder_cell_info(self, cell_modulator):
 
@@ -230,7 +230,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
         if syn_name in self.neuromodulators:
             self.add_gpcr_synapse(channel_module, par_data, cell_id_source, dend_compartment, section_dist, conductance, parameter_id, synapse_type_id, axon_dist)
 
-    def custom_setup(self):
+    def custom_setup_function(self):
 
         self.write_log("custom setup")
 
@@ -337,9 +337,11 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
         return syn
 
-    def get_external_input_synapse(self, eval_str, section, section_x, channel_module):
+    def get_external_input_synapse(self, channel_module, section, section_x):
 
         syn = None
+
+        # TODO: Get eval_str from channel_module
 
         self.write_log('ADDING EXTERNAL inside function')
 
