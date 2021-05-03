@@ -1137,22 +1137,22 @@ class SnuddaPrune(object):
 
             end_time2 = timeit.default_timer()
             self.write_log(f"prune_synapses_parallel ({merge_data_type}): {end_time2 - start_time}s")
+
+            # Add the files to a delete list, so we remove them after
+            for f in temp_output_file_name:
+                self.temp_file_list.append(f)
+
+            self.combine_files(temp_output_file_name, merge_data_type)
+
         else:
             # Multiple files but we are running in serial
             self.write_log(f"Warning, multiple_files but running {merge_data_type} in serial", force_print=True)
 
-            temp_output_file_name = [os.path.join(self.scratch_path, f"worker-temp-{merge_data_type}-file-{x}")
-                                     for x in range(0, len(synapse_file))]
+            for syn_file in synapse_file:
+                self.prune_synapses(synapse_file=syn_file, output_filename=None, merge_data_type=merge_data_type,
+                                    close_input_file=close_input_file, close_out_file=False)
 
-            for syn_file, out_file in zip(synapse_file, temp_output_file_name):
-                self.write_log(f"Processing {syn_file} -> {out_file}")
-                self.prune_synapses(synapse_file=syn_file, output_filename=out_file, merge_data_type=merge_data_type)
-
-        # Add the files to a delete list, so we remove them after
-        for f in temp_output_file_name:
-            self.temp_file_list.append(f)
-
-        self.combine_files(temp_output_file_name, merge_data_type)
+            return
 
     ############################################################################
 

@@ -181,16 +181,24 @@ class TestPrune(unittest.TestCase):
         # we assume this to be able to quickly find all synapses on post synaptic cell.
         # TODO: Also include the ChannelModelID in sorting check
         with self.subTest("Checking-merge-file-sorted"):
-            merge_file = os.path.join(self.network_path, "network-putative-synapses-MERGED.hdf5")
 
-            sl = SnuddaLoad(merge_file, verbose=True)
-            syn = sl.data["synapses"][:sl.data["nSynapses"], :2]
-            syn_order = syn[:, 1] * len(self.sd.neurons) + syn[:, 0]
-            self.assertTrue((np.diff(syn_order) >= 0).all())
+            for mf in ["temp/synapses-for-neurons-0-to-28-MERGE-ME.hdf5",
+                       "temp/gapJunctions-for-neurons-0-to-28-MERGE-ME.hdf5",
+                       "temp/worker-temp-synapses-file-0",
+                       "network-synapses.hdf5"]:
 
-            gj = sl.data["gapJunctions"][:sl.data["nGapJunctions"], :2]
-            gj_order = gj[:, 1] * len(self.sd.neurons) + gj[:, 0]
-            self.assertTrue((np.diff(gj_order) >= 0).all())
+                merge_file = os.path.join(self.network_path, mf)
+
+                sl = SnuddaLoad(merge_file, verbose=True)
+                if "synapses" in sl.data:
+                    syn = sl.data["synapses"][:sl.data["nSynapses"], :2]
+                    syn_order = syn[:, 1] * len(self.sd.neurons) + syn[:, 0]
+                    self.assertTrue((np.diff(syn_order) >= 0).all())
+
+                if "gapJunctions" in sl.data:
+                    gj = sl.data["gapJunctions"][:sl.data["nGapJunctions"], :2]
+                    gj_order = gj[:, 1] * len(self.sd.neurons) + gj[:, 0]
+                    self.assertTrue((np.diff(gj_order) >= 0).all())
 
         with self.subTest("synapse-f1"):
             # Test of f1
