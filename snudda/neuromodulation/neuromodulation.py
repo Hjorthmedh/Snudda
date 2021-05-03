@@ -49,9 +49,9 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
             modulation_vector = method(description_neuromodulation['parameters'])
 
             self.neuromodulation.update({
-                description_neuromodulation['key']:
+                type_modulation:
                     {
-                        'name': type_modulation,
+                        'name': description_neuromodulation['name'],
                         'modulation_vector': self.neuron_vector(modulation_vector),
                         'ion_channels': description_neuromodulation['ion_channels'],
                         'receptors': description_neuromodulation['receptors'],

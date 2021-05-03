@@ -6,6 +6,7 @@ class NetworkWideNeuromodulation:
     def __init__(self):
 
         self.network_wide = dict()
+        self.name_to_key = dict()
         self.dt = None
 
     def set_modulation(self, neurotransmitter, neurotransmitter_key):
@@ -16,20 +17,23 @@ class NetworkWideNeuromodulation:
         modACh and maxModACh in modulated mod files.
         """
 
-        if neurotransmitter in self.network_wide.keys():
+        if neurotransmitter_key in self.network_wide.keys():
             raise KeyError('neurotransmitter already defined')
 
-        self.network_wide.update({neurotransmitter: {'key': neurotransmitter_key}})
+        else:
+            self.name_to_key.update({neurotransmitter: neurotransmitter_key})
 
-        self.network_wide[neurotransmitter].update({'ion_channels': dict(),
-                                                    'receptors': dict(),
-                                                    'presynaptic': dict()})
+            self.network_wide.update({neurotransmitter_key: {'name': neurotransmitter}})
+
+            self.network_wide[neurotransmitter_key].update({'ion_channels': dict(),
+                                                            'receptors': dict(),
+                                                            'presynaptic': dict()})
 
     def transient(self, neurotransmitter, method, duration, parameters):
 
-        self.network_wide[neurotransmitter].update({'method': method,
-                                                    'duration': duration,
-                                                    'parameters': parameters})
+        self.network_wide[self.name_to_key[neurotransmitter]].update({'method': method,
+                                                                      'duration': duration,
+                                                                      'parameters': parameters})
 
     def set_timestep(self, dt):
 
@@ -37,26 +41,26 @@ class NetworkWideNeuromodulation:
 
     def ion_channel_modulation(self, neurotransmitter, cell_type, section, ion_channels):
 
-        if cell_type not in self.network_wide[neurotransmitter]['ion_channels'].keys():
+        if cell_type not in self.network_wide[self.name_to_key[neurotransmitter]]['ion_channels'].keys():
 
-            self.network_wide[neurotransmitter]['ion_channels'].update({cell_type : dict()})
+            self.network_wide[self.name_to_key[neurotransmitter]]['ion_channels'].update({cell_type : dict()})
 
             
-        self.network_wide[neurotransmitter]['ion_channels'][cell_type].update({section : ion_channels})
+        self.network_wide[self.name_to_key[neurotransmitter]]['ion_channels'][cell_type].update({section : ion_channels})
 
     def receptor_modulation(self, neurotransmitter, cell_type, receptor, modulation):
 
-        if cell_type not in self.network_wide[neurotransmitter]['receptors'].keys():
-            self.network_wide[neurotransmitter]['receptors'].update({cell_type : dict()})
+        if cell_type not in self.network_wide[self.name_to_key[neurotransmitter]]['receptors'].keys():
+            self.network_wide[self.name_to_key[neurotransmitter]]['receptors'].update({cell_type : dict()})
                 
-        self.network_wide[neurotransmitter]['receptors'][cell_type].update({receptor : modulation})
+        self.network_wide[self.name_to_key[neurotransmitter]]['receptors'][cell_type].update({receptor : modulation})
 
     def presynaptic_receptor_modulation(self, neurotransmitter, cell_type, receptor, modulation):
 
-        if cell_type not in self.network_wide[neurotransmitter]['presynaptic'].keys():
-            self.network_wide[neurotransmitter]['presynaptic'].update({cell_type: dict()})
+        if cell_type not in self.network_wide[self.name_to_key[neurotransmitter]]['presynaptic'].keys():
+            self.network_wide[self.name_to_key[neurotransmitter]]['presynaptic'].update({cell_type: dict()})
                 
-        self.network_wide[neurotransmitter]['presynaptic'][cell_type].update({receptor: modulation})
+        self.network_wide[self.name_to_key[neurotransmitter]]['presynaptic'][cell_type].update({receptor: modulation})
 
     def save(self, dir_path, name):
 
@@ -64,7 +68,7 @@ class NetworkWideNeuromodulation:
             raise ValueError(' Set time step for simulation')
         else:
             for neurotransmitter in self.network_wide.keys():
-                self.network_wide[neurotransmitter].update({'dt': self.dt})
+                self.network_wide[self.name_to_key[neurotransmitter]].update({'dt': self.dt})
 
         with open(os.path.join(dir_path, name), 'w') as out_file:
             json.dump(self.network_wide, out_file)

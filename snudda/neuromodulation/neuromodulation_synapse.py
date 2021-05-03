@@ -187,7 +187,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                                               'postcell': list(),
                                               'dend_compartment': list(),
                                               'section_dist': list(),
-                                              'howto': list(),
+                                              'method': list(),
                                               'key': list(),
                                               'index': list(),
                                               'synapse': list(),
@@ -209,7 +209,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                 self.cell_modulator[cell]['postcell'].append(postcell_name)
                 self.cell_modulator[cell]['dend_compartment'].append(dend_compartment)
                 self.cell_modulator[cell]['section_dist'].append(section_dist)
-                self.cell_modulator[cell]['howto'].append(self.neuro_desc[syn_name]["cells"][postcell_name])
+                self.cell_modulator[cell]['method'].append(self.neuro_desc[syn_name]["cells"][postcell_name])
                 self.cell_modulator[cell]['key'].append(self.neuro_desc[syn_name])
                 self.cell_modulator[cell]['synapse'].append(channel_module)
 
