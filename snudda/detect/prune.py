@@ -1346,13 +1346,25 @@ class SnuddaPrune(object):
         # We need to sort the files in order, so we know how to add them
         self.write_log("Gathering of synapses and gap junctions from hypervoxels into multiple merge files done.")
 
+        # Sort the files in order
         merge_start_syn = [x[1][0] for x in merge_results_syn]
         merge_start_gj = [x[1][0] for x in merge_results_gj]
 
         merge_order_syn = np.argsort(merge_start_syn)
         merge_order_gj = np.argsort(merge_start_gj)
 
-        return merge_start_syn, merge_start_gj, merge_order_syn, merge_order_gj, merge_results_syn, merge_results_gj
+        # Extract data, and return it in more meaningful format
+        merge_files_syn = [merge_results_syn[idx][0] for idx in merge_order_syn]
+        merge_files_gj = [merge_results_gj[idx][0] for idx in merge_order_gj]
+
+        merge_neuron_range_syn = [merge_results_syn[idx][1] for idx in merge_order_syn]
+        merge_neuron_range_gj = [merge_results_gj[idx][1] for idx in merge_order_gj]
+
+        merge_syn_ctr = [merge_results_syn[idx][2] for idx in merge_order_syn]
+        merge_gj_ctr = [merge_results_gj[idx][2] for idx in merge_order_gj]
+
+        return merge_files_syn, merge_neuron_range_syn, merge_syn_ctr, \
+            merge_files_gj, merge_neuron_range_gj, merge_gj_ctr
 
     ############################################################################
 
@@ -1364,21 +1376,20 @@ class SnuddaPrune(object):
 
         self.write_log(f"big_merge_parallel, starting {self.role}")
 
-        merge_start_syn, merge_start_gj, merge_order_syn, merge_order_gj, merge_results_syn, merge_results_gj \
-            = self.gather_synapses_parallel()
+        merge_files_syn, merge_neuron_range_syn, merge_syn_ctr, \
+            merge_files_gj, merge_neuron_range_gj, merge_gj_ctr = self.gather_synapses_parallel()
 
         # We then need the file to merge them in
         (self.buffer_out_file, outFileName) = self.setup_merge_file(big_cache=False, delete_after=False)
 
         # Copy the data to the file
-        for order, results, location in zip([merge_order_syn, merge_order_gj],
-                                            [merge_results_syn, merge_results_gj],
-                                            ["network/synapses", "network/gapJunctions"]):
+        for merge_files, merge_ctr, location in zip([merge_files_syn, merge_files_gj],
+                                                    [merge_syn_ctr, merge_gj_ctr],
+                                                    ["network/synapses", "network/gapJunctions"]):
             start_pos = 0
 
-            for idx in order:
-                data_file = results[idx][0]
-                num_synapses = results[idx][2]   # This is synapses first iteration, gap junction 2nd iteration
+            for data_file, num_synapses in zip(merge_files, merge_ctr):
+                # num_synapses is synapses first iteration, gap junction 2nd iteration
                 end_pos = start_pos + num_synapses
 
                 if num_synapses == 0:
