@@ -509,7 +509,7 @@ class Snudda(object):
         self.slurm_id = os.getenv('SLURM_JOBID')
 
         if self.slurm_id is None:
-            self.slurm_id = self.next_run_id()
+            self.slurm_id = 0
         else:
             self.slurm_id = int(self.slurm_id)
 
@@ -572,44 +572,6 @@ class Snudda(object):
         self.logfile.write("Program run time: " + str(stop - self.start))
         self.logfile.write("End of log. Closing file.")
         self.logfile.close()
-
-    ##############################################################################
-
-    def next_run_id(self):
-
-        import pickle
-
-        run_id_file = ".runID.pickle"
-
-        try:
-            if os.path.isfile(run_id_file):
-
-                with open(run_id_file, 'rb') as f:
-                    run_id = pickle.load(f)
-                    next_id = int(np.ceil(np.max(run_id)) + 1)
-
-                run_id.append(next_id)
-
-                with open(run_id_file, 'wb') as f:
-                    pickle.dump(run_id, f, -1)
-
-            else:
-
-                with open(run_id_file, 'wb') as f:
-                    next_id = 1
-                    run_id = [1]
-                    pickle.dump(run_id, f, -1)
-
-        except Exception as e:
-            import traceback
-            tstr = traceback.format_exc()
-            print(tstr)
-            print("Problem reading .runID.pickle file, setting runID to 0")
-            return 0
-
-        print("Using runID = " + str(next_id))
-
-        return next_id
 
     ############################################################################
 
