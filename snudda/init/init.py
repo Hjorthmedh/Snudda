@@ -541,7 +541,7 @@ class SnuddaInit(object):
                                conductance=None,
                                mod_file=None,
                                parameter_file=None,
-                               channel_param_dictionary=None)
+                               channel_param_dictionary=channel_param_dictionary)
 
         # Next we need to add the connection mapping specific parameters
 
@@ -563,7 +563,7 @@ class SnuddaInit(object):
 
     # Population Units here refer to processing units, where the neurons within a Population Unit
     # might have different connectivity than neurons belonging to different population Units
-    
+
     # Centre of striatum mesh is [3540e-6,4645e-6,5081e-6]
     # Radius is now in SI units also (meters)
 
@@ -578,7 +578,7 @@ class SnuddaInit(object):
             neuron_types = list(neuron_types)
 
         unit_id = self.setup_population_unit(unit_id)
-            
+
         if structure_name not in self.network_data["PopulationUnits"]:
             self.network_data["PopulationUnits"][structure_name] = collections.OrderedDict()
             self.network_data["PopulationUnits"][structure_name]["method"] = "radialDensity"
@@ -632,7 +632,7 @@ class SnuddaInit(object):
 
         return unit_id
 
-    ############################################################################    
+    ############################################################################
 
     # Normally: nNeurons = number of neurons set, then the fractions specified
     # fMSD1, fMSD2, fFS, fChIN, fLTS are used to  calculate the number of neurons
@@ -845,7 +845,7 @@ class SnuddaInit(object):
         # See plotLTSdensity.py
 
         # LTS_density_str = "12*3000*1e12*( 0.25*np.exp(-(((x-200e-6)/100e-6)**2 + ((y-0)/50e-6)**2 + ((z-0)/30e-6)**2)) + 1*np.exp(-(((x-300e-6)/300e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/10e-6)**2)) + 1*np.exp(-(((x-700e-6)/100e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/15e-6)**2)) )",
-        LTS_density_str = ("12*3000*1e12*( 0.25*exp(-(((x-200e-6)/100e-6)**2 " 
+        LTS_density_str = ("12*3000*1e12*( 0.25*exp(-(((x-200e-6)/100e-6)**2 "
                            "+ ((y-0)/50e-6)**2 + ((z-0)/30e-6)**2)) "
                            "+ 1*exp(-(((x-300e-6)/300e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/10e-6)**2)) "
                            "+ 1*exp(-(((x-700e-6)/100e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/15e-6)**2)) )")
