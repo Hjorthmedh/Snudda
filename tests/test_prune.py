@@ -105,7 +105,7 @@ class TestPrune(unittest.TestCase):
 
         self.sd.detect(restart_detection_flag=True)
 
-        if True:
+        if False:
             self.sd.process_hyper_voxel(1)
             self.sd.plot_hyper_voxel(plot_neurons=True)
 
@@ -250,7 +250,7 @@ class TestPrune(unittest.TestCase):
             sl = SnuddaLoad(pruned_output)
 
             # a3=0.6 means 40% chance to remove all synapses between a pair
-            self.assertTrue((20*8 + 10*2)*0.6 - 10 < sl.data["nSynapses"] < (20*8 + 10*2)*0.6 + 10)
+            self.assertTrue((20*8 + 10*2)*0.6 - 14 < sl.data["nSynapses"] < (20*8 + 10*2)*0.6 + 14)
 
         with self.subTest("synapse-distance-dependent-pruning"):
             # Testing distance dependent pruning
@@ -309,8 +309,8 @@ class TestPrune(unittest.TestCase):
             # Load the pruned data and check it
             sl = SnuddaLoad(pruned_output, verbose=True)
 
-            # a3=0.8 means 20% chance to remove all synapses between a pair
-            self.assertTrue(64*0.8 - 5 < sl.data["nGapJunctions"] < 64*0.8 + 5)
+            # a3=0.7 means 30% chance to remove all synapses between a pair
+            self.assertTrue(64*0.7 - 10 < sl.data["nGapJunctions"] < 64*0.7 + 10)
 
         if False:  # Distance dependent pruning currently not implemented for gap junctions
             with self.subTest("gap-junction-distance-dependent-pruning"):

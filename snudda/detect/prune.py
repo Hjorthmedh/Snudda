@@ -22,6 +22,7 @@
 
 import os
 import numpy as np
+from numba import jit
 import scipy
 import math
 import numexpr
@@ -178,6 +179,11 @@ class SnuddaPrune(object):
 
         self.voxel_overflow_counter = 0
         self.overflow_files = []
+
+        # Used by get_neuron_random_seeds
+        self.cache_neuron_seeds = None
+        self.cache_old_seed = None
+        self.cache_num_neurons = None
 
         self.open_work_history_file(work_history_file=self.work_history_file, config_file=config_file)
 
@@ -1509,8 +1515,7 @@ class SnuddaPrune(object):
     # outputFile -- where to write synapses, assumed to already exist
     # outFilePos -- which position to start writing from
 
-    # TODO: Try to optimise using numba, also pre-generate random numbers instead of calling function repeatedly
-    #       Also, all the sum() calls take a considerable amount of time, around 45% of this functions execution time
+    # Tried to use numba, but dictionaries and h5py._hl.files.File not supported
 
     def prune_synapses_helper(self, synapses, output_file, merge_data_type):
 
@@ -1525,14 +1530,6 @@ class SnuddaPrune(object):
         neuron_seeds = self.get_neuron_random_seeds()
         previous_post_synaptic_neuron_id = None
         post_rng = None
-
-        # Init some stats
-        # n_all_removed = 0
-        # n_some_removed = 0
-        # n_too_few_removed = 0
-        # n_dist_dep_pruning = 0
-        # n_too_many_removed = 0
-        # n_not_connected = 0
 
         old_pos = -1
 
@@ -1559,7 +1556,6 @@ class SnuddaPrune(object):
                     and (synapses[next_read_pos:read_end_idx, 1] == synapses[next_read_pos, 1]).all()), \
                 "prune_synapses_helper: Internal error, more than one neuron pair"
 
-            # Stats
             n_pair_synapses = read_end_idx - next_read_pos
 
             src_id = synapses[next_read_pos, 0]
@@ -1567,7 +1563,6 @@ class SnuddaPrune(object):
 
             if dest_id != previous_post_synaptic_neuron_id:
                 # New post synaptic cell, reseed random generator
-                # self.write_log(f"Random seed set for neuron {dest_id}: {neuron_seeds[dest_id]}")  # Temp logging
                 post_rng = np.random.default_rng(neuron_seeds[dest_id])
                 previous_post_synaptic_neuron_id = dest_id
 
@@ -1615,20 +1610,26 @@ class SnuddaPrune(object):
                 next_read_pos = read_end_idx
                 # No need to update keepRowFlag since default set to 0
 
-                # Stats
-                # n_not_connected += n_pair_synapses
                 continue
+
+            # Lets get all cell pairs random numbers in one go, total: n_pair_synapses*3 + 2
+            # f1        :n_pair_synapses
+            # p         n_pair_synapses:2*n_pair_synapses
+            # soft_max  2*n_pair_synapses:3*n_pair_synapses
+            # a3       -1
+            # p_mu     -2
+
+            random_pool = post_rng.random(n_pair_synapses*3 + 2)
 
             # 3. This is the last step of pruning, but we move it to the top
             # since there is no point doing the other steps if we going to
             # throw them away anyway
-            if a3 is not None and post_rng.random() > a3:
+
+            if a3 is not None and random_pool[-1] > a3:
                 # Prune all synapses between pair, do not add to synapse file
                 next_read_pos = read_end_idx
                 # No need to update keepRowFlag since default set to 0
 
-                # Stats
-                # n_all_removed += n_pair_synapses
                 continue
 
             if dist_p is not None:
@@ -1640,36 +1641,25 @@ class SnuddaPrune(object):
                 d = synapses[next_read_pos:read_end_idx, 8] * 1e-6  # dendrite distance d, used in eval below
                 p = numexpr.evaluate(dist_p)
 
-                frac_flag = post_rng.random(n_pair_synapses) < f1
-                dist_flag = post_rng.random(n_pair_synapses) < p
+                frac_flag = random_pool[:n_pair_synapses] < f1
+                dist_flag = random_pool[n_pair_synapses:2*n_pair_synapses] < p
 
                 keep_row_flag[next_read_pos:read_end_idx] = np.logical_and(frac_flag, dist_flag)
 
-                # n_frac = sum(frac_flag)
-                # n_some_removed += n_pair_synapses - n_frac
-                # n_dist_dep_pruning += n_frac - sum(keep_row_flag[next_read_pos:read_end_idx])
-
             else:
-                keep_row_flag[next_read_pos:read_end_idx] = post_rng.random(n_pair_synapses) < f1
-                # n_some_removed += n_pair_synapses - sum(keep_row_flag[next_read_pos:read_end_idx])
+                keep_row_flag[next_read_pos:read_end_idx] = random_pool[:n_pair_synapses] < f1
 
             # Check if too many synapses, trim it down a bit
             n_keep = np.sum(keep_row_flag[next_read_pos:read_end_idx])
 
             if soft_max is not None and n_keep > soft_max:
-                # pKeep = float(softMax)/nKeep # OLD implementation
                 soft_max = float(soft_max)
-                # pKeep = 2*softMax*np.divide(1-np.exp(-nKeep/softMax),1+np.exp(-nKeep/softMax))/nKeep
                 p_keep = np.divide(2 * soft_max, (1 + np.exp(-(n_keep - soft_max) / 5)) * n_keep)
 
                 keep_row_flag[next_read_pos:read_end_idx] = \
-                    np.logical_and(p_keep > post_rng.random(n_pair_synapses),
+                    np.logical_and(p_keep > random_pool[2*n_pair_synapses:3*n_pair_synapses],
                                    keep_row_flag[next_read_pos:read_end_idx])
 
-                # Stats
-                # n_too_many_removed += n_keep - sum(keep_row_flag[next_read_pos:read_end_idx])
-
-                # Update count
                 n_keep = np.sum(keep_row_flag[next_read_pos:read_end_idx])
 
             # If too few synapses, remove all synapses
@@ -1677,18 +1667,17 @@ class SnuddaPrune(object):
                 # Markram et al, Cell 2015
                 p_mu = 1.0 / (1.0 + np.exp(-8.0 / mu2 * (n_keep - mu2)))
 
-                if p_mu < post_rng.random():
+                if p_mu < random_pool[-2]:
+
                     # Too few synapses, remove all -- need to update keepRowFlag
                     keep_row_flag[next_read_pos:read_end_idx] = 0
                     next_read_pos = read_end_idx
 
-                    # Stats
-                    # n_too_few_removed += n_keep
                     continue
 
             next_read_pos = read_end_idx
 
-            # Time to write synapses to file
+        # Time to write synapses to file
         n_keep_tot = sum(keep_row_flag)
         write_start_pos = int(output_file["network/" + h5_syn_n][0])
         write_end_pos = write_start_pos + n_keep_tot
@@ -1705,21 +1694,12 @@ class SnuddaPrune(object):
             self.write_log("No synapses kept, resizing")
             output_file[h5_syn_mat].resize((write_end_pos, output_file[h5_syn_mat].shape[1]))
 
-        # self.write_log(f"Number of synapses removed where synapse connection not allowed: {n_not_connected}"
-        #                f"\nNumber of synapses removed due to distance dependent pruning: {n_dist_dep_pruning}"
-        #                f"\nNumber of synapses removed randomly: {n_some_removed}"
-        #                f"\nNumber of synapses removed due to too many synapses between connected pair: "
-        #                f"{n_too_many_removed}"
-        #                f"\nNumber of synapses removed due to too few synapses between connected pairs: "
-        #                f"{n_too_few_removed}"
-        #                f"\nNumber of synapses removed where all synapses between pairs are removed: "
-        #                f"{n_all_removed}")
-
         return n_keep_tot
 
     ############################################################################
 
     @staticmethod
+    @jit(nopython=True)
     def file_row_lookup_iterator(h5mat, chunk_size=10000):
 
         mat_size = h5mat.shape[0]
@@ -1788,12 +1768,13 @@ class SnuddaPrune(object):
 
     # Returns (subset of rows, uniqueID)
 
-    def synapse_set_iterator(self, h5mat_lookup, h5mat, chunk_size=10000, lookup_iterator=None):
+    @staticmethod
+    def synapse_set_iterator(h5mat_lookup, h5mat, chunk_size=10000, lookup_iterator=None):
 
         # Allow the user to set an alternative lookupIterator if we only
         # want to iterate over a subset of the synapses
         if not lookup_iterator:
-            lookup_iterator = self.file_row_lookup_iterator(h5mat_lookup, chunk_size=chunk_size)
+            lookup_iterator = SnuddaPrune.file_row_lookup_iterator(h5mat_lookup, chunk_size=chunk_size)
 
         mat_size = h5mat.shape[0]
         if mat_size < chunk_size:
@@ -1847,7 +1828,7 @@ class SnuddaPrune(object):
 
                 assert end_idx == buffer_end \
                     or (read_buffer[start_idx - buffer_start, :2] != read_buffer[end_idx - buffer_start, :2]).any(), \
-                    "We missed one synpase! (2)"
+                    "We missed one synapse! (2)"
 
                 assert (syn_mat[:, 0] == syn_mat[0, 0]).all() and (syn_mat[:, 1] == syn_mat[0, 1]).all(), \
                     f"Synapse matrix (2) contains more than one pair:\n{syn_mat}"
@@ -1864,10 +1845,10 @@ class SnuddaPrune(object):
                 assert end_idx == buffer_end \
                        or (read_buffer[start_idx - buffer_start, :2]
                            != read_buffer[end_idx - buffer_start, :2]).any(), \
-                       "We missed one synpase! (1)"
+                       "We missed one synapse! (1)"
 
                 assert (syn_mat[:, 0] == syn_mat[0, 0]).all() and (syn_mat[:, 1] == syn_mat[0, 1]).all(), \
-                       f"Synapse matrix (1) contains more than one pair:\n{syn_mat}"
+                       "Synapse matrix (1) contains more than one pair:\n{syn_mat}"
 
                 assert syn_mat.shape[0] == end_idx - start_idx, \
                     "Synapse matrix has wrong size"
@@ -1879,15 +1860,28 @@ class SnuddaPrune(object):
 
     def get_neuron_random_seeds(self):
 
-        # Cache using ... self.old_seed = self.random_seed
         num_neurons = self.hist_file["network/neurons/neuronID"].shape[0]
-        assert num_neurons - 1 == self.hist_file["network/neurons/neuronID"][-1], \
-            "neuronID should start from 0 and the end should be n-1"
 
-        # Need different seeds for each post synaptic neuron
-        ss = np.random.SeedSequence(self.random_seed)
-        neuron_seeds = ss.generate_state(num_neurons)
+        if self.cache_neuron_seeds is not None \
+            and self.cache_old_seed == self.random_seed \
+                and self.cache_num_neurons == num_neurons:
+
+            neuron_seeds = self.cache_neuron_seeds
+        else:
+            assert num_neurons - 1 == self.hist_file["network/neurons/neuronID"][-1], \
+                "neuronID should start from 0 and the end should be n-1"
+
+            # Need different seeds for each post synaptic neuron
+            ss = np.random.SeedSequence(self.random_seed)
+            neuron_seeds = ss.generate_state(num_neurons)
+
+            # Cache results for next iteration
+            self.cache_neuron_seeds = neuron_seeds
+            self.cache_old_seed = self.random_seed
+            self.cache_num_neurons = num_neurons
+
         return neuron_seeds
+
 
 
 ##############################################################################
