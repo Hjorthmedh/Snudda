@@ -23,7 +23,6 @@
 import os
 import numpy as np
 from numba import jit
-import scipy
 import math
 import numexpr
 import collections
@@ -35,7 +34,6 @@ import timeit
 
 import h5py
 import json
-import pickle
 
 # from snudda.Neuron_morphology import NeuronMorphology
 
@@ -252,14 +250,14 @@ class SnuddaPrune(object):
         try:
             if self.hist_file is not None:
                 self.hist_file.close()
-        except:
+        except Exception as e:
             print("Hist file already closed?")
 
         try:
             if self.out_file is not None:
                 self.out_file.close()
                 self.out_file = None
-        except:
+        except Exception as e:
             print("Out file already closed?")
 
         # self.clean_up_merge_files()  # -- This caused old files to be cleaned up when aborting. Bad for debugging.
@@ -321,7 +319,8 @@ class SnuddaPrune(object):
             self.config_file = config_file
         self.position_file = self.hist_file["meta/positionFile"][()]
 
-        self.detect_config = json.loads(self.hist_file["meta/config"][()])  # This was config data used for detection, might differ from pruning config
+        # This was config data used for detection, might differ from pruning config
+        self.detect_config = json.loads(self.hist_file["meta/config"][()])
         with open(self.config_file, "r") as f:
             self.config = json.load(f)
 
@@ -330,7 +329,6 @@ class SnuddaPrune(object):
         assert len(remaining) == 0 or len(self.config["Connectivity"]) == 0, \
             (f"Detection not done. There are {len(remaining)} hypervoxels "
              f"not completed: {', '.join([str(x) for x in remaining])}")
-
 
         # This also loads random seed from config file while we have it open
         if self.random_seed is None:
@@ -358,11 +356,9 @@ class SnuddaPrune(object):
         for c in check_list:
             test = self.hist_file["meta/" + c][()] == hypervoxel_file["meta/" + c][()]
             if type(test) == bool:
-                assert test, \
-                    "Mismatch of " + c + " in file " + hypervoxel_file_name
+                assert test, "Mismatch of " + c + " in file " + hypervoxel_file_name
             else:
-                assert test.all(), \
-                    "Mismatch of " + c + " in file " + hypervoxel_file_name
+                assert test.all(), "Mismatch of " + c + " in file " + hypervoxel_file_name
 
                 # Get xyz coordinates of hyper voxel
         xyz = np.where(self.hyper_voxel_id_list == hypervoxel_file["meta/hyperVoxelID"][()])
@@ -446,7 +442,7 @@ class SnuddaPrune(object):
 
         # For the pruning we merge the two into one
         for key in config_connectivity_distributions:
-            (pre_type, post_type) = key.split(",")  # key.split("$$") -- if we instead loop over orig_connectivity_distribution
+            (pre_type, post_type) = key.split(",")  # split on "$$" if we had looped over orig_connectivity_distribution
             orig_key = f"{pre_type}$${post_type}"
 
             # Need to handle if preType or postType don't exist, then skip this
@@ -580,11 +576,10 @@ class SnuddaPrune(object):
         self.out_file = out_file
 
     ############################################################################
-    # TODO: We dont need to save morphologies in every merge file, only in final one (if at all)
-    #       go through code and update so intermediate merge files do not save SWC morphologies.
 
-    def setup_merge_file(self, verbose=False, big_cache=False,
-                         outfile_name=None, save_morphologies=True,
+    def setup_merge_file(self, big_cache=False,
+                         outfile_name=None,
+                         save_morphologies=True,
                          num_synapses=None,
                          num_gap_junctions=None,
                          delete_after=True):
@@ -881,8 +876,8 @@ class SnuddaPrune(object):
             try:
                 if os.path.exists(f):
                     os.remove(f)
-            except:
-                self.write_log(f"Closing of file failed: {f}")
+            except Exception as e:
+                self.write_log(f"Closing of file {f} failed: {e}")
 
         self.temp_file_list = None
 
@@ -897,7 +892,7 @@ class SnuddaPrune(object):
 
             if self.verbose or is_error or force_print:
                 print(text)
-        except:
+        except Exception as e:
             print(text)
             print("Unable to write to log file. Is log file closed?")
 
@@ -915,6 +910,7 @@ class SnuddaPrune(object):
             self.write_log("Workers already initialised.")
             return
 
+        # This imports for the workers
         with d_view.sync_imports():
             from snudda.detect.prune import SnuddaPrune
 
@@ -1053,13 +1049,15 @@ class SnuddaPrune(object):
             self.d_view.scatter("neuron_range", neuron_ranges, block=True)
 
             # Each worker sorts a subset of the neurons and write it to separate files
-            cmd_str_syn = "merge_result_syn = nw.big_merge_helper(neuron_range=neuron_range[0], merge_data_type='synapses')"
+            cmd_str_syn = ("merge_result_syn = nw.big_merge_helper(neuron_range=neuron_range[0], "
+                           "merge_data_type='synapses')")
 
             self.d_view.execute(cmd_str_syn, block=True)
             merge_results_syn = self.d_view["merge_result_syn"]
 
             # When we do scatter, it embeds the result in a list
-            cmd_str_gj = "merge_result_gj = nw.big_merge_helper(neuron_range=neuron_range[0], merge_data_type='gapJunctions')"
+            cmd_str_gj = ("merge_result_gj = nw.big_merge_helper(neuron_range=neuron_range[0], "
+                          "merge_data_type='gapJunctions')")
             self.d_view.execute(cmd_str_gj, block=True)
             merge_results_gj = self.d_view["merge_result_gj"]
 
@@ -1140,7 +1138,7 @@ class SnuddaPrune(object):
             "Not all synapses kept in merge, internal problem."
         assert self.buffer_out_file["network/gapJunctions"].shape[0] \
                == np.sum(self.hist_file["nHypervoxelGapJunctions"][:]), \
-            "Not all gap junctions kept in merge, internal problem."
+               "Not all gap junctions kept in merge, internal problem."
 
         self.write_log("big_merge_parallel: done")
 
@@ -1338,14 +1336,10 @@ class SnuddaPrune(object):
                 assert False, f"Unknown mergeDataType {merge_data_type}"
 
             # Setup output file
-            (self.buffer_out_file, outFileName) = self.setup_merge_file(big_cache=True,
-                                                                        outfile_name=output_filename,
+            (self.buffer_out_file, outFileName) = self.setup_merge_file(big_cache=True, outfile_name=output_filename,
                                                                         save_morphologies=False,
                                                                         num_synapses=num_synapses,
                                                                         num_gap_junctions=num_gap_junctions)
-
-            # Here we store the sorted connection matrix
-            sorted_mat = self.buffer_out_file[h5_syn_mat]
 
             # Only save this meta data if doing the synapses call
             if max_axon_voxel_ctr > 0 and self.merge_data_type == "synapses":
@@ -1401,7 +1395,8 @@ class SnuddaPrune(object):
                 loop_ctr += 1
 
             if n_total > 1000000:
-                self.write_log(f"Worker synapses: {syn_ctr}/{n_total} (heap size: {len(synapse_heap)})", force_print=True)
+                self.write_log(f"Worker synapses: {syn_ctr}/{n_total} (heap size: {len(synapse_heap)})",
+                               force_print=True)
 
             self.write_log(f"Read {syn_ctr} out of total {n_total} synapses", force_print=True)
 
@@ -1882,9 +1877,8 @@ class SnuddaPrune(object):
 
         return neuron_seeds
 
-
-
 ##############################################################################
+
 
 if __name__ == "__main__":
     print("Please do not call this file directly, use snudda.py")
