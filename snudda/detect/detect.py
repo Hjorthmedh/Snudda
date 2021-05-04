@@ -999,7 +999,7 @@ class SnuddaDetect(object):
 
         end_time = timeit.default_timer()
 
-        self.write_log(f"detectSynapses: {self.hyper_voxel_synapse_ctr} took {end_time - start_time} s")
+        self.write_log(f"detect_synapses: {self.hyper_voxel_synapse_ctr} took {end_time - start_time} s")
 
         if False and self.hyper_voxel_synapse_ctr > 0:
             print("First plot shows dendrites, and the voxels that were marked")
@@ -2758,6 +2758,8 @@ class SnuddaDetect(object):
             self.write_hyper_voxel_to_hdf5()
 
             end_time = timeit.default_timer()
+
+            self.write_log(f"process_hyper_voxel: {hyper_id} took {end_time - start_time} s")
 
         except Exception as e:
             # Write error to log file to help trace it.
