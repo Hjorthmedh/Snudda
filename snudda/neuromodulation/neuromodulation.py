@@ -21,12 +21,12 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
         self.neuromodulation = dict()
 
         super(SnuddaSimulateNeuromodulation, self).__init__(network_path=network_path,
-                                                    network_file=network_file,
-                                                    input_file=input_file,
-                                                    verbose=False,
-                                                    log_file=log_file,
-                                                    disable_gap_junctions=disable_gap_junctions,
-                                                    simulation_config=simulation_config)
+                                                            network_file=network_file,
+                                                            input_file=input_file,
+                                                            verbose=False,
+                                                            log_file=log_file,
+                                                            disable_gap_junctions=disable_gap_junctions,
+                                                            simulation_config=simulation_config)
 
     def neuron_vector(self, vector):
 
@@ -79,14 +79,13 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
 
         for index, cell in cells.items():
 
-            cell_name = cell.type
+            cell_type_name = cell.type
 
-            cell_modulation = ion_channels[cell_name]
+            cell_modulation = ion_channels[cell_type_name]
 
             for part, modulate_section in cell_modulation.items():
 
-                # translate, translates the neuron section into the parameters defined using swc file.
-
+                # translate, translates the neuron section into the name used in the swc file, e.g dend becomes basal
                 tpart = translator.translate(part)
 
                 for comp in getattr(cell.icell, tpart):
@@ -108,20 +107,20 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
             for neuronID, synlist in self.external_stim.items():
                 for syntuple in synlist:
 
-                    cell_name = self.neurons[neuronID].type
+                    cell_type_name = self.neurons[neuronID].type
                     syn_name = self.get_syn_name(syntuple[3])
 
-                    if cell_name in synapses.keys() and syn_name in synapses[cell_name].keys():
-                        self.modulate_receptor(syn=syn, modulation=modulation,
+                    if cell_type_name in synapses.keys() and syn_name in synapses[cell_type_name].keys():
+                        self.modulate_receptor(syn=syntuple[3], modulation=modulation,
                                                modulation_key=modulation_key)
 
         if intrinsic:
             for syn in self.synapse_list:
 
-                cell_name = str(syn.get_segment()).split("_")[0]
+                cell_type_name = str(syn.get_segment()).split("_")[0]
                 syn_name = self.get_syn_name(syn)
 
-                if cell_name in synapses.keys() and syn_name in synapses[cell_name].keys():
+                if cell_type_name in synapses.keys() and syn_name in synapses[cell_type_name].keys():
                     self.modulate_receptor(syn=syn, modulation=modulation,
                                            modulation_key=modulation_key)
 
@@ -131,5 +130,3 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
 
         self.neuromodulation[modulation]['modulation_vector'].play(
             getattr(syn, "_ref_level" + modulation_key.replace("mod", "")), self.sim.neuron.h.dt)
-
-        ############################################################################
