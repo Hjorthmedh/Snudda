@@ -137,7 +137,7 @@ def snudda_cli():
         import pstats
         from pstats import SortKey
         p = pstats.Stats(prof_file)
-        p.strip_dirs().sort_stats(SortKey.CUMULATIVE).print_stats(30)
+        p.strip_dirs().sort_stats(SortKey.CUMULATIVE).print_stats(100)
 
     else:
         bl = BenchmarkLogging(args.path)

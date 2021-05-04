@@ -1510,6 +1510,7 @@ class SnuddaPrune(object):
     # outFilePos -- which position to start writing from
 
     # TODO: Try to optimise using numba, also pre-generate random numbers instead of calling function repeatedly
+    #       Also, all the sum() calls take a considerable amount of time, around 45% of this functions execution time
 
     def prune_synapses_helper(self, synapses, output_file, merge_data_type):
 
@@ -1526,12 +1527,12 @@ class SnuddaPrune(object):
         post_rng = None
 
         # Init some stats
-        n_all_removed = 0
-        n_some_removed = 0
-        n_too_few_removed = 0
-        n_dist_dep_pruning = 0
-        n_too_many_removed = 0
-        n_not_connected = 0
+        # n_all_removed = 0
+        # n_some_removed = 0
+        # n_too_few_removed = 0
+        # n_dist_dep_pruning = 0
+        # n_too_many_removed = 0
+        # n_not_connected = 0
 
         old_pos = -1
 
@@ -1615,7 +1616,7 @@ class SnuddaPrune(object):
                 # No need to update keepRowFlag since default set to 0
 
                 # Stats
-                n_not_connected += n_pair_synapses
+                # n_not_connected += n_pair_synapses
                 continue
 
             # 3. This is the last step of pruning, but we move it to the top
@@ -1627,7 +1628,7 @@ class SnuddaPrune(object):
                 # No need to update keepRowFlag since default set to 0
 
                 # Stats
-                n_all_removed += n_pair_synapses
+                # n_all_removed += n_pair_synapses
                 continue
 
             if dist_p is not None:
@@ -1644,13 +1645,13 @@ class SnuddaPrune(object):
 
                 keep_row_flag[next_read_pos:read_end_idx] = np.logical_and(frac_flag, dist_flag)
 
-                n_frac = sum(frac_flag)
-                n_some_removed += n_pair_synapses - n_frac
-                n_dist_dep_pruning += n_frac - sum(keep_row_flag[next_read_pos:read_end_idx])
+                # n_frac = sum(frac_flag)
+                # n_some_removed += n_pair_synapses - n_frac
+                # n_dist_dep_pruning += n_frac - sum(keep_row_flag[next_read_pos:read_end_idx])
 
             else:
                 keep_row_flag[next_read_pos:read_end_idx] = post_rng.random(n_pair_synapses) < f1
-                n_some_removed += n_pair_synapses - sum(keep_row_flag[next_read_pos:read_end_idx])
+                # n_some_removed += n_pair_synapses - sum(keep_row_flag[next_read_pos:read_end_idx])
 
             # Check if too many synapses, trim it down a bit
             n_keep = np.sum(keep_row_flag[next_read_pos:read_end_idx])
@@ -1666,7 +1667,7 @@ class SnuddaPrune(object):
                                    keep_row_flag[next_read_pos:read_end_idx])
 
                 # Stats
-                n_too_many_removed += n_keep - sum(keep_row_flag[next_read_pos:read_end_idx])
+                # n_too_many_removed += n_keep - sum(keep_row_flag[next_read_pos:read_end_idx])
 
                 # Update count
                 n_keep = np.sum(keep_row_flag[next_read_pos:read_end_idx])
@@ -1682,7 +1683,7 @@ class SnuddaPrune(object):
                     next_read_pos = read_end_idx
 
                     # Stats
-                    n_too_few_removed += n_keep
+                    # n_too_few_removed += n_keep
                     continue
 
             next_read_pos = read_end_idx
@@ -1704,15 +1705,15 @@ class SnuddaPrune(object):
             self.write_log("No synapses kept, resizing")
             output_file[h5_syn_mat].resize((write_end_pos, output_file[h5_syn_mat].shape[1]))
 
-        self.write_log(f"Number of synapses removed where synapse connection not allowed: {n_not_connected}"
-                       f"\nNumber of synapses removed due to distance dependent pruning: {n_dist_dep_pruning}"
-                       f"\nNumber of synapses removed randomly: {n_some_removed}"
-                       f"\nNumber of synapses removed due to too many synapses between connected pair: "
-                       f"{n_too_many_removed}"
-                       f"\nNumber of synapses removed due to too few synapses between connected pairs: "
-                       f"{n_too_few_removed}"
-                       f"\nNumber of synapses removed where all synapses between pairs are removed: "
-                       f"{n_all_removed}")
+        # self.write_log(f"Number of synapses removed where synapse connection not allowed: {n_not_connected}"
+        #                f"\nNumber of synapses removed due to distance dependent pruning: {n_dist_dep_pruning}"
+        #                f"\nNumber of synapses removed randomly: {n_some_removed}"
+        #                f"\nNumber of synapses removed due to too many synapses between connected pair: "
+        #                f"{n_too_many_removed}"
+        #                f"\nNumber of synapses removed due to too few synapses between connected pairs: "
+        #                f"{n_too_few_removed}"
+        #                f"\nNumber of synapses removed where all synapses between pairs are removed: "
+        #                f"{n_all_removed}")
 
         return n_keep_tot
 
