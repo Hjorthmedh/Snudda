@@ -1,6 +1,7 @@
 import numpy as np
 import scipy
 from scipy import ndimage
+from numba import jit
 import re
 import os
 import pickle
@@ -609,15 +610,33 @@ class RegionMesh(object):
     ############################################################################
 
     def ray_casting(self, point):
+        RegionMesh.ray_casting_helper(point=point,
+                                      self_mesh_faces=self.mesh_faces,
+                                      self_mesh_nrm=self.mesh_nrm,
+                                      self_mesh_v0=self.mesh_v0,
+                                      self_point_out=self.point_out,
+                                      self_mesh_denom=self.mesh_denom,
+                                      self_mesh_uv=self.mesh_uv,
+                                      self_mesh_uu=self.mesh_uu,
+                                      self_mesh_vv=self.mesh_vv,
+                                      self_mesh_u=self.mesh_u,
+                                      self_mesh_v=self.mesh_v)
+
+    @staticmethod
+    @jit(nopython=True)
+    def ray_casting_helper(point,
+                           self_mesh_faces, self_mesh_nrm, self_point_out,
+                           self_mesh_v0, self_mesh_denom,
+                           self_mesh_uv, self_mesh_vv, self_mesh_uu, self_mesh_u, self_mesh_v):
 
         # print(f"Processing {point}")
 
-        n_tri = self.mesh_faces.shape[0]
+        n_tri = self_mesh_faces.shape[0]
 
-        p = self.point_out - point
+        p = self_point_out - point
         # rn = nominator, rd = denominator
-        rn = np.sum(np.multiply(self.mesh_nrm, self.mesh_v0 - point), axis=1)
-        rd = np.dot(self.mesh_nrm, p)
+        rn = np.sum(np.multiply(self_mesh_nrm, self_mesh_v0 - point), axis=1)
+        rd = np.dot(self_mesh_nrm, p)
 
         # If rd == 0 and rn != 0 --> r = -1, parallel to plane, but outside, mark -1 to avoid counting
         # If rd == 0 and rn == 0 --> r = 0, parallel and lies in plane
@@ -632,16 +651,16 @@ class RegionMesh(object):
 
         idx = np.where(np.logical_and(0 <= r, r <= 1))[0]
 
-        w = point + r.reshape(len(r), 1) * p.reshape(1, 3) - self.mesh_v0
+        w = point + r.reshape(len(r), 1) * p.reshape(1, 3) - self_mesh_v0
         n_points = len(r)
 
-        s = np.divide(np.multiply(self.mesh_uv, np.sum(np.multiply(w, self.mesh_v), axis=1).reshape(n_points, ))
-                      - np.multiply(self.mesh_vv, np.sum(np.multiply(w, self.mesh_u), axis=1).reshape(n_points, )),
-                      self.mesh_denom)
+        s = np.divide(np.multiply(self_mesh_uv, np.sum(np.multiply(w, self_mesh_v), axis=1).reshape(n_points, ))
+                      - np.multiply(self_mesh_vv, np.sum(np.multiply(w, self_mesh_u), axis=1).reshape(n_points, )),
+                      self_mesh_denom)
 
-        t = np.divide(np.multiply(self.mesh_uv, np.sum(np.multiply(w, self.mesh_u), axis=1).reshape(n_points, ))
-                      - np.multiply(self.mesh_uu, np.sum(np.multiply(w, self.mesh_v), axis=1).reshape(n_points, )),
-                      self.mesh_denom)
+        t = np.divide(np.multiply(self_mesh_uv, np.sum(np.multiply(w, self_mesh_u), axis=1).reshape(n_points, ))
+                      - np.multiply(self_mesh_uu, np.sum(np.multiply(w, self_mesh_v), axis=1).reshape(n_points, )),
+                      self_mesh_denom)
 
         intersect_count = np.sum((0 <= r) * (r <= 1) * (0 <= s) * (s <= 1) * (0 <= t) * (s + t <= 1))
 

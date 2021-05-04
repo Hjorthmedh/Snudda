@@ -2341,7 +2341,6 @@ class SnuddaDetect(object):
 
         self.voxel_overflow_counter += voxel_overflow_ctr
 
-
     # This uses self.hyperVoxelOrigo, self.voxelSize, self.nBins
 
     # !!! OBS segX must be an integer here, so to get true segX divide by 10000
