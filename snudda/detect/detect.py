@@ -31,10 +31,6 @@ from snudda.utils.load import SnuddaLoad
 import snudda.utils.memory
 
 
-status = None
-hyperVoxelData = None
-
-
 # TODO: Exclude neurons without synapses or gap junctions from touch detection (ie if no pre/post connections possible)
 
 class SnuddaDetect(object):
@@ -2091,26 +2087,13 @@ class SnuddaDetect(object):
             if n["virtualNeuron"]:
                 # Range check since we have neurons coming in from outside the volume
                 # the parts outside should be ignored
-                try:
-                    hyper_id = [self.hyper_voxel_id_lookup[x, y, z] for x, y, z in h_loc
-                                if 0 <= x < self.hyper_voxel_id_lookup.shape[0]
-                                and 0 <= y < self.hyper_voxel_id_lookup.shape[1]
-                                and 0 <= z < self.hyper_voxel_id_lookup.shape[2]]
-                except:
-                    self.write_log("Hyper ID problem. x={x}, y={y}, z={z}", is_error=True)
-                    assert False, f"Hyper ID problem. x={x}, y={y}, z={z}"
-
+                hyper_id = [self.hyper_voxel_id_lookup[x, y, z] for x, y, z in h_loc
+                            if 0 <= x < self.hyper_voxel_id_lookup.shape[0]
+                            and 0 <= y < self.hyper_voxel_id_lookup.shape[1]
+                            and 0 <= z < self.hyper_voxel_id_lookup.shape[2]]
             else:
                 # Not a virtual neuron, should all be inside volume
-                try:
-                    hyper_id = [self.hyper_voxel_id_lookup[x, y, z] for x, y, z in h_loc]
-                except Exception as e:
-                    import traceback
-                    tstr = traceback.format_exc()
-                    self.write_log(tstr, is_error=True)
-                    self.write_log("Affected neuron: " + str(n), is_error=True)
-                    self.write_log(f"Range check failed : x={x}, y={y}, z={z}", is_error=True)
-                    assert False, f"Range check failed : x={x}, y={y}, z={z}"
+                hyper_id = [self.hyper_voxel_id_lookup[x, y, z] for x, y, z in h_loc]
 
             # Add the neuron to the hyper voxel's list over neurons
             for h_id in hyper_id:
