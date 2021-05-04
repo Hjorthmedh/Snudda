@@ -22,6 +22,7 @@
 
 import os
 import numpy as np
+from numba import jit
 import scipy
 import math
 import numexpr
@@ -178,6 +179,11 @@ class SnuddaPrune(object):
 
         self.voxel_overflow_counter = 0
         self.overflow_files = []
+
+        # Used by get_neuron_random_seeds
+        self.cache_neuron_seeds = None
+        self.cache_old_seed = None
+        self.cache_num_neurons = None
 
         self.open_work_history_file(work_history_file=self.work_history_file, config_file=config_file)
 
@@ -1720,6 +1726,7 @@ class SnuddaPrune(object):
     ############################################################################
 
     @staticmethod
+    @jit(nopython=True)
     def file_row_lookup_iterator(h5mat, chunk_size=10000):
 
         mat_size = h5mat.shape[0]
@@ -1788,12 +1795,13 @@ class SnuddaPrune(object):
 
     # Returns (subset of rows, uniqueID)
 
-    def synapse_set_iterator(self, h5mat_lookup, h5mat, chunk_size=10000, lookup_iterator=None):
+    @staticmethod
+    def synapse_set_iterator(h5mat_lookup, h5mat, chunk_size=10000, lookup_iterator=None):
 
         # Allow the user to set an alternative lookupIterator if we only
         # want to iterate over a subset of the synapses
         if not lookup_iterator:
-            lookup_iterator = self.file_row_lookup_iterator(h5mat_lookup, chunk_size=chunk_size)
+            lookup_iterator = SnuddaPrune.file_row_lookup_iterator(h5mat_lookup, chunk_size=chunk_size)
 
         mat_size = h5mat.shape[0]
         if mat_size < chunk_size:
@@ -1847,7 +1855,7 @@ class SnuddaPrune(object):
 
                 assert end_idx == buffer_end \
                     or (read_buffer[start_idx - buffer_start, :2] != read_buffer[end_idx - buffer_start, :2]).any(), \
-                    "We missed one synpase! (2)"
+                    "We missed one synapse! (2)"
 
                 assert (syn_mat[:, 0] == syn_mat[0, 0]).all() and (syn_mat[:, 1] == syn_mat[0, 1]).all(), \
                     f"Synapse matrix (2) contains more than one pair:\n{syn_mat}"
@@ -1864,10 +1872,10 @@ class SnuddaPrune(object):
                 assert end_idx == buffer_end \
                        or (read_buffer[start_idx - buffer_start, :2]
                            != read_buffer[end_idx - buffer_start, :2]).any(), \
-                       "We missed one synpase! (1)"
+                       "We missed one synapse! (1)"
 
                 assert (syn_mat[:, 0] == syn_mat[0, 0]).all() and (syn_mat[:, 1] == syn_mat[0, 1]).all(), \
-                       f"Synapse matrix (1) contains more than one pair:\n{syn_mat}"
+                       "Synapse matrix (1) contains more than one pair:\n{syn_mat}"
 
                 assert syn_mat.shape[0] == end_idx - start_idx, \
                     "Synapse matrix has wrong size"
@@ -1879,15 +1887,28 @@ class SnuddaPrune(object):
 
     def get_neuron_random_seeds(self):
 
-        # Cache using ... self.old_seed = self.random_seed
         num_neurons = self.hist_file["network/neurons/neuronID"].shape[0]
-        assert num_neurons - 1 == self.hist_file["network/neurons/neuronID"][-1], \
-            "neuronID should start from 0 and the end should be n-1"
 
-        # Need different seeds for each post synaptic neuron
-        ss = np.random.SeedSequence(self.random_seed)
-        neuron_seeds = ss.generate_state(num_neurons)
+        if self.cache_neuron_seeds is not None \
+            and self.cache_old_seed == self.random_seed \
+                and self.cache_num_neurons == num_neurons:
+
+            neuron_seeds = self.cache_neuron_seeds
+        else:
+            assert num_neurons - 1 == self.hist_file["network/neurons/neuronID"][-1], \
+                "neuronID should start from 0 and the end should be n-1"
+
+            # Need different seeds for each post synaptic neuron
+            ss = np.random.SeedSequence(self.random_seed)
+            neuron_seeds = ss.generate_state(num_neurons)
+
+            # Cache results for next iteration
+            self.cache_neuron_seeds = neuron_seeds
+            self.cache_old_seed = self.random_seed
+            self.cache_num_neurons = num_neurons
+
         return neuron_seeds
+
 
 
 ##############################################################################
