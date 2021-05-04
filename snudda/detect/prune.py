@@ -1636,7 +1636,7 @@ class SnuddaPrune(object):
             # since there is no point doing the other steps if we going to
             # throw them away anyway
 
-            if a3 is not None and random_pool[-1] > a3:  # post_rng.random()
+            if a3 is not None and random_pool[-1] > a3:
                 # Prune all synapses between pair, do not add to synapse file
                 next_read_pos = read_end_idx
                 # No need to update keepRowFlag since default set to 0
@@ -1654,8 +1654,6 @@ class SnuddaPrune(object):
                 d = synapses[next_read_pos:read_end_idx, 8] * 1e-6  # dendrite distance d, used in eval below
                 p = numexpr.evaluate(dist_p)
 
-                # frac_flag = post_rng.random(n_pair_synapses) < f1
-                # dist_flag = post_rng.random(n_pair_synapses) < p
                 frac_flag = random_pool[:n_pair_synapses] < f1
                 dist_flag = random_pool[n_pair_synapses:2*n_pair_synapses] < p
 
@@ -1666,7 +1664,6 @@ class SnuddaPrune(object):
                 # n_dist_dep_pruning += n_frac - sum(keep_row_flag[next_read_pos:read_end_idx])
 
             else:
-                # keep_row_flag[next_read_pos:read_end_idx] = post_rng.random(n_pair_synapses) < f1
                 keep_row_flag[next_read_pos:read_end_idx] = random_pool[:n_pair_synapses] < f1
 
                 # n_some_removed += n_pair_synapses - sum(keep_row_flag[next_read_pos:read_end_idx])
@@ -1681,7 +1678,7 @@ class SnuddaPrune(object):
                 p_keep = np.divide(2 * soft_max, (1 + np.exp(-(n_keep - soft_max) / 5)) * n_keep)
 
                 keep_row_flag[next_read_pos:read_end_idx] = \
-                    np.logical_and(p_keep > random_pool[2*n_pair_synapses:3*n_pair_synapses],  # post_rng.random(n_pair_synapses)
+                    np.logical_and(p_keep > random_pool[2*n_pair_synapses:3*n_pair_synapses],
                                    keep_row_flag[next_read_pos:read_end_idx])
 
                 # Stats
@@ -1695,7 +1692,6 @@ class SnuddaPrune(object):
                 # Markram et al, Cell 2015
                 p_mu = 1.0 / (1.0 + np.exp(-8.0 / mu2 * (n_keep - mu2)))
 
-                #if p_mu < post_rng.random():
                 if p_mu < random_pool[-2]:
 
                     # Too few synapses, remove all -- need to update keepRowFlag
