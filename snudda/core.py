@@ -43,7 +43,6 @@
 import os
 import sys
 import timeit
-import numpy as np
 import pkg_resources
 
 from snudda.utils.snudda_path import snudda_isfile
