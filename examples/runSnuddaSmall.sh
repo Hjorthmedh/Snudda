@@ -1,14 +1,14 @@
 export IPYTHONDIR="`pwd`/.ipython"
 export IPYTHON_PROFILE=Snudda_LOCAL
 
-ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
+ipcluster start --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20
 
-simName=networks/small-run
+simName=networks/test-10k
 
 #snudda init $simName --size 1760000
 #snudda init $simName --size 100000
-snudda init $simName --size 1000 --overwrite
+snudda init $simName --size 10000 --overwrite
 
 snudda place $simName --parallel
 snudda detect $simName --volumeID Striatum --parallel

@@ -52,6 +52,7 @@ export PYTHONPATH=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/beskow/minico
 
 export LD_LIBRARY_PATH=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/beskow/miniconda3/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/lib64
 
 #srun -n $N_WORKERS $SNUDDA_DIR/../examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
 

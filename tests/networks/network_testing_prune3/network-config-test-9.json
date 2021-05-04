@@ -35,7 +35,7 @@
                     "f1": 1,
                     "softMax": 8,
                     "mu2": null,
-                    "a3": 0.8,
+                    "a3": 0.7,
                     "distPruning": null
                 }
             }
