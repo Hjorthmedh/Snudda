@@ -214,7 +214,7 @@ class SnuddaPrune(object):
             merge_files_gj, merge_neuron_range_gj, merge_gj_ctr = self.gather_synapses()
 
         self.prune_synapses_parallel(synapse_file=merge_files_syn,
-                                     synapse_ctr = merge_syn_ctr,
+                                     synapse_ctr=merge_syn_ctr,
                                      merge_data_type="synapses",
                                      close_input_file=False)
 
@@ -1172,7 +1172,7 @@ class SnuddaPrune(object):
     def big_merge_helper(self, neuron_range, merge_data_type):
 
         try:
-            self.write_log(f"Neuron_range = {neuron_range}")
+            self.write_log(f"big_merge_helper ({merge_data_type}): neuron_range = {neuron_range}")
 
             output_filename = os.path.join(self.scratch_path,
                                            f"{merge_data_type}-for-neurons-"
@@ -1406,7 +1406,7 @@ class SnuddaPrune(object):
             self.write_log(f"Read {syn_ctr} out of total {n_total} synapses", force_print=True)
 
             self.buffer_merge_write(h5_syn_mat, flush=True)
-            self.write_log("bigMergeHelper: done")
+            self.write_log("big_merge_helper: done")
 
             # Close the hyper voxel files
             for f in file_list:
