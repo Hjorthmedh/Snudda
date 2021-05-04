@@ -610,17 +610,17 @@ class RegionMesh(object):
     ############################################################################
 
     def ray_casting(self, point):
-        RegionMesh.ray_casting_helper(point=point,
-                                      self_mesh_faces=self.mesh_faces,
-                                      self_mesh_nrm=self.mesh_nrm,
-                                      self_mesh_v0=self.mesh_v0,
-                                      self_point_out=self.point_out,
-                                      self_mesh_denom=self.mesh_denom,
-                                      self_mesh_uv=self.mesh_uv,
-                                      self_mesh_uu=self.mesh_uu,
-                                      self_mesh_vv=self.mesh_vv,
-                                      self_mesh_u=self.mesh_u,
-                                      self_mesh_v=self.mesh_v)
+        return RegionMesh.ray_casting_helper(point=point,
+                                             self_mesh_faces=self.mesh_faces,
+                                             self_mesh_nrm=self.mesh_nrm,
+                                             self_mesh_v0=self.mesh_v0,
+                                             self_point_out=self.point_out,
+                                             self_mesh_denom=self.mesh_denom,
+                                             self_mesh_uv=self.mesh_uv,
+                                             self_mesh_uu=self.mesh_uu,
+                                             self_mesh_vv=self.mesh_vv,
+                                             self_mesh_u=self.mesh_u,
+                                             self_mesh_v=self.mesh_v)
 
     @staticmethod
     @jit(nopython=True)
