@@ -1,9 +1,9 @@
 from snudda.simulate.simulate import SnuddaSimulate
+import snudda.neuromodulation.modulation as modulation
+import snudda.neuromodulation.translator as translator
 import json
 import numpy as np
 import os
-import snudda.neuromodulation.modulation as modulation
-import snudda.neuromodulation.translator as translator
 
 
 class SnuddaSimulateNeuromodulation(SnuddaSimulate):
@@ -17,13 +17,12 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                  disable_gap_junctions=True,
                  simulation_config=None):
 
-        self.verbose = verbose
         self.neuromodulation = dict()
 
         super(SnuddaSimulateNeuromodulation, self).__init__(network_path=network_path,
                                                             network_file=network_file,
                                                             input_file=input_file,
-                                                            verbose=False,
+                                                            verbose=verbose,
                                                             log_file=log_file,
                                                             disable_gap_junctions=disable_gap_junctions,
                                                             simulation_config=simulation_config)

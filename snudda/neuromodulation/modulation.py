@@ -1,4 +1,5 @@
 import numpy as np
+import numexpr
 
 
 def alpha_sub_function(t_step, tau, tstart, gmax):

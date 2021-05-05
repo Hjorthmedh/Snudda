@@ -1,7 +1,7 @@
 import json
 import os
 
-class SynapseWiseNeuromodulation:
+class NeuromodulationSynapse:
 
     def __init__(self):
 

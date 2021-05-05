@@ -1,16 +1,14 @@
-from typing import Any
-
 from snudda.simulate.simulate import SnuddaSimulate
-import json
-import numpy as np
 import snudda.neuromodulation.modulation as modulation
 import snudda.neuromodulation.translator as translator
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
 from snudda.utils.snudda_path import snudda_parse_path
-import h5py
 from snudda.neurons.neuron_model_extended import NeuronModel
 from snudda.utils.load import SnuddaLoad
 from neuron import h
+import json
+import numpy as np
+import h5py
 
 
 class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
@@ -25,7 +23,6 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                  simulation_config=None, neuromodulator_description=None,
                  neuromodulation_conductance=None):
 
-        self.verbose = verbose
         self.neuromodulator_description = neuromodulator_description
         self.neuromodulation = dict()
         self.current_cell = None
@@ -39,10 +36,12 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
         super(SnuddaSimulateNeuromodulationSynapse, self).__init__(network_path=network_path,
                                                                    network_file=network_file,
                                                                    input_file=input_file,
-                                                                   verbose=False,
+                                                                   verbose=verbose,
                                                                    log_file=log_file,
                                                                    disable_gap_junctions=disable_gap_junctions,
                                                                    simulation_config=simulation_config)
+
+        # Change the self.custom_setup from None, and execute the custom setup code within this file
         self.custom_setup = self.custom_setup_function
         self.cell_type_ion_channels_per_section = self.ion_channels_per_section()
         self.key_list = self.modulation_keys()

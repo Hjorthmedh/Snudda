@@ -1,7 +1,7 @@
 import json
 import os
 
-class NetworkWideNeuromodulation:
+class Neuromodulation:
 
     def __init__(self):
 
