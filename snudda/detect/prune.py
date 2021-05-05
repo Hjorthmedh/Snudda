@@ -209,7 +209,7 @@ class SnuddaPrune(object):
             return
 
         merge_files_syn, merge_neuron_range_syn, merge_syn_ctr, \
-            merge_files_gj, merge_neuron_range_gj, merge_gj_ctr = self.gather_synapses()
+            merge_files_gj, merge_neuron_range_gj, merge_gj_ctr = self.gather_neuron_synapses()
 
         self.prune_synapses_parallel(synapse_file=merge_files_syn,
                                      synapse_ctr=merge_syn_ctr,
@@ -1010,11 +1010,13 @@ class SnuddaPrune(object):
     # This goes through the hyper voxel synapse files, extracts a range of neurons,
     # and puts their synapses in its own file. Parallel execution, all neurons.
 
-    def gather_synapses(self):
+    def gather_neuron_synapses(self):
 
         if self.role != "master":
-            self.write_log("gather_synapses is only run on master node, aborting")
+            self.write_log("gather_neuron_synapses is only run on master node, aborting")
             return
+
+        start_time = timeit.default_timer()
 
         # Split neurons between nodes, we need the neurons to be in order
         num_neurons = self.hist_file["network/neurons/neuronID"].shape[0]
@@ -1033,7 +1035,6 @@ class SnuddaPrune(object):
             self.setup_parallel(d_view=self.d_view)
 
             n_workers = len(self.d_view)
-
             neuron_ranges = []
             range_borders = np.linspace(0, num_neurons, n_workers + 1).astype(int)
 
@@ -1041,9 +1042,9 @@ class SnuddaPrune(object):
                 neuron_ranges.append((range_borders[idx], range_borders[idx + 1]))
 
             assert neuron_ranges[-1][-1] == num_neurons, \
-                "gather_synapses: Problem with neuron_ranges, last element incorrect"
+                "gather_neuron_synapses: Problem with neuron_ranges, last element incorrect"
             assert len(neuron_ranges) == n_workers, \
-                "gather_synapses: Problem with neuron_ranges, bad length"
+                "gather_neuron_synapses: Problem with neuron_ranges, bad length"
 
             # Send list of neurons to workers
             self.d_view.scatter("neuron_range", neuron_ranges, block=True)
@@ -1078,6 +1079,9 @@ class SnuddaPrune(object):
         merge_syn_ctr = [merge_results_syn[idx][2] for idx in merge_order_syn]
         merge_gj_ctr = [merge_results_gj[idx][2] for idx in merge_order_gj]
 
+        end_time = timeit.default_timer()
+        self.write_log(f"gather_neuron_synapses took {end_time - start_time} s")
+
         return merge_files_syn, merge_neuron_range_syn, merge_syn_ctr, \
             merge_files_gj, merge_neuron_range_gj, merge_gj_ctr
 
@@ -1092,7 +1096,7 @@ class SnuddaPrune(object):
         self.write_log(f"big_merge_parallel, starting {self.role}")
 
         merge_files_syn, merge_neuron_range_syn, merge_syn_ctr, \
-            merge_files_gj, merge_neuron_range_gj, merge_gj_ctr = self.gather_synapses()
+            merge_files_gj, merge_neuron_range_gj, merge_gj_ctr = self.gather_neuron_synapses()
 
         # We then need the file to merge them in
         (self.buffer_out_file, outFileName) = self.setup_merge_file(big_cache=False, delete_after=False)
