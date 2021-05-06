@@ -9,6 +9,8 @@ simNamePart=20210420
 #cellspecDir=../snudda/data/parkinson-2021-03-19
 cellspecDir=../snudda/data/parkinson-2021-04-20
 
+LÄGG TILL FS och LTS FÖR NYA KÖRNIGEN
+
 ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20
 
