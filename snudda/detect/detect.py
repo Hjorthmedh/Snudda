@@ -31,10 +31,6 @@ from snudda.utils.load import SnuddaLoad
 import snudda.utils.memory
 
 
-status = None
-hyperVoxelData = None
-
-
 # TODO: Exclude neurons without synapses or gap junctions from touch detection (ie if no pre/post connections possible)
 
 class SnuddaDetect(object):
@@ -1003,7 +999,7 @@ class SnuddaDetect(object):
 
         end_time = timeit.default_timer()
 
-        self.write_log(f"detectSynapses: {self.hyper_voxel_synapse_ctr} took {end_time - start_time} s")
+        self.write_log(f"detect_synapses: {self.hyper_voxel_synapse_ctr} took {end_time - start_time} s")
 
         if False and self.hyper_voxel_synapse_ctr > 0:
             print("First plot shows dendrites, and the voxels that were marked")
@@ -2091,26 +2087,13 @@ class SnuddaDetect(object):
             if n["virtualNeuron"]:
                 # Range check since we have neurons coming in from outside the volume
                 # the parts outside should be ignored
-                try:
-                    hyper_id = [self.hyper_voxel_id_lookup[x, y, z] for x, y, z in h_loc
-                                if 0 <= x < self.hyper_voxel_id_lookup.shape[0]
-                                and 0 <= y < self.hyper_voxel_id_lookup.shape[1]
-                                and 0 <= z < self.hyper_voxel_id_lookup.shape[2]]
-                except:
-                    self.write_log("Hyper ID problem. x={x}, y={y}, z={z}", is_error=True)
-                    assert False, f"Hyper ID problem. x={x}, y={y}, z={z}"
-
+                hyper_id = [self.hyper_voxel_id_lookup[x, y, z] for x, y, z in h_loc
+                            if 0 <= x < self.hyper_voxel_id_lookup.shape[0]
+                            and 0 <= y < self.hyper_voxel_id_lookup.shape[1]
+                            and 0 <= z < self.hyper_voxel_id_lookup.shape[2]]
             else:
                 # Not a virtual neuron, should all be inside volume
-                try:
-                    hyper_id = [self.hyper_voxel_id_lookup[x, y, z] for x, y, z in h_loc]
-                except Exception as e:
-                    import traceback
-                    tstr = traceback.format_exc()
-                    self.write_log(tstr, is_error=True)
-                    self.write_log("Affected neuron: " + str(n), is_error=True)
-                    self.write_log(f"Range check failed : x={x}, y={y}, z={z}", is_error=True)
-                    assert False, f"Range check failed : x={x}, y={y}, z={z}"
+                hyper_id = [self.hyper_voxel_id_lookup[x, y, z] for x, y, z in h_loc]
 
             # Add the neuron to the hyper voxel's list over neurons
             for h_id in hyper_id:
@@ -2775,6 +2758,8 @@ class SnuddaDetect(object):
             self.write_hyper_voxel_to_hdf5()
 
             end_time = timeit.default_timer()
+
+            self.write_log(f"process_hyper_voxel: {hyper_id} took {end_time - start_time} s")
 
         except Exception as e:
             # Write error to log file to help trace it.

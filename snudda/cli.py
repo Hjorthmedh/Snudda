@@ -1,5 +1,5 @@
 from argparse import ArgumentParser, RawTextHelpFormatter
-from snudda.core import Snudda, get_data_file
+from snudda.core import Snudda
 from snudda.help import snudda_help_text
 from snudda.utils.benchmark_logging import BenchmarkLogging
 import os
@@ -124,8 +124,7 @@ def snudda_cli():
                "convert": snudda.export_to_SONATA,
                "analyse": snudda.analyse,
                "simulate": snudda.simulate,
-               "help": snudda.help_info,
-               "create": create_project}
+               "help": snudda.help_info}
 
     if args.profile:
         prof_file = "profile-" + args.action + ".prof"
@@ -140,7 +139,12 @@ def snudda_cli():
         p.strip_dirs().sort_stats(SortKey.CUMULATIVE).print_stats(100)
 
     else:
-        bl = BenchmarkLogging(args.path)
+        if hasattr(args, "parallel"):
+            run_parallel = args.parallel
+        else:
+            run_parallel = False
+
+        bl = BenchmarkLogging(args.path, run_parallel)
         bl.start_timer(args.action)
 
         # Perform the requested action
@@ -148,28 +152,6 @@ def snudda_cli():
 
         bl.stop_timer(args.action)
         bl.write_log()
-
-
-def create_project(args):
-
-    assert False, "This function will be removed"
-
-    if not args.overwrite and os.path.exists(args.path):
-        if input("Directory '{}' exists. Are you sure you wish to overwrite it? [y/n] ".format(
-                args.path)).lower() != "y":
-            print("Project creation aborted")
-            return
-        else:
-            # Delete the existing folder
-            import shutil
-            shutil.rmtree(args.path)
-            os.mkdir(args.path)
-            
-    if os.path.exists(args.path):
-        import shutil
-        shutil.rmtree(args.path)
-        
-    os.mkdir(args.path)
 
 
 if __name__ == "__main__":

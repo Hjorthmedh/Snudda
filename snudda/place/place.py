@@ -12,6 +12,7 @@
 #
 import numexpr
 import numpy as np
+import scipy.cluster
 import os
 from collections import OrderedDict
 import h5py
@@ -381,7 +382,11 @@ class SnuddaPlace(object):
         self.config_file = config_file
 
         # We reorder neurons, sorting their IDs after position
-        self.sort_neurons()
+        # -- UPDATE: Now we spatial cluster neurons depending on number of workers
+        self.sort_neurons(sort_idx=self.cluster_neurons())
+
+        if False:  # Debug purposes, make sure neuron ranges are ok
+            self.plot_ranges()
 
         if "PopulationUnits" in config:
             self.define_population_units(config["PopulationUnits"])
@@ -719,14 +724,99 @@ class SnuddaPlace(object):
             # If no population units were defined, then set them all to 0 (= no population unit)
             self.population_unit = np.zeros((len(self.neurons),), dtype=int)
 
-    def sort_neurons(self):
+    # TODO: In prune we later need to gather all synapses belonging to each neuron, which means opening
+    #       the hypervoxel files that contain the worker's neurons' synapses. Therefore it is good to have
+    #       only nearby neurons on the same worker. Come up with a better scheme for sorting neurons.
+    #
 
-        # This changes the neuron IDs so the neurons are sorted along x,y or z
+    def plot_ranges(self):
+
+        from matplotlib import pyplot as plt
+
+        n_workers = len(self.d_view) if self.d_view is not None else 1
+        range_borders = np.linspace(0, len(self.neurons), n_workers + 1).astype(int)
+
+        colours = np.zeros((len(self.neurons),))
+        r_start = 0
+        for idx, r_end in enumerate(range_borders[1:]):
+            colours[r_start:r_end] = idx+1
+            r_start = r_end
+
         xyz = self.all_neuron_positions()
 
-        sort_idx = np.lexsort(xyz[:, [2, 1, 0]].transpose())  # x, y, z sort order
+        fig = plt.figure()
+        ax = fig.add_subplot(projection='3d')
 
-        self.write_log("Re-sorting the neuron IDs after location")
+        ax.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], c=colours, alpha=0.5)
+        plt.show()
+
+    def cluster_neurons(self):
+        n_workers = len(self.d_view) if self.d_view is not None else 1
+        n_clusters = np.maximum(n_workers*5, 100)
+        n_clusters = np.minimum(n_clusters, len(self.neurons))
+
+        xyz = self.all_neuron_positions()
+        centroids, labels = scipy.cluster.vq.kmeans2(xyz, n_clusters, minit="points")
+
+        n_centroids = centroids.shape[0]
+        assert n_centroids == n_clusters
+        cluster_member_list = [[] for x in range(n_centroids)]
+
+        # Find the members of each cluster
+        for idx, val in enumerate(labels):
+            cluster_member_list[val].append(idx)
+
+        num_neurons = xyz.shape[0]
+        range_borders = np.linspace(0, num_neurons, n_workers + 1).astype(int)
+
+        global_centroid_order = list(np.argsort(np.sum(centroids, axis=1)))
+
+        neuron_order = -np.ones((num_neurons,), dtype=int)
+        neuron_order_ctr = 0
+        range_start = 0
+
+        for range_end in range_borders[1:]:
+
+            # While within a range, we want the clusters closest to the current primary cluster
+            current_cluster = global_centroid_order[0]
+            d = np.linalg.norm(centroids - centroids[current_cluster, :], axis=1)
+            local_centroid_order = list(np.argsort(d))
+
+            while range_start < range_end and len(local_centroid_order) > 0:
+                while len(cluster_member_list[local_centroid_order[0]]) == 0:
+                    del local_centroid_order[0]
+                current_cluster = local_centroid_order[0]
+
+                take_n = np.minimum(len(cluster_member_list[current_cluster]), range_end - range_start)
+                neuron_order[neuron_order_ctr:neuron_order_ctr+take_n] = cluster_member_list[current_cluster][:take_n]
+                neuron_order_ctr += take_n
+
+                del cluster_member_list[current_cluster][:take_n]
+                range_start += take_n
+
+            while len(global_centroid_order) > 0 and len(cluster_member_list[global_centroid_order[0]]) == 0:
+                del global_centroid_order[0]
+
+            if len(global_centroid_order) == 0:
+                break
+
+        assert np.count_nonzero(neuron_order < 0) == 0, "cluster_neurons: Not all neurons accounted for"
+
+        # Just some check that all is ok
+        assert (np.diff(np.sort(neuron_order)) == 1).all(), "cluster_neurons: There are gaps in the sorting, error"
+
+        # TODO: Verify that sort order is ok
+
+        return neuron_order
+
+    def sort_neurons(self, sort_idx=None):
+
+        if sort_idx is None:
+            # This changes the neuron IDs so the neurons are sorted along x,y or z
+            xyz = self.all_neuron_positions()
+            sort_idx = np.lexsort(xyz[:, [2, 1, 0]].transpose())  # x, y, z sort order
+
+        self.write_log("Re-sorting the neuron IDs")
 
         for newIdx, oldIdx in enumerate(sort_idx):
             self.neurons[oldIdx].neuron_id = newIdx
@@ -740,7 +830,6 @@ class SnuddaPlace(object):
     def volume_neurons(self, volume_id):
 
         return [n.neuron_id for n in self.neurons if n.volume_id == volume_id]
-
 
     ############################################################################
 
