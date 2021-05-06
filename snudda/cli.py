@@ -139,7 +139,12 @@ def snudda_cli():
         p.strip_dirs().sort_stats(SortKey.CUMULATIVE).print_stats(100)
 
     else:
-        bl = BenchmarkLogging(args.path)
+        if hasattr(args, "parallel"):
+            run_parallel = args.parallel
+        else:
+            run_parallel = False
+
+        bl = BenchmarkLogging(args.path, run_parallel)
         bl.start_timer(args.action)
 
         # Perform the requested action

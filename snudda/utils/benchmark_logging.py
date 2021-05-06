@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 class BenchmarkLogging:
 
-    def __init__(self, network_path, log_file=None):
+    def __init__(self, network_path, parallel_flag=False, log_file=None):
 
         if log_file:
             self.log_file = log_file
@@ -17,6 +17,30 @@ class BenchmarkLogging:
 
         self.start_time = dict()
         self.end_time = dict()
+
+        if parallel_flag:
+            self.num_workers = self.get_number_of_workers()
+        else:
+            self.num_workers = 1
+
+    @staticmethod
+    def get_number_of_workers():
+        # Is there a simpler way to get the number of workers?
+
+        ipython_profile = os.getenv('IPYTHON_PROFILE')
+        if not ipython_profile:
+            ipython_profile = "default"
+
+        ipython_dir = os.getenv('IPYTHONDIR')
+        if not ipython_dir:
+            ipython_dir = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
+
+        import ipyparallel
+        u_file = os.path.join(ipython_dir, f"profile_{ipython_profile}", "security", "ipcontroller-client.json")
+        rc = ipyparallel.Client(url_file=u_file, timeout=120, debug=False)
+        d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
+
+        return len(d_view)
 
     @staticmethod
     def get_network_name(network_path):
@@ -51,9 +75,9 @@ class BenchmarkLogging:
             duration = self.end_time[item_name] - self.start_time[item_name]
 
             if item_name in data[self.network_name]:
-                data[self.network_name][item_name].append(duration)
+                data[self.network_name][item_name].append([duration, self.num_workers])
             else:
-                data[self.network_name][item_name] = [duration]
+                data[self.network_name][item_name] = [[duration, self.num_workers]]
 
             del_keys.append(item_name)
 
