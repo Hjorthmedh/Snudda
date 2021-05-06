@@ -727,9 +727,8 @@ class SnuddaPlace(object):
     #
 
     def cluster_neurons(self):
-
-        n_workers = len(self.d_view) if self.d_view else 1
-        n_clusters = np.max(n_workers*5, 100)
+        n_workers = len(self.d_view) if self.d_view is not None else 1
+        n_clusters = np.maximum(n_workers*5, 100)
 
         xyz = self.all_neuron_positions()
         centroids, labels = scipy.cluster.vq.kmeans2(xyz, n_clusters, minit="points")
@@ -748,7 +747,7 @@ class SnuddaPlace(object):
 
         global_centroid_order = np.argsort(np.sum(centroids, axis=1))
 
-        neuron_order = np.nan * np.zeros((num_neurons,))
+        neuron_order = -np.ones((num_neurons,), dtype=int)
         neuron_order_ctr = 0
         range_start = 0
 
@@ -764,15 +763,20 @@ class SnuddaPlace(object):
                     local_centroid_order.pop()
                 current_cluster = local_centroid_order[0]
 
-                take_n = np.min(len(cluster_member_list[current_cluster]), range_end - range_start)
-                neuron_order[neuron_order_ctr:neuron_order_ctr:take_n] = cluster_member_list[current_cluster][:take_n]
+                take_n = np.minimum(len(cluster_member_list[current_cluster]), range_end - range_start)
+                neuron_order[neuron_order_ctr:neuron_order_ctr+take_n] = cluster_member_list[current_cluster][:take_n]
                 del cluster_member_list[current_cluster][:take_n]
                 range_start += take_n
 
             while len(global_centroid_order) > 0 and len(cluster_member_list[global_centroid_order[0]]):
                 global_centroid_order.pop()
 
-        assert np.count_nonzero(np.isnan(neuron_order)) == 0, "cluster_neurons: Not all neurons accounted for"
+        assert np.count_nonzero(neuron_order < 0) == 0, "cluster_neurons: Not all neurons accounted for"
+
+        # Just some check that all is ok
+        assert (np.diff(np.sort(neuron_order)) == 1).all(), "cluster_neurons: There are gaps in the sorting, error"
+
+        # TODO: Verify that sort order is ok
 
         return neuron_order
 

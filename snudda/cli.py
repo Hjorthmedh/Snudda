@@ -32,6 +32,7 @@ def snudda_cli():
     init_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
     init_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     init_parser.add_argument("--verbose", action="store_true")
+    init_parser.add_argument("--parallel", action="store_true", help="Unused for init.")
 
     place_parser = sub_parsers.add_parser("place")
     place_parser.add_argument("path", help="Location of network")
