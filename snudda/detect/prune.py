@@ -208,9 +208,11 @@ class SnuddaPrune(object):
             self.write_log("prune should only be called on master")
             return
 
+        # From the hyper voxels gather all synapses (and gap junctions) belonging to specific neurons
         merge_files_syn, merge_neuron_range_syn, merge_syn_ctr, \
             merge_files_gj, merge_neuron_range_gj, merge_gj_ctr = self.gather_neuron_synapses()
 
+        # Prune synapses and gap junctions
         self.prune_synapses_parallel(synapse_file=merge_files_syn,
                                      synapse_ctr=merge_syn_ctr,
                                      merge_data_type="synapses",
@@ -762,6 +764,8 @@ class SnuddaPrune(object):
             self.write_log(f"Warning, multiple_files but running {merge_data_type} in serial", force_print=True)
 
             syn_before_total = 0
+            self.setup_output_file()
+
             for syn_file in synapse_file:
                 syn_before, syn_after = self.prune_synapses(synapse_file=syn_file, output_filename=None,
                                                             merge_data_type=merge_data_type,
@@ -770,6 +774,12 @@ class SnuddaPrune(object):
                 assert syn_before == synapse_ctr.sum(), \
                     (f"prune_synapse_parallel: serial run (multi files), "
                      f"received {syn_before_total}, expected {synapse_ctr.sum()}")
+
+            # Need to resize synapse matrix
+            n_synapses = self.out_file["network/nSynapses"][0]
+            n_gj = self.out_file["network/nGapJunctions"][0]
+            self.out_file["network/synapses"].resize((n_synapses, self.out_file["network/synapses"].shape[1]))
+            self.out_file["network/gapJunctions"].resize((n_gj, self.out_file["network/gapJunctions"].shape[1]))
 
     ############################################################################
 
