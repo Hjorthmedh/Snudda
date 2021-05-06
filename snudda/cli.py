@@ -32,7 +32,6 @@ def snudda_cli():
     init_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
     init_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     init_parser.add_argument("--verbose", action="store_true")
-    init_parser.add_argument("--parallel", action="store_true", help="Unused for init.")
 
     place_parser = sub_parsers.add_parser("place")
     place_parser.add_argument("path", help="Location of network")
@@ -140,7 +139,12 @@ def snudda_cli():
         p.strip_dirs().sort_stats(SortKey.CUMULATIVE).print_stats(100)
 
     else:
-        bl = BenchmarkLogging(args.path, args.parallel)
+        if hasattr(args, "parallel"):
+            run_parallel = args.parallel
+        else:
+            run_parallel = False
+
+        bl = BenchmarkLogging(args.path, run_parallel)
         bl.start_timer(args.action)
 
         # Perform the requested action
