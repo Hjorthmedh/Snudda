@@ -29,8 +29,8 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
         self.syn_gpcrs = list()
         self.cell_modulator = dict()
         self.neuromodulation_conductance = neuromodulation_conductance
-        self.gpcr_synapse_delay = 1
-        self.gpcr_synapse_threshold = -20
+        self.gpcr_synapse_delay = 1e-3 * 1e3  # convert from s to ms
+        self.gpcr_synapse_threshold = -20 * 1e-3 * 1e3  # convert from V to mV
         self.connector = [*self.neuromodulator_description.keys()]
 
         super(SnuddaSimulateNeuromodulationSynapse, self).__init__(network_path=network_path,
@@ -249,43 +249,20 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
     def custom_setup_function(self):
 
         # This loops through all the synapses, and connects the relevant ones
-        next_row = 0
         # nextRowSet = [ fromRow, toRow ) -- ie range(fromRow,toRow)
-        next_row_set = self.find_next_synapse_group(next_row)
+        next_row_set = self.find_next_synapse_group(next_row=0)
 
         while next_row_set is not None:
             # Add the synapses to the neuron
             self.connect_neuron_synapses_gpcr(start_row=next_row_set[0], end_row=next_row_set[1])
 
             # Find the next group of synapses
-            next_row = next_row_set[1]  # 2nd number was not included in range
-            next_row_set = self.find_next_synapse_group(next_row)
+            next_row_set = self.find_next_synapse_group(next_row[1]) # 2nd number was not included in range
 
     def connect_neuron_synapses_gpcr(self, start_row, end_row):
 
-        source_id_list = self.synapses[start_row:end_row, 0]
-        dest_id = self.synapses[start_row, 1]
-        assert (self.synapses[start_row:end_row, 1] == dest_id).all()
-
-        # Double check mapping
-        assert self.pc.gid2cell(dest_id) == self.neurons[dest_id].icell, \
-            "GID mismatch: " + str(self.pc.gid2cell(dest_id)) \
-            + " != " + str(self.neurons[dest_id].icell)
-
-        synapse_type_id = self.synapses[start_row:end_row, 6]
-        axon_distance = self.synapses[start_row:end_row, 7]  # Obs in micrometers
-
-        sec_id = self.synapses[start_row:end_row, 9]
-        dend_sections = self.neurons[dest_id].map_id_to_compartment(sec_id)
-        sec_x = self.synapses[start_row:end_row, 10] / 1000.0  # Convert to number 0-1
-
-        # conductances are stored in pS (because we use INTs),
-        # Neuron wants it in microsiemens??!
-        conductance = self.synapses[start_row:end_row, 11] * 1e-6
-        parameter_id = self.synapses[start_row:end_row, 12]
-
-        voxel_coords = self.synapses[start_row:end_row, 2:5]
-        self.verify_synapse_placement(dend_sections, sec_x, dest_id, voxel_coords)
+        source_id_list, dest_id, synapse_type_id, axon_distance, conductance, parameter_id = \
+            self.get_synapse_info(start_row=start_row, end_row=end_row)
 
         for (src_id, section, section_x, s_type_id, axon_dist, cond, p_id) \
                 in zip(source_id_list, dend_sections, sec_x, synapse_type_id,
