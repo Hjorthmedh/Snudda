@@ -12,6 +12,7 @@
 #
 import numexpr
 import numpy as np
+import scipy.cluster
 import os
 from collections import OrderedDict
 import h5py
@@ -381,7 +382,8 @@ class SnuddaPlace(object):
         self.config_file = config_file
 
         # We reorder neurons, sorting their IDs after position
-        self.sort_neurons()
+        # -- UPDATE: Now we spatial cluster neurons depending on number of workers
+        self.sort_neurons(sort_idx=self.cluster_neurons())
 
         if "PopulationUnits" in config:
             self.define_population_units(config["PopulationUnits"])
@@ -719,14 +721,69 @@ class SnuddaPlace(object):
             # If no population units were defined, then set them all to 0 (= no population unit)
             self.population_unit = np.zeros((len(self.neurons),), dtype=int)
 
-    def sort_neurons(self):
+    # TODO: In prune we later need to gather all synapses belonging to each neuron, which means opening
+    #       the hypervoxel files that contain the worker's neurons' synapses. Therefore it is good to have
+    #       only nearby neurons on the same worker. Come up with a better scheme for sorting neurons.
+    #
 
-        # This changes the neuron IDs so the neurons are sorted along x,y or z
+    def cluster_neurons(self):
+
+        n_workers = len(self.d_view) if self.d_view else 1
+        n_clusters = np.max(n_workers*5, 100)
+
         xyz = self.all_neuron_positions()
+        centroids, labels = scipy.cluster.vq.kmeans2(xyz, n_clusters, minit="points")
 
-        sort_idx = np.lexsort(xyz[:, [2, 1, 0]].transpose())  # x, y, z sort order
+        n_centroids = centroids.shape[0]
+        assert n_centroids == n_clusters
+        cluster_member_list = [[]] * n_centroids
+        cluster_list_ctr = np.zeros((n_centroids,))  # How many neurons taken from cluster so far
 
-        self.write_log("Re-sorting the neuron IDs after location")
+        # Find the members of each cluster
+        for idx, val in enumerate(labels):
+            cluster_member_list[val].append(idx)
+
+        num_neurons = xyz.shape[0]
+        range_borders = np.linspace(0, num_neurons, n_workers + 1).astype(int)
+
+        global_centroid_order = np.argsort(np.sum(centroids, axis=1))
+
+        neuron_order = np.nan * np.zeros((num_neurons,))
+        neuron_order_ctr = 0
+        range_start = 0
+
+        for range_end in range_borders[1:]:
+
+            # While within a range, we want the clusters closest to the current primary cluster
+            current_cluster = global_centroid_order[0]
+            d = np.linalg.norm(centroids - centroids[current_cluster, :], axis=1)
+            local_centroid_order = np.argsort(d)
+
+            while range_start < range_end and len(local_centroid_order) > 0:
+                while len(cluster_member_list[local_centroid_order[0]]) == 0:
+                    local_centroid_order.pop()
+                current_cluster = local_centroid_order[0]
+
+                take_n = np.min(len(cluster_member_list[current_cluster]), range_end - range_start)
+                neuron_order[neuron_order_ctr:neuron_order_ctr:take_n] = cluster_member_list[current_cluster][:take_n]
+                del cluster_member_list[current_cluster][:take_n]
+                range_start += take_n
+
+            while len(global_centroid_order) > 0 and len(cluster_member_list[global_centroid_order[0]]):
+                global_centroid_order.pop()
+
+        assert np.count_nonzero(np.isnan(neuron_order)) == 0, "cluster_neurons: Not all neurons accounted for"
+
+        return neuron_order
+
+    def sort_neurons(self, sort_idx=None):
+
+        if sort_idx is None:
+            # This changes the neuron IDs so the neurons are sorted along x,y or z
+            xyz = self.all_neuron_positions()
+            sort_idx = np.lexsort(xyz[:, [2, 1, 0]].transpose())  # x, y, z sort order
+
+        self.write_log("Re-sorting the neuron IDs")
 
         for newIdx, oldIdx in enumerate(sort_idx):
             self.neurons[oldIdx].neuron_id = newIdx
@@ -740,7 +797,6 @@ class SnuddaPlace(object):
     def volume_neurons(self, volume_id):
 
         return [n.neuron_id for n in self.neurons if n.volume_id == volume_id]
-
 
     ############################################################################
 

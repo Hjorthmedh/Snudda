@@ -139,7 +139,7 @@ def snudda_cli():
         p.strip_dirs().sort_stats(SortKey.CUMULATIVE).print_stats(100)
 
     else:
-        bl = BenchmarkLogging(args.path)
+        bl = BenchmarkLogging(args.path, args.parallel)
         bl.start_timer(args.action)
 
         # Perform the requested action
