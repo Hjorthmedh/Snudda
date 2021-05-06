@@ -237,7 +237,20 @@ class SnuddaSimulate(object):
 
         self.neuron_id = range(int(self.pc.id()), self.num_neurons, int(self.pc.nhost()))
 
-        self.neuron_nodes = [x % int(self.pc.nhost()) for x in range(0, self.num_neurons)]
+        # TODO: Change to these ranges: range_borders = np.linspace(0, num_neurons, n_workers + 1).astype(int)
+        #       will be faster, because of new numbering of neurons.
+
+        range_borders = np.linspace(0, self.num_neurons, self.pc.nhost()+1).astype(int)
+        start_pos = range_borders[0]
+        neuron_nodes = []
+        for idx, end_pos in enumerate(range_borders[1:]):
+            neuron_nodes += [idx]*(end_pos - start_pos)
+            start_pos = end_pos
+
+        self.neuron_nodes = neuron_nodes
+
+        # old method, round robin
+        # self.neuron_nodes = [x % int(self.pc.nhost()) for x in range(0, self.num_neurons)]
 
         # self.write_log("Node " + str(int(self.pc.id())) + " handling neurons: " + ' '.join(map(str, self.neuron_id)))
 
