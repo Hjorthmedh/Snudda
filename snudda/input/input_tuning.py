@@ -368,7 +368,7 @@ class InputTuning(object):
                 plt.show()
                 plt.pause(0.001)
 
-            fig_name = os.path.join(self.network_path, "figures", f"input-scaling-freq-{neuron_name}.pdf")
+            fig_name = os.path.join(self.network_path, "figures", f"input-scaling-freq-{neuron_name}-mean-voltage.pdf")
             if not os.path.exists(os.path.dirname(fig_name)):
                 os.mkdir(os.path.dirname(fig_name))
 
