@@ -40,7 +40,7 @@ class BenchmarkLogging:
         rc = ipyparallel.Client(url_file=u_file, timeout=120, debug=False)
         d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
 
-        return len(d_view)
+        return len(d_view) + 1  # We also include the master node
 
     @staticmethod
     def get_network_name(network_path):
