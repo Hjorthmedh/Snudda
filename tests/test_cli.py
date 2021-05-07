@@ -50,6 +50,9 @@ class TestCLI(unittest.TestCase):
             os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
             time.sleep(10)
 
+            os.system('git clone https://github.com/jofrony/testdata.git')
+            neuron_dir = 'testdata/data/'
+
         # with self.subTest(stage="init-parallel-BIG"):
         #     run_cli_command("init tiny_parallel --size 1000000 --overwrite")
 
@@ -64,7 +67,7 @@ class TestCLI(unittest.TestCase):
             config_name = os.path.join("tiny_parallel", "network-config.json")
             cnc = SnuddaInit(struct_def={}, config_file=config_name, random_seed=123456)
             cnc.define_striatum(num_dSPN=4, num_iSPN=4, num_FS=2, num_LTS=2, num_ChIN=2,
-                                volume_type="cube")
+                                volume_type="cube", neurons_dir=neuron_dir)
             cnc.write_json(config_name)
 
         with self.subTest(stage="place-parallel"):
@@ -99,18 +102,20 @@ class TestCLI(unittest.TestCase):
 
         with self.subTest(stage="simulate"):
             print("Running nrnivmodl:")
-            mech_dir = os.path.join(os.path.dirname(__file__), os.path.pardir,
-                                    "snudda", "data", "neurons", "mechanisms")
+
+            os.system("nrnivmodl testdata/mod-files")
+            
+            mech_dir = os.path.join("testdata", "mod-files")
 
             if not os.path.exists("mechanisms"):
                 print("----> Copying mechanisms")
                 # os.symlink(mech_dir, "mechanisms")
                 from distutils.dir_util import copy_tree
-                copy_tree(mech_dir, "mechanisms")
+                copy_tree(mech_dir, "mod-files")
             else:
                 print("------------->   !!! mechanisms already exists")
 
-            eval_str = f"nrnivmodl mechanisms"  # f"nrnivmodl {mech_dir}
+            eval_str = f"nrnivmodl testdata/mod-files"  # f"nrnivmodl {mech_dir}
             print(f"Running: {eval_str}")
             os.system(eval_str)
 

@@ -20,6 +20,7 @@ class NeuronModel(ephys.models.CellModel):
                  modulation_id=None):
 
         self.name = cell_name
+        self.type = cell_name.split('_')[0]
         self.parameters = []
 
         self.script_dir = os.path.dirname(__file__)
