@@ -35,7 +35,9 @@ class PlotBenchmark:
         ax.legend(loc="upper right")
         ax.set_xlabel("Workers")
         ax.set_ylabel("Duration (s)")
-        # ax.set_xscale("log")
+        ax.set_xscale("log")
+        ax.set_xticks(nodes, minor=False)
+        ax.set_xticklabels(nodes)
 
         if not os.path.isdir(self.fig_dir):
             os.mkdir(self.fig_dir)
