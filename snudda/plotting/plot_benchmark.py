@@ -16,16 +16,18 @@ class PlotBenchmark:
 
     def plot_data(self):
 
-        stage = ["Init", "Place", "Detect", "Prune"]
+        # stage = ["Init", "Place", "Detect", "Prune"]
+        stage = ["Place", "Detect", "Prune"]
+
         colour = np.array([[55, 126, 184], [77, 175, 74], [152, 78, 163], [255, 127, 0]]) / 255
 
-        nodes = self.data["init"][:, 1]
+        nodes = self.data["place"][:, 1]
 
         duration = np.zeros((len(stage), len(nodes)))
 
         for idx, s in enumerate(stage):
             duration[idx, :] = self.data[s.lower()][:, 0]
-            assert (self.data[s.lower()][:, 1] == nodes).all(), f"Stage {s} is missing some node values that Init has"
+            assert (self.data[s.lower()][:, 1] == nodes).all(), f"Stage {s} is missing some node values that Place has"
 
         cum_duration = np.cumsum(duration, axis=0)
 
@@ -36,14 +38,15 @@ class PlotBenchmark:
         ax.set_xlabel("Workers")
         ax.set_ylabel("Duration (s)")
         ax.set_xscale("log")
+        # ax.set_yscale("log")
         ax.set_xticks(nodes, minor=False)
         ax.set_xticklabels(nodes)
 
         if not os.path.isdir(self.fig_dir):
             os.mkdir(self.fig_dir)
 
-        fig_name = os.path.join(self.fig_dir, "benchmark.pdf")
-        plt.savefig(fig_name,dpi=300)
+        fig_name = os.path.join(self.fig_dir, "benchmark-n-workers.pdf")
+        plt.savefig(fig_name, dpi=300)
         plt.show()
 
     @staticmethod
