@@ -822,7 +822,7 @@ class InputTuning(object):
 
         stop = timeit.default_timer()
         if sim.pc.id() == 0:
-            print("Program run time: " + str(stop - start))
+            print(f"Program run time: {stop - start:.1f}s")
 
     def read_tuning_info(self):
         tuning_info_file = os.path.join(self.network_path, "tuning-info.json")

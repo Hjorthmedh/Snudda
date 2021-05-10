@@ -34,6 +34,7 @@ import timeit
 
 import h5py
 import json
+import glob
 
 # from snudda.Neuron_morphology import NeuronMorphology
 
@@ -225,7 +226,7 @@ class SnuddaPrune(object):
 
         end_time = timeit.default_timer()
 
-        self.write_log(f"prune synapses and gap junctions: {end_time - start_time}s")
+        self.write_log(f"prune synapses and gap junctions: {end_time - start_time:.1f}s")
 
     ############################################################################
 
@@ -747,9 +748,6 @@ class SnuddaPrune(object):
             assert (syn_before == synapse_ctr).all(), \
                 f"prune_synapse_parallel: parallel run, received {syn_before.sum()}, expected {synapse_ctr.sum()}"
 
-            end_time2 = timeit.default_timer()
-            self.write_log(f"prune_synapses_parallel ({merge_data_type}): {end_time2 - start_time}s")
-
             # Add the files to a delete list, so we remove them after
             for f in temp_output_file_name:
                 self.temp_file_list.append(f)
@@ -758,6 +756,12 @@ class SnuddaPrune(object):
 
             assert syn_after_merge == syn_after.sum(), \
                 f"prune_synapses_parallel: parallel run, gathered {syn_after_merge}, expected {syn_after.sum()}"
+
+            end_time2 = timeit.default_timer()
+            self.write_log(f"prune_synapses_parallel "
+                           f"({syn_after_merge}/{syn_before.sum()} {merge_data_type}, " 
+                           f"{(100*syn_after_merge/syn_before.sum()):.1f}% kept)"
+                           f": {end_time2 - start_time:.1f}s", force_print=True)
 
         else:
             # Multiple files but we are running in serial
@@ -816,7 +820,7 @@ class SnuddaPrune(object):
         self.out_file["network/" + h5_syn_n][0] = next_syn
 
         end_time2 = timeit.default_timer()
-        self.write_log(f"combine_files ({merge_data_type}): {end_time2 - start_time}s")
+        self.write_log(f"combine_files ({merge_data_type}): {end_time2 - start_time:.1f}s")
 
         # Number of synapses in total
         return next_syn
@@ -1090,7 +1094,7 @@ class SnuddaPrune(object):
         merge_gj_ctr = [merge_results_gj[idx][2] for idx in merge_order_gj]
 
         end_time = timeit.default_timer()
-        self.write_log(f"gather_neuron_synapses took {end_time - start_time} s")
+        self.write_log(f"gather_neuron_synapses took {end_time - start_time:.1f} s")
 
         return merge_files_syn, merge_neuron_range_syn, merge_syn_ctr, \
             merge_files_gj, merge_neuron_range_gj, merge_gj_ctr
@@ -1890,6 +1894,20 @@ class SnuddaPrune(object):
             self.cache_num_neurons = num_neurons
 
         return neuron_seeds
+
+    # This removes the files in the temp and voxels directory, freeing up diskspace
+    def cleanup(self):
+
+        temp_path = os.path.join(self.network_path, "temp")
+        voxel_path = os.path.join(self.network_path, "voxels")
+
+        for path in [temp_path, voxel_path]:
+            self.write_log(f"Removing temp files from {path}")
+            files = glob.glob(os.path.join(path, "*"))
+            for f in files:
+                if os.path.isfile(f):
+                    os.remove(f)
+
 
 ##############################################################################
 
