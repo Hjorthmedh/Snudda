@@ -34,6 +34,7 @@ import timeit
 
 import h5py
 import json
+import glob
 
 # from snudda.Neuron_morphology import NeuronMorphology
 
@@ -1890,6 +1891,19 @@ class SnuddaPrune(object):
             self.cache_num_neurons = num_neurons
 
         return neuron_seeds
+
+    # This removes the files in the temp and voxels directory, freeing up diskspace
+    def cleanup(self):
+
+        temp_path = os.path.join(self.network_path, "temp")
+        voxel_path = os.path.join(self.network_path, "voxels")
+
+        for path in [temp_path, voxel_path]:
+            files = glob.glob(os.path.join(path, "*"))
+            for f in files:
+                if os.path.isfile(f):
+                    os.remove(f)
+
 
 ##############################################################################
 

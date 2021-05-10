@@ -1,15 +1,14 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from glob import glob
 import sys
 import os
 import json
 from collections import OrderedDict
 
 
-class PlotBenchmark:
+class PlotNodeBenchmark:
 
-    def __init__(self, network_path_list=None, number_of_nodes=None, show_only_latest=True):
+    def __init__(self, network_path_list=None):
 
         self.data = self.merge_data(map(self.load_benchmark, network_path_list))
         self.fig_dir = os.path.join(network_path_list[0], "figures")
@@ -26,21 +25,34 @@ class PlotBenchmark:
         duration = np.zeros((len(stage), len(nodes)))
 
         for idx, s in enumerate(stage):
-            duration[idx, :] = self.data[s.lower()][:, 0]
+            duration[idx, :] = self.data[s.lower()][:, 0] / 3600
             assert (self.data[s.lower()][:, 1] == nodes).all(), f"Stage {s} is missing some node values that Place has"
 
-        cum_duration = np.cumsum(duration, axis=0)
+        small_size = 15
+        medium_size = 22
+        bigger_size = 30
+
+        plt.rc('font', size=small_size)  # controls default text sizes
+        plt.rc('axes', titlesize=small_size)  # fontsize of the axes title
+        plt.rc('axes', labelsize=medium_size)  # fontsize of the x and y labels
+        plt.rc('xtick', labelsize=small_size)  # fontsize of the tick labels
+        plt.rc('ytick', labelsize=small_size)  # fontsize of the tick labels
+        plt.rc('legend', fontsize=small_size)  # legend fontsize
+        plt.rc('figure', titlesize=bigger_size)  # fontsize of the figure title
 
         fig = plt.figure()
         ax = plt.subplot()
         ax.stackplot(nodes, duration, labels=stage)
         ax.legend(loc="upper right")
-        ax.set_xlabel("Workers")
-        ax.set_ylabel("Duration (s)")
+        ax.set_xlabel("CPU cores (log scale)")
+        ax.set_ylabel("Runtime (h)")
         ax.set_xscale("log")
         # ax.set_yscale("log")
         ax.set_xticks(nodes, minor=False)
-        ax.set_xticklabels(nodes)
+        ax.set_xticklabels(nodes.astype(int))
+
+        # Prevent cropping of x-label
+        fig.subplots_adjust(bottom=0.15)
 
         if not os.path.isdir(self.fig_dir):
             os.mkdir(self.fig_dir)
@@ -66,7 +78,7 @@ class PlotBenchmark:
         return new_data
 
     @staticmethod
-    def merge_data(data_list):
+    def merge_data(data_list, sort=True):
 
         new_data = OrderedDict()
 
@@ -77,16 +89,17 @@ class PlotBenchmark:
                 else:
                     new_data[item] = np.concatenate([new_data[item], value])
 
-        # Sort the items in node order
-        for item, value in new_data.items():
-            num_workers = np.unique(new_data[item][:, 1])
-            d = []
-            for nw in num_workers:
-                idx = np.where(new_data[item][:, 1] == nw)
-                mean_duration = np.mean(new_data[item][idx, 0])
-                d.append([mean_duration, nw])
+        if sort:
+            # Sort the items in node order
+            for item, value in new_data.items():
+                num_workers = np.unique(new_data[item][:, 1])
+                d = []
+                for nw in num_workers:
+                    idx = np.where(new_data[item][:, 1] == nw)
+                    mean_duration = np.mean(new_data[item][idx, 0])
+                    d.append([mean_duration, nw])
 
-            new_data[item] = np.array(d)
+                new_data[item] = np.array(d)
 
         return new_data
 
@@ -96,7 +109,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         directories = sys.argv[1:]
 
-        pb = PlotBenchmark(network_path_list=directories)
+        pb = PlotNodeBenchmark(network_path_list=directories)
         pb.plot_data()
 
     else:

@@ -1,0 +1,1 @@
+python3 plot_size_benchmark.py ~/benchmark/SIZE/size-10000 10000 ~/benchmark/SIZE/size-20000 20000 ~/benchmark/SIZE/size-50000 50000 ~/benchmark/SIZE/size-100000 100000 ~/benchmark/SIZE/size-250000 250000 ~/benchmark/SIZE/size-500000 500000

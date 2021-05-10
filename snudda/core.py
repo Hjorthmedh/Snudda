@@ -267,6 +267,9 @@ class Snudda(object):
 
         sp.prune()
 
+        if not args.keepfiles:
+            sp.cleanup()
+
         self.stop_parallel()
         self.close_log_file()
 
