@@ -1247,7 +1247,7 @@ class SnuddaSimulate(object):
         self.write_log("Simulation done.")
 
         end_time = timeit.default_timer()
-        self.write_log(f"Simulation run time: {end_time - start_time} s", force_print=True)
+        self.write_log(f"Simulation run time: {end_time - start_time:.1f} s", force_print=True)
 
     ############################################################################
 

@@ -422,7 +422,7 @@ class SnuddaDetect(object):
 
         self.write_log(f"Voxel overflows: {self.voxel_overflow_counter}", is_error=(self.voxel_overflow_counter>0))
         self.write_log(f"Total number of synapses: {np.sum(self.work_history['nHypervoxelSynapses'][:])}")
-        self.write_log(f"parallelProcessHyperVoxels: {end_time - start_time} s")
+        self.write_log(f"parallelProcessHyperVoxels: {end_time - start_time:.1f} s")
 
         self.work_history.close()
 
@@ -999,7 +999,7 @@ class SnuddaDetect(object):
 
         end_time = timeit.default_timer()
 
-        self.write_log(f"detect_synapses: {self.hyper_voxel_synapse_ctr} took {end_time - start_time} s")
+        self.write_log(f"detect_synapses: {self.hyper_voxel_synapse_ctr} took {end_time - start_time:.1f} s")
 
         if False and self.hyper_voxel_synapse_ctr > 0:
             print("First plot shows dendrites, and the voxels that were marked")
@@ -1121,7 +1121,7 @@ class SnuddaDetect(object):
 
         end_time = timeit.default_timer()
 
-        self.write_log(f"place_synapses_no_axon_sphere: {end_time - start_time} s, hyper_id: {hyper_id}")
+        self.write_log(f"place_synapses_no_axon_sphere: {end_time - start_time:.1f} s, hyper_id: {hyper_id}")
 
     ############################################################################
 
@@ -1483,7 +1483,7 @@ class SnuddaDetect(object):
                                                                         max_synapse_type=self.next_channel_model_id)
         end_time = timeit.default_timer()
 
-        self.write_log(f"detectGapJunctions: {end_time - start_time} s")
+        self.write_log(f"detectGapJunctions: {end_time - start_time:.1f} s")
 
         return self.hyper_voxel_gap_junctions[:self.hyper_voxel_gap_junction_ctr, :]
 
@@ -2116,7 +2116,7 @@ class SnuddaDetect(object):
         end_time = timeit.default_timer()
 
         if len(neurons) > 0:
-            self.write_log(f"Calculated distribution of neurons: {end_time - start_time} seconds")
+            self.write_log(f"Calculated distribution of neurons: {end_time - start_time:.1f} seconds")
 
         # For serial version of code, we need to return this, so we
         # can save work history
@@ -2759,7 +2759,7 @@ class SnuddaDetect(object):
 
             end_time = timeit.default_timer()
 
-            self.write_log(f"process_hyper_voxel: {hyper_id} took {end_time - start_time} s")
+            self.write_log(f"process_hyper_voxel: {hyper_id} took {end_time - start_time:.1f} s")
 
         except Exception as e:
             # Write error to log file to help trace it.

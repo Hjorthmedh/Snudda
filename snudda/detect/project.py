@@ -104,7 +104,6 @@ class SnuddaProject(object):
     def project(self):
 
         for (pre_type, post_type), connection_info in self.connectivity_distributions.items():
-            print(f"pre {pre_type}, post {post_type}")
             self.connect_projection_helper(pre_type, post_type, connection_info)
 
     def connect_projection_helper(self, pre_neuron_type, post_neuron_type, connection_info):

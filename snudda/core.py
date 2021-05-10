@@ -494,7 +494,7 @@ class Snudda(object):
 
         stop = timeit.default_timer()
         if sim.pc.id() == 0:
-            print("Program run time: " + str(stop - start))
+            print(f"Program run time: {stop - start:.1f}s")
 
         # sim.plot()
 
@@ -569,9 +569,9 @@ class Snudda(object):
 
         stop = timeit.default_timer()
 
-        print("\nProgram run time: " + str(stop - self.start))
+        print(f"\nProgram run time: {stop - self.start:.1f}s")
 
-        self.logfile.write("Program run time: " + str(stop - self.start))
+        self.logfile.write(f"Program run time: {stop - self.start:.1f}s")
         self.logfile.write("End of log. Closing file.")
         self.logfile.close()
 
