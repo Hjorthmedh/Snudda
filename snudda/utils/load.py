@@ -208,7 +208,7 @@ class SnuddaLoad(object):
                 print(f"Loading {len(data['neurons'])} neurons with {data['synapses'].shape[0]} synapses")
 
         if self.verbose:
-            print(f"Load done. {timeit.default_timer() - start_time}")
+            print(f"Load done. {timeit.default_timer() - start_time:.1f}")
 
         if load_synapses:
             f.close()
