@@ -1899,6 +1899,7 @@ class SnuddaPrune(object):
         voxel_path = os.path.join(self.network_path, "voxels")
 
         for path in [temp_path, voxel_path]:
+            self.write_log(f"Removing temp files from {path}")
             files = glob.glob(os.path.join(path, "*"))
             for f in files:
                 if os.path.isfile(f):
