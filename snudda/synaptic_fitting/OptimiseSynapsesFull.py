@@ -1,17 +1,15 @@
 import os
-import re
 import numpy as np
-import h5py
 import scipy
 import scipy.optimize
 import matplotlib.pyplot as plt
 import matplotlib
 import neuron
 import json
-import copy
 import time
 
-# TODO: 2021-05-11 :: Set self.synapse_parameters
+# TODO: 2021-05-11 -- Set self.synapse_parameters
+# TODO: 2021-05-11 -- Holding voltage
 
 # TODO 2020-10-19
 #
@@ -158,6 +156,20 @@ class OptimiseSynapsesFull(object):
 
         self.model_info = None
 
+        # Sobol params
+        self.synapse_model = None
+        self.smooth_exp_volt8 = None
+        self.smooth_exp_time8 = None
+        self.smooth_exp_volt9 = None
+        self.smooth_exp_time9 = None
+
+        self.decay_start_fit8 = 0.45
+        self.decay_end_fit8 = 0.8
+        self.decay_start_fit9 = 1.0
+        self.decay_end_fit9 = 1.3
+
+
+
         with open(model_bounds, 'r') as f:
             print(f"Loading model bounds from {model_bounds}")
             self.model_bounds = json.load(f)
@@ -173,9 +185,6 @@ class OptimiseSynapsesFull(object):
     ############################################################################
 
     def __delete__(self):
-
-        if self.hFile is not None:
-            self.hFile.close()
 
         # Save the parameter cache before closing
         self.save_parameter_cache()
@@ -242,67 +251,6 @@ class OptimiseSynapsesFull(object):
 
     ############################################################################
 
-    def get_cell_type(self, cell_id):
-
-        # If the text is byte encoded, decode it first
-        all_cell_types = [x if type(x) != bytes else x.decode() for x in self.getData("w_cell").flatten()]
-
-        return all_cell_types[cell_id]
-
-    ############################################################################
-
-    def get_cell_id(self, data_type, cell_type):
-
-        # If the text is byte encoded, decode it first
-        all_cell_types = [x if type(x) != bytes else x.decode() for x in self.getData("w_cell").flatten()]
-
-        # Just a check that our assumption on the ID is correct
-        # tmp = self.getData("w_num").astype(int)
-        # assert (tmp == np.arange(0,len(tmp)+1)).all(), "Numering mis-match!"
-
-        cell_id_s = [x for x, y in enumerate(all_cell_types) if cell_type.lower() in y.lower()]
-
-        valid_id_s = self.get_valid_cell_id(data_type)
-
-        valid_cell_id_s = np.array(list(set(cell_id_s).intersection(valid_id_s)))
-
-        return valid_cell_id_s
-
-    ############################################################################
-
-    def get_all_cell_id(self):
-
-        return np.arange(0, len(self.getData("w_cell").flatten()), dtype=int)
-
-    ############################################################################
-
-    def get_valid_cell_id(self, data_type):
-
-        all_idx = self.get_all_cell_id()
-
-        helper = lambda x: self.checkValidData(data_type, x)
-        valid_flag = [x for x in map(helper, all_idx)]
-
-        self.write_log("Valid data: " + str(sum(valid_flag)))
-
-        return all_idx[valid_flag]
-
-    ############################################################################
-
-    def get_user_id(self, id_string, data_type=None):
-
-        id_list = [int(x) for x in id_string.split(",")]
-
-        if data_type is not None:
-            valid_id = self.get_valid_cell_id(data_type)
-            valid_id_list = [x for x in id_list if x in valid_id]
-            return valid_id_list
-
-        else:
-            return id_list
-
-    ############################################################################
-
     # parDict is the parameters that are associated with cellID
 
     def plot_data(self,
@@ -323,7 +271,7 @@ class OptimiseSynapsesFull(object):
             matplotlib.rcParams.update({'font.size': 5})
 
         if self.volt is None:
-            self.write_log(f"{self.cell_id}: Nothing to plot (volt)")
+            self.write_log("Nothing to plot (volt)")
             return
 
         best_params = self.get_parameter_cache("param")
@@ -381,7 +329,7 @@ class OptimiseSynapsesFull(object):
             plt.plot([v_scale_x, v_scale_x], [v_scale_y1, v_scale_y2], color="black")
             plt.plot([t_scale_x1, t_scale_x2], [t_scale_y, t_scale_y], color="black")
 
-            plt.text(v_scale_x - 100, v_scale_y2 + 0.20 * float(np.diff(plt.ylim())), \
+            plt.text(v_scale_x - 100, v_scale_y2 + 0.20 * float(np.diff(plt.ylim())),
                      ("%.0f" % (v_scale_y1 - v_scale_y2)) + " mV",
                      rotation=90)
             plt.text(v_scale_x, v_scale_y2 - float(np.diff(plt.ylim())) / 10,
@@ -499,54 +447,6 @@ class OptimiseSynapsesFull(object):
 
         # Return membrane resistance and tau
         return rm, tau
-
-        ############################################################################
-
-    # x is somaDiameter, Gleak ...
-
-    def opt_helper_function(self, x, input_res_steady_state, tau_delta, plot_results=False):
-
-        soma_diameter, soma_gleak = x
-
-        print(f"somaDiameter = {soma_diameter}")
-        print(f"somaGleak = {soma_gleak}")
-
-        # Set soma diameter and Gleak (convert to natural units!)
-        self.rsr_delta_model.soma.L = soma_diameter * 1e6
-        self.rsr_delta_model.soma.diam = soma_diameter * 1e6
-        self.rsr_delta_model.soma.gl_hh = soma_gleak * 1e-4
-
-        # We probably dont need to disable the short hyperpolarising pulse...
-
-        # Update the holding current (use same holding voltage as before by default)
-        self.rsr_delta_model.update_holding_current()
-
-        # Run the simulation
-        neuron.h.tstop = self.rsr_delta_model.time * 1e3  # Must set tstop
-        neuron.h.run()
-
-        (rm, tau) = self.extract_input_res_tau(t=np.array(self.rsr_delta_model.t_save) * 1e-3,
-                                               v=np.array(self.rsr_delta_model.v_save) * 1e-3,
-                                               cur_amp=self.cur_inj,
-                                               cur_start=self.cur_start,
-                                               cur_end=self.cur_end,
-                                               base_start=self.base_start,
-                                               base_end=self.base_end)
-
-        # Return input resistance and tau
-        opt_error = np.abs((rm - input_res_steady_state) * (tau_delta - tau))
-
-        if plot_results:
-            plt.figure()
-            plt.plot(self.rsr_delta_model.t_save,
-                     self.rsr_delta_model.v_save)
-            plt.xlabel("Time (ms)")
-            plt.ylabel("Volt (mV)")
-            plt.title("RM = " + str(rm) + ", tau = " + str(tau))
-            plt.ion()
-            plt.show()
-
-        return opt_error
 
     ############################################################################
 
@@ -744,10 +644,13 @@ class OptimiseSynapsesFull(object):
 
     ############################################################################
 
-    def setup_model(self, params={},
+    def setup_model(self, params=None,
                     synapse_density_override=None,
                     n_synapses_override=None,
                     synapse_position_override=None):
+
+        if params is None:
+            params = {}
 
         t_stim = self.stim_time
 
@@ -792,6 +695,8 @@ class OptimiseSynapsesFull(object):
     ############################################################################
 
     def neuron_synapse_swarm_helper(self, pars, t_spikes, peak_height, smooth_exp_trace):
+
+        assert False, "Is this still used?"
 
         if self.debug_pars_flag:
             self.debug_pars.append(pars)
@@ -985,8 +890,11 @@ class OptimiseSynapsesFull(object):
     ############################################################################
 
     def run_model(self, t_spike, u, tau_r, tau_f, cond, tau,
-                  params={},
+                  params=None,
                   return_trace=False):
+
+        if params is None:
+            params = {}
 
         # self.writeLog("Running neuron model")
 
@@ -1080,13 +988,12 @@ class OptimiseSynapsesFull(object):
         idx = 0
 
         for u, tau_r, tau_f, tau_ratio, cond \
-                in zip(u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, \
-                       cond_sobol):
+                in zip(u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol):
 
             idx += 1
             if idx % 50 == 0:
                 self.write_log("%d / %d : minError = %g" % (idx, len(u_sobol), min_error))
-                self.write_log(str(min_par))
+                self.write_log(f"{min_par}")
 
             error = self.neuron_synapse_helper_glut(t_stim, u, tau_r, tau_f, tau_ratio,
                                                     cond,
@@ -1339,9 +1246,9 @@ class OptimiseSynapsesFull(object):
         params = self.synapse_parameters
 
         peak_idx = self.get_peak_idx2(stim_time=self.stim_time,
-                                     time=self.time,
-                                     volt=self.volt)
-        t_spikes = time[peak_idx]
+                                      time=self.time,
+                                      volt=self.volt)
+        t_spikes = self.time[peak_idx]
 
         peak_height, decay_fits, v_base = self.find_trace_heights(self.time, self.volt, peak_idx)
 
@@ -1388,12 +1295,6 @@ class OptimiseSynapsesFull(object):
         # TODO: These variables should be defined as None in init
         self.synapse_model = self.setup_model(params=params,
                                               synapse_position_override=synapse_position_override)
-        self.decay_start_fit8 = 0.45
-        self.decay_end_fit8 = 0.8
-
-        self.decay_start_fit9 = 1.0
-        self.decay_end_fit9 = 1.3
-
         self.smooth_exp_volt8, self.smooth_exp_time8 \
             = self.smoothing_trace(self.volt, self.num_smoothing,
                                    time=self.time,
@@ -1408,25 +1309,25 @@ class OptimiseSynapsesFull(object):
 
     ############################################################################
 
-    def setup_parameter_set(self, modelBounds, nSets):
+    def setup_parameter_set(self, model_bounds, n_sets):
 
         import chaospy
-        distribution = chaospy.J(chaospy.Uniform(modelBounds[0][0],
-                                                 modelBounds[1][0]),
-                                 chaospy.Uniform(modelBounds[0][1],
-                                                 modelBounds[1][1]),
-                                 chaospy.Uniform(modelBounds[0][2],
-                                                 modelBounds[1][2]),
-                                 chaospy.Uniform(modelBounds[0][3],
-                                                 modelBounds[1][3]),
-                                 chaospy.Uniform(modelBounds[0][4],
-                                                 modelBounds[1][4]))
+        distribution = chaospy.J(chaospy.Uniform(model_bounds[0][0],
+                                                 model_bounds[1][0]),
+                                 chaospy.Uniform(model_bounds[0][1],
+                                                 model_bounds[1][1]),
+                                 chaospy.Uniform(model_bounds[0][2],
+                                                 model_bounds[1][2]),
+                                 chaospy.Uniform(model_bounds[0][3],
+                                                 model_bounds[1][3]),
+                                 chaospy.Uniform(model_bounds[0][4],
+                                                 model_bounds[1][4]))
 
         u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol \
-            = distribution.sample(nSets, rule="sobol")
+            = distribution.sample(n_sets, rule="sobol")
 
-        parameter_sets = [x for x in zip(u_sobol, \
-                                         tau_r_sobol, tau_f_sobol, tau_ratio_sobol, \
+        parameter_sets = [x for x in zip(u_sobol,
+                                         tau_r_sobol, tau_f_sobol, tau_ratio_sobol,
                                          cond_sobol)]
 
         return parameter_sets
@@ -1461,9 +1362,9 @@ class OptimiseSynapsesFull(object):
 
             try:
 
-                cmdStr = "res = ly.parallelOptimiseCells(dataType=dataType,cellIDlist=cellIDlist)"
+                cmd_str = "res = ly.parallelOptimiseCells(dataType=dataType,cellIDlist=cellIDlist)"
                 self.write_log("Starting execution")
-                self.d_view.execute(cmdStr, block=True)
+                self.d_view.execute(cmd_str, block=True)
                 self.write_log("Execution finished, gathering results")
                 # res = self.dView.gather("res",block=True)
                 res = self.d_view["res"]
