@@ -804,6 +804,7 @@ class SnuddaPlace(object):
         if np.count_nonzero(neuron_order < 0) > 0 and n_trials > 1:
             self.write_log(f"Redoing place:neuron_clustering, {np.count_nonzero(neuron_order < 0)} neurons unaccounted for",
                            is_error=True)
+            self.write_log(f"incorrect neuron_order={neuron_order} (printed for debugging)")
             neuron_order = self.cluster_neurons(n_trials=n_trials-1)
 
         # TODO: This occured once on Tegner, why did it happen?
