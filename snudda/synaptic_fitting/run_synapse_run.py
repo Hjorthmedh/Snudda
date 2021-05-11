@@ -32,11 +32,13 @@ class RunSynapseRun(object):
                  synapse_type='glut',
                  params={},
                  time=2,
+                 random_seed=None,
                  log_file=None,
                  verbose=True):
 
         self.log_file = log_file  # File pointer
         self.verbose = verbose
+        self.rng = np.random.default_rng(random_seed)
 
         self.write_log("Holding voltage: " + str(holding_voltage) + " V")
         self.write_log("Stim times: " + str(stim_times) + " s")
@@ -73,8 +75,8 @@ class RunSynapseRun(object):
                                   mech_file=neuron_mechanisms,
                                   cell_name="OptimisationNeuron",
                                   modulation_file=neuron_modulation,
-                                  parameterID=neuron_parameter_id,
-                                  modulationID=neuron_modulation_id)
+                                  parameter_id=neuron_parameter_id,
+                                  modulation_id=neuron_modulation_id)
 
         self.neuron.instantiate(sim=self.sim)
         self.set_resting_voltage(holding_voltage * 1e3)
@@ -242,9 +244,10 @@ class RunSynapseRun(object):
 
         elif section_id is None or section_x is None:
 
-            input_coords, section_id, section_x = \
+            input_coords, section_id, section_x, dist_syn_soma = \
                 self.morphology.dendrite_input_locations(synapse_density=synapse_density,
-                                                         num_locations=num_synapses)
+                                                         num_locations=num_synapses,
+                                                         rng=self.rng)
 
             self.synapse_locations = input_coords
 
@@ -272,7 +275,7 @@ class RunSynapseRun(object):
 
         try:
             if synapse_type.lower() == 'glut':
-                syn = neuron.h.tmGlut_v2(section(section_x))
+                syn = neuron.h.tmGlut_double(section(section_x))
             elif synapse_type.lower() == "gaba":
                 syn = neuron.h.tmGabaA(section(section_x))
             else:

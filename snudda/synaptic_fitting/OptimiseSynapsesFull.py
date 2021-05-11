@@ -74,30 +74,8 @@ import time
 # !!! Add check that if the voltage is 0 or 5, then the trace is skipped entirely
 
 from run_synapse_run import RunSynapseRun
+from snudda.utils.numpy_encoder import  NumpyEncoder
 
-
-############################################################################
-
-# JSON can not handle numpy arrays or numpy ints/floats, fix with a
-# custom serialiser
-
-
-class NumpyEncoder(json.JSONEncoder):
-    def default(self, obj):
-        print("NumpyEncoder: " + str(type(obj)))
-
-        if isinstance(obj, np.integer):
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            return float(obj)
-        elif isinstance(obj, np.ndarray):
-            return obj.tolist()
-        else:
-            # return super(NumpyEncoder, self).default(obj)
-            return json.JSONEncoder.default(self, obj)
-
-
-############################################################################
 
 class OptimiseSynapsesFull(object):
 
@@ -135,7 +113,7 @@ class OptimiseSynapsesFull(object):
         print("Init optMethod = " + str(opt_method))
 
         if self.log_file_name is not None and len(self.log_file_name) > 0:
-            print("Log file: " + self.log_file_name)
+            print(f"Log file: {self.log_file_name}")
             self.log_file = open(self.log_file_name, 'w')
         else:
             self.log_file = None
@@ -144,17 +122,17 @@ class OptimiseSynapsesFull(object):
 
         self.datafile = datafile
 
-        self.write_log("Loading " + str(datafile))
+        self.write_log(f"Loading {datafile}")
         with open(datafile, "r") as f:
             self.data = json.load(f)
 
             self.volt = np.array(self.data["data"]["mean_norm_trace"])
-            self.sample_freq = self.data["metadata"]["sample_freq"]
+            self.sample_freq = self.data["metadata"]["sample_frequency"]
 
             dt = 1 / self.sample_freq
             self.time = 0 + dt * np.arange(0, len(self.volt))
 
-            self.stim_time = np.array(self.data["metadata"]["stim_time"]) * 1e-3  # ms
+            self.stim_time = np.array(self.data["metadata"]["stim_time"])  # NO LONGER NEEDED * 1e-3  # ms
 
             self.cell_type = self.data["metadata"]["cell_type"]
 
@@ -1649,7 +1627,7 @@ if __name__ == "__main__":
     parser.add_argument("--synapseParameters", help="Static synapse parameters (JSON)",
                         default=None)
     parser.add_argument("--st", help="Synapse type (glut or gaba)",
-                        choices=["glut", "gaba"])
+                        choices=["glut", "gaba"], default="glut")
     parser.add_argument("--optMethod",
                         help="Optimisation method",
                         choices=["sobol", "stupid", "swarm"],
@@ -1663,15 +1641,14 @@ if __name__ == "__main__":
 
     optMethod = args.optMethod
 
-    print("Reading file : " + args.datafile)
-    print("Synapse type : " + args.st)
-    print("Synapse params :" + args.synapseParameters)
-    print("Optimisation method : " + optMethod)
+    print(f"Reading file : {args.datafile}")
+    print(f"Synapse type : {args.st}")
+    print(f"Synapse params : {args.synapseParameters}")
+    print(f"Optimisation method : {optMethod}")
 
     print("IPYTHON_PROFILE = " + str(os.getenv('IPYTHON_PROFILE')))
 
-    if (os.getenv('IPYTHON_PROFILE') is not None \
-            or os.getenv('SLURMID') is not None):
+    if (os.getenv('IPYTHON_PROFILE') is not None or os.getenv('SLURMID') is not None):
         from ipyparallel import Client
 
         rc = Client(profile=os.getenv('IPYTHON_PROFILE'),
@@ -1684,11 +1661,10 @@ if __name__ == "__main__":
     else:
         d_view = None
 
-    log_file_name = "logs/" + os.path.basename(args.datafile) + "-log.txt"
+    log_file_name = os.path.join("logs", f"{os.path.basename(args.datafile)}-log.txt")
     if not os.path.exists("logs/"):
         os.makedirs("logs/")
 
-    # "DATA/Yvonne2019/M1RH_Analysis_190925.h5"
     ly = OptimiseSynapsesFull(datafile=args.datafile,
                               synapse_parameter_file=args.synapseParameters,
                               synapse_type=args.st, d_view=d_view,
