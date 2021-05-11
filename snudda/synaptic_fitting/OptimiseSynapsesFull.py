@@ -213,13 +213,7 @@ class OptimiseSynapsesFull(object):
             try:
                 self.write_log("Loading cache file " + str(self.cache_file_name))
                 with open(self.cache_file_name, "r") as f:
-                    tmp_dict = json.load(f)
-
-                    self.parameter_cache = dict([])
-                    for k in tmp_dict:
-                        self.parameter_cache[int(k)] = tmp_dict[k]
-
-                    f.close()
+                    self.parameter_cache = json.load(f)
             except:
                 import traceback
                 tstr = traceback.format_exc()
@@ -358,7 +352,7 @@ class OptimiseSynapsesFull(object):
 
         plt.figure()
 
-        plt.plot(self.time[t_idx] * 1e3, self.data[t_idx] * 1e3, 'r-')
+        plt.plot(self.time[t_idx] * 1e3, self.volt[t_idx] * 1e3, 'r-')
         if v_plot is not None:
             t2_idx = np.where(skip_time <= t_plot)[0]
             plt.plot(t_plot[t2_idx] * 1e3, v_plot[t2_idx] * 1e3, 'k-')
@@ -396,7 +390,7 @@ class OptimiseSynapsesFull(object):
             # Mark optogenetical stimulation
             y_height = float(np.diff(plt.ylim())) / 13
 
-            t_stim = self.getStimTime() * 1e3
+            t_stim = self.stim_time
             y_stim_marker1 = v_plot[-1] * 1e3 - 1.5 * y_height
             y_stim_marker2 = v_plot[-1] * 1e3 - 2.5 * y_height
             for ts in t_stim:
