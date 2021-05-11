@@ -11,6 +11,8 @@ import json
 import copy
 import time
 
+# TODO: 2021-05-11 :: Set self.synapse_parameters
+
 # TODO 2020-10-19
 #
 # We need to make sure params contains the nmda_ratio and other parameters
@@ -107,6 +109,7 @@ class OptimiseSynapsesFull(object):
         self.debug_pars_flag = False
         self.debug_pars = []
         self.cell_properties = None
+        self.synapse_parameters = None  # These should be set somewhere!!?!!?
 
         self.pretty_plot = pretty_plot
 
@@ -913,7 +916,7 @@ class OptimiseSynapsesFull(object):
         if self.debug_pars_flag:
             self.debug_pars.append([u, tau_r, tau_f, tau_ratio, cond])
 
-        params = self.synase_parameters
+        params = self.synapse_parameters
         tau = tau_r * tau_ratio
 
         peak_h, t_sim, v_sim = self.run_model(t_spike, u,

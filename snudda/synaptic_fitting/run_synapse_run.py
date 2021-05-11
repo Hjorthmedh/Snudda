@@ -183,7 +183,7 @@ class RunSynapseRun(object):
         self.v_clamp = None
 
         if self.i_clamp is None:
-            self.i_clamp = neuron.h.i_clamp(self.neuron.icell.soma[0](0.5))
+            self.i_clamp = neuron.h.IClamp(self.neuron.icell.soma[0](0.5))
 
         # Update current on iClamp
         self.i_clamp.amp = cur
@@ -425,15 +425,22 @@ class RunSynapseRun(object):
                        "tau": 1e3,
                        "nmda_ratio": 1.0,
 
-                       "tau_1_ampa": 1.0,  # Ilaria's file has ms already
-                       "tau_2_ampa": 1.0,  # Ilaria's file has ms already
-                       "tau_3_ampa": 1.0,  # Ilaria's file has ms already
-                       "tau_1_nmda": 1.0,  # Ilaria's file has ms already
-                       "tau_2_nmda": 1.0,  # Ilaria's file has ms already
-                       "tau_3_nmda": 1.0,  # Ilaria's file has ms already
+                       "tau1_ampa": 1.0,  # Ilaria's file has ms already
+                       "tau2_ampa": 1.0,  # Ilaria's file has ms already
+                       "tau3_ampa": 1.0,  # Ilaria's file has ms already
+                       "tau1_nmda": 1.0,  # Ilaria's file has ms already
+                       "tau2_nmda": 1.0,  # Ilaria's file has ms already
+                       "tau3_nmda": 1.0,  # Ilaria's file has ms already
                        "tpeak_ampa": 1.0,  # Ilaria's file has ms already
                        "tpeak_nmda": 1.0,  # Ilaria's file has ms already :/
-                       "ratio_nmda": 1.0
+                       "ratio_nmda": 1.0,
+
+                       "I2_ampa": 1.0,  # Ilaria's file has ms already
+                       "I3_ampa": 1.0,  # Ilaria's file has ms already
+                       "I2_nmda": 1.0,  # Ilaria's file has ms already
+                       "I3_nmda": 1.0,  # Ilaria's file has ms already
+                       "factor_ampa": 1.0,  # Ilaria's file has ms already
+                       "factor_nmda": 1.0  # Ilaria's file has ms already
                        }
 
         if var_name not in conv_factor:
