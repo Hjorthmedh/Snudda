@@ -750,7 +750,7 @@ class SnuddaPlace(object):
         ax.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], c=colours, alpha=0.5)
         plt.show()
 
-    def cluster_neurons(self):
+    def cluster_neurons(self, n_trials=3):
         n_workers = len(self.d_view) if self.d_view is not None else 1
         n_clusters = np.maximum(n_workers*5, 100)
         n_clusters = np.minimum(n_clusters, len(self.neurons))
@@ -800,7 +800,14 @@ class SnuddaPlace(object):
             if len(global_centroid_order) == 0:
                 break
 
-        assert np.count_nonzero(neuron_order < 0) == 0, "cluster_neurons: Not all neurons accounted for"
+        # Sometimes the original cluster is bad? Try again...
+        if np.count_nonzero(neuron_order < 0) > 0 and n_trials > 1:
+            self.write_log(f"Redoing place:neuron_clustering, {np.count_nonzero(neuron_order < 0)} neurons unaccounted for",
+                           is_error=True)
+            neuron_order = self.cluster_neurons(n_trials=n_trials-1)
+
+        # TODO: This occured once on Tegner, why did it happen?
+        assert np.count_nonzero(neuron_order < 0) == 0, "cluster_neurons: Not all neurons accounted for. Please rerun place."
 
         # Just some check that all is ok
         assert (np.diff(np.sort(neuron_order)) == 1).all(), "cluster_neurons: There are gaps in the sorting, error"
