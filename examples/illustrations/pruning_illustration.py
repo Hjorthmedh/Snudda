@@ -141,9 +141,9 @@ class PruningIllustration(object):
                               elev_azim=(90, 0))
 
             if n_repeats > 1:
-                n_syn_mean, n_syn_std, _, _ = self.gather_pruning_statistics(pruning_config=pruning_config, n_repeats=1000)
+                n_syn_mean, n_syn_std, _, _ = self.gather_pruning_statistics(pruning_config=pruning_config, n_repeats=n_repeats)
                 plt.figtext(0.5, 0.15, f"(${n_syn_mean:.1f} \pm {n_syn_std:.1f}$)", ha="center", fontsize=16)
-                plt.savefig(fig_name, dpi=300)
+                plt.savefig(fig_name, dpi=300, bbox_inches='tight')
 
             # Load the pruned data and check it
             # sl = SnuddaLoad(pruned_output)
@@ -173,7 +173,7 @@ class PruningIllustration(object):
 
 if __name__ == "__main__":
 
-    pil = PruningIllustration(n_repeats=5000)
+    pil = PruningIllustration(n_repeats=1000)
     pil.prune_network(fig_name="0-No-Pruning.pdf", title="No pruning")
 
     # Showing f1 pruning
