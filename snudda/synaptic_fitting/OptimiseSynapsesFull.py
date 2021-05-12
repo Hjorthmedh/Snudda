@@ -8,6 +8,7 @@ import neuron
 import json
 import time
 
+# TODO: 2021-05-12 -- What value should u0 have? A way around it, repeat the stimulation train multiple times, use laster runs
 # TODO: 2021-05-11 -- Set self.synapse_parameters
 # TODO: 2021-05-11 -- Holding voltage
 
@@ -38,12 +39,6 @@ import time
 #
 #
 
-# TODO 2020-07-15
-#
-# Make it so that the code can run in serial mode also, to simplify debugging
-#
-
-#
 # TODO 2020-07-02
 # -- We just wrote parallelOptimiseSingleCell -- need to make sure we call it
 #    the function will optimise one cellID, using all workers available
@@ -62,14 +57,6 @@ import time
 #    Possible idea: let func to optimize handle vectors, and then each
 #    position in vector is sent to one worker.
 
-#
-#
-# TODO (depricated):
-# 1. Remove the old soma optimisation code, not needed anymore
-# 2. Place the inital synapses, then find out the sectionID,X,
-# 3. Pass sectionID, sectionX to all workers, so they use same synapselocations
-# 4. Optimise.
-#
 
 # !!! Add check that if the voltage is 0 or 5, then the trace is skipped entirely
 
@@ -101,7 +88,7 @@ class OptimiseSynapsesFull(object):
         self.log_file_name = log_file_name
         self.opt_method = opt_method
         self.num_smoothing = 200  # How many smoothing points do we use?
-        self.sim_time = 1.8
+        self.sim_time = 1.5
         self.neuron_set_file = neuron_set_file
 
         self.debug_pars_flag = False
@@ -133,7 +120,7 @@ class OptimiseSynapsesFull(object):
             dt = 1 / self.sample_freq
             self.time = 0 + dt * np.arange(0, len(self.volt))
 
-            self.stim_time = np.array(self.data["metadata"]["stim_time"])  # NO LONGER NEEDED * 1e-3  # ms
+            self.stim_time = np.array(self.data["metadata"]["stim_time"])
 
             self.cell_type = self.data["metadata"]["cell_type"]
 
@@ -167,8 +154,6 @@ class OptimiseSynapsesFull(object):
         self.decay_end_fit8 = 0.8
         self.decay_start_fit9 = 1.0
         self.decay_end_fit9 = 1.3
-
-
 
         with open(model_bounds, 'r') as f:
             print(f"Loading model bounds from {model_bounds}")
@@ -256,7 +241,7 @@ class OptimiseSynapsesFull(object):
     def plot_data(self,
                   params=None,
                   show=True,
-                  skip_time=0.3,
+                  skip_time=0.050,
                   pretty_plot=None):
 
         if params is None:
@@ -277,24 +262,10 @@ class OptimiseSynapsesFull(object):
         best_params = self.get_parameter_cache("param")
         synapse_position_override = (self.get_parameter_cache("sectionID"),
                                      self.get_parameter_cache("sectionX"))
+        dt = self.get_parameter_cache("best_trace_dt")
+        v_plot = np.array(self.get_parameter_cache("best_trace_volt"))
+        t_plot = np.arange(0, len(v_plot)*dt, dt)
         min_error = self.get_parameter_cache("error")
-
-        v_plot = None
-        t_plot = None
-        i_plot = None
-
-        if best_params is not None:
-            u, tau_r, tau_f, tau_ratio, cond = best_params
-
-            params = {"U": u,
-                      "tauR": tau_r,
-                      "tauF": tau_f,
-                      "cond": cond,
-                      "tau": tau_r * tau_ratio}
-
-            plot_model = self.setup_model(params=params, synapse_position_override=synapse_position_override)
-
-            (t_plot, v_plot, i_plot) = plot_model.run2(pars=params)
 
         t_idx = np.where(skip_time <= self.time)[0]
 
@@ -304,13 +275,13 @@ class OptimiseSynapsesFull(object):
         if v_plot is not None:
             t2_idx = np.where(skip_time <= t_plot)[0]
             plt.plot(t_plot[t2_idx] * 1e3, v_plot[t2_idx] * 1e3, 'k-')
-        # plt.title(dataType + " " + str(cellID))
 
         if not pretty_plot:
             title_str = self.cell_type
 
-            title_str += "\nU=%.3g, tauR=%.3g, tauF=%.3g, tau=%.3g,\ncond=%.3g" \
-                        % (params["U"], params["tauR"], params["tauF"], params["tau"], params["cond"])
+            u, tau_r, tau_f, tau_ratio, cond = best_params
+
+            title_str += f"\nU={u:.3g}, tauR={tau_r:.3g}, tauF={tau_f:.3g}, tau={tau_r*tau_ratio:.3g},cond={cond:.3g}"
 
             plt.title(title_str)
 
@@ -345,9 +316,6 @@ class OptimiseSynapsesFull(object):
                 plt.plot([ts, ts], [y_stim_marker1, y_stim_marker2], color="cyan")
 
             plt.axis("off")
-
-            # import pdb
-            # pdb.set_trace()
 
         plt.xlabel("Time (ms)")
         plt.ylabel("Volt (mV)")
@@ -521,9 +489,6 @@ class OptimiseSynapsesFull(object):
         peak_dict = {"peakIdx": np.array(peak_idx),
                     "peakTime": np.array(peak_time),
                     "peakVolt": np.array(peak_volt)}  # NOT AMPLITUDE
-
-        #    if(cellID is not None):
-        #      self.addParameterCache("peaks",peakDict)
 
         return peak_dict
 
@@ -931,9 +896,7 @@ class OptimiseSynapsesFull(object):
 
     def get_model_bounds(self):
 
-        cell_type = self.data["metadata"]["cell_type"]
-
-        mb = self.model_bounds[cell_type]
+        mb = self.data["modeldata"]
 
         param_list = ["U", "tauR", "tauF", "tauRatio", "cond"]
         lower_bound = [mb[x][0] for x in param_list]
@@ -947,7 +910,7 @@ class OptimiseSynapsesFull(object):
                    t_stim, h_peak,
                    model_bounds,
                    smooth_exp_trace8, smooth_exp_trace9,
-                   n_trials=6, load_params_flag=False,
+                   n_trials=1, load_params_flag=False,
                    parameter_sets=None,
                    return_min_error=False):
 
@@ -995,16 +958,17 @@ class OptimiseSynapsesFull(object):
                 self.write_log("%d / %d : minError = %g" % (idx, len(u_sobol), min_error))
                 self.write_log(f"{min_par}")
 
-            error = self.neuron_synapse_helper_glut(t_stim, u, tau_r, tau_f, tau_ratio,
-                                                    cond,
-                                                    smooth_exp_trace8=smooth_exp_trace8,
-                                                    smooth_exp_trace9=smooth_exp_trace9,
-                                                    exp_peak_height=h_peak,
-                                                    return_type="error")
+            error, peaks, t, v = self.neuron_synapse_helper_glut(t_stim, u, tau_r, tau_f, tau_ratio,
+                                                                cond,
+                                                                smooth_exp_trace8=smooth_exp_trace8,
+                                                                smooth_exp_trace9=smooth_exp_trace9,
+                                                                exp_peak_height=h_peak,
+                                                                return_type="full")
             try:
                 if error < min_error:
                     min_error = error
                     min_par = np.array([u, tau_r, tau_f, tau_ratio, cond])
+                    trace_time, trace_volt = t, v
 
                     # TODO, write intermediate results to file, in case of a crash...
 
@@ -1020,7 +984,7 @@ class OptimiseSynapsesFull(object):
                 continue
 
         if return_min_error:
-            return min_par, min_error
+            return min_par, min_error, trace_time, trace_volt
         else:
             return min_par
 
@@ -1081,30 +1045,6 @@ class OptimiseSynapsesFull(object):
                 continue
 
         return min_par
-
-    ############################################################################
-
-    def optimise_cell(self):
-
-        assert False, "obsolete"
-
-        try:
-            # self.fitCellProperties(dataType,cellID)
-            self.fitTrace()
-            self.plot_data(show=False)
-
-            # We need to extract the dictionary associated with cellID and
-            # return the result so that the main function can plug it into the
-            # central parameter cache -- OR DO WE?
-
-            return self.getSubDictionary(cellID)
-
-        except:
-
-            import traceback
-            tstr = traceback.format_exc()
-            self.write_log(tstr)
-            self.add_parameter_cache("error", tstr)
 
     ############################################################################
 
@@ -1195,13 +1135,13 @@ class OptimiseSynapsesFull(object):
                                         synapse_position_override=(synapse_model.synapse_section_id,
                                                                    synapse_model.synapse_section_x))
 
-                par_set, par_error = self.sobol_scan(synapse_model=synapse_model,
-                                                     t_stim=self.stim_time,
-                                                     h_peak=peak_height,
-                                                     model_bounds=model_bounds,
-                                                     smooth_exp_trace8=ly.smooth_exp_volt8,
-                                                     smooth_exp_trace9=ly.smooth_exp_volt9,
-                                                     return_min_error=True)
+                par_set, par_error, trace_time, trace_volt = self.sobol_scan(synapse_model=synapse_model,
+                                                                             t_stim=self.stim_time,
+                                                                             h_peak=peak_height,
+                                                                             model_bounds=model_bounds,
+                                                                             smooth_exp_trace8=ly.smooth_exp_volt8,
+                                                                             smooth_exp_trace9=ly.smooth_exp_volt9,
+                                                                             return_min_error=True)
 
                 best_par = (par_set,
                             (synapse_model.synapse_section_id, synapse_model.synapse_section_x), par_error)
@@ -1210,6 +1150,8 @@ class OptimiseSynapsesFull(object):
             self.add_parameter_cache("sectionID", synapse_model.synapse_section_id)
             self.add_parameter_cache("sectionX", synapse_model.synapse_section_x)
             self.add_parameter_cache("error", best_par[2])
+            self.add_parameter_cache("best_trace_dt", trace_time[1] - trace_time[0])
+            self.add_parameter_cache("best_trace_volt", trace_volt)
 
             self.save_parameter_cache()
             self.write_log(f"Sobol search done. Best parameter {best_par}")
@@ -1331,78 +1273,6 @@ class OptimiseSynapsesFull(object):
                                          cond_sobol)]
 
         return parameter_sets
-
-    ############################################################################
-
-    def parallel_optimise_cells(self, data_type, cell_id_list=None):
-
-        assert False, "Only doing one cell at a time"
-
-        if self.role == "master":
-
-            if cell_id_list is None:
-                cell_id_list = self.get_valid_cell_id(data_type)
-
-            # self.printCellProperties(dataType,cellIDlist)
-
-            if self.d_view is None:
-                self.write_log("We are in serial mode, use serial code..")
-                for c in cell_id_list:
-                    self.optimise_cell(data_type, c)
-
-                # Save parameters to file
-                self.save_parameter_cache()
-                return
-
-            self.write_log("Optimising in parallel")
-
-            self.setup_parallel(self.d_view)
-            self.d_view.scatter("cellIDlist", cell_id_list, block=True)
-            self.d_view.push({"dataType": data_type}, block=True)
-
-            try:
-
-                cmd_str = "res = ly.parallelOptimiseCells(dataType=dataType,cellIDlist=cellIDlist)"
-                self.write_log("Starting execution")
-                self.d_view.execute(cmd_str, block=True)
-                self.write_log("Execution finished, gathering results")
-                # res = self.dView.gather("res",block=True)
-                res = self.d_view["res"]
-
-                # res now contains a list of dictionaries, each dictionary from one worker, we need
-                # to merge these
-                self.write_log("Results gathered, merging dictionary")
-                for m in res:
-                    # self.parameterCache.update(m)
-                    for k in m:
-                        self.parameter_cache[int(k)] = m[k]
-
-                self.save_parameter_cache()
-
-                self.write_log("Done.")
-            except:
-                import traceback
-                tstr = traceback.format_exc()
-                self.write_log(tstr)
-                import pdb
-                pdb.set_trace()
-
-        else:
-            try:
-                # Servant runs here
-                for cellID in cell_id_list:
-                    self.optimise_cell(data_type, cellID)
-
-                return self.getSubDictionary(cell_id_list)
-
-            except:
-                import traceback
-                tstr = traceback.format_exc()
-                self.write_log(tstr)
-                import pdb
-                pdb.set_trace()
-
-    ############################################################################
 
     def setup_parallel(self, d_view=None):
 
@@ -1580,4 +1450,4 @@ if __name__ == "__main__":
 
         exit(0)
 
-    ly.parallel_optimise_single_cell(n_trials=12)
+    ly.parallel_optimise_single_cell(n_trials=1)
