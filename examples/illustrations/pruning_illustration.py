@@ -11,7 +11,9 @@ from snudda.utils.reposition_neurons import RepositionNeurons
 
 class PruningIllustration(object):
 
-    def __init__(self, verbose=False):
+    def __init__(self, verbose=False, n_repeats=1000):
+
+        self.n_repeats = n_repeats
 
         if os.path.dirname(__file__):
             os.chdir(os.path.dirname(__file__))
@@ -103,7 +105,10 @@ class PruningIllustration(object):
             pdb.set_trace()
 
     def prune_network(self, pruning_config=None, fig_name=None, title=None, verbose=False, plot_network=True,
-                      random_seed=None):
+                      random_seed=None, n_repeats=None):
+
+        if n_repeats is None:
+            n_repeats = self.n_repeats
 
         work_log = os.path.join(self.network_path, "log", "network-detect-worklog.hdf5")
         pruned_output = os.path.join(self.network_path, "network-synapses.hdf5")
@@ -115,6 +120,10 @@ class PruningIllustration(object):
         sp = SnuddaPrune(network_path=self.network_path, config_file=pruning_config,
                          verbose=verbose, clean_temp_files=False, random_seed=random_seed)  # Use default config file
         sp.prune()
+
+        n_synapses = sp.out_file["network/synapses"].shape[0]
+        n_gap_junctions = sp.out_file["network/gapJunctions"].shape[0]
+
         sp = []
 
         plot_axon = True
@@ -131,26 +140,40 @@ class PruningIllustration(object):
                               title=title, title_pad=-14,
                               elev_azim=(90, 0))
 
+            if n_repeats > 1:
+                n_syn_mean, n_syn_std, _, _ = self.gather_pruning_statistics(pruning_config=pruning_config, n_repeats=1000)
+                plt.figtext(0.5, 0.15, f"(${n_syn_mean:.1f} \pm {n_syn_std:.1f}$)", ha="center", fontsize=16)
+                plt.savefig(fig_name, dpi=300)
+
             # Load the pruned data and check it
             # sl = SnuddaLoad(pruned_output)
-
-        n_synapses = sp.out_file["network/synapses"].shape[0]
-        n_gap_junctions = sp.out_file["network/gapJunctions"].shape[0]
 
         return n_synapses, n_gap_junctions
 
     def gather_pruning_statistics(self, pruning_config, n_repeats):
 
-        n_synapses = []
-        rand_seed =
+        n_synapses = np.zeros((n_repeats,))
+        n_gap_junctions = np.zeros((n_repeats,))
 
-        for ctr in range(0, n_repeats):
-            n_syn, _ = self.prune_network(pruning_config=pruning_config, random_seed)
+        ss = np.random.SeedSequence()
+        random_seeds = ss.generate_state(n_repeats)
+
+        for i, rand_seed in enumerate(random_seeds):
+            n_synapses[i], n_gap_junctions[i] = self.prune_network(pruning_config=pruning_config,
+                                                                   plot_network=False,
+                                                                   random_seed=rand_seed)
+
+        mean_syn, std_syn = np.mean(n_synapses), np.std(n_synapses)
+        mean_gj, std_gj = np.mean(n_gap_junctions), np.std(n_gap_junctions)
+
+        print(f"{pruning_config}\nsynapses : {mean_syn:.1f} +/- {std_syn:.1f}\ngap junctions: {mean_gj:.1f} +/- {std_gj:.1f}")
+
+        return mean_syn, std_syn, mean_gj, std_gj
 
 
 if __name__ == "__main__":
 
-    pil = PruningIllustration()
+    pil = PruningIllustration(n_repeats=5000)
     pil.prune_network(fig_name="0-No-Pruning.pdf", title="No pruning")
 
     # Showing f1 pruning
