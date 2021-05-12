@@ -1431,6 +1431,12 @@ class SnuddaPrune(object):
                                     flags=h5py.h5f.ACC_RDONLY, fapl=propfaid)
                 file_list[proj_connection] = h5py.File(fid, drive=self.h5driver)
 
+                if self.max_channel_type:
+                    assert self.max_channel_type == file_list[proj_connection]["network/maxChannelTypeID"][()], \
+                        "max_channel_type does not match for projection file"
+                else:
+                    self.max_channel_type = file_list[proj_connection]["network/maxChannelTypeID"][()]
+
                 assert file_list[proj_connection]["network/nSynapses"][()] == self.num_projection_synapses, \
                     (f"Mismatch between work history file and data file. "
                      f"nProjectionSynapses: {self.num_projection_synapses} vs {self.num_projection_synapses}")
@@ -1869,6 +1875,8 @@ class SnuddaPrune(object):
     def file_row_lookup_iterator_subset(self, h5mat_lookup, min_dest_id, max_dest_id, chunk_size=10000):
 
         num_neurons = self.hist_file["network/neurons/neuronID"].shape[0]
+
+        assert self.max_channel_type is not None, "max_channel_type should not be None"
 
         min_unique_id = min_dest_id * num_neurons * self.max_channel_type
         max_unique_id = max_dest_id * num_neurons * self.max_channel_type
