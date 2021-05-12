@@ -66,7 +66,7 @@ class SnuddaPrune(object):
                  # pre_merge_only=False,
                  h5libver="latest",
                  random_seed=None,
-                 clean_temp_files=True):
+                 clean_temp_files=True):  # If False then you can redo pruning multiple times without reruning detect
 
         # Help with parallel debugging, when workers cant print to screen:
         # self.writeToRandomFile("WH = " + str(workHistoryFile) \
