@@ -8,6 +8,9 @@ import neuron
 import json
 import time
 
+# TODO: 2021-05-12 -- Save more than the best parameter set in json file. Have one dictionary item per saved parameterset,
+#                     that way we can remove all associated data easily in one go, when updating the json file.
+
 # TODO: 2021-05-12 -- What value should u0 have? A way around it, repeat the stimulation train multiple times, use laster runs
 # TODO: 2021-05-11 -- Set self.synapse_parameters
 # TODO: 2021-05-11 -- Holding voltage
@@ -19,7 +22,7 @@ import time
 # Please fix.
 #
 #
-# python3 OptimiseSynapsesFull.py DATA/Yvonne2020/M1RH-ipsi_MSN_D1_20Hz_depressing.json --synapseParameters ../data/synapses/v3/M1RH-ipsi_D1-MSN.json --st glut
+# python3 optimise_synapses_full.py DATA/Yvonne2020/M1RH-ipsi_MSN_D1_20Hz_depressing.json --synapseParameters ../data/synapses/v3/M1RH-ipsi_D1-MSN.json --st glut
 #
 #
 # TODO 2020-10-09
@@ -958,12 +961,11 @@ class OptimiseSynapsesFull(object):
                 self.write_log("%d / %d : minError = %g" % (idx, len(u_sobol), min_error))
                 self.write_log(f"{min_par}")
 
-            error, peaks, t, v = self.neuron_synapse_helper_glut(t_stim, u, tau_r, tau_f, tau_ratio,
-                                                                cond,
-                                                                smooth_exp_trace8=smooth_exp_trace8,
-                                                                smooth_exp_trace9=smooth_exp_trace9,
-                                                                exp_peak_height=h_peak,
-                                                                return_type="full")
+            error, peaks, t, v = self.neuron_synapse_helper_glut(t_stim, u, tau_r, tau_f, tau_ratio, cond,
+                                                                 smooth_exp_trace8=smooth_exp_trace8,
+                                                                 smooth_exp_trace9=smooth_exp_trace9,
+                                                                 exp_peak_height=h_peak,
+                                                                 return_type="full")
             try:
                 if error < min_error:
                     min_error = error
@@ -1290,8 +1292,8 @@ class OptimiseSynapsesFull(object):
 
         with self.d_view.sync_imports():
             from run_synapse_run import RunSynapseRun
-            from OptimiseSynapsesFull import NumpyEncoder
-            from OptimiseSynapsesFull import OptimiseSynapsesFull
+            from optimise_synapses_full import NumpyEncoder
+            from optimise_synapses_full import OptimiseSynapsesFull
 
         self.write_log("Setting up workers: " \
                        + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
