@@ -2179,6 +2179,9 @@ class SnuddaAnalyse(object):
 
         dend_hist = np.zeros((num_bins,))
 
+        if type(swc_file) == bytes:
+            swc_file = swc_file.decode()
+
         n_morph = NeuronMorphology(swc_filename=swc_file)
 
         print("Parsing dendrite histogram : " + swc_file)

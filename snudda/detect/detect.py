@@ -1690,8 +1690,7 @@ class SnuddaDetect(object):
                          os.path.join(self.network_path, "network-putative-synapses-MERGED.hdf5-cache"),
                          os.path.join(self.network_path, "network-synapses.hdf5"),
                          os.path.join(self.network_path, "network-synapses.hdf5-cache"),
-                         os.path.join(self.network_path, "network-synapses.hdf5"),
-                         os.path.join(self.network_path,"network-projection-synapses.hdf5"),
+                         os.path.join(self.network_path, "network-projection-synapses.hdf5"),
                          ]
 
             for f in del_files:

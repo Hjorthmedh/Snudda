@@ -11,33 +11,35 @@ from snudda.utils.reposition_neurons import RepositionNeurons
 
 class PruningIllustration(object):
 
-    def __init__(self):
+    def __init__(self, verbose=False, n_repeats=1000):
+
+        self.n_repeats = n_repeats
 
         if os.path.dirname(__file__):
             os.chdir(os.path.dirname(__file__))
 
         self.network_path = "pruning_illustration_network"
-        self.config_file = os.path.join(self.network_path, "network-config.json")
-        self.position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
-        self.save_file = os.path.join(self.network_path, "voxels", "network-synapses.hdf5")
+        # self.config_file = os.path.join(self.network_path, "network-config.json")
+        # self.save_file = os.path.join(self.network_path, "voxels", "network-synapses.hdf5")
 
         create_cube_mesh(file_name=os.path.join(self.network_path, "mesh", "simple_mesh.obj"),
                          centre_point=(0, 0, 0),
                          side_len=500e-6)
 
-        sp = SnuddaPlace(config_file=self.config_file, d_view=None)
+        # Default uses network_config.json
+        sp = SnuddaPlace(network_path=self.network_path, d_view=None, verbose=verbose)
 
         print("Calling read_config")
         sp.parse_config()
         print("Read done")
-        sp.write_data(self.position_file)
+
+        position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
+        sp.write_data(position_file)
 
         # We want to load in the ball and stick neuron that has 20 micrometer soma diameter, and axon (along y-axis),
         # and dendrite along (x-axis) out to 200 micrometer distance from centre of soma.
 
-        self.sd = SnuddaDetect(config_file=self.config_file, position_file=self.position_file,
-                               save_file=self.save_file, rc=None,
-                               hyper_voxel_size=150)
+        self.sd = SnuddaDetect(network_path=self.network_path, rc=None, hyper_voxel_size=150, verbose=verbose)
 
         # Reposition the neurons so we know how many synapses and where they will be located before pruning
         neuron_positions = np.array([[0, 59, 0],  # Postsynaptiska
@@ -86,7 +88,7 @@ class PruningIllustration(object):
         self.sd.detect(restart_detection_flag=True)
 
         # Also update so that the new positions are saved in the place file
-        rn = RepositionNeurons(self.position_file)
+        rn = RepositionNeurons(position_file)
         for neuron_info in self.sd.neurons:
             rn.place(neuron_info["neuronID"], position=neuron_info["position"], rotation=neuron_info["rotation"],
                      verbose=False)
@@ -102,7 +104,11 @@ class PruningIllustration(object):
             import pdb
             pdb.set_trace()
 
-    def prune_network(self, pruning_config=None, fig_name=None, title=None):
+    def prune_network(self, pruning_config=None, fig_name=None, title=None, verbose=False, plot_network=True,
+                      random_seed=None, n_repeats=None):
+
+        if n_repeats is None:
+            n_repeats = self.n_repeats
 
         work_log = os.path.join(self.network_path, "log", "network-detect-worklog.hdf5")
         pruned_output = os.path.join(self.network_path, "network-synapses.hdf5")
@@ -110,8 +116,14 @@ class PruningIllustration(object):
         if pruning_config is not None and not os.path.exists(pruning_config):
             pruning_config = os.path.join(self.network_path, pruning_config)
 
-        sp = SnuddaPrune(network_path=self.network_path, config_file=pruning_config)  # Use default config file
-        sp.prune(pre_merge_only=False)
+        # We keep temp files
+        sp = SnuddaPrune(network_path=self.network_path, config_file=pruning_config,
+                         verbose=verbose, clean_temp_files=False, random_seed=random_seed)  # Use default config file
+        sp.prune()
+
+        n_synapses = sp.out_file["network/synapses"].shape[0]
+        n_gap_junctions = sp.out_file["network/gapJunctions"].shape[0]
+
         sp = []
 
         plot_axon = True
@@ -121,18 +133,47 @@ class PruningIllustration(object):
         #plot_axon[:10] = False
         #plot_dendrite[10:] = False
 
-        pn = PlotNetwork(pruned_output)
-        plt, ax = pn.plot(fig_name=fig_name, show_axis=False,
-                          plot_axon=plot_axon, plot_dendrite=plot_dendrite,
-                          title=title, title_pad=-14,
-                          elev_azim=(90, 0))
+        if plot_network:
+            pn = PlotNetwork(pruned_output)
+            plt, ax = pn.plot(fig_name=fig_name, show_axis=False,
+                              plot_axon=plot_axon, plot_dendrite=plot_dendrite,
+                              title=title, title_pad=-14,
+                              elev_azim=(90, 0))
 
-        # Load the pruned data and check it
-        # sl = SnuddaLoad(pruned_output)
+            if n_repeats > 1:
+                n_syn_mean, n_syn_std, _, _ = self.gather_pruning_statistics(pruning_config=pruning_config, n_repeats=1000)
+                plt.figtext(0.5, 0.15, f"(${n_syn_mean:.1f} \pm {n_syn_std:.1f}$)", ha="center", fontsize=16)
+                plt.savefig(fig_name, dpi=300)
+
+            # Load the pruned data and check it
+            # sl = SnuddaLoad(pruned_output)
+
+        return n_synapses, n_gap_junctions
+
+    def gather_pruning_statistics(self, pruning_config, n_repeats):
+
+        n_synapses = np.zeros((n_repeats,))
+        n_gap_junctions = np.zeros((n_repeats,))
+
+        ss = np.random.SeedSequence()
+        random_seeds = ss.generate_state(n_repeats)
+
+        for i, rand_seed in enumerate(random_seeds):
+            n_synapses[i], n_gap_junctions[i] = self.prune_network(pruning_config=pruning_config,
+                                                                   plot_network=False,
+                                                                   random_seed=rand_seed)
+
+        mean_syn, std_syn = np.mean(n_synapses), np.std(n_synapses)
+        mean_gj, std_gj = np.mean(n_gap_junctions), np.std(n_gap_junctions)
+
+        print(f"{pruning_config}\nsynapses : {mean_syn:.1f} +/- {std_syn:.1f}\ngap junctions: {mean_gj:.1f} +/- {std_gj:.1f}")
+
+        return mean_syn, std_syn, mean_gj, std_gj
+
 
 if __name__ == "__main__":
 
-    pil = PruningIllustration()
+    pil = PruningIllustration(n_repeats=5000)
     pil.prune_network(fig_name="0-No-Pruning.pdf", title="No pruning")
 
     # Showing f1 pruning

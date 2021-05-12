@@ -36,6 +36,8 @@ import h5py
 import json
 import glob
 
+from snudda.utils.numpy_encoder import NumpyEncoder
+
 # from snudda.Neuron_morphology import NeuronMorphology
 
 
@@ -64,7 +66,7 @@ class SnuddaPrune(object):
                  # pre_merge_only=False,
                  h5libver="latest",
                  random_seed=None,
-                 clean_voxel_files=True):
+                 clean_temp_files=True):  # If False then you can redo pruning multiple times without reruning detect
 
         # Help with parallel debugging, when workers cant print to screen:
         # self.writeToRandomFile("WH = " + str(workHistoryFile) \
@@ -73,7 +75,8 @@ class SnuddaPrune(object):
 
         self.work_history_file = os.path.join(network_path, "log", "network-detect-worklog.hdf5")    
         self.network_path = network_path
-        self.clean_voxel_files = clean_voxel_files
+        self.clean_temp_files = clean_temp_files
+        self.merge_info_file = os.path.join(self.network_path, "pruning_merge_info.json")
 
         self.logfile = logfile
         self.verbose = verbose
@@ -209,9 +212,21 @@ class SnuddaPrune(object):
             self.write_log("prune should only be called on master")
             return
 
-        # From the hyper voxels gather all synapses (and gap junctions) belonging to specific neurons
-        merge_files_syn, merge_neuron_range_syn, merge_syn_ctr, \
-            merge_files_gj, merge_neuron_range_gj, merge_gj_ctr = self.gather_neuron_synapses()
+        merge_info = self.get_merge_info()
+        if merge_info:
+            merge_files_syn, merge_neuron_range_syn, merge_syn_ctr, \
+                merge_files_gj, merge_neuron_range_gj, merge_gj_ctr = merge_info
+        else:
+            # From the hyper voxels gather all synapses (and gap junctions) belonging to specific neurons
+            merge_files_syn, merge_neuron_range_syn, merge_syn_ctr, \
+                merge_files_gj, merge_neuron_range_gj, merge_gj_ctr = self.gather_neuron_synapses()
+
+            self.save_merge_info(merge_files_syn=merge_files_syn,
+                                 merge_neuron_range_syn=merge_neuron_range_syn,
+                                 merge_syn_ctr=merge_syn_ctr,
+                                 merge_files_gj=merge_files_gj,
+                                 merge_neuron_range_gj=merge_neuron_range_gj,
+                                 merge_gj_ctr=merge_gj_ctr)
 
         # Prune synapses and gap junctions
         self.prune_synapses_parallel(synapse_file=merge_files_syn,
@@ -226,7 +241,116 @@ class SnuddaPrune(object):
 
         end_time = timeit.default_timer()
 
+        if self.clean_temp_files:
+            self.cleanup()
+
         self.write_log(f"prune synapses and gap junctions: {end_time - start_time:.1f}s")
+
+    ############################################################################
+
+    def save_merge_info(self,
+                        merge_files_syn, merge_neuron_range_syn, merge_syn_ctr,
+                        merge_files_gj, merge_neuron_range_gj, merge_gj_ctr):
+
+        data = collections.OrderedDict()
+
+        data["merge_files_syn"] = merge_files_syn
+        data["merge_neuron_range_syn"] = merge_neuron_range_syn
+        data["merge_syn_ctr"] = merge_syn_ctr
+        data["merge_files_gj"] = merge_files_gj
+        data["merge_neuron_range_gj"] = merge_neuron_range_gj
+        data["merge_gj_ctr"] = merge_gj_ctr
+
+        with open(self.merge_info_file, "w") as f:
+            json.dump(data, f, indent=4, cls=NumpyEncoder)
+
+    def get_merge_info_helper(self):
+
+        with open(self.merge_info_file, "r") as f:
+            data = json.load(f)
+
+        merge_files_syn = data["merge_files_syn"]
+        merge_neuron_range_syn = data["merge_neuron_range_syn"]
+        merge_syn_ctr = data["merge_syn_ctr"]
+        merge_files_gj = data["merge_files_gj"]
+        merge_neuron_range_gj = data["merge_neuron_range_gj"]
+        merge_gj_ctr = data["merge_gj_ctr"]
+
+        return merge_files_syn, merge_neuron_range_syn, merge_syn_ctr, \
+            merge_files_gj, merge_neuron_range_gj, merge_gj_ctr
+
+    def get_merge_info(self):
+
+        if not os.path.exists(self.merge_info_file):
+            return None
+
+        try:
+            merge_files_syn, merge_neuron_range_syn, merge_syn_ctr, \
+                merge_files_gj, merge_neuron_range_gj, merge_gj_ctr = self.get_merge_info_helper()
+        except:
+            self.write_log(f"Problem readin merge info from {self.merge_info_file}")
+            return None
+
+        # Check that the merge info file is more recent than all the files it refer to
+
+        merge_info_time = os.path.getmtime(self.merge_info_file)
+        for f_name in merge_files_syn + merge_files_gj:
+            if f_name is not None and not os.path.exists(f_name):
+                self.write_log(f"Bad merge info: {f_name} referenced by {self.merge_info_file} does not exist.")
+                return None
+
+            if f_name is not None and os.path.getmtime(f_name) > merge_info_time:
+                self.write_log(f"Bad merge info: {f_name} is newer than {self.merge_info_file}")
+                return None
+
+        # Check that synapse and gap junction counts in file match those in merge_info_file
+        for f_name, syn_ctr, neuron_range in zip(merge_files_syn, merge_syn_ctr, merge_neuron_range_syn):
+
+            if f_name is None:
+                if syn_ctr > 0:  # Just double check that it was not supposed to have synapses
+                    self.write_log(f"Bad merge info: File {f_name} was expected to have {syn_ctr} synapses")
+                    return None
+
+                continue
+
+            with h5py.File(f_name, "r") as f:
+                if f["network/synapses"].shape[0] != syn_ctr:
+                    self.write_log(f"Bad merge info: {f_name} expected {syn_ctr} synapses, " 
+                                   f"found {f['network/synapses'].shape[0]}")
+                    return None
+
+                if syn_ctr > 0:
+                    # While we are at it, check that neuron range is what we expect
+                    if neuron_range[0] > f["network/synapses"][0, 1] \
+                            or f["network/synapses"][-1, 1] > neuron_range[1]:
+                        self.write_log(f"Bad merge info: {f_name} has post synaptic neuron outside range "
+                                       f"{neuron_range[0]}-{neuron_range[1]}")
+                        return None
+
+        for f_name, gj_ctr, neuron_range in zip(merge_files_gj, merge_gj_ctr, merge_neuron_range_gj):
+            if f_name is None:
+                if gj_ctr > 0:
+                    self.write_log(f"Bad merge info: {f_name} was supposed to have {gj_ctr} gap junctions")
+                    return None
+                continue
+
+            with h5py.File(f_name, "r") as f:
+                if f["network/gapJunctions"].shape[0] != gj_ctr:
+                    self.write_log(f"Bad merge info: {f_name} expected {gj_ctr} gap junctions, " 
+                                   f"found {f['network/gapJunctions'].shape[0]}")
+                    return None
+
+                if gj_ctr > 0:
+                    if neuron_range[0] > f["network/gapJunctions"][0, 1] \
+                            or f["network/gapJunctions"][-1, 1] > neuron_range[1]:
+                        self.write_log(f"Bad merge info: {f_name} has post synaptic neuron outside range "
+                                       f"{neuron_range[0]}-{neuron_range[1]}")
+                        return None
+
+        self.write_log(f"Found merge info in {self.merge_info_file}")
+
+        return merge_files_syn, merge_neuron_range_syn, merge_syn_ctr, \
+            merge_files_gj, merge_neuron_range_gj, merge_gj_ctr
 
     ############################################################################
 
@@ -765,7 +889,7 @@ class SnuddaPrune(object):
 
         else:
             # Multiple files but we are running in serial
-            self.write_log(f"Warning, multiple_files but running {merge_data_type} in serial", force_print=True)
+            self.write_log(f"Warning, multiple_files but running {merge_data_type} in serial")
 
             syn_before_total = 0
             self.setup_output_file()
@@ -1307,6 +1431,12 @@ class SnuddaPrune(object):
                                     flags=h5py.h5f.ACC_RDONLY, fapl=propfaid)
                 file_list[proj_connection] = h5py.File(fid, drive=self.h5driver)
 
+                if self.max_channel_type:
+                    assert self.max_channel_type == file_list[proj_connection]["network/maxChannelTypeID"][()], \
+                        "max_channel_type does not match for projection file"
+                else:
+                    self.max_channel_type = file_list[proj_connection]["network/maxChannelTypeID"][()]
+
                 assert file_list[proj_connection]["network/nSynapses"][()] == self.num_projection_synapses, \
                     (f"Mismatch between work history file and data file. "
                      f"nProjectionSynapses: {self.num_projection_synapses} vs {self.num_projection_synapses}")
@@ -1745,6 +1875,8 @@ class SnuddaPrune(object):
     def file_row_lookup_iterator_subset(self, h5mat_lookup, min_dest_id, max_dest_id, chunk_size=10000):
 
         num_neurons = self.hist_file["network/neurons/neuronID"].shape[0]
+
+        assert self.max_channel_type is not None, "max_channel_type should not be None"
 
         min_unique_id = min_dest_id * num_neurons * self.max_channel_type
         max_unique_id = max_dest_id * num_neurons * self.max_channel_type
