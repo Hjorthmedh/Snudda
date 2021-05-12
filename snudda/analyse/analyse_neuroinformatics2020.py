@@ -139,6 +139,8 @@ if __name__ == "__main__":
 
     nas = SnuddaAnalyseStriatum(sim_dir, volume_type="cube")
 
+    nas.plot_synapse_dist(density_flag=True)
+
     dist3D = False
     yMaxH = None  # 0.5
 
