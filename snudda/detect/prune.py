@@ -66,7 +66,7 @@ class SnuddaPrune(object):
                  # pre_merge_only=False,
                  h5libver="latest",
                  random_seed=None,
-                 clean_voxel_files=True):
+                 clean_temp_files=True):
 
         # Help with parallel debugging, when workers cant print to screen:
         # self.writeToRandomFile("WH = " + str(workHistoryFile) \
@@ -75,7 +75,7 @@ class SnuddaPrune(object):
 
         self.work_history_file = os.path.join(network_path, "log", "network-detect-worklog.hdf5")    
         self.network_path = network_path
-        self.clean_voxel_files = clean_voxel_files
+        self.clean_temp_files = clean_temp_files
         self.merge_info_file = os.path.join(self.network_path, "pruning_merge_info.json")
 
         self.logfile = logfile
@@ -240,6 +240,9 @@ class SnuddaPrune(object):
                                      close_input_file=True)
 
         end_time = timeit.default_timer()
+
+        if self.clean_temp_files:
+            self.cleanup()
 
         self.write_log(f"prune synapses and gap junctions: {end_time - start_time:.1f}s")
 
