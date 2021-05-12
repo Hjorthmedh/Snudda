@@ -11,33 +11,33 @@ from snudda.utils.reposition_neurons import RepositionNeurons
 
 class PruningIllustration(object):
 
-    def __init__(self):
+    def __init__(self, verbose=False):
 
         if os.path.dirname(__file__):
             os.chdir(os.path.dirname(__file__))
 
         self.network_path = "pruning_illustration_network"
-        self.config_file = os.path.join(self.network_path, "network-config.json")
-        self.position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
-        self.save_file = os.path.join(self.network_path, "voxels", "network-synapses.hdf5")
+        # self.config_file = os.path.join(self.network_path, "network-config.json")
+        # self.save_file = os.path.join(self.network_path, "voxels", "network-synapses.hdf5")
 
         create_cube_mesh(file_name=os.path.join(self.network_path, "mesh", "simple_mesh.obj"),
                          centre_point=(0, 0, 0),
                          side_len=500e-6)
 
-        sp = SnuddaPlace(config_file=self.config_file, d_view=None)
+        # Default uses network_config.json
+        sp = SnuddaPlace(network_path=self.network_path, d_view=None, verbose=verbose)
 
         print("Calling read_config")
         sp.parse_config()
         print("Read done")
-        sp.write_data(self.position_file)
+
+        position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
+        sp.write_data(position_file)
 
         # We want to load in the ball and stick neuron that has 20 micrometer soma diameter, and axon (along y-axis),
         # and dendrite along (x-axis) out to 200 micrometer distance from centre of soma.
 
-        self.sd = SnuddaDetect(config_file=self.config_file, position_file=self.position_file,
-                               save_file=self.save_file, rc=None,
-                               hyper_voxel_size=150)
+        self.sd = SnuddaDetect(network_path=self.network_path, rc=None, hyper_voxel_size=150, verbose=verbose)
 
         # Reposition the neurons so we know how many synapses and where they will be located before pruning
         neuron_positions = np.array([[0, 59, 0],  # Postsynaptiska
@@ -86,7 +86,7 @@ class PruningIllustration(object):
         self.sd.detect(restart_detection_flag=True)
 
         # Also update so that the new positions are saved in the place file
-        rn = RepositionNeurons(self.position_file)
+        rn = RepositionNeurons(position_file)
         for neuron_info in self.sd.neurons:
             rn.place(neuron_info["neuronID"], position=neuron_info["position"], rotation=neuron_info["rotation"],
                      verbose=False)
@@ -102,7 +102,7 @@ class PruningIllustration(object):
             import pdb
             pdb.set_trace()
 
-    def prune_network(self, pruning_config=None, fig_name=None, title=None):
+    def prune_network(self, pruning_config=None, fig_name=None, title=None, verbose=False):
 
         work_log = os.path.join(self.network_path, "log", "network-detect-worklog.hdf5")
         pruned_output = os.path.join(self.network_path, "network-synapses.hdf5")
@@ -110,8 +110,8 @@ class PruningIllustration(object):
         if pruning_config is not None and not os.path.exists(pruning_config):
             pruning_config = os.path.join(self.network_path, pruning_config)
 
-        sp = SnuddaPrune(network_path=self.network_path, config_file=pruning_config)  # Use default config file
-        sp.prune(pre_merge_only=False)
+        sp = SnuddaPrune(network_path=self.network_path, config_file=pruning_config, verbose=verbose)  # Use default config file
+        sp.prune()
         sp = []
 
         plot_axon = True
@@ -129,6 +129,7 @@ class PruningIllustration(object):
 
         # Load the pruned data and check it
         # sl = SnuddaLoad(pruned_output)
+
 
 if __name__ == "__main__":
 
