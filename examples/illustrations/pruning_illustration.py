@@ -102,7 +102,8 @@ class PruningIllustration(object):
             import pdb
             pdb.set_trace()
 
-    def prune_network(self, pruning_config=None, fig_name=None, title=None, verbose=False):
+    def prune_network(self, pruning_config=None, fig_name=None, title=None, verbose=False, plot_network=True,
+                      random_seed=None):
 
         work_log = os.path.join(self.network_path, "log", "network-detect-worklog.hdf5")
         pruned_output = os.path.join(self.network_path, "network-synapses.hdf5")
@@ -112,7 +113,7 @@ class PruningIllustration(object):
 
         # We keep temp files
         sp = SnuddaPrune(network_path=self.network_path, config_file=pruning_config,
-                         verbose=verbose, clean_temp_files=False)  # Use default config file
+                         verbose=verbose, clean_temp_files=False, random_seed=random_seed)  # Use default config file
         sp.prune()
         sp = []
 
@@ -123,14 +124,28 @@ class PruningIllustration(object):
         #plot_axon[:10] = False
         #plot_dendrite[10:] = False
 
-        pn = PlotNetwork(pruned_output)
-        plt, ax = pn.plot(fig_name=fig_name, show_axis=False,
-                          plot_axon=plot_axon, plot_dendrite=plot_dendrite,
-                          title=title, title_pad=-14,
-                          elev_azim=(90, 0))
+        if plot_network:
+            pn = PlotNetwork(pruned_output)
+            plt, ax = pn.plot(fig_name=fig_name, show_axis=False,
+                              plot_axon=plot_axon, plot_dendrite=plot_dendrite,
+                              title=title, title_pad=-14,
+                              elev_azim=(90, 0))
 
-        # Load the pruned data and check it
-        # sl = SnuddaLoad(pruned_output)
+            # Load the pruned data and check it
+            # sl = SnuddaLoad(pruned_output)
+
+        n_synapses = sp.out_file["network/synapses"].shape[0]
+        n_gap_junctions = sp.out_file["network/gapJunctions"].shape[0]
+
+        return n_synapses, n_gap_junctions
+
+    def gather_pruning_statistics(self, pruning_config, n_repeats):
+
+        n_synapses = []
+        rand_seed =
+
+        for ctr in range(0, n_repeats):
+            n_syn, _ = self.prune_network(pruning_config=pruning_config, random_seed)
 
 
 if __name__ == "__main__":
