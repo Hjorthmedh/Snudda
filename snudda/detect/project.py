@@ -25,7 +25,7 @@ class SnuddaProject(object):
         self.output_file_name = os.path.join(self.network_path, "network-projection-synapses.hdf5")
 
         max_synapses = 100000
-        self.synapses = np.zeros((max_synapses, 13), dtype=np.int32)
+        self.synapses = np.zeros((max_synapses, 13), dtype=np.float32)
         self.synapse_ctr = 0
         self.connectivity_distributions = dict()
         self.prototype_neurons = dict()
@@ -282,5 +282,3 @@ class SnuddaProject(object):
                 hist_file["nProjectionSynapses"][()] = self.synapse_ctr
             else:
                 hist_file.create_dataset("nProjectionSynapses", data=self.synapse_ctr, dtype=int)
-
-
