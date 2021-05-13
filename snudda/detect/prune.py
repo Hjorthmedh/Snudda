@@ -858,8 +858,8 @@ class SnuddaPrune(object):
             self.d_view.scatter("output_filename", temp_output_file_name, block=True)
             self.d_view.push({"merge_data_type": merge_data_type}, block=True)
 
-            cmd_str = ("syn_before, syn_after = nw.prune_synapses(synapse_file=synapse_filename[0],"
-                       "                                          output_filename=output_filename[0],"
+            cmd_str = ("syn_before, syn_after = nw.prune_synapses(synapse_file=synapse_filename,"
+                       "                                          output_filename=output_filename,"
                        "                                          merge_data_type=merge_data_type)")
 
             start_time = timeit.default_timer()
@@ -1579,7 +1579,7 @@ class SnuddaPrune(object):
 
         h5_syn_mat, h5_hyp_syn_n, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
 
-        if synapse_file is None:
+        if synapse_file is None or len(synapse_file) == 0:
             self.write_log(f"prune_synapses: No synapse_file specified for {merge_data_type} -- none detected?")
             return 0, 0
 
@@ -1599,7 +1599,7 @@ class SnuddaPrune(object):
             row_start = row_range[0]
             row_end = row_range[-1]
 
-        if row_start is None or row_end is None:
+        if row_start is None or row_end is None or row_start == row_end:
             self.write_log("prune_synapses: Nothing to do, empty row range")
             return 0, 0
 
