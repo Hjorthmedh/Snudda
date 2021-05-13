@@ -257,11 +257,11 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
             self.connect_neuron_synapses_gpcr(start_row=next_row_set[0], end_row=next_row_set[1])
 
             # Find the next group of synapses
-            next_row_set = self.find_next_synapse_group(next_row[1]) # 2nd number was not included in range
+            next_row_set = self.find_next_synapse_group(next_row_set[1]) # 2nd number was not included in range
 
     def connect_neuron_synapses_gpcr(self, start_row, end_row):
 
-        source_id_list, dest_id, synapse_type_id, axon_distance, conductance, parameter_id = \
+        source_id_list, dend_sections, sec_x, synapse_type_id, axon_distance, conductance, parameter_id = \
             self.get_synapse_info(start_row=start_row, end_row=end_row)
 
         for (src_id, section, section_x, s_type_id, axon_dist, cond, p_id) \
