@@ -848,7 +848,8 @@ class SnuddaPrune(object):
             self.setup_parallel(d_view=self.d_view)
 
             assert len(synapse_file) == len(self.d_view), \
-                f"Internal mismatch, n_workers={len(self.d_view)}, n_synapse_files={len(synapse_file)}"
+                (f"Internal mismatch, n_workers={len(self.d_view)}, n_synapse_files={len(synapse_file)}"
+                 f" (first prune was run with {len(synapse_file)} workers), these must match when rerunning prune.")
 
             self.d_view.scatter("synapse_filename", synapse_file, block=True)
 
@@ -884,7 +885,7 @@ class SnuddaPrune(object):
             end_time2 = timeit.default_timer()
             self.write_log(f"prune_synapses_parallel "
                            f"({syn_after_merge}/{syn_before.sum()} {merge_data_type}, " 
-                           f"{(100*syn_after_merge/syn_before.sum()):.1f}% kept)"
+                           f"{(100*syn_after_merge/np.maximum(1, syn_before.sum())):.1f}% kept)"
                            f": {end_time2 - start_time:.1f}s", force_print=True)
 
         else:
@@ -1599,7 +1600,7 @@ class SnuddaPrune(object):
             row_start = row_range[0]
             row_end = row_range[-1]
 
-        if row_start is None or row_end is None:
+        if row_start is None or row_end is None or row_start == row_end:
             self.write_log("prune_synapses: Nothing to do, empty row range")
             return 0, 0
 
