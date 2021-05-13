@@ -25,7 +25,7 @@ class SnuddaProject(object):
         self.output_file_name = os.path.join(self.network_path, "network-projection-synapses.hdf5")
 
         max_synapses = 100000
-        self.synapses = np.zeros((max_synapses, 13), dtype=np.float32)
+        self.synapses = np.zeros((max_synapses, 13), dtype=np.int32)
         self.synapse_ctr = 0
         self.connectivity_distributions = dict()
         self.prototype_neurons = dict()
@@ -232,7 +232,7 @@ class SnuddaProject(object):
                              xyz[i, 0], xyz[i, 1], xyz[i, 2],
                              -1,  # Hypervoxelid
                              channel_model_id,
-                             ax_dist, dist_to_soma[i],
+                             ax_dist*1e6, dist_to_soma[i]*1e6,
                              sec_id[i], sec_x[i] * 1000,
                              cond[i] * 1e12, param_id[i]]
                         self.synapse_ctr += 1
