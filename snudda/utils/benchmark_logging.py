@@ -60,8 +60,22 @@ class BenchmarkLogging:
     def write_log(self):
 
         if os.path.exists(self.log_file):
-            with open(self.log_file, "r") as fr:
-                data = json.load(fr, object_pairs_hook=OrderedDict)
+            try:
+                with open(self.log_file, "r") as fr:
+                    data = json.load(fr, object_pairs_hook=OrderedDict)
+            except:
+                try:
+                    import datetime
+                    cur_time = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+                    backup_file = f"{self.log_file}-old-{cur_time}"
+                    os.rename(self.log_file, backup_file)
+                    self.write_log(f"Renamed corrupt {self.log_file} as {backup_file}")
+                except:
+                    self.write_log(f"Failed to create {backup_file}")
+
+                # Start with fresh data, this will overwrite old data
+                data = OrderedDict()
+
         else:
             data = OrderedDict()
 
