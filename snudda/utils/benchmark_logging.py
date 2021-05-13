@@ -19,7 +19,7 @@ class BenchmarkLogging:
         self.end_time = dict()
         self.pc = None  # Used if running neuron
 
-        if parallel_flag:
+        if parallel_flag or running_neuron:
             self.num_workers = self.get_number_of_workers(running_neuron=running_neuron)
         else:
             self.num_workers = 1

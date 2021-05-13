@@ -612,6 +612,9 @@ class SnuddaSimulate(object):
 
         self.write_log("Finding node local gap junctions...")
 
+        if self.gap_junctions.shape[0] == 0:
+            return np.array([]), np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
+
         gj_idx_a = np.where([x in self.neuron_id for x in self.gap_junctions[:, 0]])[0]
         gj_idx_b = np.where([x in self.neuron_id for x in self.gap_junctions[:, 1]])[0]
 
@@ -661,8 +664,7 @@ class SnuddaSimulate(object):
 
         self.write_log("connectNetworkGapJunctionsLOCAL")
 
-        (neuron_id, compartment, seg_x, gj_gid_src, gj_gid_dest, cond) \
-            = self.find_local_gap_junctions()
+        (neuron_id, compartment, seg_x, gj_gid_src, gj_gid_dest, cond) = self.find_local_gap_junctions()
 
         # import pdb
         # pdb.set_trace()
