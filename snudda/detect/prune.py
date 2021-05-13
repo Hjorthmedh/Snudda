@@ -848,7 +848,8 @@ class SnuddaPrune(object):
             self.setup_parallel(d_view=self.d_view)
 
             assert len(synapse_file) == len(self.d_view), \
-                f"Internal mismatch, n_workers={len(self.d_view)}, n_synapse_files={len(synapse_file)}"
+                (f"Internal mismatch, n_workers={len(self.d_view)}, n_synapse_files={len(synapse_file)}"
+                 f" (first prune was run with {len(synapse_file)} workers), these must match when rerunning prune.")
 
             self.d_view.scatter("synapse_filename", synapse_file, block=True)
 
@@ -858,8 +859,8 @@ class SnuddaPrune(object):
             self.d_view.scatter("output_filename", temp_output_file_name, block=True)
             self.d_view.push({"merge_data_type": merge_data_type}, block=True)
 
-            cmd_str = ("syn_before, syn_after = nw.prune_synapses(synapse_file=synapse_filename,"
-                       "                                          output_filename=output_filename,"
+            cmd_str = ("syn_before, syn_after = nw.prune_synapses(synapse_file=synapse_filename[0],"
+                       "                                          output_filename=output_filename[0],"
                        "                                          merge_data_type=merge_data_type)")
 
             start_time = timeit.default_timer()
@@ -884,7 +885,7 @@ class SnuddaPrune(object):
             end_time2 = timeit.default_timer()
             self.write_log(f"prune_synapses_parallel "
                            f"({syn_after_merge}/{syn_before.sum()} {merge_data_type}, " 
-                           f"{(100*syn_after_merge/syn_before.sum()):.1f}% kept)"
+                           f"{(100*syn_after_merge/np.maximum(1, syn_before.sum())):.1f}% kept)"
                            f": {end_time2 - start_time:.1f}s", force_print=True)
 
         else:
@@ -1579,7 +1580,7 @@ class SnuddaPrune(object):
 
         h5_syn_mat, h5_hyp_syn_n, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
 
-        if synapse_file is None or len(synapse_file) == 0:
+        if synapse_file is None:
             self.write_log(f"prune_synapses: No synapse_file specified for {merge_data_type} -- none detected?")
             return 0, 0
 
