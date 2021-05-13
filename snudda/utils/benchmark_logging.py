@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 class BenchmarkLogging:
 
-    def __init__(self, network_path, parallel_flag=False, log_file=None):
+    def __init__(self, network_path, parallel_flag=False, log_file=None, running_neuron=False):
 
         if log_file:
             self.log_file = log_file
@@ -17,15 +17,23 @@ class BenchmarkLogging:
 
         self.start_time = dict()
         self.end_time = dict()
+        self.pc = None  # Used if running neuron
 
         if parallel_flag:
-            self.num_workers = self.get_number_of_workers()
+            self.num_workers = self.get_number_of_workers(running_neuron=running_neuron)
         else:
             self.num_workers = 1
 
-    @staticmethod
-    def get_number_of_workers():
-        # Is there a simpler way to get the number of workers?
+    def get_number_of_workers(self, running_neuron):
+
+        if running_neuron:
+            # We are running neuron, different way to detect number of workers
+            from mpi4py import MPI
+            from neuron import h
+            self.pc = h.ParallelContext()
+            return self.pc.nhost()
+
+            # Is there a simpler way to get the number of workers?
 
         ipython_profile = os.getenv('IPYTHON_PROFILE')
         if not ipython_profile:
@@ -59,20 +67,16 @@ class BenchmarkLogging:
 
     def write_log(self):
 
+        if self.pc and self.pc.id() != 0:
+            # If this is true we are running NEURON, and with id != 0 we are not master node, just return
+            return
+
         if os.path.exists(self.log_file):
             try:
                 with open(self.log_file, "r") as fr:
                     data = json.load(fr, object_pairs_hook=OrderedDict)
             except:
-                try:
-                    import datetime
-                    cur_time = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-                    backup_file = f"{self.log_file}-old-{cur_time}"
-                    os.rename(self.log_file, backup_file)
-                    self.write_log(f"Renamed corrupt {self.log_file} as {backup_file}")
-                except:
-                    self.write_log(f"Failed to create {backup_file}")
-
+                print(f"Error loading {self.log_file}, creating new benchmark log.")
                 # Start with fresh data, this will overwrite old data
                 data = OrderedDict()
 
