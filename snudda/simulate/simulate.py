@@ -1360,12 +1360,12 @@ class SnuddaSimulate(object):
         if num_bad > 0:
             # If this happens, check that Neuron does not warn for removing sections
             # due to having only one point
-            self.write_log("!!! Found " + str(num_bad) + " synapses on "
-                           + self.network_info["neurons"][dest_id]["name"]
-                           + "( " + str(dest_id) + ") "
-                           + " that are further than " + str(bad_threshold) + "mum away."
-                           + " morphology: "
-                           + self.network_info["neurons"][dest_id]["morphology"],
+            self.write_log(f"!!! Found {num_bad} synapses on "
+                           f"{self.network_info['neurons'][dest_id]['name']} ({dest_id}) "
+                           f" that are further than {bad_threshold} mum away "
+                           f" (out of {len(syn_mismatch)} synapses)"
+                           f" Max found was {np.max(syn_mismatch):.0f} mum from expected location."
+                           f" morphology: {self.network_info['neurons'][dest_id]['morphology']}",
                            is_error=True)
 
             ### DEBUG PLOT!!!
@@ -1376,13 +1376,12 @@ class SnuddaSimulate(object):
 
                 soma_dist = np.sqrt(np.sum(synapse_pos ** 2, axis=1))
                 plt.scatter(soma_dist * 1e6, syn_mismatch)
-                plt.ion()
+                # plt.ion()
                 plt.show()
                 plt.title(self.network_info["neurons"][dest_id]["name"])
 
-                from mpl_toolkits.mplot3d import Axes3D
                 fig = plt.figure()
-                ax = fig.add_subplot(111, projection='3d')
+                ax = fig.add_subplot(projection='3d')
 
                 ax.scatter(synapse_pos[:, 0],
                            synapse_pos[:, 1],
