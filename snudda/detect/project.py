@@ -232,7 +232,7 @@ class SnuddaProject(object):
                              xyz[i, 0], xyz[i, 1], xyz[i, 2],
                              -1,  # Hypervoxelid
                              channel_model_id,
-                             ax_dist, dist_to_soma[i],
+                             ax_dist*1e6, dist_to_soma[i]*1e6,
                              sec_id[i], sec_x[i] * 1000,
                              cond[i] * 1e12, param_id[i]]
                         self.synapse_ctr += 1
@@ -282,5 +282,3 @@ class SnuddaProject(object):
                 hist_file["nProjectionSynapses"][()] = self.synapse_ctr
             else:
                 hist_file.create_dataset("nProjectionSynapses", data=self.synapse_ctr, dtype=int)
-
-
