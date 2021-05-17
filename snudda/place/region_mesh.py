@@ -93,7 +93,7 @@ class RegionMesh(object):
         self.reject_ctr = None
 
         # Used or set by setup_voxel_list
-        self.max_neurons_voxel = int(np.ceil(200000*(self.bin_width/1e-3)**3))  # We assume no more than 200k neurons per mm3
+        self.max_neurons_voxel = int(np.ceil(300000*(self.bin_width/1e-3)**3))  # We assume no more than 300k neurons per mm3
         self.voxel_next_neuron = None
         self.voxel_neurons = None
 
@@ -976,10 +976,18 @@ class RegionMesh(object):
 
                 # Also save the point in the specific voxel, this way we can ignore
                 # lots of distance comparisons
-                self.voxel_neurons[voxel_idx[0], voxel_idx[1], voxel_idx[2],
-                                   self.voxel_next_neuron[voxel_idx[0], voxel_idx[1], voxel_idx[2]], :] \
-                    = putative_loc
-                self.voxel_next_neuron[voxel_idx[0], voxel_idx[1], voxel_idx[2]] += 1
+                try:
+                    self.voxel_neurons[voxel_idx[0], voxel_idx[1], voxel_idx[2],
+                                       self.voxel_next_neuron[voxel_idx[0], voxel_idx[1], voxel_idx[2]], :] = putative_loc
+                    self.voxel_next_neuron[voxel_idx[0], voxel_idx[1], voxel_idx[2]] += 1
+                except:
+                    self.write_log(f"If you see this error you probably need to increase " 
+                                    f"self.max_neurons_voxel={self.max_neurons_voxel}")
+                    import traceback
+                    tstr = traceback.format_exc()
+                    print(tstr)
+                    import pdb
+                    pdb.set_trace()
 
             else:
                 self.reject_ctr += 1
