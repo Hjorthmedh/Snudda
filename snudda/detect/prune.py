@@ -560,8 +560,7 @@ class SnuddaPrune(object):
         # many millions of times, we create an temporary typeID number
         self.make_type_numbering()
 
-        orig_connectivity_distributions = \
-            json.loads(self.hist_file["meta/connectivityDistributions"][()])
+        orig_connectivity_distributions = json.loads(self.hist_file["meta/connectivityDistributions"][()])
 
         config_connectivity_distributions = self.config["Connectivity"]
 
@@ -593,8 +592,7 @@ class SnuddaPrune(object):
                 # This data is added by detect, we need to take it from what was used during detection
                 synapse_type_id = orig_connectivity_distributions[orig_key][con_type]["channelModelID"]
 
-                self.connectivity_distributions[pre_type_id, post_type_id, synapse_type_id] \
-                    = (pruning, pruning_other)
+                self.connectivity_distributions[pre_type_id, post_type_id, synapse_type_id] = (pruning, pruning_other)
 
     ############################################################################
 
