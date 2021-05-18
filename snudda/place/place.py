@@ -99,6 +99,12 @@ class SnuddaPlace(object):
 
     ############################################################################
 
+    def place(self):
+        self.parse_config()
+        self.write_data()
+
+    ############################################################################
+
     def write_log(self, text):
         if self.log_file is not None:
             self.log_file.write(text + "\n")
