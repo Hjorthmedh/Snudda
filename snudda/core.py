@@ -121,8 +121,6 @@ class Snudda(object):
         print("Placing neurons")
         print(f"Network path: {self.network_path}")
 
-        config_file = os.path.join(self.network_path, "network-config.json")
-        position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
         log_file_name = os.path.join(self.network_path, "log", "logFile-place-neurons.txt")
 
         random_seed = args.randomseed
@@ -139,7 +137,7 @@ class Snudda(object):
         else:
             h5libver = "latest"  # default
 
-        sp = SnuddaPlace(config_file=config_file,
+        sp = SnuddaPlace(network_path=self.network_path,
                          log_file=self.logfile,
                          verbose=args.verbose,
                          d_view=self.d_view,
@@ -147,8 +145,7 @@ class Snudda(object):
                          raytrace_borders=args.raytrace_borders,
                          random_seed=random_seed)
 
-        sp.parse_config()
-        sp.write_data(position_file)
+        sp.place()
 
         self.stop_parallel()
         self.close_log_file()
