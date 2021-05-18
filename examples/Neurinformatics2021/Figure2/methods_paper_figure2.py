@@ -69,8 +69,6 @@ class MethodsPaperFigure2:
                 a.connection_probability(pre_id, post_id, n_bins, dist_3d=dist_3d,
                                          connection_type=connection_type)
 
-            print(f"!!!!    !!!!  count_con = {count_con}")
-
             d_half_step = (dist[1] - dist[0]) / 2
             plt.plot((dist + d_half_step) * 1e6, p_con,
                      color=self.plot_colour[idx],
@@ -121,10 +119,6 @@ class MethodsPaperFigure2:
 
         plt.title(f"{self.analysis[0].neuron_name(pre_type)} to {self.analysis[0].neuron_name(post_type)}")
         plt.tight_layout()
-
-        print("Debugging figure")
-        import pdb
-        pdb.set_trace()
 
         fig_name = 'Summary-pruning-dist-dep-connection-probability-' \
                    + str(pre_type) + "-to-" + str(post_type) \
@@ -278,6 +272,7 @@ class MethodsPaperFigure2:
     def remove_pruning(network_data, pre_neuron, post_neuron, synapse_type, parameter_list):
 
         for p in parameter_list:
+            assert p in network_data["Connectivity"][f"{pre_neuron},{post_neuron}"][synapse_type]["pruning"]
             network_data["Connectivity"][f"{pre_neuron},{post_neuron}"][synapse_type]["pruning"][p] = None
 
         return network_data
