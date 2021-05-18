@@ -255,11 +255,6 @@ class Snudda(object):
         else:
             h5libver = "latest"  # default
 
-        if args.keepfiles:
-            clean_temp_files = False
-        else:
-            clean_temp_files = True
-
         sp = SnuddaPrune(network_path=self.network_path,
                          logfile=self.logfile,
                          logfile_name=log_filename,
@@ -269,7 +264,7 @@ class Snudda(object):
                          h5libver=h5libver,
                          random_seed=random_seed,
                          verbose=args.verbose,
-                         clean_temp_files=clean_temp_files)
+                         keep_files=args.keepfiles)
 
         sp.prune()
 

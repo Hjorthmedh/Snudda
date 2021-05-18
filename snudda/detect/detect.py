@@ -76,6 +76,9 @@ class SnuddaDetect(object):
 
         self.random_seed = random_seed
 
+        if config_file and not network_path:
+            network_path = os.path.dirname(config_file)
+
         if network_path:
             self.network_path = network_path
 
@@ -91,9 +94,6 @@ class SnuddaDetect(object):
 
             if not logfile and not logfile_name:
                 log_filename = os.path.join(network_path, "log", "logFile-touch-detection.txt")
-
-        elif config_file:
-            self.network_path = os.path.dirname(config_file)
 
         self.config_file = config_file
         self.position_file = position_file

@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 import matplotlib
@@ -7,28 +8,33 @@ from snudda.analyse import SnuddaAnalyse
 from snudda import SnuddaInit
 
 
-class MethodsPaperFigure2(object):
+class MethodsPaperFigure2:
 
-    def __init__(self, network_file_list, legend):
+    def __init__(self, network_file_list):
 
         self.analysis = []
+        self.network_file_list = network_file_list
 
-        self.networkFileList = network_file_list
-
-        for nf in self.networkFileList:
+        for nf in self.network_file_list:
             print(f"Loading {nf}")
             self.analysis.append(SnuddaAnalyse(hdf5_file=nf,
                                                volume_type="cube"))
 
         self.side_len = 250e-6
 
-        self.legend = legend
+        self.legend = ['No pruning',
+                       'DP',
+                       'DP, f1',
+                       'DP, f1, SM',
+                       'DP, f1, SM, mu2',
+                       'DP, f1, SM, mu2, a3']
 
-        self.plot_style = ['-', '-', '--', '--', ':']
-        self.plot_colour = [(0, 0, 0),
-                            (0.5, 0.5, 0.5),
+        self.plot_style = ['-', '-', '--', '--', ':', '-']
+        self.plot_colour = [(0.5, 0.5, 0.5),
+                            (0.75, 0.75, 0.75),
                             (0, 0, 0),
                             (0.5, 0.5, 0.5),
+                            (0, 0, 0),
                             (0, 0, 0)]
 
     ############################################################################
@@ -59,9 +65,11 @@ class MethodsPaperFigure2(object):
                                     side_len=self.side_len,
                                     neuron_id=post_id)
 
-            (dist, p_con, countCon, countAll) = \
+            (dist, p_con, count_con, count_all) = \
                 a.connection_probability(pre_id, post_id, n_bins, dist_3d=dist_3d,
                                          connection_type=connection_type)
+
+            print(f"!!!!    !!!!  count_con = {count_con}")
 
             d_half_step = (dist[1] - dist[0]) / 2
             plt.plot((dist + d_half_step) * 1e6, p_con,
@@ -113,16 +121,19 @@ class MethodsPaperFigure2(object):
 
         plt.title(f"{self.analysis[0].neuron_name(pre_type)} to {self.analysis[0].neuron_name(post_type)}")
         plt.tight_layout()
-        plt.ion()
-        plt.draw()
-        plt.show()
-        plt.pause(0.001)
+
+        print("Debugging figure")
+        import pdb
+        pdb.set_trace()
 
         fig_name = 'Summary-pruning-dist-dep-connection-probability-' \
                    + str(pre_type) + "-to-" + str(post_type) \
                    + "-" + str(connection_type)
 
-        self.analysis[0].save_figure(plt, fig_name)
+        self.analysis[0].save_figure(plt, fig_name, fig_type="png")
+
+        plt.show()
+        plt.pause(0.001)
 
     ############################################################################
 
@@ -198,14 +209,12 @@ class MethodsPaperFigure2(object):
 
         plt.tight_layout()
 
-        plt.ion()
-        plt.draw()
+        fig_name = f"Summary-network-number-of-{connection_type}-from-{pre_type}-to-{post_type}-per-cell"
+        self.analysis[0].save_figure(plt, fig_name, fig_type="png")
+
         plt.show()
         plt.pause(0.001)
 
-        fig_name = f"Summary-network-number-of-{connection_type}-from-{pre_type}-to-{post_type}-per-cell"
-
-        self.analysis[0].save_figure(plt, fig_name)
 
     ############################################################################
 
@@ -232,18 +241,14 @@ class MethodsPaperFigure2(object):
         ax.set_xlabel('Distance from soma ($\mu$m)')
         ax.set_ylabel('Cumulative distrib.')
 
-        plt.ion()
-        plt.show()
-        plt.draw()
-        plt.pause(0.0001)
-
         fig_name = f"Summary-cumDist-of-{connection_type}-from-{pre_type}-to-{post_type}-per-cell"
-
-        self.analysis[0].save_figure(plt, fig_name)
+        self.analysis[0].save_figure(plt, fig_name, fig_type="png")
+        plt.show()
 
     ############################################################################
 
-    def setup_network(self, network_path, network_type, n_neurons=2000):
+    @staticmethod
+    def setup_network(network_path, config_name, network_type, n_neurons=2000, random_seed=None):
 
         # These parameters should be cleared
         param_lookup = {'No pruning': ["f1", "softMax", "mu2", "a3", "distPruning"],
@@ -257,20 +262,23 @@ class MethodsPaperFigure2(object):
         n_dspn = int(n_neurons / 2)
         n_ispn = int(n_neurons / 2)
 
-        neurons_dir = "$DATA/neurons/striatum/"
+        neurons_dir = "$DATA/neurons/"
+        config_file = os.path.join(network_path, config_name)
 
-        si = SnuddaInit(network_path=network_path, struct_def={})
+        si = SnuddaInit(config_file=config_file, struct_def={}, random_seed=random_seed)
         si.define_striatum(num_dSPN=n_dspn, num_iSPN=n_ispn, num_FS=0, num_LTS=0, num_ChIN=0,
                            volume_type="cube", neurons_dir=neurons_dir)
-        si.network_data = self.remove_pruning(network_data=si.network_data, pre_neuron="iSPN", post_neuron="dSPN",
-                                              parameter_list=param_lookup[network_type])
+        si.network_data = MethodsPaperFigure2.remove_pruning(network_data=si.network_data,
+                                                             pre_neuron="iSPN", post_neuron="dSPN",
+                                                             synapse_type="GABA",
+                                                             parameter_list=param_lookup[network_type])
         si.write_json()
 
     @staticmethod
-    def remove_pruning(network_data, pre_neuron, post_neuron, parameter_list):
+    def remove_pruning(network_data, pre_neuron, post_neuron, synapse_type, parameter_list):
 
         for p in parameter_list:
-            network_data["Connectivity"][f"{pre_neuron},{post_neuron}"]["pruning"][p] = None
+            network_data["Connectivity"][f"{pre_neuron},{post_neuron}"][synapse_type]["pruning"][p] = None
 
         return network_data
 
