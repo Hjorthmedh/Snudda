@@ -1,4 +1,4 @@
-# Reproducing figures in Hjorth et al, 2021
+# Reproducing figures in Hjorth, Hellgren Kotaleski, Kozlov, 2021
 
 * Figure 1, Illustrations of striatum, see [Blender example](../notebooks/blender_example.ipynb)
 * Figure 2, [Striatal network](Figure2/) touch detection and pruning
