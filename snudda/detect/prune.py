@@ -449,6 +449,7 @@ class SnuddaPrune(object):
             self.config_file = self.hist_file["meta/configFile"][()]
         else:
             self.config_file = config_file
+
         self.position_file = self.hist_file["meta/positionFile"][()]
 
         # This was config data used for detection, might differ from pruning config
@@ -1066,10 +1067,12 @@ class SnuddaPrune(object):
 
         d_view.scatter('logfile_name', engine_log_file, block=True)
         d_view.push({"network_path": self.network_path,
-                     "random_seed": self.random_seed}, block=True)
+                     "random_seed": self.random_seed,
+                     "config_file": self.config_file}, block=True)
 
         cmd_str = ("sp = SnuddaPrune(network_path=network_path, logfile_name=logfile_name[0]," 
-                   "role='worker',random_seed=random_seed)")
+                   "                 config_file=config_file,"
+                   "                 role='worker',random_seed=random_seed)")
         d_view.execute(cmd_str, block=True)
 
         self.write_log(f"Workers setup: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
