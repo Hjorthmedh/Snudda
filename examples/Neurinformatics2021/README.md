@@ -5,5 +5,5 @@
 * Figure 3, [Simplified example](Figure3/) touch detection and pruning
 * Figure 4, [Network simulation](Figure4/)
 * Figure 5, [Benchmarking](Figure5/)
-* Figure 6, Treem illustration
-* Figure 7, Treem illustration
+* Figure 6, Treem illustration, [see documentation](https://treem.readthedocs.io/en/latest/examples.html#cli-use-cases)
+* Figure 7, Treem illustration, [see documentation](https://treem.readthedocs.io/en/latest/examples.html#cli-use-cases)
