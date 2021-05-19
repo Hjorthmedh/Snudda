@@ -115,7 +115,7 @@ class TestPrune(unittest.TestCase):
 
         with self.subTest(stage="No-pruning"):
 
-            sp = SnuddaPrune(network_path=self.network_path, config_file=None, verbose=True, clean_temp_files=False)  # Use default config file
+            sp = SnuddaPrune(network_path=self.network_path, config_file=None, verbose=True, keep_files=True)  # Use default config file
             sp.prune()
             sp = []
 
@@ -202,7 +202,7 @@ class TestPrune(unittest.TestCase):
         with self.subTest("synapse-f1"):
             # Test of f1
             testing_config_file = os.path.join(self.network_path, "network-config-test-1.json")
-            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, clean_temp_files=False)  # Use default config file
+            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, keep_files=True)  # Use default config file
             sp.prune()
 
             # Load the pruned data and check it
@@ -221,7 +221,7 @@ class TestPrune(unittest.TestCase):
         with self.subTest("synapse-softmax"):
             # Test of softmax
             testing_config_file = os.path.join(self.network_path, "network-config-test-2.json")  # Only GABA synapses in this config
-            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, clean_temp_files=False)  # Use default config file
+            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, keep_files=True)  # Use default config file
             sp.prune()
 
             # Load the pruned data and check it
@@ -232,7 +232,7 @@ class TestPrune(unittest.TestCase):
         with self.subTest("synapse-mu2"):
             # Test of mu2
             testing_config_file = os.path.join(self.network_path, "network-config-test-3.json")
-            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, clean_temp_files=False)  # Use default config file
+            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, keep_files=True)  # Use default config file
             sp.prune()
 
             # Load the pruned data and check it
@@ -243,7 +243,7 @@ class TestPrune(unittest.TestCase):
         with self.subTest("synapse-a3"):
             # Test of a3
             testing_config_file = os.path.join(self.network_path, "network-config-test-4.json")
-            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, clean_temp_files=False)  # Use default config file
+            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, keep_files=True)  # Use default config file
             sp.prune()
 
             # Load the pruned data and check it
@@ -255,7 +255,7 @@ class TestPrune(unittest.TestCase):
         with self.subTest("synapse-distance-dependent-pruning"):
             # Testing distance dependent pruning
             testing_config_file = os.path.join(self.network_path, "network-config-test-5.json")
-            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, clean_temp_files=False)  # Use default config file
+            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, keep_files=True)  # Use default config file
             sp.prune()
 
             # Load the pruned data and check it
@@ -269,7 +269,7 @@ class TestPrune(unittest.TestCase):
         with self.subTest("gap-junction-f1"):
             # Test of f1
             testing_config_file = os.path.join(self.network_path, "network-config-test-6.json")
-            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, clean_temp_files=False)  # Use default config file
+            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, keep_files=True)  # Use default config file
             sp.prune()
 
             # Load the pruned data and check it
@@ -281,7 +281,7 @@ class TestPrune(unittest.TestCase):
         with self.subTest("gap-junction-softmax"):
             # Test of softmax
             testing_config_file = os.path.join(self.network_path, "network-config-test-7.json")
-            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, clean_temp_files=False)  # Use default config file
+            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, keep_files=True)  # Use default config file
             sp.prune()
 
             # Load the pruned data and check it
@@ -292,7 +292,7 @@ class TestPrune(unittest.TestCase):
         with self.subTest("gap-junction-mu2"):
             # Test of mu2
             testing_config_file = os.path.join(self.network_path, "network-config-test-8.json")
-            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, clean_temp_files=False)  # Use default config file
+            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, keep_files=True)  # Use default config file
             sp.prune()
 
             # Load the pruned data and check it
@@ -303,7 +303,7 @@ class TestPrune(unittest.TestCase):
         with self.subTest("gap-junction-a3"):
             # Test of a3
             testing_config_file = os.path.join(self.network_path, "network-config-test-9.json")
-            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, clean_temp_files=False)  # Use default config file
+            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, keep_files=True)  # Use default config file
             sp.prune()
 
             # Load the pruned data and check it
@@ -316,7 +316,7 @@ class TestPrune(unittest.TestCase):
             with self.subTest("gap-junction-distance-dependent-pruning"):
                 # Testing distance dependent pruning
                 testing_config_file = os.path.join(self.network_path, "network-config-test-10.json")
-                sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, clean_temp_files=False)  # Use default config file
+                sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, keep_files=True)  # Use default config file
                 sp.prune()
 
                 # Load the pruned data and check it

@@ -66,7 +66,7 @@ class SnuddaPrune(object):
                  # pre_merge_only=False,
                  h5libver="latest",
                  random_seed=None,
-                 clean_temp_files=True):  # If False then you can redo pruning multiple times without reruning detect
+                 keep_files=False):  # If True then you can redo pruning multiple times without reruning detect
 
         # Help with parallel debugging, when workers cant print to screen:
         # self.writeToRandomFile("WH = " + str(workHistoryFile) \
@@ -75,7 +75,7 @@ class SnuddaPrune(object):
 
         self.work_history_file = os.path.join(network_path, "log", "network-detect-worklog.hdf5")    
         self.network_path = network_path
-        self.clean_temp_files = clean_temp_files
+        self.keep_files = keep_files
         self.merge_info_file = os.path.join(self.network_path, "pruning_merge_info.json")
 
         self.logfile = logfile
@@ -241,7 +241,7 @@ class SnuddaPrune(object):
 
         end_time = timeit.default_timer()
 
-        if self.clean_temp_files:
+        if not self.keep_files:
             self.cleanup()
 
         self.write_log(f"prune synapses and gap junctions: {end_time - start_time:.1f}s")
@@ -389,6 +389,11 @@ class SnuddaPrune(object):
 
         # self.clean_up_merge_files()  # -- This caused old files to be cleaned up when aborting. Bad for debugging.
 
+        if self.rc:
+            # Clean up memory on workers
+            from snudda.utils import cleanup
+            cleanup(self.rc, "prune")
+
     ############################################################################
 
     def open_work_history_file(self, work_history_file=None, config_file=None):
@@ -444,6 +449,7 @@ class SnuddaPrune(object):
             self.config_file = self.hist_file["meta/configFile"][()]
         else:
             self.config_file = config_file
+
         self.position_file = self.hist_file["meta/positionFile"][()]
 
         # This was config data used for detection, might differ from pruning config
@@ -857,7 +863,7 @@ class SnuddaPrune(object):
             self.d_view.scatter("output_filename", temp_output_file_name, block=True)
             self.d_view.push({"merge_data_type": merge_data_type}, block=True)
 
-            cmd_str = ("syn_before, syn_after = nw.prune_synapses(synapse_file=synapse_filename[0],"
+            cmd_str = ("syn_before, syn_after = sp.prune_synapses(synapse_file=synapse_filename[0],"
                        "                                          output_filename=output_filename[0],"
                        "                                          merge_data_type=merge_data_type)")
 
@@ -999,7 +1005,7 @@ class SnuddaPrune(object):
 
         if self.role == "master" and self.d_view:
             # Make workers clean up their files also
-            cmd_str = "nw.clean_up_merge_files()"
+            cmd_str = "sp.clean_up_merge_files()"
             self.d_view.execute(cmd_str, block=True)
 
         if self.temp_file_list is None:
@@ -1061,10 +1067,12 @@ class SnuddaPrune(object):
 
         d_view.scatter('logfile_name', engine_log_file, block=True)
         d_view.push({"network_path": self.network_path,
-                     "random_seed": self.random_seed}, block=True)
+                     "random_seed": self.random_seed,
+                     "config_file": self.config_file}, block=True)
 
-        cmd_str = ("nw = SnuddaPrune(network_path=network_path, logfile_name=logfile_name[0]," 
-                   "role='worker',random_seed=random_seed)")
+        cmd_str = ("sp = SnuddaPrune(network_path=network_path, logfile_name=logfile_name[0]," 
+                   "                 config_file=config_file,"
+                   "                 role='worker',random_seed=random_seed)")
         d_view.execute(cmd_str, block=True)
 
         self.write_log(f"Workers setup: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
@@ -1187,14 +1195,14 @@ class SnuddaPrune(object):
             self.d_view.scatter("neuron_range", neuron_ranges, block=True)
 
             # Each worker sorts a subset of the neurons and write it to separate files
-            cmd_str_syn = ("merge_result_syn = nw.big_merge_helper(neuron_range=neuron_range[0], "
+            cmd_str_syn = ("merge_result_syn = sp.big_merge_helper(neuron_range=neuron_range[0], "
                            "merge_data_type='synapses')")
 
             self.d_view.execute(cmd_str_syn, block=True)
             merge_results_syn = self.d_view["merge_result_syn"]
 
             # When we do scatter, it embeds the result in a list
-            cmd_str_gj = ("merge_result_gj = nw.big_merge_helper(neuron_range=neuron_range[0], "
+            cmd_str_gj = ("merge_result_gj = sp.big_merge_helper(neuron_range=neuron_range[0], "
                           "merge_data_type='gapJunctions')")
             self.d_view.execute(cmd_str_gj, block=True)
             merge_results_gj = self.d_view["merge_result_gj"]
