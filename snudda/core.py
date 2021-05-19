@@ -221,7 +221,6 @@ class Snudda(object):
 
         sp = SnuddaProject(network_path=self.network_path)
         sp.project()
-        sp.write()
 
         self.stop_parallel()
         self.close_log_file()

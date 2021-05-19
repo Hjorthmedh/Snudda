@@ -17,6 +17,7 @@ from snudda.utils.load import SnuddaLoad
 class SnuddaProject(object):
 
     # TODO: Add support for log files!!
+    # TODO: Add support for parallel execution
     def __init__(self, network_path, rng=None, random_seed=None, h5libver=None):
 
         self.network_path = network_path
@@ -101,10 +102,13 @@ class SnuddaProject(object):
 
             self.connectivity_distributions[pre_type, post_type] = con_def
 
-    def project(self):
+    def project(self, write=True):
 
         for (pre_type, post_type), connection_info in self.connectivity_distributions.items():
             self.connect_projection_helper(pre_type, post_type, connection_info)
+
+        if write:
+            self.write()
 
     def connect_projection_helper(self, pre_neuron_type, post_neuron_type, connection_info):
 

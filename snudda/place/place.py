@@ -102,6 +102,13 @@ class SnuddaPlace(object):
 
         # self.read_config()  # -- Now called from core.py
 
+    def __del__(self):
+
+        if self.d_view:
+            # Cleanup memory on workers
+            from snudda.utils import cleanup
+            cleanup(self.d_view, "place")
+
     ############################################################################
 
     def place(self):
