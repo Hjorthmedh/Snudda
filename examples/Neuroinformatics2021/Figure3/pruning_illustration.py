@@ -118,7 +118,7 @@ class PruningIllustration(object):
 
         # We keep temp files
         sp = SnuddaPrune(network_path=self.network_path, config_file=pruning_config,
-                         verbose=verbose, clean_temp_files=False, random_seed=random_seed)  # Use default config file
+                         verbose=verbose, keep_files=True, random_seed=random_seed)  # Use default config file
         sp.prune()
 
         n_synapses = sp.out_file["network/synapses"].shape[0]

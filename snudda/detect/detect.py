@@ -76,6 +76,9 @@ class SnuddaDetect(object):
 
         self.random_seed = random_seed
 
+        if config_file and not network_path:
+            network_path = os.path.dirname(config_file)
+
         if network_path:
             self.network_path = network_path
 
@@ -91,9 +94,6 @@ class SnuddaDetect(object):
 
             if not logfile and not logfile_name:
                 log_filename = os.path.join(network_path, "log", "logFile-touch-detection.txt")
-
-        elif config_file:
-            self.network_path = os.path.dirname(config_file)
 
         self.config_file = config_file
         self.position_file = position_file
@@ -327,6 +327,11 @@ class SnuddaDetect(object):
             except:
                 print("Log file already closed")
 
+        if self.rc:
+            # Clean up memory on workers
+            from snudda.utils import cleanup
+            cleanup(self.rc, "detect")
+
     ############################################################################
 
     def parallel_process_hyper_voxels(self, rc=None, d_view=None):
@@ -396,7 +401,7 @@ class SnuddaDetect(object):
                 self.write_log(f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}"
                                f" Starting hyper voxel {remaining[job_idx]} on worker {worker_idx}")
 
-                cmd_str = f"result = nc.process_hyper_voxel({remaining[job_idx]})"
+                cmd_str = f"result = sd.process_hyper_voxel({remaining[job_idx]})"
                 worker_status[worker_idx] = rc[worker_idx].execute(cmd_str, block=False)
 
                 job_idx += 1
@@ -1815,10 +1820,10 @@ class SnuddaDetect(object):
 
             if d_view:
                 # We need to push the data to the workers also
-                d_view.push({"nc.simulation_origo": simulation_origo,
-                             "nc.hyper_voxels": hyper_voxels,
-                             "nc.hyper_voxel_id_lookup": hyper_voxel_id_lookup,
-                             "nc.num_hyper_voxels": num_hyper_voxels}, block=True)
+                d_view.push({"sd.simulation_origo": simulation_origo,
+                             "sd.hyper_voxels": hyper_voxels,
+                             "sd.hyper_voxel_id_lookup": hyper_voxel_id_lookup,
+                             "sd.num_hyper_voxels": num_hyper_voxels}, block=True)
             return
 
         # No old data, we need to calculate it
@@ -1858,7 +1863,7 @@ class SnuddaDetect(object):
         self.distribute_neurons(neuron_idx=[], min_coord=min_coord, max_coord=max_coord,
                                 distribution_seeds=[])
 
-        cmd_str = ("nc.distribute_neurons(neuron_idx=neuron_idx, distribution_seeds=distribution_seeds, "
+        cmd_str = ("sd.distribute_neurons(neuron_idx=neuron_idx, distribution_seeds=distribution_seeds, "
                    "min_coord=min_coord, max_coord=max_coord)")
         d_view.execute(cmd_str, block=True)
 
@@ -1867,7 +1872,7 @@ class SnuddaDetect(object):
         # Collect all the neurons in the list from the workers
         # For each neuron we found out which hyper voxels it occupies,
         # now we want for each hyper voxel to know which neurons are in there
-        hyper_voxel_list = d_view.gather("nc.hyper_voxels", block=True)
+        hyper_voxel_list = d_view.gather("sd.hyper_voxels", block=True)
 
         self.write_log("Distributions received.")
 
@@ -1912,7 +1917,7 @@ class SnuddaDetect(object):
         self.generate_hyper_voxel_random_seeds()
 
         # Distribute the new list to all neurons
-        d_view.push({"nc.hyper_voxels": self.hyper_voxels}, block=True)
+        d_view.push({"sd.hyper_voxels": self.hyper_voxels}, block=True)
 
         self.save_neuron_distribution_history(hyper_voxels=self.hyper_voxels,
                                               min_coord=min_coord,
@@ -2165,7 +2170,7 @@ class SnuddaDetect(object):
 
         self.write_log("Init values pushed to workers")
 
-        cmd_str = ("nc = SnuddaDetect(config_file=config_file, position_file=position_file,voxel_size=voxel_size," 
+        cmd_str = ("sd = SnuddaDetect(config_file=config_file, position_file=position_file,voxel_size=voxel_size," 
                    "hyper_voxel_size=hyper_voxel_size,verbose=verbose,logfile_name=logfile_name[0]," 
                    "save_file=save_file,slurm_id=slurm_id,role='worker', random_seed=random_seed)")
         d_view.execute(cmd_str, block=True)
@@ -2188,7 +2193,7 @@ class SnuddaDetect(object):
         d_view.scatter("neuron_idx_find", neuron_idx, block=True)
         d_view.push({"volume_id": volume_id}, block=True)
 
-        cmd_str = "min_max = nc.find_min_max_coord(volume_id=volume_id,neuron_idx=neuron_idx_find)"
+        cmd_str = "min_max = sd.find_min_max_coord(volume_id=volume_id,neuron_idx=neuron_idx_find)"
 
         d_view.execute(cmd_str, block=True)
 
@@ -2931,9 +2936,9 @@ class SnuddaDetect(object):
     ############################################################################
 
     # Example usage:
-    # nc.plot_neurons_in_hyperVoxel(neuron_id=[1,20],
-    #                            neuron_colour=np.array([[0,0,1],[0,1,0]]),
-    #                            axon_alpha=[1,0.3],dend_alpha=[0.3,1])
+    # sd.plot_neurons_in_hyperVoxel(neuron_id=[1,20],
+    #                               neuron_colour=np.array([[0,0,1],[0,1,0]]),
+    #                               axon_alpha=[1,0.3], dend_alpha=[0.3,1])
 
     # each row in neuronColour is a colour for a neuron
 
