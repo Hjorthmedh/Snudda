@@ -49,7 +49,7 @@ class SnuddaPlace(object):
 
         if not log_file and network_path:
             log_dir = os.path.join(network_path, "log")
-            os.makedirs(log_dir, exists_ok=True)
+            os.makedirs(log_dir, exist_ok=True)
             log_file = open(os.path.join(log_dir, "logFile-place-neurons.txt"), "w")
 
         self.network_path = network_path
@@ -104,10 +104,10 @@ class SnuddaPlace(object):
 
     def __del__(self):
 
-        if self.d_view:
+        if self.rc:
             # Cleanup memory on workers
             from snudda.utils import cleanup
-            cleanup(self.d_view, "place")
+            cleanup(self.rc, "place")
 
     ############################################################################
 

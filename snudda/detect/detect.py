@@ -327,10 +327,10 @@ class SnuddaDetect(object):
             except:
                 print("Log file already closed")
 
-        if self.d_view:
+        if self.rc:
             # Clean up memory on workers
             from snudda.utils import cleanup
-            cleanup(self.d_view, "detect")
+            cleanup(self.rc, "detect")
 
     ############################################################################
 

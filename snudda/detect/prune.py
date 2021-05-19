@@ -389,10 +389,10 @@ class SnuddaPrune(object):
 
         # self.clean_up_merge_files()  # -- This caused old files to be cleaned up when aborting. Bad for debugging.
 
-        if self.d_view:
+        if self.rc:
             # Clean up memory on workers
             from snudda.utils import cleanup
-            cleanup(self.d_view, "prune")
+            cleanup(self.rc, "prune")
 
     ############################################################################
 

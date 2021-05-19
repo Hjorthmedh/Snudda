@@ -5,7 +5,9 @@ def cleanup_memory(d_view, variable_list):
 
 
 # Cleans up memory on workers after execution
-def cleanup(d_view, state):
+def cleanup(rc, state):
+
+    d_view = rc.direct_view(targets='all')
 
     var_lookup = {"place": ["sm", "innerMask"],  # region_mesh.py
                   "detect": ["sd", "min_max", "result"],
