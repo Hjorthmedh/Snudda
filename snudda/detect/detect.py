@@ -113,7 +113,7 @@ class SnuddaDetect(object):
 
         self.setup_log()
 
-        self.write_log("Using hdf5 driver version: " + str(self.h5libver))
+        self.write_log(f"Using hdf5 driver version: {self.h5libver}")
 
         mem = self.memory()
         self.write_log(f"{mem}")

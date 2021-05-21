@@ -202,11 +202,11 @@ class SnuddaPlace(object):
             os.sys.exit(-1)
 
         if not os.path.exists(config_file):
-            self.write_log("Config file does not exist: " + str(config_file))
+            self.write_log(f"Config file does not exist: {config_file}")
             self.write_log("Run snudda init <your directory> first")
             os.sys.exit(-1)
 
-        self.write_log("Parsing configuration file " + config_file)
+        self.write_log(f"Parsing configuration file {config_file}")
 
         cfg_file = open(config_file, 'r')
 
