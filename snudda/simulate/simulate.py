@@ -60,8 +60,6 @@ class SnuddaSimulate(object):
         self.verbose = verbose
         self.log_file = log_file
 
-        self.custom_setup = None
-
         if network_path:
             self.network_path = network_path
         elif network_file:
@@ -428,10 +426,6 @@ class SnuddaSimulate(object):
     def connect_network(self):
 
         self.pc.barrier()
-
-        if self.custom_setup:
-            # Neuromodulation requires this to be run, before connect_network_synapses
-            self.custom_setup()
 
         # Add gap junctions
         if self.disable_gap_junctions:

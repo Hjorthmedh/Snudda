@@ -21,16 +21,14 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                  log_file=None,
                  disable_gap_junctions=True,
                  simulation_config=None, neuromodulator_description=None,
-                 neuromodulation_conductance=None):
+                 neuromodulation_weight=None):
 
         self.neuromodulator_description = neuromodulator_description
         self.neuromodulation = dict()
         self.current_cell = None
         self.syn_gpcrs = list()
         self.cell_modulator = dict()
-        self.neuromodulation_conductance = neuromodulation_conductance
-        self.gpcr_synapse_delay = 1e-3 * 1e3  # convert from s to ms
-        self.gpcr_synapse_threshold = -20 * 1e-3 * 1e3  # convert from V to mV
+        self.neuromodulation_weight = neuromodulation_weight
         self.connector = [*self.neuromodulator_description.keys()]
 
         super(SnuddaSimulateNeuromodulationSynapse, self).__init__(network_path=network_path,
@@ -42,13 +40,29 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                                                                    simulation_config=simulation_config)
 
         # Change the self.custom_setup from None, and execute the custom setup code within this file
-        self.custom_setup = self.custom_setup_function
         self.cell_type_ion_channels_per_section = self.ion_channels_per_section()
         self.key_list = self.modulation_keys()
+
+    def setup(self):
+
+        self.check_memory_status()
+        self.distribute_neurons()
+        self.setup_neurons()
+        self.check_memory_status()
+        self.pc.barrier()
+
+        # Neuromodulation requires this to be run, before connect_network
+        self.neuromodulation_setup()
+
+        self.connect_network()
+        self.check_memory_status()
+        self.pc.barrier()
+
 
     def modulation_keys(self):
 
         key_list = list()
+        # TODO: if the setup-file gets rewritten, then this would turn into self...descr..keys() # add module key for concACh
         for connector_info in self.neuromodulator_description.values():
             key_list.append('level' + connector_info['key'])
             key_list.append('mod' + connector_info['key'])
@@ -59,6 +73,8 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
         cell_type = dict()
 
         for syn in self.connector:
+
+            # it would work here as well, as you are only iterating through self.neuro..descrip
 
             for cell_type_name in self.neuromodulator_description[syn]['cells'].keys():
 
@@ -80,6 +96,8 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
         return self.cell_type_ion_channels_per_section[cell_type]
 
     def organise_cell_info(self, cell_modulator):
+
+        # if it is send as a list already, then you have access to the sections and you dont need to rearange the information
 
         cell_information = dict()
 
@@ -134,9 +152,9 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
                         for cell_id_source in sec_info['precell'][str(seg.x)]:
                             nc = self.pc.gid_connect(cell_id_source, synapse_gpcr)
-                            nc.weight[0] = self.neuromodulation_conductance
-                            nc.delay = self.gpcr_synapse_delay
-                            nc.threshold = self.gpcr_synapse_threshold
+                            nc.weight[0] = self.neuromodulation_weight
+                            nc.delay = self.synapse_delay
+                            nc.threshold = self.spike_threshold
 
                             self.net_con_list.append(nc)
                     self.synapse_list.append(synapse_gpcr)
@@ -165,33 +183,34 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
             ion_channels = ion_channels_per_section[tpart]
 
-            for seg in sec:
+            for mechanism_name, values in sec.psection()['density_mechs'].items():
 
-                for mechanism_name, values in sec.psection()['density_mechs'].items():
+                mechanism_name_ptr = mechanism_name + "_ptr"
 
-                    if mechanism_name in ion_channels and mechanism_name + "_ptr" not in sec.psection()['density_mechs'].keys():
+                if mechanism_name in ion_channels:
 
-                        level_list = [type_level for type_level in [*sec.psection()['density_mechs'][mechanism_name].keys()] if 'level' in type_level]
+                    level_list = [type_level for type_level in [*sec.psection()['density_mechs'][mechanism_name].keys()] if 'level' in type_level]
+                    mod_key_list = [f"mod{n.replace('level','')}_{mechanism_name_ptr}" for n in level_list]
+                    sec.insert(mechanism_name_ptr)
 
-                        sec.insert(mechanism_name + "_ptr")
+                    for syn in self.connector:
 
-                        for syn in self.connector:
+                        for segment in sec:
+                            seg_x_str = str(segment.x)
+                            # TODO: change the segment.x to not string
+                            pointer = cell_added_synapses[sec][seg_x_str][syn]._ref_concentration
+                            # talk to NEURON maybe they can help change this, so you don't have to replace the mechanisms, crashes with uninitialised pointers
+                            for neurotransmitter_level, mod_key in zip(level_list, mod_key_list):
 
-                            pointer = cell_added_synapses[sec][str(seg.x)][syn]._ref_concentration
+                                setattr(segment, mod_key, 1)
+                                self.sim.neuron.h.setpointer(pointer, neurotransmitter_level,
+                                                             getattr(segment, mechanism_name_ptr))
 
-                            for segment in sec:
-
-                                for neurotransmitter_level in level_list:
-                                    neurotransmitter_key = neurotransmitter_level.replace('level', '')
-                                    setattr(segment, 'mod' + neurotransmitter_key + "_" + mechanism_name + "_ptr", 1)
-                                    self.sim.neuron.h.setpointer(pointer, neurotransmitter_level,
-                                                                 getattr(segment, mechanism_name + "_ptr"))
-
-                        # Parameterize the pointer version of density_mech, skip level and mod, as that would turn off modulation
-                        for param, val in values.items():
-                            for i, segmentet in enumerate(sec):
-                                if param not in self.key_list:
-                                    setattr(segmentet, '_'.join([param, mechanism_name, "ptr"]), val[i])
+                    # Parameterize the pointer version of density_mech, skip level and mod, as that would turn off modulation
+                    for param, val in values.items():
+                        for i, segmentet in enumerate(sec):
+                            if param not in self.key_list:
+                                setattr(segmentet, '_'.join([param, mechanism_name_ptr]), val[i])
 
             for mech_name in ion_channels:
                 sec.uninsert(mech_name)
@@ -224,7 +243,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
             syn_name = str(channel_module).split('()')[0]
             postcell_name = str(dend_compartment.cell()).split('_')[0]
-
+            # add secondary look-up concACh to ACh to get correct key for self.neuro...descr..
             if postcell_name in self.neuromodulator_description[syn_name]["cells"].keys():
                 self.cell_modulator[cell]['precell'].append(cell_id_source)
                 self.cell_modulator[cell]['postcell'].append(postcell_name)
@@ -246,7 +265,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
         if str(channel_module).split('()')[0] in self.connector:
             self.add_gpcr_synapse(channel_module, cell_id_source, dend_compartment, section_dist)
 
-    def custom_setup_function(self):
+    def neuromodulation_setup(self):
 
         # This loops through all the synapses, and connects the relevant ones
         # nextRowSet = [ fromRow, toRow ) -- ie range(fromRow,toRow)
@@ -264,6 +283,8 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
         source_id_list, dend_sections, sec_x, synapse_type_id, axon_distance, conductance, parameter_id = \
             self.get_synapse_info(start_row=start_row, end_row=end_row)
 
+        # Filter away synapse_type_id not conc* connector and check if the start and end row defines the cell,
+        # hence you can send all information to add_gpcr_synapse
         for (src_id, section, section_x, s_type_id, axon_dist, cond, p_id) \
                 in zip(source_id_list, dend_sections, sec_x, synapse_type_id,
                        axon_distance, conductance, parameter_id):
@@ -284,22 +305,25 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
     def get_synapse(self, channel_module, dend_compartment, section_dist):
 
         syn = None
+        # add lookup on channel_module to skip split
+        if str(channel_module).split('()')[0] not in self.connector:
 
-        for point_process_in_section in dend_compartment(section_dist).point_processes():
+            channel_module_p = eval(f"self.sim.neuron.h.{str(channel_module).split('()')[0]}_ptr")
 
-            if str(point_process_in_section).split('[')[0] in self.connector and str(channel_module).split('()')[0] not in self.connector:
+            for point_process_in_section in dend_compartment(section_dist).point_processes():
 
-                channel_module_p = eval('self.sim.neuron.h.' + str(channel_module).split('()')[0] + "_ptr")
+                if str(point_process_in_section).split('[')[0] in self.connector:
 
-                syn = channel_module_p(dend_compartment(section_dist))
+                    syn = channel_module_p(dend_compartment(section_dist))
 
-                level = [x for x in dir(syn) if 'level' in x]
+                    level = [x for x in dir(syn) if 'level' in x]
 
-                pointer = point_process_in_section._ref_concentration
+                    pointer = point_process_in_section._ref_concentration
 
-                for neurotransmitter_key in level:
-                    setattr(syn, 'mod' + neurotransmitter_key.replace('level', ''), 1)
-                    self.sim.neuron.h.setpointer(pointer, neurotransmitter_key, syn)
+                    for neurotransmitter_key in level:
+                        # remove this parameter by setting default 1
+                        setattr(syn, f"mod{neurotransmitter_key.replace('level', '')}", 1)
+                        self.sim.neuron.h.setpointer(pointer, neurotransmitter_key, syn)
 
         if syn is None:
             syn = channel_module(dend_compartment(section_dist))

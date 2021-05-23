@@ -32,5 +32,5 @@ class NeuromodulationSynapse:
     def save(self, dir_path, name):
 
         with open(os.path.join(dir_path, name), 'w') as out_file:
-            json.dump(self.synapse_modulation, out_file)
+            json.dump(self.synapse_modulation, out_file, indent=4)
 
