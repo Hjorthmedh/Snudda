@@ -113,7 +113,7 @@ class SnuddaDetect(object):
 
         self.setup_log()
 
-        self.write_log("Using hdf5 driver version: " + str(self.h5libver))
+        self.write_log(f"Using hdf5 driver version: {self.h5libver}")
 
         mem = self.memory()
         self.write_log(f"{mem}")
@@ -507,8 +507,9 @@ class SnuddaDetect(object):
 
             for data, data_name in save_meta_data:
                 assert data == self.work_history["meta/" + data_name][()], \
-                    data_name + " mismatch " + str(data) + " vs " \
-                    + str(self.work_history["meta/" + data_name][()])
+                    (f"Mismatch in workhistory file: {data_name} mismatch {data} "
+                     f"vs {self.work_history['meta/' + data_name][()]}"
+                     f"\nPlease delete old work history file.")
 
         self.write_log("Write neuron data to file")
 
@@ -2697,6 +2698,7 @@ class SnuddaDetect(object):
     def process_hyper_voxel(self, hyper_id):
 
         start_time = timeit.default_timer()
+        end_time = None
 
         try:
             if self.hyper_voxels[hyper_id]["neuronCtr"] == 0:

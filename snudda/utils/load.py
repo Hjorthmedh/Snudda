@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import numpy as np
 import timeit
 import json
@@ -87,16 +88,21 @@ class SnuddaLoad(object):
 
             try:
                 data["nSynapses"] = f["network/nSynapses"][0]
+                if data["nSynapses"] != f["network/synapses"].shape[0]:
+                    print(f"Expected {data['nSynapses']} synapses, found {f['network/synapses'].shape[0]} synapse rows")
             except:
                 data["nSynapses"] = f["network/synapses"].shape[0]
 
             try:
                 data["nGapJunctions"] = f["network/nGapJunctions"][0]
+                if data["nGapJunctions"] != f["network/gapJunctions"].shape[0]:
+                    print(f"Expected {data['nGapJunctions']} gap junctions, "
+                          f"found {f['network/gapJunctions'].shape[0]} gap junction rows")
             except:
                 data["nGapJunctions"] = f["network/gapJunctions"].shape[0]
 
             if data["nSynapses"] > 100e6:
-                print(str(data["nSynapses"]) + " synapses, which is a lot, not loading them into memory!")
+                print(f"Found {data['nSynapses']} synapses (too many!), not loading them into memory!")
                 load_synapses = False
 
             if "network/hyperVoxelIDs" in f:
@@ -120,9 +126,8 @@ class SnuddaLoad(object):
                 data["gapJunctions"] = f["network/gapJunctions"][:]
 
                 # !!! Convert from voxel idx to coordinates
-                data["synapseCoords"] = f["network/synapses"][:, 2:5] \
-                                        * f["meta/voxelSize"][()] \
-                                        + f["meta/simulationOrigo"][()]
+                data["synapseCoords"] = f["network/synapses"][:, 2:5] * f["meta/voxelSize"][()] \
+                    + f["meta/simulationOrigo"][()]
             else:
                 # Point the data structure to the synapses and gap junctions on file
                 # This will be slower, and only work while the file is open
@@ -596,10 +601,9 @@ if __name__ == "__main__":
 
         preID = np.unique(synapses[0][:, 0])
 
-        for nid, name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"]
-                          if x["neuronID"] in preID]:
+        for nid, name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"] if x["neuronID"] in preID]:
             nSyn = np.sum(synapses[0][:, 0] == nid)
-            print("%d : %s (%d synapses)" % (nid, name, nSyn))
+            print(f"{nid} : {name} ({nSyn} synapses)")
 
     if args.listPost is not None:
         print("List neurons post-synaptic to neuronID = " + str(args.listPost)
@@ -607,10 +611,9 @@ if __name__ == "__main__":
         synapses = nl.find_synapses(pre_id=args.listPost)
         postID = np.unique(synapses[0][:, 1])
 
-        for nid, name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"]
-                          if x["neuronID"] in postID]:
+        for nid, name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"] if x["neuronID"] in postID]:
             nSyn = np.sum(synapses[0][:, 1] == nid)
-            print("%d : %s (%d synapses)" % (nid, name, nSyn))
+            print(f"{nid} : {name} ({nSyn} synapses)")
 
         # List neurons of network
 

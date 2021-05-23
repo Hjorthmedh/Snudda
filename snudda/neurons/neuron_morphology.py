@@ -362,7 +362,7 @@ class NeuronMorphology(object):
 
         assert (cache_file != self.swc_filename)
 
-        self.write_log("Saving cache file: " + cache_file)
+        self.write_log(f"Saving cache file: {cache_file}")
 
         import pickle
         with open(cache_file, 'wb') as cache_file:
@@ -385,10 +385,10 @@ class NeuronMorphology(object):
             cache_time = os.path.getmtime(cache_file)
 
             if cache_time > swc_time:
-                self.write_log("Found cache file: " + cache_file)
+                self.write_log(f"Found cache file: {cache_file}")
                 cache_flag = True
             else:
-                self.write_log("Found old cache file: " + cache_file)
+                self.write_log(f"Found old cache file: {cache_file}")
 
         else:
             self.write_log("No cache file found.")
@@ -734,8 +734,8 @@ class NeuronMorphology(object):
             self.max_dend_radius = 0
 
         if self.verbose:
-            self.write_log("Max axon radius = " + str(self.max_axon_radius))
-            self.write_log("Max dend radius = " + str(self.max_dend_radius))
+            self.write_log(f"Max axon radius = {self.max_axon_radius}")
+            self.write_log(f"Max dend radius = {self.max_dend_radius}")
 
     ############################################################################
 
@@ -925,7 +925,6 @@ class NeuronMorphology(object):
         expected_synapses = comp_density * comp_len * 1e6
 
         if num_locations is not None:
-            # self.write_log("Trying to set nLocations = " + str(num_locations) + " (approx)")
             expected_synapses *= num_locations / np.sum(expected_synapses)
 
         # Number of input synapses on each compartment
@@ -1004,8 +1003,7 @@ class NeuronMorphology(object):
                 ax.text(x=x[0], y=x[1], z=x[2], s=str(dID), color='black')
             ctr += 1
 
-            self.write_log("ID: " + str(dID) + " X = " + str(np.around(dX[0], 2)) + " - "
-                           + str(np.around(dX[1], 2)))
+            self.write_log(f"ID: {dID} X = {np.around(dX[0], 2)} - {np.around(dX[1], 2)}")
 
             if wait_flag:
                 input(" ")
