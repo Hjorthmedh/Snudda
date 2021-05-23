@@ -16,3 +16,4 @@ pyswarms
 setuptools
 psutil
 cython  # Needed for compiling NEURON
+numba>=0.53.1  # Optimisation

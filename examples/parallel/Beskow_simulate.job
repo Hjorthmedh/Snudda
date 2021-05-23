@@ -5,7 +5,7 @@
 #SBATCH -A 2020-5-449
 #SBATCH -o save/output-snudda_simulate.o%j
 #SBATCH -e save/error-snudda_simulate.e%j
-#SBATCH --nodes=15-20
+#SBATCH --nodes=5-10
 #SBATCH --ntasks-per-node=32
 
 # 16 workers were too few, got section stack overflow (there is a hidden
@@ -17,9 +17,11 @@ HOME=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda
 # Synapse file
 SNUDDA_DIR=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/snudda
 
-NETWORK_DIR=$SNUDDA_DIR/../../networks/TegnerRun.959380
+# You need to point this as the directory where you created the network in
+#NETWORK_DIR=$SNUDDA_DIR/../../networks/TegnerRun.959380
+NETWORK_DIR=/cfs/klemming/nobackup/h/hjorth/Snudda/networks/TegnerRun.960964
 
-NETWORK_INFO_FILE=$NETWORK_DIR/network-pruned-synapses.hdf5
+NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 NETWORK_VOLTAGE_FILE=$NETWORK_DIR/simulation/voltage-trace-${SLURM_JOBID}.txt
 
@@ -49,6 +51,10 @@ export PATH=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/beskow/miniconda3/b
 export PYTHONPATH=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/beskow/miniconda3/lib/python3.8/site-packages:$PYTHONPATH
 
 export LD_LIBRARY_PATH=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/beskow/miniconda3/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/lib64
+
+#srun -n $N_WORKERS $SNUDDA_DIR/../examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
 
 srun -n $N_WORKERS $SNUDDA_DIR/../examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
 

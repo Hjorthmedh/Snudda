@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-#python3 OptimiseSynapsesFull.py --st glut DATA/YvonneJohansson2019/M1RH_Analysis_190925.h5  --id 318
+#python3 optimise_synapses_full.py --st glut DATA/YvonneJohansson2019/M1RH_Analysis_190925.h5  --id 318
 
 #exit
 

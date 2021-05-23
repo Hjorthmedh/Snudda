@@ -109,7 +109,6 @@ class TestProject(unittest.TestCase):
         from snudda.detect.project import SnuddaProject
         sp = SnuddaProject(network_path=self.network_path)
         sp.project()
-        sp.write()
 
         from snudda.detect.prune import SnuddaPrune
         sp = SnuddaPrune(network_path=self.network_path, verbose=True)
@@ -184,7 +183,6 @@ class TestProject(unittest.TestCase):
         # TODO: Currently SnuddaProject only runs in serial
         sp = SnuddaProject(network_path=self.network_path)
         sp.project()
-        sp.write()
 
         from snudda.detect.prune import SnuddaPrune
         # Prune has different methods for serial and parallel execution, important to test it!

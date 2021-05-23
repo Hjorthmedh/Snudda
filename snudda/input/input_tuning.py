@@ -164,9 +164,10 @@ class InputTuning(object):
 
     def analyse_results(self, show_plots=False):
 
-        frequency_data = self.load_data()
+        frequency_data, voltage_data = self.load_data()
         self.plot_frequency_data(frequency_data, show_plots=show_plots)
         self.plot_frequency_data_alt(frequency_data, show_plots=show_plots)
+        self.plot_volt_data(voltage_data, show_plots=show_plots)
 
         print(f"To plot traces:\n" 
               f"python3 plotting/Network_plot_traces.py {self.network_path}output_volt.txt " 
@@ -180,6 +181,9 @@ class InputTuning(object):
         spike_data_file = os.path.join(self.network_path, "output_spikes.txt")
         n_neurons = network_info.data["nNeurons"]
         spike_data = self.load_spike_data(spike_data_file, n_neurons)
+
+        volt_file = os.path.join(self.network_path, "output_volt.txt")
+        cell_id, time, volt = self.load_voltage_data(volt_file)
 
         # We need to figure out what neuronID correspond to that morphologies
         # Then figure out what input frequencies the different runs had
@@ -212,8 +216,11 @@ class InputTuning(object):
             n_inputs_lookup[neuron_id] = n_inputs
 
         frequency_data = dict()
+        voltage_data = dict()
+        
         for neuron_name in neuron_id_lookup.keys():
             frequency_data[neuron_name] = dict()
+            voltage_data[neuron_name] = dict()
 
         for neuron_name in neuron_name_list:
             for neuron_id in neuron_id_lookup[neuron_name]:
@@ -227,10 +234,15 @@ class InputTuning(object):
                                                                             config_data=input_config,
                                                                             neuron_id=neuron_id,
                                                                             skip_time=skip_time)
+                voltage_data[neuron_name][n_inputs] = self.extract_voltage(volt=volt, 
+                                                                           time=time,
+                                                                           config_data=input_config,
+                                                                           neuron_id=neuron_id,
+                                                                           skip_time=skip_time)
 
         # TODO: Load voltage trace and warn for depolarisation blocking
 
-        return frequency_data
+        return frequency_data, voltage_data
 
     # TODO: We should set skip_time to 1 second, 0 for now while testing
     def extract_spikes(self, spike_data, config_data, neuron_id, skip_time=0.0):
@@ -269,6 +281,44 @@ class InputTuning(object):
 
         return input_config
 
+    def load_voltage_data(self, file_name):
+
+        data = np.genfromtxt(file_name, delimiter=',')
+        t = data[0, 1:] * 1e-3
+        cell_id = data[1:, 0].astype(int)
+        volt = data[1:, 1:]*1e-3
+
+        return cell_id, t, volt
+
+    def extract_voltage(self, volt, time, config_data, neuron_id, skip_time=0.0):
+
+        assert skip_time >= 0
+        assert len(config_data[str(neuron_id)].values()) == 1
+
+        input_type = list(config_data[str(neuron_id)].keys())[0]
+        cfg_data = config_data[str(neuron_id)][input_type]
+
+        input_frequency = []
+        mean_voltage = []
+        max_voltage = []
+
+        for start_time, end_time, input_freq in zip(cfg_data["start"], cfg_data["end"], cfg_data["frequency"]):
+
+            assert start_time + skip_time < end_time, "Too large skip time, no data to analyse"
+
+            idx = np.where((start_time + skip_time <= time) & (time <= end_time))[0]
+            v = volt[neuron_id, :][idx]
+
+            input_frequency.append(input_freq)
+            mean_voltage.append(np.mean(v))
+            max_voltage.append(np.max(v))
+  
+        input_frequency = np.array(input_frequency)
+        mean_voltage = np.array(mean_voltage)
+        max_voltage = np.array(max_voltage)
+
+        return input_frequency, mean_voltage, max_voltage, input_type
+
     def load_spike_data(self, file_name, n_cells):
 
         data = np.genfromtxt(file_name, delimiter='\t')
@@ -286,6 +336,46 @@ class InputTuning(object):
             spike_times[nid] = np.array(sorted(spike_times[nid]))
 
         return spike_times
+
+    def plot_volt_data(self, volt_data, show_plots=True):
+
+        for neuron_name in volt_data:
+            fig, ax = plt.subplots()
+            legend_text = []
+            input_type_all = None
+
+            cmap = plt.get_cmap('tab20', len(volt_data))
+            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(volt_data))])
+
+            for num_input in volt_data[neuron_name]:
+                input_freq, mean_voltage, max_voltage, input_type = volt_data[neuron_name][num_input]
+
+                if input_type_all:
+                    assert input_type == input_type_all, "All input types must be the same for neuron"
+                else:
+                    input_type_all = input_type
+
+                legend_text.append(f"n={num_input}")
+                ax.plot(input_freq, mean_voltage)
+
+            plt.title(f"{neuron_name} receiving {input_type_all} input")
+            plt.xlabel("Input frequency (per synapse)")
+            plt.ylabel("Mean voltage")
+            ax.legend(legend_text)
+
+            if show_plots:
+                plt.ion()
+                plt.show()
+                plt.pause(0.001)
+
+            fig_name = os.path.join(self.network_path, "figures", f"input-scaling-freq-{neuron_name}-mean-voltage.pdf")
+            if not os.path.exists(os.path.dirname(fig_name)):
+                os.mkdir(os.path.dirname(fig_name))
+
+            plt.savefig(fig_name, dpi=300)
+
+            if not show_plots:
+                plt.close()
 
     # TODO: Extract spiking frequency (skip first second for each interval to let network settle)
     # TODO: Create summary graphs
@@ -732,7 +822,7 @@ class InputTuning(object):
 
         stop = timeit.default_timer()
         if sim.pc.id() == 0:
-            print("Program run time: " + str(stop - start))
+            print(f"Program run time: {stop - start:.1f}s")
 
     def read_tuning_info(self):
         tuning_info_file = os.path.join(self.network_path, "tuning-info.json")

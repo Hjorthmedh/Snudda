@@ -17,6 +17,7 @@ from snudda.utils.load import SnuddaLoad
 class SnuddaProject(object):
 
     # TODO: Add support for log files!!
+    # TODO: Add support for parallel execution
     def __init__(self, network_path, rng=None, random_seed=None, h5libver=None):
 
         self.network_path = network_path
@@ -101,11 +102,13 @@ class SnuddaProject(object):
 
             self.connectivity_distributions[pre_type, post_type] = con_def
 
-    def project(self):
+    def project(self, write=True):
 
         for (pre_type, post_type), connection_info in self.connectivity_distributions.items():
-            print(f"pre {pre_type}, post {post_type}")
             self.connect_projection_helper(pre_type, post_type, connection_info)
+
+        if write:
+            self.write()
 
     def connect_projection_helper(self, pre_neuron_type, post_neuron_type, connection_info):
 
@@ -233,7 +236,7 @@ class SnuddaProject(object):
                              xyz[i, 0], xyz[i, 1], xyz[i, 2],
                              -1,  # Hypervoxelid
                              channel_model_id,
-                             ax_dist, dist_to_soma[i],
+                             ax_dist*1e6, dist_to_soma[i]*1e6,
                              sec_id[i], sec_x[i] * 1000,
                              cond[i] * 1e12, param_id[i]]
                         self.synapse_ctr += 1
@@ -283,5 +286,3 @@ class SnuddaProject(object):
                 hist_file["nProjectionSynapses"][()] = self.synapse_ctr
             else:
                 hist_file.create_dataset("nProjectionSynapses", data=self.synapse_ctr, dtype=int)
-
-

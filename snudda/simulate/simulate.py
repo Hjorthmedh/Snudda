@@ -236,7 +236,20 @@ class SnuddaSimulate(object):
 
         self.neuron_id = range(int(self.pc.id()), self.num_neurons, int(self.pc.nhost()))
 
-        self.neuron_nodes = [x % int(self.pc.nhost()) for x in range(0, self.num_neurons)]
+        # TODO: Change to these ranges: range_borders = np.linspace(0, num_neurons, n_workers + 1).astype(int)
+        #       will be faster, because of new numbering of neurons.
+
+        range_borders = np.linspace(0, self.num_neurons, self.pc.nhost()+1).astype(int)
+        start_pos = range_borders[0]
+        neuron_nodes = []
+        for idx, end_pos in enumerate(range_borders[1:]):
+            neuron_nodes += [idx]*(end_pos - start_pos)
+            start_pos = end_pos
+
+        self.neuron_nodes = neuron_nodes
+
+        # old method, round robin
+        # self.neuron_nodes = [x % int(self.pc.nhost()) for x in range(0, self.num_neurons)]
 
         # self.write_log("Node " + str(int(self.pc.id())) + " handling neurons: " + ' '.join(map(str, self.neuron_id)))
 
@@ -605,6 +618,9 @@ class SnuddaSimulate(object):
 
         self.write_log("Finding node local gap junctions...")
 
+        if self.gap_junctions.shape[0] == 0:
+            return np.array([]), np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
+
         gj_idx_a = np.where([x in self.neuron_id for x in self.gap_junctions[:, 0]])[0]
         gj_idx_b = np.where([x in self.neuron_id for x in self.gap_junctions[:, 1]])[0]
 
@@ -654,8 +670,7 @@ class SnuddaSimulate(object):
 
         self.write_log("connectNetworkGapJunctionsLOCAL")
 
-        (neuron_id, compartment, seg_x, gj_gid_src, gj_gid_dest, cond) \
-            = self.find_local_gap_junctions()
+        (neuron_id, compartment, seg_x, gj_gid_src, gj_gid_dest, cond) = self.find_local_gap_junctions()
 
         # import pdb
         # pdb.set_trace()
@@ -1248,7 +1263,7 @@ class SnuddaSimulate(object):
         self.write_log("Simulation done.")
 
         end_time = timeit.default_timer()
-        self.write_log(f"Simulation run time: {end_time - start_time} s", force_print=True)
+        self.write_log(f"Simulation run time: {end_time - start_time:.1f} s", force_print=True)
 
     ############################################################################
 
@@ -1361,12 +1376,12 @@ class SnuddaSimulate(object):
         if num_bad > 0:
             # If this happens, check that Neuron does not warn for removing sections
             # due to having only one point
-            self.write_log("!!! Found " + str(num_bad) + " synapses on "
-                           + self.network_info["neurons"][dest_id]["name"]
-                           + "( " + str(dest_id) + ") "
-                           + " that are further than " + str(bad_threshold) + "mum away."
-                           + " morphology: "
-                           + self.network_info["neurons"][dest_id]["morphology"],
+            self.write_log(f"!!! Found {num_bad} synapses on "
+                           f"{self.network_info['neurons'][dest_id]['name']} ({dest_id}) "
+                           f" that are further than {bad_threshold} mum away "
+                           f" (out of {len(syn_mismatch)} synapses)"
+                           f" Max found was {np.max(syn_mismatch):.0f} mum from expected location."
+                           f" morphology: {self.network_info['neurons'][dest_id]['morphology']}",
                            is_error=True)
 
             ### DEBUG PLOT!!!
@@ -1377,13 +1392,12 @@ class SnuddaSimulate(object):
 
                 soma_dist = np.sqrt(np.sum(synapse_pos ** 2, axis=1))
                 plt.scatter(soma_dist * 1e6, syn_mismatch)
-                plt.ion()
+                # plt.ion()
                 plt.show()
                 plt.title(self.network_info["neurons"][dest_id]["name"])
 
-                from mpl_toolkits.mplot3d import Axes3D
                 fig = plt.figure()
-                ax = fig.add_subplot(111, projection='3d')
+                ax = fig.add_subplot(projection='3d')
 
                 ax.scatter(synapse_pos[:, 0],
                            synapse_pos[:, 1],

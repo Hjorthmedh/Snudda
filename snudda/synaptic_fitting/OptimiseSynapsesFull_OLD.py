@@ -1732,8 +1732,8 @@ class OptimiseSynapsesFull(object):
     
     with self.dView.sync_imports():
       from run_synapse_run import RunSynapseRun
-      from OptimiseSynapsesFull import NumpyEncoder
-      from OptimiseSynapsesFull import OptimiseSynapsesFull
+      from optimise_synapses_full import NumpyEncoder
+      from optimise_synapses_full import OptimiseSynapsesFull
 
     self.writeLog("Setting up workers: " \
           + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))

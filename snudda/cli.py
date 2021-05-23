@@ -1,6 +1,7 @@
 from argparse import ArgumentParser, RawTextHelpFormatter
-from snudda.core import Snudda, get_data_file
+from snudda.core import Snudda
 from snudda.help import snudda_help_text
+from snudda.utils.benchmark_logging import BenchmarkLogging
 import os
 
 
@@ -21,10 +22,9 @@ def snudda_cli():
                                action="store_true")
     create_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
 
-
     init_parser = sub_parsers.add_parser("init")
     init_parser.add_argument("path", help="Location of network")
-    #init_parser.add_argument("size", type=int, help="Number of neurons in network", default=None)
+    # init_parser.add_argument("size", type=int, help="Number of neurons in network", default=None)
     init_parser.add_argument("-size", "--size", dest="size",
                              type=int, help="Number of neurons in network", default=None)
     init_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory",
@@ -60,11 +60,11 @@ def snudda_cli():
     prune_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
     prune_parser.add_argument("--configFile", dest="config_file", default=None,
                               help="Prune using different network config file, useful when tuning pruning")
-    prune_parser.add_argument("--mergeonly", "--onlymerge", dest="merge_only",
-                              help="Merge hyper voxel synapse files, skipping pruning step", action="store_true")
     prune_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     prune_parser.add_argument("--verbose", action="store_true")
     prune_parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
+    prune_parser.add_argument("--keepfiles", action="store_true",
+                              help="Keep temp and voxel files after pruning (e.g. useful if you want to rerun pruning)")
     prune_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
 
     input_parser = sub_parsers.add_parser("input")
@@ -126,8 +126,7 @@ def snudda_cli():
                "convert": snudda.export_to_SONATA,
                "analyse": snudda.analyse,
                "simulate": snudda.simulate,
-               "help": snudda.help_info,
-               "create": create_project}
+               "help": snudda.help_info}
 
     if args.profile:
         prof_file = "profile-" + args.action + ".prof"
@@ -139,33 +138,24 @@ def snudda_cli():
         import pstats
         from pstats import SortKey
         p = pstats.Stats(prof_file)
-        p.strip_dirs().sort_stats(SortKey.CUMULATIVE).print_stats(30)
+        p.strip_dirs().sort_stats(SortKey.CUMULATIVE).print_stats(100)
 
     else:
-        # Performing the requested action
+        if hasattr(args, "parallel"):
+            run_parallel = args.parallel
+        else:
+            run_parallel = False
+
+        running_neuron = (args.action == "simulate")
+
+        bl = BenchmarkLogging(args.path, parallel_flag=run_parallel, running_neuron=running_neuron)
+        bl.start_timer(args.action)
+
+        # Perform the requested action
         actions[args.action](args)
 
-
-def create_project(args):
-
-    assert False, "This function will be removed"
-
-    if not args.overwrite and os.path.exists(args.path):
-        if input("Directory '{}' exists. Are you sure you wish to overwrite it? [y/n] ".format(
-                args.path)).lower() != "y":
-            print("Project creation aborted")
-            return
-        else:
-            # Delete the existing folder
-            import shutil
-            shutil.rmtree(args.path)
-            os.mkdir(args.path)
-            
-    if os.path.exists(args.path):
-        import shutil
-        shutil.rmtree(args.path)
-        
-    os.mkdir(args.path)
+        bl.stop_timer(args.action)
+        bl.write_log()
 
 
 if __name__ == "__main__":

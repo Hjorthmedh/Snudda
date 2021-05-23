@@ -1,11 +1,11 @@
 #!/bin/bash -l
-#SBATCH -t 0-23:59:00
-#SBATCH --time-min=18:59:00
+#SBATCH -t 0-6:59:00
+#SBATCH --time-min=1:59:00
 #SBATCH -J Snudda
 #SBATCH -A 2020-5-636
 #SBATCH -o save/output-runSnudda.o%j
 #SBATCH -e save/error-runSnudda.e%j
-#SBATCH --nodes=20-30
+#SBATCH --nodes=1-5
 #SBATCH --ntasks-per-node=24
 
 # --- Tegner has 24 cores per node

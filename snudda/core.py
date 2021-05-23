@@ -43,7 +43,6 @@
 import os
 import sys
 import timeit
-import numpy as np
 import pkg_resources
 
 from snudda.utils.snudda_path import snudda_isfile
@@ -122,8 +121,6 @@ class Snudda(object):
         print("Placing neurons")
         print(f"Network path: {self.network_path}")
 
-        config_file = os.path.join(self.network_path, "network-config.json")
-        position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
         log_file_name = os.path.join(self.network_path, "log", "logFile-place-neurons.txt")
 
         random_seed = args.randomseed
@@ -140,7 +137,7 @@ class Snudda(object):
         else:
             h5libver = "latest"  # default
 
-        sp = SnuddaPlace(config_file=config_file,
+        sp = SnuddaPlace(network_path=self.network_path,
                          log_file=self.logfile,
                          verbose=args.verbose,
                          d_view=self.d_view,
@@ -148,8 +145,7 @@ class Snudda(object):
                          raytrace_borders=args.raytrace_borders,
                          random_seed=random_seed)
 
-        sp.parse_config()
-        sp.write_data(position_file)
+        sp.place()
 
         self.stop_parallel()
         self.close_log_file()
@@ -225,7 +221,6 @@ class Snudda(object):
 
         sp = SnuddaProject(network_path=self.network_path)
         sp.project()
-        sp.write()
 
         self.stop_parallel()
         self.close_log_file()
@@ -251,13 +246,6 @@ class Snudda(object):
         # Optionally set this
         scratch_path = None
 
-        if args.merge_only:
-            pre_merge_only = True
-        else:
-            pre_merge_only = False
-
-        print(f"preMergeOnly : {pre_merge_only}")
-
         if args.h5legacy:
             h5libver = "earliest"
         else:
@@ -271,9 +259,10 @@ class Snudda(object):
                          scratch_path=scratch_path,
                          h5libver=h5libver,
                          random_seed=random_seed,
-                         verbose=args.verbose)
+                         verbose=args.verbose,
+                         keep_files=args.keepfiles)
 
-        sp.prune(pre_merge_only=pre_merge_only)
+        sp.prune()
 
         self.stop_parallel()
         self.close_log_file()
@@ -499,7 +488,7 @@ class Snudda(object):
 
         stop = timeit.default_timer()
         if sim.pc.id() == 0:
-            print("Program run time: " + str(stop - start))
+            print(f"Program run time: {stop - start:.1f}s")
 
         # sim.plot()
 
@@ -516,7 +505,7 @@ class Snudda(object):
         self.slurm_id = os.getenv('SLURM_JOBID')
 
         if self.slurm_id is None:
-            self.slurm_id = self.next_run_id()
+            self.slurm_id = 0
         else:
             self.slurm_id = int(self.slurm_id)
 
@@ -574,49 +563,11 @@ class Snudda(object):
 
         stop = timeit.default_timer()
 
-        print("\nProgram run time: " + str(stop - self.start))
+        print(f"\nProgram run time: {stop - self.start:.1f}s")
 
-        self.logfile.write("Program run time: " + str(stop - self.start))
+        self.logfile.write(f"Program run time: {stop - self.start:.1f}s")
         self.logfile.write("End of log. Closing file.")
         self.logfile.close()
-
-    ##############################################################################
-
-    def next_run_id(self):
-
-        import pickle
-
-        run_id_file = ".runID.pickle"
-
-        try:
-            if os.path.isfile(run_id_file):
-
-                with open(run_id_file, 'rb') as f:
-                    run_id = pickle.load(f)
-                    next_id = int(np.ceil(np.max(run_id)) + 1)
-
-                run_id.append(next_id)
-
-                with open(run_id_file, 'wb') as f:
-                    pickle.dump(run_id, f, -1)
-
-            else:
-
-                with open(run_id_file, 'wb') as f:
-                    next_id = 1
-                    run_id = [1]
-                    pickle.dump(run_id, f, -1)
-
-        except Exception as e:
-            import traceback
-            tstr = traceback.format_exc()
-            print(tstr)
-            print("Problem reading .runID.pickle file, setting runID to 0")
-            return 0
-
-        print("Using runID = " + str(next_id))
-
-        return next_id
 
     ############################################################################
 
