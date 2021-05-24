@@ -953,7 +953,7 @@ class OptimiseSynapsesFull(object):
                                                                  exp_peak_height=h_peak,
                                                                  return_type="full")
 
-            min_error = np.min(error, min_error)
+            min_error = np.minimum(error, min_error)
 
             param_this_run = np.array([u, tau_r, tau_f, tau_ratio, cond])
 

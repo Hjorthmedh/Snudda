@@ -3,6 +3,7 @@ import os
 import heapq
 import numpy as np
 import json
+import datetime
 
 from snudda.utils.numpy_encoder import  NumpyEncoder
 
@@ -24,6 +25,8 @@ class ParameterBookkeeper:
 
     def add_parameters(self, parameter_set, section_id, section_x, error, dt, volt):
 
+        now = datetime.datetime.now().timestamp()
+
         data = OrderedDict()
         data["parameters"] = parameter_set
         data["section_id"] = section_id
@@ -38,7 +41,13 @@ class ParameterBookkeeper:
                 # The new parameter is worse than the current worst one, don't add since we are already full
                 return
 
-        heapq.heappush(self.book, (-error, data))
+        try:
+            heapq.heappush(self.book, (-error, now, data))
+        except:
+            import traceback
+            tstr = traceback.format_exc()
+            print(tstr)
+            exit(-1)
 
         if len(self.book) > self.n_max:
             heapq.heappop(self.book)  # Throw away largest error
@@ -65,17 +74,17 @@ class ParameterBookkeeper:
         if len(self.book) == 0:
             return None
         else:
-            sorted_data = self.book.sort(key=lambda x: -x[0])
+            sorted_data = sorted(self.book, key=lambda x: -x[0])
             best_data = sorted_data[0]
-            return best_data[1]["parameters"]  # First is error
+            return best_data[2]["parameters"]  # First is error
 
     def get_best_dataset(self):
         if len(self.book) == 0:
             return None
         else:
-            sorted_data = self.book.sort(key=lambda x: -x[0])
+            sorted_data = sorted(self.book, key=lambda x: -x[0])
             best_data = sorted_data[0]
-            return best_data[1]  # First is error
+            return best_data[2]  # First is error, second datetime (tiebreaker)
 
     def clear(self):
         self.book = []
@@ -108,11 +117,11 @@ class ParameterBookkeeper:
         if len(self.book) <= 1:
             return
 
-        param_len = np.array([len(d[1]["parameters"]) for d in self.book])
+        param_len = np.array([len(d[2]["parameters"]) for d in self.book])
         assert (param_len == param_len[0]).all(), "Parameters should all be same length"
 
-        section_id = [np.array(d[1]["section_id"]) for d in self.book]
-        section_x = [np.array(d[1]["section_x"]) for d in self.book]
+        section_id = [np.array(d[2]["section_id"]) for d in self.book]
+        section_x = [np.array(d[2]["section_x"]) for d in self.book]
 
         assert np.array([s == section_id[0] for s in section_id]).all(), \
             "section_id should match for all parametersets"
