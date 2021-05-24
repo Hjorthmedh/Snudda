@@ -32,6 +32,8 @@ echo "This is the conda we have:"
 echo `which conda`
 conda activate
 
+module load gcc/9.2.0
+module load openmpi/4.1-gcc-9.2
 export IPYTHONDIR="$L/.ipython"
 
 # !!! OBS, you need to have done a dev installation using the line below:

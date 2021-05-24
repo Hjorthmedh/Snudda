@@ -1,11 +1,11 @@
 #!/bin/bash -l
-#SBATCH -t 2:59:00
-#SBATCH --time-min=1:59:00
+#SBATCH -t 0:59:00
+#SBATCH --time-min=0:50:00
 #SBATCH -J snudda_simulate
 #SBATCH -A 2020-5-449
 #SBATCH -o save/output-snudda_simulate.o%j
 #SBATCH -e save/error-snudda_simulate.e%j
-#SBATCH --nodes=15-20
+#SBATCH --nodes=5
 #SBATCH --ntasks-per-node=32
 
 # 16 workers were too few, got section stack overflow (there is a hidden
@@ -17,9 +17,9 @@ HOME=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda
 # Synapse file
 SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
 
-NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.904373
+NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.974235
 
-NETWORK_INFO_FILE=$NETWORK_DIR/network-pruned-synapses.hdf5
+NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 NETWORK_VOLTAGE_FILE=$NETWORK_DIR/simulation/voltage-trace-${SLURM_JOBID}.txt
 
@@ -31,6 +31,7 @@ echo "Network dir: "$NETWORK_DIR
 #module unload cray-libsci atp
 
 # Updated 2020-08-25
+module unload PrgEnv-gnu
 module sw PrgEnv-cray PrgEnv-intel/6.0.5
 module add mpi4py/3.0.2/py37
 module add neuron/7.7-py37
@@ -45,7 +46,9 @@ export CRAY_ROOTFS=DSL
 
 # Remove "special" old directory
 rm -r x86_64
-nrnivmodl ../data/cellspecs-v2/mechanisms
+echo 'nrnvimodl'
+cp $SNUDDA_DIR/data/neurons/mechanisms mechanisms/
+nrnivmodl mechanisms/
 
 
 # Split the config file (is aprun blocking?)
@@ -75,7 +78,7 @@ export PATH=/cfs/klemming/nobackup/h/hjorth/local/beskow/bin:$PATH
 export PYTHONPATH=/cfs/klemming/nobackup/h/hjorth/local/beskow/lib/python3.7/site-packages:$PYTHONPATH
 
 
-srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
+srun -n $N_WORKERS $SNUDDA_DIR/../examples/parallel/OLD/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
 
 
 # Original version, start neuron from python, does not work on beskow

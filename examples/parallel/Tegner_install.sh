@@ -31,7 +31,9 @@ pushd $L/build
   mkdir neuron
   pushd neuron
     git clone -q https://github.com/neuronsimulator/nrn
+    
     cd nrn
+    git checkout 7.7
     ./build.sh
     autoreconf --force --install
     ./configure --prefix=$LM --exec-prefix=$LM \
