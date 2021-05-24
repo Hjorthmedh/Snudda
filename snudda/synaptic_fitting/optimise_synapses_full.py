@@ -110,6 +110,8 @@ class OptimiseSynapsesFull(object):
         self.cell_type = None
 
         self.synapse_parameters = None
+        self.synapse_section_id = None
+        self.synapse_section_x = None
 
         self.pretty_plot = pretty_plot
 
@@ -212,6 +214,12 @@ class OptimiseSynapsesFull(object):
 
         self.synapse_parameter_data = ParameterBookkeeper(old_book_file=self.parameter_data_file_name)
         self.synapse_parameter_data.check_integrity()
+
+        best_dataset = self.synapse_parameter_data.get_best_dataset()
+
+        if best_dataset is not None:
+            self.synapse_section_id = best_dataset["section_id"]
+            self.synapse_section_x = best_dataset["section_x"]
 
     ############################################################################
 
@@ -1028,8 +1036,12 @@ class OptimiseSynapsesFull(object):
             # 1. Setup workers
             params = self.synapse_parameters
 
+            if self.synapse_section_id is not None:
+                syn_override = self.synapse_section_id, self.synapse_section_x
+
             # 2. Setup one cell to optimise, randomise synapse positions
-            synapse_model = self.setup_model(params=params)
+            synapse_model = self.setup_model(params=params,
+                                             synapse_position_override=syn_override)
 
             # (volt,time) = self.getData(dataType,cellID)
             peak_idx = self.get_peak_idx2(stim_time=self.stim_time,
