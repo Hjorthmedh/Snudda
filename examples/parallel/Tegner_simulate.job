@@ -5,7 +5,7 @@
 #SBATCH -A 2020-5-636
 #SBATCH -o save/output-runSnudda.o%j
 #SBATCH -e save/error-runSnudda.e%j
-#SBATCH --nodes=1
+#SBATCH --nodes=1-5
 #SBATCH --ntasks-per-node=24
 
 # --- Tegner has 24 cores per node
