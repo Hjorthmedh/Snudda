@@ -53,7 +53,7 @@ pushd ../../
 # git clone git@github.com:Hjorthmedh/Snudda.git
 # cd Snudda
 
-# pip install -r requirements.txt
+pip install -r requirements.txt
 
 # Dev installation using local copy
 pip install -e .[dev]
