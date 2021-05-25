@@ -156,17 +156,15 @@ class PlotTraces:
 
         plt.tight_layout()
 
-        # plt.savefig('figures/Network-spikes-' + str(self.ID) + "-colour.pdf")
-
         fig_path = os.path.dirname(os.path.realpath(self.network_file)) + "/figures"
         if not os.path.exists(fig_path):
             os.makedirs(fig_path)
 
         if fig_name is None:
             if len(types_in_plot) > 1:
-                fig_name = f"Network-spikes-{self.ID}-{'-'.join(types_in_plot)}-colour.pdf"
+                fig_name = f"Network-spikes-{self.ID}-{'-'.join(types_in_plot)}-colour.svg"
             else:
-                fig_name = f"Network-spikes-{self.ID}-{types_in_plot.pop()}-colour.pdf"
+                fig_name = f"Network-spikes-{self.ID}-{types_in_plot.pop()}-colour.svg"
 
         plt.savefig(os.path.join(fig_path, fig_name), dpi=300)
         print(f"Saving to figure {fig_name}")
