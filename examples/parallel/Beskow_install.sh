@@ -153,7 +153,7 @@ pushd $L/build
   # pip install bluepyopt --prefix=$L
   pip install bluepyopt
 
-popd
+# popd
 # rm -rf $L/build
 
 
