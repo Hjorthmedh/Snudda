@@ -19,7 +19,7 @@ SNUDDA_DIR=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/snudda
 
 # You need to point this as the directory where you created the network in
 #NETWORK_DIR=$SNUDDA_DIR/../../networks/TegnerRun.959380
-NETWORK_DIR=/cfs/klemming/nobackup/h/hjorth/Snudda/networks/TegnerNetwork
+NETWORK_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/networks/TegnerNetwork
 
 NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
