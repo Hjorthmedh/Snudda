@@ -30,8 +30,12 @@ pushd $L/build
   # build parallel neuron with python interface
   mkdir neuron
   pushd neuron
+<<<<<<< HEAD
     git clone -q https://github.com/neuronsimulator/nrn
     
+=======
+    git clone -q https://github.com/neuronsimulator/nrn -b 8.0.0
+>>>>>>> origin/dev
     cd nrn
     git checkout 7.7
     ./build.sh

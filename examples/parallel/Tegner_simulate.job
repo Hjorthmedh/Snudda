@@ -5,7 +5,7 @@
 #SBATCH -A 2020-5-636
 #SBATCH -o save/output-runSnudda.o%j
 #SBATCH -e save/error-runSnudda.e%j
-#SBATCH --nodes=1
+#SBATCH --nodes=1-5
 #SBATCH --ntasks-per-node=24
 
 # --- Tegner has 24 cores per node
@@ -35,7 +35,7 @@ conda activate
 
 # These need to match what is in Tegner_runSnudda.sh
 SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
-JOBDIR=$SNUDDA_DIR/../networks/TegnerRun.956075
+JOBDIR=$SNUDDA_DIR/../networks/TegnerNetwork
 
 module load gcc/9.2.0
 module load openmpi/4.1-gcc-9.2
@@ -45,4 +45,5 @@ ln -s $SNUDDA_DIR/data/neurons/mechanisms
 nrnivmodl mechanisms
 
 # Lets try to run simulation also
-srun -n $SLURM_NTASKS x86_64/special -mpi -python snudda simulate ${JOBDIR}   
+# mpirun -n $SLURM_NTASKS x86_64/special -mpi -python snudda simulate ${JOBDIR}   
+mpirun -n $SLURM_NTASKS x86_64/special -mpi -python ../../snudda/cli.py simulate ${JOBDIR}   
