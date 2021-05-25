@@ -33,7 +33,8 @@ if [ $SNIC_RESOURCE == "tegner" ]; then
     module load openmpi/4.1-gcc-9.2
 elif [ $SNIC_RESOURCE == "beskow" ]; then
     echo "On Beskow"
-    # module load gcc/10.1.0
+    module load gcc/10.2.0
+
     # module load ??? # What is openmpi module on Beskow?
    #do something
 fi
