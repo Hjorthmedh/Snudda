@@ -30,7 +30,7 @@ pushd $L/build
   # build parallel neuron with python interface
   mkdir neuron
   pushd neuron
-    git clone -q https://github.com/neuronsimulator/nrn
+    git clone -q https://github.com/neuronsimulator/nrn -b 8.0.0
     cd nrn
     ./build.sh
     autoreconf --force --install
