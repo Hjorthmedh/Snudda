@@ -3,7 +3,7 @@
 # !!! OBS you need to make sure you git clone manually, it seems that command
 # stalls when running on Beskow compute nodes?
 
-source activate_miniconda.txt
+source activate_miniconda.sh
 
 module load snic-env
 
@@ -63,11 +63,11 @@ pushd $L/build
 
   # build parallel neuron with python interface
   # mkdir neuron
-  pushd neuron
+  # pushd neuron
   # OLD: git clone -q https://github.com/nrnhines/nrn
 
   # You have to do git clone manually!!
-  # git clone https://github.com/neuronsimulator/nrn -b 7.8.2
+  # git clone https://github.com/neuronsimulator/nrn -b 8.0.0
   
   cd nrn
   rm -r build

@@ -30,7 +30,7 @@ echo "Network dir: "$NETWORK_DIR
 
 ##############
 
-source activate_miniconda.txt
+source activate_miniconda.sh
 
 module load snic-env
 
