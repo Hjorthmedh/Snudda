@@ -54,5 +54,9 @@ pushd ../../
 # cd Snudda
 
 pip install -r requirements.txt
+
+# Dev installation using local copy
+pip install -e .[dev]
+
 popd
 
