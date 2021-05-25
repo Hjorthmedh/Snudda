@@ -46,7 +46,7 @@ pip install mpi4py --ignore-installed
 
 
 
-pushd ../../snudda
+pushd ../../
 
 # Install Snudda -- only if you do not already have Snudda installed
 # cd $L
