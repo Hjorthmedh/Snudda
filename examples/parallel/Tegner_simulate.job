@@ -45,4 +45,4 @@ ln -s $SNUDDA_DIR/data/neurons/mechanisms
 nrnivmodl mechanisms
 
 # Lets try to run simulation also
-srun -n $SLURM_NTASKS x86_64/special -mpi -python snudda simulate ${JOBDIR}   
+mpirun -n $SLURM_NTASKS x86_64/special -mpi -python snudda simulate ${JOBDIR}   
