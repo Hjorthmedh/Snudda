@@ -32,6 +32,7 @@ pushd $L/build
   pushd neuron
     git clone -q https://github.com/neuronsimulator/nrn
     cd nrn
+    git checkout 8.0-cherries
     ./build.sh
     autoreconf --force --install
     ./configure --prefix=$LM --exec-prefix=$LM \
