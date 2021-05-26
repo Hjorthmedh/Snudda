@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ~/.profile
+#source ~/.profile
 
 echo "This assumes you have already installed miniconda3 on Tegner"
 echo ""
@@ -8,17 +8,15 @@ echo "https://github.com/Hjorthmedh/Snudda/wiki/D.-Setting-up-Tegner-@%C2%A0KTH"
 echo ""
 
 L=$VIRTUAL_ENV
-LM=$L/miniconda3
 
-mkdir -pv $L
-
+module swap PrgEnv-cray PrgEnv-gnu
+module load cray-python
+module load daint-mc
 module load gcc/9.3.0
-
-conda activate
 
 export PATH=$LM/bin:$PATH
 export LD_LIBRARY_PATH=$LM/lib:$LD_LIBRARY_PATH
-# export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
+export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
 
 rm -rf $L/build
 mkdir -pv $L/build
@@ -70,4 +68,4 @@ popd
 rm -rf $L/build
 
 
-conda deactivate
+#conda deactivate

@@ -4,7 +4,7 @@ SNUDDA_DIR=/users/$USER/Snudda/snudda
 JOBDIR=$SNUDDA_DIR/../networks/CSCS_test
 
 
-SIMSIZE=20000
+SIMSIZE=1000
 
 
 mkdir -p $JOBDIR
@@ -96,13 +96,8 @@ else
     # Disable input generation at the moment
 
     # echo ">>> Input: "`date`
-<<<<<<< HEAD
-    cp -a $SNUDDA_DIR/data/input_config/input-v10-scaled.json ${JOBDIR}/input.json
-=======
     # cp -a $SNUDDA_DIR/data/input_config/input-v10-scaled.json ${JOBDIR}/input.json
     cp -a $SNUDDA_DIR/data/input_config/external-input-dSTR-scaled.json ${JOBDIR}/input.json
-
->>>>>>> origin/dev
     snudda input ${JOBDIR} --parallel --time 5
 
     
