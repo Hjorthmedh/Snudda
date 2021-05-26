@@ -1,7 +1,7 @@
 #!/bin/bash -l
 
 SNUDDA_DIR=/users/$USER/Snudda/snudda
-JOBDIR=$SNUDDA_DIR/../networks/TegnerNetwork
+JOBDIR=$SNUDDA_DIR/../networks/CSCS_test
 
 
 SIMSIZE=20000

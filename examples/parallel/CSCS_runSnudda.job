@@ -46,7 +46,7 @@ echo $PATH
 
 # These need to match what is in Tegner_runSnudda.sh
 SNUDDA_DIR=/users/$USER/Snudda/snudda
-JOBDIR=$SNUDDA_DIR/networks/CSCS_test
+JOBDIR=$SNUDDA_DIR/../networks/CSCS_test
 
 module load gcc/9.3.0
 
