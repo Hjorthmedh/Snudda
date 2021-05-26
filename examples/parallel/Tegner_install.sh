@@ -57,17 +57,17 @@ pushd $L/build
   # install pypandoc
   # pip install pypandoc --install-option="--prefix=$L"
   # pip install pypandoc --prefix=$L
-  pip install pypandoc
+  pip install pypandoc --no-cache-dir
 
   # install ipyparallel
   # pip install ipyparallel --install-option="--prefix=$L"
   # pip install ipyparallel --prefix=$L
-  pip install ipyparallel
+  pip install ipyparallel --no-cache-dir
 
   # install bluepyopt
   # pip install bluepyopt --install-option="--prefix=$L"
   # pip install bluepyopt --prefix=$L
-  pip install bluepyopt
+  pip install bluepyopt --no-cache-dir
 
 popd
 rm -rf $L/build

@@ -41,7 +41,7 @@ fi
 # Recompile mpi4py using MPICH
 export MPICC=cc
 export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
-pip install mpi4py --ignore-installed
+pip install mpi4py --ignore-installed --no-cache-dir
 
 
 
@@ -53,7 +53,7 @@ pushd ../../
 # git clone git@github.com:Hjorthmedh/Snudda.git
 # cd Snudda
 
-pip install -r requirements.txt
+pip install -r requirements.txt --no-cache-dir
 
 # Dev installation using local copy
 pip install -e .[dev]
