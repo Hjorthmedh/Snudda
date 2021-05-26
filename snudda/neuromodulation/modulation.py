@@ -65,6 +65,7 @@ def alpha_background(parameter=None):
 
     magnitude = np.ones_like(time_step_array) * tonic
 
+    index = np.where(time_step_array > tstart)[0]
     start_index = np.where(time_step_array > tstart)[0][0]
 
     magnitude[start_index:] = tonic + alpha_sub_function(np.take(time_step_array, index), tau, tstart, gmax_shift)
