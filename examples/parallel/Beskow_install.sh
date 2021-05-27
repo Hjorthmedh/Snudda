@@ -153,7 +153,7 @@ pushd $L/build
   # pip install bluepyopt --prefix=$L
   pip install bluepyopt
 
-  MPICC=cc pip install mpi4py --ignore-installed
+  pip install mpi4py --ignore-installed
 
 # popd
 # rm -rf $L/build
