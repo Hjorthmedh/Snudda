@@ -1,6 +1,6 @@
 #!/bin/bash -l
-#SBATCH -t 2:59:00
-#SBATCH --time-min=1:59:00
+#SBATCH -t 0:39:00
+#SBATCH --time-min=0:19:00
 #SBATCH -J snudda_simulate
 #SBATCH -A 2020-5-449
 #SBATCH -o save/output-snudda_simulate.o%j
