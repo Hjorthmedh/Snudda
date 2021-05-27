@@ -33,9 +33,9 @@ class ParameterBookkeeper:
         data["section_x"] = section_x
         data["error"] = error
 
-        if dt:
+        if dt is not None:
             data["dt"] = dt
-        if volt:
+        if volt is not None:
             data["volt"] = volt
 
         if len(self.book) >= self.n_max:

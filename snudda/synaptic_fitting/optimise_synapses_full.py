@@ -12,6 +12,8 @@ import time
 
 from snudda.synaptic_fitting.parameter_bookkeeper import ParameterBookkeeper
 
+# TODO: Check, what happens if we mix facilitating and depressing synapses on the same neuron...?
+
 # TODO: 2021-05-27 -- Pass the holding current needed to the workers, no need to recalculate it multiple times
 
 # TODO: 2021-05-12 -- Save more than the best parameter set in json file. Have one dictionary item per saved parameterset,
@@ -978,8 +980,9 @@ class OptimiseSynapsesFull(object):
                                                        section_id=self.rsr_synapse_model.synapse_section_id,
                                                        section_x=self.rsr_synapse_model.synapse_section_x,
                                                        error=error,
-                                                       dt=t[1] - t[0],
-                                                       volt=v)
+                                                       #dt=t[1] - t[0],
+                                                       #volt=v
+                                                       )
 
         return self.synapse_parameter_data.book
 
