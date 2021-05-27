@@ -43,7 +43,7 @@ elif [ $SNIC_RESOURCE == "beskow" ]; then
     # module load ??? # What is openmpi module on Beskow?
    #do something
 else
-    echo "Unknown system $SNIC_RESOURCE
+    echo "Unknown system $SNIC_RESOURCE"
 fi
 
 pip install mpi4py --ignore-installed --no-cache-dir
