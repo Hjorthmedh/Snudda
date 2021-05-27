@@ -3,6 +3,8 @@
 # !!! OBS you need to make sure you git clone manually, it seems that command
 # stalls when running on Beskow compute nodes?
 
+./Miniconda_install.sh
+
 source activate_miniconda.sh
 
 module load snic-env

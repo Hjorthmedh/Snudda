@@ -1,6 +1,8 @@
 #!/bin/bash
 
-source ~/.profile
+./Miniconda_install.sh
+
+source activate_miniconda.sh
 
 module load snic-env
 
