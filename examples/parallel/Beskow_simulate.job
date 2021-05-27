@@ -37,6 +37,7 @@ module load snic-env
 # --- I have tried with the gnu compiler, and also with the cray compiler
 module swap PrgEnv-cray PrgEnv-gnu
 module unload cray-libsci atp
+module add mpi4py/3.0.3-GNU-8.3
 export CRAYPE_LINK_TYPE=dynamic
 export CRAY_ROOTFS=DSL
 
