@@ -1,4 +1,6 @@
 import os
+import timeit
+
 import numpy as np
 import scipy
 import scipy.optimize
@@ -172,8 +174,8 @@ class OptimiseSynapsesFull(object):
 
     def __delete__(self):
 
-        # Save the parameter cache before closing
-        if self.parameter_data_file_name:
+        # Save the parameter cache before closing, but only for master, dont want the workers to corrupt data
+        if self.parameter_data_file_name and self.role == "master":
             self.save_parameter_data()
         else:
             print("exiting: parameter_data_file_name not set, not saving parameter data")
@@ -249,16 +251,22 @@ class OptimiseSynapsesFull(object):
         best_dataset = self.synapse_parameter_data.get_best_dataset()
         best_params = best_dataset["parameters"]
 
+        peak_h, t_plot, v_plot = self.run_model(t_spike=self.stim_time,
+                                                u=best_params[0],
+                                                tau_r=best_params[1],
+                                                tau_f=best_params[2],
+                                                tau=best_params[3],
+                                                cond=best_params[4],
+                                                params=self.synapse_parameters,
+                                                return_trace=True)
+
         #synapse_position_override = (self.get_parameter_cache("sectionID"),
         #                             self.get_parameter_cache("sectionX"))
-        dt = best_dataset["dt"]
-        v_plot = np.array(best_dataset["volt"])
-        t_plot = np.arange(0, len(v_plot)*dt, dt)
-        min_error = best_dataset["error"]
 
-        t_idx = np.where(skip_time <= self.time)[0]
+        assert (v_plot == np.array(best_dataset["volt"])).all(), "This should match for now"
 
         plt.figure()
+        t_idx = np.where(skip_time <= self.time)[0]
 
         plt.plot(self.time[t_idx] * 1e3, self.volt[t_idx] * 1e3, 'r-')
         if v_plot is not None:
@@ -1028,6 +1036,8 @@ class OptimiseSynapsesFull(object):
 
     def parallel_optimise_single_cell(self, n_trials=10000, post_opt=False):
 
+        start_time = timeit.default_timer()
+
         # !!! Future improvement. Allow continuation of old optimisation by
         # reading synapse location and old parameter set, so that is not thrown away
 
@@ -1125,6 +1135,10 @@ class OptimiseSynapsesFull(object):
                 # This updates parameters and saves new parameter cache
                 self.get_refined_parameters()
                 self.save_parameter_data()
+
+        end_time = timeit.default_timer()
+
+        print(f"Optimisation duration: {end_time - start_time} s")
 
     ############################################################################
 
