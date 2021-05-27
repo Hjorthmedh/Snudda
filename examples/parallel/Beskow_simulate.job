@@ -1,6 +1,6 @@
 #!/bin/bash -l
-#SBATCH -t 0:39:00
-#SBATCH --time-min=0:19:00
+#SBATCH -t 2:59:00
+#SBATCH --time-min=1:59:00
 #SBATCH -J snudda_simulate
 #SBATCH -A 2020-5-449
 #SBATCH -o save/output-BeskowSnuddaSimulate.o%j
@@ -37,7 +37,6 @@ module load snic-env
 # --- I have tried with the gnu compiler, and also with the cray compiler
 module swap PrgEnv-cray PrgEnv-gnu
 module unload cray-libsci atp
-module add mpi4py/3.0.3-GNU-8.3
 export CRAYPE_LINK_TYPE=dynamic
 export CRAY_ROOTFS=DSL
 

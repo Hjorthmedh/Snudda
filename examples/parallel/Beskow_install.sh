@@ -1,10 +1,28 @@
 #!/bin/bash
 
+# !!! OBS you need to make sure you git clone manually, it seems that command
+# stalls when running on Beskow compute nodes?
+
+# THIS LINE SHOULD BE UNCOMMENTED... DONT FORGET 2021-05-27
+./Miniconda_install.sh
+
+source activate_miniconda.sh
+
+module load snic-env
+
+# --- I have tried with the gnu compiler, and also with the cray compiler
 module swap PrgEnv-cray PrgEnv-gnu
 module unload cray-libsci atp
 export CRAYPE_LINK_TYPE=dynamic
 
-L=$VIRTUAL_ENV/local/
+# # module load craype-ivybridge
+
+echo "This assumes you have already installed miniconda3 on Tegner"
+echo ""
+echo "https://github.com/Hjorthmedh/Snudda/wiki/D.-Setting-up-Tegner-@%C2%A0KTH"
+echo ""
+
+L=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/$SNIC_RESOURCE
 LM=$L/miniconda3
 LN=$L/neuron
 
@@ -19,7 +37,7 @@ export MPICXX=CC
 conda activate
 
 # neuron is also installed from requirements.txt, remove non-compatible version
-pip uninstall neuron
+pip uninstall neuron -y
 
 # Is MINIC used?
 export MINIC=$LM
@@ -44,7 +62,7 @@ export NRN_INSTALL_LOC=$LN
 
 # rm -rf $L/build
 # mkdir -pv $L/build
-pushd $L/build
+pushd $L
 
   # build parallel neuron with python interface
   # mkdir neuron
@@ -84,7 +102,7 @@ pushd $L/build
 	  
   cmake .. \
       -DNRN_ENABLE_INTERVIEWS=OFF \
-      -DNRN_ENABLE_PYTHON=OFF   \
+      -DNRN_ENABLE_PYTHON=ON   \
       -DNRN_ENABLE_MPI=ON   \
       -DNRN_ENABLE_RX3D=OFF  \
       -DCMAKE_INSTALL_PREFIX=$NRN_INSTALL_LOC \
@@ -126,19 +144,19 @@ pushd $L/build
   # install pypandoc
   # pip install pypandoc --install-option="--prefix=$L"
   # pip install pypandoc --prefix=$L
-  pip install pypandoc
+  pip install pypandoc --no-cache-dir
 
   # install ipyparallel
   # pip install ipyparallel --install-option="--prefix=$L"
   # pip install ipyparallel --prefix=$L
-  pip install ipyparallel
+  pip install ipyparallel --no-cache-dir
 
   # install bluepyopt
   # pip install bluepyopt --install-option="--prefix=$L"
   # pip install bluepyopt --prefix=$L
-  pip install bluepyopt
+  pip install bluepyopt --no-cache-dir
 
-  pip install mpi4py
+  pip install mpi4py --no-cache-dir
 
 # popd
 # rm -rf $L/build

@@ -10,8 +10,13 @@
 #SBATCH --output=std-cscs.out
 #SBATCH --mail-type=ALL
 
+module load cray-python
+module load daint-mc
+module swap PrgEnv-cray PrgEnv-gnu
 
+source ~/snudda38/bin/activate
 L=$VIRTUAL_ENV
+
 
 export IPYTHONDIR="$L/.ipython"
 
@@ -19,40 +24,15 @@ export IPYTHONDIR="$L/.ipython"
 echo "You need to have done the following:"
 echo "pip install --user -e .[dev]"
 
-echo $L
-
 # Delete the old .ipython directory
 echo "Removing old .ipython directory"
 rm -r $IPYTHONDIR
 
 export IPYTHON_PROFILE=mpi
 
-# export PYTHONPATH="$PYTHONPATH:/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/"
-
 echo "This is my path:"
 echo $PATH
 
-# These need to match what is in Tegner_runSnudda.sh
-SNUDDA_DIR=/users/$USER/Snudda/snudda
-JOBDIR=$SNUDDA_DIR/../networks/CSCS_test
+SNUDDA_DIR=/users/${USER:0:1}/$USER/Snudda/snudda
 
-export PATH=$LM/bin:$LN/bin:$PATH
-export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
-export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
-export PYTHONPATH=$LN/lib/python:$LM/lib/python3.8/
-
-export CRAYPE_LINK_TYPE=dynamic
-export CRAY_ROOTFS=DSL
-
-
-
-
-
-module load daint-mc
-module swap PrgEnv-cray PrgEnv-gnu
-module unload gcc/10.1.0
-module load gcc/9.3.0
-
-#.. Let's try to run on infiniband connection
 ./CSCS_runSnudda.sh
-
