@@ -3,7 +3,7 @@
 # !!! OBS you need to make sure you git clone manually, it seems that command
 # stalls when running on Beskow compute nodes?
 
-./Miniconda_install.sh
+# ./Miniconda_install.sh
 
 source activate_miniconda.sh
 
@@ -36,7 +36,7 @@ export MPICXX=CC
 conda activate
 
 # neuron is also installed from requirements.txt, remove non-compatible version
-pip uninstall neuron
+pip uninstall neuron -y
 
 # Is MINIC used?
 export MINIC=$LM
@@ -61,7 +61,7 @@ export NRN_INSTALL_LOC=$LN
 
 # rm -rf $L/build
 # mkdir -pv $L/build
-pushd $L/build
+pushd $L
 
   # build parallel neuron with python interface
   # mkdir neuron
