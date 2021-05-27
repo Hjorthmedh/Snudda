@@ -147,17 +147,3 @@ pushd $L
 
   pip install mpi4py --no-cache-dir
 
-  pushd ../../
-
-# Install Snudda -- only if you do not already have Snudda installed
-# cd $L
-# git clone git@github.com:Hjorthmedh/Snudda.git
-# cd Snudda
-
-pip install -r requirements.txt --no-cache-dir
-
-# Dev installation using local copy
-pip install -e .[dev]
-
-pip --version
-

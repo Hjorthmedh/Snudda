@@ -8,4 +8,4 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=32
 
-./Beskow_install.sh
+./CSCS_install.sh

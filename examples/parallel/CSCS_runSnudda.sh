@@ -1,10 +1,10 @@
 #!/bin/bash -l
 
 SNUDDA_DIR=/users/$USER/Snudda/snudda
-JOBDIR=$SNUDDA_DIR/../networks/CSCS_test
 
+JOBDIR=$SNUDDA_DIR/../networks/TegnerNetwork
 
-SIMSIZE=1000
+SIMSIZE=20000
 
 
 mkdir -p $JOBDIR
@@ -50,7 +50,6 @@ else
     echo ">>> Starting ipcluster `date`"
     
     #.. Start the ipcluster
-    
     ipcluster start -n ${NWORKERS} \
 	      --ip=${CONTROLLERIP} \
 	      --location=${CONTROLLERIP} \
@@ -59,7 +58,7 @@ else
 	      --HeartMonitor.max_heartmonitor_misses=1000 \
 	      --HubFactory.registration_timeout=600 \
 	      --HeartMonitor.period=10000 &
-       
+
     #.. Sleep to allow engines to start
     echo ">>> Wait 120s to allow engines to start"
     sleep 120 #60
@@ -99,6 +98,7 @@ else
     # echo ">>> Input: "`date`
     # cp -a $SNUDDA_DIR/data/input_config/input-v10-scaled.json ${JOBDIR}/input.json
     cp -a $SNUDDA_DIR/data/input_config/external-input-dSTR-scaled.json ${JOBDIR}/input.json
+
     snudda input ${JOBDIR} --parallel --time 5
 
     
