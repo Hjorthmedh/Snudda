@@ -12,6 +12,7 @@ import time
 
 from snudda.synaptic_fitting.parameter_bookkeeper import ParameterBookkeeper
 
+# TODO: 2021-05-27 -- Pass the holding current needed to the workers, no need to recalculate it multiple times
 
 # TODO: 2021-05-12 -- Save more than the best parameter set in json file. Have one dictionary item per saved parameterset,
 #                     that way we can remove all associated data easily in one go, when updating the json file.
@@ -252,6 +253,11 @@ class OptimiseSynapsesFull(object):
         best_dataset = self.synapse_parameter_data.get_best_dataset()
         best_params = best_dataset["parameters"]
 
+        synapse_position_override = best_dataset["section_id"], best_dataset["section_x"]
+
+        self.synapse_model = self.setup_model(params=self.synapse_parameters,
+                                              synapse_position_override=synapse_position_override)
+
         peak_h, t_plot, v_plot = self.run_model(t_spike=self.stim_time,
                                                 u=best_params[0],
                                                 tau_r=best_params[1],
@@ -261,10 +267,8 @@ class OptimiseSynapsesFull(object):
                                                 params=self.synapse_parameters,
                                                 return_trace=True)
 
-        #synapse_position_override = (self.get_parameter_cache("sectionID"),
-        #                             self.get_parameter_cache("sectionX"))
-
-        assert (v_plot == np.array(best_dataset["volt"])).all(), "This should match for now"
+        if "volt" in best_dataset:
+            assert np.max(np.abs(v_plot - np.array(best_dataset["volt"]))) < 1e-6, "This should match for now"
 
         plt.figure()
         t_idx = np.where(skip_time <= self.time)[0]
@@ -613,6 +617,8 @@ class OptimiseSynapsesFull(object):
                     n_synapses_override=None,
                     synapse_position_override=None):
 
+        print(f"setup_model: synapse_position-override: {synapse_position_override}")
+
         if params is None:
             params = {}
 
@@ -652,7 +658,8 @@ class OptimiseSynapsesFull(object):
                           time=self.sim_time,
                           log_file=self.log_file,
                           synapse_section_id=synapse_section_id,
-                          synapse_section_x=synapse_section_x)
+                          synapse_section_x=synapse_section_x,
+                          verbose=True)
 
         return self.rsr_synapse_model
 
@@ -688,7 +695,7 @@ class OptimiseSynapsesFull(object):
             # We divide by number of points in vector, to get the average deviation
             # then we multiply by 10000 to get an error comparable to the others
             decay_error = np.sum((smooth_exp_trace[idx_max:] - sim_trace[idx_max:]) ** 2) \
-                          / (self.num_smoothing - idx_max + 1) * 2000
+                / (self.num_smoothing - idx_max + 1) * 2000
 
             if False:
                 plt.figure()
@@ -911,7 +918,7 @@ class OptimiseSynapsesFull(object):
                    t_stim, h_peak,
                    model_bounds,
                    smooth_exp_trace8, smooth_exp_trace9,
-                   n_trials=5, load_params_flag=False,
+                   n_trials=1, load_params_flag=False,
                    parameter_sets=None,
                    return_min_error=False):
 
@@ -1139,7 +1146,7 @@ class OptimiseSynapsesFull(object):
 
         end_time = timeit.default_timer()
 
-        print(f"Optimisation duration: {end_time - start_time} s")
+        print(f"Optimisation duration: {end_time - start_time}.1f s")
 
     ############################################################################
 
@@ -1229,6 +1236,8 @@ class OptimiseSynapsesFull(object):
     ############################################################################
 
     def sobol_worker_setup(self, params, synapse_position_override=None):
+
+        print(f"sobol_worker_setup: synapse_position_override = {synapse_position_override}")
 
         # TODO: These variables should be defined as None in init
         self.synapse_model = self.setup_model(params=params,
