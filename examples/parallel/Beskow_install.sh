@@ -3,7 +3,8 @@
 # !!! OBS you need to make sure you git clone manually, it seems that command
 # stalls when running on Beskow compute nodes?
 
-# ./Miniconda_install.sh
+# THIS LINE SHOULD BE UNCOMMENTED... DONT FORGET 2021-05-27
+./Miniconda_install.sh
 
 source activate_miniconda.sh
 
@@ -101,7 +102,7 @@ pushd $L
 	  
   cmake .. \
       -DNRN_ENABLE_INTERVIEWS=OFF \
-      -DNRN_ENABLE_PYTHON=OFF   \
+      -DNRN_ENABLE_PYTHON=ON   \
       -DNRN_ENABLE_MPI=ON   \
       -DNRN_ENABLE_RX3D=OFF  \
       -DCMAKE_INSTALL_PREFIX=$NRN_INSTALL_LOC \
