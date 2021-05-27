@@ -607,7 +607,8 @@ class OptimiseSynapsesFull(object):
 
     ############################################################################
 
-    def setup_model(self, params=None,
+    def setup_model(self,
+                    params=None,
                     synapse_density_override=None,
                     n_synapses_override=None,
                     synapse_position_override=None):
@@ -1048,6 +1049,8 @@ class OptimiseSynapsesFull(object):
 
         if self.synapse_section_id is not None:
             syn_override = self.synapse_section_id, self.synapse_section_x
+        else:
+            syn_override = None
 
         # 2. Setup one cell to optimise, randomise synapse positions
         synapse_model = self.setup_model(params=params,
