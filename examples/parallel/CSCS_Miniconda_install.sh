@@ -4,13 +4,12 @@
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 chmod u+x Miniconda3-latest-Linux-x86_64.sh
 
-module load snic-env
 L=$VIRTUAL_ENV
 
 
 ./Miniconda3-latest-Linux-x86_64.sh -b -p $L/miniconda3
 
-source activate_miniconda.sh
+source activate_miniconda_CSCS.sh
 conda activate
 
 conda update -n base conda -y
