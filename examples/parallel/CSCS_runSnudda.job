@@ -1,12 +1,15 @@
 #!/bin/bash -l
-#SBATCH -t 0-6:59:00
-#SBATCH --time-min=1:59:00
-#SBATCH -J Snudda
-#SBATCH -A 2020-5-636
-#SBATCH -o save/output-runSnudda.o%j
-#SBATCH -e save/error-runSnudda.e%j
-#SBATCH --nodes=1-5
-#SBATCH --ntasks-per-node=24
+#SBATCH --job-name=bpopt
+#SBATCH --ntasks=48
+#SBATCH --cpus-per-task=1
+#SBATCH --account=ich030
+#SBATCH --time=0:10:00
+#SBATCH --partition=normal
+#SBATCH --constraint=mc
+#SBATCH --error=std-cscs.err
+#SBATCH --output=std-cscs.out
+#SBATCH --mail-type=ALL
+
 
 L=$VIRTUAL_ENV
 
@@ -15,6 +18,8 @@ export IPYTHONDIR="$L/.ipython"
 # !!! OBS, you need to have done a dev installation using the line below:
 echo "You need to have done the following:"
 echo "pip install --user -e .[dev]"
+
+echo $L
 
 # Delete the old .ipython directory
 echo "Removing old .ipython directory"
@@ -31,6 +36,21 @@ echo $PATH
 SNUDDA_DIR=/users/$USER/Snudda/snudda
 JOBDIR=$SNUDDA_DIR/../networks/CSCS_test
 
+export PATH=$LM/bin:$LN/bin:$PATH
+export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
+export PYTHONPATH=$LN/lib/python:$LM/lib/python3.8/
+
+export CRAYPE_LINK_TYPE=dynamic
+export CRAY_ROOTFS=DSL
+
+
+
+
+
+module load daint-mc
+module swap PrgEnv-cray PrgEnv-gnu
+module unload gcc/10.1.0
 module load gcc/9.3.0
 
 #.. Let's try to run on infiniband connection

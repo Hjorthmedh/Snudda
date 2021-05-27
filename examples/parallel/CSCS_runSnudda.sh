@@ -50,6 +50,7 @@ else
     echo ">>> Starting ipcluster `date`"
     
     #.. Start the ipcluster
+    
     ipcluster start -n ${NWORKERS} \
 	      --ip=${CONTROLLERIP} \
 	      --location=${CONTROLLERIP} \
@@ -58,7 +59,7 @@ else
 	      --HeartMonitor.max_heartmonitor_misses=1000 \
 	      --HubFactory.registration_timeout=600 \
 	      --HeartMonitor.period=10000 &
-
+       
     #.. Sleep to allow engines to start
     echo ">>> Wait 120s to allow engines to start"
     sleep 120 #60

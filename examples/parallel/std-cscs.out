@@ -1,0 +1,83 @@
+You need to have done the following:
+pip install --user -e .[dev]
+/users/bp000144/snudda38
+Removing old .ipython directory
+This is my path:
+/users/bp000144/snudda38/bin:/apps/daint/UES/xalt/xalt2/software/xalt/2.8.10/sbin:/apps/daint/UES/xalt/xalt2/software/xalt/2.8.10/bin:/opt/cray/pe/mpt/7.7.16/gni/bin:/opt/cray/pe/perftools/20.10.0/bin:/opt/cray/pe/papi/6.0.0.4/bin:/opt/cray/rca/2.2.20-7.0.2.1_2.83__g8e3fb5b.ari/bin:/opt/cray/alps/6.6.59-7.0.2.1_3.72__g872a8d62.ari/sbin:/opt/cray/alps/default/bin:/opt/cray/pe/craype/2.7.3/bin:/opt/cray/pe/cce/11.0.0/cce-clang/x86_64/bin:/opt/cray/pe/cce/11.0.0/binutils/x86_64/x86_64-pc-linux-gnu/bin:/opt/cray/pe/cce/11.0.0/binutils/cross/x86_64-aarch64/aarch64-linux-gnu/../bin:/opt/cray/pe/cce/11.0.0/utils/x86_64/bin:/apps/cscs/daint/bin:/apps/daint/system/bin:/apps/common/system/bin:/opt/cray/cge/3.2.1463_r03f4dfb_fe3.3.0_2019062614/bin:/opt/cray/pe/modules/3.2.11.4/bin:/usr/local/bin:/usr/bin:/bin:/usr/lib/mit/bin:/usr/lib/mit/sbin:/opt/cray/pe/bin
+PATH: /opt/gcc/9.3.0/bin:/opt/cray/pe/perftools/20.10.0/bin:/opt/cray/pe/papi/6.0.0.4/bin:/opt/cray/rca/2.2.20-7.0.2.1_2.83__g8e3fb5b.ari/bin:/bin:/bin:/users/bp000144/snudda38/bin:/apps/daint/UES/xalt/xalt2/software/xalt/2.8.10/sbin:/apps/daint/UES/xalt/xalt2/software/xalt/2.8.10/bin:/opt/cray/pe/mpt/7.7.16/gni/bin:/opt/cray/pe/craype/2.7.3/bin:/opt/cray/alps/6.6.59-7.0.2.1_3.72__g872a8d62.ari/sbin:/opt/cray/alps/default/bin:/apps/cscs/daint/bin:/apps/daint/system/bin:/apps/common/system/bin:/opt/cray/cge/3.2.1463_r03f4dfb_fe3.3.0_2019062614/bin:/opt/cray/pe/modules/3.2.11.4/bin:/usr/local/bin:/usr/bin:/bin:/usr/lib/mit/bin:/usr/lib/mit/sbin:/opt/cray/pe/bin
+IPYTHONDIR: /users/bp000144/snudda38/.ipython
+PYTHONPATH: /lib/python:/lib/python3.8/
+LD_LIBRARY_PATH: /opt/gcc/9.3.0/snos/lib64:/opt/cray/pe/papi/6.0.0.4/lib64:/opt/cray/pe/mpt/7.7.16/gni/mpich-crayclang/9.0/lib:/apps/daint/UES/xalt/xalt2/software/xalt/2.8.10/lib64:/apps/daint/UES/xalt/xalt2/software/xalt/2.8.10/lib:/opt/cray/job/2.2.4-7.0.2.1_2.77__g36b56f4.ari/lib64
+>>>>>> Main process starting ipcluster
+
+>>> Init: ons maj 26 22:32:42 CEST 2021
+Creating config file
+Network path: /users/bp000144/Snudda/snudda/../networks/CSCS_test
+Adding Striatum with 1000 neurons
+Using cube for striatum
+Adding neurons: FSN from dir $DATA/neurons/striatum/fs
+Adding neurons: dSPN from dir $DATA/neurons/striatum/dspn
+Adding neurons: iSPN from dir $DATA/neurons/striatum/ispn
+Adding neurons: ChIN from dir $DATA/neurons/striatum/chin
+Checking boundaries, to make sure P is not too high
+LTS axon density P([-0.0002],[-0.0001],[-3.e-05]) = [1.84256218e-10]
+LTS axon density P([-0.0002],[-0.0001],[3.e-05]) = [1.84256218e-10]
+LTS axon density P([-0.0002],[0.0001],[-3.e-05]) = [1.84256218e-10]
+LTS axon density P([-0.0002],[0.0001],[3.e-05]) = [1.84256218e-10]
+LTS axon density P([0.0009],[-0.0001],[-3.e-05]) = [1.72360142e-23]
+LTS axon density P([0.0009],[-0.0001],[3.e-05]) = [1.72360142e-23]
+LTS axon density P([0.0009],[0.0001],[-3.e-05]) = [1.72360142e-23]
+LTS axon density P([0.0009],[0.0001],[3.e-05]) = [1.72360142e-23]
+Adding neurons: LTS from dir $DATA/neurons/striatum/lts
+Adding GPe with 0 neurons
+Adding GPi with 0 neurons
+Adding SNr with 0 neurons
+Adding STN with 0 neurons
+Adding Cortex with 0 neurons
+Adding Thalamus with 0 neurons
+Writing /users/bp000144/Snudda/snudda/../networks/CSCS_test/network-config.json
+SLURM_NODELIST = nid00[475-476]
+>>> NWORKERS  47
+>>> Starting ipcluster ons maj 26 22:32:51 CEST 2021
+>>> Wait 120s to allow engines to start
+>>> Place: ons maj 26 22:34:51 CEST 2021
+Placing neurons
+Network path: /users/bp000144/Snudda/snudda/../networks/CSCS_test
+Using hdf5 version: latest
+Parsing configuration file /users/bp000144/Snudda/snudda/../networks/CSCS_test/network-config.json
+Reading random seed from config file: 1122103907
+Using mesh_bin_width 4.6319589535986456e-05
+Cube or slice mesh, switching to serial processing.
+Using dimensions from config file
+Adding: 3 FSN_0
+Adding: 4 FSN_1
+Adding: 3 FSN_2
+Adding: 3 FSN_3
+Adding: 121 dSPN_0
+Adding: 121 dSPN_1
+Adding: 121 dSPN_2
+Adding: 121 dSPN_3
+Adding: 121 iSPN_0
+Adding: 121 iSPN_1
+Adding: 121 iSPN_2
+Adding: 121 iSPN_3
+Adding: 11 ChIN_0
+Adding: 7 LTS_0
+Something went wrong during placement, aborting!
+
+
+Batch Job Summary Report (version 21.01.1) for Job "bpopt" (31526554) on daint
+
+Job information (1/2)
+-----------------------------------------------------------------------------------------------------
+             Submit            Eligible               Start                 End    Elapsed Time limit
+------------------- ------------------- ------------------- ------------------- ---------- ----------
+2021-05-26T22:32:17 2021-05-26T22:32:17 2021-05-26T22:32:24 2021-05-26T22:35:07   00:02:43   00:10:00
+-----------------------------------------------------------------------------------------------------
+
+Job information (2/2)
+-------------------------------------------------------------
+    Username      Account    Partition   NNodes        Energy
+------------ ------------ ------------ -------- -------------
+    bp000144       ich030       normal        2     18.640 kJ
+

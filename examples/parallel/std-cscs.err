@@ -1,0 +1,98 @@
+./CSCS_runSnudda.sh: line 44: /sbin/ifconfig: No such file or directory
+2021-05-26 22:32:54.122 [IPClusterStart] IPYTHONDIR set to: /users/bp000144/snudda38/.ipython
+2021-05-26 22:32:54.226 [IPClusterStart] Created profile dir: '/users/bp000144/snudda38/.ipython/profile_mpi'
+2021-05-26 22:32:54.227 [IPClusterStart] Searching path ['/users/bp000144/Snudda/examples/parallel', '/users/bp000144/snudda38/.ipython/profile_mpi', '/users/bp000144/snudda38/etc/ipython', '/usr/local/etc/ipython', '/etc/ipython'] for config files
+2021-05-26 22:32:54.227 [IPClusterStart] Attempting to load config file: ipython_config.py
+2021-05-26 22:32:54.227 [IPClusterStart] Looking for ipython_config in /etc/ipython
+2021-05-26 22:32:54.228 [IPClusterStart] Looking for ipython_config in /usr/local/etc/ipython
+2021-05-26 22:32:54.228 [IPClusterStart] Looking for ipython_config in /users/bp000144/snudda38/etc/ipython
+2021-05-26 22:32:54.231 [IPClusterStart] Looking for ipython_config in /users/bp000144/snudda38/.ipython/profile_mpi
+2021-05-26 22:32:54.234 [IPClusterStart] Looking for ipython_config in /users/bp000144/Snudda/examples/parallel
+2021-05-26 22:32:54.236 [IPClusterStart] Attempting to load config file: ipcluster_config.py
+2021-05-26 22:32:54.237 [IPClusterStart] Looking for ipcontroller_config in /etc/ipython
+2021-05-26 22:32:54.237 [IPClusterStart] Looking for ipcontroller_config in /usr/local/etc/ipython
+2021-05-26 22:32:54.237 [IPClusterStart] Looking for ipcontroller_config in /users/bp000144/snudda38/etc/ipython
+2021-05-26 22:32:54.238 [IPClusterStart] Looking for ipcontroller_config in /users/bp000144/snudda38/.ipython/profile_mpi
+2021-05-26 22:32:54.239 [IPClusterStart] Looking for ipcontroller_config in /users/bp000144/Snudda/examples/parallel
+2021-05-26 22:32:54.240 [IPClusterStart] Attempting to load config file: ipcluster_config.py
+2021-05-26 22:32:54.240 [IPClusterStart] Looking for ipengine_config in /etc/ipython
+2021-05-26 22:32:54.241 [IPClusterStart] Looking for ipengine_config in /usr/local/etc/ipython
+2021-05-26 22:32:54.241 [IPClusterStart] Looking for ipengine_config in /users/bp000144/snudda38/etc/ipython
+2021-05-26 22:32:54.332 [IPClusterStart] Looking for ipengine_config in /users/bp000144/snudda38/.ipython/profile_mpi
+2021-05-26 22:32:54.333 [IPClusterStart] Looking for ipengine_config in /users/bp000144/Snudda/examples/parallel
+2021-05-26 22:32:54.335 [IPClusterStart] Attempting to load config file: ipcluster_config.py
+2021-05-26 22:32:54.335 [IPClusterStart] Looking for ipcluster_config in /etc/ipython
+2021-05-26 22:32:54.336 [IPClusterStart] Looking for ipcluster_config in /usr/local/etc/ipython
+2021-05-26 22:32:54.336 [IPClusterStart] Looking for ipcluster_config in /users/bp000144/snudda38/etc/ipython
+2021-05-26 22:32:54.337 [IPClusterStart] Looking for ipcluster_config in /users/bp000144/snudda38/.ipython/profile_mpi
+2021-05-26 22:32:54.338 [IPClusterStart] Looking for ipcluster_config in /users/bp000144/Snudda/examples/parallel
+2021-05-26 22:32:54.342 [IPClusterStart] Starting ipcluster with [daemon=False]
+2021-05-26 22:32:54.343 [IPClusterStart] Creating pid file: /users/bp000144/snudda38/.ipython/profile_mpi/pid/ipcluster.pid
+2021-05-26 22:32:54.348 [IPClusterStart] Starting Controller with LocalControllerLauncher
+2021-05-26 22:32:54.349 [IPClusterStart] Starting LocalControllerLauncher: ['/users/bp000144/snudda38/bin/python', '-m', 'ipyparallel.controller', '--profile-dir', '/users/bp000144/snudda38/.ipython/profile_mpi', '--cluster-id', '', '--log-level=20']
+2021-05-26 22:32:54.357 [IPClusterStart] Process '/users/bp000144/snudda38/bin/python' started: 52053
+2021-05-26 22:32:55.358 [IPClusterStart] Starting 47 Engines with MPIEngineSetLauncher
+2021-05-26 22:32:55.388 [IPClusterStart] Starting MPIEngineSetLauncher: ['mpiexec', '-n', '47', '/users/bp000144/snudda38/bin/python', '-m', 'ipyparallel.engine', '--mpi', '--profile-dir', '/users/bp000144/snudda38/.ipython/profile_mpi', '--cluster-id', '', '--log-level=20']
+2021-05-26 22:32:55.395 [IPClusterStart] ERROR | Engine start failed
+Traceback (most recent call last):
+  File "/users/bp000144/snudda38/lib/python3.8/site-packages/ipyparallel/apps/ipclusterapp.py", line 342, in start_engines
+    self.engine_launcher.start(self.n)
+  File "/users/bp000144/snudda38/lib/python3.8/site-packages/ipyparallel/apps/launcher.py", line 501, in start
+    return super(MPIEngineSetLauncher, self).start(n)
+  File "/users/bp000144/snudda38/lib/python3.8/site-packages/ipyparallel/apps/launcher.py", line 462, in start
+    return super(MPILauncher, self).start()
+  File "/users/bp000144/snudda38/lib/python3.8/site-packages/ipyparallel/apps/launcher.py", line 258, in start
+    self.process = Popen(self.args,
+  File "/opt/python/3.8.5.0/lib/python3.8/subprocess.py", line 854, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/python/3.8.5.0/lib/python3.8/subprocess.py", line 1702, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'mpiexec'
+ERROR:tornado.application:Exception in callback functools.partial(<bound method IPClusterEngines.start_engines of <ipyparallel.apps.ipclusterapp.IPClusterStart object at 0x2aaaac3faf10>>)
+Traceback (most recent call last):
+  File "/users/bp000144/snudda38/lib/python3.8/site-packages/tornado/ioloop.py", line 741, in _run_callback
+    ret = callback()
+  File "/users/bp000144/snudda38/lib/python3.8/site-packages/ipyparallel/apps/ipclusterapp.py", line 342, in start_engines
+    self.engine_launcher.start(self.n)
+  File "/users/bp000144/snudda38/lib/python3.8/site-packages/ipyparallel/apps/launcher.py", line 501, in start
+    return super(MPIEngineSetLauncher, self).start(n)
+  File "/users/bp000144/snudda38/lib/python3.8/site-packages/ipyparallel/apps/launcher.py", line 462, in start
+    return super(MPILauncher, self).start()
+  File "/users/bp000144/snudda38/lib/python3.8/site-packages/ipyparallel/apps/launcher.py", line 258, in start
+    self.process = Popen(self.args,
+  File "/opt/python/3.8.5.0/lib/python3.8/subprocess.py", line 854, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/python/3.8.5.0/lib/python3.8/subprocess.py", line 1702, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'mpiexec'
+2021-05-26 22:32:56.650 [IPClusterStart] 2021-05-26 22:32:56.650 [IPControllerApp] Using existing profile dir: '/users/bp000144/snudda38/.ipython/profile_mpi'
+2021-05-26 22:32:56.678 [IPClusterStart] 2021-05-26 22:32:56.678 [IPControllerApp] Hub listening on tcp://127.0.0.1:55553 for registration.
+2021-05-26 22:32:56.679 [IPClusterStart] 2021-05-26 22:32:56.679 [IPControllerApp] Hub using DB backend: 'DictDB'
+2021-05-26 22:32:56.931 [IPClusterStart] 2021-05-26 22:32:56.931 [IPControllerApp] hub::created hub
+2021-05-26 22:32:56.932 [IPClusterStart] 2021-05-26 22:32:56.931 [IPControllerApp] writing connection info to /users/bp000144/snudda38/.ipython/profile_mpi/security/ipcontroller-client.json
+2021-05-26 22:32:56.952 [IPClusterStart] 2021-05-26 22:32:56.952 [IPControllerApp] writing connection info to /users/bp000144/snudda38/.ipython/profile_mpi/security/ipcontroller-engine.json
+2021-05-26 22:32:56.969 [IPClusterStart] 2021-05-26 22:32:56.969 [IPControllerApp] task::using Python leastload Task scheduler
+2021-05-26 22:32:56.970 [IPClusterStart] 2021-05-26 22:32:56.969 [IPControllerApp] Heartmonitor started
+2021-05-26 22:32:56.981 [IPClusterStart] 2021-05-26 22:32:56.981 [IPControllerApp] Creating pid file: /users/bp000144/snudda38/.ipython/profile_mpi/pid/ipcontroller.pid
+2021-05-26 22:32:56.987 [IPClusterStart] 2021-05-26 22:32:56.987 [scheduler] Scheduler started [leastload]
+2021-05-26 22:32:56.989 [IPClusterStart] 2021-05-26 22:32:56.988 [IPControllerApp] client::client b'\x00k\x8bEg' requested 'connection_request'
+2021-05-26 22:32:56.989 [IPClusterStart] 2021-05-26 22:32:56.989 [IPControllerApp] client::client [b'\x00k\x8bEg'] connected
+2021-05-26 22:34:57.550 [IPClusterStart] 2021-05-26 22:34:57.549 [IPControllerApp] client::client b'\x00k\x8bEh' requested 'connection_request'
+2021-05-26 22:34:57.552 [IPClusterStart] 2021-05-26 22:34:57.550 [IPControllerApp] client::client [b'\x00k\x8bEh'] connected
+2021-05-26 22:34:57.563 [IPClusterStart] 2021-05-26 22:34:57.563 [IPControllerApp] client::client b'\x00k\x8bEi' requested 'connection_request'
+Traceback (most recent call last):
+  File "/users/bp000144/snudda38/bin/snudda", line 8, in <module>
+    sys.exit(snudda_cli())
+  File "/users/bp000144/snudda38/lib/python3.8/site-packages/snudda/cli.py", line 155, in snudda_cli
+    actions[args.action](args)
+  File "/users/bp000144/snudda38/lib/python3.8/site-packages/snudda/core.py", line 148, in place_neurons
+    sp.place()
+  File "/users/bp000144/snudda38/lib/python3.8/site-packages/snudda/place/place.py", line 115, in place
+    self.parse_config()
+  File "/users/bp000144/snudda38/lib/python3.8/site-packages/snudda/place/place.py", line 404, in parse_config
+    self.sort_neurons(sort_idx=self.cluster_neurons())
+  File "/users/bp000144/snudda38/lib/python3.8/site-packages/snudda/place/place.py", line 820, in cluster_neurons
+    self.write_log(f"Redoing place:neuron_clustering, {np.count_nonzero(neuron_order < 0)} neurons unaccounted for",
+TypeError: write_log() got an unexpected keyword argument 'is_error'
+2021-05-26 22:35:06.882 [IPClusterStop] Created profile dir: '/users/bp000144/snudda38/.ipython/profile_default'
+2021-05-26 22:35:06.894 [IPClusterStop] CRITICAL | Could not read pid file, cluster is probably not running.
