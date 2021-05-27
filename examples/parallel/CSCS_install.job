@@ -1,9 +1,9 @@
 #!/bin/bash -l
 #SBATCH --job-name=bpopt
-#SBATCH --ntasks=48
+#SBATCH --ntasks=24
 #SBATCH --cpus-per-task=1
 #SBATCH --account=ich030
-#SBATCH --time=0:10:00
+#SBATCH --time=2:00:00
 #SBATCH --partition=normal
 #SBATCH --constraint=mc
 #SBATCH --error=std-cscs.err

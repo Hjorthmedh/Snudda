@@ -1,0 +1,133 @@
+ModuleCmd_Switch.c(179):ERROR:152: Module 'PrgEnv-cray' is currently not loaded
+gcc/9.3.0(3):ERROR:150: Module 'gcc/9.3.0' conflicts with the currently loaded module(s) 'gcc/10.1.0'
+gcc/9.3.0(3):ERROR:102: Tcl command execution failed: conflict gcc
+
+Note: switching to '429d11ef34b1d860b3ddbfffc9f7960acb399b0c'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+autom4te: cannot lock autom4te.cache/requests with mode 2: Unknown error 524
+autom4te: cannot lock autom4te.cache/requests with mode 2: Unknown error 524
+which: no glibtoolize in (/bin:/opt/python/3.8.5.0/bin:/users/bp000144/snudda38/bin:/users/bp000144/snudda38/bin:/opt/cray/pe/perftools/20.10.0/bin:/opt/cray/pe/papi/6.0.0.4/bin:/opt/cray/rca/2.2.20-7.0.2.1_2.83__g8e3fb5b.ari/bin:/opt/cray/alps/6.6.59-7.0.2.1_3.72__g872a8d62.ari/sbin:/opt/cray/alps/default/bin:/apps/daint/UES/xalt/xalt2/software/xalt/2.8.10/sbin:/apps/daint/UES/xalt/xalt2/software/xalt/2.8.10/bin:/opt/cray/pe/mpt/7.7.16/gni/bin:/opt/cray/pe/craype/2.7.3/bin:/opt/gcc/10.1.0/bin:/apps/cscs/daint/bin:/apps/daint/system/bin:/apps/common/system/bin:/opt/cray/cge/3.2.1463_r03f4dfb_fe3.3.0_2019062614/bin:/opt/cray/pe/modules/3.2.11.4/bin:/usr/local/bin:/usr/bin:/bin:/usr/lib/mit/bin:/usr/lib/mit/sbin:/opt/cray/pe/bin)
+autom4te: cannot lock autom4te.cache/requests with mode 2: Unknown error 524
+autom4te: cannot lock autom4te.cache/requests with mode 2: Unknown error 524
+configure.ac:23: installing './compile'
+configure.ac:16: installing './missing'
+Makefile.am:95: warning: .PHONY was already defined in condition TRUE, which includes condition MAKE_RPMS ...
+Makefile.am:44: ... '.PHONY' previously defined here
+src/gnu/Makefile.am: installing './depcomp'
+configure.ac: installing './ylwrap'
+autom4te: cannot lock autom4te.cache/requests with mode 2: Unknown error 524
+autom4te: cannot lock autom4te.cache/requests with mode 2: Unknown error 524
+autom4te: cannot lock autom4te.cache/requests with mode 2: Unknown error 524
+autom4te: cannot lock autom4te.cache/requests with mode 2: Unknown error 524
+autom4te: cannot lock autom4te.cache/requests with mode 2: Unknown error 524
+autom4te: cannot lock autom4te.cache/requests with mode 2: Unknown error 524
+autom4te: cannot lock autom4te.cache/requests with mode 2: Unknown error 524
+autom4te: cannot lock autom4te.cache/requests with mode 2: Unknown error 524
+autom4te: cannot lock autom4te.cache/requests with mode 2: Unknown error 524
+configure.ac:23: installing './compile'
+configure.ac:16: installing './missing'
+Makefile.am:95: warning: .PHONY was already defined in condition TRUE, which includes condition MAKE_RPMS ...
+Makefile.am:44: ... '.PHONY' previously defined here
+src/gnu/Makefile.am: installing './depcomp'
+config.status: WARNING:  'bin/nrnoc_makefile.in' seems to ignore the --datarootdir setting
+config.status: WARNING:  'bin/nrniv_makefile.in' seems to ignore the --datarootdir setting
+configure: WARNING:
+    !!!
+        Deprecation Warnings:
+
+        * Python 2  : Please note that Python2 support will be DROPPED soon.
+                      We strongly advise migrating to Python3 as of now,
+                      if you haven't already.
+        * Python 3.5: Having reached end of support in 2020, Python 3.5 support
+                      will also be dropped soon. Should you be switching from
+                      Python2 please consider a higher version than 3.5.
+        * Autotools : CMake is now the primary build system for installing NEURON
+                      from source. Autotools support will be DROPPED in the next
+                      release. As you are using Autotools, we strongly recommend
+                      switching to CMake as of now.
+                      Please see the instructions in the README.md.
+    !!!
+
+In file included from main1.c:231:
+main1.c: In function 'emacs_main':
+edef.h:167:18: warning: 'strncat' specified bound 16 equals destination size [-Wstringop-overflow=]
+  167 | #define Strncat  strncat
+main1.c:315:5: note: in expansion of macro 'Strncat'
+  315 |     Strncat(bp->b_bname, bname, NBUFN);
+      |     ^~~~~~~
+/users/bp000144/snudda38/build/neuron/nrn/src/nmodl/parse1.y: warning: 3 shift/reduce conflicts [-Wconflicts-sr]
+/users/bp000144/snudda38/build/neuron/nrn/src/nmodl/diffeq.y: warning: 5 shift/reduce conflicts [-Wconflicts-sr]
+/users/bp000144/snudda38/build/neuron/nrn/src/oc/parse.y: warning: 98 shift/reduce conflicts [-Wconflicts-sr]
+ocmain.c:11:19: warning: 'nrnpy_gui_helper_' initialized and declared 'extern'
+   11 | extern Object** (*nrnpy_gui_helper_)(const char* name, Object* obj) = NULL;
+      |                   ^~~~~~~~~~~~~~~~~
+ocmain.c:12:17: warning: 'nrnpy_object_to_double_' initialized and declared 'extern'
+   12 | extern double (*nrnpy_object_to_double_)(Object*) = NULL;
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~
+make[3]: Circular /users/bp000144/snudda38/build/neuron/nrn/share/lib/nrnunits.lib.in <- /users/bp000144/snudda38/build/neuron/nrn/share/lib/nrnunits.lib.in dependency dropped.
+Translating hh.mod into hh.c
+Thread Safe
+Translating feature.mod into feature.c
+Notice: VERBATIM blocks are not thread safe
+Translating passive.mod into passive.c
+Thread Safe
+Translating stim.mod into stim.c
+Thread Safe
+Translating syn.mod into syn.c
+Thread Safe
+Translating vclmp.mod into vclmp.c
+Notice: VERBATIM blocks are not thread safe
+Notice: LINEAR is not thread safe.
+Translating apcount.mod into apcount.c
+Thread Safe
+Translating svclmp.mod into svclmp.c
+Thread Safe
+Translating oclmp.mod into oclmp.c
+Thread Safe
+Translating xmech.mod into xmech.c
+Thread Safe
+Translating netstim.mod into netstim.c
+Thread Safe
+Translating intfire1.mod into intfire1.c
+Thread Safe
+Translating intfire2.mod into intfire2.c
+Thread Safe
+Translating intfire4.mod into intfire4.c
+Thread Safe
+Translating expsyn.mod into expsyn.c
+Thread Safe
+Translating exp2syn.mod into exp2syn.c
+Thread Safe
+Translating ppmark.mod into ppmark.c
+Thread Safe
+Translating pattern.mod into pattern.c
+Notice: Use of POINTER is not thread safe.
+Notice: VERBATIM blocks are not thread safe
+make[4]: Circular /users/bp000144/snudda38/build/neuron/nrn/share/lib/nrnunits.lib.in <- /users/bp000144/snudda38/build/neuron/nrn/share/lib/nrnunits.lib.in dependency dropped.
+In file included from ocmain.c:6:
+../oc/ocmain.c:11:19: warning: 'nrnpy_gui_helper_' initialized and declared 'extern'
+   11 | extern Object** (*nrnpy_gui_helper_)(const char* name, Object* obj) = NULL;
+      |                   ^~~~~~~~~~~~~~~~~
+../oc/ocmain.c:12:17: warning: 'nrnpy_object_to_double_' initialized and declared 'extern'
+   12 | extern double (*nrnpy_object_to_double_)(Object*) = NULL;
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~
+make[1]: *** [Makefile:661: all-recursive] Terminated
+make[2]: *** [Makefile:524: all-recursive] Terminated
+make[3]: *** [Makefile:777: symchoos.lo] Terminated
+make: *** [Makefile:519: all] Terminated
+Terminated
