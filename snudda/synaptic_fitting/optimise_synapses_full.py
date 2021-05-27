@@ -205,6 +205,7 @@ class OptimiseSynapsesFull(object):
     ############################################################################
 
     def save_parameter_data(self):
+
         if self.role != "master":
             self.write_log("No servants are allowed to write output to json, ignoring call.")
             return
@@ -1038,103 +1039,100 @@ class OptimiseSynapsesFull(object):
 
         start_time = timeit.default_timer()
 
-        # !!! Future improvement. Allow continuation of old optimisation by
-        # reading synapse location and old parameter set, so that is not thrown away
+        if self.role != "master":
+            print("parallel_optimise_single_cell should only be called on master node")
+            return
 
-        if self.role == "master":
+        # 1. Setup workers
+        params = self.synapse_parameters
 
-            # 1. Setup workers
-            params = self.synapse_parameters
+        if self.synapse_section_id is not None:
+            syn_override = self.synapse_section_id, self.synapse_section_x
 
-            if self.synapse_section_id is not None:
-                syn_override = self.synapse_section_id, self.synapse_section_x
+        # 2. Setup one cell to optimise, randomise synapse positions
+        synapse_model = self.setup_model(params=params,
+                                         synapse_position_override=syn_override)
 
-            # 2. Setup one cell to optimise, randomise synapse positions
-            synapse_model = self.setup_model(params=params,
-                                             synapse_position_override=syn_override)
+        # (volt,time) = self.getData(dataType,cellID)
+        peak_idx = self.get_peak_idx2(stim_time=self.stim_time,
+                                      time=self.time,
+                                      volt=self.volt)
+        t_spikes = self.time[peak_idx]
 
-            # (volt,time) = self.getData(dataType,cellID)
-            peak_idx = self.get_peak_idx2(stim_time=self.stim_time,
-                                          time=self.time,
-                                          volt=self.volt)
-            t_spikes = self.time[peak_idx]
+        sigma = np.ones(len(peak_idx))
+        sigma[-1] = 1. / 3
 
-            sigma = np.ones(len(peak_idx))
-            sigma[-1] = 1. / 3
+        peak_height, decay_fits, v_base = self.find_trace_heights(self.time, self.volt, peak_idx)
 
-            peak_height, decay_fits, v_base = self.find_trace_heights(self.time, self.volt, peak_idx)
+        # 2b. Create list of all parameter points to investigate
+        model_bounds = self.get_model_bounds()
+        parameter_points = self.setup_parameter_set(model_bounds, n_trials)
 
-            # 2b. Create list of all parameter points to investigate
-            model_bounds = self.get_model_bounds()
-            parameter_points = self.setup_parameter_set(model_bounds, n_trials)
+        # 3. Send synapse positions to all workers, and split parameter points
+        #    between workers
 
-            # 3. Send synapse positions to all workers, and split parameter points
-            #    between workers
+        if self.d_view is not None:
+            self.setup_parallel(self.d_view)
 
-            if self.d_view is not None:
-                self.setup_parallel(self.d_view)
+            self.d_view.scatter("parameterPoints", parameter_points, block=True)
 
-                self.d_view.scatter("parameterPoints", parameter_points, block=True)
+            self.d_view.push({"params": params,
+                             "synapseSectionID": synapse_model.synapse_section_id,
+                             "synapseSectionX": synapse_model.synapse_section_x,
+                             "modelBounds": model_bounds,
+                             "stimTime": self.stim_time,
+                             "peakHeight": peak_height},
+                             block=True)
 
-                self.d_view.push({"params": params,
-                                 "synapseSectionID": synapse_model.synapse_section_id,
-                                 "synapseSectionX": synapse_model.synapse_section_x,
-                                 "modelBounds": model_bounds,
-                                 "stimTime": self.stim_time,
-                                 "peakHeight": peak_height},
-                                 block=True)
+            cmd_str_setup = \
+                "ly.sobol_worker_setup(params=params," \
+                + "synapsePositionOverride=(synapseSectionID,synapseSectionX))"
 
-                cmd_str_setup = \
-                    "ly.sobol_worker_setup(params=params," \
-                    + "synapsePositionOverride=(synapseSectionID,synapseSectionX))"
+            self.d_view.execute(cmd_str_setup, block=True)
 
-                self.d_view.execute(cmd_str_setup, block=True)
+            cmd_str = "res = ly.sobolScan(synapseModel=ly.synapseModel, \
+                                 tStim = stimTime, \
+                                 hPeak = peakHeight, \
+                                 parameterSets=parameterPoints, \
+                                 modelBounds=modelBounds, \
+                                 smoothExpTrace8=ly.smoothExpVolt8, \
+                                 smoothExpTrace9=ly.smoothExpVolt9, \
+                                 returnMinError=True)"
 
-                cmd_str = "res = ly.sobolScan(synapseModel=ly.synapseModel, \
-                                     tStim = stimTime, \
-                                     hPeak = peakHeight, \
-                                     parameterSets=parameterPoints, \
-                                     modelBounds=modelBounds, \
-                                     smoothExpTrace8=ly.smoothExpVolt8, \
-                                     smoothExpTrace9=ly.smoothExpVolt9, \
-                                     returnMinError=True)"
+            self.write_log("Executing workers, bang bang")
+            self.d_view.execute(cmd_str, block=True)
 
-                self.write_log("Executing workers, bang bang")
-                self.d_view.execute(cmd_str, block=True)
+            # 5. Gather worker data
+            self.write_log("Gathering results from workers")
+            res = self.d_view["res"]
 
-                # 5. Gather worker data
-                self.write_log("Gathering results from workers")
-                res = self.d_view["res"]
+            for r in res:
+                self.synapse_parameter_data.merge(r)
 
-                for r in res:
-                    self.synapse_parameter_data.merge(r)
+            self.save_parameter_data()
 
-                self.save_parameter_data()
+        else:
 
-                import pdb
-                pdb.set_trace()
+            # No dView, run in serial mode...
+            self.sobol_worker_setup(params=params,
+                                    synapse_position_override=(synapse_model.synapse_section_id,
+                                                               synapse_model.synapse_section_x))
 
-            else:
+            self.sobol_scan(synapse_model=synapse_model,
+                            t_stim=self.stim_time,
+                            h_peak=peak_height,
+                            model_bounds=model_bounds,
+                            smooth_exp_trace8=ly.smooth_exp_volt8,
+                            smooth_exp_trace9=ly.smooth_exp_volt9,
+                            return_min_error=True)
 
-                # No dView, run in serial mode...
-                self.sobol_worker_setup(params=params,
-                                        synapse_position_override=(synapse_model.synapse_section_id,
-                                                                   synapse_model.synapse_section_x))
+        self.write_log(f"Sobol search done. Best parameter {self.synapse_parameter_data.get_best_parameterset()}")
 
-                self.sobol_scan(synapse_model=synapse_model,
-                                t_stim=self.stim_time,
-                                h_peak=peak_height,
-                                model_bounds=model_bounds,
-                                smooth_exp_trace8=ly.smooth_exp_volt8,
-                                smooth_exp_trace9=ly.smooth_exp_volt9,
-                                return_min_error=True)
+        if post_opt:
+            # This updates parameters and saves new parameter cache
+            self.get_refined_parameters()
 
-            self.write_log(f"Sobol search done. Best parameter {self.synapse_parameter_data.get_best_parameterset()}")
-
-            if post_opt:
-                # This updates parameters and saves new parameter cache
-                self.get_refined_parameters()
-                self.save_parameter_data()
+        self.save_parameter_data()
 
         end_time = timeit.default_timer()
 
