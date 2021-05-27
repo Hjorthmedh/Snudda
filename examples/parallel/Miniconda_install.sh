@@ -31,16 +31,21 @@ conda update --all -y
 if [ $SNIC_RESOURCE == "tegner" ]; then
     module load gcc/9.2.0
     module load openmpi/4.1-gcc-9.2
+
 elif [ $SNIC_RESOURCE == "beskow" ]; then
     echo "On Beskow"
+
+    # Recompile mpi4py using MPICH
+    export MPICC=cc
+    export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+
     # module load gcc/10.2.0
     # module load ??? # What is openmpi module on Beskow?
    #do something
+else
+    echo "Unknown system $SNIC_RESOURCE"
 fi
 
-# Recompile mpi4py using MPICH
-export MPICC=cc
-export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
 pip install mpi4py --ignore-installed --no-cache-dir
 
 

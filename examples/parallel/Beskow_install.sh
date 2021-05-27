@@ -3,6 +3,9 @@
 # !!! OBS you need to make sure you git clone manually, it seems that command
 # stalls when running on Beskow compute nodes?
 
+# THIS LINE SHOULD BE UNCOMMENTED... DONT FORGET 2021-05-27
+./Miniconda_install.sh
+
 source activate_miniconda.sh
 
 module load snic-env
@@ -34,7 +37,7 @@ export MPICXX=CC
 conda activate
 
 # neuron is also installed from requirements.txt, remove non-compatible version
-pip uninstall neuron
+pip uninstall neuron -y
 
 # Is MINIC used?
 export MINIC=$LM
@@ -59,7 +62,7 @@ export NRN_INSTALL_LOC=$LN
 
 # rm -rf $L/build
 # mkdir -pv $L/build
-pushd $L/build
+pushd $L
 
   # build parallel neuron with python interface
   # mkdir neuron
@@ -99,7 +102,7 @@ pushd $L/build
 	  
   cmake .. \
       -DNRN_ENABLE_INTERVIEWS=OFF \
-      -DNRN_ENABLE_PYTHON=OFF   \
+      -DNRN_ENABLE_PYTHON=ON   \
       -DNRN_ENABLE_MPI=ON   \
       -DNRN_ENABLE_RX3D=OFF  \
       -DCMAKE_INSTALL_PREFIX=$NRN_INSTALL_LOC \
