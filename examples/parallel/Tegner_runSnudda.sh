@@ -4,6 +4,8 @@ SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
 JOBDIR=$SNUDDA_DIR/../networks/TegnerNetwork
 
 
+# !!! For larger networks increase the allocation time in Tegner_runSnudda.job
+
 SIMSIZE=20000
 
 

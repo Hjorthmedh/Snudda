@@ -3,8 +3,8 @@
 #SBATCH --time-min=0:19:00
 #SBATCH -J snudda_simulate
 #SBATCH -A 2020-5-449
-#SBATCH -o save/output-snudda_simulate.o%j
-#SBATCH -e save/error-snudda_simulate.e%j
+#SBATCH -o save/output-BeskowSnuddaSimulate.o%j
+#SBATCH -e save/error-BeskowSnuddaSimulate.e%j
 #SBATCH --nodes=5-10
 #SBATCH --ntasks-per-node=32
 
@@ -43,9 +43,6 @@ export CRAY_ROOTFS=DSL
 
 conda activate
 
-# Remove "special" old directory
-rm -r x86_64
-nrnivmodl mechanisms
 
 # Snudda bin gets installed here, when we use the user flag above
 # export PATH=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/beskow/miniconda3/bin:$PATH
@@ -63,6 +60,12 @@ export PATH=$LM/bin:$LN/bin:$PATH
 export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
 export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
 export PYTHONPATH=$LN/lib/python:$LM/lib/python3.8/
+
+
+# Remove "special" old directory
+echo "Compiling mechanisms"
+rm -r x86_64
+nrnivmodl mechanisms
 
 
 
