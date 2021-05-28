@@ -14,8 +14,6 @@ from snudda.synaptic_fitting.parameter_bookkeeper import ParameterBookkeeper
 
 # TODO: Check, what happens if we mix facilitating and depressing synapses on the same neuron...?
 
-# TODO: 2021-05-27 -- Pass the holding current needed to the workers, no need to recalculate it multiple times
-
 # TODO: 2021-05-12 -- Save more than the best parameter set in json file. Have one dictionary item per saved parameterset,
 #                     that way we can remove all associated data easily in one go, when updating the json file.
 
@@ -88,7 +86,8 @@ class OptimiseSynapsesFull(object):
                  opt_method="sobol", pretty_plot=False,
                  model_bounds="model_bounds.json",
                  neuron_set_file="neuronSet.json",
-                 synapse_parameter_file=None):
+                 synapse_parameter_file=None,
+                 normalise_trace=True):
 
         # Parallel execution role, "master" or "servant"
         self.role = role
@@ -101,6 +100,7 @@ class OptimiseSynapsesFull(object):
         self.num_smoothing = 200  # How many smoothing points do we use?
         self.sim_time = 1.5
         self.neuron_set_file = neuron_set_file
+        self.normalise_trace = normalise_trace
 
         self.debug_pars_flag = False
         self.debug_pars = []
@@ -361,7 +361,6 @@ class OptimiseSynapsesFull(object):
 
         with open(self.neuron_set_file, 'w') as f:
             json.dump(self.cell_properties, f, indent=4)
-
 
     ############################################################################
 
@@ -836,7 +835,11 @@ class OptimiseSynapsesFull(object):
         idx_max9 = np.argmax(smooth_exp_trace9)
 
         # Calculating error in peak height
-        h_diff = np.abs(peak_h - exp_peak_height)
+        if self.normalise_traces:
+            h_diff = np.abs(peak_h/peak_h[0] - exp_peak_height/exp_peak_height[0])
+        else:
+            h_diff = np.abs(peak_h - exp_peak_height)
+
         h_diff[0] *= 3
         h_diff[-2] *= 2
         h_diff[-1] *= 3
@@ -1337,12 +1340,16 @@ class OptimiseSynapsesFull(object):
         self.d_view.scatter("engineLogFile", engine_log_file)
 
         self.d_view.push({"datafile": self.data_file,
-                         "synapseType": self.synapse_type,
-                         "synapseparameters": self.synapse_parameter_file,
-                         "loadCache": self.load_cache,
-                         "role": "servant"})
+                          "synapseType": self.synapse_type,
+                          "synapseparameters": self.synapse_parameter_file,
+                          "loadCache": self.load_cache,
+                          "normalise_trace": self.normalise_trace,
+                          "role": "servant"})
 
-        cmd_str = "ly = OptimiseSynapsesFull(datafile=datafile, synapseParameterFile=synapseparameters, synapseType=synapseType,loadCache=loadCache,role=role,logFileName=engineLogFile[0])"
+        cmd_str = ("ly = OptimiseSynapsesFull(datafile=datafile, synapseParameterFile=synapseparameters, "
+                   "                          synapseType=synapseType,loadCache=loadCache,role=role,"
+                   "                          normalise_trace=normalise_trace," 
+                   "                          logFileName=engineLogFile[0])")
         self.d_view.execute(cmd_str, block=True)
         self.parallel_setup_flag = True
 
