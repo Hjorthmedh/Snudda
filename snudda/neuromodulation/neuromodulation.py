@@ -110,8 +110,7 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                     syn_name = self.get_syn_name(syntuple[3])
 
                     if cell_type_name in synapses.keys() and syn_name in synapses[cell_type_name].keys():
-                        self.modulate_receptor(syn=syntuple[3], modulation=modulation,
-                                               modulation_key=modulation_key)
+                        self.modulate_receptor(syn=syntuple[3], modulation=modulation)
 
         if intrinsic:
             for syn in self.synapse_list:
@@ -120,13 +119,12 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                 syn_name = self.get_syn_name(syn)
 
                 if cell_type_name in synapses.keys() and syn_name in synapses[cell_type_name].keys():
-                    self.modulate_receptor(syn=syn, modulation=modulation,
-                                           modulation_key=modulation_key)
+                    self.modulate_receptor(syn=syn, modulation=modulation)
 
-    def modulate_receptor(self, syn, modulation, modulation_key):
+    def modulate_receptor(self, syn, modulation):
 
-        setattr(syn, modulation_key, 1)
+        setattr(mech, "mod" + modulation, 1)
 
         self.neuromodulation[modulation]['modulation_vector'].play(
-            getattr(syn, "_ref_level" + modulation_key.replace("mod", "")), self.sim.neuron.h.dt)
+            getattr(syn, "_ref_level" + modulation), self.sim.neuron.h.dt)
 
