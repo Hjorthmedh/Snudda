@@ -10,7 +10,7 @@ from snudda.utils.numpy_encoder import  NumpyEncoder
 
 class ParameterBookkeeper:
 
-    def __init__(self, n_max=3, old_book=None, old_book_file=None):
+    def __init__(self, n_max=10, old_book=None, old_book_file=None):
 
         self.n_max = n_max
 
@@ -23,7 +23,7 @@ class ParameterBookkeeper:
         if old_book_file and os.path.exists(old_book_file):
             self.load(old_book_file)
 
-    def add_parameters(self, parameter_set, section_id, section_x, error, dt, volt):
+    def add_parameters(self, parameter_set, section_id, section_x, error, dt=None, volt=None):
 
         now = datetime.datetime.now().timestamp()
 
@@ -32,8 +32,11 @@ class ParameterBookkeeper:
         data["section_id"] = section_id
         data["section_x"] = section_x
         data["error"] = error
-        data["dt"] = dt
-        data["volt"] = volt
+
+        if dt is not None:
+            data["dt"] = dt
+        if volt is not None:
+            data["volt"] = volt
 
         if len(self.book) >= self.n_max:
             worst_error = self.book[0][0]
@@ -62,7 +65,7 @@ class ParameterBookkeeper:
         data_dict = OrderedDict()
         data_list = []
         for i in range(0, len(self.book)):
-            _, data = heapq.heappop(self.book)
+            _, _, data = heapq.heappop(self.book)
             data_list.insert(0, data)
 
         for idx, data in enumerate(data_list):
@@ -98,12 +101,13 @@ class ParameterBookkeeper:
             data = json.load(f)
 
         for d in data.values():
-            self.add_parameters(parameter_set=d["parameters"],
-                                section_id=d["section_id"],
-                                section_x=d["section_x"],
+            self.add_parameters(parameter_set=np.array(d["parameters"]),
+                                section_id=np.array(d["section_id"]).astype(int),
+                                section_x=np.array(d["section_x"]),
                                 error=d["error"],
-                                dt=d["dt"],
-                                volt=d["volt"])
+                                # dt=d["dt"],
+                                # volt=np.array(d["volt"])
+                                )
 
     def save(self, file_name):
         print(f"Writing parameter data to {file_name}")
@@ -120,8 +124,8 @@ class ParameterBookkeeper:
         param_len = np.array([len(d[2]["parameters"]) for d in self.book])
         assert (param_len == param_len[0]).all(), "Parameters should all be same length"
 
-        section_id = [np.array(d[2]["section_id"]) for d in self.book]
-        section_x = [np.array(d[2]["section_x"]) for d in self.book]
+        section_id = [d[2]["section_id"] for d in self.book]
+        section_x = [d[2]["section_x"] for d in self.book]
 
         assert np.array([s == section_id[0] for s in section_id]).all(), \
             "section_id should match for all parametersets"
