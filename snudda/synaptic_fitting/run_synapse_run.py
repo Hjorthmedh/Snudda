@@ -29,6 +29,7 @@ class RunSynapseRun(object):
                  neuron_parameter_id=0,  # Which param set in parameter file to use
                  neuron_modulation_id=0,
                  holding_voltage=-70e-3,
+                 holding_current=None,
                  synapse_type='glut',
                  params={},
                  time=2,
@@ -109,7 +110,8 @@ class RunSynapseRun(object):
         self.soma_record()
         self.synapse_current_record()
 
-        self.update_holding_current(holding_voltage)
+        self.holding_current = self.update_holding_current(holding_voltage=holding_voltage,
+                                                           holding_current=holding_current)
 
         # import pdb
         # pdb.set_trace()
@@ -134,14 +136,26 @@ class RunSynapseRun(object):
 
     ############################################################################
 
-    def update_holding_current(self, holding_voltage=None):
-
-        self.write_log("Updating holding current, might take a bit of time")
+    def update_holding_current(self, holding_voltage=None, holding_current=None):
 
         if holding_voltage is None:
             holding_voltage = self.holding_voltage
         else:
             self.holding_voltage = holding_voltage
+
+        if holding_current is not None:
+            if self.i_clamp is None:
+                self.i_clamp = neuron.h.IClamp(self.neuron.icell.soma[0](0.5))
+
+            # Update current on iClamp
+            self.i_clamp.amp = holding_current * 1e9  # Convert SI -> nA for NEURON
+            self.i_clamp.dur = 2 * self.time * 1e3
+
+            self.set_resting_voltage(self.holding_voltage * 1e3)
+            self.write_log(f"Set holding current {holding_current} and holding voltage {holding_voltage}")
+            return holding_current
+
+        self.write_log("Updating holding current, might take a bit of time")
 
         # Disable old iClamp temporarily
         if self.i_clamp is not None:
@@ -192,6 +206,8 @@ class RunSynapseRun(object):
         self.set_resting_voltage(self.holding_voltage * 1e3)
 
         self.write_log(f"Holding voltage {self.holding_voltage * 1e3} mV, IClamp amp = {cur} nA")
+
+        return cur * 1e-9  # Convert to SI units
 
     ############################################################################
 

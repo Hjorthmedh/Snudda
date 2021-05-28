@@ -350,6 +350,19 @@ class OptimiseSynapsesFull(object):
 
         return self.cell_properties[cell_type].copy()
 
+    def update_cell_properties(self, holding_current):
+
+        cell_type = self.data["metadata"]["cell_type"]
+
+        with open(self.neuron_set_file, 'r') as f:
+            self.cell_properties = json.load(f)
+
+        self.cell_properties[cell_type]["holdingCurrent"] = holding_current
+
+        with open(self.neuron_set_file, 'w') as f:
+            json.dump(self.cell_properties, f, indent=4)
+
+
     ############################################################################
 
     def extract_input_res_tau(self, t, v, cur_amp, cur_start, cur_end, base_start, base_end):
@@ -644,6 +657,11 @@ class OptimiseSynapsesFull(object):
         else:
             n_synapses = c_prop["nSynapses"]
 
+        if "holdingCurrent" in c_prop:
+            holding_current = c_prop["holdingCurrent"]
+        else:
+            holding_current = None
+
         # !!! We need to get the baseline depolarisation in another way
 
         self.rsr_synapse_model = \
@@ -655,6 +673,7 @@ class OptimiseSynapsesFull(object):
                           num_synapses=n_synapses,
                           synapse_density=synapse_density,
                           holding_voltage=c_prop["baselineVoltage"],
+                          holding_current=holding_current,
                           synapse_type=self.synapse_type,
                           params=params,
                           time=self.sim_time,
@@ -662,6 +681,9 @@ class OptimiseSynapsesFull(object):
                           synapse_section_id=synapse_section_id,
                           synapse_section_x=synapse_section_x,
                           verbose=True)
+
+        if self.rsr_synapse_model.holding_current != holding_current:
+            self.update_cell_properties(holding_current=self.rsr_synapse_model.holding_current)
 
         return self.rsr_synapse_model
 
