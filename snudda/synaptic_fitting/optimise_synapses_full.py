@@ -19,39 +19,14 @@ from snudda.synaptic_fitting.parameter_bookkeeper import ParameterBookkeeper
 
 # TODO: 2021-05-12 -- What value should u0 have? A way around it, repeat the stimulation train multiple times, use laster runs
 # TODO: 2021-05-11 -- Set self.synapse_parameters
-# TODO: 2021-05-11 -- Holding voltage
+# TODO: 2021-05-28 -- Holdign voltage currently set in neuronSet.json file, we should allow it to be overriden by trace data json file
 
-# TODO 2020-10-19
-#
-# We need to make sure params contains the nmda_ratio and other parameters
-# that are important for mod file (but not optimised for at this stage)
-# Please fix.
+
 #
 #
 # python3 optimise_synapses_full.py DATA/Yvonne2020/M1RH-ipsi_MSN_D1_20Hz_depressing.json --synapseParameters ../data/synapses/v3/M1RH-ipsi_D1-MSN.json --st glut
 #
-#
-# TODO 2020-10-09
-#
-# We are no longer reading data from Yvonne's HDF5 directly, instead we are
-# reading data from a JSON file, that Ilaria created from Igor exports.
-#
-# Consequences and TODO:
-# - We no longer need CellID to identify which cell we are optmising,
-#   each JSON file only contains one dataset (and it is an averaged dataset)
-# - Holding voltage is no longer extractable from data, we need to set it
-# - Create a JSON optmisation parameter file which contains the holding voltage
-#   to be used, as well as the modelbounds (currently in getModelBounds)
-# - The JSON data is now loaded into self.data, go through all functions
-#   remove references to CellID, and extract the data directly from the
-#   self.data variable.
-#
-#
 
-# TODO 2020-07-02
-# -- We just wrote parallelOptimiseSingleCell -- need to make sure we call it
-#    the function will optimise one cellID, using all workers available
-#    need to debug the code, to make sure it works... have fun! :)
 #
 
 #
@@ -59,7 +34,6 @@ from snudda.synaptic_fitting.parameter_bookkeeper import ParameterBookkeeper
 # -- We need to make sure one neuron can be optimised by all workers
 #    collectively, right now one worker does one cell alone
 #
-# -- Determine synapse locations, pass it to all workers
 # -- Best random is easy to parallelise, just do the work, then gather it at
 #    the master node.
 # -- Difficult: How to parallise scipy.optimize.minimize
@@ -835,7 +809,7 @@ class OptimiseSynapsesFull(object):
         idx_max9 = np.argmax(smooth_exp_trace9)
 
         # Calculating error in peak height
-        if self.normalise_traces:
+        if self.normalise_trace:
             h_diff = np.abs(peak_h/peak_h[0] - exp_peak_height/exp_peak_height[0])
         else:
             h_diff = np.abs(peak_h - exp_peak_height)
