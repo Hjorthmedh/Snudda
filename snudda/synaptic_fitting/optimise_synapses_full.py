@@ -12,6 +12,8 @@ import time
 
 from snudda.synaptic_fitting.parameter_bookkeeper import ParameterBookkeeper
 
+# TODO: 2021-05-31 -- Add option to enable/disable trace smoothing
+
 # TODO: Check, what happens if we mix facilitating and depressing synapses on the same neuron...?
 
 # TODO: 2021-05-12 -- Save more than the best parameter set in json file. Have one dictionary item per saved parameterset,
@@ -203,8 +205,6 @@ class OptimiseSynapsesFull(object):
 
     ############################################################################
 
-    # parDict is the parameters that are associated with cellID
-
     def plot_data(self,
                   params=None,
                   show=True,
@@ -338,96 +338,7 @@ class OptimiseSynapsesFull(object):
 
     ############################################################################
 
-    def extract_input_res_tau(self, t, v, cur_amp, cur_start, cur_end, base_start, base_end):
-
-        # We assume SI units
-        t_idx_base = np.where(np.logical_and(base_start < t, t < base_end))[0]
-        v_base = np.mean([v[x] for x in t_idx_base])
-
-        t_idx_peak = np.where(np.logical_and(cur_start < t, t < cur_end))[0]
-        v_peak = np.min(v[t_idx_peak])
-        # vPeak = np.max([v[x] for x in tIdxPeak])
-
-        assert np.abs(v_peak - v_base) > np.abs(np.max(v[t_idx_peak]) - v_base), \
-            "The code assumes a hyperpolarising pulse, not a peak maximum"
-
-        rm = (v_peak - v_base) / cur_amp
-
-        idx_post_pulse = np.where(cur_end < t)[0]
-        idx_max_post_pulse = idx_post_pulse[np.argmax(v[idx_post_pulse])]
-        t_max_post_pulse = t[idx_max_post_pulse]
-
-        t_idx_decay = np.where(np.logical_and(cur_end < t, t < t_max_post_pulse))[0]
-
-        decay_func = lambda x, a, b, c: a * np.exp(-x / b) + c
-
-        t_ab_fit = t[t_idx_decay] - t[t_idx_decay[0]]
-        v_ab_fit = v[t_idx_decay]
-
-        p0d = [-0.005, 0.01, -0.06]
-
-        if np.isnan(v_ab_fit).any() or np.isinf(v_ab_fit).any():
-            self.write_log("We have inifinite or nan values in the voltage")
-            import pdb
-            pdb.set_trace()
-
-        try:
-            fit_params, pcov = scipy.optimize.curve_fit(decay_func, t_ab_fit, v_ab_fit, p0=p0d)
-            tau = fit_params[1]
-
-        except:
-            import traceback
-            tstr = traceback.format_exc()
-            self.write_log(tstr)
-
-            plt.figure()
-            plt.plot(t_ab_fit, v_ab_fit)
-            plt.ion()
-            plt.show()
-
-            import pdb
-            pdb.set_trace()
-
-        if False:
-            plt.figure()
-            plt.plot(t_ab_fit, v_ab_fit, '-r')
-            plt.plot(t_ab_fit, decay_func(t_ab_fit,
-                                          fit_params[0],
-                                          fit_params[1],
-                                          fit_params[2]))
-            plt.xlabel("t")
-            plt.ylabel("v")
-            plt.title("Tau extraction")
-            plt.ion()
-            plt.show()
-
-            # self.writeLog("RM = " + str(RM) + " tau = " + str(tau))
-
-        # Return membrane resistance and tau
-        return rm, tau
-
-    ############################################################################
-
-    def get_peak_idx(self):
-
-        p_time = np.array(self.data["metadata"]["stim_time"]) * 1e-3
-        freq = self.data["metadata"]["freq"]
-
-        assert np.abs(1.0 - freq / (p_time[1] - p_time[0])) < 0.01, "frequency mismatch"
-
-        p_window = 1.0 / (2 * freq) * np.ones(p_time.shape)
-        p_window[-1] *= 5
-
-        peak_info = self.find_peaks_helper(p_time=p_time,
-                                           p_window=p_window,
-                                           time=self.time,
-                                           volt=self.volt)
-
-        return peak_info["peakIdx"]
-
-    ############################################################################
-
-    def get_peak_idx2(self, stim_time, time, volt):
+    def get_peak_idx(self, stim_time, time, volt):
 
         freq = 1.0 / (stim_time[1] - stim_time[0])
 
@@ -492,7 +403,7 @@ class OptimiseSynapsesFull(object):
 
         v_base = np.mean(volt[int(0.3 * peak_idx[0]):int(0.8 * peak_idx[0])])
 
-        peak_height = np.zeros((len(peak_idx, )))
+        peak_height = np.zeros((len(peak_idx)))
         peak_height[0] = volt[peak_idx[0]] - v_base
 
         decay_fits = []
@@ -514,8 +425,6 @@ class OptimiseSynapsesFull(object):
                 else:
                     p0d = [-1e-5, 1e5, -0.0798]
 
-            idx_a = idx_b - 1
-
             peak_idx_a = peak_idx[idx_b - 1]  # Prior peak
             peak_idx_b = peak_idx[idx_b]  # Next peak
 
@@ -526,7 +435,7 @@ class OptimiseSynapsesFull(object):
             else:
                 # Last spike, use only last half of decay trace
                 idx_start = int(peak_idx_a * 0.5 + peak_idx_b * 0.5)
-                idx_end = int(peak_idx_a * 0.05 + peak_idx_b * 0.85)  # might need 0.85 as last
+                idx_end = int(peak_idx_a * 0.1 + peak_idx_b * 0.9)  # might need 0.85 as last
 
             try:
                 assert idx_start < idx_end
@@ -891,7 +800,7 @@ class OptimiseSynapsesFull(object):
             import pdb
             pdb.set_trace()
 
-        peak_idx = self.get_peak_idx2(time=t_sim, volt=v_sim, stim_time=t_spike)
+        peak_idx = self.get_peak_idx(time=t_sim, volt=v_sim, stim_time=t_spike)
         peak_height, decay_fits, v_base = self.find_trace_heights(t_sim, v_sim, peak_idx)
 
         if return_trace:
@@ -1066,15 +975,22 @@ class OptimiseSynapsesFull(object):
                                          synapse_position_override=syn_override)
 
         # (volt,time) = self.getData(dataType,cellID)
-        peak_idx = self.get_peak_idx2(stim_time=self.stim_time,
-                                      time=self.time,
-                                      volt=self.volt)
+        peak_idx = self.get_peak_idx(stim_time=self.stim_time,
+                                     time=self.time,
+                                     volt=self.volt)
         t_spikes = self.time[peak_idx]
 
         sigma = np.ones(len(peak_idx))
         sigma[-1] = 1. / 3
 
         peak_height, decay_fits, v_base = self.find_trace_heights(self.time, self.volt, peak_idx)
+
+        if False:
+            plt.figure()
+            plt.plot(self.time, self.volt, color="black")
+            for idx in range(len(decay_fits)):
+                plt.plot(decay_fits[idx][0], decay_fits[idx][1], color="red")
+            plt.show()
 
         # 2b. Create list of all parameter points to investigate
         model_bounds = self.get_model_bounds()
@@ -1179,9 +1095,9 @@ class OptimiseSynapsesFull(object):
         # Make sure we have correct taus etc for synapse
         params = self.synapse_parameters
 
-        peak_idx = self.get_peak_idx2(stim_time=self.stim_time,
-                                      time=self.time,
-                                      volt=self.volt)
+        peak_idx = self.get_peak_idx(stim_time=self.stim_time,
+                                     time=self.time,
+                                     volt=self.volt)
         t_spikes = self.time[peak_idx]
 
         peak_height, decay_fits, v_base = self.find_trace_heights(self.time, self.volt, peak_idx)
