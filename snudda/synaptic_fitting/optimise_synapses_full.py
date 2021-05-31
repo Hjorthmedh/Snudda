@@ -149,6 +149,8 @@ class OptimiseSynapsesFull(object):
         if self.role == "master":
             self.setup_parallel(d_view=d_view)
 
+        self.write_log("OptimiseSynapseFull: Init done")
+
     ############################################################################
 
     def __delete__(self):
@@ -501,8 +503,6 @@ class OptimiseSynapsesFull(object):
                 import pdb
                 pdb.set_trace()
 
-        # import pdb
-        # pdb.set_trace()
 
         return peak_height.copy(), decay_fits, v_base
 
@@ -824,13 +824,12 @@ class OptimiseSynapsesFull(object):
 
     ############################################################################
 
-    def sobol_scan(self, synapse_model,
+    def sobol_scan(self,
                    t_stim, h_peak,
                    model_bounds,
                    smooth_exp_trace8, smooth_exp_trace9,
                    n_trials=1, load_params_flag=False,
-                   parameter_sets=None,
-                   return_min_error=False):
+                   parameter_sets=None):
 
         assert self.synapse_type == "glut", \
             "GABA synapse not supported yet in new version"
@@ -840,8 +839,16 @@ class OptimiseSynapsesFull(object):
         if parameter_sets is None:
             parameter_sets = self.setup_parameter_set(model_bounds, n_trials)
 
+        self.write_log(f"parameter_sets={parameter_sets}")
+
+        u_sobol = [p[0] for p in parameter_sets]
+        tau_r_sobol = [p[1] for p in parameter_sets]
+        tau_f_sobol = [p[2] for p in parameter_sets]
+        tau_ratio_sobol = [p[3] for p in parameter_sets]
+        cond_sobol = [p[4] for p in parameter_sets]
+
         # zip(*xxx) unzips xxx -- cool.
-        u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol = zip(*parameter_sets)
+        # u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol = zip(*parameter_sets)
 
         # tauSobol = np.multiply(tauRatioSobol,tauRSobol)
 
@@ -1002,30 +1009,29 @@ class OptimiseSynapsesFull(object):
         if self.d_view is not None:
             self.setup_parallel(self.d_view)
 
-            self.d_view.scatter("parameterPoints", parameter_points, block=True)
+            self.d_view.scatter("parameter_points", parameter_points, block=True)
 
             self.d_view.push({"params": params,
-                             "synapseSectionID": synapse_model.synapse_section_id,
-                             "synapseSectionX": synapse_model.synapse_section_x,
-                             "modelBounds": model_bounds,
-                             "stimTime": self.stim_time,
-                             "peakHeight": peak_height},
+                              "synapse_section_id": synapse_model.synapse_section_id,
+                              "synapse_section_x": synapse_model.synapse_section_x,
+                              "model_bounds": model_bounds,
+                              "stim_time": self.stim_time,
+                              "peak_height": peak_height},
                              block=True)
 
             cmd_str_setup = \
                 "ly.sobol_worker_setup(params=params," \
-                + "synapsePositionOverride=(synapseSectionID,synapseSectionX))"
+                + "synapse_position_override=(synapse_section_id,synapse_section_x))"
 
+            self.write_log("Calling sobol_worker_setup")
             self.d_view.execute(cmd_str_setup, block=True)
 
-            cmd_str = "res = ly.sobolScan(synapseModel=ly.synapseModel, \
-                                 tStim = stimTime, \
-                                 hPeak = peakHeight, \
-                                 parameterSets=parameterPoints, \
-                                 modelBounds=modelBounds, \
-                                 smoothExpTrace8=ly.smoothExpVolt8, \
-                                 smoothExpTrace9=ly.smoothExpVolt9, \
-                                 returnMinError=True)"
+            cmd_str = ("res = ly.sobol_scan(t_stim = stim_time,"
+                       "                    h_peak = peak_height,"
+                       "                    parameter_sets=parameter_points,"
+                       "                    model_bounds=model_bounds,"
+                       "                    smooth_exp_trace8=ly.smooth_exp_volt8,"
+                       "                    smooth_exp_trace9=ly.smooth_exp_volt9)")
 
             self.write_log("Executing workers, bang bang")
             self.d_view.execute(cmd_str, block=True)
@@ -1046,13 +1052,12 @@ class OptimiseSynapsesFull(object):
                                     synapse_position_override=(synapse_model.synapse_section_id,
                                                                synapse_model.synapse_section_x))
 
-            self.sobol_scan(synapse_model=synapse_model,
+            self.sobol_scan(n_trials=n_trials,
                             t_stim=self.stim_time,
                             h_peak=peak_height,
                             model_bounds=model_bounds,
                             smooth_exp_trace8=ly.smooth_exp_volt8,
-                            smooth_exp_trace9=ly.smooth_exp_volt9,
-                            return_min_error=True)
+                            smooth_exp_trace9=ly.smooth_exp_volt9)
 
         self.write_log(f"Sobol search done. Best parameter {self.synapse_parameter_data.get_best_parameterset()}")
 
@@ -1075,9 +1080,9 @@ class OptimiseSynapsesFull(object):
     def get_refined_parameters(self):
 
         assert self.role == "master", \
-            "You do not want to run this on workers in parallel, " \
-            + " since it writes directly to parameter cache. " \
-            + " That could lead to corrupted data."
+            ("You do not want to run this on workers in parallel, " 
+             " since it writes directly to parameter cache. " 
+             " That could lead to corrupted data.")
 
         # Load parameters from disk
         self.load_parameter_data()
@@ -1155,11 +1160,14 @@ class OptimiseSynapsesFull(object):
 
     def sobol_worker_setup(self, params, synapse_position_override=None):
 
-        print(f"sobol_worker_setup: synapse_position_override = {synapse_position_override}")
+        self.write_log(f"sobol_worker_setup: synapse_position_override = {synapse_position_override}")
 
         # TODO: These variables should be defined as None in init
         self.synapse_model = self.setup_model(params=params,
                                               synapse_position_override=synapse_position_override)
+
+        self.write_log("sobol_worker_setup: setup_model done")
+
         self.smooth_exp_volt8, self.smooth_exp_time8 \
             = self.smoothing_trace(self.volt, self.num_smoothing,
                                    time=self.time,
@@ -1171,6 +1179,8 @@ class OptimiseSynapsesFull(object):
                                    time=self.time,
                                    start_time=self.decay_start_fit9,
                                    end_time=self.decay_end_fit9)
+
+        self.write_log("sobol_worker_setup: done.")
 
     ############################################################################
 
@@ -1227,19 +1237,20 @@ class OptimiseSynapsesFull(object):
             engine_log_file = [[] for x in range(0, len(self.d_view))]
 
         n_workers = len(self.d_view)
-        self.d_view.scatter("engineLogFile", engine_log_file)
+        self.d_view.scatter("engine_log_file", engine_log_file)
 
-        self.d_view.push({"datafile": self.data_file,
-                          "synapseType": self.synapse_type,
-                          "synapseparameters": self.synapse_parameter_file,
-                          "loadCache": self.load_cache,
+        self.d_view.push({"data_file": self.data_file,
+                          "synapse_type": self.synapse_type,
+                          "synapse_parameter_file": self.synapse_parameter_file,
+                          "load_parameters": self.load_parameters,
                           "normalise_trace": self.normalise_trace,
+                          "neuron_set_file": self.neuron_set_file,
                           "role": "servant"})
 
-        cmd_str = ("ly = OptimiseSynapsesFull(datafile=datafile, synapseParameterFile=synapseparameters, "
-                   "                          synapseType=synapseType,loadCache=loadCache,role=role,"
-                   "                          normalise_trace=normalise_trace," 
-                   "                          logFileName=engineLogFile[0])")
+        cmd_str = ("ly = OptimiseSynapsesFull(data_file=data_file, synapse_parameter_file=synapse_parameter_file, "
+                   "                          synapse_type=synapse_type,role=role, load_parameters=load_parameters,"
+                   "                          normalise_trace=normalise_trace, neuron_set_file=neuron_set_file," 
+                   "                          log_file_name=engine_log_file[0])")
         self.d_view.execute(cmd_str, block=True)
         self.parallel_setup_flag = True
 
@@ -1341,13 +1352,12 @@ if __name__ == "__main__":
     print(f"Synapse params : {args.synapseParameters}")
     print(f"Optimisation method : {optMethod}")
 
-    print("IPYTHON_PROFILE = " + str(os.getenv('IPYTHON_PROFILE')))
+    print(f"IPYTHON_PROFILE = {os.getenv('IPYTHON_PROFILE')}")
 
-    if (os.getenv('IPYTHON_PROFILE') is not None or os.getenv('SLURMID') is not None):
+    if os.getenv('IPYTHON_PROFILE') is not None or os.getenv('SLURMID') is not None:
         from ipyparallel import Client
 
-        rc = Client(profile=os.getenv('IPYTHON_PROFILE'),
-                    debug=False)
+        rc = Client(profile=os.getenv('IPYTHON_PROFILE'), debug=False)
 
         # http://davidmasad.com/blog/simulation-with-ipyparallel/
         # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
@@ -1377,4 +1387,4 @@ if __name__ == "__main__":
 
         exit(0)
 
-    ly.parallel_optimise_single_cell(n_trials=1)
+    ly.parallel_optimise_single_cell(n_trials=2)
