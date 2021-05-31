@@ -834,9 +834,8 @@ class OptimiseSynapsesFull(object):
         assert self.synapse_type == "glut", \
             "GABA synapse not supported yet in new version"
 
-        print(f"sobol_scan n_trials = {n_trials}")
-
         if parameter_sets is None:
+            self.write_log(f"sobol_scan n_trials = {n_trials}")
             parameter_sets = self.setup_parameter_set(model_bounds, n_trials)
 
         self.write_log(f"parameter_sets={parameter_sets}")
@@ -1023,8 +1022,12 @@ class OptimiseSynapsesFull(object):
                 "ly.sobol_worker_setup(params=params," \
                 + "synapse_position_override=(synapse_section_id,synapse_section_x))"
 
+            self.d_view.execute(f"ly.write_log('TESTING LOG A')", block=True)
+
             self.write_log("Calling sobol_worker_setup")
             self.d_view.execute(cmd_str_setup, block=True)
+
+            self.d_view.execute(f"ly.write_log('TESTING LOG B')", block=True)
 
             cmd_str = ("res = ly.sobol_scan(t_stim = stim_time,"
                        "                    h_peak = peak_height,"
@@ -1038,7 +1041,9 @@ class OptimiseSynapsesFull(object):
 
             # 5. Gather worker data
             self.write_log("Gathering results from workers")
-            res = self.d_view["res"]
+            # res = self.d_view["res"]
+            res = self.d_view.gather("res", block=True)
+            self.write_log("Results gathered.")
 
             for r in res:
                 self.synapse_parameter_data.merge(r)
@@ -1052,7 +1057,7 @@ class OptimiseSynapsesFull(object):
                                     synapse_position_override=(synapse_model.synapse_section_id,
                                                                synapse_model.synapse_section_x))
 
-            self.sobol_scan(n_trials=n_trials,
+            self.sobol_scan(parameter_sets=parameter_points,
                             t_stim=self.stim_time,
                             h_peak=peak_height,
                             model_bounds=model_bounds,
@@ -1237,7 +1242,7 @@ class OptimiseSynapsesFull(object):
             engine_log_file = [[] for x in range(0, len(self.d_view))]
 
         n_workers = len(self.d_view)
-        self.d_view.scatter("engine_log_file", engine_log_file)
+        self.d_view.scatter("engine_log_file", engine_log_file, block=True)
 
         self.d_view.push({"data_file": self.data_file,
                           "synapse_type": self.synapse_type,
@@ -1245,7 +1250,7 @@ class OptimiseSynapsesFull(object):
                           "load_parameters": self.load_parameters,
                           "normalise_trace": self.normalise_trace,
                           "neuron_set_file": self.neuron_set_file,
-                          "role": "servant"})
+                          "role": "servant"}, block=True)
 
         cmd_str = ("ly = OptimiseSynapsesFull(data_file=data_file, synapse_parameter_file=synapse_parameter_file, "
                    "                          synapse_type=synapse_type,role=role, load_parameters=load_parameters,"
