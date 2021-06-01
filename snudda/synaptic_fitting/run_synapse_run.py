@@ -519,17 +519,13 @@ class RunSynapseRun(object):
         for ncs in self.nc_syn:
             ncs.weight[0] = cond
 
-        # self.writeLog("Synapse conductance: " + str(cond) + " uS")
-
         self.set_resting_voltage(self.holding_voltage * 1e3)
-
-        #    print("Check voltage")
-        #    import pdb
-        #    pdb.set_trace()
 
         neuron.h.v_init = self.holding_voltage * 1e3
         neuron.h.tstop = time * 1e3
+        self.write_log("About to start NEURON... stay safe")
         neuron.h.run()
+        self.write_log("NEURON actually completed?!")
 
         # Convert results back to SI units
         return (np.array(self.t_save) * 1e-3,
