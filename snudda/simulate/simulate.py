@@ -320,7 +320,7 @@ class SnuddaSimulate(object):
 
                             par_data.append(p_dict)
                         else:
-                            self.write_log("WARNING: Old data format in parameter file " + str(par_file))
+                            self.write_log(f"WARNING: Old data format in parameter file {par_file}")
 
                             p_dict = channel_param_dict.copy()
                             for x in par_data_dict[pd]:

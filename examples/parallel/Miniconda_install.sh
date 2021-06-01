@@ -9,7 +9,7 @@ L=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/$SNIC_RESOURCE
 
 ./Miniconda3-latest-Linux-x86_64.sh -b -p $L/miniconda3
 
-source activate_miniconda.txt
+source activate_miniconda.sh
 conda activate
 
 conda update -n base conda -y
@@ -31,25 +31,39 @@ conda update --all -y
 if [ $SNIC_RESOURCE == "tegner" ]; then
     module load gcc/9.2.0
     module load openmpi/4.1-gcc-9.2
+
 elif [ $SNIC_RESOURCE == "beskow" ]; then
     echo "On Beskow"
-    # module load gcc/10.1.0
+
+    # Recompile mpi4py using MPICH
+    export MPICC=cc
+    export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+
+    # module load gcc/10.2.0
     # module load ??? # What is openmpi module on Beskow?
    #do something
+else
+    echo "Unknown system $SNIC_RESOURCE"
 fi
 
-# Recompile mpi4py using MPICH
-export MPICC=cc
-export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
-pip install mpi4py --ignore-installed
+pip install mpi4py --ignore-installed --no-cache-dir
 
 
-# Install Snudda
-pushd $L
-git clone git@github.com:Hjorthmedh/Snudda.git
-cd Snudda
-pip install -r requirements.txt
-pip install cython
+
+
+pushd ../../
+
+# Install Snudda -- only if you do not already have Snudda installed
+# cd $L
+# git clone git@github.com:Hjorthmedh/Snudda.git
+# cd Snudda
+
+pip install -r requirements.txt --no-cache-dir
+
+# Dev installation using local copy
+pip install -e .[dev]
+
+pip --version
 
 popd
 

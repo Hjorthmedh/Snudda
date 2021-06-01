@@ -3,7 +3,10 @@
 # !!! OBS you need to make sure you git clone manually, it seems that command
 # stalls when running on Beskow compute nodes?
 
-source activate_miniconda.txt
+# THIS LINE SHOULD BE UNCOMMENTED... DONT FORGET 2021-05-27
+./Miniconda_install.sh
+
+source activate_miniconda.sh
 
 module load snic-env
 
@@ -34,7 +37,7 @@ export MPICXX=CC
 conda activate
 
 # neuron is also installed from requirements.txt, remove non-compatible version
-pip uninstall neuron
+pip uninstall neuron -y
 
 # Is MINIC used?
 export MINIC=$LM
@@ -59,15 +62,15 @@ export NRN_INSTALL_LOC=$LN
 
 # rm -rf $L/build
 # mkdir -pv $L/build
-pushd $L/build
+pushd $L
 
   # build parallel neuron with python interface
   # mkdir neuron
-  pushd neuron
+  # pushd neuron
   # OLD: git clone -q https://github.com/nrnhines/nrn
 
   # You have to do git clone manually!!
-  # git clone https://github.com/neuronsimulator/nrn -b 7.8.2
+  # git clone https://github.com/neuronsimulator/nrn -b 8.0.0
   
   cd nrn
   rm -r build
@@ -99,12 +102,12 @@ pushd $L/build
 	  
   cmake .. \
       -DNRN_ENABLE_INTERVIEWS=OFF \
-      -DNRN_ENABLE_PYTHON=OFF   \
+      -DNRN_ENABLE_PYTHON=ON   \
       -DNRN_ENABLE_MPI=ON   \
       -DNRN_ENABLE_RX3D=OFF  \
       -DCMAKE_INSTALL_PREFIX=$NRN_INSTALL_LOC \
       -DNRN_ENABLE_BINARY_SPECIAL=ON \
-      -DNRN_ENABLE_CORENEURON=ON \
+      -DNRN_ENABLE_CORENEURON=OFF \
       -DCMAKE_BUILD_TYPE:STRING=Release \
       -DCURSES_CURSES_LIBRARY:FILEPATH=$MINIC/lib/libncurses.so \
       -DCURSES_INCLUDE_PATH:PATH=$MINIC/include/ncurses.h
@@ -141,19 +144,21 @@ pushd $L/build
   # install pypandoc
   # pip install pypandoc --install-option="--prefix=$L"
   # pip install pypandoc --prefix=$L
-  pip install pypandoc
+  pip install pypandoc --no-cache-dir
 
   # install ipyparallel
   # pip install ipyparallel --install-option="--prefix=$L"
   # pip install ipyparallel --prefix=$L
-  pip install ipyparallel
+  pip install ipyparallel --no-cache-dir
 
   # install bluepyopt
   # pip install bluepyopt --install-option="--prefix=$L"
   # pip install bluepyopt --prefix=$L
-  pip install bluepyopt
+  pip install bluepyopt --no-cache-dir
 
-popd
+  pip install mpi4py --no-cache-dir
+
+# popd
 # rm -rf $L/build
 
 

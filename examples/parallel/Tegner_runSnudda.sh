@@ -1,12 +1,14 @@
 #!/bin/bash -l
 
 SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
-JOBDIR=$SNUDDA_DIR/../networks/TegnerRun.${SLURM_JOBID}
-#JOBDIR=$HOME/networks/TegnerRun.${SLURM_JOBID}
+#JOBDIR=$SNUDDA_DIR/../networks/TegnerRun.${SLURM_JOBID}
+JOBDIR=$SNUDDA_DIR/../networks/TegnerNetwork
 
-#SIMSIZE=120000
-#SIMSIZE=10062
+
+# !!! For larger networks increase the allocation time in Tegner_runSnudda.job
+
 SIMSIZE=20000
+#SIMSIZE=120000
 #SIMSIZE=1760000
 
 mkdir -p $JOBDIR
@@ -99,7 +101,9 @@ else
 
     # echo ">>> Input: "`date`
     # cp -a $SNUDDA_DIR/data/input_config/input-v10-scaled.json ${JOBDIR}/input.json
-    # snudda input ${JOBDIR} --parallel --time 5
+    cp -a $SNUDDA_DIR/data/input_config/external-input-dSTR-scaled.json ${JOBDIR}/input.json
+
+    snudda input ${JOBDIR} --parallel --time 5
 
     
     #.. Shut down cluster

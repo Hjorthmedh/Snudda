@@ -1108,19 +1108,6 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    def find_latest_file(self):
-
-        files = glob('save/network-connect-voxel-pruned-synapse-file-*.hdf5')
-
-        mod_time = [os.path.getmtime(f) for f in files]
-        idx = np.argsort(mod_time)
-
-        self.write_log("Using the newest file: " + files[idx[-1]])
-
-        return files[idx[-1]]
-
-    ############################################################################
-
     def make_input_helper_parallel(self, args):
 
         try:

@@ -3,9 +3,17 @@ from snudda.core import Snudda
 from snudda.help import snudda_help_text
 from snudda.utils.benchmark_logging import BenchmarkLogging
 import os
-
+import sys
 
 def snudda_cli():
+
+
+    if '-python' in sys.argv:
+        print("Snudda's cli.py called through nrniv, fixing arguments")
+        pythonidx = sys.argv.index('-python')
+        if len(sys.argv) > pythonidx:
+            sys.argv = sys.argv[pythonidx + 1:]
+
 
     # print(f"Current working directory: {os.getcwd()}")
     

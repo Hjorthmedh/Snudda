@@ -1,6 +1,8 @@
 #!/bin/bash
 
-source ~/.profile
+./Miniconda_install.sh
+
+source activate_miniconda.sh
 
 module load snic-env
 
@@ -30,7 +32,7 @@ pushd $L/build
   # build parallel neuron with python interface
   mkdir neuron
   pushd neuron
-    git clone -q https://github.com/neuronsimulator/nrn
+    git clone -q https://github.com/neuronsimulator/nrn -b 8.0.0
     cd nrn
     ./build.sh
     autoreconf --force --install
@@ -57,17 +59,17 @@ pushd $L/build
   # install pypandoc
   # pip install pypandoc --install-option="--prefix=$L"
   # pip install pypandoc --prefix=$L
-  pip install pypandoc
+  pip install pypandoc --no-cache-dir
 
   # install ipyparallel
   # pip install ipyparallel --install-option="--prefix=$L"
   # pip install ipyparallel --prefix=$L
-  pip install ipyparallel
+  pip install ipyparallel --no-cache-dir
 
   # install bluepyopt
   # pip install bluepyopt --install-option="--prefix=$L"
   # pip install bluepyopt --prefix=$L
-  pip install bluepyopt
+  pip install bluepyopt --no-cache-dir
 
 popd
 rm -rf $L/build
