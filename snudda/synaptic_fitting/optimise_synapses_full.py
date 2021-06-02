@@ -834,69 +834,80 @@ class OptimiseSynapsesFull(object):
         assert self.synapse_type == "glut", \
             "GABA synapse not supported yet in new version"
 
-        if parameter_sets is None:
-            self.write_log(f"sobol_scan n_trials = {n_trials}")
-            parameter_sets = self.setup_parameter_set(model_bounds, n_trials)
+        try:
 
-        self.write_log(f"parameter_sets={parameter_sets}")
+            if parameter_sets is None:
+                self.write_log(f"sobol_scan n_trials = {n_trials}")
+                parameter_sets = self.setup_parameter_set(model_bounds, n_trials)
 
-        u_sobol = [p[0] for p in parameter_sets]
-        tau_r_sobol = [p[1] for p in parameter_sets]
-        tau_f_sobol = [p[2] for p in parameter_sets]
-        tau_ratio_sobol = [p[3] for p in parameter_sets]
-        cond_sobol = [p[4] for p in parameter_sets]
+            self.write_log(f"parameter_sets={parameter_sets}")
 
-        # zip(*xxx) unzips xxx -- cool.
-        # u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol = zip(*parameter_sets)
+            u_sobol = [p[0] for p in parameter_sets]
+            tau_r_sobol = [p[1] for p in parameter_sets]
+            tau_f_sobol = [p[2] for p in parameter_sets]
+            tau_ratio_sobol = [p[3] for p in parameter_sets]
+            cond_sobol = [p[4] for p in parameter_sets]
 
-        # tauSobol = np.multiply(tauRatioSobol,tauRSobol)
+            # zip(*xxx) unzips xxx -- cool.
+            # u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol = zip(*parameter_sets)
 
-        min_pars = None
-        min_error = np.inf
+            # tauSobol = np.multiply(tauRatioSobol,tauRSobol)
 
-        if load_params_flag:
-            # If we should load params then do so first
-            min_pars = self.synapse_parameter_data.get_best_parameterset()
+            min_pars = None
+            min_error = np.inf
 
-            # What was error of the cached parameterset
-            if min_pars is not None:
-                min_error = self.neuron_synapse_helper_glut(t_stim,
-                                                            u=min_pars[0],
-                                                            tau_r=min_pars[1],
-                                                            tau_f=min_pars[2],
-                                                            tau_ratio=min_pars[3] / min_pars[1],
-                                                            cond=min_pars[4],
-                                                            smooth_exp_trace8=smooth_exp_trace8,
-                                                            smooth_exp_trace9=smooth_exp_trace9,
-                                                            exp_peak_height=h_peak,
-                                                            return_type="error")
+            if load_params_flag:
+                # If we should load params then do so first
+                min_pars = self.synapse_parameter_data.get_best_parameterset()
 
-        idx = 0
+                # What was error of the cached parameterset
+                if min_pars is not None:
+                    min_error = self.neuron_synapse_helper_glut(t_stim,
+                                                                u=min_pars[0],
+                                                                tau_r=min_pars[1],
+                                                                tau_f=min_pars[2],
+                                                                tau_ratio=min_pars[3] / min_pars[1],
+                                                                cond=min_pars[4],
+                                                                smooth_exp_trace8=smooth_exp_trace8,
+                                                                smooth_exp_trace9=smooth_exp_trace9,
+                                                                exp_peak_height=h_peak,
+                                                                return_type="error")
 
-        for u, tau_r, tau_f, tau_ratio, cond \
-                in zip(u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol):
+            idx = 0
 
-            idx += 1
-            if idx % 50 == 0:
-                self.write_log("%d / %d : minError = %g" % (idx, len(u_sobol), min_error))
+            for u, tau_r, tau_f, tau_ratio, cond \
+                    in zip(u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol):
 
-            error, peaks, t, v = self.neuron_synapse_helper_glut(t_stim, u, tau_r, tau_f, tau_ratio, cond,
-                                                                 smooth_exp_trace8=smooth_exp_trace8,
-                                                                 smooth_exp_trace9=smooth_exp_trace9,
-                                                                 exp_peak_height=h_peak,
-                                                                 return_type="full")
+                idx += 1
+                if idx % 50 == 0:
+                    self.write_log("%d / %d : minError = %g" % (idx, len(u_sobol), min_error))
 
-            min_error = np.minimum(error, min_error)
+                error, peaks, t, v = self.neuron_synapse_helper_glut(t_stim, u, tau_r, tau_f, tau_ratio, cond,
+                                                                     smooth_exp_trace8=smooth_exp_trace8,
+                                                                     smooth_exp_trace9=smooth_exp_trace9,
+                                                                     exp_peak_height=h_peak,
+                                                                     return_type="full")
 
-            param_this_run = np.array([u, tau_r, tau_f, tau_ratio, cond])
+                min_error = np.minimum(error, min_error)
 
-            self.synapse_parameter_data.add_parameters(parameter_set=param_this_run,
-                                                       section_id=self.rsr_synapse_model.synapse_section_id,
-                                                       section_x=self.rsr_synapse_model.synapse_section_x,
-                                                       error=error,
-                                                       #dt=t[1] - t[0],
-                                                       #volt=v
-                                                       )
+                param_this_run = np.array([u, tau_r, tau_f, tau_ratio, cond])
+
+                self.synapse_parameter_data.add_parameters(parameter_set=param_this_run,
+                                                           section_id=self.rsr_synapse_model.synapse_section_id,
+                                                           section_x=self.rsr_synapse_model.synapse_section_x,
+                                                           error=error,
+                                                           #dt=t[1] - t[0],
+                                                           #volt=v
+                                                           )
+
+        except:
+
+            import traceback
+            t_str = traceback.format_exc()
+            self.write_log(t_str)
+            print(t_str)
+            import pdb
+            pdb.set_trace()
 
         return self.synapse_parameter_data.book
 
