@@ -839,6 +839,9 @@ class OptimiseSynapsesFull(object):
             if parameter_sets is None:
                 self.write_log(f"sobol_scan n_trials = {n_trials}")
                 parameter_sets = self.setup_parameter_set(model_bounds, n_trials)
+            elif type(parameter_sets) == list and len(parameter_sets) == 0:
+                self.write_log("Empty parameter_set provided, returning.")
+                return self.synapse_parameter_data.book
 
             self.write_log(f"parameter_sets={parameter_sets}")
 
@@ -1197,6 +1200,9 @@ class OptimiseSynapsesFull(object):
                                    end_time=self.decay_end_fit9)
 
         self.write_log("sobol_worker_setup: done.")
+
+        return None
+
 
     ############################################################################
 
