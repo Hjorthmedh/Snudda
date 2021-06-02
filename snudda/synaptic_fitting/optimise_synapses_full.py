@@ -1045,8 +1045,8 @@ class OptimiseSynapsesFull(object):
             res = self.d_view.gather("res", block=True)
             self.write_log("Results gathered.")
 
-            for r in res:
-                self.synapse_parameter_data.merge(r)
+            #  for r in res:
+            self.synapse_parameter_data.merge(res)
 
             self.save_parameter_data()
 
