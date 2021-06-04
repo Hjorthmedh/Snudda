@@ -522,24 +522,34 @@ class RegionMesh(object):
 
     def _voxel_mask_helper(self, x_range):
 
-        # Need the extra dimension at the top for "gather" work
-        vm_inner = np.zeros((1, self.num_bins[0], self.num_bins[1], self.num_bins[2]), dtype=bool)
+        try:
 
-        for ix in x_range:
-            self.write_log(f"Processing x = {ix}")
+            # Need the extra dimension at the top for "gather" work
+            vm_inner = np.zeros((1, self.num_bins[0], self.num_bins[1], self.num_bins[2]), dtype=bool)
 
-            for iy in range(0, self.num_bins[1]):
-                # print(f"Processing x = {ix}/{self.num_bins[0]}, y = {iy}/{self.num_bins[1]}")
+            for ix in x_range:
+                self.write_log(f"Processing x = {ix}")
 
-                for iz in range(0, self.num_bins[2]):
+                for iy in range(0, self.num_bins[1]):
+                    # print(f"Processing x = {ix}/{self.num_bins[0]}, y = {iy}/{self.num_bins[1]}")
 
-                    if not self.voxel_mask_border[ix, iy, iz]:
-                        # Inner or outer point, check centre
-                        xyz = np.array([self.min_coord[0] + (ix + 0.5) * self.bin_width,
-                                        self.min_coord[1] + (iy + 0.5) * self.bin_width,
-                                        self.min_coord[2] + (iz + 0.5) * self.bin_width])
+                    for iz in range(0, self.num_bins[2]):
 
-                        vm_inner[0, ix, iy, iz] = self.ray_casting(xyz)
+                        if not self.voxel_mask_border[ix, iy, iz]:
+                            # Inner or outer point, check centre
+                            xyz = np.array([self.min_coord[0] + (ix + 0.5) * self.bin_width,
+                                            self.min_coord[1] + (iy + 0.5) * self.bin_width,
+                                            self.min_coord[2] + (iz + 0.5) * self.bin_width])
+
+                            vm_inner[0, ix, iy, iz] = self.ray_casting(xyz)
+
+        except Exception as e:
+            # Write error to log file to help trace it.
+            import traceback
+            t_str = traceback.format_exc()
+            self.write_log(t_str, is_error=True)
+
+            os.sys.exit(-1)
 
         return vm_inner
 
