@@ -1274,8 +1274,8 @@ class SnuddaPrune(object):
                 except:
                     print("   !!! This should never happen!!")
                     import traceback
-                    tstr = traceback.format_exc()
-                    self.write_log(tstr, is_error=True)
+                    t_str = traceback.format_exc()
+                    self.write_log(t_str, is_error=True)
                     import pdb
                     pdb.set_trace()
 
@@ -1564,8 +1564,8 @@ class SnuddaPrune(object):
                     file_list[f].close()
                 except:
                     import traceback
-                    tstr = traceback.format_exc()
-                    self.write_log(tstr)
+                    t_str = traceback.format_exc()
+                    self.write_log(t_str)
                     self.write_log(f"Problems closing files {f}, {file_list[f]}")
 
             self.buffer_out_file.close()
@@ -1573,8 +1573,8 @@ class SnuddaPrune(object):
             return output_filename, neuron_range, syn_ctr
         except:
             import traceback
-            tstr = traceback.format_exc()
-            self.write_log(tstr, is_error=True)
+            t_str = traceback.format_exc()
+            self.write_log(t_str, is_error=True)
             os.sys.exit(-1)
 
     ############################################################################
@@ -1584,74 +1584,83 @@ class SnuddaPrune(object):
                        close_input_file=True,
                        close_out_file=True):
 
-        h5_syn_mat, h5_hyp_syn_n, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
+        try:
+            h5_syn_mat, h5_hyp_syn_n, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
 
-        if synapse_file is None:
-            self.write_log(f"prune_synapses: No synapse_file specified for {merge_data_type} -- none detected?")
-            return 0, 0
+            if synapse_file is None:
+                self.write_log(f"prune_synapses: No synapse_file specified for {merge_data_type} -- none detected?")
+                return 0, 0
 
-        if type(synapse_file) == str:
-            self.write_log(f"Opening synapse file: {synapse_file}")
-            synapse_file = h5py.File(synapse_file, 'r')
-            # if self.role != "master":
-            #     # SWMR = one writer, multiple readers
-            #     synapse_file = h5py.File(synapse_file, 'r', swmr=True)
-            # else:
-            #    synapse_file = h5py.File(synapse_file, 'r')
+            if type(synapse_file) == str:
+                self.write_log(f"Opening synapse file: {synapse_file}")
+                synapse_file = h5py.File(synapse_file, 'r')
+                # if self.role != "master":
+                #     # SWMR = one writer, multiple readers
+                #     synapse_file = h5py.File(synapse_file, 'r', swmr=True)
+                # else:
+                #    synapse_file = h5py.File(synapse_file, 'r')
 
-        if row_range is None:
-            row_start = 0
-            row_end = synapse_file[h5_syn_mat].shape[0]
-        else:
-            row_start = row_range[0]
-            row_end = row_range[-1]
+            if row_range is None:
+                row_start = 0
+                row_end = synapse_file[h5_syn_mat].shape[0]
+            else:
+                row_start = row_range[0]
+                row_end = row_range[-1]
 
-        if row_start is None or row_end is None or row_start == row_end:
-            self.write_log("prune_synapses: Nothing to do, empty row range")
-            return 0, 0
+            if row_start is None or row_end is None or row_start == row_end:
+                self.write_log("prune_synapses: Nothing to do, empty row range")
+                return 0, 0
 
-        if synapse_file[h5_syn_mat].shape[0] == 0:
-            self.write_log(f"prune_synapses: No {merge_data_type} skipping pruning")
-            return 0, 0
+            if synapse_file[h5_syn_mat].shape[0] == 0:
+                self.write_log(f"prune_synapses: No {merge_data_type} skipping pruning")
+                return 0, 0
 
-        self.write_log(f"prune_synapses: synapseFile={synapse_file}, outputFileName={output_filename}"
-                       f", rowRange={row_range} ({merge_data_type})")
+            self.write_log(f"prune_synapses: synapseFile={synapse_file}, outputFileName={output_filename}"
+                           f", rowRange={row_range} ({merge_data_type})")
 
-        num_syn = row_end - row_start
+            num_syn = row_end - row_start
 
-        # We need to split the rowRange into smaller pieces that fit in memory
-        chunk_size = 1000000
+            # We need to split the rowRange into smaller pieces that fit in memory
+            chunk_size = 1000000
 
-        # To avoid division by zero
-        num_blocks = max(1, int(np.ceil(float(row_end - row_start) / chunk_size)))
+            # To avoid division by zero
+            num_blocks = max(1, int(np.ceil(float(row_end - row_start) / chunk_size)))
 
-        self.write_log(f"About to calculate block ranges ({num_blocks} blocks)")
+            self.write_log(f"About to calculate block ranges ({num_blocks} blocks)")
 
-        block_ranges = self.find_ranges(synapses=synapse_file[h5_syn_mat],
-                                        num_workers=num_blocks,
-                                        start_pos=row_start,
-                                        num_syn=num_syn)
+            block_ranges = self.find_ranges(synapses=synapse_file[h5_syn_mat],
+                                            num_workers=num_blocks,
+                                            start_pos=row_start,
+                                            num_syn=num_syn)
 
-        self.write_log(f"blockRanges={block_ranges}")
+            self.write_log(f"blockRanges={block_ranges}")
 
-        self.setup_output_file(output_filename)  # Sets self.outFile
+            self.setup_output_file(output_filename)  # Sets self.outFile
 
-        num_syn_kept = 0
+            num_syn_kept = 0
 
-        for synRange in block_ranges:
-            self.write_log(f"Pruning range: {synRange}")
+            for synRange in block_ranges:
+                self.write_log(f"Pruning range: {synRange}")
 
-            synapses = synapse_file[h5_syn_mat][synRange[0]:synRange[-1]]
-            num_syn_kept += self.prune_synapses_helper(synapses=synapses, output_file=self.out_file,
-                                                       merge_data_type=merge_data_type)
+                synapses = synapse_file[h5_syn_mat][synRange[0]:synRange[-1]]
+                num_syn_kept += self.prune_synapses_helper(synapses=synapses, output_file=self.out_file,
+                                                           merge_data_type=merge_data_type)
 
-        # Close synapse input file
-        if close_input_file:
-            synapse_file.close()
+            # Close synapse input file
+            if close_input_file:
+                synapse_file.close()
 
-        if close_out_file:
-            self.out_file.close()
-            self.out_file = None
+            if close_out_file:
+                self.out_file.close()
+                self.out_file = None
+
+        except Exception as e:
+            # Write error to log file to help trace it.
+            import traceback
+            t_str = traceback.format_exc()
+            self.write_log(t_str, is_error=True)
+
+            os.sys.exit(-1)
 
         return num_syn, num_syn_kept
 

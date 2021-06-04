@@ -2264,8 +2264,8 @@ class SnuddaDetect(object):
         except Exception as e:
             # Write error to log file to help trace it.
             import traceback
-            tstr = traceback.format_exc()
-            self.write_log(tstr, is_error=True)
+            t_str = traceback.format_exc()
+            self.write_log(t_str, is_error=True)
 
             os.sys.exit(-1)
 
@@ -2791,8 +2791,8 @@ class SnuddaDetect(object):
         except Exception as e:
             # Write error to log file to help trace it.
             import traceback
-            tstr = traceback.format_exc()
-            self.write_log(tstr, is_error=True)
+            t_str = traceback.format_exc()
+            self.write_log(t_str, is_error=True)
 
             os.sys.exit(-1)
 
@@ -3111,43 +3111,6 @@ class SnuddaDetect(object):
         res = f"Memory: {memory_available} free, {memory_total} total"
 
         return res
-
-
-############################################################################
-
-def next_run_id():
-    run_id_file = ".runID.pickle"
-
-    try:
-        if os.path.isfile(run_id_file):
-
-            with open(run_id_file, 'rb') as f:
-                run_id = pickle.load(f)
-                next_id = int(np.ceil(np.max(run_id)) + 1)
-
-            run_id.append(next_id)
-
-            with open(run_id_file, 'wb') as f:
-                pickle.dump(run_id, f, -1)
-
-        else:
-
-            with open(run_id_file, 'wb') as f:
-                next_id = 1
-                run_id = [1]
-                pickle.dump(run_id, f, -1)
-
-    except Exception as e:
-        import traceback
-        tstr = traceback.format_exc()
-        print(tstr)
-
-        print("Problem reading .runID.pickle file, setting runID to 0")
-        return 0
-
-    print("Using runID = " + str(next_id))
-
-    return next_id
 
 
 ############################################################################
