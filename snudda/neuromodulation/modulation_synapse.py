@@ -7,7 +7,7 @@ class NeuromodulationSynapse:
 
         self.synapse_modulation = dict()
 
-    def set_connection_type(self, connector, neuromodulation_key):
+    def set_connection_type(self, neuromodulation_key, connector):
 
         """
                 neurotransmitter_key is equivalent to the parameter used in the mod files, which marks the
@@ -18,12 +18,12 @@ class NeuromodulationSynapse:
         if connector in self.synapse_modulation.keys():
             raise KeyError('connector is already defined')
 
-        self.synapse_modulation.update({connector: {'key': neuromodulation_key,
+        self.synapse_modulation.update({neuromodulation_key: {'connector': connector,
                                                     'cells': dict()}})
 
-    def add_cell_modulation(self, connector, cell, ion_channels, receptors, extrinsic, type_connection):
+    def add_cell_modulation(self, neuromodulation_key, cell, ion_channels, receptors, extrinsic, type_connection):
 
-        self.synapse_modulation[connector]['cells'].update({cell: {
+        self.synapse_modulation[neuromodulation_key]['cells'].update({cell: {
                                                              'ion_channels': ion_channels,
                                                              'receptors': receptors,
                                                              'extrinsic': extrinsic,
