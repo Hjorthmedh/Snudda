@@ -144,32 +144,37 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
     def add_gpcr_synapse(self, channel_modules, gpcr_info):
 
+        if gpcr_info.shape[0] == 0:
+            self.write_log(f'add_gpcr_synapse : Empty gpcr_info for {channel_modules}. Check if the gpcr synapses are correctly defined for all cell types')
+
         cell = gpcr_info[0][1].cell()
-        postcell_name = str(cell).split('_')[0]
-
+        postcell_type = str(cell).split('_')[0]
         cell_information = dict()
-
         current_section = gpcr_info[0][-1]
-
         start_index = 0
+        dend_section = gpcr_info[start_index][1]
 
-        for i, dend_sections in enumerate(gpcr_info):
+        for i, dend_info in enumerate(gpcr_info):
 
-            if current_section != dend_sections[-1]:
-                last_index = i - 1
-                cell_information.update({gpcr_info[start_index][1]: {'precell': gpcr_info[start_index:last_index, 0],
-                                                                     'section_dist': gpcr_info[start_index: last_index, 2]}})
+            if current_section != dend_info[-1]:
+
+                cell_information[dend_section]['precell'] = gpcr_info[start_index:i, 0]
+                cell_information[dend_section]['section_dist'] = gpcr_info[start_index:i, 2]
+
                 start_index = i
-
+                dend_section = gpcr_info[start_index][1]
                 current_section = gpcr_info[start_index][-1]
 
-        self.connect_gpcr_synapse_to_ion_channels(cell_information, postcell_name)
+        cell_information[dend_section]['precell'] = gpcr_info[start_index:, 0]
+        cell_information[dend_section]['section_dist'] = gpcr_info[start_index:, 2]
 
-    def connect_gpcr_synapse_to_ion_channels(self, cell_information, cell_type_name):
+        self.connect_gpcr_synapse_to_ion_channels(cell_information, postcell_type)
+
+    def connect_gpcr_synapse_to_ion_channels(self, cell_information, cell_type):
 
         cell_added_synapses = self.add_gpcrs_in_cell_segments(cell_information=cell_information)
 
-        ion_channels_per_section = self.get_ion_channels_per_section(cell_type_name)
+        ion_channels_per_section = self.get_ion_channels_per_section(cell_type)
 
         for sec, sec_info in cell_information.items():
 

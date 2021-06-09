@@ -461,7 +461,12 @@ class Snudda(object):
                 import json
                 neuromod_dict = json.load(neuromod_f)
 
-            if 'replay' in neuromod_dict['type']:
+            if 'type' not in neuromod_dict:
+
+                print(f"Neuromodulation is not defined correctly in {args.neuromodulation} : 'type' is missing. Did you specify the correct file?")
+                exit(-1)
+
+            elif 'replay' in neuromod_dict['type']:
                 from snudda.neuromodulation.neuromodulation import SnuddaSimulateNeuromodulation
 
                 sim = SnuddaSimulateNeuromodulation(network_file=network_file,
@@ -487,7 +492,6 @@ class Snudda(object):
                 sim.setup()
                 sim.add_external_input()
 
-            pass
         else:
 
             from snudda.simulate.simulate import SnuddaSimulate
@@ -514,7 +518,7 @@ class Snudda(object):
             return  # We do not run simulation when exporting to core neuron
 
         sim.check_memory_status()
-        print("Running simulation for " + str(t_sim) + " ms.")
+        print(f"Running simulation for {t_sim} ms.")
         sim.run(t_sim)  # In milliseconds
 
         print("Simulation done, saving output")

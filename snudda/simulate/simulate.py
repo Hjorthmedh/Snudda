@@ -445,7 +445,6 @@ class SnuddaSimulate(object):
             self.write_log("!!! Gap junctions disabled.")
         else:
             self.write_log("Adding gap junctions.")
-            # self.connectNetworkGapJunctions()
 
             # TODO: Check difference with old non-local version
             self.connect_network_gap_junctions_local()
