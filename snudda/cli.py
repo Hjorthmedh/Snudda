@@ -103,6 +103,11 @@ def snudda_cli():
     simulate_parser.add_argument("--spikesOut", "--spikesout", dest="spikes_out", default=None,
                                  help="Name of spike output file (csv)")
     simulate_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
+
+    simulate_parser.add_argument("--neuromodulation", type=str, default=None,
+                                 help=('replay plays back a vector of modulation level, '
+                                       'adaptive sets modulation based on spiking activity'))
+
     simulate_parser.add_argument("--disableGJ", action="store_true", dest="disable_gj",
                                  help="Disable gap junctions")
 
