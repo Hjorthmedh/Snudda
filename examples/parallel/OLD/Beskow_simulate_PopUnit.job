@@ -1,0 +1,86 @@
+#!/bin/bash -l
+#SBATCH -t 0:59:00
+#SBATCH --time-min=0:39:00
+#SBATCH -J snudda_simulate
+#SBATCH -A 2019-3-644
+#SBATCH -o save/output-snudda_simulate.o%j
+#SBATCH -e save/error-snudda_simulate.e%j
+#SBATCH --nodes=1-5
+#SBATCH --ntasks-per-node=32
+
+# 16 workers were too few, got section stack overflow (there is a hidden
+# push to the stack somewhere in the neuron code)
+let N_WORKERS="$SLURM_NNODES * 32"
+
+HOME=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda
+
+# Synapse file
+SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
+
+NETWORK_DIR=$SNUDDA_DIR/../networks/TegnerRun.905249
+
+NETWORK_INFO_FILE=$NETWORK_DIR/network-pruned-synapses.hdf5
+NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
+NETWORK_VOLTAGE_FILE=$NETWORK_DIR/simulation/voltage-trace-${SLURM_JOBID}.txt
+NETWORK_SPIKE_FILE=$NETWORK_DIR/simulation/spikes-${SLURM_JOBID}.txt
+
+echo "Network dir: "$NETWORK_DIR
+
+
+#module swap PrgEnv-cray PrgEnv-intel/6.0.5
+#module load craype-haswell
+#module unload cray-libsci atp
+
+# Updated 2020-08-25
+module sw PrgEnv-cray PrgEnv-intel/6.0.5
+module add mpi4py/3.0.2/py37
+module add neuron/7.7-py37
+
+
+export CRAYPE_LINK_TYPE=dynamic
+export CRAY_ROOTFS=DSL
+
+#/pdc/vol/neuron/7.4-py27/x86_64/bin/nrnivmodl
+#/pdc/vol/neuron/7.5-py37/x86_64/bin/nrnivmodl -loadflags "-dynamic" cellspecs/mechanisms
+#nrnivmodl -loadflags "-dynamic" cellspecs/mechanisms
+
+# Remove "special" old directory
+rm -r x86_64
+nrnivmodl ../data/cellspecs-v2/mechanisms
+
+
+# Split the config file (is aprun blocking?)
+# aprun -n 1 python3 SplitConnectionFile.py $NETWORK_INFO_FILE $N_WORKERS
+
+# Make Network_input aware of if it receives a HDF5 file with all info
+# or separate files
+# aprun -n 1 python3 Network_input.py 
+
+#aprun -n $N_WORKERS /cfs/klemming/nobackup/h/hjorth/StriatumNetwork/model/x86_64/special -mpi -python3 snudda_simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE
+#aprun -n $N_WORKERS /cfs/klemming/nobackup/h/hjorth/StriatumNetwork/model/x86_64/special -mpi -python snudda_simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE
+
+echo ""
+echo "!!! In the Snudda directory first run:"
+echo ""
+echo "module sw PrgEnv-cray PrgEnv-intel"
+echo "module add mpi4py/3.0.2/py37"
+echo "module add neuron/7.7-py37"
+echo "export PYTHONPATH=/cfs/klemming/nobackup/h/hjorth/local/beskow/lib/python3.7/site-packages:$PYTHONPATH"
+echo "pip install -e .[dev] --prefix /cfs/klemming/nobackup/h/hjorth/local/beskow"
+echo ""
+echo "!!! If you already done this, please ignore message."
+echo ""
+
+# Snudda bin gets installed here, when we use the user flag above
+export PATH=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/beskow/bin:$PATH
+export PYTHONPATH=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/beskow/lib/python3.7/site-packages:$PYTHONPATH
+
+
+srun -n $N_WORKERS $SNUDDA_DIR/examples/x86_64/special -mpi -python $SNUDDA_DIR/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 0.1 --spikesOut $NETWORK_SPIKE_FILE --voltOut $NETWORK_VOLTAGE_FILE
+
+
+# Original version, start neuron from python, does not work on beskow
+#aprun -n  $N_WORKERS /cfs/klemming/nobackup/h/hjorth/ChINopt/model/x86_64/special -mpi -python snudda_simulate.py /cfs/klemming/nobackup/h/hjorth/ChINopt/model/save/save/network-connect-synapse-file-1749867.pickle
+
+NETWORK_TAR = $NETWORK_DIR.tar.gz
+tar -zcvf NETWORK_TAR NETWORK_DIR

@@ -1,0 +1,49 @@
+#!/bin/bash -l
+#SBATCH -t 0-2:59:00
+#SBATCH --time-min=1:59:00
+#SBATCH -J SetupInput
+#SBATCH -A 2019-3-644
+#SBATCH -o save/output-setupInput.o%j
+#SBATCH -e save/error-setupInput.e%j
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=24
+
+#
+# !!!! OBS you need to set which run you want to generate the input for
+# !!!! this is done in Tegner_setupInput.sh 
+#
+
+
+# --- Tegner has 24 cores per node
+
+# Run projinfo if you need to see which project for the allocation
+
+
+# Use Tegner_setupInput.sh to setup anaconda on Tegner
+
+HOST=$(hostname -s | cut -d'-' -f1)
+L=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/$HOST
+
+export PATH=$L/bin:$PATH
+export LD_LIBRARY_PATH=$L/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$L/lib/python3.7/site-packages:$PYTHONPATH
+
+# Snudda bin gets installed here
+export PATH=$HOME/.local/bin:$PATH
+
+module load anaconda/py37/5.0.1
+
+
+# !!! OBS, you need to have done a dev installation using the line below:
+echo "You need to have done the following:"
+echo "pip install --user -e .[dev]"
+
+export PYTHONPATH="$PYTHONPATH:/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/"
+
+#.. Let's try to run on infiniband connection
+srun -n 1 ./Tegner_setupInput_PopUnit_SERIAL.sh
+
+echo "exiting submit script"
+
+
+# source deactivate
