@@ -360,8 +360,6 @@ class Snudda(object):
 
         start = timeit.default_timer()
 
-        from snudda.simulate.simulate import SnuddaSimulate
-
         if args.network_file:
             network_file = args.network_file
         else:
@@ -454,14 +452,54 @@ class Snudda(object):
 
         pc = h.ParallelContext()
 
-        # Simulate is deterministic, no random seed.
-        sim = SnuddaSimulate(network_file=network_file,
-                             input_file=input_file,
-                             disable_gap_junctions=disable_gj,
-                             log_file=log_file,
-                             verbose=args.verbose)
-        sim.setup()
-        sim.add_external_input()
+
+        if args.neuromodulation is not None:
+
+            #read neuromod file and determine if it is replay or adaptive, then if and import the correct one
+
+            with open(args.neuromodulation, 'r') as neuromod_f:
+                import json
+                neuromod_dict = json.load(neuromod_f)
+
+            if 'replay' in neuromod_dict['type']:
+                from snudda.neuromodulation.neuromodulation import SnuddaSimulateNeuromodulation
+
+                sim = SnuddaSimulateNeuromodulation(network_file=network_file,
+                                                    input_file=input_file,
+                                                    disable_gap_junctions=disable_gj,
+                                                    log_file=log_file,
+                                                    verbose=args.verbose)
+
+                sim.setup()
+                sim.add_external_input()
+                sim.apply_neuromodulation(neuromod_dict)
+                sim.neuromodulation_network_wide()
+
+            elif 'adaptive' in neuromod_dict['type']:
+                from snudda.neuromodulation.neuromodulation_synapse import SnuddaSimulateNeuromodulationSynapse
+
+                sim = SnuddaSimulateNeuromodulationSynapse(network_file=network_file,
+                                                           input_file=input_file,
+                                                           disable_gap_junctions=disable_gj,
+                                                           log_file=log_file,
+                                                           neuromodulator_description=neuromod_dict)
+
+                sim.setup()
+                sim.add_external_input()
+
+            pass
+        else:
+
+            from snudda.simulate.simulate import SnuddaSimulate
+
+            # Simulate is deterministic, no random seed.
+            sim = SnuddaSimulate(network_file=network_file,
+                                 input_file=input_file,
+                                 disable_gap_junctions=disable_gj,
+                                 log_file=log_file,
+                                 verbose=args.verbose)
+            sim.setup()
+            sim.add_external_input()
 
         sim.check_memory_status()
 

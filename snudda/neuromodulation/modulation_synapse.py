@@ -6,6 +6,11 @@ class NeuromodulationSynapse:
     def __init__(self):
 
         self.synapse_modulation = dict()
+        self.type = 'adaptive'
+
+    def set_weight(self, weight):
+
+        self.weight = weight
 
     def set_connection_type(self, neuromodulation_key, connector):
 
@@ -31,6 +36,10 @@ class NeuromodulationSynapse:
         
     def save(self, dir_path, name):
 
+        temp = dict()
+        temp.update({'type': self.type})
+        temp.update({'description': self.synapse_modulation})
+        temp.update({'weight': self.weight})
         with open(os.path.join(dir_path, name), 'w') as out_file:
-            json.dump(self.synapse_modulation, out_file, indent=4)
+            json.dump(temp, out_file, indent=4)
 

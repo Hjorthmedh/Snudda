@@ -54,7 +54,7 @@ class SnuddaSimulate(object):
                  input_file=None,
                  verbose=False,
                  log_file=None,
-                 disable_gap_junctions=True,
+                 disable_gap_junctions=False,
                  simulation_config=None):
 
         self.verbose = verbose
@@ -574,11 +574,11 @@ class SnuddaSimulate(object):
         voxel_coords = self.synapses[start_row:end_row, 2:5]
         self.verify_synapse_placement(dend_sections, sec_x, dest_id, voxel_coords)
 
-        return source_id_list, dend_sections, sec_x, synapse_type_id, axon_distance, conductance, parameter_id
+        return source_id_list, dend_sections, sec_id, sec_x, synapse_type_id, axon_distance, conductance, parameter_id
 
     def connect_neuron_synapses(self, start_row, end_row):
 
-        source_id_list, dend_sections, sec_x, synapse_type_id, axon_distance, conductance, parameter_id = \
+        source_id_list, dend_sections, sec_id, sec_x, synapse_type_id, axon_distance, conductance, parameter_id = \
             self.get_synapse_info(start_row=start_row, end_row=end_row)
 
         for (src_id, section, section_x, s_type_id, axon_dist, cond, p_id) \

@@ -31,10 +31,9 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
 
         return self.sim.neuron.h.Vector(vector)
 
-    def apply_neuromodulation(self, neuromodulation_file):
+    def apply_neuromodulation(self, neuromodulation_dict):
 
-        with open(neuromodulation_file, 'r') as read_neuromod_file:
-            define_neuro_modulation = json.load(read_neuromod_file)
+        define_neuro_modulation = neuromodulation_dict['description']
 
         # Rewrite for event handling
         # https://github.com/Hjorthmedh/Snudda/blob/master/snudda/simulate/simulate.py#L1529

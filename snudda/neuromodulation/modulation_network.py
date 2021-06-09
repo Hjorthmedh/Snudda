@@ -8,6 +8,7 @@ class Neuromodulation:
         self.network_wide = dict()
         self.name_to_key = dict()
         self.dt = None
+        self.type = 'replay'
 
     def set_modulation(self, neurotransmitter, neurotransmitter_key):
 
@@ -70,5 +71,8 @@ class Neuromodulation:
             for neurotransmitter in self.network_wide.keys():
                 self.network_wide[neurotransmitter].update({'dt': self.dt})
 
+        temp = dict()
+        temp.update({'type': self.type})
+        temp.update({'description': self.network_wide})
         with open(os.path.join(dir_path, name), 'w') as out_file:
-            json.dump(self.network_wide, out_file)
+            json.dump(temp, out_file)
