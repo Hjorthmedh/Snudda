@@ -4,8 +4,7 @@ import timeit
 import numpy as np
 import scipy
 import scipy.optimize
-import matplotlib.pyplot as plt
-import matplotlib
+
 import neuron
 import json
 import time
@@ -212,6 +211,9 @@ class OptimiseSynapsesFull(object):
                   show=True,
                   skip_time=0.050,
                   pretty_plot=None):
+
+        import matplotlib.pyplot as plt
+        import matplotlib
 
         if params is None:
             params = self.synapse_parameters
@@ -446,6 +448,8 @@ class OptimiseSynapsesFull(object):
                 tstr = traceback.format_exc()
                 self.write_log(tstr)
 
+                import matplotlib.pyplot as plt
+
                 plt.figure()
                 plt.plot(time, volt)
                 plt.xlabel("Time (error plot)")
@@ -491,6 +495,8 @@ class OptimiseSynapsesFull(object):
                 self.write_log(tstr)
 
                 if True:
+                    import matplotlib.pyplot as plt
+
                     plt.figure()
                     plt.plot(t_ab, v_ab, 'r')
                     plt.title("Error in findTraceHeights")
@@ -1203,10 +1209,10 @@ class OptimiseSynapsesFull(object):
 
         return None
 
-
     ############################################################################
 
-    def setup_parameter_set(self, model_bounds, n_sets):
+    @staticmethod
+    def setup_parameter_set(model_bounds, n_sets):
 
         import chaospy
         distribution = chaospy.J(chaospy.Uniform(model_bounds[0][0],
@@ -1243,13 +1249,18 @@ class OptimiseSynapsesFull(object):
             # Already setup servants
             return
 
-        with self.d_view.sync_imports():
-            from run_synapse_run import RunSynapseRun
-            from optimise_synapses_full import NumpyEncoder
-            from optimise_synapses_full import OptimiseSynapsesFull
+        if False:
+            with self.d_view.sync_imports():
+                from run_synapse_run import RunSynapseRun
+                from optimise_synapses_full import NumpyEncoder
+                from optimise_synapses_full import OptimiseSynapsesFull
+        else:
+            import_str = ("from run_synapse_run import RunSynapseRun\n"
+                          "from optimise_synapses_full import NumpyEncoder\n"
+                          "from optimise_synapses_full import OptimiseSynapsesFull")
+            self.d_view.execute(import_str, block=True)
 
-        self.write_log("Setting up workers: " \
-                       + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+        self.write_log(f"Setting up workers: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
 
         # Create unique log file names for the workers
         if self.log_file_name is not None:
@@ -1294,6 +1305,8 @@ class OptimiseSynapsesFull(object):
                 ############################################################################
 
     def plot_debug_pars(self):
+
+        import matplotlib.pyplot as plt
 
         try:
             n_iter = len(self.debug_pars)
@@ -1409,4 +1422,4 @@ if __name__ == "__main__":
 
         exit(0)
 
-    ly.parallel_optimise_single_cell(n_trials=2)
+    ly.parallel_optimise_single_cell(n_trials=4)
