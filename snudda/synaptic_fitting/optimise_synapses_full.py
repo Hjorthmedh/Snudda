@@ -1211,8 +1211,7 @@ class OptimiseSynapsesFull(object):
 
     ############################################################################
 
-    @staticmethod
-    def setup_parameter_set(model_bounds, n_sets):
+    def setup_parameter_set(self, model_bounds, n_sets, skip_sets=0):
 
         import chaospy
         distribution = chaospy.J(chaospy.Uniform(model_bounds[0][0],
@@ -1225,13 +1224,17 @@ class OptimiseSynapsesFull(object):
                                                  model_bounds[1][3]),
                                  chaospy.Uniform(model_bounds[0][4],
                                                  model_bounds[1][4]))
+        # Seed Sobol sequence --- does not change anything.
+        # np.random.seed()
 
-        u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol \
-            = distribution.sample(n_sets, rule="sobol")
+        skip_sets = self.synapse_parameter_data.get_iter()
 
-        parameter_sets = [x for x in zip(u_sobol,
-                                         tau_r_sobol, tau_f_sobol, tau_ratio_sobol,
-                                         cond_sobol)]
+        u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol = distribution.sample(n_sets+skip_sets, rule="sobol")
+
+        parameter_sets = [x for x in zip(u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol)]
+        parameter_sets = parameter_sets[skip_sets:]
+
+        self.synapse_parameter_data.set_iter(skip_sets+n_sets)
 
         return parameter_sets
 
@@ -1258,8 +1261,7 @@ class OptimiseSynapsesFull(object):
 
         # Create unique log file names for the workers
         if self.log_file_name is not None:
-            engine_log_file = [self.log_file_name + "-" \
-                              + str(x) for x in range(0, len(self.d_view))]
+            engine_log_file = [f"{self.log_file_name}-{x}" for x in range(0, len(self.d_view))]
         else:
             engine_log_file = [[] for x in range(0, len(self.d_view))]
 

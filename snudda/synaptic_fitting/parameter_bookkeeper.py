@@ -10,9 +10,10 @@ from snudda.utils.numpy_encoder import  NumpyEncoder
 
 class ParameterBookkeeper:
 
-    def __init__(self, n_max=10, old_book=None, old_book_file=None):
+    def __init__(self, n_max=5, old_book=None, old_book_file=None):
 
         self.n_max = n_max
+        self.old_iter = 0
 
         if old_book:
             self.book = old_book.copy()
@@ -107,7 +108,15 @@ class ParameterBookkeeper:
         with open(file_name, "r") as f:
             data = json.load(f)
 
+        if "meta" in data:
+            if "iter" in data["meta"]:
+                self.old_iter = data["meta"]["iter"]
+
         for d in data.values():
+
+            if "parameters" not in d:
+                continue
+
             self.add_parameters(parameter_set=np.array(d["parameters"]),
                                 section_id=np.array(d["section_id"]).astype(int),
                                 section_x=np.array(d["section_x"]),
@@ -119,9 +128,16 @@ class ParameterBookkeeper:
     def save(self, file_name):
         print(f"Writing parameter data to {file_name}")
         data_dict = self.get_dictionary()
+        data_dict["meta"] = {"iter" : self.old_iter}
 
         with open(file_name, "w") as f:
             json.dump(data_dict, f, indent=4, cls=NumpyEncoder)
+
+    def get_iter(self):
+        return self.old_iter
+
+    def set_iter(self, iter):
+        self.old_iter = iter
 
     def check_integrity(self):
 
