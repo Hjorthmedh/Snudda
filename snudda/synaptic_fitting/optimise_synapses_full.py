@@ -1249,23 +1249,17 @@ class OptimiseSynapsesFull(object):
             # Already setup servants
             return
 
-        if False:
-            with self.d_view.sync_imports():
-                from run_synapse_run import RunSynapseRun
-                from optimise_synapses_full import NumpyEncoder
-                from optimise_synapses_full import OptimiseSynapsesFull
-        else:
-            import_str = ("from run_synapse_run import RunSynapseRun\n"
-                          "from optimise_synapses_full import NumpyEncoder\n"
-                          "from optimise_synapses_full import OptimiseSynapsesFull")
-            self.d_view.execute(import_str, block=True)
+        with self.d_view.sync_imports():
+            from run_synapse_run import RunSynapseRun
+            from optimise_synapses_full import NumpyEncoder
+            from optimise_synapses_full import OptimiseSynapsesFull
 
         self.write_log(f"Setting up workers: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
 
         # Create unique log file names for the workers
         if self.log_file_name is not None:
             engine_log_file = [self.log_file_name + "-" \
-                             + str(x) for x in range(0, len(self.d_view))]
+                              + str(x) for x in range(0, len(self.d_view))]
         else:
             engine_log_file = [[] for x in range(0, len(self.d_view))]
 
@@ -1422,4 +1416,4 @@ if __name__ == "__main__":
 
         exit(0)
 
-    ly.parallel_optimise_single_cell(n_trials=4)
+    ly.parallel_optimise_single_cell(n_trials=2)

@@ -52,20 +52,27 @@ class ParameterBookkeeper:
             print(tstr)
             exit(-1)
 
-        if len(self.book) > self.n_max:
-            heapq.heappop(self.book)  # Throw away largest error
+        book_len = len(self.book)
+        for i in range(self.n_max, book_len):
+            heapq.heappop(self.book)
 
     def merge(self, *other_books):
 
-        heapq.merge(self.book, *other_books)
-        while len(self.book) > self.n_max:
+        self.book = list(heapq.merge(self.book, *other_books))
+
+        # We need to remove surplus elements
+        book_len = len(self.book)
+        for i in range(self.n_max, book_len):
             heapq.heappop(self.book)
 
     def get_dictionary(self):
         data_dict = OrderedDict()
         data_list = []
+
+        book_copy = list(self.book)
+
         for i in range(0, len(self.book)):
-            _, _, data = heapq.heappop(self.book)
+            _, _, data = heapq.heappop(book_copy)
             data_list.insert(0, data)
 
         for idx, data in enumerate(data_list):
