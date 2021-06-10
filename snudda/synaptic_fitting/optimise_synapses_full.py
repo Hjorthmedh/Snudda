@@ -204,6 +204,10 @@ class OptimiseSynapsesFull(object):
             self.synapse_section_id = best_dataset["section_id"]
             self.synapse_section_x = best_dataset["section_x"]
 
+        if self.role != "master":
+            # This is to prevent duplicating entries
+            self.synapse_parameter_data.clear()
+
     ############################################################################
 
     def plot_data(self,
@@ -1229,7 +1233,8 @@ class OptimiseSynapsesFull(object):
 
         skip_sets = self.synapse_parameter_data.get_iter()
 
-        u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol = distribution.sample(n_sets+skip_sets, rule="sobol")
+        u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol = \
+            distribution.sample(n_sets+skip_sets, rule="sobol")
 
         parameter_sets = [x for x in zip(u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol)]
         parameter_sets = parameter_sets[skip_sets:]

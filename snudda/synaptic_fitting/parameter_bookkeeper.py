@@ -10,7 +10,7 @@ from snudda.utils.numpy_encoder import  NumpyEncoder
 
 class ParameterBookkeeper:
 
-    def __init__(self, n_max=5, old_book=None, old_book_file=None):
+    def __init__(self, n_max=10, old_book=None, old_book_file=None):
 
         self.n_max = n_max
         self.old_iter = 0
