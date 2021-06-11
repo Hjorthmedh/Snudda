@@ -4,8 +4,7 @@ import timeit
 import numpy as np
 import scipy
 import scipy.optimize
-import matplotlib.pyplot as plt
-import matplotlib
+
 import neuron
 import json
 import time
@@ -205,6 +204,10 @@ class OptimiseSynapsesFull(object):
             self.synapse_section_id = best_dataset["section_id"]
             self.synapse_section_x = best_dataset["section_x"]
 
+        if self.role != "master":
+            # This is to prevent duplicating entries
+            self.synapse_parameter_data.clear()
+
     ############################################################################
 
     def plot_data(self,
@@ -212,6 +215,9 @@ class OptimiseSynapsesFull(object):
                   show=True,
                   skip_time=0.050,
                   pretty_plot=None):
+
+        import matplotlib.pyplot as plt
+        import matplotlib
 
         if params is None:
             params = self.synapse_parameters
@@ -446,6 +452,8 @@ class OptimiseSynapsesFull(object):
                 tstr = traceback.format_exc()
                 self.write_log(tstr)
 
+                import matplotlib.pyplot as plt
+
                 plt.figure()
                 plt.plot(time, volt)
                 plt.xlabel("Time (error plot)")
@@ -491,6 +499,8 @@ class OptimiseSynapsesFull(object):
                 self.write_log(tstr)
 
                 if True:
+                    import matplotlib.pyplot as plt
+
                     plt.figure()
                     plt.plot(t_ab, v_ab, 'r')
                     plt.title("Error in findTraceHeights")
@@ -1203,10 +1213,9 @@ class OptimiseSynapsesFull(object):
 
         return None
 
-
     ############################################################################
 
-    def setup_parameter_set(self, model_bounds, n_sets):
+    def setup_parameter_set(self, model_bounds, n_sets, skip_sets=0):
 
         import chaospy
         distribution = chaospy.J(chaospy.Uniform(model_bounds[0][0],
@@ -1219,13 +1228,18 @@ class OptimiseSynapsesFull(object):
                                                  model_bounds[1][3]),
                                  chaospy.Uniform(model_bounds[0][4],
                                                  model_bounds[1][4]))
+        # Seed Sobol sequence --- does not change anything.
+        # np.random.seed()
 
-        u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol \
-            = distribution.sample(n_sets, rule="sobol")
+        skip_sets = self.synapse_parameter_data.get_iter()
 
-        parameter_sets = [x for x in zip(u_sobol,
-                                         tau_r_sobol, tau_f_sobol, tau_ratio_sobol,
-                                         cond_sobol)]
+        u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol = \
+            distribution.sample(n_sets+skip_sets, rule="sobol")
+
+        parameter_sets = [x for x in zip(u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol)]
+        parameter_sets = parameter_sets[skip_sets:]
+
+        self.synapse_parameter_data.set_iter(skip_sets+n_sets)
 
         return parameter_sets
 
@@ -1248,13 +1262,11 @@ class OptimiseSynapsesFull(object):
             from optimise_synapses_full import NumpyEncoder
             from optimise_synapses_full import OptimiseSynapsesFull
 
-        self.write_log("Setting up workers: " \
-                       + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+        self.write_log(f"Setting up workers: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
 
         # Create unique log file names for the workers
         if self.log_file_name is not None:
-            engine_log_file = [self.log_file_name + "-" \
-                             + str(x) for x in range(0, len(self.d_view))]
+            engine_log_file = [f"{self.log_file_name}-{x}" for x in range(0, len(self.d_view))]
         else:
             engine_log_file = [[] for x in range(0, len(self.d_view))]
 
@@ -1294,6 +1306,8 @@ class OptimiseSynapsesFull(object):
                 ############################################################################
 
     def plot_debug_pars(self):
+
+        import matplotlib.pyplot as plt
 
         try:
             n_iter = len(self.debug_pars)

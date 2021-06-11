@@ -113,6 +113,8 @@ class RunSynapseRun(object):
         self.holding_current = self.update_holding_current(holding_voltage=holding_voltage,
                                                            holding_current=holding_current)
 
+        self.write_log("RunSynapseRun: Init done.")
+
         # import pdb
         # pdb.set_trace()
 
