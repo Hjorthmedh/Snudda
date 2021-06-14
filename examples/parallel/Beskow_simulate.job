@@ -1,11 +1,11 @@
 #!/bin/bash -l
-#SBATCH -t 2:59:00
-#SBATCH --time-min=1:59:00
+#SBATCH -t 8:59:00
+#SBATCH --time-min=5:59:00
 #SBATCH -J snudda_simulate
 #SBATCH -A 2020-5-449
 #SBATCH -o save/output-BeskowSnuddaSimulate.o%j
 #SBATCH -e save/error-BeskowSnuddaSimulate.e%j
-#SBATCH --nodes=5-10
+#SBATCH --nodes=10-20
 #SBATCH --ntasks-per-node=32
 
 # 16 workers were too few, got section stack overflow (there is a hidden
@@ -63,14 +63,17 @@ export PYTHONPATH=$LN/lib/python:$LM/lib/python3.8/
 
 # Remove "special" old directory
 echo "Compiling mechanisms"
+rm mechanisms
+ln -s ../../snudda/data/neurons/mechanisms
 rm -r x86_64
 nrnivmodl mechanisms
 
 
+# GJ disabled
+# srun -n $N_WORKERS $SNUDDA_DIR/../examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
 
-#srun -n $N_WORKERS $SNUDDA_DIR/../examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
-
-srun -n $N_WORKERS $SNUDDA_DIR/../examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
+# GJ active
+srun -n $N_WORKERS $SNUDDA_DIR/../examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
 
 
 # Original version, start neuron from python, does not work on beskow
