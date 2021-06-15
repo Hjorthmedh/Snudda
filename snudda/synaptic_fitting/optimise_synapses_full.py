@@ -876,7 +876,7 @@ class OptimiseSynapsesFull(object):
                                                                 u=min_pars[0],
                                                                 tau_r=min_pars[1],
                                                                 tau_f=min_pars[2],
-                                                                tau_ratio=min_pars[3] / min_pars[1],
+                                                                tau_ratio=min_pars[3],
                                                                 cond=min_pars[4],
                                                                 smooth_exp_trace8=smooth_exp_trace8,
                                                                 smooth_exp_trace9=smooth_exp_trace9,
