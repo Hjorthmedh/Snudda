@@ -30,7 +30,8 @@
         "neuronModulationID": 0,
         "synapseDensity": "0.05/(1+exp(-(d-150e-6)/5e-6))",
         "nSynapses": 20,
-        "baselineVoltage": -0.08
+        "baselineVoltage": -0.08,
+        "holdingCurrent": 2.610107685541152e-10
     },
     "FSN": {
         "neuronMorphology": "$DATA/neurons/striatum/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/DR-rat-Mar-13-08-1-536-R-cor-rep.swc",

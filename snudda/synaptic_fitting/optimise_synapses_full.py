@@ -1394,7 +1394,7 @@ if __name__ == "__main__":
 
     os.symlink(os.path.join(snudda_data_dir, "neurons", "mechanisms"), "mechanisms")
     print("Compiling neuron mechanisms: nrnivmodl mechanisms")
-    os.system("nrnivmodl mechanisms")
+    os.system("nrnivmodl mechanisms/")
     optMethod = args.optMethod
 
     print(f"Reading file : {args.datafile}")
