@@ -10,19 +10,15 @@ import neuron
 import json
 import time
 
+from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists
 from snudda.synaptic_fitting.parameter_bookkeeper import ParameterBookkeeper
 
 # TODO: 2021-05-31 -- Add option to enable/disable trace smoothing
 
 # TODO: Check, what happens if we mix facilitating and depressing synapses on the same neuron...?
-
-# TODO: 2021-05-12 -- Save more than the best parameter set in json file. Have one dictionary item per saved parameterset,
-#                     that way we can remove all associated data easily in one go, when updating the json file.
-
 # TODO: 2021-05-12 -- What value should u0 have? A way around it, repeat the stimulation train multiple times, use laster runs
 # TODO: 2021-05-11 -- Set self.synapse_parameters
 # TODO: 2021-05-28 -- Holdign voltage currently set in neuronSet.json file, we should allow it to be overriden by trace data json file
-
 
 #
 #
@@ -558,10 +554,10 @@ class OptimiseSynapsesFull(object):
         # !!! We need to get the baseline depolarisation in another way
 
         self.rsr_synapse_model = \
-            RunSynapseRun(neuron_morphology=c_prop["neuronMorphology"],
-                          neuron_mechanisms=c_prop["neuronMechanisms"],
-                          neuron_parameters=c_prop["neuronParameters"],
-                          neuron_modulation=c_prop["neuronModulation"],
+            RunSynapseRun(neuron_morphology=snudda_parse_path(c_prop["neuronMorphology"]),
+                          neuron_mechanisms=snudda_parse_path(c_prop["neuronMechanisms"]),
+                          neuron_parameters=snudda_parse_path(c_prop["neuronParameters"]),
+                          neuron_modulation=snudda_parse_path(c_prop["neuronModulation"]),
                           stim_times=t_stim,
                           num_synapses=n_synapses,
                           synapse_density=synapse_density,
