@@ -18,7 +18,11 @@ class PlotDensitySlice:
     def plot_slice(self, neuron_type,
                    x_min=None, x_max=None,
                    y_min=None, y_max=None,
-                   z_min=None, z_max=None):
+                   z_min=None, z_max=None,
+                   projection=None):
+
+        if projection is None:
+            projection = "3d"
 
         n_neurons = self.sl.data["nNeurons"]
 
@@ -46,31 +50,28 @@ class PlotDensitySlice:
 
         cell_pos = self.neuron_positions[ok_idx, :].copy()
 
-        #import pdb
-        #pdb.set_trace()
-
         fig = plt.figure()
 
-        if (x_min is not None or x_max is not None) \
-                and y_min is None and y_max is None and z_min is None and z_max is None:
+        if projection == "yz":
             plt.scatter(cell_pos[:, 1], cell_pos[:, 2])
             plt.axis("equal")
-        elif (y_min is not None or y_max is not None) \
-                and x_min is None and x_max is None and z_min is None and z_max is None:
+        elif projection == "xz":
             plt.scatter(cell_pos[:, 0], cell_pos[:, 2])
             plt.axis("equal")
 
-        elif (z_min is not None or z_max is not None) \
-                and y_min is None and y_max is None and x_min is None and x_max is None:
+        elif projection == "xz":
             plt.scatter(cell_pos[:, 0], cell_pos[:, 1])
             plt.axis("equal")
 
-        else:
+        elif projection == "3d":
             ax = fig.add_subplot(projection='3d')
             ax.scatter(xs=cell_pos[:, 0], ys=cell_pos[:, 1], zs=cell_pos[:, 2])
             # elev, azim = 0, np.pi/2
             # ax.view_init(elev, azim)
             plt.ion()
+        else:
+            print(f"Unknown projection: {projection} (use 'xy', 'xz', 'yz' or '3d')")
+            return
 
         fig.tight_layout()
         plt.show()

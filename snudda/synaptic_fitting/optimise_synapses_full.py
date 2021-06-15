@@ -1,4 +1,5 @@
 import os
+import shutil
 import timeit
 
 import numpy as np
@@ -1379,8 +1380,25 @@ if __name__ == "__main__":
     parser.add_argument("--prettyplot", action="store_true",
                         help="plotting traces for article")
 
+    parser.add_argument("--data", help="Snudda data directory",
+                        default=os.path.join("..", "..", "..", "BasalGangliaData", "data"))
+
     args = parser.parse_args()
 
+    if "data" in args:
+        os.environ["SNUDDA_DATA"] = args.data
+
+    snudda_data_dir = os.getenv("SNUDDA_DATA")
+
+    if os.path.exists("x86_64"):
+        shutil.rmtree("x86_64")
+
+    if os.path.exists("mechanisms"):
+        os.remove("mechanisms")
+
+    os.symlink(os.path.join(snudda_data_dir, "neurons", "mechanisms"), "mechanisms")
+    print("Compiling neuron mechanisms: nrnivmodl mechanisms")
+    os.system("nrnivmodl mechanisms")
     optMethod = args.optMethod
 
     print(f"Reading file : {args.datafile}")
@@ -1389,16 +1407,24 @@ if __name__ == "__main__":
     print(f"Optimisation method : {optMethod}")
 
     print(f"IPYTHON_PROFILE = {os.getenv('IPYTHON_PROFILE')}")
+    print(f"SNUDDA_DATA = {os.getenv('SNUDDA_DATA')}")
 
     if os.getenv('IPYTHON_PROFILE') is not None or os.getenv('SLURMID') is not None:
         from ipyparallel import Client
 
-        rc = Client(profile=os.getenv('IPYTHON_PROFILE'), debug=False)
+        try:
+            rc = Client(profile=os.getenv('IPYTHON_PROFILE'), debug=False)
 
-        # http://davidmasad.com/blog/simulation-with-ipyparallel/
-        # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
-        d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
-        lb_view = rc.load_balanced_view(targets='all')
+            # http://davidmasad.com/blog/simulation-with-ipyparallel/
+            # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
+            d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
+            lb_view = rc.load_balanced_view(targets='all')
+        except:
+            import traceback
+            t_str = traceback.format_exc()
+            print(t_str)
+            print("Error setting up ipyparallel. Running in serial.")
+            d_view = None
     else:
         d_view = None
 
