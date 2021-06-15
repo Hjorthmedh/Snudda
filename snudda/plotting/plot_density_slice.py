@@ -55,13 +55,17 @@ class PlotDensitySlice:
         if projection == "yz":
             plt.scatter(cell_pos[:, 1], cell_pos[:, 2])
             plt.axis("equal")
+            fig.tight_layout()
+
         elif projection == "xz":
             plt.scatter(cell_pos[:, 0], cell_pos[:, 2])
             plt.axis("equal")
+            fig.tight_layout()
 
         elif projection == "xz":
             plt.scatter(cell_pos[:, 0], cell_pos[:, 1])
             plt.axis("equal")
+            fig.tight_layout()
 
         elif projection == "3d":
             ax = fig.add_subplot(projection='3d')
@@ -73,5 +77,4 @@ class PlotDensitySlice:
             print(f"Unknown projection: {projection} (use 'xy', 'xz', 'yz' or '3d')")
             return
 
-        fig.tight_layout()
         plt.show()

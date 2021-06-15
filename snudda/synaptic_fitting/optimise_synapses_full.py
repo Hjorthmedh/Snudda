@@ -1259,6 +1259,9 @@ class OptimiseSynapsesFull(object):
             from optimise_synapses_full import NumpyEncoder
             from optimise_synapses_full import OptimiseSynapsesFull
 
+        if os.getenv("SNUDDA_DATA"):
+            self.d_view.execute(f"os.environ['SNUDDA_DATA'] = '{os.getenv('SNUDDA_DATA')}'")
+
         self.write_log(f"Setting up workers: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
 
         # Create unique log file names for the workers
