@@ -4,7 +4,7 @@
 export IPYTHONDIR="`pwd`/.ipython"
 export IPYTHON_PROFILE=Default
 
-ipcluster start --profile=$IPYTHON_PROFILE --ip=127.0.0.1 \
+ipcluster start -n 2 --profile=$IPYTHON_PROFILE --ip=127.0.0.1 \
 	  --engines=MPIEngineSetLauncher --debug \
 	  --HeartMonitor.max_heartmonitor_misses=1000 \
 	  --HubFactory.registration_timeout=600 \

@@ -876,7 +876,7 @@ class OptimiseSynapsesFull(object):
                                                                 u=min_pars[0],
                                                                 tau_r=min_pars[1],
                                                                 tau_f=min_pars[2],
-                                                                tau_ratio=min_pars[3] / min_pars[1],
+                                                                tau_ratio=min_pars[3],
                                                                 cond=min_pars[4],
                                                                 smooth_exp_trace8=smooth_exp_trace8,
                                                                 smooth_exp_trace9=smooth_exp_trace9,
@@ -1255,9 +1255,13 @@ class OptimiseSynapsesFull(object):
             return
 
         with self.d_view.sync_imports():
+            import os
             from run_synapse_run import RunSynapseRun
             from optimise_synapses_full import NumpyEncoder
             from optimise_synapses_full import OptimiseSynapsesFull
+
+        if os.getenv("SNUDDA_DATA"):
+            self.d_view.execute(f"os.environ['SNUDDA_DATA'] = '{os.getenv('SNUDDA_DATA')}'")
 
         self.write_log(f"Setting up workers: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
 
