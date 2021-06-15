@@ -1255,6 +1255,7 @@ class OptimiseSynapsesFull(object):
             return
 
         with self.d_view.sync_imports():
+            import os
             from run_synapse_run import RunSynapseRun
             from optimise_synapses_full import NumpyEncoder
             from optimise_synapses_full import OptimiseSynapsesFull
