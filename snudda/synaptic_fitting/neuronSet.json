@@ -1,9 +1,9 @@
 {
     "dSPN": {
-        "neuronMorphology": "../data/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/WT-P270-20-15ak-cor.swc",
-        "neuronParameters": "../data/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/parameters.json",
-        "neuronMechanisms": "../data/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/mechanisms.json",
-        "neuronModulation": "../data/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/modulation.json",
+        "neuronMorphology": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/WT-P270-20-15ak-cor.swc",
+        "neuronParameters": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/parameters.json",
+        "neuronMechanisms": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/mechanisms.json",
+        "neuronModulation": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/modulation.json",
         "neuronParameterID": 0,
         "neuronModulationID": 0,
         "synapseDensity": "0.05/(1+exp(-(d-150e-6)/5e-6))",
@@ -11,10 +11,10 @@
         "baselineVoltage": -0.08
     },
     "iSPN": {
-        "neuronMorphology": "../data/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/WT-P270-09-15ak-cor.swc",
-        "neuronParameters": "../data/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/parameters.json",
-        "neuronMechanisms": "../data/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/mechanisms.json",
-        "neuronModulation": "../data/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/modulation.json",
+        "neuronMorphology": "$DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/WT-P270-09-15ak-cor.swc",
+        "neuronParameters": "$DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/parameters.json",
+        "neuronMechanisms": "$DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/mechanisms.json",
+        "neuronModulation": "$DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/modulation.json",
         "neuronParameterID": 0,
         "neuronModulationID": 0,
         "synapseDensity": "0.05/(1+exp(-(d-150e-6)/5e-6))",
@@ -22,22 +22,22 @@
         "baselineVoltage": -0.08
     },
     "SPN": {
-        "neuronMorphology": "../data/../data/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/WT-P270-20-15ak-cor.swc",
-        "neuronParameters": "../data/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/parameters.json",
-        "neuronMechanisms": "../data/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/mechanisms.json",
-        "neuronModulation": "../data/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/modulation.json",
+        "neuronMorphology": "$DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20210212/morphology/21-6-DE-cor-rep-ax-res3.swc",
+        "neuronParameters": "$DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20210212/parameters.json",
+        "neuronMechanisms": "$DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20210212/mechanisms.json",
+        "neuronModulation": "$DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20210212/modulation.json",
         "neuronParameterID": 0,
         "neuronModulationID": 0,
         "synapseDensity": "0.05/(1+exp(-(d-150e-6)/5e-6))",
         "nSynapses": 20,
         "baselineVoltage": -0.08,
-        "holdingCurrent": 3.3382718811481027e-10
+        "holdingCurrent": 2.610107685541152e-10
     },
     "FSN": {
-        "neuronMorphology": "../data/neurons/striatum/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/DR-rat-Mar-13-08-1-536-R-cor-rep.swc",
-        "neuronParameters": "../data/neurons/striatum/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/parameters.json",
-        "neuronMechanisms": "../data/neurons/striatum/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/mechanisms.json",
-        "neuronModulation": "../data/neurons/striatum/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/modulation.json",
+        "neuronMorphology": "$DATA/neurons/striatum/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/DR-rat-Mar-13-08-1-536-R-cor-rep.swc",
+        "neuronParameters": "$DATA/neurons/striatum/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/parameters.json",
+        "neuronMechanisms": "$DATA/neurons/striatum/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/mechanisms.json",
+        "neuronModulation": "$DATA/neurons/striatum/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/modulation.json",
         "neuronParameterID": 0,
         "neuronModulationID": 0,
         "synapseDensity": "0.05/(1+exp(-(d-150e-6)/5e-6))",
@@ -45,10 +45,10 @@
         "baselineVoltage": -0.08
     },
     "ChIN": {
-        "neuronMorphology": "../data/neurons/striatum/chin/str-chin-e170614_cell6-m17JUL301751_170614_no6_MD_cell_1_x63-v20190710/17JUL301751_170614_no6_MD_cell_1_x63-cor-noaxon.swc",
-        "neuronParameters": "../data/neurons/striatum/chin/str-chin-e170614_cell6-m17JUL301751_170614_no6_MD_cell_1_x63-v20190710/parameters.json",
-        "neuronMechanisms": "../data/neurons/striatum/chin/str-chin-e170614_cell6-m17JUL301751_170614_no6_MD_cell_1_x63-v20190710/mechanisms.json",
-        "neuronModulation": "../data/neurons/striatum/chin/str-chin-e170614_cell6-m17JUL301751_170614_no6_MD_cell_1_x63-v20190710/modulation.json",
+        "neuronMorphology": "$DATA/neurons/striatum/chin/str-chin-e170614_cell6-m17JUL301751_170614_no6_MD_cell_1_x63-v20190710/17JUL301751_170614_no6_MD_cell_1_x63-cor-noaxon.swc",
+        "neuronParameters": "$DATA/neurons/striatum/chin/str-chin-e170614_cell6-m17JUL301751_170614_no6_MD_cell_1_x63-v20190710/parameters.json",
+        "neuronMechanisms": "$DATA/neurons/striatum/chin/str-chin-e170614_cell6-m17JUL301751_170614_no6_MD_cell_1_x63-v20190710/mechanisms.json",
+        "neuronModulation": "$DATA/neurons/striatum/chin/str-chin-e170614_cell6-m17JUL301751_170614_no6_MD_cell_1_x63-v20190710/modulation.json",
         "neuronParameterID": 0,
         "neuronModulationID": 0,
         "synapseDensity": "0.05/(1+exp(-(d-150e-6)/5e-6))",
@@ -56,10 +56,10 @@
         "baselineVoltage": -0.08
     },
     "LTS": {
-        "neuronMorphology": "../data/neurons/striatum/lts/LTS_Experiment-9862_20181211/lts_morp_2019-11-07_centered_noAxon.swc",
-        "neuronParameters": "../data/neurons/striatum/lts/LTS_Experiment-9862_20181211/parameters.json",
-        "neuronMechanisms": "../data/neurons/striatum/lts/LTS_Experiment-9862_20181211/mechanisms.json",
-        "neuronModulation": "../data/neurons/striatum/lts/LTS_Experiment-9862_20181211/modulation.json",
+        "neuronMorphology": "$DATA/neurons/striatum/lts/LTS_Experiment-9862_20181211/lts_morp_2019-11-07_centered_noAxon.swc",
+        "neuronParameters": "$DATA/neurons/striatum/lts/LTS_Experiment-9862_20181211/parameters.json",
+        "neuronMechanisms": "$DATA/neurons/striatum/lts/LTS_Experiment-9862_20181211/mechanisms.json",
+        "neuronModulation": "$DATA/neurons/striatum/lts/LTS_Experiment-9862_20181211/modulation.json",
         "neuronParameterID": 0,
         "neuronModulationID": 0,
         "synapseDensity": "0.05/(1+exp(-(d-150e-6)/5e-6))",
