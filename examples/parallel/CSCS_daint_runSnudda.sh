@@ -3,7 +3,7 @@
 SNUDDA_DIR=/users/$USER/HBP/Snudda/snudda
 # JOBDIR=$SNUDDA_DIR/../networks/CSCS_Network
 # JOBDIR=/users/$USER/HBP/Snudda/networks/CSCS_Network
-# JOBDIR=/users/$SCRATCH/networks/CSCS_Network
+# JOBDIR=$SCRATCH/networks/CSCS_Network
 JOBDIR=/scratch/snx3000/$USER/networks/CSCS_Network
 
 # !!! For larger networks increase the allocation time in Tegner_runSnudda.job
