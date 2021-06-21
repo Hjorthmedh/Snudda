@@ -123,6 +123,7 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
     def modulate_receptor(self, syn, modulation):
 
         setattr(syn, "mod" + modulation, 1)
+        
 
         self.neuromodulation[modulation]['modulation_vector'].play(
             getattr(syn, "_ref_level" + modulation), self.sim.neuron.h.dt)

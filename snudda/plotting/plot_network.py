@@ -144,17 +144,20 @@ class PlotNetwork(object):
         pop_units = sorted(list(set(population_unit)))
         cmap = plt.get_cmap('tab20', len(pop_units))
         neuron_colours = []
+        alphas = []
 
         for idx, pu in enumerate(population_unit):
             if pu > 0:
                 neuron_colours.append(list(cmap(pu)))
+                alphas.append(1)
             else:
                 neuron_colours.append([0.7, 0.7, 0.7, 1.0])
+                alphas.append(0.05)
 
         neuron_colours = np.array(neuron_colours)
         positions = self.sl.data["neuronPositions"]
 
-        ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], c=neuron_colours, marker='o', s=20)
+        ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], c=neuron_colours, marker='o', s=20,alpha=alphas)
 
         self.equal_axis(ax)
 
