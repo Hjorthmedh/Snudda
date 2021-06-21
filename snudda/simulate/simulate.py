@@ -1210,9 +1210,20 @@ class SnuddaSimulate(object):
 
         # Only include neuron IDs on this worker, ie those in self.neuronID
         # (filtering in the if statement)
-        cells = dict((k, self.neurons[k])
-                     for k in cell_id if (not self.is_virtual_neuron[k]
-                                          and k in self.neuron_id))
+        try:
+            cells = dict((k, self.neurons[k])
+                         for k in cell_id if (not self.is_virtual_neuron[k]
+                                              and k in self.neuron_id))
+        except:
+            import traceback
+            t_str = traceback.format_exc()
+            self.write_log(t_str, is_error=True)
+            self.write_log(f"cell_id = {cell_id}")
+            self.write_log(f"is_virtual_neuron = {self.is_virtual_neuron}")
+            self.write_log(f"neuron_id = {self.neuron_id}")
+            self.write_log(f"neurons = {self.neurons}")
+            self.write_log("Does this info help?")
+            sys.exit(-1)
 
         if len(self.t_save) == 0 or self.t_save is None:
             self.t_save = self.sim.neuron.h.Vector()
