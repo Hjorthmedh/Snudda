@@ -27,28 +27,35 @@ class PlotDensitySlice:
         n_neurons = self.sl.data["nNeurons"]
 
         cell_id = self.neuron_type_lookup[neuron_type]
-        ok_idx = np.zeros((n_neurons,), dtype=int)
-        ok_idx[cell_id] = 1
+        ok_mask = np.zeros((n_neurons,), dtype=int)
+        ok_mask[cell_id] = 1
 
         if x_min is not None:
-            ok_idx = np.logical_and(ok_idx, x_min <= self.neuron_positions[:, 0])
+            ok_mask = np.logical_and(ok_mask, x_min <= self.neuron_positions[:, 0])
 
         if x_max is not None:
-            ok_idx = np.logical_and(ok_idx, self.neuron_positions[:, 0] <= x_max)
+            ok_mask = np.logical_and(ok_mask, self.neuron_positions[:, 0] <= x_max)
 
         if y_min is not None:
-            ok_idx = np.logical_and(ok_idx, y_min <= self.neuron_positions[:, 1])
+            ok_mask = np.logical_and(ok_mask, y_min <= self.neuron_positions[:, 1])
 
         if y_max is not None:
-            ok_idx = np.logical_and(ok_idx, self.neuron_positions[:, 1] <= y_max)
+            ok_mask = np.logical_and(ok_mask, self.neuron_positions[:, 1] <= y_max)
 
         if z_min is not None:
-            ok_idx = np.logical_and(ok_idx, z_min <= self.neuron_positions[:, 2])
+            ok_mask = np.logical_and(ok_mask, z_min <= self.neuron_positions[:, 2])
 
         if z_max is not None:
-            ok_idx = np.logical_and(ok_idx, self.neuron_positions[:, 2] <= z_max)
+            ok_mask = np.logical_and(ok_mask, self.neuron_positions[:, 2] <= z_max)
 
+        # cell_pos = self.neuron_positions[ok_idx, :].copy()
+        ok_idx = np.where(ok_mask)[0]
         cell_pos = self.neuron_positions[ok_idx, :].copy()
+
+        print(f"Plotting {np.count_nonzero(ok_mask)} {neuron_type} neurons")
+
+        # for pos in cell_pos:
+        #     print(f"xyz: {pos}")
 
         fig = plt.figure()
 
@@ -62,7 +69,7 @@ class PlotDensitySlice:
             plt.axis("equal")
             fig.tight_layout()
 
-        elif projection == "xz":
+        elif projection == "xy":
             plt.scatter(cell_pos[:, 0], cell_pos[:, 1])
             plt.axis("equal")
             fig.tight_layout()
