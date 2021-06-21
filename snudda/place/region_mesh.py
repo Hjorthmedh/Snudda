@@ -906,9 +906,16 @@ class RegionMesh(object):
                 self.density_voxel_n_sample[neuron_type][vx, vy, vz] += 1
                 self.density_total_n_sample[neuron_type] += 1
 
-                n_expected = (self.density_voxel_sum[neuron_type][vx, vy, vz]
-                              / self.density_total_sum[neuron_type]
-                              * (self.placed_total[neuron_type] + 1))
+                try:
+                    n_expected = (self.density_voxel_sum[neuron_type][vx, vy, vz]
+                                  / self.density_total_sum[neuron_type]
+                                  * (self.placed_total[neuron_type] + 1))
+                except:
+                    import traceback
+                    t_str = traceback.format_exc()
+                    self.write_log(t_str)
+                    import pdb
+                    pdb.set_trace()
 
                 # This assumes all of mesh voxels have same volume
                 # n_expected = ((self.density_voxel_sum[neuron_type][vx, vy, vz]
@@ -1008,7 +1015,8 @@ class RegionMesh(object):
         if neuron_type in self.placed_voxel:
             if np.max(self.placed_voxel[neuron_type]) < 5 \
                     and neuron_type in self.density_function and self.density_function[neuron_type]:
-                self.write_log(f"Warning, mesh_bin_width might be too small to setup accurate {neuron_type} density",
+                self.write_log(f"Warning, mesh_bin_width might be too small to setup accurate {neuron_type} density. "
+                               f"Max {neuron_type} in any mesh voxel is {np.max(self.placed_voxel[neuron_type])}",
                                is_error=True)
 
         return self.neuron_coords[start_ctr:end_ctr, :]

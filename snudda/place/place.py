@@ -37,9 +37,10 @@ class SnuddaPlace(object):
                  rc=None,
                  d_view=None,
                  lb_view=None,
-                 h5libver="latest",
+                 h5libver=None,
                  raytrace_borders=False,
-                 random_seed=None):
+                 random_seed=None,
+                 griddata_interpolation=False):  # Setting this to true is 5x slower
 
         if not config_file and network_path:
             config_file = os.path.join(network_path, "network-config.json")
@@ -74,8 +75,14 @@ class SnuddaPlace(object):
         if self.rc and not self.lb_view:
             self.lb_view = self.rc.load_balanced_view(targets='all')
 
-        self.h5libver = h5libver
+        if h5libver is None:
+            self.h5libver = "latest"
+        else:
+            self.h5libver = h5libver
+
         self.write_log("Using hdf5 version: " + str(self.h5libver))
+
+        self.griddata_interpolation = griddata_interpolation
 
         # List of all neurons
         self.neurons = []
@@ -325,9 +332,14 @@ class SnuddaPlace(object):
                                 coord = np.array(density_data[volume_id][neuron_type]["Coordinates"]) * 1e-6  # Convert to SI
                                 density = np.array(density_data[volume_id][neuron_type]["Density"])
 
-                                density_func_helper = lambda pos: griddata(points=coord, values=density,
-                                                                           xi=pos, method="linear",
-                                                                           fill_value=0)
+                                if self.griddata_interpolation:
+                                    density_func_helper = lambda pos: griddata(points=coord, values=density,
+                                                                               xi=pos, method="linear",
+                                                                               fill_value=0)
+                                else:
+                                    density_func_helper = lambda pos: griddata(points=coord, values=density,
+                                                                               xi=pos, method="nearest",
+                                                                               fill_value=0)
 
                                 density_func = lambda x, y, z: density_func_helper(np.array([x, y, z]).transpose())
 

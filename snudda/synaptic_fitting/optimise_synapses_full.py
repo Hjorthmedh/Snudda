@@ -1,28 +1,24 @@
 import os
+import shutil
 import timeit
 
 import numpy as np
 import scipy
 import scipy.optimize
-import matplotlib.pyplot as plt
-import matplotlib
+
 import neuron
 import json
 import time
 
+from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists
 from snudda.synaptic_fitting.parameter_bookkeeper import ParameterBookkeeper
 
 # TODO: 2021-05-31 -- Add option to enable/disable trace smoothing
 
 # TODO: Check, what happens if we mix facilitating and depressing synapses on the same neuron...?
-
-# TODO: 2021-05-12 -- Save more than the best parameter set in json file. Have one dictionary item per saved parameterset,
-#                     that way we can remove all associated data easily in one go, when updating the json file.
-
 # TODO: 2021-05-12 -- What value should u0 have? A way around it, repeat the stimulation train multiple times, use laster runs
 # TODO: 2021-05-11 -- Set self.synapse_parameters
 # TODO: 2021-05-28 -- Holdign voltage currently set in neuronSet.json file, we should allow it to be overriden by trace data json file
-
 
 #
 #
@@ -205,6 +201,10 @@ class OptimiseSynapsesFull(object):
             self.synapse_section_id = best_dataset["section_id"]
             self.synapse_section_x = best_dataset["section_x"]
 
+        if self.role != "master":
+            # This is to prevent duplicating entries
+            self.synapse_parameter_data.clear()
+
     ############################################################################
 
     def plot_data(self,
@@ -212,6 +212,9 @@ class OptimiseSynapsesFull(object):
                   show=True,
                   skip_time=0.050,
                   pretty_plot=None):
+
+        import matplotlib.pyplot as plt
+        import matplotlib
 
         if params is None:
             params = self.synapse_parameters
@@ -446,6 +449,8 @@ class OptimiseSynapsesFull(object):
                 tstr = traceback.format_exc()
                 self.write_log(tstr)
 
+                import matplotlib.pyplot as plt
+
                 plt.figure()
                 plt.plot(time, volt)
                 plt.xlabel("Time (error plot)")
@@ -491,6 +496,8 @@ class OptimiseSynapsesFull(object):
                 self.write_log(tstr)
 
                 if True:
+                    import matplotlib.pyplot as plt
+
                     plt.figure()
                     plt.plot(t_ab, v_ab, 'r')
                     plt.title("Error in findTraceHeights")
@@ -547,10 +554,10 @@ class OptimiseSynapsesFull(object):
         # !!! We need to get the baseline depolarisation in another way
 
         self.rsr_synapse_model = \
-            RunSynapseRun(neuron_morphology=c_prop["neuronMorphology"],
-                          neuron_mechanisms=c_prop["neuronMechanisms"],
-                          neuron_parameters=c_prop["neuronParameters"],
-                          neuron_modulation=c_prop["neuronModulation"],
+            RunSynapseRun(neuron_morphology=snudda_parse_path(c_prop["neuronMorphology"]),
+                          neuron_mechanisms=snudda_parse_path(c_prop["neuronMechanisms"]),
+                          neuron_parameters=snudda_parse_path(c_prop["neuronParameters"]),
+                          neuron_modulation=snudda_parse_path(c_prop["neuronModulation"]),
                           stim_times=t_stim,
                           num_synapses=n_synapses,
                           synapse_density=synapse_density,
@@ -869,7 +876,7 @@ class OptimiseSynapsesFull(object):
                                                                 u=min_pars[0],
                                                                 tau_r=min_pars[1],
                                                                 tau_f=min_pars[2],
-                                                                tau_ratio=min_pars[3] / min_pars[1],
+                                                                tau_ratio=min_pars[3],
                                                                 cond=min_pars[4],
                                                                 smooth_exp_trace8=smooth_exp_trace8,
                                                                 smooth_exp_trace9=smooth_exp_trace9,
@@ -1203,10 +1210,9 @@ class OptimiseSynapsesFull(object):
 
         return None
 
-
     ############################################################################
 
-    def setup_parameter_set(self, model_bounds, n_sets):
+    def setup_parameter_set(self, model_bounds, n_sets, skip_sets=0):
 
         import chaospy
         distribution = chaospy.J(chaospy.Uniform(model_bounds[0][0],
@@ -1219,13 +1225,18 @@ class OptimiseSynapsesFull(object):
                                                  model_bounds[1][3]),
                                  chaospy.Uniform(model_bounds[0][4],
                                                  model_bounds[1][4]))
+        # Seed Sobol sequence --- does not change anything.
+        # np.random.seed()
 
-        u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol \
-            = distribution.sample(n_sets, rule="sobol")
+        skip_sets = self.synapse_parameter_data.get_iter()
 
-        parameter_sets = [x for x in zip(u_sobol,
-                                         tau_r_sobol, tau_f_sobol, tau_ratio_sobol,
-                                         cond_sobol)]
+        u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol = \
+            distribution.sample(n_sets+skip_sets, rule="sobol")
+
+        parameter_sets = [x for x in zip(u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol)]
+        parameter_sets = parameter_sets[skip_sets:]
+
+        self.synapse_parameter_data.set_iter(skip_sets+n_sets)
 
         return parameter_sets
 
@@ -1244,17 +1255,19 @@ class OptimiseSynapsesFull(object):
             return
 
         with self.d_view.sync_imports():
+            import os
             from run_synapse_run import RunSynapseRun
             from optimise_synapses_full import NumpyEncoder
             from optimise_synapses_full import OptimiseSynapsesFull
 
-        self.write_log("Setting up workers: " \
-                       + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+        if os.getenv("SNUDDA_DATA"):
+            self.d_view.execute(f"os.environ['SNUDDA_DATA'] = '{os.getenv('SNUDDA_DATA')}'")
+
+        self.write_log(f"Setting up workers: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
 
         # Create unique log file names for the workers
         if self.log_file_name is not None:
-            engine_log_file = [self.log_file_name + "-" \
-                             + str(x) for x in range(0, len(self.d_view))]
+            engine_log_file = [f"{self.log_file_name}-{x}" for x in range(0, len(self.d_view))]
         else:
             engine_log_file = [[] for x in range(0, len(self.d_view))]
 
@@ -1294,6 +1307,8 @@ class OptimiseSynapsesFull(object):
                 ############################################################################
 
     def plot_debug_pars(self):
+
+        import matplotlib.pyplot as plt
 
         try:
             n_iter = len(self.debug_pars)
@@ -1365,8 +1380,25 @@ if __name__ == "__main__":
     parser.add_argument("--prettyplot", action="store_true",
                         help="plotting traces for article")
 
+    parser.add_argument("--data", help="Snudda data directory",
+                        default=os.path.join("..", "..", "..", "BasalGangliaData", "data"))
+
     args = parser.parse_args()
 
+    if "data" in args:
+        os.environ["SNUDDA_DATA"] = args.data
+
+    snudda_data_dir = os.getenv("SNUDDA_DATA")
+
+    if os.path.exists("x86_64"):
+        shutil.rmtree("x86_64")
+
+    if os.path.exists("mechanisms"):
+        os.remove("mechanisms")
+
+    os.symlink(os.path.join(snudda_data_dir, "neurons", "mechanisms"), "mechanisms")
+    print("Compiling neuron mechanisms: nrnivmodl mechanisms")
+    os.system("nrnivmodl mechanisms/")
     optMethod = args.optMethod
 
     print(f"Reading file : {args.datafile}")
@@ -1375,16 +1407,24 @@ if __name__ == "__main__":
     print(f"Optimisation method : {optMethod}")
 
     print(f"IPYTHON_PROFILE = {os.getenv('IPYTHON_PROFILE')}")
+    print(f"SNUDDA_DATA = {os.getenv('SNUDDA_DATA')}")
 
     if os.getenv('IPYTHON_PROFILE') is not None or os.getenv('SLURMID') is not None:
         from ipyparallel import Client
 
-        rc = Client(profile=os.getenv('IPYTHON_PROFILE'), debug=False)
+        try:
+            rc = Client(profile=os.getenv('IPYTHON_PROFILE'), debug=False)
 
-        # http://davidmasad.com/blog/simulation-with-ipyparallel/
-        # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
-        d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
-        lb_view = rc.load_balanced_view(targets='all')
+            # http://davidmasad.com/blog/simulation-with-ipyparallel/
+            # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
+            d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
+            lb_view = rc.load_balanced_view(targets='all')
+        except:
+            import traceback
+            t_str = traceback.format_exc()
+            print(t_str)
+            print("Error setting up ipyparallel. Running in serial.")
+            d_view = None
     else:
         d_view = None
 

@@ -749,7 +749,8 @@ class NeuronMorphology(object):
                     plot_scale=1.0,
                     axon_colour=None,
                     dend_colour=None,
-                    soma_colour=None):
+                    soma_colour=None,
+                    show_plot=True):
 
         self.write_log(f"Plotting neuron {self.swc_filename}")
 
@@ -849,10 +850,12 @@ class NeuronMorphology(object):
 
         if axis is None:
             plt.title("Neuron: " + self.swc_filename.split("/")[-3] + "_" + self.swc_filename.split('/').pop())
-            plt.ion()
-            plt.show()
-            plt.draw()
-            plt.pause(0.001)
+
+            if show_plot:
+                plt.ion()
+                plt.show()
+                plt.draw()
+                plt.pause(0.001)
 
         return ax
 
@@ -973,9 +976,10 @@ class NeuronMorphology(object):
 
     ############################################################################
 
-    def debug_plot(self, wait_flag=True, plot_step=1, plot_axon_flag=False):
+    def debug_plot(self, wait_flag=False, plot_step=1, plot_axon_flag=False):
 
-        ax = self.plot_neuron(plot_axon=plot_axon_flag)
+        ax = self.plot_neuron(plot_axon=plot_axon_flag, show_plot=False)
+        import matplotlib.pyplot as plt
 
         if plot_axon_flag:
             for a in self.axon_links:
@@ -988,10 +992,11 @@ class NeuronMorphology(object):
                 ax.text(x=x[0], y=x[1], z=x[2], s=str(a[2]), color='black')
 
                 self.write_log(f"ID: {a[2]}")
-                input(" ")
+                # input(" ")
 
         ctr = 0
         for (d, dID, dX) in zip(self.dend_links, self.dend_sec_id, self.dend_sec_x):
+
             x0 = self.dend[int(d[0]), 0:3]
             x1 = self.dend[int(d[1]), 0:3]
             x = (x0 + x1) / 2
@@ -1000,7 +1005,7 @@ class NeuronMorphology(object):
             # ax.text(x=x1[0],y=x1[1],z=x1[2],s=str(np.around(dX[1],2)),color='red')
 
             if ctr % plot_step == 0:
-                ax.text(x=x[0], y=x[1], z=x[2], s=str(dID), color='black')
+                ax.text(x=x[0], y=x[1], z=x[2], s=f"{dID}:{np.mean(dX):.2f}", color='black')
             ctr += 1
 
             self.write_log(f"ID: {dID} X = {np.around(dX[0], 2)} - {np.around(dX[1], 2)}")
@@ -1008,38 +1013,46 @@ class NeuronMorphology(object):
             if wait_flag:
                 input(" ")
 
+        plt.show()
+
         return ax
 
     ############################################################################
 
 
 if __name__ == "__main__":
-    # The lines below are just for testing purposes
+    from argparse import ArgumentParser
 
-    fName = "$DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc"
+    parser = ArgumentParser()
+    parser.add_argument("file_name", help="Path to neuron file")
+    parser.add_argument("--step", default=None,
+                        help="Display segment ID and segment X for sections with segment step for text output (e.g. 10)", type=int)
+    args = parser.parse_args()
 
-    nm = NeuronMorphology(swc_filename=fName, verbose=True, use_cache=False)
-
+    nm = NeuronMorphology(swc_filename=args.file_name, verbose=True, use_cache=False)
     nm.place(rotation=nm.rand_rotation_matrix(), position=np.array([0, 0, 0]))
 
-    nm.debug_plot()
+    if args.step is not None:
+        nm.debug_plot(plot_step=args.step)
+    else:
+        import matplotlib.pyplot as plt
+        nm.plot_neuron(show_plot=False)
+        plt.show()
+
 
     # nm.setAxonDensity("3e9*np.exp(-d/100e-6)",300e-6)
 
     # nm.plotDensity()
 
-    ax1 = nm.plot_neuron()
+    # ax1 = nm.plot_neuron()
 
-    print("In main function")
-    import pdb
+    # print("In main function")
+    # import pdb
+    # pdb.set_trace()
 
-    pdb.set_trace()
-
-    nm2 = nm.clone(rotation=nm.rand_rotation_matrix(), position=np.array([0.001, 0.001, 0.001]))
-    nm2.plot_neuron(ax1)
+    # nm2 = nm.clone(rotation=nm.rand_rotation_matrix(), position=np.array([0.001, 0.001, 0.001]))
+    # nm2.plot_neuron(ax1)
 
     # raw_input("Test")
-
-    import pdb
-
-    pdb.set_trace()
+    # import pdb
+    # pdb.set_trace()
