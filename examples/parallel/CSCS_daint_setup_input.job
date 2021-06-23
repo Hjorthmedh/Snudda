@@ -1,10 +1,10 @@
 #!/bin/bash -l
 
 #SBATCH --job-name=Snudda
-#SBATCH --ntasks=48
+#SBATCH --ntasks=36
 #SBATCH --cpus-per-task=1
 #SBATCH --account=ich030
-#SBATCH --time=00:30:00
+#SBATCH --time=1:30:00
 #SBATCH --partition=normal
 #SBATCH --constraint=mc
 #SBATCH --error=save/std.err
@@ -19,6 +19,19 @@ source ~/snudda_env/bin/activate
 export IPYTHONDIR="/users/$USER/.ipython"
 rm -r $IPYTHONDIR
 export IPYTHON_PROFILE=mpi
+
+########## Needed for NEURON
+
+L=~/snudda_env
+LN=$L/neuron
+
+export PATH=$L/bin:$LN/bin:$PATH
+
+export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
+export PYTHONPATH=$LN/lib/python:$PYTHONPATH
+
+########### Needed for NEURON end.
 
 
 JOBDIR=/scratch/snx3000/$USER/networks/CSCS_Network

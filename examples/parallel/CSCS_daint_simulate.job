@@ -1,10 +1,10 @@
 #!/bin/bash -l
 
 #SBATCH --job-name=Snudda
-#SBATCH --ntasks=48
+#SBATCH --ntasks=360
 #SBATCH --cpus-per-task=1
 #SBATCH --account=ich030
-#SBATCH --time=00:58:00
+#SBATCH --time=01:58:00
 #SBATCH --partition=normal
 #SBATCH --constraint=mc
 #SBATCH --error=save/std.err
