@@ -3,6 +3,7 @@ module load cray-python
 module load daint-mc
 module swap PrgEnv-cray PrgEnv-gnu
 
+pushd ~/
 python3 -m venv snudda_env
 
 module rm cray-python
@@ -15,4 +16,4 @@ pip install snudda
 # salloc -C mc -A ich030 -n 1 -t 1:00:00
 # srun -C mc -A ich030 -n 1 --ntasks-per-node=1 ./daint-snudda-venv-build.sh
 
-
+popd
