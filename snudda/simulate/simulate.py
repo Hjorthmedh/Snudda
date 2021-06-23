@@ -1714,7 +1714,7 @@ if __name__ == "__main__":
                          disable_gap_junctions=disableGJ,
                          log_file=log_file,
                          verbose=args.verbose)
-
+    sim.setup()
     sim.add_external_input()
     sim.check_memory_status()
 
