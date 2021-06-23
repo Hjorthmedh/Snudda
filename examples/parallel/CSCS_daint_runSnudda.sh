@@ -1,6 +1,7 @@
 #!/bin/bash -l
 
-SNUDDA_DIR=/users/$USER/HBP/Snudda/snudda
+#SNUDDA_DIR=/users/$USER/HBP/Snudda/snudda
+SNUDDA_DIR=/users/$USER/Snudda/snudda/
 # JOBDIR=$SNUDDA_DIR/../networks/CSCS_Network
 # JOBDIR=/users/$USER/HBP/Snudda/networks/CSCS_Network
 # JOBDIR=$SCRATCH/networks/CSCS_Network

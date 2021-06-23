@@ -158,15 +158,15 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
             if current_section != dend_info[-1]:
 
-                cell_information[dend_section]['precell'] = gpcr_info[start_index:i, 0]
-                cell_information[dend_section]['section_dist'] = gpcr_info[start_index:i, 2]
+                cell_information.update({dend_section: {'precell': gpcr_info[start_index:i, 0]}})
+                cell_information[dend_section].update({'section_dist': gpcr_info[start_index:i, 2]})
 
                 start_index = i
                 dend_section = gpcr_info[start_index][1]
                 current_section = gpcr_info[start_index][-1]
 
-        cell_information[dend_section]['precell'] = gpcr_info[start_index:, 0]
-        cell_information[dend_section]['section_dist'] = gpcr_info[start_index:, 2]
+        cell_information.update({dend_section : {'precell': gpcr_info[start_index:i, 0]}})
+        cell_information[dend_section].update({'section_dist': gpcr_info[start_index:i, 2]})
 
         self.connect_gpcr_synapse_to_ion_channels(cell_information, postcell_type)
 
