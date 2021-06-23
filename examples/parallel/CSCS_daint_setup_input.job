@@ -1,0 +1,76 @@
+#!/bin/bash -l
+
+#SBATCH --job-name=Snudda
+#SBATCH --ntasks=36
+#SBATCH --cpus-per-task=1
+#SBATCH --account=ich030
+#SBATCH --time=1:30:00
+#SBATCH --partition=normal
+#SBATCH --constraint=mc
+#SBATCH --error=save/std.err
+#SBATCH --output=save/std.out
+
+export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
+
+module load daint-mc
+module swap PrgEnv-cray PrgEnv-gnu
+source ~/snudda_env/bin/activate
+
+export IPYTHONDIR="/users/$USER/.ipython"
+rm -r $IPYTHONDIR
+export IPYTHON_PROFILE=mpi
+
+########## Needed for NEURON
+
+L=~/snudda_env
+LN=$L/neuron
+
+export PATH=$L/bin:$LN/bin:$PATH
+
+export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
+export PYTHONPATH=$LN/lib/python:$PYTHONPATH
+
+########### Needed for NEURON end.
+
+
+JOBDIR=/scratch/snx3000/$USER/networks/CSCS_Network
+
+
+ 
+    echo "PATH: "$PATH
+    echo "IPYTHONDIR: "$IPYTHONDIR
+    echo "PYTHONPATH: "$PYTHONPATH
+    echo "LD_LIBRARY_PATH: "$LD_LIBRARY_PATH
+
+    echo ">>>>>> Main process starting ipcluster"
+    echo
+
+    echo "SLURM_NODELIST = $SLURM_NODELIST"
+    
+    #.. Obtain infiniband ip - this is faster and also internal
+    ifconfig > ifconfig-info.txt
+    ifconfig ipogif0 | head -n 2 | tail -n 1 | awk '{print $2}' > controller_ip.txt
+    CONTROLLERIP=$(<controller_ip.txt)
+
+    let NWORKERS="$SLURM_NTASKS - 1"
+
+    echo ">>> NWORKERS " $NWORKERS
+    echo ">>> Starting ipcluster `date`"
+    
+    #.. Start the ipcluster
+    ipcluster start -n ${NWORKERS} \
+	      --ip='*' \
+	      --profile=${IPYTHON_PROFILE} \
+	      --debug \
+	      --HeartMonitor.max_heartmonitor_misses=1000 \
+	      --HubFactory.registration_timeout=600 \
+	      --HeartMonitor.period=10000 &
+    
+
+    echo ">>> Wait 120s to allow engines to start"
+    sleep 120 #60
+    
+    echo ">>> Running sundda input"
+    snudda input ${JOBDIR} --parallel --time 5
+

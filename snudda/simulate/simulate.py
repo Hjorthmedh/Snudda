@@ -1210,9 +1210,22 @@ class SnuddaSimulate(object):
 
         # Only include neuron IDs on this worker, ie those in self.neuronID
         # (filtering in the if statement)
-        cells = dict((k, self.neurons[k])
-                     for k in cell_id if (not self.is_virtual_neuron[k]
-                                          and k in self.neuron_id))
+        try:
+            cells = dict((k, self.neurons[k])
+                         for k in cell_id if (not self.is_virtual_neuron[k]
+                                              and k in self.neuron_id))
+        except:
+            import traceback
+            t_str = traceback.format_exc()
+            self.write_log(t_str, is_error=True)
+            self.write_log(f"cell_id = {cell_id}")
+            self.write_log(f"is_virtual_neuron = {self.is_virtual_neuron}")
+            self.write_log(f"neuron_id = {self.neuron_id}")
+            self.write_log(f"neurons = {self.neurons}")
+            self.write_log(f"pc_id() = {self.pc.id()}")
+            self.write_log(f"num_neurons = {self.num_neurons}")
+            self.write_log("Does this info help?")
+            sys.exit(-1)
 
         if len(self.t_save) == 0 or self.t_save is None:
             self.t_save = self.sim.neuron.h.Vector()
@@ -1652,12 +1665,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
     network_data_file = args.networkFile
     input_file = args.inputFile
-    log_file = os.path.dirname(args.networkFile) + "/network-simulation-log.txt"
+    log_file = os.path.join(os.path.dirname(args.networkFile), "log", "network-simulation-log.txt")
 
-    save_dir = os.path.dirname(args.networkFile) + "/simulation/"
+    save_dir = os.path.join(os.path.dirname(args.networkFile), "simulation")
 
     if not os.path.exists(save_dir):
-        print("Creating directory " + save_dir)
+        print(f"Creating directory {save_dir}")
         os.makedirs(save_dir, exist_ok=True)
 
     # Get the SlurmID, used in default file names
@@ -1701,7 +1714,7 @@ if __name__ == "__main__":
                          disable_gap_junctions=disableGJ,
                          log_file=log_file,
                          verbose=args.verbose)
-
+    sim.setup()
     sim.add_external_input()
     sim.check_memory_status()
 

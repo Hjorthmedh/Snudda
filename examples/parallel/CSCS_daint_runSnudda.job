@@ -1,7 +1,7 @@
 #!/bin/bash -l
 
 #SBATCH --job-name=Snudda
-#SBATCH --ntasks=24
+#SBATCH --ntasks=36
 #SBATCH --cpus-per-task=1
 #SBATCH --account=ich030
 #SBATCH --time=01:00:00
