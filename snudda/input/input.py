@@ -988,8 +988,9 @@ class SnuddaInput(object):
             # http://davidmasad.com/blog/simulation-with-ipyparallel/
             # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
             self.write_log(f"Client IDs: {self.rc.ids}")
-            self.d_view = self.rc[:]  # Direct view into clients
-            self.lb_view = self.rc.load_balanced_view()
+            #self.d_view = self.rc[:]  # Direct view into clients
+            self.d_view = self.rc.direct_view(targets='all')
+            self.lb_view = self.rc.load_balanced_view(targets='all')
 
             if self.logfile is not None:
                 log_filename = self.logfile.name
