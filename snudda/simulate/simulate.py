@@ -1222,6 +1222,8 @@ class SnuddaSimulate(object):
             self.write_log(f"is_virtual_neuron = {self.is_virtual_neuron}")
             self.write_log(f"neuron_id = {self.neuron_id}")
             self.write_log(f"neurons = {self.neurons}")
+            self.write_log(f"pc_id() = {self.pc.id()}")
+            self.write_log(f"num_neurons = {self.num_neurons}")
             self.write_log("Does this info help?")
             sys.exit(-1)
 
@@ -1663,12 +1665,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
     network_data_file = args.networkFile
     input_file = args.inputFile
-    log_file = os.path.dirname(args.networkFile) + "/network-simulation-log.txt"
+    log_file = os.path.join(os.path.dirname(args.networkFile), "log", "network-simulation-log.txt")
 
-    save_dir = os.path.dirname(args.networkFile) + "/simulation/"
+    save_dir = os.path.join(os.path.dirname(args.networkFile), "simulation")
 
     if not os.path.exists(save_dir):
-        print("Creating directory " + save_dir)
+        print(f"Creating directory {save_dir}")
         os.makedirs(save_dir, exist_ok=True)
 
     # Get the SlurmID, used in default file names
