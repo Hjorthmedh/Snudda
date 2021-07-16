@@ -13,15 +13,22 @@ class MeasureNeuromodulation:
 
         self.recording_synapse_gpcr = list()
 
-        for syn in self.snudda_simulate_obj.syn_gpcrs:
+        self.number_synapses = dict()
+        
+        for i, syn in enumerate(self.snudda_simulate_obj.syn_gpcrs):
             v = self.snudda_simulate_obj.sim.neuron.h.Vector()
 
             v.record(syn._ref_concentration)
             self.recording_synapse_gpcr.append(v)
+            self.number_synapses.update({ i : {'cell_seg' : [str(syn.get_segment())]}})
 
     def write_gpcr_synapses(self, filename):
 
         np.savetxt(filename, self.recording_synapse_gpcr)
+
+        with open(filename.split('.')[0] + 'pos.json', 'w') as df:
+            json.dump( self.number_synapses, df)
+        
 
     def check_mod(self, filename):
 
