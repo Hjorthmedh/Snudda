@@ -1691,12 +1691,12 @@ if __name__ == "__main__":
     else:
         # Save neuron voltage
         if args.voltOut == "default":
-            volt_file = save_dir + 'network-voltage-' + slurm_id + '.csv'
+            volt_file = os.path.join(save_dir, f'network-voltage-{slurm_id}.csv')
         else:
             volt_file = args.voltOut
 
     if args.spikesOut is None or args.spikesOut == "default":
-        spikes_file = save_dir + 'network-output-spikes-' + slurm_id + '.txt'
+        spikes_file = os.path.join(save_dir, f'network-output-spikes-{slurm_id}.txt')
     else:
         spikes_file = args.spikesOut
 
