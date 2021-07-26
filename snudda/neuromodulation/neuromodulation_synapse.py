@@ -37,6 +37,8 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
         self.neuromodulation_weight = neuromodulator_description['weight']
         self.connector = [info['connector'] for info in self.neuromodulator_description.values()]
         self.module_connector = [k+'()'for k in self.connector]
+        self.mod_str = dict(zip(self.module_connector, self.connector))
+
 
         super(SnuddaSimulateNeuromodulationSynapse, self).__init__(network_path=network_path,
                                                                    network_file=network_file,
@@ -131,7 +133,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
        # Filter away synapse_type_id not conc* connector and check if the start and end row defines the cell,
        # hence you can send all information to add_gpcr_synapse
 
-       channel_modules = [self.synapse_parameters[synapse_type_id[i]][0] for i in gpcr_synapse_index]
+       channel_modules = [str(self.synapse_parameters[synapse_type_id[i]][0]) for i in gpcr_synapse_index]
 
        gpcr_synapse_info = np.take([source_id_list, dend_sections, sec_x, sec_id], gpcr_synapse_index, axis=1).transpose()
 
@@ -160,13 +162,15 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
                 cell_information.update({dend_section: {'precell': gpcr_info[start_index:i, 0]}})
                 cell_information[dend_section].update({'section_dist': gpcr_info[start_index:i, 2]})
+                cell_information[dend_section].update({'mod': channel_modules[start_index:i]})
 
                 start_index = i
                 dend_section = gpcr_info[start_index][1]
                 current_section = gpcr_info[start_index][-1]
 
-        cell_information.update({dend_section : {'precell': gpcr_info[start_index:i, 0]}})
+        cell_information.update({dend_section: {'precell': gpcr_info[start_index:i, 0]}})
         cell_information[dend_section].update({'section_dist': gpcr_info[start_index:i, 2]})
+        cell_information[dend_section].update({'mod': channel_modules[start_index:i]})
 
         self.connect_gpcr_synapse_to_ion_channels(cell_information, postcell_type)
 
@@ -218,7 +222,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
         added_synapses = dict()
         # Add all the gpcrs to the segments which have been marked in this cell
 
-        for syn_in_section in self.connector:
+        for str_mod_name, syn_in_section in self.mod_str.items():
 
             for sec, sec_info in cell_information.items():
                 step = 1/(sec.nseg*2)
@@ -228,9 +232,11 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
                     self.syn_gpcrs.append(synapse_gpcr)
 
+                    str_modules = [str(k) for k in sec_info['mod']]
+
                     if len(np.where(((seg.x - step) < sec_info['section_dist']) & ((seg.x - step) < sec_info['section_dist']))) > 0:
 
-                        for cell_id_source in np.take(sec_info['precell'], np.where(((seg.x - step) < sec_info['section_dist']) & ((seg.x - step) < sec_info['section_dist'])))[0]:
+                        for cell_id_source in np.take(sec_info['precell'], np.where((np.array(str_modules) == str_mod_name) & ((seg.x - step) < sec_info['section_dist']) & ((seg.x - step) < sec_info['section_dist'])))[0]:
                             nc = self.pc.gid_connect(cell_id_source, synapse_gpcr)
                             nc.weight[0] = self.neuromodulation_weight
                             nc.delay = self.synapse_delay
