@@ -5,15 +5,18 @@ from snudda.utils.benchmark_logging import BenchmarkLogging
 import os
 import sys
 
-def snudda_cli():
 
+def snudda_cli():
+    """
+    Command line parser for Snudda.
+    Valid actions are: init, place, detect, prune, input, simulate, help
+    """
 
     if '-python' in sys.argv:
         print("Snudda's cli.py called through nrniv, fixing arguments")
         pythonidx = sys.argv.index('-python')
         if len(sys.argv) > pythonidx:
             sys.argv = sys.argv[pythonidx + 1:]
-
 
     # print(f"Current working directory: {os.getcwd()}")
     

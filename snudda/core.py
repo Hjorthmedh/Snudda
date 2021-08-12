@@ -57,9 +57,14 @@ def get_data_file(*dirs):
 
 class Snudda(object):
 
-    ############################################################################
+    """ Wrapper class, calls Snudda helper functions """
 
     def __init__(self, network_path):
+
+        """
+        Instantiates Snudda
+        :param network_path: Location of Snudda network
+        """
 
         self.network_path = network_path
         self.d_view = None
@@ -76,11 +81,21 @@ class Snudda(object):
 
     @staticmethod
     def help_info(args):
+        """ Prints Snudda help """
         from snudda.help import snudda_help_text
 
     ############################################################################
 
     def init_config(self, args):
+        """
+        Creates network-config.json in network_path.
+
+        Args:
+            args : command line arguments from argparse
+
+        Example:
+             snudda init -size 100 [-overwrite] [-randomseed 1234] [--profile] [--verbose] path
+        """
         # self.networkPath = args.path
         print("Creating config file")
         print(f"Network path: {self.network_path}")
@@ -117,6 +132,16 @@ class Snudda(object):
     ############################################################################
 
     def place_neurons(self, args):
+        """
+        Places neurons in 3D space. Creates network-neuron-positions.hdf5 in network_path.
+
+        Args:
+            args : command line arguments from argparse
+
+        Example:
+            snudda place [--raytraceBorders] [--profile] [--verbose] [--h5legacy] [-parallel] path
+
+        """
         # self.networkPath = args.path
         print("Placing neurons")
         print(f"Network path: {self.network_path}")
@@ -153,6 +178,18 @@ class Snudda(object):
     ############################################################################
 
     def touch_detection(self, args):
+        """
+        Synapse touch detection. Writes results to network_path/voxels (one file per hypervoxel).
+        Also adds synapse projections between structures.
+        Results written to network-projection-synapses.hdf5 in network_path.
+
+        Args:
+            args : command line arguments from argparse
+
+        Example:
+            snudda detect [-cont] [-hvsize HVSIZE] [--volumeID VOLUMEID] [--profile] [--verbose] [--h5legacy] [-parallel] path
+
+        """
         # self.networkPath = args.path
         print("Touch detection")
         print("Network path: " + str(self.network_path))
@@ -228,6 +265,16 @@ class Snudda(object):
     ############################################################################
 
     def prune_synapses(self, args):
+        """
+        Merges data from synapse detection, then does synapse pruning. Writes results to network-synapses.hdf5 in network_path.
+
+        Args:
+            args : command line arguments from argparse
+
+        Example:
+            snudda prune [--configFile CONFIG_FILE] [--profile] [--verbose] [--h5legacy] [--keepfiles] [-parallel] path
+        """
+
         # self.networkPath = args.path
         print("Prune synapses")
         print("Network path: " + str(self.network_path))
@@ -270,6 +317,14 @@ class Snudda(object):
     ############################################################################
 
     def setup_input(self, args):
+        """
+        Creates synaptic input for network based on input.json, writes input-spikes.hdf5 in network_path.
+        Args:
+            args : command line arguments from argparse
+
+        Example:
+            snudda input [--input INPUT] [--inputFile INPUT_FILE] [--networkFile NETWORK_FILE] [--time TIME] [-randomseed 123] [--profile] [--verbose] [--h5legacy] [-parallel] path
+        """
 
         from snudda.input.input import SnuddaInput
 
@@ -330,6 +385,12 @@ class Snudda(object):
     ############################################################################
 
     def export_to_SONATA(self, args):
+        """
+        Export network to SONATA files. (Currently not functioning)
+
+        Args:
+            args : command line arguments from argparse
+        """
 
         assert False, "Old export to SONATA borken, fixme!"
         # TODO: Fix this
@@ -357,6 +418,15 @@ class Snudda(object):
     ############################################################################
 
     def simulate(self, args):
+        """
+        Simulate network. Writes results to network_path/simulation.
+
+        Args:
+            args : command line arguments from argparse
+
+        Example:
+            snudda simulate [--networkFile NETWORK_FILE] [--inputFile INPUT_FILE] [--time TIME] [--voltOut VOLT_OUT] [--spikesOut SPIKES_OUT] [--neuromodulation NEUROMODULATION] [--disableGJ] [-mechdir MECH_DIR] [--profile] [--verbose] [--exportCoreNeuron] path
+        """
 
         start = timeit.default_timer()
 
@@ -452,10 +522,9 @@ class Snudda(object):
 
         pc = h.ParallelContext()
 
-
         if args.neuromodulation is not None:
 
-            #read neuromod file and determine if it is replay or adaptive, then if and import the correct one
+            # read neuromod file and determine if it is replay or adaptive, then if and import the correct one
 
             with open(args.neuromodulation, 'r') as neuromod_f:
                 import json
@@ -543,6 +612,7 @@ class Snudda(object):
     ############################################################################
 
     def setup_parallel(self):
+        """Setup ipyparallel workers."""
 
         self.slurm_id = os.getenv('SLURM_JOBID')
 
@@ -589,6 +659,13 @@ class Snudda(object):
     ############################################################################
 
     def setup_log_file(self, log_file_name):
+        """
+        Open log files for writing.
+
+        Args:
+            log_file_name (str) : Path to log file
+        """
+
         data_dir = os.path.dirname(log_file_name)
 
         self.make_dir_if_needed(data_dir)
@@ -602,6 +679,7 @@ class Snudda(object):
     ############################################################################
 
     def close_log_file(self):
+        """ Close log file. """
 
         stop = timeit.default_timer()
 
@@ -615,6 +693,7 @@ class Snudda(object):
 
     @staticmethod
     def make_dir_if_needed(dir_path):
+        """ Creates directory if missing. """
 
         if not os.path.exists(dir_path):
             print("Creating missing directory " + dir_path)
