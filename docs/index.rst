@@ -5,37 +5,13 @@
 
 Welcome to Snudda's documentation!
 ==================================
-
-#.. argparse::
-#   :module: snudda.cli
-#   :func: snudda_cli
-#   :prog: snudda
-#   :path: init	  
-
-.. automodule:: snudda
-		:members:		
-.. automodule:: snudda.init
-		:members:		
-.. automodule:: snudda.place
-		:members:		
-.. automodule:: snudda.detect
-		:members:		
-.. automodule:: snudda.simulate
-		:members:		
-.. automodule:: snudda.utils.load
-		:members:
-.. automodule:: snudda.core
-		:members:
-.. automodule:: snudda.cli
-		:members:
-
-		
-       
+		       
 .. toctree::
    :maxdepth: 3
    :caption: Contents:
 
-
+   Home <self>
+   api.rst
 
 Indices and tables
 ==================

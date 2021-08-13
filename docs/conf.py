@@ -12,6 +12,9 @@
 #
 import os
 import sys
+
+import snudda
+
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('../snudda'))
 
@@ -28,10 +31,25 @@ author = 'Johannes Hjorth'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage', 'sphinxarg.ext', 'sphinx.ext.napoleon', 'myst_parser']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary','sphinx.ext.coverage', 'sphinx.ext.viewcode', 'sphinxarg.ext', 'sphinx.ext.napoleon', 'myst_parser']
+
+napoleon_google_docstring = True
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
+
+master_doc = 'index'
+project = u"snudda"
+version = snudda.__version__
+release = snudda.__version__
+
+pygments_style = 'sphinx'
+
+autosummary_generate = True
+autodoc_default_flags = ['show-inheritance']
+autoclass_content = 'both'
+tolerate_sphinx_warnings = True
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

@@ -23,6 +23,8 @@ from snudda.utils.snudda_path import snudda_isfile
 
 
 class NumpyEncoder(json.JSONEncoder):
+    """ Encodes numpy objects for export to JSON """
+
     def default(self, obj):
         if isinstance(obj, np.integer):
             return int(obj)
@@ -36,11 +38,19 @@ class NumpyEncoder(json.JSONEncoder):
 
 
 class SnuddaInit(object):
+    """ Creates network-config.json in network_path. """
 
     def __init__(self,
                  network_path=None,
                  struct_def=None, config_file=None,
                  random_seed=None):
+        """Constructor
+
+           Args:
+           network_path (str): location of network files
+           struct_def (dict, optional): definition of struct to create
+           config_file (str, optional): name of network config file, default network-config.json
+           random_seed (int, optional): random seed"""
 
         # print("CreateConfig")
 
@@ -104,6 +114,18 @@ class SnuddaInit(object):
                          side_len=None,
                          slice_depth=None,
                          mesh_bin_width=None):
+        """
+        Sets up definition for a brain structure (e.g. Cortex, Striatum, ...).
+
+        Args:
+            struct_name (str): Name of brain structure
+            struct_mesh (str): Path to wavefront obj file with 3D mesh of structure or 'cube' or 'slice'
+            d_min (float): Minimum distance between somas (puts upper limit on neuron density)
+            struct_centre ((float, float, float)): Location of brain structure (centre)
+            side_len (float, optional): side of cube, or slice
+            slice_depth (float, optional): depth of slice
+            mesh_bin_width (float): discretisation of 3D mesh during cell placement
+        """
 
         if d_min is None:
             d_min = 15e-6
