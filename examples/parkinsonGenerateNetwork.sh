@@ -3,13 +3,13 @@ export IPYTHON_PROFILE=Snudda_LOCAL
 
 # OBS, currently init is commented out, so numneurons not used
 numNeurons=50000
-simNamePart=20210420
+simNamePart=20210506
 #cellspecDir=data/parkinson-2020-12-17
 #cellspecDir=data/parkinson-2021-01-07
 #cellspecDir=../snudda/data/parkinson-2021-03-19
-cellspecDir=../snudda/data/parkinson-2021-04-20
+cellspecDir=../snudda/data/parkinson-2021-05-06
 
-LÄGG TILL FS och LTS FÖR NYA KÖRNIGEN
+# LÄGG TILL FS och LTS FÖR NYA KÖRNIGEN
 
 ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20

@@ -1,14 +1,18 @@
 export IPYTHONDIR="`pwd`/.ipython"
 export IPYTHON_PROFILE=Snudda_LOCAL
 
-ipcluster start --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
+ipcluster start -n 6 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20
 
 simName=networks/test-10k
+# simName=networks/test-20k
+# simName=networks/test-50k
 
 #snudda init $simName --size 1760000
 #snudda init $simName --size 100000
 snudda init $simName --size 10000 --overwrite
+# snudda init $simName --size 20000 --overwrite
+#snudda init $simName --size 50000 --overwrite
 
 snudda place $simName --parallel
 snudda detect $simName --volumeID Striatum --parallel
@@ -25,13 +29,16 @@ echo "Make sure the input config file was found, otherwise provide your own"
 # inspect.getfile(snudda) <--- can use this for path
 
 
-# Uncomment this to generate input
-snudda input $simName --input $simName/input.json --parallel
+# !!! Uncomment the line below to generate input
+
+# snudda input $simName --input $simName/input.json --parallel
 
 ipcluster stop
 
-# Uncomment this to run simulation
+
 # Remember you need to run "nrnivmodl data/cellspecs/mechanisms"
 # first to create the mechanisms
-mpiexec -n 6 snudda simulate $simName
+
+# !!! Uncomment the line below to run simulation
+# mpiexec -n 6 snudda simulate $simName
 
