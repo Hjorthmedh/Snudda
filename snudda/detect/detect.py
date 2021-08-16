@@ -1582,6 +1582,11 @@ class SnuddaDetect(object):
             else:
                 hoc = None
 
+            # TODO: This needs to handle multiple morphologies!!
+            # If morph is a directory, we need to load all the morphologies in there
+            # save them in self.prototype_neurons[name][os.path.basename(morph_file)] so we can access it
+            assert False, "Fix me tomorrow."
+
             self.prototype_neurons[name] \
                 = NeuronMorphology(name=name,
                                    swc_filename=morph,

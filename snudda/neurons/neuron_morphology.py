@@ -26,6 +26,7 @@ class NeuronMorphology(object):
                  param_data=None,       # TODO: Can we remove this?
                  mech_filename=None,
                  modulation=None,
+                 morph_id=None,
                  parameter_id=None,
                  modulation_id=None,
                  verbose=False,
@@ -72,6 +73,7 @@ class NeuronMorphology(object):
         self.param_data = param_data
         self.mech_filename = mech_filename
         self.modulation = modulation
+        self.morph_id = morph_id
         self.parameter_id = parameter_id
         self.modulation_id = modulation_id
         self.verbose = verbose
@@ -83,7 +85,7 @@ class NeuronMorphology(object):
         self.rotated_flag = False
 
         self.cache_filename = swc_filename.replace('.swc', '-cache.pickle')
-        assert (self.cache_filename != swc_filename)
+        assert (self.cache_filename != swc_filename), f"Cached filename: {self.cache_filename} != {swc_filename}"
 
         # This is used for Neurodamus, which instantiates through hoc files
         if hoc is None:
@@ -153,6 +155,7 @@ class NeuronMorphology(object):
               load_morphology=None,  # True or False, None = same as parent
               position=np.zeros((1, 3)),
               rotation=None,
+              morph_id=None,
               parameter_id=None,
               modulation_id=None):
 
@@ -175,6 +178,7 @@ class NeuronMorphology(object):
                                       param_data=self.param_data,
                                       mech_filename=self.mech_filename,
                                       modulation=self.modulation,
+                                      morph_id=morph_id,
                                       parameter_id=parameter_id,
                                       modulation_id=modulation_id,
                                       verbose=self.verbose,

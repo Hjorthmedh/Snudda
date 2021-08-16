@@ -206,12 +206,14 @@ class SnuddaPlace(object):
             if neuron_morphs is not None:
                 # List of potential morphologies for parameter set with parameter_id
                 morph_list = param_data[parameter_id % len(param_data)][0]["morphology"]
-                morph_tag = morph_list[morph_id % len(morph_list)]
+                actual_morph_id = morph_id % len(morph_list)
+                morph_tag = morph_list[actual_morph_id]
 
                 assert morph_tag in neuron_morphs, f"Missing morphology {morph_tag} in {swc_path}"
 
                 n = neuron_morphs[morph_tag].clone(position=coords,
                                                    rotation=rotation,
+                                                   morph_id=actual_morph_id,
                                                    load_morphology=False,
                                                    parameter_id=parameter_id,
                                                    modulation_id=modulation_id)
