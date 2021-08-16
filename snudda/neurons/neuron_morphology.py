@@ -23,7 +23,7 @@ class NeuronMorphology(object):
                  rotation=None,  # np.eye(3),
                  swc_filename=None,
                  param_filename=None,
-                 param_data=None,
+                 param_data=None,       # TODO: Can we remove this?
                  mech_filename=None,
                  modulation=None,
                  parameter_id=None,
