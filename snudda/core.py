@@ -114,7 +114,8 @@ class Snudda(object):
 
         if not args.overwrite:
             assert not os.path.exists(self.network_path), \
-                "Network path {self.network_path} already exists (aborting to prevent accidental overwriting)"
+                (f"Network path {self.network_path} already exists (aborting to prevent accidental overwriting)."
+                 "\nCall snudda init with --overwrite to override and overwrite the old data.")
 
         self.make_dir_if_needed(self.network_path)
 
