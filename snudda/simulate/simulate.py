@@ -391,6 +391,7 @@ class SnuddaSimulate(object):
             else:
                 # A real neuron (not a virtual neuron that just provides input)
                 parameter_id = self.network_info["neurons"][ID]["parameterID"]
+                morphology_id = self.network_info["neurons"][ID]["morphologyID"]
                 modulation_id = self.network_info["neurons"][ID]["modulationID"]
 
                 self.neurons[ID] = NeuronModel(param_file=param,
@@ -398,6 +399,7 @@ class SnuddaSimulate(object):
                                                mech_file=mech,
                                                cell_name=name,
                                                modulation_file=modulation,
+                                               morphology_id=morphology_id,
                                                parameter_id=parameter_id,
                                                modulation_id=modulation_id)
 

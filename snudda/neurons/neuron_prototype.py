@@ -14,7 +14,9 @@ class NeuronPrototype:
                  parameter_path=None,
                  mechanism_path=None,
                  modulation_path=None,
-                 virtual_neuron=False):
+                 virtual_neuron=False,
+                 load_morphology=True,
+                 axon_stump_id_flag=False):
 
         if neuron_path:
             self.neuron_path = neuron_path
@@ -25,7 +27,7 @@ class NeuronPrototype:
                 ("If neuron_path is empty then morphology_path, parameter_path, " 
                  "mechanism_path, modulation_path must be set")
 
-            self.neuron_path = None
+            self.neuron_path = os.path.dirname(parameter_path)
 
         if morphology_path:
             self.morphology_path = morphology_path
@@ -51,6 +53,8 @@ class NeuronPrototype:
         self.parameter_info = None
         self.modulation_info = None
         self.virtual_neuron = virtual_neuron
+        self.axon_stump_id_flag = axon_stump_id_flag
+        self.load_morphology = load_morphology
 
         self.morphology_cache = dict()
         self.morphology_lookup = dict()
@@ -113,8 +117,56 @@ class NeuronPrototype:
 
         return modulation_set
 
+    def instantiate(self):
+        """
+        Instantiates all morphologies at once, instead of on demand.
+        """
+        for par_id in range(0, len(self.parameter_info)):
+            morph_id = 0
+            morph_path = self.get_morphology(parameter_id=par_id, morphology_id=morph_id)
+            morph_tag = os.path.basename(morph_path)
+
+            while morph_tag not in self.morphology_cache:
+                self.morphology_cache[morph_tag] = NeuronMorphology(swc_filename=morph_path,
+                                                                    param_data=self.parameter_path,
+                                                                    mech_filename=self.mechanism_path,
+                                                                    name=self.neuron_name,
+                                                                    hoc=None,
+                                                                    load_morphology=self.load_morphology,
+                                                                    virtual_neuron=self.virtual_neuron,
+                                                                    axon_stump_id_flag=self.axon_stump_id_flag)
+
+                morph_id += 1
+                morph_path = self.get_morphology(parameter_id=par_id, morphology_id=morph_id)
+                morph_tag = os.path.basename(morph_path)
+
+    def apply(self, function_name, arguments):
+        """
+        Applies function to all morphology prototypes
+        """
+
+        for m in self.morphology_cache.values():
+            function = getattr(m, function_name)
+            function(*arguments)
+
+    def all_have_axon(self):
+        return all([len(m.axon) > 0 for m in self.morphology_cache.values()])
+
+    def all_have_dend(self):
+        return all([len(m.dend) > 0 for m in self.morphology_cache.values()])
+
     def clone(self, parameter_id, morphology_id, modulation_id,
-              position, rotation, load_morphology=False):
+              position, rotation):
+        """
+        Creates a clone of the neuron prototype, with given position and rotation.
+
+        Args:
+            parameter_id (int) : parameter set to use
+            morphology_id (int) : morphology set to use, a parameter set can have multiple morphology variations
+            modulation_id (int) : neuro-modulation parameter set to use
+            position (float,float,float) : position of neuron clone
+            rotation : rotation (3x3 numpy matrix)
+        """
 
         if (parameter_id, morphology_id) not in self.morphology_lookup:
             morph_path = self.get_morphology(parameter_id=parameter_id, morphology_id=morphology_id)
@@ -128,14 +180,16 @@ class NeuronPrototype:
                                                                     mech_filename=self.mechanism_path,
                                                                     name=self.neuron_name,
                                                                     hoc=None,
-                                                                    virtual_neuron=self.virtual_neuron)
+                                                                    load_morphology=self.load_morphology,
+                                                                    virtual_neuron=self.virtual_neuron,
+                                                                    axon_stump_id_flag=self.axon_stump_id_flag)
         else:
             morph_tag = self.morphology_lookup[parameter_id, morphology_id]
 
         morph = self.morphology_cache[morph_tag].clone(position=position,
                                                        rotation=rotation,
                                                        parameter_id=parameter_id,
-                                                       modulation_id=modulation_id,
-                                                       load_morphology=load_morphology)
+                                                       morphology_id=morphology_id,
+                                                       modulation_id=modulation_id)
 
         return morph

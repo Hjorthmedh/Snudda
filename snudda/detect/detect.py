@@ -26,6 +26,8 @@ import pickle
 from numba import jit
 
 from snudda.neurons.neuron_morphology import NeuronMorphology
+from snudda.neurons.neuron_prototype import NeuronPrototype
+
 from snudda.utils.load import SnuddaLoad
 
 import snudda.utils.memory
@@ -1567,6 +1569,11 @@ class SnuddaDetect(object):
             param = definition["parameters"]
             mech = definition["mechanisms"]
 
+            if "modulation" in definition:
+                modulation = definition["modulation"]
+            else:
+                modulation = ""
+
             if "neuronType" in definition:
                 neuron_type = definition["neuronType"]
             else:
@@ -1579,24 +1586,24 @@ class SnuddaDetect(object):
 
             if 'hoc' in definition:
                 hoc = definition["hoc"]
+                assert "hoc no longer passed to NeuronPrototype / NeuronMorphology -- need to add it later "
             else:
                 hoc = None
 
-            # TODO: This needs to handle multiple morphologies!!
-            # If morph is a directory, we need to load all the morphologies in there
-            # save them in self.prototype_neurons[name][os.path.basename(morph_file)] so we can access it
-            assert False, "Fix me tomorrow."
-
-            self.prototype_neurons[name] \
-                = NeuronMorphology(name=name,
-                                   swc_filename=morph,
-                                   param_filename=param,
-                                   mech_filename=mech,
-                                   hoc=hoc,
-                                   virtual_neuron=virtual_neuron,
-                                   axon_stump_id_flag=axon_stump_id_flag)
+            self.prototype_neurons[name] = NeuronPrototype(neuron_name=name,
+                                                           neuron_path=None,
+                                                           morphology_path=morph,
+                                                           parameter_path=param,
+                                                           mechanism_path=mech,
+                                                           # hoc=hoc,
+                                                           virtual_neuron=virtual_neuron,
+                                                           axon_stump_id_flag=axon_stump_id_flag)
 
             if "axonDensity" in definition:
+
+                # We need to do this so we can apply the axon densities below
+                self.prototype_neurons[name].instantiate()
+
                 self.write_log("Setting axon density for neuron without axon")
                 axon_density_type = definition["axonDensity"][0]
 
@@ -1604,14 +1611,12 @@ class SnuddaDetect(object):
                     density = definition["axonDensity"][1]
                     max_radius = definition["axonDensity"][2]
 
-                    self.prototype_neurons[name].set_axon_voxel_radial_density(density,
-                                                                               max_radius)
+                    self.prototype_neurons[name].apply("set_axon_voxel_radial_density", [density, max_radius])
                 elif axon_density_type == "xyz":
                     density = definition["axonDensity"][1]
                     axon_density_bounds_xyz = np.array(definition["axonDensity"][2])
 
-                    self.prototype_neurons[name].set_axon_voxel_xyz_density(density,
-                                                                            axon_density_bounds_xyz)
+                    self.prototype_neurons[name].apply("set_axon_voxel_xyz_density", [density, axon_density_bounds_xyz])
 
                 else:
                     self.write_log(f"{name}: Unknown axon density type : {axon_density_type}\n"
@@ -1619,9 +1624,9 @@ class SnuddaDetect(object):
 
             else:
                 # If no axon density specified, then axon must be present in morphology
-                assert (len(self.prototype_neurons[name].axon) > 0), f"File: {morph} does not have an axon"
+                assert self.prototype_neurons[name].all_have_axon(), f"File: {morph} does not have an axon"
 
-            assert len(self.prototype_neurons[name].dend) > 0 or self.prototype_neurons[name].virtual_neuron, \
+            assert self.prototype_neurons[name].all_have_dend() or self.prototype_neurons[name].virtual_neuron, \
                 f"File: {morph} does not have a dendrite"
 
             # Since we already have the config file open, let's read connectivity
@@ -1796,11 +1801,11 @@ class SnuddaDetect(object):
     def load_neuron(self, neuron_info):
 
         # Clone prototype neuron (it is centred, and not rotated)
-        neuron = self.prototype_neurons[neuron_info["name"]].clone()
-
-        # Rotate and place neuron in correct location
-        neuron.place(rotation=neuron_info["rotation"],
-                     position=neuron_info["position"])
+        neuron = self.prototype_neurons[neuron_info["name"]].clone(parameter_id=neuron_info["parameterID"],
+                                                                   morphology_id=neuron_info["morphologyID"],
+                                                                   modulation_id=neuron_info["modulationID"],
+                                                                   rotation=neuron_info["rotation"],
+                                                                   position=neuron_info["position"])
 
         return neuron
 

@@ -22,7 +22,7 @@ import json
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists
-from snudda.neurons.neuron_morphology import NeuronMorphology
+# from snudda.neurons.neuron_morphology import NeuronMorphology
 from snudda.place.region_mesh import RegionMesh
 from snudda.place.rotation import SnuddaRotate
 
@@ -89,7 +89,7 @@ class SnuddaPlace(object):
 
         # List of all neurons
         self.neurons = []
-        self.neuronPrototypes = {}
+        self.neuron_prototypes = {}
         self.random_seed = random_seed
         self.random_generator = None
         self.rotate_helper = None
@@ -158,6 +158,7 @@ class SnuddaPlace(object):
                                            parameter_path=param_filename,
                                            mechanism_path=mech_filename,
                                            modulation_path=modulation,
+                                           load_morphology=False,
                                            virtual_neuron=virtual_neuron)
 
         neuron_type = name.split("_")[0]
@@ -179,14 +180,13 @@ class SnuddaPlace(object):
             # modulation.json is similarly formatted, pick a parameter set here
             parameter_id = self.random_generator.integers(1000000)
             modulation_id = self.random_generator.integers(1000000)
-            morph_id = self.random_generator.integers(1000000)
+            morphology_id = self.random_generator.integers(1000000)
 
             n = neuron_prototype.clone(position=coords,
                                        rotation=rotation,
-                                       morphology_id=morph_id,
+                                       morphology_id=morphology_id,
                                        parameter_id=parameter_id,
-                                       modulation_id=modulation_id,
-                                       load_morphology=False)
+                                       modulation_id=modulation_id)
 
             # self.writeLog("Place " + str(self.cellPos[i,:]))
 
@@ -202,7 +202,7 @@ class SnuddaPlace(object):
             # This info is used by workers to speed things up
             if first_added:
                 first_added = False
-                self.neuronPrototypes[n.name] = n
+                self.neuron_prototypes[n.name] = n
 
     ############################################################################
 
@@ -545,6 +545,12 @@ class SnuddaPlace(object):
                                                       (len(self.neurons),),
                                                       "int",
                                                       compression="gzip")
+
+        neuron_morph_id = neuron_group.create_dataset("morphologyID",
+                                                      (len(self.neurons),),
+                                                      "int",
+                                                      compression="gzip")
+
         neuron_modulation_id = neuron_group.create_dataset("modulationID",
                                                            (len(self.neurons),),
                                                            "int",
@@ -556,6 +562,7 @@ class SnuddaPlace(object):
             neuron_dend_radius[i] = n.max_dend_radius
             neuron_axon_radius[i] = n.max_axon_radius
             neuron_param_id[i] = n.parameter_id
+            neuron_morph_id[i] = n.morphology_id
             neuron_modulation_id[i] = n.modulation_id
 
         # Store input information
