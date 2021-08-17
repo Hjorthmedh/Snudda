@@ -20,6 +20,7 @@ from collections import OrderedDict
 import h5py
 import json
 
+from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists
 from snudda.neurons.neuron_morphology import NeuronMorphology
 from snudda.place.region_mesh import RegionMesh
@@ -148,37 +149,16 @@ class SnuddaPlace(object):
                     virtual_neuron=False,
                     axon_density=None):
 
-        assert volume_id is not None, "You must specify a volume for neuron " + name
+        assert volume_id is not None, f"You must specify a volume for neuron {name}"
+        assert hoc is None, "Currently only support hoc=None, since we can have multiple parameter, morph combos now"
 
-        if os.path.isdir(swc_path):
-            # We were passed a dictionary, load all the swc files in it
-            morph_files = glob.glob(os.path.join(swc_path, "*swc"))
-            neuron_morphs = dict()
-            for mf in morph_files:
-                neuron_morphs[os.path.basename(mf)] = NeuronMorphology(swc_filename=mf,
-                                                                       param_data=param_filename,
-                                                                       mech_filename=mech_filename,
-                                                                       name=name,
-                                                                       hoc=hoc,
-                                                                       virtual_neuron=virtual_neuron)
-
-            nm = None
-        else:
-            # Old style, a specific morphology was given
-            neuron_morphs = None
-            nm = NeuronMorphology(swc_filename=swc_path,
-                                  param_data=param_filename,
-                                  mech_filename=mech_filename,
-                                  name=name,
-                                  hoc=hoc,
-                                  virtual_neuron=virtual_neuron)
-
-        if param_filename is not None:
-            with open(param_filename, "r") as f:
-                param_data = json.load(f)
-        else:
-            param_data = None
-            assert nm is not None, "No parameter file specified, a unique morphology must be given in neuron_dir"
+        neuron_prototype = NeuronPrototype(neuron_name=name,
+                                           neuron_path=None,
+                                           morphology_path=swc_path,
+                                           parameter_path=param_filename,
+                                           mechanism_path=mech_filename,
+                                           modulation_path=modulation,
+                                           virtual_neuron=virtual_neuron)
 
         neuron_type = name.split("_")[0]
         neuron_positions = self.volume[volume_id]["mesh"].place_neurons(num_neurons, neuron_type)
@@ -201,28 +181,12 @@ class SnuddaPlace(object):
             modulation_id = self.random_generator.integers(1000000)
             morph_id = self.random_generator.integers(1000000)
 
-            # If our parameters.json specified a set of morphologies we need to use parameter_id and morpho_id
-            # to determine which morphology we should use. If it was not specified, we use single SWC file in neuron_dir
-            if neuron_morphs is not None:
-                # List of potential morphologies for parameter set with parameter_id
-                morph_list = param_data[parameter_id % len(param_data)][0]["morphology"]
-                actual_morph_id = morph_id % len(morph_list)
-                morph_tag = morph_list[actual_morph_id]
-
-                assert morph_tag in neuron_morphs, f"Missing morphology {morph_tag} in {swc_path}"
-
-                n = neuron_morphs[morph_tag].clone(position=coords,
-                                                   rotation=rotation,
-                                                   morph_id=actual_morph_id,
-                                                   load_morphology=False,
-                                                   parameter_id=parameter_id,
-                                                   modulation_id=modulation_id)
-            else:
-                n = nm.clone(position=coords,
-                             rotation=rotation,
-                             load_morphology=False,
-                             parameter_id=parameter_id,
-                             modulation_id=modulation_id)
+            n = neuron_prototype.clone(position=coords,
+                                       rotation=rotation,
+                                       morphology_id=morph_id,
+                                       parameter_id=parameter_id,
+                                       modulation_id=modulation_id,
+                                       load_morphology=False)
 
             # self.writeLog("Place " + str(self.cellPos[i,:]))
 

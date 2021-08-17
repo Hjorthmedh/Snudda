@@ -9,11 +9,44 @@ class NeuronPrototype:
 
     """ Helper class, returns a neuron prototype based on parameter_id, morph_id and modulation_id """
 
-    def __init__(self, neuron_path, neuron_name, virtual_neuron=False):
-        self.neuron_path = neuron_path
-        self.parameter_path = os.path.join(neuron_path, "parameters.json")
-        self.mechanism_path = os.path.join(neuron_path, "mechanisms.json")
-        self.modulation_path = os.path.join(neuron_path, "modulation.json")
+    def __init__(self, neuron_path, neuron_name,
+                 morphology_path=None,
+                 parameter_path=None,
+                 mechanism_path=None,
+                 modulation_path=None,
+                 virtual_neuron=False):
+
+        if neuron_path:
+            self.neuron_path = neuron_path
+        else:
+            assert morphology_path is not None \
+                and parameter_path is not None \
+                and mechanism_path is not None, \
+                ("If neuron_path is empty then morphology_path, parameter_path, " 
+                 "mechanism_path, modulation_path must be set")
+
+            self.neuron_path = None
+
+        if morphology_path:
+            self.morphology_path = morphology_path
+        else:
+            self.morphology_path = os.path.join(self.neuron_path, "morphology")
+
+        if mechanism_path:
+            self.mechanism_path = mechanism_path
+        else:
+            self.mechanism_path = os.path.join(self.neuron_path, "mechanisms.json")
+
+        if parameter_path:
+            self.parameter_path = parameter_path
+        else:
+            self.parameter_path = os.path.join(self.neuron_path, "parameters.json")
+
+        if modulation_path:
+            self.modulation_path = modulation_path
+        else:
+            self.modulation_path = os.path.join(self.neuron_path, "modulation.json")
+
         self.neuron_name = neuron_name
         self.parameter_info = None
         self.modulation_info = None
@@ -21,6 +54,8 @@ class NeuronPrototype:
 
         self.morphology_cache = dict()
         self.morphology_lookup = dict()
+
+        self.load_info()
 
     def load_info(self):
         """ Reads information about the neuron prototype. """
@@ -52,7 +87,9 @@ class NeuronPrototype:
 
         if "morphology" in par_set[0]:
             morph_list = par_set[0]["morphology"]
-            morph_path = os.path.join(self.neuron_path, "morphology", morph_list[morphology_id % len(morph_list)])
+            morph_path = os.path.join(self.morphology_path, morph_list[morphology_id % len(morph_list)])
+        elif os.path.isfile(self.morphology_path):
+            morph_path = self.morphology_path
         else:
             # No morphology
             file_list = glob.glob(os.path.join(self.neuron_path, "*swc"))
@@ -102,4 +139,3 @@ class NeuronPrototype:
                                                        load_morphology=load_morphology)
 
         return morph
-    
