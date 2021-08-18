@@ -11,6 +11,7 @@ from scipy.interpolate import griddata
 
 from snudda.detect.detect import SnuddaDetect
 from snudda.neurons.neuron_morphology import NeuronMorphology
+from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.load import SnuddaLoad
 
 
@@ -79,8 +80,17 @@ class SnuddaProject(object):
         for name, definition in self.config["Neurons"].items():
 
             morph = definition["morphology"]
+            param = definition["parameters"]
+            modulation = definition["modulation"]
+            mechanisms = definition["mechanisms"]
 
-            self.prototype_neurons[name] = NeuronMorphology(name=name, swc_filename=morph)
+            # TODO: Need to update to use NeuronPrototype !!!
+            self.prototype_neurons[name] = NeuronPrototype(neuron_name=name,
+                                                           neuron_path=None,
+                                                           morphology_path=morph,
+                                                           parameter_path=param,
+                                                           modulation_path=modulation,
+                                                           mechanism_path=mechanisms)
 
         # TODO: The code below is duplicate from detect.py, update so both use same code base
         for name, definition in self.config["Connectivity"].items():
@@ -214,7 +224,15 @@ class SnuddaProject(object):
                     morph_prototype = self.prototype_neurons[t_name]
                     position = self.network_info.data["neurons"][t_id]["position"]
                     rotation = self.network_info.data["neurons"][t_id]["rotation"]
-                    morph = morph_prototype.clone(position=position, rotation=rotation)
+                    parameter_id = self.network_info.data["neurons"][t_id]["parameterID"]
+                    morphology_id = self.network_info.data["neurons"][t_id]["morphologyID"]
+                    modulation_id = self.network_info.data["neurons"][t_id]["modulationID"]
+
+                    morph = morph_prototype.clone(parameter_id=parameter_id,
+                                                  morphology_id=morphology_id,
+                                                  modulation_id=modulation_id,
+                                                  position=position,
+                                                  rotation=rotation)
 
                     # We are not guaranteed to get n_syn positions, so use len(sec_x) to get how many after
                     # TODO: Fix so dendrite_input_locations always returns  n_syn synapses
