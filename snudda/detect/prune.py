@@ -646,7 +646,9 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    def setup_output_file(self, output_file=None, save_morphologies=True):
+    def setup_output_file(self, output_file=None, save_morphologies=False):
+
+        assert save_morphologies == False, "setup_output_file: save_morphologies currently disabled"
 
         if self.out_file is not None:
             self.write_log(f"Output file already set: {self.out_file.filename}")
@@ -668,15 +670,17 @@ class SnuddaPrune(object):
         for name, definition in cfg["Neurons"].items():
             morph_file = definition["morphology"]
 
-            with open(snudda_parse_path(morph_file), "r") as f:
-                swc_data = f.read()
-
             swc_group = morph_group.create_group(name)
             swc_group.create_dataset("location", data=morph_file)
 
-            if save_morphologies:
-                self.write_log(f"Saving morphology in HDF5 file: {morph_file}")
-                swc_group.create_dataset("swc", data=swc_data)
+            # We now allow multiple variations of each morphology, so we no longer save them in the HDF5 file
+            #
+            # if save_morphologies:
+            #     self.write_log(f"Saving morphology in HDF5 file: {morph_file}")
+            #     with open(snudda_parse_path(morph_file), "r") as f:
+            #         swc_data = f.read()
+            #
+            #     swc_group.create_dataset("swc", data=swc_data)
 
         network_group = out_file.create_group("network")
 
@@ -710,10 +714,12 @@ class SnuddaPrune(object):
 
     def setup_merge_file(self, big_cache=False,
                          outfile_name=None,
-                         save_morphologies=True,
+                         save_morphologies=False,
                          num_synapses=None,
                          num_gap_junctions=None,
                          delete_after=True):
+
+        assert save_morphologies == False, "setup_merge_file: save_morphologies currently disabled"
 
         if outfile_name is None:
             outfile_name = os.path.join(self.network_path, "network-putative-synapses-MERGED.hdf5")
@@ -756,19 +762,22 @@ class SnuddaPrune(object):
         cfg = json.loads(self.hist_file["meta/config"][()])
 
         # Save morphologies
-        if save_morphologies:
-            morph_group = out_file.create_group("morphologies")
+        # -- We no longer allow morphologies to be saved in the HDF5 file, since now we can have
+        #    multiple variations of each morphology. Maybe activate it again in the future
 
-            for name, definition in cfg["Neurons"].items():
-                morph_file = definition["morphology"]
-
-                with open(snudda_parse_path(morph_file), "r") as f:
-                    swc_data = f.read()
-
-                self.write_log(f"Saving morphology in HDF5 file: {morph_file}")
-                swc_group = morph_group.create_group(name)
-                swc_group.create_dataset("swc", data=swc_data)
-                swc_group.create_dataset("location", data=morph_file)
+        # if save_morphologies:
+        #     morph_group = out_file.create_group("morphologies")
+        #
+        #     for name, definition in cfg["Neurons"].items():
+        #         morph_file = definition["morphology"]
+        #
+        #         with open(snudda_parse_path(morph_file), "r") as f:
+        #             swc_data = f.read()
+        #
+        #         self.write_log(f"Saving morphology in HDF5 file: {morph_file}")
+        #         swc_group = morph_group.create_group(name)
+        #         swc_group.create_dataset("swc", data=swc_data)
+        #         swc_group.create_dataset("location", data=morph_file)
 
         chunk_size = self.synapse_chunk_size
 

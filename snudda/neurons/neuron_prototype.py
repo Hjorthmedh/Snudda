@@ -156,7 +156,7 @@ class NeuronPrototype:
         return all([len(m.dend) > 0 for m in self.morphology_cache.values()])
 
     def clone(self, parameter_id, morphology_id, modulation_id,
-              position, rotation):
+              position=None, rotation=None, get_cache_original=False):
         """
         Creates a clone of the neuron prototype, with given position and rotation.
 
@@ -166,6 +166,7 @@ class NeuronPrototype:
             modulation_id (int) : neuro-modulation parameter set to use
             position (float,float,float) : position of neuron clone
             rotation : rotation (3x3 numpy matrix)
+
         """
 
         if (parameter_id, morphology_id) not in self.morphology_lookup:
@@ -186,10 +187,16 @@ class NeuronPrototype:
         else:
             morph_tag = self.morphology_lookup[parameter_id, morphology_id]
 
-        morph = self.morphology_cache[morph_tag].clone(position=position,
-                                                       rotation=rotation,
-                                                       parameter_id=parameter_id,
-                                                       morphology_id=morphology_id,
-                                                       modulation_id=modulation_id)
+        if get_cache_original:
+            assert position is None and rotation is None and modulation_id is None, \
+                    "If get_cache_original is passed position, rotation and modulation_id must be None"
+            morph = self.morphology_cache[morph_tag]
+        else:
+            morph = self.morphology_cache[morph_tag].clone(position=position,
+                                                           rotation=rotation,
+                                                           parameter_id=parameter_id,
+                                                           morphology_id=morphology_id,
+                                                           modulation_id=modulation_id)
+
 
         return morph

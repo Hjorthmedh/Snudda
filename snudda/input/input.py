@@ -23,6 +23,7 @@ import itertools
 
 import matplotlib.pyplot as plt
 
+from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.snudda_path import snudda_parse_path
 from snudda.neurons.neuron_morphology import NeuronMorphology
 from snudda.utils.load import SnuddaLoad
@@ -840,17 +841,17 @@ class SnuddaInput(object):
 
         self.write_log("Reading neuron postions")
 
-        pos_info = SnuddaLoad(self.position_file, verbose=self.verbose).data
-        self.network_info = pos_info
-        self.neuron_info = pos_info["neurons"]
+        data = SnuddaLoad(self.position_file, verbose=self.verbose).data
+        self.network_info = data
+        self.neuron_info = data["neurons"]
 
         #    import pdb
         #    pdb.set_trace()
 
         # Make sure the position file matches the network config file
-        assert (pos_info["configFile"] == self.network_config_file)
+        assert (data["configFile"] == self.network_config_file)
 
-        self.population_unit_id = pos_info["populationUnit"]
+        self.population_unit_id = data["populationUnit"]
 
         self.neuron_id = [n["neuronID"] for n in self.neuron_info]
         self.neuron_name = [n["name"] for n in self.neuron_info]
@@ -959,15 +960,34 @@ class SnuddaInput(object):
                                  num_spike_trains=None):
 
         neuron_name = self.neuron_name[neuron_id]
-        swc_file = self.network_config["Neurons"][neuron_name]["morphology"]
+        morphology_path = self.network_config["Neurons"][neuron_name]["morphology"]
+        parameters_path = self.network_config["Neurons"][neuron_name]["parameters"]
+        modulation_path = self.network_config["Neurons"][neuron_name]["modulation"]
+        mechanisms_path = self.network_config["Neurons"][neuron_name]["mechanisms"]
 
-        if swc_file in self.neuron_cache:
-            morphology = self.neuron_cache[swc_file]
+        parameter_id = self.neuron_info[neuron_id]["parameterID"]
+        morphology_id = self.neuron_info[neuron_id]["morphologyID"]
+        modulation_id = self.neuron_info[neuron_id]["modulationID"]
+
+        if neuron_name in self.neuron_cache:
+            # Since we do not care about location of neuron in space, we can use get_cache_original
+            morphology = self.neuron_cache[neuron_name].clone(parameter_id=parameter_id,
+                                                              morphology_id=morphology_id,
+                                                              modulation_id=None, position=None, rotation=None,
+                                                              get_cache_original=True)
         else:
-            morphology = NeuronMorphology(name=neuron_id,
-                                          swc_filename=swc_file,
-                                          axon_stump_id_flag=self.axon_stump_id_flag)
-            self.neuron_cache[swc_file] = morphology
+            morphology_prototype = NeuronPrototype(neuron_name=neuron_name,
+                                                   morphology_path=morphology_path,
+                                                   parameter_path=parameters_path,
+                                                   modulation_path=modulation_path,
+                                                   mechanism_path=mechanisms_path,
+                                                   neuron_path=None,
+                                                   axon_stump_id_flag=self.axon_stump_id_flag)
+            self.neuron_cache[neuron_name] = morphology_prototype
+            morphology = morphology_prototype.clone(parameter_id=parameter_id,
+                                                    morphology_id=morphology_id,
+                                                    modulation_id=None, position=None, rotation=None,
+                                                    get_cache_original=True)
 
         return morphology.dendrite_input_locations(synapse_density=synapse_density,
                                                    num_locations=num_spike_trains,

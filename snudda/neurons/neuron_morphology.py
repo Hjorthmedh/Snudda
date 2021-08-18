@@ -14,6 +14,7 @@ from snudda.utils.snudda_path import snudda_parse_path
 
 class NeuronMorphology(object):
 
+    """ Neuron morphology object. Also see NeuronPrototype class which handles multiple morphology variations. """
     # axonStumpIDFlag should be True if running Network_simulate.py
     # it should be False if we are running Neurodamus simulation.
 
