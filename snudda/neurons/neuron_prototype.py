@@ -21,34 +21,38 @@ class NeuronPrototype:
 
         if neuron_path:
             self.neuron_path = snudda_parse_path(neuron_path)
-        else:
-            assert morphology_path is not None \
-                and parameter_path is not None \
-                and mechanism_path is not None, \
-                ("If neuron_path is empty then morphology_path, parameter_path, " 
-                 "mechanism_path, modulation_path must be set")
-
+        elif parameter_path:
             self.neuron_path = os.path.dirname(snudda_parse_path(parameter_path))
+        else:
+            self.neuron_path = None
 
         if morphology_path:
             self.morphology_path = snudda_parse_path(morphology_path)
-        else:
+        elif self.neuron_path:
             self.morphology_path = snudda_parse_path(os.path.join(self.neuron_path, "morphology"))
+        else:
+            self.morphology_path = None
 
         if mechanism_path:
             self.mechanism_path = snudda_parse_path(mechanism_path)
-        else:
+        elif self.neuron_path:
             self.mechanism_path = snudda_parse_path(os.path.join(self.neuron_path, "mechanisms.json"))
+        else:
+            self.mechanism_path = None
 
         if parameter_path:
             self.parameter_path = snudda_parse_path(parameter_path)
-        else:
+        elif self.neuron_path:
             self.parameter_path = snudda_parse_path(os.path.join(self.neuron_path, "parameters.json"))
+        else:
+            self.parameter_path = None
 
         if modulation_path:
             self.modulation_path = snudda_parse_path(modulation_path)
-        else:
+        elif self.neuron_path:
             self.modulation_path = snudda_parse_path(os.path.join(self.neuron_path, "modulation.json"))
+        else:
+            self.modulation_path = None
 
         self.neuron_name = neuron_name
         self.parameter_info = None
@@ -70,7 +74,7 @@ class NeuronPrototype:
 
         par_path = self.parameter_path
 
-        if not os.path.exists(par_path):
+        if par_path is None or not os.path.exists(par_path):
             print(f"Missing parameter.json : {par_path}")
             self.parameter_info = None
             return
