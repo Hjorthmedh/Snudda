@@ -7,16 +7,19 @@ import numpy as np
 
 import bluepyopt.ephys as ephys
 
+from snudda.neurons.neuron_prototype import NeuronPrototype
+
 
 class NeuronModel(ephys.models.CellModel):
 
     def __init__(self,
                  cell_name="Unknown",
-                 morph_file=None,
+                 morph_path=None,
                  mech_file=None,
                  param_file=None,
                  modulation_file=None,
                  parameter_id=None,
+                 morphology_id=None,
                  modulation_id=None):
 
         self.name = cell_name
@@ -26,7 +29,18 @@ class NeuronModel(ephys.models.CellModel):
         self.script_dir = os.path.dirname(__file__)
         self.config_dir = os.path.join(self.script_dir, 'config')
 
-        # morph=self.define_morphology(replaceAxon=False,morph_file=morph_file)
+        # We now allow multiple variations of morphologies for a given neuron name, so here NeuronPrototype
+        # is used to acquire the actual morphology file we will use for this particular neuron
+        # based on parameter_id and morphology_id.
+        neuron_prototype = NeuronPrototype(neuron_name=cell_name,
+                                           neuron_path=None,
+                                           morphology_path=morph_path,
+                                           parameter_path=param_file,
+                                           mechanism_path=mech_file,
+                                           modulation_path=modulation_file)
+
+        morph_file = neuron_prototype.get_morphology(parameter_id=parameter_id, morphology_id=morphology_id)
+
         morph = self.define_morphology(replace_axon=True, morph_file=morph_file)
         mechs = self.define_mechanisms(mechanism_config=mech_file)
         params = self.define_parameters(param_file, parameter_id)
@@ -116,6 +130,10 @@ class NeuronModel(ephys.models.CellModel):
         self.parameters += param_configs
 
         for param_config in param_configs:
+            if "morphology" in param_config:
+                # This parameter is not set this way
+                continue
+
             if 'value' in param_config:
                 frozen = True
                 value = param_config['value']

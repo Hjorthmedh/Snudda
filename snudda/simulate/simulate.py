@@ -395,7 +395,7 @@ class SnuddaSimulate(object):
                 modulation_id = self.network_info["neurons"][ID]["modulationID"]
 
                 self.neurons[ID] = NeuronModel(param_file=param,
-                                               morph_file=morph,
+                                               morph_path=morph,
                                                mech_file=mech,
                                                cell_name=name,
                                                modulation_file=modulation,
@@ -1090,7 +1090,8 @@ class SnuddaSimulate(object):
 
         if rest_volt is None:
             # If no resting voltage is given, extract it from parameters
-            rest_volt = [x for x in self.neurons[neuron_id].parameters if x["param_name"] == "v_init"][0]["value"]
+            rest_volt = [x for x in self.neurons[neuron_id].parameters
+                         if "param_name" in x and x["param_name"] == "v_init"][0]["value"]
             self.write_log(f"Neuron {self.neurons[neuron_id].name} resting voltage = {rest_volt}")
 
         soma = [x for x in self.neurons[neuron_id].icell.soma]

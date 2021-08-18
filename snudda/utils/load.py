@@ -56,7 +56,9 @@ class SnuddaLoad(object):
 
     ############################################################################
 
-    def load_hdf5(self, network_file, load_synapses=True, load_morph=True):
+    def load_hdf5(self, network_file, load_synapses=True, load_morph=False):
+
+        assert not load_morph, "load_hdf5: load_morph=True currently disabled, does not handle morph variations"
 
         self.network_file = network_file
 
@@ -187,6 +189,8 @@ class SnuddaLoad(object):
                 print("No Population Units detected.")
             data["populationUnit"] = np.zeros(data["nNeurons"], dtype=int)
 
+        # TODO: Remove this, or make it able to handle multiple morphologies for each neuron_name,
+        #  ie when morphologies is given as a dir
         if load_morph and "morphologies" in f:
             data["morph"] = dict([])
 

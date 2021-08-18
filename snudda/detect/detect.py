@@ -585,6 +585,11 @@ class SnuddaDetect(object):
                                                       "int",
                                                       compression=self.h5compression)
 
+        neuron_morphology_id = neuron_group.create_dataset("morphologyID",
+                                                           (len(self.neurons),),
+                                                           "int",
+                                                           compression=self.h5compression)
+
         neuron_modulation_id = neuron_group.create_dataset("modulationID",
                                                            (len(self.neurons),),
                                                            "int",
@@ -596,6 +601,7 @@ class SnuddaDetect(object):
             neuron_dend_radius[i] = n["maxDendRadius"]
             neuron_axon_radius[i] = n["maxAxonRadius"]
             neuron_param_id[i] = n["parameterID"]
+            neuron_morphology_id[i] = n["morphologyID"]
             neuron_modulation_id[i] = n["modulationID"]
 
         # Store input information
