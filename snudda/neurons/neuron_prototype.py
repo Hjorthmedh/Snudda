@@ -3,6 +3,7 @@ import json
 import os
 
 from snudda.neurons import NeuronMorphology
+from snudda.utils.snudda_path import snudda_parse_path
 
 
 class NeuronPrototype:
@@ -19,7 +20,7 @@ class NeuronPrototype:
                  axon_stump_id_flag=False):
 
         if neuron_path:
-            self.neuron_path = neuron_path
+            self.neuron_path = snudda_parse_path(neuron_path)
         else:
             assert morphology_path is not None \
                 and parameter_path is not None \
@@ -27,27 +28,27 @@ class NeuronPrototype:
                 ("If neuron_path is empty then morphology_path, parameter_path, " 
                  "mechanism_path, modulation_path must be set")
 
-            self.neuron_path = os.path.dirname(parameter_path)
+            self.neuron_path = os.path.dirname(snudda_parse_path(parameter_path))
 
         if morphology_path:
-            self.morphology_path = morphology_path
+            self.morphology_path = snudda_parse_path(morphology_path)
         else:
-            self.morphology_path = os.path.join(self.neuron_path, "morphology")
+            self.morphology_path = snudda_parse_path(os.path.join(self.neuron_path, "morphology"))
 
         if mechanism_path:
-            self.mechanism_path = mechanism_path
+            self.mechanism_path = snudda_parse_path(mechanism_path)
         else:
-            self.mechanism_path = os.path.join(self.neuron_path, "mechanisms.json")
+            self.mechanism_path = snudda_parse_path(os.path.join(self.neuron_path, "mechanisms.json"))
 
         if parameter_path:
-            self.parameter_path = parameter_path
+            self.parameter_path = snudda_parse_path(parameter_path)
         else:
-            self.parameter_path = os.path.join(self.neuron_path, "parameters.json")
+            self.parameter_path = snudda_parse_path(os.path.join(self.neuron_path, "parameters.json"))
 
         if modulation_path:
-            self.modulation_path = modulation_path
+            self.modulation_path = snudda_parse_path(modulation_path)
         else:
-            self.modulation_path = os.path.join(self.neuron_path, "modulation.json")
+            self.modulation_path = snudda_parse_path(os.path.join(self.neuron_path, "modulation.json"))
 
         self.neuron_name = neuron_name
         self.parameter_info = None
@@ -64,21 +65,30 @@ class NeuronPrototype:
     def load_info(self):
         """ Reads information about the neuron prototype. """
 
-        with open(self.parameter_path, "r") as f:
+        self.morphology_cache = dict()
+        self.morphology_lookup = dict()
+
+        par_path = self.parameter_path
+
+        if not os.path.exists(par_path):
+            print(f"Missing parameter.json : {par_path}")
+            self.parameter_info = None
+            return
+
+        with open(par_path, "r") as f:
             self.parameter_info = json.load(f)
 
         # We expect a list of parameter sets, but if the user just provided one, convert it to a list
         if type(self.parameter_info[0]) == dict:
             self.parameter_info = [self.parameter_info]
 
-        if os.path.exists(self.modulation_path):
-            with open(self.modulation_path, "r") as f:
+        mod_path = self.modulation_path
+
+        if os.path.exists(mod_path):
+            with open(mod_path, "r") as f:
                 self.modulation_info = json.load(f)
         else:
             self.modulation_info = None
-
-        self.morphology_cache = dict()
-        self.morphology_lookup = dict()
 
     def get_morphology(self, parameter_id, morphology_id):
 
@@ -87,9 +97,12 @@ class NeuronPrototype:
         (Each parameter set has a set of morphologies that it is valid for)
         """
 
-        par_set = self.parameter_info[parameter_id % len(self.parameter_info)]
+        if self.parameter_info:
+            par_set = self.parameter_info[parameter_id % len(self.parameter_info)]
+        else:
+            par_set = None
 
-        if "morphology" in par_set[0]:
+        if par_set is not None and len(par_set) > 0 and "morphology" in par_set[0]:
             morph_list = par_set[0]["morphology"]
             morph_path = os.path.join(self.morphology_path, morph_list[morphology_id % len(morph_list)])
         elif os.path.isfile(self.morphology_path):
@@ -97,19 +110,48 @@ class NeuronPrototype:
         else:
             # No morphology
             file_list = glob.glob(os.path.join(self.neuron_path, "*swc"))
-            assert len(file_list) == 1, f"There should only be one SWC file in {self.neuron_path}"
-            morph_path = file_list[0]
+
+            if len(file_list) > 0:
+                morph_path = file_list[0]
+
+                assert len(file_list) == 1, f"More than one morphology available in {self.neuron_path}"
+
+            else:
+                print(f"No morphology in {self.neuron_path}")
+                morph_path = None
 
         return morph_path
 
     def get_parameters(self, parameter_id):
         """
         Returns neuron parameter set
+
+        Args:
+            parameter_id (int) : parameter ID, which of the parameter sets to use
+
+        Returns:
+            One parameter set as a list of dictionaries
         """
-        par_set = self.parameter_info[parameter_id % len(self.parameter_info)]
+
+        if self.parameter_info:
+            par_set = self.parameter_info[parameter_id % len(self.parameter_info)]
+        else:
+            par_set = []
+
         return par_set
 
     def get_modulation_parameters(self, modulation_id):
+
+        """
+        Returns modulation parameter set
+
+        Args:
+            modulation_id (int) : modulation ID, which of the modulation parameter sets to use
+
+        Returns:
+            One parameter set as a list of dictionaries
+        """
+
         if self.modulation_info:
             modulation_set = self.modulation_info[modulation_id % len(self.modulation_info)]
         else:
@@ -166,6 +208,7 @@ class NeuronPrototype:
             modulation_id (int) : neuro-modulation parameter set to use
             position (float,float,float) : position of neuron clone
             rotation : rotation (3x3 numpy matrix)
+            get_cache_original (bool) : return the original rather than a clone
 
         """
 
@@ -197,6 +240,5 @@ class NeuronPrototype:
                                                            parameter_id=parameter_id,
                                                            morphology_id=morphology_id,
                                                            modulation_id=modulation_id)
-
-
         return morph
+
