@@ -168,32 +168,35 @@ class NeuronPrototype:
         Instantiates all morphologies at once, instead of on demand.
         """
         for par_id in range(0, len(self.parameter_info)):
-            morph_id = 0
-            morph_path = self.get_morphology(parameter_id=par_id, morphology_id=morph_id)
-            morph_tag = os.path.basename(morph_path)
+            print(f"Instantiates par_id = {par_id}")
 
-            while morph_tag not in self.morphology_cache:
-                self.morphology_cache[morph_tag] = NeuronMorphology(swc_filename=morph_path,
-                                                                    param_data=self.parameter_path,
-                                                                    mech_filename=self.mechanism_path,
-                                                                    name=self.neuron_name,
-                                                                    hoc=None,
-                                                                    load_morphology=self.load_morphology,
-                                                                    virtual_neuron=self.virtual_neuron,
-                                                                    axon_stump_id_flag=self.axon_stump_id_flag)
-
-                morph_id += 1
+            for morph_id in range(0, len(self.get_parameters(parameter_id=par_id)[0]["morphology"])):
                 morph_path = self.get_morphology(parameter_id=par_id, morphology_id=morph_id)
                 morph_tag = os.path.basename(morph_path)
+
+                if morph_tag not in self.morphology_cache:
+                    print(f"morph_tag = {morph_tag}")
+                    self.morphology_cache[morph_tag] = NeuronMorphology(swc_filename=morph_path,
+                                                                        param_data=self.parameter_path,
+                                                                        mech_filename=self.mechanism_path,
+                                                                        name=self.neuron_name,
+                                                                        hoc=None,
+                                                                        load_morphology=self.load_morphology,
+                                                                        virtual_neuron=self.virtual_neuron,
+                                                                        axon_stump_id_flag=self.axon_stump_id_flag)
 
     def apply(self, function_name, arguments):
         """
         Applies function to all morphology prototypes
         """
 
+        res = []
+
         for m in self.morphology_cache.values():
             function = getattr(m, function_name)
-            function(*arguments)
+            res.append(function(*arguments))
+
+        return res
 
     def all_have_axon(self):
         return all([len(m.axon) > 0 for m in self.morphology_cache.values()])

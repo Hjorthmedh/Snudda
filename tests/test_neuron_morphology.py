@@ -5,7 +5,7 @@ import numpy as np
 from snudda.neurons.neuron_morphology import NeuronMorphology
 
 
-class MyTestCase(unittest.TestCase):
+class NeuronMorphologyTestCase(unittest.TestCase):
 
     def setUp(self):
 
