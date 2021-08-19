@@ -170,7 +170,13 @@ class NeuronPrototype:
         for par_id in range(0, len(self.parameter_info)):
             print(f"Instantiates par_id = {par_id}")
 
-            for morph_id in range(0, len(self.get_parameters(parameter_id=par_id)[0]["morphology"])):
+            par_data = self.get_parameters(parameter_id=par_id)
+            if par_data is not None and len(par_data) > 0 and "morphology" in par_data[0]:
+                n_morph = len(par_data[0]["morphology"])
+            else:
+                n_morph = 1
+
+            for morph_id in range(0, n_morph):
                 morph_path = self.get_morphology(parameter_id=par_id, morphology_id=morph_id)
                 morph_tag = os.path.basename(morph_path)
 
