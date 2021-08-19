@@ -81,7 +81,12 @@ class SnuddaProject(object):
 
             morph = definition["morphology"]
             param = definition["parameters"]
-            modulation = definition["modulation"]
+
+            if "modulation" in definition:
+                modulation = definition["modulation"]
+            else:
+                modulation = None
+
             mechanisms = definition["mechanisms"]
 
             # TODO: Need to update to use NeuronPrototype !!!

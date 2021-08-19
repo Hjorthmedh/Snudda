@@ -51,6 +51,9 @@ class NeuronPrototype:
             self.modulation_path = snudda_parse_path(modulation_path)
         elif self.neuron_path:
             self.modulation_path = snudda_parse_path(os.path.join(self.neuron_path, "modulation.json"))
+
+            if not os.path.exists(self.modulation_path):
+                self.modulation_path = None
         else:
             self.modulation_path = None
 
