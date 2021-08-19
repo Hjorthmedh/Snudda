@@ -91,7 +91,7 @@ class NeuronPrototype:
 
         mod_path = self.modulation_path
 
-        if os.path.exists(mod_path):
+        if mod_path is not None and os.path.exists(mod_path):
             with open(mod_path, "r") as f:
                 self.modulation_info = json.load(f)
         else:
