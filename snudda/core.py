@@ -401,12 +401,16 @@ class Snudda(object):
 
         # x86_64 on linux, nrnmech.dll on windows...
         if not os.path.exists("x86_64") and not os.path.exists("nrnmech.dll"):
-            print(f"Please first run: {make_mods_str}")
-            os.sys.exit(-1)
-            # I was having problems when running nrnivmodl in the script, but
-            # running it manually in bash works... WHY?!!
-
-        # os.system(makeModsStr)
+            print("Running "'"nrnivmodl mechanisms"'"...")
+            os.system('nrnivmodl mechanisms')
+            from neuron import h
+            if os.path.exists("nrnmech.dll"):
+                h.nrn_load_dll("nrnmech.dll")
+            elif os.path.exists("x86_64"):
+                h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
+            else:
+                print("Could not find compiled mechanisms. Compile using "'"nrnivmodl mechanisms"'" and retry simulation.")
+                os.sys.exit(-1)
 
         save_dir = os.path.join(os.path.dirname(network_file), "simulation")
 
