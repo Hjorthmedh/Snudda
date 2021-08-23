@@ -612,10 +612,6 @@ class SnuddaInput(object):
                       parameter_list_list,
                       seed_list)
 
-        import pdb
-        pdb.set_trace()
-
-
         # Gather the spikes that were generated in parallel
         for neuron_id, input_type, spikes, loc, synapse_density, frq, \
             jdt, p_uid, cond, corr, timeRange, \
