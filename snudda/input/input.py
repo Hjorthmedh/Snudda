@@ -585,11 +585,11 @@ class SnuddaInput(object):
 
             # On this line it stalls... WHY?
             # inpt = self.d_view["inpt"]
-            input_list = self.d_view.gather("inpt", block=True)
+            amr = self.d_view.gather("inpt", block=True)
             self.write_log("Results received")
 
-            amr = list(itertools.chain.from_iterable(input_list))
-
+            # amr = list(itertools.chain.from_iterable(input_list))
+            # amr = input_list
         else:
             # If no lbView then we run it in serial
             self.write_log("Running input generation in serial")
