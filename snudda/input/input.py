@@ -579,14 +579,16 @@ class SnuddaInput(object):
 
             self.write_log("Calling workers to generate input in parallel")
             self.d_view.execute(cmd_str, block=True)
+            self.d_view.execute("nl.write_log('Execution done on workers')")
 
             self.write_log("Execution done")
 
             # On this line it stalls... WHY?
-            inpt = self.d_view["inpt"]
+            # inpt = self.d_view["inpt"]
+            input_list = self.d_view.gather("inpt", block=True)
             self.write_log("Results received")
 
-            amr = list(itertools.chain.from_iterable(inpt))
+            amr = list(itertools.chain.from_iterable(input_list))
 
         else:
             # If no lbView then we run it in serial
@@ -609,6 +611,10 @@ class SnuddaInput(object):
                       parameter_file_list,
                       parameter_list_list,
                       seed_list)
+
+        import pdb
+        pdb.set_trace()
+
 
         # Gather the spikes that were generated in parallel
         for neuron_id, input_type, spikes, loc, synapse_density, frq, \
