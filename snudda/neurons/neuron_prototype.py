@@ -127,6 +127,9 @@ class NeuronPrototype:
                 print(f"No morphology in {self.neuron_path}")
                 morph_path = None
 
+        if morph_path is None:
+            print("morph_path is None. Is SNUDDA_DATA set correctly?")
+
         return morph_path
 
     def get_parameters(self, parameter_id):
@@ -230,6 +233,7 @@ class NeuronPrototype:
 
         if (parameter_id, morphology_id) not in self.morphology_lookup:
             morph_path = self.get_morphology(parameter_id=parameter_id, morphology_id=morphology_id)
+
             morph_tag = os.path.basename(morph_path)
             self.morphology_lookup[parameter_id, morphology_id] = morph_tag
 

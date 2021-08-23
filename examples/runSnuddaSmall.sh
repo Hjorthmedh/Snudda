@@ -1,14 +1,18 @@
 export IPYTHONDIR="`pwd`/.ipython"
 export IPYTHON_PROFILE=Snudda_LOCAL
 
+# Uncomment this line if you get your data from BasalGangliaData
+# (update the path as needed)
+export SNUDDA_DATA="../../BasalGangliaData/data"
+
 ipcluster start --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20
 
-simName=networks/test-10k
+simName=networks/test-100
 
 #snudda init $simName --size 1760000
 #snudda init $simName --size 100000
-snudda init $simName --size 10000 --overwrite
+snudda init $simName --size 100 --overwrite
 
 snudda place $simName --parallel
 snudda detect $simName --volumeID Striatum --parallel
@@ -33,5 +37,5 @@ ipcluster stop
 # Uncomment this to run simulation
 # Remember you need to run "nrnivmodl data/cellspecs/mechanisms"
 # first to create the mechanisms
-mpiexec -n 6 snudda simulate $simName
+mpiexec -n 6 -x SNUDDA_DATA snudda simulate $simName
 

@@ -96,7 +96,6 @@ class SnuddaInput(object):
         self.neuron_type = None
         self.d_view = None
         self.lb_view = None
-        self.rc = None
         self.network_slurm_id = None
         self.network_config = None
         self.neuron_input = None
@@ -577,9 +576,16 @@ class SnuddaInput(object):
 
             self.d_view.scatter("input_list", input_list, block=True)
             cmd_str = "inpt = list(map(nl.make_input_helper_parallel,input_list))"
+
+            self.write_log("Calling workers to generate input in parallel")
             self.d_view.execute(cmd_str, block=True)
 
+            self.write_log("Execution done")
+
+            # On this line it stalls... WHY?
             inpt = self.d_view["inpt"]
+            self.write_log("Results received")
+
             amr = list(itertools.chain.from_iterable(inpt))
 
         else:
@@ -839,7 +845,7 @@ class SnuddaInput(object):
 
     def read_neuron_positions(self):
 
-        self.write_log("Reading neuron postions")
+        self.write_log("Reading neuron positions")
 
         data = SnuddaLoad(self.position_file, verbose=self.verbose).data
         self.network_info = data
@@ -960,6 +966,11 @@ class SnuddaInput(object):
                                  num_spike_trains=None):
 
         neuron_name = self.neuron_name[neuron_id]
+
+        # self.write_log(f"self.network_config = {self.network_config}")
+        # self.write_log(f"self.network_config['Neurons'] = {self.network_config['Neurons']}")
+        # self.write_log(f"self.network_config['Neurons'][neuron_name] = {self.network_config['Neurons'][neuron_name]}")
+
         morphology_path = self.network_config["Neurons"][neuron_name]["morphology"]
         parameters_path = self.network_config["Neurons"][neuron_name]["parameters"]
         modulation_path = self.network_config["Neurons"][neuron_name]["modulation"]
@@ -970,12 +981,14 @@ class SnuddaInput(object):
         modulation_id = self.neuron_info[neuron_id]["modulationID"]
 
         if neuron_name in self.neuron_cache:
+            self.write_log(f"About to clone cache of {neuron_name}.")
             # Since we do not care about location of neuron in space, we can use get_cache_original
             morphology = self.neuron_cache[neuron_name].clone(parameter_id=parameter_id,
                                                               morphology_id=morphology_id,
                                                               modulation_id=None, position=None, rotation=None,
                                                               get_cache_original=True)
         else:
+            self.write_log(f"Creating prototype {neuron_name}")
             morphology_prototype = NeuronPrototype(neuron_name=neuron_name,
                                                    morphology_path=morphology_path,
                                                    parameter_path=parameters_path,
@@ -988,6 +1001,8 @@ class SnuddaInput(object):
                                                     morphology_id=morphology_id,
                                                     modulation_id=None, position=None, rotation=None,
                                                     get_cache_original=True)
+
+        self.write_log(f"morphology = {morphology}")
 
         return morphology.dendrite_input_locations(synapse_density=synapse_density,
                                                    num_locations=num_spike_trains,
@@ -1026,32 +1041,45 @@ class SnuddaInput(object):
         with self.d_view.sync_imports():
             from snudda.input.input import SnuddaInput
 
-        self.d_view.push({"input_config_file": self.input_config_file,
-                          "network_config_file": self.network_config_file,
-                          "position_file": self.position_file,
+        self.d_view.push({"network_path": self.network_path,
+                          "input_config_file": self.input_config_file,
                           "spike_data_filename": self.spike_data_filename,
+                          "hdf5_network_file": self.hdf5_network_file,
                           "is_master": False,
                           "time": self.time,
+                          "h5libver" : self.h5libver,
                           "random_seed": self.random_seed})
 
         self.write_log(f"Scattering engineLogFile = {engine_logfile}")
 
         self.d_view.scatter('log_filename', engine_logfile, block=True)
 
-        self.write_log(f"nl = SnuddaInput(input_config_file='{self.input_config_file}'"
-                       f",network_config_file='{self.network_config_file}'"
-                       f",position_file='{self.position_file}'"
-                       f",spike_data_filename='{self.spike_data_filename}'"
-                       f",is_master=False "
+        self.write_log(f"nl = SnuddaInput(network_path={self.network_path}"
+                       f"input_config_file='{self.input_config_file}'"
+                       f", spike_data_filename='{self.spike_data_filename}'"
+                       f", hdf5_nework_file={self.hdf5_network_file}",
+                       f", h5libver={self.h5libver}"
+                       f", is_master=False "
                        f", random_seed={self.random_seed}"
-                       f",time={self.time}, logfile=log_filename[0])")
+                       f", time={self.time}, logfile={log_filename[0]})")
 
-        cmd_str = ("global nl; nl = SnuddaInput(input_config_file=input_config_file," 
-                   "network_config_file=network_config_file,position_file=position_file," 
-                   " spike_data_filename=spike_data_filename,is_master=is_master,time=time," 
+        cmd_str = ("global nl; nl = SnuddaInput(network_path=network_path, "
+                   "input_config_file=input_config_file, " 
+                   "spike_data_filename=spike_data_filename, "
+                   "hdf5_network_file=hdf5_network_file,"
+                   "is_master=is_master,time=time, " 
+                   "h5libver=h5libver, "
                    " random_seed=random_seed, logfile=log_filename[0])")
 
         self.d_view.execute(cmd_str, block=True)
+
+        self.write_log("Read neuron positions on workers")
+        cmd_str2 = "nl.read_neuron_positions()"
+        self.d_view.execute(cmd_str2, block=True)
+
+        self.write_log("Read network config on workers")
+        cmd_str3 = "nl.read_network_config_file()"
+        self.d_view.execute(cmd_str3, block=True)
 
         self.write_log("Workers set up")
 

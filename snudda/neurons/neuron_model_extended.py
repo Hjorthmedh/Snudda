@@ -41,6 +41,19 @@ class NeuronModel(ephys.models.CellModel):
 
         morph_file = neuron_prototype.get_morphology(parameter_id=parameter_id, morphology_id=morphology_id)
 
+        if morph_file is None:
+            print(f"Neuron {cell_name} with morph_path = {morph_path} ({morphology_id}, "
+                            f"parameter_path = {param_file} ({parameter_id}) "
+                            f"has morph_file = {morph_file} (Should not be None)")
+
+            print("Why is morph file None?")
+            import pdb
+            pdb.set_trace()
+
+        assert morph_file, (f"Neuron {cell_name} with morph_path = {morph_path} ({morphology_id}, "
+                            f"parameter_path = {param_file} ({parameter_id}) "
+                            f"has morph_file = {morph_file} (Should not be None)")
+
         morph = self.define_morphology(replace_axon=True, morph_file=morph_file)
         mechs = self.define_mechanisms(mechanism_config=mech_file)
         params = self.define_parameters(param_file, parameter_id)
