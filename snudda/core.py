@@ -328,14 +328,14 @@ class Snudda(object):
             snudda input [--input INPUT] [--inputFile INPUT_FILE] [--networkFile NETWORK_FILE] [--time TIME] [-randomseed 123] [--profile] [--verbose] [--h5legacy] [-parallel] path
         """
 
+        print("Setting up inputs, assuming input.json exists")
+        log_filename = os.path.join(self.network_path, "log", "logFile-setup-input.log")
+        self.setup_log_file(log_filename)  # sets self.logfile
+
         if args.parallel:
             self.setup_parallel()  # sets self.d_view and self.lb_view
 
         from snudda.input.input import SnuddaInput
-
-        print("Setting up inputs, assuming input.json exists")
-        log_filename = os.path.join(self.network_path, "log", "logFile-setup-input.log")
-        self.setup_log_file(log_filename)  # sets self.logfile
 
         if "input" in args and args.input:
             input_config = args.input
