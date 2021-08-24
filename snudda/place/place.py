@@ -54,7 +54,7 @@ class SnuddaPlace(object):
         if not log_file and network_path:
             log_dir = os.path.join(network_path, "log")
             os.makedirs(log_dir, exist_ok=True)
-            log_file = open(os.path.join(log_dir, "logFile-place-neurons.txt"), "w")
+            log_file = open(os.path.join(log_dir, "place-neurons.txt"), "w")
 
         self.network_path = network_path
         self.config_file = config_file

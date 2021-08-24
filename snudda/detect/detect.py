@@ -37,6 +37,10 @@ import snudda.utils.memory
 
 class SnuddaDetect(object):
 
+    """
+    SnuddaDetect places synapses in the network based on touch detection.
+    """
+
     def __init__(self,
                  config_file=None,
                  network_path=None,
@@ -56,6 +60,31 @@ class SnuddaDetect(object):
                  h5libver=None,  # Default: "latest"
                  random_seed=None,
                  debug_flag=False):
+
+        """
+        Constructor.
+
+        Args:
+            network_path (str): Network directory
+            config_file (str, optional): Network config file (default network-config.json in network_path)
+            position_file (str, optional): Network position file (default network-neuron-positions in network_path)
+            voxel_size (float, optional): Width of voxel (default 3e-6m)
+            hyper_voxel_size (int, optional): Number of voxels per side (default: 100, ie 100x100x100 voxels total)
+            verbose (bool, optional): Verbose mode (default False)
+            logfile_name (str, optional): Name of log file
+            logfile (_io.TextIOWrapper, optional): Pointer to already open log file
+            save_file (str, optional): Name of output file (default voxels/network-putative-synapses.hdf5 in network_path)
+            work_history_file (str, optional): Work log file (default network-detect-worklog.hdf5 in network_path)
+            slurm_id (int, optional): SlurmID of job
+            volume_id (str, optional): Volume ID to do touch detection on
+            role (str, optional): Parallel role, i.e. "master" or "worker"
+            rc (ipyparallel.Client, optional): iPyParallel client, if given program will run in parallel
+            axon_stump_id_flag (bool, optional): Recalculate segment IDs to account for axon stump? (default False)
+            h5libver (string, optional): h5py library version (default "latest")
+            random_seed (int, optional): Random seed
+            debug_flag (bool, optional): Save additional information for debugging (Default: False)
+
+        """
 
         self.rc = rc
 
@@ -95,7 +124,7 @@ class SnuddaDetect(object):
                 save_file = os.path.join(network_path, "voxels", "network-putative-synapses.hdf5")
 
             if not logfile and not logfile_name:
-                log_filename = os.path.join(network_path, "log", "logFile-touch-detection.txt")
+                log_filename = os.path.join(network_path, "log", "touch-detection.txt")
 
         self.config_file = config_file
         self.position_file = position_file
@@ -109,7 +138,7 @@ class SnuddaDetect(object):
         elif logfile is not None:
             self.logfile_name = logfile.name
         else:
-            self.logfile_name = os.path.join(self.network_path, "log", "logFile-touch-detection.txt")
+            self.logfile_name = os.path.join(self.network_path, "log", "touch-detection.txt")
 
         self.logfile = logfile
 

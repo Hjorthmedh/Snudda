@@ -148,7 +148,7 @@ class Snudda(object):
         print("Placing neurons")
         print(f"Network path: {self.network_path}")
 
-        log_file_name = os.path.join(self.network_path, "log", "logFile-place-neurons.txt")
+        log_file_name = os.path.join(self.network_path, "log", "place-neurons.txt")
 
         random_seed = args.randomseed
 
@@ -213,7 +213,7 @@ class Snudda(object):
 
         config_file = os.path.join(self.network_path, "network-config.json")
         position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
-        log_filename = os.path.join(self.network_path, "log", "logFile-touch-detection.txt")
+        log_filename = os.path.join(self.network_path, "log", "touch-detection.txt")
         save_file = os.path.join(self.network_path, "voxels", "network-putative-synapses.hdf5")
 
         random_seed = args.randomseed
@@ -283,7 +283,7 @@ class Snudda(object):
 
         from snudda.detect.prune import SnuddaPrune
 
-        log_filename = os.path.join(self.network_path, "log", "logFile-synapse-pruning.txt")
+        log_filename = os.path.join(self.network_path, "log", "synapse-pruning.txt")
 
         random_seed = args.randomseed
 
@@ -329,7 +329,7 @@ class Snudda(object):
         """
 
         print("Setting up inputs, assuming input.json exists")
-        log_filename = os.path.join(self.network_path, "log", "logFile-setup-input.log")
+        log_filename = os.path.join(self.network_path, "log", "setup-input.txt")
         self.setup_log_file(log_filename)  # sets self.logfile
 
         if args.parallel:

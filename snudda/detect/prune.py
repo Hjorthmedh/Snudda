@@ -87,7 +87,7 @@ class SnuddaPrune(object):
         elif logfile is not None:
             self.logfile_name = logfile.name
         else:
-            self.logfile_name = os.path.join(self.network_path, "log", "logFile-synapse-pruning.txt")
+            self.logfile_name = os.path.join(self.network_path, "log", "synapse-pruning.txt")
 
         if self.logfile is None and self.logfile_name is not None:
             self.logfile = open(self.logfile_name, 'w')
