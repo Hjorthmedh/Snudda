@@ -27,7 +27,7 @@ from snudda.place.region_mesh import RegionMesh
 from snudda.place.rotation import SnuddaRotate
 
 ''' This code places all neurons in space, but does not setup their
-  connectivity. That is done in another script. '''
+    connectivity. That is done by detect.py and prune.py '''
 
 
 class SnuddaPlace(object):

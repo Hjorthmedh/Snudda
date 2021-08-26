@@ -55,12 +55,14 @@ from snudda.utils.snudda_path import snudda_parse_path
 
 class SnuddaPrune(object):
 
+    """ Prunes detected network synapses to match pairwise connectivity statistics. """
+
     ############################################################################
 
     def __init__(self,
                  network_path,
                  logfile=None, logfile_name=None,
-                 rc=None, d_view=None, lb_view=None, role="master", verbose=False,
+                 rc=None, d_view=None, role="master", verbose=False,
                  config_file=None,  # Default is to use same config_file as for detect, but you can override it
                  scratch_path=None,
                  # pre_merge_only=False,
@@ -68,10 +70,25 @@ class SnuddaPrune(object):
                  random_seed=None,
                  keep_files=False):  # If True then you can redo pruning multiple times without reruning detect
 
-        # Help with parallel debugging, when workers cant print to screen:
-        # self.writeToRandomFile("WH = " + str(workHistoryFile) \
-        #                       + "\nlog = " + str(logFileName) \
-        #                       + "\nrole = " + role)
+        """
+        Constructor.
+
+        Args:
+            network_path (str): Network directory
+            logfile : File pointer to logfile, derived from logfile_name if not given
+            logfile_name (str): Path to logfile, if given will set logfile
+            rc : ipyparallel RemoteClient, used for parallel execution
+            d_view : ipyparallel direct view, derived from rc if not given
+            role (str, optional) : "master" or "worker"
+            verbose (bool) : Verbose output, default False
+            config_file (str, optional): Path to config file, default is to use same config file as for detect,
+                                         but the user can override it. Useful when testing different pruning values
+                                         in combination with keep_files=True.
+            scratch_path (str, optional): Path to scratch directory for temporary files
+            h5libver (str, optional) : Default "latest"
+            random_seed (int, optinoal): Random seed for pruning
+            keep_files (bool, optional): If True then you can redo pruning multiple times without reruning detect
+        """
 
         self.work_history_file = os.path.join(network_path, "log", "network-detect-worklog.hdf5")    
         self.network_path = network_path
@@ -101,17 +118,14 @@ class SnuddaPrune(object):
 
         self.rc = rc
         self.d_view = d_view
-        self.lb_view = lb_view
 
         if self.rc and not self.d_view:
             self.d_view = self.rc.direct_view(targets='all')
 
-        if self.rc and not self.lb_view:
-            self.lb_view = self.rc.load_balanced_view(targets='all')
-
         self.role = role
         self.workers_initialised = False
 
+        # TODO: Move this to external config file?
         self.synapse_type_lookup = {1: "GABA",
                                     2: "AMPA_NMDA",
                                     3: "GapJunction",
@@ -206,6 +220,8 @@ class SnuddaPrune(object):
 
     def prune(self):
 
+        """ Merges output files from detect.py and prunes the synapses. Writes network-synapses.hdf5 """
+
         start_time = timeit.default_timer()
 
         if self.role != "master":
@@ -252,6 +268,20 @@ class SnuddaPrune(object):
                         merge_files_syn, merge_neuron_range_syn, merge_syn_ctr,
                         merge_files_gj, merge_neuron_range_gj, merge_gj_ctr):
 
+        """
+        Writes merge info to file (pruning_merge_info.json), so prune can be rerun without having
+        to re-merge detection hyper voxel files.
+
+        Args:
+            merge_files_syn : List of files containing synapses
+            merge_neuron_range_syn : List of neuron ranges in each file
+            merge_syn_ctr : List of synapse counts for each file
+            merge_files_gj : List of files containing gap junctions
+            merge_neuron_range_gj : List of neuron ranges in each file
+            merge_gj_ctr : List of gap junction count for each file
+
+        """
+
         data = collections.OrderedDict()
 
         data["merge_files_syn"] = merge_files_syn
@@ -265,6 +295,21 @@ class SnuddaPrune(object):
             json.dump(data, f, indent=4, cls=NumpyEncoder)
 
     def get_merge_info_helper(self):
+
+        """
+        Helper function for get_merge_info. Reads merge info written by save_merge_info.
+        Please use get_merge_info, which also includes sanity checks on the data returned.
+
+        Returns:
+            tuple of data:
+                merge_files_syn : List of files containing synapses
+                merge_neuron_range_syn : List of neuron ranges in each file
+                merge_syn_ctr : List of synapse counts for each file
+                merge_files_gj : List of files containing gap junctions
+                merge_neuron_range_gj : List of neuron ranges in each file
+                merge_gj_ctr : List of gap junction count for each file
+
+        """
 
         with open(self.merge_info_file, "r") as f:
             data = json.load(f)
@@ -280,6 +325,20 @@ class SnuddaPrune(object):
             merge_files_gj, merge_neuron_range_gj, merge_gj_ctr
 
     def get_merge_info(self):
+
+        """
+        Reads merge info written by save_merge_info.
+
+        Returns:
+            tuple of data:
+                merge_files_syn : List of files containing synapses
+                merge_neuron_range_syn : List of neuron ranges in each file
+                merge_syn_ctr : List of synapse counts for each file
+                merge_files_gj : List of files containing gap junctions
+                merge_neuron_range_gj : List of neuron ranges in each file
+                merge_gj_ctr : List of gap junction count for each file
+
+        """
 
         if not os.path.exists(self.merge_info_file):
             return None
@@ -356,8 +415,16 @@ class SnuddaPrune(object):
 
     def set_scratch_path(self, scratch_path=None):
 
+        """
+        Sets scratch path. OBS, need to call open_work_history_file first.
+
+        Args:
+            scratch_path (str): Path to scratch directory
+        """
+
+        # Check why we required this?
         assert self.work_history_file is not None and self.work_history_file != "last", \
-            "Need to call openWorkHistoryFile before setScratchPath"
+            "Need to call open_work_history_file before set_scratch_path"
 
         if scratch_path is None:
             self.scratch_path = os.path.join(self.network_path, "temp")
@@ -373,6 +440,8 @@ class SnuddaPrune(object):
     ############################################################################
 
     def __del__(self):
+
+        """ Destructor, cleans up temporary files after. """
 
         try:
             if self.hist_file is not None:
@@ -397,6 +466,16 @@ class SnuddaPrune(object):
     ############################################################################
 
     def open_work_history_file(self, work_history_file=None, config_file=None):
+
+        """
+        Opens work history file.
+
+        Args:
+            work_history_file (str, optional) : Path to work history file (if you want to override default,
+                                                network-detect-worklog.hdf5)
+            config_file (str, optional): Path to config file, if you want to override file used for detection.
+
+        """
 
         if work_history_file is None:
             work_history_file = self.work_history_file
@@ -479,6 +558,16 @@ class SnuddaPrune(object):
 
     def check_hyper_voxel_integrity(self, hypervoxel_file, hypervoxel_file_name, verbose=False):
 
+        """
+        Sanity check on hyper voxels. Checks size of voxels, hyper voxels, simulation origo,
+        hyper voxel origo, config files, position files, SlurmID and axon stump flags match.
+
+        Args:
+            hypervoxel_file : HDF5 file object
+            hypervoxel_file_name : Name of HDF5 file
+            verbose (bool) : Print extra information, default False
+        """
+
         if verbose:
             self.write_log(f"Checking that {hypervoxel_file_name} matches circuit settings")
 
@@ -487,11 +576,11 @@ class SnuddaPrune(object):
 
         # Just some sanity checks
         for c in check_list:
-            test = self.hist_file["meta/" + c][()] == hypervoxel_file["meta/" + c][()]
+            test = self.hist_file[f"meta/{c}"][()] == hypervoxel_file[f"meta/{c}"][()]
             if type(test) == bool:
-                assert test, "Mismatch of " + c + " in file " + hypervoxel_file_name
+                assert test, f"Mismatch of {c} in file {hypervoxel_file_name}"
             else:
-                assert test.all(), "Mismatch of " + c + " in file " + hypervoxel_file_name
+                assert test.all(), f"Mismatch of {c} in file {hypervoxel_file_name}"
 
                 # Get xyz coordinates of hyper voxel
         xyz = np.where(self.hyper_voxel_id_list == hypervoxel_file["meta/hyperVoxelID"][()])
@@ -500,7 +589,7 @@ class SnuddaPrune(object):
         # Just do a sanity check that the hypervoxel origo matches stored value
         hypervoxel_origo = self.simulation_origo + self.hyper_voxel_width * xyz
         assert (hypervoxel_origo == hypervoxel_file["meta/hyperVoxelOrigo"][()]).all(), \
-            "Hyper voxel origo mismatch in file " + hypervoxel_file_name
+            f"Hyper voxel origo mismatch in file {hypervoxel_file_name}"
 
         ofc = hypervoxel_file["meta/voxelOverflowCounter"][()]
 
@@ -512,6 +601,16 @@ class SnuddaPrune(object):
     ############################################################################
 
     def open_hyper_voxel(self, hyper_voxel_id, verbose=False, verify=True):
+
+        """
+        Helper function, opens hyper voxel.
+
+        Args:
+            hyper_voxel_id (int) : ID of hyper voxel to open
+            verbose (bool) : Print extra information
+            verify (bool) : Verify hypervoxel integrity, default=True
+            
+        """
 
         if verbose:
             self.write_log(f"Reading hypervoxel {hyper_voxel_id}")
