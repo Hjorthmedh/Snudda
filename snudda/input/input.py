@@ -95,7 +95,6 @@ class SnuddaInput(object):
         self.neuron_id = None
         self.neuron_type = None
         self.d_view = None
-        self.lb_view = None
         self.network_slurm_id = None
         self.network_config = None
         self.neuron_input = None
@@ -1027,7 +1026,6 @@ class SnuddaInput(object):
             self.write_log(f"Client IDs: {self.rc.ids}")
             #self.d_view = self.rc[:]  # Direct view into clients
             self.d_view = self.rc.direct_view(targets='all')
-            self.lb_view = self.rc.load_balanced_view(targets='all')
 
             if self.logfile is not None:
                 log_filename = self.logfile.name
@@ -1037,7 +1035,6 @@ class SnuddaInput(object):
         else:
             self.write_log("Running in serial")
             self.d_view = None
-            self.lb_view = None
             return
 
         with self.d_view.sync_imports():

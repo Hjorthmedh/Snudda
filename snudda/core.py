@@ -68,7 +68,6 @@ class Snudda(object):
 
         self.network_path = network_path
         self.d_view = None
-        self.lb_view = None
         self.rc = None
         self.slurm_id = 0
 
@@ -155,7 +154,7 @@ class Snudda(object):
         self.setup_log_file(log_file_name)  # sets self.logFile
 
         if args.parallel:
-            self.setup_parallel()  # sets self.d_view and self.lb_view
+            self.setup_parallel()  # sets self.d_view
 
         from snudda.place.place import SnuddaPlace
 
@@ -224,7 +223,7 @@ class Snudda(object):
         self.setup_log_file(log_filename)  # sets self.logfile
 
         if args.parallel:
-            self.setup_parallel()  # sets self.d_view and self.lb_view
+            self.setup_parallel()  # sets self.d_view
 
         if args.h5legacy:
             h5libver = "earliest"
@@ -290,7 +289,7 @@ class Snudda(object):
         self.setup_log_file(log_filename)  # sets self.logfile
 
         if args.parallel:
-            self.setup_parallel()  # sets self.d_view and self.lb_view
+            self.setup_parallel()  # sets self.d_view
 
         # Optionally set this
         scratch_path = None
@@ -304,7 +303,7 @@ class Snudda(object):
                          logfile=self.logfile,
                          logfile_name=log_filename,
                          config_file=args.config_file,
-                         d_view=self.d_view, lb_view=self.lb_view,
+                         d_view=self.d_view,
                          scratch_path=scratch_path,
                          h5libver=h5libver,
                          random_seed=random_seed,
@@ -333,7 +332,7 @@ class Snudda(object):
         self.setup_log_file(log_filename)  # sets self.logfile
 
         if args.parallel:
-            self.setup_parallel()  # sets self.d_view and self.lb_view
+            self.setup_parallel()  # sets self.d_view
 
         from snudda.input.input import SnuddaInput
 
@@ -645,7 +644,6 @@ class Snudda(object):
         # http://davidmasad.com/blog/simulation-with-ipyparallel/
         # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
         self.d_view = self.rc.direct_view(targets='all')  # rc[:] # Direct view into clients
-        self.lb_view = self.rc.load_balanced_view(targets='all')
 
     ############################################################################
 

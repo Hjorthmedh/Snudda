@@ -90,6 +90,9 @@ class SnuddaPrune(object):
             keep_files (bool, optional): If True then you can redo pruning multiple times without reruning detect
         """
 
+        self.rc = rc
+        self.d_view = d_view
+
         self.work_history_file = os.path.join(network_path, "log", "network-detect-worklog.hdf5")    
         self.network_path = network_path
         self.keep_files = keep_files
@@ -115,9 +118,6 @@ class SnuddaPrune(object):
         self.h5driver = "sec2"  # "core" # "stdio", "sec2"
 
         self.write_log(f"Using hdf5 driver {self.h5driver}, {self.h5libver} version")
-
-        self.rc = rc
-        self.d_view = d_view
 
         if self.rc and not self.d_view:
             self.d_view = self.rc.direct_view(targets='all')

@@ -39,7 +39,6 @@ class SnuddaPlace(object):
                  log_file=None,
                  rc=None,
                  d_view=None,
-                 lb_view=None,
                  h5libver=None,
                  raytrace_borders=False,
                  random_seed=None,
@@ -70,13 +69,9 @@ class SnuddaPlace(object):
 
         self.rc = rc
         self.d_view = d_view
-        self.lb_view = lb_view
 
         if self.rc and not self.d_view:
             self.d_view = self.rc.direct_view(targets='all')
-
-        if self.rc and not self.lb_view:
-            self.lb_view = self.rc.load_balanced_view(targets='all')
 
         if h5libver is None:
             self.h5libver = "latest"
@@ -283,10 +278,8 @@ class SnuddaPlace(object):
                 if "-cube-mesh-" in vol_def["meshFile"] or "slice.obj" in vol_def["meshFile"]:
                     self.write_log("Cube or slice mesh, switching to serial processing.")
                     d_view = None
-                    lb_view = None
                 else:
                     d_view = self.d_view
-                    lb_view = self.lb_view
 
                 if snudda_path_exists(vol_def["meshFile"]):
                     mesh_file = snudda_parse_path(vol_def["meshFile"])
@@ -299,7 +292,6 @@ class SnuddaPlace(object):
                 self.volume[volume_id]["mesh"] \
                     = RegionMesh(mesh_file,
                                  d_view=d_view,
-                                 lb_view=lb_view,
                                  raytrace_borders=self.raytrace_borders,
                                  d_min=vol_def["dMin"],
                                  bin_width=mesh_bin_width,

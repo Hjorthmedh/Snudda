@@ -10,14 +10,13 @@ import timeit
 
 class RegionMesh(object):
 
-    def __init__(self, filename, d_view=None, lb_view=None, role="master",
+    def __init__(self, filename, d_view=None, role="master",
                  use_cache=True, pickle_version=-1, raytrace_borders=True,
                  d_min=15e-6, bin_width=1e-4,
                  logfile_name=None, log_file=None,
                  random_seed=112, verbose=False):
 
         self.d_view = d_view
-        self.lb_view = lb_view
 
         self.role = role
         self.workers_initialised = False
@@ -1332,17 +1331,14 @@ if __name__ == "__main__":
         # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
         print("Client IDs: " + str(rc.ids))
         d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
-        lb_view = rc.load_balanced_view(targets='all')
     else:
         print("No IPYTHON_PROFILE enviroment variable set, running in serial")
         d_view = None
-        lb_view = None
         rc = None
 
     meshFile = '../data/mesh/Striatum-d.obj'
     # meshFile = "mesh/cortex-mesh-200.obj"
-    sm = RegionMesh(meshFile, d_view=d_view, lb_view=lb_view,
-                    raytrace_borders=False, verbose=True)
+    sm = RegionMesh(meshFile, d_view=d_view, raytrace_borders=False, verbose=True)
 
     # import cProfile
     # cProfile.run("neuronPos = sm.placeNeurons(1000)")
