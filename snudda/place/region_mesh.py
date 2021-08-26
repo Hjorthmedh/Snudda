@@ -10,18 +10,39 @@ import timeit
 
 class RegionMesh(object):
 
+    """ Handles neuron placement within a 3D mesh. """
+
     def __init__(self, filename, d_view=None, role="master",
                  use_cache=True, pickle_version=-1, raytrace_borders=True,
                  d_min=15e-6, bin_width=1e-4,
                  logfile_name=None, log_file=None,
                  random_seed=112, verbose=False):
 
+        """
+        Constructor.
+
+        Args:
+            filename (str) : Path to wavefront mesh file
+            d_view : ipyparallel direct view object
+            role (str) : Role, ie. "master" or "worker"
+            use_cache (bool) : The meshes voxel representation is cached, use the cache?
+            pickle_version (int) : Which version of pickle to use? (-1 latest)
+            raytrace_borders (bool) : Raytrace positions in border regions? Slower, but more accurate.
+            d_min (float) : Closest distance between soma
+            bin_width (float) : Mesh size
+            logfile_name (str) : Path to logfile
+            log_file : File pointer to log file
+            random_seed (int) : Random seed value
+            verbose (bool) : Flag to be verbose?
+
+        """
+
         self.d_view = d_view
 
         self.role = role
         self.workers_initialised = False
 
-        self.verbose = False
+        self.verbose = verbose
         self.close_log_file = False
 
         if log_file is not None:
@@ -115,7 +136,7 @@ class RegionMesh(object):
         # binWidth 0.5e-4 (??? s) --> ?? % border voxels
 
         self.filename = filename
-        self.cache_file = filename + "-" + str(int(1e6 * self.bin_width)) + rt_str + "-cache.pickle"
+        self.cache_file = f"{filename}-{int(1e6 * self.bin_width)}{rt_str}-cache.pickle"
         self.pickle_version = pickle_version
 
         self.debug_flag = False
@@ -153,6 +174,8 @@ class RegionMesh(object):
     ############################################################################
 
     def mark_borders(self):
+
+        """ Mark border voxels in 3D mesh. """
 
         self.write_log("Marking borders")
 
@@ -193,6 +216,8 @@ class RegionMesh(object):
     ############################################################################
 
     def setup_parallel(self, d_view=None):
+
+        """ Setup workers for parallel execution. """
 
         if d_view is None:
 
@@ -249,6 +274,8 @@ class RegionMesh(object):
 
     def cache_exist(self):
 
+        """ Check if cache for 3D mesh exists. Returns True or False. """
+
         cache_flag = False
 
         if os.path.isfile(self.cache_file):
@@ -270,6 +297,8 @@ class RegionMesh(object):
 
     def load_cache(self):
 
+        """ Loading 3D mesh cache. """
+
         self.write_log(f"Loading cache file: {self.cache_file}")
 
         with open(self.cache_file, 'rb') as f:
@@ -286,15 +315,13 @@ class RegionMesh(object):
         self.point_out = self.max_coord + np.array([1e-1, 1e-2, 1e-3])
         # self.point_out = self.max_coord + 1e-2
 
-
         assert self.bin_width == data["binWidth"], \
-            "Mismatch binWidth: " + str(self.bin_width) + " vs " + str(data["binWidth"])
+            f"Mismatch binWidth: {self.bin_width} vs {data['binWidth']}"
         assert self.padding == data["padding"], \
-            "Mismatch padding: " + str(self.padding) + " vs " + str(data["padding"])
+            f"Mismatch padding: {self.padding} vs {data['padding']}"
 
         assert self.raytrace_borders == data["raytraceBorders"], \
-            "Mismatch raytraceBorders: " + str(self.raytrace_borders) \
-            + " vs " + str(data["raytraceBorders"])
+            f"Mismatch raytraceBorders: {self.raytrace_borders} vs {data['raytraceBorders']}"
 
         self.num_bins = self.voxel_mask_inner.shape
         self.pre_compute()
@@ -302,6 +329,8 @@ class RegionMesh(object):
     ############################################################################
 
     def save_cache(self):
+
+        """ Save 3D mesh cache. """
 
         if self.role != "master":
             return
@@ -325,6 +354,8 @@ class RegionMesh(object):
     ############################################################################
 
     def load_mesh(self, filename):
+
+        """ Load 3D mesh. """
 
         self.filename = filename
 
@@ -398,6 +429,8 @@ class RegionMesh(object):
 
     def pre_compute(self):
 
+        """ Helper function, precomputes values for raytracing. """
+
         i0 = self.mesh_faces[:, 0]
         i1 = self.mesh_faces[:, 1]
         i2 = self.mesh_faces[:, 2]
@@ -423,6 +456,8 @@ class RegionMesh(object):
     ############################################################################
 
     def setup_voxel_filter(self):
+
+        """ Setup voxel filter for 3D mesh. """
 
         if self.role == "master":
             self.setup_parallel()
@@ -494,17 +529,10 @@ class RegionMesh(object):
 
     ############################################################################
 
-    def write_to_random_file(self, text):
-
-        import uuid
-        tmp = open("save/regmesh-tmp-log-file-" + str(uuid.uuid4()), 'w')
-        tmp.write(text)
-        tmp.close()
-        print(text)
-
-    ############################################################################
-
     def check_inside(self, coords):
+
+        """ Check if coordinates are inside 3D mesh. """
+
         idx = np.array(np.floor((coords - self.min_coord) / self.bin_width), dtype=int)
 
         if self.voxel_mask_inner[idx[0], idx[1], idx[2]]:
@@ -520,6 +548,8 @@ class RegionMesh(object):
     ############################################################################
 
     def _voxel_mask_helper(self, x_range):
+
+        """ Helper function. """
 
         try:
 
@@ -619,6 +649,9 @@ class RegionMesh(object):
     ############################################################################
 
     def ray_casting(self, point):
+
+        """ Ray-casting, to determine if a point is inside or outside of mesh. """
+
         return RegionMesh.ray_casting_helper(point=point,
                                              self_mesh_faces=self.mesh_faces,
                                              self_mesh_nrm=self.mesh_nrm,
