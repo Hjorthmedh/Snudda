@@ -17,9 +17,21 @@ from snudda.utils.load import SnuddaLoad
 
 class SnuddaProject(object):
 
+    """ Adds projections between neurons, useful for connecting different regions with long range connections. """
+
     # TODO: Add support for log files!!
     # TODO: Add support for parallel execution
     def __init__(self, network_path, rng=None, random_seed=None, h5libver=None):
+
+        """
+        Constructor.
+
+        Args:
+            network_path: Path to network directory
+            rng: Numpy random stream
+            random_seed: Random seed
+            h5libver: Version of hdf5 driver to use
+        """
 
         self.network_path = network_path
         self.network_info = None
@@ -65,6 +77,8 @@ class SnuddaProject(object):
 
     def read_neuron_positions(self):
 
+        """ Reads in neuron positions from network-neuron-positions.hdf5 """
+
         position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
         self.network_info = SnuddaLoad(position_file)
 
@@ -76,6 +90,8 @@ class SnuddaProject(object):
 
     # This is a simplified version of the prototype load in detect
     def read_prototypes(self):
+
+        """ Reads in neuron prototypes. Simplified version of what same function in detect.py does. """
 
         for name, definition in self.config["Neurons"].items():
 
@@ -119,6 +135,8 @@ class SnuddaProject(object):
 
     def project(self, write=True):
 
+        """ Create projections between neurons. """
+
         for (pre_type, post_type), connection_info in self.connectivity_distributions.items():
             self.connect_projection_helper(pre_type, post_type, connection_info)
 
@@ -126,6 +144,16 @@ class SnuddaProject(object):
             self.write()
 
     def connect_projection_helper(self, pre_neuron_type, post_neuron_type, connection_info):
+
+        """
+        Helper function for project.
+
+        Args:
+            pre_neuron_type: Type of presynaptic neuron
+            post_neuron_type: Type of postsynaptic neuron
+            connection_info: Connection info
+
+        """
 
         for connection_type, con_info in connection_info.items():
 
@@ -265,6 +293,8 @@ class SnuddaProject(object):
                         self.synapse_ctr += 1
 
     def write(self):
+
+        """ Writes projection data to file. """
 
         # Before writing synapses, lets make sure they are sorted.
         # Sort order: columns 1 (dest), 0 (src), 6 (synapse type)
