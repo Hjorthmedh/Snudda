@@ -609,7 +609,7 @@ class SnuddaPrune(object):
             hyper_voxel_id (int) : ID of hyper voxel to open
             verbose (bool) : Print extra information
             verify (bool) : Verify hypervoxel integrity, default=True
-            
+
         """
 
         if verbose:
@@ -632,6 +632,15 @@ class SnuddaPrune(object):
 
     def check_network_config_integrity(self, config_file):
 
+        """
+        This checks that all connections included in the pruning, were present
+        in the detection. If some are missing in the detection phase, then they
+        would incorrectly be missing after pruning.
+
+        Args:
+            config_file (str) : Path to new config file
+        """
+
         detect_config = json.loads(self.hist_file["meta/config"][()])
         with open(config_file, "r") as f:
             prune_config = json.load(f)
@@ -651,6 +660,13 @@ class SnuddaPrune(object):
 
     # Parse the connection information in the config file
     def load_pruning_information(self, config_file=None):
+
+        """
+        Parse the connection information in the config file
+
+        Args:
+            config_file (str): Path to config file
+        """
 
         if config_file is None:
             config_file = self.hist_file["meta/configFile"][()]
@@ -701,11 +717,20 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    # This makes sure all the variables exist, that way pruneSynapseHelper
+    # This makes sure all the variables exist, that way prune_synapses_helper
     # does not have to check, but can assume that they will exist
 
     @staticmethod
     def complete_pruning_info(prune_info):
+
+        """
+        This makes sure all the variables exist, that way prune_synapses_helper
+        does not have to check, but can assume that they will exist
+
+        Args:
+            prune_info (dict) : Dictionary with pruning information to be complemented.
+
+        """
 
         if "distPruning" not in prune_info:
             prune_info["distPruning"] = None
@@ -728,6 +753,11 @@ class SnuddaPrune(object):
 
     def make_type_numbering(self):
 
+        """
+        Normally we use type names as lookups in connection_distribution, but since we will do this
+        many millions of times, we create an temporary type_id number.
+        """
+
         name_list = [x if type(x) not in [bytes, np.bytes_] else x.decode()
                      for x in self.hist_file["network/neurons/name"]]
 
@@ -745,7 +775,15 @@ class SnuddaPrune(object):
 
     ############################################################################
 
+    # TODO: Remove save_morphologies flag, no longer valid since we added NeuronPrototypes
     def setup_output_file(self, output_file=None, save_morphologies=False):
+
+        """
+        Sets up output file (network-synapses.hdf5), copying over meta data.
+
+        Args:
+            output_file (str, optional): Path to output file, default network-synapses.hdf5
+        """
 
         assert save_morphologies == False, "setup_output_file: save_morphologies currently disabled"
 
@@ -811,12 +849,28 @@ class SnuddaPrune(object):
 
     ############################################################################
 
+    # TODO: Remove save_morphologies as option, no longer possible since we are using NeuronPrototypes
+    #  with multiple morphologies
+
     def setup_merge_file(self, big_cache=False,
                          outfile_name=None,
                          save_morphologies=False,
                          num_synapses=None,
                          num_gap_junctions=None,
                          delete_after=True):
+
+        """
+        Sets up merge file, which is done after detection, but before synapse pruning.
+        Writes network-putative-synapses-MERGED.hdf5
+
+        Args:
+            big_cache (bool): Increase HDF5 cache size
+            outfile_name (str): Name of output file name (default network-putative-synapses-MERGED.hdf5)
+            num_synapses (int): Number of expected synapses
+            num_gap_junctions (int): Number of expected gap junctions
+            delete_after (bool): Clean up hypervoxel files after
+
+        """
 
         assert save_morphologies == False, "setup_merge_file: save_morphologies currently disabled"
 
@@ -938,6 +992,17 @@ class SnuddaPrune(object):
                                 merge_data_type="synapses",
                                 close_input_file=True):
 
+        """
+        Helper function, performs synapse (or gap junction) pruning in parallel.
+
+        Args:
+            synapse_file (list) : List with paths to synapse files
+            synapse_ctr (int) : List or array with number of synapses
+            merge_data_type (str) : "synapses" or "gapJunctions"
+            close_input_file (bool) : Close input file after, or keep open (default True)
+
+        """
+
         if type(synapse_ctr) == list:
             synapse_ctr = np.array(synapse_ctr)
 
@@ -1026,6 +1091,14 @@ class SnuddaPrune(object):
 
     def combine_files(self, source_file_names, merge_data_type):
 
+        """
+        Combines synapse files after pruning in network-synapses.hdf5.
+
+        Args:
+              source_file_names (list) : List with path to source files
+              merge_data_type (str) : "synapses" or "gapJunctions"
+        """
+
         start_time = timeit.default_timer()
 
         if not self.out_file:
@@ -1067,6 +1140,17 @@ class SnuddaPrune(object):
     # Find which ranges of the synapse matrix that each worker should take care of
 
     def find_ranges(self, synapses, num_workers, start_pos=0, num_syn=None):
+
+        """
+        Find which ranges of the synapse matrix that each worker should take care of
+
+        Args:
+            synapses : Synapse matrix
+            num_workers (int): Number of workers
+            start_pos (int) : Starting from position
+            num_syn (int): Number of synapses
+
+        """
 
         if num_syn is None:
             num_syn = synapses.shape[0] - start_pos
@@ -1111,6 +1195,8 @@ class SnuddaPrune(object):
 
     def clean_up_merge_files(self):
 
+        """ Cleans up merge files. """
+
         if self.role == "master" and self.d_view:
             # Make workers clean up their files also
             cmd_str = "sp.clean_up_merge_files()"
@@ -1134,7 +1220,20 @@ class SnuddaPrune(object):
 
     ############################################################################
 
+    # TODO: Switch to logger instead.
+
     def write_log(self, text, flush=True, is_error=False, force_print=False):  # Change flush to False in future, debug
+
+        """
+        Writes to log file. Use setup_log first. Text is only written to screen if self.verbose=True,
+        or is_error = True, or force_print = True.
+
+        test (str) : Text to write
+        flush (bool) : Should all writes be flushed to disk directly?
+        is_error (bool) : Is this an error, always written.
+        force_print (bool) : Force printing, even if self.verbose=False.
+        """
+
         try:
             if self.logfile is not None:
                 self.logfile.write(f"{text}\n")
@@ -1151,10 +1250,17 @@ class SnuddaPrune(object):
 
     def setup_parallel(self, d_view):
 
-        assert self.role == "master", "setupParallel: Should only be called by master node"
+        """
+        Setup workers for parallel execution.
+
+        Args:
+            d_view : ipyparallel direct view object
+        """
+
+        assert self.role == "master", "setup_parallel: Should only be called by master node"
 
         if d_view is None:
-            self.write_log("setupParallel called without dView, aborting.")
+            self.write_log("setup_parallel called without dView, aborting.")
             return
 
         if self.workers_initialised:
@@ -1190,6 +1296,8 @@ class SnuddaPrune(object):
 
     def clean_up_merge_read_buffers(self):
 
+        """ Housekeeping, clean up merge read buffers. """
+
         self.merge_data_type = None
 
         for hid, f in enumerate(self.file_list):
@@ -1212,12 +1320,22 @@ class SnuddaPrune(object):
 
     def buffer_merge_write(self, synapse_matrix_loc, synapses=None, flush=False):
 
+        """
+        Writes buffered synapses to file.
+
+        Args:
+            synapse_matrix_loc (str): location of synapses in HDF5 file
+            synapses : Synapse to write
+            flush (bool): Buffer needs to be flushed at last call, otherwise all is not written to file
+
+        """
+
         if self.synapse_write_buffer is None:
             # First time run
             if synapses is not None:
                 buffer_width = synapses.shape[1]
             else:
-                assert False, "bufferMergeWrite: Unable to guess width of matrix"
+                assert False, "buffer_merge_write: Unable to guess width of matrix"
 
             self.synapse_write_buffer = np.zeros((self.synapse_buffer_size,
                                                   buffer_width),
@@ -1264,6 +1382,11 @@ class SnuddaPrune(object):
     # and puts their synapses in its own file. Parallel execution, all neurons.
 
     def gather_neuron_synapses(self):
+
+        """
+        Goes through the hyper voxel synapse files, extracts a range of neurons,
+        and puts their synapses in its own file. Parallel execution, all neurons.
+        """
 
         if self.role != "master":
             self.write_log("gather_neuron_synapses is only run on master node, aborting")
@@ -1342,6 +1465,9 @@ class SnuddaPrune(object):
 
     def big_merge_parallel(self):
 
+        # TODO: Remove big_merge_parallel. It is replaced by big_merge_helper
+        assert False, "big_merge_parallel no longer used, Remove! -- Replaced by big_merge_helper"
+
         if self.role != "master":
             self.write_log("big_merge_parallel is only run on master node, aborting")
             return
@@ -1403,11 +1529,19 @@ class SnuddaPrune(object):
 
     ############################################################################
 
+    #    We need to find all the hypervoxels that might contain synapses.
+    #    During touch detection we generated a list for each hypervoxel with
+    #    all the neurons that had any part of it within that hypervoxel.
+
     def get_hyper_voxel_list(self, neuron_range):
 
-        # We need to find all the hypervoxels that might contain synapses.
-        # During touch detection we generated a list for each hypervoxel with
-        # all the neurons that had any part of it within that hypervoxel.
+        """
+        Gather a list of all hyper voxels which contains synapses belonging to neurons in neuron_range.
+
+        Args:
+            neuron_range : Range of neurons
+
+        """
 
         hv_list = []
         neuron_set = set(range(neuron_range[0], neuron_range[1]))
@@ -1425,6 +1559,15 @@ class SnuddaPrune(object):
     # This is called using d_view for parallel execution, the code coverage algorithm does not understand that
 
     def big_merge_helper(self, neuron_range, merge_data_type):
+
+        """
+        Gathers synapses (or gap junctions) belonging to neuron_range from multiple hyper voxels into one merge file.
+
+        Args:
+            neuron_range : Range of neurons
+            merge_data_type : "synapses" or "gapJunctions"
+
+        """
 
         try:
             self.write_log(f"big_merge_helper ({merge_data_type}): neuron_range = {neuron_range}")
@@ -1692,6 +1835,18 @@ class SnuddaPrune(object):
                        close_input_file=True,
                        close_out_file=True):
 
+        """
+        Prune synapses.
+
+        Args:
+            synapse_file : Path to file with putative synapses
+            output_filename : Path to file to write pruned synapses to
+            merge_data_type : "synapses" or "gapJunctions"
+            row_range : Synapse row range to prune
+            close_input_file (bool) : Close input files after
+            close_out_file (bool) : Close output file after
+        """
+
         try:
             h5_syn_mat, h5_hyp_syn_n, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
 
@@ -1774,17 +1929,19 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    # This code prunes synapses, but you need to send it small chunks
-    # so synapses are all in memory, also it buffers the write until the end
-
-    # synapses -- subset of synapse matrix that fits in memory
-    # rowRange -- which rows to read
-    # outputFile -- where to write synapses, assumed to already exist
-    # outFilePos -- which position to start writing from
-
-    # Tried to use numba, but dictionaries and h5py._hl.files.File not supported
-
     def prune_synapses_helper(self, synapses, output_file, merge_data_type):
+
+        """
+        Helper function to prunes synapses. It takes a subset of the synapse matrix as input, as it needs to keep
+        all synapses onto the same neuron in memory at the same time. It buffers writes until the end.
+
+        Args:
+            synapses: subset of synapse matrix that fits in memory
+            output_file: where to write synapses, assumed to already exist
+            merge_data_type : "synapses" or "gapJunctions"
+
+        """
+        # Tried to use numba, but dictionaries and h5py._hl.files.File not supported
 
         h5_syn_mat, h5_hyp_syn_n, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
 
@@ -1969,6 +2126,14 @@ class SnuddaPrune(object):
     @jit(nopython=True)
     def file_row_lookup_iterator(h5mat, chunk_size=10000):
 
+        """
+        File row lookup, to quickly find range of synapses onto a neuron.
+
+        Args:
+            h5mat : Synapse matrix
+            chunk_size : Chunk size to process each time
+        """
+
         mat_size = h5mat.shape[0]
 
         # If matrix is smaller than chunk, buffer can be smaller than requested
@@ -1997,6 +2162,17 @@ class SnuddaPrune(object):
     # min_dest_id and max_dest_id are inclusive, only synapses with dest_id in that range are iterated over
 
     def file_row_lookup_iterator_subset(self, h5mat_lookup, min_dest_id, max_dest_id, chunk_size=10000):
+
+        """
+        File row lookup iterator, working on a subset of the synapse matrix.
+        min_dest_id and max_dest_id are inclusive, only synapses with dest_id in that range are iterated over
+
+        Args:
+            h5mat_lookup : Synapse lookup
+            min_dest_id : Minimum neuron destination ID for synapses  (inclusive)
+            max_dest_id : Maximum neuron destination ID for synapses (inclusive)
+            chunk_size : Chunk size for processing
+        """
 
         num_neurons = self.hist_file["network/neurons/neuronID"].shape[0]
 
@@ -2039,6 +2215,16 @@ class SnuddaPrune(object):
 
     @staticmethod
     def synapse_set_iterator(h5mat_lookup, h5mat, chunk_size=10000, lookup_iterator=None):
+
+        """
+        Iterator over synapses.
+
+        Args:
+            h5mat_lookup : Synapse lookup table
+            h5mat : Synapse matrix
+            chunk_size : Chunk size to process
+            lookup_iterator : Synapse lookup iterator
+        """
 
         # Allow the user to set an alternative lookupIterator if we only
         # want to iterate over a subset of the synapses
@@ -2129,6 +2315,8 @@ class SnuddaPrune(object):
 
     def get_neuron_random_seeds(self):
 
+        """ Derive neuron random seeds from pruning master seed. """
+
         num_neurons = self.hist_file["network/neurons/neuronID"].shape[0]
 
         if self.cache_neuron_seeds is not None \
@@ -2153,6 +2341,8 @@ class SnuddaPrune(object):
 
     # This removes the files in the temp and voxels directory, freeing up diskspace
     def cleanup(self):
+
+        """ Removes files in temp and voxels directories, freeing up diskspace. """
 
         temp_path = os.path.join(self.network_path, "temp")
         voxel_path = os.path.join(self.network_path, "voxels")
