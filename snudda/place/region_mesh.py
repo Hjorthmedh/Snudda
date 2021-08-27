@@ -671,6 +671,14 @@ class RegionMesh(object):
                            self_mesh_v0, self_mesh_denom,
                            self_mesh_uv, self_mesh_vv, self_mesh_uu, self_mesh_u, self_mesh_v):
 
+        """
+        Helper function for ray-casting, to determine if a point is inside the 3D-mesh.
+        It draws a line from the point given, and a second point defined as outside.
+        If that line intersects the surface of the 3D mesh an odd number of times, then the first point is inside.
+
+        Uses values pre-computed by pre_compute function.
+        """
+
         # print(f"Processing {point}")
 
         n_tri = self_mesh_faces.shape[0]
@@ -720,6 +728,8 @@ class RegionMesh(object):
 
     def verify_inside(self, num_points=1000):
 
+        """ Verify the check-inside method against the ray-casting method to make sure they give same results. """
+
         if self.role != "master":
             return
 
@@ -747,6 +757,13 @@ class RegionMesh(object):
     ############################################################################
 
     def setup_place_neurons(self, d_min=None):
+
+        """
+        Initialises variables for neuron placement.
+
+        Args:
+            d_min (float) : Minimal distance between neuron somas, in SI units (meters)
+        """
 
         self.write_log("Setup place neurons")
 
@@ -780,6 +797,8 @@ class RegionMesh(object):
 
     def setup_voxel_list(self):
 
+        """ Setup voxel list, these are voxels that needs to be checked for neurons close by. """
+
         self.write_log("Setup voxel list")
 
         self.voxel_next_neuron = np.zeros(self.num_bins, dtype=int)
@@ -789,6 +808,9 @@ class RegionMesh(object):
     ############################################################################
 
     def update_padding_mask(self):
+
+        """ Updates padding mask. We add neurons outside our region of interest, to avoid artificially inflating
+            neuron density at the edges (which would happen without the padding region). """
 
         self.write_log("Update padding mask")
 
@@ -817,6 +839,7 @@ class RegionMesh(object):
 
     def check_padding_zone(self, coords):
 
+        # TODO: Check/remember why min was taken here :)
         idx = np.array(np.floor((coords - self.min_coord) / self.bin_width), dtype=int)
 
         return self.voxel_mask_padding[idx[0], idx[1], idx[2]]
@@ -824,6 +847,8 @@ class RegionMesh(object):
     ############################################################################
 
     def update_random_pool(self):
+
+        """ Refills the random pool with new random numbers. """
 
         if self.rand_ctr >= self.max_rand:
 
@@ -840,6 +865,15 @@ class RegionMesh(object):
     # density_function is either None, or a function of pos = [x,y,z] (in SI units)
 
     def define_density(self, neuron_type, density_function):
+
+        """
+        Defines density for neuron type.
+
+        Args:
+            neuron_type (str): Neuron type
+            density_function (str): density_function is either None, or a function of pos = [x,y,z] (in SI units)
+
+        """
 
         self.density_function[neuron_type] = density_function
         self.density_voxel_sum[neuron_type] = np.zeros(self.num_bins, dtype=float)
@@ -1031,7 +1065,7 @@ class RegionMesh(object):
                     self.voxel_next_neuron[voxel_idx[0], voxel_idx[1], voxel_idx[2]] += 1
                 except:
                     self.write_log(f"If you see this error you probably need to increase " 
-                                    f"self.max_neurons_voxel={self.max_neurons_voxel}")
+                                   f"self.max_neurons_voxel={self.max_neurons_voxel}")
                     import traceback
                     tstr = traceback.format_exc()
                     print(tstr)
@@ -1062,6 +1096,18 @@ class RegionMesh(object):
 
     def get_subset(self, centre, radius=None, num_neurons=None, shape="cube",
                    return_idx_flag=False):
+
+        """
+        Returns subset of positions, either within a radius, or the closest num_neurons neurons.
+
+        Args:
+            centre (float,float,float): Centre of space
+            radius (float): Radius if sphere, half-side if cube
+            num_neurons (int): Number of neurons (if None, all within radius are returned)
+            shape (str): "sphere" or "cube"
+            return_idx_flag (bool): Return the indexes instead of coordinates (default False)
+
+        """
 
         assert ((radius is None) ^ (num_neurons is None)), \
             "Specify one of radius or nNeurons."
@@ -1098,6 +1144,12 @@ class RegionMesh(object):
 
     def plot_struct(self, pdf_name=None):
 
+        """ Plot structure.
+
+        Args:
+            pdf_name (str) : Save file name (default None)
+        """
+
         import matplotlib.pyplot as plt
         from mpl_toolkits.mplot3d import Axes3D
 
@@ -1123,6 +1175,13 @@ class RegionMesh(object):
     ############################################################################
 
     def plot_neurons(self, plot_idx=None, pdf_name=None):
+
+        """ Plot neurons.
+
+        Args:
+            plot_idx (list): Neuron ID to plot
+            pdf_name (str): Name of file to save figure to (default None)
+            """
 
         import matplotlib.pyplot as plt
         from mpl_toolkits.mplot3d import Axes3D
@@ -1152,6 +1211,8 @@ class RegionMesh(object):
     ############################################################################
 
     def test_plot(self):
+
+        """ Test plot"""
 
         # !!! NEXT ADD dMIN TO THIS
 
@@ -1186,6 +1247,8 @@ class RegionMesh(object):
     ############################################################################
 
     def test_plot_cached(self):
+
+        """ Test plot cached. """
 
         # !!! NEXT ADD dMIN TO THIS
 
@@ -1225,6 +1288,8 @@ class RegionMesh(object):
     ############################################################################
 
     def verify_d_min(self):
+
+        """ Verify that d_min constraint is met. """
 
         self.write_log("Verifying that dMin constraint is met")
 
@@ -1330,6 +1395,16 @@ class RegionMesh(object):
 
     def write_log(self, text, flush=True, is_error=False):  # Change flush to False in future, debug
 
+        """
+        Writes to log file. Use setup_log first. Text is only written to screen if self.verbose=True,
+        or is_error = True, or force_print = True.
+
+        test (str) : Text to write
+        flush (bool) : Should all writes be flushed to disk directly?
+        is_error (bool) : Is this an error, always written.
+        force_print (bool) : Force printing, even if self.verbose=False.
+        """
+
         if self.logfile is not None:
             self.logfile.write(text + "\n")
             if flush:
@@ -1341,6 +1416,8 @@ class RegionMesh(object):
     ############################################################################
 
     def inner_voxel_volume(self):
+
+        """ Volume of all inner voxels. """
 
         return np.sum(self.voxel_mask_inner) * (self.bin_width ** 3)
 
