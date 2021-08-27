@@ -12,6 +12,8 @@ from snudda.neurons.neuron_prototype import NeuronPrototype
 
 class NeuronModel(ephys.models.CellModel):
 
+    """ Extended NeuronModel for simulation. """
+
     def __init__(self,
                  cell_name="Unknown",
                  morph_path=None,
@@ -21,6 +23,20 @@ class NeuronModel(ephys.models.CellModel):
                  parameter_id=None,
                  morphology_id=None,
                  modulation_id=None):
+
+        """
+        Constructor
+
+        Args:
+            cell_name: Name of neuron, e.g. "dSPN"
+            morph_path: Path to morphology directory, there may be multiple morphologies available
+            mech_file: Path to mechanism file
+            param_file: Path to parameter file
+            modulation_file: Path to neuromodulation parameter file
+            parameter_id: ID of parameter set
+            morphology_id: ID of morphology set
+            modulation_id: ID of neuromodulation parameter set
+        """
 
         self.name = cell_name
         self.type = cell_name.split('_')[0]
@@ -75,7 +91,7 @@ class NeuronModel(ephys.models.CellModel):
     # Helper function
 
     def define_mechanisms(self, mechanism_config=None):
-        """Define mechanisms"""
+        """Define mechanisms based on mechanism_config """
 
         assert (mechanism_config is not None)
         # print("Using mechanmism config: " + mechanism_config)
@@ -118,7 +134,9 @@ class NeuronModel(ephys.models.CellModel):
     # Helper function
 
     def define_parameters(self, parameter_config=None, parameter_id=None):
-        """Define parameters"""
+        """
+        Define parameters based on parameter_config and parameter_id.
+        If there are n parameter sets, and parameter_id is k, then the parameter set is n % k."""
 
         assert (parameter_config is not None)
 
@@ -216,7 +234,13 @@ class NeuronModel(ephys.models.CellModel):
     # Helper function
 
     def define_morphology(self, replace_axon=True, morph_file=None):
-        """Define morphology. Handles SWC and ASC."""
+        """
+        Define morphology. Handles SWC and ASC.
+
+        Args:
+            replace_axon (bool): Is axon replaced with a stump for simulation, default True
+            morph_file (str): Path to morphology
+        """
 
         assert (morph_file is not None)
 
@@ -238,6 +262,19 @@ class NeuronModel(ephys.models.CellModel):
     # uses to index the dendrites (due to us wanting to include soma)
 
     def map_id_to_compartment(self, section_id):
+
+        """
+        Map section_id to compartment.
+
+        Neuron_morphology defines sectionID, these must match what this returns
+        so that they point to the same compartment.
+
+        Soma is 0
+        axons are negative values (currently all set to -1) in Neuron_morphology
+        dendrites are 1,2,3,4,5... ie one higher than what Neuron internally
+        uses to index the dendrites (due to us wanting to include soma)
+
+        """
 
         if self.section_lookup is None:
 
@@ -369,7 +406,7 @@ class NeuronModel(ephys.models.CellModel):
 
     def get_replacement_axon(self):
 
-        assert False, "Old bugfix for segmetn stack pop, should not be needed anymore"
+        assert False, "Old bugfix for segment stack pop, should not be needed anymore"
 
         new_axon_hoc = \
             '''
