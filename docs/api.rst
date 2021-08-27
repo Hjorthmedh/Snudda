@@ -6,4 +6,8 @@ Python API
 
    init
    place
-   
+   detect
+   input
+   simulate
+   neurons
+   utils
