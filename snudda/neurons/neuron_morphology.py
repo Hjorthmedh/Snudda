@@ -118,6 +118,8 @@ class NeuronMorphology(object):
 
     def load_neuron_morphology(self):
 
+        """ Loads neuron morphology from SWC file or from cache file. """
+
         if self.use_cache:
             if self.cache_exist():
                 # Load existing cache
@@ -159,6 +161,19 @@ class NeuronMorphology(object):
               morphology_id=None,
               parameter_id=None,
               modulation_id=None):
+
+        """
+        Creates a clone copy of a neuron.
+
+        Args:
+            load_morphology (bool) : Load morphology into clone?
+            position (float,float,float) : x,y,z coordinate of clone
+            rotation (rotation matrix) : Rotation matrix for clone
+            morphology_id: Morphology ID for the clone
+            parameter_id: Parameter ID for the clone
+            modulation_id: Neuromodulation parameter ID for the clone
+
+        """
 
         if load_morphology is None:
             load_morphology = self.load_morphology
@@ -231,6 +246,8 @@ class NeuronMorphology(object):
     ############################################################################
 
     def write_log(self, text, is_error=False):
+
+        """ Write text to log file. Prints on screen if self.verbose or is_error """
         if self.logFile is not None:
             self.logFile.write(f"{text}\n")
 
@@ -243,12 +260,12 @@ class NeuronMorphology(object):
     @staticmethod
     def rand_rotation_matrix(deflection=1.0, rand_nums=None):
         """
-    Creates a random rotation matrix.
+        Creates a random rotation matrix.
     
-    deflection: the magnitude of the rotation. For 0, no rotation; for 1, competely random
-    rotation. Small deflection => small perturbation.
-    randnums: 3 random numbers in the range [0, 1]. If `None`, they will be auto-generated.
-    """
+        deflection: the magnitude of the rotation. For 0, no rotation; for 1, competely random
+        rotation. Small deflection => small perturbation.
+        rand_nums: 3 random numbers in the range [0, 1]. If `None`, they will be auto-generated.
+        """
 
         # from http://www.realtimerendering.com/resources/GraphicsGems/gemsiii/rand_rotation.c
 
@@ -283,6 +300,15 @@ class NeuronMorphology(object):
 
     # We can specify a position and rotation
     def place(self, rotation=None, position=None):
+
+        """
+        Placing a neuron and rotating it. Will give a warning if it was previously rotated.
+
+        Args:
+            rotation: 3D rotation matrix
+            position: x,y,z position for neuron
+
+        """
 
         if self.rotated_flag:
             self.write_log("!!! WARNING, rotating a rotated neuron...")
@@ -342,6 +368,8 @@ class NeuronMorphology(object):
 
     def save_cache(self, cache_file=None):
 
+        """ Saves cache_file with morphology """
+
         if cache_file is None:
             cache_file = snudda_parse_path(self.cache_filename)
 
@@ -377,6 +405,8 @@ class NeuronMorphology(object):
 
     def cache_exist(self, cache_file=None):
 
+        """ Checks if cache_file exists """
+
         if cache_file is None:
             cache_file = snudda_parse_path(self.cache_filename)
 
@@ -403,6 +433,8 @@ class NeuronMorphology(object):
     ############################################################################
 
     def load_cache(self, cache_file=None):
+
+        """ Loads morphology from cache_file. """
 
         if cache_file is None:
             cache_file = snudda_parse_path(self.cache_filename)
@@ -458,6 +490,8 @@ class NeuronMorphology(object):
     # if there are multiple axons they will have separate sectionIDs
 
     def load_swc(self, swc_file=None):
+
+        """ Loads morphology from swc_file """
 
         if not swc_file:
             swc_file = snudda_parse_path(self.swc_filename)
@@ -728,6 +762,8 @@ class NeuronMorphology(object):
 
     def find_radius(self):
 
+        """ Find finds maximum axon and dendrite radius of neuron. """
+
         if len(self.axon) > 0:
             self.max_axon_radius = \
                 np.max(np.linalg.norm(self.axon[:, 0:3] - self.soma[0, 0:3], axis=1))
@@ -756,6 +792,23 @@ class NeuronMorphology(object):
                     dend_colour=None,
                     soma_colour=None,
                     show_plot=True):
+
+        """
+        Plots neuron.
+
+        Args:
+            axis
+            plot_axon
+            plot_dendrite
+            line_style
+            alpha
+            plot_origo
+            plot_scale
+            axon_colour
+            dend_colour
+            soma_colour
+            show_plot
+        """
 
         self.write_log(f"Plotting neuron {self.swc_filename}")
 
@@ -868,6 +921,15 @@ class NeuronMorphology(object):
 
     def set_axon_voxel_radial_density(self, density, max_axon_radius):
 
+        """
+        Sets axon radial density
+
+        Args:
+            density: Axon density f(r), r = radius from soma
+            max_axon_radius: Axon density is calculated within a sphere of radius max_axon_radius
+
+        """
+
         self.write_log("Only saving equation now")
 
         self.axon_density_type = "r"
@@ -880,6 +942,14 @@ class NeuronMorphology(object):
                                    density,
                                    axon_density_bounds_xyz):
 
+        """
+        Sets axon density
+
+        Args:
+            density: Axon density f(x,y,z), x,y,z = SWC coordinates in relative to soma
+            axon_density_bounds_xyz: Bounding box for the axon density in x,y,z
+        """
+
         self.write_log("Only saving equation now")
 
         self.axon_density_type = "xyz"
@@ -889,6 +959,11 @@ class NeuronMorphology(object):
     ############################################################################
 
     def compartment_length(self, comp_type="dend"):
+
+        """
+        Calculates compartment length comp_type ("axon" or "dend")
+        """
+
         if comp_type == "dend":
             links = self.dend_links
             coords = self.dend
@@ -908,6 +983,16 @@ class NeuronMorphology(object):
     # TODO: Update the code so that it gives exactly num_locations positions (currently it varies)
 
     def dendrite_input_locations(self, synapse_density, rng, num_locations=None, return_density=False):
+
+        """
+        Randomises input locations on dendrites.
+
+        Args:
+            synapse_density : Synapse density as a function f(d), d=distance from soma
+            rng : Numpy random stream
+            num_locations : Number of input locations (this is average number returned, results vary)
+            return_density : Should the function also return the density
+        """
 
         # Calculate the input density at each point in dendrite morphology
         d = self.dend[:, 4]
