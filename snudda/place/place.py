@@ -679,16 +679,15 @@ class SnuddaPlace(object):
         """ Defines population units.
 
         Args:
-            population_unit_info (dict):
-                "AllUnitID" -- List of all Unit IDs
-                <VolumeID> -- Points to a dictionary. This dictionary has keys
-                    "method" : "random" or "radialDensity"                    "
-                    "unitID" : ID of population unit
-                    "fractionOfNeurons" : How large fraction of neurons belong to this unit (used by "random" method)
-                    "neuronTypes" : List of Neuron types that belong to this population unit
-                    "structure" : Name of structure population unit is located in (VolumeID)
-                    "centres" : Centre of radial density
-                    "ProbabilityFunctions" : Probability function defining unit membership, function of radius
+            population_unit_info (dict): Has keys "AllUnitID" with a list of all Unit IDs, and <VolumeID> which points
+                                         to a dictionary. This dictionary has keys:
+                                         "method" : "random" or "radialDensity"                    "
+                                         "unitID" : ID of population unit
+                                         "fractionOfNeurons" : How large fraction of neurons belong to this unit (used by "random" method)
+                                         "neuronTypes" : List of Neuron types that belong to this population unit
+                                         "structure" : Name of structure population unit is located in (VolumeID)
+                                         "centres" : Centre of radial density
+                                         "ProbabilityFunctions" : Probability function defining unit membership, function of radius
 
         """
 

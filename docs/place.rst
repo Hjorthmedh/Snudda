@@ -2,7 +2,7 @@ Snudda Neuron Place
 ===================
 
 .. autosummary::
-    :toctree: init
+    :toctree: place
     :template: module.rst
 
     snudda.place.place

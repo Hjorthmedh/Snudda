@@ -2,7 +2,7 @@ Snudda Input
 ===================
 
 .. autosummary::
-    :toctree: init
+    :toctree: input
     :template: module.rst
 
     snudda.input.input
