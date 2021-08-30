@@ -430,7 +430,8 @@ class SnuddaPlace(object):
             else:
                 virtual_neuron = False
 
-            rotation_mode = definition["rotationMode"]
+            # Now handled by rotation_helper
+            # rotation_mode = definition["rotationMode"]
 
             if "axonDensity" in definition:
                 axon_density = definition["axonDensity"]
@@ -447,7 +448,7 @@ class SnuddaPlace(object):
                              hoc=hoc,
                              volume_id=volume_id,
                              virtual_neuron=virtual_neuron,
-                             rotation_mode=rotation_mode,
+                             # rotation_mode=rotation_mode,
                              axon_density=axon_density)
 
         self.config_file = config_file
