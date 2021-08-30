@@ -32,6 +32,8 @@ from snudda.place.rotation import SnuddaRotate
 
 class SnuddaPlace(object):
 
+    """ Places neurons in 3D space. Use detect to add connections, and prune to remove redundant connections. """
+
     def __init__(self,
                  config_file=None,
                  network_path=None,
@@ -43,6 +45,23 @@ class SnuddaPlace(object):
                  raytrace_borders=False,
                  random_seed=None,
                  griddata_interpolation=False):  # Setting this to true is 5x slower
+
+        """
+        Constructor.
+
+        Args:
+            config_file (str) : Path to config file, e.g. network-config.json in network_path
+            network_path (str) : Path to network directory
+            verbose (bool) : Print extra information on screen
+            log_file (str) : Log file for place
+            rc : ipyparallel remote client
+            d_view : ipyparallel direct view object
+            h5libver : Version of h5py library
+            raytrace_borders (bool) : Should positions in border voxels be raytraces, slower but more accurate
+            random_seed (int) : Numpy random seed
+            griddata_interpolation (bool) : Should we interpolate density data (5x slower)
+
+        """
 
         if not config_file and network_path:
             config_file = os.path.join(network_path, "network-config.json")
@@ -117,12 +136,18 @@ class SnuddaPlace(object):
     ############################################################################
 
     def place(self):
+
+        """ Place neurons in 3D space. """
+
         self.parse_config()
         self.write_data()
 
     ############################################################################
 
     def write_log(self, text):
+
+        """ Write text to log file. """
+
         if self.log_file is not None:
             self.log_file.write(text + "\n")
 
@@ -140,9 +165,24 @@ class SnuddaPlace(object):
                     name="Unnamed",
                     hoc=None,
                     volume_id=None,
-                    rotation_mode="random",
                     virtual_neuron=False,
                     axon_density=None):
+
+        """
+        Add neurons to volume specified.
+
+        Args:
+            swc_path (str): Path to morphology directory (or single morphology)
+            num_neurons (int): Number of neurons to add
+            param_filename (str): Path to parameter file
+            mech_filename (str): Path to mechanism file
+            modulation (str): Path to neuromodulation file
+            name (str): Name of neuron population, e.g. DSPN (which will become DSPN_0, DSPN_1, etc...)
+            hoc (str): Path to hoc file (currently disabled)
+            volume_id (str): ID of the volume to place neurons in
+            virtual_neuron (bool): Real or virtual neuron, the latter can be used to model axons giving input to network
+            axon_density (str): Axon density
+        """
 
         assert volume_id is not None, f"You must specify a volume for neuron {name}"
         assert hoc is None, "Currently only support hoc=None, since we can have multiple parameter, morph combos now"
@@ -202,6 +242,8 @@ class SnuddaPlace(object):
     ############################################################################
 
     def parse_config(self, config_file=None):
+
+        """ Parse network config_file """
 
         if config_file is None:
             config_file = self.config_file
@@ -425,6 +467,9 @@ class SnuddaPlace(object):
     ############################################################################
 
     def all_neuron_positions(self):
+
+        """ Returns all neuron positions as a n x 3 matrix. """
+
         n_neurons = len(self.neurons)
         pos = np.zeros((n_neurons, 3))
 
@@ -437,6 +482,8 @@ class SnuddaPlace(object):
 
     def all_neuron_rotations(self):
 
+        """ Returns all neuron rotations as a n x 3 x 3 matrix. """
+
         n_neurons = len(self.neurons)
         rot = np.zeros((n_neurons, 3, 3))
 
@@ -448,11 +495,16 @@ class SnuddaPlace(object):
     ############################################################################
 
     def all_neuron_names(self):
+
+        """ Returns all neuron names as a list. """
+
         return map(lambda x: x.name, self.neurons)
 
     ############################################################################
 
     def write_data(self, file_name=None):
+
+        """ Writes positition data to HDF5 file file_name. """
 
         if not file_name:
             file_name = self.position_file
@@ -624,6 +676,22 @@ class SnuddaPlace(object):
 
     def define_population_units(self, population_unit_info):
 
+        """ Defines population units.
+
+        Args:
+            population_unit_info (dict):
+                "AllUnitID" -- List of all Unit IDs
+                <VolumeID> -- Points to a dictionary. This dictionary has keys
+                    "method" : "random" or "radialDensity"                    "
+                    "unitID" : ID of population unit
+                    "fractionOfNeurons" : How large fraction of neurons belong to this unit (used by "random" method)
+                    "neuronTypes" : List of Neuron types that belong to this population unit
+                    "structure" : Name of structure population unit is located in (VolumeID)
+                    "centres" : Centre of radial density
+                    "ProbabilityFunctions" : Probability function defining unit membership, function of radius
+
+        """
+
         method_lookup = {"random": self.random_labeling,
                          "radialDensity": self.population_unit_density_labeling}
 
@@ -646,6 +714,19 @@ class SnuddaPlace(object):
     ############################################################################
 
     def random_labeling(self, population_unit_info, neuron_id):
+
+        """
+        Creates random labeling.
+
+        Args:
+             neuron_id (list) : All potential neuron ID
+             population_unit_info (dict): Dictionary with "method" = "random"
+                                          "unitID" = ID of population unit
+                                          "fractionOfNeurons" = Fraction of neurons in this unit
+                                          "neuronTypes" = List of neuron types that are in this unit
+                                          "structure" = Name of the structure the unit is located in
+
+        """
 
         self.init_population_units()  # This initialises population unit labelling if not already allocated
 
@@ -702,6 +783,18 @@ class SnuddaPlace(object):
 
     def population_unit_density_labeling(self, population_unit_info, neuron_id):
 
+        """
+        Creates population units based on radial density functions.
+
+        Args:
+            neuron_id (list) : All potential neuron ID
+            population_unit_info (dict): "method" must be "radialDensity"
+                                         "neuronTypes" list of neuron types
+                                         "centres" of radial probabilityes, one per neuron type
+                                         "probabilityFunctions" list of probability functions of r (as str)
+                                         "unitID" ID of population unit
+        """
+
         assert population_unit_info["method"] == "radialDensity"
         self.init_population_units()  # This initialises population unit labelling if not alraedy allocated
 
@@ -753,6 +846,8 @@ class SnuddaPlace(object):
 
     def init_population_units(self):
 
+        """ Initialise population units. If none are given they are all set to 0."""
+
         if not self.population_unit:
             # If no population units were defined, then set them all to 0 (= no population unit)
             self.population_unit = np.zeros((len(self.neurons),), dtype=int)
@@ -784,6 +879,14 @@ class SnuddaPlace(object):
         plt.show()
 
     def cluster_neurons(self, n_trials=3):
+
+        """
+        Cluster neurons, so that nearby neurons are grouped on same worker, to speed up simulations.
+
+        Args:
+            n_trials (int) : Number of trials for k-means clustering (default 3)
+        """
+
         n_workers = len(self.d_view) if self.d_view is not None else 1
         n_clusters = np.maximum(n_workers*5, 100)
         n_clusters = np.minimum(n_clusters, len(self.neurons))
@@ -851,6 +954,16 @@ class SnuddaPlace(object):
         return neuron_order
 
     def sort_neurons(self, sort_idx=None):
+
+        """ Sorting neurons. If no argument is given they will be sorted along x,y,z axis.
+
+            To use cluster sorting, use:
+                sp.sort_neurons(sort_idx=sp.cluster_neurons())
+
+        Args:
+            sort_idx (list, optional) : Sort order
+
+            """
 
         if sort_idx is None:
             # This changes the neuron IDs so the neurons are sorted along x,y or z
