@@ -6,5 +6,5 @@ Snudda Network Init
     :template: module.rst
 
     snudda.init.init
-    snudda.init.init_custom
+
     
