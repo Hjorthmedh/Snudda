@@ -1,10 +1,14 @@
 export IPYTHONDIR="`pwd`/.ipython"
 export IPYTHON_PROFILE=Snudda_LOCAL
 
-# Uncomment this line if you get your data from BasalGangliaData
-# (update the path as needed)
-export SNUDDA_DATA="../../BasalGangliaData/data"
-
+# If the BasalGangliaData directory exists, then use that for our data
+if [[ -d "../../BasalGangliaData/data" ]]; then
+    export SNUDDA_DATA="../../BasalGangliaData/data"
+    echo "Setting SNUDDA_DATA to $SNUDDA_DATA"
+else
+    echo "SNUDDA_DATA environment variable not changed (may be empty): $SNUDDA_DATA"
+fi
+    
 ipcluster start --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20
 

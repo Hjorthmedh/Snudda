@@ -509,7 +509,7 @@ class SnuddaSimulate(object):
 
         """ Connects neurons with synapses in network. """
 
-        self.write_log("connectNetworkSynapses")
+        self.write_log("connect_network_synapses")
 
         # This loops through all the synapses, and connects the relevant ones
         next_row = 0
