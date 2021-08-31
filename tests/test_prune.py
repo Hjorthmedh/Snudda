@@ -147,7 +147,7 @@ class TestPrune(unittest.TestCase):
             sl = SnuddaLoad(pruned_output, verbose=True)
 
             # Try and load a neuron
-            n = sl.load_neuron(0)
+            n = sl.load_neuron(neuron_id=0)
             self.assertTrue(type(n) == NeuronMorphology)
 
             syn_ctr = 0

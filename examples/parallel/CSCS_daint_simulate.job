@@ -7,8 +7,8 @@
 #SBATCH --time=01:58:00
 #SBATCH --partition=normal
 #SBATCH --constraint=mc
-#SBATCH --error=save/std.err
-#SBATCH --output=save/std.out
+#SBATCH --error=save/simulate-std.err
+#SBATCH --output=save/simulate-std.out
 
 SNUDDA_DIR=/users/$USER/HBP/Snudda/snudda
 NETWORK_DIR=/scratch/snx3000/$USER/networks/CSCS_Network

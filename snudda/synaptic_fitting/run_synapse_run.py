@@ -72,7 +72,7 @@ class RunSynapseRun(object):
 
         # We need to setup the Neuron model
         self.neuron = NeuronModel(param_file=neuron_parameters,
-                                  morph_file=neuron_morphology,
+                                  morph_path=neuron_morphology,
                                   mech_file=neuron_mechanisms,
                                   cell_name="OptimisationNeuron",
                                   modulation_file=neuron_modulation,

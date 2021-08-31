@@ -1,0 +1,4 @@
+snudda
+sphinx
+myst-parser
+sphinx-argparse

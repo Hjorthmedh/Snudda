@@ -7,8 +7,8 @@
 #SBATCH --time=1:30:00
 #SBATCH --partition=normal
 #SBATCH --constraint=mc
-#SBATCH --error=save/std.err
-#SBATCH --output=save/std.out
+#SBATCH --error=save/input-std.err
+#SBATCH --output=save/input-std.out
 
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 

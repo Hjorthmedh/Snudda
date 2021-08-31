@@ -26,6 +26,8 @@ import pickle
 from numba import jit
 
 from snudda.neurons.neuron_morphology import NeuronMorphology
+from snudda.neurons.neuron_prototype import NeuronPrototype
+
 from snudda.utils.load import SnuddaLoad
 
 import snudda.utils.memory
@@ -34,6 +36,10 @@ import snudda.utils.memory
 # TODO: Exclude neurons without synapses or gap junctions from touch detection (ie if no pre/post connections possible)
 
 class SnuddaDetect(object):
+
+    """
+    SnuddaDetect places synapses in the network based on touch detection.
+    """
 
     def __init__(self,
                  config_file=None,
@@ -54,6 +60,31 @@ class SnuddaDetect(object):
                  h5libver=None,  # Default: "latest"
                  random_seed=None,
                  debug_flag=False):
+
+        """
+        Constructor.
+
+        Args:
+            network_path (str): Network directory
+            config_file (str, optional): Network config file (default network-config.json in network_path)
+            position_file (str, optional): Network position file (default network-neuron-positions in network_path)
+            voxel_size (float, optional): Width of voxel (default 3e-6m)
+            hyper_voxel_size (int, optional): Number of voxels per side (default: 100, ie 100x100x100 voxels total)
+            verbose (bool, optional): Verbose mode (default False)
+            logfile_name (str, optional): Name of log file
+            logfile (_io.TextIOWrapper, optional): Pointer to already open log file
+            save_file (str, optional): Name of output file (default voxels/network-putative-synapses.hdf5 in network_path)
+            work_history_file (str, optional): Work log file (default network-detect-worklog.hdf5 in network_path)
+            slurm_id (int, optional): SlurmID of job
+            volume_id (str, optional): Volume ID to do touch detection on
+            role (str, optional): Parallel role, i.e. "master" or "worker"
+            rc (ipyparallel.Client, optional): iPyParallel client, if given program will run in parallel
+            axon_stump_id_flag (bool, optional): Recalculate segment IDs to account for axon stump? (default False)
+            h5libver (string, optional): h5py library version (default "latest")
+            random_seed (int, optional): Random seed
+            debug_flag (bool, optional): Save additional information for debugging (Default: False)
+
+        """
 
         self.rc = rc
 
@@ -93,7 +124,7 @@ class SnuddaDetect(object):
                 save_file = os.path.join(network_path, "voxels", "network-putative-synapses.hdf5")
 
             if not logfile and not logfile_name:
-                log_filename = os.path.join(network_path, "log", "logFile-touch-detection.txt")
+                log_filename = os.path.join(network_path, "log", "touch-detection.txt")
 
         self.config_file = config_file
         self.position_file = position_file
@@ -107,7 +138,7 @@ class SnuddaDetect(object):
         elif logfile is not None:
             self.logfile_name = logfile.name
         else:
-            self.logfile_name = os.path.join(self.network_path, "log", "logFile-touch-detection.txt")
+            self.logfile_name = os.path.join(self.network_path, "log", "touch-detection.txt")
 
         self.logfile = logfile
 
@@ -244,6 +275,16 @@ class SnuddaDetect(object):
 
     def detect(self, restart_detection_flag=True, rc=None):
 
+        """
+        Synapse placement based on touch detection. Space is divided into hyper voxels, containing 100x100x100 voxels.
+        Each hyper voxel is processed separately.
+
+        Args:
+              restart_detection_flag (bool, optional): Restart detection or resume previous partial run.
+              rc (ipyparallel.Client, optional): Remote Client, used for parallel execution
+
+        """
+
         # Normally rc is assigned in init, but let's have option to get it here also
         if rc is not None:
             self.rc = rc
@@ -251,10 +292,8 @@ class SnuddaDetect(object):
         # We need to setup the workers
         if self.rc is not None:
             d_view = self.rc.direct_view(targets='all')
-            lb_view = self.rc.load_balanced_view(targets='all')
         else:
             d_view = None
-            lb_view = None
 
         if self.role == "master":
 
@@ -335,6 +374,14 @@ class SnuddaDetect(object):
     ############################################################################
 
     def parallel_process_hyper_voxels(self, rc=None, d_view=None):
+
+        """
+        Distributes touch detection in hyper voxels to workers.
+
+        Args:
+            rc (ipyparallel.Client, optional): Remote client, for parallel execution
+
+        """
 
         self.write_log("Starting parallelProcessHyperVoxels")
 
@@ -434,6 +481,8 @@ class SnuddaDetect(object):
     ############################################################################
 
     def generate_hyper_voxel_random_seeds(self):
+
+        """ Generates a seed sequence for each hyper voxel based on the master seed for touch detection. """
         # https://albertcthomas.github.io/good-practices-random-number-generators/
 
         ss = np.random.SeedSequence(self.random_seed)
@@ -447,6 +496,7 @@ class SnuddaDetect(object):
 
     def generate_neuron_distribution_random_seeds(self):
 
+        """ Generate seed sequence for neuron distribution from master seed. """
         # Need different master seed than hyper voxel seed sequence
         ss = np.random.SeedSequence(self.random_seed + 1337)
         distribution_seeds = ss.generate_state(len(self.neurons))
@@ -455,6 +505,14 @@ class SnuddaDetect(object):
     ############################################################################
 
     def setup_work_history(self, work_history_file=None):
+
+        """
+        Sets up work history. By logging progress we are able to restart an earlier partial touch detection run.
+
+        Args:
+            work_history_file (str, optional): Path to work history file
+
+        """
 
         if self.role != "master":
             return
@@ -583,6 +641,11 @@ class SnuddaDetect(object):
                                                       "int",
                                                       compression=self.h5compression)
 
+        neuron_morphology_id = neuron_group.create_dataset("morphologyID",
+                                                           (len(self.neurons),),
+                                                           "int",
+                                                           compression=self.h5compression)
+
         neuron_modulation_id = neuron_group.create_dataset("modulationID",
                                                            (len(self.neurons),),
                                                            "int",
@@ -594,6 +657,7 @@ class SnuddaDetect(object):
             neuron_dend_radius[i] = n["maxDendRadius"]
             neuron_axon_radius[i] = n["maxAxonRadius"]
             neuron_param_id[i] = n["parameterID"]
+            neuron_morphology_id[i] = n["morphologyID"]
             neuron_modulation_id[i] = n["modulationID"]
 
         # Store input information
@@ -643,6 +707,16 @@ class SnuddaDetect(object):
 
     def setup_process_hyper_voxel_state_history(self):
 
+        """
+        Initialises the variables for tracking progress of touch detection.
+
+        Returns:
+            progress_data (list, int, list, int) : The items returned are (all_hyper_id_list, num_completed,
+                                                   remaining, voxel_overflow_counter). The remaining hypervoxel id list
+                                                   is sorted descending by size.
+
+        """
+
         if "completed" in self.work_history:
             self.write_log("setup_process_hyper_voxel_state_history: Resuming from old state")
             # We already have a run in progress, load the state
@@ -653,7 +727,7 @@ class SnuddaDetect(object):
             voxel_overflow_counter = self.work_history["voxelOverflowCounter"][0]
 
         else:
-            self.write_log("setupProcessHyperVoxelStateHistory: Creating new work history.")
+            self.write_log("setup_process_hyper_voxel_state_history: Creating new work history.")
             # No history, add it to work history file
             num_hyper_voxels = len(self.hyper_voxels)
             minus_one = -1 * np.ones((num_hyper_voxels,), dtype=np.int32)
@@ -698,6 +772,16 @@ class SnuddaDetect(object):
 
     def sort_remaining_by_size(self, remaining):
 
+        """
+        Sorts the remaining hypervoxel ID list by descending size (number of neurons in hypervoxel)
+
+        Args:
+            remaining (list): List of hypervoxels
+
+        Returns:
+            sorted_remaining (list): Sorted list of hypervoxels
+        """
+
         remaining = np.array(list(remaining), dtype=int)
 
         # Minus since we want them in descending order
@@ -709,6 +793,16 @@ class SnuddaDetect(object):
     ############################################################################
 
     def remove_empty(self, hyper_id):
+        """
+        Removes empty hypervoxels from the list
+
+        Args:
+            hyper_id (list): List of hyper voxel IDs
+
+        Returns:
+            hyper_id_kept, hyper_id_removed (list, list) : List of remaining, and removed, hyper voxel ID
+
+        """
 
         num_neurons = np.array([self.hyper_voxels[x]["neuronCtr"] for x in hyper_id])
         keep_idx = np.where(num_neurons > 0)[0]
@@ -719,6 +813,16 @@ class SnuddaDetect(object):
     ############################################################################
 
     def get_neuron_distribution_history(self):
+
+        """ Returns info about what neurons each hyper voxel contains etc.
+
+        Returns:
+            (tuple) : containing
+                hyper_voxels (dictionary): dictionary with keys 'neurons', 'neuronCtr', 'origo', 'randomSeed'
+                hyper_voxel_id_lookup (3D matrix with int): hypervoxel ID, spatially arranged
+                n_hyper_voxels (int): number of hypervoxels
+                simulation_origo (float, float, float): origo of entire simulation
+        """
 
         if "hyperVoxels" in self.work_history:
             self.write_log("Using neuron distribution from work history.")
@@ -748,6 +852,16 @@ class SnuddaDetect(object):
 
     def save_neuron_distribution_history(self, hyper_voxels, min_coord, max_coord):
 
+        """
+        Save neuron distribution history to file.
+
+        Args:
+            hyper_voxels (3D matrix with int): Hypervoxel IDs, spatially arranged
+            min_coord (float,float,float): minimal coordinate for all neurons/neurites in simulation
+            max_coord (float,float,float): maximal coordinate for all neurons/neurites in simulation
+
+        """
+
         self.write_log("Writing neuron distribution history to file")
 
         assert "hyper_voxels" not in self.work_history, "saveNeuronDistributionHistory should only be called once"
@@ -773,6 +887,17 @@ class SnuddaDetect(object):
 
     def update_process_hyper_voxel_state(self, hyper_id, num_syn, num_gj, exec_time, voxel_overflow_counter):
 
+        """Updates the process log with new hypervoxel state
+
+        Args:
+            hyper_id (int) : Hypervoxel id completed
+            num_syn (int) : Number of synapses detected in hyper voxel
+            num_gj (int) : Number of gap junctions detected in hyper voxel
+            exec_time : Execution time (currently not used!)
+            voxel_overflow_counter : How many synapses/gap junctions did we miss due to memory overflow? (Should be 0)
+
+        """
+
         num_completed = int(self.work_history["nCompleted"][0])
 
         self.work_history["completed"][num_completed] = hyper_id
@@ -787,8 +912,13 @@ class SnuddaDetect(object):
 
     def setup_hyper_voxel(self, hyper_voxel_origo, hyper_voxel_id):
 
-        # hypervoxel = a set of NxNxN voxels
-        # hyperVoxelSynapses = list of all synapses detected in the hypervoxel
+        """
+        Initialise all variables for a hypervoxel (containing NxNxN voxels) before touch detection.
+
+        Args:
+            hyper_voxel_origo (float,float,float): Origo of new hyper voxel
+            hyper_voxel_id (int): ID of hypervoxel to process
+        """
 
         # Each hyper voxel has its own seed
         random_seed = self.hyper_voxels[hyper_voxel_id]["randomSeed"]
@@ -886,6 +1016,8 @@ class SnuddaDetect(object):
     # axon density
 
     def detect_synapses(self):
+
+        """ Helper function, triggers detection of synapses. Called by process_hyper_voxel. """
 
         start_time = timeit.default_timer()
 
@@ -1023,6 +1155,17 @@ class SnuddaDetect(object):
     def place_synapses_no_axon(self, hyper_id, voxel_space, voxel_space_ctr,
                                voxel_axon_dist):
 
+        """
+        Places fake axon segments for neurons without axons.
+
+        Args:
+            hyper_id (int): Hypervoxel ID
+            voxel_space: Axon voxel space (n_bins x n_bins x n_bins x max_syn, voxel space matrix)
+            voxel_space_ctr: Synapse counter (int) for voxels (n_bins x n_bins x n_bins)
+            voxel_axon_dist: Axonal distance from soma to synapses (n_bins x n_bins x n_bins)
+
+        """
+
         start_time = timeit.default_timer()
 
         # 1. Find neurons within hyper voxel that have no axon
@@ -1131,11 +1274,22 @@ class SnuddaDetect(object):
 
     ############################################################################
 
-    # This picks points around soma centre. nPoints are randomized, points
-    # outside the hyper sphere are rejected, so fewer than nPoints might be
-    # returned.
-
     def no_axon_points_sphere(self, soma_centre, r_cum_distribution, num_points):
+
+        """
+        Helper function placing axon segments with spherical probability distribution.
+        This picks points around soma centre. num_points are randomized, points
+        outside the hyper sphere are rejected, so fewer than nPoints might be returned.
+
+        Args:
+            soma_centre (float,float,float): x,y,z coordinates of soma centre
+            r_cum_distribution: cumulative distribution
+            num_points: number of points to place
+
+        Returns:
+            voxel_coordinates
+            synapse_distance_to_soma
+        """
 
         uvr = self.hyper_voxel_rng.random((num_points, 3))
         theta = 2 * np.pi * uvr[:, 0]
@@ -1146,7 +1300,7 @@ class SnuddaDetect(object):
         r_p = np.sort(uvr[:, 2] * r_cum_distribution[-1], axis=0)
         next_idx = 0
 
-        self.write_log(f"nPoints = {num_points}")
+        self.write_log(f"num_points = {num_points}")
 
         r = np.zeros((num_points,))
 
@@ -1172,14 +1326,21 @@ class SnuddaDetect(object):
 
     ############################################################################
 
-    # Helper function to give points inside axon bounding box, that are
-    # inside hyper voxel
-
     def get_hyper_voxel_axon_points(self,
                                     neuron_position,
                                     rotation,
                                     axon_density_bounds_xyz,
                                     num_points=1000):
+
+        """
+        Helper function to give points inside axon bounding box, that are inside hyper voxel
+
+        Args:
+            neuron_position (float,float,float): coordinates of neuron
+            rotation: rotation matrix
+            axon_density_bounds_xyz: boundary box for axon
+            num_points: number of points to place
+        """
 
         # Randomly place nPoints inside bounding box (SWC coordinates, soma (0,0,0))
         x_min = axon_density_bounds_xyz[0]
@@ -1214,6 +1375,17 @@ class SnuddaDetect(object):
 
     def no_axon_points_xyz(self, neuron_position, rotation,
                            axon_density_func, axon_density_bounds_xyz):
+
+        """
+        Placing fake axon segments based on probability distribution speicified with x,y,z.
+
+        Args:
+             neuron_position (float,float,float): location of neuron soma
+             rotation (3x3 rotation matrix): rotation of neuron
+             axon_density_func: axon density function in x,y,z coordinates (SWC coords), must handle x,y,z as vectors
+                                e.g. axon_density_func = eval("lambda x,y,z: " + axonPstr)
+             axon_density_bounds_xyz: [xmin,xmax,ymin,ymax,zmin,zmax] using the coordinates in the SWC file
+        """
 
         # Points for initial sample
         n_points = 5000
@@ -1310,6 +1482,13 @@ class SnuddaDetect(object):
 
     def resize_hyper_voxel_synapses_matrix(self, new_size=None):
 
+        """
+        Increase the maximal size of the synapse matrix used for the hypervoxel.
+
+        Args:
+            new_size (int): Number of rows in synapse matrix
+        """
+
         if new_size is None:
             new_size = int(np.ceil(1.5 * self.max_synapses))
 
@@ -1329,6 +1508,11 @@ class SnuddaDetect(object):
 
     def sort_synapses(self):
 
+        """
+        Sort synapses stored in self.hyper_voxel_synapses.
+        New sort order is columns 1 (dest), 0 (src), 6 (synapse type).
+        """
+
         sort_idx = np.lexsort(self.hyper_voxel_synapses[:self.hyper_voxel_synapse_ctr,
                               [6, 0, 1]].transpose())   # Sort order: columns 1 (dest), 0 (src), 6 (synapse type)
 
@@ -1338,6 +1522,11 @@ class SnuddaDetect(object):
     ############################################################################
 
     def sort_gap_junctions(self):
+
+        """
+        Sort gap junctions in self.hyper_voxel_gap_junctions.
+        New sort order is columns 1 (dest), 0 (src).
+        """
 
         sort_idx = \
             np.lexsort(self.hyper_voxel_gap_junctions[:self.hyper_voxel_gap_junction_ctr, [0, 1]].transpose())
@@ -1359,6 +1548,24 @@ class SnuddaDetect(object):
 
     @staticmethod
     def create_lookup_table(data, n_rows, data_type, num_neurons, max_synapse_type):
+
+        """
+        This creates a lookup table where all synapses in the hyper voxel
+        between the same pair of neurons are grouped together in the synapse matrix.
+        Returns a matrix where first column is a UID = srcID*nNeurons + destID
+        and the following two columns are start row and end row (-1) in matrix
+
+        Args:
+            data : either synapse matrix, or gap junction matrix
+            n_rows : number of rows in matrix that are used (matrix itself can be larger)
+            data_type : "synapses" or "gap_junctions"
+            num_neurons : number of neurons
+            max_synapse_type : the synapse types are numbered, this number must not be too small.
+
+
+        Returns a matrix where first column is a UID = src_ID*num_neurons + dest_ID
+        and the following two columns are start row and end row (-1) in matrix
+        """
 
         # self.write_log("Create lookup table")
         # nRows = data.shape[0] -- zero padded, cant use shape
@@ -1407,6 +1614,8 @@ class SnuddaDetect(object):
 
     def includes_gap_junctions(self):
 
+        """ Checks if any gap junctions are defined in self.connectivity_distribution. Returns True or False. """
+
         has_gap_junctions = False
 
         for key in self.connectivity_distributions:
@@ -1421,6 +1630,8 @@ class SnuddaDetect(object):
 
     def detect_gap_junctions(self):
 
+        """ Helper function, triggers detection of gap junctions. Called by process_hyper_voxel. """
+
         if not self.includes_gap_junctions():
             self.write_log("detect_gap_junctions: No gap junctions defined in connectivity rules")
             return
@@ -1428,7 +1639,7 @@ class SnuddaDetect(object):
         start_time = timeit.default_timer()
 
         assert self.hyper_voxel_gap_junction_ctr == 0 and self.hyper_voxel_gap_junctions is not None, \
-            "setupHyperVoxel must be called before detecting gap junctions"
+            "setup_hyper_voxel must be called before detecting gap junctions"
 
         [x_dv, y_dv, z_dv] = np.where(self.dend_voxel_ctr > 0)
 
@@ -1497,6 +1708,14 @@ class SnuddaDetect(object):
 
     def setup_log(self, logfile_name=None):
 
+        """
+        Initiates log file.
+
+        Args:
+            logfile_name (str) : Path to log file
+
+        """
+
         if logfile_name is None:
             logfile_name = self.logfile_name
 
@@ -1519,6 +1738,17 @@ class SnuddaDetect(object):
         ############################################################################
 
     def write_log(self, text, flush=True, is_error=False, force_print=False):  # Change flush to False in future, debug
+
+        """
+        Writes to log file. Use setup_log first. Text is only written to screen if self.verbose=True,
+        or is_error = True, or force_print = True.
+
+        test (str) : Text to write
+        flush (bool) : Should all writes be flushed to disk directly?
+        is_error (bool) : Is this an error, always written.
+        force_print (bool) : Force printing, even if self.verbose=False.
+        """
+
         if self.logfile is not None:
             self.logfile.write(f"{text}\n")
             if flush:
@@ -1530,6 +1760,14 @@ class SnuddaDetect(object):
     ############################################################################
 
     def read_prototypes(self, config_file=None, axon_stump_id_flag=False):
+
+        """
+        Read in neuron prototypes. A neuron prototype can have multiple parameters, and morphology variations.
+
+        Args:
+            config_file (str): path to network config file
+            axon_stump_id_flag (bool): Should segments be renumbered as if axon is replaced by axon stump
+        """
 
         if config_file is None:
             config_file = self.config_file
@@ -1567,6 +1805,11 @@ class SnuddaDetect(object):
             param = definition["parameters"]
             mech = definition["mechanisms"]
 
+            if "modulation" in definition:
+                modulation = definition["modulation"]
+            else:
+                modulation = ""
+
             if "neuronType" in definition:
                 neuron_type = definition["neuronType"]
             else:
@@ -1579,19 +1822,24 @@ class SnuddaDetect(object):
 
             if 'hoc' in definition:
                 hoc = definition["hoc"]
+                assert "hoc no longer passed to NeuronPrototype / NeuronMorphology -- need to add it later "
             else:
                 hoc = None
 
-            self.prototype_neurons[name] \
-                = NeuronMorphology(name=name,
-                                   swc_filename=morph,
-                                   param_filename=param,
-                                   mech_filename=mech,
-                                   hoc=hoc,
-                                   virtual_neuron=virtual_neuron,
-                                   axon_stump_id_flag=axon_stump_id_flag)
+            self.prototype_neurons[name] = NeuronPrototype(neuron_name=name,
+                                                           neuron_path=None,
+                                                           morphology_path=morph,
+                                                           parameter_path=param,
+                                                           mechanism_path=mech,
+                                                           # hoc=hoc,
+                                                           virtual_neuron=virtual_neuron,
+                                                           axon_stump_id_flag=axon_stump_id_flag)
 
             if "axonDensity" in definition:
+
+                # We need to do this so we can apply the axon densities below
+                self.prototype_neurons[name].instantiate()
+
                 self.write_log("Setting axon density for neuron without axon")
                 axon_density_type = definition["axonDensity"][0]
 
@@ -1599,14 +1847,12 @@ class SnuddaDetect(object):
                     density = definition["axonDensity"][1]
                     max_radius = definition["axonDensity"][2]
 
-                    self.prototype_neurons[name].set_axon_voxel_radial_density(density,
-                                                                               max_radius)
+                    self.prototype_neurons[name].apply("set_axon_voxel_radial_density", [density, max_radius])
                 elif axon_density_type == "xyz":
                     density = definition["axonDensity"][1]
                     axon_density_bounds_xyz = np.array(definition["axonDensity"][2])
 
-                    self.prototype_neurons[name].set_axon_voxel_xyz_density(density,
-                                                                            axon_density_bounds_xyz)
+                    self.prototype_neurons[name].apply("set_axon_voxel_xyz_density", [density, axon_density_bounds_xyz])
 
                 else:
                     self.write_log(f"{name}: Unknown axon density type : {axon_density_type}\n"
@@ -1614,9 +1860,9 @@ class SnuddaDetect(object):
 
             else:
                 # If no axon density specified, then axon must be present in morphology
-                assert (len(self.prototype_neurons[name].axon) > 0), f"File: {morph} does not have an axon"
+                assert self.prototype_neurons[name].all_have_axon(), f"File: {morph} does not have an axon"
 
-            assert len(self.prototype_neurons[name].dend) > 0 or self.prototype_neurons[name].virtual_neuron, \
+            assert self.prototype_neurons[name].all_have_dend() or self.prototype_neurons[name].virtual_neuron, \
                 f"File: {morph} does not have a dendrite"
 
             # Since we already have the config file open, let's read connectivity
@@ -1647,6 +1893,13 @@ class SnuddaDetect(object):
     ############################################################################
 
     def read_neuron_positions(self, position_file):
+
+        """
+        Loads neuron positions from network's position_file.
+
+        Args:
+            position_file : path to network position file (network-neuron-positions.hdf5)
+        """
 
         if position_file is None:
             position_file = self.position_file
@@ -1691,6 +1944,8 @@ class SnuddaDetect(object):
 
     def delete_old_merge(self):
 
+        """ Cleans up data files from previous detection run. """
+
         if self.role == "master":
             del_files = [os.path.join(self.network_path, "network-putative-synapses-MERGED.hdf5"),
                          os.path.join(self.network_path, "network-putative-synapses-MERGED.hdf5-cache"),
@@ -1709,6 +1964,8 @@ class SnuddaDetect(object):
     ############################################################################
 
     def write_hyper_voxel_to_hdf5(self):
+
+        """ Saves hyper voxel synapses to data file. """
 
         start_time = timeit.default_timer()
 
@@ -1790,18 +2047,28 @@ class SnuddaDetect(object):
 
     def load_neuron(self, neuron_info):
 
-        # Clone prototype neuron (it is centred, and not rotated)
-        neuron = self.prototype_neurons[neuron_info["name"]].clone()
+        """
+        Load neuron.
 
-        # Rotate and place neuron in correct location
-        neuron.place(rotation=neuron_info["rotation"],
-                     position=neuron_info["position"])
+        Args:
+            neuron_info : dictionary with neuron information, i.e. 'name', 'parameterID', 'morphologyID',
+                          'modulationID', 'rotation', 'position'
+        """
+
+        # Clone prototype neuron (it is centred, and not rotated)
+        neuron = self.prototype_neurons[neuron_info["name"]].clone(parameter_id=neuron_info["parameterID"],
+                                                                   morphology_id=neuron_info["morphologyID"],
+                                                                   modulation_id=neuron_info["modulationID"],
+                                                                   rotation=neuron_info["rotation"],
+                                                                   position=neuron_info["position"])
 
         return neuron
 
     ############################################################################
 
     def distribute_neurons_parallel(self, d_view=None):
+
+        """ Locates which hyper voxel each neuron is present in."""
 
         if self.role != "master":
             # Only run this as master
@@ -1812,7 +2079,7 @@ class SnuddaDetect(object):
 
         # Do we have old data that we can reuse?
         if hyper_voxels is not None:
-            self.write_log("distributeNeuronsParallel: Reusing old neuron allocation")
+            self.write_log("distribute_neurons_parallel: Reusing old neuron allocation")
 
             self.hyper_voxels = hyper_voxels
             self.hyper_voxel_id_lookup = hyper_voxel_id_lookup
@@ -1930,6 +2197,19 @@ class SnuddaDetect(object):
     # has any neurites within its border (here defined as vertices inside region)
 
     def distribute_neurons(self, neuron_idx=None, distribution_seeds=None, min_coord=None, max_coord=None):
+
+        """
+        This creates a list for each hyper voxel of the neurons that
+        has any neurites within its border (here defined as vertices inside region)
+
+        Args:
+            neuron_idx : NeuronIDs to process
+            distribution_seeds : Random seed (used for neurons without axon)
+            min_coord (float, float, float) : Minimum x,y,z coordinates
+            max_coord (float, float, float) : Maximum x,y,z coordinates
+
+        Updates self.hyper_voxels. Also returns min_coord, max_coord
+        """
 
         try:
 
@@ -2143,6 +2423,8 @@ class SnuddaDetect(object):
 
     def setup_parallel(self, d_view=None):
 
+        """ Prepares workers for parallel execution if d_view is not None. """
+
         assert self.role == "master", \
             "setupParallel: Should only be called by master node"
 
@@ -2193,6 +2475,17 @@ class SnuddaDetect(object):
 
     def find_min_max_coord_parallel(self, volume_id=None, d_view=None):
 
+        """
+        Finds the minimum and maximum coordinates in entire model for all neuron components.
+
+        Args:
+            volume_id : Volume ID to check, None means all
+            d_view : Direct view object
+
+        Returns:
+            min_coord, max_coord
+        """
+
         if d_view is None:
             self.write_log("find_min_max_coord_parallel: dView is None")
             return self.find_min_max_coord(volume_id=volume_id)
@@ -2224,6 +2517,17 @@ class SnuddaDetect(object):
     ############################################################################
 
     def find_min_max_coord(self, volume_id=None, neuron_idx=None):
+
+        """
+        Finds the minimum and maximum coordinates in entire model for all neuron components.
+
+        Args:
+            volume_id : Volume ID to check, None means all
+
+        Returns:
+            min_coord, max_coord
+        """
+
 
         try:
             if volume_id is None:
@@ -2276,6 +2580,19 @@ class SnuddaDetect(object):
     def fill_voxels_soma(self, voxel_space, voxel_space_ctr,
                          voxel_sec_id, voxel_sec_x,
                          soma_coord, neuron_id, verbose=False):
+
+        """
+        Marks all the dendrite voxels that all the somas in the hyper voxel occupy.
+
+        voxel_space : n x n x n x k matrix holding the voxel content, normally self.dend_voxels (neuron IDs)
+        voxel_space_ctr : n x n x n matrix holding count of how many items each voxel holds
+        voxel_sec_id : n x n x n x k matrix, holding section ID of each item
+        voxel_sec_x : n x n x n x k matrix, holding section X of each item
+        soma_coord : (x,y,z,r) location of soma to place, and radius
+        neuron_id : ID of the neurons
+        verbose (bool) : how much to print out
+
+        """
 
         v_coords = np.floor((soma_coord[0, :3] - self.hyper_voxel_origo) / self.voxel_size).astype(int)
         radius2 = soma_coord[0, 3] ** 2
@@ -2333,6 +2650,22 @@ class SnuddaDetect(object):
                          coords, links,
                          seg_id, seg_x, neuron_id):
 
+        """
+        Mark all voxels containing dendrites.
+
+        voxel_space : n x n x n x k matrix holding the voxel content, normally self.dend_voxels (neuron IDs)
+        voxel_space_ctr : n x n x n matrix holding count of how many items each voxel holds
+        voxel_sec_id : n x n x n x k matrix, holding section ID of each item
+        voxel_sec_x : n x n x n x k matrix, holding section X of each item
+        voxel_soma_dist : n x n x n x k matrix, holding distance to soma along dendrite
+        coords : neuron vertices, n x 3 matrix
+        links : how do vertices link up to for dendrite segments n x 2 matrix
+        seg_id : segment ID of the links end points
+        seg_x : segment X of the links end points
+        neuron_id : ID of the neurons
+
+        """
+
         voxel_overflow_ctr = self.fill_voxels_dend_helper(voxel_space=voxel_space,
                                                           voxel_space_ctr=voxel_space_ctr,
                                                           voxel_sec_id=voxel_sec_id,
@@ -2362,6 +2695,8 @@ class SnuddaDetect(object):
                                 coords, links,
                                 seg_id, seg_x, neuron_id,
                                 self_hyper_voxel_origo, self_voxel_size, self_num_bins, self_max_dend):
+
+        """ Helper function for fill_voxels_dend, static method needed for NUMBA. """
 
         # segID gives segment ID for each link
         # segX gives segmentX for each link
@@ -2536,6 +2871,17 @@ class SnuddaDetect(object):
                          coords, links,
                          neuron_id):
 
+        """
+        Mark all voxels containing axons.
+
+        voxel_space : n x n x n x k matrix holding the voxel content, normally self.axon_voxels (neuron IDs)
+        voxel_space_ctr : n x n x n matrix holding count of how many items each voxel holds
+        coords : neuron vertices, n x 3 matrix
+        links : how do vertices link up to for axon segments n x 2 matrix
+        neuron_id : ID of the neurons
+
+        """
+
         voxel_overflow_ctr = self.fill_voxels_axon_helper(voxel_space=voxel_space,
                                                           voxel_space_ctr=voxel_space_ctr,
                                                           voxel_axon_dist=voxel_axon_dist,
@@ -2559,6 +2905,8 @@ class SnuddaDetect(object):
                                 self_voxel_size,
                                 self_num_bins,
                                 self_max_axon):
+
+        """ Helper function to mark axon voxels, needed for NUMBA. See fill_voxels_axon."""
 
         # segID gives segment ID for each link
         # segX gives segmentX for each link
@@ -2716,6 +3064,13 @@ class SnuddaDetect(object):
 
     def process_hyper_voxel(self, hyper_id):
 
+        """
+        Process hyper voxel, ie do touch detection, and save results.
+
+        Args:
+            hyper_id : ID of hyper voxel to process
+        """
+
         start_time = timeit.default_timer()
         end_time = None
 
@@ -2808,6 +3163,24 @@ class SnuddaDetect(object):
                          draw_axon_voxels=True, draw_dendrite_voxels=True,
                          detect_done=True, elev_azim=None, show_axis=True, title=None,
                          fig_file_name=None, dpi=300):
+
+        """
+        Plot hyper voxel.
+
+        Args:
+            plot_neurons : Should neurons be plotted
+            draw_axons : Draw axons
+            draw_dendrites : Draw dendrites
+            draw_axon_voxels : Draw axon voxels marked
+            draw_dendrite_voxels : Draw dendrite voxels marked
+            detect_done :
+            elev_azim : View angle
+            show_axis : Show x,y,z axis?
+            title : Title of plot
+            fig_file_name : Fig name to save figure to
+            dpi : Resolution
+
+        """
 
         import matplotlib.pyplot as plt
         from mpl_toolkits.mplot3d import Axes3D
@@ -2908,6 +3281,8 @@ class SnuddaDetect(object):
 
     def export_voxel_visualisation_csv(self, neuron_id):
 
+        """ Export CSV file with voxel data, used for visualisation."""
+
         # x,y,z = coords
         # shape = "cube" or "sphere"
         # type = "axon", "dendrite", "synapse"
@@ -2966,6 +3341,18 @@ class SnuddaDetect(object):
     def plot_neurons_in_hyper_voxel(self, neuron_id, neuron_colour,
                                     axon_alpha=None, dend_alpha=None,
                                     show_plot=True, dpi=300):
+
+        """
+        Plot neurons in hyper voltage
+
+        Args:
+            neuron_id : ID of neurons to plot
+            neuron_colour : Colur of neurons to plot
+            axon_alpha : Alpha value of neuron axons
+            dend_alpha : Alpha value of neuron dendrites
+            show_plot : Should we dispaly the plot or keep it hidden
+            dpi : Resolution of output file
+        """
 
         if axon_alpha is None:
             axon_alpha = np.ones((len(neuron_id),))

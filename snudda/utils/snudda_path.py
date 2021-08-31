@@ -7,6 +7,12 @@ import os
 
 def snudda_parse_path(path):
 
+    """ Parses a data path, replacing $DATA with the path to SNUDDA_DATA set by environment variable.
+
+    Args:
+        path (str) : Path to modify
+        """
+
     if path and "$DATA" in path:
 
         if "SNUDDA_DATA" in os.environ:
@@ -20,19 +26,26 @@ def snudda_parse_path(path):
 
 
 def snudda_isfile(path):
+    """ Checks if path is a file. """
     return os.path.isfile(snudda_parse_path(path))
 
 
 def snudda_isdir(path):
+    """ Checks if path is a directory. """
     return os.path.isdir(snudda_parse_path(path))
 
 
 def snudda_path_exists(path):
+    """ Checks if path exists. """
     return os.path.exists(snudda_parse_path(path))
 
 
 def snudda_simplify_path(path):
+    """ Simplifies path, replacing any occurance of SNUDDA_DATA in the path with $DATA.
 
+    Args:
+        path (str) : Path to be simplified
+    """
     data_path = snudda_parse_path("$DATA")
     real_path = os.path.realpath(path)
     

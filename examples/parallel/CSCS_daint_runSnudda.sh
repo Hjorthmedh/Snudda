@@ -123,8 +123,7 @@ else
     # cp -a $SNUDDA_DIR/data/input_config/input-v10-scaled.json ${JOBDIR}/input.json
     cp -a $SNUDDA_DIR/data/input_config/external-input-dSTR-scaled.json ${JOBDIR}/input.json
 
-    # snudda input ${JOBDIR} --parallel --time 5
-
+    snudda input ${JOBDIR} --parallel --time 5
     
     #.. Shut down cluster
     ipcluster stop	
