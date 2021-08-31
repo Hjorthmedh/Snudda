@@ -15,8 +15,10 @@ for (dirpath, dirnames, filenames) in os.walk(data_folder):
 
 if os.environ.get('READTHEDOCS') == 'True':
     # We are in the readthedocs.org environment
+    print("READTHEDOCS environment detected, clearing install_requires")
     install_requires = []
 else:
+    print(f"READTHEDOCS = {os.environ.get('READTHEDOCS')}") 
     install_requires = [
         "bluepyopt>=1.9.126",
         "h5py>=3.1.0",
