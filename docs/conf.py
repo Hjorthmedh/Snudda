@@ -33,6 +33,8 @@ author = 'Johannes Hjorth'
 # ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary','sphinx.ext.coverage', 'sphinx.ext.viewcode', 'sphinxarg.ext', 'sphinx.ext.napoleon', 'myst_parser']
 
+autodoc_mock_imports = ['mpi4py', "neuron", "ipyparallel", "ipyparallel.Client"]
+
 napoleon_google_docstring = True
 
 
@@ -57,7 +59,7 @@ tolerate_sphinx_warnings = True
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 
-autodoc_mock_imports = ["mpi4py"]
+
 
 # -- Options for HTML output -------------------------------------------------
 
