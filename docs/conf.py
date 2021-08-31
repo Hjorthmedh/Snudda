@@ -13,7 +13,6 @@
 import os
 import sys
 
-import snudda
 
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('../snudda'))
@@ -33,7 +32,10 @@ author = 'Johannes Hjorth'
 # ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary','sphinx.ext.coverage', 'sphinx.ext.viewcode', 'sphinxarg.ext', 'sphinx.ext.napoleon', 'myst_parser']
 
-autodoc_mock_imports = ['mpi4py', "neuron", "ipyparallel", "ipyparallel.Client"]
+autodoc_mock_imports = ['mpi4py', 'neuron', 'bluepyopt', 'ipyparallel', 'ipyparallel.Client']
+
+import snudda
+
 
 napoleon_google_docstring = True
 
