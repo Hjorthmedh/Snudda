@@ -1628,8 +1628,11 @@ class SnuddaSimulate(object):
     # repeat
 
     def write_voltage(self,
-                      output_file="save/traces/network-voltage",
+                      output_file=None,
                       down_sampling=20):
+
+        if not output_file:
+            output_file = os.path.join("save", "traces", "network-voltage")
 
         """ Writes voltage to output_file, with the option to down sample data to save space. """
 
