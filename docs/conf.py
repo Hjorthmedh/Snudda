@@ -32,7 +32,7 @@ author = 'Johannes Hjorth'
 # ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary','sphinx.ext.coverage', 'sphinx.ext.viewcode', 'sphinxarg.ext', 'sphinx.ext.napoleon', 'myst_parser']
 
-autodoc_mock_imports = ['mpi4py', 'neuron', 'bluepyopt', 'ipyparallel', 'ipyparallel.Client']
+autodoc_mock_imports = ['mpi4py', 'NEURON', 'bluepyopt', 'ipyparallel', 'matplotlib', 'h5py', 'numpy', 'scipy', 'sonata', 'pyzmq', 'numexpr', 'argparse', 'pyswarms', 'numba']
 
 import snudda
 
