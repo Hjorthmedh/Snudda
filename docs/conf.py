@@ -17,6 +17,15 @@ import sys
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('../snudda'))
 
+# --- mock
+
+import mock
+ 
+MOCK_MODULES = ['mpi4py', 'NEURON', 'bluepyopt', 'bluepyopt.ephys', 'ipyparallel', 'matplotlib', 'matplotlib.pyplot', 'h5py', 'numpy', 'scipy', 'scipy.cluster', 'scipy.interpolate', 'sonata', 'pyzmq', 'numexpr', 'argparse', 'pyswarms', 'numba', 'psutil']
+
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = mock.Mock()
+
 
 # -- Project information -----------------------------------------------------
 
