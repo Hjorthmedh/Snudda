@@ -281,20 +281,6 @@ class SnuddaSimulate(object):
 
         self.neuron_nodes = neuron_nodes
 
-        # old method, round robin
-        # self.neuron_nodes = [x % int(self.pc.nhost()) for x in range(0, self.num_neurons)]
-
-        # self.write_log("Node " + str(int(self.pc.id())) + " handling neurons: " + ' '.join(map(str, self.neuron_id)))
-
-    ############################################################################
-
-    def destroy(self):
-
-        assert False, "Is this used? -- Remove?"
-
-        for n in self.neurons:
-            n.destroy(sim=self.sim)
-
     ############################################################################
 
     # This requires self.sim to be defined
@@ -338,9 +324,8 @@ class SnuddaSimulate(object):
                         del channel_param_dict["parameterFile"]
 
                 else:
-                    assert False, "No channel module specified for " \
-                                  + str(preType) + "->" + str(postType) + " synapses, type ID= " \
-                                  + str(synapse_type_id)
+                    assert False, (f"No channel module specified for {preType}->{postType} synapses, "
+                                   f"type ID={synapse_type_id}")
 
                 if "parameterFile" in info_dict and info_dict["parameterFile"] is not None:
                     par_file = snudda_parse_path(info_dict["parameterFile"])
@@ -562,8 +547,8 @@ class SnuddaSimulate(object):
             tstr = traceback.format_exc()
             self.write_log(tstr, is_error=True)
 
-            assert False, "find_next_synapse_group: If synapses was not loaded into memory, your problem is probably " \
-                          + "that the HDF5 file that holds the synapses were closed. Sorry."
+            assert False, ("find_next_synapse_group: If synapses was not loaded into memory, your problem is probably " 
+                           "that the HDF5 file that holds the synapses were closed. Sorry.")
 
         if next_row >= num_syn_rows:
             # No more synapses to get
@@ -788,157 +773,6 @@ class SnuddaSimulate(object):
             print(tstr)
             import pdb
             pdb.set_trace()
-
-    ############################################################################
-
-    def connect_network_gap_junctions(self):
-
-        # TODO: Remove this method
-        assert False, "This function is no longer in use?"
-
-        self.write_log("connectNetworkGapJunctions")
-
-        # This loops through all the synapses, and connects the relevant ones
-        next_row = 0
-        # nextRowSet = [ fromRow, toRow ) -- ie range(fromRow,toRow)
-        next_row_set = self.find_next_synapse_group(next_row,
-                                                    connection_type="gapjunctions")
-
-        while next_row_set is not None:
-            # Add the synapses to the neuron
-            self.connect_neuron_gap_junctions(start_row=next_row_set[0],
-                                              end_row=next_row_set[1])
-
-            # Find the next group of synapses
-            next_row = next_row_set[1]  # 2nd number was not included in range
-            next_row_set = self.find_next_synapse_group(next_row,
-                                                        connection_type="gapjunctions")
-
-    ############################################################################
-
-    # Verify that the gap junctions conducts currents in both directions
-
-    def connect_neuron_gap_junctions(self, start_row, end_row):
-
-        # TODO: Remove this method
-        assert False, "This function is no longer in use? Remove it!"
-
-        source_id = self.gap_junctions[start_row:end_row, 0]
-        dest_id = self.gap_junctions[start_row, 1]
-
-        assert (self.gap_junctions[start_row:end_row, 1] == dest_id).all()
-
-        # Double check mapping
-        assert self.pc.gid2cell(dest_id) == self.neurons[dest_id].icell, \
-            "GID mismatch: " + str(self.pc.gid2cell(dest_id)) \
-            + " != " + str(self.neurons[dest_id].icell)
-
-        source_sec_id = self.gap_junctions[start_row:end_row, 2]
-        dest_sec_id = self.gap_junctions[start_row:end_row, 3]
-
-        # !!! Double check we get number between 0.0 and 1.0
-        source_sec_x = self.gap_junctions[start_row:end_row, 4] * 1e-4
-        dest_sec_x = self.gap_junctions[start_row:end_row, 5] * 1e-4
-
-        # conductances are stored in pS, Neuron wants it in microsiements??!
-        # (reason for not storing SI units is that we use INTs)
-        conductance = self.gap_junctions[start_row:end_row, 10] * 1e-6
-
-        dest_loc = self.neurons[dest_id].map_id_to_compartment(dest_sec_id)
-
-        for (srcID, srcSecID, srcSecX, dstLoc, dstSecX, rowIdx) \
-                in zip(source_id, source_sec_id, source_sec_x,
-                       dest_loc, dest_sec_x, range(start_row, end_row)):
-
-            src_loc = self.neurons[srcID].map_id_to_compartment([srcSecID])[0]
-
-            # Change the src and dest ID to be based on the row idx
-            # to avoid overlaps
-            gj_src_id = rowIdx * 2 + 10 * self.num_neurons
-            gj_dest_id = gj_src_id + 1
-
-            print("rowIdx = " + str(rowIdx))
-            print("GJsrcID = " + str(gj_src_id))
-            print("GJdestID = " + str(gj_dest_id))
-
-            try:
-                self.add_gap_junction(section=src_loc,
-                                      section_dist=srcSecX,
-                                      gid_source_gj=gj_src_id,
-                                      gid_dest_gj=gj_dest_id)
-
-                self.add_gap_junction(section=dstLoc,
-                                      section_dist=dstSecX,
-                                      gid_source_gj=gj_dest_id,
-                                      gid_dest_gj=gj_src_id)
-            except:
-                import traceback
-                tstr = traceback.format_exc()
-                print(tstr)
-                import pdb
-                pdb.set_trace()
-
-    ############################################################################
-
-    def find_gap_junction_compartments(self):
-
-        # TODO: Remove this method.
-        assert False, "Orphaned method, remove it?"
-
-        all_loc = dict([])
-
-        orig_gj_coords = self.network_info["origGJCoords"]
-
-        for ID in self.neuron_id:
-
-            idx_gj1 = np.where(np.logical_and(self.network_info["synapses"][:, 0] == ID,
-                                              self.network_info["synapses"][:, 5] == 3))
-
-            idx_gj2 = np.where(np.logical_and(self.network_info["synapses"][:, 2] == ID,
-                                              self.network_info["synapses"][:, 5] == 3))
-
-            # Coordinates on either side of the gap junction
-            gj_coords1 = np.array([orig_gj_coords[x][0:3] for x in idx_gj1[0]])
-            gj_coords2 = np.array([orig_gj_coords[x][3:6] for x in idx_gj2[0]])
-
-            gj_id1 = np.array([orig_gj_coords[x][6:8] for x in idx_gj1[0]])
-            gj_id2 = np.array([orig_gj_coords[x][6:8] for x in idx_gj2[0]])
-
-            if gj_coords1.shape[0] == 0:
-                gj_coords = gj_coords2
-            elif gj_coords2.shape[0] == 0:
-                gj_coords = gj_coords1
-            else:
-                gj_coords = np.concatenate([gj_coords1, gj_coords2], axis=0)
-
-            gj_loc_type = 4 * np.ones(shape=(gj_coords.shape[0], 1))
-
-            len_gj1 = len(gj_coords1)
-
-            # import pdb
-            # pdb.set_trace()
-
-            if gj_coords.shape[0] > 0:
-
-                self.write_log(f"Looking for {gj_coords.shape[0]} gap junctions")
-
-                # Get the compartment location of each coordinate
-                gj_dend_loc = self.neurons[ID].find_dend_compartment(gj_coords,
-                                                                     gj_loc_type,
-                                                                     self.sim)
-                gj_dend_loc1 = gj_dend_loc[:len_gj1]
-                gj_dend_loc2 = gj_dend_loc[len_gj1:]
-
-                assert (gj_coords1.shape[0] == len(gj_dend_loc1))
-                assert (gj_coords2.shape[0] == len(gj_dend_loc2))
-
-                for (idx, loc, id1) in zip(idx_gj1[0], gj_dend_loc1, gj_id1):
-                    all_loc[(idx, 1)] = (loc, id1[0], id1[1])
-
-                for (idx, loc, id2) in zip(idx_gj2[0], gj_dend_loc2, gj_id2):
-                    all_loc[(idx, 2)] = (loc, id2[0], id2[1])
-
-        return all_loc
 
     ############################################################################
 
@@ -1829,18 +1663,6 @@ class SnuddaSimulate(object):
         self.write_log(f"{self.pc.id()} : Memory status: {int(memory_ratio * 100)}% free")
 
         return memory_ratio < threshold
-
-    ############################################################################
-
-def find_latest_file(file_mask):
-    """ Depricated method to find latest simulation -- remove?"""
-    assert False, "This is no longer used, remove?"
-    files = glob(file_mask)
-
-    mod_time = [os.path.getmtime(f) for f in files]
-    idx = np.argsort(mod_time)
-
-    return files[idx[-1]]
 
 
 ############################################################################
