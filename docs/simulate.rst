@@ -5,6 +5,8 @@ Snudda Simulate
     :toctree: simulate
     :template: module.rst
 
-    snudda.simulate.simulate
+    snudda.simulate
+    
+    
 
 

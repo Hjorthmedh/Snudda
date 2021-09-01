@@ -10,7 +10,7 @@ hjorth@kth.se
 Horizon 2020 Framework Programme (785907, HBP SGA2); Horizon 2020 Framework Programme (945539, HBP SGA3); Vetenskapsrådet (VR-M-2017-02806); Swedish e-science Research Center (SeRC); KTH Digital Futures.
 
 # Citation
-Please cite the first paper for the general Snudda methods, and the second paper for the Striatal microcircutiry model.
+Please cite the first paper for the general Snudda network creation and simulation methods, and the second paper for the Striatal microcircutiry model.
 
 J. J. Johannes Hjorth, Jeanette Hellgren Kotaleski, Alexander Kozlov. Predicting Synaptic Connectivity for Large-Scale Microcircuit Simulations Using Snudda. Neuroinform (2021). https://doi.org/10.1007/s12021-021-09531-w
 
