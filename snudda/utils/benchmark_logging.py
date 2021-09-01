@@ -6,7 +6,21 @@ from collections import OrderedDict
 
 class BenchmarkLogging:
 
-    """ Saves benchmark logging when running snudda from command line. """
+    """ Saves benchmark logging when running snudda from command line.
+
+    Trivial example below:
+
+    import time
+    bl = BenchmarkLogging("/home/hjorth/HBP/Snudda/snudda")
+    bl.start_timer("test")
+    time.sleep(1)
+    bl.start_timer("test2")
+    time.sleep(2)
+    bl.stop_timer("test2")
+    bl.stop_timer("test")
+    bl.write_log()
+
+    """
 
     def __init__(self, network_path, parallel_flag=False, log_file=None, running_neuron=False):
 
@@ -136,14 +150,3 @@ class BenchmarkLogging:
         with open(self.log_file, "w") as fw:
             json.dump(data, fw, indent=4)
 
-
-if __name__ == "__main__":
-    import time
-    bl = BenchmarkLogging("/home/hjorth/HBP/Snudda/snudda")
-    bl.start_timer("test")
-    time.sleep(1)
-    bl.start_timer("test2")
-    time.sleep(2)
-    bl.stop_timer("test2")
-    bl.stop_timer("test")
-    bl.write_log()
