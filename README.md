@@ -1,9 +1,9 @@
-# Snudda
-Create realistic networks of neurons, synapses placed using touch detection between axons and dendrites
+# Summary of Snudda
+Software to create realistic networks of simulated neurons in silico in a bottom up fashion. Neurons are placed within 3D meshes representing the structures of interest, with neural densities as seen in experiments. Based on reconstructed morphologies and neuron placement we can infer locations of putative synapses based on proximity between axon and dendrites. Projections between different structures can be added either using axon reconstructions, or by defining a connectivity map between regions. Putative synapses are pruned to match experimental pair-wise data on connectivity. Networks can be simulated either on desktop machines, or on super computers.
 
 # Contact details
 Johannes Hjorth, Royal Institute of Technology (KTH)
-Human Brain Project 2019
+Human Brain Project
 hjorth@kth.se
 
 # Funding
@@ -12,9 +12,9 @@ Horizon 2020 Framework Programme (785907, HBP SGA2); Horizon 2020 Framework Prog
 # Citation
 Please cite the first paper for the general Snudda network creation and simulation methods, and the second paper for the Striatal microcircutiry model.
 
-J. J. Johannes Hjorth, Jeanette Hellgren Kotaleski, Alexander Kozlov. Predicting Synaptic Connectivity for Large-Scale Microcircuit Simulations Using Snudda. Neuroinform (2021). https://doi.org/10.1007/s12021-021-09531-w
+* J. J. Johannes Hjorth, Jeanette Hellgren Kotaleski, Alexander Kozlov. Predicting Synaptic Connectivity for Large-Scale Microcircuit Simulations Using Snudda. Neuroinform (2021). https://doi.org/10.1007/s12021-021-09531-w
 
-J. J. Johannes Hjorth, Alexander Kozlov, Ilaria Carannante, Johanna Frost Nylén, Robert Lindroos, Yvonne Johansson, Anna Tokarska, Matthijs C. Dorst, Shreyas M. Suryanarayana, Gilad Silberberg, Jeanette Hellgren Kotaleski, Sten Grillner
+* J. J. Johannes Hjorth, Alexander Kozlov, Ilaria Carannante, Johanna Frost Nylén, Robert Lindroos, Yvonne Johansson, Anna Tokarska, Matthijs C. Dorst, Shreyas M. Suryanarayana, Gilad Silberberg, Jeanette Hellgren Kotaleski, Sten Grillner
 The microcircuits of striatum in silico. Proceedings of the National Academy of Sciences (2020). https://doi.org/10.1073/pnas.2000671117
 
 # Installation
