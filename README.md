@@ -39,27 +39,43 @@ https://github.com/Hjorthmedh/Snudda/tree/master/examples/notebooks
 Once installed Snudda can also be run from the command line, using the snudda command. Below is a small list of the relevant commands that can be used.
 
 Creates an a json config file:
-```snudda init <networkPath> --size XXX```
+```
+snudda init <networkPath> --size XXX
+```
 
 Cell placement within volumes specified:
-```snudda place <networkPath>```
+```
+snudda place <networkPath>
+```
 
 Touch detection of putative synapses:
-```snudda detect <networkPath> [--hvsize hyperVoxelSize]```
+```
+snudda detect <networkPath> [--hvsize hyperVoxelSize]
+```
 
 Prune the synapses
-```snudda prune <networkPath> [--mergeonly]```
+```
+snudda prune <networkPath> [--mergeonly]
+```
 
 Setup the input, obs you need to manually pick a input config file
-```snudda input <networkPath> [--input yourInputConfig]```
+```
+snudda input <networkPath> [--input yourInputConfig]
+```
 
 Run the network simulation using neuron
-```snudda simulate <networkPath>```
+```
+snudda simulate <networkPath>
+```
 
 Plot figurs with some network analysis:
-```snudda analyse <networkPath>```
+```
+snudda analyse <networkPath>
+```
 
 Show this help text
-```snudda help me```
+```
+snudda help me
+```
 
 
