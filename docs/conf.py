@@ -15,13 +15,13 @@ import sys
 
 
 sys.path.insert(0, os.path.abspath('..'))
-sys.path.insert(0, os.path.abspath('../snudda'))
+# sys.path.insert(0, os.path.abspath('../snudda'))
 
-# --- mock
+# --- setup mock
 
 import mock
  
-MOCK_MODULES = ['mpi4py', 'NEURON', 'bluepyopt', 'bluepyopt.ephys', 'ipyparallel', 'matplotlib', 'matplotlib.pyplot', 'h5py', 'numpy', 'scipy', 'scipy.cluster', 'scipy.interpolate', 'sonata', 'pyzmq', 'numexpr', 'argparse', 'pyswarms', 'numba', 'psutil']
+MOCK_MODULES = ['mpi4py', 'NEURON', 'neuron', 'bluepyopt', 'bluepyopt.ephys', 'bluepyopt.ephys.simulators', 'ipyparallel', 'matplotlib', 'matplotlib.pyplot', 'h5py', 'numpy', 'scipy', 'scipy.cluster', 'scipy.interpolate', 'sonata', 'pyzmq', 'numexpr', 'argparse', 'pyswarms', 'numba', 'psutil']
 
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
@@ -39,9 +39,9 @@ author = 'Johannes Hjorth'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary','sphinx.ext.coverage', 'sphinx.ext.viewcode', 'sphinxarg.ext', 'sphinx.ext.napoleon', 'myst_parser']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary','sphinx.ext.coverage', 'sphinx.ext.viewcode', 'sphinxarg.ext', 'sphinx.ext.napoleon', 'm2r2']  # , 'myst_parser'
 
-autodoc_mock_imports = ['mpi4py', 'NEURON', 'bluepyopt', 'ipyparallel', 'matplotlib', 'h5py', 'numpy', 'scipy', 'sonata', 'pyzmq', 'numexpr', 'argparse', 'pyswarms', 'numba']
+autodoc_mock_imports = ['mpi4py', 'NEURON', 'bluepyopt', 'bluepyopt.ephys', 'bluepyopt.ephys.simulators', 'ipyparallel', 'matplotlib', 'h5py', 'numpy', 'scipy', 'sonata', 'pyzmq', 'numexpr', 'argparse', 'pyswarms', 'numba']
 
 import snudda
 

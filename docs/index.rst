@@ -5,9 +5,11 @@
 
 Welcome to Snudda's documentation!
 ==================================
-		       
+
+.. mdinclude:: ../README.md
+
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
    :caption: Contents:
 
    Home <self>
