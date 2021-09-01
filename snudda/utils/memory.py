@@ -3,16 +3,6 @@
 from psutil import virtual_memory
 
 
-def low_memory(threshold=0.1):
-
-    """ Checks if memory is low, based on threshold (default 0.1 = 10% of memory) """
-
-    mem = virtual_memory()
-    memory_ratio = mem.available / mem.total
-
-    return memory_ratio < threshold
-
-
 def memory_status():
 
     """ Returns memory status. Tuple (memory available, memory total) """

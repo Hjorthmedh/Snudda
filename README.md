@@ -7,7 +7,7 @@ Human Brain Project
 hjorth@kth.se
 
 ## Funding
-Horizon 2020 Framework Programme (785907, HBP SGA2); Horizon 2020 Framework Programme (945539, HBP SGA3); Vetenskapsrådet (VR-M-2017-02806); Swedish e-science Research Center (SeRC); KTH Digital Futures.
+Horizon 2020 Framework Programme (785907, HBP SGA2); Horizon 2020 Framework Programme (945539, HBP SGA3); Vetenskapsrådet (VR-M-2017-02806, VR-M-2020-01652); Swedish e-science Research Center (SeRC); KTH Digital Futures.
 
 ## Citation
 Please cite the first paper for the general Snudda network creation and simulation methods, and the second paper for the Striatal microcircutiry model.
