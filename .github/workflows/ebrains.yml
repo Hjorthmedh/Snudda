@@ -27,7 +27,7 @@ jobs:
       - name: synctags
         uses: wei/git-sync@v3
         with:
-          source_repo: "hjorthmedh/Snudda"
+          source_repo: "Hjorthmedh/Snudda"
           source_branch: "refs/tags/*"
           destination_repo: "https://ghpusher:${{ secrets.EBRAINS_GITLAB_ACCESS_TOKEN }}@gitlab.ebrains.eu/hjorth/Snudda/snudda-mirror.git"
           destination_branch: "refs/tags/*"
