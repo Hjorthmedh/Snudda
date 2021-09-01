@@ -79,3 +79,7 @@ snudda help me
 ```
 
 
+## Additional information:
+
+https://snudda.readthedocs.io/
+https://snudda.readthedocs.io/en/dev
