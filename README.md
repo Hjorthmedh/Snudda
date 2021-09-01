@@ -9,6 +9,14 @@ hjorth@kth.se
 # Funding
 Horizon 2020 Framework Programme (785907, HBP SGA2); Horizon 2020 Framework Programme (945539, HBP SGA3); Vetenskapsrådet (VR-M-2017-02806); Swedish e-science Research Center (SeRC); KTH Digital Futures.
 
+# Citation
+Please cite the following paper for the general methods:
+Hjorth, J.J.J., Hellgren Kotaleski, J. & Kozlov, A. Predicting Synaptic Connectivity for Large-Scale Microcircuit Simulations Using Snudda. Neuroinform (2021). https://doi.org/10.1007/s12021-021-09531-w
+
+Please cite this paper if using the Basal Ganglia model:
+J. J. Johannes Hjorth, Alexander Kozlov, Ilaria Carannante, Johanna Frost Nylén, Robert Lindroos, Yvonne Johansson, Anna Tokarska, Matthijs C. Dorst, Shreyas M. Suryanarayana, Gilad Silberberg, Jeanette Hellgren Kotaleski, Sten Grillner
+The microcircuits of striatum in silico. Proceedings of the National Academy of Sciences (2020). https://doi.org/10.1073/pnas.2000671117
+
 # Installation
 
 https://github.com/Hjorthmedh/Snudda/wiki/1.-User-installation
