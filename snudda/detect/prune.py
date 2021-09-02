@@ -256,12 +256,12 @@ class SnuddaPrune(object):
                                      close_input_file=True)
 
         end_time = timeit.default_timer()
-		
+        
         if not self.keep_files:
             try:
-				self.cleanup()
-			except:
-				print("Could not clean up files. Proceeding anyway.")
+                self.cleanup()
+            except:
+                print("Could not clean up files. Proceeding anyway.")
         self.write_log(f"prune synapses and gap junctions: {end_time - start_time:.1f}s")
 
     ############################################################################
