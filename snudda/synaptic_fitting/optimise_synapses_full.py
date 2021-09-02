@@ -1418,7 +1418,6 @@ if __name__ == "__main__":
             # http://davidmasad.com/blog/simulation-with-ipyparallel/
             # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
             d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
-            lb_view = rc.load_balanced_view(targets='all')
         except:
             import traceback
             t_str = traceback.format_exc()

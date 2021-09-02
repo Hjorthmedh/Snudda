@@ -5,15 +5,18 @@ from snudda.utils.benchmark_logging import BenchmarkLogging
 import os
 import sys
 
-def snudda_cli():
 
+def snudda_cli():
+    """
+    Command line parser for Snudda.
+    Valid actions are: init, place, detect, prune, input, simulate, help
+    """
 
     if '-python' in sys.argv:
         print("Snudda's cli.py called through nrniv, fixing arguments")
         pythonidx = sys.argv.index('-python')
         if len(sys.argv) > pythonidx:
             sys.argv = sys.argv[pythonidx + 1:]
-
 
     # print(f"Current working directory: {os.getcwd()}")
     
@@ -35,6 +38,8 @@ def snudda_cli():
     # init_parser.add_argument("size", type=int, help="Number of neurons in network", default=None)
     init_parser.add_argument("-size", "--size", dest="size",
                              type=int, help="Number of neurons in network", default=None)
+    init_parser.add_argument("--neurons_dir", type=str, default=None,
+                             help="Path to neurons_dir, default is $DATA/neurons")
     init_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory",
                              action="store_true")
     init_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)

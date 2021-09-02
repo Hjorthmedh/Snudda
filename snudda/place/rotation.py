@@ -7,7 +7,16 @@ from snudda.neurons.neuron_morphology import NeuronMorphology
 
 class SnuddaRotate:
 
+    """ Rotation object. """
+
     def __init__(self, config_file=None):
+
+        """
+        Constructor
+
+        Args:
+            config_file: Path to network config file
+        """
 
         self.rotation_lookup = dict()
         self.config = None
@@ -16,6 +25,7 @@ class SnuddaRotate:
             self.parse_config_file(config_file=config_file)
 
     def parse_config_file(self, config_file):
+        """ Parse config_file, sets self.rotation_lookup """
 
         with open(config_file, "r") as f:
             self.config = json.load(f)
@@ -38,6 +48,7 @@ class SnuddaRotate:
 
     @staticmethod
     def random_z_rotate(rng):
+        """ Helper method, rotate around z-axis (of SWC coordinates)"""
         ang = 2*np.pi*rng.uniform()
 
         return np.array([[np.cos(ang), -np.sin(ang), 0],
@@ -45,6 +56,7 @@ class SnuddaRotate:
                          [0, 0, 1]])
 
     def get_rotations(self, volume_name, neuron_type, neuron_positions, rng):
+        """ Gets rotations for neuron_type in volumne name at neuron_positions """
 
         if (volume_name, neuron_type) in self.rotation_lookup:
             rotation_mode, field_position, field_rotation = self.rotation_lookup[volume_name, neuron_type]
@@ -83,6 +95,7 @@ class SnuddaRotate:
 
     @staticmethod
     def rotation_matrix_from_vectors(vec1, vec2):
+        """ Creates a rotation matrix to rotate vec1 into vec2."""
 
         # Special case, which gives cross product zero
         if (vec1 == vec2).all():
@@ -115,6 +128,7 @@ class SnuddaRotate:
 
     @staticmethod
     def load_rotation_field(rotation_field_file, volume_name):
+        """ Loads rotation field for volumne_name from rotation_field_file """
 
         with open(rotation_field_file, "r") as f:
             rotation_field_data = json.load(f)

@@ -64,8 +64,8 @@ else
 	      --HeartMonitor.period=10000 &
 
     #.. Sleep to allow engines to start
-    echo ">>> Wait 120s to allow engines to start"
-    sleep 120 #60
+    echo ">>> Wait 180s to allow engines to start"
+    sleep 180 #60
 
     #.. Run the self-installed version of python3
     #${ANACONDA_HOME}/bin/python3 badExample.py 
