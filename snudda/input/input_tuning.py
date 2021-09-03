@@ -804,7 +804,7 @@ class InputTuning(object):
 
         sim = SnuddaSimulate(network_file=self.network_file,
                              input_file=self.input_spikes_file)
-
+        sim.setup()
         sim.add_external_input()
         sim.check_memory_status()
 

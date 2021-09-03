@@ -472,6 +472,7 @@ class Snudda(object):
                     mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons",
                                                                                            "mechanisms_ptr")))
         if not os.path.exists("x86_64") and not os.path.exists("nrnmech.dll"):
+
             if pc.id() == 0:
                 # Only run this on master node
                 print(f"Running on master node:  nrnivmodl {mech_dir}")
@@ -486,6 +487,7 @@ class Snudda(object):
             elif os.path.exists("x86_64"):
                 h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
             else:
+
                 print(f"Could not find compiled mechanisms. Compile using 'nrnivmodl {mech_dir}' "
                       f"and retry simulation.")
                 sys.exit(-1)
