@@ -2288,8 +2288,10 @@ class SnuddaPrune(object):
             files = glob.glob(os.path.join(path, "*"))
             for f in files:
                 if os.path.isfile(f):
-                    os.remove(f)
-
+                    try:
+                        os.remove(f)
+                    except:
+                        self.write_log(f"cleanup: Failed to close {f}, is it already closed?")
 
 ##############################################################################
 
