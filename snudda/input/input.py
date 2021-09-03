@@ -1123,7 +1123,12 @@ class SnuddaInput(object):
 
         morphology_path = self.network_config["Neurons"][neuron_name]["morphology"]
         parameters_path = self.network_config["Neurons"][neuron_name]["parameters"]
-        modulation_path = self.network_config["Neurons"][neuron_name]["modulation"]
+
+        if "modulation" in self.network_config["Neurons"][neuron_name]:
+            modulation_path = self.network_config["Neurons"][neuron_name]["modulation"]
+        else:
+            modulation_path = None
+
         mechanisms_path = self.network_config["Neurons"][neuron_name]["mechanisms"]
 
         parameter_id = self.neuron_info[neuron_id]["parameterID"]
