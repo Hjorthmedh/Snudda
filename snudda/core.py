@@ -44,6 +44,7 @@ import os
 import sys
 import timeit
 import pkg_resources
+import json
 
 from snudda.utils import snudda_path
 from snudda.utils.snudda_path import snudda_isfile
@@ -432,6 +433,10 @@ class Snudda(object):
 
         start = timeit.default_timer()
 
+        from mpi4py import MPI  # This must be imported before neuron, to run parallel
+        from neuron import h
+        pc = h.ParallelContext()
+
         if args.network_file:
             network_file = args.network_file
         else:
@@ -456,16 +461,19 @@ class Snudda(object):
             mech_dir = args.mech_dir
         else:
             # Take into account which SNUDDA_DATA the user wants to use
-            mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons",
-                                                                                   "mechanisms")))
+            mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons", "mechanisms")))
+
+            if args.neuromodulation is not None:
+                # read neuromod file and determine if it is replay or adaptive, then if and import the correct one
+                with open(args.neuromodulation, "r") as f:
+                    neuromod_dict = json.load(f)
+
+                if "adaptive" in neuromod_dict["type"]:
+                    mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons",
+                                                                                           "mechanisms_ptr")))
         if not os.path.exists("x86_64") and not os.path.exists("nrnmech.dll"):
-
-            from neuron import h
-            pc = h.ParallelContext()
-
             if pc.id() == 0:
                 # Only run this on master node
-
                 print(f"Running on master node:  nrnivmodl {mech_dir}")
                 os.system(f"nrnivmodl {mech_dir}")
             else:
@@ -524,21 +532,14 @@ class Snudda(object):
             print(f"Creating directory {log_dir}")
             os.makedirs(log_dir, exist_ok=True)
 
-        from mpi4py import MPI  # This must be imported before neuron, to run parallel
-        from neuron import h  # , gui
-
-        pc = h.ParallelContext()
-
         if args.neuromodulation is not None:
 
             # read neuromod file and determine if it is replay or adaptive, then if and import the correct one
 
             with open(args.neuromodulation, 'r') as neuromod_f:
-                import json
                 neuromod_dict = json.load(neuromod_f)
 
             if 'type' not in neuromod_dict:
-
                 print(f"Neuromodulation is not defined correctly in {args.neuromodulation} : 'type' is missing. Did you specify the correct file?")
                 exit(-1)
 
