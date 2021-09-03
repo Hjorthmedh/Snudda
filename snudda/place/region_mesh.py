@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import scipy
 from scipy import ndimage
@@ -578,7 +580,7 @@ class RegionMesh(object):
             t_str = traceback.format_exc()
             self.write_log(t_str, is_error=True)
 
-            os.sys.exit(-1)
+            sys.exit(-1)
 
         return vm_inner
 

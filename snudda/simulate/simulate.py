@@ -1790,7 +1790,7 @@ if __name__ == "__main__":
         print("Program run time: " + str(stop - start))
 
     # sim.plot()
-    exit(0)
+    sys.exit(0)
 
 # Check this code example
 # Why are spikes not propagated from one neuron to another

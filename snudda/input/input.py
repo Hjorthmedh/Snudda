@@ -1473,4 +1473,4 @@ class SnuddaInput(object):
 
 if __name__ == "__main__":
     print("Please do not call this file directly, use snudda command line")
-    os.sys.exit(-1)
+    sys.exit(-1)

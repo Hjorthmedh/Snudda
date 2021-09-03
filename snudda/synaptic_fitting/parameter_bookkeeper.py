@@ -1,3 +1,4 @@
+import sys
 from collections import OrderedDict
 import os
 import heapq
@@ -51,7 +52,7 @@ class ParameterBookkeeper:
             import traceback
             tstr = traceback.format_exc()
             print(tstr)
-            exit(-1)
+            sys.exit(-1)
 
         book_len = len(self.book)
         for i in range(self.n_max, book_len):

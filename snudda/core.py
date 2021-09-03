@@ -488,7 +488,7 @@ class Snudda(object):
             else:
                 print(f"Could not find compiled mechanisms. Compile using 'nrnivmodl {mech_dir}' "
                       f"and retry simulation.")
-                os.sys.exit(-1)
+                sys.exit(-1)
 
         else:
             print("NEURON mechanisms already compiled, make sure you have the correct version of NEURON modules.")
@@ -541,7 +541,7 @@ class Snudda(object):
 
             if 'type' not in neuromod_dict:
                 print(f"Neuromodulation is not defined correctly in {args.neuromodulation} : 'type' is missing. Did you specify the correct file?")
-                exit(-1)
+                sys.exit(-1)
 
             elif 'replay' in neuromod_dict['type']:
                 from snudda.neuromodulation.neuromodulation import SnuddaSimulateNeuromodulation

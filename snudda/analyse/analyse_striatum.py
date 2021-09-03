@@ -133,7 +133,7 @@ if __name__ == "__main__":
         print("Reading network from " + str(sim_dir))
     else:
         print("Please specify which directory the striatum network files is in")
-        exit(-1)
+        sys.exit(-1)
 
     nas = SnuddaAnalyseStriatum(sim_dir, volume_type="cube")
 
