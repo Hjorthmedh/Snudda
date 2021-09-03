@@ -267,6 +267,9 @@ class SnuddaSimulate(object):
         # This code is run on all workers, will generate different lists on each
         self.write_log("Distributing neurons.")
 
+        assert self.num_neurons >= int(self.pc.nhost()), \
+            f"Do not allocate more workers ({int(self.pc.nhost())}) than there are neurons (self.num_neurons)."
+
         self.neuron_id = range(int(self.pc.id()), self.num_neurons, int(self.pc.nhost()))
 
         # TODO: Change to these ranges: range_borders = np.linspace(0, num_neurons, n_workers + 1).astype(int)
