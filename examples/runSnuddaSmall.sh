@@ -41,5 +41,5 @@ ipcluster stop
 # Uncomment this to run simulation
 # Remember you need to run "nrnivmodl data/cellspecs/mechanisms"
 # first to create the mechanisms
-mpiexec -n 6 -x SNUDDA_DATA snudda simulate $simName
+mpiexec -x SNUDDA_DATA snudda simulate $simName --verbose
 
