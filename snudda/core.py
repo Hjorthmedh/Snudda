@@ -45,6 +45,7 @@ import sys
 import timeit
 import pkg_resources
 
+from snudda.utils import snudda_path
 from snudda.utils.snudda_path import snudda_isfile
 
 
@@ -451,17 +452,34 @@ class Snudda(object):
         # Problems with nested symbolic links when the second one is a relative
         # path going beyond the original base path
         if args.mech_dir is None:
-            # mech_dir = os.path.join(os.path.dirname(network_file), "mechanisms")
+            # Take into account which SNUDDA_DATA the user wants to use
+            mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons", "mechanisms")))
 
-            # TODO!!! problem with paths, testing to create mechanism dir in current dir
-            mech_dir = "mechanisms"
+            if not os.path.exists("x86_64") and not os.path.exists("nrnmech.dll"):
+                os.system(f"nrnivmodl {mech_dir}")
 
-            if not os.path.exists(mech_dir):
-                try:
-                    m_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), "data", "neurons", "mechanisms"))
-                    os.symlink(m_dir, mech_dir)
-                except:
-                    print(f"Failed to create symlink {mech_dir} -> {m_dir}")
+                from neuron import h
+                if os.path.exists("nrnmech.dll"):
+                    h.nrn_load_dll("nrnmech.dll")
+                elif os.path.exists("x86_64"):
+                    h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
+                else:
+                    print(f"Could not find compiled mechanisms. Compile using 'nrnivmodl {mech_dir}' "
+                          f"and retry simulation.")
+                    os.sys.exit(-1)
+
+            else:
+                print("NEURON mechanisms already compiled, make sure you have the correct version of NEURON modules.")
+
+            # TODO!!! problem with paths, testing to create symbolik link to mechanism dir in current dir
+            # mech_dir = "mechanisms"
+            #
+            # if not os.path.exists(mech_dir):
+            #     try:
+            #         m_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), "data", "neurons", "mechanisms"))
+            #         os.symlink(m_dir, mech_dir)
+            #     except:
+            #         print(f"Failed to create symlink {mech_dir} -> {m_dir}")
         else:
             mech_dir = args.mech_dir
 
