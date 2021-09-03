@@ -60,7 +60,7 @@ class RunLittleSynapseRun(object):
             print(tstr)
 
             print("Did you remember to run nrnivmodl first, to generate channels mod files?")
-            exit(-1)
+            sys.exit(-1)
 
         # We need to set the params also
         self.params = params

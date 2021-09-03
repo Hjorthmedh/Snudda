@@ -2,7 +2,7 @@
 import numpy as np
 import timeit
 import json
-import os
+import sys
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
 
@@ -875,7 +875,7 @@ if __name__ == "__main__":
 
         if synapses[0] is None:
             # Nothing to display
-            os.sys.exit(0)
+            sys.exit(0)
 
         preID = np.unique(synapses[0][:, 0])
 

@@ -1446,6 +1446,6 @@ if __name__ == "__main__":
 
         ly.plot_data(show=True, pretty_plot=pretty_plot_flag)
 
-        exit(0)
+        sys.exit(0)
 
     ly.parallel_optimise_single_cell(n_trials=2)

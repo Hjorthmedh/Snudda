@@ -21,6 +21,7 @@
 # Finally, the resulting files from the workers are merged together
 
 import os
+import sys
 import numpy as np
 from numba import jit
 import math
@@ -1760,7 +1761,7 @@ class SnuddaPrune(object):
             import traceback
             t_str = traceback.format_exc()
             self.write_log(t_str, is_error=True)
-            os.sys.exit(-1)
+            sys.exit(-1)
 
     ############################################################################
 
@@ -1857,7 +1858,7 @@ class SnuddaPrune(object):
             t_str = traceback.format_exc()
             self.write_log(t_str, is_error=True)
 
-            os.sys.exit(-1)
+            sys.exit(-1)
 
         return num_syn, num_syn_kept
 
@@ -2296,4 +2297,4 @@ class SnuddaPrune(object):
 
 if __name__ == "__main__":
     print("Please do not call this file directly, use snudda.py")
-    os.sys.exit(-1)
+    sys.exit(-1)

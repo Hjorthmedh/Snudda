@@ -307,7 +307,7 @@ class RunSynapseRun(object):
             self.write_log(tstr)
 
             self.write_log("Did you remember to run nrnivmodl first, to generate channels mod files?")
-            exit(-1)
+            sys.exit(-1)
 
         for p in params:
 

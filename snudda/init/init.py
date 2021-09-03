@@ -391,7 +391,7 @@ class SnuddaInit(object):
                 if (p_corner > 0.01).any():
                     print("Axon density too high at boundary!!")
                     print("Please increase bounding box")
-                    exit(-1)
+                    sys.exit(-1)
 
                 # print(str(axonDensity[3]) + " " + str(name) \
                 #      + " axon points to place")

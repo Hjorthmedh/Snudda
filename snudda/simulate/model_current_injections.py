@@ -27,6 +27,7 @@
 #
 
 import os
+import sys
 
 from snudda.simulate.simulate import SnuddaSimulate
 from snudda.utils.load import SnuddaLoad
@@ -171,7 +172,7 @@ class SnuddaModelCurrentInjections(object):
                           slice_depth=150e-6)
     else:
       print("setup : Unkown simType: " + str(simType))
-      exit(-1)
+      sys.exit(-1)
       
     dirName = os.path.dirname(configName)
   
@@ -198,7 +199,7 @@ class SnuddaModelCurrentInjections(object):
       
     else:
       print("simulateNetwork: unknown simType = " + str(simType))
-      exit(-1)
+      sys.exit(-1)
       
   ############################################################################
 
@@ -281,7 +282,7 @@ class SnuddaModelCurrentInjections(object):
                 if "LTS" in x["type"]]
     else:
       print("simulateNetworkStraub2016: Unknown simType : " + simType)
-      exit(-1)
+      sys.exit(-1)
 
     measureID = [x["neuronID"] \
                  for x in self.snuddaSim.network_info["neurons"] \
@@ -477,7 +478,7 @@ class SnuddaModelCurrentInjections(object):
       preType = "FSN"
     else:
       print("Unknown simType : " + simType)
-      exit(-1)
+      sys.exit(-1)
       
     print("Analysing data in " + simName)
     voltFile = simName + "/" + simType + "-network-stimulation-current.txt"
@@ -513,7 +514,7 @@ class SnuddaModelCurrentInjections(object):
       neuronTypeList = ["LTS"]
     else:
       print("simulate: Unknown simType: " + simType)
-      exit(-1)
+      sys.exit(-1)
       
     neuronPlotList = []
 
