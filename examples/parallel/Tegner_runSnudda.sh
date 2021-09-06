@@ -5,6 +5,14 @@ SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
 JOBDIR=$SNUDDA_DIR/../networks/TegnerNetwork
 
 
+# If the BasalGangliaData directory exists, then use that for our data
+if [[ -d "/cfs/klemming/nobackup/${USER:0:1}/$USER/BasalGangliaData/data" ]]; then
+    export SNUDDA_DATA="/cfs/klemming/nobackup/${USER:0:1}/$USER/BasalGangliaData/data"
+    echo "Setting SNUDDA_DATA to $SNUDDA_DATA"
+else
+    echo "SNUDDA_DATA environment variable not changed (may be empty): $SNUDDA_DATA"
+fi
+
 # !!! For larger networks increase the allocation time in Tegner_runSnudda.job
 
 SIMSIZE=20000
