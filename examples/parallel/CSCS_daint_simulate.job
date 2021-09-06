@@ -17,6 +17,15 @@ NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 NETWORK_VOLTAGE_FILE=$NETWORK_DIR/simulation/voltage-trace-${SLURM_JOBID}.txt
 
+# If the BasalGangliaData directory exists, then use that for our data
+if [[ -d "/users/$USER/BasalGangliaData/data" ]]; then
+    export SNUDDA_DATA="/users/$USER/BasalGangliaData/data"
+    echo "Setting SNUDDA_DATA to $SNUDDA_DATA"
+else
+    echo "SNUDDA_DATA environment variable not changed (may be empty): $SNUDDA_DATA"
+fi
+
+
 echo "Network dir: "$NETWORK_DIR
 
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
