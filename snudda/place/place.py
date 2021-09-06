@@ -23,7 +23,6 @@ import json
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists
-# from snudda.neurons.neuron_morphology import NeuronMorphology
 from snudda.place.region_mesh import RegionMesh
 from snudda.place.rotation import SnuddaRotate
 
@@ -431,9 +430,6 @@ class SnuddaPlace(object):
             else:
                 virtual_neuron = False
 
-            # Now handled by rotation_helper
-            # rotation_mode = definition["rotationMode"]
-
             if "axonDensity" in definition:
                 axon_density = definition["axonDensity"]
             else:
@@ -449,7 +445,6 @@ class SnuddaPlace(object):
                              hoc=hoc,
                              volume_id=volume_id,
                              virtual_neuron=virtual_neuron,
-                             # rotation_mode=rotation_mode,
                              axon_density=axon_density)
 
         self.config_file = config_file
