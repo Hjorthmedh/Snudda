@@ -1,9 +1,20 @@
 import numpy as np
 from snudda.utils.load import SnuddaLoad
 
+
 class SnuddaExportConnectionMatrix(object):
 
+    """ Exports a connection matrix from network. """
+
     def __init__(self, in_file, out_file, save_sparse=True):
+
+        """ Constructor.
+
+        Args:
+            in_file : Network file
+            out_file : Connection matrix file
+            save_sparse : Should data be saved in sparse format?
+        """
 
         self.sl = SnuddaLoad(in_file)
 
@@ -46,6 +57,8 @@ class SnuddaExportConnectionMatrix(object):
     ############################################################################
 
     def create_con_mat(self):
+
+        """ Creates the connection matrix from the synapse matrix data. """
 
         num_neurons = self.sl.data["nNeurons"]
 

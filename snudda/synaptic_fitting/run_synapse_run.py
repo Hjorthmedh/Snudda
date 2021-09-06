@@ -67,12 +67,12 @@ class RunSynapseRun(object):
         # Should we use weak reference for garbage collection? (weakref package)
 
         # We load the neuron morphology object also, used to place synapses
-        self.write_log("Using morphology: " + str(neuron_morphology))
+        self.write_log(f"Using morphology: {neuron_morphology}")
         self.morphology = NeuronMorphology(swc_filename=neuron_morphology)
 
         # We need to setup the Neuron model
         self.neuron = NeuronModel(param_file=neuron_parameters,
-                                  morph_file=neuron_morphology,
+                                  morph_path=neuron_morphology,
                                   mech_file=neuron_mechanisms,
                                   cell_name="OptimisationNeuron",
                                   modulation_file=neuron_modulation,
@@ -112,6 +112,8 @@ class RunSynapseRun(object):
 
         self.holding_current = self.update_holding_current(holding_voltage=holding_voltage,
                                                            holding_current=holding_current)
+
+        self.write_log("RunSynapseRun: Init done.")
 
         # import pdb
         # pdb.set_trace()
@@ -305,7 +307,7 @@ class RunSynapseRun(object):
             self.write_log(tstr)
 
             self.write_log("Did you remember to run nrnivmodl first, to generate channels mod files?")
-            exit(-1)
+            sys.exit(-1)
 
         for p in params:
 

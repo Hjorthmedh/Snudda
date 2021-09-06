@@ -9,6 +9,18 @@ def create_slice_mesh(file_name,
                       z_len=150e-6,
                       description=None):
 
+    """
+    Create a slice mesh in wavefront format.
+
+    Args:
+        file_name (str): Path to output file
+        centre_point (float, float, float) : Centre point
+        x_len (float): Width along x-dimension
+        y_len (float): Width along y-dimension
+        z_len (float) : Width along z-dimension
+        description (str) : Description appended to file header
+    """
+
     mesh_dir = os.path.dirname(file_name)
     if mesh_dir and not os.path.exists(mesh_dir):
         os.makedirs(mesh_dir)

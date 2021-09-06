@@ -1,0 +1,6 @@
+# snudda
+sphinx
+myst-parser
+sphinx-argparse
+mock
+m2r2

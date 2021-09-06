@@ -13,6 +13,28 @@ for (dirpath, dirnames, filenames) in os.walk(data_folder):
     if len(filenames) > 0:
         data_files.append(os.path.join(rel_folder, "*"))
 
+if os.environ.get('READTHEDOCS') == 'True':
+    # We are in the readthedocs.org environment
+    print("READTHEDOCS environment detected, clearing install_requires")
+    install_requires = []
+else:
+    print(f"READTHEDOCS = {os.environ.get('READTHEDOCS')}") 
+    install_requires = [
+        "bluepyopt>=1.9.126",
+        "h5py>=3.1.0",
+        "ipyparallel>=6.3.0",
+        "matplotlib>=3.3.4",
+        "mpi4py>=3.0.3",
+        "numpy>=1.20.1",
+        "scipy>=1.6.1",
+        "sonata>=0.0.2",
+        "pyzmq>=22.0.3",
+        "setuptools",
+        "psutil",
+        "argparse",
+        "numexpr"
+    ]
+    
 setuptools.setup(
     name="snudda",
     version=__version__,
@@ -33,20 +55,6 @@ setuptools.setup(
         "snudda": data_files,
     },
     entry_points={"console_scripts": ["snudda = snudda.cli:snudda_cli"]},
-    install_requires=[
-        "bluepyopt>=1.9.126",
-        "h5py>=3.1.0",
-        "ipyparallel>=6.3.0",
-        "matplotlib>=3.3.4",
-        "mpi4py>=3.0.3",
-        "numpy>=1.20.1",
-        "scipy>=1.6.1",
-        "sonata>=0.0.2",
-        "pyzmq>=22.0.3",
-        "setuptools",
-        "psutil",
-        "argparse",
-        "numexpr"
-    ],
+    install_requires=install_requires,
     extras_require={"dev": ["sphinx"]},
 )

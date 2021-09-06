@@ -23,6 +23,8 @@ from snudda.utils.snudda_path import snudda_isfile
 
 
 class NumpyEncoder(json.JSONEncoder):
+    """ Encodes numpy objects for export to JSON """
+
     def default(self, obj):
         if isinstance(obj, np.integer):
             return int(obj)
@@ -36,11 +38,22 @@ class NumpyEncoder(json.JSONEncoder):
 
 
 class SnuddaInit(object):
+    """ Creates network-config.json in network_path. """
 
     def __init__(self,
                  network_path=None,
-                 struct_def=None, config_file=None,
+                 struct_def=None,
+                 neurons_dir=None,
+                 config_file=None,
                  random_seed=None):
+        """Constructor
+
+           Args:
+           network_path (str): location of network files
+           struct_def (dict, optional): definition of struct to create
+           neurons_dir (str, optional): path to neurons, default is $DATA/neurons
+           config_file (str, optional): name of network config file, default network-config.json
+           random_seed (int, optional): random seed"""
 
         # print("CreateConfig")
 
@@ -82,7 +95,7 @@ class SnuddaInit(object):
         if struct_def:
             for sn in struct_def:
                 print("Adding " + sn + " with " + str(struct_def[sn]) + " neurons")
-                struct_func[sn](num_neurons=struct_def[sn])
+                struct_func[sn](num_neurons=struct_def[sn], neurons_dir=neurons_dir)
 
             # Only write JSON file if the structDef was not empty
             self.write_json(self.config_file)
@@ -99,11 +112,26 @@ class SnuddaInit(object):
     def define_structure(self,
                          struct_name,
                          struct_mesh,
-                         d_min=15e-6,
+                         d_min=None,
                          struct_centre=None,
                          side_len=None,
                          slice_depth=None,
                          mesh_bin_width=None):
+        """
+        Sets up definition for a brain structure (e.g. Cortex, Striatum, ...).
+
+        Args:
+            struct_name (str): Name of brain structure
+            struct_mesh (str): Path to wavefront obj file with 3D mesh of structure or 'cube' or 'slice'
+            d_min (float): Minimum distance between somas (puts upper limit on neuron density)
+            struct_centre ((float, float, float)): Location of brain structure (centre)
+            side_len (float, optional): side of cube, or slice
+            slice_depth (float, optional): depth of slice
+            mesh_bin_width (float): discretisation of 3D mesh during cell placement
+        """
+
+        if d_min is None:
+            d_min = 15e-6
 
         if struct_mesh == "cube":
             assert slice_depth is None, "define_structure: sliceDepth is not used for cubes, please set to None"
@@ -363,7 +391,7 @@ class SnuddaInit(object):
                 if (p_corner > 0.01).any():
                     print("Axon density too high at boundary!!")
                     print("Please increase bounding box")
-                    exit(-1)
+                    sys.exit(-1)
 
                 # print(str(axonDensity[3]) + " " + str(name) \
                 #      + " axon points to place")
@@ -392,12 +420,9 @@ class SnuddaInit(object):
                     modulation_file = None
 
                 sd = snudda_parse_path(d)
-                swc_file = glob.glob(os.path.join(sd, "*swc"))
-                swc_file = [snudda_simplify_path(sf) for sf in swc_file]
+                swc_file = self.get_morphologies(sd)
                 hoc_file = glob.glob(os.path.join(sd, "*hoc"))
                 hoc_file = [snudda_simplify_path(hf) for hf in hoc_file]
-
-                assert len(swc_file) == 1, f"Morph dir {sd} should contain one swc file"
 
                 assert len(hoc_file) <= 1, f"Morph dir {sd} contains more than one hoc file"
 
@@ -405,7 +430,7 @@ class SnuddaInit(object):
                     hoc_file = [None]
 
                 neuron_file_list.append((d,
-                                        swc_file[0],
+                                        swc_file,
                                         par_file,
                                         mech_file,
                                         modulation_file,
@@ -462,6 +487,63 @@ class SnuddaInit(object):
                 cell_data["axonDensity"] = axon_density
 
             self.network_data["Neurons"][unique_name] = cell_data
+
+    @staticmethod
+    def get_morphologies(neuron_dir):
+        """
+        Returns SWC morphology(s) path or file, depending on 'morphology' if specified in parameters.json or not.
+
+        If 'morphology' in parameters.json exists then the path where these morphologies are stored is returned.
+        If it does not exist it is assumed that there is exactly one SWC file present in the neuron_dir,
+        and that is then returned.
+
+        Args:
+            neuron_dir (str): Path to neuron directory, may contain $DATA, shorthand for SNUDDA_DATA directory
+        """
+
+        parameter_file = os.path.join(neuron_dir, "parameters.json")
+
+        # First check if the morphologies are listed in the parameter file
+        with open(parameter_file, "r") as f:
+            par_data = json.load(f)
+
+        # Normally there are multiple parametersets in a list, if not, then put the one parameter set in a list
+        if type(par_data[0]) == dict:
+            par_data = [par_data]
+
+        has_morphology = ["morphology" in d[0] for d in par_data]
+
+        if any(has_morphology):
+
+            # If one has the morphology tag, then all must have it
+            assert all(has_morphology), f"All parameter sets in {parameter_file} must have morphology tag."
+
+            morph_dir = os.path.join(neuron_dir, "morphology")
+            morph_dir_full = snudda_parse_path(morph_dir)
+            assert os.path.exists(morph_dir_full), \
+                f"Morphology directory missing: {morph_dir_full}"
+
+            # Also check that all morphologies listed exists
+            missing_morph = []
+            for d in par_data:
+                for m in d[0]["morphology"]:
+                    if not os.path.exists(os.path.join(morph_dir_full, m)):
+                        missing_morph.append(os.path.join(morph_dir_full, m))
+
+            assert len(missing_morph) == 0, \
+                (f"While parsing {parameter_file}:\n " 
+                 f"Missing morphologies: {', '.join(missing_morph)}")
+
+            return snudda_simplify_path(morph_dir)
+
+        else:
+            swc_file = glob.glob(os.path.join(snudda_parse_path(neuron_dir), "*swc"))
+            assert len(swc_file) == 1, \
+                (f"If no morphology is given in parameter.json then " 
+                 f"{snudda_parse_path(neuron_dir)} should contain exactly one swc file")
+
+            swc_file = snudda_simplify_path(swc_file[0])
+            return swc_file
 
     def add_neuron_density(self, volume_id, neuron_type, density_func=None, density_file=None):
 
@@ -666,7 +748,8 @@ class SnuddaInit(object):
                         neuron_density=80500,
                         population_unit_SPN_modifier=1,
                         mesh_file=None,
-                        mesh_bin_width=None):
+                        mesh_bin_width=None,
+                        d_min=None):
 
         get_val = lambda x: 0 if x is None else x
         if num_neurons is None:
@@ -709,12 +792,17 @@ class SnuddaInit(object):
 
             self.define_structure(struct_name="Striatum",
                                   struct_mesh=mesh_file,
-                                  mesh_bin_width=mesh_bin_width)
+                                  mesh_bin_width=mesh_bin_width,
+                                  d_min=d_min)
 
         elif volume_type == "mouseStriatum":
+            if mesh_bin_width is None:
+                mesh_bin_width = 1e-4
+
             self.define_structure(struct_name="Striatum",
                                   struct_mesh=os.path.join("$DATA", "mesh", "Striatum-d.obj"),
-                                  mesh_bin_width=1e-4)
+                                  mesh_bin_width=mesh_bin_width,
+                                  d_min=d_min)
 
             density_file = os.path.join("$DATA", "density", "dorsal_striatum_density.json")
 
@@ -727,7 +815,8 @@ class SnuddaInit(object):
         elif volume_type == "slice":
             self.define_structure(struct_name="Striatum",
                                   struct_mesh="slice",
-                                  side_len=side_len)
+                                  side_len=side_len,
+                                  d_min=d_min)
 
         elif num_neurons <= 1e6:  # 1e6
             print("Using cube for striatum")
@@ -748,13 +837,15 @@ class SnuddaInit(object):
                                   struct_mesh="cube",
                                   struct_centre=striatum_centre,
                                   side_len=striatum_side_len,
-                                  mesh_bin_width=mesh_bin_width)
+                                  mesh_bin_width=mesh_bin_width,
+                                  d_min=d_min)
 
         else:
             # Default, full size striatum
             self.define_structure(struct_name="Striatum",
                                   struct_mesh=os.path.join("$DATA", "mesh", "Striatum-d.obj"),
-                                  mesh_bin_width=1e-4)
+                                  mesh_bin_width=1e-4,
+                                  d_min=d_min)
 
             density_file = os.path.join("$DATA", "density", "dorsal_striatum_density.json")
 
@@ -763,7 +854,6 @@ class SnuddaInit(object):
             self.add_neuron_density(volume_id="Striatum", neuron_type="FSN", density_file=density_file)
             self.add_neuron_density(volume_id="Striatum", neuron_type="LTS", density_file=density_file)
             self.add_neuron_density(volume_id="Striatum", neuron_type="ChIN", density_file=density_file)
-
 
         if neurons_dir is None:
             neurons_dir = os.path.join("$DATA", "neurons")
@@ -1257,7 +1347,7 @@ class SnuddaInit(object):
 
     ############################################################################
 
-    def define_GPe(self, num_neurons):
+    def define_GPe(self, num_neurons, d_min=None, neurons_dir=None):
 
         if num_neurons <= 0:
             # No neurons specified, skipping structure
@@ -1267,13 +1357,14 @@ class SnuddaInit(object):
         self.num_neurons_total += num_neurons
 
         self.define_structure(struct_name="GPe",
-                              struct_mesh="mesh/GPe-mesh.obj")
+                              struct_mesh="mesh/GPe-mesh.obj",
+                              d_min=d_min)
 
         # !!! Need to add targets for neurons in GPe
 
     ############################################################################
 
-    def define_GPi(self, num_neurons):
+    def define_GPi(self, num_neurons, d_min=None, neurons_dir=None):
 
         if num_neurons <= 0:
             # No neurons specified, skipping structure
@@ -1283,13 +1374,14 @@ class SnuddaInit(object):
         self.num_neurons_total += num_neurons
 
         self.define_structure(struct_name="GPi",
-                              struct_mesh="mesh/GPi-mesh.obj")
+                              struct_mesh="mesh/GPi-mesh.obj",
+                              d_min=d_min)
 
         # !!! Need to add targets for neurons in GPi
 
     ############################################################################
 
-    def define_STN(self, num_neurons):
+    def define_STN(self, num_neurons, d_min=None, neurons_dir=None):
 
         if num_neurons <= 0:
             # No neurons specified, skipping structure
@@ -1299,13 +1391,14 @@ class SnuddaInit(object):
         self.num_neurons_total += num_neurons
 
         self.define_structure(struct_name="STN",
-                              struct_mesh="mesh/STN-mesh.obj")
+                              struct_mesh="mesh/STN-mesh.obj",
+                              d_min=d_min)
 
         # !!! Need to add targets for neurons in STN
 
     ############################################################################
 
-    def define_SNr(self, num_neurons):
+    def define_SNr(self, num_neurons, d_min=None, neurons_dir=None):
 
         if num_neurons <= 0:
             # No neurons, skipping
@@ -1316,13 +1409,15 @@ class SnuddaInit(object):
 
         self.define_structure(struct_name="SNr",
                               struct_mesh="mesh/SNr-mesh.obj",
-                              mesh_bin_width=1e-4)
+                              mesh_bin_width=1e-4,
+                              d_min=d_min)
 
         # !!! Need to add targets for neurons in SNr
 
     ############################################################################
 
-    def define_cortex(self, num_neurons):
+    # TODO: neurons_dir not used here yet
+    def define_cortex(self, num_neurons, d_min=None, neurons_dir=None):
 
         if num_neurons <= 0:
             # No neurons specified, skipping structure
@@ -1340,7 +1435,8 @@ class SnuddaInit(object):
                               struct_mesh="cube",
                               struct_centre=np.array([7067e-6, 3007e-6, 2570e-6]),
                               side_len=200e-6,
-                              mesh_bin_width=5e-5)
+                              mesh_bin_width=5e-5,
+                              d_min=d_min)
 
         cortex_dir = os.path.join("$DATA", "InputAxons", "Cortex", "Reg10")
 
@@ -1394,7 +1490,8 @@ class SnuddaInit(object):
 
     ############################################################################
 
-    def define_thalamus(self, num_neurons):
+    # TODO: neurons_dir not used here yet
+    def define_thalamus(self, num_neurons, d_min=None, neurons_dir=None):
 
         if num_neurons <= 0:
             # No neurons specified, skipping structure
@@ -1410,11 +1507,12 @@ class SnuddaInit(object):
                               struct_mesh="cube",
                               struct_centre=np.array([4997e-6, 4260e-6, 7019e-6]),
                               side_len=200e-6,
-                              mesh_bin_width=5e-5)
+                              mesh_bin_width=5e-5,
+                              d_min=d_min)
 
         # Define neurons
 
-        thalamus_dir = os.path.join("$DATA","morphology","InputAxons", "Thalamus", "Reg10")
+        thalamus_dir = os.path.join("$DATA", "morphology", "InputAxons", "Thalamus", "Reg10")
 
         self.add_neurons("ThalamusAxon", thalamus_dir, self.num_thalamus_neurons,
                          model_type="virtual",

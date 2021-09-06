@@ -7,6 +7,13 @@ class NrnSimulatorParallel(ephys.simulators.NrnSimulator):
 
     def __init__(self, dt=None, cvode_active=False):
 
+        """ Constructor
+
+        Args:
+            dt (float): timestemp
+            cvode_active (bool): Use CVODE, default False
+        """
+
         self.disable_banner = True
         self.banner_disabled = False
 
@@ -25,6 +32,8 @@ class NrnSimulatorParallel(ephys.simulators.NrnSimulator):
         self.pc.set_maxstep(10)
 
     def run(self, tstop=None, dt=None):
+
+        """ Run simulation. """
 
         self.neuron.h.tstop = tstop
 

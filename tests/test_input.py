@@ -9,7 +9,7 @@ from snudda.input.input import SnuddaInput
 from snudda.detect.prune import SnuddaPrune
 
 
-class MyTestCase(unittest.TestCase):
+class InputTestCase(unittest.TestCase):
 
     def setUp(self):
 

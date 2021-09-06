@@ -49,6 +49,8 @@
 
 import os
 import glob
+import sys
+
 import numpy as np
 from snudda.simulate.simulate import SnuddaSimulate
 from snudda.utils.load import SnuddaLoad
@@ -279,7 +281,7 @@ class SnuddaCalibrateSynapses(object):
           print("Using " + voltFile + " instead, since pre and post are same")
       else:
         print("Aborting")
-        exit(-1)
+        sys.exit(-1)
     
     data = np.genfromtxt(voltFile, delimiter=',')
     assert(data[0,0] == -1) # First column should be time
@@ -540,7 +542,7 @@ if __name__ == "__main__":
     
   else:
     print("Unknown expType = " + str(args.expType))
-    exit(-1)
+    sys.exit(-1)
 
   scs = SnuddaCalibrateSynapses(networkFile=args.networkFile,
                                 preType=args.preType,

@@ -134,20 +134,25 @@ class PlotSpikeRaster(object):
                    color=[cols2[t] for t in t_idx], s=1,
                    linewidths=0.1)
 
+        spike_count = []
+
+        end_time = np.max([self.end_time, np.max(self.time)]) - skip_time
+
         # histogram
         for t in type_order:
             pruned_spikes = [self.time[int(i)] - skip_time for i in t_idx if i in type_dict[t]]
 
-            num_of_type = len([x["type"] for x in self.network_info.data["neurons"] \
-                               if x["type"] == t])
+            num_of_type = len([x["type"] for x in self.network_info.data["neurons"] if x["type"].upper() == t.upper()])
 
             atop.hist(pruned_spikes,
-                      bins=int(self.time[-1] * 100),
-                      range=(0, self.time[-1]),
+                      bins=int(end_time * 100),
+                      range=(0, end_time),
                       density=0,
                       color=colours[t],
                       alpha=1.0,
                       histtype='step')
+
+            spike_count.append((t, len(pruned_spikes), num_of_type))
 
         ax.invert_yaxis()
 
@@ -162,7 +167,8 @@ class PlotSpikeRaster(object):
         atop.axis('off')
         # UPDATE here to set specific range for plot window!!!!
 
-        end_time = np.max([self.end_time, np.max(self.time)]) - skip_time
+        for st, sc, n in spike_count:
+            print(f"{st} ({n}): {sc/(n*end_time)} Hz, total spikes {sc}")
 
         atop.set_xlim([-0.01, end_time + 0.01])
         ax.set_xlim([-0.01, end_time + 0.01])

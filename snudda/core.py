@@ -44,7 +44,9 @@ import os
 import sys
 import timeit
 import pkg_resources
+import json
 
+from snudda.utils import snudda_path
 from snudda.utils.snudda_path import snudda_isfile
 
 
@@ -57,13 +59,17 @@ def get_data_file(*dirs):
 
 class Snudda(object):
 
-    ############################################################################
+    """ Wrapper class, calls Snudda helper functions """
 
     def __init__(self, network_path):
 
+        """
+        Instantiates Snudda
+        :param network_path: Location of Snudda network
+        """
+
         self.network_path = network_path
         self.d_view = None
-        self.lb_view = None
         self.rc = None
         self.slurm_id = 0
 
@@ -76,11 +82,21 @@ class Snudda(object):
 
     @staticmethod
     def help_info(args):
+        """ Prints Snudda help """
         from snudda.help import snudda_help_text
 
     ############################################################################
 
     def init_config(self, args):
+        """
+        Creates network-config.json in network_path.
+
+        Args:
+            args : command line arguments from argparse
+
+        Example:
+             snudda init -size 100 [-overwrite] [-randomseed 1234] [--profile] [--verbose] path
+        """
         # self.networkPath = args.path
         print("Creating config file")
         print(f"Network path: {self.network_path}")
@@ -99,7 +115,8 @@ class Snudda(object):
 
         if not args.overwrite:
             assert not os.path.exists(self.network_path), \
-                "Network path {self.network_path} already exists (aborting to prevent accidental overwriting)"
+                (f"Network path {self.network_path} already exists (aborting to prevent accidental overwriting)."
+                 "\nCall snudda init with --overwrite to override and overwrite the old data.")
 
         self.make_dir_if_needed(self.network_path)
 
@@ -107,6 +124,7 @@ class Snudda(object):
 
         config_file = os.path.join(self.network_path, "network-config.json")
         SnuddaInit(struct_def=struct_def,
+                   neurons_dir=args.neurons_dir,
                    config_file=config_file,
                    random_seed=random_seed)
 
@@ -117,18 +135,28 @@ class Snudda(object):
     ############################################################################
 
     def place_neurons(self, args):
+        """
+        Places neurons in 3D space. Creates network-neuron-positions.hdf5 in network_path.
+
+        Args:
+            args : command line arguments from argparse
+
+        Example:
+            snudda place [--raytraceBorders] [--profile] [--verbose] [--h5legacy] [-parallel] path
+
+        """
         # self.networkPath = args.path
         print("Placing neurons")
         print(f"Network path: {self.network_path}")
 
-        log_file_name = os.path.join(self.network_path, "log", "logFile-place-neurons.txt")
+        log_file_name = os.path.join(self.network_path, "log", "place-neurons.txt")
 
         random_seed = args.randomseed
 
         self.setup_log_file(log_file_name)  # sets self.logFile
 
         if args.parallel:
-            self.setup_parallel()  # sets self.d_view and self.lb_view
+            self.setup_parallel()  # sets self.d_view
 
         from snudda.place.place import SnuddaPlace
 
@@ -153,6 +181,18 @@ class Snudda(object):
     ############################################################################
 
     def touch_detection(self, args):
+        """
+        Synapse touch detection. Writes results to network_path/voxels (one file per hypervoxel).
+        Also adds synapse projections between structures.
+        Results written to network-projection-synapses.hdf5 in network_path.
+
+        Args:
+            args : command line arguments from argparse
+
+        Example:
+            snudda detect [-cont] [-hvsize HVSIZE] [--volumeID VOLUMEID] [--profile] [--verbose] [--h5legacy] [-parallel] path
+
+        """
         # self.networkPath = args.path
         print("Touch detection")
         print("Network path: " + str(self.network_path))
@@ -174,7 +214,7 @@ class Snudda(object):
 
         config_file = os.path.join(self.network_path, "network-config.json")
         position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
-        log_filename = os.path.join(self.network_path, "log", "logFile-touch-detection.txt")
+        log_filename = os.path.join(self.network_path, "log", "touch-detection.txt")
         save_file = os.path.join(self.network_path, "voxels", "network-putative-synapses.hdf5")
 
         random_seed = args.randomseed
@@ -185,7 +225,7 @@ class Snudda(object):
         self.setup_log_file(log_filename)  # sets self.logfile
 
         if args.parallel:
-            self.setup_parallel()  # sets self.d_view and self.lb_view
+            self.setup_parallel()  # sets self.d_view
 
         if args.h5legacy:
             h5libver = "earliest"
@@ -228,20 +268,30 @@ class Snudda(object):
     ############################################################################
 
     def prune_synapses(self, args):
+        """
+        Merges data from synapse detection, then does synapse pruning. Writes results to network-synapses.hdf5 in network_path.
+
+        Args:
+            args : command line arguments from argparse
+
+        Example:
+            snudda prune [--configFile CONFIG_FILE] [--profile] [--verbose] [--h5legacy] [--keepfiles] [-parallel] path
+        """
+
         # self.networkPath = args.path
         print("Prune synapses")
         print("Network path: " + str(self.network_path))
 
         from snudda.detect.prune import SnuddaPrune
 
-        log_filename = os.path.join(self.network_path, "log", "logFile-synapse-pruning.txt")
+        log_filename = os.path.join(self.network_path, "log", "synapse-pruning.txt")
 
         random_seed = args.randomseed
 
         self.setup_log_file(log_filename)  # sets self.logfile
 
         if args.parallel:
-            self.setup_parallel()  # sets self.d_view and self.lb_view
+            self.setup_parallel()  # sets self.d_view
 
         # Optionally set this
         scratch_path = None
@@ -255,7 +305,7 @@ class Snudda(object):
                          logfile=self.logfile,
                          logfile_name=log_filename,
                          config_file=args.config_file,
-                         d_view=self.d_view, lb_view=self.lb_view,
+                         d_view=self.d_view,
                          scratch_path=scratch_path,
                          h5libver=h5libver,
                          random_seed=random_seed,
@@ -270,15 +320,23 @@ class Snudda(object):
     ############################################################################
 
     def setup_input(self, args):
+        """
+        Creates synaptic input for network based on input.json, writes input-spikes.hdf5 in network_path.
+        Args:
+            args : command line arguments from argparse
 
-        from snudda.input.input import SnuddaInput
+        Example:
+            snudda input [--input INPUT] [--inputFile INPUT_FILE] [--networkFile NETWORK_FILE] [--time TIME] [-randomseed 123] [--profile] [--verbose] [--h5legacy] [-parallel] path
+        """
 
         print("Setting up inputs, assuming input.json exists")
-        log_filename = os.path.join(self.network_path, "log", "logFile-setup-input.log")
+        log_filename = os.path.join(self.network_path, "log", "setup-input.txt")
         self.setup_log_file(log_filename)  # sets self.logfile
 
         if args.parallel:
-            self.setup_parallel()  # sets self.d_view and self.lb_view
+            self.setup_parallel()  # sets self.d_view
+
+        from snudda.input.input import SnuddaInput
 
         if "input" in args and args.input:
             input_config = args.input
@@ -330,6 +388,12 @@ class Snudda(object):
     ############################################################################
 
     def export_to_SONATA(self, args):
+        """
+        Export network to SONATA files. (Currently not functioning)
+
+        Args:
+            args : command line arguments from argparse
+        """
 
         assert False, "Old export to SONATA borken, fixme!"
         # TODO: Fix this
@@ -357,10 +421,21 @@ class Snudda(object):
     ############################################################################
 
     def simulate(self, args):
+        """
+        Simulate network. Writes results to network_path/simulation.
+
+        Args:
+            args : command line arguments from argparse
+
+        Example:
+            snudda simulate [--networkFile NETWORK_FILE] [--inputFile INPUT_FILE] [--time TIME] [--voltOut VOLT_OUT] [--spikesOut SPIKES_OUT] [--neuromodulation NEUROMODULATION] [--disableGJ] [-mechdir MECH_DIR] [--profile] [--verbose] [--exportCoreNeuron] path
+        """
 
         start = timeit.default_timer()
 
-        from snudda.simulate.simulate import SnuddaSimulate
+        from mpi4py import MPI  # This must be imported before neuron, to run parallel
+        from neuron import h
+        pc = h.ParallelContext()
 
         if args.network_file:
             network_file = args.network_file
@@ -381,34 +456,44 @@ class Snudda(object):
 
         # Problems with nested symbolic links when the second one is a relative
         # path going beyond the original base path
-        if args.mech_dir is None:
-            # mech_dir = os.path.join(os.path.dirname(network_file), "mechanisms")
 
-            # TODO!!! problem with paths, testing to create mechanism dir in current dir
-            mech_dir = "mechanisms"
-
-            if not os.path.exists(mech_dir):
-                try:
-                    m_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), "data", "neurons", "mechanisms"))
-                    os.symlink(m_dir, mech_dir)
-                except:
-                    print(f"Failed to create symlink {mech_dir} -> {m_dir}")
-        else:
+        if args.mech_dir:
             mech_dir = args.mech_dir
+        else:
+            # Take into account which SNUDDA_DATA the user wants to use
+            mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons", "mechanisms")))
 
-        # !!! These are saved in current directory x86_64
-        # --- problem since nrnivmodl seems to want a relative path...
+            if args.neuromodulation is not None:
+                # read neuromod file and determine if it is replay or adaptive, then if and import the correct one
+                with open(args.neuromodulation, "r") as f:
+                    neuromod_dict = json.load(f)
 
-        make_mods_str = f"nrnivmodl {mech_dir}"
-
-        # x86_64 on linux, nrnmech.dll on windows...
+                if "adaptive" in neuromod_dict["type"]:
+                    mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons",
+                                                                                           "mechanisms_ptr")))
         if not os.path.exists("x86_64") and not os.path.exists("nrnmech.dll"):
-            print(f"Please first run: {make_mods_str}")
-            os.sys.exit(-1)
-            # I was having problems when running nrnivmodl in the script, but
-            # running it manually in bash works... WHY?!!
 
-        # os.system(makeModsStr)
+            if pc.id() == 0:
+                # Only run this on master node
+                print(f"Running on master node:  nrnivmodl {mech_dir}")
+                os.system(f"nrnivmodl {mech_dir}")
+            else:
+                print("Worker waiting for master node to compile NEURON modules.")
+
+            pc.barrier()
+
+            if os.path.exists("nrnmech.dll"):
+                h.nrn_load_dll("nrnmech.dll")
+            elif os.path.exists("x86_64"):
+                h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
+            else:
+
+                print(f"Could not find compiled mechanisms. Compile using 'nrnivmodl {mech_dir}' "
+                      f"and retry simulation.")
+                sys.exit(-1)
+
+        else:
+            print("NEURON mechanisms already compiled, make sure you have the correct version of NEURON modules.")
 
         save_dir = os.path.join(os.path.dirname(network_file), "simulation")
 
@@ -449,19 +534,55 @@ class Snudda(object):
             print(f"Creating directory {log_dir}")
             os.makedirs(log_dir, exist_ok=True)
 
-        from mpi4py import MPI  # This must be imported before neuron, to run parallel
-        from neuron import h  # , gui
+        if args.neuromodulation is not None:
 
-        pc = h.ParallelContext()
+            # read neuromod file and determine if it is replay or adaptive, then if and import the correct one
 
-        # Simulate is deterministic, no random seed.
-        sim = SnuddaSimulate(network_file=network_file,
-                             input_file=input_file,
-                             disable_gap_junctions=disable_gj,
-                             log_file=log_file,
-                             verbose=args.verbose)
+            with open(args.neuromodulation, 'r') as neuromod_f:
+                neuromod_dict = json.load(neuromod_f)
 
-        sim.add_external_input()
+            if 'type' not in neuromod_dict:
+                print(f"Neuromodulation is not defined correctly in {args.neuromodulation} : 'type' is missing. Did you specify the correct file?")
+                sys.exit(-1)
+
+            elif 'replay' in neuromod_dict['type']:
+                from snudda.neuromodulation.neuromodulation import SnuddaSimulateNeuromodulation
+
+                sim = SnuddaSimulateNeuromodulation(network_file=network_file,
+                                                    input_file=input_file,
+                                                    disable_gap_junctions=disable_gj,
+                                                    log_file=log_file,
+                                                    verbose=args.verbose)
+
+                sim.setup()
+                sim.add_external_input()
+                sim.apply_neuromodulation(neuromod_dict)
+                sim.neuromodulation_network_wide()
+
+            elif 'adaptive' in neuromod_dict['type']:
+                from snudda.neuromodulation.neuromodulation_synapse import SnuddaSimulateNeuromodulationSynapse
+
+                sim = SnuddaSimulateNeuromodulationSynapse(network_file=network_file,
+                                                           input_file=input_file,
+                                                           disable_gap_junctions=disable_gj,
+                                                           log_file=log_file,
+                                                           neuromodulator_description=neuromod_dict)
+
+                sim.setup()
+                sim.add_external_input()
+
+        else:
+
+            from snudda.simulate.simulate import SnuddaSimulate
+
+            # Simulate is deterministic, no random seed.
+            sim = SnuddaSimulate(network_file=network_file,
+                                 input_file=input_file,
+                                 disable_gap_junctions=disable_gj,
+                                 log_file=log_file,
+                                 verbose=args.verbose)
+            sim.setup()
+            sim.add_external_input()
 
         sim.check_memory_status()
 
@@ -476,7 +597,7 @@ class Snudda(object):
             return  # We do not run simulation when exporting to core neuron
 
         sim.check_memory_status()
-        print("Running simulation for " + str(t_sim) + " ms.")
+        print(f"Running simulation for {t_sim} ms.")
         sim.run(t_sim)  # In milliseconds
 
         print("Simulation done, saving output")
@@ -501,6 +622,7 @@ class Snudda(object):
     ############################################################################
 
     def setup_parallel(self):
+        """Setup ipyparallel workers."""
 
         self.slurm_id = os.getenv('SLURM_JOBID')
 
@@ -531,7 +653,6 @@ class Snudda(object):
         # http://davidmasad.com/blog/simulation-with-ipyparallel/
         # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
         self.d_view = self.rc.direct_view(targets='all')  # rc[:] # Direct view into clients
-        self.lb_view = self.rc.load_balanced_view(targets='all')
 
     ############################################################################
 
@@ -547,6 +668,13 @@ class Snudda(object):
     ############################################################################
 
     def setup_log_file(self, log_file_name):
+        """
+        Open log files for writing.
+
+        Args:
+            log_file_name (str) : Path to log file
+        """
+
         data_dir = os.path.dirname(log_file_name)
 
         self.make_dir_if_needed(data_dir)
@@ -560,6 +688,7 @@ class Snudda(object):
     ############################################################################
 
     def close_log_file(self):
+        """ Close log file. """
 
         stop = timeit.default_timer()
 
@@ -573,6 +702,7 @@ class Snudda(object):
 
     @staticmethod
     def make_dir_if_needed(dir_path):
+        """ Creates directory if missing. """
 
         if not os.path.exists(dir_path):
             print("Creating missing directory " + dir_path)

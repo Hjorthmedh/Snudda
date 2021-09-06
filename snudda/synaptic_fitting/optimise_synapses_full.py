@@ -1,28 +1,24 @@
 import os
+import shutil
 import timeit
 
 import numpy as np
 import scipy
 import scipy.optimize
-import matplotlib.pyplot as plt
-import matplotlib
+
 import neuron
 import json
 import time
 
+from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists
 from snudda.synaptic_fitting.parameter_bookkeeper import ParameterBookkeeper
 
 # TODO: 2021-05-31 -- Add option to enable/disable trace smoothing
 
 # TODO: Check, what happens if we mix facilitating and depressing synapses on the same neuron...?
-
-# TODO: 2021-05-12 -- Save more than the best parameter set in json file. Have one dictionary item per saved parameterset,
-#                     that way we can remove all associated data easily in one go, when updating the json file.
-
 # TODO: 2021-05-12 -- What value should u0 have? A way around it, repeat the stimulation train multiple times, use laster runs
 # TODO: 2021-05-11 -- Set self.synapse_parameters
 # TODO: 2021-05-28 -- Holdign voltage currently set in neuronSet.json file, we should allow it to be overriden by trace data json file
-
 
 #
 #
@@ -205,6 +201,10 @@ class OptimiseSynapsesFull(object):
             self.synapse_section_id = best_dataset["section_id"]
             self.synapse_section_x = best_dataset["section_x"]
 
+        if self.role != "master":
+            # This is to prevent duplicating entries
+            self.synapse_parameter_data.clear()
+
     ############################################################################
 
     def plot_data(self,
@@ -212,6 +212,9 @@ class OptimiseSynapsesFull(object):
                   show=True,
                   skip_time=0.050,
                   pretty_plot=None):
+
+        import matplotlib.pyplot as plt
+        import matplotlib
 
         if params is None:
             params = self.synapse_parameters
@@ -446,6 +449,8 @@ class OptimiseSynapsesFull(object):
                 tstr = traceback.format_exc()
                 self.write_log(tstr)
 
+                import matplotlib.pyplot as plt
+
                 plt.figure()
                 plt.plot(time, volt)
                 plt.xlabel("Time (error plot)")
@@ -491,6 +496,8 @@ class OptimiseSynapsesFull(object):
                 self.write_log(tstr)
 
                 if True:
+                    import matplotlib.pyplot as plt
+
                     plt.figure()
                     plt.plot(t_ab, v_ab, 'r')
                     plt.title("Error in findTraceHeights")
@@ -547,10 +554,10 @@ class OptimiseSynapsesFull(object):
         # !!! We need to get the baseline depolarisation in another way
 
         self.rsr_synapse_model = \
-            RunSynapseRun(neuron_morphology=c_prop["neuronMorphology"],
-                          neuron_mechanisms=c_prop["neuronMechanisms"],
-                          neuron_parameters=c_prop["neuronParameters"],
-                          neuron_modulation=c_prop["neuronModulation"],
+            RunSynapseRun(neuron_morphology=snudda_parse_path(c_prop["neuronMorphology"]),
+                          neuron_mechanisms=snudda_parse_path(c_prop["neuronMechanisms"]),
+                          neuron_parameters=snudda_parse_path(c_prop["neuronParameters"]),
+                          neuron_modulation=snudda_parse_path(c_prop["neuronModulation"]),
                           stim_times=t_stim,
                           num_synapses=n_synapses,
                           synapse_density=synapse_density,
@@ -834,69 +841,83 @@ class OptimiseSynapsesFull(object):
         assert self.synapse_type == "glut", \
             "GABA synapse not supported yet in new version"
 
-        if parameter_sets is None:
-            self.write_log(f"sobol_scan n_trials = {n_trials}")
-            parameter_sets = self.setup_parameter_set(model_bounds, n_trials)
+        try:
 
-        self.write_log(f"parameter_sets={parameter_sets}")
+            if parameter_sets is None:
+                self.write_log(f"sobol_scan n_trials = {n_trials}")
+                parameter_sets = self.setup_parameter_set(model_bounds, n_trials)
+            elif type(parameter_sets) == list and len(parameter_sets) == 0:
+                self.write_log("Empty parameter_set provided, returning.")
+                return self.synapse_parameter_data.book
 
-        u_sobol = [p[0] for p in parameter_sets]
-        tau_r_sobol = [p[1] for p in parameter_sets]
-        tau_f_sobol = [p[2] for p in parameter_sets]
-        tau_ratio_sobol = [p[3] for p in parameter_sets]
-        cond_sobol = [p[4] for p in parameter_sets]
+            self.write_log(f"parameter_sets={parameter_sets}")
 
-        # zip(*xxx) unzips xxx -- cool.
-        # u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol = zip(*parameter_sets)
+            u_sobol = [p[0] for p in parameter_sets]
+            tau_r_sobol = [p[1] for p in parameter_sets]
+            tau_f_sobol = [p[2] for p in parameter_sets]
+            tau_ratio_sobol = [p[3] for p in parameter_sets]
+            cond_sobol = [p[4] for p in parameter_sets]
 
-        # tauSobol = np.multiply(tauRatioSobol,tauRSobol)
+            # zip(*xxx) unzips xxx -- cool.
+            # u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol = zip(*parameter_sets)
 
-        min_pars = None
-        min_error = np.inf
+            # tauSobol = np.multiply(tauRatioSobol,tauRSobol)
 
-        if load_params_flag:
-            # If we should load params then do so first
-            min_pars = self.synapse_parameter_data.get_best_parameterset()
+            min_pars = None
+            min_error = np.inf
 
-            # What was error of the cached parameterset
-            if min_pars is not None:
-                min_error = self.neuron_synapse_helper_glut(t_stim,
-                                                            u=min_pars[0],
-                                                            tau_r=min_pars[1],
-                                                            tau_f=min_pars[2],
-                                                            tau_ratio=min_pars[3] / min_pars[1],
-                                                            cond=min_pars[4],
-                                                            smooth_exp_trace8=smooth_exp_trace8,
-                                                            smooth_exp_trace9=smooth_exp_trace9,
-                                                            exp_peak_height=h_peak,
-                                                            return_type="error")
+            if load_params_flag:
+                # If we should load params then do so first
+                min_pars = self.synapse_parameter_data.get_best_parameterset()
 
-        idx = 0
+                # What was error of the cached parameterset
+                if min_pars is not None:
+                    min_error = self.neuron_synapse_helper_glut(t_stim,
+                                                                u=min_pars[0],
+                                                                tau_r=min_pars[1],
+                                                                tau_f=min_pars[2],
+                                                                tau_ratio=min_pars[3],
+                                                                cond=min_pars[4],
+                                                                smooth_exp_trace8=smooth_exp_trace8,
+                                                                smooth_exp_trace9=smooth_exp_trace9,
+                                                                exp_peak_height=h_peak,
+                                                                return_type="error")
 
-        for u, tau_r, tau_f, tau_ratio, cond \
-                in zip(u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol):
+            idx = 0
 
-            idx += 1
-            if idx % 50 == 0:
-                self.write_log("%d / %d : minError = %g" % (idx, len(u_sobol), min_error))
+            for u, tau_r, tau_f, tau_ratio, cond \
+                    in zip(u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol):
 
-            error, peaks, t, v = self.neuron_synapse_helper_glut(t_stim, u, tau_r, tau_f, tau_ratio, cond,
-                                                                 smooth_exp_trace8=smooth_exp_trace8,
-                                                                 smooth_exp_trace9=smooth_exp_trace9,
-                                                                 exp_peak_height=h_peak,
-                                                                 return_type="full")
+                idx += 1
+                if idx % 50 == 0:
+                    self.write_log("%d / %d : minError = %g" % (idx, len(u_sobol), min_error))
 
-            min_error = np.minimum(error, min_error)
+                error, peaks, t, v = self.neuron_synapse_helper_glut(t_stim, u, tau_r, tau_f, tau_ratio, cond,
+                                                                     smooth_exp_trace8=smooth_exp_trace8,
+                                                                     smooth_exp_trace9=smooth_exp_trace9,
+                                                                     exp_peak_height=h_peak,
+                                                                     return_type="full")
 
-            param_this_run = np.array([u, tau_r, tau_f, tau_ratio, cond])
+                min_error = np.minimum(error, min_error)
 
-            self.synapse_parameter_data.add_parameters(parameter_set=param_this_run,
-                                                       section_id=self.rsr_synapse_model.synapse_section_id,
-                                                       section_x=self.rsr_synapse_model.synapse_section_x,
-                                                       error=error,
-                                                       #dt=t[1] - t[0],
-                                                       #volt=v
-                                                       )
+                param_this_run = np.array([u, tau_r, tau_f, tau_ratio, cond])
+
+                self.synapse_parameter_data.add_parameters(parameter_set=param_this_run,
+                                                           section_id=self.rsr_synapse_model.synapse_section_id,
+                                                           section_x=self.rsr_synapse_model.synapse_section_x,
+                                                           error=error,
+                                                           #dt=t[1] - t[0],
+                                                           #volt=v
+                                                           )
+
+        except:
+
+            import traceback
+            t_str = traceback.format_exc()
+            self.write_log(t_str)
+            print(t_str)
+            import pdb
+            pdb.set_trace()
 
         return self.synapse_parameter_data.book
 
@@ -1045,8 +1066,8 @@ class OptimiseSynapsesFull(object):
             res = self.d_view.gather("res", block=True)
             self.write_log("Results gathered.")
 
-            for r in res:
-                self.synapse_parameter_data.merge(r)
+            #  for r in res:
+            self.synapse_parameter_data.merge(res)
 
             self.save_parameter_data()
 
@@ -1187,9 +1208,11 @@ class OptimiseSynapsesFull(object):
 
         self.write_log("sobol_worker_setup: done.")
 
+        return None
+
     ############################################################################
 
-    def setup_parameter_set(self, model_bounds, n_sets):
+    def setup_parameter_set(self, model_bounds, n_sets, skip_sets=0):
 
         import chaospy
         distribution = chaospy.J(chaospy.Uniform(model_bounds[0][0],
@@ -1202,13 +1225,18 @@ class OptimiseSynapsesFull(object):
                                                  model_bounds[1][3]),
                                  chaospy.Uniform(model_bounds[0][4],
                                                  model_bounds[1][4]))
+        # Seed Sobol sequence --- does not change anything.
+        # np.random.seed()
 
-        u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol \
-            = distribution.sample(n_sets, rule="sobol")
+        skip_sets = self.synapse_parameter_data.get_iter()
 
-        parameter_sets = [x for x in zip(u_sobol,
-                                         tau_r_sobol, tau_f_sobol, tau_ratio_sobol,
-                                         cond_sobol)]
+        u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol = \
+            distribution.sample(n_sets+skip_sets, rule="sobol")
+
+        parameter_sets = [x for x in zip(u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol)]
+        parameter_sets = parameter_sets[skip_sets:]
+
+        self.synapse_parameter_data.set_iter(skip_sets+n_sets)
 
         return parameter_sets
 
@@ -1227,17 +1255,19 @@ class OptimiseSynapsesFull(object):
             return
 
         with self.d_view.sync_imports():
+            import os
             from run_synapse_run import RunSynapseRun
             from optimise_synapses_full import NumpyEncoder
             from optimise_synapses_full import OptimiseSynapsesFull
 
-        self.write_log("Setting up workers: " \
-                       + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+        if os.getenv("SNUDDA_DATA"):
+            self.d_view.execute(f"os.environ['SNUDDA_DATA'] = '{os.getenv('SNUDDA_DATA')}'")
+
+        self.write_log(f"Setting up workers: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
 
         # Create unique log file names for the workers
         if self.log_file_name is not None:
-            engine_log_file = [self.log_file_name + "-" \
-                             + str(x) for x in range(0, len(self.d_view))]
+            engine_log_file = [f"{self.log_file_name}-{x}" for x in range(0, len(self.d_view))]
         else:
             engine_log_file = [[] for x in range(0, len(self.d_view))]
 
@@ -1277,6 +1307,8 @@ class OptimiseSynapsesFull(object):
                 ############################################################################
 
     def plot_debug_pars(self):
+
+        import matplotlib.pyplot as plt
 
         try:
             n_iter = len(self.debug_pars)
@@ -1348,8 +1380,25 @@ if __name__ == "__main__":
     parser.add_argument("--prettyplot", action="store_true",
                         help="plotting traces for article")
 
+    parser.add_argument("--data", help="Snudda data directory",
+                        default=os.path.join("..", "..", "..", "BasalGangliaData", "data"))
+
     args = parser.parse_args()
 
+    if "data" in args:
+        os.environ["SNUDDA_DATA"] = args.data
+
+    snudda_data_dir = os.getenv("SNUDDA_DATA")
+
+    if os.path.exists("x86_64"):
+        shutil.rmtree("x86_64")
+
+    if os.path.exists("mechanisms"):
+        os.remove("mechanisms")
+
+    os.symlink(os.path.join(snudda_data_dir, "neurons", "mechanisms"), "mechanisms")
+    print("Compiling neuron mechanisms: nrnivmodl mechanisms")
+    os.system("nrnivmodl mechanisms/")
     optMethod = args.optMethod
 
     print(f"Reading file : {args.datafile}")
@@ -1358,16 +1407,23 @@ if __name__ == "__main__":
     print(f"Optimisation method : {optMethod}")
 
     print(f"IPYTHON_PROFILE = {os.getenv('IPYTHON_PROFILE')}")
+    print(f"SNUDDA_DATA = {os.getenv('SNUDDA_DATA')}")
 
     if os.getenv('IPYTHON_PROFILE') is not None or os.getenv('SLURMID') is not None:
         from ipyparallel import Client
 
-        rc = Client(profile=os.getenv('IPYTHON_PROFILE'), debug=False)
+        try:
+            rc = Client(profile=os.getenv('IPYTHON_PROFILE'), debug=False)
 
-        # http://davidmasad.com/blog/simulation-with-ipyparallel/
-        # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
-        d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
-        lb_view = rc.load_balanced_view(targets='all')
+            # http://davidmasad.com/blog/simulation-with-ipyparallel/
+            # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
+            d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
+        except:
+            import traceback
+            t_str = traceback.format_exc()
+            print(t_str)
+            print("Error setting up ipyparallel. Running in serial.")
+            d_view = None
     else:
         d_view = None
 
@@ -1390,6 +1446,6 @@ if __name__ == "__main__":
 
         ly.plot_data(show=True, pretty_plot=pretty_plot_flag)
 
-        exit(0)
+        sys.exit(0)
 
     ly.parallel_optimise_single_cell(n_trials=2)

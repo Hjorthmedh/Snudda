@@ -12,7 +12,7 @@
 
 # Smith, Galvan, ..., Bolam 2014 -- Bra info om thalamic inputs, CM/PF
 #
-
+import sys
 
 import numpy as np
 import h5py
@@ -23,6 +23,7 @@ import itertools
 
 import matplotlib.pyplot as plt
 
+from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.snudda_path import snudda_parse_path
 from snudda.neurons.neuron_morphology import NeuronMorphology
 from snudda.utils.load import SnuddaLoad
@@ -34,6 +35,8 @@ nl = None
 
 
 class SnuddaInput(object):
+
+    """ Generates input for the simulation. """
 
     def __init__(self,
                  network_path=None,
@@ -48,6 +51,24 @@ class SnuddaInput(object):
                  time_interval_overlap_warning=True,
                  logfile=None,
                  verbose=False):
+
+        """
+        Constructor.
+
+        Args:
+            network_path (str): Path to network directory
+            input_config_file (str): Path to input config file, default input.json in network_path
+            spike_data_filename (str): Path to output file, default input-spikes.hdf5
+            hdf5_network_file (str): Path to network file, default network-synapses.hdf5
+            time (float): Duration of simulation to generate input for, default 10 seconds
+            is_master (bool): "master" or "worker"
+            h5libver (str): Version of HDF5 library to use, default "latest"
+            rc: ipyparallel remote client
+            random_seed (int): Random seed for input generation
+            time_interval_overlap_warning (bool): Warn if input intervals specified overlap
+            logfile (str): Log file
+            verbose (bool): Print logging
+        """
 
         if type(logfile) == str:
             self.logfile = open(logfile, "w")
@@ -94,12 +115,15 @@ class SnuddaInput(object):
         self.neuron_id = None
         self.neuron_type = None
         self.d_view = None
-        self.lb_view = None
-        self.rc = None
         self.network_slurm_id = None
         self.network_config = None
         self.neuron_input = None
         self.slurm_id = None
+
+        # Set in read_Hdf5_info
+        self.network_config_file = None
+        self.position_file = None
+        self.axon_stump_id_flag = None
 
         if time:
             self.time = time  # How long time to generate inputs for
@@ -119,6 +143,8 @@ class SnuddaInput(object):
         self.is_master = is_master
 
     def generate(self):
+
+        """ Generates input for network. """
 
         # Read in the input configuration information from JSON file
         self.read_input_config_file()
@@ -179,6 +205,8 @@ class SnuddaInput(object):
     ############################################################################
 
     def write_hdf5(self):
+
+        """ Writes input spikes to HDF5 file. """
 
         self.write_log(f"Writing spikes to {self.spike_data_filename}", force_print=True)
 
@@ -264,6 +292,8 @@ class SnuddaInput(object):
     @staticmethod
     def create_spike_matrix(spikes):
 
+        """ Creates a spike matrix from a list of spikes. """
+
         if len(spikes) == 0:
             return np.zeros((0, 0)), 0
 
@@ -283,6 +313,8 @@ class SnuddaInput(object):
     # Reads from self.inputConfigFile
 
     def read_input_config_file(self):
+
+        """ Read input configuration from JSON file. """
 
         self.write_log(f"Loading input configuration from {self.input_config_file}")
 
@@ -314,6 +346,13 @@ class SnuddaInput(object):
     # This function generates these correlated spikes
 
     def make_population_unit_spike_trains(self, rng):
+
+        """
+        Generate population unit spike trains.
+        Each synaptic input will contain a fraction of population unit spikes, which are
+        taken from a stream of spikes unique to that particular population unit
+        This function generates these correlated spikes
+        """
 
         self.write_log("Running makePopulationUnitSpikeTrains")
 
@@ -359,7 +398,9 @@ class SnuddaInput(object):
 
     def make_neuron_input_parallel(self):
 
-        self.write_log("Running makeNeuronInputParallel")
+        """ Generate input, able to run in parallel if rc (Remote Client) has been provided at initialisation."""
+
+        self.write_log("Running make_neuron_input_parallel")
 
         self.neuron_input = dict([])
 
@@ -576,11 +617,20 @@ class SnuddaInput(object):
 
             self.d_view.scatter("input_list", input_list, block=True)
             cmd_str = "inpt = list(map(nl.make_input_helper_parallel,input_list))"
+
+            self.write_log("Calling workers to generate input in parallel")
             self.d_view.execute(cmd_str, block=True)
+            self.d_view.execute("nl.write_log('Execution done on workers')")
 
-            inpt = self.d_view["inpt"]
-            amr = list(itertools.chain.from_iterable(inpt))
+            self.write_log("Execution done")
 
+            # On this line it stalls... WHY?
+            # inpt = self.d_view["inpt"]
+            amr = self.d_view.gather("inpt", block=True)
+            self.write_log("Results received")
+
+            # amr = list(itertools.chain.from_iterable(input_list))
+            # amr = input_list
         else:
             # If no lbView then we run it in serial
             self.write_log("Running input generation in serial")
@@ -639,6 +689,15 @@ class SnuddaInput(object):
     ############################################################################
 
     def generate_spikes_helper(self, frequencies, time_ranges, rng):
+
+        """
+        Generates spike trains with given frequencies within time_ranges, using rng stream.
+
+        Args:
+             frequencies (list): List of frequencies
+             time_ranges (list): List of tuples with start and end time for each frequency range
+             rng: Numpy random stream
+        """
         t_spikes = []
 
         for f, t_start, t_end in zip(frequencies, time_ranges[0], time_ranges[1]):
@@ -702,12 +761,23 @@ class SnuddaInput(object):
     @staticmethod
     def mix_spikes(spikes):
 
+        """ Mixes spikes in list of spike trains into one sorted spike train. """
+
         return np.sort(np.concatenate(spikes))
 
     ############################################################################
 
     @staticmethod
     def cull_spikes(spikes, p_keep, rng):
+
+        """
+        Keeps a fraction of all spikes.
+
+        Args:
+            spikes: Spike train
+            p_keep: Probability to keep each spike
+            rng: Numpy random number stream
+        """
 
         return spikes[rng.random(spikes.shape) < p_keep]
 
@@ -726,6 +796,21 @@ class SnuddaInput(object):
     def make_correlated_spikes(self, freq, time_range, num_spike_trains, p_keep, rng,
                                population_unit_spikes=None, 
                                ret_pop_unit_spikes=False, jitter_dt=None):
+
+        """
+        Make correlated spikes.
+
+        Args:
+            freq (float): frequency of spike train
+            time_range (tuple): start time, end time of spike train
+            num_spike_trains (int): number of spike trains to generate
+            p_keep (float): fraction of shared channel spikes to include in spike train, p_keep=1 (100% correlated)
+            rng: Numpy random number stream
+            ret_pop_unit_spikes (bool): if false, returns only spikes,
+                                        if true returns (spikes, population unit spikes)
+            jitter_dt (float): amount to jitter all spikes
+
+        """
 
         assert (0 <= p_keep <= 1)
 
@@ -759,6 +844,17 @@ class SnuddaInput(object):
 
     def make_uncorrelated_spikes(self, freq, t_start, t_end, n_spike_trains, rng):
 
+        """
+        Generate uncorrelated spikes.
+
+        Args:
+            freq: frequency
+            t_start: start time
+            t_end: end time
+            n_spike_trains: number of spike trains to generate
+            rng: numpy random number stream
+        """
+
         spike_trains = []
 
         for i in range(0, n_spike_trains):
@@ -774,6 +870,21 @@ class SnuddaInput(object):
 
     @staticmethod
     def jitter_spikes(spike_trains, dt, rng, time_range=None):
+
+        """
+        Jitter spikes in a spike train.
+
+        If a time_range (start,end_time) is given then all spike times will
+        be modulo duration, so if we jitter and they go to before start time,
+        they wrap around and appear at end of the timeline
+
+
+        Args:
+            spike_trains: spike times
+            dt: amount of jitter
+            time_range (tuple): (start, end) see comment above about wrapping around edges.
+
+        """
 
         jittered_spikes = []
 
@@ -801,6 +912,17 @@ class SnuddaInput(object):
     def raster_plot(spike_times,
                     mark_spikes=None, mark_idx=None,
                     title=None, fig_file=None, fig=None):
+
+        """
+        Raster plot of spike trains.
+
+        Args:
+            mark_spikes: list of spikes to mark
+            mark_idx: index of neuron with spikes to mark
+            title: title of plot
+            fig_file: path to figure
+            fig: matplotlib figure object
+        """
 
         if fig is None:
             fig = plt.figure()
@@ -838,19 +960,21 @@ class SnuddaInput(object):
 
     def read_neuron_positions(self):
 
-        self.write_log("Reading neuron postions")
+        """ Read neuron positions from HDF5 network file. """
 
-        pos_info = SnuddaLoad(self.position_file, verbose=self.verbose).data
-        self.network_info = pos_info
-        self.neuron_info = pos_info["neurons"]
+        self.write_log("Reading neuron positions")
+
+        data = SnuddaLoad(self.position_file, verbose=self.verbose).data
+        self.network_info = data
+        self.neuron_info = data["neurons"]
 
         #    import pdb
         #    pdb.set_trace()
 
         # Make sure the position file matches the network config file
-        assert (pos_info["configFile"] == self.network_config_file)
+        assert (data["configFile"] == self.network_config_file)
 
-        self.population_unit_id = pos_info["populationUnit"]
+        self.population_unit_id = data["populationUnit"]
 
         self.neuron_id = [n["neuronID"] for n in self.neuron_info]
         self.neuron_name = [n["name"] for n in self.neuron_info]
@@ -860,6 +984,8 @@ class SnuddaInput(object):
     ############################################################################
 
     def read_network_config_file(self):
+
+        """ Read network configuration JSON file."""
 
         self.write_log(f"Reading config file {self.network_config_file}")
 
@@ -901,12 +1027,16 @@ class SnuddaInput(object):
 
     def generate_seeds(self, num_states):
 
+        """ From the master seed, generate a seed sequence for inputs. """
+
         ss = np.random.SeedSequence(self.random_seed)
         all_seeds = ss.generate_state(num_states+1)
 
         return all_seeds[1:]  # First seed in sequence is reserved for master
 
     def get_master_node_rng(self):
+
+        """ Get random number for master node, from master seed. """
 
         ss = np.random.SeedSequence(self.random_seed)
         master_node_seed = ss.generate_state(1)
@@ -915,6 +1045,14 @@ class SnuddaInput(object):
     ############################################################################
 
     def verify_correlation(self, spike_trains, expected_corr=None, dt=0):
+
+        """
+        Verify correlation. This function is slow.
+
+        Args:
+            spike_trains
+            dt
+        """
 
         # THIS FUNCTION IS VERY VERY SLOW
 
@@ -935,6 +1073,15 @@ class SnuddaInput(object):
 
     @staticmethod
     def estimate_correlation(spikes_a, spikes_b, dt=0):
+
+        """
+        Estimate correlation between spikes_a and spikes_b, assuming correlation window of dt.
+
+        Args:
+            spikes_a
+            spikes_b
+            dt
+        """
 
         n_spikes_a = len(spikes_a)
         corr_spikes = 0
@@ -958,16 +1105,59 @@ class SnuddaInput(object):
                                  synapse_density="1",
                                  num_spike_trains=None):
 
-        neuron_name = self.neuron_name[neuron_id]
-        swc_file = self.network_config["Neurons"][neuron_name]["morphology"]
+        """
+        Return dendrite input location.
 
-        if swc_file in self.neuron_cache:
-            morphology = self.neuron_cache[swc_file]
+        Args:
+            neuron_id: Neuron ID
+            rng: Numpy random number stream
+            synapse_density (str): Distance function f(d)
+            num_spike_trains (int): Number of spike trains
+        """
+
+        neuron_name = self.neuron_name[neuron_id]
+
+        # self.write_log(f"self.network_config = {self.network_config}")
+        # self.write_log(f"self.network_config['Neurons'] = {self.network_config['Neurons']}")
+        # self.write_log(f"self.network_config['Neurons'][neuron_name] = {self.network_config['Neurons'][neuron_name]}")
+
+        morphology_path = self.network_config["Neurons"][neuron_name]["morphology"]
+        parameters_path = self.network_config["Neurons"][neuron_name]["parameters"]
+
+        if "modulation" in self.network_config["Neurons"][neuron_name]:
+            modulation_path = self.network_config["Neurons"][neuron_name]["modulation"]
         else:
-            morphology = NeuronMorphology(name=neuron_id,
-                                          swc_filename=swc_file,
-                                          axon_stump_id_flag=self.axon_stump_id_flag)
-            self.neuron_cache[swc_file] = morphology
+            modulation_path = None
+
+        mechanisms_path = self.network_config["Neurons"][neuron_name]["mechanisms"]
+
+        parameter_id = self.neuron_info[neuron_id]["parameterID"]
+        morphology_id = self.neuron_info[neuron_id]["morphologyID"]
+        modulation_id = self.neuron_info[neuron_id]["modulationID"]
+
+        if neuron_name in self.neuron_cache:
+            self.write_log(f"About to clone cache of {neuron_name}.")
+            # Since we do not care about location of neuron in space, we can use get_cache_original
+            morphology = self.neuron_cache[neuron_name].clone(parameter_id=parameter_id,
+                                                              morphology_id=morphology_id,
+                                                              modulation_id=None, position=None, rotation=None,
+                                                              get_cache_original=True)
+        else:
+            self.write_log(f"Creating prototype {neuron_name}")
+            morphology_prototype = NeuronPrototype(neuron_name=neuron_name,
+                                                   morphology_path=morphology_path,
+                                                   parameter_path=parameters_path,
+                                                   modulation_path=modulation_path,
+                                                   mechanism_path=mechanisms_path,
+                                                   neuron_path=None,
+                                                   axon_stump_id_flag=self.axon_stump_id_flag)
+            self.neuron_cache[neuron_name] = morphology_prototype
+            morphology = morphology_prototype.clone(parameter_id=parameter_id,
+                                                    morphology_id=morphology_id,
+                                                    modulation_id=None, position=None, rotation=None,
+                                                    get_cache_original=True)
+
+        self.write_log(f"morphology = {morphology}")
 
         return morphology.dendrite_input_locations(synapse_density=synapse_density,
                                                    num_locations=num_spike_trains,
@@ -976,6 +1166,8 @@ class SnuddaInput(object):
     ############################################################################
 
     def setup_parallel(self):
+
+        """ Setup worker nodes for parallel execution. """
 
         slurm_job_id = os.getenv("SLURM_JOBID")
 
@@ -988,8 +1180,7 @@ class SnuddaInput(object):
             # http://davidmasad.com/blog/simulation-with-ipyparallel/
             # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
             self.write_log(f"Client IDs: {self.rc.ids}")
-            self.d_view = self.rc[:]  # Direct view into clients
-            self.lb_view = self.rc.load_balanced_view()
+            self.d_view = self.rc.direct_view(targets='all')
 
             if self.logfile is not None:
                 log_filename = self.logfile.name
@@ -999,55 +1190,58 @@ class SnuddaInput(object):
         else:
             self.write_log("Running in serial")
             self.d_view = None
-            self.lb_view = None
             return
 
         with self.d_view.sync_imports():
             from snudda.input.input import SnuddaInput
 
-        self.d_view.push({"input_config_file": self.input_config_file,
-                          "network_config_file": self.network_config_file,
-                          "position_file": self.position_file,
+        self.d_view.push({"network_path": self.network_path,
+                          "input_config_file": self.input_config_file,
                           "spike_data_filename": self.spike_data_filename,
+                          "hdf5_network_file": self.hdf5_network_file,
                           "is_master": False,
                           "time": self.time,
+                          "h5libver" : self.h5libver,
                           "random_seed": self.random_seed})
 
         self.write_log(f"Scattering engineLogFile = {engine_logfile}")
 
         self.d_view.scatter('log_filename', engine_logfile, block=True)
 
-        self.write_log(f"nl = SnuddaInput(input_config_file='{self.input_config_file}'"
-                       f",network_config_file='{self.network_config_file}'"
-                       f",position_file='{self.position_file}'"
-                       f",spike_data_filename='{self.spike_data_filename}'"
-                       f",is_master=False "
+        self.write_log(f"nl = SnuddaInput(network_path={self.network_path}"
+                       f"input_config_file='{self.input_config_file}'"
+                       f", spike_data_filename='{self.spike_data_filename}'"
+                       f", hdf5_nework_file={self.hdf5_network_file}",
+                       f", h5libver={self.h5libver}"
+                       f", is_master=False "
                        f", random_seed={self.random_seed}"
-                       f",time={self.time}, logfile=log_filename[0])")
+                       f", time={self.time}, logfile={log_filename[0]})")
 
-        cmd_str = ("global nl; nl = SnuddaInput(input_config_file=input_config_file," 
-                   "network_config_file=network_config_file,position_file=position_file," 
-                   " spike_data_filename=spike_data_filename,is_master=is_master,time=time," 
+        cmd_str = ("global nl; nl = SnuddaInput(network_path=network_path, "
+                   "input_config_file=input_config_file, " 
+                   "spike_data_filename=spike_data_filename, "
+                   "hdf5_network_file=hdf5_network_file,"
+                   "is_master=is_master,time=time, " 
+                   "h5libver=h5libver, "
                    " random_seed=random_seed, logfile=log_filename[0])")
 
         self.d_view.execute(cmd_str, block=True)
+
+        self.write_log("Read neuron positions on workers")
+        cmd_str2 = "nl.read_neuron_positions()"
+        self.d_view.execute(cmd_str2, block=True)
+
+        self.write_log("Read network config on workers")
+        cmd_str3 = "nl.read_network_config_file()"
+        self.d_view.execute(cmd_str3, block=True)
 
         self.write_log("Workers set up")
 
     ############################################################################
 
-    # Function for debugging
-
-    @staticmethod
-    def dump_to_random_file(file_prefix, data_to_dump):
-        import uuid
-        tmp = open("save/" + file_prefix + "-file-" + str(uuid.uuid4()), 'w')
-        tmp.write(str(data_to_dump))
-        tmp.close()
-
-    ############################################################################
-
     def check_sorted(self):
+
+        """ Checks that spikes are in chronological order. """
 
         # Just a double check that the spikes are not jumbled
 
@@ -1067,6 +1261,8 @@ class SnuddaInput(object):
 
     def plot_spikes(self, neuron_id=None):
 
+        """ Plot spikes for neuron_id """
+
         self.write_log(f"Plotting spikes for neuronID: {neuron_id}")
 
         if neuron_id is None:
@@ -1084,6 +1280,8 @@ class SnuddaInput(object):
     ############################################################################
 
     def read_hdf5_info(self, hdf5_file=None):
+
+        """ Reading network info from hdf5 file. """
 
         if not hdf5_file:
             hdf5_file = self.hdf5_network_file
@@ -1104,11 +1302,13 @@ class SnuddaInput(object):
             import traceback
             tstr = traceback.format_exc()
             self.write_log(tstr, is_error=True)
-            os.sys.exit(-1)
+            sys.exit(-1)
 
     ############################################################################
 
     def make_input_helper_parallel(self, args):
+
+        """ Helper function for parallel input generation."""
 
         try:
 
@@ -1167,6 +1367,28 @@ class SnuddaInput(object):
                                  parameter_file,
                                  parameter_list,
                                  random_seed):
+
+        """
+        Generate poisson input.
+
+        Args:
+            neuron_id (int): Neuron ID to generate input for
+            input_type: Input type
+            freq: Frequency of input
+            t_start: Start time of input
+            t_end: End time of input
+            synapse_density: Density function f(d), d=distance to soma along dendrite
+            num_spike_trains: Number of spike trains
+            p_keep: Probability to keep channel spike (p_keep = 100% correlated)
+            jitter_dt: Amount of time to jitter all spikes
+            population_unit_spikes: Population unit spikes
+            population_unit_id: Population unit ID
+            conductance: Condutance
+            mod_file: Mod file
+            parameter_file: Parameter file for input synapses
+            parameter_list: Parameter list (to inline parameters, instead of reading from file)
+            random_seed: Random seed.
+            """
 
         # First, find out how many inputs and where, based on morphology and
         # synapse density
@@ -1228,6 +1450,16 @@ class SnuddaInput(object):
 
     def write_log(self, text, flush=True, is_error=False, force_print=False):  # Change flush to False in future, debug
 
+        """
+        Writes to log file. Use setup_log first. Text is only written to screen if self.verbose=True,
+        or is_error = True, or force_print = True.
+
+        test (str) : Text to write
+        flush (bool) : Should all writes be flushed to disk directly?
+        is_error (bool) : Is this an error, always written.
+        force_print (bool) : Force printing, even if self.verbose=False.
+        """
+
         if self.logfile is not None:
             self.logfile.write(text + "\n")
             if flush:
@@ -1241,4 +1473,4 @@ class SnuddaInput(object):
 
 if __name__ == "__main__":
     print("Please do not call this file directly, use snudda command line")
-    os.sys.exit(-1)
+    sys.exit(-1)
