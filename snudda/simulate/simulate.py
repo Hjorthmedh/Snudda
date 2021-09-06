@@ -1289,7 +1289,7 @@ class SnuddaSimulate(object):
 
     def plot(self):
 
-        """ SAve a plot of voltage trace. """
+        """ Save a plot of voltage trace. """
 
         import matplotlib.pyplot as pyplot
         pyplot.figure()
@@ -1588,7 +1588,6 @@ class SnuddaSimulate(object):
 
         assert end_time > start_time, "add_current_injection: End time must be after start time"
 
-        #cur_stim = self.sim.neuron.h.i_clamp(0.5, sec=self.neurons[neuron_id].icell.soma[0])
         cur_stim = self.sim.neuron.h.IClamp(0.5, sec=self.neurons[neuron_id].icell.soma[0])
         cur_stim.delay = start_time * 1e3
         cur_stim.dur = (end_time - start_time) * 1e3
