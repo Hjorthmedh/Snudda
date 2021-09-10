@@ -47,11 +47,12 @@ export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
 export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
 export PYTHONPATH=$LN/lib/python:$PYTHONPATH
 
-echo "Compiling mechanisms"
-rm mechanisms
-ln -s ../../snudda/data/neurons/mechanisms
-rm -r x86_64
-nrnivmodl mechanisms
+# This is now done by core.py when running Snudda
+# echo "Compiling mechanisms"
+# rm mechanisms
+# ln -s ../../snudda/data/neurons/mechanisms
+# rm -r x86_64
+# nrnivmodl mechanisms
 
 
 
