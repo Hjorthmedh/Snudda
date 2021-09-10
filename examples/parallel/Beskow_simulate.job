@@ -70,11 +70,13 @@ export PYTHONPATH=$LN/lib/python:$LM/lib/python3.8/
 
 
 # Remove "special" old directory
-echo "Compiling mechanisms"
-rm mechanisms
-ln -s ../../snudda/data/neurons/mechanisms
-rm -r x86_64
-nrnivmodl mechanisms
+# This is now done by core.py automatically.
+
+# echo "Compiling mechanisms"
+# rm mechanisms
+# ln -s ../../snudda/data/neurons/mechanisms
+# rm -r x86_64
+# nrnivmodl mechanisms
 
 
 # GJ disabled

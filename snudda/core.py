@@ -493,7 +493,9 @@ class Snudda(object):
                 sys.exit(-1)
 
         else:
-            print("NEURON mechanisms already compiled, make sure you have the correct version of NEURON modules.")
+            print("NEURON mechanisms already compiled, make sure you have the correct version of NEURON modules."
+                  "\nIf you delete x86_64 directory (or nrnmech.dll) "
+                  "then you will force a recompilation of the modules.")
 
         save_dir = os.path.join(os.path.dirname(network_file), "simulation")
 
