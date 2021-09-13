@@ -6,6 +6,7 @@ import json
 
 import h5py
 
+from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.place.create_cube_mesh import create_cube_mesh
 from snudda.neurons.neuron_morphology import NeuronMorphology
 from snudda.init.init import SnuddaInit
@@ -534,25 +535,17 @@ class InputTuning(object):
                 neuron_info = collections.OrderedDict()
 
                 # Find neuron morphology swc file, obs currently assume lowercase(!)
-                neuron_morph_list = glob.glob(os.path.join(nd, '*swc'))
+                neuron_morph = SnuddaInit.get_morphologies(nd)
 
                 parameter_file = os.path.join(nd, "parameters.json")
                 mechanism_file = os.path.join(nd, "mechanisms.json")
                 modulation_file = os.path.join(nd, "modulation.json")  # Optional
 
-                if len(neuron_morph_list) == 0:
-                    assert (not os.path.isfile(parameter_file) and not os.path.isfile(mechanism_file)), \
-                        f"Directory {nd} has parameter.json or mechanism.json but no swc file."
-
-                    # No swc file, skipping directory
-                    continue
-
                 # Check if empty neuron_morph_list, or if more than one morphology
-                assert len(neuron_morph_list) == 1, f"Should only be one swc file in {nd}"
                 assert os.path.isfile(parameter_file), f"Missing parameter file {parameter_file}"
                 assert os.path.isfile(mechanism_file), f"Missing mechanism file {mechanism_file}"
 
-                neuron_info["morphology"] = snudda_simplify_path(neuron_morph_list[0])
+                neuron_info["morphology"] = snudda_simplify_path(neuron_morph)
                 neuron_info["parameters"] = snudda_simplify_path(parameter_file)
                 neuron_info["mechanisms"] = snudda_simplify_path(mechanism_file)
 
@@ -574,10 +567,17 @@ class InputTuning(object):
         return all_neurons
 
     @staticmethod
-    def has_axon(swc_file):
-        nm = NeuronMorphology(swc_filename=snudda_parse_path(swc_file))
+    def has_axon(neuron_info):
 
-        return len(nm.axon) > 0
+        nm = NeuronPrototype(neuron_name="JJJ",
+                             neuron_path=None,
+                             morphology_path=neuron_info["morphology"],
+                             parameter_path=neuron_info["parameters"],
+                             mechanism_path=neuron_info["mechanisms"],
+                             virtual_neuron=False,
+                             axon_stump_id_flag=False)
+        nm.instantiate()
+        return nm.all_have_axon()
 
     def create_network_config(self, neurons_path, num_replicas=10, random_seed=None, neuron_types=None):
 
@@ -608,8 +608,8 @@ class InputTuning(object):
             neuron_def[n]["rotationMode"] = "random"
             neuron_def[n]["hoc"] = None
 
-            if not self.has_axon(neuron_def[n]["morphology"]):
-                print(f"Morphology {neuron_def[n]['morphology']} has no axon, faking it.")
+            if not self.has_axon(neuron_def[n]):
+                print(f"One or more of morphologies {neuron_def[n]['morphology']} has no axon, faking it.")
                 # We will have no connections in this test network, so add empty density
                 neuron_def[n]["axonDensity"] = fake_axon_density
 
@@ -791,7 +791,10 @@ class InputTuning(object):
         input_spike_data.close()
         network_data.close()
 
-    def simulate(self):
+    def simulate(self, mech_dir=None):
+
+        from snudda.core import Snudda
+        Snudda.compile_mechanisms(mech_dir=mech_dir)
 
         # Get info so we can set max_time correctly
         self.read_tuning_info()
