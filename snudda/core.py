@@ -420,6 +420,43 @@ class Snudda(object):
 
     ############################################################################
 
+    @staticmethod
+    def compile_mechanisms(mech_dir=None):
+
+        if not mech_dir:
+            mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons", "mechanisms")))
+
+        if not os.path.exists("x86_64") and not os.path.exists("nrnmech.dll"):
+
+            from mpi4py import MPI  # This must be imported before neuron, to run parallel
+            from neuron import h
+            pc = h.ParallelContext()
+
+            if pc.id() == 0:
+                # Only run this on master node
+                print(f"Running on master node:  nrnivmodl {mech_dir}")
+                os.system(f"nrnivmodl {mech_dir}")
+            else:
+                print("Worker waiting for master node to compile NEURON modules.")
+
+            pc.barrier()
+
+            if os.path.exists("nrnmech.dll"):
+                h.nrn_load_dll("nrnmech.dll")
+            elif os.path.exists("x86_64"):
+                h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
+            else:
+                print(f"Could not find compiled mechanisms. Compile using 'nrnivmodl {mech_dir}' "
+                      f"and retry simulation.")
+                sys.exit(-1)
+
+        else:
+            print("NEURON mechanisms already compiled, make sure you have the correct version of NEURON modules."
+                  "\nIf you delete x86_64 directory (or nrnmech.dll) "
+                  "then you will force a recompilation of the modules.")
+
+    ############################################################################
+
     def simulate(self, args):
         """
         Simulate network. Writes results to network_path/simulation.
@@ -471,31 +508,7 @@ class Snudda(object):
                 if "adaptive" in neuromod_dict["type"]:
                     mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons",
                                                                                            "mechanisms_ptr")))
-        if not os.path.exists("x86_64") and not os.path.exists("nrnmech.dll"):
-
-            if pc.id() == 0:
-                # Only run this on master node
-                print(f"Running on master node:  nrnivmodl {mech_dir}")
-                os.system(f"nrnivmodl {mech_dir}")
-            else:
-                print("Worker waiting for master node to compile NEURON modules.")
-
-            pc.barrier()
-
-            if os.path.exists("nrnmech.dll"):
-                h.nrn_load_dll("nrnmech.dll")
-            elif os.path.exists("x86_64"):
-                h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
-            else:
-
-                print(f"Could not find compiled mechanisms. Compile using 'nrnivmodl {mech_dir}' "
-                      f"and retry simulation.")
-                sys.exit(-1)
-
-        else:
-            print("NEURON mechanisms already compiled, make sure you have the correct version of NEURON modules."
-                  "\nIf you delete x86_64 directory (or nrnmech.dll) "
-                  "then you will force a recompilation of the modules.")
+        self.compile_mechanisms(mech_dir=mech_dir)
 
         save_dir = os.path.join(os.path.dirname(network_file), "simulation")
 
