@@ -791,10 +791,10 @@ class InputTuning(object):
         input_spike_data.close()
         network_data.close()
 
-    def simulate(self, mech_dir=None, force_recompile=False):
+    def simulate(self, mech_dir=None):
 
         from snudda.core import Snudda
-        Snudda.compile_mechanisms(mech_dir=mech_dir, force_recompile=force_recompile)
+        Snudda.compile_mechanisms(mech_dir=mech_dir)
 
         # Get info so we can set max_time correctly
         self.read_tuning_info()

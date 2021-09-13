@@ -421,22 +421,10 @@ class Snudda(object):
     ############################################################################
 
     @staticmethod
-    def compile_mechanisms(mech_dir=None, force_recompile=False):
+    def compile_mechanisms(mech_dir=None):
 
         if not mech_dir:
             mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons", "mechanisms")))
-
-        if force_recompile:
-            print("Removing old compiled mod files if exists.")
-            import shutil
-
-            if os.path.exists("x86_64"):
-                print("Removing x86_64")
-                shutil.rmtree("x86_64")
-
-            if os.path.exists("nrnmech.dll"):
-                print("Removing nrnmech.dll")
-                os.remove("nrnmech.dll")
 
         if not os.path.exists("x86_64") and not os.path.exists("nrnmech.dll"):
 
