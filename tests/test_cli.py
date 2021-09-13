@@ -46,7 +46,7 @@ class TestCLI(unittest.TestCase):
 
         with self.subTest(stage="setup-parallel"):
             os.environ["IPYTHONDIR"] = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
-            os.environ["IPYTHON_PROFILE"] = "Snudda_local"
+            os.environ["IPYTHON_PROFILE"] = "default"
             os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
             time.sleep(10)
 
