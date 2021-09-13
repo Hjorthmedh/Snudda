@@ -2,10 +2,11 @@ import neuron
 import numpy as np
 
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
-
+from snudda.neurons.neuron_prototype import NeuronPrototype
 import bluepyopt.ephys as ephys
 from snudda.neurons.neuron_model_extended import NeuronModel
 from snudda.neurons.neuron_morphology import NeuronMorphology
+import matplotlib.pyplot as plt
 
 
 # Plot all sections
@@ -37,9 +38,18 @@ class RunSynapseRun(object):
                  log_file=None,
                  verbose=True):
 
+        self.neuron_parameter_id = neuron_parameter_id
+        self.neuron_modulation_id = neuron_modulation_id
+        self.neuron_morphology = neuron_morphology
+        self.neuron_mechanisms = neuron_mechanisms
+        self.neuron_parameters = neuron_parameters
+        self.neuron_modulation = neuron_modulation
+        self.holding_voltage = holding_voltage
         self.log_file = log_file  # File pointer
         self.verbose = verbose
         self.rng = np.random.default_rng(random_seed)
+        self.params = params
+        self.default_cond = 5e-7
 
         self.write_log("Holding voltage: " + str(holding_voltage) + " V")
         self.write_log("Stim times: " + str(stim_times) + " s")
@@ -64,23 +74,39 @@ class RunSynapseRun(object):
 
         self.sim = NrnSimulatorParallel(cvode_active=False)
 
+
         # Should we use weak reference for garbage collection? (weakref package)
 
         # We load the neuron morphology object also, used to place synapses
-        self.write_log(f"Using morphology: {neuron_morphology}")
-        self.morphology = NeuronMorphology(swc_filename=neuron_morphology)
+        #self.write_log(f"Using morphology: {neuron_morphology}")
+        #self.morphology = NeuronMorphology(swc_filename=neuron_morphology)
+        #
+
+        self.nm = NeuronPrototype(neuron_name="JJJ",
+                                         neuron_path=None,
+                                        morphology_path=self.neuron_morphology,
+                                    parameter_path=self.neuron_parameters,
+                             mechanism_path=self.neuron_mechanisms,
+                             virtual_neuron=False,
+                             axon_stump_id_flag=False)
+        self.nm.instantiate()
+
+        swc_file = self.nm.get_morphology(self.neuron_parameter_id,0)
+        self.morphology = NeuronMorphology(swc_filename=swc_file, verbose=True, use_cache=False)
+
 
         # We need to setup the Neuron model
-        self.neuron = NeuronModel(param_file=neuron_parameters,
-                                  morph_path=neuron_morphology,
-                                  mech_file=neuron_mechanisms,
+        self.neuron = NeuronModel(param_file=self.neuron_parameters,
+                                  morph_path=self.neuron_morphology,
+                                  mech_file=self.neuron_mechanisms,
                                   cell_name="OptimisationNeuron",
-                                  modulation_file=neuron_modulation,
-                                  parameter_id=neuron_parameter_id,
-                                  modulation_id=neuron_modulation_id)
+                                  modulation_file=self.neuron_modulation,
+                                  morphology_id=0,
+                                  parameter_id=self.neuron_parameter_id,
+                                  modulation_id=self.neuron_modulation_id)
 
         self.neuron.instantiate(sim=self.sim)
-        self.set_resting_voltage(holding_voltage * 1e3)
+        self.set_resting_voltage(self.holding_voltage * 1e3)
 
         neuron.h.celsius = 35
 
@@ -92,8 +118,6 @@ class RunSynapseRun(object):
         # el_hh: The reversal potential for the leakage channel [Default value = -54.3 mV]
 
         # We need to set the params also
-        self.params = params
-        self.default_cond = 5e-7
 
         # This returns (section,sectionX) so we can reuse it if needed
         self.synapse_positions = self.add_synapse_density(synapse_type=synapse_type,
@@ -294,6 +318,8 @@ class RunSynapseRun(object):
         try:
             if synapse_type.lower() == 'glut':
                 syn = neuron.h.tmGlut_double(section(section_x))
+            elif synapse_density.lower() == 'single_glut':
+                syn = neuron.h.tmGlut(section(section_x))
             elif synapse_type.lower() == "gaba":
                 syn = neuron.h.tmGabaA(section(section_x))
             else:
