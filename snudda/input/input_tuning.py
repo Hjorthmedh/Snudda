@@ -534,25 +534,17 @@ class InputTuning(object):
                 neuron_info = collections.OrderedDict()
 
                 # Find neuron morphology swc file, obs currently assume lowercase(!)
-                neuron_morph_list = glob.glob(os.path.join(nd, '*swc'))
+                neuron_morph = SnuddaInit.get_morphologies(nd)
 
                 parameter_file = os.path.join(nd, "parameters.json")
                 mechanism_file = os.path.join(nd, "mechanisms.json")
                 modulation_file = os.path.join(nd, "modulation.json")  # Optional
 
-                if len(neuron_morph_list) == 0:
-                    assert (not os.path.isfile(parameter_file) and not os.path.isfile(mechanism_file)), \
-                        f"Directory {nd} has parameter.json or mechanism.json but no swc file."
-
-                    # No swc file, skipping directory
-                    continue
-
                 # Check if empty neuron_morph_list, or if more than one morphology
-                assert len(neuron_morph_list) == 1, f"Should only be one swc file in {nd}"
                 assert os.path.isfile(parameter_file), f"Missing parameter file {parameter_file}"
                 assert os.path.isfile(mechanism_file), f"Missing mechanism file {mechanism_file}"
 
-                neuron_info["morphology"] = snudda_simplify_path(neuron_morph_list[0])
+                neuron_info["morphology"] = snudda_simplify_path(neuron_morph)
                 neuron_info["parameters"] = snudda_simplify_path(parameter_file)
                 neuron_info["mechanisms"] = snudda_simplify_path(mechanism_file)
 
