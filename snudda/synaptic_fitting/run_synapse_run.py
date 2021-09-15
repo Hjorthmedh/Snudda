@@ -318,7 +318,7 @@ class RunSynapseRun(object):
         try:
             if synapse_type.lower() == 'glut':
                 syn = neuron.h.tmGlut_double(section(section_x))
-            elif synapse_density.lower() == 'single_glut':
+            elif synapse_type.lower() == 'single_glut':
                 syn = neuron.h.tmGlut(section(section_x))
             elif synapse_type.lower() == "gaba":
                 syn = neuron.h.tmGabaA(section(section_x))
