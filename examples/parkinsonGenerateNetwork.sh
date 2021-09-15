@@ -1,5 +1,5 @@
 export IPYTHONDIR="`pwd`/.ipython"
-export IPYTHON_PROFILE=Snudda_LOCAL
+export IPYTHON_PROFILE=default
 
 # OBS, currently init is commented out, so numneurons not used
 numNeurons=50000
