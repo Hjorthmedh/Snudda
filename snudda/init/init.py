@@ -503,15 +503,21 @@ class SnuddaInit(object):
 
         parameter_file = os.path.join(neuron_dir, "parameters.json")
 
-        # First check if the morphologies are listed in the parameter file
-        with open(parameter_file, "r") as f:
-            par_data = json.load(f)
+        if os.path.exists(parameter_file):
 
-        # Normally there are multiple parametersets in a list, if not, then put the one parameter set in a list
-        if type(par_data[0]) == dict:
-            par_data = [par_data]
+            # First check if the morphologies are listed in the parameter file
+            with open(parameter_file, "r") as f:
+                par_data = json.load(f)
 
-        has_morphology = ["morphology" in d[0] for d in par_data]
+            # Normally there are multiple parametersets in a list, if not, then put the one parameter set in a list
+            if type(par_data[0]) == dict:
+                par_data = [par_data]
+
+            has_morphology = ["morphology" in d[0] for d in par_data]
+
+        else:
+            # No morphologies listed in parameter.json (since file does not exist)
+            has_morphology = [False]
 
         if any(has_morphology):
 
