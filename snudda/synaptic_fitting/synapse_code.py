@@ -70,3 +70,32 @@ class SingleCellNetwork(RunSynapseRun):
         return (np.array(self.t_save) * 1e-3,
                 np.array(self.v_save) * 1e-3,
                 np.array(self.i_save) * 1e-9)
+             
+             
+    def dend_record(self,dend_position):
+
+        self.t_dend_save = neuron.h.Vector()
+        self.t_dend_save.record(neuron.h._ref_t)
+        self.v_dend_save = neuron.h.Vector()
+        self.v_dend_save.record(self.neuron.icell.dend_position._ref_v)
+		
+    def synapse_record(self,syn_position):
+        #syn_position= dend[section_id](section_x)
+        
+        self.t_syn_save = neuron.h.Vector()
+        self.t_syn_save.record(neuron.h._ref_t)
+        self.v_syn_save = neuron.h.Vector()
+        self.v_syn_save.record(self.neuron.icell.syn_position._ref_v)
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
