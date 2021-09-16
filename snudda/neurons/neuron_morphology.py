@@ -724,24 +724,24 @@ class NeuronMorphology(object):
         for idx in range(0, len(axon_idx)):
             axon_lookup[axon_idx[idx]] = idx
 
-        for idx, dIdx in enumerate(dend_idx):
-            self.dend[idx, 0:4] = points[dIdx, 1:5]  # x,y,z,r
-            self.dend[idx, 4] = points[dIdx, 7]  # dist to soma
+        for idx, d_idx in enumerate(dend_idx):
+            self.dend[idx, 0:4] = points[d_idx, 1:5]  # x,y,z,r
+            self.dend[idx, 4] = points[d_idx, 7]  # dist to soma
 
-        for idx, aIdx in enumerate(axon_idx):
-            self.axon[idx, 0:4] = points[aIdx, 1:5]  # x,y,z,r
-            self.axon[idx, 4] = points[aIdx, 7]  # dist to soma
+        for idx, a_idx in enumerate(axon_idx):
+            self.axon[idx, 0:4] = points[a_idx, 1:5]  # x,y,z,r
+            self.axon[idx, 4] = points[a_idx, 7]  # dist to soma
 
-        for idx, dIdx in enumerate(dend_link_idx):
-            self.dend_links[idx, 0] = dend_lookup[int(links[dIdx, 0])]  # ID0 - parent
-            self.dend_links[idx, 1] = dend_lookup[int(links[dIdx, 1])]  # ID1
+        for idx, d_idx in enumerate(dend_link_idx):
+            self.dend_links[idx, 0] = dend_lookup[int(links[d_idx, 0])]  # ID0 - parent
+            self.dend_links[idx, 1] = dend_lookup[int(links[d_idx, 1])]  # ID1
 
-            self.dend_sec_id[idx] = links[dIdx, 2]
-            self.dend_sec_x[idx, :] = links[dIdx, 3:5]
+            self.dend_sec_id[idx] = links[d_idx, 2]
+            self.dend_sec_x[idx, :] = links[d_idx, 3:5]
 
-        for idx, aIdx in enumerate(axon_link_idx):
-            self.axon_links[idx, 0] = axon_lookup[links[aIdx, 0]]
-            self.axon_links[idx, 1] = axon_lookup[links[aIdx, 1]]
+        for idx, a_idx in enumerate(axon_link_idx):
+            self.axon_links[idx, 0] = axon_lookup[links[a_idx, 0]]
+            self.axon_links[idx, 1] = axon_lookup[links[a_idx, 1]]
             # We also have sectionID, secX0 and secX1 saved in links[:,2:5]
             # if needed in the future
 
