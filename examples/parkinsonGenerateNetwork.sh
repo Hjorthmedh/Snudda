@@ -1,15 +1,15 @@
 export IPYTHONDIR="`pwd`/.ipython"
-export IPYTHON_PROFILE=Snudda_LOCAL
+export IPYTHON_PROFILE=default
 
 # OBS, currently init is commented out, so numneurons not used
 numNeurons=50000
-simNamePart=20210420
+simNamePart=20210913
 #cellspecDir=data/parkinson-2020-12-17
 #cellspecDir=data/parkinson-2021-01-07
 #cellspecDir=../snudda/data/parkinson-2021-03-19
-cellspecDir=../snudda/data/parkinson-2021-04-20
+cellspecDir=../../BasalGangliaData/Parkinson
 
-LÄGG TILL FS och LTS FÖR NYA KÖRNIGEN
+
 
 ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20
@@ -23,7 +23,7 @@ sleep 20
 simName=networks/pd0_50k_$simNamePart
 
 # snudda init $simName --size $numNeurons --overwrite
-python3 ../snudda/init/init_custom.py $simName --cellspec $cellspecDir/pd0/
+python3 ../snudda/init/init_custom.py $simName --cellspec $cellspecDir/PD0/neurons
 snudda place $simName --parallel
 snudda detect $simName --parallel
 snudda prune $simName --parallel
@@ -31,7 +31,7 @@ snudda prune $simName --parallel
 simName=networks/pd1_50k_$simNamePart
 
 # snudda init $simName --size $numNeurons --overwrite
-python3 ../snudda/init/init_custom.py $simName --cellspec $cellspecDir/pd1/
+python3 ../snudda/init/init_custom.py $simName --cellspec $cellspecDir/PD1/neurons
 snudda place $simName --parallel
 snudda detect $simName --parallel
 snudda prune $simName --parallel
@@ -39,7 +39,7 @@ snudda prune $simName --parallel
 simName=networks/pd2_50k_$simNamePart
 
 # snudda init $simName --size $numNeurons --overwrite
-python3 ../snudda/init/init_custom.py $simName --cellspec $cellspecDir/pd2/
+python3 ../snudda/init/init_custom.py $simName --cellspec $cellspecDir/PD2/neurons/
 snudda place $simName --parallel
 snudda detect $simName --parallel
 snudda prune $simName --parallel
@@ -48,7 +48,7 @@ snudda prune $simName --parallel
 simName=networks/pd3_50k_$simNamePart
 
 # snudda init $simName --size $numNeurons --overwrite
-python3 ../snudda/init/init_custom.py $simName --cellspec $cellspecDir/pd3/
+python3 ../snudda/init/init_custom.py $simName --cellspec $cellspecDir/PD3/neurons
 snudda place $simName --parallel
 snudda detect $simName --parallel
 snudda prune $simName --parallel
