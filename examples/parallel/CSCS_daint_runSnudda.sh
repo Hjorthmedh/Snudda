@@ -7,6 +7,15 @@ SNUDDA_DIR=/users/$USER/Snudda/snudda/
 # JOBDIR=$SCRATCH/networks/CSCS_Network
 JOBDIR=/scratch/snx3000/$USER/networks/CSCS_Network
 
+# If the BasalGangliaData directory exists, then use that for our data
+if [[ -d "/users/$USER/BasalGangliaData/data" ]]; then
+    export SNUDDA_DATA="/users/$USER/BasalGangliaData/data"
+    echo "Setting SNUDDA_DATA to $SNUDDA_DATA"
+else
+    echo "SNUDDA_DATA environment variable not changed (may be empty): $SNUDDA_DATA"
+fi
+
+
 # !!! For larger networks increase the allocation time in Tegner_runSnudda.job
 
 SIMSIZE=20000

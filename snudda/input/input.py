@@ -1102,7 +1102,7 @@ class SnuddaInput(object):
     def dendrite_input_locations(self,
                                  neuron_id,
                                  rng,
-                                 synapse_density="1",
+                                 synapse_density=None,
                                  num_spike_trains=None):
 
         """
@@ -1114,6 +1114,9 @@ class SnuddaInput(object):
             synapse_density (str): Distance function f(d)
             num_spike_trains (int): Number of spike trains
         """
+
+        if synapse_density is None:
+            synapse_density = "1"
 
         neuron_name = self.neuron_name[neuron_id]
 
@@ -1159,6 +1162,7 @@ class SnuddaInput(object):
 
         self.write_log(f"morphology = {morphology}")
 
+        # TODO: Update dendrite_input_locations so it can handle clustered input also
         return morphology.dendrite_input_locations(synapse_density=synapse_density,
                                                    num_locations=num_spike_trains,
                                                    rng=rng)

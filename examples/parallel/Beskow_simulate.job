@@ -14,6 +14,14 @@ let N_WORKERS="$SLURM_NNODES * 32"
 
 HOME=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda
 
+# If the BasalGangliaData directory exists, then use that for our data
+if [[ -d "/cfs/klemming/nobackup/${USER:0:1}/$USER/BasalGangliaData/data" ]]; then
+    export SNUDDA_DATA="/cfs/klemming/nobackup/${USER:0:1}/$USER/BasalGangliaData/data"
+    echo "Setting SNUDDA_DATA to $SNUDDA_DATA"
+else
+    echo "SNUDDA_DATA environment variable not changed (may be empty): $SNUDDA_DATA"
+fi
+
 # Synapse file
 SNUDDA_DIR=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/snudda
 
@@ -62,11 +70,13 @@ export PYTHONPATH=$LN/lib/python:$LM/lib/python3.8/
 
 
 # Remove "special" old directory
-echo "Compiling mechanisms"
-rm mechanisms
-ln -s ../../snudda/data/neurons/mechanisms
-rm -r x86_64
-nrnivmodl mechanisms
+# This is now done by core.py automatically.
+
+# echo "Compiling mechanisms"
+# rm mechanisms
+# ln -s ../../snudda/data/neurons/mechanisms
+# rm -r x86_64
+# nrnivmodl mechanisms
 
 
 # GJ disabled
