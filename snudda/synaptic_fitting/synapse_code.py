@@ -1,29 +1,16 @@
-from snudda.synaptic_fitting.run_synapse_run import RunSynapseRun
+from snudda.synaptic_fitting.synapse_class import SynapseClass
 from snudda.simulate import SnuddaSimulate
 import timeit
 import neuron
 import numpy as np
+from .make_dendrogram import make_dendrogram
 
-class SingleCellNetwork(RunSynapseRun):
+class SingleCellNetwork(SynapseClass):
 
     def __init__(self, neuron_morphology,
                  neuron_mechanisms,
                  neuron_parameters,
                  neuron_modulation,
-                 stim_times,
-                 synapse_density,
-                 num_synapses,
-                 synapse_section_id=None,  # if given, nSynapses is ignored
-                 synapse_section_x=None,  # same # of elements as synapseSectionID
-                 neuron_parameter_id=0,  # Which param set in parameter file to use
-                 neuron_modulation_id=0,
-                 holding_voltage=-70e-3,
-                 holding_current=None,
-                 synapse_type='glut',
-                 params={},
-                 time=2,
-                 random_seed=None,
-                 log_file=None,
                  verbose=True):
 
         super(SingleCellNetwork, self).__init__(
@@ -31,21 +18,7 @@ class SingleCellNetwork(RunSynapseRun):
                  neuron_mechanisms,
                  neuron_parameters,
                  neuron_modulation,
-                 stim_times,
-                 synapse_density,
-                 num_synapses,
-                 synapse_section_id, # if given, nSynapses is ignored
-                 synapse_section_x,  # same # of elements as synapseSectionID
-                 neuron_parameter_id,  # Which param set in parameter file to use
-                 neuron_modulation_id,
-                 holding_voltage,
-                 holding_current,
-                 synapse_type,
-                 params,
-                 time,
-                 random_seed,
-                 log_file,
-                 verbose)
+                 verbose=verbose)
 
         self.dend_recordings = dict()
         self.syn_v_recordings = dict()
@@ -64,6 +37,9 @@ class SingleCellNetwork(RunSynapseRun):
         else:
             self.time = time
 
+        self.t_save = neuron.h.Vector()
+        self.t_save.record(neuron.h._ref_t)
+
         neuron.h.finitialize(self.holding_voltage * 1e3)
         for ncs in self.nc_syn:
             ncs.weight[0] = cond
@@ -79,8 +55,7 @@ class SingleCellNetwork(RunSynapseRun):
         print(f"{timeit.default_timer()-start} s")
         # Convert results back to SI units
         return (np.array(self.t_save) * 1e-3,
-                np.array(self.v_save) * 1e-3,
-                np.array(self.i_save) * 1e-9)
+                np.array(self.v_save) * 1e-3)
 
     def dend_record(self, num, x):
 
@@ -155,6 +130,28 @@ class SingleCellNetwork(RunSynapseRun):
             vector_v = self.sim.neuron.h.Vector()
             self.current_record.update({k : vector_v.record(vcs._ref_i)})
 
+
+    def remove_synapse(self,num):
+
+        num = num - 1
+
+        for i, s in enumerate(self.synapses):
+            n = int(s.get_segment().sec.name().split('[')[-1].split(']')[0])
+            print(n)
+            if num == n:
+                print('Remove synapse')
+                self.synapses.remove(s)
+                self.synapse_locations = np.delete(self.synapse_locations, i, axis=0)
+
+    def reset(self):
+
+        self.iclamps = dict()
+
+    def make_dendrogram(self):
+
+        swc = self.nm.get_morphology(self.neuron_parameter_id, 0)
+
+        make_dendrogram(swc)
 
     def return_variable(self):
 
