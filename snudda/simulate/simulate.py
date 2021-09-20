@@ -844,7 +844,7 @@ class SnuddaSimulate(object):
                     # Temp sanity check for synapse time constant
                     if par in ["tau", "tauR"]:
                         assert 1 <= val < 10000, \
-                            (f"Cell {self.neurons[cell_id_source]['name']} converting {par}={val_orig} to {val}, "
+                            (f"Cell {self.neurons[cell_id_source].name} converting {par}={val_orig} to {val}, "
                              f"expected >= 1 and < 10000.")
 
                     setattr(syn, par, val)
@@ -1058,7 +1058,7 @@ class SnuddaSimulate(object):
 
                             if par in ["tau", "tauR"]:
                                 assert 1 <= par_value < 10000, \
-                                    (f"Converting {self.neurons[neuron_id]['name']} {par}={syn_params[par]} "
+                                    (f"Converting {self.neurons[neuron_id].name} {par}={syn_params[par]} "
                                      f"we get {par_value}, "
                                      f"but expected >= 1 and < 10000")
 
