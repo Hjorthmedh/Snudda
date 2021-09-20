@@ -839,6 +839,10 @@ class SnuddaSimulate(object):
                         # If no list, we need to handle SI to natural units conversion automatically
                         val = self.convert_to_natural_units(par, val)
 
+                    # Temp sanity check for synapse time constant
+                    if par in ["tau", "tauR"]:
+                        assert 1 <= val < 10000, f"After conversion of {par} we have {val}, expected >= 1 and < 10000"
+
                     setattr(syn, par, val)
 
                 except:
@@ -1047,6 +1051,11 @@ class SnuddaSimulate(object):
                                 continue
 
                             par_value = self.convert_to_natural_units(par, syn_params[par])
+
+                            if par in ["tau", "tauR"]:
+                                assert 1 <= par_value < 10000, \
+                                    f"After conversion of {par} we have {par_value}, expected >= 1 and < 10000"
+
                             setattr(syn, par, par_value)
                             # eval_str = "syn." + par + "=" + str(syn_params[par])
                             # self.writeLog("Updating synapse: " + evalStr)
