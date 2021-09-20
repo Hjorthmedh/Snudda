@@ -300,7 +300,7 @@ class SnuddaSimulate(object):
         """
 
         # We need to load all the synapse parameters
-        self.synapse_parameters = dict([])
+        self.synapse_parameters = dict()
 
         for (preType, postType) in self.network_info["connectivityDistributions"]:
 
@@ -335,9 +335,12 @@ class SnuddaSimulate(object):
                     assert False, (f"No channel module specified for {preType}->{postType} synapses, "
                                    f"type ID={synapse_type_id}")
 
-                if "parameterFile" in info_dict and info_dict["parameterFile"] is not None:
-                    par_file = snudda_parse_path(info_dict["parameterFile"])
-                    par_data_dict = json.load(open(par_file, 'r'))
+                if "parameterFile" in info_dict["channelParameters"] \
+                        and info_dict["channelParameters"]["parameterFile"] is not None:
+                    par_file = snudda_parse_path(info_dict["channelParameters"]["parameterFile"])
+
+                    with open(par_file, "r") as f:
+                        par_data_dict = json.load(f)
 
                     # Save data as a list, we dont need the keys
                     par_data = []
