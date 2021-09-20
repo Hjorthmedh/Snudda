@@ -834,14 +834,18 @@ class SnuddaSimulate(object):
 
                     # Do we need to convert from SI to natural units?
                     if type(val) == tuple or type(val) == list:
+                        val_orig = val
                         val = val[0] * val[1]
                     else:
                         # If no list, we need to handle SI to natural units conversion automatically
+                        val_orig = val
                         val = self.convert_to_natural_units(par, val)
 
                     # Temp sanity check for synapse time constant
                     if par in ["tau", "tauR"]:
-                        assert 1 <= val < 10000, f"After conversion of {par} we have {val}, expected >= 1 and < 10000"
+                        assert 1 <= val < 10000, \
+                            (f"Cell {self.neurons[cell_id_source]['name']} converting {par}={val_orig} to {val}, "
+                             f"expected >= 1 and < 10000.")
 
                     setattr(syn, par, val)
 
@@ -1054,7 +1058,9 @@ class SnuddaSimulate(object):
 
                             if par in ["tau", "tauR"]:
                                 assert 1 <= par_value < 10000, \
-                                    f"After conversion of {par} we have {par_value}, expected >= 1 and < 10000"
+                                    (f"Converting {self.neurons[neuron_id]['name']} {par}={syn_params[par]} "
+                                     f"we get {par_value}, "
+                                     f"but expected >= 1 and < 10000")
 
                             setattr(syn, par, par_value)
                             # eval_str = "syn." + par + "=" + str(syn_params[par])
