@@ -164,9 +164,9 @@ class PlotTraces:
 
         if fig_name is None:
             if len(types_in_plot) > 1:
-                fig_name = f"Network-spikes-{self.ID}-{'-'.join(types_in_plot)}-colour.pdf"
+                fig_name = f"Network-voltage-trace-{self.ID}-{'-'.join(types_in_plot)}-colour.pdf"
             else:
-                fig_name = f"Network-spikes-{self.ID}-{types_in_plot.pop()}-colour.pdf"
+                fig_name = f"Network-voltage-trace-{self.ID}-{types_in_plot.pop()}-colour.pdf"
 
         plt.savefig(os.path.join(fig_path, fig_name), dpi=300)
         print(f"Saving to figure {fig_name}")
