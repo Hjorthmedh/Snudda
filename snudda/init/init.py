@@ -829,7 +829,7 @@ class SnuddaInit(object):
             # 1.73 million neurons, volume of allen striatal mesh is 21.5mm3
             striatum_volume = 1e-9 * num_neurons / neuron_density  # 80.5e3
             striatum_side_len = striatum_volume ** (1. / 3)
-            striatum_centre = np.array([3540e-6, 4645e-6, 5081e-6])
+            striatum_centre = np.array([4750e-6,4000e-6, 7750e-6])
 
             if num_neurons < 500:
                 mesh_bin_width = striatum_side_len
