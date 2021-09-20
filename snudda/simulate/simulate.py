@@ -172,7 +172,12 @@ class SnuddaSimulate(object):
         self.create_dir(os.path.join("save", "traces"))
 
         self.pc = h.ParallelContext()
-        
+
+        self.conv_factor = {"tauR": 1e3,
+                            "tauF": 1e3,
+                            "tau": 1e3}
+
+
         # self.writeLog("I am node " + str(int(self.pc.id())))
 
         # We need to initialise random streams, see Lytton el at 2016 (p2072)
@@ -830,6 +835,9 @@ class SnuddaSimulate(object):
                     # Do we need to convert from SI to natural units?
                     if type(val) == tuple or type(val) == list:
                         val = val[0] * val[1]
+                    else:
+                        # If no list, we need to handle SI to natural units conversion automatically
+                        val = self.convert_to_natural_units(par, val)
 
                     setattr(syn, par, val)
 
@@ -1038,7 +1046,8 @@ class SnuddaSimulate(object):
                                 # one specified in the input information instead
                                 continue
 
-                            setattr(syn, par, syn_params[par])
+                            par_value = self.convert_to_natural_units(par, syn_params[par])
+                            setattr(syn, par, par_value)
                             # eval_str = "syn." + par + "=" + str(syn_params[par])
                             # self.writeLog("Updating synapse: " + evalStr)
                             # !!! Can we avoid an eval here, it is soooo SLOW
@@ -1611,6 +1620,19 @@ class SnuddaSimulate(object):
         volt_file = os.path.join(os.path.dirname(self.network_file), "simulation", "simulation-volt.txt")
 
         return volt_file
+
+    def convert_to_natural_units(self, param_name, param_value):
+
+        # TODO, move conversion list to separate file
+        if param_name in self.conv_factor:
+            val = param_value * self.conv_factor[param_name]
+        else:
+            val = param_value
+
+        return val
+
+
+
 
     ############################################################################
 
