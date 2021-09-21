@@ -28,6 +28,18 @@ class SingleCellNetwork(SynapseClass):
         self.vclamps = dict()
         self.current_record = dict()
 
+    def add_parameters(self,parameters):
+
+        for p in parameters:
+
+            if p == "cond":
+                cond = self.si_to_natural_units(p, parameters[p])
+
+            else:
+                v = self.si_to_natural_units(p, parameters[p])
+                for s in self.synapses:
+                    setattr(s, p, v)
+
     def run(self, time=None, cond=1e-8):
 
         start = timeit.default_timer()

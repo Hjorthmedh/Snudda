@@ -12,14 +12,7 @@ from neurom import NeuriteType
 TREE_COLOR = {NeuriteType.basal_dendrite: 'red',
               NeuriteType.apical_dendrite: 'purple',
               NeuriteType.axon: 'blue',
-              NeuriteType.soma: 'red',
-              NeuriteType.undefined: 'green',
-              NeuriteType.custom5: 'orange',
-              NeuriteType.custom6: 'orange',
-              NeuriteType.custom7: 'orange',
-              NeuriteType.custom8: 'orange',
-              NeuriteType.custom9: 'orange',
-              NeuriteType.custom10: 'orange'}
+              NeuriteType.soma: 'red'}
 
 def _get_dendrogram_shapes(dendrogram, positions, show_diameters):
     """Generates drawable patches for dendrogram.

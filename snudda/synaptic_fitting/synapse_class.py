@@ -498,7 +498,8 @@ class SynapseClass:
                        "cond": 1e6,
                        "tau": 1e3,
                        "nmda_ratio": 1.0,
-
+                       "tau1" : 1e3,
+                       "tau2" : 1e3,
                        "tau1_ampa": 1.0,  # Ilaria's file has ms already
                        "tau2_ampa": 1.0,  # Ilaria's file has ms already
                        "tau3_ampa": 1.0,  # Ilaria's file has ms already
