@@ -13,7 +13,7 @@ def snudda_parse_path(path):
         path (str) : Path to modify
         """
 
-    if path and "$DATA" in path:
+    if path and ("$DATA" in path or "$SNUDDA_DATA" in path):
 
         if "SNUDDA_DATA" in os.environ:
             data_path_str = os.environ["SNUDDA_DATA"]
