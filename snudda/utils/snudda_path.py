@@ -13,14 +13,16 @@ def snudda_parse_path(path):
         path (str) : Path to modify
         """
 
-    if path and "$DATA" in path:
+    if path and ("$DATA" in path or "$SNUDDA_DATA" in path):
 
         if "SNUDDA_DATA" in os.environ:
             data_path_str = os.environ["SNUDDA_DATA"]
         else:
             data_path_str = os.path.join(os.path.dirname(__file__), os.pardir, "data")
 
-        path = os.path.realpath(path.replace("$DATA", data_path_str))
+        # Updated so both $DATA and $SNUDDA_DATA is possible to use for SNUDDA_DATA path
+        p = path.replace("$DATA", data_path_str).replace("$SNUDDA_DATA", data_path_str)
+        path = os.path.realpath(p)
 
     return path
 
@@ -41,15 +43,15 @@ def snudda_path_exists(path):
 
 
 def snudda_simplify_path(path):
-    """ Simplifies path, replacing any occurance of SNUDDA_DATA in the path with $DATA.
+    """ Simplifies path, replacing any occurance of SNUDDA_DATA in the path with $SNUDDA_DATA.
 
     Args:
         path (str) : Path to be simplified
     """
-    data_path = snudda_parse_path("$DATA")
+    data_path = snudda_parse_path("$SNUDDA_DATA")
     real_path = os.path.realpath(path)
     
     if path and data_path in real_path:
-        path = real_path.replace(data_path, "$DATA")
+        path = real_path.replace(data_path, "$SNUDDA_DATA")
 
     return path
