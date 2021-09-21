@@ -844,12 +844,6 @@ class SnuddaSimulate(object):
                         val_orig = val
                         val = self.convert_to_natural_units(par, val)
 
-                    # Temp sanity check for synapse time constant
-                    if par in ["tau", "tauR"]:
-                        assert 0.01 <= val < 10000, \
-                            (f"Cell {self.neurons[cell_id_source].name} converting {par}={val_orig} to {val}, "
-                             f"expected >= 0.01 and < 10000.")
-
                     setattr(syn, par, val)
 
                 except:
