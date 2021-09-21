@@ -20,7 +20,9 @@ def snudda_parse_path(path):
         else:
             data_path_str = os.path.join(os.path.dirname(__file__), os.pardir, "data")
 
-        path = os.path.realpath(path.replace("$DATA", data_path_str))
+        # Updated so both $DATA and $SNUDDA_DATA is possible to use for SNUDDA_DATA path
+        p = path.replace("$DATA", data_path_str).replace("$SNUDDA_DATA", data_path_str)
+        path = os.path.realpath(p)
 
     return path
 
