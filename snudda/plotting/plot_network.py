@@ -186,4 +186,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     pn = PlotNetwork(args.networkFile)
-    pn.plot(fig_name="network-plot.pdf")
+    pn.plot(fig_name="network-plot.png")
