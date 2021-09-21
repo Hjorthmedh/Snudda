@@ -43,15 +43,15 @@ def snudda_path_exists(path):
 
 
 def snudda_simplify_path(path):
-    """ Simplifies path, replacing any occurance of SNUDDA_DATA in the path with $DATA.
+    """ Simplifies path, replacing any occurance of SNUDDA_DATA in the path with $SNUDDA_DATA.
 
     Args:
         path (str) : Path to be simplified
     """
-    data_path = snudda_parse_path("$DATA")
+    data_path = snudda_parse_path("$SNUDDA_DATA")
     real_path = os.path.realpath(path)
     
     if path and data_path in real_path:
-        path = real_path.replace(data_path, "$DATA")
+        path = real_path.replace(data_path, "$SNUDDA_DATA")
 
     return path
