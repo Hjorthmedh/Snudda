@@ -843,7 +843,11 @@ class SnuddaSimulate(object):
                         # If no list, we need to handle SI to natural units conversion automatically
                         val_orig = val
                         val = self.convert_to_natural_units(par, val)
-
+			
+		    if par in ["tau", "tauR"]:
+			if (0.01 > val) or (val >= 10000):
+			    self.write_log("Warning: {} was converted from {} to {} "
+					   "but expected range [0.01, 10000).")
                     setattr(syn, par, val)
 
                 except:
