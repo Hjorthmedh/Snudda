@@ -100,7 +100,7 @@ class SnuddaCalibrateSynapses:
 
         # Voltage file
         self.volt_file = os.path.join(os.path.dirname(network_file),
-                                      f"/synapse-calibration-volt-{self.pre_type}-{self.post_type}.txt")
+                                      f"synapse-calibration-volt-{self.pre_type}-{self.post_type}.txt")
         self.volt_file_alt_mask = os.path.join(os.path.dirname(network_file),
                                                f"synapse-calibration-volt-{self.pre_type}-*.txt")
 
