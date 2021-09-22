@@ -749,7 +749,7 @@ class SnuddaInit(object):
                         num_LTS=None,
                         volume_type=None,
                         side_len=None,
-                        # slice_depth=None,
+                        slice_depth=None,
                         neurons_dir=None,
                         neuron_density=80500,
                         population_unit_SPN_modifier=1,
@@ -822,6 +822,7 @@ class SnuddaInit(object):
             self.define_structure(struct_name="Striatum",
                                   struct_mesh="slice",
                                   side_len=side_len,
+                                  slice_depth=slice_depth,
                                   d_min=d_min)
 
         elif num_neurons <= 1e6:  # 1e6

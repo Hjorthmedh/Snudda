@@ -78,12 +78,12 @@ class SnuddaModelCurrentInjections(object):
 
       assert False, "Szydlowski did not stimulate all FS or did they when recording LTS?"
       self.tInj = 0.5
-      self.injDuration = 1e-3
-      self.curInj = 10e-9
+      self.inj_duration = 1e-3
+      self.cur_inj = 10e-9
       self.tWindow = 0.03
       self.simEnd = self.tInj + self.tWindow*2
-      self.holdV = -70e-3
-      self.GABArev = -30e-3 
+      self.hold_v = -70e-3
+      self.GABA_rev = -30e-3
       self.nNrns = 30
       
     else:
