@@ -852,10 +852,10 @@ class SnuddaSimulate(object):
                         val_orig = val
                         val = self.convert_to_natural_units(par, val)
 			
-		    if par in ["tau", "tauR"]:
-			if (0.01 > val) or (val >= 10000):
-			    self.write_log("Warning: {} was converted from {} to {} "
-					   "but expected range [0.01, 10000).")
+                    if par in ["tau", "tauR"] and ((0.01 > val) or (val >= 10000)):
+                        self.write_log(" !!! Warning: Converted from {} to {} but expected "\
+                                        "a value within [0.01, 10000) for neuron id {}. "\
+                                            .format(val_orig, val, cell_id_source))
                     setattr(syn, par, val)
 
                 except:
