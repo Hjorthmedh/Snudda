@@ -95,7 +95,7 @@ class SnuddaCalibrateSynapses:
 
         print(f"Checking depolarisation/hyperpolarisation of {pre_type} to {post_type} synapses")
 
-        self.inj_spacing = 0.2  # 0.5
+        self.inj_spacing = 0.5  # Tried with 0.2 before, too close
         self.inj_duration = 1e-3
 
         # Voltage file

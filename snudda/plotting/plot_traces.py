@@ -174,7 +174,7 @@ class PlotTraces:
         plt.ion()
         plt.show()
         plt.draw()
-        plt.pause(0.001)
+        plt.pause(0.5)  # Show interactive plot (that user can interact with for a short period of time)
 
         return fig
 
