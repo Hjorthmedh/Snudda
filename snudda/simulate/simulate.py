@@ -851,11 +851,11 @@ class SnuddaSimulate(object):
                         # If no list, we need to handle SI to natural units conversion automatically
                         val_orig = val
                         val = self.convert_to_natural_units(par, val)
-			
-                    if par in ["tau", "tauR"] and ((0.01 > val) or (val >= 10000)):
-                        self.write_log(" !!! Warning: Converted from {} to {} but expected "\
-                                        "a value within [0.01, 10000) for neuron id {}. "\
-                                            .format(val_orig, val, cell_id_source))
+
+                    if par in ["tau", "tauR"] and ((val < 0.01) or (10000 < val)):
+                        self.write_log(f" !!! Warning: Converted from {val_orig} to {val} but expected "
+                                       f"a value within [0.01, 10000) for neuron id {cell_id_source}. ")
+
                     setattr(syn, par, val)
 
                 except:
