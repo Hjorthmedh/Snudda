@@ -40,8 +40,8 @@
 #
 # *  Analyse
 #
-#  python3 snudda_calibrate_synapses.py analyse networks/Planert2010-v1/network-cut-slice.hdf5 dSPN iSPN
-# python3 snudda_calibrate_synapses.py analyse Planert2010 networks/Planert2010-v1/network-cut-slice.hdf5 --pre dSPN --post dSPN
+#  python3 snudda/utils/calibrate_synapses.py analyse networks/Planert2010-v1/network-cut-slice.hdf5 dSPN iSPN
+#  python3 snudda/utils/calibrate_synapses.py analyse Planert2010 networks/Planert2010-v1/network-cut-slice.hdf5 --pre dSPN --post dSPN
 #
 # * Look at plot with traces overlayed and histogram of voltage amplitudes
 # (When you do preType to postType, you also get preType to preType for free

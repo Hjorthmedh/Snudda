@@ -176,6 +176,8 @@ class PlotTraces:
         plt.draw()
         plt.pause(0.001)
 
+        return fig
+
     ############################################################################
 
     def plot_trace_neuron_name(self, neuron_name, num_traces=1, skip_time=0, plot_offset=0, fig_name=None, num_offset=0):
@@ -191,14 +193,16 @@ class PlotTraces:
             print("No traces of neuron(s) " + str(neuron_name) + " to show")
             return
 
-        self.plot_traces(offset=plot_offset, trace_id=traceID[num_offset:num_offset + num_traces], skip_time=skip_time,
-                         title=neuron_names[traceID[0]], fig_name=fig_name)
+        fig = self.plot_traces(offset=plot_offset, trace_id=traceID[num_offset:num_offset + num_traces],
+                               skip_time=skip_time,
+                               title=neuron_names[traceID[0]], fig_name=fig_name)
 
         time.sleep(1)
+        return fig
 
     ############################################################################
 
-    def plotTraceNeuronType(self, neuron_type, num_traces=10, offset=0, skip_time=0.0):
+    def plot_trace_neuron_type(self, neuron_type, num_traces=10, offset=0, skip_time=0.0):
 
         assert self.network_info is not None, "You need to specify networkInfo file"
 
@@ -214,10 +218,11 @@ class PlotTraces:
             print(f"No traces of {neuron_type} to show")
             return
 
-        self.plot_traces(offset=offset, trace_id=trace_id[:num_traces], skip_time=skip_time,
-                         title=self.neuron_name(neuron_type))
+        fig = self.plot_traces(offset=offset, trace_id=trace_id[:num_traces], skip_time=skip_time,
+                               title=self.neuron_name(neuron_type))
 
         time.sleep(1)
+        return fig
 
     ############################################################################
 
@@ -252,11 +257,11 @@ if __name__ == "__main__":
         num_traces_max = 10
 
         if True:
-            npt.plotTraceNeuronType(neuron_type="dSPN", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
-            npt.plotTraceNeuronType(neuron_type="iSPN", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
-            npt.plotTraceNeuronType(neuron_type="FS", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
-            npt.plotTraceNeuronType(neuron_type="LTS", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
-            npt.plotTraceNeuronType(neuron_type="ChIN", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
+            npt.plot_trace_neuron_type(neuron_type="dSPN", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
+            npt.plot_trace_neuron_type(neuron_type="iSPN", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
+            npt.plot_trace_neuron_type(neuron_type="FS", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
+            npt.plot_trace_neuron_type(neuron_type="LTS", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
+            npt.plot_trace_neuron_type(neuron_type="ChIN", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
 
         if False:
             npt.plot_trace_neuron_name(neuron_name="FS_0", plot_offset=plot_offset, fig_name="Traced-FS_0.pdf",
