@@ -89,7 +89,7 @@ class SnuddaModelCurrentInjections(object):
             self.n_nrns = 30
 
         else:
-            print("Unknown simType: " + str(sim_type))
+            print(f"Unknown simType: {sim_type}")
 
         self.plotExpTrace = False
         self.neuronNameRemap = {"FSN": "FS"}

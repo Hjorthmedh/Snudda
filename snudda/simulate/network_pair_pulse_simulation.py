@@ -103,7 +103,12 @@ class SnuddaNetworkPairPulseSimulation:
 
         self.cur_inj = current_injection
         self.hold_v = hold_voltage
-        self.log_file = log_file
+
+        if log_file:
+            self.log_file = log_file
+        else:
+            self.log_file = os.path.join(network_path, "log", "pair-pulse.log")
+            
         self.max_dist = max_dist
 
         print(f"Checking depolarisation/hyperpolarisation of {pre_type} to {post_type} synapses")
