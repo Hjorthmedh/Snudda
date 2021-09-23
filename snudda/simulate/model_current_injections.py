@@ -49,6 +49,8 @@ class SnuddaModelCurrentInjections(object):
                simType,
                curInj = 10e-9):
 
+    assert False, "This code needs to be converted to PEP standard, and names updated."
+
     self.simName = simName
     self.simType = simType
     self.snuddaSim = None
@@ -118,7 +120,7 @@ class SnuddaModelCurrentInjections(object):
     # 47.5% dSPN normally, now 4.75% of normal density = 570 dSPN, 570 iSPN
     # We assume we measure only monosynaptic connections.
     #
-    # Adding 10 FSN, 10 ChIN, 10 dSPN, 10 iSPN to measure from
+    # Adding 10 FS, 10 ChIN, 10 dSPN, 10 iSPN to measure from
     #
 
 
@@ -231,9 +233,9 @@ class SnuddaModelCurrentInjections(object):
 
 
     # Pick neurons that we will measure from
-    measureFSN = [x["neuronID"] \
+    measureFS = [x["neuronID"] \
                   for x in self.snuddaSim.network_info["neurons"] \
-                  if x["type"] == "FSN"]
+                  if x["type"] == "FS"]
     
     measureChIN = [x["neuronID"] \
                    for x in self.snuddaSim.network_info["neurons"] \
@@ -253,7 +255,7 @@ class SnuddaModelCurrentInjections(object):
                           np.union1d(measuredSPN,measureiSPN))
 
     measureID = np.union1d(np.union1d(measuredSPN,measureiSPN),
-                           np.union1d(measureFSN,measureChIN))
+                           np.union1d(measureFS,measureChIN))
 
     self._simulateNetworkHelper(simName,simType,stimID,measureID)
     
@@ -275,7 +277,7 @@ class SnuddaModelCurrentInjections(object):
     if(simType == "Straub2016FS"):
       stimID = [x["neuronID"] \
                 for x in self.snuddaSim.network_info["neurons"] \
-                if "FSN" in x["type"]]
+                if "FS" in x["type"]]
     elif(simType == "Straub2016LTS"):
       stimID = [x["neuronID"] \
                 for x in self.snuddaSim.network_info["neurons"] \
@@ -307,7 +309,7 @@ class SnuddaModelCurrentInjections(object):
     
     stimID = [x["neuronID"] \
               for x in self.snuddaSim.network_info["neurons"] \
-              if "FSN" in x["type"]]
+              if "FS" in x["type"]]
 
     measureID = [x["neuronID"] \
                  for x in self.snuddaSim.network_info["neurons"] \
@@ -405,7 +407,7 @@ class SnuddaModelCurrentInjections(object):
                          0.7541, 0.7713, 0.8442, 1.1069, 1.2391,
                          1.2818, 1.4030, 2.3315])
 
-    FSN2SPN = np.array([0.3091, 0.5137, 0.5255, 0.5687, 0.6890,
+    FS2SPN = np.array([0.3091, 0.5137, 0.5255, 0.5687, 0.6890,
                         0.8161, 0.8832, 0.8932, 0.9667, 1.0228,
                         1.0228, 1.0822, 1.1844, 1.2391, 1.2964,
                         1.3111, 1.4189, 1.4350, 1.5530, 1.6247,
@@ -414,15 +416,15 @@ class SnuddaModelCurrentInjections(object):
                         2.7930, 2.8247, 3.2711, 3.3458, 3.4222,
                         4.2648, 4.4617, 4.9668, 5.3148])
 
-    FSN2ChIN = np.array([0.0233, 0.0378, 0.0419, 0.0428, 0.0666,
+    FS2ChIN = np.array([0.0233, 0.0378, 0.0419, 0.0428, 0.0666,
                          0.0762])
     
     self.expDataDict[("Straub2016LTS","dSPN")] = LTS2SPN
     self.expDataDict[("Straub2016LTS","iSPN")] = LTS2SPN
     self.expDataDict[("Straub2016LTS","ChIN")] = LTS2ChIN        
-    self.expDataDict[("Straub2016FS","dSPN")]  = FSN2SPN
-    self.expDataDict[("Straub2016FS","iSPN")]  = FSN2SPN
-    self.expDataDict[("Straub2016FS","ChIN")]  = FSN2ChIN
+    self.expDataDict[("Straub2016FS","dSPN")]  = FS2SPN
+    self.expDataDict[("Straub2016FS","iSPN")]  = FS2SPN
+    self.expDataDict[("Straub2016FS","ChIN")]  = FS2ChIN
 
     if(self.plotExpTrace):
       self.expTraceDict = dict()
@@ -469,13 +471,13 @@ class SnuddaModelCurrentInjections(object):
       preType = "LTS"
       self.setupExpDataDict()
     elif(simType == "Straub2016FS"):
-      preType = "FSN"
+      preType = "FS"
       self.setupExpDataDict()
     elif(simType == "Chuhma2011"):
       preType = "SPN"
       self.setupExpDataDict()
     elif(simType == "Szydlowski2013"):
-      preType = "FSN"
+      preType = "FS"
     else:
       print("Unknown simType : " + simType)
       sys.exit(-1)
@@ -507,7 +509,7 @@ class SnuddaModelCurrentInjections(object):
     # Group the neurons by type
 
     if(simType == "Chuhma2011"):
-      neuronTypeList = ["dSPN","iSPN","FSN","ChIN"]
+      neuronTypeList = ["dSPN","iSPN","FS","ChIN"]
     elif(simType == "Straub2016FS" or simType == "Straub2016LTS"):
       neuronTypeList = ["dSPN","iSPN","ChIN"]
     elif(simType == "Szydlowski2013"):

@@ -76,7 +76,7 @@
     },
 
     
-    "FSN": {
+    "FS": {
 	"Cortical" : {
 	    "generator" : "poisson",	    
 	    "type" : "AMPA_NMDA",

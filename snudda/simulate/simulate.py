@@ -1817,7 +1817,7 @@ if __name__ == "__main__":
         # sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
         # sim.addRecordingOfType("dSPN",2)
         # sim.addRecordingOfType("iSPN",2)
-        # sim.addRecordingOfType("FSN",2)
+        # sim.addRecordingOfType("FS",2)
         # sim.addRecordingOfType("LTS",2)
         # sim.addRecordingOfType("ChIN",2)
 

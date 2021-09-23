@@ -13,7 +13,7 @@
 #
 # * Generate network 
 #
-#  python3 snudda/utils/calibrate_synapses.py setup Planert2010 networks/Planert2010-v1
+#  python3 snudda/simulate/network_pair_pulse_simulation.py setup Planert2010 networks/Planert2010-v1
 #  snudda place networks/Planert2010-v1
 #  snudda detect networks/Planert2010-v1
 #  snudda prune networks/Planert2010-v1
@@ -36,12 +36,12 @@
 #
 # * Run dSPN -> iSPN calibration (you get dSPN -> dSPN data for free then)
 #
-#  mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda/utils/calibrate_synapses.py run Planert2010 networks/Planert2010-v1/network-cut-slice.hdf5 --pre dSPN --post iSPN
+#  mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda/simulate/network_pair_pulse_simulation.py run Planert2010 networks/Planert2010-v1/network-cut-slice.hdf5 --pre dSPN --post iSPN
 #
 # *  Analyse
 #
-#  python3 snudda_calibrate_synapses.py analyse networks/Planert2010-v1/network-cut-slice.hdf5 dSPN iSPN
-# python3 snudda_calibrate_synapses.py analyse Planert2010 networks/Planert2010-v1/network-cut-slice.hdf5 --pre dSPN --post dSPN
+#  python3 snudda/simulate/network_pair_pulse_simulation.py analyse networks/Planert2010-v1/network-cut-slice.hdf5 dSPN iSPN
+#  python3 snudda/simulate/network_pair_pulse_simulation.py analyse Planert2010 networks/Planert2010-v1/network-cut-slice.hdf5 --pre dSPN --post dSPN
 #
 # * Look at plot with traces overlayed and histogram of voltage amplitudes
 # (When you do preType to postType, you also get preType to preType for free
@@ -72,39 +72,50 @@ import neuron
 # and get 150 micrometers after.
 
 
-class SnuddaCalibrateSynapses:
+class SnuddaNetworkPairPulseSimulation:
 
-    def __init__(self, network_file,
-                 pre_type, post_type,
-                 cur_inj=10e-9,
-                 hold_v=-80e-3,
+    # TODO: Allow hold_voltage to be a dictionary, with neuron type as lookup
+    #       to allow different holding voltages
+
+    def __init__(self, network_path,
+                 pre_type, post_type=None,
+                 exp_type=None,
+                 current_injection=10e-9,
+                 hold_voltage=-80e-3,
                  max_dist=50e-6,
                  log_file=None):
 
-        if os.path.isdir(network_file):
-            self.network_file = os.path.join(network_file, "network-synapses.hdf5")
+        if os.path.isfile(network_path):
+            self.network_file = network_path
+            self.network_path = os.path.dirname(network_path)
         else:
-            self.network_file = network_file
+            self.network_file = os.path.join(network_path, "network-synapses.hdf5")
+            self.network_path = network_path
+
+        self.exp_type = exp_type
 
         self.pre_type = pre_type
-        self.post_type = post_type
-        self.cur_inj = cur_inj
-        self.hold_v = hold_v
+
+        if post_type:
+            self.post_type = post_type
+        else:
+            self.post_type = "ALL"
+
+        self.cur_inj = current_injection
+        self.hold_v = hold_voltage
         self.log_file = log_file
         self.max_dist = max_dist
 
         print(f"Checking depolarisation/hyperpolarisation of {pre_type} to {post_type} synapses")
 
-        self.inj_spacing = 0.2  # 0.5
+        self.inj_spacing = 0.5  # Tried with 0.2 before, too close
         self.inj_duration = 1e-3
 
         # Voltage file
-        self.volt_file = os.path.join(os.path.dirname(network_file),
-                                      f"/synapse-calibration-volt-{self.pre_type}-{self.post_type}.txt")
-        self.volt_file_alt_mask = os.path.join(os.path.dirname(network_file),
+        self.volt_file = os.path.join(self.network_path,
+                                      f"synapse-calibration-volt-{self.pre_type}-{self.post_type}.txt")
+        self.volt_file_alt_mask = os.path.join(self.network_path,
                                                f"synapse-calibration-volt-{self.pre_type}-*.txt")
-
-        self.neuron_name_remap = {"FSN": "FS"}
 
         self.snudda_sim = None   # Defined in run_sim
         self.snudda_load = None  # Defined in analyse
@@ -117,23 +128,27 @@ class SnuddaCalibrateSynapses:
 
     ############################################################################
 
-    def neuron_name(self, neuron_type):
+    def setup(self, n_dSPN=120, n_iSPN=120, n_FS=20, n_LTS=0, n_ChIN=0,
+              volume_type=None,
+              neuron_density=80500,
+              side_len=200e-6,
+              slice_depth=150e-6):
 
-        if neuron_type in self.neuron_name_remap:
-            return self.neuron_name_remap[neuron_type]
-        else:
-            return neuron_type
+        """ Setup network for pair pulse simulation. If volume_type is 'slice', then side_len and slice_depth are used.
+            If volume_type is 'cube' then side_len is used. If side_len is set to None then neuron_density is used.
 
-            ############################################################################
-
-    def setup(self, sim_name, exp_type, n_dSPN=120, n_iSPN=120, n_FS=20, n_LTS=0, n_ChIN=0):
+        """
 
         from snudda.init.init import SnuddaInit
 
-        config_name = os.path.join(sim_name, "network-config.json")
+        if volume_type is None:
+            volume_type = "slice"
+
+        config_name = os.path.join(self.network_path, "network-config.json")
         cnc = SnuddaInit(struct_def={}, config_file=config_name)
         cnc.define_striatum(num_dSPN=n_dSPN, num_iSPN=n_iSPN, num_FS=n_FS, num_LTS=n_LTS, num_ChIN=n_ChIN,
-                            volume_type="slice", side_len=200e-6, slice_depth=150e-6)
+                            volume_type=volume_type, side_len=side_len, slice_depth=slice_depth,
+                            neuron_density=neuron_density)
 
         dir_name = os.path.dirname(config_name)
 
@@ -142,10 +157,10 @@ class SnuddaCalibrateSynapses:
 
         cnc.write_json(config_name)
 
-        print(f"\n\nsnudda place {sim_name}")
-        print(f"snudda detect {sim_name}")
-        print(f"snudda prune {sim_name}")
-        print(f"python3 snudda/utils/cut.py {sim_name}/network-synapses.hdf5 abs(z)<100e-6")
+        print(f"\n\nsnudda place {self.network_path}")
+        print(f"snudda detect {self.network_path}")
+        print(f"snudda prune {self.network_path}")
+        print(f"python3 snudda/utils/cut.py {self.network_path}/network-synapses.hdf5 abs(z)<100e-6")
 
         print("\nThe last command will pop up a figure and enter debug mode,"
               " press ctrl+D in the terminal window after inspecting the plot to continue")
@@ -153,12 +168,12 @@ class SnuddaCalibrateSynapses:
         print("\n!!! Remember to compile the mod files: nrnivmodl data/neurons/mechanisms")
 
         print("\nTo run for example dSPN -> iSPN (and dSPN->dSPN) calibration:")
-        print(f"mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py "
-              f"run {exp_type} {sim_name}/network-cut-slice.hdf5 dSPN iSPN")
+        print(f"mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_network_pair_pulse_simulation.py "
+              f"run {self.exp_type} {self.network_path}/network-cut-slice.hdf5 dSPN iSPN")
 
-        print(f"\npython3 snudda/utils/calibrate_synapses.py analyse {exp_type} "
-              f"{sim_name}/network-cut-slice.hdf5 --pre dSPN --post iSPN"
-              f"\npython3 snudda_calibrate_synapses.py analyse {sim_name}/network-cut-slice.hdf5 "
+        print(f"\npython3 snudda/simulate/network_pair_pulse_simulation.py analyse {self.exp_type} "
+              f"{self.network_path}/network-cut-slice.hdf5 --pre dSPN --post iSPN"
+              f"\npython3 snudda_network_pair_pulse_simulation.py analyse {self.network_path}/network-cut-slice.hdf5 "
               f"--pre iSPN --post dSPN")
 
     ############################################################################
@@ -218,7 +233,7 @@ class SnuddaCalibrateSynapses:
 
     ############################################################################
 
-    def run_sim(self, gaba_rev):
+    def run_sim(self, gaba_rev, pre_id=None):
 
         self.snudda_sim = SnuddaSimulate(network_file=self.network_file,
                                          input_file=None,
@@ -228,7 +243,11 @@ class SnuddaCalibrateSynapses:
         self.snudda_sim.setup()
 
         # A current pulse to all pre synaptic neurons, one at a time
-        self.pre_id = [x["neuronID"] for x in self.snudda_sim.network_info["neurons"] if x["type"] == self.pre_type]
+        if pre_id:
+            print(f"Using user defined pre_id: {pre_id}")
+            self.pre_id = pre_id
+        else:
+            self.pre_id = [x["neuronID"] for x in self.snudda_sim.network_info["neurons"] if x["type"] == self.pre_type]
 
         # injInfo contains (preID,injStartTime)
         self.inj_info = list(zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id))))
@@ -303,7 +322,7 @@ class SnuddaCalibrateSynapses:
 
     # This extracts all the voltage deflections, to see how strong they are
 
-    def analyse(self, exp_type, max_dist=None, n_max_show=10):
+    def analyse(self, max_dist=None, n_max_show=10, pre_id=None, post_type=None):
 
         self.setup_exp_data()
 
@@ -319,9 +338,19 @@ class SnuddaCalibrateSynapses:
 
         # Generate current info structure
         # A current pulse to all pre synaptic neurons, one at a time
-        self.pre_id = [x["neuronID"] for x in self.data["neurons"] if x["type"] == self.pre_type]
+        if pre_id:
+            print(f"Using user provided pre_id = {pre_id}\n"
+                  f"This must match what was used for simulation! BE CAREFUL!")
+            self.pre_id = pre_id
+        else:
+            self.pre_id = [x["neuronID"] for x in self.data["neurons"] if x["type"] == self.pre_type]
 
-        self.possible_post_id = [x["neuronID"] for x in self.data["neurons"] if x["type"] == self.post_type]
+        if post_type is None:
+            post_type = self.post_type
+
+        assert post_type != "ALL", "You need to specify a neuron type as post_type, e.g. FS"
+
+        self.possible_post_id = [x["neuronID"] for x in self.data["neurons"] if x["type"] == post_type]
 
         # injInfo contains (preID,injStartTime)
         self.inj_info = zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id)))
@@ -358,11 +387,11 @@ class SnuddaCalibrateSynapses:
         # Fig names:
         trace_fig = os.path.join(os.path.dirname(self.network_file),
                                  "figures",
-                                 f"{exp_type}-synapse-calibration-volt-traces-{self.pre_type}-{self.post_type}.pdf")
+                                 f"{self.exp_type}-synapse-calibration-volt-traces-{self.pre_type}-{post_type}.pdf")
 
         hist_fig = os.path.join(os.path.dirname(self.network_file),
                                 "figures",
-                                f"{exp_type}-synapse-calibration-volt-histogram-{self.pre_type}-{self.post_type}.pdf")
+                                f"{self.exp_type}-synapse-calibration-volt-histogram-{self.pre_type}-{post_type}.pdf")
 
         fig_dir = os.path.join(os.path.dirname(self.network_file), "figures")
 
@@ -404,8 +433,8 @@ class SnuddaCalibrateSynapses:
 
         plt.scatter(t_max * 1e3, amp * 1e3, color="blue", marker=".", s=100)
 
-        if (exp_type, self.pre_type, self.post_type) in self.exp_data:
-            exp_mean, exp_std = self.exp_data[(exp_type, self.pre_type, self.post_type)]
+        if (self.exp_type, self.pre_type, post_type) in self.exp_data:
+            exp_mean, exp_std = self.exp_data[(self.exp_type, self.pre_type, post_type)]
 
             t_end = (t[-1] - t[0]) * 1e3
 
@@ -425,7 +454,7 @@ class SnuddaCalibrateSynapses:
         plt.xlabel("Time (ms)")
         plt.ylabel("Voltage (mV)")
         # plt.title(str(len(synapseData)) + " traces")
-        plt.title(f"{self.neuron_name(self.pre_type)} to {self.neuron_name(self.post_type)}")
+        plt.title(f"{self.pre_type} to {post_type}")
 
         # Remove part of the frame
         plt.gca().spines["right"].set_visible(False)
@@ -438,7 +467,7 @@ class SnuddaCalibrateSynapses:
 
         plt.figure()
         plt.hist(amp * 1e3, bins=20)
-        plt.title(f"{self.neuron_name(self.pre_type)} to {self.neuron_name(self.post_type)}")
+        plt.title(f"{self.pre_type} to {post_type}")
         plt.xlabel("Voltage deflection (mV)")
 
         # Remove part of the frame
@@ -449,8 +478,7 @@ class SnuddaCalibrateSynapses:
         plt.show()
         plt.savefig(hist_fig, dpi=300)
 
-        import pdb
-        pdb.set_trace()
+        plt.pause(10)
 
     ############################################################################
 
@@ -469,8 +497,8 @@ class SnuddaCalibrateSynapses:
         self.exp_data[("Planert2010", "dSPN", "iSPN")] = planert_d1_d2
         self.exp_data[("Planert2010", "iSPN", "dSPN")] = planert_d2_d1
         self.exp_data[("Planert2010", "iSPN", "iSPN")] = planert_d2_d2
-        self.exp_data[("Planert2010", "FSN", "dSPN")] = planert_fs_d1
-        self.exp_data[("Planert2010", "FSN", "iSPN")] = planert_fs_d2
+        self.exp_data[("Planert2010", "FS", "dSPN")] = planert_fs_d1
+        self.exp_data[("Planert2010", "FS", "iSPN")] = planert_fs_d2
 
     ############################################################################
 
@@ -522,23 +550,23 @@ if __name__ == "__main__":
         GABA_rev = -39e-3
 
     else:
-        print("Unknown expType = " + str(args.expType))
+        print(f"Unknown expType = {args.expType}")
         sys.exit(-1)
 
-    scs = SnuddaCalibrateSynapses(network_file=args.networkFile,
-                                  pre_type=args.preType,
-                                  post_type=args.postType,
-                                  max_dist=max_dist,
-                                  hold_v=hold_v)
+    pps = SnuddaNetworkPairPulseSimulation(network_path=args.networkFile,
+                                           exp_type=args.expType,
+                                           pre_type=args.preType,
+                                           post_type=args.postType,
+                                           max_dist=max_dist,
+                                           hold_voltage=hold_v)
 
     if args.task == "setup":
-        scs.setup(args.networkFile,
-                  exp_type=args.expType,
+        pps.setup(args.networkFile,
                   n_dSPN=n_dSPN, n_iSPN=n_iSPN,
                   n_FS=n_FS, n_LTS=n_LTS, n_ChIN=n_ChIN)
 
     elif args.task == "run":
-        scs.run_sim(gaba_rev=GABA_rev)
+        pps.run_sim(gaba_rev=GABA_rev)
 
     elif args.task == "analyse":
-        scs.analyse(args.expType)
+        pps.analyse()

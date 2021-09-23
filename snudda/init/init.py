@@ -398,7 +398,7 @@ class SnuddaInit(object):
 
         print("Adding neurons: " + str(name) + " from dir " + str(neuron_dir))
         # TODO: We should force users to use same name as the directory name
-        # ie, fs/FSN_0 directory should be named FSN_0
+        # ie, fs/FS_0 directory should be named FS_0
 
         # Find which neurons are available in neuronDir
         dir_list = glob.glob(snudda_parse_path(neuron_dir) + "/*")
@@ -814,7 +814,7 @@ class SnuddaInit(object):
 
             self.add_neuron_density(volume_id="Striatum", neuron_type="dSPN", density_file=density_file)
             self.add_neuron_density(volume_id="Striatum", neuron_type="iSPN", density_file=density_file)
-            self.add_neuron_density(volume_id="Striatum", neuron_type="FSN", density_file=density_file)
+            self.add_neuron_density(volume_id="Striatum", neuron_type="FS", density_file=density_file)
             self.add_neuron_density(volume_id="Striatum", neuron_type="LTS", density_file=density_file)
             self.add_neuron_density(volume_id="Striatum", neuron_type="ChIN", density_file=density_file)
 
@@ -858,7 +858,7 @@ class SnuddaInit(object):
 
             self.add_neuron_density(volume_id="Striatum", neuron_type="dSPN", density_file=density_file)
             self.add_neuron_density(volume_id="Striatum", neuron_type="iSPN", density_file=density_file)
-            self.add_neuron_density(volume_id="Striatum", neuron_type="FSN", density_file=density_file)
+            self.add_neuron_density(volume_id="Striatum", neuron_type="FS", density_file=density_file)
             self.add_neuron_density(volume_id="Striatum", neuron_type="LTS", density_file=density_file)
             self.add_neuron_density(volume_id="Striatum", neuron_type="ChIN", density_file=density_file)
 
@@ -886,7 +886,7 @@ class SnuddaInit(object):
 
         # Add the neurons
 
-        self.add_neurons(name="FSN", neuron_dir=FS_dir,
+        self.add_neurons(name="FS", neuron_dir=FS_dir,
                          num_neurons=self.num_FS,
                          volume_id="Striatum")
 
@@ -985,8 +985,8 @@ class SnuddaInit(object):
         pfFSiSPN = os.path.join("$SNUDDA_DATA", "synapses", "striatum", "PlanertFitting-FI-tmgaba-fit.json")
 
         # Increased from a3=0.1 to a3=0.7 to match FS-FS connectivity from Gittis
-        self.add_neuron_target(neuron_name="FSN",
-                               target_name="FSN",
+        self.add_neuron_target(neuron_name="FS",
+                               target_name="FS",
                                connection_type="GABA",
                                dist_pruning=None,
                                f1=0.15, soft_max=5, mu2=2, a3=1,
@@ -998,7 +998,7 @@ class SnuddaInit(object):
         # !!! Double check that channelParamDictionary works, and SI units gets
         # converted to natural units
 
-        self.add_neuron_target(neuron_name="FSN",
+        self.add_neuron_target(neuron_name="FS",
                                target_name="dSPN",
                                connection_type="GABA",
                                dist_pruning=FS_dist_dep_pruning,
@@ -1009,7 +1009,7 @@ class SnuddaInit(object):
                                channel_param_dictionary={"tau1": (1.2e-3, 1e3),
                                                          "tau2": (8e-3, 1e3)})
 
-        self.add_neuron_target(neuron_name="FSN",
+        self.add_neuron_target(neuron_name="FS",
                                target_name="iSPN",
                                connection_type="GABA",
                                dist_pruning=FS_dist_dep_pruning,
@@ -1020,7 +1020,7 @@ class SnuddaInit(object):
                                channel_param_dictionary={"tau1": (1.2e-3, 1e3),
                                                          "tau2": (8e-3, 1e3)})
 
-        self.add_neuron_target(neuron_name="FSN",
+        self.add_neuron_target(neuron_name="FS",
                                target_name="LTS",
                                connection_type="GABA",
                                dist_pruning=None,
@@ -1032,8 +1032,8 @@ class SnuddaInit(object):
 
         # FS-FS gap junction, currently without pruning
         if True:
-            self.add_neuron_target(neuron_name="FSN",
-                                   target_name="FSN",
+            self.add_neuron_target(neuron_name="FS",
+                                   target_name="FS",
                                    connection_type="GapJunction",
                                    dist_pruning=None,
                                    f1=0.7, soft_max=8, mu2=2, a3=1.0,
@@ -1484,7 +1484,7 @@ class SnuddaInit(object):
                                channel_param_dictionary=None)
 
         self.add_neuron_target(neuron_name="CortexAxon",
-                               target_name="FSN",
+                               target_name="FS",
                                connection_type="AMPA_NMDA",
                                dist_pruning=None,
                                f1=1.0, soft_max=3, mu2=2.4, a3=None,
@@ -1557,7 +1557,7 @@ class SnuddaInit(object):
 
         # Picked D1 parameters, lack
         self.add_neuron_target(neuron_name="ThalamusAxon",
-                               target_name="FSN",
+                               target_name="FS",
                                connection_type="AMPA_NMDA",
                                dist_pruning=None,
                                f1=1.0, soft_max=3, mu2=2.4, a3=None,

@@ -76,7 +76,7 @@
     },
 
     
-    "FSN": {
+    "FS": {
 	"Cortical" : {
 	    "generator" : "poisson",	    
 	    "type" : "AMPA_NMDA",
@@ -112,10 +112,10 @@
 	    "modFile":"tmGlut",
 	    "parameterFile":"$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-FS.json",
 	    "nInputs" : {
-		"FSN_0" : 600,
-		"FSN_1" : 1000,
-		"FSN_2" : 1300,
-		"FSN_3" : 800
+		"FS_0" : 600,
+		"FS_1" : 1000,
+		"FS_2" : 1300,
+		"FS_3" : 800
 	    }
 	}
 
