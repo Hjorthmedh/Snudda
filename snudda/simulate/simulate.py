@@ -196,6 +196,8 @@ class SnuddaSimulate(object):
 
         self.check_memory_status()
         self.distribute_neurons()
+        self.pc.barrier()
+
         self.setup_neurons()
         self.check_memory_status()
         self.pc.barrier()
