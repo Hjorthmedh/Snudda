@@ -177,6 +177,7 @@ class PlotNetwork(object):
         ax.set_ylim(y_mean-max_half_width, y_mean+max_half_width)
         ax.set_zlim(z_mean-max_half_width, z_mean+max_half_width)
 
+
 if __name__ == "__main__":
 
     from argparse import ArgumentParser
@@ -185,4 +186,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     pn = PlotNetwork(args.networkFile)
-    pn.plot()
+    pn.plot(fig_name="network-plot.png")

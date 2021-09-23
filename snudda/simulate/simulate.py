@@ -30,7 +30,6 @@ from snudda.neurons.neuron_model_extended import NeuronModel
 import numpy as np
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
 
-from glob import glob
 import re
 import os
 
@@ -81,15 +80,21 @@ class SnuddaSimulate(object):
         elif network_file:
             self.network_path = os.path.dirname(network_file)
         else:
-            self.network_path = ""
+            assert False, "You must give network_path or network_file"
 
         if not network_file:
-            self.network_file = os.path.join(network_path, "network-synapses.hdf5")
+            self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         else:
             self.network_file = network_file
 
         if not input_file:
-            self.input_file = os.path.join(network_path, "input-spikes.hdf5")
+            default_input_file = os.path.join(self.network_path, "input-spikes.hdf5")
+
+            if os.path.exists(default_input_file):
+                self.input_file = default_input_file
+            else:
+                print("Warning: No synaptic input file given!")
+                self.input_file = None
         else:
             self.input_file = input_file
 
@@ -177,8 +182,7 @@ class SnuddaSimulate(object):
                             "tauF": 1e3,
                             "tau": 1e3}
 
-
-        # self.writeLog("I am node " + str(int(self.pc.id())))
+        # self.writeLog(f"I am node {int(self.pc.id())}")
 
         # We need to initialise random streams, see Lytton el at 2016 (p2072)
 
@@ -964,6 +968,10 @@ class SnuddaSimulate(object):
         """ Adds external input from input_file to network. """
 
         if input_file is None:
+            if self.input_file is None:
+                print("No input file given, not adding external input!")
+                return
+
             input_file = self.input_file
 
         self.write_log(f"Adding external (cortical, thalamic) input from {input_file}")
