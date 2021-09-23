@@ -13,7 +13,7 @@
 #
 # * Generate network 
 #
-#  python3 snudda/utils/calibrate_synapses.py setup Planert2010 networks/Planert2010-v1
+#  python3 snudda/utils/network_pair_pulse_simulation.py setup Planert2010 networks/Planert2010-v1
 #  snudda place networks/Planert2010-v1
 #  snudda detect networks/Planert2010-v1
 #  snudda prune networks/Planert2010-v1
@@ -36,12 +36,12 @@
 #
 # * Run dSPN -> iSPN calibration (you get dSPN -> dSPN data for free then)
 #
-#  mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda/utils/calibrate_synapses.py run Planert2010 networks/Planert2010-v1/network-cut-slice.hdf5 --pre dSPN --post iSPN
+#  mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda/utils/network_pair_pulse_simulation.py run Planert2010 networks/Planert2010-v1/network-cut-slice.hdf5 --pre dSPN --post iSPN
 #
 # *  Analyse
 #
-#  python3 snudda/utils/calibrate_synapses.py analyse networks/Planert2010-v1/network-cut-slice.hdf5 dSPN iSPN
-#  python3 snudda/utils/calibrate_synapses.py analyse Planert2010 networks/Planert2010-v1/network-cut-slice.hdf5 --pre dSPN --post dSPN
+#  python3 snudda/utils/network_pair_pulse_simulation.py analyse networks/Planert2010-v1/network-cut-slice.hdf5 dSPN iSPN
+#  python3 snudda/utils/network_pair_pulse_simulation.py analyse Planert2010 networks/Planert2010-v1/network-cut-slice.hdf5 --pre dSPN --post dSPN
 #
 # * Look at plot with traces overlayed and histogram of voltage amplitudes
 # (When you do preType to postType, you also get preType to preType for free
@@ -126,14 +126,16 @@ class SnuddaCalibrateSynapses:
 
             ############################################################################
 
-    def setup(self, sim_name, exp_type, n_dSPN=120, n_iSPN=120, n_FS=20, n_LTS=0, n_ChIN=0):
+    def setup(self, sim_name, exp_type,
+              n_dSPN=120, n_iSPN=120, n_FS=20, n_LTS=0, n_ChIN=0,
+              neuron_density=80500):
 
         from snudda.init.init import SnuddaInit
 
         config_name = os.path.join(sim_name, "network-config.json")
         cnc = SnuddaInit(struct_def={}, config_file=config_name)
         cnc.define_striatum(num_dSPN=n_dSPN, num_iSPN=n_iSPN, num_FS=n_FS, num_LTS=n_LTS, num_ChIN=n_ChIN,
-                            volume_type="slice", side_len=200e-6, slice_depth=150e-6)
+                            volume_type="slice", side_len=200e-6, slice_depth=150e-6, neuron_density=neuron_density)
 
         dir_name = os.path.dirname(config_name)
 
@@ -153,12 +155,12 @@ class SnuddaCalibrateSynapses:
         print("\n!!! Remember to compile the mod files: nrnivmodl data/neurons/mechanisms")
 
         print("\nTo run for example dSPN -> iSPN (and dSPN->dSPN) calibration:")
-        print(f"mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py "
+        print(f"mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_network_pair_pulse_simulation.py "
               f"run {exp_type} {sim_name}/network-cut-slice.hdf5 dSPN iSPN")
 
-        print(f"\npython3 snudda/utils/calibrate_synapses.py analyse {exp_type} "
+        print(f"\npython3 snudda/utils/network_pair_pulse_simulation.py analyse {exp_type} "
               f"{sim_name}/network-cut-slice.hdf5 --pre dSPN --post iSPN"
-              f"\npython3 snudda_calibrate_synapses.py analyse {sim_name}/network-cut-slice.hdf5 "
+              f"\npython3 snudda_network_pair_pulse_simulation.py analyse {sim_name}/network-cut-slice.hdf5 "
               f"--pre iSPN --post dSPN")
 
     ############################################################################
