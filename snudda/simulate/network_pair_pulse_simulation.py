@@ -78,7 +78,7 @@ class SnuddaNetworkPairPulseSimulation:
     #       to allow different holding voltages
 
     def __init__(self, network_path,
-                 pre_type, post_type,
+                 pre_type, post_type=None,
                  exp_type=None,
                  current_injection=10e-9,
                  hold_voltage=-80e-3,
@@ -95,7 +95,12 @@ class SnuddaNetworkPairPulseSimulation:
         self.exp_type = exp_type
 
         self.pre_type = pre_type
-        self.post_type = post_type
+
+        if post_type:
+            self.post_type = post_type
+        else:
+            self.post_type = "ALL"
+
         self.cur_inj = current_injection
         self.hold_v = hold_voltage
         self.log_file = log_file
@@ -317,7 +322,7 @@ class SnuddaNetworkPairPulseSimulation:
 
     # This extracts all the voltage deflections, to see how strong they are
 
-    def analyse(self, max_dist=None, n_max_show=10, pre_id=None):
+    def analyse(self, max_dist=None, n_max_show=10, pre_id=None, post_type=None):
 
         self.setup_exp_data()
 
@@ -340,7 +345,12 @@ class SnuddaNetworkPairPulseSimulation:
         else:
             self.pre_id = [x["neuronID"] for x in self.data["neurons"] if x["type"] == self.pre_type]
 
-        self.possible_post_id = [x["neuronID"] for x in self.data["neurons"] if x["type"] == self.post_type]
+        if post_type is None:
+            post_type = self.post_type
+
+        assert post_type != "ALL", "You need to specify a neuron type as post_type, e.g. FS"
+
+        self.possible_post_id = [x["neuronID"] for x in self.data["neurons"] if x["type"] == post_type]
 
         # injInfo contains (preID,injStartTime)
         self.inj_info = zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id)))
@@ -377,11 +387,11 @@ class SnuddaNetworkPairPulseSimulation:
         # Fig names:
         trace_fig = os.path.join(os.path.dirname(self.network_file),
                                  "figures",
-                                 f"{self.exp_type}-synapse-calibration-volt-traces-{self.pre_type}-{self.post_type}.pdf")
+                                 f"{self.exp_type}-synapse-calibration-volt-traces-{self.pre_type}-{post_type}.pdf")
 
         hist_fig = os.path.join(os.path.dirname(self.network_file),
                                 "figures",
-                                f"{self.exp_type}-synapse-calibration-volt-histogram-{self.pre_type}-{self.post_type}.pdf")
+                                f"{self.exp_type}-synapse-calibration-volt-histogram-{self.pre_type}-{post_type}.pdf")
 
         fig_dir = os.path.join(os.path.dirname(self.network_file), "figures")
 
@@ -423,8 +433,8 @@ class SnuddaNetworkPairPulseSimulation:
 
         plt.scatter(t_max * 1e3, amp * 1e3, color="blue", marker=".", s=100)
 
-        if (self.exp_type, self.pre_type, self.post_type) in self.exp_data:
-            exp_mean, exp_std = self.exp_data[(self.exp_type, self.pre_type, self.post_type)]
+        if (self.exp_type, self.pre_type, post_type) in self.exp_data:
+            exp_mean, exp_std = self.exp_data[(self.exp_type, self.pre_type, post_type)]
 
             t_end = (t[-1] - t[0]) * 1e3
 
@@ -444,7 +454,7 @@ class SnuddaNetworkPairPulseSimulation:
         plt.xlabel("Time (ms)")
         plt.ylabel("Voltage (mV)")
         # plt.title(str(len(synapseData)) + " traces")
-        plt.title(f"{self.pre_type} to {self.post_type}")
+        plt.title(f"{self.pre_type} to {post_type}")
 
         # Remove part of the frame
         plt.gca().spines["right"].set_visible(False)
@@ -457,7 +467,7 @@ class SnuddaNetworkPairPulseSimulation:
 
         plt.figure()
         plt.hist(amp * 1e3, bins=20)
-        plt.title(f"{self.pre_type} to {self.post_type}")
+        plt.title(f"{self.pre_type} to {post_type}")
         plt.xlabel("Voltage deflection (mV)")
 
         # Remove part of the frame
@@ -468,8 +478,7 @@ class SnuddaNetworkPairPulseSimulation:
         plt.show()
         plt.savefig(hist_fig, dpi=300)
 
-        import pdb
-        pdb.set_trace()
+        plt.pause(10)
 
     ############################################################################
 
