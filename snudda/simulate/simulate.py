@@ -114,6 +114,8 @@ class SnuddaSimulate(object):
         self.fih_time = None
         self.last_sim_report_time = 0
 
+        self.pc = h.ParallelContext()
+
         if simulation_config:
             sim_info = json.load(simulation_config)
 
@@ -127,6 +129,7 @@ class SnuddaSimulate(object):
                 self.log_file = open(sim_info["logFile"], "w")
 
         if type(self.log_file) == str:
+            self.log_file += f'-{int(self.pc.id())}'
             self.log_file = open(self.log_file, "w")
 
         self.write_log(f"Using networkFile: {self.network_file}")
@@ -176,7 +179,6 @@ class SnuddaSimulate(object):
         # cant write file
         self.create_dir(os.path.join("save", "traces"))
 
-        self.pc = h.ParallelContext()
 
         self.conv_factor = {"tauR": 1e3,
                             "tauF": 1e3,
@@ -194,6 +196,8 @@ class SnuddaSimulate(object):
 
         self.check_memory_status()
         self.distribute_neurons()
+        self.pc.barrier()
+
         self.setup_neurons()
         self.check_memory_status()
         self.pc.barrier()
@@ -847,13 +851,11 @@ class SnuddaSimulate(object):
                         # If no list, we need to handle SI to natural units conversion automatically
                         val_orig = val
                         val = self.convert_to_natural_units(par, val)
-
-                    # Temp sanity check for synapse time constant
-                    if par in ["tau", "tauR"]:
-                        assert 0.01 <= val < 10000, \
-                            (f"Cell {self.neurons[cell_id_source].name} converting {par}={val_orig} to {val}, "
-                             f"expected >= 0.01 and < 10000.")
-
+			
+                    if par in ["tau", "tauR"] and ((0.01 > val) or (val >= 10000)):
+                        self.write_log(" !!! Warning: Converted from {} to {} but expected "\
+                                        "a value within [0.01, 10000) for neuron id {}. "\
+                                            .format(val_orig, val, cell_id_source))
                     setattr(syn, par, val)
 
                 except:
