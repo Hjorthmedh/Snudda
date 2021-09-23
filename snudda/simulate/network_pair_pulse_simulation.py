@@ -108,7 +108,9 @@ class SnuddaNetworkPairPulseSimulation:
             self.log_file = log_file
         else:
             self.log_file = os.path.join(network_path, "log", "pair-pulse.log")
-            
+
+        print(f"Using log file {self.log_file}")
+
         self.max_dist = max_dist
 
         print(f"Checking depolarisation/hyperpolarisation of {pre_type} to {post_type} synapses")
