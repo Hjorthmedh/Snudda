@@ -750,7 +750,7 @@ class SnuddaLoad(object):
         Find all neuron ID of a specific neuron type.
 
         Args:
-            neuron_type (string) : Neuron type (e.g. "FSN")
+            neuron_type (string) : Neuron type (e.g. "FS")
             num_neurons (int) : Maximum number of neurons to return
             random_permute (bool) : Shuffle the resulting neuron IDs?
 
@@ -899,4 +899,4 @@ if __name__ == "__main__":
 
     # syn2 = nl.findSynapses(postID=5)
 
-    # cellID = nl.getCellIDofType(neuronType="FSN")
+    # cellID = nl.getCellIDofType(neuronType="FS")
