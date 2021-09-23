@@ -114,6 +114,8 @@ class SnuddaSimulate(object):
         self.fih_time = None
         self.last_sim_report_time = 0
 
+        self.pc = h.ParallelContext()
+
         if simulation_config:
             sim_info = json.load(simulation_config)
 
@@ -127,6 +129,7 @@ class SnuddaSimulate(object):
                 self.log_file = open(sim_info["logFile"], "w")
 
         if type(self.log_file) == str:
+            self.log_file += f'-{int(self.pc.id())}'
             self.log_file = open(self.log_file, "w")
 
         self.write_log(f"Using networkFile: {self.network_file}")
@@ -176,7 +179,6 @@ class SnuddaSimulate(object):
         # cant write file
         self.create_dir(os.path.join("save", "traces"))
 
-        self.pc = h.ParallelContext()
 
         self.conv_factor = {"tauR": 1e3,
                             "tauF": 1e3,
