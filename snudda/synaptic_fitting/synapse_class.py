@@ -42,8 +42,6 @@ class SynapseClass:
         self.stim_times = stim_times
         self.synapse_density = synapse_density
         self.num_synapses = num_synapses
-        self.synapse_section_id = synapse_section_id
-        self.synapse_section_x = synapse_section_x
 
         self.neuron_parameter_id = neuron_parameter_id
         self.neuron_modulation_id = neuron_modulation_id
@@ -58,24 +56,25 @@ class SynapseClass:
         self.rng = np.random.default_rng(random_seed)
         self.params = params
         self.default_cond = 5e-7
+        self.size_of_noise = 0.1
 
         self.write_log("Holding voltage: " + str(holding_voltage) + " V")
         self.write_log("Stim times: " + str(stim_times) + " s")
         self.write_log("Synapse type: " + str(synapse_type))
 
         self.time = time
-        self.synapses = []
+        self.internal_synapses = []
+        self.external_synapses = []
+        self.vec_list = list()
         self.i_clamp = None
-        self.nc_syn = None
 
         self.i_save = None
         self.t_save = None
         self.v_save = None
+        self.nc_syn =list()
 
         self.stim_vector = None
         self.vec_stim = None
-        self.synapse_section_id = None
-        self.synapse_section_x = None
         self.synapse_locations = list()
 
         # Done in NrnSimulatorParallel
@@ -113,15 +112,22 @@ class SynapseClass:
                                   morphology_id=0,
                                   parameter_id=self.neuron_parameter_id,
                                   modulation_id=self.neuron_modulation_id)
+    def return_external_synapses(self):
 
-    def old_setup(self):
+        return self.external_synapses
+
+    def return_internal_synapses(self):
+
+        return self.internal_synapses
+
+    def old_setup(self, synapse_section_id, synapse_section_x):
 
         self.instantiate()
 
         self.set_rest_voltage(self.holding_voltage)
 
-        self.add_synapse_distributions(self.synapse_type,self.synapse_density,self.num_synapses,self.synapse_section_id,
-                                       self.synapse_section_x)
+        self.add_synapse_distributions(self.synapse_type,self.synapse_density,self.num_synapses,synapse_section_id,
+                                       synapse_section_x)
 
         self.add_stim_times_to_synapse_distributions(self.stim_times)
 
@@ -144,18 +150,23 @@ class SynapseClass:
 
     def add_synapse_distributions(self,synapse_type,synapse_density=None,num_synapses=None,synapse_section_id=None,synapse_section_x=None):
 
-        self.synapse_positions = self.add_synapse_density(synapse_type=synapse_type,
+        _, _,synapses, synapse_positions = self.add_synapse_density(synapse_type=synapse_type,
                                                           synapse_density=synapse_density,
                                                           num_synapses=num_synapses,
                                                           section_id=synapse_section_id,
                                                           section_x=synapse_section_x)
+        self.internal_synapses = synapses
 
-    def add_stim_times_to_synapse_distributions(self, stim_times):
+        return synapse_positions
 
-        self.stim_times = np.array(stim_times)
+    def add_stim_times_to_synapse_distributions(self, stim_times,synapses,weight):
+
+        stim_times = np.array(stim_times)
 
         # Assumes input in seconds (SI units)
-        self.connect_input_to_synapses(self.stim_times)
+        with_noise = self.connect_input_to_synapses(stim_times,synapses,weight)
+
+        return with_noise
 
     def record_voltage(self):
 
@@ -276,54 +287,30 @@ class SynapseClass:
     def add_synapse_density(self, synapse_type,
                             synapse_density=None,
                             num_synapses=None,
-                            plot_flag=False,
                             section_id=None,
                             section_x=None):
 
-        if plot_flag:
+        synapse_locations = list()
 
-            assert section_id is None and section_x is None, \
-                "Can not plot if sectionID and sectionX are given"
-
-            input_coords, section_id, section_x, density_function, dist_syn_soma = \
-                self.morphology.dendrite_input_locations(synapse_density=synapse_density,
-                                                         num_locations=num_synapses,
-                                                         return_density=True)
-
-            self.synapse_locations = input_coords
-            dist_from_soma = self.morphology.dend[:, 4]
-
-            # plot density function
-            plt.figure()
-            plt.plot(dist_from_soma * 1e6, density_function, 'o')
-            plt.xlabel('distance from soma $(\mu m)$')
-            plt.title('density function')
-            plt.ion()
-            plt.show()
-
-            # plot histogram - distance synapses from soma
-            plt.figure()
-            plt.hist(dist_syn_soma * 1e6, edgecolor='gray', bins=dist_syn_soma.size)
-            plt.xlabel('distance from soma $(\mu m)$')
-            plt.ylabel('frequency')
-            plt.title('synaptic distance from soma')
-            plt.ion()
-            plt.show()
-
-        elif section_id is None or section_x is None:
+        if section_id is None or section_x is None:
 
             input_coords, section_id, section_x, dist_syn_soma = \
                 self.morphology.dendrite_input_locations(synapse_density=synapse_density,
                                                          num_locations=num_synapses,
                                                          rng=self.rng)
 
-            self.synapse_locations = list(input_coords)
+            synapse_locations = list(input_coords)
 
+        '''
+        Do we need to save it???
         # This is so we can find out where the synapses were placed
-        self.synapse_section_id = section_id
+        self.section_id.append(section_id)
         self.synapse_section_x = section_x
+        '''
 
         sections = self.neuron.map_id_to_compartment(section_id)
+
+        synapses = list()
 
         for s, sx in zip(sections, section_x):
 
@@ -333,15 +320,18 @@ class SynapseClass:
 
             input_coords = np.array([s.x3d(number_along),s.y3d(number_along),s.z3d(number_along)])
 
-            self.add_synapse(synapse_type, s, sx, self.params)
-            self.synapse_locations.append(np.array(input_coords)*1e-6)
+            syn = self.add_synapse(synapse_type, s, sx)
+            synapse_locations.append(np.array(input_coords)*1e-6)
+
+            synapses.append(syn)
 
         # Return synapse position if we want to reuse them elsewhere
-        return sections, section_x
+
+        return sections, section_x, synapses, synapse_locations
 
     ############################################################################
 
-    def add_synapse(self, synapse_type, section, section_x, params):
+    def add_synapse(self, synapse_type, section, section_x):
 
         section_x = np.maximum(section_x, 1e-6)  # Cant be 0 or 1
 
@@ -355,8 +345,6 @@ class SynapseClass:
             else:
                 assert False, f"Unknown synapse type: {synapse_type}"
 
-            self.synapses.append(syn)
-
         except:
             import traceback
             tstr = traceback.format_exc()
@@ -365,34 +353,42 @@ class SynapseClass:
             self.write_log("Did you remember to run nrnivmodl first, to generate channels mod files?")
             sys.exit(-1)
 
-        for p in params:
+        return syn
 
-            # Conductance is set separately, it is a property of netcon
-            if p == "cond":
-                self.default_cond = params["cond"]
-                continue
-
-            val = self.si_to_natural_units(p, params[p])
-
-            setattr(syn, p, val)
-            self.write_log(f"Setting parameters: {p} = {val} (neuron natural units)")
 
     ############################################################################
 
-    def connect_input_to_synapses(self, stim_times):
+    def set_size_of_noise(self,size):
 
-        self.write_log(f"Stimulation times (s): {stim_times}")
-        self.nc_syn = []
+        self.size_of_noise = size
+    def connect_input_to_synapses(self, stim_times,synapses,weight):
 
-        self.stim_vector = neuron.h.Vector(stim_times * 1e3)
-        self.vec_stim = neuron.h.VecStim()
-        self.vec_stim.play(self.stim_vector)
+        self.write_log(f"Stimulation times Original (s): {stim_times}")
 
-        for syn in self.synapses:
-            ncs = neuron.h.NetCon(self.vec_stim, syn)
+        print(f"Size of noise is {self.size_of_noise}")
+        stim_times_with_noise = list()
+        for syn in synapses:
+            noise = np.random.normal(1, self.size_of_noise, stim_times.shape) * 1e2
+
+            stim_times_n = stim_times * 1e3 + noise.astype(int)
+            stim_times_n = stim_times_n.astype(int)
+            stim_times_with_noise.append(stim_times_n)
+
+            if not(all(i >= 0 for i in stim_times_n)):
+                print(stim_times_n)
+                raise ValueError('Change size of noise or move start times - '
+                                 'some values are negative')
+            stim_vector = neuron.h.Vector(list(stim_times_n))
+            vec_stim = neuron.h.VecStim()
+            vec_stim.play(stim_vector)
+            ncs = neuron.h.NetCon(vec_stim, syn)
             ncs.delay = 0
             ncs.threshold = 0
+            ncs.weight[0] = weight
             self.nc_syn.append(ncs)
+            self.vec_list.append([stim_vector,vec_stim])
+
+        return stim_times_with_noise
 
     ############################################################################
 
@@ -406,69 +402,15 @@ class SynapseClass:
 
     ############################################################################
 
-    def synapse_current_record(self):
+    def synapse_current_record(self,synapses):
 
         self.i_save = []
 
-        for syn in self.synapses:
+        for syn in synapses:
             i_rec = neuron.h.Vector()
             i_rec.record(syn._ref_i)
             self.i_save.append(i_rec)
 
-    ############################################################################
-
-    def run(self, tau, tau_r, tau_f, u, cond=None, time=None):
-
-        assert False, "This is the old run method"
-
-        if time is None:
-            time = self.time
-        else:
-            self.time = time
-
-        if cond is None:
-            cond = self.default_cond
-
-        # print(vars())
-
-        # print("Running: tau: %.3g, tauR: %.3g, tauF: %.3g, U: %.3g, cond: %.3g\n" \
-        #      % (tau,tauR,tauF,U,cond))
-
-        # Convert from SI units to natural units that Neuron uses
-        for ncs in self.nc_syn:
-            ncs.weight[0] = 1 * cond * 1e6
-
-        for syn in self.synapses:
-            syn.tau = tau * 1e3
-            syn.tau_r = tau_r * 1e3
-            syn.tau_f = tau_f * 1e3
-            syn.u = u
-
-        # print(self.littleSynapse.tau)
-
-        # print("Initialise voltage to " + str(self.holdingVoltage*1e3) + " mV")
-        neuron.h.finitialize(self.holding_voltage * 1e3)  # OLD : -70
-        neuron.h.tstop = time * 1e3
-
-        neuron.h.run()
-
-        # self.tSave.resize()
-        # self.vSave.resize()
-        # self.iSave.resize()
-
-        if np.array(self.t_save).shape != np.array(self.v_save).shape:
-            self.write_log("THIS IS WRONG, should be same shape!!")
-            self.write_log(f"size t = {np.array(self.t_save).shape}")
-            self.write_log(f"size v = {np.array(self.v_save).shape}")
-            import pdb
-            pdb.set_trace()
-
-        # print("Last V = " + str(self.vSave[-1]*1e-3))
-
-        # Convert back to SI units
-        return (np.array(self.t_save) * 1e-3,
-                np.array(self.v_save) * 1e-3,
-                np.array(self.i_save) * 1e-9)
 
     ############################################################################
 
@@ -535,62 +477,40 @@ class SynapseClass:
             pdb.set_trace()
 
     ############################################################################
-    def plot(self):
+    def plot_synapse_locations(self, synapse_locations,colour=None):
 
-        self.synapse_locations = np.array(self.synapse_locations)
-        ax = self.morphology.plot_neuron(axon_colour='red', dend_colour='blue', soma_colour='green')
+        synapse_locations = np.array(synapse_locations)
+        ax = self.morphology.plot_neuron(axon_colour='grey', dend_colour='blue', soma_colour='green')
 
-        ax.scatter(self.synapse_locations[:, 0],
-                   self.synapse_locations[:, 1],
-                   self.synapse_locations[:, 2],
-                   color='black',
+        ax.scatter(synapse_locations[:, 0],
+                   synapse_locations[:, 1],
+                   synapse_locations[:, 2],
+                   color=colour,
                    marker='o',
                    s=20)
-        plt.ion()
+        plt.show()
 
-        ############################################################################
+    def plot_interal_and_external_synapses(self,internal,external,colors=None):
 
-    # pars = { "tau1" : 0.25e-3 }
-    # The code converts to natural units internally, if your parameter is missing
-    # then update SItoNaturalUnits
+        internal = np.array(internal)
+        ax = self.morphology.plot_neuron(axon_colour='grey', dend_colour='blue', soma_colour='green')
 
-    # OBS, soma parameters are ignored by run2 (they should be set during setup)
+        ax.scatter(internal[:, 0],
+                   internal[:, 1],
+                   internal[:, 2],
+                   color=colors[0],
+                   marker='o',
+                   s=20)
 
-    def run2(self, pars, time=None, cond=1e-8):
+        external = np.array(external)
+        ax.scatter(external[:, 0],
+                   external[:, 1],
+                   external[:, 2],
+                   color=colors[1],
+                   marker='o',
+                   s=20)
 
-        self.write_log(f"Running with pars: {pars}")
-
-        if time is None:
-            time = self.time
-        else:
-            self.time = time
-
-        for p in pars:
-
-            if p == "cond":
-                cond = self.si_to_natural_units(p, pars[p])
-
-            else:
-                v = self.si_to_natural_units(p, pars[p])
-                for s in self.synapses:
-                    setattr(s, p, v)
-
-        neuron.h.finitialize(self.holding_voltage * 1e3)
-        for ncs in self.nc_syn:
-            ncs.weight[0] = cond
-
-        self.set_resting_voltage(self.holding_voltage * 1e3)
-
-        neuron.h.v_init = self.holding_voltage * 1e3
-        neuron.h.tstop = time * 1e3
-        self.write_log("About to start NEURON... stay safe")
-        neuron.h.run()
-        self.write_log("NEURON actually completed?!")
-
-        # Convert results back to SI units
-        return (np.array(self.t_save) * 1e-3,
-                np.array(self.v_save) * 1e-3,
-                np.array(self.i_save) * 1e-9)
+        plt.show()
 
     ############################################################################
 

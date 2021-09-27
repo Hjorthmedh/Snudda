@@ -28,7 +28,36 @@ class SingleCellNetwork(SynapseClass):
         self.vclamps = dict()
         self.current_record = dict()
 
-    def add_parameters(self,parameters):
+
+    def add_stim_times(self,stim_times,synapses,weight):
+
+        if len(stim_times)!=len(synapses):
+            raise Exception('Size should be the same')
+
+        for i, s in enumerate(synapses):
+
+            stim_vector = neuron.h.Vector(list(stim_times[i]))
+            vec_stim = neuron.h.VecStim()
+            vec_stim.play(stim_vector)
+            ncs = neuron.h.NetCon(vec_stim, s)
+            ncs.delay = 0
+            ncs.threshold = 0
+            ncs.weight[0] = weight
+            self.nc_syn.append(ncs)
+            self.vec_list.append([stim_vector, vec_stim])
+
+
+    def add_external_synapse_distributions(self,synapse_type,synapse_density=None,num_synapses=None,synapse_section_id=None,synapse_section_x=None):
+
+        _, _, synapses, synapse_positions = self.add_synapse_density(synapse_type=synapse_type,
+                                                          synapse_density=synapse_density,
+                                                          num_synapses=num_synapses,
+                                                          section_id=synapse_section_id,
+                                                          section_x=synapse_section_x)
+        self.external_synapses = synapses
+        return synapse_positions
+
+    def add_parameters_to_internal_synapses(self,parameters,synapses):
 
         for p in parameters:
 
@@ -37,8 +66,20 @@ class SingleCellNetwork(SynapseClass):
 
             else:
                 v = self.si_to_natural_units(p, parameters[p])
-                for s in self.synapses:
-                    setattr(s, p, v)
+                for i,s in enumerate(synapses):
+                    setattr(self.internal_synapses[i], p, v)
+
+    def add_parameters_to_external_synapses(self,parameters,synapses):
+
+        for p in parameters:
+
+            if p == "cond":
+                cond = self.si_to_natural_units(p, parameters[p])
+
+            else:
+                v = self.si_to_natural_units(p, parameters[p])
+                for i,s in enumerate(synapses):
+                    setattr(self.external_synapses[i], p, v)
 
     def run(self, time=None, cond=1e-8):
 
@@ -52,13 +93,11 @@ class SingleCellNetwork(SynapseClass):
         self.t_save = neuron.h.Vector()
         self.t_save.record(neuron.h._ref_t)
 
-        neuron.h.finitialize(self.holding_voltage * 1e3)
-        for ncs in self.nc_syn:
-            ncs.weight[0] = cond
+        #neuron.h.finitialize(self.holding_voltage * 1e3)
 
-        self.set_resting_voltage(self.holding_voltage * 1e3)
+        #self.set_resting_voltage(self.holding_voltage * 1e3)
 
-        neuron.h.v_init = self.holding_voltage * 1e3
+        #neuron.h.v_init = self.holding_voltage * 1e3
         neuron.h.tstop = time * 1e3
         self.write_log("About to start NEURON... stay safe")
         neuron.h.run()
