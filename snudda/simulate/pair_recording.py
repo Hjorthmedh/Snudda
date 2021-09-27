@@ -138,4 +138,4 @@ class PairRecording(SnuddaSimulate):
         super().run(self.sim_duration * 1e3, hold_v=None)
 
         # Write results to disk
-        self.write_voltage(self.volt_file)
+        self.write_voltage()
