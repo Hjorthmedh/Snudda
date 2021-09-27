@@ -29,6 +29,7 @@ from snudda.neurons.neuron_model_extended import NeuronModel
 # from Network_place_neurons import NetworkPlaceNeurons
 import numpy as np
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
+from snudda.utils.input_helper import to_list
 
 import re
 import os
@@ -127,6 +128,9 @@ class SnuddaSimulate(object):
 
             if "logFile" in sim_info:
                 self.log_file = open(sim_info["logFile"], "w")
+
+        if self.log_file is None:
+            self.log_file = os.path.join(self.network_path, "log", "simulation-log.txt")
 
         if type(self.log_file) == str:
             self.log_file += f'-{int(self.pc.id())}'
@@ -1099,26 +1103,40 @@ class SnuddaSimulate(object):
         Sets resting voltage for neuron
 
         Args:
-            neuron_id: Neuron ID
-            rest_volt: Resting voltage
+            neuron_id: Neuron ID (either int, or list of int)
+            rest_volt: Resting voltage (either None = read from parameter files, float, or list of floats)
 
         """
 
+        if type(neuron_id) != list:
+            neuron_id_list = [neuron_id]
+        else:
+            neuron_id_list = neuron_id
+
         if rest_volt is None:
-            # If no resting voltage is given, extract it from parameters
-            rest_volt = [x for x in self.neurons[neuron_id].parameters
-                         if "param_name" in x and x["param_name"] == "v_init"][0]["value"]
-            self.write_log(f"Neuron {self.neurons[neuron_id].name} resting voltage = {rest_volt}")
+            rest_volt_list = [None] * len(neuron_id_list)
+        elif type(rest_volt) != list:
+            rest_volt_list = [rest_volt]
+        else:
+            rest_volt_list = rest_volt
 
-        soma = [x for x in self.neurons[neuron_id].icell.soma]
-        axon = [x for x in self.neurons[neuron_id].icell.axon]
-        dend = [x for x in self.neurons[neuron_id].icell.dend]
+        for neuron_id, rest_volt in zip(neuron_id_list, rest_volt_list):
 
-        cell = soma + axon + dend
+            if rest_volt is None:
+                # If no resting voltage is given, extract it from parameters
+                rest_volt = [x for x in self.neurons[neuron_id].parameters
+                             if "param_name" in x and x["param_name"] == "v_init"][0]["value"]
+                self.write_log(f"Neuron {self.neurons[neuron_id].name} resting voltage = {rest_volt}")
 
-        for sec in cell:
-            for seg in sec.allseg():
-                seg.v = rest_volt
+            soma = [x for x in self.neurons[neuron_id].icell.soma]
+            axon = [x for x in self.neurons[neuron_id].icell.axon]
+            dend = [x for x in self.neurons[neuron_id].icell.dend]
+
+            cell = soma + axon + dend
+
+            for sec in cell:
+                for seg in sec.allseg():
+                    seg.v = rest_volt
 
     ############################################################################
 
@@ -1631,6 +1649,29 @@ class SnuddaSimulate(object):
         cur_stim.amp = amplitude * 1e9  # What is units of amp?? nA??
 
         self.i_stim.append(cur_stim)
+
+    ############################################################################
+
+    def add_current_pulses(self, neuron_id, start_times, end_times, amplitudes):
+
+        if neuron_id not in self.neuron_id:
+            return  # The neuron ID does not exist on this worker
+
+        start_times = to_list(start_times)
+        end_times = to_list(end_times)
+
+        amplitude = to_list(amplitudes)
+        if len(amplitude) == 1 and len(start_times) > 1:
+            amplitude = amplitude[0]* len(start_times)
+
+        assert (end_times - start_times > 0).all(), \
+            (f"End time must be after start time for each time pair"
+             f"Start time {start_times}, End time {end_times}")
+
+        assert False, "not finished yet"
+        # TODO. Create an iclamp that reads from a vector, to handle multiple pulses
+        # https://neuron.yale.edu/neuron/static/py_doc/modelspec/programmatic/mechanisms/mech.html#IClamp
+
 
     ############################################################################
 
