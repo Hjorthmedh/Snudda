@@ -836,6 +836,7 @@ if __name__ == "__main__":
                         type=int)
     parser.add_argument("--keepOpen", help="This prevents loading of synapses to memory, and keeps HDF5 file open",
                         action="store_true")
+    parser.add_argument("--detailed", help="More information", action="store_true")
 
     args = parser.parse_args()
 
@@ -883,6 +884,14 @@ if __name__ == "__main__":
             nSyn = np.sum(synapses[0][:, 0] == nid)
             print(f"{nid} : {name} ({nSyn} synapses)")
 
+            if args.detailed:
+                idx = np.where(synapses[0][:, 0] == nid)
+                for i in idx[0]:
+                    print(f" -- SegID {synapses[0][i, 9]}, SegX {synapses[0][i, 10]*1e-3:.4f}, "
+                          f"Coord: {synapses[1][i, :]}")
+
+                print("")
+
     if args.listPost is not None:
         print("List neurons post-synaptic to neuronID = " + str(args.listPost)
               + " (" + str(nl.data["neurons"][args.listPost]["name"]) + ")")
@@ -892,6 +901,14 @@ if __name__ == "__main__":
         for nid, name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"] if x["neuronID"] in postID]:
             nSyn = np.sum(synapses[0][:, 1] == nid)
             print(f"{nid} : {name} ({nSyn} synapses)")
+
+            if args.detailed:
+                idx = np.where(synapses[0][:, 1] == nid)
+                for i in idx[0]:
+                    print(f" -- SegID {synapses[0][i, 9]}, SegX {synapses[0][i, 10]*1e-3:.4f}, "
+                          f"Coord: {synapses[1][i, :]}")
+
+                print("")
 
         # List neurons of network
 

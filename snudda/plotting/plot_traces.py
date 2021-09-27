@@ -72,6 +72,12 @@ class PlotTraces:
         if skip_time is not None:
             print("!!! Excluding first " + str(skip_time) + "s from the plot")
 
+        if not trace_id:
+            if self.network_info:
+                trace_id = [x["neuronID"] for x in self.network_info.data["neurons"]]
+            else:
+                trace_id = [x for x in self.voltage]
+
         if colours is None:
             colours = {"dSPN": (77. / 255, 151. / 255, 1.0),
                        "iSPN": (67. / 255, 55. / 255, 181. / 255),
