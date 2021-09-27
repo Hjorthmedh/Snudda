@@ -1524,7 +1524,10 @@ class SnuddaSimulate(object):
                       down_sampling=20):
 
         if not output_file:
-            output_file = os.path.join("save", "traces", "network-voltage")
+            output_file = os.path.join(self.network_path, "simulation", "network-voltage.txt")
+
+        if not os.path.exists(os.path.dirname(output_file)):
+            os.mkdir(os.path.dirname(output_file))
 
         """ Writes voltage to output_file, with the option to down sample data to save space. """
 
