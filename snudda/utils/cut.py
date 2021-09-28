@@ -57,6 +57,7 @@ class SnuddaCut(object):
 
         self.open_input_file(network_file)
 
+        # TODO: Move these out of init, and into separate function to allow more manipulations
         if plot_only:
             self.plot_cut(include_synapses=False, include_gap_junctions=False)
             sys.exit(0)
@@ -72,6 +73,9 @@ class SnuddaCut(object):
             self.out_file.close()
 
     ############################################################################
+
+    # TODO: Split this function, so that one writes slice, but requires info about what to write
+    #       while other function determines what we should keep/remove
 
     def write_cut_slice(self, cut_equation_lambda):
 
@@ -98,6 +102,11 @@ class SnuddaCut(object):
         remap_id = dict([])
         for new_id, old_id in enumerate(soma_keep_id):
             remap_id[old_id] = new_id
+
+        # TODO: Write unit test, that takes a connection matrix, notes how some of the cells are connected
+        #       then does cut / ablation, and then verifies that those cells are still connected the same way, if left
+        #       + extra unit test, som kollar att inga nya variabler lagts till i load, då vill vi få en krasch
+        #       och varning
 
         network_group = self.out_file.create_group("network")
         neuron_group = network_group.create_group("neurons")

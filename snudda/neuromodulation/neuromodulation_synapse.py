@@ -125,24 +125,25 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
     def connect_neuron_synapses_gpcr(self, start_row, end_row):
 
-       source_id_list, dend_sections, sec_id, sec_x, synapse_type_id, axon_distance, conductance, parameter_id = \
+        source_id_list, dend_sections, sec_id, sec_x, synapse_type_id, axon_distance, \
+            conductance, parameter_id, dest_id = \
             self.get_synapse_info(start_row=start_row, end_row=end_row)
 
-       gpcr_synapse_index = self.get_neuromodulator_synapses(synapse_type_id)
+        gpcr_synapse_index = self.get_neuromodulator_synapses(synapse_type_id)
 
-       # Filter away synapse_type_id not conc* connector and check if the start and end row defines the cell,
-       # hence you can send all information to add_gpcr_synapse
+        # Filter away synapse_type_id not conc* connector and check if the start and end row defines the cell,
+        # hence you can send all information to add_gpcr_synapse
 
-       channel_modules = [str(self.synapse_parameters[synapse_type_id[i]][0]) for i in gpcr_synapse_index]
+        channel_modules = [str(self.synapse_parameters[synapse_type_id[i]][0]) for i in gpcr_synapse_index]
 
-       gpcr_synapse_info = np.take([source_id_list, dend_sections, sec_x, sec_id], gpcr_synapse_index, axis=1).transpose()
+        gpcr_synapse_info = np.take([source_id_list, dend_sections, sec_x, sec_id], gpcr_synapse_index, axis=1).transpose()
 
-       #rewrite code as it is sorted on sec_id, jump in step of sec_id and add to dict
-       sort_idx = gpcr_synapse_info[:, -1].argsort()
+        #rewrite code as it is sorted on sec_id, jump in step of sec_id and add to dict
+        sort_idx = gpcr_synapse_info[:, -1].argsort()
 
-       gpcr_synapse_info = gpcr_synapse_info[sort_idx]
+        gpcr_synapse_info = gpcr_synapse_info[sort_idx]
 
-       self.add_gpcr_synapse(channel_modules, gpcr_synapse_info)
+        self.add_gpcr_synapse(channel_modules, gpcr_synapse_info)
 
     def add_gpcr_synapse(self, channel_modules, gpcr_info):
 

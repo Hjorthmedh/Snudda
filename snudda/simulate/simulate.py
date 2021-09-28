@@ -285,7 +285,7 @@ class SnuddaSimulate(object):
         self.write_log("Distributing neurons.")
 
         assert self.num_neurons >= int(self.pc.nhost()), \
-            f"Do not allocate more workers ({int(self.pc.nhost())}) than there are neurons (self.num_neurons)."
+            f"Do not allocate more workers ({int(self.pc.nhost())}) than there are neurons ({self.num_neurons})."
 
         self.neuron_id = range(int(self.pc.id()), self.num_neurons, int(self.pc.nhost()))
 
@@ -624,14 +624,15 @@ class SnuddaSimulate(object):
 
         Returns:
             (tuple):
-                source_id_list: Presynaptic neuron ID
-                dend_sections: Postsynaptic neuron ID
-                sec_id: Section ID
-                sec_x: Section X (between 0 and 1)
-                synapse_type_id: Synapse type ID
-                axon_distance:  Length of axon before synapse
-                conductance: Conductance
-                parameter_id: Synapse parameter ID
+                source_id_list (list of int): Presynaptic neuron ID
+                dend_sections: Postsynaptic neuron sections
+                sec_id (list of int): Section ID
+                sec_x (list of float): Section X (between 0 and 1)
+                synapse_type_id (list of int): Synapse type ID
+                axon_distance (list of float):  Length of axon before synapse
+                conductance (list of float): Conductance
+                parameter_id (list of int): Synapse parameter ID
+                dest_id (int): Destination neuron ID, obs single value, not a list
 
         """
 
@@ -659,13 +660,15 @@ class SnuddaSimulate(object):
         voxel_coords = self.synapses[start_row:end_row, 2:5]
         self.verify_synapse_placement(dend_sections, sec_x, dest_id, voxel_coords)
 
-        return source_id_list, dend_sections, sec_id, sec_x, synapse_type_id, axon_distance, conductance, parameter_id
+        return source_id_list, dend_sections, sec_id, sec_x, synapse_type_id, \
+            axon_distance, conductance, parameter_id, dest_id
 
     def connect_neuron_synapses(self, start_row, end_row):
 
         """ Connects the synapses present in the synapse matrix between start_row and end_row-1. """
 
-        source_id_list, dend_sections, sec_id, sec_x, synapse_type_id, axon_distance, conductance, parameter_id = \
+        source_id_list, dend_sections, sec_id, sec_x, synapse_type_id, \
+            axon_distance, conductance, parameter_id, dest_id = \
             self.get_synapse_info(start_row=start_row, end_row=end_row)
 
         for (src_id, section, section_x, s_type_id, axon_dist, cond, p_id) \
@@ -673,7 +676,6 @@ class SnuddaSimulate(object):
                        axon_distance, conductance, parameter_id):
 
             try:
-                # !!!
                 self.add_synapse(cell_id_source=src_id,
                                  dend_compartment=section,
                                  section_dist=section_x,
@@ -858,7 +860,7 @@ class SnuddaSimulate(object):
 
                     if par in ["tau", "tauR"] and ((val < 0.01) or (10000 < val)):
                         self.write_log(f" !!! Warning: Converted from {val_orig} to {val} but expected "
-                                       f"a value within [0.01, 10000) for neuron id {cell_id_source}. ")
+                                       f"a value within [0.01, 10000) for neuron id {cell_id_source}. ", is_error=True)
 
                     setattr(syn, par, val)
 
