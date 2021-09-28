@@ -16,6 +16,7 @@
 #
 #
 
+import os
 import numpy as np
 import json
 from snudda.simulate import SnuddaSimulate
@@ -40,6 +41,8 @@ class PairRecording(SnuddaSimulate):
         self.experiment_config_file = experiment_config_file
         self.experiment_config = self.read_experiment_config(experiment_config_file=experiment_config_file)
 
+        self.output_voltage_file_name = None
+
         # Variables for synapse current recording
         self.synapse_currents = []
         self.record_from_pair = []
@@ -60,6 +63,10 @@ class PairRecording(SnuddaSimulate):
 
         self.sim_duration = self.experiment_config["meta"]["simulationDuration"]
 
+        if "pair_recording_voltage_file" in self.experiment_config["meta"]:
+            self.output_voltage_file_name = os.path.join(self.network_path, "simulation",
+                                                         self.experiment_config["meta"]["pair_recording_voltage_file"])
+
         # Setup v_init for each neuron_id specified
         neuron_id, v_init = zip(*self.experiment_config["meta"]["vInit"])
         self.set_v_init(neuron_id=neuron_id, v_init=v_init)
@@ -73,7 +80,7 @@ class PairRecording(SnuddaSimulate):
 
             for nid, st, et, amp in zip(stim_neuron_id, stim_start_time, stim_end_time, stim_amplitude):
                 self.add_current_injection(neuron_id=nid, start_time=st, end_time=et, amplitude=amp)
-                
+
         # Add voltage recordings to neurons
         self.add_recording()
 
@@ -187,7 +194,15 @@ class PairRecording(SnuddaSimulate):
         super().run(self.sim_duration * 1e3, hold_v=None)
 
         # Write results to disk
-        self.write_voltage()
+        try:
+            self.write_voltage(output_file=self.output_voltage_file_name)
+        except:
+            import traceback
+            t_str = traceback.format_exc()
+            self.write_log(t_str)
+            self.write_log(f"Saving failed, whoops. Entering debug mode.")
+            import pdb
+            pdb.set_trace()
 
     def connect_neuron_synapses(self, start_row, end_row):
 
@@ -240,5 +255,4 @@ class PairRecording(SnuddaSimulate):
 
         # TODO: WE NEED TO HANDLE SYNAPSES ON THE SOMA ALSO!!
 
-
-        pass
+    def write_meta_data(self):
