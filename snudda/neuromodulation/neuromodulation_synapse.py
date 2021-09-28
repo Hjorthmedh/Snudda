@@ -125,9 +125,8 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
     def connect_neuron_synapses_gpcr(self, start_row, end_row):
 
-        source_id_list, dend_sections, sec_id, sec_x, synapse_type_id, axon_distance, \
-            conductance, parameter_id, dest_id = \
-            self.get_synapse_info(start_row=start_row, end_row=end_row)
+        source_id_list, dest_id, dend_sections, sec_id, sec_x, synapse_type_id, axon_distance, \
+            conductance, parameter_id = self.get_synapse_info(start_row=start_row, end_row=end_row)
 
         gpcr_synapse_index = self.get_neuromodulator_synapses(synapse_type_id)
 
