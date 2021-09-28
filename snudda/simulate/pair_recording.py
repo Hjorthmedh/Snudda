@@ -42,6 +42,7 @@ class PairRecording(SnuddaSimulate):
         self.experiment_config = self.read_experiment_config(experiment_config_file=experiment_config_file)
 
         self.output_voltage_file_name = None
+        self.output_synaptic_current_file_name = None
 
         # Variables for synapse current recording
         self.synapse_currents = []
@@ -83,6 +84,13 @@ class PairRecording(SnuddaSimulate):
 
         # Add voltage recordings to neurons
         self.add_recording()
+
+        if "recordSynapticCurrent" in self.experiment_config:
+            syn_cur_record = self.experiment_config["recordSynapticCurrent"]
+
+            for pre_id, post_id in syn_cur_record:
+                self.write_log(f"Marking synapses for recording: {pre_id} -> {post_id}")
+                self.mark_synapses_for_recording(pre_neuron_id=pre_id, post_neuron_id=post_id)
 
     @staticmethod
     def to_list(val):
@@ -196,6 +204,7 @@ class PairRecording(SnuddaSimulate):
         # Write results to disk
         try:
             self.write_voltage(output_file=self.output_voltage_file_name)
+            self.write_synaptic_current(output_file=self.output_synaptic_current_file_name)
         except:
             import traceback
             t_str = traceback.format_exc()
@@ -255,4 +264,39 @@ class PairRecording(SnuddaSimulate):
 
         # TODO: WE NEED TO HANDLE SYNAPSES ON THE SOMA ALSO!!
 
+    def write_synaptic_current(self, output_file, down_sampling=20):
+
+        if not output_file:
+            output_file = os.path.join(self.network_path, "simulation", "network-synapse-current.txt")
+
+        if not os.path.exists(os.path.dirname(output_file)):
+            os.mkdir(os.path.dirname(output_file))
+
+        """ Writes synapse currents to output_file, with the option to down sample data to save space. """
+
+        for i in range(int(self.pc.nhost())):
+            self.pc.barrier()
+
+            if i == int(self.pc.id()):
+                if i == 0:
+                    mode = 'w'
+                else:
+                    mode = 'a'
+
+                with open(output_file, mode) as current_file:
+                    if mode == 'w':
+                        current_file.write('-1')  # Indicate that first column is time
+
+                        for tIdx in range(0, len(self.t_save), down_sampling):
+                            current_file.write(',%.4f' % self.t_save[tIdx])
+
+                    for src_id, dest_id, syn_i in self.synapse_currents:
+                        current_file.write(f"\n{src_id}-{dest_id}")
+
+                        for i_idx in range(0, len(syn_i), down_sampling):
+                            current_file.write(',%.4f' % syn_i[i_idx])
+
+            self.pc.barrier()
+
     def write_meta_data(self):
+        pass

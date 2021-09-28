@@ -1545,18 +1545,18 @@ class SnuddaSimulate(object):
                 else:
                     mode = 'a'
 
-                with open(output_file, mode) as voltageFile:
+                with open(output_file, mode) as voltage_file:
                     if mode == 'w':
-                        voltageFile.write('-1')  # Indiciate that first column is time
+                        voltage_file.write('-1')  # Indicate that first column is time
 
                         for tIdx in range(0, len(self.t_save), down_sampling):
-                            voltageFile.write(',%.4f' % self.t_save[tIdx])
+                            voltage_file.write(',%.4f' % self.t_save[tIdx])
 
-                    for vID, voltage in zip(self.v_key, self.v_save):
-                        voltageFile.write('\n%d' % vID)
+                    for v_id, voltage in zip(self.v_key, self.v_save):
+                        voltage_file.write('\n%d' % v_id)
 
-                        for vIdx in range(0, len(voltage), down_sampling):
-                            voltageFile.write(',%.4f' % voltage[vIdx])
+                        for v_idx in range(0, len(voltage), down_sampling):
+                            voltage_file.write(',%.4f' % voltage[v_idx])
 
             self.pc.barrier()
 
