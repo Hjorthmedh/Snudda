@@ -1123,6 +1123,10 @@ class SnuddaSimulate(object):
 
         for neuron_id, rest_volt in zip(neuron_id_list, rest_volt_list):
 
+            if neuron_id not in self.neuron_id:
+                # This neuron is not on this worker, continue
+                continue
+
             if rest_volt is None:
                 # If no resting voltage is given, extract it from parameters
                 rest_volt = [x for x in self.neurons[neuron_id].parameters

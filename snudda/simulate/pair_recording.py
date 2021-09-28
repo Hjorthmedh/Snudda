@@ -16,6 +16,7 @@
 #
 #
 
+import numpy as np
 import json
 from snudda.simulate import SnuddaSimulate
 
@@ -70,10 +71,9 @@ class PairRecording(SnuddaSimulate):
             stim_end_time = self.to_list(cur_info["end"])
             stim_amplitude = self.to_list(cur_info["amplitude"])
 
-            self.add_current_injection(neuron_id=stim_neuron_id,
-                                       start_time=stim_start_time,
-                                       end_time=stim_end_time,
-                                       amplitude=stim_amplitude)
+            for nid, st, et, amp in zip(stim_neuron_id, stim_start_time, stim_end_time, stim_amplitude):
+                self.add_current_injection(neuron_id=nid, start_time=st, end_time=et, amplitude=amp)
+                
         # Add voltage recordings to neurons
         self.add_recording()
 
@@ -92,9 +92,9 @@ class PairRecording(SnuddaSimulate):
         # Setup vClamps to calculate what holding current will be needed
         soma_v_clamp = []
 
-        soma_list = [self.neurons[x].icell.soma[0] for x in neuron_id]
+        soma_list = [self.neurons[x].icell.soma[0] for x in neuron_id if x in self.neuron_id]
 
-        missing_id = [x for x in self.neurons.keys() if x not in neuron_id]
+        missing_id = [x for x in self.neurons.keys() if x not in neuron_id and x in self.neuron_id]
 
         if len(missing_id) > 0:
             print(f"Warning: v_init is not specified for neurons {missing_id}")
@@ -145,11 +145,12 @@ class PairRecording(SnuddaSimulate):
 
         elif selection == "prepost":
 
-            pre_id = set([c["neuronID"] for c in self.experiment_config["currentInjection"]])
+            pre_id = set(sum([c["neuronID"] if type(c["neuronID"]) == list else [c["neuronID"]]
+                              for c in self.experiment_config["currentInjection"]], []))
             sim_id = pre_id
 
             for pid in pre_id:
-                post_id = set(self.snudda_loader.find_synapses(pre_id=pid))
+                post_id = set(self.snudda_loader.find_synapses(pre_id=pid)[0][:, 1])
                 sim_id = sim_id.union(post_id)
 
             self.simulate_neuron_ids = sorted(list(sim_id))
@@ -169,8 +170,8 @@ class PairRecording(SnuddaSimulate):
                 (f"Do not allocate more workers ({int(self.pc.nhost())}) than there "
                  f"are neurons included ({len(self.simulate_neuron_ids)}).")
 
-            idx = range(int(self.pc.id()), len(self.simulate_neuron_ids), int(self.pc.nhost()))
-            self.neuron_id = self.simulate_neuron_ids[idx]
+            idx = np.arange(int(self.pc.id()), len(self.simulate_neuron_ids), int(self.pc.nhost()))
+            self.neuron_id = np.array([self.simulate_neuron_ids[x] for x in idx])
 
             self.write_log(f"Node {self.pc.id()} processing neurons {self.neuron_id}")
 
@@ -188,34 +189,40 @@ class PairRecording(SnuddaSimulate):
         # Write results to disk
         self.write_voltage()
 
-    # TODO: We need to make get_synapse_info return dest_id
-    # Idea: overload get_synapse_info in this file, have it also take a flag
-    # if flag is set, return dest_id also...
-    # TODO: !!! Instead overload the method that calls add_synapse
+    def connect_neuron_synapses(self, start_row, end_row):
 
-    def add_synapse(self, cell_id_source, dend_compartment, section_dist, conductance,
-                    parameter_id, synapse_type_id, axon_dist=None):
+        """ Connects the synapses present in the synapse matrix between start_row and end_row-1. """
 
-        syn = super().add_synapse(cell_id_source=cell_id_source,
-                                  dend_compartment=dend_compartment,
-                                  section_dist=section_dist,
-                                  conductance=conductance,
-                                  parameter_id=parameter_id,
-                                  synapse_type_id=synapse_type_id,
-                                  axon_dist=axon_dist)
+        source_id_list, dest_id, dend_sections, sec_id, sec_x, synapse_type_id, \
+            axon_distance, conductance, parameter_id = self.get_synapse_info(start_row=start_row, end_row=end_row)
 
-        # If pre and post neurons are a pair we want to record from, then we need to add current
-        # TODO: How to get cell_id_dest
-        if (cell_id_source, cell_id_dest) in self.record_from_pair:
-            syn_i = neuron.h.Vector().record(syn._ref_i)
-            self.synapse_currents.append((cell_id_source, cell_id_dest, syn_i))
+        for (src_id, section, section_x, s_type_id, axon_dist, cond, p_id) \
+                in zip(source_id_list, dend_sections, sec_x, synapse_type_id,
+                       axon_distance, conductance, parameter_id):
 
+            try:
+                syn = self.add_synapse(cell_id_source=src_id,
+                                       dend_compartment=section,
+                                       section_dist=section_x,
+                                       synapse_type_id=s_type_id,
+                                       axon_dist=axon_dist,
+                                       conductance=cond,
+                                       parameter_id=p_id)
+
+                if (src_id, dest_id) in self.record_from_pair:
+                    syn_i = neuron.h.Vector().record(syn._ref_i)
+                    self.synapse_currents.append((src_id, dest_id, syn_i))
+
+            except:
+                import traceback
+                tstr = traceback.format_exc()
+                self.write_log(tstr, is_error=True)
+                import pdb
+                pdb.set_trace()
 
     def mark_synapses_for_recording(self, pre_neuron_id, post_neuron_id):
 
         self.record_from_pair.append((pre_neuron_id, post_neuron_id))
-
-
 
     def add_synapse_current_recording(self, pre_neuron_id, post_neuron_id):
 
