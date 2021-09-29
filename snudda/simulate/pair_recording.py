@@ -105,8 +105,9 @@ class PairRecording(SnuddaSimulate):
             stim_end_time = self.to_list(cur_info["end"])
             stim_amplitude = self.to_list(cur_info["amplitude"])
 
-            self.add_current_pulses(neuron_id=stim_neuron_id, start_times=stim_start_time,
-                                    end_times=stim_end_time, amplitudes=stim_amplitude)
+            for nid in stim_neuron_id:
+                self.add_current_pulses(neuron_id=nid, start_times=stim_start_time,
+                                        end_times=stim_end_time, amplitudes=stim_amplitude)
 
         # Add voltage recordings to neurons
         self.add_recording()

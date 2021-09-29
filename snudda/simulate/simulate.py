@@ -1662,6 +1662,8 @@ class SnuddaSimulate(object):
 
     def add_current_pulses(self, neuron_id, start_times, end_times, amplitudes):
 
+        assert type(neuron_id) == int, "add_current_pulses only works on one neuron_id at a time"
+
         if type(start_times) != np.ndarray:
             start_times = np.array(start_times)
 
@@ -1678,18 +1680,15 @@ class SnuddaSimulate(object):
         if neuron_id not in self.neuron_id:
             return  # The neuron ID does not exist on this worker
 
-        #import pdb
-        #pdb.set_trace()
-
         if len(amplitudes) == 1 and len(start_times) > 1:
-            amplitude = np.repeat(amplitudes[0], len(start_times))
+            amplitudes = np.repeat(amplitudes[0], len(start_times))
 
         assert (end_times - start_times > 0).all(), \
             (f"End time must be after start time for each time pair"
              f"Start time {start_times}, End time {end_times}")
 
-        all_times = np.concatenate(start_times, end_times)
-        all_cur = np.concatenate(amplitudes, np.zeros(amplitudes.shape))
+        all_times = np.concatenate([start_times, end_times])
+        all_cur = np.concatenate([amplitudes, np.zeros(amplitudes.shape)])
 
         idx = np.argsort(all_times)
 
@@ -1698,11 +1697,13 @@ class SnuddaSimulate(object):
 
         t_vec = neuron.h.Vector(all_times)
         amp_vec = neuron.h.Vector(all_cur)
+
         i_clamp = self.sim.neuron.h.IClamp(0.5, sec=self.neurons[neuron_id].icell.soma[0])
         i_clamp.dur = 1e9
 
         amp_vec.play(i_clamp._ref_amp, t_vec)
 
+        self.i_stim.append((i_clamp, t_vec, amp_vec))
 
     ############################################################################
 
