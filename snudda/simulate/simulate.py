@@ -1695,8 +1695,8 @@ class SnuddaSimulate(object):
         all_times = all_times[idx]
         all_cur = all_cur[idx]
 
-        t_vec = neuron.h.Vector(all_times)
-        amp_vec = neuron.h.Vector(all_cur)
+        t_vec = neuron.h.Vector(all_times * 1e3)
+        amp_vec = neuron.h.Vector(all_cur * 1e9)
 
         i_clamp = self.sim.neuron.h.IClamp(0.5, sec=self.neurons[neuron_id].icell.soma[0])
         i_clamp.dur = 1e9
