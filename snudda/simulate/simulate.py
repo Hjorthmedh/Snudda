@@ -1662,23 +1662,46 @@ class SnuddaSimulate(object):
 
     def add_current_pulses(self, neuron_id, start_times, end_times, amplitudes):
 
+        if type(start_times) != np.ndarray:
+            start_times = np.array(start_times)
+
+        if type(end_times) != np.ndarray:
+            end_times = np.array(end_times)
+
+        if type(amplitudes) != np.ndarray:
+            amplitudes = np.array(amplitudes)
+
+        assert (end_times - start_times).all() > 0, \
+            (f"All start times must be before corresponding end times: "
+             f"\nStart times: {start_times}\nEnd times: {end_times}")
+
         if neuron_id not in self.neuron_id:
             return  # The neuron ID does not exist on this worker
 
-        start_times = to_list(start_times)
-        end_times = to_list(end_times)
+        #import pdb
+        #pdb.set_trace()
 
-        amplitude = to_list(amplitudes)
-        if len(amplitude) == 1 and len(start_times) > 1:
-            amplitude = amplitude[0]* len(start_times)
+        if len(amplitudes) == 1 and len(start_times) > 1:
+            amplitude = np.repeat(amplitudes[0], len(start_times))
 
         assert (end_times - start_times > 0).all(), \
             (f"End time must be after start time for each time pair"
              f"Start time {start_times}, End time {end_times}")
 
-        assert False, "not finished yet"
-        # TODO. Create an iclamp that reads from a vector, to handle multiple pulses
-        # https://neuron.yale.edu/neuron/static/py_doc/modelspec/programmatic/mechanisms/mech.html#IClamp
+        all_times = np.concatenate(start_times, end_times)
+        all_cur = np.concatenate(amplitudes, np.zeros(amplitudes.shape))
+
+        idx = np.argsort(all_times)
+
+        all_times = all_times[idx]
+        all_cur = all_cur[idx]
+
+        t_vec = neuron.h.Vector(all_times)
+        amp_vec = neuron.h.Vector(all_cur)
+        i_clamp = self.sim.neuron.h.IClamp(0.5, sec=self.neurons[neuron_id].icell.soma[0])
+        i_clamp.dur = 1e9
+
+        amp_vec.play(i_clamp._ref_amp, t_vec)
 
 
     ############################################################################

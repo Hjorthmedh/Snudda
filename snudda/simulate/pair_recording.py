@@ -27,6 +27,16 @@ neuron.h.load_file("stdrun.hoc")
 
 class PairRecording(SnuddaSimulate):
 
+    """ Runs simulation with current injections to one or more neurons. This code can be used to simulate
+        a subset of the neurons, ie the neurons receiving current injections and their post synaptic targets.
+
+        First create your own network using Snudda init/place/detect/prune. Then use PairRecording to setup
+        and run simulation.
+
+        For example experiment configuration files, see Snudda/snudda/data/experiment-config/ directory
+
+    """
+
     def __init__(self, network_path, experiment_config_file):
 
         super().__init__(network_path=network_path)
@@ -50,12 +60,17 @@ class PairRecording(SnuddaSimulate):
 
         self.parse_experiment_config()
 
-    def read_experiment_config(self, experiment_config_file):
+    @staticmethod
+    def read_experiment_config(experiment_config_file):
+
+        """ Loads the experimental config from JSON file. """
 
         with open(experiment_config_file, "r") as f:
             return json.load(f)
 
     def parse_experiment_config(self):
+
+        """ Parses the experimental config file, updating the simulation as needed. """
 
         self.set_neurons_to_simulate("prepost")
 
@@ -69,8 +84,19 @@ class PairRecording(SnuddaSimulate):
                                                          self.experiment_config["meta"]["pair_recording_voltage_file"])
 
         # Setup v_init for each neuron_id specified
-        neuron_id, v_init = zip(*self.experiment_config["meta"]["vInit"])
-        self.set_v_init(neuron_id=neuron_id, v_init=v_init)
+        if "vInit" in self.experiment_config["meta"]:
+
+            if type(self.experiment_config["meta"]["vInit"]) == list:
+                neuron_id, v_init = zip(*self.experiment_config["meta"]["vInit"])
+            else:
+                neuron_id = None
+                v_init = self.experiment_config["meta"]["vInit"]
+
+            self.set_v_init(neuron_id=neuron_id, v_init=v_init)
+
+        if "reversal_potential" in self.experiment_config["meta"]:
+            for channel_name, v_rev in self.experiment_config["meta"]["reversal_potential"]:
+                self.set_channel_rev(channel_name=channel_name, v_rev=v_rev)
 
         # Iterate over current injections
         for cur_info in self.experiment_config["currentInjection"]:
@@ -79,8 +105,8 @@ class PairRecording(SnuddaSimulate):
             stim_end_time = self.to_list(cur_info["end"])
             stim_amplitude = self.to_list(cur_info["amplitude"])
 
-            for nid, st, et, amp in zip(stim_neuron_id, stim_start_time, stim_end_time, stim_amplitude):
-                self.add_current_injection(neuron_id=nid, start_time=st, end_time=et, amplitude=amp)
+            self.add_current_pulses(neuron_id=stim_neuron_id, start_times=stim_start_time,
+                                    end_times=stim_end_time, amplitudes=stim_amplitude)
 
         # Add voltage recordings to neurons
         self.add_recording()
@@ -93,20 +119,43 @@ class PairRecording(SnuddaSimulate):
                 self.mark_synapses_for_recording(pre_neuron_id=pre_id, post_neuron_id=post_id)
 
     @staticmethod
-    def to_list(val):
-        if type(val) != list:
-            val = [val]
+    def to_list(val, new_list_len=1):
+
+        """ If val is not a list, returns a list with new_list_len elements, each with value val
+
+        Args:
+            val : variable to upgrade to list (or leave unchanged if val is a list already)
+            new_list_len : length of new list created (if val is not already a list)
+
+        """
+
+        if type(val) not in [list, np.ndarray]:
+            val = [val]*new_list_len
 
         return val
 
-    def set_v_init(self, neuron_id, v_init):
+    def set_v_init(self, v_init, neuron_id=None):
+
+        """ Set initial voltage v_init for neurons speciefied by neuron_id.
+            If neuron_id = None (default), all neurons get v_init set.
+
+            Args:
+                v_init = Initial voltage (list or int) in volt (SI-units)
+                neuron_id = Neuron ID of neurons affected (list, int or None)
+
+            """
+
+        if neuron_id is None:
+            neuron_id = self.neuron_id
+
+        neuron_id = self.to_list(neuron_id)
+        v_init = self.to_list(v_init, new_list_len=len(neuron_id))
 
         assert self.sim_duration is not None, \
             f"setup_holding_volt: Please set self.end_time, for holding current"
 
         # Setup vClamps to calculate what holding current will be needed
         soma_v_clamp = []
-
         soma_list = [self.neurons[x].icell.soma[0] for x in neuron_id if x in self.neuron_id]
 
         missing_id = [x for x in self.neurons.keys() if x not in neuron_id and x in self.neuron_id]
@@ -154,6 +203,14 @@ class PairRecording(SnuddaSimulate):
 
     def set_neurons_to_simulate(self, selection=None):
 
+        """ Sets subset of neurons to simulate. If selection "prepost" neurons receiving current injection and
+            their post synaptic targets are included. If selection is "ALL" or None, then all neurons are included.
+
+        Args:
+            selection (string) : What neurons to include in simulation ("prepost", "ALL")
+
+        """
+
         if selection is None or selection == "ALL":
             # No restrictions, use all
             self.simulate_neuron_ids = None
@@ -175,6 +232,8 @@ class PairRecording(SnuddaSimulate):
 
     def distribute_neurons(self):
 
+        """ Overloading the normal distribute_neurons to allow only a subset of neurons to be simulated. """
+
         if self.simulate_neuron_ids is None:
             super().distribute_neurons()
         else:
@@ -194,6 +253,8 @@ class PairRecording(SnuddaSimulate):
             self.neuron_nodes = None  # TODO, set it correctly!
 
     def run(self):
+
+        """ Run simulation. """
 
         for nid, v in self.v_init_saved.items():
             self.set_resting_voltage(neuron_id=nid, rest_volt=v)
@@ -246,6 +307,14 @@ class PairRecording(SnuddaSimulate):
 
     def mark_synapses_for_recording(self, pre_neuron_id, post_neuron_id):
 
+        """ What neuron pair synapses should we record current from? Add them to self.record_from_pair
+
+            Args:
+                pre_neuron_id : Neuron ID of presynaptic neuron
+                post_neuron_id : Neuron ID of postsynaptic neuron
+
+        """
+
         self.record_from_pair.append((pre_neuron_id, post_neuron_id))
 
     def add_synapse_current_recording(self, pre_neuron_id, post_neuron_id):
@@ -297,6 +366,14 @@ class PairRecording(SnuddaSimulate):
                             current_file.write(',%.4f' % syn_i[i_idx])
 
             self.pc.barrier()
+
+    def set_channel_rev(self, channel_name, v_rev):
+
+        print(f"Setting {channel_name} reversal potential to {v_rev * 1e3} mV")
+
+        for syn in self.synapse_list:
+            if channel_name == syn.hname().split("[")[0]:
+                syn.e = v_rev * 1e3
 
     def write_meta_data(self):
         pass
