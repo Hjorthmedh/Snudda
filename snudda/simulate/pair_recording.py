@@ -173,13 +173,13 @@ class PairRecording(SnuddaSimulate):
             vc = neuron.h.SEClamp(s(0.5))
             vc.rs = 1e-9
             vc.amp1 = vi * 1e3
-            vc.dur1 = 100
+            vc.dur1 = 200
             soma_v_clamp.append((s, vc))
 
         self.set_v_init_helper(neuron_id=neuron_id, v_init=v_init)
         neuron.h.finitialize()
 
-        neuron.h.tstop = 100
+        neuron.h.tstop = 200
         neuron.h.run()
 
         self.holding_i_clamp_list = []
@@ -308,6 +308,7 @@ class PairRecording(SnuddaSimulate):
                                        parameter_id=p_id)
 
                 if (src_id, dest_id) in self.record_from_pair:
+                    self.write_log(f"Adding synaptic recording {src_id} -> {dest_id} (NEURON)")
                     syn_i = neuron.h.Vector().record(syn._ref_i)
                     self.synapse_currents.append((src_id, dest_id, syn_i))
 
@@ -329,22 +330,6 @@ class PairRecording(SnuddaSimulate):
         """
 
         self.record_from_pair.append((pre_neuron_id, post_neuron_id))
-
-    def add_synapse_current_recording(self, pre_neuron_id, post_neuron_id):
-
-        # 1. Find out which synapses connect pre and post
-        synapses = self.snudda_loader.find_synapses(pre_id=pre_neuron_id,
-                                                    post_id=post_neuron_id)
-
-        # 2. How do we access that synapse, what type is it?
-        channel_model_id = synapses[:, 6]
-        segment_id = synapses[:, 9]
-        segment_x = synapses[:, 10] * 1e-3
-
-        segment_x[segment_x == 0] = 0.01
-        segment_x[segment_x == 1] = 0.99
-
-        # TODO: WE NEED TO HANDLE SYNAPSES ON THE SOMA ALSO!!
 
     def write_synaptic_current(self, output_file, down_sampling=20):
 
@@ -370,7 +355,7 @@ class PairRecording(SnuddaSimulate):
                         current_file.write('-1')  # Indicate that first column is time
 
                         for tIdx in range(0, len(self.t_save), down_sampling):
-                            current_file.write(',%.4f' % self.t_save[tIdx])
+                            current_file.write(',%.12f' % self.t_save[tIdx])
 
                     for src_id, dest_id, syn_i in self.synapse_currents:
                         current_file.write(f"\n{src_id}-{dest_id}")

@@ -1106,6 +1106,7 @@ class SnuddaSimulate(object):
         Args:
             neuron_id: Neuron ID (either int, or list of int)
             rest_volt: Resting voltage (either None = read from parameter files, float, or list of floats)
+                       in SI units (volt), gets converted to mV before passing to NEURON
 
         """
 
@@ -1129,10 +1130,11 @@ class SnuddaSimulate(object):
 
             if rest_volt is None:
                 # If no resting voltage is given, extract it from parameters
+                # Note that the file has NEURON v_init from bluepyopt, in natural units, so convert to SI internally
                 rest_volt = [x for x in self.neurons[neuron_id].parameters
-                             if "param_name" in x and x["param_name"] == "v_init"][0]["value"]
+                             if "param_name" in x and x["param_name"] == "v_init"][0]["value"] * 1e-3
 
-            self.write_log(f"Neuron {self.neurons[neuron_id].name} resting voltage = {rest_volt}")
+            self.write_log(f"Neuron {self.neurons[neuron_id].name} resting voltage = {rest_volt * 1e3}")
 
             soma = [x for x in self.neurons[neuron_id].icell.soma]
             axon = [x for x in self.neurons[neuron_id].icell.axon]
@@ -1142,7 +1144,7 @@ class SnuddaSimulate(object):
 
             for sec in cell:
                 for seg in sec.allseg():
-                    seg.v = rest_volt
+                    seg.v = rest_volt * 1e3
 
     ############################################################################
 
