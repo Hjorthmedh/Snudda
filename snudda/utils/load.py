@@ -818,6 +818,7 @@ class SnuddaLoad(object):
 
     ############################################################################
 
+
 def snudda_load_cli():
 
     """ Command line parser for SnuddaLoad script """
@@ -914,4 +915,3 @@ def snudda_load_cli():
 
 if __name__ == "__main__":
     snudda_load_cli()
-    
