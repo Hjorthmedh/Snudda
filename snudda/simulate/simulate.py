@@ -1131,7 +1131,8 @@ class SnuddaSimulate(object):
                 # If no resting voltage is given, extract it from parameters
                 rest_volt = [x for x in self.neurons[neuron_id].parameters
                              if "param_name" in x and x["param_name"] == "v_init"][0]["value"]
-                self.write_log(f"Neuron {self.neurons[neuron_id].name} resting voltage = {rest_volt}")
+
+            self.write_log(f"Neuron {self.neurons[neuron_id].name} resting voltage = {rest_volt}")
 
             soma = [x for x in self.neurons[neuron_id].icell.soma]
             axon = [x for x in self.neurons[neuron_id].icell.axon]

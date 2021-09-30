@@ -72,16 +72,28 @@ class PairRecording(SnuddaSimulate):
 
         """ Parses the experimental config file, updating the simulation as needed. """
 
-        self.set_neurons_to_simulate("prepost")
+        if "neuronSubset" in self.experiment_config["meta"]:
+            neuron_subset = self.experiment_config["meta"]["neuronSubset"]
+        else:
+            neuron_subset = "prepost"
+
+        self.set_neurons_to_simulate(neuron_subset)
+
+        if "recordSynapticCurrent" in self.experiment_config:
+            syn_cur_record = self.experiment_config["recordSynapticCurrent"]
+
+            for pre_id, post_id in syn_cur_record:
+                self.write_log(f"Marking synapses for recording: {pre_id} -> {post_id}")
+                self.mark_synapses_for_recording(pre_neuron_id=pre_id, post_neuron_id=post_id)
 
         # Setup the network given in network_config
         super().setup()
 
         self.sim_duration = self.experiment_config["meta"]["simulationDuration"]
 
-        if "pair_recording_voltage_file" in self.experiment_config["meta"]:
+        if "pairRecordingVoltageFile" in self.experiment_config["meta"]:
             self.output_voltage_file_name = os.path.join(self.network_path, "simulation",
-                                                         self.experiment_config["meta"]["pair_recording_voltage_file"])
+                                                         self.experiment_config["meta"]["pairRecordingVoltageFile"])
 
         # Setup v_init for each neuron_id specified
         if "vInit" in self.experiment_config["meta"]:
@@ -112,13 +124,6 @@ class PairRecording(SnuddaSimulate):
         # Add voltage recordings to neurons
         self.add_recording()
 
-        if "recordSynapticCurrent" in self.experiment_config:
-            syn_cur_record = self.experiment_config["recordSynapticCurrent"]
-
-            for pre_id, post_id in syn_cur_record:
-                self.write_log(f"Marking synapses for recording: {pre_id} -> {post_id}")
-                self.mark_synapses_for_recording(pre_neuron_id=pre_id, post_neuron_id=post_id)
-
     @staticmethod
     def to_list(val, new_list_len=1):
 
@@ -130,7 +135,7 @@ class PairRecording(SnuddaSimulate):
 
         """
 
-        if type(val) not in [list, np.ndarray]:
+        if type(val) not in [list, np.ndarray, range]:
             val = [val]*new_list_len
 
         return val
@@ -205,18 +210,23 @@ class PairRecording(SnuddaSimulate):
     def set_neurons_to_simulate(self, selection=None):
 
         """ Sets subset of neurons to simulate. If selection "prepost" neurons receiving current injection and
-            their post synaptic targets are included. If selection is "ALL" or None, then all neurons are included.
+            their post synaptic targets are included. If selection is "all" or None, then all neurons are included.
 
         Args:
-            selection (string) : What neurons to include in simulation ("prepost", "ALL")
+            selection (string or list of int) : What neurons to include in simulation ("prepost", "all"),
+                                                or a list of neuron_id to simulate
 
         """
+        if type(selection) == list:
+            sim_id = selection
+            self.write_log(f"Simulating user selected neuron_ids: {sim_id}")
 
-        if selection is None or selection == "ALL":
+        if selection is None or selection.lower() == "all":
             # No restrictions, use all
             self.simulate_neuron_ids = None
+            self.write_log("Simulating all neurons in network.")
 
-        elif selection == "prepost":
+        elif selection.lower() == "prepost":
 
             pre_id = set(sum([c["neuronID"] if type(c["neuronID"]) == list else [c["neuronID"]]
                               for c in self.experiment_config["currentInjection"]], []))
@@ -228,8 +238,10 @@ class PairRecording(SnuddaSimulate):
 
             self.simulate_neuron_ids = sorted(list(sim_id))
 
+            self.write_log(f"Simulating neuron IDs {sim_id}")
+
         else:
-            assert False, f"Unsupported selection {selection}, use 'ALL' or 'prepost'"
+            assert False, f"Unsupported selection {selection}, use 'all' or 'prepost'"
 
     def distribute_neurons(self):
 
