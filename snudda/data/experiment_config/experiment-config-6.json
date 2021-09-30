@@ -13,18 +13,18 @@
 	    "neuronID" : 3,
 	    "start" : [0.5, 0.6, 0.7],
 	    "end" : [0.51, 0.61, 0.71],
-	    "amplitude" : 10e-9
+	    "amplitude" : 0.5e-9
 	},
 
 	{
-	    "neuronID" : 7,
+	    "neuronID" : 12,
 	    "start" : [0.8, 0.9, 1.0],
 	    "end" : [0.81, 0.91, 1.1],
-	    "amplitude" : 10e-9
+	    "amplitude" : 0.5e-9
 	}
     ],
 
-    "recordSynapticCurrent" : [[7, 9], [7, 10]]
+    "recordSynapticCurrent" : [[3, 11], [3, 12]]
     
 	
 }
