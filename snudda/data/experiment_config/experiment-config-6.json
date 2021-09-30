@@ -1,0 +1,30 @@
+{
+
+    "meta" : {
+	"simulationDuration" : 1.2,
+	"vInit" : -80e-3,
+	"pairRecordingVoltageFile" : "network-voltage-6.txt",
+	"reversal_potential" : [["tmGabaA", -40e-3]],
+	"neuronSubset" : "prepost"
+    },
+    
+    "currentInjection" : [
+	{
+	    "neuronID" : 3,
+	    "start" : [0.5, 0.6, 0.7],
+	    "end" : [0.51, 0.61, 0.71],
+	    "amplitude" : 10e-9
+	},
+
+	{
+	    "neuronID" : 7,
+	    "start" : [0.8, 0.9, 1.0],
+	    "end" : [0.81, 0.91, 1.1],
+	    "amplitude" : 10e-9
+	}
+    ],
+
+    "recordSynapticCurrent" : [[7, 9], [7, 10]]
+    
+	
+}

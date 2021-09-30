@@ -355,13 +355,13 @@ class PairRecording(SnuddaSimulate):
                         current_file.write('-1')  # Indicate that first column is time
 
                         for tIdx in range(0, len(self.t_save), down_sampling):
-                            current_file.write(',%.12f' % self.t_save[tIdx])
+                            current_file.write(',%.1f' % self.t_save[tIdx])
 
                     for src_id, dest_id, syn_i in self.synapse_currents:
                         current_file.write(f"\n{src_id}-{dest_id}")
 
                         for i_idx in range(0, len(syn_i), down_sampling):
-                            current_file.write(',%.4f' % syn_i[i_idx])
+                            current_file.write(',%.5f' % syn_i[i_idx])
 
             self.pc.barrier()
 
