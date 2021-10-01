@@ -29,6 +29,7 @@ from snudda.neurons.neuron_model_extended import NeuronModel
 # from Network_place_neurons import NetworkPlaceNeurons
 import numpy as np
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
+from snudda.utils.input_helper import to_list
 
 import re
 import os
@@ -127,6 +128,9 @@ class SnuddaSimulate(object):
 
             if "logFile" in sim_info:
                 self.log_file = open(sim_info["logFile"], "w")
+
+        if self.log_file is None:
+            self.log_file = os.path.join(self.network_path, "log", "simulation-log.txt")
 
         if type(self.log_file) == str:
             self.log_file += f'-{int(self.pc.id())}'
@@ -281,7 +285,7 @@ class SnuddaSimulate(object):
         self.write_log("Distributing neurons.")
 
         assert self.num_neurons >= int(self.pc.nhost()), \
-            f"Do not allocate more workers ({int(self.pc.nhost())}) than there are neurons (self.num_neurons)."
+            f"Do not allocate more workers ({int(self.pc.nhost())}) than there are neurons ({self.num_neurons})."
 
         self.neuron_id = range(int(self.pc.id()), self.num_neurons, int(self.pc.nhost()))
 
@@ -620,14 +624,15 @@ class SnuddaSimulate(object):
 
         Returns:
             (tuple):
-                source_id_list: Presynaptic neuron ID
-                dend_sections: Postsynaptic neuron ID
-                sec_id: Section ID
-                sec_x: Section X (between 0 and 1)
-                synapse_type_id: Synapse type ID
-                axon_distance:  Length of axon before synapse
-                conductance: Conductance
-                parameter_id: Synapse parameter ID
+                source_id_list (list of int): Presynaptic neuron ID
+                dest_id (int): Destination neuron ID, obs single value, not a list
+                dend_sections: Postsynaptic neuron sections
+                sec_id (list of int): Section ID
+                sec_x (list of float): Section X (between 0 and 1)
+                synapse_type_id (list of int): Synapse type ID
+                axon_distance (list of float):  Length of axon before synapse
+                conductance (list of float): Conductance
+                parameter_id (list of int): Synapse parameter ID
 
         """
 
@@ -655,21 +660,21 @@ class SnuddaSimulate(object):
         voxel_coords = self.synapses[start_row:end_row, 2:5]
         self.verify_synapse_placement(dend_sections, sec_x, dest_id, voxel_coords)
 
-        return source_id_list, dend_sections, sec_id, sec_x, synapse_type_id, axon_distance, conductance, parameter_id
+        return source_id_list, dest_id, dend_sections, sec_id, sec_x, synapse_type_id, \
+            axon_distance, conductance, parameter_id
 
     def connect_neuron_synapses(self, start_row, end_row):
 
         """ Connects the synapses present in the synapse matrix between start_row and end_row-1. """
 
-        source_id_list, dend_sections, sec_id, sec_x, synapse_type_id, axon_distance, conductance, parameter_id = \
-            self.get_synapse_info(start_row=start_row, end_row=end_row)
+        source_id_list, dest_id, dend_sections, sec_id, sec_x, synapse_type_id, \
+            axon_distance, conductance, parameter_id = self.get_synapse_info(start_row=start_row, end_row=end_row)
 
         for (src_id, section, section_x, s_type_id, axon_dist, cond, p_id) \
                 in zip(source_id_list, dend_sections, sec_x, synapse_type_id,
                        axon_distance, conductance, parameter_id):
 
             try:
-                # !!!
                 self.add_synapse(cell_id_source=src_id,
                                  dend_compartment=section,
                                  section_dist=section_x,
@@ -851,11 +856,11 @@ class SnuddaSimulate(object):
                         # If no list, we need to handle SI to natural units conversion automatically
                         val_orig = val
                         val = self.convert_to_natural_units(par, val)
-			
-                    if par in ["tau", "tauR"] and ((0.01 > val) or (val >= 10000)):
-                        self.write_log(" !!! Warning: Converted from {} to {} but expected "\
-                                        "a value within [0.01, 10000) for neuron id {}. "\
-                                            .format(val_orig, val, cell_id_source))
+
+                    if par in ["tau", "tauR"] and ((val < 0.01) or (10000 < val)):
+                        self.write_log(f" !!! Warning: Converted from {val_orig} to {val} but expected "
+                                       f"a value within [0.01, 10000) for neuron id {cell_id_source}. ", is_error=True)
+
                     setattr(syn, par, val)
 
                 except:
@@ -1099,26 +1104,47 @@ class SnuddaSimulate(object):
         Sets resting voltage for neuron
 
         Args:
-            neuron_id: Neuron ID
-            rest_volt: Resting voltage
+            neuron_id: Neuron ID (either int, or list of int)
+            rest_volt: Resting voltage (either None = read from parameter files, float, or list of floats)
+                       in SI units (volt), gets converted to mV before passing to NEURON
 
         """
 
+        if type(neuron_id) != list:
+            neuron_id_list = [neuron_id]
+        else:
+            neuron_id_list = neuron_id
+
         if rest_volt is None:
-            # If no resting voltage is given, extract it from parameters
-            rest_volt = [x for x in self.neurons[neuron_id].parameters
-                         if "param_name" in x and x["param_name"] == "v_init"][0]["value"]
-            self.write_log(f"Neuron {self.neurons[neuron_id].name} resting voltage = {rest_volt}")
+            rest_volt_list = [None] * len(neuron_id_list)
+        elif type(rest_volt) != list:
+            rest_volt_list = [rest_volt]
+        else:
+            rest_volt_list = rest_volt
 
-        soma = [x for x in self.neurons[neuron_id].icell.soma]
-        axon = [x for x in self.neurons[neuron_id].icell.axon]
-        dend = [x for x in self.neurons[neuron_id].icell.dend]
+        for neuron_id, rest_volt in zip(neuron_id_list, rest_volt_list):
 
-        cell = soma + axon + dend
+            if neuron_id not in self.neuron_id:
+                # This neuron is not on this worker, continue
+                continue
 
-        for sec in cell:
-            for seg in sec.allseg():
-                seg.v = rest_volt
+            if rest_volt is None:
+                # If no resting voltage is given, extract it from parameters
+                # Note that the file has NEURON v_init from bluepyopt, in natural units, so convert to SI internally
+                rest_volt = [x for x in self.neurons[neuron_id].parameters
+                             if "param_name" in x and x["param_name"] == "v_init"][0]["value"] * 1e-3
+
+            self.write_log(f"Neuron {self.neurons[neuron_id].name} resting voltage = {rest_volt * 1e3}")
+
+            soma = [x for x in self.neurons[neuron_id].icell.soma]
+            axon = [x for x in self.neurons[neuron_id].icell.axon]
+            dend = [x for x in self.neurons[neuron_id].icell.dend]
+
+            cell = soma + axon + dend
+
+            for sec in cell:
+                for seg in sec.allseg():
+                    seg.v = rest_volt * 1e3
 
     ############################################################################
 
@@ -1506,7 +1532,10 @@ class SnuddaSimulate(object):
                       down_sampling=20):
 
         if not output_file:
-            output_file = os.path.join("save", "traces", "network-voltage")
+            output_file = os.path.join(self.network_path, "simulation", "network-voltage.txt")
+
+        if not os.path.exists(os.path.dirname(output_file)):
+            os.mkdir(os.path.dirname(output_file))
 
         """ Writes voltage to output_file, with the option to down sample data to save space. """
 
@@ -1519,18 +1548,18 @@ class SnuddaSimulate(object):
                 else:
                     mode = 'a'
 
-                with open(output_file, mode) as voltageFile:
+                with open(output_file, mode) as voltage_file:
                     if mode == 'w':
-                        voltageFile.write('-1')  # Indiciate that first column is time
+                        voltage_file.write('-1')  # Indicate that first column is time
 
                         for tIdx in range(0, len(self.t_save), down_sampling):
-                            voltageFile.write(',%.4f' % self.t_save[tIdx])
+                            voltage_file.write(',%.4f' % self.t_save[tIdx])
 
-                    for vID, voltage in zip(self.v_key, self.v_save):
-                        voltageFile.write('\n%d' % vID)
+                    for v_id, voltage in zip(self.v_key, self.v_save):
+                        voltage_file.write('\n%d' % v_id)
 
-                        for vIdx in range(0, len(voltage), down_sampling):
-                            voltageFile.write(',%.4f' % voltage[vIdx])
+                        for v_idx in range(0, len(voltage), down_sampling):
+                            voltage_file.write(',%.4f' % voltage[v_idx])
 
             self.pc.barrier()
 
@@ -1631,6 +1660,53 @@ class SnuddaSimulate(object):
         cur_stim.amp = amplitude * 1e9  # What is units of amp?? nA??
 
         self.i_stim.append(cur_stim)
+
+    ############################################################################
+
+    def add_current_pulses(self, neuron_id, start_times, end_times, amplitudes):
+
+        assert type(neuron_id) == int, "add_current_pulses only works on one neuron_id at a time"
+
+        if type(start_times) != np.ndarray:
+            start_times = np.array(start_times)
+
+        if type(end_times) != np.ndarray:
+            end_times = np.array(end_times)
+
+        if type(amplitudes) != np.ndarray:
+            amplitudes = np.array(amplitudes)
+
+        assert (end_times - start_times).all() > 0, \
+            (f"All start times must be before corresponding end times: "
+             f"\nStart times: {start_times}\nEnd times: {end_times}")
+
+        if neuron_id not in self.neuron_id:
+            return  # The neuron ID does not exist on this worker
+
+        if len(amplitudes) == 1 and len(start_times) > 1:
+            amplitudes = np.repeat(amplitudes[0], len(start_times))
+
+        assert (end_times - start_times > 0).all(), \
+            (f"End time must be after start time for each time pair"
+             f"Start time {start_times}, End time {end_times}")
+
+        all_times = np.concatenate([start_times, end_times])
+        all_cur = np.concatenate([amplitudes, np.zeros(amplitudes.shape)])
+
+        idx = np.argsort(all_times)
+
+        all_times = all_times[idx]
+        all_cur = all_cur[idx]
+
+        t_vec = neuron.h.Vector(all_times * 1e3)
+        amp_vec = neuron.h.Vector(all_cur * 1e9)
+
+        i_clamp = self.sim.neuron.h.IClamp(0.5, sec=self.neurons[neuron_id].icell.soma[0])
+        i_clamp.dur = 1e9
+
+        amp_vec.play(i_clamp._ref_amp, t_vec)
+
+        self.i_stim.append((i_clamp, t_vec, amp_vec))
 
     ############################################################################
 
