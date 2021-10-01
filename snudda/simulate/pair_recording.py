@@ -319,6 +319,48 @@ class PairRecording(SnuddaSimulate):
                 import pdb
                 pdb.set_trace()
 
+    def plot_trace_overview(self):
+        from snudda.plotting import PlotTraces
+        pt = PlotTraces(file_name=self.output_voltage_file_name,
+                        network_file=self.network_file)
+
+        pt.plot_traces([x for x in pt.voltage])
+
+    def plot_traces(self, mark_current_y=-80.05e-3):
+
+        for cur_info in self.experiment_config["currentInjection"]:
+            pre_id = cur_info["neuronID"]
+            cur_start = self.to_list(cur_info["start"])
+            cur_end = self.to_list(cur_info["end"])
+            cur_times = list(zip(cur_start, cur_end))
+
+            skip_time = cur_start[0]/2
+
+            assert type(pre_id) == int, f"Plot traces assumes one pre-synaptic neuron stimulated: {pre_id}"
+
+            post_id = set(self.snudda_loader.find_synapses(pre_id=pre_id)[0][:, 1])
+
+            for pid in post_id:
+                fig_name = f"Current-injection-pre-{pre_id}-post-{pid}.pdf"
+                self.plot_trace(pre_id=pre_id, post_id=pid, fig_name=fig_name,
+                                mark_current=cur_times, mark_current_y=mark_current_y,
+                                skip_time=skip_time)
+
+    def plot_trace(self, pre_id, post_id, offset=0, title=None, fig_name=None, skip_time=0,
+                   mark_current=None, mark_current_y=None):
+
+        from snudda.plotting import PlotTraces
+
+        if not title:
+            title = f"{self.neurons[pre_id].name} -> {self.neurons[post_id].name}"
+
+        pt = PlotTraces(file_name=self.output_voltage_file_name, network_file=self.network_file)
+        fig = pt.plot_traces(trace_id=post_id, offset=offset, title=title, fig_name=fig_name, skip_time=skip_time)
+        if mark_current:
+            import matplotlib.pyplot as plt
+            for t_start, t_end in mark_current:
+                plt.plot([t_start-skip_time, t_end-skip_time], [mark_current_y, mark_current_y], 'r-', linewidth=5)
+
     def mark_synapses_for_recording(self, pre_neuron_id, post_neuron_id):
 
         """ What neuron pair synapses should we record current from? Add them to self.record_from_pair
