@@ -357,10 +357,13 @@ class PairRecording(SnuddaSimulate):
 
         pt = PlotTraces(file_name=self.output_voltage_file_name, network_file=self.network_file)
         fig = pt.plot_traces(trace_id=post_id, offset=offset, title=title, fig_name=fig_name, skip_time=skip_time)
+
         if mark_current:
             import matplotlib.pyplot as plt
             for t_start, t_end in mark_current:
                 plt.plot([t_start-skip_time, t_end-skip_time], [mark_current_y, mark_current_y], 'r-', linewidth=5)
+
+        return fig
 
     def mark_synapses_for_recording(self, pre_neuron_id, post_neuron_id):
 
