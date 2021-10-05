@@ -1,690 +1,653 @@
 import numpy as np
 import json
 import os
-import sys
 import scipy
 import scipy.optimize
 
 import pyswarms as ps
-from pyswarms.utils.functions import single_obj as fx
 from run_little_synapse_run import RunLittleSynapseRun
 import matplotlib.pyplot as plt
 import matplotlib
 
+from snudda.utils.numpy_encoder import NumpyEncoder
+
 ############################################################################
 
-# JSON can not handle numpy arrays or numpy ints/floats, fix with a
-# custom serialiser
 
-class NumpyEncoder(json.JSONEncoder):
-  def default(self, obj):
-    print("NumpyEncoder: " + str(type(obj)))
-      
-    if isinstance(obj, np.integer):
-      return int(obj)
-    elif isinstance(obj, np.floating):
-      return float(obj)
-    elif isinstance(obj, np.ndarray):
-      return obj.tolist()
-    else:
-      #return super(NumpyEncoder, self).default(obj)
-      return json.JSONEncoder.default(self, obj)
-
-##############################################################################
-    
 class Planert2010part2(object):
-  
-  def __init__(self,dataType,cellID=None,prettyPlot=True,fitData=True):
 
-    self.dataLegend = { "II" : "iSPN to iSPN",
-                        "ID" : "iSPN to dSPN",
-                        "DD" : "dSPN to dSPN",
-                        "DI" : "dSPN to iSPN",
-                        "FD" : "FSN to dSPN",
-                        "FI" : "FSN to iSPN" }
-    
-    # Since we reuse code that was parallel, need to say that this is master
-    self.role = "master"
-    self.figResolution = 300
-    self.prettyPlot = prettyPlot
+    def __init__(self, data_type, cell_id=None, pretty_plot=True, fit_data=True):
 
-    fileName = "DATA/Planert2010/PlanertFitting-" + dataType + "-cache.json"
-    print("Loading data " + str(dataType) + ": " + str(fileName))
+        self.data_legend = {"II": "iSPN to iSPN",
+                            "ID": "iSPN to dSPN",
+                            "DD": "dSPN to dSPN",
+                            "DI": "dSPN to iSPN",
+                            "FD": "FSN to dSPN",
+                            "FI": "FSN to iSPN"}
 
-    with open(fileName,"r") as f:
-      self.data = json.load(f)
+        # Since we reuse code that was parallel, need to say that this is master
+        self.role = "master"
+        self.fig_resolution = 300
+        self.pretty_plot = pretty_plot
 
-    if(cellID is None):
-      cellID = np.arange(0,len(self.data["simAmp"]))
-      
-    # Also load old parameters if they exist?
-    self.cacheFileName = "DATA/Planert2010/PlanertFitting-" \
-      + dataType + "-tmgaba-fit.json"
+        file_name = os.path.join("DATA", "Planert2010", f"PlanertFitting-{data_type}-cache.json")
+        print(f"Loading data {data_type}: {file_name}")
 
-    self.loadParameterCache()
+        with open(file_name, "r") as f:
+            self.data = json.load(f)
 
-    if(fitData):
-      # Save parameters after fitting
-    
-      if(type(cellID) in [list,np.ndarray]):
-        for cID in cellID:
-          self.fitPeaks(dataType,cID)
-      else:
-        self.fitPeaks(dataType,int(cellID))
+        if cell_id is None:
+            cell_id = np.arange(0, len(self.data["simAmp"]))
 
-      self.saveParameterCache()
-    else:
-      self.setupModelSynapseFitting(dataType)
-      
-      if(type(cellID) in [list,np.ndarray]):
-        for cID in cellID:
-          self.plotData(dataType,cID,runSim=True,show=False)
-      else:
-        self.plotData(dataType,int(cellID),runSim=True,show=False)
-      
+        # Also load old parameters if they exist?
+        self.cache_file_name = os.path.join("DATA", "Planert2010", f"PlanertFitting-{data_type}-tmgaba-fit.json")
 
-  ############################################################################
+        self.load_parameter_cache()
 
-  def __delete__(self):
-    # Save cache file before exiting
-    self.saveParameterCache()
-    
+        if fit_data:
+            # Save parameters after fitting
 
-  def addParameterCache(self,cellID,name,value):
+            if type(cell_id) in [list, np.ndarray]:
+                for cID in cell_id:
+                    self.fit_peaks(data_type, cID)
+            else:
+                self.fit_peaks(data_type, int(cell_id))
 
-    if(cellID not in self.parameterCache):
-      self.parameterCache[int(cellID)] = dict([])
-    
-    self.parameterCache[int(cellID)][name] = value
-
-  ############################################################################
-
-  def getParameterCache(self,cellID,name):
-
-    if(cellID in self.parameterCache and name in self.parameterCache[cellID]):
-      return self.parameterCache[cellID][name]
-    else:
-      return None
-
-  ############################################################################
-
-  def loadParameterCache(self):
-
-    if(os.path.exists(self.cacheFileName)):
-      try:
-        print("Loading cache file " + str(self.cacheFileName))
-        with open(self.cacheFileName,"r") as f:
-          tmpDict = json.load(f)
-          
-          self.parameterCache = dict([])
-          for k in tmpDict:
-            self.parameterCache[int(k)] = tmpDict[k]
-
-          f.close()
-      except:
-        import traceback
-        tstr = traceback.format_exc()
-        print(tstr)
-        
-        print("Unable to open " + str(self.cacheFileName))
-        self.parameterCache = dict([])
-    else:
-      # No cache file to load, create empty dictionary
-      self.parameterCache = dict([])  
-
-  ############################################################################
-
-  def saveParameterCache(self):
-
-    if(self.role != "master"):
-      print("No servants are allowed to write output to json, ignoring call.")
-      return
-    
-    print("Saving parameters to cache file: " + str(self.cacheFileName))
-
-    try:
-      with open(self.cacheFileName,"w") as f:
-        json.dump(self.parameterCache,f,indent=2,cls=NumpyEncoder)
-        f.close()
-    except:
-      import traceback
-      tstr = traceback.format_exc()
-      print(tstr)
-      
-      print("Failed to save cache file ... " + str(self.cacheFileName))
-      
-      
-  ############################################################################
-  
-  def fitPeaks(self,dataType,cellID):
-
-    print("Optimising for ID = " + str(cellID))
-    
-    # Get peaks
-    peakHeight = np.array(self.data["simAmp"][cellID])
-    tStim = np.array(self.data["tStim"])
-
-    assert len(tStim) == len(peakHeight), \
-      "Inconsistent data lengths for fitPeaks"
-    sigma = np.ones(len(peakHeight))
-    
-    # Setup neuron model
-    self.setupModelSynapseFitting(dataType)
-
-    # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR)
-    modelBounds = ([1e-3,1e-4,1e-4,0, 1e-5],
-                   [1.0,2,2,0.9999999,1e-1])
-
-    
-    # Pyswarm options
-    options = {"c1":0.5, "c2":0.3, "w":0.9} # default
-
-    nParticles = 200
-    nIterations = 10
-
-    optimizer = ps.single.GlobalBestPSO(n_particles=nParticles,
-                                        dimensions=len(modelBounds[0]),
-                                        options=options,
-                                        bounds=modelBounds)
-
-    cost, fitParams = optimizer.optimize(self.neuronSynapseSwarmHelperPlanert,
-                                         iters=nIterations,
-                                         tStim = tStim,
-                                         peakHeight = peakHeight)
-
-    modelHeights,tSim,vSim = \
-      self._neuronSynapseSwarmHelper(fitParams,tStim)
-    
-    # tau < tauR, so we use tauRatio for optimisation
-    fitParams[3] *= fitParams[1] # tau = tauR * tauRatio
-
-    print("Parameters: U = %.3g, tauR = %.3g, tauF = %.3g, tau = %.3g, cond = %3.g" % tuple(fitParams))
-    
-    print("peakHeight = " + str(peakHeight))
-    print("modelHeights = " + str(modelHeights))
-    
-    self.addParameterCache(cellID,"synapse", \
-                           { "U" : fitParams[0],
-                             "tauR" : fitParams[1],
-                             "tauF" : fitParams[2],
-                             "tau"  : fitParams[3],
-                             "cond" : fitParams[4] })
-
-    self.addParameterCache(cellID,"surrogatePeaks",peakHeight)
-    self.addParameterCache(cellID,"fittedPeaks",modelHeights)
-
-    self.plotData(dataType=dataType,cellID=cellID,
-                  tStim=tStim,
-                  surrogatePeaks=peakHeight,
-                  modelPeaks=modelHeights,
-                  tSim=tSim,
-                  vSim=vSim,
-                  params=fitParams)
-                  
-
-  ############################################################################
-
-  def plotData(self,dataType,cellID,
-               tStim=None,
-               surrogatePeaks=None,
-               modelPeaks=None,
-               tSim=None,vSim=None,
-               modelParams=None,
-               show=True,
-               tSkip=0.01,
-               prettyPlot=None,
-               runSim=False):
-
-    matplotlib.rcParams.update({'font.size': 24})
-    
-    if(surrogatePeaks is None):
-      surrogatePeaks = np.array(self.data["simAmp"][cellID])
-
-    if(tStim is None):
-      tStim = np.array(self.data["tStim"])
-
-    if(modelParams is None):
-      pDict = self.getParameterCache(cellID,"synapse")
-      modelParams = [pDict[x] for x in ["U","tauR","tauF","tau","cond"]]
-      
-    if(runSim):
-
-      assert modelParams is not None, \
-        "plotData: modelParams must be given if runSim = True"
-      if(tSim is not None or vSim is not None):
-        print("Ignoring tSim and vSim when runSim = True")
-      
-      print("Run simulation for " + str(dataType) + " " + str(cellID))
-      U,tauR,tauF,tau,cond = modelParams
-
-      modelPeaks,tSim,vSim = self.synapseModelNeuron(tStim,U,
-                                                     tauR,tauF,cond,tau,
-                                                     params={},
-                                                     returnTrace=True)
-      
-    if(prettyPlot is None):
-      prettyPlot = self.prettyPlot
-    
-    plt.figure()
-    if(tSim is not None):
-
-      tIdx = np.where(tSim > tSkip)[0][0]
-      
-      vBase = np.mean(vSim[-50:-1]*1e3)
-
-      for t,sp,mp in zip(tStim*1e3,surrogatePeaks*1e3,modelPeaks*1e3):
-
-        idx = np.argmin(np.abs(tSim-t))
-        plt.plot([t,t],[vBase,vBase+sp],color=(1,0.31,0),linewidth=3)
-        #plt.plot([t,t],[vBase,vBase+sp],color="red",linewidth=3)        
-        plt.plot([t,t],[vBase,vBase+mp],color="blue")
-
-      plt.plot(1e3*tSim[tIdx:],1e3*vSim[tIdx:],color="black")
-        
-    else:
-      for t,sp,mp in zip(tStim*1e3,surrogatePeaks*1e3,modelPeaks*1e3):
-
-        #plt.plot([t,t],[0,sp],color="red",linewidth=3)
-        plt.plot([t,t],[0,sp],color=(1,0.31,0),linewidth=3)        
-        plt.plot([t,t],[0,mp],color="blue")
-
-      vBase = 0 # No sim data, base it at 0
-      
-    if(prettyPlot):
-
-      vBarLength = 0.05
-      if(dataType[0] == "F"):
-        vBarLength = 0.5
-      
-      # Draw scalebars
-      vScaleX = 1200
-      #vMax = np.max(vPlot[np.where(tPlot > 0.050)[0]])
-      yScaleBar = vBase + float(np.diff(plt.ylim()))/4
-      vScaleY1 = yScaleBar + vBarLength
-      vScaleY2 = yScaleBar
-      tScaleY  = yScaleBar
-      tScaleX1 = vScaleX
-      tScaleX2 = vScaleX + 100
-      
-      plt.plot([vScaleX,vScaleX],[vScaleY1,vScaleY2],color="black")
-      plt.plot([tScaleX1,tScaleX2],[tScaleY,tScaleY],color="black")
-
-      plt.text(vScaleX-100, vScaleY2 + 0.30*float(np.diff(plt.ylim())),\
-               ("%.2f" % (vScaleY1-vScaleY2)) + " mV",
-                     rotation=90)
-      plt.text(vScaleX,vScaleY2 - float(np.diff(plt.ylim()))/10,
-               ("%.0f" % (tScaleX2 - tScaleX1) + " ms"))
-
-      plt.axis("off")
-
-      if(False):
-        plt.ion()
-        plt.show()
-        import pdb
-        pdb.set_trace()
-        
-    if(not prettyPlot):
-      if(modelParams is not None):
-        titleStr = "\nU=%.3g, tauR=%.3g, tauF=%.3g, tau=%.3g,\ncond=%.3g" \
-          % (modelParams[0],
-             modelParams[1],
-             modelParams[2],
-             modelParams[3],
-             modelParams[4])
-        plt.title(titleStr)
-
-      plt.xlabel("Time (ms)")
-      plt.ylabel("Volt (mV)")
-
-      # Remove part of the frame
-      plt.gca().spines["right"].set_visible(False)
-      plt.gca().spines["top"].set_visible(False)
-
-    else:
-      if(dataType in self.dataLegend):
-        plt.title(self.dataLegend[dataType])
-
-      plt.axis("off")
-
-      
-    if(not os.path.exists("figures/")):
-      os.makedirs("figures/")
-
-    if(prettyPlot):
-      figName = "figures/PlanertFitting-" + dataType \
-        + "-" + str(cellID) + "-noaxis.pdf"      
-    else:
-      figName = "figures/PlanertFitting-" + dataType \
-        + "-" + str(cellID) + ".pdf"
-    plt.savefig(figName,dpi=self.figResolution)
-
-    if(show):
-      plt.ion()
-      plt.show()
-    else:
-      plt.ioff()
-      plt.close()
-     
-    
-  ############################################################################
-
-  def neuronSynapseSwarmHelperPlanert(self,pars,tStim,peakHeight):
-
-    res = np.zeros((pars.shape[0]))
-
-    for idx,p in enumerate(pars):
-      peakH,tSim,vSim = self._neuronSynapseSwarmHelper(p,tStim)
-
-      # Calculating error in peak height
-      hDiff = np.abs(peakH - peakHeight)
-      hDiff[0] *= 3
-      hDiff[-1] *= 3
-      hError = np.sum(hDiff)/len(hDiff)
-   
-      res[idx] = hError
-      
-    return res
-      
-  ############################################################################
-    
-  def _neuronSynapseSwarmHelper(self,
-                               pars,
-                               tSpikes):
-
-    U,tauR,tauF,tauRatio,cond = pars
-    tau = tauR*tauRatio
-    params = {}
-    
-    peakHeights,tSim,vSim = self.synapseModelNeuron(tSpikes,U,
-                                                    tauR,tauF,cond,tau,
-                                                    params=params,
-                                                    returnTrace=True)
-    
-    return peakHeights,tSim,vSim
-   
-  ############################################################################
-  
-  def setupModelSynapseFitting(self,dataType,params={}):
-
-    # If the delta model existed, clear it
-    #self.rsrDeltaModel = None
-
-    somaDiameter = 20e-6
-    somaGleak = 3
-
-    params = { "somaDiameter" : somaDiameter, "somaGleak" : somaGleak }
-
-    
-    tStim = np.array(self.data["tStim"])
-    maxTime = np.max(tStim) + 0.5
-    
-    baselineDepol = -80e-3
-
-    self.rsrSynapseModel = RunLittleSynapseRun(stim_times=tStim,
-                                               holding_voltage=baselineDepol,
-                                               synapse_type="GABA",
-                                               params=params,
-                                               time=maxTime)
-
-   ############################################################################
-  
-  def synapseModelNeuron(self,tSpike,U,tauR,tauF,cond,tau,
-                         params = {},
-                         returnTrace=False):
-
-    # print("Running neuron model")
-    
-    assert self.rsrSynapseModel is not None, \
-      "!!! Need to call setupModelSynapseFitting first"
-
-    # Should we make a copy of params, to not destroy it? ;)
-    params["U"]    = U
-    params["tauR"] = tauR
-    params["tauF"] = tauF
-    params["cond"] = cond
-    params["tau"]  = tau
-
-    #print("params=" + str(params))
-    
-    (tSim,vSim,iSim) = \
-      self.rsrSynapseModel.run2(pars=params)
-
-    if(tSim.shape != vSim.shape):
-      print("Shape are different, why?!")
-      import pdb
-      pdb.set_trace()            
-    
-    peakIdx = self.getPeakIdx2(time=tSim,volt=vSim,stimTime=tSpike)
-    peakHeight,decayFits,vBase = self.findTraceHeights(tSim,vSim,peakIdx)
-    
-    if(returnTrace):
-      return peakHeight,tSim,vSim
-    else:
-      return peakHeight
-
-  ############################################################################
-
-  def getPeakIdx2(self,stimTime,time,volt):
-
-    freq = 1.0/(stimTime[1]-stimTime[0])
-    pWindow = 1.0/(2*freq)*np.ones(stimTime.shape)
-    pWindow[-1] *= 5
-    
-    peakInfo = self.findPeaksHelper(pTime=stimTime,
-                                    pWindow=pWindow,
-                                    time=time,
-                                    volt=volt)
-
-    return peakInfo["peakIdx"]
-   
-   
-  
-  ############################################################################
-
-  # Find peaks within pStart[i] and pStart[i]+pWindow[i]
-  # The value is not the amplitude of the peak, just the voltage at the peak
-  
-  def findPeaksHelper(self,pTime,pWindow,
-                      cellID=None,dataType=None,
-                      time=None,volt=None):
-
-    if(cellID is not None):
-      assert dataType is not None, "If you give cellID you need dataType"
-      peakData = self.getParameterCache(cellID,"peaks")
-      if(peakData is not None):
-        return peakData
-    
-      (volt,time) = self.getData(dataType,cellID) 
-    else:
-      assert volt is not None and time is not None, \
-        "Either use cellID to get time and volt of experimental data, or send time and volt explicitly"
-      
-    peakIdx = []
-    peakTime = []
-    peakVolt = []
-    
-    for pt,pw in zip(pTime,pWindow):
-      tStart = pt
-      tEnd = pt + pw
-
-      tIdx = np.where(np.logical_and(tStart <= time,time <= tEnd))[0]
-
-      # We assume that neuron is more depolarised than -65, ie gaba is
-      # also depolarising
-      pIdx = tIdx[np.argmax(volt[tIdx])]
-        
-      peakIdx.append(int(pIdx))
-      peakTime.append(time[pIdx])
-      peakVolt.append(volt[pIdx])
-      
-    # Save to cache -- obs peakVolt is NOT amplitude of peak, just volt
-
-    peakDict = { "peakIdx" : np.array(peakIdx),
-                 "peakTime" : np.array(peakTime),
-                 "peakVolt" : np.array(peakVolt)} # NOT AMPLITUDE
-
-    if(cellID is not None):
-      self.addParameterCache(cellID,"peaks",peakDict)
-                           
-    return peakDict
-  # (peakIdx,peakTime,peakVolt)
-
-  ############################################################################
-
-  # We are using a simplified function that skips decay fits
-  
-  def findTraceHeights(self,time,volt,peakIdx):
-
-    decayFunc = lambda x,a,b,c : a*np.exp(-x/b) + c
-    
-    vBase = np.mean(volt[int(0.3*peakIdx[0]):int(0.8*peakIdx[0])])
-
-    peakHeight = np.zeros((len(peakIdx,)))
-    peakHeight[0] = volt[peakIdx[0]] - vBase
-
-    decayFits = []
-
-    
-    for idxB in range(1,len(peakIdx)):
-
-      if(peakHeight[0] > 0):
-        if(idxB < len(peakIdx) -1):        
-          p0d = [0.06,-0.05,-0.074]
+            self.save_parameter_cache()
         else:
-          p0d = [1e-8,10000,-0.0798]  
-      else:
-        # In some cases for GABA we had really fast decay back
-        if(idxB < len(peakIdx) -1):        
-          p0d = [-0.06,0.05,-0.0798]
+            self.setup_model_synapse_fitting(data_type)
+
+            if type(cell_id) in [list, np.ndarray]:
+                for cID in cell_id:
+                    self.plot_data(data_type, cID, run_sim=True, show=False)
+            else:
+                self.plot_data(data_type, int(cell_id), run_sim=True, show=False)
+
+    ############################################################################
+
+    def __delete__(self):
+        # Save cache file before exiting
+        self.save_parameter_cache()
+
+    def add_parameter_cache(self, cell_id, name, value):
+
+        if cell_id not in self.parameter_cache:
+            self.parameter_cache[int(cell_id)] = dict([])
+
+        self.parameter_cache[int(cell_id)][name] = value
+
+    ############################################################################
+
+    def get_parameter_cache(self, cell_id, name):
+
+        if cell_id in self.parameter_cache and name in self.parameter_cache[cell_id]:
+            return self.parameter_cache[cell_id][name]
         else:
-          p0d = [-1e-5,1e5,-0.0798]
+            return None
 
-      idxA = idxB -1
+    ############################################################################
 
-      peakIdxA = peakIdx[idxB-1] # Prior peak
-      peakIdxB = peakIdx[idxB] # Next peak
+    def load_parameter_cache(self):
 
-      if(idxB < len(peakIdx) -1):
-        # Not the last spike
-      
-        idxStart = int(peakIdxA*0.2 + peakIdxB*0.8)
-        idxEnd = int(peakIdxA*0.08 + peakIdxB*0.92)
-      else:
-        # Last spike, use only last half of decay trace
-        idxStart = int(peakIdxA*0.6 + peakIdxB*0.4)
-        idxEnd = int(peakIdxA*0.08 + peakIdxB*0.92)
+        if os.path.exists(self.cache_file_name):
+            try:
+                print(f"Loading cache file {self.cache_file_name}")
+                with open(self.cache_file_name, "r") as f:
+                    tmp_dict = json.load(f)
 
-      try:
-        assert idxStart < idxEnd
-      except:
-        import traceback
-        tstr = traceback.format_exc()
-        print(tstr)
+                    self.parameter_cache = dict([])
+                    for k in tmp_dict:
+                        self.parameter_cache[int(k)] = tmp_dict[k]
 
-        plt.figure()
-        plt.plot(time,volt)
-        plt.xlabel("Time (error plot)")
-        plt.ylabel("Volt (error plot)")
-        plt.ion()
-        plt.show()
-        plt.title("ERROR!!!")
-        import pdb
-        pdb.set_trace()
-        
-      tAB = time[idxStart:idxEnd]
-      vAB = volt[idxStart:idxEnd]        
+                    f.close()
+            except:
+                import traceback
+                tstr = traceback.format_exc()
+                print(tstr)
 
-      tABfit = tAB - tAB[0]
-      vABfit = vAB
-     
-      try:
+                print(f"Unable to open {self.cache_file_name}")
+                self.parameter_cache = dict([])
+        else:
+            # No cache file to load, create empty dictionary
+            self.parameter_cache = dict([])
+
+            ############################################################################
+
+    def save_parameter_cache(self):
+
+        if self.role != "master":
+            print("No servants are allowed to write output to json, ignoring call.")
+            return
+
+        print("Saving parameters to cache file: " + str(self.cache_file_name))
 
         try:
-          fitParams,pcov = scipy.optimize.curve_fit(decayFunc,tABfit,vABfit,
-                                                    p0=p0d)
+            with open(self.cache_file_name, "w") as f:
+                json.dump(self.parameter_cache, f, indent=2, cls=NumpyEncoder)
+                f.close()
         except:
-          import traceback
-          tstr = traceback.format_exc()
-          print(tstr)
-          
-          print("!!! Failed to converge, trying with smaller decay constant")
-          p0d[1] *= 0.01
-          fitParams,pcov = scipy.optimize.curve_fit(decayFunc,tABfit,vABfit,
-                                                    p0=p0d)
-          
-        tB = time[peakIdxB] - tAB[0]
-        vBaseB = decayFunc(tB,fitParams[0],fitParams[1],fitParams[2])
-        
-        peakHeight[idxB] = volt[peakIdxB] - vBaseB
+            import traceback
+            tstr = traceback.format_exc()
+            print(tstr)
 
-        vFit = decayFunc(tAB-tAB[0],fitParams[0],fitParams[1],fitParams[2])
-        decayFits.append((tAB,vFit))
+            print(f"Failed to save cache file ... {self.cache_file_name}")
 
-        ################################################################
+    ############################################################################
 
-        if(False):
-          plt.figure()
-          plt.plot(tAB,vAB,'r')
-          plt.title("Error in findTraceHeights")
-          plt.xlabel("time")
-          plt.ylabel("volt")
-          plt.plot(tAB,vFit,'k-')
-          plt.ion()
-          plt.show()
+    def fit_peaks(self, data_type, cell_id):
 
-          import pdb
-          pdb.set_trace()
+        print(f"Optimising for ID = {cell_id}")
 
-        
-        ########################################
+        # Get peaks
+        peak_height = np.array(self.data["simAmp"][cell_id])
+        t_stim = np.array(self.data["tStim"])
 
-      except:
-        
-        print("Check that the threshold in the peak detection before is OK")
-        #self.plot(name)
-        import traceback
-        tstr = traceback.format_exc()
-        print(tstr)
+        assert len(t_stim) == len(peak_height), "Inconsistent data lengths for fitPeaks"
+        sigma = np.ones(len(peak_height))
 
-        if(True):
-          plt.figure()
-          plt.plot(tAB,vAB,'r')
-          plt.title("Error in findTraceHeights")
-          plt.xlabel("time")
-          plt.ylabel("volt")
-          #plt.plot(tAB,vFit,'k-')
-          plt.ion()
-          plt.show()
+        # Setup neuron model
+        self.setup_model_synapse_fitting(data_type)
 
-        import pdb
-        pdb.set_trace()
+        # U, tauR, tauF, tauRatio, cond (obs, tau = tauRatio * tauR)
+        model_bounds = ([1e-3, 1e-4, 1e-4, 0, 1e-5],
+                        [1.0, 2, 2, 0.9999999, 1e-1])
 
-    #import pdb
-    #pdb.set_trace()
-    
-        
-    return peakHeight.copy(), decayFits,vBase
-        
-  ############################################################################
-  
-    
-  ############################################################################
+        # Pyswarm options
+        options = {"c1": 0.5, "c2": 0.3, "w": 0.9}  # default
+
+        n_particles = 200
+        n_iterations = 10
+
+        optimizer = ps.single.GlobalBestPSO(n_particles=n_particles,
+                                            dimensions=len(model_bounds[0]),
+                                            options=options,
+                                            bounds=model_bounds)
+
+        cost, fit_params = optimizer.optimize(self.neuron_synapse_swarm_helper_planert,
+                                              iters=n_iterations,
+                                              tStim=t_stim,
+                                              peakHeight=peak_height)
+
+        model_heights, t_sim, v_sim = self._neuron_synapse_swarm_helper(fit_params, t_stim)
+
+        # tau < tauR, so we use tauRatio for optimisation
+        fit_params[3] *= fit_params[1]  # tau = tauR * tauRatio
+
+        print("Parameters: U = %.3g, tauR = %.3g, tauF = %.3g, tau = %.3g, cond = %3.g" % tuple(fit_params))
+
+        print(f"peakHeight = {peak_height}")
+        print(f"modelHeights = {model_heights}")
+
+        self.add_parameter_cache(cell_id, "synapse",
+                                 {"U": fit_params[0],
+                                  "tauR": fit_params[1],
+                                  "tauF": fit_params[2],
+                                  "tau": fit_params[3],
+                                  "cond": fit_params[4]})
+
+        self.add_parameter_cache(cell_id, "surrogatePeaks", peak_height)
+        self.add_parameter_cache(cell_id, "fittedPeaks", model_heights)
+
+        self.plot_data(data_type=data_type, cell_id=cell_id,
+                       t_stim=t_stim,
+                       surrogate_peaks=peak_height,
+                       model_peaks=model_heights,
+                       t_sim=t_sim,
+                       v_sim=v_sim,
+                       params=fit_params)
+
+    ############################################################################
+
+    def plot_data(self, data_type, cell_id,
+                  t_stim=None,
+                  surrogate_peaks=None,
+                  model_peaks=None,
+                  t_sim=None, v_sim=None,
+                  model_params=None,
+                  show=True,
+                  t_skip=0.01,
+                  pretty_plot=None,
+                  run_sim=False):
+
+        matplotlib.rcParams.update({'font.size': 24})
+
+        if surrogate_peaks is None:
+            surrogate_peaks = np.array(self.data["simAmp"][cell_id])
+
+        if t_stim is None:
+            t_stim = np.array(self.data["tStim"])
+
+        if model_params is None:
+            p_dict = self.get_parameter_cache(cell_id, "synapse")
+            model_params = [p_dict[x] for x in ["U", "tauR", "tauF", "tau", "cond"]]
+
+        if run_sim:
+
+            assert model_params is not None, \
+                "plotData: modelParams must be given if runSim = True"
+            if t_sim is not None or v_sim is not None:
+                print("Ignoring tSim and vSim when runSim = True")
+
+            print("Run simulation for " + str(data_type) + " " + str(cell_id))
+            U, tau_r, tau_f, tau, cond = model_params
+
+            model_peaks, t_sim, v_sim = self.synapse_model_neuron(t_stim, U,
+                                                                  tau_r, tau_f, cond, tau,
+                                                                  params={},
+                                                                  return_trace=True)
+
+        if pretty_plot is None:
+            pretty_plot = self.pretty_plot
+
+        plt.figure()
+        if t_sim is not None:
+
+            t_idx = np.where(t_sim > t_skip)[0][0]
+
+            v_base = np.mean(v_sim[-50:-1] * 1e3)
+
+            for t, sp, mp in zip(t_stim * 1e3, surrogate_peaks * 1e3, model_peaks * 1e3):
+                idx = np.argmin(np.abs(t_sim - t))
+                plt.plot([t, t], [v_base, v_base + sp], color=(1, 0.31, 0), linewidth=3)
+                # plt.plot([t,t],[vBase,vBase+sp],color="red",linewidth=3)
+                plt.plot([t, t], [v_base, v_base + mp], color="blue")
+
+            plt.plot(1e3 * t_sim[t_idx:], 1e3 * v_sim[t_idx:], color="black")
+
+        else:
+            for t, sp, mp in zip(t_stim * 1e3, surrogate_peaks * 1e3, model_peaks * 1e3):
+                # plt.plot([t,t],[0,sp],color="red",linewidth=3)
+                plt.plot([t, t], [0, sp], color=(1, 0.31, 0), linewidth=3)
+                plt.plot([t, t], [0, mp], color="blue")
+
+            v_base = 0  # No sim data, base it at 0
+
+        if pretty_plot:
+
+            v_bar_length = 0.05
+            if data_type[0] == "F":
+                v_bar_length = 0.5
+
+            # Draw scalebars
+            v_scale_x = 1200
+            # vMax = np.max(vPlot[np.where(tPlot > 0.050)[0]])
+            y_scale_bar = v_base + float(np.diff(plt.ylim())) / 4
+            v_scale_y1 = y_scale_bar + v_bar_length
+            v_scale_y2 = y_scale_bar
+            t_scale_y = y_scale_bar
+            t_scale_x1 = v_scale_x
+            t_scale_x2 = v_scale_x + 100
+
+            plt.plot([v_scale_x, v_scale_x], [v_scale_y1, v_scale_y2], color="black")
+            plt.plot([t_scale_x1, t_scale_x2], [t_scale_y, t_scale_y], color="black")
+
+            plt.text(v_scale_x - 100, v_scale_y2 + 0.30 * float(np.diff(plt.ylim())),
+                     ("%.2f" % (v_scale_y1 - v_scale_y2)) + " mV",
+                     rotation=90)
+            plt.text(v_scale_x, v_scale_y2 - float(np.diff(plt.ylim())) / 10,
+                     ("%.0f" % (t_scale_x2 - t_scale_x1) + " ms"))
+
+            plt.axis("off")
+
+            if False:
+                plt.ion()
+                plt.show()
+                import pdb
+                pdb.set_trace()
+
+        if not pretty_plot:
+            if model_params is not None:
+                title_str = "\nU=%.3g, tauR=%.3g, tauF=%.3g, tau=%.3g,\ncond=%.3g" \
+                           % (model_params[0],
+                              model_params[1],
+                              model_params[2],
+                              model_params[3],
+                              model_params[4])
+                plt.title(title_str)
+
+            plt.xlabel("Time (ms)")
+            plt.ylabel("Volt (mV)")
+
+            # Remove part of the frame
+            plt.gca().spines["right"].set_visible(False)
+            plt.gca().spines["top"].set_visible(False)
+
+        else:
+            if data_type in self.data_legend:
+                plt.title(self.data_legend[data_type])
+
+            plt.axis("off")
+
+        if not os.path.exists("figures/"):
+            os.makedirs("figures/")
+
+        if pretty_plot:
+            fig_name = os.path.join("figures", f"PlanertFitting-{data_type}-{cell_id}-noaxis.pdf")
+        else:
+            fig_name = os.path.join("figures", f"PlanertFitting-{data_type}-{cell_id}.pdf")
+
+        plt.savefig(fig_name, dpi=self.fig_resolution)
+
+        if show:
+            plt.ion()
+            plt.show()
+        else:
+            plt.ioff()
+            plt.close()
+
+    ############################################################################
+
+    def neuron_synapse_swarm_helper_planert(self, pars, t_stim, peak_height):
+
+        res = np.zeros((pars.shape[0]))
+
+        for idx, p in enumerate(pars):
+            peak_h, t_sim, v_sim = self._neuron_synapse_swarm_helper(p, t_stim)
+
+            # Calculating error in peak height
+            h_diff = np.abs(peak_h - peak_height)
+            h_diff[0] *= 3
+            h_diff[-1] *= 3
+            h_error = np.sum(h_diff) / len(h_diff)
+
+            res[idx] = h_error
+
+        return res
+
+    ############################################################################
+
+    def _neuron_synapse_swarm_helper(self,
+                                     pars,
+                                     t_spikes):
+
+        U, tau_r, tau_f, tau_ratio, cond = pars
+        tau = tau_r * tau_ratio
+        params = {}
+
+        peak_heights, t_sim, v_sim = self.synapse_model_neuron(t_spikes, U,
+                                                               tau_r, tau_f, cond, tau,
+                                                               params=params,
+                                                               return_trace=True)
+
+        return peak_heights, t_sim, v_sim
+
+    ############################################################################
+
+    def setup_model_synapse_fitting(self, data_type, params={}):
+
+        # If the delta model existed, clear it
+        # self.rsrDeltaModel = None
+
+        soma_diameter = 20e-6
+        soma_gleak = 3
+
+        params = {"somaDiameter": soma_diameter, "somaGleak": soma_gleak}
+
+        t_stim = np.array(self.data["tStim"])
+        max_time = np.max(t_stim) + 0.5
+
+        baseline_depol = -80e-3
+
+        self.rsr_synapse_model = RunLittleSynapseRun(stim_times=t_stim,
+                                                     holding_voltage=baseline_depol,
+                                                     synapse_type="GABA",
+                                                     params=params,
+                                                     time=max_time)
+
+    ############################################################################
+
+    def synapse_model_neuron(self, t_spike, U, tau_r, tau_f, cond, tau,
+                             params={},
+                             return_trace=False):
+
+        # print("Running neuron model")
+
+        assert self.rsr_synapse_model is not None, \
+            "!!! Need to call setupModelSynapseFitting first"
+
+        # Should we make a copy of params, to not destroy it? ;)
+        params["U"] = U
+        params["tauR"] = tau_r
+        params["tauF"] = tau_f
+        params["cond"] = cond
+        params["tau"] = tau
+
+        # print("params=" + str(params))
+
+        (tSim, vSim, iSim) = \
+            self.rsr_synapse_model.run2(pars=params)
+
+        if tSim.shape != vSim.shape:
+            print("Shape are different, why?!")
+            import pdb
+            pdb.set_trace()
+
+        peak_idx = self.get_peak_idx2(time=tSim, volt=vSim, stim_time=t_spike)
+        peakHeight, decayFits, vBase = self.find_trace_heights(tSim, vSim, peak_idx)
+
+        if return_trace:
+            return peakHeight, tSim, vSim
+        else:
+            return peakHeight
+
+    ############################################################################
+
+    def get_peak_idx2(self, stim_time, time, volt):
+
+        freq = 1.0 / (stim_time[1] - stim_time[0])
+        p_window = 1.0 / (2 * freq) * np.ones(stim_time.shape)
+        p_window[-1] *= 5
+
+        peak_info = self.find_peaks_helper(p_time=stim_time,
+                                           p_window=p_window,
+                                           time=time,
+                                           volt=volt)
+
+        return peak_info["peakIdx"]
+
+    ############################################################################
+
+    # Find peaks within pStart[i] and pStart[i]+pWindow[i]
+    # The value is not the amplitude of the peak, just the voltage at the peak
+
+    def find_peaks_helper(self, p_time, p_window,
+                          cell_id=None, data_type=None,
+                          time=None, volt=None):
+
+        if cell_id is not None:
+            assert data_type is not None, "If you give cellID you need dataType"
+            peak_data = self.get_parameter_cache(cell_id, "peaks")
+            if peak_data is not None:
+                return peak_data
+
+            (volt, time) = self.get_data(data_type, cell_id)
+        else:
+            assert volt is not None and time is not None, \
+                "Either use cellID to get time and volt of experimental data, or send time and volt explicitly"
+
+        peak_idx = []
+        peak_time = []
+        peak_volt = []
+
+        for pt, pw in zip(p_time, p_window):
+            t_start = pt
+            t_end = pt + pw
+
+            t_idx = np.where(np.logical_and(t_start <= time, time <= t_end))[0]
+
+            # We assume that neuron is more depolarised than -65, ie gaba is
+            # also depolarising
+            p_idx = t_idx[np.argmax(volt[t_idx])]
+
+            peak_idx.append(int(p_idx))
+            peak_time.append(time[p_idx])
+            peak_volt.append(volt[p_idx])
+
+        # Save to cache -- obs peakVolt is NOT amplitude of peak, just volt
+
+        peak_dict = {"peakIdx": np.array(peak_idx),
+                     "peakTime": np.array(peak_time),
+                     "peakVolt": np.array(peak_volt)}  # NOT AMPLITUDE
+
+        if cell_id is not None:
+            self.add_parameter_cache(cell_id, "peaks", peak_dict)
+
+        return peak_dict
+
+    # (peakIdx,peakTime,peakVolt)
+
+    ############################################################################
+
+    # We are using a simplified function that skips decay fits
+
+    def find_trace_heights(self, time, volt, peak_idx):
+
+        decay_func = lambda x, a, b, c: a * np.exp(-x / b) + c
+
+        v_base = np.mean(volt[int(0.3 * peak_idx[0]):int(0.8 * peak_idx[0])])
+
+        peak_height = np.zeros((len(peak_idx, )))
+        peak_height[0] = volt[peak_idx[0]] - v_base
+
+        decay_fits = []
+
+        for idx_b in range(1, len(peak_idx)):
+
+            if peak_height[0] > 0:
+                if idx_b < len(peak_idx) - 1:
+                    p0d = [0.06, -0.05, -0.074]
+                else:
+                    p0d = [1e-8, 10000, -0.0798]
+            else:
+                # In some cases for GABA we had really fast decay back
+                if idx_b < len(peak_idx) - 1:
+                    p0d = [-0.06, 0.05, -0.0798]
+                else:
+                    p0d = [-1e-5, 1e5, -0.0798]
+
+            idx_a = idx_b - 1
+
+            peak_idx_a = peak_idx[idx_b - 1]  # Prior peak
+            peak_idx_b = peak_idx[idx_b]  # Next peak
+
+            if idx_b < len(peak_idx) - 1:
+                # Not the last spike
+
+                idx_start = int(peak_idx_a * 0.2 + peak_idx_b * 0.8)
+                idx_end = int(peak_idx_a * 0.08 + peak_idx_b * 0.92)
+            else:
+                # Last spike, use only last half of decay trace
+                idx_start = int(peak_idx_a * 0.6 + peak_idx_b * 0.4)
+                idx_end = int(peak_idx_a * 0.08 + peak_idx_b * 0.92)
+
+            try:
+                assert idx_start < idx_end
+            except:
+                import traceback
+                t_str = traceback.format_exc()
+                print(t_str)
+
+                plt.figure()
+                plt.plot(time, volt)
+                plt.xlabel("Time (error plot)")
+                plt.ylabel("Volt (error plot)")
+                plt.ion()
+                plt.show()
+                plt.title("ERROR!!!")
+                import pdb
+                pdb.set_trace()
+
+            t_ab = time[idx_start:idx_end]
+            v_ab = volt[idx_start:idx_end]
+
+            t_ab_fit = t_ab - t_ab[0]
+            v_ab_fit = v_ab
+
+            try:
+
+                try:
+                    fit_params, p_cov = scipy.optimize.curve_fit(decay_func, t_ab_fit, v_ab_fit, p0=p0d)
+                except:
+                    import traceback
+                    t_str = traceback.format_exc()
+                    print(t_str)
+
+                    print("!!! Failed to converge, trying with smaller decay constant")
+                    p0d[1] *= 0.01
+                    fit_params, p_cov = scipy.optimize.curve_fit(decay_func, t_ab_fit, v_ab_fit,
+                                                                 p0=p0d)
+
+                t_b = time[peak_idx_b] - t_ab[0]
+                v_base_b = decay_func(t_b, fit_params[0], fit_params[1], fit_params[2])
+
+                peak_height[idx_b] = volt[peak_idx_b] - v_base_b
+
+                v_fit = decay_func(t_ab - t_ab[0], fit_params[0], fit_params[1], fit_params[2])
+                decay_fits.append((t_ab, v_fit))
+
+                ################################################################
+
+                if False:
+                    plt.figure()
+                    plt.plot(t_ab, v_ab, 'r')
+                    plt.title("Error in findTraceHeights")
+                    plt.xlabel("time")
+                    plt.ylabel("volt")
+                    plt.plot(t_ab, v_fit, 'k-')
+                    plt.ion()
+                    plt.show()
+
+                    import pdb
+                    pdb.set_trace()
+
+                ########################################
+
+            except:
+
+                print("Check that the threshold in the peak detection before is OK")
+                # self.plot(name)
+                import traceback
+                t_str = traceback.format_exc()
+                print(t_str)
+
+                if True:
+                    plt.figure()
+                    plt.plot(t_ab, v_ab, 'r')
+                    plt.title("Error in findTraceHeights")
+                    plt.xlabel("time")
+                    plt.ylabel("volt")
+                    # plt.plot(tAB,vFit,'k-')
+                    plt.ion()
+                    plt.show()
+
+                import pdb
+                pdb.set_trace()
+
+        # import pdb
+        # pdb.set_trace()
+
+        return peak_height.copy(), decay_fits, v_base
+
+    ############################################################################
+
+    ############################################################################
+
 
 if __name__ == "__main__":
 
-  import argparse
-  parser = argparse.ArgumentParser(description="Fit GABA model to peaks")
-  parser.add_argument("dataType",choices=["DD","ID","DI","II","FI","FD"])
-  parser.add_argument("--plotOnly",help="Only plot, no new fitting",
-                      action="store_true")
-  args = parser.parse_args()
+    import argparse
 
-  if(args.plotOnly):
-    fitData = False
-  else:
-    fitData = True
-    
-  pp = Planert2010part2(dataType=args.dataType,cellID=None,
-                        prettyPlot=True,fitData=fitData)
-  #pp = Planert2010part2(dataType=args.dataType,cellID=0)
-          
+    parser = argparse.ArgumentParser(description="Fit GABA model to peaks")
+    parser.add_argument("dataType", choices=["DD", "ID", "DI", "II", "FI", "FD"])
+    parser.add_argument("--plotOnly", help="Only plot, no new fitting",
+                        action="store_true")
+    args = parser.parse_args()
+
+    if args.plotOnly:
+        fitData = False
+    else:
+        fitData = True
+
+    pp = Planert2010part2(data_type=args.dataType, cell_id=None,
+                          pretty_plot=True, fit_data=fitData)
+    # pp = Planert2010part2(dataType=args.dataType,cellID=0)
