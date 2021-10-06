@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import numpy as np
 from snudda.utils.load import SnuddaLoad
 
@@ -121,4 +123,3 @@ def snudda_load_spike_data_cli():
                        neuron_name=args.neuronName,
                        neuron_type=args.neuronType,
                        time_range=time_range)
-    
