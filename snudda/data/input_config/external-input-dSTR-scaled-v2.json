@@ -11,10 +11,10 @@
 	    "modFile": "tmGlut",
 	    "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json",
             "nInputs" : {
-		"dSPN_0" : 75,
-		"dSPN_1" : 150,
-		"dSPN_2" : 90,
-		"dSPN_3" : 100
+		"dSPN_0" : 95,
+		"dSPN_1" : 250,
+		"dSPN_2" : 350,
+		"dSPN_3" : 200
 	    }
 	},
 	"CorticalSignal" : {
@@ -47,10 +47,10 @@
 	    "modFile": "tmGlut",
 	    "parameterFile":"$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json",
             "nInputs" : {
-		"dSPN_0" : 75,
-		"dSPN_1" : 150,
-		"dSPN_2" : 90,
-		"dSPN_3" : 100
+		"dSPN_0" : 133,
+		"dSPN_1" : 220,
+		"dSPN_2" : 240,
+		"dSPN_3" : 185
 	    }
 	}	
     },
@@ -67,10 +67,10 @@
         "modFile":"tmGlut",
 	    "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json",
             "nInputs" : {
-		"iSPN_0" : 40,
-		"iSPN_1" : 50,
-		"iSPN_2" : 100 ,
-		"iSPN_3" : 30
+		"iSPN_0" : 150,
+		"iSPN_1" : 150,
+		"iSPN_2" : 75 ,
+		"iSPN_3" : 300
 	    }
 	},
 	"CorticalSignal" : {
@@ -103,10 +103,10 @@
 	    "modFile": "tmGlut",
 	    "parameterFile":"$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json",
 	    "nInputs" : {
-		"iSPN_0" : 40,
-		"iSPN_1" : 50,
-		"iSPN_2" : 100 ,
-		"iSPN_3" : 30
+		"iSPN_0" : 120,
+		"iSPN_1" : 130,
+		"iSPN_2" : 80 ,
+		"iSPN_3" : 200
 	    }
 	}	
     },
@@ -124,10 +124,10 @@
 	    "modFile": "tmGlut",
 	    "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json",
 	    "nInputs" : {
-		"FS_0" : 150,
-		"FS_1" : 200,
-		"FS_2" : 250,
-		"FS_3" : 200,
+		"FS_0" : 300,
+		"FS_1" : 430,
+		"FS_2" : 520,
+		"FS_3" : 400,
 		"FS_4" : 200
 	    }
 	},
@@ -161,11 +161,10 @@
 	    "modFile":"tmGlut",
 	    "parameterFile":"$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-FS.json",
 	    "nInputs" : {
-		"FS_0" : 100,
-		"FS_1" : 150,
-		"FS_2" : 200,
-		"FS_3" : 125,
-		"FS_4" : 225
+		"FS_0" : 360,
+		"FS_1" : 560,
+		"FS_2" : 870,
+		"FS_3" : 530
 	    }
 	}
 

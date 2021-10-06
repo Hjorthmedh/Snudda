@@ -1,5 +1,5 @@
 export IPYTHONDIR="`pwd`/.ipython"
-export IPYTHON_PROFILE=Snudda_LOCAL
+export IPYTHON_PROFILE=default
 
 # If the BasalGangliaData directory exists, then use that for our data
 if [[ -d "../../BasalGangliaData/data" ]]; then
@@ -24,7 +24,7 @@ snudda prune $simName --parallel
 
 # Copy over template input, you might need to update the path here if not
 # run from the examples directory
-cp -a ../snudda/data/input_config/input-tinytest-v9-freq-vectors.json $simName/input.json
+cp -a ../snudda/data/input_config/external-input-dSTR-scaled-v3.json $simName/input.json
 echo "Make sure the input config file was found, otherwise provide your own"
 
 # TODO, maybe use to get snudda base install dir:
