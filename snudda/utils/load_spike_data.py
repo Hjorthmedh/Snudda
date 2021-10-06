@@ -39,6 +39,8 @@ class SnuddaLoadSpikeData:
             max_t = np.max([np.max(x) for x in spikes])
             print(f"Assuming max time {max_t}")
 
+        print(f"Time range {min_t} to {max_t}")
+
         freq_list = [len(x) / (max_t - min_t) for x in spikes]
 
         return freq_list, nid
