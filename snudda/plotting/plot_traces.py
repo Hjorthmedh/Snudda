@@ -77,6 +77,8 @@ class PlotTraces:
                 trace_id = [x["neuronID"] for x in self.network_info.data["neurons"]]
             else:
                 trace_id = [x for x in self.voltage]
+        elif isinstance(trace_id, (int, np.integer)):
+            trace_id = [trace_id]
 
         if colours is None:
             colours = {"dSPN": (77. / 255, 151. / 255, 1.0),
@@ -144,7 +146,9 @@ class PlotTraces:
             plt.plot(self.time[time_idx] - skip_time,
                      self.voltage[r][time_idx] + ofs,
                      color=colour)
-            ofs += offset
+
+            if offset:
+                ofs += offset
 
         if plot_count == 0:
             plt.close()
@@ -164,7 +168,7 @@ class PlotTraces:
 
         # plt.savefig('figures/Network-spikes-' + str(self.ID) + "-colour.pdf")
 
-        fig_path = os.path.dirname(os.path.realpath(self.network_file)) + "/figures"
+        fig_path = os.path.join(os.path.dirname(os.path.realpath(self.network_file)), "figures")
         if not os.path.exists(fig_path):
             os.makedirs(fig_path)
 
@@ -179,7 +183,7 @@ class PlotTraces:
 
         plt.ion()
         plt.show()
-        plt.draw()
+        # plt.draw()
         plt.pause(0.5)  # Show interactive plot (that user can interact with for a short period of time)
 
         return fig

@@ -72,16 +72,28 @@ class PairRecording(SnuddaSimulate):
 
         """ Parses the experimental config file, updating the simulation as needed. """
 
-        self.set_neurons_to_simulate("prepost")
+        if "neuronSubset" in self.experiment_config["meta"]:
+            neuron_subset = self.experiment_config["meta"]["neuronSubset"]
+        else:
+            neuron_subset = "prepost"
+
+        self.set_neurons_to_simulate(neuron_subset)
+
+        if "recordSynapticCurrent" in self.experiment_config:
+            syn_cur_record = self.experiment_config["recordSynapticCurrent"]
+
+            for pre_id, post_id in syn_cur_record:
+                self.write_log(f"Marking synapses for recording: {pre_id} -> {post_id}")
+                self.mark_synapses_for_recording(pre_neuron_id=pre_id, post_neuron_id=post_id)
 
         # Setup the network given in network_config
         super().setup()
 
         self.sim_duration = self.experiment_config["meta"]["simulationDuration"]
 
-        if "pair_recording_voltage_file" in self.experiment_config["meta"]:
+        if "pairRecordingVoltageFile" in self.experiment_config["meta"]:
             self.output_voltage_file_name = os.path.join(self.network_path, "simulation",
-                                                         self.experiment_config["meta"]["pair_recording_voltage_file"])
+                                                         self.experiment_config["meta"]["pairRecordingVoltageFile"])
 
         # Setup v_init for each neuron_id specified
         if "vInit" in self.experiment_config["meta"]:
@@ -112,13 +124,6 @@ class PairRecording(SnuddaSimulate):
         # Add voltage recordings to neurons
         self.add_recording()
 
-        if "recordSynapticCurrent" in self.experiment_config:
-            syn_cur_record = self.experiment_config["recordSynapticCurrent"]
-
-            for pre_id, post_id in syn_cur_record:
-                self.write_log(f"Marking synapses for recording: {pre_id} -> {post_id}")
-                self.mark_synapses_for_recording(pre_neuron_id=pre_id, post_neuron_id=post_id)
-
     @staticmethod
     def to_list(val, new_list_len=1):
 
@@ -130,7 +135,7 @@ class PairRecording(SnuddaSimulate):
 
         """
 
-        if type(val) not in [list, np.ndarray]:
+        if type(val) not in [list, np.ndarray, range]:
             val = [val]*new_list_len
 
         return val
@@ -168,13 +173,13 @@ class PairRecording(SnuddaSimulate):
             vc = neuron.h.SEClamp(s(0.5))
             vc.rs = 1e-9
             vc.amp1 = vi * 1e3
-            vc.dur1 = 100
+            vc.dur1 = 200
             soma_v_clamp.append((s, vc))
 
         self.set_v_init_helper(neuron_id=neuron_id, v_init=v_init)
         neuron.h.finitialize()
 
-        neuron.h.tstop = 100
+        neuron.h.tstop = 200
         neuron.h.run()
 
         self.holding_i_clamp_list = []
@@ -205,18 +210,23 @@ class PairRecording(SnuddaSimulate):
     def set_neurons_to_simulate(self, selection=None):
 
         """ Sets subset of neurons to simulate. If selection "prepost" neurons receiving current injection and
-            their post synaptic targets are included. If selection is "ALL" or None, then all neurons are included.
+            their post synaptic targets are included. If selection is "all" or None, then all neurons are included.
 
         Args:
-            selection (string) : What neurons to include in simulation ("prepost", "ALL")
+            selection (string or list of int) : What neurons to include in simulation ("prepost", "all"),
+                                                or a list of neuron_id to simulate
 
         """
+        if type(selection) == list:
+            sim_id = selection
+            self.write_log(f"Simulating user selected neuron_ids: {sim_id}")
 
-        if selection is None or selection == "ALL":
+        if selection is None or selection.lower() == "all":
             # No restrictions, use all
             self.simulate_neuron_ids = None
+            self.write_log("Simulating all neurons in network.")
 
-        elif selection == "prepost":
+        elif selection.lower() == "prepost":
 
             pre_id = set(sum([c["neuronID"] if type(c["neuronID"]) == list else [c["neuronID"]]
                               for c in self.experiment_config["currentInjection"]], []))
@@ -228,8 +238,10 @@ class PairRecording(SnuddaSimulate):
 
             self.simulate_neuron_ids = sorted(list(sim_id))
 
+            self.write_log(f"Simulating neuron IDs {sim_id}")
+
         else:
-            assert False, f"Unsupported selection {selection}, use 'ALL' or 'prepost'"
+            assert False, f"Unsupported selection {selection}, use 'all' or 'prepost'"
 
     def distribute_neurons(self):
 
@@ -296,6 +308,7 @@ class PairRecording(SnuddaSimulate):
                                        parameter_id=p_id)
 
                 if (src_id, dest_id) in self.record_from_pair:
+                    self.write_log(f"Adding synaptic recording {src_id} -> {dest_id} (NEURON)")
                     syn_i = neuron.h.Vector().record(syn._ref_i)
                     self.synapse_currents.append((src_id, dest_id, syn_i))
 
@@ -305,6 +318,50 @@ class PairRecording(SnuddaSimulate):
                 self.write_log(tstr, is_error=True)
                 import pdb
                 pdb.set_trace()
+
+    def plot_trace_overview(self):
+        from snudda.plotting import PlotTraces
+        pt = PlotTraces(file_name=self.output_voltage_file_name,
+                        network_file=self.network_file)
+
+        pt.plot_traces([x for x in pt.voltage])
+
+    def plot_traces(self, mark_current_y=-80.05e-3):
+
+        for cur_info in self.experiment_config["currentInjection"]:
+            pre_id = cur_info["neuronID"]
+            cur_start = self.to_list(cur_info["start"])
+            cur_end = self.to_list(cur_info["end"])
+            cur_times = list(zip(cur_start, cur_end))
+
+            skip_time = cur_start[0]/2
+
+            assert type(pre_id) == int, f"Plot traces assumes one pre-synaptic neuron stimulated: {pre_id}"
+
+            post_id = set(self.snudda_loader.find_synapses(pre_id=pre_id)[0][:, 1])
+
+            for pid in post_id:
+                fig_name = f"Current-injection-pre-{pre_id}-post-{pid}.pdf"
+                self.plot_trace(pre_id=pre_id, post_id=pid, fig_name=fig_name,
+                                mark_current=cur_times, mark_current_y=mark_current_y,
+                                skip_time=skip_time)
+
+    def plot_trace(self, pre_id, post_id, offset=0, title=None, fig_name=None, skip_time=0,
+                   mark_current=None, mark_current_y=None):
+
+        from snudda.plotting import PlotTraces
+
+        if not title:
+            n_synapses = self.snudda_loader.find_synapses(pre_id=pre_id, post_id=post_id)[0].shape[0]
+            title = f"{self.neurons[pre_id].name} -> {self.neurons[post_id].name} ({n_synapses} synapses)"
+
+        pt = PlotTraces(file_name=self.output_voltage_file_name, network_file=self.network_file)
+        fig = pt.plot_traces(trace_id=post_id, offset=offset, title=title, fig_name=fig_name, skip_time=skip_time)
+
+        if mark_current:
+            import matplotlib.pyplot as plt
+            for t_start, t_end in mark_current:
+                plt.plot([t_start-skip_time, t_end-skip_time], [mark_current_y, mark_current_y], 'r-', linewidth=5)
 
     def mark_synapses_for_recording(self, pre_neuron_id, post_neuron_id):
 
@@ -317,22 +374,6 @@ class PairRecording(SnuddaSimulate):
         """
 
         self.record_from_pair.append((pre_neuron_id, post_neuron_id))
-
-    def add_synapse_current_recording(self, pre_neuron_id, post_neuron_id):
-
-        # 1. Find out which synapses connect pre and post
-        synapses = self.snudda_loader.find_synapses(pre_id=pre_neuron_id,
-                                                    post_id=post_neuron_id)
-
-        # 2. How do we access that synapse, what type is it?
-        channel_model_id = synapses[:, 6]
-        segment_id = synapses[:, 9]
-        segment_x = synapses[:, 10] * 1e-3
-
-        segment_x[segment_x == 0] = 0.01
-        segment_x[segment_x == 1] = 0.99
-
-        # TODO: WE NEED TO HANDLE SYNAPSES ON THE SOMA ALSO!!
 
     def write_synaptic_current(self, output_file, down_sampling=20):
 
@@ -358,13 +399,13 @@ class PairRecording(SnuddaSimulate):
                         current_file.write('-1')  # Indicate that first column is time
 
                         for tIdx in range(0, len(self.t_save), down_sampling):
-                            current_file.write(',%.4f' % self.t_save[tIdx])
+                            current_file.write(',%.1f' % self.t_save[tIdx])
 
                     for src_id, dest_id, syn_i in self.synapse_currents:
                         current_file.write(f"\n{src_id}-{dest_id}")
 
                         for i_idx in range(0, len(syn_i), down_sampling):
-                            current_file.write(',%.4f' % syn_i[i_idx])
+                            current_file.write(',%.5f' % syn_i[i_idx])
 
             self.pc.barrier()
 
