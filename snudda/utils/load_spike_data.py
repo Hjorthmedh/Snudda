@@ -28,7 +28,18 @@ class SnuddaLoadSpikeData:
                                            neuron_type=neuron_type,
                                            time_range=time_range)
 
-        freq_list = [len(x) for x in spikes]
+        if time_range and time_range[0]:
+            min_t = time_range[0]
+        else:
+            min_t = 0
+
+        if time_range and time_range[1]:
+            max_t = time_range[1]
+        else:
+            max_t = np.max([np.max(x) for x in spikes])
+            print(f"Assuming max time {max_t}")
+
+        freq_list = [len(x) / (max_t - min_t) for x in spikes]
 
         return freq_list, nid
 
