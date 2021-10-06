@@ -123,3 +123,8 @@ def snudda_load_spike_data_cli():
                        neuron_name=args.neuronName,
                        neuron_type=args.neuronType,
                        time_range=time_range)
+
+
+if __name__ == "__main__":
+
+    snudda_load_spike_data_cli()
