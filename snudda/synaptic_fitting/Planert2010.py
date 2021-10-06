@@ -19,6 +19,7 @@ from snudda.utils.numpy_encoder import NumpyEncoder
 
 ################################################################################
 
+
 class Planert2010(object):
 
     def __init__(self, par_type, pre_num=1000000, max_num=100):

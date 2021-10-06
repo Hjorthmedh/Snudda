@@ -91,7 +91,6 @@ class PlotSpikeRaster(object):
         plt.draw()
         plt.pause(0.001)
 
-
         print("Figure done")
 
     ############################################################################
@@ -195,7 +194,6 @@ class PlotSpikeRaster(object):
         plt.show()
         plt.draw()
         plt.pause(0.001)
-
 
         ############################################################################
 

@@ -41,9 +41,9 @@ class RunSynapseRun(object):
         self.verbose = verbose
         self.rng = np.random.default_rng(random_seed)
 
-        self.write_log("Holding voltage: " + str(holding_voltage) + " V")
-        self.write_log("Stim times: " + str(stim_times) + " s")
-        self.write_log("Synapse type: " + str(synapse_type))
+        self.write_log(f"Holding voltage: {holding_voltage} V")
+        self.write_log(f"Stim times: {stim_times} s")
+        self.write_log(f"Synapse type: {synapse_type}")
 
         self.time = time
         self.synapses = []
