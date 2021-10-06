@@ -67,8 +67,15 @@ class SnuddaLoadSpikeData:
                                        neuron_type=neuron_type,
                                        time_range=time_range)
 
-        for freq, nrn_id in zip(freq_list, nid):
-            name = self.snudda_load.data["neurons"][nrn_id]["name"]
+        neuron_name = [self.snudda_load.data["neurons"][n]["name"] for n in nid]
+
+        sort_idx = np.argsort(neuron_name)
+
+        for si in sort_idx:
+            freq = freq_list[si]
+            nrn_id = nid[si]
+            name = neuron_name[si]
+
             print(f"{name} ({nrn_id}) {freq} Hz in time range {time_range}")
 
     def get_spikes(self, neuron_id, time_range=None):
