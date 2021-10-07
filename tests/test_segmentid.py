@@ -1,0 +1,141 @@
+import unittest
+import os
+
+import neuron
+import numpy as np
+
+from snudda.utils import snudda_parse_path
+from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
+
+import bluepyopt.ephys as ephys
+from snudda.neurons.neuron_model_extended import NeuronModel
+from snudda.neurons.neuron_morphology import NeuronMorphology
+
+
+class SegmentIdTestCase(unittest.TestCase):
+
+    """NEURON renumberes all the branches into segments with separate id. This code verifies that Snudda's algorithm
+       replicates what NEURON does internally. It will also warn if NEURON's algorithm at some point changes.
+
+    """
+
+    def test_segment_id_numbering(self):
+
+        plot_fig = False
+        # TODO: Check multiple morphologies
+
+        # Load morphology into Snudda
+        morph_path = snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "fs",
+                                                    "str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225"))
+
+        morph_file = os.path.join(morph_path, "DR-rat-Mar-13-08-1-536-R-cor-rep.swc")
+
+        print(f"Loading neuron {morph_file}")
+        snudda_neuron = NeuronMorphology(name="fs", swc_filename=morph_file, use_cache=False)
+
+        # Load morphology into NEURON
+        self.sim = NrnSimulatorParallel(cvode_active=False)
+        neuron_model = NeuronModel(param_file=os.path.join("data", "fake-parameters.json"),
+                                   morph_path=morph_file,
+                                   mech_file=os.path.join("data", "fake-mechanisms.json"),
+                                   cell_name="fs",
+                                   modulation_file=None,
+                                   parameter_id=0,
+                                   modulation_id=0)
+
+        neuron_model.instantiate(sim=self.sim)
+
+        ax = None
+
+        for link, sec_id, sec_x, dend_sec \
+            in zip(snudda_neuron.dend_links,
+                   snudda_neuron.dend_sec_id,
+                   snudda_neuron.dend_sec_x,
+                   neuron_model.map_id_to_compartment(section_id=snudda_neuron.dend_sec_id)):
+
+            assert sec_id > 0, f"sec id {sec_id}, for dendrites should be > 0"
+
+            # Coordinates of segment in snudda NeuronMorphology -- convert to natural units micrometers for NEURON
+            x0, y0, z0 = snudda_neuron.dend[link[0], :3] * 1e6
+            x1, y1, z1 = snudda_neuron.dend[link[1], :3] * 1e6
+
+            # Coordinates of segment in NEURON
+
+            n_points = int(dend_sec.n3d())
+            arc_dist = np.array([dend_sec.arc3d(x) for x in range(0, n_points)])
+            norm_arc_dist = arc_dist / arc_dist[-1]
+
+            # Find closest point
+            closest_idx0 = np.argmin(np.abs(norm_arc_dist - sec_x[0]))
+            closest_idx1 = np.argmin(np.abs(norm_arc_dist - sec_x[1]))
+
+            x0_ref = dend_sec.x3d(closest_idx0)
+            y0_ref = dend_sec.y3d(closest_idx0)
+            z0_ref = dend_sec.z3d(closest_idx0)
+
+            x1_ref = dend_sec.x3d(closest_idx1)
+            y1_ref = dend_sec.y3d(closest_idx1)
+            z1_ref = dend_sec.z3d(closest_idx1)
+
+            error_cutoff = 10
+
+            if plot_fig:
+                import matplotlib.pyplot as plt
+                from mpl_toolkits.mplot3d import Axes3D
+
+                # ax = snudda_neuron.plot_neuron(show_plot=True, alpha=0.5)
+                if not ax:
+                    ax = plt.axes(projection='3d')
+                    plt.ion()
+
+                plt.plot([x0 * 1e-6, x1 * 1e-6],
+                         [y0 * 1e-6, y1 * 1e-6],
+                         [z0 * 1e-6, z1 * 1e-6], 'r-')
+                plt.plot([x0_ref * 1e-6, x1_ref * 1e-6],
+                         [y0_ref * 1e-6, y1_ref * 1e-6],
+                         [z0_ref * 1e-6, z1_ref * 1e-6], 'b-')
+                # plt.show()
+                # plt.ion()
+                # plt.draw()
+                print(f"Snudda morphology sec_id {sec_id}, sec_x {sec_x[0]} to {sec_x[1]} "
+                      f"xyz = {x0}, {y0}, {z0} to {x1}, {y1}, {z1}\n"
+                      f"NEURON coords {x0_ref}, {y0_ref}, {z0_ref} to {x1_ref}, {y1_ref}, {z1_ref}\n"
+                      f"Distance: {np.linalg.norm([x0 - x0_ref, y0 - y0_ref, z0 - z0_ref])} "
+                      f"and {np.linalg.norm([x1 - x1_ref, y1 - y1_ref, z1 - z1_ref])}")
+                # plt.pause(0.1)
+
+            if np.linalg.norm([x0-x0_ref, y0-y0_ref, z0-z0_ref]) > error_cutoff \
+                             or np.linalg.norm([x1-x1_ref, y1-y1_ref, z1-z1_ref]) > error_cutoff:
+                print(f"ERROR: Snudda morphology sec_id {sec_id}, sec_x {sec_x[0]} to {sec_x[1]} "
+                      f"xyz = {x0}, {y0}, {z0} to {x1}, {y1}, {z1}\n"
+                      f"NEURON coords {x0_ref}, {y0_ref}, {z0_ref} to {x1_ref}, {y1_ref}, {z1_ref}\n"
+                      f"Distance: {np.linalg.norm([x0-x0_ref, y0-y0_ref, z0-z0_ref])} "
+                      f"and {np.linalg.norm([x1-x1_ref, y1-y1_ref, z1-z1_ref])}")
+
+                if plot_fig:
+                    plt.plot([x1 * 1e-6, x1_ref * 1e-6], [y1 * 1e-6, y1_ref * 1e-6], [z1 * 1e-6, z1_ref * 1e-6],
+                             'g--')
+
+                    plt.show()
+                    plt.draw()
+                    plt.pause(0.1)
+
+                if False:
+                    import matplotlib.pyplot as plt
+                    ax = snudda_neuron.plot_neuron(show_plot=True, alpha=0.5)
+                    plt.plot([x0*1e-6, x1*1e-6], [y0*1e-6, y1*1e-6], [z0*1e-6, z1*1e-6], 'r-')
+                    plt.plot([x0_ref*1e-6, x1_ref*1e-6], [y0_ref*1e-6, y1_ref*1e-6], [z0_ref*1e-6, z1_ref*1e-6], 'b-')
+                    plt.pause(5)
+
+            self.assertTrue(np.linalg.norm([x0-x0_ref, y0-y0_ref, z0-z0_ref]) < error_cutoff
+                             and np.linalg.norm([x1-x1_ref, y1-y1_ref, z1-z1_ref]) < error_cutoff,
+                            (f"Snudda morphology sec_id {sec_id}, sec_x {sec_x[0]} to {sec_x[1]} "
+                             f"xyz = {x0}, {y0}, {z0} to {x1}, {y1}, {z1}\n"
+                             f"NEURON coords {x0_ref}, {y0_ref}, {z0_ref} to {x1_ref}, {y1_ref}, {z1_ref}\n"
+                             f"Distance: {np.linalg.norm([x0-x0_ref, y0-y0_ref, z0-z0_ref])} "
+                             f"and {np.linalg.norm([x1-x1_ref, y1-y1_ref, z1-z1_ref])}"))
+
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -787,6 +787,22 @@ class SnuddaLoad(object):
 
         return cell_id
 
+    def get_cell_id_with_name(self, neuron_name):
+
+        """
+        Find neuron ID of neurons with a given name.
+
+        Args:
+            neuron_name (str): Name of neurons (e.g. "dSPN_0")
+
+        Returns:
+            List of neuron ID
+        """
+
+        neuron_id = [x["neuronID"] for x in self.data["neurons"] if x["name"] == neuron_name]
+
+        return neuron_id
+
     def get_population_unit_members(self, population_unit, num_neurons=None, random_permute=False):
 
         """

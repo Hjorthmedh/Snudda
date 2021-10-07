@@ -554,7 +554,7 @@ class NeuronMorphology(object):
                 continue
 
             links[link_idx, 0:2] = [id0, id1]
-            links[link_idx, 5] = points[idx, 5]
+            links[link_idx, 5] = points[idx, 5]     # !!! TODO: Should take from points[idx, 6]
 
             link_idx += 1
 

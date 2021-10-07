@@ -363,8 +363,6 @@ class PairRecording(SnuddaSimulate):
             for t_start, t_end in mark_current:
                 plt.plot([t_start-skip_time, t_end-skip_time], [mark_current_y, mark_current_y], 'r-', linewidth=5)
 
-        return fig
-
     def mark_synapses_for_recording(self, pre_neuron_id, post_neuron_id):
 
         """ What neuron pair synapses should we record current from? Add them to self.record_from_pair
