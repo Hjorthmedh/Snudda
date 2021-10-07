@@ -1442,18 +1442,24 @@ class SnuddaSimulate(object):
         synapse_pos = (voxel_size * voxel_coords + simulation_origo - neuron_position) * 1e6
 
         syn_pos_nrn = np.zeros((len(sec_list), 3))
+        old_sec = None
+        norm_arc_dist = None
 
-        for i, (sec, secX) in enumerate(zip(sec_list, sec_x_list)):
-            num_points = h.n3d(sec=sec)
-            arc_len = h.arc3d(num_points - 1, sec=sec)
-            idx = int(np.round(secX * (num_points - 1)))
-            arc_len_x = h.arc3d(idx, sec=sec)
+        for i, (sec, sec_x) in enumerate(zip(sec_list, sec_x_list)):
 
-            # print("X : " + str(secX) + " = " + str(arcLenX/arcLen) + " ???")
+            # If statement is just so we dont recalculate the norm_arc_dist every time
+            if old_sec is None or not sec.same(old_sec):
+                num_points = int(h.n3d(sec=sec))
+                arc_dist = np.array([sec.arc3d(x) for x in range(0, num_points)])
+                norm_arc_dist = arc_dist / arc_dist[-1]
+                old_sec = sec
 
-            syn_pos_nrn[i, 0] = h.x3d(idx, sec=sec)
-            syn_pos_nrn[i, 1] = h.y3d(idx, sec=sec)
-            syn_pos_nrn[i, 2] = h.z3d(idx, sec=sec)
+            # Find closest point
+            closest_idx = np.argmin(np.abs(norm_arc_dist - sec_x))
+
+            syn_pos_nrn[i, 0] = h.x3d(closest_idx, sec=sec)
+            syn_pos_nrn[i, 1] = h.y3d(closest_idx, sec=sec)
+            syn_pos_nrn[i, 2] = h.z3d(closest_idx, sec=sec)
 
         # We need to rotate the neuron to match the big simulation
         # !!! OBS, this assumes that soma is in 0,0,0 local coordinates
@@ -1462,7 +1468,7 @@ class SnuddaSimulate(object):
 
         syn_mismatch = np.sqrt(np.sum((syn_pos_nrn_rot - synapse_pos) ** 2, axis=1))
 
-        bad_threshold = 50
+        bad_threshold = 20
         num_bad = np.sum(syn_mismatch > bad_threshold)
 
         if num_bad > 0:
@@ -1498,7 +1504,7 @@ class SnuddaSimulate(object):
                            syn_pos_nrn_rot[:, 1],
                            syn_pos_nrn_rot[:, 2], color="black", s=50)
 
-                if False:
+                if True:
                     # Draw neuron
                     all_sec = [x for x in neuron.h.allsec() if "axon" not in str(x)]
                     for x in np.linspace(0, 1, 10):
@@ -1508,6 +1514,9 @@ class SnuddaSimulate(object):
                                            for sec in all_sec])
 
                         ax.scatter(sec_pos[:, 0], sec_pos[:, 1], sec_pos[:, 2], color="blue")
+
+                plt.savefig("DEBUG-plot-bad-synapse-placement.pdf", dpi=600)
+
 
                 import pdb
                 pdb.set_trace()
@@ -1552,8 +1561,8 @@ class SnuddaSimulate(object):
                     if mode == 'w':
                         voltage_file.write('-1')  # Indicate that first column is time
 
-                        for tIdx in range(0, len(self.t_save), down_sampling):
-                            voltage_file.write(',%.4f' % self.t_save[tIdx])
+                        for t_idx in range(0, len(self.t_save), down_sampling):
+                            voltage_file.write(',%.4f' % self.t_save[t_idx])
 
                     for v_id, voltage in zip(self.v_key, self.v_save):
                         voltage_file.write('\n%d' % v_id)
