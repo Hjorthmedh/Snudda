@@ -124,7 +124,7 @@
 	    "modFile": "tmGlut",
 	    "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json",
 	    "nInputs" : {
-		"FS_0" : 150,
+		"FS_0" : 160,
 		"FS_1" : 215,
 		"FS_2" : 260,
 		"FS_3" : 200,
