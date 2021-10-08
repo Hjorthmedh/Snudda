@@ -29,9 +29,6 @@ class SegmentIdTestCase(unittest.TestCase):
 
     def test_segment_id_numbering(self, morph_file=None):
 
-        plot_fig = False
-        # TODO: Check multiple morphologies
-
         # Load morphology into Snudda
         if not morph_file:
             print("No morphology file specified, skipping.")
@@ -85,57 +82,9 @@ class SegmentIdTestCase(unittest.TestCase):
 
             error_cutoff = 10
 
-            if plot_fig:
-                import matplotlib.pyplot as plt
-                from mpl_toolkits.mplot3d import Axes3D
-
-                # ax = snudda_neuron.plot_neuron(show_plot=True, alpha=0.5)
-                if not ax:
-                    ax = plt.axes(projection='3d')
-                    plt.ion()
-
-                plt.plot([x0 * 1e-6, x1 * 1e-6],
-                         [y0 * 1e-6, y1 * 1e-6],
-                         [z0 * 1e-6, z1 * 1e-6], 'r-')
-                plt.plot([x0_ref * 1e-6, x1_ref * 1e-6],
-                         [y0_ref * 1e-6, y1_ref * 1e-6],
-                         [z0_ref * 1e-6, z1_ref * 1e-6], 'b-')
-                # plt.show()
-                # plt.ion()
-                # plt.draw()
-                print(f"Snudda morphology sec_id {sec_id}, sec_x {sec_x[0]} to {sec_x[1]} "
-                      f"xyz = {x0}, {y0}, {z0} to {x1}, {y1}, {z1}\n"
-                      f"NEURON coords {x0_ref}, {y0_ref}, {z0_ref} to {x1_ref}, {y1_ref}, {z1_ref}\n"
-                      f"Distance: {np.linalg.norm([x0 - x0_ref, y0 - y0_ref, z0 - z0_ref])} "
-                      f"and {np.linalg.norm([x1 - x1_ref, y1 - y1_ref, z1 - z1_ref])}")
-                # plt.pause(0.1)
-
-            if np.linalg.norm([x0-x0_ref, y0-y0_ref, z0-z0_ref]) > error_cutoff \
-                             or np.linalg.norm([x1-x1_ref, y1-y1_ref, z1-z1_ref]) > error_cutoff:
-                print(f"ERROR: Snudda morphology sec_id {sec_id}, sec_x {sec_x[0]} to {sec_x[1]} "
-                      f"xyz = {x0}, {y0}, {z0} to {x1}, {y1}, {z1}\n"
-                      f"NEURON coords {x0_ref}, {y0_ref}, {z0_ref} to {x1_ref}, {y1_ref}, {z1_ref}\n"
-                      f"Distance: {np.linalg.norm([x0-x0_ref, y0-y0_ref, z0-z0_ref])} "
-                      f"and {np.linalg.norm([x1-x1_ref, y1-y1_ref, z1-z1_ref])}")
-
-                if plot_fig:
-                    plt.plot([x1 * 1e-6, x1_ref * 1e-6], [y1 * 1e-6, y1_ref * 1e-6], [z1 * 1e-6, z1_ref * 1e-6],
-                             'g--')
-
-                    plt.show()
-                    plt.draw()
-                    plt.pause(0.1)
-
-                if False:
-                    import matplotlib.pyplot as plt
-                    ax = snudda_neuron.plot_neuron(show_plot=True, alpha=0.5)
-                    plt.plot([x0*1e-6, x1*1e-6], [y0*1e-6, y1*1e-6], [z0*1e-6, z1*1e-6], 'r-')
-                    plt.plot([x0_ref*1e-6, x1_ref*1e-6], [y0_ref*1e-6, y1_ref*1e-6], [z0_ref*1e-6, z1_ref*1e-6], 'b-')
-                    plt.pause(5)
-
             self.assertTrue(np.linalg.norm([x0-x0_ref, y0-y0_ref, z0-z0_ref]) < error_cutoff
                              and np.linalg.norm([x1-x1_ref, y1-y1_ref, z1-z1_ref]) < error_cutoff,
-                            (f"Error when parsing {morph_file}"
+                            (f"Error when parsing {morph_file}\n"
                              f"Snudda morphology sec_id {sec_id}, sec_x {sec_x[0]} to {sec_x[1]} "
                              f"xyz = {x0}, {y0}, {z0} to {x1}, {y1}, {z1}\n"
                              f"NEURON coords {x0_ref}, {y0_ref}, {z0_ref} to {x1_ref}, {y1_ref}, {z1_ref}\n"

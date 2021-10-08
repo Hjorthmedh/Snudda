@@ -1479,12 +1479,13 @@ class SnuddaSimulate(object):
                            f" that are further than {bad_threshold} mum away "
                            f" (out of {len(syn_mismatch)} synapses)"
                            f" Max found was {np.max(syn_mismatch):.0f} mum from expected location."
-                           f" morphology: {self.network_info['neurons'][dest_id]['morphology']}",
+                           f" morphology: {self.network_info['neurons'][dest_id]['morphology']}"
+                           f" Check that soma is centered at (0,0,0)",
                            is_error=True)
 
             ### DEBUG PLOT!!!
 
-            if True:
+            if False:
                 import matplotlib.pyplot as plt
                 plt.figure()
 
