@@ -34,7 +34,7 @@ class SegmentIdTestCase(unittest.TestCase):
 
         # Load morphology into Snudda
         if not morph_file:
-            print("No morphology file specified, aborting")
+            print("No morphology file specified, skipping.")
             return
 
         print(f"Loading neuron {morph_file}")
@@ -147,7 +147,7 @@ class SegmentIdTestCase(unittest.TestCase):
         import glob
 
         if not neuron_dir:
-            print("No neuron dir given, nothing tested")
+            print("No neuron dir given, skipping.")
             return
 
         n_dirs = glob.glob(os.path.join(neuron_dir, '*'))
