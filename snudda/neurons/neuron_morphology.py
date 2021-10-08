@@ -699,6 +699,9 @@ class NeuronMorphology(object):
         self.soma = np.zeros((1, 4))
         self.soma[0, :] = swc_vals[0, 2:6]  # save x,y,z,r
 
+        if np.linalg.norm(self.soma[0, :3]) > 0:
+            self.write_log(f"WARNING {swc_file} has soma which is not centered at (0,0,0)", is_error=True)
+
         dend_idx = np.where((points[:, 5] == 3) | (points[:, 5] == 4))[0]
         axon_idx = np.where(points[:, 5] == 2)[0]
 

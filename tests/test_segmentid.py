@@ -17,24 +17,27 @@ class SegmentIdTestCase(unittest.TestCase):
     """NEURON renumberes all the branches into segments with separate id. This code verifies that Snudda's algorithm
        replicates what NEURON does internally. It will also warn if NEURON's algorithm at some point changes.
 
+        If you want to test all morphologies in BasalGangliaData, first set SNUDDA_DATA:
+
+        export SNUDDA_DATA=/home/hjorth/HBP/BasalGangliaData/data/
+        python3 -m unittest test_segmentid.py
+
     """
 
-    def test_segment_id_numbering(self):
+    def setUp(self) -> None:
+        self.sim = NrnSimulatorParallel(cvode_active=False)
 
-        plot_fig = False
-        # TODO: Check multiple morphologies
+    def test_segment_id_numbering(self, morph_file=None):
 
         # Load morphology into Snudda
-        morph_path = snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "fs",
-                                                    "str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225"))
-
-        morph_file = os.path.join(morph_path, "DR-rat-Mar-13-08-1-536-R-cor-rep.swc")
+        if not morph_file:
+            print("No morphology file specified, skipping.")
+            return
 
         print(f"Loading neuron {morph_file}")
         snudda_neuron = NeuronMorphology(name="fs", swc_filename=morph_file, use_cache=False)
 
         # Load morphology into NEURON
-        self.sim = NrnSimulatorParallel(cvode_active=False)
         neuron_model = NeuronModel(param_file=os.path.join("data", "fake-parameters.json"),
                                    morph_path=morph_file,
                                    mech_file=os.path.join("data", "fake-mechanisms.json"),
@@ -79,62 +82,52 @@ class SegmentIdTestCase(unittest.TestCase):
 
             error_cutoff = 10
 
-            if plot_fig:
-                import matplotlib.pyplot as plt
-                from mpl_toolkits.mplot3d import Axes3D
-
-                # ax = snudda_neuron.plot_neuron(show_plot=True, alpha=0.5)
-                if not ax:
-                    ax = plt.axes(projection='3d')
-                    plt.ion()
-
-                plt.plot([x0 * 1e-6, x1 * 1e-6],
-                         [y0 * 1e-6, y1 * 1e-6],
-                         [z0 * 1e-6, z1 * 1e-6], 'r-')
-                plt.plot([x0_ref * 1e-6, x1_ref * 1e-6],
-                         [y0_ref * 1e-6, y1_ref * 1e-6],
-                         [z0_ref * 1e-6, z1_ref * 1e-6], 'b-')
-                # plt.show()
-                # plt.ion()
-                # plt.draw()
-                print(f"Snudda morphology sec_id {sec_id}, sec_x {sec_x[0]} to {sec_x[1]} "
-                      f"xyz = {x0}, {y0}, {z0} to {x1}, {y1}, {z1}\n"
-                      f"NEURON coords {x0_ref}, {y0_ref}, {z0_ref} to {x1_ref}, {y1_ref}, {z1_ref}\n"
-                      f"Distance: {np.linalg.norm([x0 - x0_ref, y0 - y0_ref, z0 - z0_ref])} "
-                      f"and {np.linalg.norm([x1 - x1_ref, y1 - y1_ref, z1 - z1_ref])}")
-                # plt.pause(0.1)
-
-            if np.linalg.norm([x0-x0_ref, y0-y0_ref, z0-z0_ref]) > error_cutoff \
-                             or np.linalg.norm([x1-x1_ref, y1-y1_ref, z1-z1_ref]) > error_cutoff:
-                print(f"ERROR: Snudda morphology sec_id {sec_id}, sec_x {sec_x[0]} to {sec_x[1]} "
-                      f"xyz = {x0}, {y0}, {z0} to {x1}, {y1}, {z1}\n"
-                      f"NEURON coords {x0_ref}, {y0_ref}, {z0_ref} to {x1_ref}, {y1_ref}, {z1_ref}\n"
-                      f"Distance: {np.linalg.norm([x0-x0_ref, y0-y0_ref, z0-z0_ref])} "
-                      f"and {np.linalg.norm([x1-x1_ref, y1-y1_ref, z1-z1_ref])}")
-
-                if plot_fig:
-                    plt.plot([x1 * 1e-6, x1_ref * 1e-6], [y1 * 1e-6, y1_ref * 1e-6], [z1 * 1e-6, z1_ref * 1e-6],
-                             'g--')
-
-                    plt.show()
-                    plt.draw()
-                    plt.pause(0.1)
-
-                if False:
-                    import matplotlib.pyplot as plt
-                    ax = snudda_neuron.plot_neuron(show_plot=True, alpha=0.5)
-                    plt.plot([x0*1e-6, x1*1e-6], [y0*1e-6, y1*1e-6], [z0*1e-6, z1*1e-6], 'r-')
-                    plt.plot([x0_ref*1e-6, x1_ref*1e-6], [y0_ref*1e-6, y1_ref*1e-6], [z0_ref*1e-6, z1_ref*1e-6], 'b-')
-                    plt.pause(5)
-
             self.assertTrue(np.linalg.norm([x0-x0_ref, y0-y0_ref, z0-z0_ref]) < error_cutoff
                              and np.linalg.norm([x1-x1_ref, y1-y1_ref, z1-z1_ref]) < error_cutoff,
-                            (f"Snudda morphology sec_id {sec_id}, sec_x {sec_x[0]} to {sec_x[1]} "
+                            (f"Error when parsing {morph_file}\n"
+                             f"Snudda morphology sec_id {sec_id}, sec_x {sec_x[0]} to {sec_x[1]} "
                              f"xyz = {x0}, {y0}, {z0} to {x1}, {y1}, {z1}\n"
                              f"NEURON coords {x0_ref}, {y0_ref}, {z0_ref} to {x1_ref}, {y1_ref}, {z1_ref}\n"
                              f"Distance: {np.linalg.norm([x0-x0_ref, y0-y0_ref, z0-z0_ref])} "
                              f"and {np.linalg.norm([x1-x1_ref, y1-y1_ref, z1-z1_ref])}"))
 
+    def test_neurons_in_folder(self, neuron_dir=None):
+
+        import glob
+
+        if not neuron_dir:
+            print("No neuron dir given, skipping.")
+            return
+
+        n_dirs = glob.glob(os.path.join(neuron_dir, '*'))
+
+        # In case the user gave the neuron directory with SWC files
+        swc_files = glob.glob(os.path.join(neuron_dir, '*swc'))
+
+        for n_dir in n_dirs:
+
+            swc_files1 = glob.glob(os.path.join(neuron_dir, n_dir, '*swc'))
+            for swc_f in swc_files1:
+                swc_files.append(os.path.join(neuron_dir, n_dir, swc_f))
+
+            swc_files2 = glob.glob(os.path.join(neuron_dir, n_dir, "morphology", '*swc'))
+            for swc_f in swc_files2:
+                swc_files.append(os.path.join(neuron_dir, n_dir, "morphology", swc_f))
+
+        for swc_file in swc_files:
+            with self.subTest(msg=f"Testing {swc_file}"):
+                self.test_segment_id_numbering(morph_file=swc_file)
+
+    def test_all_dir(self):
+
+        neuron_dirs = [snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "dspn")),
+                       snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "ispn")),
+                       snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "fs")),
+                       snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "lts")),
+                       ]
+
+        for neuron_dir in neuron_dirs:
+            self.test_neurons_in_folder(neuron_dir=neuron_dir)
 
 
 if __name__ == '__main__':
