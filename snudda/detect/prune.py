@@ -268,6 +268,15 @@ class SnuddaPrune(object):
 
         self.write_log(f"prune synapses and gap junctions: {end_time - start_time:.1f}s")
 
+        # Close output file
+        try:
+            if self.out_file:
+                self.out_file.close()
+                self.out_file = None
+        except:
+            self.write_log("Problem closing out file - already closed?")
+
+
     ############################################################################
 
     def save_merge_info(self,
