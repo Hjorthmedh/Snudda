@@ -17,6 +17,11 @@ class SegmentIdTestCase(unittest.TestCase):
     """NEURON renumberes all the branches into segments with separate id. This code verifies that Snudda's algorithm
        replicates what NEURON does internally. It will also warn if NEURON's algorithm at some point changes.
 
+        If you want to test all morphologies in BasalGangliaData, first set SNUDDA_DATA:
+
+        export SNUDDA_DATA=/home/hjorth/HBP/BasalGangliaData/data/
+        python3 -m unittest test_segmentid.py
+
     """
 
     def setUp(self) -> None:
