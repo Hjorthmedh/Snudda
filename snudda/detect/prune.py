@@ -1093,6 +1093,14 @@ class SnuddaPrune(object):
             self.out_file["network/synapses"].resize((n_synapses, self.out_file["network/synapses"].shape[1]))
             self.out_file["network/gapJunctions"].resize((n_gj, self.out_file["network/gapJunctions"].shape[1]))
 
+        # Close output file
+        try:
+            if self.out_file:
+                self.out_file.close()
+                self.out_file = None
+        except:
+            self.write_log("Problem closing out file - already closed?")
+
     ############################################################################
 
     def combine_files(self, source_file_names, merge_data_type):
