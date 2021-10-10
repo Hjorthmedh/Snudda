@@ -877,7 +877,7 @@ if __name__ == "__main__":
     parser.add_argument("--inputFrequency", type=str, default="[0,1,2,5]",
                         help="Input frequency, float or list of floats")
     parser.add_argument("--neuronType", default=None, type=str,
-                        help="Optional, if only we want to simulate one neuron type, eg. FSN")
+                        help="Optional, if only we want to simulate one neuron type, eg. FS")
 
     args = parser.parse_args()
 

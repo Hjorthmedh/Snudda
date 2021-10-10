@@ -72,10 +72,18 @@ class PlotTraces:
         if skip_time is not None:
             print("!!! Excluding first " + str(skip_time) + "s from the plot")
 
+        if not trace_id:
+            if self.network_info:
+                trace_id = [x["neuronID"] for x in self.network_info.data["neurons"]]
+            else:
+                trace_id = [x for x in self.voltage]
+        elif isinstance(trace_id, (int, np.integer)):
+            trace_id = [trace_id]
+
         if colours is None:
             colours = {"dSPN": (77. / 255, 151. / 255, 1.0),
                        "iSPN": (67. / 255, 55. / 255, 181. / 255),
-                       "FSN": (6. / 255, 31. / 255, 85. / 255),
+                       "FS": (6. / 255, 31. / 255, 85. / 255),
                        "ChIN": [252. / 255, 102. / 255, 0],
                        "LTS": [150. / 255, 63. / 255, 212. / 255]}
 
@@ -138,7 +146,9 @@ class PlotTraces:
             plt.plot(self.time[time_idx] - skip_time,
                      self.voltage[r][time_idx] + ofs,
                      color=colour)
-            ofs += offset
+
+            if offset:
+                ofs += offset
 
         if plot_count == 0:
             plt.close()
@@ -158,23 +168,25 @@ class PlotTraces:
 
         # plt.savefig('figures/Network-spikes-' + str(self.ID) + "-colour.pdf")
 
-        fig_path = os.path.dirname(os.path.realpath(self.network_file)) + "/figures"
+        fig_path = os.path.join(os.path.dirname(os.path.realpath(self.network_file)), "figures")
         if not os.path.exists(fig_path):
             os.makedirs(fig_path)
 
         if fig_name is None:
             if len(types_in_plot) > 1:
-                fig_name = f"Network-spikes-{self.ID}-{'-'.join(types_in_plot)}-colour.pdf"
+                fig_name = f"Network-voltage-trace-{self.ID}-{'-'.join(types_in_plot)}-colour.pdf"
             else:
-                fig_name = f"Network-spikes-{self.ID}-{types_in_plot.pop()}-colour.pdf"
+                fig_name = f"Network-voltage-trace-{self.ID}-{types_in_plot.pop()}-colour.pdf"
 
         plt.savefig(os.path.join(fig_path, fig_name), dpi=300)
         print(f"Saving to figure {fig_name}")
 
         plt.ion()
         plt.show()
-        plt.draw()
-        plt.pause(0.001)
+        # plt.draw()
+        plt.pause(0.5)  # Show interactive plot (that user can interact with for a short period of time)
+
+        return fig
 
     ############################################################################
 
@@ -191,14 +203,16 @@ class PlotTraces:
             print("No traces of neuron(s) " + str(neuron_name) + " to show")
             return
 
-        self.plot_traces(offset=plot_offset, trace_id=traceID[num_offset:num_offset + num_traces], skip_time=skip_time,
-                         title=neuron_names[traceID[0]], fig_name=fig_name)
+        fig = self.plot_traces(offset=plot_offset, trace_id=traceID[num_offset:num_offset + num_traces],
+                               skip_time=skip_time,
+                               title=neuron_names[traceID[0]], fig_name=fig_name)
 
         time.sleep(1)
+        return fig
 
     ############################################################################
 
-    def plotTraceNeuronType(self, neuron_type, num_traces=10, offset=0, skip_time=0.0):
+    def plot_trace_neuron_type(self, neuron_type, num_traces=10, offset=0, skip_time=0.0):
 
         assert self.network_info is not None, "You need to specify networkInfo file"
 
@@ -214,10 +228,11 @@ class PlotTraces:
             print(f"No traces of {neuron_type} to show")
             return
 
-        self.plot_traces(offset=offset, trace_id=trace_id[:num_traces], skip_time=skip_time,
-                         title=self.neuron_name(neuron_type))
+        fig = self.plot_traces(offset=offset, trace_id=trace_id[:num_traces], skip_time=skip_time,
+                               title=self.neuron_name(neuron_type))
 
         time.sleep(1)
+        return fig
 
     ############################################################################
 
@@ -252,11 +267,11 @@ if __name__ == "__main__":
         num_traces_max = 10
 
         if True:
-            npt.plotTraceNeuronType(neuron_type="dSPN", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
-            npt.plotTraceNeuronType(neuron_type="iSPN", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
-            npt.plotTraceNeuronType(neuron_type="FS", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
-            npt.plotTraceNeuronType(neuron_type="LTS", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
-            npt.plotTraceNeuronType(neuron_type="ChIN", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
+            npt.plot_trace_neuron_type(neuron_type="dSPN", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
+            npt.plot_trace_neuron_type(neuron_type="iSPN", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
+            npt.plot_trace_neuron_type(neuron_type="FS", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
+            npt.plot_trace_neuron_type(neuron_type="LTS", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
+            npt.plot_trace_neuron_type(neuron_type="ChIN", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
 
         if False:
             npt.plot_trace_neuron_name(neuron_name="FS_0", plot_offset=plot_offset, fig_name="Traced-FS_0.pdf",

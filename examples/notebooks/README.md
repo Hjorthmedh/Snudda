@@ -29,3 +29,7 @@ Here is a collection of Jupyter Notebooks, some of the workflows are split over 
 ## Visualisation
 * [blender_example](blender_example.ipynb) - Use Blender to visualise a network, or part of a network
 * [Hjorth, Hellgren Kotaleski, Kozlov](../Neuroinformatics2021/), Neuroinformatics 2021 figures
+
+
+## Additional notebooks
+* [Paired current injection](network_pair_pulse_simulation.ipynb) in a simulated network

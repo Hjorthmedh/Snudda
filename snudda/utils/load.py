@@ -750,7 +750,7 @@ class SnuddaLoad(object):
         Find all neuron ID of a specific neuron type.
 
         Args:
-            neuron_type (string) : Neuron type (e.g. "FSN")
+            neuron_type (string) : Neuron type (e.g. "FS")
             num_neurons (int) : Maximum number of neurons to return
             random_permute (bool) : Shuffle the resulting neuron IDs?
 
@@ -787,6 +787,22 @@ class SnuddaLoad(object):
 
         return cell_id
 
+    def get_cell_id_with_name(self, neuron_name):
+
+        """
+        Find neuron ID of neurons with a given name.
+
+        Args:
+            neuron_name (str): Name of neurons (e.g. "dSPN_0")
+
+        Returns:
+            List of neuron ID
+        """
+
+        neuron_id = [x["neuronID"] for x in self.data["neurons"] if x["name"] == neuron_name]
+
+        return neuron_id
+
     def get_population_unit_members(self, population_unit, num_neurons=None, random_permute=False):
 
         """
@@ -819,7 +835,9 @@ class SnuddaLoad(object):
     ############################################################################
 
 
-if __name__ == "__main__":
+def snudda_load_cli():
+
+    """ Command line parser for SnuddaLoad script """
 
     from argparse import ArgumentParser
 
@@ -836,15 +854,16 @@ if __name__ == "__main__":
                         type=int)
     parser.add_argument("--keepOpen", help="This prevents loading of synapses to memory, and keeps HDF5 file open",
                         action="store_true")
+    parser.add_argument("--detailed", help="More information", action="store_true")
 
     args = parser.parse_args()
 
     if args.keepOpen:
-        loadSynapses = False
+        load_synapses = False
     else:
-        loadSynapses = True
+        load_synapses = True
 
-    nl = SnuddaLoad(args.networkFile, load_synapses=loadSynapses)
+    nl = SnuddaLoad(args.networkFile, load_synapses=load_synapses)
 
     if args.listN:
         print("Neurons in network: ")
@@ -856,16 +875,16 @@ if __name__ == "__main__":
         if args.listT == "?":
             print("List neuron types in network:")
 
-            nTypes = np.unique([x["type"] for x in nl.data["neurons"]])
-            for nt in nTypes:
+            n_types = np.unique([x["type"] for x in nl.data["neurons"]])
+            for nt in n_types:
                 num = len([x["type"] for x in nl.data["neurons"] if x["type"] == nt])
                 print(f"{nt} ({num} total)")
 
         else:
             print(f"Neurons of type {args.listT}:")
-            nOfType = [(x["neuronID"], x["name"]) for x in nl.data["neurons"]
+            n_of_type = [(x["neuronID"], x["name"]) for x in nl.data["neurons"]
                        if x["type"] == args.listT]
-            for nid, name in nOfType:
+            for nid, name in n_of_type:
                 print("%d : %s" % (nid, name))
 
     if args.listPre is not None:
@@ -877,26 +896,38 @@ if __name__ == "__main__":
             # Nothing to display
             sys.exit(0)
 
-        preID = np.unique(synapses[0][:, 0])
+        pre_id = np.unique(synapses[0][:, 0])
 
-        for nid, name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"] if x["neuronID"] in preID]:
-            nSyn = np.sum(synapses[0][:, 0] == nid)
-            print(f"{nid} : {name} ({nSyn} synapses)")
+        for nid, name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"] if x["neuronID"] in pre_id]:
+            n_syn = np.sum(synapses[0][:, 0] == nid)
+            print(f"{nid} : {name} ({n_syn} synapses)")
+
+            if args.detailed:
+                idx = np.where(synapses[0][:, 0] == nid)
+                for i in idx[0]:
+                    print(f" -- SegID {synapses[0][i, 9]}, SegX {synapses[0][i, 10]*1e-3:.4f}, "
+                          f"Coord: {synapses[1][i, :]}")
+
+                print("")
 
     if args.listPost is not None:
         print("List neurons post-synaptic to neuronID = " + str(args.listPost)
               + " (" + str(nl.data["neurons"][args.listPost]["name"]) + ")")
         synapses = nl.find_synapses(pre_id=args.listPost)
-        postID = np.unique(synapses[0][:, 1])
+        post_id = np.unique(synapses[0][:, 1])
 
-        for nid, name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"] if x["neuronID"] in postID]:
-            nSyn = np.sum(synapses[0][:, 1] == nid)
-            print(f"{nid} : {name} ({nSyn} synapses)")
+        for nid, name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"] if x["neuronID"] in post_id]:
+            n_syn = np.sum(synapses[0][:, 1] == nid)
+            print(f"{nid} : {name} ({n_syn} synapses)")
 
-        # List neurons of network
+            if args.detailed:
+                idx = np.where(synapses[0][:, 1] == nid)
+                for i in idx[0]:
+                    print(f" -- SegID {synapses[0][i, 9]}, SegX {synapses[0][i, 10]*1e-3:.4f}, "
+                          f"Coord: {synapses[1][i, :]}")
 
-    # syn = nl.findSynapses(22,5)
+                print("")
 
-    # syn2 = nl.findSynapses(postID=5)
 
-    # cellID = nl.getCellIDofType(neuronType="FSN")
+if __name__ == "__main__":
+    snudda_load_cli()

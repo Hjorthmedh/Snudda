@@ -510,7 +510,6 @@ class OptimiseSynapsesFull(object):
                 import pdb
                 pdb.set_trace()
 
-
         return peak_height.copy(), decay_fits, v_base
 
     ############################################################################

@@ -117,7 +117,7 @@ class SnuddaAnalyse(object):
 
         self.neuron_colors = {"dSPN": (77. / 255, 151. / 255, 1.0),
                               "iSPN": (67. / 255, 55. / 255, 181. / 255),
-                              "FSN": (6. / 255, 31. / 255, 85. / 255),
+                              "FS": (6. / 255, 31. / 255, 85. / 255),
                               "ChIN": (252. / 266, 102. / 255, 0.0),
                               "LTS": (150. / 255, 63. / 255, 212. / 255),
                               "default": [0.4, 0.4, 0.4]}
@@ -2687,7 +2687,7 @@ if __name__ == "__main__":
 
     # No exp data for this
     #  dist_3d = False
-    #  na.plotConnectionProbabilityChannels("FSN","FSN", \
+    #  na.plotConnectionProbabilityChannels("FS","FS", \
     #                                       dist_3d=dist_3d, \
     #                                       expMaxDist=[],\
     #                                       expData=[])
@@ -2702,7 +2702,7 @@ if __name__ == "__main__":
 
     # na.virtualAxonSynapses("dSPN")
     # na.virtualAxonSynapses("iSPN")
-    # na.virtualAxonSynapses("FSN")
+    # na.virtualAxonSynapses("FS")
 
     # na.simpleMotif("dSPN","dSPN","dSPN")
     # na.simpleMotif("iSPN","iSPN","iSPN")
@@ -2733,7 +2733,7 @@ if __name__ == "__main__":
                                    exp_data_detailed=[(2, 60)])
 
     # Silberberg et al 2013, 2/12 FS-> LTS connected --- distance??
-    na.plot_connection_probability("FSN", "LTS",
+    na.plot_connection_probability("FS", "LTS",
                                    dist_3d=dist_3d,
                                    exp_max_dist=[250e-6],
                                    exp_data=[2.0 / 12],
@@ -2761,8 +2761,8 @@ if __name__ == "__main__":
     # import pdb
     # pdb.set_trace()
 
-    na.nearest_pre_neighbour_distance("FSN", "dSPN")
-    na.nearest_pre_neighbour_distance("FSN", "iSPN")
+    na.nearest_pre_neighbour_distance("FS", "dSPN")
+    na.nearest_pre_neighbour_distance("FS", "iSPN")
 
     na.plot_num_synapses_per_pair("ChIN", "dSPN")
     na.plot_num_synapses_per_pair("ChIN", "iSPN")
@@ -2783,26 +2783,26 @@ if __name__ == "__main__":
     na.plot_num_synapses_per_pair("LTS", "ChIN")
 
     na.plot_num_synapses_per_pair("ChIN", "LTS")
-    na.plot_num_synapses_per_pair("FSN", "LTS")
+    na.plot_num_synapses_per_pair("FS", "LTS")
 
     na.plot_incoming_connections(neuron_type="dSPN", pre_type="LTS")
     na.plot_incoming_connections(neuron_type="iSPN", pre_type="LTS")
     na.plot_incoming_connections(neuron_type="ChIN", pre_type="LTS")
 
     na.plot_incoming_connections(neuron_type="LTS", pre_type="ChIN")
-    na.plot_incoming_connections(neuron_type="LTS", pre_type="FSN")
+    na.plot_incoming_connections(neuron_type="LTS", pre_type="FS")
 
     if True or enableAnalysis:
         dist_3d = False
 
         # 100e-6 from Planert 2010, and 250e-6 data from Gittis 2010
         # 150e-6 from Gittis 2011 (actually 100 +/- 50 micrometers)
-        na.plot_connection_probability("FSN", "iSPN",
+        na.plot_connection_probability("FS", "iSPN",
                                        dist_3d=dist_3d,
                                        exp_max_dist=[100e-6, 150e-6, 250e-6],
                                        exp_data=[6 / 9.0, 21 / 54.0, 27 / 77.0],
                                        exp_data_detailed=[(6, 9), (21, 54), (27, 77)])
-        na.plot_connection_probability("FSN", "dSPN",
+        na.plot_connection_probability("FS", "dSPN",
                                        dist_3d=dist_3d,
                                        exp_max_dist=[100e-6, 150e-6, 250e-6],
                                        exp_data=[8 / 9.0, 29 / 48.0, 48 / 90.0],
@@ -2830,7 +2830,7 @@ if __name__ == "__main__":
 
         # No exp data for this -- Gittis,...,Kreitzer 2010 (p2228) -- 7/12 (and 3/4 reciprocal) -- distance?
         # FS->FS synapses weaker, 1.1 +/- 1.5nS
-        na.plot_connection_probability("FSN", "FSN",
+        na.plot_connection_probability("FS", "FS",
                                        dist_3d=dist_3d,
                                        exp_max_dist=[250e-6],
                                        exp_data=[7 / 12.0],
@@ -2863,7 +2863,7 @@ if __name__ == "__main__":
                                            exp_max_dist=[200e-6],
                                            exp_data=[0.05])
 
-            na.plot_connection_probability("ChIN", "FSN",
+            na.plot_connection_probability("ChIN", "FS",
                                            dist_3d=dist_3d)
 
             na.plot_incoming_connections(neuron_type="dSPN", pre_type="ChIN")
@@ -2887,8 +2887,8 @@ if __name__ == "__main__":
         # pdb.set_trace()
 
     if True and enableAnalysis:
-        na.plot_num_synapses_per_pair("FSN", "dSPN")
-        na.plot_num_synapses_per_pair("FSN", "iSPN")
+        na.plot_num_synapses_per_pair("FS", "dSPN")
+        na.plot_num_synapses_per_pair("FS", "iSPN")
         na.plot_num_synapses_per_pair("dSPN", "dSPN")
         na.plot_num_synapses_per_pair("dSPN", "iSPN")
         na.plot_num_synapses_per_pair("iSPN", "dSPN")
@@ -2897,12 +2897,12 @@ if __name__ == "__main__":
     if True and enableAnalysis:
         na.plot_incoming_connections(neuron_type="dSPN", pre_type="iSPN")
         na.plot_incoming_connections(neuron_type="dSPN", pre_type="dSPN")
-        na.plot_incoming_connections(neuron_type="dSPN", pre_type="FSN")
+        na.plot_incoming_connections(neuron_type="dSPN", pre_type="FS")
 
     if True and enableAnalysis:
         na.plot_incoming_connections(neuron_type="iSPN", pre_type="iSPN")
         na.plot_incoming_connections(neuron_type="iSPN", pre_type="dSPN")
-        na.plot_incoming_connections(neuron_type="iSPN", pre_type="FSN")
+        na.plot_incoming_connections(neuron_type="iSPN", pre_type="FS")
 
     print("All done, exiting")
     # import pdb

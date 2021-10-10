@@ -69,7 +69,8 @@ class SnuddaPrune(object):
                  # pre_merge_only=False,
                  h5libver="latest",
                  random_seed=None,
-                 keep_files=False):  # If True then you can redo pruning multiple times without reruning detect
+                 keep_files=False,   # If True then you can redo pruning multiple times without reruning detect
+                 all_neuron_pair_synapses_share_parameter_id=True):
 
         """
         Constructor.
@@ -89,6 +90,9 @@ class SnuddaPrune(object):
             h5libver (str, optional) : Default "latest"
             random_seed (int, optinoal): Random seed for pruning
             keep_files (bool, optional): If True then you can redo pruning multiple times without reruning detect
+            all_neuron_pair_synapses_share_parameter_id (bool): Instead of each synapse having a unique parameter_id
+                                                                all synapses between the same neuron pair will have
+                                                                the same parameter id.
         """
 
         self.rc = rc
@@ -98,6 +102,7 @@ class SnuddaPrune(object):
         self.network_path = network_path
         self.keep_files = keep_files
         self.merge_info_file = os.path.join(self.network_path, "pruning_merge_info.json")
+        self.all_neuron_pair_synapses_share_parameter_id = all_neuron_pair_synapses_share_parameter_id
 
         self.logfile = logfile
         self.verbose = verbose
@@ -262,6 +267,15 @@ class SnuddaPrune(object):
             self.cleanup()
 
         self.write_log(f"prune synapses and gap junctions: {end_time - start_time:.1f}s")
+
+        # Close output file
+        try:
+            if self.out_file:
+                self.out_file.close()
+                self.out_file = None
+        except:
+            self.write_log("Problem closing out file - already closed?")
+
 
     ############################################################################
 
@@ -1910,10 +1924,15 @@ class SnuddaPrune(object):
                         and synapses[next_read_pos, 6] == synapses[read_end_idx, 6]):       # Same synapse type
                     read_end_idx += 1
 
+                if self.all_neuron_pair_synapses_share_parameter_id:
+                    # Make all synapses between a particular pair of neurons have the same parameter ID
+                    synapses[next_read_pos:read_end_idx, 12] = synapses[next_read_pos, 12]
+
             # Temp check
             assert ((synapses[next_read_pos:read_end_idx, 0] == synapses[next_read_pos, 0]).all()
                     and (synapses[next_read_pos:read_end_idx, 1] == synapses[next_read_pos, 1]).all()), \
                 "prune_synapses_helper: Internal error, more than one neuron pair"
+
 
             n_pair_synapses = read_end_idx - next_read_pos
 
