@@ -11,7 +11,6 @@ class SnuddaLoad(object):
 
     """
     Load data from network-neuron-positions.hdf5 or network-neuron-synapses.hdf5 into python dictionary
-    Load data from network-neuron-positions.hdf5 or network-neuron-synapses.hdf5 into python dictionary
     """
 
     ############################################################################
