@@ -29,6 +29,7 @@ class SnuddaModifyNetwork:
 
     def remove_neuron_id(self, neuron_id):
 
+        print(f"Removing neuron_id={set(neuron_id)}")
         self.keep_neuron_id = self.keep_neuron_id - set(neuron_id)
 
     def remove_neuron_type(self, neuron_type):
@@ -38,13 +39,20 @@ class SnuddaModifyNetwork:
         if len(remove_cell_id) > 0:
             print(f"Marking {neuron_type} ({len(remove_cell_id)}) for removal")
         else:
-            available_neuron_types = set([x["type"] for x in self.snudda_load.data["neurons"]])
+            available_neuron_types = sorted(list(set([x["type"] for x in self.snudda_load.data["neurons"]])))
             print(f"No {neuron_type} found in network. Available types are {', '.join(available_neuron_types)}")
 
         self.keep_neuron_id = self.keep_neuron_id - set(remove_cell_id)
 
     def remove_neuron_name(self, neuron_name):
         remove_cell_id = self.snudda_load.get_cell_id_with_name(neuron_name=neuron_name)
+
+        if len(remove_cell_id) > 0:
+            print(f"Marking {neuron_name} ({len(remove_cell_id)}) for removal")
+        else:
+            available_neuron_names = sorted(list(set([x["name"] for x in self.snudda_load.data["neurons"]])))
+            print(f"No {neuron_name} found in network. Available types are {', '.join(available_neuron_names)}")
+
         self.keep_neuron_id = self.keep_neuron_id - set(remove_cell_id)
 
     def filter_synapses(self, data_type):
@@ -208,7 +216,8 @@ def snudda_modify_network_cli():
     parser.add_argument("original_network", type=str, help="Input network hdf5 file")
     parser.add_argument("output_network", type=str, help="Output network hdf5 file", default=None)
     parser.add_argument("--remove_neuron_type", type=str, help="Neuron type to remove", default=None)
-    parser.add_argument("--remove_neuron_id", type=int, help="Neuron ID to remove", default=None)
+    parser.add_argument("--remove_neuron_name", type=str, help="Neuron name to remove", default=None)
+    parser.add_argument("--remove_neuron_id", type=str, help="Neuron ID to remove (e.g. 4,5,6)", default=None)
     args = parser.parse_args()
 
     mod_network = SnuddaModifyNetwork(network_file=args.original_network)
@@ -216,8 +225,12 @@ def snudda_modify_network_cli():
     if args.remove_neuron_type:
         mod_network.remove_neuron_type(neuron_type=args.remove_neuron_type)
 
+    if args.remove_neuron_name:
+        mod_network.remove_neuron_name(neuron_name=args.remove_neuron_name)
+
     if args.remove_neuron_id:
-        mod_network.remove_neuron_id(neuron_id=args.remove_neuron_id)
+        neuron_id = [int(x) for x in args.remove_neuron_id.split(",")]
+        mod_network.remove_neuron_id(neuron_id=neuron_id)
 
     mod_network.write_network(out_file_name=args.output_network)
 
