@@ -200,7 +200,7 @@ class SnuddaModifyNetwork:
             print("No synapses found (assuming this was a save file with only position information).")
 
 
-if __name__ == "__main__":
+def snudda_modify_network_cli():
 
     from argparse import ArgumentParser
 
@@ -220,3 +220,7 @@ if __name__ == "__main__":
         mod_network.remove_neuron_id(neuron_id=args.remove_neuron_id)
 
     mod_network.write_network(out_file_name=args.output_network)
+
+
+if __name__ == "__main__":
+    snudda_modify_network_cli()
