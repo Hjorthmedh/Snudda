@@ -14,11 +14,12 @@ class SnuddaModifyNetwork:
 
         self.snudda_load = SnuddaLoad(network_file=network_file, load_synapses=False, verbose=verbose)
         self.in_file = self.snudda_load.hdf5_file
-        self.out_file = None
         self.h5libver = "latest"
         self.h5driver = "sec2"
 
         self.keep_neuron_id = None
+        self.removed_connection_type = None
+
         self.reset_network()
 
     def reset_network(self):
@@ -26,18 +27,21 @@ class SnuddaModifyNetwork:
         """ Mars all neurons to be kept. """
 
         self.keep_neuron_id = set(self.in_file["network/neurons/neuronID"][:])
+        self.removed_connection_type = []
 
     def remove_neuron_id(self, neuron_id):
 
         print(f"Removing neuron_id={set(neuron_id)}")
         self.keep_neuron_id = self.keep_neuron_id - set(neuron_id)
 
-    def remove_neuron_type(self, neuron_type):
+    def remove_neuron_type(self, neuron_type, p_remove=1):
 
         remove_cell_id = self.snudda_load.get_cell_id_of_type(neuron_type=neuron_type)
+        remove_flag = np.random.uniform(size=(len(remove_cell_id),)) <= p_remove
+        remove_cell_id = remove_cell_id[remove_flag]
 
-        if len(remove_cell_id) > 0:
-            print(f"Marking {neuron_type} ({len(remove_cell_id)}) for removal")
+        if len(remove_flag) > 0:
+            print(f"Marking {neuron_type} ({np.sum(remove_flag)} out of {len(remove_flag)}) for removal")
         else:
             available_neuron_types = sorted(list(set([x["type"] for x in self.snudda_load.data["neurons"]])))
             print(f"No {neuron_type} found in network. Available types are {', '.join(available_neuron_types)}")
@@ -55,6 +59,19 @@ class SnuddaModifyNetwork:
 
         self.keep_neuron_id = self.keep_neuron_id - set(remove_cell_id)
 
+    def remove_connection(self, pre_neuron_type, post_neuron_type, p_removal=1):
+
+        """ Removes connections between specified neuron types. """
+
+        available_neuron_types = sorted(list(set([x["type"] for x in self.snudda_load.data["neurons"]])))
+        if pre_neuron_type not in available_neuron_types or post_neuron_type not in available_neuron_types:
+            print(f"ERROR: Bad connection type {pre_neuron_type},{post_neuron_type}\n"
+                  f"Available neuron types: {available_neuron_types}")
+            return
+
+        print(f"Marking {pre_neuron_type}, {post_neuron_type} synapses for removal.")
+        self.removed_connection_type.append((pre_neuron_type, post_neuron_type, p_removal))
+
     def filter_synapses(self, data_type):
 
         """ Filters synapses, data_type is either 'synapses' or 'gapJunctions' """
@@ -63,22 +80,44 @@ class SnuddaModifyNetwork:
 
         keep_flag = np.zeros((synapse_data.shape[0],), dtype=bool)
 
+        neuron_types = [n["type"] for n in self.snudda_load.data["neurons"]]
+
         prev_source = None
         prev_dest = None
         prev_status = None
 
-        for idx, row in enumerate(synapse_data):
-            if row[0] == prev_source and row[1] == prev_dest:
+        n_original_synapses = synapse_data.shape[0]
+
+        for idx, (pre_id, post_id) in enumerate(zip(synapse_data[:,0], synapse_data[:,1])):
+
+            if idx % 10000000 == 0:
+                print(f"{idx}/{n_original_synapses} synapses processed")
+
+            if pre_id == prev_source and post_id == prev_dest:
                 keep_flag[idx] = prev_status
             else:
-                prev_source = row[0]
-                prev_dest = row[1]
+                prev_source = pre_id
+                prev_dest = post_id
 
-                if row[0] in self.keep_neuron_id and row[1] in self.keep_neuron_id:
-                    keep_flag[idx] = 1
-                    prev_status = 1
+                if pre_id in self.keep_neuron_id and post_id in self.keep_neuron_id:
+
+                    row_status = 1
+
+                    if self.removed_connection_type:
+                        for con_type in self.removed_connection_type:
+                            if neuron_types[pre_id] == con_type[0] and neuron_types[post_id] == con_type[1]:
+                                if np.random.uniform() <= con_type[2]:
+                                    # All synapses between a given neuron pair is removed together
+                                    row_status = 0
+                                    break
+
+                    keep_flag[idx] = row_status
+                    prev_status = row_status
                 else:
                     prev_status = 0
+
+        print(f"{n_original_synapses}/{n_original_synapses} synapses processed")
+        print("Filtering done.")
 
         return keep_flag
 
@@ -90,16 +129,16 @@ class SnuddaModifyNetwork:
         assert out_file_name != self.in_file.filename, f"In and out file must be different."
 
         print(f"Writing to {out_file_name}")
-        self.out_file = h5py.File(out_file_name, "w", libver=self.h5libver, driver=self.h5driver)
+        out_file = h5py.File(out_file_name, "w", libver=self.h5libver, driver=self.h5driver)
 
-        if "config" in self.out_file:
-            self.in_file.copy("config", self.out_file)
+        if "config" in out_file:
+            self.in_file.copy("config", out_file)
 
-        self.in_file.copy("meta", self.out_file)
+        self.in_file.copy("meta", out_file)
 
         if "morphologies" in self.in_file:
             print("Copying morphologies")
-            self.in_file.copy("morphologies", self.out_file)
+            self.in_file.copy("morphologies", out_file)
 
         soma_keep_id = list(self.keep_neuron_id)
         num_soma_keep = len(soma_keep_id)
@@ -107,11 +146,13 @@ class SnuddaModifyNetwork:
         print(f"Keeping {num_soma_keep} neurons.")
 
         # We need to remap neuronID in the synapses and gap junction matrix
-        remap_id = dict([])
+        # remap_id = dict([])
+        # Try using a np array for lookup instead of dict, faster?
+        remap_id = np.full((len(self.snudda_load.data["neurons"]),), np.nan, dtype=int)
         for new_id, old_id in enumerate(soma_keep_id):
             remap_id[old_id] = new_id
 
-        network_group = self.out_file.create_group("network")
+        network_group = out_file.create_group("network")
         neuron_group = network_group.create_group("neurons")
 
         for var_name in self.in_file["network/neurons"]:
@@ -186,26 +227,52 @@ class SnuddaModifyNetwork:
                                          chunks=gj_mat.chunks, maxshape=(None, gj_mat.shape[1]),
                                          compression=gj_mat.compression)
 
-            for idx, row_idx in enumerate(np.where(keep_syn_flag)[0]):
+            n_synapses = syn_mat.shape[0]
+
+            temp_syn_mat = np.zeros((num_syn, syn_mat.shape[1]), dtype=np.int32)
+            temp_gj_mat = np.zeros((num_gj, gj_mat.shape[1]), dtype=np.int32)
+
+            syn_keep_idx = np.where(keep_syn_flag)[0]
+            for idx, row_idx in enumerate(syn_keep_idx):
+
+                if idx % 50000 == 0:
+                    print(f"{idx} / {num_syn} synapse rows parsed")
+
                 # We need to remap the neuronID if some neurons have been removed!!
                 row = syn_mat[row_idx, :]
                 row[0] = remap_id[row[0]]
                 row[1] = remap_id[row[1]]
-                network_group["synapses"][idx, :] = row
+                temp_syn_mat[idx, :] = row
+
+            network_group["synapses"][:, :] = temp_syn_mat
+            print(f"{n_synapses} / {num_syn} synapse rows parsed")
+            print("Synapse matrix written.")
 
             print(f"Keeping {num_syn} synapses (out of {syn_mat.shape[0]})")
 
+            n_gj = gj_mat.shape[0]
+
             for idx, row_idx in enumerate(np.where(keep_gj_flag)[0]):
+
+                if idx % 50000 == 0:
+                    print(f"{idx} / {num_gj} gap junction rows parsed")
+
                 # We need to remap the neuronID if some neurons have been removed!!
                 row = gj_mat[row_idx, :]
                 row[0] = remap_id[row[0]]
                 row[1] = remap_id[row[1]]
-                network_group["gapJunctions"][idx, :] = row
+                temp_gj_mat[idx, :] = row
 
+            network_group["gapJunctions"][:, :] = temp_gj_mat
+
+            print(f"{num_gj} / {num_gj} gap junction rows parsed")
+            print("Gap junction matrix written.")
             print(f"Keeping {num_gj}  gap junctions (out of {gj_mat.shape[0]})")
 
         else:
             print("No synapses found (assuming this was a save file with only position information).")
+
+        out_file.close()
 
 
 def snudda_modify_network_cli():
@@ -216,14 +283,18 @@ def snudda_modify_network_cli():
     parser.add_argument("original_network", type=str, help="Input network hdf5 file")
     parser.add_argument("output_network", type=str, help="Output network hdf5 file", default=None)
     parser.add_argument("--remove_neuron_type", type=str, help="Neuron type to remove", default=None)
+    parser.add_argument("--p_remove_neuron_type", type=float, help="Probability to remove neuron of type", default=1.0)
     parser.add_argument("--remove_neuron_name", type=str, help="Neuron name to remove", default=None)
     parser.add_argument("--remove_neuron_id", type=str, help="Neuron ID to remove (e.g. 4,5,6)", default=None)
+    parser.add_argument("--remove_connection", type=str, help="Connection to remove (e.g. 'dSPN','iSPN'", default=None)
+    parser.add_argument("--p_remove_connection", type=float, help="Probability to remove connection", default=1.0)
     args = parser.parse_args()
 
     mod_network = SnuddaModifyNetwork(network_file=args.original_network)
 
     if args.remove_neuron_type:
-        mod_network.remove_neuron_type(neuron_type=args.remove_neuron_type)
+        mod_network.remove_neuron_type(neuron_type=args.remove_neuron_type,
+                                       p_remove=args.p_remove_neuron_type)
 
     if args.remove_neuron_name:
         mod_network.remove_neuron_name(neuron_name=args.remove_neuron_name)
@@ -231,6 +302,13 @@ def snudda_modify_network_cli():
     if args.remove_neuron_id:
         neuron_id = [int(x) for x in args.remove_neuron_id.split(",")]
         mod_network.remove_neuron_id(neuron_id=neuron_id)
+
+    if args.remove_connection:
+        assert args.remove_connection.count(",") == 1, "Format is --remove_connection pre_neuron_type,post_neuron_type"
+
+        pre_type, post_type = args.remove_connection.split(",")
+        mod_network.remove_connection(pre_neuron_type=pre_type, post_neuron_type=post_type,
+                                      p_removal=args.p_remove_connection)
 
     mod_network.write_network(out_file_name=args.output_network)
 

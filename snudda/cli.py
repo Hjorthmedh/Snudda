@@ -147,8 +147,8 @@ def snudda_cli():
                "help": snudda.help_info}
 
     if args.profile:
-        prof_file = "profile-" + args.action + ".prof"
-        print("Saving profile data to: " + prof_file)
+        prof_file = f"profile-{args.action}.prof"
+        print(f"Saving profile data to: {prof_file}")
         import cProfile
         cProfile.runctx("actions[args.action](args)", None, locals(), filename=prof_file)
 
