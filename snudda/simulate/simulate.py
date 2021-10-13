@@ -146,7 +146,7 @@ class SnuddaSimulate(object):
         # !!! different for AMPA and GABA?
         self.synapse_weight = 10.0  # microsiemens
         self.synapse_delay = 1  # ms
-        self.spike_threshold = -20
+        self.spike_threshold = -20   # TODO: Let each neuron type have individual spike threshold, based on what config file says.
         self.axon_speed = 0.8  # Tepper and Lee 2007, Wilson 1986, Wilson 1990
         # refs taken from Damodaran et al 2013
 

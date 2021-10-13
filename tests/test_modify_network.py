@@ -53,29 +53,26 @@ class SnuddaModifyNetworkTestCase(unittest.TestCase):
         new_file_ispn_dspn = os.path.join(self.network_path, "ispn-dspn-connections-removed.hdf5")
 
         mod_network = SnuddaModifyNetwork(network_file=self.original_file)
+        sa_orig = SnuddaAnalyse(hdf5_file=self.original_file)
+        dspn_id_orig = self.snudda_load_original.get_cell_id_of_type(neuron_type="dSPN")
+        ispn_id_orig = self.snudda_load_original.get_cell_id_of_type(neuron_type="iSPN")
 
         with self.subTest(msg="Testing removal of iSPN to dSPN synapses"):
             mod_network.reset_network()
             mod_network.remove_connection(pre_neuron_type="iSPN", post_neuron_type="dSPN")
             mod_network.write_network(out_file_name=new_file_ispn_dspn)
 
-            sa_orig = SnuddaAnalyse(hdf5_file=self.original_file)
             sa_new = SnuddaAnalyse(hdf5_file=new_file_ispn_dspn)
 
-            print("Generating connection matrices")
-            con_mat_orig = sa_orig.connection_matrix
-            con_mat_new = sa_new.connection_matrix
+            print("Comparing connection matrices")
 
-            dspn_id = self.snudda_load_original.get_cell_id_of_type(neuron_type="dSPN")
-            ispn_id = self.snudda_load_original.get_cell_id_of_type(neuron_type="iSPN")
-
-            ref_mat = con_mat_orig.copy()
-            for i_id in ispn_id:
-                ref_mat[i_id, dspn_id] = 0
+            ref_mat = sa_orig.connection_matrix.copy()
+            for i_id in ispn_id_orig:
+                ref_mat[i_id, dspn_id_orig] = 0
 
             # When all ispn to dspn connections are removed in ref matrix, it should match the new connection matrix
             print("Checking that new connection matrix match reference")
-            self.assertTrue((con_mat_new != ref_mat).nnz == 0)
+            self.assertTrue((sa_new.connection_matrix != ref_mat).nnz == 0)
 
         with self.subTest(msg="Testing removal of neuron type dSPN"):
             mod_network.reset_network()
@@ -104,6 +101,13 @@ class SnuddaModifyNetworkTestCase(unittest.TestCase):
                     self.assertTrue(neuron_type not in new_type_count)
                 else:
                     self.assertEqual(new_type_count[neuron_type], self.original_type_count[neuron_type])
+
+            sa_new = SnuddaAnalyse(hdf5_file=new_file_dspn)
+            # Remove dSPN from original connection matrix and check it matches with new connection matrix
+            keep_idx = list(set(np.arange(0, len(self.snudda_load_original.data["neurons"]))) - set(dspn_id_orig))
+            ref_mat = sa_orig.connection_matrix.copy()[keep_idx, :][:, keep_idx]
+
+            self.assertTrue((sa_new.connection_matrix != ref_mat).nnz == 0)
 
         with self.subTest(msg="Testing removal of neuron type iSPN, p=0.3"):
             mod_network.reset_network()
