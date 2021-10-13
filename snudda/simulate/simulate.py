@@ -146,7 +146,7 @@ class SnuddaSimulate(object):
         # !!! different for AMPA and GABA?
         self.synapse_weight = 10.0  # microsiemens
         self.synapse_delay = 1  # ms
-        self.spike_threshold = -20
+        self.spike_threshold = -20   # TODO: Let each neuron type have individual spike threshold, based on what config file says.
         self.axon_speed = 0.8  # Tepper and Lee 2007, Wilson 1986, Wilson 1990
         # refs taken from Damodaran et al 2013
 
@@ -182,7 +182,6 @@ class SnuddaSimulate(object):
         # Make sure the output dir exists, so we don't fail at end because we
         # cant write file
         self.create_dir(os.path.join("save", "traces"))
-
 
         self.conv_factor = {"tauR": 1e3,
                             "tauF": 1e3,
@@ -1539,7 +1538,7 @@ class SnuddaSimulate(object):
 
     def write_voltage(self,
                       output_file=None,
-                      down_sampling=20):
+                      down_sampling=10):
 
         if not output_file:
             output_file = os.path.join(self.network_path, "simulation", "network-voltage.txt")

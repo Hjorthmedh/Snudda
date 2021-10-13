@@ -219,14 +219,6 @@ class SnuddaModifyNetwork:
 
             print("Copying synapses and gap junctions")
 
-            network_group.create_dataset("synapses", dtype=np.int32, shape=(num_syn, syn_mat.shape[1]),
-                                         chunks=syn_mat.chunks, maxshape=(None, syn_mat.shape[1]),
-                                         compression=syn_mat.compression)
-
-            network_group.create_dataset("gapJunctions", dtype=np.int32, shape=(num_gj, gj_mat.shape[1]),
-                                         chunks=gj_mat.chunks, maxshape=(None, gj_mat.shape[1]),
-                                         compression=gj_mat.compression)
-
             n_synapses = syn_mat.shape[0]
 
             temp_syn_mat = np.zeros((num_syn, syn_mat.shape[1]), dtype=np.int32)
@@ -244,7 +236,12 @@ class SnuddaModifyNetwork:
                 row[1] = remap_id[row[1]]
                 temp_syn_mat[idx, :] = row
 
-            network_group["synapses"][:, :] = temp_syn_mat
+            network_group.create_dataset("synapses",
+                                         data=temp_syn_mat,
+                                         dtype=np.int32, shape=(num_syn, syn_mat.shape[1]),
+                                         chunks=syn_mat.chunks, maxshape=(None, syn_mat.shape[1]),
+                                         compression=syn_mat.compression)
+
             print(f"{n_synapses} / {num_syn} synapse rows parsed")
             print("Synapse matrix written.")
 
@@ -263,7 +260,12 @@ class SnuddaModifyNetwork:
                 row[1] = remap_id[row[1]]
                 temp_gj_mat[idx, :] = row
 
-            network_group["gapJunctions"][:, :] = temp_gj_mat
+            network_group.create_dataset("gapJunctions",
+                                         data=temp_gj_mat,
+                                         dtype=np.int32, shape=(num_gj, gj_mat.shape[1]),
+                                         chunks=gj_mat.chunks, maxshape=(None, gj_mat.shape[1]),
+                                         compression=gj_mat.compression)
+
 
             print(f"{num_gj} / {num_gj} gap junction rows parsed")
             print("Gap junction matrix written.")
