@@ -1750,10 +1750,10 @@ class SnuddaPrune(object):
                 loop_ctr += 1
 
             if n_total > 1000000:
-                self.write_log(f"Worker synapses: {syn_ctr}/{n_total} (heap size: {len(synapse_heap)})",
+                self.write_log(f"Worker {merge_data_type}: {syn_ctr}/{n_total} (heap size: {len(synapse_heap)})",
                                force_print=True)
 
-            self.write_log(f"Read {syn_ctr} out of total {n_total} synapses", force_print=True)
+            self.write_log(f"Read {syn_ctr} out of total {n_total} {merge_data_type}", force_print=True)
 
             self.buffer_merge_write(h5_syn_mat, flush=True)
             self.write_log("big_merge_helper: done")
