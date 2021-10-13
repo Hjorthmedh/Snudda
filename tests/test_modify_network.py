@@ -39,7 +39,6 @@ class SnuddaModifyNetworkTestCase(unittest.TestCase):
             spp = SnuddaPrune(network_path=self.network_path)
             spp.prune()
 
-
         self.snudda_load_original = SnuddaLoad(network_file=self.original_file, load_synapses=True)
         self.original_type_count = self.get_number_of_type(self.snudda_load_original.data)
 

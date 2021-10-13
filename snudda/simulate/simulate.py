@@ -183,7 +183,6 @@ class SnuddaSimulate(object):
         # cant write file
         self.create_dir(os.path.join("save", "traces"))
 
-
         self.conv_factor = {"tauR": 1e3,
                             "tauF": 1e3,
                             "tau": 1e3}
