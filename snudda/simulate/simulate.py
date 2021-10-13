@@ -1538,7 +1538,7 @@ class SnuddaSimulate(object):
 
     def write_voltage(self,
                       output_file=None,
-                      down_sampling=20):
+                      down_sampling=10):
 
         if not output_file:
             output_file = os.path.join(self.network_path, "simulation", "network-voltage.txt")
