@@ -35,12 +35,14 @@ class SnuddaModifyNetwork:
         print(f"Removing neuron_id={set(neuron_id)}")
         self.keep_neuron_id = self.keep_neuron_id - set(neuron_id)
 
-    def remove_neuron_type(self, neuron_type):
+    def remove_neuron_type(self, neuron_type, p_remove=1):
 
         remove_cell_id = self.snudda_load.get_cell_id_of_type(neuron_type=neuron_type)
+        remove_flag = np.random.uniform(size=(len(remove_cell_id),)) <= p_remove
+        remove_cell_id = remove_cell_id[remove_flag]
 
-        if len(remove_cell_id) > 0:
-            print(f"Marking {neuron_type} ({len(remove_cell_id)}) for removal")
+        if len(remove_flag) > 0:
+            print(f"Marking {neuron_type} ({np.sum(remove_flag)} out of {len(remove_flag)}) for removal")
         else:
             available_neuron_types = sorted(list(set([x["type"] for x in self.snudda_load.data["neurons"]])))
             print(f"No {neuron_type} found in network. Available types are {', '.join(available_neuron_types)}")
@@ -58,7 +60,7 @@ class SnuddaModifyNetwork:
 
         self.keep_neuron_id = self.keep_neuron_id - set(remove_cell_id)
 
-    def remove_connection(self, pre_neuron_type, post_neuron_type):
+    def remove_connection(self, pre_neuron_type, post_neuron_type, p_removal=1):
 
         available_neuron_types = sorted(list(set([x["type"] for x in self.snudda_load.data["neurons"]])))
         if pre_neuron_type not in available_neuron_types or post_neuron_type not in available_neuron_types:
@@ -67,7 +69,7 @@ class SnuddaModifyNetwork:
             return
 
         print(f"Marking {pre_neuron_type}, {post_neuron_type} synapses for removal.")
-        self.removed_connection_type.append((pre_neuron_type, post_neuron_type))
+        self.removed_connection_type.append((pre_neuron_type, post_neuron_type, p_removal))
 
     def filter_synapses(self, data_type):
 
@@ -97,8 +99,10 @@ class SnuddaModifyNetwork:
                     if self.removed_connection_type:
                         for con_type in self.removed_connection_type:
                             if neuron_types[row[0]] == con_type[0] and neuron_types[row[1]] == con_type[1]:
-                                row_status = 0
-                                break
+                                if np.random.uniform() <= con_type[2]:
+                                    # All synapses between a given neuron pair is removed together
+                                    row_status = 0
+                                    break
 
                     keep_flag[idx] = row_status
                     prev_status = row_status
@@ -241,15 +245,18 @@ def snudda_modify_network_cli():
     parser.add_argument("original_network", type=str, help="Input network hdf5 file")
     parser.add_argument("output_network", type=str, help="Output network hdf5 file", default=None)
     parser.add_argument("--remove_neuron_type", type=str, help="Neuron type to remove", default=None)
+    parser.add_argument("--p_remove_neuron_type", type=float, help="Probability to remove neuron of type", default=1.0)
     parser.add_argument("--remove_neuron_name", type=str, help="Neuron name to remove", default=None)
     parser.add_argument("--remove_neuron_id", type=str, help="Neuron ID to remove (e.g. 4,5,6)", default=None)
     parser.add_argument("--remove_connection", type=str, help="Connection to remove (e.g. 'dSPN','iSPN'", default=None)
+    parser.add_argument("--p_remove_connection", type=float, help="Probability to remove connection", default=1.0)
     args = parser.parse_args()
 
     mod_network = SnuddaModifyNetwork(network_file=args.original_network)
 
     if args.remove_neuron_type:
-        mod_network.remove_neuron_type(neuron_type=args.remove_neuron_type)
+        mod_network.remove_neuron_type(neuron_type=args.remove_neuron_type,
+                                       p_remove=args.p_remove_neuron_type)
 
     if args.remove_neuron_name:
         mod_network.remove_neuron_name(neuron_name=args.remove_neuron_name)
@@ -262,7 +269,8 @@ def snudda_modify_network_cli():
         assert args.remove_connection.count(",") == 1, "Format is --remove_connection pre_neuron_type,post_neuron_type"
 
         pre_type, post_type = args.remove_connection.split(",")
-        mod_network.remove_connection(pre_neuron_type=pre_type, post_neuron_type=post_type)
+        mod_network.remove_connection(pre_neuron_type=pre_type, post_neuron_type=post_type,
+                                      p_removal=args.p_remove_connection)
 
     mod_network.write_network(out_file_name=args.output_network)
 

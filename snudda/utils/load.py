@@ -685,7 +685,7 @@ class SnuddaLoad(object):
 
         """
 
-        cell_id = [x["neuronID"] for x in self.data["neurons"] if x["type"] == neuron_type]
+        cell_id = np.array([x["neuronID"] for x in self.data["neurons"] if x["type"] == neuron_type])
 
         assert not random_permute or num_neurons is not None, "random_permute is only valid when num_neurons is given"
 
@@ -699,9 +699,9 @@ class SnuddaLoad(object):
                 if len(keep_idx) > num_neurons:
                     keep_idx = keep_idx[:num_neurons]
 
-                cell_id = np.array([cell_id[x] for x in keep_idx])
+                cell_id = cell_id[keep_idx]
             else:
-                cell_id = np.array([cell_id[x] for x in range(num_neurons)])
+                cell_id = cell_id[:num_neurons]
 
             if len(cell_id) < num_neurons:
                 if self.verbose:
