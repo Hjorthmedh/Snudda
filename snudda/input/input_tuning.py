@@ -346,7 +346,7 @@ class InputTuning(object):
             input_type_all = None
 
             cmap = plt.get_cmap('tab20', len(volt_data))
-            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(volt_data))])
+            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(volt_data[neuron_name]))])
 
             for num_input in volt_data[neuron_name]:
                 input_freq, mean_voltage, max_voltage, input_type = volt_data[neuron_name][num_input]
@@ -389,7 +389,7 @@ class InputTuning(object):
             input_type_all = None
 
             cmap = plt.get_cmap('tab20', len(frequency_data))
-            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(frequency_data))])
+            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(frequency_data[neuron_name]))])
 
             for num_input in frequency_data[neuron_name]:
                 input_freq, output_freq, input_type = frequency_data[neuron_name][num_input]
@@ -473,7 +473,7 @@ class InputTuning(object):
             legend_text = []
 
             cmap = plt.get_cmap("tab20")
-            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(frequency_data))])
+            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(freq_data[neuron_name]))])
 
             for input_freq in freq_data[neuron_name]:
                 num_input, output_freq = freq_data[neuron_name][input_freq]
