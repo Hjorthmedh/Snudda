@@ -472,7 +472,7 @@ class InputTuning(object):
             fig, ax = plt.subplots()
             legend_text = []
 
-            cmap = plt.get_cmap("tab20")
+            cmap = plt.get_cmap("tab20", len(freq_data[neuron_name]))
             ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(freq_data[neuron_name]))])
 
             for input_freq in freq_data[neuron_name]:
