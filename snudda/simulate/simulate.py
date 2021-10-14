@@ -1305,7 +1305,7 @@ class SnuddaSimulate(object):
             try:
                 v = self.sim.neuron.h.Vector()
 
-                self.pc.treshold(cell_key, self.spike_threshold)    # TODO: Set individual spike thresholds based on parameters
+                self.pc.threshold(cell_key, self.spike_threshold)    # TODO: Set individual spike thresholds based on parameters
                 v.record(getattr(cell.icell.soma[0](0.5), '_ref_v'))
 
                 self.v_save.append(v)
