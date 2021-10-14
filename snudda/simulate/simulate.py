@@ -1299,15 +1299,17 @@ class SnuddaSimulate(object):
             self.t_save = self.sim.neuron.h.Vector()
             self.t_save.record(self.sim.neuron.h._ref_t)
 
-        for cellKey in cells:
-            cell = cells[cellKey]
+        for cell_key in cells:
+            cell = cells[cell_key]
+
             try:
                 v = self.sim.neuron.h.Vector()
-                # import pdb
-                # pdb.set_trace()
+
+                self.pc.treshold(cell_key, self.spike_threshold)    # TODO: Set individual spike thresholds based on parameters
                 v.record(getattr(cell.icell.soma[0](0.5), '_ref_v'))
+
                 self.v_save.append(v)
-                self.v_key.append(cellKey)
+                self.v_key.append(cell_key)
             except Exception as e:
                 self.write_log(f"Error: {e}", is_error=True)
                 import pdb
