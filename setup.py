@@ -55,7 +55,8 @@ setuptools.setup(
         "snudda": data_files,
     },
     entry_points={"console_scripts": ["snudda = snudda.cli:snudda_cli",
-                                      "snudda_load = snudda.utils.load:snudda_load_cli" ]},
+                                      "snudda_load = snudda.utils.load:snudda_load_cli",
+                                      "snudda_modify_network = snudda.utils.modify_network:snudda_modify_network_cli"]},
     install_requires=install_requires,
     extras_require={"dev": ["sphinx"]},
 )

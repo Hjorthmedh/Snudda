@@ -7,80 +7,6 @@ import sys
 from snudda.neurons.neuron_prototype import NeuronPrototype
 
 
-def extract_neurons(hdf5_file):
-
-    """ Helper function to extract data for neurons and group it together. """
-
-    neurons = []
-
-    for name, neuron_id, hoc, pos, rot, dend_radius, axon_radius, virtual, vID, \
-        axon_density_type, axon_density, axon_density_radius, \
-        axon_density_bounds_xyz, \
-        morph, parameter_id, morphology_id, modulation_id \
-            in zip(hdf5_file["network/neurons/name"][:],
-                   hdf5_file["network/neurons/neuronID"][:],
-                   hdf5_file["network/neurons/hoc"][:],
-                   hdf5_file["network/neurons/position"][()],
-                   hdf5_file["network/neurons/rotation"][()],
-                   hdf5_file["network/neurons/maxDendRadius"][:],
-                   hdf5_file["network/neurons/maxAxonRadius"][:],
-                   hdf5_file["network/neurons/virtualNeuron"][:],
-                   hdf5_file["network/neurons/volumeID"][:],
-                   hdf5_file["network/neurons/axonDensityType"][:],
-                   hdf5_file["network/neurons/axonDensity"][:],
-                   hdf5_file["network/neurons/axonDensityRadius"][:],
-                   hdf5_file["network/neurons/axonDensityBoundsXYZ"][:],
-                   hdf5_file["network/neurons/morphology"][:],
-                   hdf5_file["network/neurons/parameterID"][:],
-                   hdf5_file["network/neurons/morphologyID"][:],
-                   hdf5_file["network/neurons/modulationID"][:]):
-
-        n = dict([])
-
-        n["name"] = SnuddaLoad.to_str(name)
-
-        if morph is not None:
-            n["morphology"] = SnuddaLoad.to_str(morph)
-
-        # Naming convention is TYPE_X, where XX is a number starting from 0
-        n["type"] = n["name"].split("_")[0]
-
-        n["neuronID"] = neuron_id
-        n["volumeID"] = SnuddaLoad.to_str(vID)
-        n["hoc"] = SnuddaLoad.to_str(hoc)
-
-        n["position"] = pos
-        n["rotation"] = rot.reshape(3, 3)
-        n["maxDendRadius"] = dend_radius
-        n["maxAxonRadius"] = axon_radius
-        n["virtualNeuron"] = virtual
-
-        if len(axon_density_type) > 0:
-            n["axonDensityType"] = SnuddaLoad.to_str(axon_density_type)
-        else:
-            n["axonDensityType"] = None
-
-        if len(axon_density) > 0:
-            n["axonDensity"] = SnuddaLoad.to_str(axon_density)
-        else:
-            n["axonDensity"] = None
-
-        if n["axonDensityType"] == "xyz":
-            n["axonDensityBoundsXYZ"] = axon_density_bounds_xyz
-        else:
-            n["axonDensityBoundsXYZ"] = None
-
-        n["axonDensityRadius"] = axon_density_radius
-
-        n["parameterID"] = parameter_id
-        n["morphologyID"] = morphology_id
-        n["modulationID"] = modulation_id
-
-        neurons.append(n)
-
-    return neurons
-
-
 class SnuddaLoad(object):
 
     """
@@ -330,7 +256,7 @@ class SnuddaLoad(object):
         if "meta/axonStumpIDFlag" in f:
             data["axonStumpIDFlag"] = f["meta/axonStumpIDFlag"][()]
 
-        data["neurons"] = extract_neurons(f)
+        data["neurons"] = self.extract_neurons(f)
 
         # This is for old format, update for new format
         if "parameters" in f:
@@ -759,7 +685,7 @@ class SnuddaLoad(object):
 
         """
 
-        cell_id = [x["neuronID"] for x in self.data["neurons"] if x["type"] == neuron_type]
+        cell_id = np.array([x["neuronID"] for x in self.data["neurons"] if x["type"] == neuron_type])
 
         assert not random_permute or num_neurons is not None, "random_permute is only valid when num_neurons is given"
 
@@ -773,9 +699,9 @@ class SnuddaLoad(object):
                 if len(keep_idx) > num_neurons:
                     keep_idx = keep_idx[:num_neurons]
 
-                cell_id = np.array([cell_id[x] for x in keep_idx])
+                cell_id = cell_id[keep_idx]
             else:
-                cell_id = np.array([cell_id[x] for x in range(num_neurons)])
+                cell_id = cell_id[:num_neurons]
 
             if len(cell_id) < num_neurons:
                 if self.verbose:
