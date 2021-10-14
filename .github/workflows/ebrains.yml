@@ -3,7 +3,7 @@ name: Snudda Mirror to Ebrains
 # Configure the events that are going to trigger tha automated update of the mirror
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master, dev ]
 
 # Configure what will be updated
 jobs:
