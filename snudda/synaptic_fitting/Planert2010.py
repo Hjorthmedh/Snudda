@@ -24,6 +24,9 @@ class Planert2010(object):
 
     def __init__(self, par_type, pre_num=1000000, max_num=100):
 
+        self.con_info = None
+        self.t_stim = None  # Set in def_exp_data
+
         self.def_exp_data()
         pars = self.pick_random_param(par_type=par_type, num=pre_num)
         amps = None
@@ -275,9 +278,10 @@ class Planert2010(object):
         plt.show()
         plt.tight_layout()
 
-        fig_name = os.path.join("DATA","Planert2010", "figs",
+        fig_name = os.path.join("DATA", "Planert2010", "figs",
                                 f"Planert2010-surrogate-data-pre-fit-{title}-{xlabel}.pdf")
         plt.savefig(fig_name)
+        plt.close()
 
     ############################################################################
 
@@ -389,7 +393,8 @@ class Planert2010(object):
                                "rtr": (1.23, 0.50),
                                "dtau": (192, 114),
                                "ftau": (1266, 1427),
-                               "U": (0.39, 0.22)}
+                               "U": (0.39, 0.22),
+                               "FDratio" : 4.76}
 
         self.con_info["DI"] = {"P": (3, 66),
                                "amp": (0.33, 0.15),
@@ -397,7 +402,8 @@ class Planert2010(object):
                                "rtr": (1.16, 0.29),
                                "dtau": (96, 9),
                                "ftau": (313, 363),
-                               "U": (0.46, 0.24)}
+                               "U": (0.46, 0.24),
+                               "FDratio": 4.76}
 
         self.con_info["ID"] = {"P": (10, 80),
                                "amp": (0.27, 0.09),
@@ -405,7 +411,8 @@ class Planert2010(object):
                                "rtr": (1.51, 0.64),
                                "dtau": (365, 471),
                                "ftau": (570, 783),
-                               "U": (0.36, 0.18)}
+                               "U": (0.36, 0.18),
+                               "FDratio": 4.76}
 
         self.con_info["II"] = {"P": (7, 31),
                                "amp": (0.45, 0.44),
@@ -413,7 +420,8 @@ class Planert2010(object):
                                "rtr": (1.39, 0.69),
                                "dtau": (149, 90),
                                "ftau": (1462, 1800),
-                               "U": (0.34, 0.19)}
+                               "U": (0.34, 0.19),
+                               "FDratio": 4.76}
 
         self.con_info["FD"] = {"P": (8, 9),
                                "amp": (4.8, 4.9),
@@ -421,7 +429,8 @@ class Planert2010(object):
                                "rtr": (0.72, 0.08),
                                "dtau": (740, 350),
                                "ftau": (3.1, 2.4),
-                               "U": (0.24, 0.07)}
+                               "U": (0.24, 0.07),
+                               "FDratio": 0.16}
 
         self.con_info["FI"] = {"P": (6, 9),
                                "amp": (3.1, 4.1),
@@ -429,7 +438,8 @@ class Planert2010(object):
                                "rtr": (0.63, 0.19),
                                "dtau": (850, 500),
                                "ftau": (4.5, 2.7),
-                               "U": (0.23, 0.07)}
+                               "U": (0.23, 0.07),
+                               "FDratio": 0.16}
 
         self.t_stim = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.9]
 
@@ -506,6 +516,7 @@ class Planert2010(object):
         fig_name = os.path.join("DATA", "Planert2010", "figs",
                                 f"Surrogate-variables-distribution-{data_type}-{x_label}.pdf")
         plt.savefig(fig_name)
+        plt.close()
 
     ############################################################################
 
@@ -522,6 +533,3 @@ if __name__ == "__main__":
     pp = Planert2010(par_type="ID", pre_num=n_runs, max_num=max_num)
     pp = Planert2010(par_type="II", pre_num=n_runs, max_num=max_num)
 
-    import pdb
-
-    pdb.set_trace()
