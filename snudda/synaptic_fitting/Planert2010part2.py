@@ -29,6 +29,8 @@ class Planert2010part2(object):
         self.role = "master"
         self.fig_resolution = 300
         self.pretty_plot = pretty_plot
+        self.parameter_cache = dict([])
+        self.rsr_synapse_model = None
 
         file_name = os.path.join("DATA", "Planert2010", f"PlanertFitting-{data_type}-cache.json")
         print(f"Loading data {data_type}: {file_name}")
@@ -165,8 +167,8 @@ class Planert2010part2(object):
 
         cost, fit_params = optimizer.optimize(self.neuron_synapse_swarm_helper_planert,
                                               iters=n_iterations,
-                                              tStim=t_stim,
-                                              peakHeight=peak_height)
+                                              t_stim=t_stim,
+                                              peak_height=peak_height)
 
         model_heights, t_sim, v_sim = self._neuron_synapse_swarm_helper(fit_params, t_stim)
 
@@ -194,7 +196,7 @@ class Planert2010part2(object):
                        model_peaks=model_heights,
                        t_sim=t_sim,
                        v_sim=v_sim,
-                       params=fit_params)
+                       model_params=fit_params)
 
     ############################################################################
 
@@ -224,11 +226,11 @@ class Planert2010part2(object):
         if run_sim:
 
             assert model_params is not None, \
-                "plotData: modelParams must be given if runSim = True"
+                "plot_data: model_params must be given if run_sim = True"
             if t_sim is not None or v_sim is not None:
-                print("Ignoring tSim and vSim when runSim = True")
+                print("Ignoring t_sim and v_sim when run_sim = True")
 
-            print("Run simulation for " + str(data_type) + " " + str(cell_id))
+            print(f"Run simulation for {data_type} {cell_id}")
             U, tau_r, tau_f, tau, cond = model_params
 
             model_peaks, t_sim, v_sim = self.synapse_model_neuron(t_stim, U,
@@ -373,7 +375,7 @@ class Planert2010part2(object):
 
     ############################################################################
 
-    def setup_model_synapse_fitting(self, data_type, params={}):
+    def setup_model_synapse_fitting(self, data_type, params=None):
 
         # If the delta model existed, clear it
         # self.rsrDeltaModel = None
@@ -381,7 +383,8 @@ class Planert2010part2(object):
         soma_diameter = 20e-6
         soma_gleak = 3
 
-        params = {"somaDiameter": soma_diameter, "somaGleak": soma_gleak}
+        if not params:
+            params = {"somaDiameter": soma_diameter, "somaGleak": soma_gleak}
 
         t_stim = np.array(self.data["tStim"])
         max_time = np.max(t_stim) + 0.5
@@ -397,13 +400,16 @@ class Planert2010part2(object):
     ############################################################################
 
     def synapse_model_neuron(self, t_spike, U, tau_r, tau_f, cond, tau,
-                             params={},
+                             params=None,
                              return_trace=False):
 
         # print("Running neuron model")
 
         assert self.rsr_synapse_model is not None, \
             "!!! Need to call setupModelSynapseFitting first"
+
+        if not params:
+            params = {}
 
         # Should we make a copy of params, to not destroy it? ;)
         params["U"] = U
@@ -450,20 +456,8 @@ class Planert2010part2(object):
     # Find peaks within pStart[i] and pStart[i]+pWindow[i]
     # The value is not the amplitude of the peak, just the voltage at the peak
 
-    def find_peaks_helper(self, p_time, p_window,
-                          cell_id=None, data_type=None,
-                          time=None, volt=None):
-
-        if cell_id is not None:
-            assert data_type is not None, "If you give cellID you need dataType"
-            peak_data = self.get_parameter_cache(cell_id, "peaks")
-            if peak_data is not None:
-                return peak_data
-
-            (volt, time) = self.get_data(data_type, cell_id)
-        else:
-            assert volt is not None and time is not None, \
-                "Either use cellID to get time and volt of experimental data, or send time and volt explicitly"
+    @staticmethod
+    def find_peaks_helper(p_time, p_window, time=None, volt=None):
 
         peak_idx = []
         peak_time = []
@@ -489,9 +483,6 @@ class Planert2010part2(object):
                      "peakTime": np.array(peak_time),
                      "peakVolt": np.array(peak_volt)}  # NOT AMPLITUDE
 
-        if cell_id is not None:
-            self.add_parameter_cache(cell_id, "peaks", peak_dict)
-
         return peak_dict
 
     # (peakIdx,peakTime,peakVolt)
@@ -500,7 +491,8 @@ class Planert2010part2(object):
 
     # We are using a simplified function that skips decay fits
 
-    def find_trace_heights(self, time, volt, peak_idx):
+    @staticmethod
+    def find_trace_heights(time, volt, peak_idx):
 
         decay_func = lambda x, a, b, c: a * np.exp(-x / b) + c
 
