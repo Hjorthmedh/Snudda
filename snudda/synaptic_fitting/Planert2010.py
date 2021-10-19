@@ -102,7 +102,6 @@ class Planert2010(object):
 
         n_left = len(pars["u"])
         keep_flag = np.ones((n_left,), dtype=bool)
-        done = False
 
         idx_rand = np.random.permutation(n_left)
 
@@ -134,7 +133,8 @@ class Planert2010(object):
 
     ############################################################################
 
-    def max_num_params(self, pars, amps, max_num=100):
+    @staticmethod
+    def max_num_params(pars, amps, max_num=100):
 
         n_par_sets = len(pars["u"])
         if n_par_sets < max_num:
@@ -159,10 +159,6 @@ class Planert2010(object):
         (d_tau_mean, d_tau_std) = self.con_info[par_type]["dtau"]
         (f_tau_mean, f_tau_std) = self.con_info[par_type]["ftau"]
         (u_mean, u_std) = self.con_info[par_type]["U"]
-
-        u_par = pars["u"]
-        d_tau_par = pars["dtau"]
-        f_tau_par = pars["ftau"]
 
         n_bins = 20
 
@@ -197,7 +193,6 @@ class Planert2010(object):
 
         n_left = len(pars["u"])
         keep_flag = np.ones((n_left,), dtype=bool)
-        done = False
 
         idx_rand = np.random.permutation(n_left)
 
@@ -262,7 +257,8 @@ class Planert2010(object):
 
     ############################################################################
 
-    def plot_data_match(self, values, mean, std, title, xlabel, n_bins=20):
+    @staticmethod
+    def plot_data_match(values, mean, std, title, xlabel, n_bins=20):
 
         print(f"{xlabel} Mean : {mean}, std : {std}")
         print(f"Data : {np.mean(values)}, std : {np.std(values)}")
@@ -285,7 +281,8 @@ class Planert2010(object):
 
     ############################################################################
 
-    def plot_spikes(self, amps, t_stim, pars=None, idx=0):
+    @staticmethod
+    def plot_spikes(amps, t_stim, pars=None, idx=0):
 
         plt.figure()
         for a, t in zip(amps[idx, :], t_stim):
@@ -359,7 +356,8 @@ class Planert2010(object):
 
     ############################################################################
 
-    def synapse_model(self, t_stim, U, d_tau, f_tau, asc):
+    @staticmethod
+    def synapse_model(t_stim, U, d_tau, f_tau, asc):
 
         n_spikes = len(t_stim)
         u = np.zeros((n_spikes,))
@@ -371,11 +369,9 @@ class Planert2010(object):
         r[0] = 1
 
         for idx, ii in enumerate(isi):
-            u[idx + 1] = u[idx] * np.exp(-isi[idx] / f_tau) \
-                         + U * (1 - u[idx] * np.exp(-isi[idx] / f_tau))
+            u[idx + 1] = u[idx] * np.exp(-isi[idx] / f_tau) + U * (1 - u[idx] * np.exp(-isi[idx] / f_tau))
 
-            r[idx + 1] = r[idx] * (1 - u[idx]) * np.exp(-isi[idx] / d_tau) \
-                         + 1 - np.exp(-isi[idx] / d_tau)
+            r[idx + 1] = r[idx] * (1 - u[idx]) * np.exp(-isi[idx] / d_tau) + 1 - np.exp(-isi[idx] / d_tau)
 
         amp = np.multiply(u, r) * asc
 
@@ -394,7 +390,7 @@ class Planert2010(object):
                                "dtau": (192, 114),
                                "ftau": (1266, 1427),
                                "U": (0.39, 0.22),
-                               "FDratio" : 4.76}
+                               "FDratio": 4.76}
 
         self.con_info["DI"] = {"P": (3, 66),
                                "amp": (0.33, 0.15),
@@ -461,7 +457,8 @@ class Planert2010(object):
 
     ############################################################################
 
-    def load_data(self, par_type):
+    @staticmethod
+    def load_data(par_type):
 
         file_name = os.path.join("Data", "Planert2010", f"PlanertFitting-{par_type}-cache.json")
 
@@ -497,7 +494,8 @@ class Planert2010(object):
 
         ############################################################################
 
-    def _plot_model_params_helper(self, data_type, data_mean, data_std, data_points, x_label):
+    @staticmethod
+    def _plot_model_params_helper(data_type, data_mean, data_std, data_points, x_label):
 
         x_min = np.min(data_points)
         x_max = np.max(data_points)
@@ -532,4 +530,5 @@ if __name__ == "__main__":
     pp = Planert2010(par_type="DI", pre_num=n_runs, max_num=max_num)
     pp = Planert2010(par_type="ID", pre_num=n_runs, max_num=max_num)
     pp = Planert2010(par_type="II", pre_num=n_runs, max_num=max_num)
+
 
