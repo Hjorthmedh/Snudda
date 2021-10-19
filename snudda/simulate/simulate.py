@@ -1480,8 +1480,10 @@ class SnuddaSimulate(object):
                            f" that are further than {bad_threshold} mum away "
                            f" (out of {len(syn_mismatch)} synapses)"
                            f" Max found was {np.max(syn_mismatch):.0f} mum from expected location."
-                           f" morphology: {self.network_info['neurons'][dest_id]['morphology']}"
-                           f" Check that soma is centered at (0,0,0)",
+                           f" morphology: {self.network_info['neurons'][dest_id]['morphology']}\n"
+                           f" Check that soma is centered at (0,0,0). Also check that the first dendritic"
+                           f" compartment of each dendrite is not too far away from the soma, then NEURON "
+                           f" adds an extra connecting compartment which messes up section IDs.",
                            is_error=True)
 
             ### DEBUG PLOT!!!
