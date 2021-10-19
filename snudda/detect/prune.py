@@ -23,6 +23,7 @@
 import os
 import sys
 import numpy as np
+import scipy
 from numba import jit
 import math
 import numexpr
@@ -761,6 +762,9 @@ class SnuddaPrune(object):
 
         if "a3" not in prune_info:
             prune_info["a3"] = None
+
+        if "cluster" not in prune_info:
+            prune_info["cluster"] = False
 
         return prune_info
 
@@ -1933,7 +1937,6 @@ class SnuddaPrune(object):
                     and (synapses[next_read_pos:read_end_idx, 1] == synapses[next_read_pos, 1]).all()), \
                 "prune_synapses_helper: Internal error, more than one neuron pair"
 
-
             n_pair_synapses = read_end_idx - next_read_pos
 
             src_id = synapses[next_read_pos, 0]
@@ -1975,13 +1978,16 @@ class SnuddaPrune(object):
                     # Between population unit pruning parameters
                     c_info = con_info[1]
 
-                # These will always exist thanks to completePruningInfo function
+                # These will always exist thanks to complete_pruning_info function
 
                 dist_p = c_info["distPruning"]  # Dist dep pruning
                 f1 = c_info["f1"]
                 soft_max = c_info["softMax"]
                 mu2 = c_info["mu2"]
                 a3 = c_info["a3"]
+
+                # If cluster_flag is set, then the synapses furthest from their companion synapses are removed first
+                cluster_flag = c_info["cluster"]
 
             else:
                 # Not listed in connectivityDistribution, skip neuron pair
@@ -2052,6 +2058,22 @@ class SnuddaPrune(object):
                     next_read_pos = read_end_idx
 
                     continue
+
+            if cluster_flag and n_keep > 0:
+                # TODO: We need to make sure the synapses furthest from the others are removed first
+
+                # 1. Calculate distance between all synapses, smallest total distance (sum to all neighbours) kept
+                synapse_coords = synapses[next_read_pos:read_end_idx, 2:5]
+
+                # pdist faster, but does not give full distance matrix
+                synapse_dist = scipy.spatial.distance.cdist(synapse_coords, synapse_coords)
+                synapse_tot_dist = np.sum(synapse_dist, axis=0)
+                synapse_priority = np.argsort(synapse_tot_dist)
+
+                keep_idx = synapse_priority[:n_keep]
+
+                keep_row_flag[next_read_pos:read_end_idx] = 0
+                keep_row_flag[next_read_pos+keep_idx] = 1
 
             next_read_pos = read_end_idx
 
