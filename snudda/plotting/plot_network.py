@@ -25,7 +25,7 @@ class PlotNetwork(object):
         self.sl.close()
 
     def plot(self, plot_axon=True, plot_dendrite=True, plot_synapses=True,
-             neuron_id_list=None,
+             neuron_id_list=None, filter_synapses_pre_id_list=None,
              title=None, title_pad=None, show_axis=True,
              elev_azim=None, fig_name=None, dpi=600,
              colour_population_unit=False):
@@ -89,6 +89,16 @@ class PlotNetwork(object):
                 for nid in neuron_id_list:
                     keep_idx = np.where(post_id == nid)[0]
                     keep_flag[keep_idx] = True
+
+                if filter_synapses_pre_id_list:
+                    pre_id = self.sl.data["synapses"][:, 0]
+
+                    pre_keep_flag = np.zeros(post_id.shape, dtype=bool)
+                    for nid in filter_synapses_pre_id_list:
+                        keep_idx = np.where(pre_id == nid)[0]
+                        pre_keep_flag[keep_idx] = True
+
+                    keep_flag = np.logical_and(keep_flag, pre_keep_flag)
 
                 keep_idx = np.where(keep_flag)[0]
 
@@ -211,6 +221,7 @@ if __name__ == "__main__":
     parser.add_argument("--showAxons", help="Show Axons of neurons", action="store_true")
     parser.add_argument("--showDendrites", help="Show dendrites of neurons", action="store_true")
     parser.add_argument("--showSynapses", help="Show synapses of neurons", action="store_true")
+    parser.add_argument("--filterSynapsesPreID", help="Only show synapses from pre ID neurons", type=list, default=None)
     args = parser.parse_args()
 
     if args.neuronID:
@@ -218,6 +229,12 @@ if __name__ == "__main__":
     else:
         neuron_id_list = None
 
+    if args.filterSynapsesPreID:
+        pre_id_list = [int(x) for x in args.filterSynapsesPreID]
+    else:
+        pre_id_list = None
+
     pn = PlotNetwork(args.networkFile)
     pn.plot(fig_name="network-plot.png", neuron_id_list=neuron_id_list,
-            plot_axon=args.showAxons, plot_dendrite=args.showDendrites, plot_synapses=args.showSynapses)
+            plot_axon=args.showAxons, plot_dendrite=args.showDendrites, plot_synapses=args.showSynapses,
+            filter_synapses_pre_id_list=pre_id_list)

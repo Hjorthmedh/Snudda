@@ -761,8 +761,8 @@ class SnuddaInit(object):
                         mesh_file=None,
                         mesh_bin_width=None,
                         d_min=None,
-                        cluster_FS_synapses=True,
-                        cluster_SPN_synapses=True):
+                        cluster_FS_synapses=False,
+                        cluster_SPN_synapses=False):
 
         get_val = lambda x: 0 if x is None else x
         if num_neurons is None:
@@ -1495,7 +1495,7 @@ class SnuddaInit(object):
                                parameter_file=cortexSynParMS,
                                mod_file="tmGlut",
                                conductance=cortex_glut_cond,
-                               cluster_synapses=True,
+                               cluster_synapses=False,
                                channel_param_dictionary=None)
 
         self.add_neuron_target(neuron_name="CortexAxon",
@@ -1506,7 +1506,7 @@ class SnuddaInit(object):
                                parameter_file=cortexSynParMS,
                                mod_file="tmGlut",
                                conductance=cortex_glut_cond,
-                               cluster_synapses=True,
+                               cluster_synapses=False,
                                channel_param_dictionary=None)
 
         self.add_neuron_target(neuron_name="CortexAxon",
@@ -1517,7 +1517,7 @@ class SnuddaInit(object):
                                parameter_file=cortexSynParFS,
                                mod_file="tmGlut",
                                conductance=cortex_glut_cond,
-                               cluster_synapses=True,
+                               cluster_synapses=False,
                                channel_param_dictionary=None)
 
         # !!! No input for LTS and ChIN right now...
@@ -1568,7 +1568,7 @@ class SnuddaInit(object):
                                dist_pruning=None,
                                f1=1.0, soft_max=3, mu2=2.4, a3=None,
                                conductance=thalamus_glut_cond,
-                               cluster_synapses=True,
+                               cluster_synapses=False,
                                parameter_file=thalamus_syn_par_ms,
                                mod_file="tmGlut",
                                channel_param_dictionary=None)
@@ -1579,7 +1579,7 @@ class SnuddaInit(object):
                                dist_pruning=None,
                                f1=1.0, soft_max=3, mu2=2.4, a3=None,
                                conductance=thalamus_glut_cond,
-                               cluster_synapses=True,
+                               cluster_synapses=False,
                                parameter_file=thalamus_syn_par_ms,
                                mod_file="tmGlut",
                                channel_param_dictionary=None)
@@ -1591,7 +1591,7 @@ class SnuddaInit(object):
                                dist_pruning=None,
                                f1=1.0, soft_max=3, mu2=2.4, a3=None,
                                conductance=thalamus_glut_cond,
-                               cluster_synapses=True,
+                               cluster_synapses=False,
                                parameter_file=thalamus_syn_par_fs,
                                mod_file="tmGlut",
                                channel_param_dictionary=None)

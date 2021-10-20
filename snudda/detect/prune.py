@@ -2060,6 +2060,7 @@ class SnuddaPrune(object):
 
                     continue
 
+            # This code remaps which synapses are kept, such that synapses in a cluster are more likely to be kept
             if cluster_flag and n_keep > 0:
                 # The rows that passed distance dependent pruning are: dist_flag
 
