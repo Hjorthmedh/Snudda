@@ -212,7 +212,7 @@ class PlotNetwork(object):
         ax.set_zlim(z_mean-max_half_width, z_mean+max_half_width)
 
 
-if __name__ == "__main__":
+def snudda_plot_network_cli():
 
     from argparse import ArgumentParser
     parser = ArgumentParser(description="Plot snudda network from file (hdf5)")
@@ -238,3 +238,6 @@ if __name__ == "__main__":
     pn.plot(fig_name="network-plot.png", neuron_id_list=neuron_id_list,
             plot_axon=args.showAxons, plot_dendrite=args.showDendrites, plot_synapses=args.showSynapses,
             filter_synapses_pre_id_list=pre_id_list)
+
+if __name__ == "__main__":
+    snudda_plot_network_cli()
