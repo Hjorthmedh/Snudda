@@ -985,7 +985,8 @@ class NeuronMorphology(object):
 
     # TODO: Update the code so that it gives exactly num_locations positions (currently it varies)
 
-    def dendrite_input_locations(self, synapse_density, rng, num_locations=None, return_density=False):
+    def dendrite_input_locations(self, synapse_density, rng, num_locations=None, return_density=False,
+                                 cluster_size=None):
 
         """
         Randomises input locations on dendrites.
@@ -995,6 +996,7 @@ class NeuronMorphology(object):
             rng : Numpy random stream
             num_locations : Number of input locations (this is average number returned, results vary)
             return_density : Should the function also return the density
+            cluster_size (int): Number of synapse clusters to place (None = no clusters, all placed independently)
         """
 
         # Calculate the input density at each point in dendrite morphology
@@ -1023,6 +1025,11 @@ class NeuronMorphology(object):
         if num_locations is not None:
             expected_synapses *= num_locations / np.sum(expected_synapses)
 
+        if cluster_size is not None:
+            expected_synapses /= cluster_size
+        else:
+            cluster_size = 1
+
         # Number of input synapses on each compartment
         number_of_synapses = (expected_synapses + ((expected_synapses % 1)
                                                    > rng.random(len(expected_synapses)))).astype(int)
@@ -1035,10 +1042,10 @@ class NeuronMorphology(object):
 
         # Iterate over each compartment
         syn_ctr = 0
-        for i_comp, nSyn in enumerate(number_of_synapses):
+        for i_comp, n_syn in enumerate(number_of_synapses):
 
             # Add synapses to that compartment
-            for j in range(0, nSyn):
+            for j in range(0, n_syn*cluster_size):
                 # print('Compartment containing a synapse',iComp)
                 # print('Distance from soma',self.dend[iComp][4]*1e6,'$mum$')
                 input_loc[syn_ctr, 3] = self.dend_sec_id[i_comp]
