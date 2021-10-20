@@ -2032,10 +2032,7 @@ class SnuddaPrune(object):
 
             else:
                 keep_row_flag[next_read_pos:read_end_idx] = random_pool[:n_pair_synapses] < f1
-
-            # TODO, use this!! for picking allowed synapses if cluster 
-            keep_row_post_dist_dep = keep_row_flag[next_read_pos:read_end_idx]
-
+                dist_flag = None
 
             # Check if too many synapses, trim it down a bit
             n_keep = np.sum(keep_row_flag[next_read_pos:read_end_idx])
@@ -2064,10 +2061,17 @@ class SnuddaPrune(object):
                     continue
 
             if cluster_flag and n_keep > 0:
-                # TODO: We need to make sure the synapses furthest from the others are removed first
+                # The rows that passed distance dependent pruning are: dist_flag
 
                 # 1. Calculate distance between all synapses, smallest total distance (sum to all neighbours) kept
                 synapse_coords = synapses[next_read_pos:read_end_idx, 2:5]
+
+                if dist_flag is not None:
+                    # If dist_flag is set, we need to pick a subset from the ones that passed distance dependent pruning
+                    synapse_coords = synapse_coords[dist_flag, :]
+                    lookup_idx = np.where(dist_flag)[0]
+                else:
+                    lookup_idx = None
 
                 # pdist faster, but does not give full distance matrix
                 synapse_dist = scipy.spatial.distance.cdist(synapse_coords, synapse_coords)
@@ -2075,12 +2079,11 @@ class SnuddaPrune(object):
                 synapse_priority = np.argsort(synapse_tot_dist)
 
                 keep_idx = synapse_priority[:n_keep]
+                if dist_flag is not None:
+                    keep_idx = lookup_idx[keep_idx]
 
                 keep_row_flag[next_read_pos:read_end_idx] = 0
                 keep_row_flag[next_read_pos+keep_idx] = 1
-
-                # TODO: This invalidates distance dependent pruning, be ware
-                # Spara undan de som är godkända med distance dependent pruning, och välj bland dem.
 
             next_read_pos = read_end_idx
 
