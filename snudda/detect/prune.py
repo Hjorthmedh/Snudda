@@ -2033,6 +2033,10 @@ class SnuddaPrune(object):
             else:
                 keep_row_flag[next_read_pos:read_end_idx] = random_pool[:n_pair_synapses] < f1
 
+            # TODO, use this!! for picking allowed synapses if cluster 
+            keep_row_post_dist_dep = keep_row_flag[next_read_pos:read_end_idx]
+
+
             # Check if too many synapses, trim it down a bit
             n_keep = np.sum(keep_row_flag[next_read_pos:read_end_idx])
 
@@ -2074,6 +2078,9 @@ class SnuddaPrune(object):
 
                 keep_row_flag[next_read_pos:read_end_idx] = 0
                 keep_row_flag[next_read_pos+keep_idx] = 1
+
+                # TODO: This invalidates distance dependent pruning, be ware
+                # Spara undan de som är godkända med distance dependent pruning, och välj bland dem.
 
             next_read_pos = read_end_idx
 
