@@ -1067,7 +1067,7 @@ class NeuronMorphology(object):
 
                 syn_ctr += 1
 
-        assert np.sum(np.abs(input_loc[:, -1])) > 0, "Not all input_loc was set"
+        assert syn_ctr == input_loc.shape[0], f"Not all input_loc was set. Rows {input_loc.shape[0]}, syn_ctr={syn_ctr}"
 
         if return_density:
             # Return xyz,secID,secX,iDensity,distSynSoma
