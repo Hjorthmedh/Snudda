@@ -1038,7 +1038,7 @@ class NeuronMorphology(object):
         dist_syn_soma = []
 
         # x,y,z, secID, secX
-        input_loc = np.zeros((n_syn_tot, 5))
+        input_loc = np.zeros((n_syn_tot*cluster_size, 5))
 
         # Iterate over each compartment
         syn_ctr = 0
@@ -1066,6 +1066,8 @@ class NeuronMorphology(object):
                 input_loc[syn_ctr, 4] = self.dend_sec_x[i_comp, 0] * (1 - comp_x) + comp_x * self.dend_sec_x[i_comp, 1]
 
                 syn_ctr += 1
+
+        assert np.sum(np.abs(input_loc[:, -1])) > 0, "Not all input_loc was set"
 
         if return_density:
             # Return xyz,secID,secX,iDensity,distSynSoma

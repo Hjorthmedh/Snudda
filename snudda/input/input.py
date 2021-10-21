@@ -237,7 +237,7 @@ class SnuddaInput(object):
                     it_group.create_dataset("spikes", data=spike_mat)
                     it_group.create_dataset("nSpikes", data=num_spikes)
 
-                    it_group.create_dataset("sectionID", data=neuron_in["location"][1])
+                    it_group.create_dataset("sectionID", data=neuron_in["location"][1].astype(int))
                     it_group.create_dataset("sectionX", data=neuron_in["location"][2])
                     it_group.create_dataset("distanceToSoma", data=neuron_in["location"][3])
 
@@ -571,7 +571,7 @@ class SnuddaInput(object):
                         cluster_size = input_inf["clusterSize"]
                     else:
                         cluster_size = None
-                    
+
                     cluster_size_list.append(cluster_size)
 
                 elif input_inf["generator"] == "csv":
@@ -660,7 +660,8 @@ class SnuddaInput(object):
                       mod_file_list,
                       parameter_file_list,
                       parameter_list_list,
-                      seed_list)
+                      seed_list,
+                      cluster_size_list)
 
         # Gather the spikes that were generated in parallel
         for neuron_id, input_type, spikes, loc, synapse_density, frq, \
