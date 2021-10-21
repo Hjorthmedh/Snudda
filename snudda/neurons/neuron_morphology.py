@@ -85,8 +85,11 @@ class NeuronMorphology(object):
 
         self.rotated_flag = False
 
-        self.cache_filename = swc_filename.replace('.swc', '-cache.pickle')
-        assert (self.cache_filename != swc_filename), f"Cached filename: {self.cache_filename} != {swc_filename}"
+        if swc_filename:
+            self.cache_filename = swc_filename.replace('.swc', '-cache.pickle')
+            assert (self.cache_filename != swc_filename), f"Cached filename: {self.cache_filename} != {swc_filename}"
+        else:
+            self.cache_filename = None
 
         # This is used for Neurodamus, which instantiates through hoc files
         if hoc is None:
@@ -110,7 +113,7 @@ class NeuronMorphology(object):
         else:
             self.colour = colour
 
-        if load_morphology:
+        if load_morphology and self.swc_filename:
             # This loads, rotates and places neuron
             self.load_neuron_morphology()
 
@@ -373,6 +376,10 @@ class NeuronMorphology(object):
         if cache_file is None:
             cache_file = snudda_parse_path(self.cache_filename)
 
+        if cache_file is None:
+            self.write_log("Unable to save neuron cache file, no cache_file name specified.")
+            return
+
         assert not self.rotated_flag, \
             "saveCache: The neuron should not be rotated when saving cache"
 
@@ -438,6 +445,8 @@ class NeuronMorphology(object):
 
         if cache_file is None:
             cache_file = snudda_parse_path(self.cache_filename)
+
+        assert cache_file is not None, "Unable to open cache file, cache file name not set."
 
         import pickle
         with open(cache_file, 'rb') as cache_file:
@@ -763,6 +772,33 @@ class NeuronMorphology(object):
 
     ############################################################################
 
+    def get_section_coordinates(self, section_id, section_x):
+
+        if section_id == 0:
+            return self.soma[0, 0:3]
+
+        assert 0 <= section_x <= 1, f"section_x should be between 0, 1. section_x={section_x}"
+
+        # Find the relevant dendrite link
+        link_idx = np.where(np.logical_and(self.dend_sec_id == section_id,
+                                           np.logical_and(self.dend_sec_x[:, 0] <= section_x,
+                                                          section_x <= self.dend_sec_x[:, 1])))[0]
+
+        assert len(link_idx) == 1, \
+            (f"Unable to find a compartment matching section_id={section_id}, section_x={section_x}."
+             f" Found {len(link_idx)}: {link_idx}")
+
+        assert self.dend_sec_id[link_idx[0]] == section_id
+
+        p1 = self.dend[self.dend_links[link_idx[0], 0], :3]
+        p2 = self.dend[self.dend_links[link_idx[0], 1], :3]
+
+        coords = p2 * section_x + (1-section_x) * p1
+
+        return coords
+
+    ############################################################################
+
     def find_radius(self):
 
         """ Find finds maximum axon and dendrite radius of neuron. """
@@ -789,7 +825,7 @@ class NeuronMorphology(object):
                     plot_dendrite=True,
                     line_style='-',
                     alpha=1.0,
-                    plot_origo=np.array([0, 0, 0]),  # Only use this when plotting hyper voxels
+                    plot_origo=None,  # Only use this when plotting hyper voxels
                     plot_scale=1.0,
                     axon_colour=None,
                     dend_colour=None,
@@ -812,6 +848,9 @@ class NeuronMorphology(object):
             soma_colour
             show_plot
         """
+
+        if plot_origo is None:
+            plot_origo = np.array([0, 0, 0])
 
         self.write_log(f"Plotting neuron {self.swc_filename}")
 
