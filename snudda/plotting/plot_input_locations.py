@@ -24,13 +24,18 @@ class SnuddaPlotInputLocations:
         else:
             self.input_data = None
 
-    def plot_neuron_inputs(self, neuron_id, input_type=None):
+    def plot_neuron_inputs(self, neuron_id, input_type=None, colour=None):
+
+        # TODO: Add ability to plot touch detected inputs also (use blue colour for them)
 
         coords = self.get_input_coords(neuron_id=neuron_id, input_type=input_type)
 
+        if not colour:
+            colour = "r"
+
         nm = self.load_neuron(neuron_id=neuron_id)
         ax = nm.plot_neuron(soma_colour=[0, 0, 0], dend_colour=[0, 0, 0], plot_axon=False, plot_dendrite=True)
-        ax.scatter(xs=coords[:, 0], ys=coords[:, 1], zs=coords[:, 2], c="r", marker=".")
+        ax.scatter(xs=coords[:, 0], ys=coords[:, 1], zs=coords[:, 2], c=colour, marker=".")
 
         neuron_name = self.snudda_load.data["neurons"][neuron_id]["name"]
 
