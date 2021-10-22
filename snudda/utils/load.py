@@ -315,20 +315,6 @@ class SnuddaLoad(object):
     ############################################################################
 
     @staticmethod
-    def extract_synapse_coords(gathered_synapses):
-
-        assert False, "Is this method used? If not remove it."
-
-        syn_coords = dict([])
-
-        for row in gathered_synapses:
-            syn_coords[row[8]] = row[0:8]
-
-        return syn_coords
-
-    ############################################################################
-
-    @staticmethod
     def extract_neurons(hdf5_file):
 
         """

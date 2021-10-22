@@ -101,6 +101,19 @@ class SnuddaPlotInputLocations:
 
         return self.neuron_cache[neuron_id]
 
+    def get_synapse_locations(self, neuron_id, pre_type=None):
+
+        synapses, synapse_coords = self.snudda_load.find_synapses(post_id=neuron_id)
+
+        assert (neuron_id == synapses[:, 1]).all(), f"Internal error, post_id should be {neuron_id} for all"
+        pre_id = synapses[:, 0]
+
+        if pre_type:
+            pre_id_list = self.snudda_load.get_cell_id_of_type(pre_type=pre_type)
+            
+
+        return synapse_coords
+
 
 def plot_input_location_cli():
 
