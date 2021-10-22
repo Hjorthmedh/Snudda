@@ -1108,24 +1108,50 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    def combine_files(self, source_file_names, merge_data_type):
+    def save_putative_synapses(self):
+
+        assert self.keep_files, "keep_files must be True to use this feature"
+
+        putative_file_name = os.path.join(self.network_path, "network-putative-synapses.hdf5")
+
+        self.write_log(f"Saving putative synapses to {putative_file_name}")
+
+        old_out_file = self.out_file
+        self.out_file = None
+
+        # TODO: Do sanity check to make sure no files are duplicated etc.
+        synapse_files = glob.glob(os.path.join(self.network_path, "temp", "synapses*MERGE-ME.hdf5"))
+        gj_files = glob.glob(os.path.join(self.network_path, "temp", "synapses*MERGE-ME.hdf5"))
+
+        self.combine_files(source_filenames=synapse_files, merge_data_type="synapses",
+                           output_filename=putative_file_name)
+        self.combine_files(source_filenames=gj_files, merge_data_type="gapJunctions",
+                           output_filename=putative_file_name)
+
+        # Restore old out_file
+        self.out_file = old_out_file
+
+    ############################################################################
+
+    def combine_files(self, source_filenames, merge_data_type, output_filename=None):
 
         """
         Combines synapse files after pruning in network-synapses.hdf5.
 
         Args:
-              source_file_names (list) : List with path to source files
+              source_filenames (list) : List with path to source files
               merge_data_type (str) : "synapses" or "gapJunctions"
+              output_filename (str) : Output file name
         """
 
         start_time = timeit.default_timer()
 
         if not self.out_file:
-            self.setup_output_file()
+            self.setup_output_file(output_file=output_filename)
 
         h5_syn_mat, h5_hyp_syn_n, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
 
-        tmp_files = [h5py.File(f, 'r') for f in source_file_names if os.path.isfile(f)]
+        tmp_files = [h5py.File(f, 'r') for f in source_filenames if os.path.isfile(f)]
         num_syn = np.sum(np.fromiter(iter=(f[h5_syn_mat].shape[0] for f in tmp_files), dtype=int))
         mat_width_all = [f[h5_syn_mat].shape[1] for f in tmp_files]
 
@@ -1695,10 +1721,10 @@ class SnuddaPrune(object):
                 assert False, f"Unknown mergeDataType {merge_data_type}"
 
             # Setup output file
-            (self.buffer_out_file, outFileName) = self.setup_merge_file(big_cache=True, outfile_name=output_filename,
-                                                                        save_morphologies=False,
-                                                                        num_synapses=num_synapses,
-                                                                        num_gap_junctions=num_gap_junctions)
+            (self.buffer_out_file, out_filename) = self.setup_merge_file(big_cache=True, outfile_name=output_filename,
+                                                                         save_morphologies=False,
+                                                                         num_synapses=num_synapses,
+                                                                         num_gap_junctions=num_gap_junctions)
 
             # Only save this meta data if doing the synapses call
             if max_axon_voxel_ctr > 0 and self.merge_data_type == "synapses":

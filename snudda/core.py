@@ -310,9 +310,12 @@ class Snudda(object):
                          h5libver=h5libver,
                          random_seed=random_seed,
                          verbose=args.verbose,
-                         keep_files=args.keepfiles)
+                         keep_files=args.keepfiles or args.savePutative)
 
         sp.prune()
+
+        if args.savePutative:
+            sp.save_putative_synapses()
 
         self.stop_parallel()
         self.close_log_file()

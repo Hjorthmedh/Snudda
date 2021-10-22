@@ -78,6 +78,8 @@ def snudda_cli():
     prune_parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
     prune_parser.add_argument("--keepfiles", action="store_true",
                               help="Keep temp and voxel files after pruning (e.g. useful if you want to rerun pruning)")
+    prune_parser.add_argument("--savePutative", action="store_true",
+                              help="Also saved network-putative-synapses.hdf5 with unpruned network")
     prune_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
 
     input_parser = sub_parsers.add_parser("input")
