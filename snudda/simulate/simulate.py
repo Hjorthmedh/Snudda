@@ -196,7 +196,6 @@ class SnuddaSimulate(object):
     def setup(self):
 
         """ Setup simulation """
-        self.load_modules()
         self.check_memory_status()
         self.distribute_neurons()
         self.pc.barrier()
@@ -221,7 +220,9 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def load_modules(self):
+    def load_mechanisms(self):
+
+        """ Load the mechanisms. """
 
         if os.path.exists("nrnmech.dll"):
             self.write_log(f"Loading nrnmech.dll")
