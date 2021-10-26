@@ -196,7 +196,7 @@ class SnuddaSimulate(object):
     def setup(self):
 
         """ Setup simulation """
-
+        self.load_modules()
         self.check_memory_status()
         self.distribute_neurons()
         self.pc.barrier()
@@ -218,6 +218,19 @@ class SnuddaSimulate(object):
         # READ ABOUT PARALLEL NEURON
 
     # https://www.neuron.yale.edu/neuron/static/new_doc/modelspec/programmatic/network/parcon.html#paralleltransfer
+
+    ############################################################################
+
+    def load_modules(self):
+
+        if os.path.exists("nrnmech.dll"):
+            self.write_log(f"Loading nrnmech.dll")
+            h.nrn_load_dll("nrnmech.dll")
+        elif os.path.exists("x86_64"):
+            self.write_log(f"Loading x86_64/.libs/libnrnmech.so")
+            h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
+        else:
+            self.write_log("No compiled mechanisms found. If you use custom mechanisms you need to run nrnivmodl")
 
     ############################################################################
 
