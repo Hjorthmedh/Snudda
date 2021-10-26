@@ -444,14 +444,16 @@ class Snudda(object):
 
             pc.barrier()
 
-            if os.path.exists("nrnmech.dll"):
-                h.nrn_load_dll("nrnmech.dll")
-            elif os.path.exists("x86_64"):
-                h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
-            else:
-                print(f"Could not find compiled mechanisms. Compile using 'nrnivmodl {mech_dir}' "
-                      f"and retry simulation.")
-                sys.exit(-1)
+            # Modules are now loaded by load_modules in simulate
+            #
+            # if os.path.exists("nrnmech.dll"):
+            #     h.nrn_load_dll("nrnmech.dll")
+            # elif os.path.exists("x86_64"):
+            #     h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
+            # else:
+            #     print(f"Could not find compiled mechanisms. Compile using 'nrnivmodl {mech_dir}' "
+            #           f"and retry simulation.")
+            #     sys.exit(-1)
 
         else:
             print("NEURON mechanisms already compiled, make sure you have the correct version of NEURON modules."
