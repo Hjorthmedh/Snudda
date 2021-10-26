@@ -23,6 +23,7 @@
 import os
 import sys
 import numpy as np
+import scipy
 from numba import jit
 import math
 import numexpr
@@ -762,6 +763,9 @@ class SnuddaPrune(object):
         if "a3" not in prune_info:
             prune_info["a3"] = None
 
+        if "cluster" not in prune_info:
+            prune_info["cluster"] = False
+
         return prune_info
 
     ############################################################################
@@ -1104,24 +1108,50 @@ class SnuddaPrune(object):
 
     ############################################################################
 
-    def combine_files(self, source_file_names, merge_data_type):
+    def save_putative_synapses(self):
+
+        assert self.keep_files, "keep_files must be True to use this feature"
+
+        putative_file_name = os.path.join(self.network_path, "network-putative-synapses.hdf5")
+
+        self.write_log(f"Saving putative synapses to {putative_file_name}")
+
+        old_out_file = self.out_file
+        self.out_file = None
+
+        # TODO: Do sanity check to make sure no files are duplicated etc.
+        synapse_files = glob.glob(os.path.join(self.network_path, "temp", "synapses*MERGE-ME.hdf5"))
+        gj_files = glob.glob(os.path.join(self.network_path, "temp", "synapses*MERGE-ME.hdf5"))
+
+        self.combine_files(source_filenames=synapse_files, merge_data_type="synapses",
+                           output_filename=putative_file_name)
+        self.combine_files(source_filenames=gj_files, merge_data_type="gapJunctions",
+                           output_filename=putative_file_name)
+
+        # Restore old out_file
+        self.out_file = old_out_file
+
+    ############################################################################
+
+    def combine_files(self, source_filenames, merge_data_type, output_filename=None):
 
         """
         Combines synapse files after pruning in network-synapses.hdf5.
 
         Args:
-              source_file_names (list) : List with path to source files
+              source_filenames (list) : List with path to source files
               merge_data_type (str) : "synapses" or "gapJunctions"
+              output_filename (str) : Output file name
         """
 
         start_time = timeit.default_timer()
 
         if not self.out_file:
-            self.setup_output_file()
+            self.setup_output_file(output_file=output_filename)
 
         h5_syn_mat, h5_hyp_syn_n, h5_syn_n, h5_syn_loc = self.data_loc[merge_data_type]
 
-        tmp_files = [h5py.File(f, 'r') for f in source_file_names if os.path.isfile(f)]
+        tmp_files = [h5py.File(f, 'r') for f in source_filenames if os.path.isfile(f)]
         num_syn = np.sum(np.fromiter(iter=(f[h5_syn_mat].shape[0] for f in tmp_files), dtype=int))
         mat_width_all = [f[h5_syn_mat].shape[1] for f in tmp_files]
 
@@ -1691,10 +1721,10 @@ class SnuddaPrune(object):
                 assert False, f"Unknown mergeDataType {merge_data_type}"
 
             # Setup output file
-            (self.buffer_out_file, outFileName) = self.setup_merge_file(big_cache=True, outfile_name=output_filename,
-                                                                        save_morphologies=False,
-                                                                        num_synapses=num_synapses,
-                                                                        num_gap_junctions=num_gap_junctions)
+            (self.buffer_out_file, out_filename) = self.setup_merge_file(big_cache=True, outfile_name=output_filename,
+                                                                         save_morphologies=False,
+                                                                         num_synapses=num_synapses,
+                                                                         num_gap_junctions=num_gap_junctions)
 
             # Only save this meta data if doing the synapses call
             if max_axon_voxel_ctr > 0 and self.merge_data_type == "synapses":
@@ -1933,7 +1963,6 @@ class SnuddaPrune(object):
                     and (synapses[next_read_pos:read_end_idx, 1] == synapses[next_read_pos, 1]).all()), \
                 "prune_synapses_helper: Internal error, more than one neuron pair"
 
-
             n_pair_synapses = read_end_idx - next_read_pos
 
             src_id = synapses[next_read_pos, 0]
@@ -1975,13 +2004,16 @@ class SnuddaPrune(object):
                     # Between population unit pruning parameters
                     c_info = con_info[1]
 
-                # These will always exist thanks to completePruningInfo function
+                # These will always exist thanks to complete_pruning_info function
 
                 dist_p = c_info["distPruning"]  # Dist dep pruning
                 f1 = c_info["f1"]
                 soft_max = c_info["softMax"]
                 mu2 = c_info["mu2"]
                 a3 = c_info["a3"]
+
+                # If cluster_flag is set, then the synapses furthest from their companion synapses are removed first
+                cluster_flag = c_info["cluster"]
 
             else:
                 # Not listed in connectivityDistribution, skip neuron pair
@@ -2026,6 +2058,7 @@ class SnuddaPrune(object):
 
             else:
                 keep_row_flag[next_read_pos:read_end_idx] = random_pool[:n_pair_synapses] < f1
+                dist_flag = None
 
             # Check if too many synapses, trim it down a bit
             n_keep = np.sum(keep_row_flag[next_read_pos:read_end_idx])
@@ -2052,6 +2085,32 @@ class SnuddaPrune(object):
                     next_read_pos = read_end_idx
 
                     continue
+
+            # This code remaps which synapses are kept, such that synapses in a cluster are more likely to be kept
+            if cluster_flag and n_keep > 0:
+                # The rows that passed distance dependent pruning are: dist_flag
+
+                # 1. Calculate distance between all synapses, smallest total distance (sum to all neighbours) kept
+                synapse_coords = synapses[next_read_pos:read_end_idx, 2:5]
+
+                if dist_flag is not None:
+                    # If dist_flag is set, we need to pick a subset from the ones that passed distance dependent pruning
+                    synapse_coords = synapse_coords[dist_flag, :]
+                    lookup_idx = np.where(dist_flag)[0]
+                else:
+                    lookup_idx = None
+
+                # pdist faster, but does not give full distance matrix
+                synapse_dist = scipy.spatial.distance.cdist(synapse_coords, synapse_coords)
+                synapse_tot_dist = np.sum(synapse_dist, axis=0)
+                synapse_priority = np.argsort(synapse_tot_dist)
+
+                keep_idx = synapse_priority[:n_keep]
+                if dist_flag is not None:
+                    keep_idx = lookup_idx[keep_idx]
+
+                keep_row_flag[next_read_pos:read_end_idx] = 0
+                keep_row_flag[next_read_pos+keep_idx] = 1
 
             next_read_pos = read_end_idx
 

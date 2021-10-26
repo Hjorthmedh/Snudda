@@ -234,6 +234,7 @@ class SnuddaInit(object):
                           mu2_other=None,
                           a3_other=None,
                           conductance=None,
+                          cluster_synapses=False,
                           mod_file=None,
                           parameter_file=None,
                           channel_param_dictionary=None):
@@ -276,6 +277,7 @@ class SnuddaInit(object):
         pruning_info["mu2"] = mu2
         pruning_info["a3"] = a3
         pruning_info["distPruning"] = dist_pruning
+        pruning_info["cluster"] = cluster_synapses
         con_info["pruning"] = pruning_info
 
         # pruneInfo = (distPruning,f1,softMax,mu2,a3)
@@ -311,6 +313,7 @@ class SnuddaInit(object):
             pruning_info_other["mu2"] = mu2_other
             pruning_info_other["a3"] = a3_other
             pruning_info_other["distPruning"] = dist_pruning_other
+            pruning_info_other["cluster"] = cluster_synapses
 
             # Different pruning rules for within and between neuron units
             con_info["pruningOther"] = pruning_info_other
@@ -604,6 +607,7 @@ class SnuddaInit(object):
                           soft_max=None,
                           mu2=None,
                           a3=None,
+                          cluster_synapses=False,
                           dist_pruning_other=None,
                           f1_other=None,
                           soft_max_other=None,
@@ -621,6 +625,7 @@ class SnuddaInit(object):
                                soft_max,
                                mu2,
                                a3,
+                               cluster_synapses=cluster_synapses,
                                dist_pruning_other=None,
                                f1_other=None,
                                soft_max_other=None,
@@ -755,7 +760,9 @@ class SnuddaInit(object):
                         population_unit_SPN_modifier=1,
                         mesh_file=None,
                         mesh_bin_width=None,
-                        d_min=None):
+                        d_min=None,
+                        cluster_FS_synapses=False,
+                        cluster_SPN_synapses=False):
 
         get_val = lambda x: 0 if x is None else x
         if num_neurons is None:
@@ -991,6 +998,7 @@ class SnuddaInit(object):
                                dist_pruning=None,
                                f1=0.15, soft_max=5, mu2=2, a3=1,
                                conductance=FS_gGABA,
+                               cluster_synapses=cluster_FS_synapses,
                                parameter_file=pfFSFS,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"tau1": (1.33e-3, 1e3),
@@ -1004,6 +1012,7 @@ class SnuddaInit(object):
                                dist_pruning=FS_dist_dep_pruning,
                                f1=0.5, soft_max=5, mu2=2, a3=1.0,
                                conductance=FS_gGABA,
+                               cluster_synapses=cluster_FS_synapses,
                                parameter_file=pfFSdSPN,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"tau1": (1.2e-3, 1e3),
@@ -1015,6 +1024,7 @@ class SnuddaInit(object):
                                dist_pruning=FS_dist_dep_pruning,
                                f1=0.5, soft_max=5, mu2=2, a3=0.9,
                                conductance=FS_gGABA,
+                               cluster_synapses=cluster_FS_synapses,
                                parameter_file=pfFSiSPN,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"tau1": (1.2e-3, 1e3),
@@ -1026,6 +1036,7 @@ class SnuddaInit(object):
                                dist_pruning=None,
                                f1=0.15, soft_max=3, mu2=2, a3=1.0,
                                conductance=FS_to_LTS_gGABA,
+                               cluster_synapses=cluster_FS_synapses,
                                parameter_file=pfFSLTS,
                                mod_file="tmGabaA",
                                channel_param_dictionary=None)
@@ -1038,6 +1049,7 @@ class SnuddaInit(object):
                                    dist_pruning=None,
                                    f1=0.7, soft_max=8, mu2=2, a3=1.0,
                                    conductance=FS_gGapJunction,
+                                   cluster_synapses=False,
                                    channel_param_dictionary=None)
 
         ## Define MSD1 targets
@@ -1116,6 +1128,7 @@ class SnuddaInit(object):
                                a3=P11withinUnit,
                                a3_other=P11betweenUnit,
                                conductance=MSD1gGABA,
+                               cluster_synapses=cluster_SPN_synapses,
                                parameter_file=pfdSPNdSPN,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"tau1": (1.3e-3, 1e3),
@@ -1131,6 +1144,7 @@ class SnuddaInit(object):
                                a3=P12withinUnit,
                                a3_other=P12betweenUnit,
                                conductance=MSD1gGABA,
+                               cluster_synapses=cluster_SPN_synapses,
                                parameter_file=pfdSPNiSPN,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"tau1": (1.3e-3, 1e3),
@@ -1150,6 +1164,7 @@ class SnuddaInit(object):
                                dist_pruning=SPN2ChINDistDepPruning,
                                f1=0.1, soft_max=3, mu2=2.4, a3=0.1,
                                conductance=MSD1gGABA,
+                               cluster_synapses=cluster_SPN_synapses,
                                parameter_file=pfdSPNChIN,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"failRate": MSD1GABAfailRate})
@@ -1200,6 +1215,7 @@ class SnuddaInit(object):
                                a3=P21withinUnit,
                                a3_other=P21betweenUnit,
                                conductance=MSD2gGABA,
+                               cluster_synapses=cluster_SPN_synapses,
                                parameter_file=pfiSPNdSPN,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"tau1": (1.3e-3, 1e3),
@@ -1215,6 +1231,7 @@ class SnuddaInit(object):
                                a3=P22withinUnit,
                                a3_other=P22betweenUnit,
                                conductance=MSD2gGABA,
+                               cluster_synapses=cluster_SPN_synapses,
                                parameter_file=pfiSPNiSPN,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"tau1": (1.3e-3, 1e3),
@@ -1228,6 +1245,7 @@ class SnuddaInit(object):
                                dist_pruning=SPN2ChINDistDepPruning,
                                f1=0.1, soft_max=3, mu2=2.4, a3=0.1,
                                conductance=MSD2gGABA,
+                               cluster_synapses=cluster_SPN_synapses,
                                parameter_file=pfiSPNChIN,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"failRate": MSD2GABAfailRate})
@@ -1267,6 +1285,7 @@ class SnuddaInit(object):
                                    dist_pruning=None,
                                    f1=0.5, soft_max=10, mu2=15, a3=0.1,  # SM 15
                                    conductance=ChINgGABA,
+                                   cluster_synapses=False,
                                    parameter_file=pfChINdSPN,
                                    mod_file="tmGabaA",
                                    channel_param_dictionary=None)
@@ -1280,6 +1299,7 @@ class SnuddaInit(object):
                                    dist_pruning=None,
                                    f1=0.5, soft_max=10, mu2=10, a3=0.1,  # SM 12
                                    conductance=ChINgGABA,
+                                   cluster_synapses=False,
                                    parameter_file=pfChINiSPN,
                                    mod_file="tmGabaA",
                                    channel_param_dictionary=None)
@@ -1295,6 +1315,7 @@ class SnuddaInit(object):
                                    dist_pruning=None,
                                    f1=0.5, soft_max=None, mu2=10, a3=None,  # SM 12
                                    conductance=ChINgACh,
+                                   cluster_synapses=False,
                                    parameter_file=pfChINLTS,
                                    mod_file="ACh",  # !!! DOES NOT YET EXIST --- FIXME
                                    channel_param_dictionary=None)
@@ -1325,6 +1346,7 @@ class SnuddaInit(object):
                                dist_pruning=LTSDistDepPruning,
                                f1=1.0, soft_max=15, mu2=3, a3=0.3,
                                conductance=LTSgGABA,
+                               cluster_synapses=False,
                                parameter_file=pfLTSdSPN,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"tau1": (3e-3, 1e3),
@@ -1337,6 +1359,7 @@ class SnuddaInit(object):
                                dist_pruning=LTSDistDepPruning,
                                f1=1.0, soft_max=15, mu2=3, a3=0.3,
                                conductance=LTSgGABA,
+                               cluster_synapses=False,
                                parameter_file=pfLTSiSPN,
                                mod_file="tmGabaA",
                                channel_param_dictionary={"tau1": (3e-3, 1e3),
@@ -1348,6 +1371,7 @@ class SnuddaInit(object):
                                dist_pruning=None,
                                f1=0.5, soft_max=10, mu2=3, a3=0.4,
                                conductance=LTSgGABA,
+                               cluster_synapses=False,
                                parameter_file=pfLTSChIN,
                                mod_file="tmGabaA",
                                channel_param_dictionary=None)
@@ -1471,6 +1495,7 @@ class SnuddaInit(object):
                                parameter_file=cortexSynParMS,
                                mod_file="tmGlut",
                                conductance=cortex_glut_cond,
+                               cluster_synapses=False,
                                channel_param_dictionary=None)
 
         self.add_neuron_target(neuron_name="CortexAxon",
@@ -1481,6 +1506,7 @@ class SnuddaInit(object):
                                parameter_file=cortexSynParMS,
                                mod_file="tmGlut",
                                conductance=cortex_glut_cond,
+                               cluster_synapses=False,
                                channel_param_dictionary=None)
 
         self.add_neuron_target(neuron_name="CortexAxon",
@@ -1491,6 +1517,7 @@ class SnuddaInit(object):
                                parameter_file=cortexSynParFS,
                                mod_file="tmGlut",
                                conductance=cortex_glut_cond,
+                               cluster_synapses=False,
                                channel_param_dictionary=None)
 
         # !!! No input for LTS and ChIN right now...
@@ -1541,6 +1568,7 @@ class SnuddaInit(object):
                                dist_pruning=None,
                                f1=1.0, soft_max=3, mu2=2.4, a3=None,
                                conductance=thalamus_glut_cond,
+                               cluster_synapses=False,
                                parameter_file=thalamus_syn_par_ms,
                                mod_file="tmGlut",
                                channel_param_dictionary=None)
@@ -1551,6 +1579,7 @@ class SnuddaInit(object):
                                dist_pruning=None,
                                f1=1.0, soft_max=3, mu2=2.4, a3=None,
                                conductance=thalamus_glut_cond,
+                               cluster_synapses=False,
                                parameter_file=thalamus_syn_par_ms,
                                mod_file="tmGlut",
                                channel_param_dictionary=None)
@@ -1562,6 +1591,7 @@ class SnuddaInit(object):
                                dist_pruning=None,
                                f1=1.0, soft_max=3, mu2=2.4, a3=None,
                                conductance=thalamus_glut_cond,
+                               cluster_synapses=False,
                                parameter_file=thalamus_syn_par_fs,
                                mod_file="tmGlut",
                                channel_param_dictionary=None)

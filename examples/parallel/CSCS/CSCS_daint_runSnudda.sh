@@ -129,8 +129,8 @@ else
     # Disable input generation at the moment
 
     # echo ">>> Input: "`date`
-    # cp -a $SNUDDA_DIR/data/input_config/input-v10-scaled.json ${JOBDIR}/input.json
-    cp -a $SNUDDA_DIR/data/input_config/external-input-dSTR-scaled.json ${JOBDIR}/input.json
+    # Change this to the input config file you want to run
+    cp -a $SNUDDA_DIR/data/input_config/external-input-dSTR-scaled-v4.json ${JOBDIR}/input.json
 
     snudda input ${JOBDIR} --parallel --time 5
     
