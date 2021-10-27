@@ -1257,6 +1257,7 @@ class SnuddaPrune(object):
             # self.writeLog("Removing old merge file: " + str(f))
             try:
                 if os.path.exists(f):
+                    # TODO: Close file, Zahra fix
                     os.remove(f)
             except Exception as e:
                 self.write_log(f"Closing of file {f} failed: {e}")

@@ -179,6 +179,9 @@ class InputTuning(object):
         network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         network_info = SnuddaLoad(network_file)
 
+        input_file = os.path.join(self.network_path, "input-spikes.hdf5")
+        input_data = h5py.File(input_file, "r")
+
         spike_data_file = os.path.join(self.network_path, "output_spikes.txt")
         n_neurons = network_info.data["nNeurons"]
         spike_data = self.load_spike_data(spike_data_file, n_neurons)
@@ -207,12 +210,13 @@ class InputTuning(object):
         input_config = self.load_input_config()
 
         n_inputs_lookup = dict()
-        for neuron_label in input_config.keys():
+
+        for neuron_label in input_data["input"]:
             neuron_id = int(neuron_label)
             n_inputs = 0
 
-            for input_type in input_config[neuron_label].keys():
-                n_inputs += input_config[neuron_label][input_type]["nInputs"]
+            for input_type in input_data["input"][neuron_label]:
+                n_inputs += input_data["input"][neuron_label][input_type]["spikes"].shape[0]
 
             n_inputs_lookup[neuron_id] = n_inputs
 
