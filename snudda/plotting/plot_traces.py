@@ -3,6 +3,8 @@
 
 import sys
 import os
+
+import h5py
 import numpy as np
 from snudda.utils.load import SnuddaLoad
 import re
@@ -14,7 +16,7 @@ class PlotTraces:
 
     ############################################################################
 
-    def __init__(self, file_name, network_file=None):
+    def __init__(self, file_name, network_file=None, input_file=None):
 
         self.file_name = file_name
         self.network_file = network_file
@@ -38,6 +40,11 @@ class PlotTraces:
 
         else:
             self.network_info = None
+
+        if self.input_file is not None:
+            self.input_info = h5py.File(self.input_file, "r")
+        else:
+            self.input_info = None
 
     ############################################################################
 
@@ -156,6 +163,13 @@ class PlotTraces:
 
         plt.xlabel('Time')
         plt.ylabel('Voltage')
+
+        if title is None and self.input_info is not None and len(trace_id) == 1:
+            n_inputs = 0
+            for input_type in self.input_info["input"][str(trace_id[0])]:
+                n_inputs += self.input_info["input"][str(trace_id[0])][input_type]["spikes"].shape[0]
+
+            title = f"{self.network_info.data['neurons'][trace_id[0]]['name']} receiving {n_inputs} inputs"
 
         if title is not None:
             plt.title(title)
