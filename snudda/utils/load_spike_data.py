@@ -60,7 +60,7 @@ class SnuddaLoadSpikeData:
             else:
                 neuron_id = [x["neuronID"] for x in self.snudda_load.data["neurons"]]
 
-        if neuron_id:
+        if type(neuron_id) == list:
             spikes = [self.get_spikes(neuron_id=nid, time_range=time_range) for nid in neuron_id]
         else:
             print("No neurons specified.")
