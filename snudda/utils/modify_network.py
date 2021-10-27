@@ -306,11 +306,24 @@ def snudda_modify_network_cli():
         mod_network.remove_neuron_id(neuron_id=neuron_id)
 
     if args.remove_connection:
-        assert args.remove_connection.count(",") == 1, "Format is --remove_connection pre_neuron_type,post_neuron_type"
 
-        pre_type, post_type = args.remove_connection.split(",")
-        mod_network.remove_connection(pre_neuron_type=pre_type, post_neuron_type=post_type,
+        if args.remove_connection.count(";") > 0:
+
+            for c in args.remove_connection.split(";"):
+                
+                assert args.remove_connection.count(",") == 1, "Format is --remove_connection pre_neuron_type,post_neuron_type"
+
+                pre_type, post_type = c.split(",")
+                mod_network.remove_connection(pre_neuron_type=pre_type, post_neuron_type=post_type,
                                       p_removal=args.p_remove_connection)
+
+
+        else:
+            assert args.remove_connection.count(",") == 1, "Format is --remove_connection pre_neuron_type,post_neuron_type"
+
+            pre_type, post_type = args.remove_connection.split(",")
+            mod_network.remove_connection(pre_neuron_type=pre_type, post_neuron_type=post_type,
+                                  p_removal=args.p_remove_connection)
 
     mod_network.write_network(out_file_name=args.output_network)
 
