@@ -20,6 +20,7 @@ class PlotTraces:
 
         self.file_name = file_name
         self.network_file = network_file
+        self.input_file = input_file
 
         self.time = []
         self.voltage = dict([])
