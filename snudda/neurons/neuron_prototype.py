@@ -193,7 +193,7 @@ class NeuronPrototype:
                 if morph_tag not in self.morphology_cache:
                     if self.verbose:
                         print(f"morph_tag = {morph_tag}")
-                        
+
                     self.morphology_cache[morph_tag] = NeuronMorphology(swc_filename=morph_path,
                                                                         param_data=self.parameter_path,
                                                                         mech_filename=self.mechanism_path,
