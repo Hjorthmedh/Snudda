@@ -138,6 +138,7 @@ class PlotSpikeRaster(object):
         # histogram
         selected_types1=["dspn","ispn"]
         selected_types2 = ["chin", "fsn","lts"]
+        spike_count = []
         for t in type_order:#type_order
             pruned_spikes = [self.time[int(i)] - skip_time for i in t_idx if i in type_dict[t]]
             num_of_type = len([x["type"] for x in self.network_info.data["neurons"] if x["type"].lower() == t])
@@ -153,6 +154,7 @@ class PlotSpikeRaster(object):
                           alpha=1.0,
                           histtype='step',
                           weights=np.ones_like(pruned_spikes)/binwidth/num_of_type)
+                spike_count.append((t, len(pruned_spikes), num_of_type))
             elif t in selected_types2:
                 atop2.hist(pruned_spikes,
                           bins=binRange,
@@ -162,7 +164,7 @@ class PlotSpikeRaster(object):
                           alpha=1.0,
                           histtype='step',
                           weights=np.ones_like(pruned_spikes) / binwidth / num_of_type)
-
+                spike_count.append((t, len(pruned_spikes), num_of_type))
         ax.invert_yaxis()
 
         ax.set_xlabel('Time (s)')
@@ -176,9 +178,11 @@ class PlotSpikeRaster(object):
         atop.set_xticklabels([])
         atop2.set_xticklabels([])
         atop.set_ylabel('Average spikes/s')
-        # UPDATE here to set specific range for plot window!!!!
 
+        # UPDATE here to set specific range for plot window!!!!
         end_time = np.max([self.end_time, np.max(self.time)]) - skip_time
+        for st, sc, n in spike_count:
+            print(f"{st} ({n}): {sc/(n*end_time)} Hz, total spikes {sc}")
 
         atop.set_xlim([-0.01, end_time + 0.01])
         atop2.set_xlim([-0.01, end_time + 0.01])
