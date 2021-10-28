@@ -2,7 +2,7 @@ import unittest
 import os
 import numpy as np
 
-from snudda.utils.modify_network import SnuddaModifyNetwork
+from snudda.utils.ablate_network import SnuddaAblateNetwork
 from snudda.utils.load import SnuddaLoad
 from snudda.analyse import SnuddaAnalyse
 
@@ -52,7 +52,7 @@ class SnuddaModifyNetworkTestCase(unittest.TestCase):
         new_file_ispn = os.path.join(self.network_path, "ispn-neurons-removed.hdf5")
         new_file_ispn_dspn = os.path.join(self.network_path, "ispn-dspn-connections-removed.hdf5")
 
-        mod_network = SnuddaModifyNetwork(network_file=self.original_file)
+        mod_network = SnuddaAblateNetwork(network_file=self.original_file)
         sa_orig = SnuddaAnalyse(hdf5_file=self.original_file)
         dspn_id_orig = self.snudda_load_original.get_cell_id_of_type(neuron_type="dSPN")
         ispn_id_orig = self.snudda_load_original.get_cell_id_of_type(neuron_type="iSPN")

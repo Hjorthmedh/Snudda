@@ -6,9 +6,9 @@ import numpy as np
 import sys
 
 
-class SnuddaModifyNetwork:
+class SnuddaAblateNetwork:
 
-    """ Modify a network in different ways. """
+    """ Ablate neurons or synapses from a network. """
 
     def __init__(self, network_file, verbose=False):
 
@@ -36,6 +36,8 @@ class SnuddaModifyNetwork:
 
     def remove_neuron_type(self, neuron_type, p_remove=1):
 
+        """ Remove neuron of type neuron_type with probability p_remove (default 1)"""
+
         remove_cell_id = self.snudda_load.get_cell_id_of_type(neuron_type=neuron_type)
         remove_flag = np.random.uniform(size=(len(remove_cell_id),)) <= p_remove
         remove_cell_id = remove_cell_id[remove_flag]
@@ -49,6 +51,9 @@ class SnuddaModifyNetwork:
         self.keep_neuron_id = self.keep_neuron_id - set(remove_cell_id)
 
     def remove_neuron_name(self, neuron_name):
+
+        """ Remove neuron with name neuron_name """
+
         remove_cell_id = self.snudda_load.get_cell_id_with_name(neuron_name=neuron_name)
 
         if len(remove_cell_id) > 0:
@@ -122,6 +127,8 @@ class SnuddaModifyNetwork:
         return keep_flag
 
     def write_network(self, out_file_name=None):
+
+        """ Write network to hdf5 file: output_file_name """
 
         if not out_file_name:
             out_file_name = f"{self.in_file.filename}-modified.hdf5"
@@ -277,7 +284,7 @@ class SnuddaModifyNetwork:
         out_file.close()
 
 
-def snudda_modify_network_cli():
+def snudda_ablate_network_cli():
 
     from argparse import ArgumentParser
 
@@ -292,7 +299,7 @@ def snudda_modify_network_cli():
     parser.add_argument("--p_remove_connection", type=float, help="Probability to remove connection", default=1.0)
     args = parser.parse_args()
 
-    mod_network = SnuddaModifyNetwork(network_file=args.original_network)
+    mod_network = SnuddaAblateNetwork(network_file=args.original_network)
 
     if args.remove_neuron_type:
         mod_network.remove_neuron_type(neuron_type=args.remove_neuron_type,
@@ -316,4 +323,4 @@ def snudda_modify_network_cli():
 
 
 if __name__ == "__main__":
-    snudda_modify_network_cli()
+    snudda_ablate_network_cli()
