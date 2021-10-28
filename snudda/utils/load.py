@@ -780,8 +780,16 @@ def snudda_load_cli():
     if args.listN:
         print("Neurons in network: ")
 
-        for nid, name, pos in [(x["neuronID"], x["name"], x["position"]) for x in nl.data["neurons"]]:
-            print("%d : %s  (x: %f, y: %f, z: %f)" % (nid, name, pos[0], pos[1], pos[2]))
+        if args.detailed:
+            for nid, name, pos, par_id, morph_id, mod_id \
+                    in [(x["neuronID"], x["name"], x["position"],
+                         x["parameterID"], x["morphologyID"], x["modulationID"])
+                        for x in nl.data["neurons"]]:
+                print("%d : %s  (x: %f, y: %f, z: %f), par_id: %d, morph_id: %d, mod_id: %d"
+                      % (nid, name, pos[0], pos[1], pos[2], par_id, morph_id, mod_id))
+        else:
+            for nid, name, pos in [(x["neuronID"], x["name"], x["position"]) for x in nl.data["neurons"]]:
+                print("%d : %s  (x: %f, y: %f, z: %f)" % (nid, name, pos[0], pos[1], pos[2]))
 
     if args.listT is not None:
         if args.listT == "?":

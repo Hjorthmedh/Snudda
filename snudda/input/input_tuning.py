@@ -9,6 +9,7 @@ import h5py
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.place.create_cube_mesh import create_cube_mesh
 from snudda.neurons.neuron_morphology import NeuronMorphology
+from snudda.utils.reposition_neurons import RepositionNeurons
 from snudda.init.init import SnuddaInit
 from snudda.input.input import SnuddaInput
 from snudda.utils.load import SnuddaLoad
@@ -67,7 +68,8 @@ class InputTuning(object):
 
     # Writes config files
 
-    def setup_network(self, neurons_path, num_replicas=10, neuron_types=None):
+    def setup_network(self, neurons_path, num_replicas=10, neuron_types=None,
+                      parameter_id=None, morphology_id=None, modulation_id=None):
 
         # TODO: num_replicas should be set by a parameter, it affects how many duplicates of each neuron
         # and thus how many steps we have between n_min and n_max number of inputs specified.
@@ -92,6 +94,25 @@ class InputTuning(object):
         sp = SnuddaPlace(network_path=self.network_path)
         sp.parse_config()
         sp.write_data()
+
+        # Set parameter_id, morphology_id or modulation_id if requested
+        if parameter_id is not None or morphology_id is not None or modulation_id is not None:
+            pos_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
+            s_mod = RepositionNeurons(pos_file)
+
+            if parameter_id is not None:
+                print(f"Setting parameter_id = {parameter_id}")
+                s_mod.set_parameter_id(neuron_id=None, parameter_id=parameter_id)
+
+            if morphology_id is not None:
+                print(f"Setting morphology_id = {morphology_id}")
+                s_mod.set_morphology_id(neuron_id=None, morphology_id=morphology_id)
+
+            if modulation_id is not None:
+                print(f"Setting neuron modulation_id = {modulation_id}")
+                s_mod.set_modulation_id(neuron_id=None, modulation_id=modulation_id)
+
+            s_mod.close()
 
         sd = SnuddaDetect(network_path=self.network_path)
         sd.detect()
@@ -179,6 +200,8 @@ class InputTuning(object):
         network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         network_info = SnuddaLoad(network_file)
 
+        input_data = h5py.File(self.input_spikes_file, "r")
+
         spike_data_file = os.path.join(self.network_path, "output_spikes.txt")
         n_neurons = network_info.data["nNeurons"]
         spike_data = self.load_spike_data(spike_data_file, n_neurons)
@@ -207,12 +230,13 @@ class InputTuning(object):
         input_config = self.load_input_config()
 
         n_inputs_lookup = dict()
-        for neuron_label in input_config.keys():
+
+        for neuron_label in input_data["input"]:
             neuron_id = int(neuron_label)
             n_inputs = 0
 
-            for input_type in input_config[neuron_label].keys():
-                n_inputs += input_config[neuron_label][input_type]["nInputs"]
+            for input_type in input_data["input"][neuron_label]:
+                n_inputs += input_data["input"][neuron_label][input_type]["spikes"].shape[0]
 
             n_inputs_lookup[neuron_id] = n_inputs
 
