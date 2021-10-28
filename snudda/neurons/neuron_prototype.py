@@ -17,7 +17,10 @@ class NeuronPrototype:
                  modulation_path=None,
                  virtual_neuron=False,
                  load_morphology=True,
-                 axon_stump_id_flag=False):
+                 axon_stump_id_flag=False,
+                 verbose=False):
+
+        self.verbose = verbose
 
         if neuron_path:
             self.neuron_path = snudda_parse_path(neuron_path)
@@ -174,7 +177,8 @@ class NeuronPrototype:
         Instantiates all morphologies at once, instead of on demand.
         """
         for par_id in range(0, len(self.parameter_info)):
-            print(f"Instantiates par_id = {par_id}")
+            if self.verbose:
+                print(f"Instantiates par_id = {par_id}")
 
             par_data = self.get_parameters(parameter_id=par_id)
             if par_data is not None and len(par_data) > 0 and "morphology" in par_data[0]:
@@ -187,7 +191,9 @@ class NeuronPrototype:
                 morph_tag = os.path.basename(morph_path)
 
                 if morph_tag not in self.morphology_cache:
-                    print(f"morph_tag = {morph_tag}")
+                    if self.verbose:
+                        print(f"morph_tag = {morph_tag}")
+                        
                     self.morphology_cache[morph_tag] = NeuronMorphology(swc_filename=morph_path,
                                                                         param_data=self.parameter_path,
                                                                         mech_filename=self.mechanism_path,
