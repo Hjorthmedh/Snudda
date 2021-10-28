@@ -36,7 +36,8 @@ class SnuddaLoadSpikeData:
         if time_range and time_range[1]:
             max_t = time_range[1]
         else:
-            max_t = np.max([np.max(x) for x in spikes])
+            assert np.sum([len(x) for x in spikes]) > 0, "No spikes found for any neuron in simulation output file."
+            max_t = np.max([np.max(x) for x in spikes if len(x) > 0])
             print(f"Assuming max time {max_t}")
 
         print(f"Time range {min_t} to {max_t}")
