@@ -1,6 +1,7 @@
 import glob
 import json
 import os
+from collections import OrderedDict
 
 from snudda.neurons import NeuronMorphology
 from snudda.utils.snudda_path import snudda_parse_path
@@ -86,7 +87,7 @@ class NeuronPrototype:
             return
 
         with open(par_path, "r") as f:
-            self.parameter_info = json.load(f)
+            self.parameter_info = json.load(f, object_pairs_hook=OrderedDict)
 
         # We expect a list of parameter sets, but if the user just provided one, convert it to a list
         if type(self.parameter_info[0]) == dict:
@@ -96,7 +97,7 @@ class NeuronPrototype:
 
         if mod_path is not None and os.path.exists(mod_path):
             with open(mod_path, "r") as f:
-                self.modulation_info = json.load(f)
+                self.modulation_info = json.load(f, object_pairs_hook=OrderedDict)
         else:
             self.modulation_info = None
 

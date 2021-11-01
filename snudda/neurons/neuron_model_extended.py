@@ -3,6 +3,8 @@ modified by Johannes Hjorth """
 
 import os
 import json
+from collections import OrderedDict
+
 import numpy as np
 
 import bluepyopt.ephys as ephys
@@ -97,7 +99,7 @@ class NeuronModel(ephys.models.CellModel):
         # print("Using mechanmism config: " + mechanism_config)
 
         with open(mechanism_config, "r") as f:
-            mech_definitions = json.load(f)
+            mech_definitions = json.load(f, object_pairs_hook=OrderedDict)
 
         if "modpath" in mech_definitions:
             mod_path = os.path.join(self.script_dir, mech_definitions["modpath"])
@@ -143,7 +145,7 @@ class NeuronModel(ephys.models.CellModel):
         # print("Using parameter config: " + parameter_config)
 
         with open(parameter_config, "r") as f:
-            param_configs = json.load(f)
+            param_configs = json.load(f, object_pairs_hook=OrderedDict)
 
         parameters = []
 

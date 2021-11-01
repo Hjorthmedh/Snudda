@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os.path
+from collections import OrderedDict
 
 from snudda.utils.load import SnuddaLoad
 import h5py
@@ -29,7 +30,7 @@ class SnuddaAblateNetwork:
         all synapses between dSPN and iSPN). Alternatively the removal probability can also be specified
         (e.g. ["iSPN", "dSPN", 0.1] where 10% of connections between those neuron types are removed).
 
-        
+
     """
 
     def __init__(self, network_file, verbose=False):
@@ -331,7 +332,7 @@ def snudda_ablate_network_cli():
             exit(-1)
 
         with open(args.config) as f:
-            config_data = json.load(f)
+            config_data = json.load(f, object_pairs_hook=OrderedDict)
 
         if "ablate_neurons" in config_data:
             for ablate in config_data["ablate_neurons"]:

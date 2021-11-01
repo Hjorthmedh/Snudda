@@ -1,6 +1,7 @@
 # In addition to adding synapses using touch detection we also want the ability to add connections
 # when we do not have an axon, for example over long range between structures, to connect them together.
 # This is what project.py is responsible for.
+from collections import OrderedDict
 
 import numpy as np
 import json
@@ -55,7 +56,7 @@ class SnuddaProject(object):
         config_file = os.path.join(self.network_path, "network-config.json")
 
         with open(config_file, "r") as f:
-            self.config = json.load(f)
+            self.config = json.load(f, object_pairs_hook=OrderedDict)
 
         if not h5libver:
             self.h5libver = "latest"
@@ -163,7 +164,7 @@ class SnuddaProject(object):
 
             projection_file = con_info["projectionFile"]
             with open(projection_file, "r") as f:
-                projection_data = json.load(f)
+                projection_data = json.load(f, object_pairs_hook=OrderedDict)
 
             if "projectionName" in con_info:
                 proj_name = con_info["projectionName"]

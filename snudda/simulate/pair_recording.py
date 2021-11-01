@@ -17,6 +17,8 @@
 #
 
 import os
+from collections import OrderedDict
+
 import numpy as np
 import json
 from snudda.simulate import SnuddaSimulate
@@ -66,7 +68,7 @@ class PairRecording(SnuddaSimulate):
         """ Loads the experimental config from JSON file. """
 
         with open(experiment_config_file, "r") as f:
-            return json.load(f)
+            return json.load(f, object_pairs_hook=OrderedDict)
 
     def parse_experiment_config(self):
 

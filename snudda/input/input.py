@@ -13,6 +13,7 @@
 # Smith, Galvan, ..., Bolam 2014 -- Bra info om thalamic inputs, CM/PF
 #
 import sys
+from collections import OrderedDict
 
 import numpy as np
 import h5py
@@ -319,7 +320,7 @@ class SnuddaInput(object):
         self.write_log(f"Loading input configuration from {self.input_config_file}")
 
         with open(snudda_parse_path(self.input_config_file), 'rt') as f:
-            self.input_info = json.load(f)
+            self.input_info = json.load(f, object_pairs_hook=OrderedDict)
 
         for neuron_type in self.input_info:
             for input_type in self.input_info[neuron_type]:
@@ -328,7 +329,7 @@ class SnuddaInput(object):
                     par_file = snudda_parse_path(self.input_info[neuron_type][input_type]["parameterFile"])
 
                     with open(par_file, 'r') as f:
-                        par_data_dict = json.load(f)
+                        par_data_dict = json.load(f, object_pairs_hook=OrderedDict)
 
                     # Read in parameters into a list
                     par_data = []
@@ -1000,7 +1001,7 @@ class SnuddaInput(object):
         self.write_log(f"Reading config file {self.network_config_file}")
 
         with open(self.network_config_file, 'r') as f:
-            self.network_config = json.load(f)
+            self.network_config = json.load(f, object_pairs_hook=OrderedDict)
 
         # This also loads random seed from config file while we have it open
         if self.random_seed is None:

@@ -510,7 +510,7 @@ class SnuddaInit(object):
 
             # First check if the morphologies are listed in the parameter file
             with open(parameter_file, "r") as f:
-                par_data = json.load(f)
+                par_data = json.load(f, object_pairs_hook=collections.OrderedDict)
 
             # Normally there are multiple parametersets in a list, if not, then put the one parameter set in a list
             if type(par_data[0]) == dict:
