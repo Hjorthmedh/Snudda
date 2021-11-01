@@ -1,0 +1,7 @@
+{
+    "ablate_neurons": ["FS",
+		       ["iSPN", 0.3],
+		       [1,2,3,4]],
+    "ablate_synapses" : [["dSPN", "iSPN"],
+			 ["iSPN", "dSPN", 0.1]]
+}
