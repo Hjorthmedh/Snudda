@@ -13,6 +13,22 @@ class SnuddaAblateNetwork:
     """ Ablate neurons or synapses from a network.
 
         For an example config see Snudda/examples/config/example-ablation-config.json
+
+          {
+            "ablate_neurons": ["FS",
+		       ["iSPN", 0.3],
+		       [1,2,3,4]],
+            "ablate_synapses" : [["dSPN", "iSPN"],
+			 ["iSPN", "dSPN", 0.1]]
+          }
+
+        Here "ablate_neurons" is a list of neurons to remove. The list can contain neuron types (e.g. "FS"),
+        or neuron type and removal probability (e.g. ["iSPN", 0.3], or neuron ID to remove (e.g. [1,2,3,4]).
+
+        With "ablate_synapses" the user can specify what synapses to remove (e.g. ["dSPN", "iSPN"]] to remove
+        all synapses between dSPN and iSPN). Alternatively the removal probability can also be specified
+        (e.g. ["iSPN", "dSPN", 0.1] where 10% of connections between those neuron types are removed).
+
         
     """
 
