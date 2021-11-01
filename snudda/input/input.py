@@ -510,8 +510,10 @@ class SnuddaInput(object):
 
                         if "nInputs" in input_inf:
 
+                            # TODO: We need to read this from meta.json
+
                             # If a dictionary, then extract the info for the relevant neuron
-                            if type(input_inf["nInputs"]) == dict:
+                            if type(input_inf["nInputs"]) == OrderedDict:
                                 if neuron_name in input_inf["nInputs"]:
                                     n_inp = input_inf["nInputs"][neuron_name]
                                 elif neuron_type in input_inf["nInputs"]:
@@ -979,9 +981,6 @@ class SnuddaInput(object):
         self.network_info = data
         self.neuron_info = data["neurons"]
 
-        #    import pdb
-        #    pdb.set_trace()
-
         # Make sure the position file matches the network config file
         assert (data["configFile"] == self.network_config_file)
 
@@ -1115,7 +1114,8 @@ class SnuddaInput(object):
                                  rng,
                                  synapse_density=None,
                                  num_spike_trains=None,
-                                 cluster_size=None):
+                                 cluster_size=None,
+                                 input_type=None):
 
         """
         Return dendrite input location.
@@ -1126,6 +1126,7 @@ class SnuddaInput(object):
             synapse_density (str): Distance function f(d)
             num_spike_trains (int): Number of spike trains
             cluster_size (int): Size of each synaptic cluster (None = No clustering)
+            input_type (str): Type of input, eg. "Cortical" or "Thalamic"
         """
 
         if synapse_density is None:
@@ -1174,6 +1175,13 @@ class SnuddaInput(object):
                                                     get_cache_original=True)
 
         self.write_log(f"morphology = {morphology}")
+
+        input_info = self.neuron_cache[neuron_name].get_input_parameters(parameter_id=parameter_id,
+                                                                         morphology_id=morphology_id)
+
+        # If the neuron model has a certain number of input specified, then use that if num_spike_trains is None
+        if num_spike_trains is None and input_type in input_info:
+            num_spike_trains = input_info[input_type]
 
         return morphology.dendrite_input_locations(synapse_density=synapse_density,
                                                    num_locations=num_spike_trains,
@@ -1441,7 +1449,8 @@ class SnuddaInput(object):
                                                       synapse_density=synapse_density,
                                                       num_spike_trains=num_spike_trains,
                                                       rng=rng,
-                                                      cluster_size=cluster_size)
+                                                      cluster_size=cluster_size,
+                                                      input_type=input_type)
 
             num_inputs = input_loc[0].shape[0]
             self.write_log(f"Generating {num_inputs} inputs for {self.neuron_name[neuron_id]}")
