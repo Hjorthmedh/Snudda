@@ -513,7 +513,7 @@ class SnuddaInit(object):
                 par_data = json.load(f, object_pairs_hook=collections.OrderedDict)
 
             # Normally there are multiple parametersets in a list, if not, then put the one parameter set in a list
-            if type(par_data[0]) == dict:
+            if type(par_data[0]) in [dict, collections.OrderedDict]:
                 par_data = [par_data]
 
             has_morphology = ["morphology" in d[0] for d in par_data]
