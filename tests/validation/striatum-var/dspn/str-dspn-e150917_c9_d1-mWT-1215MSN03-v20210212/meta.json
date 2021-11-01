@@ -1,0 +1,71 @@
+{
+    "0" : {
+	"m0" : {
+	    "morphology": "WT-1215MSN03-cor-rep-ax-res3-var5.swc",
+	    "Cortical" : 100,
+	    "Thalamic" : 50
+	},
+	"m1" : {
+            "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var7.swc",
+	    "Cortical" : 120,
+	    "Thalamic" : 60
+	}
+    },
+    "1" : {
+	"m2" : {
+            "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var0.swc",
+	    "Cortial" : 80,
+	    "Thalamic" : 40
+	},
+        "m3" : {
+	    "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var7.swc",
+	    "Cortical" : 85,
+	    "Thalamic" : 35
+	}
+	
+    },
+    "2" : {
+	"m4" : {
+            "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var0.swc",
+	    "Cortical" : 101,
+	    "Thalamic" : 51
+	},
+	"m5" : {
+            "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var1.swc",
+	    "Cortical" : 102,
+	    "Thalamic" : 52
+	},
+	"m6" : {
+            "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var3.swc",
+	    "Cortical" : 103,
+	    "Thalamic" : 53
+	},
+	"m7" : {
+            "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var5.swc",
+	    "Cortical" : 104,
+	    "Thalamic" : 54
+	},
+	"m8" : {
+            "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var7.swc",
+	    "Cortical" : 105,
+	    "Thalamic" : 55
+	}
+    },
+    "3" : {
+	"m9" : {
+            "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var0.swc",
+	    "Cortical" : 107,
+	    "Thalamic" : 57
+	},
+	"m10" : {
+            "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var5.swc",
+	    "Cortical" : 108,
+	    "Thalamic" : 58
+	},
+	"m11" : {
+	    "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var7.swc",
+	    "Cortical" : 109,
+	    "Thalamic" : 59
+	}
+    }
+}

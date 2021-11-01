@@ -30,8 +30,8 @@ class NeuronPrototypeTestCase(unittest.TestCase):
             with open(par_file, "r") as f:
                 par_file_data = json.load(f)
 
-            self.assertEqual(np1.get_parameters(3), par_file_data[3])
-            self.assertEqual(np1.get_parameters(7), par_file_data[3])  # Parameter ID is modulo
+            self.assertEqual(np1.get_parameters(3), par_file_data["3"])
+            self.assertEqual(np1.get_parameters(7), par_file_data["3"])  # Parameter ID is modulo
 
             mod_file = os.path.join(neuron_path, "modulation.json")
             with open(mod_file, "r") as f:
@@ -43,12 +43,14 @@ class NeuronPrototypeTestCase(unittest.TestCase):
         parameter_path = os.path.join(neuron_path, "parameters.json")
         modulation_path = os.path.join(neuron_path, "modulation.json")
         mechanism_path = os.path.join(neuron_path, "mechanisms.json")
+        meta_path = os.path.join(neuron_path, "meta.json")
 
         with self.subTest(msg="other paths given"):
             np2 = NeuronPrototype(morphology_path=morphology_path,
                                   parameter_path=parameter_path,
                                   mechanism_path=mechanism_path,
                                   modulation_path=modulation_path,
+                                  meta_path=meta_path,
                                   neuron_name="np2", neuron_path=None)
 
             nm2 = np1.clone(parameter_id=124, morphology_id=10, modulation_id=11)

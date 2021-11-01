@@ -177,7 +177,7 @@ class NeuronPrototype:
 
         if self.meta_info and par_key:
             morph_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id)
-            morph_path = os.path.join(self.morphology_path, self.meta_info[par_key][morph_key])
+            morph_path = os.path.join(self.morphology_path, self.meta_info[par_key][morph_key]["morphology"])
             assert os.path.isfile(morph_path), f"Morphology file {morph_path} is missing (listed in {self.meta_path})"
 
         elif self.morphology_path and os.path.isfile(self.morphology_path):
