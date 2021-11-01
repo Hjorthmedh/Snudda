@@ -39,6 +39,10 @@ class NeuronPrototypeTestCase(unittest.TestCase):
 
             self.assertEqual(np1.get_modulation_parameters(2), mod_file_data[2])
 
+            input_info = np1.get_input_parameters(parameter_id=3, morphology_id=2)
+            self.assertEqual(input_info["Cortical"], 109)
+            self.assertEqual(input_info["Thalamic"], 59)
+
         morphology_path = os.path.join(neuron_path, "morphology")
         parameter_path = os.path.join(neuron_path, "parameters.json")
         modulation_path = os.path.join(neuron_path, "modulation.json")

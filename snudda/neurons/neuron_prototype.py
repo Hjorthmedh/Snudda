@@ -159,8 +159,8 @@ class NeuronPrototype:
         par_key = self.get_parameter_key(parameter_id=parameter_id)
         morph_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id)
 
-        if self.meta_info:
-            input_info = self.meta_info[par_key][morph_key]
+        if self.meta_info and "input" in self.meta_info[par_key][morph_key]:
+            input_info = self.meta_info[par_key][morph_key]["input"]
         else:
             input_info = dict()
 
