@@ -77,6 +77,9 @@ class SnuddaPlotSpikeRaster2:
         ax[0].set_yticks(y_tick)
         ax[0].set_yticklabels(y_tick_label)
 
+        if not os.path.isdir(os.path.basename(self.figure_path)):
+            os.makedirs(os.path.basename(self.figure_path))
+            
         plt.savefig(self.figure_path, dpi=300)
 
         plt.ion()
@@ -92,4 +95,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     ps = SnuddaPlotSpikeRaster2(network_path=args.network_path)
-
+    ps.plot_spike_raster()
