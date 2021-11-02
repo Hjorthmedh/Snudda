@@ -63,7 +63,7 @@ class SnuddaPlotSpikeRaster2:
         spike_y = np.take(neuron_order, self.spike_neuron_id)
         sc = [self.get_colours(x) for x in neuron_type_list]
 
-        ax[0].scatter(self.time, spike_y, color=sc, s=1, linewidths=0.1)
+        ax[0].scatter(self.spike_time, spike_y, color=sc, s=1, linewidths=0.1)
 
         # Get position of labels
         unique_neuron_types = set(neuron_type_list)
