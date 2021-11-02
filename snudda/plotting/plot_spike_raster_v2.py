@@ -30,7 +30,7 @@ class SnuddaPlotSpikeRaster2:
         assert self.spike_file and os.path.isfile(self.spike_file), f"Input spike file {self.spike_file} does not exist"
         data = np.loadtxt(self.spike_file, delimiter="\t")
         self.spike_time = data[:, 0]
-        self.spike_neuron_id = data[:, 1]
+        self.spike_neuron_id = data[:, 1].astype(int)
 
         self.snudda_load = SnuddaLoad(network_file=self.network_file)
 
@@ -79,7 +79,7 @@ class SnuddaPlotSpikeRaster2:
 
         if not os.path.isdir(os.path.basename(self.figure_path)):
             os.makedirs(os.path.basename(self.figure_path))
-            
+
         plt.savefig(self.figure_path, dpi=300)
 
         plt.ion()
