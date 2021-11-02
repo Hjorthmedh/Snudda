@@ -55,9 +55,9 @@ class SnuddaLoadSpikeData:
 
         if not neuron_id:
             if neuron_name:
-                neuron_id = self.snudda_load.get_cell_id_with_name(neuron_name=neuron_name)
+                neuron_id = self.snudda_load.get_neuron_id_with_name(neuron_name=neuron_name)
             elif neuron_type:
-                neuron_id = self.snudda_load.get_cell_id_of_type(neuron_type=neuron_type)
+                neuron_id = self.snudda_load.get_neuron_id_of_type(neuron_type=neuron_type)
             else:
                 neuron_id = [x["neuronID"] for x in self.snudda_load.data["neurons"]]
 

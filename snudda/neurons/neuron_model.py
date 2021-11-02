@@ -3,6 +3,8 @@ modified by Johannes Hjorth """
 
 import os
 import json
+from collections import OrderedDict
+
 import numpy as np
 
 import bluepyopt.ephys as ephys
@@ -21,7 +23,7 @@ def define_mechanisms(mechanism_config=None):
     # print("Using mechanmism config: " + mechanism_config)
 
     with open(os.path.join(config_dir, mechanism_config), "r") as f:
-        mech_definitions = json.load(f)
+        mech_definitions = json.load(f, object_pairs_hook=OrderedDict)
 
     if "modpath" in mech_definitions:
         mod_path = os.path.join(script_dir, mech_definitions["modpath"])
@@ -63,7 +65,7 @@ def define_parameters(parameter_config=None):
     # print("Using parameter config: " + parameter_config)
 
     with open(os.path.join(config_dir, parameter_config), "r") as f:
-        param_configs = json.load(f)
+        param_configs = json.load(f, object_pairs_hook=OrderedDict)
     parameters = []
 
     for param_config in param_configs:

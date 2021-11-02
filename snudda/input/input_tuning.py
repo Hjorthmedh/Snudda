@@ -302,7 +302,7 @@ class InputTuning(object):
 
         input_config_file = os.path.join(self.network_path, "input_config.json")
         with open(input_config_file) as f:
-            input_config = json.load(f)
+            input_config = json.load(f, object_pairs_hook=OrderedDict)
 
         return input_config
 
@@ -860,7 +860,7 @@ class InputTuning(object):
 
         try:
             with open(tuning_info_file, 'rt') as f:
-                tuning_meta_data = json.load(f)
+                tuning_meta_data = json.load(f, object_pairs_hook=collections.OrderedDict)
 
             # max_time is the important one, we want to make sure we simulate correct duration without having the user
             # provide the parameter twice

@@ -1,14 +1,37 @@
 #!/usr/bin/env python3
+import os.path
+from collections import OrderedDict
 
 from snudda.utils.load import SnuddaLoad
 import h5py
 import numpy as np
 import sys
+import json
 
 
 class SnuddaAblateNetwork:
 
-    """ Ablate neurons or synapses from a network. """
+    """ Ablate neurons or synapses from a network.
+
+        For an example config see Snudda/examples/config/example-ablation-config.json
+
+          {
+            "ablate_neurons": ["FS",
+		       ["iSPN", 0.3],
+		       [1,2,3,4]],
+            "ablate_synapses" : [["dSPN", "iSPN"],
+			 ["iSPN", "dSPN", 0.1]]
+          }
+
+        Here "ablate_neurons" is a list of neurons to remove. The list can contain neuron types (e.g. "FS"),
+        or neuron type and removal probability (e.g. ["iSPN", 0.3], or neuron ID to remove (e.g. [1,2,3,4]).
+
+        With "ablate_synapses" the user can specify what synapses to remove (e.g. ["dSPN", "iSPN"]] to remove
+        all synapses between dSPN and iSPN). Alternatively the removal probability can also be specified
+        (e.g. ["iSPN", "dSPN", 0.1] where 10% of connections between those neuron types are removed).
+
+
+    """
 
     def __init__(self, network_file, verbose=False):
 
@@ -38,12 +61,12 @@ class SnuddaAblateNetwork:
 
         """ Remove neuron of type neuron_type with probability p_remove (default 1)"""
 
-        remove_cell_id = self.snudda_load.get_cell_id_of_type(neuron_type=neuron_type)
+        remove_cell_id = self.snudda_load.get_neuron_id_of_type(neuron_type=neuron_type)
         remove_flag = np.random.uniform(size=(len(remove_cell_id),)) <= p_remove
         remove_cell_id = remove_cell_id[remove_flag]
 
         if len(remove_flag) > 0:
-            print(f"Marking {neuron_type} ({np.sum(remove_flag)} out of {len(remove_flag)}) for removal")
+            print(f"Marking {neuron_type} ({np.sum(remove_flag)} out of {len(remove_flag)}) for removal (P={p_remove})")
         else:
             available_neuron_types = sorted(list(set([x["type"] for x in self.snudda_load.data["neurons"]])))
             print(f"No {neuron_type} found in network. Available types are {', '.join(available_neuron_types)}")
@@ -54,7 +77,7 @@ class SnuddaAblateNetwork:
 
         """ Remove neuron with name neuron_name """
 
-        remove_cell_id = self.snudda_load.get_cell_id_with_name(neuron_name=neuron_name)
+        remove_cell_id = self.snudda_load.get_neuron_id_with_name(neuron_name=neuron_name)
 
         if len(remove_cell_id) > 0:
             print(f"Marking {neuron_name} ({len(remove_cell_id)}) for removal")
@@ -64,7 +87,7 @@ class SnuddaAblateNetwork:
 
         self.keep_neuron_id = self.keep_neuron_id - set(remove_cell_id)
 
-    def remove_connection(self, pre_neuron_type, post_neuron_type, p_removal=1):
+    def remove_connection(self, pre_neuron_type, post_neuron_type, p_remove=1):
 
         """ Removes connections between specified neuron types. """
 
@@ -74,8 +97,8 @@ class SnuddaAblateNetwork:
                   f"Available neuron types: {available_neuron_types}")
             return
 
-        print(f"Marking {pre_neuron_type}, {post_neuron_type} synapses for removal.")
-        self.removed_connection_type.append((pre_neuron_type, post_neuron_type, p_removal))
+        print(f"Marking {pre_neuron_type}, {post_neuron_type} synapses for removal (P={p_remove}).")
+        self.removed_connection_type.append((pre_neuron_type, post_neuron_type, p_remove))
 
     def filter_synapses(self, data_type):
 
@@ -273,7 +296,6 @@ class SnuddaAblateNetwork:
                                          chunks=gj_mat.chunks, maxshape=(None, gj_mat.shape[1]),
                                          compression=gj_mat.compression)
 
-
             print(f"{num_gj} / {num_gj} gap junction rows parsed")
             print("Gap junction matrix written.")
             print(f"Keeping {num_gj}  gap junctions (out of {gj_mat.shape[0]})")
@@ -288,9 +310,12 @@ def snudda_ablate_network_cli():
 
     from argparse import ArgumentParser
 
+    # TODO: Fix so ablation can be specified using a json file for more complex ablations
+
     parser = ArgumentParser(description="Modify connections in network.")
     parser.add_argument("original_network", type=str, help="Input network hdf5 file")
     parser.add_argument("output_network", type=str, help="Output network hdf5 file", default=None)
+    parser.add_argument("--config", type=str, help="Ablation config file", default=None)
     parser.add_argument("--remove_neuron_type", type=str, help="Neuron type to remove", default=None)
     parser.add_argument("--p_remove_neuron_type", type=float, help="Probability to remove neuron of type", default=1.0)
     parser.add_argument("--remove_neuron_name", type=str, help="Neuron name to remove", default=None)
@@ -300,6 +325,40 @@ def snudda_ablate_network_cli():
     args = parser.parse_args()
 
     mod_network = SnuddaAblateNetwork(network_file=args.original_network)
+
+    if args.config:
+        if not os.path.isfile(args.config):
+            print(f"There is no config file {args.config}")
+            exit(-1)
+
+        with open(args.config) as f:
+            config_data = json.load(f, object_pairs_hook=OrderedDict)
+
+        if "ablate_neurons" in config_data:
+            for ablate in config_data["ablate_neurons"]:
+                if type(ablate[0]) == int:
+                    # Ablate neurons with number
+                    mod_network.remove_neuron_id(ablate)
+                elif "_" in ablate[0]:
+                    # Ablate neuron with name
+                    mod_network.remove_neuron_name(neuron_name=ablate[0])
+                else:
+                    neuron_type = ablate[0]
+                    if type(ablate) == list and len(ablate) > 1:
+                        ablate_p = float(ablate[1])
+                    else:
+                        ablate_p = 1
+
+                    mod_network.remove_neuron_type(neuron_type=neuron_type, p_remove=ablate_p)
+
+            for con in config_data["ablate_synapses"]:
+                pre_type = con[0]
+                post_type = con[1]
+                if len(con) > 2:
+                    p_remove = con[2]
+                else:
+                    p_remove = 1
+                mod_network.remove_connection(pre_neuron_type=pre_type, post_neuron_type=post_type, p_remove=p_remove)
 
     if args.remove_neuron_type:
         mod_network.remove_neuron_type(neuron_type=args.remove_neuron_type,
@@ -322,7 +381,7 @@ def snudda_ablate_network_cli():
 
                 pre_type, post_type = c.split(",")
                 mod_network.remove_connection(pre_neuron_type=pre_type, post_neuron_type=post_type,
-                                      p_removal=args.p_remove_connection)
+                                              p_remove=args.p_remove_connection)
 
 
         else:
@@ -330,7 +389,7 @@ def snudda_ablate_network_cli():
 
             pre_type, post_type = args.remove_connection.split(",")
             mod_network.remove_connection(pre_neuron_type=pre_type, post_neuron_type=post_type,
-                                  p_removal=args.p_remove_connection)
+                                          p_remove=args.p_remove_connection)
 
     mod_network.write_network(out_file_name=args.output_network)
 

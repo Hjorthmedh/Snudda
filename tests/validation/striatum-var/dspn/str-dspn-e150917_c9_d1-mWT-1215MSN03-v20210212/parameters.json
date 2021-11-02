@@ -1,11 +1,6 @@
-[
+{
+    "0":
     [
-        {
-            "morphology": [
-                "WT-1215MSN03-cor-rep-ax-res3-var5.swc",
-                "WT-1215MSN03-cor-rep-ax-res3-var7.swc"
-            ]
-        },
         {
             "param_name": "celsius",
             "type": "global",
@@ -321,13 +316,7 @@
             "value": 7.436041955909367e-06
         }
     ],
-    [
-        {
-            "morphology": [
-                "WT-1215MSN03-cor-rep-ax-res3-var0.swc",
-                "WT-1215MSN03-cor-rep-ax-res3-var7.swc"
-            ]
-        },
+    "1" : [
         {
             "param_name": "celsius",
             "type": "global",
@@ -643,16 +632,8 @@
             "value": 9.74275829058194e-06
         }
     ],
-    [
-        {
-            "morphology": [
-                "WT-1215MSN03-cor-rep-ax-res3-var0.swc",
-                "WT-1215MSN03-cor-rep-ax-res3-var1.swc",
-                "WT-1215MSN03-cor-rep-ax-res3-var3.swc",
-                "WT-1215MSN03-cor-rep-ax-res3-var5.swc",
-                "WT-1215MSN03-cor-rep-ax-res3-var7.swc"
-            ]
-        },
+    
+    "2": [
         {
             "param_name": "celsius",
             "type": "global",
@@ -968,14 +949,7 @@
             "value": 7.429689883450701e-06
         }
     ],
-    [
-        {
-            "morphology": [
-                "WT-1215MSN03-cor-rep-ax-res3-var0.swc",
-                "WT-1215MSN03-cor-rep-ax-res3-var5.swc",
-                "WT-1215MSN03-cor-rep-ax-res3-var7.swc"
-            ]
-        },
+    "3" :  [
         {
             "param_name": "celsius",
             "type": "global",
@@ -1291,4 +1265,5 @@
             "value": 9.052117066468738e-06
         }
     ]
-]
+}
+

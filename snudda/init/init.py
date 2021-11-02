@@ -506,26 +506,30 @@ class SnuddaInit(object):
 
         parameter_file = os.path.join(neuron_dir, "parameters.json")
 
-        if os.path.exists(parameter_file):
+        if os.path.isfile(parameter_file):
 
             # First check if the morphologies are listed in the parameter file
             with open(parameter_file, "r") as f:
-                par_data = json.load(f)
+                par_data = json.load(f, object_pairs_hook=collections.OrderedDict)
 
-            # Normally there are multiple parametersets in a list, if not, then put the one parameter set in a list
-            if type(par_data[0]) == dict:
-                par_data = [par_data]
+            # We now expect a dictionary of parameter sets. If it is a list, we convert it to a dictionary
+            if type(par_data) == list:
+                par_data = {"default": par_data}
 
-            has_morphology = ["morphology" in d[0] for d in par_data]
+            meta_file = os.path.join(neuron_dir, "meta.json")
+            if os.path.isfile(meta_file):
+                with open(meta_file, "r") as mf:
+                    meta_data = json.load(mf, object_pairs_hook=collections.OrderedDict)
+
+                has_meta = True
+            else:
+                has_meta = False
 
         else:
-            # No morphologies listed in parameter.json (since file does not exist)
-            has_morphology = [False]
+            print("No parameter.json file.")
+            has_meta = False
 
-        if any(has_morphology):
-
-            # If one has the morphology tag, then all must have it
-            assert all(has_morphology), f"All parameter sets in {parameter_file} must have morphology tag."
+        if has_meta:
 
             morph_dir = os.path.join(neuron_dir, "morphology")
             morph_dir_full = snudda_parse_path(morph_dir)
@@ -533,15 +537,28 @@ class SnuddaInit(object):
                 f"Morphology directory missing: {morph_dir_full}"
 
             # Also check that all morphologies listed exists
+            missing_par_key = []
+            missing_morphology_tag = []
             missing_morph = []
-            for d in par_data:
-                for m in d[0]["morphology"]:
-                    if not os.path.exists(os.path.join(morph_dir_full, m)):
-                        missing_morph.append(os.path.join(morph_dir_full, m))
+            for par_key in par_data.keys():
+                if par_key not in meta_data:
+                    missing_par_key.append(par_key)
+                else:
+                    for morph_key in meta_data[par_key].keys():
+                        if "morphology" not in meta_data[par_key][morph_key]:
+                            missing_morphology_tag.append((par_key, morph_key))
+                        elif not os.path.isfile(os.path.join(morph_dir_full,
+                                                             meta_data[par_key][morph_key]["morphology"])):
+                            missing_morph.append(meta_data[par_key][morph_key]["morphology"])
+
+            assert len(missing_par_key) == 0, \
+                f"Missing parameter key(s) {', '.join(missing_par_key)} in {meta_file}"
+
+            assert len(missing_morphology_tag) == 0, \
+                f"Missing morphology tag(s) for {', '.join(missing_morphology_tag)} in {meta_file}"
 
             assert len(missing_morph) == 0, \
-                (f"While parsing {parameter_file}:\n " 
-                 f"Missing morphologies: {', '.join(missing_morph)}")
+                f"The following morphologies in {meta_file} are missing: {', '.join(missing_morph)}"
 
             return snudda_simplify_path(morph_dir)
 

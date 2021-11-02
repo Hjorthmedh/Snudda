@@ -1,6 +1,7 @@
 # This script is custom written to handle very large datasets. It does so by
 # not keeping all the information in memory, instead parsing the HDF5
 # piece by piece
+from collections import OrderedDict
 
 import numpy as np
 import scipy.sparse as sps
@@ -74,7 +75,7 @@ class SnuddaAnalyse(object):
         self.network = self.network_load.data
 
         if "config" in self.network:
-            self.config = json.loads(self.network["config"])
+            self.config = json.loads(self.network["config"], object_pairs_hook=OrderedDict)
         self.side_len = side_len
 
         self.low_memory = low_memory
@@ -259,7 +260,7 @@ class SnuddaAnalyse(object):
                             self.num_neurons = data["nNeurons"][()]
                             self.positions = data["positions"][:]
 
-                        dend_pos_bin = json.loads(data["dendPositionBin"][()])
+                        dend_pos_bin = json.loads(data["dendPositionBin"][()], object_pairs_hook=OrderedDict)
                         self.dend_position_bin = dict([])
 
                         all_types = list(data["allTypes"][()])
