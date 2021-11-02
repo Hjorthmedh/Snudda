@@ -64,7 +64,12 @@ class SnuddaPlotSpikeRaster2:
         neuron_type_list = self.snudda_load.get_neuron_types(return_set=False)
         neuron_type_map = dict()
 
-        for nt_idx, nt in enumerate(set(neuron_type_list)):
+        if type_order is None:
+            unique_neuron_types = set(neuron_type_list)
+        else:
+            unique_neuron_types = type_order + list(set(neuron_type_list) - set(type_order))
+
+        for nt_idx, nt in enumerate(unique_neuron_types):
             neuron_type_map[nt] = nt_idx
 
         # For each neuron, associate the number of the type it is
@@ -116,5 +121,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     ps = SnuddaPlotSpikeRaster2(network_path=args.network_path)
 
-    type_order = ["fs", "fsn", "dspn", "lts", "ispn", "chin"]
+    type_order = ["FS", "dSPN", "LTS", "iSPN", "ChIN"]
     ps.plot_spike_raster(type_order)
