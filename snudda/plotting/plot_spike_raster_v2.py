@@ -55,15 +55,16 @@ class SnuddaPlotSpikeRaster2:
 
         return neuron_colours
 
-    def plot_spike_raster(self):
+    def plot_spike_raster(self, type_order=None):
 
         fig = plt.figure()
         ax = fig.add_subplot()
 
+        # Gets a list of all the neurons' types
         neuron_type_list = self.snudda_load.get_neuron_types(return_set=False)
         neuron_type_map = dict()
 
-        for nt_idx, nt in enumerate(neuron_type_list):
+        for nt_idx, nt in enumerate(set(neuron_type_list)):
             neuron_type_map[nt] = nt_idx
 
         # For each neuron, associate the number of the type it is
@@ -90,7 +91,7 @@ class SnuddaPlotSpikeRaster2:
         y_tick_label = []
         for nt in unique_neuron_types:
             y_tick_label.append(nt)
-            y_tick.append(np.mean(neuron_order[np.where([x == nt for x in neuron_type_list])[0]]))
+            y_tick.append(np.mean(neuron_order_lookup[np.where([x == nt for x in neuron_type_list])[0]]))
 
         ax.set_xlabel('Time (s)')
         ax.set_yticks(y_tick)
@@ -114,4 +115,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     ps = SnuddaPlotSpikeRaster2(network_path=args.network_path)
-    ps.plot_spike_raster()
+
+    type_order = ["fs", "fsn", "dspn", "lts", "ispn", "chin"]
+    ps.plot_spike_raster(type_order)
