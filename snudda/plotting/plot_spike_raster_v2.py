@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 class SnuddaPlotSpikeRaster2:
 
-    def __init__(self, network_path, network_file=None, spike_file=None):
+    def __init__(self, network_path, network_file=None, spike_file=None, figure_path=None):
 
         self.network_path = network_path
 
@@ -21,6 +21,11 @@ class SnuddaPlotSpikeRaster2:
             self.spike_file = spike_file
         else:
             self.spike_file = os.path.join(self.network_path, "simulation", "network-output-spikes-666.txt")
+
+        if figure_path:
+            self.figure_path = figure_path
+        else:
+            self.figure_path = os.path.join(self.network_path, "figures", "network-spike-raster.pdf")
 
         assert self.spike_file and os.path.isfile(self.spike_file), f"Input spike file {self.spike_file} does not exist"
         data = np.loadtxt(self.spike_file, delimiter="\t")
@@ -71,6 +76,8 @@ class SnuddaPlotSpikeRaster2:
         ax[0].set_xlabel('Time (s)')
         ax[0].set_yticks(y_tick)
         ax[0].set_yticklabels(y_tick_label)
+
+        plt.savefig(self.figure_path, dpi=300)
 
         plt.ion()
         plt.show()
