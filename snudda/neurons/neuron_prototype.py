@@ -106,7 +106,7 @@ class NeuronPrototype:
 
         # We now expect a dictionary of parameter sets. If it is a list, we convert it to a dictionary
         if type(self.parameter_info) == list:
-            self.parameter_info = {"default": self.parameter_info }
+            self.parameter_info = {"default": self.parameter_info}
 
         mod_path = self.modulation_path
 

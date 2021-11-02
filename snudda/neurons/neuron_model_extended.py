@@ -61,8 +61,8 @@ class NeuronModel(ephys.models.CellModel):
 
         if morph_file is None:
             print(f"Neuron {cell_name} with morph_path = {morph_path} ({morphology_id}, "
-                            f"parameter_path = {param_file} ({parameter_id}) "
-                            f"has morph_file = {morph_file} (Should not be None)")
+                  f"parameter_path = {param_file} ({parameter_id}) "
+                  f"has morph_file = {morph_file} (Should not be None)")
 
             print("Why is morph file None?")
             import pdb
@@ -149,24 +149,18 @@ class NeuronModel(ephys.models.CellModel):
 
         parameters = []
 
-        if type(param_configs[0]) == list:
-            # If it was a dict, then we have one parameterset,
-            # if it was a list we have multiple parametersets, pick one.
+        if type(param_configs) == OrderedDict:
+            # Multiple parameters, pick one
+            assert parameter_id is not None, "Multiple parameter sets require parameter_id set"
 
-            assert parameter_id is not None, \
-                "Multiple parametersets require parameterID set"
-
-            num_params = len(param_configs)
-            param_configs = param_configs[parameter_id % num_params]
+            par_key_list = list(param_configs.keys())
+            par_key = par_key_list[parameter_id % len(par_key_list)]
+            param_configs = param_configs[par_key]
 
         # Save this to be accessible in the future
         self.parameters += param_configs
 
         for param_config in param_configs:
-            if "morphology" in param_config:
-                # This parameter is not set this way
-                continue
-
             if 'value' in param_config:
                 frozen = True
                 value = param_config['value']
