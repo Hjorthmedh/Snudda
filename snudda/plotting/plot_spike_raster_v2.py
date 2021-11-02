@@ -58,7 +58,7 @@ class SnuddaPlotSpikeRaster2:
     def plot_spike_raster(self):
 
         fig = plt.figure()
-        ax = fig.add_subplot(), fig.add_subplot()
+        ax = fig.add_subplot()
 
         neuron_type_list = self.snudda_load.get_neuron_types(return_set=False)
         neuron_type_map = dict()
@@ -82,7 +82,7 @@ class SnuddaPlotSpikeRaster2:
         for i in range(0, 3):
             sc[:, i] = np.take(colour_lookup[:, i], self.spike_neuron_id)
 
-        ax[0].scatter(self.spike_time, spike_y, color=sc, s=1, linewidths=0.1)
+        ax.scatter(self.spike_time, spike_y, color=sc, s=1, linewidths=0.1)
 
         # Get position of labels
         unique_neuron_types = set(neuron_type_list)
@@ -92,9 +92,9 @@ class SnuddaPlotSpikeRaster2:
             y_tick_label.append(nt)
             y_tick.append(np.mean(neuron_order[np.where([x == nt for x in neuron_type_list])[0]]))
 
-        ax[0].set_xlabel('Time (s)')
-        ax[0].set_yticks(y_tick)
-        ax[0].set_yticklabels(y_tick_label)
+        ax.set_xlabel('Time (s)')
+        ax..set_yticks(y_tick)
+        ax.set_yticklabels(y_tick_label)
 
         if not os.path.isdir(os.path.basename(self.figure_path)):
             os.makedirs(os.path.basename(self.figure_path))
