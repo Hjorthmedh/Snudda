@@ -45,6 +45,16 @@ class SnuddaPlotSpikeRaster2:
 
         return colours[neuron_type.lower()]
 
+    def get_all_colours(self):
+
+        neuron_type_list = self.snudda_load.get_neuron_types(return_set=False)
+        neuron_colours = np.zero((len(neuron_type_list, 3)))
+
+        for idx, nt in enumerate(neuron_type_list):
+            neuron_colours[idx, :] = self.get_colours(nt)
+
+        return neuron_colours
+
     def plot_spike_raster(self):
 
         fig = plt.figure()
@@ -61,7 +71,12 @@ class SnuddaPlotSpikeRaster2:
         neuron_order = np.argsort(neuron_type_idx)
 
         spike_y = np.take(neuron_order, self.spike_neuron_id)
-        sc = [self.get_colours(x) for x in neuron_type_list]
+
+        colour_lookup = self.get_all_colours()
+        sc = np.zeros((len(spike_y), 3))
+
+        for i in range(0, 3):
+            sc[:, i] = np.take(colour_lookup[:, i], self.spike_neuron_id)
 
         ax[0].scatter(self.spike_time, spike_y, color=sc, s=1, linewidths=0.1)
 
