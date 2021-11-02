@@ -48,7 +48,7 @@ class SnuddaPlotSpikeRaster2:
     def get_all_colours(self):
 
         neuron_type_list = self.snudda_load.get_neuron_types(return_set=False)
-        neuron_colours = np.zero((len(neuron_type_list, 3)))
+        neuron_colours = np.zeros((len(neuron_type_list, 3)))
 
         for idx, nt in enumerate(neuron_type_list):
             neuron_colours[idx, :] = self.get_colours(nt)
