@@ -23,7 +23,9 @@ class SnuddaPlotSpikeRaster2:
             self.spike_file = os.path.join(self.network_path, "simulation", "network-output-spikes-666.txt")
 
         assert self.spike_file and os.path.isfile(self.spike_file), f"Input spike file {self.spike_file} does not exist"
-        self.spike_time, self.spike_neuron_id = np.loadtxt(self.spike_file, delimiter="\t")
+        data = np.loadtxt(self.spike_file, delimiter="\t")
+        self.spike_time = data[:, 0]
+        self.spike_neuron_id = data[:, 1]
 
         self.snudda_load = SnuddaLoad(network_file=self.network_file)
 
