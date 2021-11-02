@@ -136,7 +136,7 @@ class SnuddaPlotInputLocations:
         pre_id = synapses[:, 0]
 
         if pre_type:
-            pre_id_list = self.snudda_load.get_cell_id_of_type(pre_type=pre_type)
+            pre_id_list = self.snudda_load.get_neuron_id_of_type(pre_type=pre_type)
 
         return synapse_coords
 
