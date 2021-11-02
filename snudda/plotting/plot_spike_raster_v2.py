@@ -98,6 +98,7 @@ class SnuddaPlotSpikeRaster2:
             y_tick_label.append(nt)
             y_tick.append(np.mean(neuron_order_lookup[np.where([x == nt for x in neuron_type_list])[0]]))
 
+        ax.invert_yaxis()
         ax.set_xlabel('Time (s)')
         ax.set_yticks(y_tick)
         ax.set_yticklabels(y_tick_label)
