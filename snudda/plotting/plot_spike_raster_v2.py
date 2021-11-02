@@ -29,7 +29,7 @@ class SnuddaPlotSpikeRaster2:
 
         assert self.spike_file and os.path.isfile(self.spike_file), f"Input spike file {self.spike_file} does not exist"
         data = np.loadtxt(self.spike_file, delimiter="\t")
-        self.spike_time = data[:, 0]
+        self.spike_time = data[:, 0] / 1e3
         self.spike_neuron_id = data[:, 1].astype(int)
 
         self.snudda_load = SnuddaLoad(network_file=self.network_file)
@@ -69,8 +69,12 @@ class SnuddaPlotSpikeRaster2:
         # For each neuron, associate the number of the type it is
         neuron_type_idx = np.array([neuron_type_map[x] for x in neuron_type_list])
         neuron_order = np.argsort(neuron_type_idx)
+        neuron_order_lookup = np.zeros(neuron_order.shape)
 
-        spike_y = np.take(neuron_order, self.spike_neuron_id)
+        for idx, no in enumerate(neuron_order):
+            neuron_order_lookup[no] = idx
+
+        spike_y = np.take(neuron_order_lookup, self.spike_neuron_id)
 
         colour_lookup = self.get_all_colours()
         sc = np.zeros((len(spike_y), 3))
