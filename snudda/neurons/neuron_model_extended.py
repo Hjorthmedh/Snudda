@@ -157,6 +157,11 @@ class NeuronModel(ephys.models.CellModel):
             par_key = par_key_list[parameter_id % len(par_key_list)]
             param_configs = param_configs[par_key]
 
+        elif type(param_configs) == list and type(param_configs[0]) == list:
+            # This is old fallback code, for old version format of parameters.json, remove in the future.
+            num_params = len(param_configs)
+            param_configs = param_configs[parameter_id % num_params]
+
         # Save this to be accessible in the future
         self.parameters += param_configs
 
