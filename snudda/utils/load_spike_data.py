@@ -36,7 +36,8 @@ class SnuddaLoadSpikeData:
         if time_range and time_range[1]:
             max_t = time_range[1]
         else:
-            max_t = np.max([np.max(x) for x in spikes])
+            assert np.sum([len(x) for x in spikes]) > 0, "No spikes found for any neuron in simulation output file."
+            max_t = np.max([np.max(x) for x in spikes if len(x) > 0])
             print(f"Assuming max time {max_t}")
 
         print(f"Time range {min_t} to {max_t}")
@@ -54,13 +55,13 @@ class SnuddaLoadSpikeData:
 
         if not neuron_id:
             if neuron_name:
-                neuron_id = self.snudda_load.get_cell_id_with_name(neuron_name=neuron_name)
+                neuron_id = self.snudda_load.get_neuron_id_with_name(neuron_name=neuron_name)
             elif neuron_type:
-                neuron_id = self.snudda_load.get_cell_id_of_type(neuron_type=neuron_type)
+                neuron_id = self.snudda_load.get_neuron_id_of_type(neuron_type=neuron_type)
             else:
                 neuron_id = [x["neuronID"] for x in self.snudda_load.data["neurons"]]
 
-        if neuron_id:
+        if type(neuron_id) == list:
             spikes = [self.get_spikes(neuron_id=nid, time_range=time_range) for nid in neuron_id]
         else:
             print("No neurons specified.")

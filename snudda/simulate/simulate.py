@@ -16,6 +16,7 @@
 
 # Plot all sections
 # [neuron.h.psection(x) for x in neuron.h.allsec()]
+from collections import OrderedDict
 
 from mpi4py import MPI  # This must be imported before neuron, to run parallel
 from neuron import h  # , gui
@@ -118,7 +119,7 @@ class SnuddaSimulate(object):
         self.pc = h.ParallelContext()
 
         if simulation_config:
-            sim_info = json.load(simulation_config)
+            sim_info = json.load(simulation_config, object_pairs_hook=OrderedDict)
 
             if "networkFile" in sim_info:
                 self.network_file = sim_info["networkFile"]
@@ -196,7 +197,6 @@ class SnuddaSimulate(object):
     def setup(self):
 
         """ Setup simulation """
-
         self.check_memory_status()
         self.distribute_neurons()
         self.pc.barrier()
@@ -218,6 +218,21 @@ class SnuddaSimulate(object):
         # READ ABOUT PARALLEL NEURON
 
     # https://www.neuron.yale.edu/neuron/static/new_doc/modelspec/programmatic/network/parcon.html#paralleltransfer
+
+    ############################################################################
+
+    def load_mechanisms(self):
+
+        """ Load the mechanisms. """
+
+        if os.path.exists("nrnmech.dll"):
+            self.write_log(f"Loading nrnmech.dll")
+            h.nrn_load_dll("nrnmech.dll")
+        elif os.path.exists("x86_64"):
+            self.write_log(f"Loading x86_64/.libs/libnrnmech.so")
+            h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
+        else:
+            self.write_log("No compiled mechanisms found. If you use custom mechanisms you need to run nrnivmodl")
 
     ############################################################################
 
@@ -261,7 +276,7 @@ class SnuddaSimulate(object):
 
         import json
         with open(config_file, 'r') as config_file:
-            self.config = json.load(config_file)
+            self.config = json.load(config_file, object_pairs_hook=OrderedDict)
 
         # I do not know if the gap junction GIDs are a separate entity from the
         # neuron cell GIDs, so to be on safe side, let's make sure they
@@ -351,7 +366,7 @@ class SnuddaSimulate(object):
                     par_file = snudda_parse_path(info_dict["channelParameters"]["parameterFile"])
 
                     with open(par_file, "r") as f:
-                        par_data_dict = json.load(f)
+                        par_data_dict = json.load(f, object_pairs_hook=OrderedDict)
 
                     # Save data as a list, we dont need the keys
                     par_data = []
@@ -1004,7 +1019,7 @@ class SnuddaSimulate(object):
 
                 # Setting individual parameters for synapses
                 mod_file = SnuddaLoad.to_str(neuron_input["modFile"][()])
-                param_list = json.loads(neuron_input["parameterList"][()])
+                param_list = json.loads(neuron_input["parameterList"][()], object_pairs_hook=OrderedDict)
 
                 # TODO: Sanity check mod_file string
                 eval_str = f"self.sim.neuron.h.{mod_file}"
@@ -1193,8 +1208,8 @@ class SnuddaSimulate(object):
 
         """ Adds somatic voltage recording to num_neurons of neuron_type. """
 
-        cell_id = self.snudda_loader.get_cell_id_of_type(neuron_type=neuron_type,
-                                                         num_neurons=num_neurons)
+        cell_id = self.snudda_loader.get_neuron_id_of_type(neuron_type=neuron_type,
+                                                           num_neurons=num_neurons)
 
         self.add_recording(cell_id)
 
@@ -1480,8 +1495,10 @@ class SnuddaSimulate(object):
                            f" that are further than {bad_threshold} mum away "
                            f" (out of {len(syn_mismatch)} synapses)"
                            f" Max found was {np.max(syn_mismatch):.0f} mum from expected location."
-                           f" morphology: {self.network_info['neurons'][dest_id]['morphology']}"
-                           f" Check that soma is centered at (0,0,0)",
+                           f" morphology: {self.network_info['neurons'][dest_id]['morphology']}\n"
+                           f" Check that soma is centered at (0,0,0). Also check that the first dendritic"
+                           f" compartment of each dendrite is not too far away from the soma, then NEURON "
+                           f" adds an extra connecting compartment which messes up section IDs.",
                            is_error=True)
 
             ### DEBUG PLOT!!!

@@ -53,3 +53,28 @@ class RepositionNeurons(object):
         if rotation is not None:
             self.hdf5_file["network/neurons/rotation"][neuron_id] = rotation.reshape((9, ))
 
+    def set_morphology_id(self, neuron_id, morphology_id):
+
+        """ Set morphologyID for neuron with neuron_id (neuron_id = None means all neurons) """
+        if neuron_id:
+            self.hdf5_file["network/neurons/morphologyID"][neuron_id] = morphology_id
+        else:
+            self.hdf5_file["network/neurons/morphologyID"][:] = morphology_id
+
+    def set_parameter_id(self, neuron_id, parameter_id):
+
+        """ Set parameterID for neuron with neuron_id (neuron_id = None means all neurons) """
+
+        if neuron_id:
+            self.hdf5_file["network/neurons/parameterID"][neuron_id] = parameter_id
+        else:
+            self.hdf5_file["network/neurons/parameterID"][:] = parameter_id
+
+    def set_modulation_id(self, neuron_id, modulation_id):
+
+        """ Set modulationID for neuron with neuron_id (neuron_id = None means all neurons) """
+
+        if neuron_id:
+            self.hdf5_file["network/neurons/modulationID"][neuron_id] = modulation_id
+        else:
+            self.hdf5_file["network/neurons/modulationID"][:] = modulation_id

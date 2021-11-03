@@ -43,6 +43,8 @@
 import os
 import sys
 import timeit
+from collections import OrderedDict
+
 import pkg_resources
 import json
 
@@ -310,9 +312,12 @@ class Snudda(object):
                          h5libver=h5libver,
                          random_seed=random_seed,
                          verbose=args.verbose,
-                         keep_files=args.keepfiles)
+                         keep_files=args.keepfiles or args.savePutative)
 
         sp.prune()
+
+        if args.savePutative:
+            sp.save_putative_synapses()
 
         self.stop_parallel()
         self.close_log_file()
@@ -505,7 +510,7 @@ class Snudda(object):
             if args.neuromodulation is not None:
                 # read neuromod file and determine if it is replay or adaptive, then if and import the correct one
                 with open(args.neuromodulation, "r") as f:
-                    neuromod_dict = json.load(f)
+                    neuromod_dict = json.load(f, object_pairs_hook=OrderedDict)
 
                 if "adaptive" in neuromod_dict["type"]:
                     mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons",
@@ -556,7 +561,7 @@ class Snudda(object):
             # read neuromod file and determine if it is replay or adaptive, then if and import the correct one
 
             with open(args.neuromodulation, 'r') as neuromod_f:
-                neuromod_dict = json.load(neuromod_f)
+                neuromod_dict = json.load(neuromod_f, object_pairs_hook=OrderedDict)
 
             if 'type' not in neuromod_dict:
                 print(f"Neuromodulation is not defined correctly in {args.neuromodulation} : 'type' is missing. Did you specify the correct file?")

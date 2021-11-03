@@ -11,6 +11,8 @@
 # Grant Agreements No. 720270 and No. 785907 (Human Brain Project SGA1
 # and SGA2).
 #
+from collections import OrderedDict
+
 import numexpr
 import numpy as np
 import os
@@ -1780,7 +1782,7 @@ class SnuddaDetect(object):
         cfg_file = open(str(config_file), 'r')
 
         try:
-            self.config = json.load(cfg_file)
+            self.config = json.load(cfg_file, object_pairs_hook=OrderedDict)
         finally:
             cfg_file.close()
 
