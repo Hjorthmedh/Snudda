@@ -807,12 +807,12 @@ def snudda_load_cli():
         print("Neurons in network: ")
 
         if args.detailed:
-            for nid, name, pos, par_id, morph_id, mod_id \
+            for nid, name, pos, par_key, morph_key, mod_key \
                     in [(x["neuronID"], x["name"], x["position"],
-                         x["parameterID"], x["morphologyID"], x["modulationID"])
+                         x["parameterKey"], x["morphologyKey"], x["modulationKey"])
                         for x in nl.data["neurons"]]:
-                print("%d : %s  (x: %f, y: %f, z: %f), par_id: %d, morph_id: %d, mod_id: %d"
-                      % (nid, name, pos[0], pos[1], pos[2], par_id, morph_id, mod_id))
+                print("%d : %s  (x: %f, y: %f, z: %f), par_key: %d, morph_key: %d, mod_key: %d"
+                      % (nid, name, pos[0], pos[1], pos[2], par_key, morph_key, mod_key))
         else:
             for nid, name, pos in [(x["neuronID"], x["name"], x["position"]) for x in nl.data["neurons"]]:
                 print("%d : %s  (x: %f, y: %f, z: %f)" % (nid, name, pos[0], pos[1], pos[2]))

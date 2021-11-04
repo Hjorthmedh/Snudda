@@ -133,6 +133,8 @@ class NeuronPrototype:
 
     def get_parameter_key(self, parameter_id):
 
+        assert parameter_id is not None
+
         if self.parameter_info:
             par_key_list = list(self.parameter_info.keys())
             par_key = par_key_list[parameter_id % len(par_key_list)]
@@ -141,9 +143,15 @@ class NeuronPrototype:
 
         return par_key
 
-    def get_morph_key(self, parameter_id, morphology_id):
+    def get_morph_key(self, parameter_id, morphology_id, parameter_key=None):
 
-        par_key = self.get_parameter_key(parameter_id=parameter_id)
+        if parameter_id is None:
+            par_key = parameter_key
+        else:
+            par_key = self.get_parameter_key(parameter_id=parameter_id)
+            assert parameter_key is None or par_key == parameter_key, \
+                (f"parameter_id = {parameter_id} gives parameter_key {par_key}, " 
+                 f"different from parameter_key {parameter_key} given")
         if self.meta_info:
             assert par_key in self.meta_info, f"Parameter key {par_key} missing in {self.meta_path}"
             morph_key_list = list(self.meta_info[par_key].keys())
@@ -187,6 +195,7 @@ class NeuronPrototype:
         (Each parameter set has a set of morphologies that it is valid for)
         """
 
+        # TODO: In the future remove parameter_id and morphology_id and only use keys
         if parameter_id is not None:
             par_key = self.get_parameter_key(parameter_id=parameter_id)
             if parameter_key is not None:
@@ -197,10 +206,11 @@ class NeuronPrototype:
         else:
             par_key = None
 
-        if self.meta_info and par_key:
+        if self.meta_info and par_key is not None:
 
             if morphology_id is not None:
-                morph_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id)
+                morph_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id,
+                                               parameter_key=par_key)
                 if morphology_key is not None:
                     assert morph_key == morphology_key, \
                         f"Mismatch: Expected morphology_key {morph_key}, got {morphology_key}"
