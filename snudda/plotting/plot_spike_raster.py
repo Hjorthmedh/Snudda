@@ -147,15 +147,17 @@ class PlotSpikeRaster(object):
 
         # histogram
         spike_count = []
-        max0 = 0
-        max1 = 0
 
+        max0=0
+        max1=0
+    
         for t in type_order:
-            pruned_spikes = [self.time[int(i)] - skip_time for i in t_idx if i in type_dict[t]]
+            pruned_spikes=self.time[type_dict[t]] - skip_time
+            pruned_spikes=pruned_spikes[pruned_spikes>0]
             num_of_type = len([x["type"] for x in self.network_info.data["neurons"] if x["type"].lower() == t])
+            binwidth =0.01 #10  # ms
+            binRange = np.arange(0, ((self.end_time)+skip_time + binwidth), binwidth)
 
-            bin_width = 0.01  #10  # ms
-            bin_range = np.arange(0, self.end_time + skip_time + bin_width, bin_width)
             if t in type_division[0]:
                 counts0, bins0, bars0 = atop.hist(pruned_spikes,
                                                   bins=bin_range,
