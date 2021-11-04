@@ -151,7 +151,8 @@ class NeuronPrototype:
             par_key = self.get_parameter_key(parameter_id=parameter_id)
             assert parameter_key is None or par_key == parameter_key, \
                 (f"parameter_id = {parameter_id} gives parameter_key {par_key}, " 
-                 f"different from parameter_key {parameter_key} given")
+                 f"different from parameter_key {parameter_key} provided")
+
         if self.meta_info:
             assert par_key in self.meta_info, f"Parameter key {par_key} missing in {self.meta_path}"
             morph_key_list = list(self.meta_info[par_key].keys())
@@ -378,7 +379,7 @@ class NeuronPrototype:
                 parameter_key = self.get_parameter_key(parameter_id=parameter_id)
 
             if morphology_key is None:
-                morph_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id)
+                morphology_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id)
 
             if modulation_key is None:
                 modulation_key = self.get_modulation_key(modulation_id=modulation_id)
@@ -389,7 +390,7 @@ class NeuronPrototype:
                                                            morphology_id=morphology_id,
                                                            modulation_id=modulation_id,
                                                            parameter_key=parameter_key,
-                                                           morphology_key=morph_key,
+                                                           morphology_key=morphology_key,
                                                            modulation_key=modulation_key)
         return morph
 

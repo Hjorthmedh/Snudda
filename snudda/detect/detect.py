@@ -690,9 +690,10 @@ class SnuddaDetect(object):
             neuron_rotation[i] = n["rotation"].reshape(1, 9)
             neuron_dend_radius[i] = n["maxDendRadius"]
             neuron_axon_radius[i] = n["maxAxonRadius"]
-            neuron_param_id[i] = n["parameterID"]
-            neuron_morphology_id[i] = n["morphologyID"]
-            neuron_modulation_id[i] = n["modulationID"]
+
+            neuron_param_id[i] = -1 if n["parameterID"] is None else n["parameterID"]
+            neuron_morphology_id[i] = -1 if n["morphologyID"] is None else n["morphologyID"]
+            neuron_modulation_id[i] = -1 if n["modulationID"] is None else n["modulationID"]
 
             if "parameterKey" in n:
                 neuron_param_key[i] = n["parameterKey"]

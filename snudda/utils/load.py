@@ -396,9 +396,9 @@ class SnuddaLoad(object):
 
             n["axonDensityRadius"] = axon_density_radius
 
-            n["parameterID"] = parameter_id
-            n["morphologyID"] = morphology_id
-            n["modulationID"] = modulation_id
+            n["parameterID"] = None if parameter_id < 0 else parameter_id
+            n["morphologyID"] = None if morphology_id < 0 else morphology_id
+            n["modulationID"] = None if modulation_id < 0 else modulation_id
 
             # If the code fails here, use snudda/utils/upgrade_old_network_file.py to upgrade your old data files
             n["parameterKey"] = SnuddaLoad.to_str(parameter_key)

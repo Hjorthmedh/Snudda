@@ -185,8 +185,10 @@ class SnuddaPlace(object):
             volume_id (str): ID of the volume to place neurons in
             virtual_neuron (bool): Real or virtual neuron, the latter can be used to model axons giving input to network
             axon_density (str): Axon density
+
             parameter_key (str, optional): Parameter Key to use, default=None (Randomise between all available)
             morphology_key (str, optional): Morphology Key to use, default=None (Randomise between all available)
+            modulation_key (str, optional): Key for neuromodulation, default=None (Randomise between all available)
         """
 
         assert volume_id is not None, f"You must specify a volume for neuron {name}"
@@ -228,7 +230,7 @@ class SnuddaPlace(object):
             else:
                 modulation_id = None
 
-            if modulation_key is None:
+            if morphology_key is None:
                 morphology_id = self.random_generator.integers(1000000)
             else:
                 morphology_id = None
@@ -670,9 +672,9 @@ class SnuddaPlace(object):
             neuron_rotation[i] = n.rotation.reshape(1, 9)
             neuron_dend_radius[i] = n.max_dend_radius
             neuron_axon_radius[i] = n.max_axon_radius
-            neuron_param_id[i] = n.parameter_id
-            neuron_morph_id[i] = n.morphology_id
-            neuron_modulation_id[i] = n.modulation_id
+            neuron_param_id[i] = -1 if n.parameter_id is None else n.parameter_id
+            neuron_morph_id[i] = -1 if n.morphology_id is None else n.morphology_id
+            neuron_modulation_id[i] = -1 if n.modulation_id is None else n.modulation_id
 
             if n.parameter_key:
                 neuron_param_key[i] = n.parameter_key
