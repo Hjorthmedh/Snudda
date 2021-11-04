@@ -588,7 +588,8 @@ class InputTuning(object):
                         n_name = os.path.basename(os.path.dirname(ni["parameters"]))
                         param_key = ni["parameterKey"]
                         morph_key = ni["morphologyKey"]
-                        neuron_name = f"{neuron_type}_{n_name}_{param_key}_{morph_key}"
+                        short_name = n_name[:min(10, len(n_name))]
+                        neuron_name = f"{neuron_type}_{short_name}_{param_key}_{morph_key}".replace("-","_")
                         all_neurons[neuron_name] = ni
                         neuron_ctr += 1
                 else:
