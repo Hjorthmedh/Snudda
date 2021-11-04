@@ -157,6 +157,10 @@ class NeuronPrototype:
     def get_modulation_key(self, modulation_id):
 
         if self.modulation_info:
+            if type(self.modulation_info) == list:
+                # Old format without keys
+                return None
+
             modulation_key_list = list(self.modulation_info.keys())
             modulation_key = modulation_key_list[modulation_id % len(modulation_key_list)]
         else:
