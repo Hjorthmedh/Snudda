@@ -328,7 +328,7 @@ class SnuddaPrune(object):
         """
 
         with open(self.merge_info_file, "r") as f:
-            data = json.load(f)
+            data = json.load(f, object_pairs_hook=collections.OrderedDict)
 
         merge_files_syn = data["merge_files_syn"]
         merge_neuron_range_syn = data["merge_neuron_range_syn"]
@@ -548,9 +548,9 @@ class SnuddaPrune(object):
         self.position_file = self.hist_file["meta/positionFile"][()]
 
         # This was config data used for detection, might differ from pruning config
-        self.detect_config = json.loads(self.hist_file["meta/config"][()])
+        self.detect_config = json.loads(self.hist_file["meta/config"][()], object_pairs_hook=collections.OrderedDict)
         with open(self.config_file, "r") as f:
-            self.config = json.load(f)
+            self.config = json.load(f, object_pairs_hook=collections.OrderedDict)
 
         # If connectivity is empty, then there was nothing to do touch detection on
         # But if it is non-empty, then there should be no remaining hyper voxels
@@ -657,9 +657,9 @@ class SnuddaPrune(object):
             config_file (str) : Path to new config file
         """
 
-        detect_config = json.loads(self.hist_file["meta/config"][()])
+        detect_config = json.loads(self.hist_file["meta/config"][()], object_pairs_hook=collections.OrderedDict)
         with open(config_file, "r") as f:
-            prune_config = json.load(f)
+            prune_config = json.load(f, object_pairs_hook=collections.OrderedDict)
 
         all_present = True
 
@@ -689,7 +689,7 @@ class SnuddaPrune(object):
 
         self.check_network_config_integrity(config_file=config_file)
         with open(config_file, "r") as f:
-            self.config = json.load(f)
+            self.config = json.load(f, object_pairs_hook=collections.OrderedDict)
 
         self.population_unit_id = self.hist_file["network/neurons/populationUnitID"][()]
 
@@ -697,7 +697,8 @@ class SnuddaPrune(object):
         # many millions of times, we create an temporary typeID number
         self.make_type_numbering()
 
-        orig_connectivity_distributions = json.loads(self.hist_file["meta/connectivityDistributions"][()])
+        orig_connectivity_distributions = json.loads(self.hist_file["meta/connectivityDistributions"][()],
+                                                     object_pairs_hook=collections.OrderedDict)
 
         config_connectivity_distributions = self.config["Connectivity"]
 
@@ -820,7 +821,7 @@ class SnuddaPrune(object):
         # Copy over meta data
         self.hist_file.copy("meta", out_file)
 
-        cfg = json.loads(self.hist_file["meta/config"][()])
+        cfg = json.loads(self.hist_file["meta/config"][()], object_pairs_hook=collections.OrderedDict)
         morph_group = out_file.create_group("morphologies")
 
         for name, definition in cfg["Neurons"].items():
@@ -931,7 +932,7 @@ class SnuddaPrune(object):
         # self.histFile.copy("neurons",outFile)
         self.hist_file.copy("network/neurons", network_group)
 
-        cfg = json.loads(self.hist_file["meta/config"][()])
+        cfg = json.loads(self.hist_file["meta/config"][()], object_pairs_hook=collections.OrderedDict)
 
         # Save morphologies
         # -- We no longer allow morphologies to be saved in the HDF5 file, since now we can have

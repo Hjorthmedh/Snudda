@@ -1,0 +1,95 @@
+{
+    "0" : {
+	"m0" : {
+	    "morphology": "WT-1215MSN03-cor-rep-ax-res3-var5.swc",
+	    "input" : {
+		"Cortical" : 100,
+		"Thalamic" : 50
+	    }
+	},
+	"m1" : {
+            "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var7.swc",
+	    "input" : {
+		"Cortical" : 120,
+		"Thalamic" : 60
+	    }
+	}
+    },
+    "1" : {
+	"m2" : {
+            "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var0.swc",
+	    "input" : {
+		"Cortial" : 80,
+		"Thalamic" : 40
+	    }
+	},
+        "m3" : {
+	    "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var7.swc",
+	    "input" : {
+		"Cortical" : 85,
+		"Thalamic" : 35
+	    }
+	}
+	
+    },
+    "2" : {
+	"m4" : {
+            "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var0.swc",
+	    "input" : {		
+		"Cortical" : 101,
+		"Thalamic" : 51
+	    }
+	},
+	"m5" : {
+            "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var1.swc",
+	    "input" : {
+		"Cortical" : 102,
+		"Thalamic" : 52
+	    }
+	},
+	"m6" : {
+            "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var3.swc",
+	    "input" : {
+		"Cortical" : 103,
+		"Thalamic" : 53
+	    }
+	},
+	"m7" : {
+            "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var5.swc",
+	    "input" : {
+		"Cortical" : 104,
+		"Thalamic" : 54
+	    }
+	},
+	"m8" : {
+            "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var7.swc",
+	    "input" : {
+		"Cortical" : 105,
+		"Thalamic" : 55
+	    }
+	}
+    },
+    "3" : {
+	"m9" : {
+            "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var0.swc",
+	    "input" : {
+		"Cortical" : 107,
+		"Thalamic" : 57
+	    }
+	},
+	"m10" : {
+            "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var5.swc",
+	    "input" : {
+		"Cortical" : 108,
+		"Thalamic" : 58
+	    }
+	},
+	"m11" : {
+	    "morphology" : "WT-1215MSN03-cor-rep-ax-res3-var7.swc",
+	    "input" : {
+		"Cortical" : 109,
+		"Thalamic" : 59
+	    }
+	}
+    }
+}

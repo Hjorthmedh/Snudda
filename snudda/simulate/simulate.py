@@ -16,6 +16,7 @@
 
 # Plot all sections
 # [neuron.h.psection(x) for x in neuron.h.allsec()]
+from collections import OrderedDict
 
 from mpi4py import MPI  # This must be imported before neuron, to run parallel
 from neuron import h  # , gui
@@ -118,7 +119,7 @@ class SnuddaSimulate(object):
         self.pc = h.ParallelContext()
 
         if simulation_config:
-            sim_info = json.load(simulation_config)
+            sim_info = json.load(simulation_config, object_pairs_hook=OrderedDict)
 
             if "networkFile" in sim_info:
                 self.network_file = sim_info["networkFile"]
@@ -275,7 +276,7 @@ class SnuddaSimulate(object):
 
         import json
         with open(config_file, 'r') as config_file:
-            self.config = json.load(config_file)
+            self.config = json.load(config_file, object_pairs_hook=OrderedDict)
 
         # I do not know if the gap junction GIDs are a separate entity from the
         # neuron cell GIDs, so to be on safe side, let's make sure they
@@ -365,7 +366,7 @@ class SnuddaSimulate(object):
                     par_file = snudda_parse_path(info_dict["channelParameters"]["parameterFile"])
 
                     with open(par_file, "r") as f:
-                        par_data_dict = json.load(f)
+                        par_data_dict = json.load(f, object_pairs_hook=OrderedDict)
 
                     # Save data as a list, we dont need the keys
                     par_data = []
@@ -1018,7 +1019,7 @@ class SnuddaSimulate(object):
 
                 # Setting individual parameters for synapses
                 mod_file = SnuddaLoad.to_str(neuron_input["modFile"][()])
-                param_list = json.loads(neuron_input["parameterList"][()])
+                param_list = json.loads(neuron_input["parameterList"][()], object_pairs_hook=OrderedDict)
 
                 # TODO: Sanity check mod_file string
                 eval_str = f"self.sim.neuron.h.{mod_file}"
@@ -1207,8 +1208,8 @@ class SnuddaSimulate(object):
 
         """ Adds somatic voltage recording to num_neurons of neuron_type. """
 
-        cell_id = self.snudda_loader.get_cell_id_of_type(neuron_type=neuron_type,
-                                                         num_neurons=num_neurons)
+        cell_id = self.snudda_loader.get_neuron_id_of_type(neuron_type=neuron_type,
+                                                           num_neurons=num_neurons)
 
         self.add_recording(cell_id)
 

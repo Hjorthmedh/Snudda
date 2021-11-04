@@ -3,6 +3,8 @@ modified by Johannes Hjorth """
 
 import os
 import json
+from collections import OrderedDict
+
 import numpy as np
 
 import bluepyopt.ephys as ephys
@@ -59,8 +61,8 @@ class NeuronModel(ephys.models.CellModel):
 
         if morph_file is None:
             print(f"Neuron {cell_name} with morph_path = {morph_path} ({morphology_id}, "
-                            f"parameter_path = {param_file} ({parameter_id}) "
-                            f"has morph_file = {morph_file} (Should not be None)")
+                  f"parameter_path = {param_file} ({parameter_id}) "
+                  f"has morph_file = {morph_file} (Should not be None)")
 
             print("Why is morph file None?")
             import pdb
@@ -97,7 +99,7 @@ class NeuronModel(ephys.models.CellModel):
         # print("Using mechanmism config: " + mechanism_config)
 
         with open(mechanism_config, "r") as f:
-            mech_definitions = json.load(f)
+            mech_definitions = json.load(f, object_pairs_hook=OrderedDict)
 
         if "modpath" in mech_definitions:
             mod_path = os.path.join(self.script_dir, mech_definitions["modpath"])
@@ -143,17 +145,20 @@ class NeuronModel(ephys.models.CellModel):
         # print("Using parameter config: " + parameter_config)
 
         with open(parameter_config, "r") as f:
-            param_configs = json.load(f)
+            param_configs = json.load(f, object_pairs_hook=OrderedDict)
 
         parameters = []
 
-        if type(param_configs[0]) == list:
-            # If it was a dict, then we have one parameterset,
-            # if it was a list we have multiple parametersets, pick one.
+        if type(param_configs) == OrderedDict:
+            # Multiple parameters, pick one
+            assert parameter_id is not None, "Multiple parameter sets require parameter_id set"
 
-            assert parameter_id is not None, \
-                "Multiple parametersets require parameterID set"
+            par_key_list = list(param_configs.keys())
+            par_key = par_key_list[parameter_id % len(par_key_list)]
+            param_configs = param_configs[par_key]
 
+        elif type(param_configs) == list and type(param_configs[0]) == list:
+            # This is old fallback code, for old version format of parameters.json, remove in the future.
             num_params = len(param_configs)
             param_configs = param_configs[parameter_id % num_params]
 
@@ -161,10 +166,6 @@ class NeuronModel(ephys.models.CellModel):
         self.parameters += param_configs
 
         for param_config in param_configs:
-            if "morphology" in param_config:
-                # This parameter is not set this way
-                continue
-
             if 'value' in param_config:
                 frozen = True
                 value = param_config['value']
