@@ -157,31 +157,33 @@ class NeuronModel(ephys.models.CellModel):
 
             if parameter_key is not None:
                 assert parameter_key in param_configs, f"Missing parameter key {parameter_key}"
-                param_configs = param_configs[parameter_key]
+                p_config = param_configs[parameter_key]
 
                 if parameter_id is not None:
                     par_key_list = list(param_configs.keys())
+
                     par_key = par_key_list[parameter_id % len(par_key_list)]
                     assert par_key == parameter_key, \
                         (f"parameter_key mismatch, got {parameter_key}, but parameter_id={parameter_id} "
                          f"implies param_key={par_key}")
-
             else:
                 assert parameter_id is not None, "Multiple parameter sets require parameter_id set"
 
                 par_key_list = list(param_configs.keys())
                 par_key = par_key_list[parameter_id % len(par_key_list)]
-                param_configs = param_configs[par_key]
+                p_config = param_configs[par_key]
 
         elif type(param_configs) == list and type(param_configs[0]) == list:
             # This is old fallback code, for old version format of parameters.json, remove in the future.
             num_params = len(param_configs)
-            param_configs = param_configs[parameter_id % num_params]
+            p_config = param_configs[parameter_id % num_params]
+        else:
+            p_config = param_configs
 
         # Save this to be accessible in the future
-        self.parameters += param_configs
+        self.parameters += p_config
 
-        for param_config in param_configs:
+        for param_config in p_config:
             if 'value' in param_config:
                 frozen = True
                 value = param_config['value']
