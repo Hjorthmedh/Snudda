@@ -400,6 +400,7 @@ class SnuddaLoad(object):
             n["morphologyID"] = morphology_id
             n["modulationID"] = modulation_id
 
+            # If the code fails here, use snudda/utils/upgrade_old_network_file.py to upgrade your old data files
             n["parameterKey"] = SnuddaLoad.to_str(parameter_key)
             n["morphologyKey"] = SnuddaLoad.to_str(morphology_key)
             n["modulationKey"] = SnuddaLoad.to_str(modulation_key)

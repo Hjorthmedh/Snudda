@@ -460,6 +460,11 @@ class SnuddaSimulate(object):
                 morphology_id = self.network_info["neurons"][ID]["morphologyID"]
                 modulation_id = self.network_info["neurons"][ID]["modulationID"]
 
+                parameter_key = self.network_info["neurons"][ID]["parameterKey"]
+                morphology_key = self.network_info["neurons"][ID]["morphologyKey"]
+                modulation_key = self.network_info["neurons"][ID]["modulationKey"]
+
+
                 self.neurons[ID] = NeuronModel(param_file=param,
                                                morph_path=morph,
                                                mech_file=mech,
@@ -467,7 +472,10 @@ class SnuddaSimulate(object):
                                                modulation_file=modulation,
                                                morphology_id=morphology_id,
                                                parameter_id=parameter_id,
-                                               modulation_id=modulation_id)
+                                               modulation_id=modulation_id,
+                                               parameter_key=parameter_key,
+                                               morphology_key=morphology_key,
+                                               modulation_key=modulation_key)
 
                 # Register ID as belonging to this worker node
                 self.pc.set_gid2node(ID, int(self.pc.id()))

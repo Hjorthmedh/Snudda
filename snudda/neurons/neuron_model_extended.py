@@ -24,7 +24,10 @@ class NeuronModel(ephys.models.CellModel):
                  modulation_file=None,
                  parameter_id=None,
                  morphology_id=None,
-                 modulation_id=None):
+                 modulation_id=None,
+                 parameter_key=None,
+                 morphology_key=None,
+                 modulation_key=None):
 
         """
         Constructor
@@ -38,6 +41,10 @@ class NeuronModel(ephys.models.CellModel):
             parameter_id: ID of parameter set
             morphology_id: ID of morphology set
             modulation_id: ID of neuromodulation parameter set
+            parameter_key (str): parameter key for lookup in parameter.json
+            morphology_key (str): morphology key, together with parameter_key lookup in meta.json
+            modulation_key (str): modulation key, lookup in modulation.json
+
         """
 
         self.name = cell_name
@@ -47,26 +54,25 @@ class NeuronModel(ephys.models.CellModel):
         self.script_dir = os.path.dirname(__file__)
         self.config_dir = os.path.join(self.script_dir, 'config')
 
-        # We now allow multiple variations of morphologies for a given neuron name, so here NeuronPrototype
-        # is used to acquire the actual morphology file we will use for this particular neuron
-        # based on parameter_id and morphology_id.
-        neuron_prototype = NeuronPrototype(neuron_name=cell_name,
-                                           neuron_path=None,
-                                           morphology_path=morph_path,
-                                           parameter_path=param_file,
-                                           mechanism_path=mech_file,
-                                           modulation_path=modulation_file)
+        morph_file = None
+        if parameter_key is not None and morphology_key is not None and param_file is not None:
+            meta_file = os.path.join(os.path.basename(param_file), "meta.json")
+            if os.path.isfile(meta_file):
+                with open(meta_file) as f:
+                    morph_file = f[parameter_key][morphology_key]["morphology"]
 
-        morph_file = neuron_prototype.get_morphology(parameter_id=parameter_id, morphology_id=morphology_id)
+        if not morph_file:
+            # We now allow multiple variations of morphologies for a given neuron name, so here NeuronPrototype
+            # is used to acquire the actual morphology file we will use for this particular neuron
+            # based on parameter_id and morphology_id.
+            neuron_prototype = NeuronPrototype(neuron_name=cell_name,
+                                               neuron_path=None,
+                                               morphology_path=morph_path,
+                                               parameter_path=param_file,
+                                               mechanism_path=mech_file,
+                                               modulation_path=modulation_file)
 
-        if morph_file is None:
-            print(f"Neuron {cell_name} with morph_path = {morph_path} ({morphology_id}, "
-                  f"parameter_path = {param_file} ({parameter_id}) "
-                  f"has morph_file = {morph_file} (Should not be None)")
-
-            print("Why is morph file None?")
-            import pdb
-            pdb.set_trace()
+            morph_file = neuron_prototype.get_morphology(parameter_id=parameter_id, morphology_id=morphology_id)
 
         assert morph_file, (f"Neuron {cell_name} with morph_path = {morph_path} ({morphology_id}, "
                             f"parameter_path = {param_file} ({parameter_id}) "
@@ -74,19 +80,16 @@ class NeuronModel(ephys.models.CellModel):
 
         morph = self.define_morphology(replace_axon=True, morph_file=morph_file)
         mechs = self.define_mechanisms(mechanism_config=mech_file)
-        params = self.define_parameters(param_file, parameter_id)
+        params = self.define_parameters(param_file, parameter_id, parameter_key)
 
         if modulation_file is not None:
-            mod_params = self.define_parameters(modulation_file, modulation_id)
+            mod_params = self.define_parameters(modulation_file, modulation_id, modulation_key)
             params = params + mod_params
 
         super(NeuronModel, self).__init__(name=cell_name, morph=morph,
                                           mechs=mechs, params=params)
         self.syn_list = []
         self.section_lookup = None
-
-        # import pdb
-        # pdb.set_trace()
 
     ##############################################################################
 
@@ -135,7 +138,7 @@ class NeuronModel(ephys.models.CellModel):
 
     # Helper function
 
-    def define_parameters(self, parameter_config=None, parameter_id=None):
+    def define_parameters(self, parameter_config=None, parameter_id=None, parameter_key=None):
         """
         Define parameters based on parameter_config and parameter_id.
         If there are n parameter sets, and parameter_id is k, then the parameter set is n % k."""
@@ -151,11 +154,24 @@ class NeuronModel(ephys.models.CellModel):
 
         if type(param_configs) == OrderedDict:
             # Multiple parameters, pick one
-            assert parameter_id is not None, "Multiple parameter sets require parameter_id set"
 
-            par_key_list = list(param_configs.keys())
-            par_key = par_key_list[parameter_id % len(par_key_list)]
-            param_configs = param_configs[par_key]
+            if parameter_key is not None:
+                assert parameter_key in param_configs, f"Missing parameter key {parameter_key}"
+                param_configs = param_configs[parameter_key]
+
+                if parameter_id is not None:
+                    par_key_list = list(param_configs.keys())
+                    par_key = par_key_list[parameter_id % len(par_key_list)]
+                    assert par_key == parameter_key, \
+                        (f"parameter_key mismatch, got {parameter_key}, but parameter_id={parameter_id} "
+                         f"implies param_key={par_key}")
+
+            else:
+                assert parameter_id is not None, "Multiple parameter sets require parameter_id set"
+
+                par_key_list = list(param_configs.keys())
+                par_key = par_key_list[parameter_id % len(par_key_list)]
+                param_configs = param_configs[par_key]
 
         elif type(param_configs) == list and type(param_configs[0]) == list:
             # This is old fallback code, for old version format of parameters.json, remove in the future.
