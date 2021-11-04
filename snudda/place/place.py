@@ -597,6 +597,30 @@ class SnuddaPlace(object):
                                                            "int",
                                                            compression="gzip")
 
+        pk_list = [n.parameter_key.encode("ascii", "ignore") for n in self.neurons]
+        pk_str_type = 'S' + str(max(1, max([len(x) for x in pk_list])))
+
+        mk_list = [n.morphology_key.encode("ascii", "ignore") for n in self.neurons]
+        mk_str_type = 'S' + str(max(1, max([len(x) for x in mk_list])))
+
+        mok_list = [n.modulation_key.encode("ascii", "ignore") for n in self.neurons]
+        mok_str_type = 'S' + str(max(1, max([len(x) for x in mok_list])))
+
+        neuron_param_key = neuron_group.create_dataset("parameterKey",
+                                                       (len(self.neurons),),
+                                                       pk_str_type,
+                                                       compression="gzip")
+
+        neuron_morph_key = neuron_group.create_dataset("morphologyKey",
+                                                       (len(self.neurons),),
+                                                       mk_str_type,
+                                                       compression="gzip")
+
+        neuron_modulation_key = neuron_group.create_dataset("modulationKey",
+                                                            (len(self.neurons),),
+                                                            mok_str_type,
+                                                            compression="gzip")
+
         for (i, n) in enumerate(self.neurons):
             neuron_position[i] = n.position
             neuron_rotation[i] = n.rotation.reshape(1, 9)
@@ -605,6 +629,9 @@ class SnuddaPlace(object):
             neuron_param_id[i] = n.parameter_id
             neuron_morph_id[i] = n.morphology_id
             neuron_modulation_id[i] = n.modulation_id
+            neuron_param_key[i] = n.parameter_key
+            neuron_morph_key[i] = n.morphology_key
+            neuron_modulation_key[i] = n.modulation_key
 
         # Store input information
         if self.population_unit is None:

@@ -335,7 +335,8 @@ class SnuddaLoad(object):
         for name, neuron_id, hoc, pos, rot, dend_radius, axon_radius, virtual, vID, \
             axon_density_type, axon_density, axon_density_radius, \
             axon_density_bounds_xyz, \
-            morph, parameter_id, morphology_id, modulation_id \
+            morph, parameter_id, morphology_id, modulation_id,\
+            parameter_key, morphology_key, modulation_key \
                 in zip(hdf5_file["network/neurons/name"][:],
                        hdf5_file["network/neurons/neuronID"][:],
                        hdf5_file["network/neurons/hoc"][:],
@@ -352,7 +353,11 @@ class SnuddaLoad(object):
                        hdf5_file["network/neurons/morphology"][:],
                        hdf5_file["network/neurons/parameterID"][:],
                        hdf5_file["network/neurons/morphologyID"][:],
-                       hdf5_file["network/neurons/modulationID"][:]):
+                       hdf5_file["network/neurons/modulationID"][:],
+                       hdf5_file["network/neurons/parameterKey"][:],
+                       hdf5_file["network/neurons/morphologyKey"][:],
+                       hdf5_file["network/neurons/modulationKey"][:]
+                       ):
 
             n = dict([])
 
@@ -394,6 +399,11 @@ class SnuddaLoad(object):
             n["parameterID"] = parameter_id
             n["morphologyID"] = morphology_id
             n["modulationID"] = modulation_id
+
+            n["parameterKey"] = parameter_key
+            n["morphologyKey"] = morphology_key
+            n["modulationKey"] = modulation_key
+
 
             neurons.append(n)
 
