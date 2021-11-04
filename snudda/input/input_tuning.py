@@ -302,7 +302,7 @@ class InputTuning(object):
 
         input_config_file = os.path.join(self.network_path, "input_config.json")
         with open(input_config_file) as f:
-            input_config = json.load(f, object_pairs_hook=OrderedDict)
+            input_config = json.load(f, object_pairs_hook=collections.OrderedDict)
 
         return input_config
 
