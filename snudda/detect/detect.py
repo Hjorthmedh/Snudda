@@ -2103,6 +2103,9 @@ class SnuddaDetect(object):
         neuron = self.prototype_neurons[neuron_info["name"]].clone(parameter_id=neuron_info["parameterID"],
                                                                    morphology_id=neuron_info["morphologyID"],
                                                                    modulation_id=neuron_info["modulationID"],
+                                                                   parameter_key=neuron_info["parameterKey"],
+                                                                   morphology_key=neuron_info["morphologyKey"],
+                                                                   modulation_key=neuron_info["modulationKey"],
                                                                    rotation=neuron_info["rotation"],
                                                                    position=neuron_info["position"])
 

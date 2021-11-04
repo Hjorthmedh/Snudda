@@ -588,7 +588,7 @@ class InputTuning(object):
                         n_name = os.path.basename(os.path.dirname(ni["parameters"]))
                         param_key = ni["parameterKey"]
                         morph_key = ni["morphologyKey"]
-                        neuron_name = f"{n_name}_{param_key}_{morph_key}"
+                        neuron_name = f"{neuron_type}_{n_name}_{param_key}_{morph_key}"
                         all_neurons[neuron_name] = ni
                         neuron_ctr += 1
                 else:
@@ -598,7 +598,7 @@ class InputTuning(object):
                     all_neurons[neuron_name] = neuron_info
 
             if neuron_ctr > 0:
-                print(f"Found {neuron_ctr} neurons in {ntd}")
+                print(f"Found {neuron_ctr} neuron models in {ntd}")
 
         assert len(all_neurons) > 0, (f"No neurons selected. Did you specify an incorrect neuronType? {neuron_types}"
                                       f"\nSee skipped neurons above error message for available ones.")

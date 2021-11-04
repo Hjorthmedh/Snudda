@@ -177,15 +177,23 @@ class NeuronPrototype:
 
         return modulation_key
 
-    def get_input_parameters(self, parameter_id, morphology_id):
+    def get_input_parameters(self, parameter_id=None, morphology_id=None, parameter_key=None, morphology_key=None):
 
-        par_key = self.get_parameter_key(parameter_id=parameter_id)
-        morph_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id)
+        if parameter_key is not None and morphology_key is not None:
+            if self.meta_info and "input" in self.meta_info[parameter_key][morphology_key]:
+                input_info = self.meta_info[parameter_key][morphology_key]["input"]
+            else:
+                input_info = dict()
 
-        if self.meta_info and "input" in self.meta_info[par_key][morph_key]:
-            input_info = self.meta_info[par_key][morph_key]["input"]
         else:
-            input_info = dict()
+            # Fallback if the user gave ID instead of Keys (will remove this at some point)
+            par_key = self.get_parameter_key(parameter_id=parameter_id)
+            morph_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id)
+
+            if self.meta_info and "input" in self.meta_info[par_key][morph_key]:
+                input_info = self.meta_info[par_key][morph_key]["input"]
+            else:
+                input_info = dict()
 
         return input_info
 
@@ -241,7 +249,14 @@ class NeuronPrototype:
                 morph_path = None
 
         if morph_path is None:
-            print("morph_path is None. Is SNUDDA_DATA set correctly?")
+            print(f"morph_path is None for {self.neuron_name} path: {self.neuron_path}. "
+                  f"Is SNUDDA_DATA set correctly? ({os.environ['SNUDDA_DATA']})")
+            import pdb
+            pdb.set_trace()
+
+        assert morph_path is not None, \
+            (f"morph_path is None for {self.neuron_name} path: {self.neuron_path}. "
+             f"Is SNUDDA_DATA set correctly? ({os.environ['SNUDDA_DATA']})")
 
         return morph_path
 
