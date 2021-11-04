@@ -44,10 +44,10 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
 
     def plot_fs_lts_cum_dist(self, plot_fs=True, plot_lts=True):
 
-        pair_list_list = [[("FSN", "dSPN"), ("LTS", "dSPN")],
-                          [("FSN", "iSPN"), ("LTS", "iSPN")]]
-        figure_name_list = ["synapseCumulativeDistance-FSN-and-LTS-to-dSPN.png",
-                            "synapseCumulativeDistance-FSN-and-LTS-to-iSPN.png"]
+        pair_list_list = [[("FS", "dSPN"), ("LTS", "dSPN")],
+                          [("FS", "iSPN"), ("LTS", "iSPN")]]
+        figure_name_list = ["synapseCumulativeDistance-FS-and-LTS-to-dSPN.png",
+                            "synapseCumulativeDistance-FS-and-LTS-to-iSPN.png"]
         figure_colour_list = [(6. / 255, 31. / 255, 85. / 255),
                               (150. / 255, 63. / 255, 212. / 255)]
         fill_range = [[0, 100e-6], [50e-6, 250e-6]]
@@ -57,7 +57,7 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
         assert plot_fs or plot_lts, "You must plot either FS or LTS, or both"
 
         if not plot_fs:
-            figure_name_list = [x.replace("FSN-and-", "") for x in figure_name_list]
+            figure_name_list = [x.replace("FS-and-", "") for x in figure_name_list]
         if not plot_lts:
             figure_name_list = [x.replace("and-LTS-", "") for x in figure_name_list]
 
@@ -135,7 +135,7 @@ if __name__ == "__main__":
         print("Reading network from " + str(sim_dir))
     else:
         print("Please specify which directory the striatum network files is in")
-        exit(-1)
+        sys.exit(-1)
 
     nas = SnuddaAnalyseStriatum(sim_dir, volume_type="cube")
 

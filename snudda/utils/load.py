@@ -1,84 +1,12 @@
 #!/usr/bin/env python3
+from collections import OrderedDict
+
 import numpy as np
 import timeit
 import json
-import os
+import sys
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
-
-
-def extract_neurons(hdf5_file):
-
-    """ Helper function to extract data for neurons and group it together. """
-
-    neurons = []
-
-    for name, neuron_id, hoc, pos, rot, dend_radius, axon_radius, virtual, vID, \
-        axon_density_type, axon_density, axon_density_radius, \
-        axon_density_bounds_xyz, \
-        morph, parameter_id, morphology_id, modulation_id \
-            in zip(hdf5_file["network/neurons/name"][:],
-                   hdf5_file["network/neurons/neuronID"][:],
-                   hdf5_file["network/neurons/hoc"][:],
-                   hdf5_file["network/neurons/position"][()],
-                   hdf5_file["network/neurons/rotation"][()],
-                   hdf5_file["network/neurons/maxDendRadius"][:],
-                   hdf5_file["network/neurons/maxAxonRadius"][:],
-                   hdf5_file["network/neurons/virtualNeuron"][:],
-                   hdf5_file["network/neurons/volumeID"][:],
-                   hdf5_file["network/neurons/axonDensityType"][:],
-                   hdf5_file["network/neurons/axonDensity"][:],
-                   hdf5_file["network/neurons/axonDensityRadius"][:],
-                   hdf5_file["network/neurons/axonDensityBoundsXYZ"][:],
-                   hdf5_file["network/neurons/morphology"][:],
-                   hdf5_file["network/neurons/parameterID"][:],
-                   hdf5_file["network/neurons/morphologyID"][:],
-                   hdf5_file["network/neurons/modulationID"][:]):
-
-        n = dict([])
-
-        n["name"] = SnuddaLoad.to_str(name)
-
-        if morph is not None:
-            n["morphology"] = SnuddaLoad.to_str(morph)
-
-        # Naming convention is TYPE_X, where XX is a number starting from 0
-        n["type"] = n["name"].split("_")[0]
-
-        n["neuronID"] = neuron_id
-        n["volumeID"] = SnuddaLoad.to_str(vID)
-        n["hoc"] = SnuddaLoad.to_str(hoc)
-
-        n["position"] = pos
-        n["rotation"] = rot.reshape(3, 3)
-        n["maxDendRadius"] = dend_radius
-        n["maxAxonRadius"] = axon_radius
-        n["virtualNeuron"] = virtual
-
-        if len(axon_density_type) > 0:
-            n["axonDensityType"] = SnuddaLoad.to_str(axon_density_type)
-        else:
-            n["axonDensityType"] = None
-
-        if len(axon_density) > 0:
-            n["axonDensity"] = SnuddaLoad.to_str(axon_density)
-        else:
-            n["axonDensity"] = None
-
-        if n["axonDensityType"] == "xyz":
-            n["axonDensityBoundsXYZ"] = axon_density_bounds_xyz
-        else:
-            n["axonDensityBoundsXYZ"] = None
-
-        n["axonDensityRadius"] = axon_density_radius
-
-        n["parameterID"] = parameter_id
-        n["morphologyID"] = morphology_id
-        n["modulationID"] = modulation_id
-
-        neurons.append(n)
-
-    return neurons
 
 
 class SnuddaLoad(object):
@@ -240,7 +168,7 @@ class SnuddaLoad(object):
             if self.verbose:
                 print("Loading config data from HDF5")
             data["config"] = SnuddaLoad.to_str(f["config"][()])
-            self.config = json.loads(f["config"][()])
+            self.config = json.loads(f["config"][()], object_pairs_hook=OrderedDict)
 
         # Added so this code can also load the position file, which
         # does not have the network group yet
@@ -330,7 +258,7 @@ class SnuddaLoad(object):
         if "meta/axonStumpIDFlag" in f:
             data["axonStumpIDFlag"] = f["meta/axonStumpIDFlag"][()]
 
-        data["neurons"] = extract_neurons(f)
+        data["neurons"] = self.extract_neurons(f)
 
         # This is for old format, update for new format
         if "parameters" in f:
@@ -362,7 +290,7 @@ class SnuddaLoad(object):
 
         if "connectivityDistributions" in f["meta"]:
             orig_connectivity_distributions = \
-                json.loads(SnuddaLoad.to_str(f["meta/connectivityDistributions"][()]))
+                json.loads(SnuddaLoad.to_str(f["meta/connectivityDistributions"][()]), object_pairs_hook=OrderedDict)
 
             for keys in orig_connectivity_distributions:
                 (pre_type, post_type) = keys.split("$$")
@@ -385,20 +313,6 @@ class SnuddaLoad(object):
             self.hdf5_file = f
 
         return data
-
-    ############################################################################
-
-    @staticmethod
-    def extract_synapse_coords(gathered_synapses):
-
-        assert False, "Is this method used? If not remove it."
-
-        syn_coords = dict([])
-
-        for row in gathered_synapses:
-            syn_coords[row[8]] = row[0:8]
-
-        return syn_coords
 
     ############################################################################
 
@@ -493,7 +407,7 @@ class SnuddaLoad(object):
 
         if self.config is None:
             config_file = self.data["configFile"]
-            self.config = json.load(open(config_file, 'r'))
+            self.config = json.load(open(config_file, 'r'), object_pairs_hook=OrderedDict)
 
     ############################################################################
 
@@ -741,16 +655,30 @@ class SnuddaLoad(object):
 
     ############################################################################
 
-    # Returns cellID of all neurons of neuronType
+    def get_neuron_types(self, neuron_id=None, return_set=False):
+
+        if neuron_id:
+            neuron_types = [self.data["neurons"][x]["type"] for x in neuron_id]
+        else:
+            neuron_types = [x["type"] for x in self.data["neurons"]]
+
+        if return_set:
+            return set(neuron_types)
+        else:
+            return neuron_types
+
+    ############################################################################
+
+    # Returns neuron_id of all neurons of neuron_type
     # OBS, random_permute is not using a controled rng, so not affected by random seed set
 
-    def get_cell_id_of_type(self, neuron_type, num_neurons=None, random_permute=False):
+    def get_neuron_id_of_type(self, neuron_type, num_neurons=None, random_permute=False):
 
         """
         Find all neuron ID of a specific neuron type.
 
         Args:
-            neuron_type (string) : Neuron type (e.g. "FSN")
+            neuron_type (string) : Neuron type (e.g. "FS")
             num_neurons (int) : Maximum number of neurons to return
             random_permute (bool) : Shuffle the resulting neuron IDs?
 
@@ -759,7 +687,7 @@ class SnuddaLoad(object):
 
         """
 
-        cell_id = [x["neuronID"] for x in self.data["neurons"] if x["type"] == neuron_type]
+        neuron_id = np.array([x["neuronID"] for x in self.data["neurons"] if x["type"] == neuron_type])
 
         assert not random_permute or num_neurons is not None, "random_permute is only valid when num_neurons is given"
 
@@ -768,24 +696,40 @@ class SnuddaLoad(object):
                 # Do not use this if you have a simulation with multiple
                 # workers... they might randomize differently, and you might
                 # fewer neurons in total than you wanted
-                keep_idx = np.random.permutation(len(cell_id))
+                keep_idx = np.random.permutation(len(neuron_id))
 
                 if len(keep_idx) > num_neurons:
                     keep_idx = keep_idx[:num_neurons]
 
-                cell_id = np.array([cell_id[x] for x in keep_idx])
+                neuron_id = neuron_id[keep_idx]
             else:
-                cell_id = np.array([cell_id[x] for x in range(num_neurons)])
+                neuron_id = neuron_id[:num_neurons]
 
-            if len(cell_id) < num_neurons:
+            if len(neuron_id) < num_neurons:
                 if self.verbose:
-                    print(f"get_cell_id_of_type: wanted {num_neurons} only got {len(cell_id)} "
+                    print(f"get_neuron_id_of_type: wanted {num_neurons} only got {len(neuron_id)} "
                           f"neurons of type {neuron_type}")
 
         # Double check that all of the same type
-        assert np.array([self.data["neurons"][x]["type"] == neuron_type for x in cell_id]).all()
+        assert np.array([self.data["neurons"][x]["type"] == neuron_type for x in neuron_id]).all()
 
-        return cell_id
+        return neuron_id
+
+    def get_neuron_id_with_name(self, neuron_name):
+
+        """
+        Find neuron ID of neurons with a given name.
+
+        Args:
+            neuron_name (str): Name of neurons (e.g. "dSPN_0")
+
+        Returns:
+            List of neuron ID
+        """
+
+        neuron_id = [x["neuronID"] for x in self.data["neurons"] if x["name"] == neuron_name]
+
+        return neuron_id
 
     def get_population_unit_members(self, population_unit, num_neurons=None, random_permute=False):
 
@@ -802,24 +746,26 @@ class SnuddaLoad(object):
 
         """
 
-        cell_id = np.where(self.data["populationUnit"] == population_unit)[0]
+        neuron_id = np.where(self.data["populationUnit"] == population_unit)[0]
 
         if num_neurons:
             if random_permute:
-                cell_id = np.random.permutation(cell_id)
+                neuron_id = np.random.permutation(neuron_id)
 
-            if len(cell_id) > num_neurons:
-                cell_id = cell_id[:num_neurons]
+            if len(neuron_id) > num_neurons:
+                neuron_id = neuron_id[:num_neurons]
 
         # Just double check
-        assert (self.data["populationUnit"][cell_id] == population_unit).all()
+        assert (self.data["populationUnit"][neuron_id] == population_unit).all()
 
-        return cell_id
+        return neuron_id
 
     ############################################################################
 
 
-if __name__ == "__main__":
+def snudda_load_cli():
+
+    """ Command line parser for SnuddaLoad script """
 
     from argparse import ArgumentParser
 
@@ -836,36 +782,45 @@ if __name__ == "__main__":
                         type=int)
     parser.add_argument("--keepOpen", help="This prevents loading of synapses to memory, and keeps HDF5 file open",
                         action="store_true")
+    parser.add_argument("--detailed", help="More information", action="store_true")
 
     args = parser.parse_args()
 
     if args.keepOpen:
-        loadSynapses = False
+        load_synapses = False
     else:
-        loadSynapses = True
+        load_synapses = True
 
-    nl = SnuddaLoad(args.networkFile, load_synapses=loadSynapses)
+    nl = SnuddaLoad(args.networkFile, load_synapses=load_synapses)
 
     if args.listN:
         print("Neurons in network: ")
 
-        for nid, name, pos in [(x["neuronID"], x["name"], x["position"]) for x in nl.data["neurons"]]:
-            print("%d : %s  (x: %f, y: %f, z: %f)" % (nid, name, pos[0], pos[1], pos[2]))
+        if args.detailed:
+            for nid, name, pos, par_id, morph_id, mod_id \
+                    in [(x["neuronID"], x["name"], x["position"],
+                         x["parameterID"], x["morphologyID"], x["modulationID"])
+                        for x in nl.data["neurons"]]:
+                print("%d : %s  (x: %f, y: %f, z: %f), par_id: %d, morph_id: %d, mod_id: %d"
+                      % (nid, name, pos[0], pos[1], pos[2], par_id, morph_id, mod_id))
+        else:
+            for nid, name, pos in [(x["neuronID"], x["name"], x["position"]) for x in nl.data["neurons"]]:
+                print("%d : %s  (x: %f, y: %f, z: %f)" % (nid, name, pos[0], pos[1], pos[2]))
 
     if args.listT is not None:
         if args.listT == "?":
             print("List neuron types in network:")
 
-            nTypes = np.unique([x["type"] for x in nl.data["neurons"]])
-            for nt in nTypes:
+            n_types = np.unique([x["type"] for x in nl.data["neurons"]])
+            for nt in n_types:
                 num = len([x["type"] for x in nl.data["neurons"] if x["type"] == nt])
                 print(f"{nt} ({num} total)")
 
         else:
             print(f"Neurons of type {args.listT}:")
-            nOfType = [(x["neuronID"], x["name"]) for x in nl.data["neurons"]
+            n_of_type = [(x["neuronID"], x["name"]) for x in nl.data["neurons"]
                        if x["type"] == args.listT]
-            for nid, name in nOfType:
+            for nid, name in n_of_type:
                 print("%d : %s" % (nid, name))
 
     if args.listPre is not None:
@@ -875,28 +830,40 @@ if __name__ == "__main__":
 
         if synapses[0] is None:
             # Nothing to display
-            os.sys.exit(0)
+            sys.exit(0)
 
-        preID = np.unique(synapses[0][:, 0])
+        pre_id = np.unique(synapses[0][:, 0])
 
-        for nid, name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"] if x["neuronID"] in preID]:
-            nSyn = np.sum(synapses[0][:, 0] == nid)
-            print(f"{nid} : {name} ({nSyn} synapses)")
+        for nid, name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"] if x["neuronID"] in pre_id]:
+            n_syn = np.sum(synapses[0][:, 0] == nid)
+            print(f"{nid} : {name} ({n_syn} synapses)")
+
+            if args.detailed:
+                idx = np.where(synapses[0][:, 0] == nid)
+                for i in idx[0]:
+                    print(f" -- SegID {synapses[0][i, 9]}, SegX {synapses[0][i, 10]*1e-3:.4f}, "
+                          f"Coord: {synapses[1][i, :]}")
+
+                print("")
 
     if args.listPost is not None:
         print("List neurons post-synaptic to neuronID = " + str(args.listPost)
               + " (" + str(nl.data["neurons"][args.listPost]["name"]) + ")")
         synapses = nl.find_synapses(pre_id=args.listPost)
-        postID = np.unique(synapses[0][:, 1])
+        post_id = np.unique(synapses[0][:, 1])
 
-        for nid, name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"] if x["neuronID"] in postID]:
-            nSyn = np.sum(synapses[0][:, 1] == nid)
-            print(f"{nid} : {name} ({nSyn} synapses)")
+        for nid, name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"] if x["neuronID"] in post_id]:
+            n_syn = np.sum(synapses[0][:, 1] == nid)
+            print(f"{nid} : {name} ({n_syn} synapses)")
 
-        # List neurons of network
+            if args.detailed:
+                idx = np.where(synapses[0][:, 1] == nid)
+                for i in idx[0]:
+                    print(f" -- SegID {synapses[0][i, 9]}, SegX {synapses[0][i, 10]*1e-3:.4f}, "
+                          f"Coord: {synapses[1][i, :]}")
 
-    # syn = nl.findSynapses(22,5)
+                print("")
 
-    # syn2 = nl.findSynapses(postID=5)
 
-    # cellID = nl.getCellIDofType(neuronType="FSN")
+if __name__ == "__main__":
+    snudda_load_cli()

@@ -42,7 +42,7 @@ class SnuddaDensityTest(unittest.TestCase):
         # Linear density = x coordinate, obs we give a relative density profile
         # (real density is scaled based on number of neurons)
         density_function = "abs(x)"
-        cnc.add_neuron_density("Striatum", "FSN", density_func=density_function)
+        cnc.add_neuron_density("Striatum", "FS", density_func=density_function)
 
         cnc.write_json(self.config_file)
 

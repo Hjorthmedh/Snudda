@@ -1,6 +1,7 @@
 import glob
 import json
 import os
+from collections import OrderedDict
 
 from snudda.neurons import NeuronMorphology
 from snudda.utils.snudda_path import snudda_parse_path
@@ -10,14 +11,20 @@ class NeuronPrototype:
 
     """ Helper class, returns a neuron prototype based on parameter_id, morph_id and modulation_id """
 
-    def __init__(self, neuron_path, neuron_name,
+    def __init__(self,
+                 neuron_path,
+                 neuron_name,
                  morphology_path=None,
                  parameter_path=None,
                  mechanism_path=None,
                  modulation_path=None,
+                 meta_path=None,
                  virtual_neuron=False,
                  load_morphology=True,
-                 axon_stump_id_flag=False):
+                 axon_stump_id_flag=False,
+                 verbose=False):
+
+        self.verbose = verbose
 
         if neuron_path:
             self.neuron_path = snudda_parse_path(neuron_path)
@@ -47,6 +54,13 @@ class NeuronPrototype:
         else:
             self.parameter_path = None
 
+        if meta_path:
+            self.meta_path = snudda_parse_path(meta_path)
+        elif self.neuron_path:
+            self.meta_path = snudda_parse_path(os.path.join(self.neuron_path, "meta.json"))
+        else:
+            self.meta_path = None
+
         if modulation_path:
             self.modulation_path = snudda_parse_path(modulation_path)
         elif self.neuron_path:
@@ -59,6 +73,7 @@ class NeuronPrototype:
 
         self.neuron_name = neuron_name
         self.parameter_info = None
+        self.meta_info = None
         self.modulation_info = None
         self.virtual_neuron = virtual_neuron
         self.axon_stump_id_flag = axon_stump_id_flag
@@ -82,20 +97,74 @@ class NeuronPrototype:
             self.parameter_info = None
             return
 
-        with open(par_path, "r") as f:
-            self.parameter_info = json.load(f)
+        if self.meta_path and os.path.exists(self.meta_path):
+            with open(self.meta_path, "r") as fm:
+                self.meta_info = json.load(fm, object_pairs_hook=OrderedDict)
 
-        # We expect a list of parameter sets, but if the user just provided one, convert it to a list
-        if type(self.parameter_info[0]) == dict:
-            self.parameter_info = [self.parameter_info]
+        with open(par_path, "r") as f:
+            self.parameter_info = json.load(f, object_pairs_hook=OrderedDict)
+
+        # We now expect a dictionary of parameter sets. If it is a list, we convert it to a dictionary
+        if type(self.parameter_info) == list:
+            self.parameter_info = {"default": self.parameter_info}
 
         mod_path = self.modulation_path
 
         if mod_path is not None and os.path.exists(mod_path):
             with open(mod_path, "r") as f:
-                self.modulation_info = json.load(f)
+                self.modulation_info = json.load(f, object_pairs_hook=OrderedDict)
         else:
             self.modulation_info = None
+
+    def get_num_morphologies(self, parameter_id):
+
+        if self.parameter_info:
+            par_key_list = list(self.parameter_info.keys())
+            par_key = par_key_list[parameter_id % len(par_key_list)]
+            par_set = self.parameter_info[par_key]
+        else:
+            par_key = None
+
+        if self.meta_info and par_key:
+            morph_key_list = self.meta_info[par_key].keys()
+            return len(morph_key_list)
+        else:
+            return 1
+
+    def get_parameter_key(self, parameter_id):
+
+        if self.parameter_info:
+            par_key_list = list(self.parameter_info.keys())
+            par_key = par_key_list[parameter_id % len(par_key_list)]
+        else:
+            par_key = None
+
+        return par_key
+
+    def get_morph_key(self, parameter_id, morphology_id):
+
+        par_key = self.get_parameter_key(parameter_id=parameter_id)
+        if self.meta_info:
+            assert par_key in self.meta_info, f"Parameter key {par_key} missing in {self.meta_path}"
+            morph_key_list = list(self.meta_info[par_key].keys())
+            assert len(morph_key_list) > 0, f"No morphologies available for parameter key {par_key} in {self.meta_path}"
+            morph_key = morph_key_list[morphology_id % len(morph_key_list)]
+        else:
+            morph_key = None
+
+        return morph_key
+
+    def get_input_parameters(self, parameter_id, morphology_id):
+
+        par_key = self.get_parameter_key(parameter_id=parameter_id)
+        morph_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id)
+
+        if self.meta_info and "input" in self.meta_info[par_key][morph_key]:
+            input_info = self.meta_info[par_key][morph_key]["input"]
+        else:
+            input_info = dict()
+
+        return input_info
 
     def get_morphology(self, parameter_id, morphology_id):
 
@@ -104,15 +173,15 @@ class NeuronPrototype:
         (Each parameter set has a set of morphologies that it is valid for)
         """
 
-        if self.parameter_info:
-            par_set = self.parameter_info[parameter_id % len(self.parameter_info)]
-        else:
-            par_set = None
+        par_key = self.get_parameter_key(parameter_id=parameter_id)
 
-        if par_set is not None and len(par_set) > 0 and "morphology" in par_set[0]:
-            morph_list = par_set[0]["morphology"]
-            morph_path = os.path.join(self.morphology_path, morph_list[morphology_id % len(morph_list)])
-        elif os.path.isfile(self.morphology_path):
+        if self.meta_info and par_key:
+            morph_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id)
+            morph_path = os.path.join(self.morphology_path, self.meta_info[par_key][morph_key]["morphology"])
+            assert os.path.isfile(morph_path), f"Morphology file {morph_path} is missing (listed in {self.meta_path})"
+
+        elif self.morphology_path and os.path.isfile(self.morphology_path):
+            # Fallback if morphology file is specified in the path
             morph_path = self.morphology_path
         else:
             # No morphology
@@ -144,7 +213,9 @@ class NeuronPrototype:
         """
 
         if self.parameter_info:
-            par_set = self.parameter_info[parameter_id % len(self.parameter_info)]
+            par_key_list = list(self.parameter_info.keys())
+            par_key = par_key_list[parameter_id % len(par_key_list)]
+            par_set = self.parameter_info[par_key]
         else:
             par_set = []
 
@@ -174,20 +245,20 @@ class NeuronPrototype:
         Instantiates all morphologies at once, instead of on demand.
         """
         for par_id in range(0, len(self.parameter_info)):
-            print(f"Instantiates par_id = {par_id}")
+            if self.verbose:
+                print(f"Instantiates par_id = {par_id}")
 
             par_data = self.get_parameters(parameter_id=par_id)
-            if par_data is not None and len(par_data) > 0 and "morphology" in par_data[0]:
-                n_morph = len(par_data[0]["morphology"])
-            else:
-                n_morph = 1
+            n_morph = self.get_num_morphologies(parameter_id=par_id)
 
             for morph_id in range(0, n_morph):
                 morph_path = self.get_morphology(parameter_id=par_id, morphology_id=morph_id)
                 morph_tag = os.path.basename(morph_path)
 
                 if morph_tag not in self.morphology_cache:
-                    print(f"morph_tag = {morph_tag}")
+                    if self.verbose:
+                        print(f"morph_tag = {morph_tag}")
+
                     self.morphology_cache[morph_tag] = NeuronMorphology(swc_filename=morph_path,
                                                                         param_data=self.parameter_path,
                                                                         mech_filename=self.mechanism_path,

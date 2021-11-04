@@ -13,7 +13,7 @@ class PlotDensitySlice:
         self.neuron_type_lookup = dict()
 
         for nt in set([n["type"] for n in self.sl.data["neurons"]]):
-            self.neuron_type_lookup[nt] = self.sl.get_cell_id_of_type(neuron_type=nt)
+            self.neuron_type_lookup[nt] = self.sl.get_neuron_id_of_type(neuron_type=nt)
 
     def plot_slice(self, neuron_type,
                    x_min=None, x_max=None,

@@ -37,7 +37,7 @@ class InspectInput(object):
 
     print(f"Counting inputs for {neuronType}")
     
-    cellID = self.network.get_cell_id_of_type(neuronType)
+    cellID = self.network.get_neuron_id_of_type(neuronType)
     cellIDstr = [str(c) for c in cellID]
     
     inputCount = dict()

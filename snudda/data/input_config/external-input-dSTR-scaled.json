@@ -112,7 +112,7 @@
     },
 
     
-    "FSN": {
+    "FS": {
 	"Cortical" : {
 	    "generator" : "poisson",	    
 	    "type" : "AMPA_NMDA",
@@ -124,11 +124,11 @@
 	    "modFile": "tmGlut",
 	    "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json",
 	    "nInputs" : {
-		"FSN_0" : 150,
-		"FSN_1" : 200,
-		"FSN_2" : 250,
-		"FSN_3" : 200,
-		"FSN_4" : 200
+		"FS_0" : 150,
+		"FS_1" : 200,
+		"FS_2" : 250,
+		"FS_3" : 200,
+		"FS_4" : 200
 	    }
 	},
 	"CorticalSignal" : {
@@ -144,10 +144,10 @@
 	    "modFile":"tmGlut",
 	    "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json",
             "nInputs" : {
-		"FSN_0" : 50,
-		"FSN_1" : 50,
-		"FSN_2" : 50,
-		"FSN_3" : 50
+		"FS_0" : 50,
+		"FS_1" : 50,
+		"FS_2" : 50,
+		"FS_3" : 50
 	    }
 	},
 	"Thalamic" : {
@@ -161,11 +161,11 @@
 	    "modFile":"tmGlut",
 	    "parameterFile":"$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-FS.json",
 	    "nInputs" : {
-		"FSN_0" : 100,
-		"FSN_1" : 150,
-		"FSN_2" : 200,
-		"FSN_3" : 125,
-		"FSN_4" : 225
+		"FS_0" : 100,
+		"FS_1" : 150,
+		"FS_2" : 200,
+		"FS_3" : 125,
+		"FS_4" : 225
 	    }
 	}
 

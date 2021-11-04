@@ -35,7 +35,7 @@ class FakeLoad(SnuddaLoad):
     def import_json(self, json_file_name):
 
         with open(json_file_name, "r") as f:
-            self.data = json.load(f)
+            self.data = json.load(f, object_pairs_hook=OrderedDict)
 
         con_dist_copy = self.data["connectivityDistributions"].copy()
         self.data["connectivityDistributions"] = OrderedDict()
@@ -55,5 +55,5 @@ class FakeLoad(SnuddaLoad):
             self.data["neurons"][idx]["rotation"] = np.array(self.data["neurons"][idx]["rotation"])
 
         if "config" in self.data:
-            self.config = json.loads(self.data["config"])
+            self.config = json.loads(self.data["config"], object_pairs_hook=OrderedDict)
 

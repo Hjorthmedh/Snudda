@@ -32,12 +32,12 @@ python3 snudda_init_custom.py $simName
 python3 snudda_cut.py $simName/network-pruned-synapses.hdf5 "abs(z)<100e-6"
 
 
-srun -n $N_WORKERS /cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/x86_64/special -mpi -python snudda_calibrate_synapses.py run $simName/network-cut-slice.hdf5 dSPN iSPN
+srun -n $N_WORKERS /cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/x86_64/special -mpi -python snudda/utils/network_pair_recording_simulation.py run $simName/network-cut-slice.hdf5 dSPN iSPN
 
-srun -n $N_WORKERS /cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/x86_64/special -mpi -python snudda_calibrate_synapses.py run $simName/network-cut-slice.hdf5 iSPN dSPN
+srun -n $N_WORKERS /cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/x86_64/special -mpi -python snudda/utils/network_pair_recording_simulation.py run $simName/network-cut-slice.hdf5 iSPN dSPN
 
-srun -n $N_WORKERS /cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/x86_64/special -mpi -python snudda_calibrate_synapses.py run $simName/network-cut-slice.hdf5 FSN dSPN
+srun -n $N_WORKERS /cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/x86_64/special -mpi -python snudda/utils/network_pair_recording_simulation.py run $simName/network-cut-slice.hdf5 FS dSPN
 
-srun -n $N_WORKERS /cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/x86_64/special -mpi -python snudda_calibrate_synapses.py run $simName/network-cut-slice.hdf5 FSN iSPN
+srun -n $N_WORKERS /cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda/x86_64/special -mpi -python snudda/utils/network_pair_recording_simulation.py run $simName/network-cut-slice.hdf5 FS iSPN
 
 

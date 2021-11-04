@@ -32,7 +32,7 @@ for ir,row in enumerate(pos):
       col = [0.2, 0.2, 1.0]
     elif(nType == "LTS"):
       col = [0.7, 0.0, 0.7]
-    elif(nType == "FSN"):
+    elif(nType == "FS"):
       col = [0.1, 0.1, 0.1]
     elif(nType == "ChIN"):
       col = [0.9, 0.7, 0.1]      

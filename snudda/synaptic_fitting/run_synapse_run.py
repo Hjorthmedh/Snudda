@@ -41,9 +41,9 @@ class RunSynapseRun(object):
         self.verbose = verbose
         self.rng = np.random.default_rng(random_seed)
 
-        self.write_log("Holding voltage: " + str(holding_voltage) + " V")
-        self.write_log("Stim times: " + str(stim_times) + " s")
-        self.write_log("Synapse type: " + str(synapse_type))
+        self.write_log(f"Holding voltage: {holding_voltage} V")
+        self.write_log(f"Stim times: {stim_times} s")
+        self.write_log(f"Synapse type: {synapse_type}")
 
         self.time = time
         self.synapses = []
@@ -307,7 +307,7 @@ class RunSynapseRun(object):
             self.write_log(tstr)
 
             self.write_log("Did you remember to run nrnivmodl first, to generate channels mod files?")
-            exit(-1)
+            sys.exit(-1)
 
         for p in params:
 

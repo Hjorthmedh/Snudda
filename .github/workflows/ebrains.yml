@@ -3,7 +3,7 @@ name: Snudda Mirror to Ebrains
 # Configure the events that are going to trigger tha automated update of the mirror
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master, dev ]
 
 # Configure what will be updated
 jobs:
@@ -19,9 +19,9 @@ jobs:
         # the destination_repo format is
         # https://gitlab_service_account_name:${{ secrets.EBRAINS_GITLAB_ACCESS_TOKEN }}@gitlab.ebrains.eu/name_of_mirror.git
         with:
-          source_repo: "Github repository that is used as source"
-          source_branch: "put the branch that will be pushed to the mirror"
-          destination_repo: "https://ghpusher:${{ secrets.EBRAINS_GITLAB_ACCESS_TOKEN }}@gitlab.ebrains.eu/technical-coordination/members-testing/sample-mirror.git"
+          source_repo: "https://github.com/Hjorthmedh/Snudda"
+          source_branch: "master"
+          destination_repo: "https://ghpusher:${{ secrets.EBRAINS_GITLAB_ACCESS_TOKEN }}@gitlab.ebrains.eu/hjorth/snudda.git"
           destination_branch: "master"
       # this task will push all tags from the source_repo to the destination_repo
       - name: synctags
@@ -29,5 +29,5 @@ jobs:
         with:
           source_repo: "Hjorthmedh/Snudda"
           source_branch: "refs/tags/*"
-          destination_repo: "https://ghpusher:${{ secrets.EBRAINS_GITLAB_ACCESS_TOKEN }}@gitlab.ebrains.eu/hjorth/Snudda/snudda-mirror.git"
+          destination_repo: "https://ghpusher:${{ secrets.EBRAINS_GITLAB_ACCESS_TOKEN }}@gitlab.ebrains.eu/hjorth/snudda.git"
           destination_branch: "refs/tags/*"

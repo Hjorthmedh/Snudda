@@ -6,8 +6,10 @@ import json
 
 import h5py
 
+from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.place.create_cube_mesh import create_cube_mesh
 from snudda.neurons.neuron_morphology import NeuronMorphology
+from snudda.utils.reposition_neurons import RepositionNeurons
 from snudda.init.init import SnuddaInit
 from snudda.input.input import SnuddaInput
 from snudda.utils.load import SnuddaLoad
@@ -66,7 +68,8 @@ class InputTuning(object):
 
     # Writes config files
 
-    def setup_network(self, neurons_path, num_replicas=10, neuron_types=None):
+    def setup_network(self, neurons_path, num_replicas=10, neuron_types=None,
+                      parameter_id=None, morphology_id=None, modulation_id=None):
 
         # TODO: num_replicas should be set by a parameter, it affects how many duplicates of each neuron
         # and thus how many steps we have between n_min and n_max number of inputs specified.
@@ -91,6 +94,25 @@ class InputTuning(object):
         sp = SnuddaPlace(network_path=self.network_path)
         sp.parse_config()
         sp.write_data()
+
+        # Set parameter_id, morphology_id or modulation_id if requested
+        if parameter_id is not None or morphology_id is not None or modulation_id is not None:
+            pos_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
+            s_mod = RepositionNeurons(pos_file)
+
+            if parameter_id is not None:
+                print(f"Setting parameter_id = {parameter_id}")
+                s_mod.set_parameter_id(neuron_id=None, parameter_id=parameter_id)
+
+            if morphology_id is not None:
+                print(f"Setting morphology_id = {morphology_id}")
+                s_mod.set_morphology_id(neuron_id=None, morphology_id=morphology_id)
+
+            if modulation_id is not None:
+                print(f"Setting neuron modulation_id = {modulation_id}")
+                s_mod.set_modulation_id(neuron_id=None, modulation_id=modulation_id)
+
+            s_mod.close()
 
         sd = SnuddaDetect(network_path=self.network_path)
         sd.detect()
@@ -178,6 +200,8 @@ class InputTuning(object):
         network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         network_info = SnuddaLoad(network_file)
 
+        input_data = h5py.File(self.input_spikes_file, "r")
+
         spike_data_file = os.path.join(self.network_path, "output_spikes.txt")
         n_neurons = network_info.data["nNeurons"]
         spike_data = self.load_spike_data(spike_data_file, n_neurons)
@@ -206,12 +230,13 @@ class InputTuning(object):
         input_config = self.load_input_config()
 
         n_inputs_lookup = dict()
-        for neuron_label in input_config.keys():
+
+        for neuron_label in input_data["input"]:
             neuron_id = int(neuron_label)
             n_inputs = 0
 
-            for input_type in input_config[neuron_label].keys():
-                n_inputs += input_config[neuron_label][input_type]["nInputs"]
+            for input_type in input_data["input"][neuron_label]:
+                n_inputs += input_data["input"][neuron_label][input_type]["spikes"].shape[0]
 
             n_inputs_lookup[neuron_id] = n_inputs
 
@@ -277,7 +302,7 @@ class InputTuning(object):
 
         input_config_file = os.path.join(self.network_path, "input_config.json")
         with open(input_config_file) as f:
-            input_config = json.load(f)
+            input_config = json.load(f, object_pairs_hook=OrderedDict)
 
         return input_config
 
@@ -344,8 +369,8 @@ class InputTuning(object):
             legend_text = []
             input_type_all = None
 
-            cmap = plt.get_cmap('tab20', len(volt_data))
-            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(volt_data))])
+            cmap = plt.get_cmap('tab20', len(volt_data[neuron_name]))
+            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(volt_data[neuron_name]))])
 
             for num_input in volt_data[neuron_name]:
                 input_freq, mean_voltage, max_voltage, input_type = volt_data[neuron_name][num_input]
@@ -387,8 +412,8 @@ class InputTuning(object):
             legend_text = []
             input_type_all = None
 
-            cmap = plt.get_cmap('tab20', len(frequency_data))
-            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(frequency_data))])
+            cmap = plt.get_cmap('tab20', len(frequency_data[neuron_name]))
+            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(frequency_data[neuron_name]))])
 
             for num_input in frequency_data[neuron_name]:
                 input_freq, output_freq, input_type = frequency_data[neuron_name][num_input]
@@ -471,8 +496,8 @@ class InputTuning(object):
             fig, ax = plt.subplots()
             legend_text = []
 
-            cmap = plt.get_cmap("tab20")
-            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(frequency_data))])
+            cmap = plt.get_cmap("tab20", len(freq_data[neuron_name]))
+            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(freq_data[neuron_name]))])
 
             for input_freq in freq_data[neuron_name]:
                 num_input, output_freq = freq_data[neuron_name][input_freq]
@@ -534,25 +559,17 @@ class InputTuning(object):
                 neuron_info = collections.OrderedDict()
 
                 # Find neuron morphology swc file, obs currently assume lowercase(!)
-                neuron_morph_list = glob.glob(os.path.join(nd, '*swc'))
+                neuron_morph = SnuddaInit.get_morphologies(nd)
 
                 parameter_file = os.path.join(nd, "parameters.json")
                 mechanism_file = os.path.join(nd, "mechanisms.json")
                 modulation_file = os.path.join(nd, "modulation.json")  # Optional
 
-                if len(neuron_morph_list) == 0:
-                    assert (not os.path.isfile(parameter_file) and not os.path.isfile(mechanism_file)), \
-                        f"Directory {nd} has parameter.json or mechanism.json but no swc file."
-
-                    # No swc file, skipping directory
-                    continue
-
                 # Check if empty neuron_morph_list, or if more than one morphology
-                assert len(neuron_morph_list) == 1, f"Should only be one swc file in {nd}"
                 assert os.path.isfile(parameter_file), f"Missing parameter file {parameter_file}"
                 assert os.path.isfile(mechanism_file), f"Missing mechanism file {mechanism_file}"
 
-                neuron_info["morphology"] = snudda_simplify_path(neuron_morph_list[0])
+                neuron_info["morphology"] = snudda_simplify_path(neuron_morph)
                 neuron_info["parameters"] = snudda_simplify_path(parameter_file)
                 neuron_info["mechanisms"] = snudda_simplify_path(mechanism_file)
 
@@ -574,10 +591,17 @@ class InputTuning(object):
         return all_neurons
 
     @staticmethod
-    def has_axon(swc_file):
-        nm = NeuronMorphology(swc_filename=snudda_parse_path(swc_file))
+    def has_axon(neuron_info):
 
-        return len(nm.axon) > 0
+        nm = NeuronPrototype(neuron_name="JJJ",
+                             neuron_path=None,
+                             morphology_path=neuron_info["morphology"],
+                             parameter_path=neuron_info["parameters"],
+                             mechanism_path=neuron_info["mechanisms"],
+                             virtual_neuron=False,
+                             axon_stump_id_flag=False)
+        nm.instantiate()
+        return nm.all_have_axon()
 
     def create_network_config(self, neurons_path, num_replicas=10, random_seed=None, neuron_types=None):
 
@@ -608,8 +632,8 @@ class InputTuning(object):
             neuron_def[n]["rotationMode"] = "random"
             neuron_def[n]["hoc"] = None
 
-            if not self.has_axon(neuron_def[n]["morphology"]):
-                print(f"Morphology {neuron_def[n]['morphology']} has no axon, faking it.")
+            if not self.has_axon(neuron_def[n]):
+                print(f"One or more of morphologies {neuron_def[n]['morphology']} has no axon, faking it.")
                 # We will have no connections in this test network, so add empty density
                 neuron_def[n]["axonDensity"] = fake_axon_density
 
@@ -791,7 +815,10 @@ class InputTuning(object):
         input_spike_data.close()
         network_data.close()
 
-    def simulate(self):
+    def simulate(self, mech_dir=None):
+
+        from snudda.core import Snudda
+        Snudda.compile_mechanisms(mech_dir=mech_dir)
 
         # Get info so we can set max_time correctly
         self.read_tuning_info()
@@ -804,7 +831,7 @@ class InputTuning(object):
 
         sim = SnuddaSimulate(network_file=self.network_file,
                              input_file=self.input_spikes_file)
-
+        sim.setup()
         sim.add_external_input()
         sim.check_memory_status()
 
@@ -833,7 +860,7 @@ class InputTuning(object):
 
         try:
             with open(tuning_info_file, 'rt') as f:
-                tuning_meta_data = json.load(f)
+                tuning_meta_data = json.load(f, object_pairs_hook=collections.OrderedDict)
 
             # max_time is the important one, we want to make sure we simulate correct duration without having the user
             # provide the parameter twice
@@ -874,7 +901,7 @@ if __name__ == "__main__":
     parser.add_argument("--inputFrequency", type=str, default="[0,1,2,5]",
                         help="Input frequency, float or list of floats")
     parser.add_argument("--neuronType", default=None, type=str,
-                        help="Optional, if only we want to simulate one neuron type, eg. FSN")
+                        help="Optional, if only we want to simulate one neuron type, eg. FS")
 
     args = parser.parse_args()
 

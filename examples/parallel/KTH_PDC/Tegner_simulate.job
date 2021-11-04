@@ -1,0 +1,58 @@
+#!/bin/bash -l
+#SBATCH -t 0-3:59:00
+#SBATCH --time-min=1:59:00
+#SBATCH -J Snudda
+#SBATCH -A 2020-5-636
+#SBATCH -o save/output-TegnerSnuddaSimulate.o%j
+#SBATCH -e save/error-TegnerSnuddaSimulate.e%j
+#SBATCH --nodes=1-5
+#SBATCH --ntasks-per-node=24
+
+# --- Tegner has 24 cores per node
+
+# Run projinfo if you need to see which project for the allocation
+
+module load snic-env
+L=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/$SNIC_RESOURCE
+
+__conda_setup="$('$L/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+    
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "$L/miniconda3/etc/profile.d/conda.sh" ]; then
+        . "$L/miniconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="$L/miniconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+
+echo "This is the conda we have:"
+echo `which conda`
+conda activate
+
+
+# These need to match what is in Tegner_runSnudda.sh
+SNUDDA_DIR=/cfs/klemming/nobackup/${USER:0:1}/$USER/Snudda/snudda
+JOBDIR=$SNUDDA_DIR/../networks/TegnerNetwork
+
+# If the BasalGangliaData directory exists, then use that for our data
+if [[ -d "/cfs/klemming/nobackup/${USER:0:1}/$USER/BasalGangliaData/data" ]]; then
+    export SNUDDA_DATA="/cfs/klemming/nobackup/${USER:0:1}/$USER/BasalGangliaData/data"
+    echo "Setting SNUDDA_DATA to $SNUDDA_DATA"
+else
+    echo "SNUDDA_DATA environment variable not changed (may be empty): $SNUDDA_DATA"
+fi
+
+module load gcc/9.2.0
+module load openmpi/4.1-gcc-9.2
+
+# This is now done by core.py automatically
+# rm -r x86_64
+# ln -s $SNUDDA_DIR/data/neurons/mechanisms
+# nrnivmodl mechanisms
+
+# Lets try to run simulation also
+# mpirun -n $SLURM_NTASKS x86_64/special -mpi -python snudda simulate ${JOBDIR}   
+mpirun -n $SLURM_NTASKS x86_64/special -mpi -python ../../snudda/cli.py simulate ${JOBDIR} --time 1.0

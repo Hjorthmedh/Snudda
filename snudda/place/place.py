@@ -11,6 +11,7 @@
 
 #
 import glob
+import sys
 
 import numexpr
 import numpy as np
@@ -22,7 +23,6 @@ import json
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists
-# from snudda.neurons.neuron_morphology import NeuronMorphology
 from snudda.place.region_mesh import RegionMesh
 from snudda.place.rotation import SnuddaRotate
 
@@ -250,12 +250,12 @@ class SnuddaPlace(object):
 
         if config_file is None:
             self.write_log("No configuration file specified")
-            os.sys.exit(-1)
+            sys.exit(-1)
 
         if not os.path.exists(config_file):
             self.write_log(f"Config file does not exist: {config_file}")
             self.write_log("Run snudda init <your directory> first")
-            os.sys.exit(-1)
+            sys.exit(-1)
 
         self.write_log(f"Parsing configuration file {config_file}")
 
@@ -329,7 +329,7 @@ class SnuddaPlace(object):
                     mesh_file = os.path.join(self.network_path, vol_def["meshFile"])
                 else:
                     self.write_log(f"Unable to find mesh file {vol_def['meshFile']}")
-                    os.sys.exit(-1)
+                    sys.exit(-1)
 
                 self.volume[volume_id]["mesh"] \
                     = RegionMesh(mesh_file,
@@ -360,7 +360,7 @@ class SnuddaPlace(object):
                             # We need to load the data from the file
                             from scipy.interpolate import griddata
                             with open(snudda_parse_path(density_file), "r") as f:
-                                density_data = json.load(f)
+                                density_data = json.load(f, object_pairs_hook=OrderedDict)
 
                                 assert volume_id in density_data and neuron_type in density_data[volume_id], \
                                     f"Volume {volume_id} does not contain data for neuron type {neuron_type}"
@@ -430,9 +430,6 @@ class SnuddaPlace(object):
             else:
                 virtual_neuron = False
 
-            # Now handled by rotation_helper
-            # rotation_mode = definition["rotationMode"]
-
             if "axonDensity" in definition:
                 axon_density = definition["axonDensity"]
             else:
@@ -448,7 +445,6 @@ class SnuddaPlace(object):
                              hoc=hoc,
                              volume_id=volume_id,
                              virtual_neuron=virtual_neuron,
-                             # rotation_mode=rotation_mode,
                              axon_density=axon_density)
 
         self.config_file = config_file
@@ -667,7 +663,7 @@ class SnuddaPlace(object):
                     self.write_log(tstr)
 
                     self.write_log(f"Incorrect density string: {n.axon_density}")
-                    os.sys.exit(-1)
+                    sys.exit(-1)
 
         neuron_group.create_dataset("axonDensityBoundsXYZ", data=axon_density_bounds_xyz)
 

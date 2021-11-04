@@ -1,0 +1,98 @@
+[
+[
+    {
+        "param_name": "celsius", 
+        "type": "global", 
+        "value": 35
+    }, 
+    {
+        "param_name": "v_init", 
+        "type": "global", 
+        "value": -85
+    }, 
+    {
+        "dist_type": "uniform", 
+        "param_name": "g_pas", 
+        "sectionlist": "axonal", 
+        "type": "section", 
+        "value": 7.75502500756305e-05
+    }, 
+    {
+        "dist_type": "uniform", 
+        "param_name": "g_pas", 
+        "sectionlist": "basal", 
+        "type": "section", 
+        "value": 7.75502500756305e-05
+    }, 
+    {
+        "dist_type": "uniform", 
+        "param_name": "g_pas", 
+        "sectionlist": "somatic", 
+        "type": "section", 
+        "value": 7.75502500756305e-05
+    }, 
+    {
+        "dist_type": "uniform", 
+        "param_name": "e_pas", 
+        "sectionlist": "axonal", 
+        "type": "section", 
+        "value": -70.24042294738511
+    }, 
+    {
+        "dist_type": "uniform", 
+        "param_name": "e_pas", 
+        "sectionlist": "basal", 
+        "type": "section", 
+        "value": -70.24042294738511
+    }, 
+    {
+        "dist_type": "uniform", 
+        "param_name": "e_pas", 
+        "sectionlist": "somatic", 
+        "type": "section", 
+        "value": -70.24042294738511
+    }, 
+    {
+        "dist_type": "uniform", 
+        "param_name": "cm", 
+        "sectionlist": "axonal", 
+        "type": "section", 
+        "value": 1
+    }, 
+    {
+        "dist_type": "uniform", 
+        "param_name": "cm", 
+        "sectionlist": "basal", 
+        "type": "section", 
+        "value": 1
+    }, 
+    {
+        "dist_type": "uniform", 
+        "param_name": "cm", 
+        "sectionlist": "somatic", 
+        "type": "section", 
+        "value": 1
+    }, 
+    {
+        "dist_type": "uniform", 
+        "param_name": "Ra", 
+        "sectionlist": "axonal", 
+        "type": "section", 
+        "value": 245.38093465012534
+    }, 
+    {
+        "dist_type": "uniform", 
+        "param_name": "Ra", 
+        "sectionlist": "basal", 
+        "type": "section", 
+        "value": 245.38093465012534
+    }, 
+    {
+        "dist_type": "uniform", 
+        "param_name": "Ra", 
+        "sectionlist": "somatic", 
+        "type": "section", 
+        "value": 245.38093465012534
+    }
+    ]
+]

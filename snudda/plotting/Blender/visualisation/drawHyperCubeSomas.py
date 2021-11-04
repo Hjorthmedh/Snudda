@@ -46,7 +46,7 @@ for ir,row in enumerate(pos):
     elif(nType == "iSPN" or nType == "MSD2"):
       #col = [0.2, 0.2, 1.0]
       col = (67./255,55./255,181./255)
-    elif(nType == "FSN"):
+    elif(nType == "FS"):
       col = (6./255,31./255,85./255)
     elif(nType == "ChIN"):
       col = (252./266,102./255,0.0)

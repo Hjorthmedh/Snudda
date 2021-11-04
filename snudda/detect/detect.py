@@ -11,9 +11,12 @@
 # Grant Agreements No. 720270 and No. 785907 (Human Brain Project SGA1
 # and SGA2).
 #
+from collections import OrderedDict
+
 import numexpr
 import numpy as np
 import os
+import sys
 import itertools
 
 import time
@@ -1779,7 +1782,7 @@ class SnuddaDetect(object):
         cfg_file = open(str(config_file), 'r')
 
         try:
-            self.config = json.load(cfg_file)
+            self.config = json.load(cfg_file, object_pairs_hook=OrderedDict)
         finally:
             cfg_file.close()
 
@@ -2413,7 +2416,7 @@ class SnuddaDetect(object):
             t_str = traceback.format_exc()
             self.write_log(t_str, is_error=True)
 
-            os.sys.exit(-1)
+            sys.exit(-1)
 
         # For serial version of code, we need to return this, so we
         # can save work history
@@ -2571,7 +2574,7 @@ class SnuddaDetect(object):
             t_str = traceback.format_exc()
             self.write_log(t_str, is_error=True)
 
-            os.sys.exit(-1)
+            sys.exit(-1)
 
         return min_coord, max_coord
 
@@ -3149,7 +3152,7 @@ class SnuddaDetect(object):
             t_str = traceback.format_exc()
             self.write_log(t_str, is_error=True)
 
-            os.sys.exit(-1)
+            sys.exit(-1)
 
         return (hyper_id, self.hyper_voxel_synapse_ctr,
                 self.hyper_voxel_gap_junction_ctr, end_time - start_time,
@@ -3504,5 +3507,5 @@ class SnuddaDetect(object):
 
 if __name__ == "__main__":
     print("Please do not call this file directly, use snudda.py")
-    exit(-1)
+    sys.exit(-1)
 
