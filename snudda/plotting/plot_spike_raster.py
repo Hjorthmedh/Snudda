@@ -150,9 +150,9 @@ class PlotSpikeRaster(object):
         max0=0
         max1=0
         for t in type_order:#type_order
-            pruned_spikes = [self.time[int(i)] - skip_time for i in t_idx if i in type_dict[t]]
+            pruned_spikes=self.time[type_dict[t]] - skip_time
+            pruned_spikes=pruned_spikes[pruned_spikes>0]
             num_of_type = len([x["type"] for x in self.network_info.data["neurons"] if x["type"].lower() == t])
-            #pruned_spikes_ms=np.multiply(pruned_spikes,1000)
             binwidth =0.01 #10  # ms
             binRange = np.arange(0, ((self.end_time)+skip_time + binwidth), binwidth)
             if t in type_division[0]:
