@@ -655,10 +655,24 @@ class SnuddaLoad(object):
 
     ############################################################################
 
-    # Returns cellID of all neurons of neuronType
+    def get_neuron_types(self, neuron_id=None, return_set=False):
+
+        if neuron_id:
+            neuron_types = [self.data["neurons"][x]["type"] for x in neuron_id]
+        else:
+            neuron_types = [x["type"] for x in self.data["neurons"]]
+
+        if return_set:
+            return set(neuron_types)
+        else:
+            return neuron_types
+
+    ############################################################################
+
+    # Returns neuron_id of all neurons of neuron_type
     # OBS, random_permute is not using a controled rng, so not affected by random seed set
 
-    def get_cell_id_of_type(self, neuron_type, num_neurons=None, random_permute=False):
+    def get_neuron_id_of_type(self, neuron_type, num_neurons=None, random_permute=False):
 
         """
         Find all neuron ID of a specific neuron type.
@@ -673,7 +687,7 @@ class SnuddaLoad(object):
 
         """
 
-        cell_id = np.array([x["neuronID"] for x in self.data["neurons"] if x["type"] == neuron_type])
+        neuron_id = np.array([x["neuronID"] for x in self.data["neurons"] if x["type"] == neuron_type])
 
         assert not random_permute or num_neurons is not None, "random_permute is only valid when num_neurons is given"
 
@@ -682,26 +696,26 @@ class SnuddaLoad(object):
                 # Do not use this if you have a simulation with multiple
                 # workers... they might randomize differently, and you might
                 # fewer neurons in total than you wanted
-                keep_idx = np.random.permutation(len(cell_id))
+                keep_idx = np.random.permutation(len(neuron_id))
 
                 if len(keep_idx) > num_neurons:
                     keep_idx = keep_idx[:num_neurons]
 
-                cell_id = cell_id[keep_idx]
+                neuron_id = neuron_id[keep_idx]
             else:
-                cell_id = cell_id[:num_neurons]
+                neuron_id = neuron_id[:num_neurons]
 
-            if len(cell_id) < num_neurons:
+            if len(neuron_id) < num_neurons:
                 if self.verbose:
-                    print(f"get_cell_id_of_type: wanted {num_neurons} only got {len(cell_id)} "
+                    print(f"get_neuron_id_of_type: wanted {num_neurons} only got {len(neuron_id)} "
                           f"neurons of type {neuron_type}")
 
         # Double check that all of the same type
-        assert np.array([self.data["neurons"][x]["type"] == neuron_type for x in cell_id]).all()
+        assert np.array([self.data["neurons"][x]["type"] == neuron_type for x in neuron_id]).all()
 
-        return cell_id
+        return neuron_id
 
-    def get_cell_id_with_name(self, neuron_name):
+    def get_neuron_id_with_name(self, neuron_name):
 
         """
         Find neuron ID of neurons with a given name.
@@ -732,19 +746,19 @@ class SnuddaLoad(object):
 
         """
 
-        cell_id = np.where(self.data["populationUnit"] == population_unit)[0]
+        neuron_id = np.where(self.data["populationUnit"] == population_unit)[0]
 
         if num_neurons:
             if random_permute:
-                cell_id = np.random.permutation(cell_id)
+                neuron_id = np.random.permutation(neuron_id)
 
-            if len(cell_id) > num_neurons:
-                cell_id = cell_id[:num_neurons]
+            if len(neuron_id) > num_neurons:
+                neuron_id = neuron_id[:num_neurons]
 
         # Just double check
-        assert (self.data["populationUnit"][cell_id] == population_unit).all()
+        assert (self.data["populationUnit"][neuron_id] == population_unit).all()
 
-        return cell_id
+        return neuron_id
 
     ############################################################################
 

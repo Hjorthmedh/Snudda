@@ -61,7 +61,7 @@ class SnuddaAblateNetwork:
 
         """ Remove neuron of type neuron_type with probability p_remove (default 1)"""
 
-        remove_cell_id = self.snudda_load.get_cell_id_of_type(neuron_type=neuron_type)
+        remove_cell_id = self.snudda_load.get_neuron_id_of_type(neuron_type=neuron_type)
         remove_flag = np.random.uniform(size=(len(remove_cell_id),)) <= p_remove
         remove_cell_id = remove_cell_id[remove_flag]
 
@@ -77,7 +77,7 @@ class SnuddaAblateNetwork:
 
         """ Remove neuron with name neuron_name """
 
-        remove_cell_id = self.snudda_load.get_cell_id_with_name(neuron_name=neuron_name)
+        remove_cell_id = self.snudda_load.get_neuron_id_with_name(neuron_name=neuron_name)
 
         if len(remove_cell_id) > 0:
             print(f"Marking {neuron_name} ({len(remove_cell_id)}) for removal")

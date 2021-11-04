@@ -54,8 +54,8 @@ class SnuddaModifyNetworkTestCase(unittest.TestCase):
 
         mod_network = SnuddaAblateNetwork(network_file=self.original_file)
         sa_orig = SnuddaAnalyse(hdf5_file=self.original_file)
-        dspn_id_orig = self.snudda_load_original.get_cell_id_of_type(neuron_type="dSPN")
-        ispn_id_orig = self.snudda_load_original.get_cell_id_of_type(neuron_type="iSPN")
+        dspn_id_orig = self.snudda_load_original.get_neuron_id_of_type(neuron_type="dSPN")
+        ispn_id_orig = self.snudda_load_original.get_neuron_id_of_type(neuron_type="iSPN")
 
         with self.subTest(msg="Testing removal of iSPN to dSPN synapses"):
             mod_network.reset_network()

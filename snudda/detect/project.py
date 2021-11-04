@@ -211,11 +211,11 @@ class SnuddaProject(object):
             channel_model_id = con_info["channelModelID"]
 
             # Find all the presynaptic neurons in the network
-            pre_id_list = self.network_info.get_cell_id_of_type(pre_neuron_type)
+            pre_id_list = self.network_info.get_neuron_id_of_type(pre_neuron_type)
             pre_positions = self.network_info.data["neuronPositions"][pre_id_list, :]
 
             # Find all the postsynaptic neurons in the network
-            post_id_list = self.network_info.get_cell_id_of_type(post_neuron_type)
+            post_id_list = self.network_info.get_neuron_id_of_type(post_neuron_type)
             post_name_list = [self.network_info.data["name"][x] for x in post_id_list]
             post_positions = self.network_info.data["neuronPositions"][post_id_list, :]
 

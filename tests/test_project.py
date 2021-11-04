@@ -121,8 +121,8 @@ class TestProject(unittest.TestCase):
         network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         sl = SnuddaLoad(network_file)
 
-        dspn_id_list = sl.get_cell_id_of_type("dSPN")
-        ispn_id_list = sl.get_cell_id_of_type("iSPN")
+        dspn_id_list = sl.get_neuron_id_of_type("dSPN")
+        ispn_id_list = sl.get_neuron_id_of_type("iSPN")
 
         tot_proj_ctr = 0
 

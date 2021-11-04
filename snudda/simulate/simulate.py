@@ -1208,8 +1208,8 @@ class SnuddaSimulate(object):
 
         """ Adds somatic voltage recording to num_neurons of neuron_type. """
 
-        cell_id = self.snudda_loader.get_cell_id_of_type(neuron_type=neuron_type,
-                                                         num_neurons=num_neurons)
+        cell_id = self.snudda_loader.get_neuron_id_of_type(neuron_type=neuron_type,
+                                                           num_neurons=num_neurons)
 
         self.add_recording(cell_id)
 

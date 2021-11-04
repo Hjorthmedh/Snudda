@@ -68,14 +68,16 @@ class InputTuning(object):
 
     # Writes config files
 
-    def setup_network(self, neurons_path, num_replicas=10, neuron_types=None,
-                      parameter_id=None, morphology_id=None, modulation_id=None):
+    def setup_network(self, neurons_path=None, num_replicas=10, neuron_types=None,
+                      parameter_id=None, morphology_id=None, modulation_id=None,
+                      single_neuron_path=None):
 
         # TODO: num_replicas should be set by a parameter, it affects how many duplicates of each neuron
         # and thus how many steps we have between n_min and n_max number of inputs specified.
         config_def = self.create_network_config(neurons_path=neurons_path,
                                                 num_replicas=num_replicas,
-                                                neuron_types=neuron_types)
+                                                neuron_types=neuron_types,
+                                                single_neuron_path=single_neuron_path)
 
         print(f"Writing network config file to {self.network_config_file_name}")
         with open(self.network_config_file_name, "w") as f:
@@ -523,6 +525,33 @@ class InputTuning(object):
             if not show_plots:
                 plt.close()
 
+    def get_neuron_info(self, neuron_path):
+
+        neuron_path = snudda_parse_path(neuron_path)
+
+        neuron_info = collections.OrderedDict()
+
+        # Find neuron morphology swc file, obs currently assume lowercase(!)
+        neuron_morph = SnuddaInit.get_morphologies(neuron_path)
+
+        parameter_file = os.path.join(neuron_path, "parameters.json")
+        mechanism_file = os.path.join(neuron_path, "mechanisms.json")
+        modulation_file = os.path.join(neuron_path, "modulation.json")  # Optional
+
+        # Check if empty neuron_morph_list, or if more than one morphology
+        assert os.path.isfile(parameter_file), f"Missing parameter file {parameter_file}"
+        assert os.path.isfile(mechanism_file), f"Missing mechanism file {mechanism_file}"
+
+        neuron_info["morphology"] = snudda_simplify_path(neuron_morph)
+        neuron_info["parameters"] = snudda_simplify_path(parameter_file)
+        neuron_info["mechanisms"] = snudda_simplify_path(mechanism_file)
+
+        # Modulation file is optional
+        if os.path.isfile(modulation_file):
+            neuron_info["modulation"] = snudda_simplify_path(modulation_file)
+
+        return neuron_info
+
     # This loops through all single neuron directories in neurons_path
     # in preparation of writing a network config file
 
@@ -556,26 +585,7 @@ class InputTuning(object):
             neuron_ctr = 0
 
             for nd in neuron_dir:
-                neuron_info = collections.OrderedDict()
-
-                # Find neuron morphology swc file, obs currently assume lowercase(!)
-                neuron_morph = SnuddaInit.get_morphologies(nd)
-
-                parameter_file = os.path.join(nd, "parameters.json")
-                mechanism_file = os.path.join(nd, "mechanisms.json")
-                modulation_file = os.path.join(nd, "modulation.json")  # Optional
-
-                # Check if empty neuron_morph_list, or if more than one morphology
-                assert os.path.isfile(parameter_file), f"Missing parameter file {parameter_file}"
-                assert os.path.isfile(mechanism_file), f"Missing mechanism file {mechanism_file}"
-
-                neuron_info["morphology"] = snudda_simplify_path(neuron_morph)
-                neuron_info["parameters"] = snudda_simplify_path(parameter_file)
-                neuron_info["mechanisms"] = snudda_simplify_path(mechanism_file)
-
-                # Modulation file is optional
-                if os.path.isfile(modulation_file):
-                    neuron_info["modulation"] = snudda_simplify_path(modulation_file)
+                neuron_info = self.get_neuron_info(nd)
 
                 neuron_name = f"{neuron_type}_{neuron_ctr}"
                 neuron_ctr += 1
@@ -603,7 +613,18 @@ class InputTuning(object):
         nm.instantiate()
         return nm.all_have_axon()
 
-    def create_network_config(self, neurons_path, num_replicas=10, random_seed=None, neuron_types=None):
+    def create_network_config(self,
+                              neurons_path=None,
+                              num_replicas=10,
+                              random_seed=None,
+                              neuron_types=None,
+                              single_neuron_path=None):
+
+        """ Create a network with num_replicas number of replicas of each neuron found in
+            neuron_path (e.g. Snudda/data/neurons). Alternatively if only one neuron model
+            is required, use single_neuron_path pointing to neuron
+            (e.g. Snudda/data/neurons/striatum/fs/fs_model_1)
+            """
 
         self.neurons_path = neurons_path
 
@@ -622,7 +643,13 @@ class InputTuning(object):
         config_def["Volume"] = volume_def
         config_def["Connectivity"] = dict()  # Unconnected
 
-        neuron_def = self.gather_all_neurons(neuron_types=neuron_types)
+        if single_neuron_path:
+            # Override and only get one neuron
+            assert type(neuron_types) == str, "neuron_types must be string if single_neuron_path set"
+            neuron_def = collections.OrderedDict()
+            neuron_def[neuron_types] = self.get_neuron_info(single_neuron_path)
+        else:
+            neuron_def = self.gather_all_neurons(neuron_types=neuron_types)
 
         fake_axon_density = ["r", "1", 10e-6]
 
