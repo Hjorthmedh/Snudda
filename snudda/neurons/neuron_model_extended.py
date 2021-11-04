@@ -56,10 +56,11 @@ class NeuronModel(ephys.models.CellModel):
 
         morph_file = None
         if parameter_key is not None and morphology_key is not None and param_file is not None:
-            meta_file = os.path.join(os.path.basename(param_file), "meta.json")
+            meta_file = os.path.join(os.path.dirname(param_file), "meta.json")
             if os.path.isfile(meta_file):
-                with open(meta_file) as f:
-                    morph_file = f[parameter_key][morphology_key]["morphology"]
+                with open(meta_file, "r") as f:
+                    meta_data = json.load(f, object_pairs_hook=OrderedDict)
+                    morph_file = os.path.join(morph_path, meta_data[parameter_key][morphology_key]["morphology"])
 
         if not morph_file:
             # We now allow multiple variations of morphologies for a given neuron name, so here NeuronPrototype
