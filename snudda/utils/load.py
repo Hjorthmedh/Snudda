@@ -400,10 +400,9 @@ class SnuddaLoad(object):
             n["morphologyID"] = morphology_id
             n["modulationID"] = modulation_id
 
-            n["parameterKey"] = parameter_key
-            n["morphologyKey"] = morphology_key
-            n["modulationKey"] = modulation_key
-
+            n["parameterKey"] = SnuddaLoad.to_str(parameter_key)
+            n["morphologyKey"] = SnuddaLoad.to_str(morphology_key)
+            n["modulationKey"] = SnuddaLoad.to_str(modulation_key)
 
             neurons.append(n)
 
