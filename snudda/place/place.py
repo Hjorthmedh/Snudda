@@ -166,7 +166,10 @@ class SnuddaPlace(object):
                     hoc=None,
                     volume_id=None,
                     virtual_neuron=False,
-                    axon_density=None):
+                    axon_density=None,
+                    parameter_key=None,
+                    morphology_key=None,
+                    modulation_key=None):
 
         """
         Add neurons to volume specified.
@@ -182,6 +185,10 @@ class SnuddaPlace(object):
             volume_id (str): ID of the volume to place neurons in
             virtual_neuron (bool): Real or virtual neuron, the latter can be used to model axons giving input to network
             axon_density (str): Axon density
+
+            parameter_key (str, optional): Parameter Key to use, default=None (Randomise between all available)
+            morphology_key (str, optional): Morphology Key to use, default=None (Randomise between all available)
+            modulation_key (str, optional): Key for neuromodulation, default=None (Randomise between all available)
         """
 
         assert volume_id is not None, f"You must specify a volume for neuron {name}"
@@ -213,15 +220,29 @@ class SnuddaPlace(object):
             # parameter.json can be a list of lists, this allows you to select the
             # parameter set randomly
             # modulation.json is similarly formatted, pick a parameter set here
-            parameter_id = self.random_generator.integers(1000000)
-            modulation_id = self.random_generator.integers(1000000)
-            morphology_id = self.random_generator.integers(1000000)
+            if parameter_key is None:
+                parameter_id = self.random_generator.integers(1000000)
+            else:
+                parameter_id = None
+
+            if modulation_key is None:
+                modulation_id = self.random_generator.integers(1000000)
+            else:
+                modulation_id = None
+
+            if morphology_key is None:
+                morphology_id = self.random_generator.integers(1000000)
+            else:
+                morphology_id = None
 
             n = neuron_prototype.clone(position=coords,
                                        rotation=rotation,
                                        morphology_id=morphology_id,
                                        parameter_id=parameter_id,
-                                       modulation_id=modulation_id)
+                                       modulation_id=modulation_id,
+                                       parameter_key=parameter_key,
+                                       morphology_key=morphology_key,
+                                       modulation_key=modulation_key)
 
             # self.writeLog("Place " + str(self.cellPos[i,:]))
 
@@ -241,7 +262,7 @@ class SnuddaPlace(object):
 
     ############################################################################
 
-    def parse_config(self, config_file=None):
+    def parse_config(self, config_file=None, resort_neurons=True):
 
         """ Parse network config_file """
 
@@ -435,6 +456,21 @@ class SnuddaPlace(object):
             else:
                 axon_density = None
 
+            if "parameterKey" in definition:
+                parameter_key = definition["parameterKey"]
+            else:
+                parameter_key = None
+
+            if "morphologyKey" in definition:
+                morphology_key = definition["morphologyKey"]
+            else:
+                morphology_key = None
+
+            if "modulationKey" in definition:
+                modulation_key = definition["modulationKey"]
+            else:
+                modulation_key = None
+
             self.write_log(f"Adding: {num} {neuron_name}")
             self.add_neurons(name=neuron_name,
                              swc_path=morph,
@@ -445,13 +481,17 @@ class SnuddaPlace(object):
                              hoc=hoc,
                              volume_id=volume_id,
                              virtual_neuron=virtual_neuron,
-                             axon_density=axon_density)
+                             axon_density=axon_density,
+                             parameter_key=parameter_key,
+                             morphology_key=morphology_key,
+                             modulation_key=modulation_key)
 
         self.config_file = config_file
 
         # We reorder neurons, sorting their IDs after position
         # -- UPDATE: Now we spatial cluster neurons depending on number of workers
-        self.sort_neurons(sort_idx=self.cluster_neurons())
+        if resort_neurons:
+            self.sort_neurons(sort_idx=self.cluster_neurons())
 
         if False:  # Debug purposes, make sure neuron ranges are ok
             self.plot_ranges()
@@ -597,14 +637,53 @@ class SnuddaPlace(object):
                                                            "int",
                                                            compression="gzip")
 
+        pk_list = [n.parameter_key.encode("ascii", "ignore")
+                   if n.parameter_key is not None else ""
+                   for n in self.neurons]
+        pk_str_type = 'S' + str(max(1, max([len(x) for x in pk_list])))
+
+        mk_list = [n.morphology_key.encode("ascii", "ignore")
+                   if n.morphology_key is not None else ""
+                   for n in self.neurons]
+        mk_str_type = 'S' + str(max(1, max([len(x) for x in mk_list])))
+
+        mok_list = [n.modulation_key.encode("ascii", "ignore")
+                    if n.modulation_key is not None else ""
+                    for n in self.neurons]
+        mok_str_type = 'S' + str(max(1, max([len(x) for x in mok_list])))
+
+        neuron_param_key = neuron_group.create_dataset("parameterKey",
+                                                       (len(self.neurons),),
+                                                       pk_str_type,
+                                                       compression="gzip")
+
+        neuron_morph_key = neuron_group.create_dataset("morphologyKey",
+                                                       (len(self.neurons),),
+                                                       mk_str_type,
+                                                       compression="gzip")
+
+        neuron_modulation_key = neuron_group.create_dataset("modulationKey",
+                                                            (len(self.neurons),),
+                                                            mok_str_type,
+                                                            compression="gzip")
+
         for (i, n) in enumerate(self.neurons):
             neuron_position[i] = n.position
             neuron_rotation[i] = n.rotation.reshape(1, 9)
             neuron_dend_radius[i] = n.max_dend_radius
             neuron_axon_radius[i] = n.max_axon_radius
-            neuron_param_id[i] = n.parameter_id
-            neuron_morph_id[i] = n.morphology_id
-            neuron_modulation_id[i] = n.modulation_id
+            neuron_param_id[i] = -1 if n.parameter_id is None else n.parameter_id
+            neuron_morph_id[i] = -1 if n.morphology_id is None else n.morphology_id
+            neuron_modulation_id[i] = -1 if n.modulation_id is None else n.modulation_id
+
+            if n.parameter_key:
+                neuron_param_key[i] = n.parameter_key
+
+            if n.morphology_key:
+                neuron_morph_key[i] = n.morphology_key
+
+            if n.modulation_key:
+                neuron_modulation_key[i] = n.modulation_key
 
         # Store input information
         if self.population_unit is None:
