@@ -207,10 +207,10 @@ class NeuronPrototype:
         # TODO: In the future remove parameter_id and morphology_id and only use keys
         if parameter_id is not None:
             par_key = self.get_parameter_key(parameter_id=parameter_id)
-            if parameter_key is not None:
+            if parameter_key:
                 assert par_key == parameter_key, \
                     f"Mismatch. Parameter ID {parameter_id} has parameter_key {par_key}, not {parameter_key}"
-        elif parameter_key is not None:
+        elif parameter_key:
             par_key = parameter_key
         else:
             par_key = None
@@ -220,7 +220,7 @@ class NeuronPrototype:
             if morphology_id is not None:
                 morph_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id,
                                                parameter_key=par_key)
-                if morphology_key is not None:
+                if morphology_key:
                     assert morph_key == morphology_key, \
                         f"Mismatch: Expected morphology_key {morph_key}, got {morphology_key}"
             elif morphology_key is not None:
