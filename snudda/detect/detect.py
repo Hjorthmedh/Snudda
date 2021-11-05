@@ -1127,11 +1127,16 @@ class SnuddaDetect(object):
                             # cond = self.hyper_voxel_rng.normal(mean_synapse_cond, std_synapse_cond)
 
                             # lognormal distribution -- https://www.nature.com/articles/nrn3687
-                            cond = self.hyper_voxel_rng.lognormal(mean_synapse_cond, std_synapse_cond)
+                            # https://en.wikipedia.org/wiki/Log-normal_distribution
+                            # TODO: Precompute these values in con_dict for speedup!
+                            mu = np.log(mean_synapse_cond**2 / np.sqrt(mean_synapse_cond**2 + std_synapse_cond**2))
+                            sigma = np.sqrt(np.log(1 + std_synapse_cond**2 / mean_synapse_cond**2))
+                            cond = self.hyper_voxel_rng.lognormal(mu, sigma)
 
                             # Need to make sure the conductance is not negative,
                             # set lower cap at 10% of mean value
                             cond = np.maximum(cond, mean_synapse_cond * 0.1)
+                            assert cond > 0, f"Conductance should be larger than 0. cond = {cond}"
 
                             param_id = self.hyper_voxel_rng.integers(1000000)
 
@@ -1724,7 +1729,11 @@ class SnuddaDetect(object):
 
                         #gj_cond = self.hyper_voxel_rng.normal(mean_gj_cond, std_gj_cond)
                         # lognormal distribution https://www.nature.com/articles/nrn3687
-                        gj_cond = self.hyper_voxel_rng.lognormal(mean_gj_cond, std_gj_cond)
+                        # TODO: Precompute these in con_info
+                        mu = np.log(mean_gj_cond ** 2 / np.sqrt(mean_gj_cond ** 2 + std_gj_cond ** 2))
+                        sigma = np.sqrt(np.log(1 + std_gj_cond ** 2 / mean_gj_cond ** 2))
+
+                        gj_cond = self.hyper_voxel_rng.lognormal(mu, sigma)
 
                         gj_cond = np.maximum(gj_cond, mean_gj_cond * 0.1)  # Avoid negative cond
 

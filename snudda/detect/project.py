@@ -278,7 +278,11 @@ class SnuddaProject(object):
                     xyz = np.round((xyz - self.simulation_origo) / self.voxel_size)
 
                     # https://www.nature.com/articles/nrn3687 -- lognormal
-                    cond = self.rng.lognormal(conductance_mean, conductance_std, len(sec_x))
+                    # TODO: Precompute these
+                    mu = np.log(conductance_mean ** 2 / np.sqrt(conductance_mean ** 2 + conductance_std ** 2))
+                    sigma = np.sqrt(np.log(1 + conductance_std ** 2 / conductance_mean ** 2))
+
+                    cond = self.rng.lognormal(mu, sigma, len(sec_x))
                     cond = np.maximum(cond, conductance_mean*0.1)  # Lower bound, prevent negative.
                     param_id = self.rng.integers(1000000, size=len(sec_x))
 
