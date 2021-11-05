@@ -811,7 +811,7 @@ def snudda_load_cli():
                     in [(x["neuronID"], x["name"], x["position"],
                          x["parameterKey"], x["morphologyKey"], x["modulationKey"])
                         for x in nl.data["neurons"]]:
-                print("%d : %s  (x: %f, y: %f, z: %f), par_key: %d, morph_key: %d, mod_key: %d"
+                print("%d : %s  (x: %f, y: %f, z: %f), par_key: %s, morph_key: %s, mod_key: %s"
                       % (nid, name, pos[0], pos[1], pos[2], par_key, morph_key, mod_key))
         else:
             for nid, name, pos in [(x["neuronID"], x["name"], x["position"]) for x in nl.data["neurons"]]:
