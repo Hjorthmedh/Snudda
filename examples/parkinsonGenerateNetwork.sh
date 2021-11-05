@@ -3,12 +3,12 @@ export IPYTHON_PROFILE=default
 
 # OBS, currently init is commented out, so numneurons not used
 numNeurons=50000
-simNamePart=20211022
+simNamePart=20211105
 #cellspecDir=data/parkinson-2020-12-17
 #cellspecDir=data/parkinson-2021-01-07
 #cellspecDir=../snudda/data/parkinson-2021-03-19
-cellspecDir=../../BasalGangliaData/Parkinson
-
+#cellspecDir=../../BasalGangliaData/Parkinson.OLD
+cellspecDir=../../BasalGangliaData/Parkinson/20211105
 
 
 ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
