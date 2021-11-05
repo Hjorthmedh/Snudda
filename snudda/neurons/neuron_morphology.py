@@ -30,6 +30,9 @@ class NeuronMorphology(object):
                  morphology_id=None,
                  parameter_id=None,
                  modulation_id=None,
+                 parameter_key=None,
+                 morphology_key=None,
+                 modulation_key=None,
                  verbose=False,
                  load_morphology=True,
                  hoc=None,
@@ -74,9 +77,15 @@ class NeuronMorphology(object):
         self.param_data = param_data
         self.mech_filename = mech_filename
         self.modulation = modulation
+
         self.morphology_id = morphology_id
         self.parameter_id = parameter_id
         self.modulation_id = modulation_id
+
+        self.parameter_key = parameter_key
+        self.morphology_key = morphology_key
+        self.modulation_key = modulation_key
+
         self.verbose = verbose
         self.use_cache = use_cache
         self.pickle_version = pickle_version
@@ -163,7 +172,10 @@ class NeuronMorphology(object):
               rotation=None,
               morphology_id=None,
               parameter_id=None,
-              modulation_id=None):
+              modulation_id=None,
+              parameter_key=None,
+              morphology_key=None,
+              modulation_key=None):
 
         """
         Creates a clone copy of a neuron.
@@ -172,9 +184,14 @@ class NeuronMorphology(object):
             load_morphology (bool) : Load morphology into clone?
             position (float,float,float) : x,y,z coordinate of clone
             rotation (rotation matrix) : Rotation matrix for clone
+
             morphology_id: Morphology ID for the clone
             parameter_id: Parameter ID for the clone
             modulation_id: Neuromodulation parameter ID for the clone
+
+            parameter_key (str): Parameter Key for clone
+            morphology_key (str): Morphology Key for clone
+            modulation_key (str): Modulation Key for clone
 
         """
 
@@ -200,6 +217,9 @@ class NeuronMorphology(object):
                                       morphology_id=morphology_id,
                                       parameter_id=parameter_id,
                                       modulation_id=modulation_id,
+                                      parameter_key=parameter_key,
+                                      morphology_key=morphology_key,
+                                      modulation_key=modulation_key,
                                       verbose=self.verbose,
                                       load_morphology=False,
                                       hoc=self.hoc,

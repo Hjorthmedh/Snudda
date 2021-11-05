@@ -1,12 +1,12 @@
 {
     "RandomSeed": {
-        "init": 2929773272,
-        "place": 1373393432,
-        "detect": 3918139253,
-        "project": 1541461417,
-        "prune": 2253302726,
-        "input": 4158839414,
-        "simulate": 3736834724
+        "init": 247808882,
+        "place": 799680898,
+        "detect": 1560220428,
+        "project": 1228648387,
+        "prune": 299996022,
+        "input": 1052838105,
+        "simulate": 2972898657
     },
     "Volume": {
         "Striatum": {
@@ -17,7 +17,7 @@
         }
     },
     "Connectivity": {
-        "FSN,FSN": {
+        "FS,FS": {
             "GABA": {
                 "conductance": [
                     1.1e-09,
@@ -39,7 +39,8 @@
                     "softMax": 5,
                     "mu2": 2,
                     "a3": 1,
-                    "distPruning": null
+                    "distPruning": null,
+                    "cluster": false
                 }
             },
             "GapJunction": {
@@ -53,11 +54,12 @@
                     "softMax": 8,
                     "mu2": 2,
                     "a3": 1.0,
-                    "distPruning": null
+                    "distPruning": null,
+                    "cluster": false
                 }
             }
         },
-        "FSN,dSPN": {
+        "FS,dSPN": {
             "GABA": {
                 "conductance": [
                     1.1e-09,
@@ -72,7 +74,7 @@
                         0.008,
                         1000.0
                     ],
-                    "parameterFile": "$DATA/synapses/striatum/PlanertFitting-FD-tmgaba-fit.json",
+                    "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-FD-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -80,11 +82,12 @@
                     "softMax": 5,
                     "mu2": 2,
                     "a3": 1.0,
-                    "distPruning": "exp(-(0.5*d/60e-6)**2)"
+                    "distPruning": "exp(-(0.5*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
-        "FSN,iSPN": {
+        "FS,iSPN": {
             "GABA": {
                 "conductance": [
                     1.1e-09,
@@ -99,7 +102,7 @@
                         0.008,
                         1000.0
                     ],
-                    "parameterFile": "$DATA/synapses/striatum/PlanertFitting-FI-tmgaba-fit.json",
+                    "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-FI-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -107,11 +110,12 @@
                     "softMax": 5,
                     "mu2": 2,
                     "a3": 0.9,
-                    "distPruning": "exp(-(0.5*d/60e-6)**2)"
+                    "distPruning": "exp(-(0.5*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
-        "FSN,LTS": {
+        "FS,LTS": {
             "GABA": {
                 "conductance": [
                     1.1e-10,
@@ -125,7 +129,8 @@
                     "softMax": 3,
                     "mu2": 2,
                     "a3": 1.0,
-                    "distPruning": null
+                    "distPruning": null,
+                    "cluster": false
                 }
             }
         },
@@ -145,7 +150,7 @@
                         1000.0
                     ],
                     "failRate": 0.7,
-                    "parameterFile": "$DATA/synapses/striatum/PlanertFitting-DD-tmgaba-fit.json",
+                    "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-DD-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -153,14 +158,16 @@
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 },
                 "pruningOther": {
                     "f1": 0.38,
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
@@ -180,7 +187,7 @@
                         1000.0
                     ],
                     "failRate": 0.7,
-                    "parameterFile": "$DATA/synapses/striatum/PlanertFitting-DI-tmgaba-fit.json",
+                    "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-DI-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -188,14 +195,16 @@
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 },
                 "pruningOther": {
                     "f1": 0.2,
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
@@ -214,7 +223,8 @@
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 0.1,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
@@ -234,7 +244,7 @@
                         1000.0
                     ],
                     "failRate": 0.4,
-                    "parameterFile": "$DATA/synapses/striatum/PlanertFitting-ID-tmgaba-fit.json",
+                    "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-ID-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -242,14 +252,16 @@
                     "softMax": 4,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 },
                 "pruningOther": {
                     "f1": 0.3,
                     "softMax": 4,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
@@ -269,7 +281,7 @@
                         1000.0
                     ],
                     "failRate": 0.4,
-                    "parameterFile": "$DATA/synapses/striatum/PlanertFitting-II-tmgaba-fit.json",
+                    "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-II-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -277,14 +289,16 @@
                     "softMax": 4,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 },
                 "pruningOther": {
                     "f1": 0.55,
                     "softMax": 4,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
@@ -303,7 +317,8 @@
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 0.1,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
@@ -329,7 +344,8 @@
                     "softMax": 15,
                     "mu2": 3,
                     "a3": 0.3,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
@@ -355,7 +371,8 @@
                     "softMax": 15,
                     "mu2": 3,
                     "a3": 0.3,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
@@ -373,61 +390,67 @@
                     "softMax": 10,
                     "mu2": 3,
                     "a3": 0.4,
-                    "distPruning": null
+                    "distPruning": null,
+                    "cluster": false
                 }
             }
         }
     },
     "Neurons": {
-        "FSN_0": {
-            "morphology": "$DATA/neurons/striatum/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301/MTC251001A-IDB-cor-rep.swc",
-            "parameters": "$DATA/neurons/striatum/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301/parameters.json",
-            "mechanisms": "$DATA/neurons/striatum/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301/mechanisms.json",
-            "modulation": "$DATA/neurons/striatum/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20190301/modulation.json",
-            "num": 325,
+        "FS_0": {
+            "morphology": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20210210/morphology",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20210210/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20210210/mechanisms.json",
+            "num": 260,
             "hoc": null,
             "neuronType": "neuron",
             "rotationMode": "random",
             "volumeID": "Striatum"
         },
-        "FSN_1": {
-            "morphology": "$DATA/neurons/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/MTC180800A-IDB-cor-rep.swc",
-            "parameters": "$DATA/neurons/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/parameters.json",
-            "mechanisms": "$DATA/neurons/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/mechanisms.json",
-            "modulation": "$DATA/neurons/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/modulation.json",
-            "num": 325,
+        "FS_1": {
+            "morphology": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20210210/morphology",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20210210/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20210210/mechanisms.json",
+            "num": 260,
             "hoc": null,
             "neuronType": "neuron",
             "rotationMode": "random",
             "volumeID": "Striatum"
         },
-        "FSN_2": {
-            "morphology": "$DATA/neurons/striatum/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/DR-rat-Mar-13-08-1-536-R-cor-rep.swc",
-            "parameters": "$DATA/neurons/striatum/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/parameters.json",
-            "mechanisms": "$DATA/neurons/striatum/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/mechanisms.json",
-            "modulation": "$DATA/neurons/striatum/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/modulation.json",
-            "num": 325,
+        "FS_2": {
+            "morphology": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20210211/morphology",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20210211/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20210211/mechanisms.json",
+            "num": 260,
             "hoc": null,
             "neuronType": "neuron",
             "rotationMode": "random",
             "volumeID": "Striatum"
         },
-        "FSN_3": {
-            "morphology": "$DATA/neurons/striatum/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226/MTC180800A-IDB-cor-rep.swc",
-            "parameters": "$DATA/neurons/striatum/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226/parameters.json",
-            "mechanisms": "$DATA/neurons/striatum/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226/mechanisms.json",
-            "modulation": "$DATA/neurons/striatum/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20190226/modulation.json",
-            "num": 325,
+        "FS_3": {
+            "morphology": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20210210/morphology",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20210210/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20210210/mechanisms.json",
+            "num": 260,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "random",
+            "volumeID": "Striatum"
+        },
+        "FS_4": {
+            "morphology": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e161205_FS1-mBE104E-v20210209/morphology",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e161205_FS1-mBE104E-v20210209/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e161205_FS1-mBE104E-v20210209/mechanisms.json",
+            "num": 260,
             "hoc": null,
             "neuronType": "neuron",
             "rotationMode": "random",
             "volumeID": "Striatum"
         },
         "dSPN_0": {
-            "morphology": "$DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc",
-            "parameters": "$DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/parameters.json",
-            "mechanisms": "$DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/mechanisms.json",
-            "modulation": "$DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/modulation.json",
+            "morphology": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c9_D1-mWT-1215MSN03-v20211026/morphology",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c9_D1-mWT-1215MSN03-v20211026/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c9_D1-mWT-1215MSN03-v20211026/mechanisms.json",
             "num": 11875,
             "hoc": null,
             "neuronType": "neuron",
@@ -435,10 +458,9 @@
             "volumeID": "Striatum"
         },
         "dSPN_1": {
-            "morphology": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/WT-P270-20-15ak-cor.swc",
-            "parameters": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/parameters.json",
-            "mechanisms": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/mechanisms.json",
-            "modulation": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/modulation.json",
+            "morphology": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20211028/morphology",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20211028/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20211028/mechanisms.json",
             "num": 11875,
             "hoc": null,
             "neuronType": "neuron",
@@ -446,10 +468,9 @@
             "volumeID": "Striatum"
         },
         "dSPN_2": {
-            "morphology": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/WT-1215MSN03-cor-rep-ax2.swc",
-            "parameters": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/parameters.json",
-            "mechanisms": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/mechanisms.json",
-            "modulation": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/modulation.json",
+            "morphology": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20211026/morphology",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20211026/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20211026/mechanisms.json",
             "num": 11875,
             "hoc": null,
             "neuronType": "neuron",
@@ -457,10 +478,9 @@
             "volumeID": "Striatum"
         },
         "dSPN_3": {
-            "morphology": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503/21-6-DE-cor-rep-ax.swc",
-            "parameters": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503/parameters.json",
-            "mechanisms": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503/mechanisms.json",
-            "modulation": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503/modulation.json",
+            "morphology": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20211026/morphology",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20211026/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20211026/mechanisms.json",
             "num": 11875,
             "hoc": null,
             "neuronType": "neuron",
@@ -468,10 +488,9 @@
             "volumeID": "Striatum"
         },
         "iSPN_0": {
-            "morphology": "$DATA/neurons/striatum/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603/WT-MSN1-cor-rep-ax.swc",
-            "parameters": "$DATA/neurons/striatum/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603/parameters.json",
-            "mechanisms": "$DATA/neurons/striatum/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603/mechanisms.json",
-            "modulation": "$DATA/neurons/striatum/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603/modulation.json",
+            "morphology": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20211026/morphology",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20211026/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20211026/mechanisms.json",
             "num": 11875,
             "hoc": null,
             "neuronType": "neuron",
@@ -479,10 +498,9 @@
             "volumeID": "Striatum"
         },
         "iSPN_1": {
-            "morphology": "$DATA/neurons/striatum/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529/46-3-DE-cor-rep-ax.swc",
-            "parameters": "$DATA/neurons/striatum/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529/parameters.json",
-            "mechanisms": "$DATA/neurons/striatum/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529/mechanisms.json",
-            "modulation": "$DATA/neurons/striatum/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529/modulation.json",
+            "morphology": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20211026/morphology",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20211026/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20211026/mechanisms.json",
             "num": 11875,
             "hoc": null,
             "neuronType": "neuron",
@@ -490,10 +508,9 @@
             "volumeID": "Striatum"
         },
         "iSPN_2": {
-            "morphology": "$DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/WT-P270-09-15ak-cor.swc",
-            "parameters": "$DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/parameters.json",
-            "mechanisms": "$DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/mechanisms.json",
-            "modulation": "$DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/modulation.json",
+            "morphology": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20211026/morphology",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20211026/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20211026/mechanisms.json",
             "num": 11875,
             "hoc": null,
             "neuronType": "neuron",
@@ -501,10 +518,9 @@
             "volumeID": "Striatum"
         },
         "iSPN_3": {
-            "morphology": "$DATA/neurons/striatum/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611/51-5-DE-cor-rep-ax.swc",
-            "parameters": "$DATA/neurons/striatum/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611/parameters.json",
-            "mechanisms": "$DATA/neurons/striatum/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611/mechanisms.json",
-            "modulation": "$DATA/neurons/striatum/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611/modulation.json",
+            "morphology": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20211026/morphology",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20211026/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20211026/mechanisms.json",
             "num": 11875,
             "hoc": null,
             "neuronType": "neuron",
