@@ -139,6 +139,18 @@ class TestDetect(unittest.TestCase):
             gj_order = gj[:, 1]*len(self.sd.neurons) + gj[:, 0]
             self.assertTrue((np.diff(gj_order) >= 0).all())
 
+        with self.subTest(stage="synapse_conductance_check"):
+            cond = self.sd.hyper_voxel_synapses[:self.sd.hyper_voxel_synapse_ctr, 11] * 1e-12
+            self.assertTrue(0.8e-9 < np.mean(cond) < 1.4e-9)  # mean 1.1e-9
+            self.assertTrue(0.5e-9 < np.std(cond) < 2.5e-9)  # std 1.5e-9
+
+        with self.subTest(stage="gap_junction_conductance_check"):
+            cond = self.sd.hyper_voxel_gap_junctions[:self.sd.hyper_voxel_gap_junction_ctr, 10] * 1e-12
+            self.assertTrue(2e-10 < np.mean(cond) < 8e-10)  # mean 5e-10
+
+            # Only one Gap junction, cant check std here
+            # self.assertTrue(0.1e-10 < np.std(cond) < 2e-9)  # std 1e-10
+
         # We should probably store the matrix as unsigned.
         self.assertTrue((self.sd.hyper_voxel_synapses >= 0).all())
         self.assertTrue((self.sd.hyper_voxel_gap_junctions >= 0).all())
