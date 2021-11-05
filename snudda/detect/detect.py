@@ -1112,6 +1112,7 @@ class SnuddaDetect(object):
                                 # This part detects only axon-dend synapses, skip gap junctions
                                 continue
 
+                            synapse_mu, synapse_sigma = con_dict[con_type]["lognormal_mu_sigma"]
                             mean_synapse_cond, std_synapse_cond = con_dict[con_type]["conductance"]
                             channel_model_id = con_dict[con_type]["channelModelID"]
 
@@ -1128,10 +1129,7 @@ class SnuddaDetect(object):
 
                             # lognormal distribution -- https://www.nature.com/articles/nrn3687
                             # https://en.wikipedia.org/wiki/Log-normal_distribution
-                            # TODO: Precompute these values in con_dict for speedup!
-                            mu = np.log(mean_synapse_cond**2 / np.sqrt(mean_synapse_cond**2 + std_synapse_cond**2))
-                            sigma = np.sqrt(np.log(1 + std_synapse_cond**2 / mean_synapse_cond**2))
-                            cond = self.hyper_voxel_rng.lognormal(mu, sigma)
+                            cond = self.hyper_voxel_rng.lognormal(synapse_mu, synapse_sigma)
 
                             # Need to make sure the conductance is not negative,
                             # set lower cap at 10% of mean value
@@ -1724,16 +1722,13 @@ class SnuddaDetect(object):
                         seg_x2 = self.dend_sec_x[x, y, z, pairs[1]]
 
                         mean_gj_cond, std_gj_cond = con_info["conductance"]
+                        gj_mu, gj_sigma = con_info["lognormal_mu_sigma"]
 
                         # !!! Currently not using channelParamDict for GJ
 
                         #gj_cond = self.hyper_voxel_rng.normal(mean_gj_cond, std_gj_cond)
                         # lognormal distribution https://www.nature.com/articles/nrn3687
-                        # TODO: Precompute these in con_info
-                        mu = np.log(mean_gj_cond ** 2 / np.sqrt(mean_gj_cond ** 2 + std_gj_cond ** 2))
-                        sigma = np.sqrt(np.log(1 + std_gj_cond ** 2 / mean_gj_cond ** 2))
-
-                        gj_cond = self.hyper_voxel_rng.lognormal(mu, sigma)
+                        gj_cond = self.hyper_voxel_rng.lognormal(gj_mu, gj_sigma)
 
                         gj_cond = np.maximum(gj_cond, mean_gj_cond * 0.1)  # Avoid negative cond
 
@@ -1946,6 +1941,14 @@ class SnuddaDetect(object):
                 # Also if conductance is just a number, add std 0
                 if type(con_def[key]["conductance"]) not in [list, tuple]:
                     con_def[key]["conductance"] = [con_def[key]["conductance"], 0]
+
+                # Precompute lognormal parameters
+                # https://en.wikipedia.org/wiki/Log-normal_distribution
+                mean_cond = con_def[key]["conductance"][0]
+                std_cond = con_def[key]["conductance"][1]
+                mu = np.log(mean_cond ** 2 / np.sqrt(mean_cond ** 2 + std_cond ** 2))
+                sigma = np.sqrt(np.log(1 + std_cond ** 2 / mean_cond ** 2))
+                con_def[key]["lognormal_mu_sigma"] = [mu, sigma]
 
             self.connectivity_distributions[pre_type, post_type] = con_def
 
