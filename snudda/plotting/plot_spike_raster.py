@@ -152,11 +152,11 @@ class PlotSpikeRaster(object):
         max1=0
     
         for t in type_order:
-            pruned_spikes=self.time[type_dict[t]] - skip_time
-            pruned_spikes=pruned_spikes[pruned_spikes>0]
+            pruned_spikes = self.time[type_dict[t]] - skip_time
+            pruned_spikes = pruned_spikes[pruned_spikes>0]
             num_of_type = len([x["type"] for x in self.network_info.data["neurons"] if x["type"].lower() == t])
-            binwidth =0.01 #10  # ms
-            binRange = np.arange(0, ((self.end_time)+skip_time + binwidth), binwidth)
+            bin_width = 0.01 #10  # ms
+            bin_range = np.arange(0, self.end_time + skip_time + bin_width, bin_width)
 
             if t in type_division[0]:
                 counts0, bins0, bars0 = atop.hist(pruned_spikes,
@@ -180,6 +180,7 @@ class PlotSpikeRaster(object):
                                                    weights=np.ones_like(pruned_spikes) / bin_width / num_of_type)
                 spike_count.append((t, len(pruned_spikes), num_of_type))
                 max1 = max(np.append(counts1, max1))
+
         ax.invert_yaxis()
 
         ax.set_xlabel('Time (s)')
@@ -276,6 +277,7 @@ class PlotSpikeRaster(object):
         return plot_lookup
 
 ############################################################################
+
 
 if __name__ == "__main__":
 
