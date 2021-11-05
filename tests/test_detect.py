@@ -140,8 +140,6 @@ class TestDetect(unittest.TestCase):
             self.assertTrue((np.diff(gj_order) >= 0).all())
 
         # We should probably store the matrix as unsigned.
-        import pdb
-        pdb.set_trace()
         self.assertTrue((self.sd.hyper_voxel_synapses >= 0).all())
         self.assertTrue((self.sd.hyper_voxel_gap_junctions >= 0).all())
 
