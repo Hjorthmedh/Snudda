@@ -1124,7 +1124,10 @@ class SnuddaDetect(object):
                                 self.resize_hyper_voxel_synapses_matrix()
 
                             # Synapse conductance varies between synapses
-                            cond = self.hyper_voxel_rng.normal(mean_synapse_cond, std_synapse_cond)
+                            # cond = self.hyper_voxel_rng.normal(mean_synapse_cond, std_synapse_cond)
+
+                            # lognormal distribution -- https://www.nature.com/articles/nrn3687
+                            cond = self.hyper_voxel_rng.lognormal(mean_synapse_cond, std_synapse_cond)
 
                             # Need to make sure the conductance is not negative,
                             # set lower cap at 10% of mean value
@@ -1719,7 +1722,10 @@ class SnuddaDetect(object):
 
                         # !!! Currently not using channelParamDict for GJ
 
-                        gj_cond = self.hyper_voxel_rng.normal(mean_gj_cond, std_gj_cond)
+                        #gj_cond = self.hyper_voxel_rng.normal(mean_gj_cond, std_gj_cond)
+                        # lognormal distribution https://www.nature.com/articles/nrn3687
+                        gj_cond = self.hyper_voxel_rng.lognormal(mean_gj_cond, std_gj_cond)
+
                         gj_cond = np.maximum(gj_cond, mean_gj_cond * 0.1)  # Avoid negative cond
 
                         self.hyper_voxel_gap_junctions[self.hyper_voxel_gap_junction_ctr, :] = \

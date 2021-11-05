@@ -277,7 +277,8 @@ class SnuddaProject(object):
                     # We need to convert xyz into voxel coordinates to match data format of synapse matrix
                     xyz = np.round((xyz - self.simulation_origo) / self.voxel_size)
 
-                    cond = self.rng.normal(conductance_mean, conductance_std, len(sec_x))
+                    # https://www.nature.com/articles/nrn3687 -- lognormal
+                    cond = self.rng.lognormal(conductance_mean, conductance_std, len(sec_x))
                     cond = np.maximum(cond, conductance_mean*0.1)  # Lower bound, prevent negative.
                     param_id = self.rng.integers(1000000, size=len(sec_x))
 
