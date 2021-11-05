@@ -133,6 +133,8 @@ class NeuronPrototype:
 
     def get_parameter_key(self, parameter_id):
 
+        assert parameter_id is not None
+
         if self.parameter_info:
             par_key_list = list(self.parameter_info.keys())
             par_key = par_key_list[parameter_id % len(par_key_list)]
@@ -141,9 +143,16 @@ class NeuronPrototype:
 
         return par_key
 
-    def get_morph_key(self, parameter_id, morphology_id):
+    def get_morph_key(self, parameter_id, morphology_id, parameter_key=None):
 
-        par_key = self.get_parameter_key(parameter_id=parameter_id)
+        if parameter_id is None:
+            par_key = parameter_key
+        else:
+            par_key = self.get_parameter_key(parameter_id=parameter_id)
+            assert parameter_key is None or par_key == parameter_key, \
+                (f"parameter_id = {parameter_id} gives parameter_key {par_key}, " 
+                 f"different from parameter_key {parameter_key} provided")
+
         if self.meta_info:
             assert par_key in self.meta_info, f"Parameter key {par_key} missing in {self.meta_path}"
             morph_key_list = list(self.meta_info[par_key].keys())
@@ -154,29 +163,72 @@ class NeuronPrototype:
 
         return morph_key
 
-    def get_input_parameters(self, parameter_id, morphology_id):
+    def get_modulation_key(self, modulation_id):
 
-        par_key = self.get_parameter_key(parameter_id=parameter_id)
-        morph_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id)
+        if self.modulation_info:
+            if type(self.modulation_info) == list:
+                # Old format without keys
+                return None
 
-        if self.meta_info and "input" in self.meta_info[par_key][morph_key]:
-            input_info = self.meta_info[par_key][morph_key]["input"]
+            modulation_key_list = list(self.modulation_info.keys())
+            modulation_key = modulation_key_list[modulation_id % len(modulation_key_list)]
         else:
-            input_info = dict()
+            modulation_key = None
+
+        return modulation_key
+
+    def get_input_parameters(self, parameter_id=None, morphology_id=None, parameter_key=None, morphology_key=None):
+
+        if parameter_key is not None and morphology_key is not None:
+            if self.meta_info and "input" in self.meta_info[parameter_key][morphology_key]:
+                input_info = self.meta_info[parameter_key][morphology_key]["input"]
+            else:
+                input_info = dict()
+
+        else:
+            # Fallback if the user gave ID instead of Keys (will remove this at some point)
+            par_key = self.get_parameter_key(parameter_id=parameter_id)
+            morph_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id)
+
+            if self.meta_info and "input" in self.meta_info[par_key][morph_key]:
+                input_info = self.meta_info[par_key][morph_key]["input"]
+            else:
+                input_info = dict()
 
         return input_info
 
-    def get_morphology(self, parameter_id, morphology_id):
+    def get_morphology(self, parameter_id=None, morphology_id=None, parameter_key=None, morphology_key=None):
 
         """
         Returns morphology for a given parameter_id, morphology_id combination.
         (Each parameter set has a set of morphologies that it is valid for)
         """
 
-        par_key = self.get_parameter_key(parameter_id=parameter_id)
+        # TODO: In the future remove parameter_id and morphology_id and only use keys
+        if parameter_id is not None:
+            par_key = self.get_parameter_key(parameter_id=parameter_id)
+            if parameter_key:
+                assert par_key == parameter_key, \
+                    f"Mismatch. Parameter ID {parameter_id} has parameter_key {par_key}, not {parameter_key}"
+        elif parameter_key:
+            par_key = parameter_key
+        else:
+            par_key = None
 
-        if self.meta_info and par_key:
-            morph_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id)
+        if self.meta_info and par_key is not None:
+
+            if morphology_id is not None:
+                morph_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id,
+                                               parameter_key=par_key)
+                if morphology_key:
+                    assert morph_key == morphology_key, \
+                        f"Mismatch: Expected morphology_key {morph_key}, got {morphology_key}"
+            elif morphology_key is not None:
+                morph_key = morphology_key
+                assert morphology_key in self.meta_info[par_key], f"Missing morphology_key {morphology_key}"
+            else:
+                assert False, f"morphology_id or morphology_key must be specified if meta_info is used"
+
             morph_path = os.path.join(self.morphology_path, self.meta_info[par_key][morph_key]["morphology"])
             assert os.path.isfile(morph_path), f"Morphology file {morph_path} is missing (listed in {self.meta_path})"
 
@@ -197,7 +249,14 @@ class NeuronPrototype:
                 morph_path = None
 
         if morph_path is None:
-            print("morph_path is None. Is SNUDDA_DATA set correctly?")
+            print(f"morph_path is None for {self.neuron_name} path: {self.neuron_path}. "
+                  f"Is SNUDDA_DATA set correctly? ({os.environ['SNUDDA_DATA']})")
+            import pdb
+            pdb.set_trace()
+
+        assert morph_path is not None, \
+            (f"morph_path is None for {self.neuron_name} path: {self.neuron_path}. "
+             f"Is SNUDDA_DATA set correctly? ({os.environ['SNUDDA_DATA']})")
 
         return morph_path
 
@@ -287,49 +346,66 @@ class NeuronPrototype:
     def all_have_dend(self):
         return all([len(m.dend) > 0 for m in self.morphology_cache.values()])
 
-    def clone(self, parameter_id, morphology_id, modulation_id,
+    def clone(self, parameter_id=None, morphology_id=None, modulation_id=None,
+              parameter_key=None, morphology_key=None, modulation_key=None,
               position=None, rotation=None, get_cache_original=False):
         """
         Creates a clone of the neuron prototype, with given position and rotation.
+
+        Use either keys or id (keys have precedence if both given)
 
         Args:
             parameter_id (int) : parameter set to use
             morphology_id (int) : morphology set to use, a parameter set can have multiple morphology variations
             modulation_id (int) : neuro-modulation parameter set to use
+
+            parameter_key (str) : parameter key for parameter set in parameters.json
+            morphology_key (str) : morphology key for morphology in meta.json
+            modulation_key (str) : modulation key for neuromodulation in modulation.json
+
             position (float,float,float) : position of neuron clone
             rotation : rotation (3x3 numpy matrix)
             get_cache_original (bool) : return the original rather than a clone
 
         """
 
-        if (parameter_id, morphology_id) not in self.morphology_lookup:
-            morph_path = self.get_morphology(parameter_id=parameter_id, morphology_id=morphology_id)
+        morph_path = self.get_morphology(parameter_key=parameter_key, morphology_key=morphology_key,
+                                         parameter_id=parameter_id, morphology_id=morphology_id)
+        morph_tag = os.path.basename(morph_path)
 
-            morph_tag = os.path.basename(morph_path)
-            self.morphology_lookup[parameter_id, morphology_id] = morph_tag
-
-            if morph_tag not in self.morphology_cache:
-                # TODO: hoc file will depend on both morphology_id and parameter_id, we ignore it for now
-                self.morphology_cache[morph_tag] = NeuronMorphology(swc_filename=morph_path,
-                                                                    param_data=self.parameter_path,
-                                                                    mech_filename=self.mechanism_path,
-                                                                    name=self.neuron_name,
-                                                                    hoc=None,
-                                                                    load_morphology=self.load_morphology,
-                                                                    virtual_neuron=self.virtual_neuron,
-                                                                    axon_stump_id_flag=self.axon_stump_id_flag)
-        else:
-            morph_tag = self.morphology_lookup[parameter_id, morphology_id]
+        if morph_tag not in self.morphology_cache:
+            # TODO: hoc file will depend on both morphology_id and parameter_id, we ignore it for now
+            self.morphology_cache[morph_tag] = NeuronMorphology(swc_filename=morph_path,
+                                                                param_data=self.parameter_path,
+                                                                mech_filename=self.mechanism_path,
+                                                                name=self.neuron_name,
+                                                                hoc=None,
+                                                                load_morphology=self.load_morphology,
+                                                                virtual_neuron=self.virtual_neuron,
+                                                                axon_stump_id_flag=self.axon_stump_id_flag)
 
         if get_cache_original:
             assert position is None and rotation is None and modulation_id is None, \
                     "If get_cache_original is passed position, rotation and modulation_id must be None"
             morph = self.morphology_cache[morph_tag]
         else:
+            # Add the keys also for parameter, morphology and modulation
+            if parameter_key is None:
+                parameter_key = self.get_parameter_key(parameter_id=parameter_id)
+
+            if morphology_key is None:
+                morphology_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id)
+
+            if modulation_key is None:
+                modulation_key = self.get_modulation_key(modulation_id=modulation_id)
+
             morph = self.morphology_cache[morph_tag].clone(position=position,
                                                            rotation=rotation,
                                                            parameter_id=parameter_id,
                                                            morphology_id=morphology_id,
-                                                           modulation_id=modulation_id)
+                                                           modulation_id=modulation_id,
+                                                           parameter_key=parameter_key,
+                                                           morphology_key=morphology_key,
+                                                           modulation_key=modulation_key)
         return morph
 

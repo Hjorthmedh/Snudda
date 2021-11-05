@@ -335,7 +335,8 @@ class SnuddaLoad(object):
         for name, neuron_id, hoc, pos, rot, dend_radius, axon_radius, virtual, vID, \
             axon_density_type, axon_density, axon_density_radius, \
             axon_density_bounds_xyz, \
-            morph, parameter_id, morphology_id, modulation_id \
+            morph, parameter_id, morphology_id, modulation_id,\
+            parameter_key, morphology_key, modulation_key \
                 in zip(hdf5_file["network/neurons/name"][:],
                        hdf5_file["network/neurons/neuronID"][:],
                        hdf5_file["network/neurons/hoc"][:],
@@ -352,7 +353,11 @@ class SnuddaLoad(object):
                        hdf5_file["network/neurons/morphology"][:],
                        hdf5_file["network/neurons/parameterID"][:],
                        hdf5_file["network/neurons/morphologyID"][:],
-                       hdf5_file["network/neurons/modulationID"][:]):
+                       hdf5_file["network/neurons/modulationID"][:],
+                       hdf5_file["network/neurons/parameterKey"][:],
+                       hdf5_file["network/neurons/morphologyKey"][:],
+                       hdf5_file["network/neurons/modulationKey"][:]
+                       ):
 
             n = dict([])
 
@@ -391,9 +396,14 @@ class SnuddaLoad(object):
 
             n["axonDensityRadius"] = axon_density_radius
 
-            n["parameterID"] = parameter_id
-            n["morphologyID"] = morphology_id
-            n["modulationID"] = modulation_id
+            n["parameterID"] = None if parameter_id < 0 else parameter_id
+            n["morphologyID"] = None if morphology_id < 0 else morphology_id
+            n["modulationID"] = None if modulation_id < 0 else modulation_id
+
+            # If the code fails here, use snudda/utils/upgrade_old_network_file.py to upgrade your old data files
+            n["parameterKey"] = SnuddaLoad.to_str(parameter_key)
+            n["morphologyKey"] = SnuddaLoad.to_str(morphology_key)
+            n["modulationKey"] = SnuddaLoad.to_str(modulation_key)
 
             neurons.append(n)
 
@@ -797,12 +807,12 @@ def snudda_load_cli():
         print("Neurons in network: ")
 
         if args.detailed:
-            for nid, name, pos, par_id, morph_id, mod_id \
+            for nid, name, pos, par_key, morph_key, mod_key \
                     in [(x["neuronID"], x["name"], x["position"],
-                         x["parameterID"], x["morphologyID"], x["modulationID"])
+                         x["parameterKey"], x["morphologyKey"], x["modulationKey"])
                         for x in nl.data["neurons"]]:
-                print("%d : %s  (x: %f, y: %f, z: %f), par_id: %d, morph_id: %d, mod_id: %d"
-                      % (nid, name, pos[0], pos[1], pos[2], par_id, morph_id, mod_id))
+                print("%d : %s  (x: %f, y: %f, z: %f), par_key: %d, morph_key: %d, mod_key: %d"
+                      % (nid, name, pos[0], pos[1], pos[2], par_key, morph_key, mod_key))
         else:
             for nid, name, pos in [(x["neuronID"], x["name"], x["position"]) for x in nl.data["neurons"]]:
                 print("%d : %s  (x: %f, y: %f, z: %f)" % (nid, name, pos[0], pos[1], pos[2]))

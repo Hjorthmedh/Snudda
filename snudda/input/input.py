@@ -1152,11 +1152,17 @@ class SnuddaInput(object):
         morphology_id = self.neuron_info[neuron_id]["morphologyID"]
         modulation_id = self.neuron_info[neuron_id]["modulationID"]
 
+        parameter_key = self.neuron_info[neuron_id]["parameterKey"]
+        morphology_key = self.neuron_info[neuron_id]["morphologyKey"]
+        modulation_key = self.neuron_info[neuron_id]["modulationKey"]
+
         if neuron_name in self.neuron_cache:
             self.write_log(f"About to clone cache of {neuron_name}.")
             # Since we do not care about location of neuron in space, we can use get_cache_original
             morphology = self.neuron_cache[neuron_name].clone(parameter_id=parameter_id,
                                                               morphology_id=morphology_id,
+                                                              parameter_key=parameter_key,
+                                                              morphology_key=morphology_key,
                                                               modulation_id=None, position=None, rotation=None,
                                                               get_cache_original=True)
         else:
@@ -1171,13 +1177,17 @@ class SnuddaInput(object):
             self.neuron_cache[neuron_name] = morphology_prototype
             morphology = morphology_prototype.clone(parameter_id=parameter_id,
                                                     morphology_id=morphology_id,
+                                                    parameter_key=parameter_key,
+                                                    morphology_key=morphology_key,
                                                     modulation_id=None, position=None, rotation=None,
                                                     get_cache_original=True)
 
         self.write_log(f"morphology = {morphology}")
 
         input_info = self.neuron_cache[neuron_name].get_input_parameters(parameter_id=parameter_id,
-                                                                         morphology_id=morphology_id)
+                                                                         morphology_id=morphology_id,
+                                                                         parameter_key=parameter_key,
+                                                                         morphology_key=morphology_key)
 
         # If the neuron model has a certain number of input specified, then use that if num_spike_trains is None
         if num_spike_trains is None and input_type in input_info:

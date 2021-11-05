@@ -19,7 +19,25 @@ def upgrade_old_network_file(file_name):
             neuron_morph_id_data[:] = 0
 
         else:
-            print("morphologyID already exists, aborting")
+            print("morphologyID already exists, ignoring")
+
+        if "morphologyKey" not in neuron_group:
+            print("Adding morphologyKey to file, default value empty")
+            n_neurons = len(f["network/neurons/morphology"])
+
+            neuron_morph_key_data = neuron_group.create_dataset("morphologyKey", n_neurons, "S5", compression="gzip")
+
+        if "parameterKey" not in neuron_group:
+            print("Adding parameterKey to file, default value empty")
+            n_neurons = len(f["network/neurons/morphology"])
+
+            neuron_morph_key_data = neuron_group.create_dataset("parameterKey", n_neurons, "S5", compression="gzip")
+
+        if "modulationKey" not in neuron_group:
+            print("Adding morphologyKey to file, default value empty")
+            n_neurons = len(f["network/neurons/morphology"])
+
+            neuron_morph_key_data = neuron_group.create_dataset("modulationKey", n_neurons, "S5", compression="gzip")
 
 
 if __name__ == "__main__":
