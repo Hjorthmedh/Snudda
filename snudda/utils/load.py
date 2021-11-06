@@ -216,8 +216,11 @@ class SnuddaLoad(object):
                 data["gapJunctions"] = f["network/gapJunctions"][:]
 
                 # !!! Convert from voxel idx to coordinates
-                data["synapseCoords"] = f["network/synapses"][:, 2:5] * f["meta/voxelSize"][()] \
-                    + f["meta/simulationOrigo"][()]
+                if f["network/synapses"].shape[0] > 0:
+                    data["synapseCoords"] = f["network/synapses"][:, 2:5] * f["meta/voxelSize"][()] \
+                        + f["meta/simulationOrigo"][()]
+                else:
+                    data["synapseCoords"] = np.zeros((3, 0))
             else:
                 # Point the data structure to the synapses and gap junctions on file
                 # This will be slower, and only work while the file is open
@@ -581,6 +584,11 @@ class SnuddaLoad(object):
 
         """
 
+        if self.data["synapses"].shape[0] == 0:
+            if not silent:
+                print("No synapses in network")
+            return None, None
+
         if post_id is None:
             return self.find_synapses_slow(pre_id=pre_id)
 
@@ -811,7 +819,7 @@ def snudda_load_cli():
                     in [(x["neuronID"], x["name"], x["position"],
                          x["parameterKey"], x["morphologyKey"], x["modulationKey"])
                         for x in nl.data["neurons"]]:
-                print("%d : %s  (x: %f, y: %f, z: %f), par_key: %d, morph_key: %d, mod_key: %d"
+                print("%d : %s  (x: %f, y: %f, z: %f), par_key: %s, morph_key: %s, mod_key: %s"
                       % (nid, name, pos[0], pos[1], pos[2], par_key, morph_key, mod_key))
         else:
             for nid, name, pos in [(x["neuronID"], x["name"], x["position"]) for x in nl.data["neurons"]]:
