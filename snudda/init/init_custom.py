@@ -16,7 +16,7 @@ if __name__ == "__main__":
     sim_name = args.network
     neurons_dir = args.neurons
 
-    connect_neurons = False
+    connect_neurons = True
 
     # simName = "networks/FSmorphTest2orig"
     # simName = "networks/FSmorphTest1b"
