@@ -581,6 +581,11 @@ class SnuddaLoad(object):
 
         """
 
+        if self.data["synapses"].shape[0] == 0:
+            if not silent:
+                print("No synapses in network")
+            return None, None
+
         if post_id is None:
             return self.find_synapses_slow(pre_id=pre_id)
 
