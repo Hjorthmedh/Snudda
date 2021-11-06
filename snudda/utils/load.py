@@ -216,8 +216,11 @@ class SnuddaLoad(object):
                 data["gapJunctions"] = f["network/gapJunctions"][:]
 
                 # !!! Convert from voxel idx to coordinates
-                data["synapseCoords"] = f["network/synapses"][:, 2:5] * f["meta/voxelSize"][()] \
-                    + f["meta/simulationOrigo"][()]
+                if f["network/synapses"].shape[0] > 0:
+                    data["synapseCoords"] = f["network/synapses"][:, 2:5] * f["meta/voxelSize"][()] \
+                        + f["meta/simulationOrigo"][()]
+                else:
+                    data["synapseCoords"] = np.zeros((3, 0))
             else:
                 # Point the data structure to the synapses and gap junctions on file
                 # This will be slower, and only work while the file is open
