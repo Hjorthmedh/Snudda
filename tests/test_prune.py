@@ -124,9 +124,6 @@ class TestPrune(unittest.TestCase):
             sl = SnuddaLoad(pruned_output)
             # TODO: Call a plot function to plot entire network with synapses and all
 
-            # import pdb
-            # pdb.set_trace()
-
             self.assertEqual(sl.data["nSynapses"], (20*8 + 10*2)*2)  # Update, now AMPA+GABA, hence *2 at end
 
             # This checks that all synapses are in order
