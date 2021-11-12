@@ -278,11 +278,14 @@ class TestDetect(unittest.TestCase):
         with self.subTest(stage="synapses_check"):
             print(f"synapse ctr {self.sd.hyper_voxel_synapse_ctr}")
 
-            self.assertEqual(self.sd.hyper_voxel_synapse_ctr, 10)
+            # Depending on angle and location of voxels,
+            # we can occasionally get more than one synapse at an intersection
+            self.assertTrue(self.sd.hyper_voxel_synapse_ctr >= 10)
 
+            # Verify that all pairs are connected
             for pre_id in range(0, 10):
                 post_id = pre_id + 10
-                self.assertEqual(self.check_neuron_pair_has_synapse(pre_id, post_id), 1)
+                self.assertTrue(1 <= self.check_neuron_pair_has_synapse(pre_id, post_id) <= 2)
 
 
 if __name__ == '__main__':
