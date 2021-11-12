@@ -145,6 +145,9 @@ class PlotNetwork(object):
         plt.ion()
         plt.show()
 
+        import pdb
+        pdb.set_trace()
+
         return plt, ax
 
     def load_neuron(self, neuron_info=None, neuron_id=None):
