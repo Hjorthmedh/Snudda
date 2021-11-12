@@ -273,8 +273,6 @@ if __name__ == "__main__":
 
     nas.plot_synapse_cum_dist()
 
-    nas.plot_synapse_dist(density_flag=True)
-
     if plotLTS:
         # 3/21 LTS->MS, Basal Ganglia book --- distance??
         # Ibanez-Sandoval, ..., Tepper  2011 3/21 -- if patching around visual axon
@@ -423,3 +421,5 @@ if __name__ == "__main__":
 
         nas.plot_incoming_connections(neuron_type="ChIN", pre_type="dSPN")
         nas.plot_incoming_connections(neuron_type="ChIN", pre_type="iSPN")
+
+    nas.plot_synapse_dist(density_flag=True)

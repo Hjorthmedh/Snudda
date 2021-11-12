@@ -904,12 +904,12 @@ class SnuddaAnalyse(object):
             print(f"plotConnectionProbabilityChannels: {post_type} is not in the simulation")
             return
 
-        if len(exp_data) == 0 and len(exp_data_detailed) > 0:
+        if (exp_data is None or len(exp_data) == 0) and (exp_data_detailed is not None and len(exp_data_detailed) > 0):
             exp_data = []
             for x in exp_data_detailed:
                 exp_data.append(x[0] / float(x[1]))
 
-        if len(exp_data_detailed) == 0 and len(exp_data) > 0:
+        if (exp_data_detailed is None or len(exp_data_detailed) == 0) and (exp_data is not None and len(exp_data) > 0):
             exp_data_detailed = [None for x in exp_data]
 
         (dist, p_con, count_con, count_all) = \
@@ -924,6 +924,12 @@ class SnuddaAnalyse(object):
         matplotlib.rcParams.update({'font.size': 24})
 
         plt_ctr = 0
+
+        if exp_data is None:
+            exp_data = []
+
+        if exp_data_detailed is None:
+            exp_data_detailed = []
 
         # Add lines for experimental data and matching data for model
         for (d_limit, p_exp, exp_num) in zip(exp_max_dist, exp_data, exp_data_detailed):

@@ -667,8 +667,6 @@ class SnuddaInit(object):
         con_info["numberOfSynapses"] = number_of_synapses
         con_info["dendriteSynapseDensity"] = dendrite_synapse_density
 
-
-
     ############################################################################
 
     # Population Units here refer to processing units, where the neurons within a Population Unit
@@ -1141,7 +1139,7 @@ class SnuddaInit(object):
                                target_name="dSPN",
                                connection_type="GABA",
                                dist_pruning=SPN2SPNdistDepPruning,
-                               f1=0.38, soft_max=3, mu2=2.4,
+                               f1=0.38*0.75, soft_max=3, mu2=2.4,
                                a3=P11withinUnit,
                                a3_other=P11betweenUnit,
                                conductance=MSD1gGABA,
@@ -1157,7 +1155,7 @@ class SnuddaInit(object):
                                target_name="iSPN",
                                connection_type="GABA",
                                dist_pruning=SPN2SPNdistDepPruning,
-                               f1=0.20, soft_max=3, mu2=2.4,
+                               f1=0.20*0.82, soft_max=3, mu2=2.4,
                                a3=P12withinUnit,
                                a3_other=P12betweenUnit,
                                conductance=MSD1gGABA,
@@ -1228,7 +1226,7 @@ class SnuddaInit(object):
                                target_name="dSPN",
                                connection_type="GABA",
                                dist_pruning=SPN2SPNdistDepPruning,
-                               f1=0.3, soft_max=4, mu2=2.4,
+                               f1=0.3*0.93, soft_max=4, mu2=2.4,
                                a3=P21withinUnit,
                                a3_other=P21betweenUnit,
                                conductance=MSD2gGABA,
