@@ -159,6 +159,7 @@ class SnuddaDetect(object):
         self.hyper_voxel_size = hyper_voxel_size  # = N,  N x N x N voxels in a hyper voxel
         self.hyper_voxel_origo = np.zeros((3,))
         self.voxel_overflow_counter = 0
+        self.step_multiplier = 2
 
         self.hyper_voxel_offset = None
         self.hyper_voxel_id = 0
@@ -2744,7 +2745,8 @@ class SnuddaDetect(object):
                                                           self_hyper_voxel_origo=self.hyper_voxel_origo,
                                                           self_voxel_size=self.voxel_size,
                                                           self_num_bins=self.num_bins,
-                                                          self_max_dend=self.max_dend)
+                                                          self_max_dend=self.max_dend,
+                                                          self_step_multiplier=self.step_multiplier)
 
         self.voxel_overflow_counter += voxel_overflow_ctr
 
@@ -2759,7 +2761,8 @@ class SnuddaDetect(object):
                                 voxel_soma_dist,
                                 coords, links,
                                 seg_id, seg_x, neuron_id,
-                                self_hyper_voxel_origo, self_voxel_size, self_num_bins, self_max_dend):
+                                self_hyper_voxel_origo, self_voxel_size, self_num_bins, self_max_dend,
+                                self_step_multiplier):
 
         """ Helper function for fill_voxels_dend, static method needed for NUMBA. """
 
@@ -2820,7 +2823,7 @@ class SnuddaDetect(object):
                     continue
                 else:
                     # Start with vp2 continue until outside cube
-                    steps = max(np.abs(vp2 - vp1))
+                    steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
                     dv = (vp1 - vp2) / steps
                     ds = (segmentX[0] - segmentX[1]) / steps
                     dd = (p1_dist - p2_dist) / steps
@@ -2856,7 +2859,7 @@ class SnuddaDetect(object):
 
             elif not vp2_inside:
                 # Start with vp1 continue until outside cube
-                steps = max(np.abs(vp2 - vp1))
+                steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
                 dv = (vp2 - vp1) / steps
                 ds = (segmentX[1] - segmentX[0]) / steps
                 dd = (p2_dist - p1_dist) / steps
@@ -2894,7 +2897,7 @@ class SnuddaDetect(object):
 
             else:
                 # Entire line inside
-                steps = max(np.abs(vp2 - vp1))
+                steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
                 dv = (vp2 - vp1) / steps
                 ds = (segmentX[1] - segmentX[0]) / steps
                 dd = (p2_dist - p1_dist) / steps
@@ -2956,7 +2959,8 @@ class SnuddaDetect(object):
                                                           self_hyper_voxel_origo=self.hyper_voxel_origo,
                                                           self_voxel_size=self.voxel_size,
                                                           self_num_bins=self.num_bins,
-                                                          self_max_axon=self.max_axon)
+                                                          self_max_axon=self.max_axon,
+                                                          self_step_multiplier=self.step_multiplier)
 
         self.voxel_overflow_counter += voxel_overflow_ctr
 
@@ -2969,7 +2973,8 @@ class SnuddaDetect(object):
                                 self_hyper_voxel_origo,
                                 self_voxel_size,
                                 self_num_bins,
-                                self_max_axon):
+                                self_max_axon,
+                                self_step_multiplier):
 
         """ Helper function to mark axon voxels, needed for NUMBA. See fill_voxels_axon."""
 
@@ -3029,7 +3034,7 @@ class SnuddaDetect(object):
                     continue
                 else:
                     # Start with vp2 continue until outside cube
-                    steps = max(np.abs(vp2 - vp1))
+                    steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
                     dv = (vp1 - vp2) / steps
                     dd = (p1_dist - p2_dist) / steps
 
@@ -3061,7 +3066,7 @@ class SnuddaDetect(object):
 
             elif not vp2_inside:
                 # Start with vp1 continue until outside cube
-                steps = max(np.abs(vp2 - vp1))
+                steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
                 dv = (vp2 - vp1) / steps
                 dd = (p2_dist - p1_dist) / steps
 
@@ -3092,7 +3097,7 @@ class SnuddaDetect(object):
 
             else:
                 # Entire line inside
-                steps = max(np.abs(vp2 - vp1))
+                steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
                 dv = (vp2 - vp1) / steps
                 dd = (p2_dist - p1_dist) / steps
 
