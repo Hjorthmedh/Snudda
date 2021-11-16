@@ -953,13 +953,13 @@ class SnuddaPlace(object):
         ax.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], c=colours, alpha=0.5)
         plt.show()
 
-    def cluster_neurons(self, n_trials=3):
+    def cluster_neurons(self, n_trials=5):
 
         """
         Cluster neurons, so that nearby neurons are grouped on same worker, to speed up simulations.
 
         Args:
-            n_trials (int) : Number of trials for k-means clustering (default 3)
+            n_trials (int) : Number of trials for k-means clustering (default 5)
         """
 
         n_workers = len(self.d_view) if self.d_view is not None else 1
