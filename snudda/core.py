@@ -535,14 +535,16 @@ class Snudda(object):
         if args.volt_out is not None:
             # Save neuron voltage
             if args.volt_out == "default":
-                volt_file = os.path.join(save_dir, f"network-voltage-{slurm_id}.csv")
+                # volt_file = os.path.join(save_dir, f"network-voltage-{slurm_id}.csv")
+                volt_file = os.path.join(save_dir, f"network-voltage.hdf5")
             else:
                 volt_file = args.volt_out
         else:
             volt_file = None
 
         if args.spikes_out is None or args.spikes_out == "default":
-            spikes_file = os.path.join(save_dir, f"network-output-spikes-{slurm_id}.txt")
+            # spikes_file = os.path.join(save_dir, f"network-output-spikes-{slurm_id}.txt")
+            spikes_file = os.path.join(save_dir, f"network-output-spikes.txt")
         else:
             spikes_file = args.spikes_out
 
@@ -628,7 +630,11 @@ class Snudda(object):
             sim.write_spikes(spikes_file)
 
         if volt_file is not None:
-            sim.write_voltage(volt_file)
+            if os.path.splitext(volt_file)[1].lower() in ("txt", "csv"):
+                sim.write_voltage_OLD(volt_file)
+            else:
+                # Write HDF5 file
+                sim.write_voltage(volt_file)
 
         stop = timeit.default_timer()
         if sim.pc.id() == 0:

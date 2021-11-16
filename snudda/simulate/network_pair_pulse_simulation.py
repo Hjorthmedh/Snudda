@@ -290,7 +290,7 @@ class SnuddaNetworkPairPulseSimulation:
         self.snudda_sim.run(sim_end * 1e3, hold_v=self.hold_v)
 
         # Write results to disk
-        self.snudda_sim.write_voltage(self.volt_file)
+        self.snudda_sim.write_voltage_OLD(self.volt_file)
 
     ############################################################################
 

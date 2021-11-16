@@ -26,6 +26,7 @@ import h5py
 import json
 import timeit
 
+from snudda.utils.save_voltage import SnuddaSaveVoltage
 from snudda.neurons.neuron_model_extended import NeuronModel
 # from Network_place_neurons import NetworkPlaceNeurons
 import numpy as np
@@ -1558,14 +1559,26 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
+    def write_voltage(self, output_file=None):
+
+        """ Save neuron voltage to HDF5 file """
+
+        if not output_file:
+            output_file = os.path.join(self.network_path, "simulation", "network-voltage.hdf5")
+
+        sv = SnuddaSaveVoltage(voltage_file=output_file, network_data=self.network_info)
+        sv.write(t_save=self.t_save, v_save=self.v_save, v_key=self.v_key)
+
+    ############################################################################
+
     # File format for csv voltage file:
     # -1,t0,t1,t2,t3 ... (time)
     # cellID,v0,v1,v2,v3, ... (voltage for cell #ID)
     # repeat
 
-    def write_voltage(self,
-                      output_file=None,
-                      down_sampling=10):
+    def write_voltage_OLD(self,
+                          output_file=None,
+                          down_sampling=10):
 
         if not output_file:
             output_file = os.path.join(self.network_path, "simulation", "network-voltage.txt")
@@ -1944,7 +1957,11 @@ if __name__ == "__main__":
         sim.write_spikes(spikes_file)
 
     if volt_file is not None:
-        sim.write_voltage(volt_file)
+        if os.path.splitext(volt_file)[1].lower() in ("txt", "csv"):
+            sim.write_voltage_OLD(volt_file)
+        else:
+            # Write HDF5 file
+            sim.write_voltage(output_file=volt_file)
 
     stop = timeit.default_timer()
     if sim.pc.id() == 0:
