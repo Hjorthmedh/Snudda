@@ -42,6 +42,8 @@ def snudda_cli():
                              help="Path to neurons_dir, default is $DATA/neurons")
     init_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory",
                              action="store_true")
+    init_parser.add_argument("-connectionFile", "--connectionFile", default=None,
+                             help="Use connectivity from user specified JSON file")
     init_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
     init_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     init_parser.add_argument("--verbose", action="store_true")

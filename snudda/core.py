@@ -128,7 +128,8 @@ class Snudda(object):
         SnuddaInit(struct_def=struct_def,
                    neurons_dir=args.neurons_dir,
                    config_file=config_file,
-                   random_seed=random_seed)
+                   random_seed=random_seed,
+                   connection_override_file=args.connectionFile)
 
         if args.size > 1e5:
             print(f"Make sure there is enough disk space in {self.network_path}")
