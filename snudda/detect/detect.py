@@ -159,6 +159,7 @@ class SnuddaDetect(object):
         self.hyper_voxel_size = hyper_voxel_size  # = N,  N x N x N voxels in a hyper voxel
         self.hyper_voxel_origo = np.zeros((3,))
         self.voxel_overflow_counter = 0
+        self.step_multiplier = 2
 
         self.hyper_voxel_offset = None
         self.hyper_voxel_id = 0
@@ -1112,6 +1113,7 @@ class SnuddaDetect(object):
                                 # This part detects only axon-dend synapses, skip gap junctions
                                 continue
 
+                            synapse_mu, synapse_sigma = con_dict[con_type]["lognormal_mu_sigma"]
                             mean_synapse_cond, std_synapse_cond = con_dict[con_type]["conductance"]
                             channel_model_id = con_dict[con_type]["channelModelID"]
 
@@ -1124,11 +1126,16 @@ class SnuddaDetect(object):
                                 self.resize_hyper_voxel_synapses_matrix()
 
                             # Synapse conductance varies between synapses
-                            cond = self.hyper_voxel_rng.normal(mean_synapse_cond, std_synapse_cond)
+                            # cond = self.hyper_voxel_rng.normal(mean_synapse_cond, std_synapse_cond)
+
+                            # lognormal distribution -- https://www.nature.com/articles/nrn3687
+                            # https://en.wikipedia.org/wiki/Log-normal_distribution
+                            cond = self.hyper_voxel_rng.lognormal(synapse_mu, synapse_sigma)
 
                             # Need to make sure the conductance is not negative,
                             # set lower cap at 10% of mean value
                             cond = np.maximum(cond, mean_synapse_cond * 0.1)
+                            assert cond > 0, f"Conductance should be larger than 0. cond = {cond}"
 
                             param_id = self.hyper_voxel_rng.integers(1000000)
 
@@ -1716,10 +1723,14 @@ class SnuddaDetect(object):
                         seg_x2 = self.dend_sec_x[x, y, z, pairs[1]]
 
                         mean_gj_cond, std_gj_cond = con_info["conductance"]
+                        gj_mu, gj_sigma = con_info["lognormal_mu_sigma"]
 
                         # !!! Currently not using channelParamDict for GJ
 
-                        gj_cond = self.hyper_voxel_rng.normal(mean_gj_cond, std_gj_cond)
+                        #gj_cond = self.hyper_voxel_rng.normal(mean_gj_cond, std_gj_cond)
+                        # lognormal distribution https://www.nature.com/articles/nrn3687
+                        gj_cond = self.hyper_voxel_rng.lognormal(gj_mu, gj_sigma)
+
                         gj_cond = np.maximum(gj_cond, mean_gj_cond * 0.1)  # Avoid negative cond
 
                         self.hyper_voxel_gap_junctions[self.hyper_voxel_gap_junction_ctr, :] = \
@@ -1931,6 +1942,14 @@ class SnuddaDetect(object):
                 # Also if conductance is just a number, add std 0
                 if type(con_def[key]["conductance"]) not in [list, tuple]:
                     con_def[key]["conductance"] = [con_def[key]["conductance"], 0]
+
+                # Precompute lognormal parameters
+                # https://en.wikipedia.org/wiki/Log-normal_distribution
+                mean_cond = con_def[key]["conductance"][0]
+                std_cond = con_def[key]["conductance"][1]
+                mu = np.log(mean_cond ** 2 / np.sqrt(mean_cond ** 2 + std_cond ** 2))
+                sigma = np.sqrt(np.log(1 + std_cond ** 2 / mean_cond ** 2))
+                con_def[key]["lognormal_mu_sigma"] = [mu, sigma]
 
             self.connectivity_distributions[pre_type, post_type] = con_def
 
@@ -2726,7 +2745,8 @@ class SnuddaDetect(object):
                                                           self_hyper_voxel_origo=self.hyper_voxel_origo,
                                                           self_voxel_size=self.voxel_size,
                                                           self_num_bins=self.num_bins,
-                                                          self_max_dend=self.max_dend)
+                                                          self_max_dend=self.max_dend,
+                                                          self_step_multiplier=self.step_multiplier)
 
         self.voxel_overflow_counter += voxel_overflow_ctr
 
@@ -2741,7 +2761,8 @@ class SnuddaDetect(object):
                                 voxel_soma_dist,
                                 coords, links,
                                 seg_id, seg_x, neuron_id,
-                                self_hyper_voxel_origo, self_voxel_size, self_num_bins, self_max_dend):
+                                self_hyper_voxel_origo, self_voxel_size, self_num_bins, self_max_dend,
+                                self_step_multiplier):
 
         """ Helper function for fill_voxels_dend, static method needed for NUMBA. """
 
@@ -2802,7 +2823,7 @@ class SnuddaDetect(object):
                     continue
                 else:
                     # Start with vp2 continue until outside cube
-                    steps = max(np.abs(vp2 - vp1))
+                    steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
                     dv = (vp1 - vp2) / steps
                     ds = (segmentX[0] - segmentX[1]) / steps
                     dd = (p1_dist - p2_dist) / steps
@@ -2838,7 +2859,7 @@ class SnuddaDetect(object):
 
             elif not vp2_inside:
                 # Start with vp1 continue until outside cube
-                steps = max(np.abs(vp2 - vp1))
+                steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
                 dv = (vp2 - vp1) / steps
                 ds = (segmentX[1] - segmentX[0]) / steps
                 dd = (p2_dist - p1_dist) / steps
@@ -2876,7 +2897,7 @@ class SnuddaDetect(object):
 
             else:
                 # Entire line inside
-                steps = max(np.abs(vp2 - vp1))
+                steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
                 dv = (vp2 - vp1) / steps
                 ds = (segmentX[1] - segmentX[0]) / steps
                 dd = (p2_dist - p1_dist) / steps
@@ -2938,7 +2959,8 @@ class SnuddaDetect(object):
                                                           self_hyper_voxel_origo=self.hyper_voxel_origo,
                                                           self_voxel_size=self.voxel_size,
                                                           self_num_bins=self.num_bins,
-                                                          self_max_axon=self.max_axon)
+                                                          self_max_axon=self.max_axon,
+                                                          self_step_multiplier=self.step_multiplier)
 
         self.voxel_overflow_counter += voxel_overflow_ctr
 
@@ -2951,7 +2973,8 @@ class SnuddaDetect(object):
                                 self_hyper_voxel_origo,
                                 self_voxel_size,
                                 self_num_bins,
-                                self_max_axon):
+                                self_max_axon,
+                                self_step_multiplier):
 
         """ Helper function to mark axon voxels, needed for NUMBA. See fill_voxels_axon."""
 
@@ -3011,7 +3034,7 @@ class SnuddaDetect(object):
                     continue
                 else:
                     # Start with vp2 continue until outside cube
-                    steps = max(np.abs(vp2 - vp1))
+                    steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
                     dv = (vp1 - vp2) / steps
                     dd = (p1_dist - p2_dist) / steps
 
@@ -3043,7 +3066,7 @@ class SnuddaDetect(object):
 
             elif not vp2_inside:
                 # Start with vp1 continue until outside cube
-                steps = max(np.abs(vp2 - vp1))
+                steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
                 dv = (vp2 - vp1) / steps
                 dd = (p2_dist - p1_dist) / steps
 
@@ -3074,7 +3097,7 @@ class SnuddaDetect(object):
 
             else:
                 # Entire line inside
-                steps = max(np.abs(vp2 - vp1))
+                steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
                 dv = (vp2 - vp1) / steps
                 dd = (p2_dist - p1_dist) / steps
 

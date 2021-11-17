@@ -303,7 +303,10 @@ class NeuronPrototype:
         """
         Instantiates all morphologies at once, instead of on demand.
         """
-        for par_id in range(0, len(self.parameter_info)):
+
+        n_par = len(self.parameter_info) if self.parameter_info is not None else 1
+
+        for par_id in range(0, n_par):
             if self.verbose:
                 print(f"Instantiates par_id = {par_id}")
 

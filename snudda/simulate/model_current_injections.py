@@ -318,7 +318,7 @@ class SnuddaModelCurrentInjections(object):
         if save_voltage:
             voltage_file = os.path.join(sim_name,  f"{sim_type}-network-stimulation-voltage.txt")
 
-            self.snudda_sim.write_voltage(voltage_file)
+            self.snudda_sim.write_voltage_OLD(voltage_file)
 
     ############################################################################
 

@@ -20,21 +20,7 @@ from snudda.utils.snudda_path import snudda_parse_path, snudda_simplify_path
 from snudda.utils.snudda_path import snudda_path_exists
 from snudda.utils.snudda_path import snudda_isdir
 from snudda.utils.snudda_path import snudda_isfile
-
-
-class NumpyEncoder(json.JSONEncoder):
-    """ Encodes numpy objects for export to JSON """
-
-    def default(self, obj):
-        if isinstance(obj, np.integer):
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            return float(obj)
-        elif isinstance(obj, np.ndarray):
-            return obj.tolist()
-        else:
-            # return super(NumpyEncoder, self).default(obj)
-            return json.JSONEncoder.default(self, obj)
+from snudda.utils.numpy_encoder import NumpyEncoder
 
 
 class SnuddaInit(object):
@@ -45,7 +31,9 @@ class SnuddaInit(object):
                  struct_def=None,
                  neurons_dir=None,
                  config_file=None,
-                 random_seed=None):
+                 random_seed=None,
+                 connection_override_file=None):
+
         """Constructor
 
            Args:
@@ -97,10 +85,16 @@ class SnuddaInit(object):
                 print("Adding " + sn + " with " + str(struct_def[sn]) + " neurons")
                 struct_func[sn](num_neurons=struct_def[sn], neurons_dir=neurons_dir)
 
+            if connection_override_file:
+                self.replace_connectivity(connection_file=connection_override_file)
+
             # Only write JSON file if the structDef was not empty
             self.write_json(self.config_file)
         else:
-            pass
+
+            if connection_override_file:
+                self.replace_connectivity(connection_file=connection_override_file)
+
             # print("No structDef defined, not writing JSON file in init")
 
     ############################################################################
@@ -324,6 +318,36 @@ class SnuddaInit(object):
             self.network_data["Connectivity"][nt_key] = dict([])
 
         self.network_data["Connectivity"][nt_key][connection_type] = con_info
+
+    ############################################################################
+
+    def replace_connectivity(self, connection_file=None, connection_dict=None):
+
+        """ Replaces the default connectivity.
+        
+        Args: 
+            connection_file : Path to JSON file with connection block
+            connection_dict : OrderedDict (or dict) with connection block
+        
+        """
+
+        assert (connection_file is not None) + (connection_dict is not None) == 1, \
+            f"replace_connectivity: One of connection_file and connection_dict should be given"
+
+        if connection_file:
+            connection_file = snudda_parse_path(connection_file)
+            print(f"Reading connectivity from {connection_file}")
+            assert os.path.isfile(connection_file), f"Connection JSON file {connection_file} does not exist."
+
+            with open(connection_file, "r") as f:
+                connection_dict = json.load(f, object_pairs_hook=collections.OrderedDict)
+
+        assert type(connection_dict) in [collections.OrderedDict, dict]
+
+        assert "Connectivity" in connection_dict, \
+            f"replace_connectivity: Missing the Connectivity key in dictionary:\n{connection_dict}"
+
+        self.network_data["Connectivity"] = connection_dict["Connectivity"]
 
     ############################################################################
 
@@ -666,8 +690,6 @@ class SnuddaInit(object):
         con_info["numberOfTargets"] = number_of_targets
         con_info["numberOfSynapses"] = number_of_synapses
         con_info["dendriteSynapseDensity"] = dendrite_synapse_density
-
-
 
     ############################################################################
 
@@ -1141,7 +1163,7 @@ class SnuddaInit(object):
                                target_name="dSPN",
                                connection_type="GABA",
                                dist_pruning=SPN2SPNdistDepPruning,
-                               f1=0.38, soft_max=3, mu2=2.4,
+                               f1=0.38*0.75, soft_max=3, mu2=2.4,
                                a3=P11withinUnit,
                                a3_other=P11betweenUnit,
                                conductance=MSD1gGABA,
@@ -1157,7 +1179,7 @@ class SnuddaInit(object):
                                target_name="iSPN",
                                connection_type="GABA",
                                dist_pruning=SPN2SPNdistDepPruning,
-                               f1=0.20, soft_max=3, mu2=2.4,
+                               f1=0.20*0.82, soft_max=3, mu2=2.4,
                                a3=P12withinUnit,
                                a3_other=P12betweenUnit,
                                conductance=MSD1gGABA,
@@ -1228,7 +1250,7 @@ class SnuddaInit(object):
                                target_name="dSPN",
                                connection_type="GABA",
                                dist_pruning=SPN2SPNdistDepPruning,
-                               f1=0.3, soft_max=4, mu2=2.4,
+                               f1=0.3*0.93, soft_max=4, mu2=2.4,
                                a3=P21withinUnit,
                                a3_other=P21betweenUnit,
                                conductance=MSD2gGABA,
@@ -1361,7 +1383,7 @@ class SnuddaInit(object):
                                target_name="dSPN",
                                connection_type="GABA",
                                dist_pruning=LTSDistDepPruning,
-                               f1=1.0, soft_max=15, mu2=3, a3=0.3,
+                               f1=1.0*0.3, soft_max=15, mu2=3, a3=0.3,
                                conductance=LTSgGABA,
                                cluster_synapses=False,
                                parameter_file=pfLTSdSPN,
@@ -1374,7 +1396,7 @@ class SnuddaInit(object):
                                target_name="iSPN",
                                connection_type="GABA",
                                dist_pruning=LTSDistDepPruning,
-                               f1=1.0, soft_max=15, mu2=3, a3=0.3,
+                               f1=1.0*0.3, soft_max=15, mu2=3, a3=0.3,
                                conductance=LTSgGABA,
                                cluster_synapses=False,
                                parameter_file=pfLTSiSPN,
