@@ -958,6 +958,13 @@ class InputTuning(object):
 
 
 if __name__ == "__main__":
+
+    if '-python' in sys.argv:
+        print("Network_simulate.py called through nrniv, fixing arguments")
+        pythonidx = sys.argv.index('-python')
+        if len(sys.argv) > pythonidx:
+            sys.argv = sys.argv[pythonidx + 1:]
+    
     from argparse import ArgumentParser, RawTextHelpFormatter
 
     parser = ArgumentParser("Input Scaling", formatter_class=RawTextHelpFormatter)
