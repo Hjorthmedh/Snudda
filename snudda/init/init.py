@@ -331,10 +331,14 @@ class SnuddaInit(object):
         
         """
 
-        assert connection_file is not None + connection_dict is not None == 1, \
-          f"replace_connectivity: One of connection_file and connection_dict should be given"
+        assert (connection_file is not None) + (connection_dict is not None) == 1, \
+            f"replace_connectivity: One of connection_file and connection_dict should be given"
 
         if connection_file:
+            connection_file = snudda_parse_path(connection_file)
+            print(f"Reading connectivity from {connection_file}")
+            assert os.path.isfile(connection_file), f"Connection JSON file {connection_file} does not exist."
+
             with open(connection_file, "r") as f:
                 connection_dict = json.load(f, object_pairs_hook=collections.OrderedDict)
 
