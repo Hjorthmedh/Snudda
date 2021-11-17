@@ -331,7 +331,7 @@ class SnuddaInit(object):
         
         """
 
-        assert connection_file + connection_dict == 1, \
+        assert connection_file is not None + connection_dict is not None == 1, \
           f"replace_connectivity: One of connection_file and connection_dict should be given"
 
         if connection_file:
