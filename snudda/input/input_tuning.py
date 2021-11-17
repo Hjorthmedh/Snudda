@@ -919,7 +919,7 @@ class InputTuning(object):
 
         print("Simulation done, saving output")
         sim.write_spikes(self.output_spike_file )
-        sim.write_voltage(self.output_volt_file)
+        sim.write_voltage_OLD(self.output_volt_file)
 
         stop = timeit.default_timer()
         if sim.pc.id() == 0:
