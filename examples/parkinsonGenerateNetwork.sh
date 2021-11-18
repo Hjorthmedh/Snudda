@@ -4,7 +4,7 @@ export IPYTHON_PROFILE=default
 
 # OBS, currently init is commented out, so numneurons not used
 numNeurons=10000
-simNamePart=20211105-tune-FS-v1
+simNamePart=10k_20211105-tune-FS-v1
 #cellspecDir=data/parkinson-2020-12-17
 #cellspecDir=data/parkinson-2021-01-07
 #cellspecDir=../snudda/data/parkinson-2021-03-19
@@ -17,7 +17,7 @@ sleep 20
 ######################
 
 
-simName=networks/pd0_10k_$simNamePart
+simName=networks/pd0_$simNamePart
 
 export SNUDDA_DATA="$PD_DATA_DIR/PD0"
 # export SNUDDA_DATA="../../BasalGangliaData/Parkinson/20211105/PD0"
@@ -36,7 +36,7 @@ python3 ../snudda/analyse/analyse_striatum.py $simName/network-synapses.hdf5
 
 ####################
 
-simName=networks/pd1_50k_$simNamePart
+simName=networks/pd1_$simNamePart
 
 export SNUDDA_DATA="$PD_DATA_DIR/PD1"
 # export SNUDDA_DATA="../../BasalGangliaData/Parkinson/20211105/PD1"
@@ -52,7 +52,7 @@ python3 ../snudda/analyse/analyse_striatum.py $simName/network-synapses.hdf5
 
 ####################
 
-simName=networks/pd2_50k_$simNamePart
+simName=networks/pd2_$simNamePart
 
 export SNUDDA_DATA="$PD_DATA_DIR/PD2"
 # export SNUDDA_DATA="../../BasalGangliaData/Parkinson/20211105/PD2"
@@ -68,7 +68,7 @@ python3 ../snudda/analyse/analyse_striatum.py $simName/network-synapses.hdf5
 
 #####################
 
-simName=networks/pd3_50k_$simNamePart
+simName=networks/pd3_$simNamePart
 
 export SNUDDA_DATA="$PD_DATA_DIR/PD3"
 # export SNUDDA_DATA="../../BasalGangliaData/Parkinson/20211105/PD3"
