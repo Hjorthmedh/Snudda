@@ -303,6 +303,7 @@ class SnuddaDetect(object):
 
             # Make sure path exists
             if not os.path.exists(os.path.dirname(self.save_file)):
+                self.write_log(f"Creating directory {os.path.dirname(self.save_file)}")
                 os.mkdir(os.path.dirname(self.save_file))
 
             self.setup_parallel(d_view=d_view)
