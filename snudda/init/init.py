@@ -487,13 +487,13 @@ class SnuddaInit(object):
             cell_data = dict([])
 
             if not snudda_isfile(par_file) and model_type != "virtual":
-                print(f"Parameter file not found: {par_file}")
+                print(f"Parameter file not found: {snudda_parse_path(par_file)}")
 
             if not snudda_isfile(mech_file) and model_type != "virtual":
-                print(f"Mechanism file not found: {mech_file}")
+                print(f"Mechanism file not found: {snudda_parse_path(mech_file)}")
 
             if hoc_file is not None and not snudda_isfile(hoc_file):
-                print(f"Hoc file not found: {hoc_file}")
+                print(f"Hoc file not found: {snudda_parse_path(hoc_file)}")
 
             cell_data["morphology"] = swc_file
             cell_data["parameters"] = par_file
@@ -918,8 +918,6 @@ class SnuddaInit(object):
         iSPN_dir = os.path.join(neurons_dir, "striatum", "ispn")
         ChIN_dir = os.path.join(neurons_dir, "striatum", "chin")
         LTS_dir = os.path.join(neurons_dir, "striatum", "lts")
-
-        self.reg_size = 5
 
         if "PopulationUnits" in self.network_data and "Striatum" in self.network_data["PopulationUnits"]:
             num_population_units = len(self.network_data["PopulationUnits"]["Striatum"]["unitID"])
