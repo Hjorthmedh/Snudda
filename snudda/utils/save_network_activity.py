@@ -43,7 +43,7 @@ class SnuddaSaveNetworkActivity:
 
         return spikes
 
-    def write(self, t_save, v_save, v_key, t_spikes, v_spikes, output_file=None):
+    def write(self, t_save, v_save, v_key, t_spikes, id_spikes, output_file=None):
 
         if not output_file:
             output_file = self.output_file
@@ -56,11 +56,11 @@ class SnuddaSaveNetworkActivity:
                 os.mkdir(os.path.dirname(output_file))
 
             print(f"Writing network output to {output_file}")
-            output_file = h5py.File(output_file, "w")
+            out_file = h5py.File(output_file, "w")
 
-            meta_data = output_file.create_group("metaData")
-            voltage_data = output_file.create_group("voltData")
-            spike_data = output_file.create_group("spikeData")
+            meta_data = out_file.create_group("metaData")
+            voltage_data = out_file.create_group("voltData")
+            spike_data = out_file.create_group("spikeData")
 
             if self.network_data:
                 neuron_id = np.array([x["neuronID"] for x in self.network_data["neurons"]])
@@ -83,7 +83,7 @@ class SnuddaSaveNetworkActivity:
                 # meta_data.create_dataset("modulationKey")
 
             voltage_data.create_dataset("time", data=t_save*1e-3, compression="gzip")
-            output_file.close()
+            out_file.close()
 
         if t_save is None or v_save is None or v_key is None:
             print("No voltage data saved.")
@@ -92,24 +92,28 @@ class SnuddaSaveNetworkActivity:
             for i in range(int(self.pc.nhost())):
 
                 if i == int(self.pc.id()):
-                    output_file = h5py.File(output_file, "a")
+                    out_file = h5py.File(output_file, "a")
 
                     for neuron_id, voltage in zip(v_key, v_save):
-                        output_file["voltData"].create_dataset(str(neuron_id), data=voltage*1e-3, compression="gzip")
+                        out_file["voltData"].create_dataset(str(neuron_id), data=voltage*1e-3, compression="gzip")
 
-                    output_file.close()
+                    out_file.close()
 
                 self.pc.barrier()
 
         # Write spike data
         print("Sorting spikes")
-        spikes = self.spike_sort(t_spikes=t_spikes, v_spikes=v_spikes)
+        spikes = self.spike_sort(t_spikes=t_spikes, id_spikes=id_spikes)
 
         print("Saving spike data...")
 
         for i in range(int(self.pc.nhost())):
             if i == int(self.pc.id()):
+                out_file = h5py.File(output_file, "a")
+
                 for idx, spike_times in spikes.items():
-                    output_file["spikeData"].create_dataset(str(idx), data=spike_times*1e-3, compression="gzip")
+                    out_file["spikeData"].create_dataset(str(idx), data=spike_times*1e-3, compression="gzip")
+
+                out_file.close()
 
             self.pc.barrier()

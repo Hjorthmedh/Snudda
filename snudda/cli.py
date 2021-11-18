@@ -104,6 +104,8 @@ def snudda_cli():
                                  dest="network_file", default=None)
     simulate_parser.add_argument("--inputFile", help="Input hdf5 file (for simulation)",
                                  dest="input_file", default=None)
+    simulate_parser.add_argument("--outputFile", help="Output hdf5 file (from simulation)",
+                                 dest="output_file", default=None)
 
     simulate_parser.add_argument("--time", type=float, default=2.5, help="Duration of simulation in seconds")
 

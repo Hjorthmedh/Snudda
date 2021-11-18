@@ -1568,7 +1568,7 @@ class SnuddaSimulate(object):
 
         sv = SnuddaSaveNetworkActivity(voltage_file=output_file, network_data=self.network_info)
         sv.write(t_save=self.t_save, v_save=self.v_save, v_key=self.v_key,
-                 t_spikes=self.t_spikes, v_spikes=self.v_spikes)
+                 t_spikes=self.t_spikes, id_spikes=self.id_spikes)
 
     ############################################################################
 
