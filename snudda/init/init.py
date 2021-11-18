@@ -911,7 +911,7 @@ class SnuddaInit(object):
         if neurons_dir is None:
             neurons_dir = os.path.join("$SNUDDA_DATA", "neurons")
 
-        print(f"Neurons for striatum read from {neurons_dir}/striatum")
+        print(f"Neurons for striatum read from {snudda_parse_path(neurons_dir)}/striatum")
 
         FS_dir = os.path.join(neurons_dir, "striatum", "fs")
         dSPN_dir = os.path.join(neurons_dir, "striatum", "dspn")
