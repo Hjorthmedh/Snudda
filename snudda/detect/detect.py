@@ -3338,6 +3338,7 @@ class SnuddaDetect(object):
         fig_name = os.path.join(self.network_path, "figures", fig_file_name)
 
         if not os.path.exists(os.path.dirname(fig_name)):
+            print(f"plot_hyper_voxel: Creating directory : {os.path.dirname(fig_name)}")
             os.mkdir(os.path.dirname(fig_name))
 
         plt.savefig(fig_name, dpi=dpi)

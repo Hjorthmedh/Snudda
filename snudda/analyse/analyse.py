@@ -66,8 +66,13 @@ class SnuddaAnalyse(object):
         if hdf5_file is None or hdf5_file == "last":
             hdf5_file = self.find_latest_file()
 
-        self.fig_dir = os.path.dirname(hdf5_file) + "/figures"
+        base_dir = os.path.dirname(hdf5_file)
+        assert os.path.isdir(base_dir), \
+            f"Internal inconsistency. Not a directory {base_dir}, derived from hdf5_file{hdf5_file}"
+        self.fig_dir = os.path.join(base_dir, "figures")
+
         if not os.path.exists(self.fig_dir):
+            print(f"Creating figures directory {self.fig_dir}")
             os.makedirs(self.fig_dir)
 
         # First load all data but synapses
@@ -651,6 +656,7 @@ class SnuddaAnalyse(object):
     def save_figure(self, plt, fig_name, fig_type="pdf"):
 
         if not os.path.isdir(self.fig_dir):
+            print(f"save_figures: Creating directory {self.fig_dir}")
             os.mkdir(self.fig_dir)
 
         full_fig_name = self.fig_dir + "/" + fig_name + "." + fig_type
