@@ -60,8 +60,8 @@ class SnuddaAnalyse(object):
 
         self.populations = None
         self.dend_position_bin = None
-        self.allTypes = None
-        self.neuronTypeID = None
+        self.all_types = None
+        self.neuron_type_id = None
 
         if hdf5_file is None or hdf5_file == "last":
             hdf5_file = self.find_latest_file()
@@ -196,7 +196,7 @@ class SnuddaAnalyse(object):
 
             dend_pos_bin = dict([])
             for prePost in self.dend_position_bin:
-                pp = self.allTypes[prePost[0]] + "_" + self.allTypes[prePost[1]]
+                pp = self.all_types[prePost[0]] + "_" + self.all_types[prePost[1]]
                 dend_pos_bin[pp] = list(self.dend_position_bin[prePost])
 
             out_file.create_dataset("dendPositionBin",
@@ -204,10 +204,10 @@ class SnuddaAnalyse(object):
             out_file.create_dataset("dendPositionEdges",
                                     data=self.dend_position_edges)
 
-            all_types = [x.encode("ascii", "ignore") for x in self.allTypes]
+            all_types = [x.encode("ascii", "ignore") for x in self.all_types]
             out_file.create_dataset("allTypes",
                                    data=all_types)
-            out_file.create_dataset("neuronTypeID", data=self.neuronTypeID)
+            out_file.create_dataset("neuronTypeID", data=self.neuron_type_id)
 
             out_file.create_dataset("nMaxAnalyse", data=self.num_max_analyse)
 
@@ -269,13 +269,13 @@ class SnuddaAnalyse(object):
                         self.dend_position_bin = dict([])
 
                         all_types = list(data["allTypes"][()])
-                        self.allTypes = [x.decode() for x in all_types]
-                        self.neuronTypeID = data["neuronTypeID"][()]
+                        self.all_types = [x.decode() for x in all_types]
+                        self.neuron_type_id = data["neuronTypeID"][()]
 
                         for pp in dend_pos_bin:
                             p_str = pp.split("_")
-                            pre_type = self.allTypes.index(p_str[0])
-                            post_type = self.allTypes.index(p_str[1])
+                            pre_type = self.all_types.index(p_str[0])
+                            post_type = self.all_types.index(p_str[1])
 
                             self.dend_position_bin[(pre_type, post_type)] \
                                 = np.array(dend_pos_bin[pp])
@@ -1832,16 +1832,16 @@ class SnuddaAnalyse(object):
         bin_scaling = 1e-6 / bin_width  # To avoid a division
 
         neuron_type = [n["name"].split("_")[0] for n in self.network["neurons"]]
-        self.allTypes = np.unique(neuron_type).tolist()
+        self.all_types = np.unique(neuron_type).tolist()
 
         # To be quicker, we temporary define neuronTypeIDs
-        self.neuronTypeID = [self.allTypes.index(x) for x in neuron_type]
+        self.neuron_type_id = [self.all_types.index(x) for x in neuron_type]
 
         self.dend_position_bin = dict([])
         self.dend_position_edges = np.linspace(0, max_dist, n_bins + 1)
 
-        for pre_type_id in range(0, len(self.allTypes)):
-            for post_type_id in range(0, len(self.allTypes)):
+        for pre_type_id in range(0, len(self.all_types)):
+            for post_type_id in range(0, len(self.all_types)):
                 self.dend_position_bin[(pre_type_id, post_type_id)] = np.zeros((n_bins,))
 
         print("Creating dist histogram")
@@ -1886,8 +1886,8 @@ class SnuddaAnalyse(object):
                     # We only want to include the corner neurons
                     continue
 
-                pre_type_id = self.neuronTypeID[all_pre_id[i]]
-                post_type_id = self.neuronTypeID[all_post_id[i]]
+                pre_type_id = self.neuron_type_id[all_pre_id[i]]
+                post_type_id = self.neuron_type_id[all_post_id[i]]
                 idx = all_dist_idx[i]
 
                 if pre_type_id != last_pre or post_type_id != last_post:
@@ -1919,18 +1919,18 @@ class SnuddaAnalyse(object):
         for pair in pair_list:
 
             try:
-                pair_id = (self.allTypes.index(pair[0]),
-                           self.allTypes.index(pair[1]))
+                pair_id = (self.all_types.index(pair[0]),
+                           self.all_types.index(pair[1]))
             except:
-                print("Missing pair: " + str(pair))
+                print(f"Missing pair: {pair}")
                 continue
 
             if pair_id not in self.dend_position_bin:
-                print("Missing cum dist information for " + str(pair))
+                print(f"Missing cum dist information for {pair}")
                 continue
 
             if sum(self.dend_position_bin[pair_id]) == 0:
-                print("Empty cum dist data for " + str(pair))
+                print(f"Empty cum dist data for {pair}")
                 continue
 
             cum_dist = np.cumsum(self.dend_position_bin[pair_id]) / np.sum(self.dend_position_bin[pair_id])
@@ -1997,7 +1997,7 @@ class SnuddaAnalyse(object):
             cum_dist = np.cumsum(self.dend_position_bin[pair]) / np.sum(self.dend_position_bin[pair])
 
             idx = np.where(cum_dist < 0.5)[0][-1]
-            print(self.allTypes[pair[0]] + " to " + self.allTypes[pair[1]]
+            print(self.all_types[pair[0]] + " to " + self.all_types[pair[1]]
                   + " 50% of synapses are within "
                   + str(self.dend_position_edges[idx] * 1e6) + " micrometer")
 
@@ -2016,8 +2016,8 @@ class SnuddaAnalyse(object):
                          linewidth=3)
                 plt.xlabel('Distance from soma ($\mu$m)')
                 plt.ylabel('Cumulative distrib.')
-                plt.title('Synapses ' + self.neuron_name(self.allTypes[pre_type])
-                          + " to " + self.neuron_name(self.allTypes[post_type]))
+                plt.title('Synapses ' + self.neuron_name(self.all_types[pre_type])
+                          + " to " + self.neuron_name(self.all_types[post_type]))
                 plt.tight_layout()
 
                 plt.ion()
@@ -2028,8 +2028,8 @@ class SnuddaAnalyse(object):
                 plt.draw()
                 plt.pause(0.0001)
                 fig_name = "SynapseCumulativeDistribution-" \
-                           + self.neuron_name(self.allTypes[pre_type]) + "-to-" \
-                           + self.neuron_name(self.allTypes[post_type])
+                           + self.neuron_name(self.all_types[pre_type]) + "-to-" \
+                           + self.neuron_name(self.all_types[post_type])
 
                 self.save_figure(plt, fig_name)
 
@@ -2067,8 +2067,8 @@ class SnuddaAnalyse(object):
             end_idx = np.where(self.dend_position_edges <= 400e-6)[0][-1]
 
             try:
-                pre_type = self.allTypes[pair[0]]
-                post_type = self.allTypes[pair[1]]
+                pre_type = self.all_types[pair[0]]
+                post_type = self.all_types[pair[1]]
 
                 plt.rcParams.update({'font.size': 16})
 

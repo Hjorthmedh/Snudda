@@ -492,6 +492,11 @@ class Snudda(object):
         else:
             input_file = os.path.join(self.network_path, "input-spikes.hdf5")
 
+        if args.output_file:
+            output_file = args.output_file
+        else:
+            output_file = os.path.join(self.network_path, "simulation", "network-output.hdf5")
+
         self.make_dir_if_needed(os.path.join(self.network_path, "simulation"))
 
         print(f"Using input file {input_file}")
@@ -531,22 +536,6 @@ class Snudda(object):
             slurm_id = str(666)
 
         print(f"args: {args}")
-
-        if args.volt_out is not None:
-            # Save neuron voltage
-            if args.volt_out == "default":
-                # volt_file = os.path.join(save_dir, f"network-voltage-{slurm_id}.csv")
-                volt_file = os.path.join(save_dir, f"network-voltage.hdf5")
-            else:
-                volt_file = args.volt_out
-        else:
-            volt_file = None
-
-        if args.spikes_out is None or args.spikes_out == "default":
-            # spikes_file = os.path.join(save_dir, f"network-output-spikes-{slurm_id}.txt")
-            spikes_file = os.path.join(save_dir, f"network-output-spikes.txt")
-        else:
-            spikes_file = args.spikes_out
 
         disable_gj = args.disable_gj
         if disable_gj:
@@ -611,7 +600,7 @@ class Snudda(object):
 
         sim.check_memory_status()
 
-        if volt_file is not None:
+        if args.record_volt:
             sim.add_recording(side_len=None)  # Side len let you record from a subset
             # sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
 
@@ -626,15 +615,7 @@ class Snudda(object):
         sim.run(t_sim)  # In milliseconds
 
         print("Simulation done, saving output")
-        if spikes_file is not None:
-            sim.write_spikes(spikes_file)
-
-        if volt_file is not None:
-            if os.path.splitext(volt_file)[1].lower() in ("txt", "csv"):
-                sim.write_voltage_OLD(volt_file)
-            else:
-                # Write HDF5 file
-                sim.write_voltage(volt_file)
+        sim.write_output(output_file)
 
         stop = timeit.default_timer()
         if sim.pc.id() == 0:
