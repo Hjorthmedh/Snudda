@@ -413,7 +413,7 @@ class SnuddaInit(object):
                 p_corner = numexpr.evaluate(axon_density[1]) * (3e-6 ** 3)
 
                 for P, xx, yy, zz in zip(p_corner, x, y, z):
-                    print(name + " axon density P(" + str(xx) + "," + str(yy) + "," + str(zz) + ") = " + str(P))
+                    print(f"{name} axon density P({xx}, {yy}, {zz}) = {P}")
 
                 if (p_corner > 0.01).any():
                     print("Axon density too high at boundary!!")
@@ -423,7 +423,7 @@ class SnuddaInit(object):
                 # print(str(axonDensity[3]) + " " + str(name) \
                 #      + " axon points to place")
 
-        print("Adding neurons: " + str(name) + " from dir " + str(neuron_dir))
+        print(f"Adding neurons: {name} from dir {snudda_parse_path(neuron_dir)}")
         # TODO: We should force users to use same name as the directory name
         # ie, fs/FS_0 directory should be named FS_0
 
