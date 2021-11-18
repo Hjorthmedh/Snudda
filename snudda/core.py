@@ -683,6 +683,14 @@ class Snudda(object):
         # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
         self.d_view = self.rc.direct_view(targets='all')  # rc[:] # Direct view into clients
 
+        # Make sure SNUDDA_DATA is set on the workers, this might be needed if ipcluster
+        # is started before SNUDDA_DATA is set
+        if os.getenv('SNUDDA_DATA') is not None:
+            print(f"Setting SNUDDA_DATA environment variable on workers to {os.getenv('SNUDDA_DATA')}")
+
+            self.d_view.execute("import os")
+            self.d_view.execute(f"os.environ['SNUDDA_DATA'] = '{os.getenv('SNUDDA_DATA')}'", block=True)
+
     ############################################################################
 
     def stop_parallel(self):

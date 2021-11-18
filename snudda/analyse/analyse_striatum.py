@@ -28,7 +28,7 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
             self.sim_dir = sim_dir
             hdf5_file = os.path.join(sim_dir, "network-synapses.hdf5")
 
-        print(f"Loading {hdf5_file})
+        print(f"Loading {hdf5_file}")
 
         super().__init__(hdf5_file=hdf5_file, load_cache=True,
                          volume_type=volume_type,
