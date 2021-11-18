@@ -19,8 +19,8 @@ sleep 20
 
 simName=networks/pd0_10k_$simNamePart
 
-# export SNUDDA_DATA="$PD_DATA_DIR/PD0"
-export SNUDDA_DATA="../../BasalGangliaData/Parkinson/20211105/PD0"
+export SNUDDA_DATA="$PD_DATA_DIR/PD0"
+# export SNUDDA_DATA="../../BasalGangliaData/Parkinson/20211105/PD0"
 echo "Setting SNUDDA_DATA to $SNUDDA_DATA"
 
 # Note that we need to start ipcluster after the SNUDDA_DATA environment
@@ -38,8 +38,8 @@ python3 ../snudda/analyse/analyse_striatum.py $simName/network-synapses.hdf5
 
 simName=networks/pd1_50k_$simNamePart
 
-#export SNUDDA_DATA="$PD_DATA_DIR/PD1"
-export SNUDDA_DATA="../../BasalGangliaData/Parkinson/20211105/PD1"
+export SNUDDA_DATA="$PD_DATA_DIR/PD1"
+# export SNUDDA_DATA="../../BasalGangliaData/Parkinson/20211105/PD1"
 echo "Setting SNUDDA_DATA to $SNUDDA_DATA"
 
 snudda init $simName --size $numNeurons --overwrite --connectionFile $SNUDDA_DATA/connectivity/network-config-PD.json
@@ -54,8 +54,8 @@ python3 ../snudda/analyse/analyse_striatum.py $simName/network-synapses.hdf5
 
 simName=networks/pd2_50k_$simNamePart
 
-# export SNUDDA_DATA="$PD_DATA_DIR/PD2"
-export SNUDDA_DATA="../../BasalGangliaData/Parkinson/20211105/PD2"
+export SNUDDA_DATA="$PD_DATA_DIR/PD2"
+# export SNUDDA_DATA="../../BasalGangliaData/Parkinson/20211105/PD2"
 echo "Setting SNUDDA_DATA to $SNUDDA_DATA"
 
 snudda init $simName --size $numNeurons --overwrite --connectionFile $SNUDDA_DATA/connectivity/network-config-PD.json
@@ -70,8 +70,8 @@ python3 ../snudda/analyse/analyse_striatum.py $simName/network-synapses.hdf5
 
 simName=networks/pd3_50k_$simNamePart
 
-# export SNUDDA_DATA="$PD_DATA_DIR/PD3"
-export SNUDDA_DATA="../../BasalGangliaData/Parkinson/20211105/PD3"
+export SNUDDA_DATA="$PD_DATA_DIR/PD3"
+# export SNUDDA_DATA="../../BasalGangliaData/Parkinson/20211105/PD3"
 echo "Setting SNUDDA_DATA to $SNUDDA_DATA"
 
 snudda init $simName --size $numNeurons --overwrite --connectionFile $SNUDDA_DATA/connectivity/network-config-PD.json
