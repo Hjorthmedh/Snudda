@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import numpy as np
 import h5py
 
@@ -99,11 +101,18 @@ class SnuddaLoadNetworkActivity:
 
         return neuron_id
 
-    def cli(self):
-        from argparse import ArgumentParser
 
-        parser = ArgumentParser(description="Load snudda activity data (spikes and or voltage)")
-        parser.add_argument("dataFile", help="Data file", dest="data_file")
-        args = parser.parse_args()
+def load_network_activity_cli():
+    from argparse import ArgumentParser
 
-        SnuddaLoadNetworkActivity(network_activity_file=args.data_file)
+    parser = ArgumentParser(description="Load snudda activity data (spikes and or voltage)")
+    parser.add_argument("dataFile", help="Data file")
+    args = parser.parse_args()
+
+    slna = SnuddaLoadNetworkActivity(network_activity_file=args.dataFile)
+    slna.load()
+
+
+if __name__ == "__main__":
+
+    load_network_activity_cli()
