@@ -74,13 +74,28 @@ class SnuddaSaveNetworkActivity:
                 str_type = 'S' + str(max(1, max([len(x) for x in neuron_types])))
                 meta_data.create_dataset("type", (len(neuron_names),), str_type, neuron_names, compression="gzip")
 
-                # TODO: Add these later
-                # meta_data.create_dataset("parameterFile")
-                # meta_data.create_dataset("metaFile")
-                # meta_data.create_dataset("neuronMorphology")
-                # meta_data.create_dataset("parameterKey")
-                # meta_data.create_dataset("morphologyKey")
-                # meta_data.create_dataset("modulationKey")
+                swc_list = [n["morphology"] for n in self.network_data["neurons"]]
+                max_swc_len = max([len(x) for x in swc_list])
+                meta_data.create_dataset("morphology", (len(swc_list),), f"S{max_swc_len}",
+                                         swc_list, compression="gzip")
+
+                parameter_keys = [n["parameterKey"] for n in self.network_data["neurons"]]
+                parameter_key_length = max([len(x) for x in parameter_keys])
+                meta_data.create_dataset("parameterKey", (len(parameter_keys),), f"S{parameter_key_length}",
+                                         parameter_keys, compression="gzip")
+
+                morphology_keys = [n["morphologyKey"] for n in self.network_data["neurons"]]
+                morphology_key_length = max(1, max([len(x) for x in morphology_keys]))
+                meta_data.create_dataset("morphologyKey", (len(morphology_keys),), f"S{morphology_key_length}",
+                                         morphology_keys, compression="gzip")
+
+                modulation_keys = [n["modulationKey"] for n in self.network_data["neurons"]]
+                modulation_key_length = max(1, max([len(x) for x in modulation_keys]))
+                meta_data.create_dataset("modulationKey", (len(modulation_keys),), f"S{modulation_key_length}",
+                                         modulation_keys, compression="gzip")
+
+                meta_data.create_dataset("populationUnit", data=self.network_data["populationUnit"], compression="gzip")
+                meta_data.create_dataset("position", data=self.network_data["neuronPositions"], compression="gzip")
 
             voltage_data.create_dataset("time", data=t_save*1e-3, compression="gzip")
             out_file.close()
