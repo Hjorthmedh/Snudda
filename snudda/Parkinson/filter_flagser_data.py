@@ -48,14 +48,23 @@ class FilterFlagserData:
         distance_threshold = np.percentile(dist_to_centre, population_fraction)
         centre_idx = np.where(dist_to_centre <= distance_threshold)[0]
 
-        lookup_table = np.zeros((len(neuron_id),), dtype=int)
-        lookup_table[centre_idx] = 1
+        lookup_table = np.zeros((len(neuron_id),), dtype=bool)
+        lookup_table[centre_idx] = True
+
+        row_num = np.array([len(x) for x in self.data_file.values()])
+        row_dim = np.array([self.get_dim_from_name(x) for x in self.data_file.keys()])
+
+        # Dimensions might not be in order, reorder them
+        sort_idx = np.argsort(row_dim)
+        work_load = np.multiply(row_num[sort_idx], row_dim[sort_idx])
+        work_load_done = 0
+        total_work_load = np.sum(work_load)
 
         self.open_output()
 
-        for dim, all_rows2 in self.data_file.items():
+        for dim, all_rows_on_file in self.data_file.items():
 
-            all_rows = all_rows2[()].copy()
+            all_rows = all_rows_on_file[()].copy()
 
             if self.check_if_exists(dim):
                 print(f"{dim} already stored in {self.filtered_file_name}, skipping.")
@@ -64,31 +73,32 @@ class FilterFlagserData:
             start_time = timeit.default_timer()
 
             print(f"Processing {dim} with {len(all_rows)}")
-            keep_rows = np.zeros((len(all_rows,)), dtype=int)
+            keep_rows = np.zeros((len(all_rows,)), dtype=bool)
             filtered_data = []
-            ctr = 0
-            for idx, row in enumerate(all_rows):
-                if np.sum(lookup_table[row]) >= 1:
-                    keep_rows[idx] = 1
-                ctr += 1
 
-                if ctr % int(np.ceil(len(all_rows)/1000)) == 0:
-                    time_used = timeit.default_timer() - start_time
-                    fraction_done = ctr / len(all_rows)
-                    total_time_estimated = time_used / fraction_done
-                    time_left = total_time_estimated - time_used
-                    sys.stdout.write(f"\rTime used: {time_used:0.1f}s, estimated left {time_left:0.1f}s for {dim} "
-                                     f"({total_time_estimated:0.1f}s)  ")
-                    sys.stdout.flush()
+            all_rows_flag = np.take(lookup_table, all_rows)
+            keep_rows = np.where(np.sum(all_rows_flag, axis=1))[0]
 
-            filtered_data = [all_rows[x] for x in np.where(keep_rows)[0]]
-            print(f"\nKeeping {len(filtered_data)} out of {len(all_rows)} simplices")
+            filtered_data = [all_rows[x] for x in keep_rows]
+            print(f"Keeping {len(filtered_data)} out of {len(all_rows)} simplices")
+            print(f"Time used for {dim}: {(timeit.default_timer() - start_time):0.1f} seconds")
 
             self.save_dim_data(dim_name=dim, dim_data=filtered_data)
 
+            dim_value = self.get_dim_from_name(dim)
+            work_load_done += work_load[dim_value-1]
+
+            time_used = timeit.default_timer() - start_time
+            fraction_done = work_load_done / total_work_load
+            total_time_estimated = time_used / fraction_done
+            time_left = total_time_estimated - time_used
+            sys.stdout.write(f"\rTime used: {time_used:0.1f}s, estimated left {time_left:0.1f}s  "
+                             f"({total_time_estimated:0.1f}s)  ")
+            sys.stdout.flush()
+
         self.close()
 
-        print(f"Total time used {timeit.default_timer() - start_time} seconds.")
+        print(f"Total time used {(timeit.default_timer() - start_time):0.1f} seconds.")
 
     def open_output(self):
 
