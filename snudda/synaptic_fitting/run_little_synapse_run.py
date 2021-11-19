@@ -1,5 +1,6 @@
 import neuron
 import numpy as np
+import sys
 
 
 # Plot all sections
