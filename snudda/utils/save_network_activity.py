@@ -112,7 +112,7 @@ class SnuddaSaveNetworkActivity:
                 out_file = h5py.File(output_file, "a")
 
                 for idx, spike_times in spikes.items():
-                    out_file["spikeData"].create_dataset(str(idx), data=spike_times*1e-3, compression="gzip")
+                    out_file["spikeData"].create_dataset(f"{idx:.0f}", data=spike_times*1e-3, compression="gzip")
 
                 out_file.close()
 
