@@ -591,6 +591,10 @@ class SnuddaDetect(object):
         neuron_group.create_dataset("neuronID", (len(neuron_id_list),),
                                     'int', neuron_id_list)
 
+        neuron_path = [n["neuronPath"] for n in self.neurons]
+        max_np_len = max([len(x) for x in neuron_path])
+        neuron_group.create_dataset("neuronPath", (len(neuron_path),), f"S{max_np_len}", neuron_path)
+
         # Just make sure there is at least one neuron in volumeIDlist
         # that is inside volumeID
 

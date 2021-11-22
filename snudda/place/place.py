@@ -590,13 +590,17 @@ class SnuddaPlace(object):
         hoc_list = [n.hoc.encode("ascii", "ignore") for n in self.neurons]
         max_hoc_len = max([len(x) for x in hoc_list])
         max_hoc_len = max(max_hoc_len, 10)  # In case there are none
-        neuron_group.create_dataset("hoc", (len(hoc_list),), 'S' + str(max_hoc_len), hoc_list,
+        neuron_group.create_dataset("hoc", (len(hoc_list),), f"S{max_hoc_len}", hoc_list,
                                     compression="gzip")
 
         swc_list = [n.swc_filename.encode("ascii", "ignore") for n in self.neurons]
         max_swc_len = max([len(x) for x in swc_list])
-        neuron_group.create_dataset("morphology", (len(swc_list),), 'S' + str(max_swc_len), swc_list,
+        neuron_group.create_dataset("morphology", (len(swc_list),), f"S{max_swc_len}", swc_list,
                                     compression="gzip")
+
+        neuron_path = [n.neuron_path.encode("ascii", "ignore") for n in self.neurons]
+        max_np_len = max([len(x) for x in neuron_path])
+        neuron_group.create_dataset("neuronPath", (len(neuron_path),), f"S{max_np_len}", neuron_path)
 
         virtual_neuron_list = np.array([n.virtual_neuron for n in self.neurons], dtype=bool)
         virtual_neuron = neuron_group.create_dataset("virtualNeuron",

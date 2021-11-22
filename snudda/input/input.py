@@ -108,23 +108,30 @@ class SnuddaInput(object):
         self.population_unit_spikes = None
         self.all_population_units = None # List of all population units in simulation
 
-        self.network_info = None
-        self.neuron_info = None
         self.num_population_units = None
         self.population_unit_id = None
         self.neuron_name = None
         self.neuron_id = None
         self.neuron_type = None
         self.d_view = None
-        self.network_slurm_id = None
         self.network_config = None
         self.neuron_input = None
         self.slurm_id = None
 
-        # Set in read_Hdf5_info
-        self.network_config_file = None
-        self.position_file = None
-        self.axon_stump_id_flag = None
+        self.snudda_load = SnuddaLoad(hdf5_network_file)
+        self.network_data = self.snudda_load.data
+        self.neuron_info = self.network_data["neurons"]
+
+        self.network_config_file = self.network_data["configFile"]
+        self.position_file = self.network_data["positionFile"]
+
+        self.axon_stump_id_flag = self.network_data["axonStumpIDFlag"]
+        self.network_slurm_id = self.network_data["SlurmID"]
+        self.population_unit_id = self.network_data["populationUnit"]
+
+        self.neuron_id = [n["neuronID"] for n in self.network_data["neurons"]]
+        self.neuron_name = [n["name"] for n in self.network_data["neurons"]]
+        self.neuron_type = [n["type"] for n in self.network_data["neurons"]]
 
         if time:
             self.time = time  # How long time to generate inputs for
@@ -137,7 +144,6 @@ class SnuddaInput(object):
 
         self.h5libver = h5libver
         self.write_log(f"Using hdf5 version {h5libver}")
-        self.read_hdf5_info()
 
         self.neuron_cache = dict([])
 
@@ -149,9 +155,6 @@ class SnuddaInput(object):
 
         # Read in the input configuration information from JSON file
         self.read_input_config_file()
-
-        # Read the network position file
-        self.read_neuron_positions()
 
         # Read the network config file -- This also reads random seed
         self.read_network_config_file()
@@ -444,6 +447,28 @@ class SnuddaInput(object):
             # if a number --> use a specific neuron with that given ID
             # if dSPN --> use neuron_type dSPN
             # if dSPN_3 --> use specific neuron morphology corresponding to dSPN_3
+
+            # Also see if we have additional input specified in the meta.json file for the neuron?
+
+            # TODO: Add baseline activity:
+            #       1. From neuron_id derive the parameter_id and morphology_id
+            #       2. Using parameter_id, morphology_id check if the meta.json has any additional input specified
+            #       3. Add the input to input_info
+
+            parameter_key = self.network_data["neurons"][neuron_id]["parameterKey"]
+            morphology_key = self.network_data["neurons"][neuron_id]["morphologyKey"]
+            neuron_path = self.network_data["neurons"][neuron_id]["neuronPath"]
+            meta_path = os.path.join(neuron_path, "meta.json")
+
+            if os.path.exists(meta_path):
+                with open(meta_path, "r") as f:
+                    meta_data = json.load(f)
+
+                if parameter_key in meta_data and morphology_key in meta_data[parameter_key] \
+                        and "input" in meta_data[parameter_key][morphology_key]:
+
+                    for inp_name, inp_data in meta_data[parameter_key][morphology_key]:
+                        input_info[inp_name] = inp_data
 
             for input_type in input_info:
 
@@ -971,28 +996,6 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    def read_neuron_positions(self):
-
-        """ Read neuron positions from HDF5 network file. """
-
-        self.write_log("Reading neuron positions")
-
-        data = SnuddaLoad(self.position_file, verbose=self.verbose).data
-        self.network_info = data
-        self.neuron_info = data["neurons"]
-
-        # Make sure the position file matches the network config file
-        assert (data["configFile"] == self.network_config_file)
-
-        self.population_unit_id = data["populationUnit"]
-
-        self.neuron_id = [n["neuronID"] for n in self.neuron_info]
-        self.neuron_name = [n["name"] for n in self.neuron_info]
-        self.neuron_type = [n["type"] for n in self.neuron_info]
-        # self.nInputs =  [n["nInputs"] for n in self.neuronInfo]
-
-    ############################################################################
-
     def read_network_config_file(self):
 
         """ Read network configuration JSON file."""
@@ -1261,10 +1264,6 @@ class SnuddaInput(object):
 
         self.d_view.execute(cmd_str, block=True)
 
-        self.write_log("Read neuron positions on workers")
-        cmd_str2 = "nl.read_neuron_positions()"
-        self.d_view.execute(cmd_str2, block=True)
-
         self.write_log("Read network config on workers")
         cmd_str3 = "nl.read_network_config_file()"
         self.d_view.execute(cmd_str3, block=True)
@@ -1310,33 +1309,6 @@ class SnuddaInput(object):
                     spike_times.append(spikes)
 
         self.raster_plot(spike_times)
-
-    ############################################################################
-
-    def read_hdf5_info(self, hdf5_file=None):
-
-        """ Reading network info from hdf5 file. """
-
-        if not hdf5_file:
-            hdf5_file = self.hdf5_network_file
-
-        self.write_log(f"Loading HDF5-file: {hdf5_file}")
-
-        try:
-            with h5py.File(hdf5_file, 'r') as f:
-                self.network_config_file = SnuddaLoad.to_str(f["meta"]["configFile"][()])
-                self.position_file = SnuddaLoad.to_str(f["meta"]["positionFile"][()])
-                self.network_slurm_id = int(f["meta/SlurmID"][()])
-
-                self.axon_stump_id_flag = f["meta/axonStumpIDFlag"][()]
-        except Exception as e:
-            self.write_log(f"Error in readHDF5info: {e}", is_error=True)
-            self.write_log(f"Opening: {hdf5_file}", is_error=True)
-
-            import traceback
-            tstr = traceback.format_exc()
-            self.write_log(tstr, is_error=True)
-            sys.exit(-1)
 
     ############################################################################
 

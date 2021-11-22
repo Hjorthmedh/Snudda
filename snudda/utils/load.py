@@ -338,7 +338,8 @@ class SnuddaLoad(object):
         for name, neuron_id, hoc, pos, rot, dend_radius, axon_radius, virtual, vID, \
             axon_density_type, axon_density, axon_density_radius, \
             axon_density_bounds_xyz, \
-            morph, parameter_id, morphology_id, modulation_id,\
+            morph, neuron_path, \
+            parameter_id, morphology_id, modulation_id,\
             parameter_key, morphology_key, modulation_key \
                 in zip(hdf5_file["network/neurons/name"][:],
                        hdf5_file["network/neurons/neuronID"][:],
@@ -354,6 +355,7 @@ class SnuddaLoad(object):
                        hdf5_file["network/neurons/axonDensityRadius"][:],
                        hdf5_file["network/neurons/axonDensityBoundsXYZ"][:],
                        hdf5_file["network/neurons/morphology"][:],
+                       hdf5_file["network/neurons/neuronPath"][:],
                        hdf5_file["network/neurons/parameterID"][:],
                        hdf5_file["network/neurons/morphologyID"][:],
                        hdf5_file["network/neurons/modulationID"][:],
@@ -375,6 +377,7 @@ class SnuddaLoad(object):
             n["neuronID"] = neuron_id
             n["volumeID"] = SnuddaLoad.to_str(vID)
             n["hoc"] = SnuddaLoad.to_str(hoc)
+            n["neuronPath"] = SnuddaLoad.to_str(neuron_path)
 
             n["position"] = pos
             n["rotation"] = rot.reshape(3, 3)
