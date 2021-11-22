@@ -72,7 +72,7 @@ class InputTestCase(unittest.TestCase):
 
         for neuron_id_str in input_data["input"].keys():
             neuron_id = int(neuron_id_str)
-            neuron_name = si.network_info["neurons"][neuron_id]["name"]
+            neuron_name = si.network_data["neurons"][neuron_id]["name"]
             neuron_type = neuron_name.split("_")[0]
 
             # Check frequency is as advertised...

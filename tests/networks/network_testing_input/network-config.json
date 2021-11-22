@@ -18,7 +18,7 @@
         }
     },
     "Connectivity": {
-        "FSN,FSN": {
+        "FS,FS": {
             "GABA": {
                 "conductance": [
                     1.1e-09,
@@ -40,7 +40,8 @@
                     "softMax": 5,
                     "mu2": 2,
                     "a3": 1,
-                    "distPruning": null
+                    "distPruning": null,
+                    "cluster": false
                 }
             },
             "GapJunction": {
@@ -54,11 +55,12 @@
                     "softMax": 8,
                     "mu2": 2,
                     "a3": 1.0,
-                    "distPruning": null
+                    "distPruning": null,
+                    "cluster": false
                 }
             }
         },
-        "FSN,dSPN": {
+        "FS,dSPN": {
             "GABA": {
                 "conductance": [
                     1.1e-09,
@@ -73,7 +75,7 @@
                         0.008,
                         1000.0
                     ],
-                    "parameterFile": "$DATA/synapses/striatum/PlanertFitting-FD-tmgaba-fit.json",
+                    "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-FD-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -81,11 +83,12 @@
                     "softMax": 5,
                     "mu2": 2,
                     "a3": 1.0,
-                    "distPruning": "exp(-(0.5*d/60e-6)**2)"
+                    "distPruning": "exp(-(0.5*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
-        "FSN,iSPN": {
+        "FS,iSPN": {
             "GABA": {
                 "conductance": [
                     1.1e-09,
@@ -100,7 +103,7 @@
                         0.008,
                         1000.0
                     ],
-                    "parameterFile": "$DATA/synapses/striatum/PlanertFitting-FI-tmgaba-fit.json",
+                    "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-FI-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -108,11 +111,12 @@
                     "softMax": 5,
                     "mu2": 2,
                     "a3": 0.9,
-                    "distPruning": "exp(-(0.5*d/60e-6)**2)"
+                    "distPruning": "exp(-(0.5*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
-        "FSN,LTS": {
+        "FS,LTS": {
             "GABA": {
                 "conductance": [
                     1.1e-10,
@@ -126,7 +130,8 @@
                     "softMax": 3,
                     "mu2": 2,
                     "a3": 1.0,
-                    "distPruning": null
+                    "distPruning": null,
+                    "cluster": false
                 }
             }
         },
@@ -146,22 +151,24 @@
                         1000.0
                     ],
                     "failRate": 0.7,
-                    "parameterFile": "$DATA/synapses/striatum/PlanertFitting-DD-tmgaba-fit.json",
+                    "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-DD-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
-                    "f1": 0.38,
+                    "f1": 0.28500000000000003,
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 },
                 "pruningOther": {
-                    "f1": 0.38,
+                    "f1": 0.28500000000000003,
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
@@ -181,22 +188,24 @@
                         1000.0
                     ],
                     "failRate": 0.7,
-                    "parameterFile": "$DATA/synapses/striatum/PlanertFitting-DI-tmgaba-fit.json",
+                    "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-DI-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
-                    "f1": 0.2,
+                    "f1": 0.164,
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 },
                 "pruningOther": {
-                    "f1": 0.2,
+                    "f1": 0.164,
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
@@ -215,7 +224,8 @@
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 0.1,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
@@ -235,22 +245,24 @@
                         1000.0
                     ],
                     "failRate": 0.4,
-                    "parameterFile": "$DATA/synapses/striatum/PlanertFitting-ID-tmgaba-fit.json",
+                    "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-ID-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
-                    "f1": 0.3,
+                    "f1": 0.279,
                     "softMax": 4,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 },
                 "pruningOther": {
-                    "f1": 0.3,
+                    "f1": 0.279,
                     "softMax": 4,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
@@ -270,7 +282,7 @@
                         1000.0
                     ],
                     "failRate": 0.4,
-                    "parameterFile": "$DATA/synapses/striatum/PlanertFitting-II-tmgaba-fit.json",
+                    "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-II-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
@@ -278,14 +290,16 @@
                     "softMax": 4,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 },
                 "pruningOther": {
                     "f1": 0.55,
                     "softMax": 4,
                     "mu2": 2.4,
                     "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
@@ -304,7 +318,8 @@
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 0.1,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
@@ -326,11 +341,12 @@
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
-                    "f1": 1.0,
+                    "f1": 0.3,
                     "softMax": 15,
                     "mu2": 3,
                     "a3": 0.3,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
@@ -352,11 +368,12 @@
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
-                    "f1": 1.0,
+                    "f1": 0.3,
                     "softMax": 15,
                     "mu2": 3,
                     "a3": 0.3,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)"
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "cluster": false
                 }
             }
         },
@@ -374,13 +391,14 @@
                     "softMax": 10,
                     "mu2": 3,
                     "a3": 0.4,
-                    "distPruning": null
+                    "distPruning": null,
+                    "cluster": false
                 }
             }
         }
     },
     "Neurons": {
-        "FSN_0": {
+        "FS_0": {
             "morphology": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/MTC180800A-IDB-cor-rep.swc",
             "parameters": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/parameters.json",
             "mechanisms": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/mechanisms.json",
