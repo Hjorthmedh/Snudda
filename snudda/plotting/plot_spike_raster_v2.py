@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 class SnuddaPlotSpikeRaster2:
 
-    def __init__(self, network_path, network_file=None, spike_file=None, figure_path=None):
+    def __init__(self, network_path, network_file=None, simulation_file=None, figure_path=None):
 
         self.network_path = network_path
 
@@ -17,18 +17,18 @@ class SnuddaPlotSpikeRaster2:
         else:
             self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
 
-        if spike_file:
-            self.spike_file = spike_file
+        if simulation_file:
+            self.simulation_file = simulation_file
         else:
-            self.spike_file = os.path.join(self.network_path, "simulation", "network-output-spikes-666.txt")
+            self.simulation_file = os.path.join(self.network_path, "simulation", "network-output.hdf5")
 
         if figure_path:
             self.figure_path = figure_path
         else:
             self.figure_path = os.path.join(self.network_path, "figures", "network-spike-raster.pdf")
 
-        assert self.spike_file and os.path.isfile(self.spike_file), f"Input spike file {self.spike_file} does not exist"
-        data = np.loadtxt(self.spike_file, delimiter="\t")
+        assert self.simulation_file and os.path.isfile(self.simulation_file), f"Input spike file {self.simulation_file} does not exist"
+        data = np.loadtxt(self.simulation_file, delimiter="\t")
         self.spike_time = data[:, 0] / 1e3
         self.spike_neuron_id = data[:, 1].astype(int)
 

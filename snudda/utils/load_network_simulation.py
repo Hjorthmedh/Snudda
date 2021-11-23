@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 
 import numpy as np
 import h5py
@@ -6,9 +7,21 @@ import h5py
 
 class SnuddaLoadNetworkSimulation:
 
-    def __init__(self, network_simulation_output_file):
+    def __init__(self, network_simulation_output_file=None, network_path=None):
 
-        self.network_simulation_output_file_name = network_simulation_output_file
+        if network_simulation_output_file:
+            self.network_simulation_output_file_name = network_simulation_output_file
+        elif network_path:
+            self.network_simulation_output_file_name = os.path.join(network_path, "simulation", "network-output.hdf5")
+        else:
+            self.network_simulation_output_file_name = None
+
+        if network_path:
+            self.network_path = network_path
+        elif self.network_simulation_output_file_name:
+            self.network_path = os.path.basename(os.path.basename(self.network_simulation_output_file_name))
+
+
         self.network_simulation_file = None
 
     def load(self, network_simulation_output_file=None):

@@ -1195,8 +1195,12 @@ class SnuddaInput(object):
                                                                          morphology_key=morphology_key)
 
         # If the neuron model has a certain number of input specified, then use that if num_spike_trains is None
-        if num_spike_trains is None and input_type in input_info:
-            num_spike_trains = input_info[input_type]
+        assert num_spike_trains is not None, \
+            f"Number of inputs (nInputs) not specified for {input_type} in {input_info}"
+
+        # TODO: Remove old code below
+        # if num_spike_trains is None and input_type in input_info:
+        #    num_spike_trains = input_info[input_type]
 
         return morphology.dendrite_input_locations(synapse_density=synapse_density,
                                                    num_locations=num_spike_trains,
