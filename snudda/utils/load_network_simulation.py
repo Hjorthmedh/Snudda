@@ -20,15 +20,20 @@ class SnuddaLoadNetworkSimulation:
             self.network_path = network_path
         elif self.network_simulation_output_file_name:
             self.network_path = os.path.basename(os.path.basename(self.network_simulation_output_file_name))
-
+        else:
+            self.network_path = None
 
         self.network_simulation_file = None
+
+        if self.network_simulation_output_file_name:
+            self.load()
 
     def load(self, network_simulation_output_file=None):
 
         if not network_simulation_output_file:
             network_simulation_output_file = self.network_simulation_output_file_name
 
+        print(f"Loading {network_simulation_output_file}")
         self.network_simulation_file = h5py.File(network_simulation_output_file, "r")
 
     def close(self):
@@ -36,7 +41,7 @@ class SnuddaLoadNetworkSimulation:
             self.network_simulation_file.close()
             self.network_simulation_file = None
 
-    def merge_spikes(self, spike_data):
+    def merge_spikes(self, spike_data=None):
 
         """ Merge spike_data dictionary into an array with spike time and neuron id as the columns,
             useful for plotting
@@ -44,6 +49,9 @@ class SnuddaLoadNetworkSimulation:
             Args:
                 spike_data : Dictionary with spike data (usually from get_spikes)
             """
+
+        if spike_data is None:
+            spike_data = self.get_spikes()
 
         n_spikes = 0
         for spikes in spike_data.values():
@@ -55,6 +63,11 @@ class SnuddaLoadNetworkSimulation:
         for neuron_id, spikes in spike_data.items():
             merged_spike_data[idx:idx+len(spikes), 0] = spikes
             merged_spike_data[idx:idx+len(spikes), 1] = neuron_id
+            idx += len(spikes)
+
+        # Sort the spikes after time
+        idx = np.argsort(merged_spike_data[:, 0])
+        merged_spike_data = merged_spike_data[idx, :]
 
         return merged_spike_data
 
@@ -73,7 +86,7 @@ class SnuddaLoadNetworkSimulation:
             for nid in self.network_simulation_file["spikeData"]:
                 spike_data[int(nid)] = self.network_simulation_file["spikeData"][nid]
 
-        if np.issubdtype(neuron_id, np.integer):
+        elif np.issubdtype(neuron_id, np.integer):
             if str(neuron_id) in self.network_simulation_file["spikeData"]:
                 spike_data = self.network_simulation_file["spikeData"][str(neuron_id)]
             else:
