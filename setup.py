@@ -56,7 +56,7 @@ setuptools.setup(
     },
     entry_points={"console_scripts": ["snudda = snudda.cli:snudda_cli",
                                       "snudda_load = snudda.utils.load:snudda_load_cli",
-                                      "snudda_load_activity_data = snudda.utils.load_network_activity:load_network_activity_cli",
+                                      "snudda_load_simulation_data = snudda.utils.load_network_simulation:load_network_simulation_cli",
                                       "snudda_ablate_network = snudda.utils.ablate_network:snudda_ablate_network_cli",
                                       "snudda_plot_network = snudda.plotting.plot_network:snudda_plot_network_cli" ]},
     install_requires=install_requires,

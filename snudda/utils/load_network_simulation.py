@@ -4,24 +4,24 @@ import numpy as np
 import h5py
 
 
-class SnuddaLoadNetworkActivity:
+class SnuddaLoadNetworkSimulation:
 
-    def __init__(self, network_activity_file):
+    def __init__(self, network_simulation_output_file):
 
-        self.network_activity_file_name = network_activity_file
-        self.activity_file = None
+        self.network_simulation_output_file_name = network_simulation_output_file
+        self.network_simulation_file = None
 
-    def load(self, network_activitiy_file=None):
+    def load(self, network_simulation_output_file=None):
 
-        if not network_activitiy_file:
-            network_activitiy_file = self.network_activity_file_name
+        if not network_simulation_output_file:
+            network_simulation_output_file = self.network_simulation_output_file_name
 
-        self.activity_file = h5py.File(network_activitiy_file, "r")
+        self.network_simulation_file = h5py.File(network_simulation_output_file, "r")
 
     def close(self):
-        if self.activity_file:
-            self.activity_file.close()
-            self.activity_file = None
+        if self.network_simulation_file:
+            self.network_simulation_file.close()
+            self.network_simulation_file = None
 
     def merge_spikes(self, spike_data):
 
@@ -57,19 +57,19 @@ class SnuddaLoadNetworkActivity:
 
         if neuron_id is None:
             spike_data = dict()
-            for nid in self.activity_file["spikeData"]:
-                spike_data[int(nid)] = self.activity_file["spikeData"][nid]
+            for nid in self.network_simulation_file["spikeData"]:
+                spike_data[int(nid)] = self.network_simulation_file["spikeData"][nid]
 
         if np.issubdtype(neuron_id, np.integer):
-            if str(neuron_id) in self.activity_file["spikeData"]:
-                spike_data = self.activity_file["spikeData"][str(neuron_id)]
+            if str(neuron_id) in self.network_simulation_file["spikeData"]:
+                spike_data = self.network_simulation_file["spikeData"][str(neuron_id)]
             else:
                 spike_data = np.array([])
         else:
             spike_data = dict()
             for nid in neuron_id:
-                if str(nid) in self.activity_file["spikeData"]:
-                    spike_data[nid] = self.activity_file["spikeData"][str(nid)]
+                if str(nid) in self.network_simulation_file["spikeData"]:
+                    spike_data[nid] = self.network_simulation_file["spikeData"][str(nid)]
                 else:
                     spike_data[nid] = np.array([])
 
@@ -79,40 +79,40 @@ class SnuddaLoadNetworkActivity:
         """ Return volt data for neuron_id. """
 
         if neuron_id is None:
-            volt_data = self.activity_file["voltData"].copy()
+            volt_data = self.network_simulation_file["voltData"].copy()
         else:
-            volt_data = self.activity_file["voltData"][:, neuron_id].copy()
+            volt_data = self.network_simulation_file["voltData"][:, neuron_id].copy()
 
         return volt_data
 
     def get_neuron_positions(self, neuron_id=None):
 
         if neuron_id is None:
-            pos_data = self.activity_file["position"].copy()
+            pos_data = self.network_simulation_file["position"].copy()
 
         else:
-            pos_data = self.activity_file["position"][neuron_id, :].copy()
+            pos_data = self.network_simulation_file["position"][neuron_id, :].copy()
 
         return pos_data
 
     def get_id_of_neuron_type(self, neuron_type):
-        neuron_id = [x for x, y in zip(self.activity_file["neuronID"], self.activity_file["type"])
+        neuron_id = [x for x, y in zip(self.network_simulation_file["neuronID"], self.network_simulation_file["type"])
                      if y.lower() == neuron_type.lower()]
 
         return neuron_id
 
 
-def load_network_activity_cli():
+def load_network_simulation_cli():
     from argparse import ArgumentParser
 
     parser = ArgumentParser(description="Load snudda activity data (spikes and or voltage)")
     parser.add_argument("dataFile", help="Data file")
     args = parser.parse_args()
 
-    slna = SnuddaLoadNetworkActivity(network_activity_file=args.dataFile)
+    slna = SnuddaLoadNetworkSimulation(network_simulation_output_file=args.dataFile)
     slna.load()
 
 
 if __name__ == "__main__":
 
-    load_network_activity_cli()
+    load_network_simulation_cli()
