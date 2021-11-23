@@ -1,11 +1,11 @@
 import os
 import numpy as np
 
-from snudda import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 
 import matplotlib.pyplot as plt
 
-from snudda.utils import SnuddaLoadNetworkSimulation
+from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
 
 
 class SnuddaPlotSpikeRaster2:
