@@ -4,6 +4,8 @@ import os
 import numpy as np
 import h5py
 
+from snudda.utils.load import SnuddaLoad
+
 
 class SnuddaLoadNetworkSimulation:
 
@@ -109,7 +111,9 @@ class SnuddaLoadNetworkSimulation:
         else:
             volt_data = self.network_simulation_file["voltData"][:, neuron_id].copy()
 
-        return volt_data
+        time_data = self.network_simulation_file["time"].copy()
+
+        return volt_data, time_data
 
     def get_neuron_positions(self, neuron_id=None):
 
@@ -121,11 +125,36 @@ class SnuddaLoadNetworkSimulation:
 
         return pos_data
 
-    def get_id_of_neuron_type(self, neuron_type):
-        neuron_id = [x for x, y in zip(self.network_simulation_file["neuronID"], self.network_simulation_file["type"])
-                     if y.lower() == neuron_type.lower()]
+    def get_id_of_neuron_type(self, neuron_type=None):
+
+        if neuron_type:
+            neuron_id = [x for x, y in zip(self.network_simulation_file["neuronID"],
+                                           self.network_simulation_file["type"])
+                         if y.lower() == neuron_type.lower()]
+        else:
+            neuron_id = self.network_simulation_file["neuronID"].copy()
 
         return neuron_id
+
+    def get_neuron_name(self, neuron_id=None):
+        if neuron_id:
+            neuron_name = [SnuddaLoad.to_str(x) for x, y in zip(self.network_simulation_file["name"],
+                                                                self.network_simulation_file["neuronID"])
+                           if y in neuron_id]
+        else:
+            neuron_name = [SnuddaLoad.to_str(x) for x in self.network_simulation_file["name"]]
+
+        return neuron_name
+
+    def get_neuron_type(self, neuron_id=None):
+        if neuron_id:
+            neuron_type = [SnuddaLoad.to_str(x) for x, y in zip(self.network_simulation_file["type"],
+                                                                self.network_simulation_file["neuronID"])
+                           if y in neuron_id]
+        else:
+            neuron_type = [SnuddaLoad.to_str(x) for x in self.network_simulation_file["type"]]
+
+        return neuron_type
 
 
 def load_network_simulation_cli():

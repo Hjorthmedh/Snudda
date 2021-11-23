@@ -1954,7 +1954,7 @@ if __name__ == "__main__":
     sim.run(tSim)  # In milliseconds
 
     print("Simulation done, saving output")
-    # TODO: Clean up so only one output file!
+    # TODO: Clean up so only one output file! see core.py
     if spikes_file is not None:
         sim.write_output(output_file=spikes_file)
 
