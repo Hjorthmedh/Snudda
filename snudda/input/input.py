@@ -442,7 +442,7 @@ class SnuddaInput(object):
             else:
                 self.write_log(f"!!! Warning, no synaptic input for neuron ID {neuron_id}, "
                                f"name {neuron_name} or type {neuron_type}")
-                continue
+                input_info = dict()
 
             # if a number --> use a specific neuron with that given ID
             # if dSPN --> use neuron_type dSPN
