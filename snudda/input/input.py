@@ -440,8 +440,6 @@ class SnuddaInput(object):
             elif neuron_type in self.input_info:
                 input_info = self.input_info[neuron_type]
             else:
-                self.write_log(f"!!! Warning, no synaptic input for neuron ID {neuron_id}, "
-                               f"name {neuron_name} or type {neuron_type}")
                 input_info = dict()
 
             # if a number --> use a specific neuron with that given ID
@@ -469,6 +467,10 @@ class SnuddaInput(object):
 
                     for inp_name, inp_data in meta_data[parameter_key][morphology_key]["input"].items():
                         input_info[inp_name] = inp_data
+
+            if len(input_info) == 0:
+                self.write_log(f"!!! Warning, no synaptic input for neuron ID {neuron_id}, "
+                               f"name {neuron_name} or type {neuron_type}")
 
             for input_type in input_info:
 
