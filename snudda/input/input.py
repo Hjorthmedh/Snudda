@@ -467,7 +467,7 @@ class SnuddaInput(object):
                 if parameter_key in meta_data and morphology_key in meta_data[parameter_key] \
                         and "input" in meta_data[parameter_key][morphology_key]:
 
-                    for inp_name, inp_data in meta_data[parameter_key][morphology_key]:
+                    for inp_name, inp_data in meta_data[parameter_key][morphology_key]["input"].items():
                         input_info[inp_name] = inp_data
 
             for input_type in input_info:
