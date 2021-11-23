@@ -118,7 +118,7 @@ class SnuddaInput(object):
         self.neuron_input = None
         self.slurm_id = None
 
-        self.snudda_load = SnuddaLoad(hdf5_network_file)
+        self.snudda_load = SnuddaLoad(self.hdf5_network_file)
         self.network_data = self.snudda_load.data
         self.neuron_info = self.network_data["neurons"]
 
