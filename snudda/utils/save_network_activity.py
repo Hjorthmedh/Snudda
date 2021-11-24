@@ -8,9 +8,9 @@ from neuron import h  # , gui
 
 class SnuddaSaveNetworkActivity:
 
-    def __init__(self, voltage_file, network_data=None):
+    def __init__(self, output_file, network_data=None):
 
-        self.output_file = voltage_file
+        self.output_file = output_file
         self.network_data = network_data
 
         self.pc = h.ParallelContext()
@@ -97,10 +97,9 @@ class SnuddaSaveNetworkActivity:
                 meta_data.create_dataset("populationUnit", data=self.network_data["populationUnit"], compression="gzip")
                 meta_data.create_dataset("position", data=self.network_data["neuronPositions"], compression="gzip")
 
-            voltage_data.create_dataset("time", data=t_save*1e-3, compression="gzip")
             out_file.close()
 
-        if t_save is None or v_save is None or v_key is None:
+        if not t_save or not v_save or not v_key:
             print("No voltage data saved.")
         else:
             print("Saving voltage data...")
@@ -108,6 +107,9 @@ class SnuddaSaveNetworkActivity:
 
                 if i == int(self.pc.id()):
                     out_file = h5py.File(output_file, "a")
+
+                    if i == 0:
+                        out_file.create_dataset("time", data=t_save * 1e-3, compression="gzip")
 
                     for neuron_id, voltage in zip(v_key, v_save):
                         out_file["voltData"].create_dataset(str(neuron_id), data=voltage*1e-3, compression="gzip")

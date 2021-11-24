@@ -1564,9 +1564,9 @@ class SnuddaSimulate(object):
         """ Save neuron voltage to HDF5 file """
 
         if not output_file:
-            output_file = os.path.join(self.network_path, "simulation", "network-voltage.hdf5")
+            output_file = os.path.join(self.network_path, "simulation", "network-output.hdf5")
 
-        sv = SnuddaSaveNetworkActivity(voltage_file=output_file, network_data=self.network_info)
+        sv = SnuddaSaveNetworkActivity(output_file=output_file, network_data=self.network_info)
         sv.write(t_save=self.t_save, v_save=self.v_save, v_key=self.v_key,
                  t_spikes=self.t_spikes, id_spikes=self.id_spikes)
 
@@ -1898,7 +1898,6 @@ if __name__ == "__main__":
         try:
             slurm_id = digits[-2]
         except:
-            print("Failed to auto detect SlurmID, defaulting to 666")
             slurm_id = str(666)
 
     start = timeit.default_timer()
