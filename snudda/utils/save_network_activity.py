@@ -42,8 +42,9 @@ class SnuddaSaveNetworkActivity:
 
         # Internal consistency
         for idx in spikes:
-            assert not np.isnan(spikes[idx][-1])
-            assert spikes[idx].shape[0] == spike_ctr[idx]
+            assert len(spikes[idx]) == 0 or not np.isnan(spikes[idx][-1])
+            assert (idx in spike_ctr and spikes[idx].shape[0] == spike_ctr[idx]) \
+                or (idx not in spike_ctr and len(spikes[idx]) == 0)
 
         return spikes
 
