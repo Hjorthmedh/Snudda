@@ -59,8 +59,8 @@ class SnuddaSaveNetworkActivity:
             out_file = h5py.File(output_file, "w")
 
             meta_data = out_file.create_group("metaData")
-            voltage_data = out_file.create_group("voltData")
-            spike_data = out_file.create_group("spikeData")
+            out_file.create_group("voltData")
+            out_file.create_group("spikeData")
 
             if self.network_data:
                 neuron_id = np.array([x["neuronID"] for x in self.network_data["neurons"]])
