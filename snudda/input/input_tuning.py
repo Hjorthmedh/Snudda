@@ -273,10 +273,19 @@ class InputTuning(object):
 
         for start_time, end_time, input_freq in zip(cfg_data["start"], cfg_data["end"], cfg_data["frequency"]):
 
-            assert start_time + skip_time < end_time, "Too large skip time, no data to analyse"
-            spike_idx = np.where((start_time + skip_time <= spike_data[neuron_id])
-                                 & (spike_data[neuron_id] <= end_time))[0]
-            output_freq = len(spike_idx) / (end_time - start_time)
+
+            assert start_time + skip_time < end_time, \
+                f"Too large skip time, no data to analyse. start {start_time} + skip {skip_time} < end {end_time}"
+
+            try:
+                spike_idx = np.where((start_time + skip_time <= spike_data[neuron_id])
+                                     & (spike_data[neuron_id] <= end_time))[0]
+                output_freq = len(spike_idx) / (end_time - start_time)
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
 
             input_frequency.append(input_freq)
             output_frequency.append(output_freq)
@@ -311,7 +320,7 @@ class InputTuning(object):
             assert start_time + skip_time < end_time, "Too large skip time, no data to analyse"
 
             idx = np.where((start_time + skip_time <= time) & (time <= end_time))[0]
-            v = volt[neuron_id, :][idx]
+            v = volt[neuron_id][idx]
 
             input_frequency.append(input_freq)
             mean_voltage.append(np.mean(v))

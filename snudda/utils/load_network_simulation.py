@@ -86,73 +86,83 @@ class SnuddaLoadNetworkSimulation:
         if neuron_id is None:
             spike_data = dict()
             for nid in self.network_simulation_file["spikeData"]:
-                spike_data[int(nid)] = self.network_simulation_file["spikeData"][nid]
+                spike_data[int(nid)] = self.network_simulation_file["spikeData"][nid][()]
 
         elif np.issubdtype(neuron_id, np.integer):
             if str(neuron_id) in self.network_simulation_file["spikeData"]:
-                spike_data = self.network_simulation_file["spikeData"][str(neuron_id)]
+                spike_data = self.network_simulation_file["spikeData"][str(neuron_id)][()]
             else:
                 spike_data = np.array([])
         else:
             spike_data = dict()
             for nid in neuron_id:
                 if str(nid) in self.network_simulation_file["spikeData"]:
-                    spike_data[nid] = self.network_simulation_file["spikeData"][str(nid)]
+                    spike_data[nid] = self.network_simulation_file["spikeData"][str(nid)][()].copy()
                 else:
                     spike_data[nid] = np.array([])
+
+        # If all neuronID not represented, add empty
+        for nid in self.network_simulation_file["metaData/ID"]:
+            if nid not in spike_data:
+                spike_data[nid] = np.array([])
 
         return spike_data
 
     def get_voltage(self, neuron_id=None):
         """ Return volt data for neuron_id. """
 
-        if neuron_id is None:
-            volt_data = self.network_simulation_file["voltData"].copy()
-        else:
-            volt_data = self.network_simulation_file["voltData"][:, neuron_id].copy()
+        volt_data = dict()
 
-        time_data = self.network_simulation_file["time"].copy()
+        if neuron_id is None:
+            for nid in self.network_simulation_file["voltData"]:
+                if nid != "time":
+                    volt_data[int(nid)] = self.network_simulation_file["voltData"][nid][()].copy()
+        else:
+            for nid in neuron_id:
+                volt_data = self.network_simulation_file["voltData"][nid][()].copy()
+
+        time_data = self.network_simulation_file["voltData"]["time"][()].copy()
 
         return volt_data, time_data
 
     def get_neuron_positions(self, neuron_id=None):
 
         if neuron_id is None:
-            pos_data = self.network_simulation_file["position"].copy()
+            pos_data = self.network_simulation_file["metaData/position"][()].copy()
 
         else:
-            pos_data = self.network_simulation_file["position"][neuron_id, :].copy()
+            pos_data = self.network_simulation_file["metaData/position"][neuron_id, :].copy()
 
         return pos_data
 
     def get_id_of_neuron_type(self, neuron_type=None):
 
         if neuron_type:
-            neuron_id = [x for x, y in zip(self.network_simulation_file["neuronID"],
-                                           self.network_simulation_file["type"])
+            neuron_id = [x for x, y in zip(self.network_simulation_file["metaData/ID"],
+                                           self.network_simulation_file["metaData/type"])
                          if y.lower() == neuron_type.lower()]
         else:
-            neuron_id = self.network_simulation_file["neuronID"].copy()
+            neuron_id = self.network_simulation_file["metaData/ID"][()].copy()
 
         return neuron_id
 
     def get_neuron_name(self, neuron_id=None):
         if neuron_id:
-            neuron_name = [SnuddaLoad.to_str(x) for x, y in zip(self.network_simulation_file["name"],
-                                                                self.network_simulation_file["neuronID"])
+            neuron_name = [SnuddaLoad.to_str(x) for x, y in zip(self.network_simulation_file["metaData/name"],
+                                                                self.network_simulation_file["metaData/ID"])
                            if y in neuron_id]
         else:
-            neuron_name = [SnuddaLoad.to_str(x) for x in self.network_simulation_file["name"]]
+            neuron_name = [SnuddaLoad.to_str(x) for x in self.network_simulation_file["metaData/name"]]
 
         return neuron_name
 
     def get_neuron_type(self, neuron_id=None):
         if neuron_id:
-            neuron_type = [SnuddaLoad.to_str(x) for x, y in zip(self.network_simulation_file["type"],
-                                                                self.network_simulation_file["neuronID"])
+            neuron_type = [SnuddaLoad.to_str(x) for x, y in zip(self.network_simulation_file["metaData/type"],
+                                                                self.network_simulation_file["metaData/ID"])
                            if y in neuron_id]
         else:
-            neuron_type = [SnuddaLoad.to_str(x) for x in self.network_simulation_file["type"]]
+            neuron_type = [SnuddaLoad.to_str(x) for x in self.network_simulation_file["metaData/type"]]
 
         return neuron_type
 
