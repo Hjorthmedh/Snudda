@@ -109,7 +109,7 @@ class SnuddaSaveNetworkActivity:
                     out_file = h5py.File(output_file, "a")
 
                     if i == 0:
-                        out_file.create_dataset("time", data=t_save * 1e-3, compression="gzip")
+                        out_file["voltData"].create_dataset("time", data=t_save * 1e-3, compression="gzip")
 
                     for neuron_id, voltage in zip(v_key, v_save):
                         out_file["voltData"].create_dataset(str(neuron_id), data=voltage*1e-3, compression="gzip")
