@@ -471,9 +471,9 @@ class Snudda(object):
             args : command line arguments from argparse
 
         Example:
-            snudda simulate [--networkFile NETWORK_FILE] [--inputFile INPUT_FILE] [--time TIME] [--voltOut VOLT_OUT]
-            [--spikesOut SPIKES_OUT] [--neuromodulation NEUROMODULATION] [--disableGJ] [-mechdir MECH_DIR] [--profile]
-            [--verbose] [--exportCoreNeuron] path
+            snudda simulate [--networkFile NETWORK_FILE] [--inputFile INPUT_FILE] [--time TIME]
+            [--spikesOut SPIKES_OUT] [--neuromodulation NEUROMODULATION] [--noVolt] [--disableGJ]
+            [-mechdir MECH_DIR] [--profile] [--verbose] [--exportCoreNeuron] path
         """
 
         start = timeit.default_timer()

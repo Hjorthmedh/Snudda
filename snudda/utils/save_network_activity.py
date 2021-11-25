@@ -8,9 +8,9 @@ from neuron import h  # , gui
 
 class SnuddaSaveNetworkActivity:
 
-    def __init__(self, voltage_file, network_data=None):
+    def __init__(self, output_file, network_data=None):
 
-        self.output_file = voltage_file
+        self.output_file = output_file
         self.network_data = network_data
 
         self.pc = h.ParallelContext()
@@ -36,10 +36,15 @@ class SnuddaSaveNetworkActivity:
             spikes[idx][spike_ctr[idx]] = t
             spike_ctr[idx] += 1
 
+        for nid in self.network_data["neuronID"]:
+            if nid not in spikes:
+                spikes[nid] = np.zeros((0, ))
+
         # Internal consistency
         for idx in spikes:
-            assert not np.isnan(spikes[idx][-1])
-            assert spikes[idx].shape[0] == spike_ctr[idx]
+            assert len(spikes[idx]) == 0 or not np.isnan(spikes[idx][-1])
+            assert (idx in spike_ctr and spikes[idx].shape[0] == spike_ctr[idx]) \
+                or (idx not in spike_ctr and len(spikes[idx]) == 0)
 
         return spikes
 
@@ -59,8 +64,8 @@ class SnuddaSaveNetworkActivity:
             out_file = h5py.File(output_file, "w")
 
             meta_data = out_file.create_group("metaData")
-            voltage_data = out_file.create_group("voltData")
-            spike_data = out_file.create_group("spikeData")
+            out_file.create_group("voltData")
+            out_file.create_group("spikeData")
 
             if self.network_data:
                 neuron_id = np.array([x["neuronID"] for x in self.network_data["neurons"]])
@@ -97,10 +102,9 @@ class SnuddaSaveNetworkActivity:
                 meta_data.create_dataset("populationUnit", data=self.network_data["populationUnit"], compression="gzip")
                 meta_data.create_dataset("position", data=self.network_data["neuronPositions"], compression="gzip")
 
-            voltage_data.create_dataset("time", data=t_save*1e-3, compression="gzip")
             out_file.close()
 
-        if t_save is None or v_save is None or v_key is None:
+        if not t_save or not v_save or not v_key:
             print("No voltage data saved.")
         else:
             print("Saving voltage data...")
@@ -108,6 +112,9 @@ class SnuddaSaveNetworkActivity:
 
                 if i == int(self.pc.id()):
                     out_file = h5py.File(output_file, "a")
+
+                    if i == 0:
+                        out_file["voltData"].create_dataset("time", data=t_save * 1e-3, compression="gzip")
 
                     for neuron_id, voltage in zip(v_key, v_save):
                         out_file["voltData"].create_dataset(str(neuron_id), data=voltage*1e-3, compression="gzip")

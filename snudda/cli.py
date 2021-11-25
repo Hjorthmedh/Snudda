@@ -109,8 +109,8 @@ def snudda_cli():
 
     simulate_parser.add_argument("--time", type=float, default=2.5, help="Duration of simulation in seconds")
 
-    simulate_parser.add_argument("--voltOut", "--voltout", dest="record_volt", action="store_true",
-                                 help="Name of voltage output file (csv)")
+    simulate_parser.add_argument("--noVolt", "--novolt", dest="record_volt", action="store_false",
+                                 help="Exclude voltage data, to save time and space.")
     simulate_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
 
     simulate_parser.add_argument("--neuromodulation", type=str, default=None,

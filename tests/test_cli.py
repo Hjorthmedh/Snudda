@@ -115,7 +115,7 @@ class TestCLI(unittest.TestCase):
             os.system(eval_str)
 
             # print("---> Testing to run simulate using os.system instead")
-            # os.system("snudda simulate tiny_parallel --time 0.1 --voltOut")
+            # os.system("snudda simulate tiny_parallel --time 0.1")
 
 
             # For the unittest we for some reason need to load mechansism
@@ -149,7 +149,7 @@ class TestCLI(unittest.TestCase):
                     pdb.set_trace()
                 
             print("Time to run simulation...")
-            run_cli_command("simulate tiny_parallel --time 0.1 --voltOut")
+            run_cli_command("simulate tiny_parallel --time 0.1")
 
         os.environ["SLURM_JOBID"] = "1234"
 
