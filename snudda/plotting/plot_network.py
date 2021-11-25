@@ -191,7 +191,7 @@ class PlotNetwork(object):
         neuron_colours = np.array(neuron_colours)
         positions = self.sl.data["neuronPositions"]
 
-        ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], c=neuron_colours, marker='o', s=20,alpha=alphas)
+        ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], c=neuron_colours, marker='o', s=20)
 
         self.equal_axis(ax)
 
