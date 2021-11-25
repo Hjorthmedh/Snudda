@@ -269,7 +269,7 @@ class SnuddaInput(object):
                         chan_spikes = self.population_unit_spikes[neuron_type][input_type][population_unit_id]
                     else:
                         chan_spikes = np.array([])
-                        
+
                     it_group.create_dataset("populationUnitSpikes", data=chan_spikes)
 
                     it_group.create_dataset("generator", data=neuron_in["generator"])

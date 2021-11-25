@@ -36,10 +36,6 @@ class SnuddaSaveNetworkActivity:
             spikes[idx][spike_ctr[idx]] = t
             spike_ctr[idx] += 1
 
-        for nid in self.network_data["neuronID"]:
-            if nid not in spikes:
-                spikes[nid] = np.zeros((0, ))
-
         # Internal consistency
         for idx in spikes:
             assert len(spikes[idx]) == 0 or not np.isnan(spikes[idx][-1])
