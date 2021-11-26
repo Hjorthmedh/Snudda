@@ -238,15 +238,15 @@ class SnuddaInput(object):
                     neuron_in = self.neuron_input[neuron_id][input_type]
                     spike_mat, num_spikes = self.create_spike_matrix(neuron_in["spikes"])
 
-                    it_group.create_dataset("spikes", data=spike_mat, compression="gzip")
-                    it_group.create_dataset("nSpikes", data=num_spikes)
+                    it_group.create_dataset("spikes", data=spike_mat, compression="gzip", dtype=np.float32)
+                    it_group.create_dataset("nSpikes", data=num_spikes, dtype=np.int32)
 
                     it_group.create_dataset("sectionID", data=neuron_in["location"][1].astype(int),
-                                            compression="gzip")
+                                            compression="gzip", dtype=np.int16)
                     it_group.create_dataset("sectionX", data=neuron_in["location"][2],
-                                            compression="gzip")
+                                            compression="gzip", dtype=np.float16)
                     it_group.create_dataset("distanceToSoma", data=neuron_in["location"][3],
-                                            compression="gzip")
+                                            compression="gzip", dtype=np.float16)
 
                     it_group.create_dataset("freq", data=neuron_in["freq"])
                     it_group.create_dataset("correlation", data=neuron_in["correlation"])
@@ -273,7 +273,8 @@ class SnuddaInput(object):
                     else:
                         chan_spikes = np.array([])
 
-                    it_group.create_dataset("populationUnitSpikes", data=chan_spikes, compression="gzip")
+                    it_group.create_dataset("populationUnitSpikes", data=chan_spikes, compression="gzip",
+                                            dtype=np.float32)
 
                     it_group.create_dataset("generator", data=neuron_in["generator"])
 
@@ -282,7 +283,7 @@ class SnuddaInput(object):
                         it_group.create_dataset("parameterFile", data=neuron_in["parameterFile"])
                     # We need to convert this to string to be able to save it
                     it_group.create_dataset("parameterList", data=json.dumps(neuron_in["parameterList"]))
-                    it_group.create_dataset("parameterID", data=neuron_in["parameterID"])
+                    it_group.create_dataset("parameterID", data=neuron_in["parameterID"], dtype=np.int32)
 
                 else:
 
