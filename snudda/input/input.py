@@ -238,12 +238,15 @@ class SnuddaInput(object):
                     neuron_in = self.neuron_input[neuron_id][input_type]
                     spike_mat, num_spikes = self.create_spike_matrix(neuron_in["spikes"])
 
-                    it_group.create_dataset("spikes", data=spike_mat)
+                    it_group.create_dataset("spikes", data=spike_mat, compression="gzip")
                     it_group.create_dataset("nSpikes", data=num_spikes)
 
-                    it_group.create_dataset("sectionID", data=neuron_in["location"][1].astype(int))
-                    it_group.create_dataset("sectionX", data=neuron_in["location"][2])
-                    it_group.create_dataset("distanceToSoma", data=neuron_in["location"][3])
+                    it_group.create_dataset("sectionID", data=neuron_in["location"][1].astype(int),
+                                            compression="gzip")
+                    it_group.create_dataset("sectionX", data=neuron_in["location"][2],
+                                            compression="gzip")
+                    it_group.create_dataset("distanceToSoma", data=neuron_in["location"][3],
+                                            compression="gzip")
 
                     it_group.create_dataset("freq", data=neuron_in["freq"])
                     it_group.create_dataset("correlation", data=neuron_in["correlation"])
@@ -270,7 +273,7 @@ class SnuddaInput(object):
                     else:
                         chan_spikes = np.array([])
 
-                    it_group.create_dataset("populationUnitSpikes", data=chan_spikes)
+                    it_group.create_dataset("populationUnitSpikes", data=chan_spikes, compression="gzip")
 
                     it_group.create_dataset("generator", data=neuron_in["generator"])
 
@@ -287,7 +290,7 @@ class SnuddaInput(object):
                     a_group = nid_group.create_group("activity")
                     spikes = self.neuron_input[neuron_id][input_type]["spikes"]
 
-                    a_group.create_dataset("spikes", data=spikes)
+                    a_group.create_dataset("spikes", data=spikes, compression="gzip")
                     generator = self.neuron_input[neuron_id][input_type]["generator"]
                     a_group.create_dataset("generator", data=generator)
 
