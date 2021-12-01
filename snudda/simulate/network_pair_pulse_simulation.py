@@ -54,6 +54,8 @@ import sys
 import numpy as np
 from snudda.simulate.simulate import SnuddaSimulate
 from snudda.utils.load import SnuddaLoad
+from snudda.utils import SnuddaLoadNetworkSimulation
+
 import matplotlib
 import matplotlib.pyplot as plt
 import neuron
@@ -119,10 +121,10 @@ class SnuddaNetworkPairPulseSimulation:
         self.inj_duration = 1e-3
 
         # Voltage file
-        self.volt_file = os.path.join(self.network_path,
-                                      f"synapse-calibration-volt-{self.pre_type}-{self.post_type}.txt")
-        self.volt_file_alt_mask = os.path.join(self.network_path,
-                                               f"synapse-calibration-volt-{self.pre_type}-*.txt")
+        # self.volt_file = os.path.join(self.network_path,
+        #                               f"synapse-calibration-volt-{self.pre_type}-{self.post_type}.txt")
+        # self.volt_file_alt_mask = os.path.join(self.network_path,
+        #                                        f"synapse-calibration-volt-{self.pre_type}-*.txt")
 
         self.snudda_sim = None   # Defined in run_sim
         self.snudda_load = None  # Defined in analyse
@@ -290,40 +292,8 @@ class SnuddaNetworkPairPulseSimulation:
         self.snudda_sim.run(sim_end * 1e3, hold_v=self.hold_v)
 
         # Write results to disk
-        self.snudda_sim.write_voltage(self.volt_file)
-
-    ############################################################################
-
-    def read_voltage(self, volt_file):
-
-        if not os.path.exists(volt_file):
-            print("Missing " + volt_file)
-
-            all_file = self.volt_file_alt_mask.replace("*", "ALL")
-
-            if os.path.exists(all_file):
-                print(f"Using {all_file} instead")
-                volt_file = all_file
-            elif self.pre_type == self.post_type:
-                file_list = glob.glob(self.volt_file_alt_mask)
-                if len(file_list) > 0:
-                    volt_file = file_list[0]
-                    print(f"Using {volt_file} instead, since pre and post are same")
-            else:
-                print("Aborting")
-                sys.exit(-1)
-
-        data = np.genfromtxt(volt_file, delimiter=',')
-        assert (data[0, 0] == -1)  # First column should be time
-        time = data[0, 1:] / 1e3
-
-        voltage = dict()
-
-        for rows in data[1:, :]:
-            c_id = int(rows[0])
-            voltage[c_id] = rows[1:] * 1e-3
-
-        return time, voltage
+        # self.snudda_sim.write_voltage_OLD(self.volt_file)
+        self.snudda_sim.write_output()
 
     ############################################################################
 
@@ -340,7 +310,9 @@ class SnuddaNetworkPairPulseSimulation:
         self.snudda_load = SnuddaLoad(self.network_file)
         self.data = self.snudda_load.data
 
-        time, voltage = self.read_voltage(self.volt_file)  # sets self.voltage
+        ssd = SnuddaLoadNetworkSimulation(network_path=self.network_path)
+        voltage, time = ssd.get_voltage()
+
         check_width = 0.05
 
         # Generate current info structure

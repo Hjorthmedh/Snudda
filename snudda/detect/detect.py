@@ -303,6 +303,7 @@ class SnuddaDetect(object):
 
             # Make sure path exists
             if not os.path.exists(os.path.dirname(self.save_file)):
+                self.write_log(f"Creating directory {os.path.dirname(self.save_file)}")
                 os.mkdir(os.path.dirname(self.save_file))
 
             self.setup_parallel(d_view=d_view)
@@ -589,6 +590,10 @@ class SnuddaDetect(object):
         neuron_id_list = [n["neuronID"] for n in self.neurons]
         neuron_group.create_dataset("neuronID", (len(neuron_id_list),),
                                     'int', neuron_id_list)
+
+        neuron_path = [n["neuronPath"] for n in self.neurons]
+        max_np_len = max([len(x) for x in neuron_path])
+        neuron_group.create_dataset("neuronPath", (len(neuron_path),), f"S{max_np_len}", neuron_path)
 
         # Just make sure there is at least one neuron in volumeIDlist
         # that is inside volumeID
@@ -3337,6 +3342,7 @@ class SnuddaDetect(object):
         fig_name = os.path.join(self.network_path, "figures", fig_file_name)
 
         if not os.path.exists(os.path.dirname(fig_name)):
+            print(f"plot_hyper_voxel: Creating directory : {os.path.dirname(fig_name)}")
             os.mkdir(os.path.dirname(fig_name))
 
         plt.savefig(fig_name, dpi=dpi)

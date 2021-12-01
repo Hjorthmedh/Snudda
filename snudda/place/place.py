@@ -10,7 +10,6 @@
 # (Human Brain Project SGA1, SGA2, SGA3).
 
 #
-import glob
 import sys
 
 import numexpr
@@ -209,14 +208,15 @@ class SnuddaPlace(object):
         first_added = True
 
         neuron_rotations = self.rotate_helper.get_rotations(volume_name=volume_id, neuron_type=neuron_type,
-                                                            neuron_positions=neuron_positions, rng=self.random_generator)
+                                                            neuron_positions=neuron_positions,
+                                                            rng=self.random_generator)
 
         for coords, rotation in zip(neuron_positions, neuron_rotations):
             # We set loadMorphology = False, to preserve memory
             # Only morphology loaded for nm then, to get axon and dend
             # radius needed for connectivity
 
-            # Pick a random parameterset
+            # Pick a random parameter set
             # parameter.json can be a list of lists, this allows you to select the
             # parameter set randomly
             # modulation.json is similarly formatted, pick a parameter set here
@@ -590,13 +590,17 @@ class SnuddaPlace(object):
         hoc_list = [n.hoc.encode("ascii", "ignore") for n in self.neurons]
         max_hoc_len = max([len(x) for x in hoc_list])
         max_hoc_len = max(max_hoc_len, 10)  # In case there are none
-        neuron_group.create_dataset("hoc", (len(hoc_list),), 'S' + str(max_hoc_len), hoc_list,
+        neuron_group.create_dataset("hoc", (len(hoc_list),), f"S{max_hoc_len}", hoc_list,
                                     compression="gzip")
 
         swc_list = [n.swc_filename.encode("ascii", "ignore") for n in self.neurons]
         max_swc_len = max([len(x) for x in swc_list])
-        neuron_group.create_dataset("morphology", (len(swc_list),), 'S' + str(max_swc_len), swc_list,
+        neuron_group.create_dataset("morphology", (len(swc_list),), f"S{max_swc_len}", swc_list,
                                     compression="gzip")
+
+        neuron_path = [n.neuron_path.encode("ascii", "ignore") for n in self.neurons]
+        max_np_len = max([len(x) for x in neuron_path])
+        neuron_group.create_dataset("neuronPath", (len(neuron_path),), f"S{max_np_len}", neuron_path)
 
         virtual_neuron_list = np.array([n.virtual_neuron for n in self.neurons], dtype=bool)
         virtual_neuron = neuron_group.create_dataset("virtualNeuron",
@@ -953,13 +957,13 @@ class SnuddaPlace(object):
         ax.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], c=colours, alpha=0.5)
         plt.show()
 
-    def cluster_neurons(self, n_trials=3):
+    def cluster_neurons(self, n_trials=5):
 
         """
         Cluster neurons, so that nearby neurons are grouped on same worker, to speed up simulations.
 
         Args:
-            n_trials (int) : Number of trials for k-means clustering (default 3)
+            n_trials (int) : Number of trials for k-means clustering (default 5)
         """
 
         n_workers = len(self.d_view) if self.d_view is not None else 1
@@ -1013,13 +1017,15 @@ class SnuddaPlace(object):
 
         # Sometimes the original cluster is bad? Try again...
         if np.count_nonzero(neuron_order < 0) > 0 and n_trials > 1:
-            self.write_log(f"Redoing place:neuron_clustering, {np.count_nonzero(neuron_order < 0)} neurons unaccounted for",
+            self.write_log(f"Redoing place:neuron_clustering, {np.count_nonzero(neuron_order < 0)} "
+                           f"neurons unaccounted for",
                            is_error=True)
             self.write_log(f"incorrect neuron_order={neuron_order} (printed for debugging)")
             neuron_order = self.cluster_neurons(n_trials=n_trials-1)
 
         # TODO: This occured once on Tegner, why did it happen?
-        assert np.count_nonzero(neuron_order < 0) == 0, "cluster_neurons: Not all neurons accounted for. Please rerun place."
+        assert np.count_nonzero(neuron_order < 0) == 0, \
+            "cluster_neurons: Not all neurons accounted for. Please rerun place."
 
         # Just some check that all is ok
         assert (np.diff(np.sort(neuron_order)) == 1).all(), "cluster_neurons: There are gaps in the sorting, error"

@@ -120,9 +120,9 @@ class SnuddaModifyNetworkTestCase(unittest.TestCase):
             for neuron_type in self.original_type_count:
                 if neuron_type == "iSPN":
                     # Check that we are within a range of 30% removed
-                    self.assertTrue(0.6 * self.original_type_count[neuron_type]
+                    self.assertTrue(0.5 * self.original_type_count[neuron_type]
                                     < new_type_count[neuron_type]
-                                    < 0.8 * self.original_type_count[neuron_type])
+                                    < 0.9 * self.original_type_count[neuron_type])
                 else:
                     self.assertEqual(new_type_count[neuron_type], self.original_type_count[neuron_type])
 

@@ -42,6 +42,8 @@ def snudda_cli():
                              help="Path to neurons_dir, default is $DATA/neurons")
     init_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory",
                              action="store_true")
+    init_parser.add_argument("-connectionFile", "--connectionFile", default=None,
+                             help="Use connectivity from user specified JSON file")
     init_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
     init_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     init_parser.add_argument("--verbose", action="store_true")
@@ -102,13 +104,13 @@ def snudda_cli():
                                  dest="network_file", default=None)
     simulate_parser.add_argument("--inputFile", help="Input hdf5 file (for simulation)",
                                  dest="input_file", default=None)
+    simulate_parser.add_argument("--outputFile", help="Output hdf5 file (from simulation)",
+                                 dest="output_file", default=None)
 
     simulate_parser.add_argument("--time", type=float, default=2.5, help="Duration of simulation in seconds")
 
-    simulate_parser.add_argument("--voltOut", "--voltout", dest="volt_out", default=None,
-                                 help="Name of voltage output file (csv)")
-    simulate_parser.add_argument("--spikesOut", "--spikesout", dest="spikes_out", default=None,
-                                 help="Name of spike output file (csv)")
+    simulate_parser.add_argument("--noVolt", "--novolt", dest="record_volt", action="store_false",
+                                 help="Exclude voltage data, to save time and space.")
     simulate_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
 
     simulate_parser.add_argument("--neuromodulation", type=str, default=None,

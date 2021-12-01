@@ -30,6 +30,18 @@ class NeuronPrototype:
             self.neuron_path = snudda_parse_path(neuron_path)
         elif parameter_path:
             self.neuron_path = os.path.dirname(snudda_parse_path(parameter_path))
+        elif morphology_path:
+            # morphology path usually points to "morphology" directory, but it can also point to a specific morphology
+            # which should be in neuron_path then (old format), but it might be in morphology folder...
+
+            if os.path.isdir(snudda_parse_path(morphology_path)):
+                self.neuron_path = os.path.dirname(snudda_parse_path(morphology_path))
+            elif os.path.isfile(snudda_parse_path(morphology_path)):
+                morph_path = os.path.dirname(snudda_parse_path(morphology_path))
+                if "morphology" in morph_path:
+                    self.neuron_path = os.path.dirname(morph_path)
+                else:
+                    self.neuron_path = morph_path
         else:
             self.neuron_path = None
 
@@ -324,6 +336,7 @@ class NeuronPrototype:
                     self.morphology_cache[morph_tag] = NeuronMorphology(swc_filename=morph_path,
                                                                         param_data=self.parameter_path,
                                                                         mech_filename=self.mechanism_path,
+                                                                        neuron_path=self.neuron_path,
                                                                         name=self.neuron_name,
                                                                         hoc=None,
                                                                         load_morphology=self.load_morphology,
@@ -381,6 +394,7 @@ class NeuronPrototype:
             self.morphology_cache[morph_tag] = NeuronMorphology(swc_filename=morph_path,
                                                                 param_data=self.parameter_path,
                                                                 mech_filename=self.mechanism_path,
+                                                                neuron_path=self.neuron_path,
                                                                 name=self.neuron_name,
                                                                 hoc=None,
                                                                 load_morphology=self.load_morphology,

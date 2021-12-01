@@ -279,7 +279,7 @@ class PairRecording(SnuddaSimulate):
 
         # Write results to disk
         try:
-            self.write_voltage(output_file=self.output_voltage_file_name)
+            self.write_voltage_OLD(output_file=self.output_voltage_file_name)
             self.write_synaptic_current(output_file=self.output_synaptic_current_file_name)
         except:
             import traceback
@@ -378,6 +378,8 @@ class PairRecording(SnuddaSimulate):
         self.record_from_pair.append((pre_neuron_id, post_neuron_id))
 
     def write_synaptic_current(self, output_file, down_sampling=20):
+
+        # TODO: This functionality should be integrated into simulate.py and save_network_activity.py
 
         if not output_file:
             output_file = os.path.join(self.network_path, "simulation", "network-synapse-current.txt")

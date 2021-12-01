@@ -20,21 +20,7 @@ from snudda.utils.snudda_path import snudda_parse_path, snudda_simplify_path
 from snudda.utils.snudda_path import snudda_path_exists
 from snudda.utils.snudda_path import snudda_isdir
 from snudda.utils.snudda_path import snudda_isfile
-
-
-class NumpyEncoder(json.JSONEncoder):
-    """ Encodes numpy objects for export to JSON """
-
-    def default(self, obj):
-        if isinstance(obj, np.integer):
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            return float(obj)
-        elif isinstance(obj, np.ndarray):
-            return obj.tolist()
-        else:
-            # return super(NumpyEncoder, self).default(obj)
-            return json.JSONEncoder.default(self, obj)
+from snudda.utils.numpy_encoder import NumpyEncoder
 
 
 class SnuddaInit(object):
@@ -45,7 +31,9 @@ class SnuddaInit(object):
                  struct_def=None,
                  neurons_dir=None,
                  config_file=None,
-                 random_seed=None):
+                 random_seed=None,
+                 connection_override_file=None):
+
         """Constructor
 
            Args:
@@ -97,10 +85,16 @@ class SnuddaInit(object):
                 print("Adding " + sn + " with " + str(struct_def[sn]) + " neurons")
                 struct_func[sn](num_neurons=struct_def[sn], neurons_dir=neurons_dir)
 
+            if connection_override_file:
+                self.replace_connectivity(connection_file=connection_override_file)
+
             # Only write JSON file if the structDef was not empty
             self.write_json(self.config_file)
         else:
-            pass
+
+            if connection_override_file:
+                self.replace_connectivity(connection_file=connection_override_file)
+
             # print("No structDef defined, not writing JSON file in init")
 
     ############################################################################
@@ -327,6 +321,36 @@ class SnuddaInit(object):
 
     ############################################################################
 
+    def replace_connectivity(self, connection_file=None, connection_dict=None):
+
+        """ Replaces the default connectivity.
+        
+        Args: 
+            connection_file : Path to JSON file with connection block
+            connection_dict : OrderedDict (or dict) with connection block
+        
+        """
+
+        assert (connection_file is not None) + (connection_dict is not None) == 1, \
+            f"replace_connectivity: One of connection_file and connection_dict should be given"
+
+        if connection_file:
+            connection_file = snudda_parse_path(connection_file)
+            print(f"Reading connectivity from {connection_file}")
+            assert os.path.isfile(connection_file), f"Connection JSON file {connection_file} does not exist."
+
+            with open(connection_file, "r") as f:
+                connection_dict = json.load(f, object_pairs_hook=collections.OrderedDict)
+
+        assert type(connection_dict) in [collections.OrderedDict, dict]
+
+        assert "Connectivity" in connection_dict, \
+            f"replace_connectivity: Missing the Connectivity key in dictionary:\n{connection_dict}"
+
+        self.network_data["Connectivity"] = connection_dict["Connectivity"]
+
+    ############################################################################
+
     # modelType is "neuron" or "virtual" (= just provides input to network)
     # For axonDensity when it is "xyz" we assume that soma is at 0,0,0
 
@@ -389,7 +413,7 @@ class SnuddaInit(object):
                 p_corner = numexpr.evaluate(axon_density[1]) * (3e-6 ** 3)
 
                 for P, xx, yy, zz in zip(p_corner, x, y, z):
-                    print(name + " axon density P(" + str(xx) + "," + str(yy) + "," + str(zz) + ") = " + str(P))
+                    print(f"{name} axon density P({xx}, {yy}, {zz}) = {P}")
 
                 if (p_corner > 0.01).any():
                     print("Axon density too high at boundary!!")
@@ -399,7 +423,7 @@ class SnuddaInit(object):
                 # print(str(axonDensity[3]) + " " + str(name) \
                 #      + " axon points to place")
 
-        print("Adding neurons: " + str(name) + " from dir " + str(neuron_dir))
+        print(f"Adding neurons: {name} from dir {snudda_parse_path(neuron_dir)}")
         # TODO: We should force users to use same name as the directory name
         # ie, fs/FS_0 directory should be named FS_0
 
@@ -463,13 +487,13 @@ class SnuddaInit(object):
             cell_data = dict([])
 
             if not snudda_isfile(par_file) and model_type != "virtual":
-                print(f"Parameter file not found: {par_file}")
+                print(f"Parameter file not found: {snudda_parse_path(par_file)}")
 
             if not snudda_isfile(mech_file) and model_type != "virtual":
-                print(f"Mechanism file not found: {mech_file}")
+                print(f"Mechanism file not found: {snudda_parse_path(mech_file)}")
 
             if hoc_file is not None and not snudda_isfile(hoc_file):
-                print(f"Hoc file not found: {hoc_file}")
+                print(f"Hoc file not found: {snudda_parse_path(hoc_file)}")
 
             cell_data["morphology"] = swc_file
             cell_data["parameters"] = par_file
@@ -887,13 +911,13 @@ class SnuddaInit(object):
         if neurons_dir is None:
             neurons_dir = os.path.join("$SNUDDA_DATA", "neurons")
 
+        print(f"Neurons for striatum read from {snudda_parse_path(neurons_dir)}/striatum")
+
         FS_dir = os.path.join(neurons_dir, "striatum", "fs")
         dSPN_dir = os.path.join(neurons_dir, "striatum", "dspn")
         iSPN_dir = os.path.join(neurons_dir, "striatum", "ispn")
         ChIN_dir = os.path.join(neurons_dir, "striatum", "chin")
         LTS_dir = os.path.join(neurons_dir, "striatum", "lts")
-
-        self.reg_size = 5
 
         if "PopulationUnits" in self.network_data and "Striatum" in self.network_data["PopulationUnits"]:
             num_population_units = len(self.network_data["PopulationUnits"]["Striatum"]["unitID"])
