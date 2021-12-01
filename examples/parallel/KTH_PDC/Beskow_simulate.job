@@ -7,6 +7,7 @@
 #SBATCH -e save/error-BeskowSnuddaSimulate.e%j
 #SBATCH --nodes=10-20
 #SBATCH --ntasks-per-node=32
+#SBATCH --mail-type=ALL
 
 # 16 workers were too few, got section stack overflow (there is a hidden
 # push to the stack somewhere in the neuron code)

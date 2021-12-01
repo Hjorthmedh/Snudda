@@ -77,7 +77,7 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
                     continue
 
                 try:
-                    pair_id = tuple([self.allTypes.index(x) for x in pair])
+                    pair_id = tuple([self.all_types.index(x) for x in pair])
                 except:
                     import traceback
                     tstr = traceback.format_exc()

@@ -1,5 +1,6 @@
 import ast
 import os
+import sys
 import glob
 import collections
 import json
@@ -9,6 +10,7 @@ import h5py
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.place.create_cube_mesh import create_cube_mesh
 from snudda.neurons.neuron_morphology import NeuronMorphology
+from snudda.utils import SnuddaLoadNetworkSimulation
 from snudda.utils.reposition_neurons import RepositionNeurons
 from snudda.init.init import SnuddaInit
 from snudda.input.input import SnuddaInput
@@ -60,9 +62,6 @@ class InputTuning(object):
         self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         self.input_config_file = os.path.join(self.network_path, "input_config.json")
         self.input_spikes_file = os.path.join(self.network_path, 'input.hdf5')
-
-        self.output_spike_file = os.path.join(self.network_path, 'output_spikes.txt')
-        self.output_volt_file = os.path.join(self.network_path, 'output_volt.txt')
 
         self.core = Snudda(self.network_path)
 
@@ -194,25 +193,22 @@ class InputTuning(object):
 
         input_data = h5py.File(self.input_spikes_file, "r")
 
-        spike_data_file = os.path.join(self.network_path, "output_spikes.txt")
-        n_neurons = network_info.data["nNeurons"]
-        spike_data = self.load_spike_data(spike_data_file, n_neurons)
+        output_data_loader = SnuddaLoadNetworkSimulation(network_path=self.network_path)
+        spike_data = output_data_loader.get_spikes()
 
-        volt_file = os.path.join(self.network_path, "output_volt.txt")
-        cell_id, time, volt = self.load_voltage_data(volt_file)
+        # cell_id = output_data_loader.get_id_of_neuron_type()
+        volt, time = output_data_loader.get_voltage()
 
         # We need to figure out what neuronID correspond to that morphologies
         # Then figure out what input frequencies the different runs had
 
-        neuron_id_list = [x["neuronID"] for x in network_info.data["neurons"]]
-        neuron_name_list = [x["name"] for x in network_info.data["neurons"]]
-
-        neuron_id_name_pairs = [(x["neuronID"], x["name"]) for x in network_info.data["neurons"]]
+        neuron_id_list = output_data_loader.get_id_of_neuron_type()
+        neuron_name_list = output_data_loader.get_neuron_name()
 
         # For each morphology-model we have a list of the run with that model
         neuron_id_lookup = dict()
 
-        for neuron_id, neuron_name in neuron_id_name_pairs:
+        for neuron_id, neuron_name in zip(neuron_id_list, neuron_name_list):
             if neuron_name in neuron_id_lookup:
                 neuron_id_lookup[neuron_name].append(neuron_id)
             else:
@@ -277,10 +273,19 @@ class InputTuning(object):
 
         for start_time, end_time, input_freq in zip(cfg_data["start"], cfg_data["end"], cfg_data["frequency"]):
 
-            assert start_time + skip_time < end_time, "Too large skip time, no data to analyse"
-            spike_idx = np.where((start_time + skip_time <= spike_data[neuron_id])
-                                 & (spike_data[neuron_id] <= end_time))[0]
-            output_freq = len(spike_idx) / (end_time - start_time)
+
+            assert start_time + skip_time < end_time, \
+                f"Too large skip time, no data to analyse. start {start_time} + skip {skip_time} < end {end_time}"
+
+            try:
+                spike_idx = np.where((start_time + skip_time <= spike_data[neuron_id])
+                                     & (spike_data[neuron_id] <= end_time))[0]
+                output_freq = len(spike_idx) / (end_time - start_time)
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
 
             input_frequency.append(input_freq)
             output_frequency.append(output_freq)
@@ -297,15 +302,6 @@ class InputTuning(object):
             input_config = json.load(f, object_pairs_hook=collections.OrderedDict)
 
         return input_config
-
-    def load_voltage_data(self, file_name):
-
-        data = np.genfromtxt(file_name, delimiter=',')
-        t = data[0, 1:] * 1e-3
-        cell_id = data[1:, 0].astype(int)
-        volt = data[1:, 1:]*1e-3
-
-        return cell_id, t, volt
 
     def extract_voltage(self, volt, time, config_data, neuron_id, skip_time=0.0):
 
@@ -324,7 +320,7 @@ class InputTuning(object):
             assert start_time + skip_time < end_time, "Too large skip time, no data to analyse"
 
             idx = np.where((start_time + skip_time <= time) & (time <= end_time))[0]
-            v = volt[neuron_id, :][idx]
+            v = volt[neuron_id][idx]
 
             input_frequency.append(input_freq)
             mean_voltage.append(np.mean(v))
@@ -918,8 +914,7 @@ class InputTuning(object):
         sim.run(t_sim)  # In milliseconds
 
         print("Simulation done, saving output")
-        sim.write_spikes(self.output_spike_file )
-        sim.write_voltage(self.output_volt_file)
+        sim.write_output()
 
         stop = timeit.default_timer()
         if sim.pc.id() == 0:
@@ -958,6 +953,13 @@ class InputTuning(object):
 
 
 if __name__ == "__main__":
+
+    if '-python' in sys.argv:
+        print("Network_simulate.py called through nrniv, fixing arguments")
+        pythonidx = sys.argv.index('-python')
+        if len(sys.argv) > pythonidx:
+            sys.argv = sys.argv[pythonidx + 1:]
+    
     from argparse import ArgumentParser, RawTextHelpFormatter
 
     parser = ArgumentParser("Input Scaling", formatter_class=RawTextHelpFormatter)

@@ -8,6 +8,8 @@ class SnuddaLoadSpikeData:
 
     def __init__(self, spike_data_file, network_file):
 
+        assert False, "This is now obsolete. Please use load_network_simulation.py"
+
         self.spike_data_file = spike_data_file
         self.network_file = network_file
 

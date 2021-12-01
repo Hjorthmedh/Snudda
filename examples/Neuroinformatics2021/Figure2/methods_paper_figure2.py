@@ -221,7 +221,7 @@ class MethodsPaperFigure2:
         connection_type = "synapses"
 
         for idx, a in enumerate(self.analysis):
-            pair_id = tuple([a.allTypes.index(x) for x in pair])
+            pair_id = tuple([a.all_types.index(x) for x in pair])
 
             cum_dist = np.cumsum(a.dend_position_bin[pair_id]) / np.sum(a.dend_position_bin[pair_id])
 

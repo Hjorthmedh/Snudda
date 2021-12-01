@@ -13,7 +13,7 @@ class VisualiseNetwork2(object):
 
     # You need to provide neuron
     def __init__(self, network_path, blender_save_file=None, blender_output_image=None,
-                 network_json=None):
+                 network_json=None, spike_file_name=None):
 
         self.network_path = network_path
 
@@ -30,7 +30,20 @@ class VisualiseNetwork2(object):
             self.blender_save_file = os.path.join(network_path, "visualise-network.blend")
 
         self.blender_output_image = blender_output_image
-
+        
+         if spike_file_name:
+            spikes = np.loadtxt(spike_file_name, delimiter="\t")        ###The way the spike output files are set up currently one must read all the spikes in the network, even if only visualising a subset
+            spike_times_total = spikes[:, 0] / 1e3
+            spikes_neuron_id = spikes[:, 1].astype(int)
+            spikedict = dict()
+            neuron_ids = np.unique(spikes_neuron_id)
+            for neuron_id in neuron_ids:
+                idx = np.where(spike_neuron_id == neuron_id)
+                neuron_spike_time = spike_times_total[idx]
+                spikedict[str(neuron_id)] = neuron_spike_time
+            self.spike_times = spikedict
+        else:
+            self.spike_times = None
         self.neuron_cache = dict([])
 
         # Load the neuron positions
@@ -85,6 +98,8 @@ class VisualiseNetwork2(object):
         mat_chin.diffuse_color = (252. / 255, 102. / 255, 0.0, 1.0)
         mat_lts = bpy.data.materials.new("PKHG")
         mat_lts.diffuse_color = (150. / 255, 63. / 255, 212. / 255, 1.0)
+        mat_SNr = bpy.data.materials.new("PKHG")
+        mat_SNr.diffuse_color = (200. / 255, 50. / 255, 50. / 255, 1.0)
         mat_other = bpy.data.materials.new("PKHG")
         mat_other.diffuse_color = (0.4, 0.4, 0.4, 1.0)
 
@@ -96,6 +111,7 @@ class VisualiseNetwork2(object):
                             "fs": mat_fs,
                             "chin": mat_chin,
                             "lts": mat_lts,
+                            "SNr": mat_SNr,
                             "synapse": mat_synapse,
                             "other": mat_other}
 
@@ -151,9 +167,29 @@ class VisualiseNetwork2(object):
                 mat = material_lookup[n_type]
             else:
                 mat = material_lookup["other"]
-            print("Color......")
-            for ch in obj.children:
-                ch.active_material = mat
+                
+            if self.spike_times:
+                rest_color = mat.diffuse_color[:]
+                mat_spikes= bpy.data.materials.new("PKHG")                                          ###if animating spike times we need to make a fresh material per neuron
+                mat_spikes.diffuse_color = rest_color
+                mat_spikes.keyframe_insert(data_path="diffuse_color", frame=1.0, index=-1)
+                if str(neuron['neuronID']) in self.spike_times.keys():
+                    spikes = self.spike_times[str(neuron['neuronID'])]
+                    spikeframes = np.round(100*np.array(spikes))                                     ###convert 'time' to Blender frames; factor of ~100 works nicely
+                    for t in spikeframes:
+                        mat_spikes.diffuse_color = rest_color
+                        mat_spikes.keyframe_insert(data_path="diffuse_color", frame=t - 1, index=-1) ###need to add an instruction to remain at rest colour at a pre-spike time 
+                        mat_spikes.diffuse_color = (1,1,1,1)                                         ###so that the colour change is not gradual but quasi-instantaneous
+                        mat_spikes.keyframe_insert(data_path="diffuse_color", frame=t, index=-1) 
+                        mat_spikes.diffuse_color = rest_color
+                        mat_spikes.keyframe_insert(data_path="diffuse_color", frame=t + 5, index=-1)  ###change back to rest colour
+                print("Color......")
+                for ch in obj.children:
+                    ch.active_material = mat_spikes
+            else:   
+                print("Color......")
+                for ch in obj.children:
+                    ch.active_material = mat
 
             obj.select_set(False)
 

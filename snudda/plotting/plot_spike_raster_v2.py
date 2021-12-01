@@ -1,14 +1,16 @@
 import os
 import numpy as np
 
-from snudda import SnuddaLoad
+from snudda.utils.load import SnuddaLoad
 
 import matplotlib.pyplot as plt
+
+from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
 
 
 class SnuddaPlotSpikeRaster2:
 
-    def __init__(self, network_path, network_file=None, spike_file=None, figure_path=None):
+    def __init__(self, network_path, network_file=None, simulation_file=None, figure_path=None):
 
         self.network_path = network_path
 
@@ -17,24 +19,35 @@ class SnuddaPlotSpikeRaster2:
         else:
             self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
 
-        if spike_file:
-            self.spike_file = spike_file
+        if simulation_file:
+            self.simulation_file = simulation_file
         else:
-            self.spike_file = os.path.join(self.network_path, "simulation", "network-output-spikes-666.txt")
+            self.simulation_file = os.path.join(self.network_path, "simulation", "network-output.hdf5")
 
         if figure_path:
             self.figure_path = figure_path
         else:
-            self.figure_path = os.path.join(self.network_path, "figures", "network-spike-raster.pdf")
-
-        assert self.spike_file and os.path.isfile(self.spike_file), f"Input spike file {self.spike_file} does not exist"
-        data = np.loadtxt(self.spike_file, delimiter="\t")
-        self.spike_time = data[:, 0] / 1e3
-        self.spike_neuron_id = data[:, 1].astype(int)
+            self.figure_path = os.path.join(self.network_path, "figures", "network-spike-raster.png")
 
         self.snudda_load = SnuddaLoad(network_file=self.network_file)
 
-    def get_colours(self, neuron_type):
+        self.snudda_simulation_load = SnuddaLoadNetworkSimulation(network_simulation_output_file=self.simulation_file)
+        spike_data = self.snudda_simulation_load.merge_spikes()
+
+        self.spike_time = spike_data[:, 0]
+        self.spike_neuron_id = spike_data[:, 1].astype(int)
+
+    def make_figures_directory(self):
+
+        fig_dir = os.path.join(self.network_path, "figures")
+
+        if not os.path.isdir(fig_dir):
+            os.mkdir(fig_dir)
+
+    @staticmethod
+    def get_colours(neuron_type):
+
+        # TODO: Read colours from a JSON file
 
         colours = {"dSPN".lower(): (77. / 255, 151. / 255, 1.0),
                    "iSPN".lower(): (67. / 255, 55. / 255, 181. / 255),
@@ -55,9 +68,11 @@ class SnuddaPlotSpikeRaster2:
 
         return neuron_colours
 
-    def plot_spike_raster(self, type_order=None):
+    def plot_spike_raster(self, type_order=None, skip_time=0, end_time=None, fig_size=None):
 
-        fig = plt.figure()
+        self.make_figures_directory()
+
+        fig = plt.figure(figsize=fig_size)
         ax = fig.add_subplot()
 
         # Gets a list of all the neurons' types
@@ -88,7 +103,7 @@ class SnuddaPlotSpikeRaster2:
         for i in range(0, 3):
             sc[:, i] = np.take(colour_lookup[:, i], self.spike_neuron_id)
 
-        ax.scatter(self.spike_time, spike_y, color=sc, s=1, linewidths=0.1)
+        ax.scatter(self.spike_time-skip_time, spike_y, color=sc, s=5, linewidths=0.1)
 
         # Get position of labels
         unique_neuron_types = set(neuron_type_list)
@@ -102,6 +117,13 @@ class SnuddaPlotSpikeRaster2:
         ax.set_xlabel('Time (s)')
         ax.set_yticks(y_tick)
         ax.set_yticklabels(y_tick_label)
+
+        if skip_time or end_time:
+            x_lim = ax.get_xlim()
+            x_lim[0] = 0
+            if end_time:
+                x_lim[1] = end_time
+            ax.set_xlim(x_lim)
 
         if not os.path.isdir(os.path.basename(self.figure_path)):
             os.makedirs(os.path.basename(self.figure_path))

@@ -17,21 +17,18 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
 
     def __init__(self, sim_dir, volume_type="cube", side_len=300e-6):
 
+        assert os.path.exists(sim_dir), f"SnuddaAnalyseStriatum: Error {sim_dir} does not exist!"
+
         if os.path.isfile(sim_dir):
-            # We allow the user to also send in a hdf5 file as simDir...
+            # We allow the user to also send in a hdf5 file as sim_dir...
             hdf5_file = sim_dir
-            self.simDir = os.path.dirname(sim_dir)
+            self.sim_dir = os.path.dirname(sim_dir)
         else:
-            self.simDir = sim_dir
-            hdf5_file = sim_dir + "/network-synapses.hdf5"
+            assert os.path.isdir(sim_dir), f"SnuddaAnalyseStriatum: Expected sim_dir {sim_dir} to be a directory"
+            self.sim_dir = sim_dir
+            hdf5_file = os.path.join(sim_dir, "network-synapses.hdf5")
 
-            if not os.path.exists(hdf5_file):
-                alt_hdf5_file = sim_dir + "/network-connect-voxel-pruned-synapse-file.hdf5"
-
-                if os.path.exists(alt_hdf5_file):
-                    hdf5_file = alt_hdf5_file
-
-        print("Loading " + str(hdf5_file))
+        print(f"Loading {hdf5_file}")
 
         super().__init__(hdf5_file=hdf5_file, load_cache=True,
                          volume_type=volume_type,
@@ -77,7 +74,7 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
                     continue
 
                 try:
-                    pair_id = tuple([self.allTypes.index(x) for x in pair])
+                    pair_id = tuple([self.all_types.index(x) for x in pair])
                 except:
                     import traceback
                     tstr = traceback.format_exc()
@@ -130,7 +127,7 @@ if __name__ == "__main__":
 
     if len(sys.argv) > 1:
         sim_dir = sys.argv[1]
-        print("Reading network from " + str(sim_dir))
+        print(f"Reading network from {sim_dir}")
     else:
         print("Please specify which directory the striatum network files is in")
         sys.exit(-1)

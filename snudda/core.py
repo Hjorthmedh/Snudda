@@ -128,7 +128,8 @@ class Snudda(object):
         SnuddaInit(struct_def=struct_def,
                    neurons_dir=args.neurons_dir,
                    config_file=config_file,
-                   random_seed=random_seed)
+                   random_seed=random_seed,
+                   connection_override_file=args.connectionFile)
 
         if args.size > 1e5:
             print(f"Make sure there is enough disk space in {self.network_path}")
@@ -470,9 +471,9 @@ class Snudda(object):
             args : command line arguments from argparse
 
         Example:
-            snudda simulate [--networkFile NETWORK_FILE] [--inputFile INPUT_FILE] [--time TIME] [--voltOut VOLT_OUT]
-            [--spikesOut SPIKES_OUT] [--neuromodulation NEUROMODULATION] [--disableGJ] [-mechdir MECH_DIR] [--profile]
-            [--verbose] [--exportCoreNeuron] path
+            snudda simulate [--networkFile NETWORK_FILE] [--inputFile INPUT_FILE] [--time TIME]
+            [--spikesOut SPIKES_OUT] [--neuromodulation NEUROMODULATION] [--noVolt] [--disableGJ]
+            [-mechdir MECH_DIR] [--profile] [--verbose] [--exportCoreNeuron] path
         """
 
         start = timeit.default_timer()
@@ -490,6 +491,11 @@ class Snudda(object):
             input_file = args.input_file
         else:
             input_file = os.path.join(self.network_path, "input-spikes.hdf5")
+
+        if args.output_file:
+            output_file = args.output_file
+        else:
+            output_file = os.path.join(self.network_path, "simulation", "network-output.hdf5")
 
         self.make_dir_if_needed(os.path.join(self.network_path, "simulation"))
 
@@ -530,20 +536,6 @@ class Snudda(object):
             slurm_id = str(666)
 
         print(f"args: {args}")
-
-        if args.volt_out is not None:
-            # Save neuron voltage
-            if args.volt_out == "default":
-                volt_file = os.path.join(save_dir, f"network-voltage-{slurm_id}.csv")
-            else:
-                volt_file = args.volt_out
-        else:
-            volt_file = None
-
-        if args.spikes_out is None or args.spikes_out == "default":
-            spikes_file = os.path.join(save_dir, f"network-output-spikes-{slurm_id}.txt")
-        else:
-            spikes_file = args.spikes_out
 
         disable_gj = args.disable_gj
         if disable_gj:
@@ -608,7 +600,7 @@ class Snudda(object):
 
         sim.check_memory_status()
 
-        if volt_file is not None:
+        if args.record_volt:
             sim.add_recording(side_len=None)  # Side len let you record from a subset
             # sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
 
@@ -623,11 +615,7 @@ class Snudda(object):
         sim.run(t_sim)  # In milliseconds
 
         print("Simulation done, saving output")
-        if spikes_file is not None:
-            sim.write_spikes(spikes_file)
-
-        if volt_file is not None:
-            sim.write_voltage(volt_file)
+        sim.write_output(output_file)
 
         stop = timeit.default_timer()
         if sim.pc.id() == 0:
@@ -675,6 +663,14 @@ class Snudda(object):
         # http://davidmasad.com/blog/simulation-with-ipyparallel/
         # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
         self.d_view = self.rc.direct_view(targets='all')  # rc[:] # Direct view into clients
+
+        # Make sure SNUDDA_DATA is set on the workers, this might be needed if ipcluster
+        # is started before SNUDDA_DATA is set
+        if os.getenv('SNUDDA_DATA') is not None:
+            print(f"Setting SNUDDA_DATA environment variable on workers to {os.getenv('SNUDDA_DATA')}")
+
+            self.d_view.execute("import os")
+            self.d_view.execute(f"os.environ['SNUDDA_DATA'] = '{os.getenv('SNUDDA_DATA')}'", block=True)
 
     ############################################################################
 

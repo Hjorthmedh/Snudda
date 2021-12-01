@@ -108,23 +108,30 @@ class SnuddaInput(object):
         self.population_unit_spikes = None
         self.all_population_units = None # List of all population units in simulation
 
-        self.network_info = None
-        self.neuron_info = None
         self.num_population_units = None
         self.population_unit_id = None
         self.neuron_name = None
         self.neuron_id = None
         self.neuron_type = None
         self.d_view = None
-        self.network_slurm_id = None
         self.network_config = None
         self.neuron_input = None
         self.slurm_id = None
 
-        # Set in read_Hdf5_info
-        self.network_config_file = None
-        self.position_file = None
-        self.axon_stump_id_flag = None
+        self.snudda_load = SnuddaLoad(self.hdf5_network_file)
+        self.network_data = self.snudda_load.data
+        self.neuron_info = self.network_data["neurons"]
+
+        self.network_config_file = self.network_data["configFile"]
+        self.position_file = self.network_data["positionFile"]
+
+        self.axon_stump_id_flag = self.network_data["axonStumpIDFlag"]
+        self.network_slurm_id = self.network_data["SlurmID"]
+        self.population_unit_id = self.network_data["populationUnit"]
+
+        self.neuron_id = [n["neuronID"] for n in self.network_data["neurons"]]
+        self.neuron_name = [n["name"] for n in self.network_data["neurons"]]
+        self.neuron_type = [n["type"] for n in self.network_data["neurons"]]
 
         if time:
             self.time = time  # How long time to generate inputs for
@@ -137,7 +144,6 @@ class SnuddaInput(object):
 
         self.h5libver = h5libver
         self.write_log(f"Using hdf5 version {h5libver}")
-        self.read_hdf5_info()
 
         self.neuron_cache = dict([])
 
@@ -149,9 +155,6 @@ class SnuddaInput(object):
 
         # Read in the input configuration information from JSON file
         self.read_input_config_file()
-
-        # Read the network position file
-        self.read_neuron_positions()
 
         # Read the network config file -- This also reads random seed
         self.read_network_config_file()
@@ -235,12 +238,15 @@ class SnuddaInput(object):
                     neuron_in = self.neuron_input[neuron_id][input_type]
                     spike_mat, num_spikes = self.create_spike_matrix(neuron_in["spikes"])
 
-                    it_group.create_dataset("spikes", data=spike_mat)
-                    it_group.create_dataset("nSpikes", data=num_spikes)
+                    it_group.create_dataset("spikes", data=spike_mat, compression="gzip", dtype=np.float32)
+                    it_group.create_dataset("nSpikes", data=num_spikes, dtype=np.int32)
 
-                    it_group.create_dataset("sectionID", data=neuron_in["location"][1].astype(int))
-                    it_group.create_dataset("sectionX", data=neuron_in["location"][2])
-                    it_group.create_dataset("distanceToSoma", data=neuron_in["location"][3])
+                    it_group.create_dataset("sectionID", data=neuron_in["location"][1].astype(int),
+                                            compression="gzip", dtype=np.int16)
+                    it_group.create_dataset("sectionX", data=neuron_in["location"][2],
+                                            compression="gzip", dtype=np.float16)
+                    it_group.create_dataset("distanceToSoma", data=neuron_in["location"][3],
+                                            compression="gzip", dtype=np.float16)
 
                     it_group.create_dataset("freq", data=neuron_in["freq"])
                     it_group.create_dataset("correlation", data=neuron_in["correlation"])
@@ -261,11 +267,14 @@ class SnuddaInput(object):
                     # TODO: What to do with population_unit_spikes, should we have mandatory jittering for them?
 
                     # population_unit_id = 0 means not population unit membership, so no population spikes available
-                    if neuron_type in self.population_unit_spikes and population_unit_id > 0:
+                    if neuron_type in self.population_unit_spikes and population_unit_id > 0 \
+                            and input_type in self.population_unit_spikes[neuron_type]:
                         chan_spikes = self.population_unit_spikes[neuron_type][input_type][population_unit_id]
                     else:
                         chan_spikes = np.array([])
-                    it_group.create_dataset("populationUnitSpikes", data=chan_spikes)
+
+                    it_group.create_dataset("populationUnitSpikes", data=chan_spikes, compression="gzip",
+                                            dtype=np.float32)
 
                     it_group.create_dataset("generator", data=neuron_in["generator"])
 
@@ -274,7 +283,7 @@ class SnuddaInput(object):
                         it_group.create_dataset("parameterFile", data=neuron_in["parameterFile"])
                     # We need to convert this to string to be able to save it
                     it_group.create_dataset("parameterList", data=json.dumps(neuron_in["parameterList"]))
-                    it_group.create_dataset("parameterID", data=neuron_in["parameterID"])
+                    it_group.create_dataset("parameterID", data=neuron_in["parameterID"], dtype=np.int32)
 
                 else:
 
@@ -282,7 +291,7 @@ class SnuddaInput(object):
                     a_group = nid_group.create_group("activity")
                     spikes = self.neuron_input[neuron_id][input_type]["spikes"]
 
-                    a_group.create_dataset("spikes", data=spikes)
+                    a_group.create_dataset("spikes", data=spikes, compression="gzip")
                     generator = self.neuron_input[neuron_id][input_type]["generator"]
                     a_group.create_dataset("generator", data=generator)
 
@@ -437,13 +446,37 @@ class SnuddaInput(object):
             elif neuron_type in self.input_info:
                 input_info = self.input_info[neuron_type]
             else:
-                self.write_log(f"!!! Warning, no synaptic input for neuron ID {neuron_id}, "
-                               f"name {neuron_name} or type {neuron_type}")
-                continue
+                input_info = dict()
 
             # if a number --> use a specific neuron with that given ID
             # if dSPN --> use neuron_type dSPN
             # if dSPN_3 --> use specific neuron morphology corresponding to dSPN_3
+
+            # Also see if we have additional input specified in the meta.json file for the neuron?
+
+            # TODO: Add baseline activity:
+            #       1. From neuron_id derive the parameter_id and morphology_id
+            #       2. Using parameter_id, morphology_id check if the meta.json has any additional input specified
+            #       3. Add the input to input_info
+
+            parameter_key = self.network_data["neurons"][neuron_id]["parameterKey"]
+            morphology_key = self.network_data["neurons"][neuron_id]["morphologyKey"]
+            neuron_path = self.network_data["neurons"][neuron_id]["neuronPath"]
+            meta_path = os.path.join(neuron_path, "meta.json")
+
+            if os.path.exists(meta_path):
+                with open(meta_path, "r") as f:
+                    meta_data = json.load(f)
+
+                if parameter_key in meta_data and morphology_key in meta_data[parameter_key] \
+                        and "input" in meta_data[parameter_key][morphology_key]:
+
+                    for inp_name, inp_data in meta_data[parameter_key][morphology_key]["input"].items():
+                        input_info[inp_name] = inp_data
+
+            if len(input_info) == 0:
+                self.write_log(f"!!! Warning, no synaptic input for neuron ID {neuron_id}, "
+                               f"name {neuron_name} or type {neuron_type}")
 
             for input_type in input_info:
 
@@ -971,28 +1004,6 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    def read_neuron_positions(self):
-
-        """ Read neuron positions from HDF5 network file. """
-
-        self.write_log("Reading neuron positions")
-
-        data = SnuddaLoad(self.position_file, verbose=self.verbose).data
-        self.network_info = data
-        self.neuron_info = data["neurons"]
-
-        # Make sure the position file matches the network config file
-        assert (data["configFile"] == self.network_config_file)
-
-        self.population_unit_id = data["populationUnit"]
-
-        self.neuron_id = [n["neuronID"] for n in self.neuron_info]
-        self.neuron_name = [n["name"] for n in self.neuron_info]
-        self.neuron_type = [n["type"] for n in self.neuron_info]
-        # self.nInputs =  [n["nInputs"] for n in self.neuronInfo]
-
-    ############################################################################
-
     def read_network_config_file(self):
 
         """ Read network configuration JSON file."""
@@ -1189,10 +1200,6 @@ class SnuddaInput(object):
                                                                          parameter_key=parameter_key,
                                                                          morphology_key=morphology_key)
 
-        # If the neuron model has a certain number of input specified, then use that if num_spike_trains is None
-        if num_spike_trains is None and input_type in input_info:
-            num_spike_trains = input_info[input_type]
-
         return morphology.dendrite_input_locations(synapse_density=synapse_density,
                                                    num_locations=num_spike_trains,
                                                    rng=rng, cluster_size=cluster_size)
@@ -1261,10 +1268,6 @@ class SnuddaInput(object):
 
         self.d_view.execute(cmd_str, block=True)
 
-        self.write_log("Read neuron positions on workers")
-        cmd_str2 = "nl.read_neuron_positions()"
-        self.d_view.execute(cmd_str2, block=True)
-
         self.write_log("Read network config on workers")
         cmd_str3 = "nl.read_network_config_file()"
         self.d_view.execute(cmd_str3, block=True)
@@ -1310,33 +1313,6 @@ class SnuddaInput(object):
                     spike_times.append(spikes)
 
         self.raster_plot(spike_times)
-
-    ############################################################################
-
-    def read_hdf5_info(self, hdf5_file=None):
-
-        """ Reading network info from hdf5 file. """
-
-        if not hdf5_file:
-            hdf5_file = self.hdf5_network_file
-
-        self.write_log(f"Loading HDF5-file: {hdf5_file}")
-
-        try:
-            with h5py.File(hdf5_file, 'r') as f:
-                self.network_config_file = SnuddaLoad.to_str(f["meta"]["configFile"][()])
-                self.position_file = SnuddaLoad.to_str(f["meta"]["positionFile"][()])
-                self.network_slurm_id = int(f["meta/SlurmID"][()])
-
-                self.axon_stump_id_flag = f["meta/axonStumpIDFlag"][()]
-        except Exception as e:
-            self.write_log(f"Error in readHDF5info: {e}", is_error=True)
-            self.write_log(f"Opening: {hdf5_file}", is_error=True)
-
-            import traceback
-            tstr = traceback.format_exc()
-            self.write_log(tstr, is_error=True)
-            sys.exit(-1)
 
     ############################################################################
 

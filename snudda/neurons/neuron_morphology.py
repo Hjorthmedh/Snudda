@@ -27,6 +27,7 @@ class NeuronMorphology(object):
                  param_data=None,  # TODO: Can we remove this?
                  mech_filename=None,
                  modulation=None,
+                 neuron_path=None,
                  morphology_id=None,
                  parameter_id=None,
                  modulation_id=None,
@@ -72,6 +73,7 @@ class NeuronMorphology(object):
 
         # Meta data
         self.name = name
+        self.neuron_path = neuron_path
         self.swc_filename = swc_filename
         self.param_filename = param_filename
         self.param_data = param_data
@@ -214,6 +216,7 @@ class NeuronMorphology(object):
                                       param_data=self.param_data,
                                       mech_filename=self.mech_filename,
                                       modulation=self.modulation,
+                                      neuron_path=self.neuron_path,
                                       morphology_id=morphology_id,
                                       parameter_id=parameter_id,
                                       modulation_id=modulation_id,
