@@ -39,7 +39,7 @@ class PlotNetwork(object):
         assert len(plot_axon) == len(plot_dendrite) == len(self.sl.data["neurons"])
 
         fig = plt.figure(figsize=(6, 6.5))
-        ax = fig.gca(projection='3d')
+        ax = plt.axes(projection='3d')
 
         if "simulationOrigo" in self.sl.data:
             simulation_origo = self.sl.data["simulationOrigo"]
@@ -170,7 +170,7 @@ class PlotNetwork(object):
     def plot_populations(self):
 
         fig = plt.figure(figsize=(6, 6.5))
-        ax = fig.gca(projection='3d')
+        ax = plt.axes(projection='3d')
 
         assert "populationUnit" in self.sl.data
 
