@@ -119,7 +119,7 @@ class SnuddaLoadNetworkSimulation:
                     volt_data[int(nid)] = self.network_simulation_file["voltData"][nid][()].copy()
         else:
             for nid in neuron_id:
-                volt_data = self.network_simulation_file["voltData"][nid][()].copy()
+                volt_data[int(nid)] = self.network_simulation_file["voltData"][str(nid)][()].copy()
 
         time_data = self.network_simulation_file["voltData"]["time"][()].copy()
 

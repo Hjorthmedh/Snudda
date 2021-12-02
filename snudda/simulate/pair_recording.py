@@ -379,6 +379,8 @@ class PairRecording(SnuddaSimulate):
 
     def write_synaptic_current(self, output_file, down_sampling=20):
 
+        # TODO: This functionality should be integrated into simulate.py and save_network_activity.py
+
         if not output_file:
             output_file = os.path.join(self.network_path, "simulation", "network-synapse-current.txt")
 
