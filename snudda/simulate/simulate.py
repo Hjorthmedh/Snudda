@@ -1565,6 +1565,9 @@ class SnuddaSimulate(object):
 
         if not output_file:
             output_file = os.path.join(self.network_path, "simulation", "network-output.hdf5")
+        elif os.path.sep not in output_file:
+            # If user has specified absolute path use that, but if no path separator then put it in simulation subdir
+            output_file = os.path.join(self.network_path, "simulation", output_file)
 
         sv = SnuddaSaveNetworkActivity(output_file=output_file, network_data=self.network_info)
         sv.write(t_save=self.t_save, v_save=self.v_save, v_key=self.v_key,
