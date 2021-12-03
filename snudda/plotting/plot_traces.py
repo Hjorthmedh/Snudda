@@ -28,7 +28,7 @@ class PlotTraces:
 
         self.neuron_name_remap = {"FSN": "FS"}
 
-        self.read_csv()
+        # self.read_csv()
 
         try:
             self.ID = int(re.findall('\d+', ntpath.basename(file_name))[0])
@@ -36,14 +36,17 @@ class PlotTraces:
             print("Unable to guess ID, using 666.")
             self.ID = 666
 
+        import pdb
+        pdb.set_trace()
+
         if network_file is None and "simulation" in file_name:
-            network_path = os.path.basename(os.path.basename(file_name))
+            network_path = os.path.dirname(os.path.dirname(file_name))
             network_file = os.path.join(network_path, "network-synapses.hdf5")
             if os.path.exists(network_file):
                 self.network_file = network_file
 
         if network_file is not None:
-            network_path = os.path.basename(os.path.basename(network_file))
+            network_path = os.path.dirname(os.path.dirname(network_file))
         else:
             network_path = None
 

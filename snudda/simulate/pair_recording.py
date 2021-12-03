@@ -289,8 +289,8 @@ class PairRecording(SnuddaSimulate):
             save.write(t_save=self.t_save, v_save=self.v_save, v_key=self.v_key,
                        t_spikes=self.t_spikes, id_spikes=self.id_spikes)
 
-            pre_id = [x[0] for x in self.synapse_currents]
-            post_id = [x[1] for x in self.synapse_currents]
+            pre_id = np.array([x[0] for x in self.synapse_currents])
+            post_id = np.array([x[1] for x in self.synapse_currents])
             cur = [np.array(x[2]) for x in self.synapse_currents]
             save.write_currents(t_save=self.t_save, i_save=cur, pre_id=pre_id, post_id=post_id)
 
@@ -372,7 +372,7 @@ class PairRecording(SnuddaSimulate):
             n_synapses = self.snudda_loader.find_synapses(pre_id=pre_id, post_id=post_id)[0].shape[0]
             title = f"{self.neurons[pre_id].name} -> {self.neurons[post_id].name} ({n_synapses} synapses)"
 
-        pt = PlotTraces(file_name=self.output_voltage_file_name, network_file=self.network_file)
+        pt = PlotTraces(file_name=self.output_file_name, network_file=self.network_file)
         fig = pt.plot_traces(trace_id=post_id, offset=offset, title=title, fig_name=fig_name, skip_time=skip_time)
 
         if mark_current:
