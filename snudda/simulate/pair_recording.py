@@ -22,6 +22,7 @@ from collections import OrderedDict
 import numpy as np
 import json
 from snudda.simulate import SnuddaSimulate
+from snudda.utils.save_network_activity import SnuddaSaveNetworkActivity
 
 import neuron
 neuron.h.load_file("stdrun.hoc")
@@ -53,6 +54,7 @@ class PairRecording(SnuddaSimulate):
         self.experiment_config_file = experiment_config_file
         self.experiment_config = self.read_experiment_config(experiment_config_file=experiment_config_file)
 
+        self.output_file_name = None
         self.output_voltage_file_name = None
         self.output_synaptic_current_file_name = None
 
@@ -93,9 +95,13 @@ class PairRecording(SnuddaSimulate):
 
         self.sim_duration = self.experiment_config["meta"]["simulationDuration"]
 
-        if "pairRecordingVoltageFile" in self.experiment_config["meta"]:
-            self.output_voltage_file_name = os.path.join(self.network_path, "simulation",
-                                                         self.experiment_config["meta"]["pairRecordingVoltageFile"])
+        if "pairRecordingOutputFile" in self.experiment_config["meta"]:
+            self.output_file_name = os.path.join(self.network_path, "simulation",
+                                                 self.experiment_config["meta"]["pairRecordingOutputFile"])
+
+        # if "pairRecordingVoltageFile" in self.experiment_config["meta"]:
+        #     self.output_voltage_file_name = os.path.join(self.network_path, "simulation",
+        #                                                 self.experiment_config["meta"]["pairRecordingVoltageFile"])
 
         # Setup v_init for each neuron_id specified
         if "vInit" in self.experiment_config["meta"]:
@@ -279,8 +285,17 @@ class PairRecording(SnuddaSimulate):
 
         # Write results to disk
         try:
-            self.write_voltage_OLD(output_file=self.output_voltage_file_name)
-            self.write_synaptic_current(output_file=self.output_synaptic_current_file_name)
+            save = SnuddaSaveNetworkActivity(output_file=self.output_file_name)
+            save.write(t_save=self.t_save, v_save=self.v_save, v_key=self.v_key,
+                       t_spikes=self.t_spikes, id_spikes=self.id_spikes)
+
+            pre_id = [x[0] for x in self.synapse_currents]
+            post_id = [x[1] for x in self.synapse_currents]
+            cur = [np.array(x[2]) for x in self.synapse_currents]
+            save.write_currents(t_save=self.t_save, i_save=cur, pre_id=pre_id, post_id=post_id)
+
+            # self.write_voltage_OLD(output_file=self.output_voltage_file_name)
+            # self.write_synaptic_current_OLD(output_file=self.output_synaptic_current_file_name)
         except:
             import traceback
             t_str = traceback.format_exc()
@@ -377,7 +392,7 @@ class PairRecording(SnuddaSimulate):
 
         self.record_from_pair.append((pre_neuron_id, post_neuron_id))
 
-    def write_synaptic_current(self, output_file, down_sampling=20):
+    def write_synaptic_current_OLD(self, output_file, down_sampling=20):
 
         # TODO: This functionality should be integrated into simulate.py and save_network_activity.py
 
@@ -421,5 +436,3 @@ class PairRecording(SnuddaSimulate):
             if channel_name == syn.hname().split("[")[0]:
                 syn.e = v_rev * 1e3
 
-    def write_meta_data(self):
-        pass

@@ -3,7 +3,7 @@
     "meta" : {
 	"simulationDuration" : 4,
 	"vInit" : -80e-3,
-	"pairRecordingVoltageFile" : "network-voltage-6.txt",
+	"pairRecordingOutputFile" : "network-output-6.txt",
 	"reversal_potential" : [["tmGabaA", -40e-3]],
 	"neuronSubset" : "prepost"
     },
