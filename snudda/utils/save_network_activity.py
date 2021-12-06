@@ -46,6 +46,16 @@ class SnuddaSaveNetworkActivity:
 
     def write(self, t_save, v_save, v_key, t_spikes, id_spikes, output_file=None):
 
+        """ Write spike data and voltage data to output_file
+
+        Args:
+            t_save : array with time
+            v_save : dictionary with arrays of voltage
+            v_key : neuron_id of voltage data
+            t_spikes : spike times
+            id_spikes : neuron_id of spike times
+            """
+
         if not output_file:
             output_file = self.output_file
 
@@ -131,6 +141,87 @@ class SnuddaSaveNetworkActivity:
 
                 for idx, spike_times in spikes.items():
                     out_file["spikeData"].create_dataset(f"{idx:.0f}", data=spike_times*1e-3, compression="gzip")
+
+                out_file.close()
+
+            self.pc.barrier()
+
+    def write_currents(self, t_save, i_save, pre_id, post_id, section_id=None, section_x=None, output_file=None):
+
+        """ This adds currents to an already existing hdf5 output file.
+
+        Args:
+            t_save : array with times
+            i_save : list of arrays with current
+            pre_id : array with neuron id of presynaptic neuron
+            post_id : array with neuron id of postsynaptic neuron
+            section_id : section id of synapse current is taken from (optional)
+            section_x : section_x of synapse current is taken from (optional)
+            output_file : output file (optional)
+
+        """
+
+        if not output_file:
+            output_file = self.output_file
+
+        assert os.path.isfile(output_file), f"write_current only appends data to exist file, please use write() first."
+
+        self.pc.barrier()
+
+        # First figure out how much space we need to allocate in the hdf5 file
+        n_cur = len(i_save)
+        n_cur_all = self.pc.py_gather(n_cur, 0)
+
+        if int(self.pc.id()) == 0:
+            n_cur_total = np.sum(n_cur_all)
+
+            out_file = h5py.File(output_file, "a")
+            cur_data = out_file.create_group("currentData")
+            cur_data.create_dataset("current", shape=(len(t_save), n_cur_total), dtype=np.float32, compression="gzip")
+            cur_data.create_dataset("preID", shape=(n_cur_total,), dtype=np.int32)
+            cur_data.create_dataset("postID", shape=(n_cur_total,), dtype=np.int32)
+
+            if section_id is not None:
+                cur_data.create_dataset("sectionID", shape=(n_cur_total,), dtype=np.int32)
+
+            if section_x is not None:
+                cur_data.create_dataset("sectionX", shape=(n_cur_total,), dtype=np.float32)
+
+            out_file.close()
+
+        # Next problem, figure out which column each worker has allocated.
+        pre_id_all = np.concatenate(self.pc.py_allgather(pre_id))
+        post_id_all = np.concatenate(self.pc.py_allgather(post_id))
+        node_all = np.concatenate(self.pc.py_allgather(np.full(pre_id.shape, self.pc.id(), dtype=int)))
+        idx_all = np.concatenate(self.pc.py_allgather(np.arange(0, len(pre_id))))
+
+        pre_post_all = np.vstack([pre_id_all, post_id_all]).T
+        assert pre_post_all.shape[1] == 2, f"Incorrect shape. {pre_post_all.shape}, expected n x 2"
+        sort_idx = np.lexsort(pre_post_all.T)
+
+        my_cols = np.where(node_all[sort_idx] == self.pc.id())[0]
+        my_idx = idx_all[sort_idx][my_cols]
+
+        for i in range(int(self.pc.nhost())):
+            if i == int(self.pc.id()):
+                out_file = h5py.File(output_file, "a")
+
+                cur_data = out_file["currentData"]
+                my_worker_id = self.pc.id()
+
+                for idx, col_id in zip(my_idx, my_cols):
+                    assert node_all[idx] == my_worker_id, \
+                        f"Problem with sorting. Worker {my_worker_id} found data for worker {node_all[idx]}."
+
+                    cur_data["current"][:, col_id] = i_save[idx]
+                    cur_data["preID"][col_id] = pre_id[idx]
+                    cur_data["postID"][col_id] = post_id[idx]
+
+                    if section_id is not None:
+                        cur_data["sectionID"][col_id] = section_id[idx]
+
+                    if section_x is not None:
+                        cur_data["sectionX"][col_id] = section_x[idx]
 
                 out_file.close()
 
