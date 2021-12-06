@@ -55,8 +55,6 @@ class PairRecording(SnuddaSimulate):
         self.experiment_config = self.read_experiment_config(experiment_config_file=experiment_config_file)
 
         self.output_file_name = None
-        self.output_voltage_file_name = None
-        self.output_synaptic_current_file_name = None
 
         # Variables for synapse current recording
         self.synapse_currents = []
@@ -98,10 +96,6 @@ class PairRecording(SnuddaSimulate):
         if "pairRecordingOutputFile" in self.experiment_config["meta"]:
             self.output_file_name = os.path.join(self.network_path, "simulation",
                                                  self.experiment_config["meta"]["pairRecordingOutputFile"])
-
-        # if "pairRecordingVoltageFile" in self.experiment_config["meta"]:
-        #     self.output_voltage_file_name = os.path.join(self.network_path, "simulation",
-        #                                                 self.experiment_config["meta"]["pairRecordingVoltageFile"])
 
         # Setup v_init for each neuron_id specified
         if "vInit" in self.experiment_config["meta"]:
@@ -294,8 +288,6 @@ class PairRecording(SnuddaSimulate):
             cur = [np.array(x[2]) for x in self.synapse_currents]
             save.write_currents(t_save=self.t_save, i_save=cur, pre_id=pre_id, post_id=post_id)
 
-            # self.write_voltage_OLD(output_file=self.output_voltage_file_name)
-            # self.write_synaptic_current_OLD(output_file=self.output_synaptic_current_file_name)
         except:
             import traceback
             t_str = traceback.format_exc()
@@ -338,7 +330,7 @@ class PairRecording(SnuddaSimulate):
 
     def plot_trace_overview(self):
         from snudda.plotting import PlotTraces
-        pt = PlotTraces(file_name=self.output_voltage_file_name,
+        pt = PlotTraces(file_name=self.output_file_name,
                         network_file=self.network_file)
 
         pt.plot_traces([x for x in pt.voltage])
@@ -391,42 +383,6 @@ class PairRecording(SnuddaSimulate):
         """
 
         self.record_from_pair.append((pre_neuron_id, post_neuron_id))
-
-    def write_synaptic_current_OLD(self, output_file, down_sampling=20):
-
-        # TODO: This functionality should be integrated into simulate.py and save_network_activity.py
-
-        if not output_file:
-            output_file = os.path.join(self.network_path, "simulation", "network-synapse-current.txt")
-
-        if not os.path.exists(os.path.dirname(output_file)):
-            os.mkdir(os.path.dirname(output_file))
-
-        """ Writes synapse currents to output_file, with the option to down sample data to save space. """
-
-        for i in range(int(self.pc.nhost())):
-            self.pc.barrier()
-
-            if i == int(self.pc.id()):
-                if i == 0:
-                    mode = 'w'
-                else:
-                    mode = 'a'
-
-                with open(output_file, mode) as current_file:
-                    if mode == 'w':
-                        current_file.write('-1')  # Indicate that first column is time
-
-                        for tIdx in range(0, len(self.t_save), down_sampling):
-                            current_file.write(',%.1f' % self.t_save[tIdx])
-
-                    for src_id, dest_id, syn_i in self.synapse_currents:
-                        current_file.write(f"\n{src_id}-{dest_id}")
-
-                        for i_idx in range(0, len(syn_i), down_sampling):
-                            current_file.write(',%.5f' % syn_i[i_idx])
-
-            self.pc.barrier()
 
     def set_channel_rev(self, channel_name, v_rev):
 
