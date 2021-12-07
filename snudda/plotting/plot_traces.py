@@ -7,6 +7,7 @@ import os
 import h5py
 import numpy as np
 from snudda.utils.load import SnuddaLoad
+from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
 import re
 import ntpath
 import time
@@ -27,13 +28,24 @@ class PlotTraces:
 
         self.neuron_name_remap = {"FSN": "FS"}
 
-        self.read_csv()
+        # self.read_csv()
 
         try:
             self.ID = int(re.findall('\d+', ntpath.basename(file_name))[0])
         except:
             print("Unable to guess ID, using 666.")
             self.ID = 666
+
+        if network_file is None and "simulation" in file_name:
+            network_path = os.path.dirname(os.path.dirname(file_name))
+            network_file = os.path.join(network_path, "network-synapses.hdf5")
+            if os.path.exists(network_file):
+                self.network_file = network_file
+
+        if network_file is not None:
+            network_path = os.path.dirname(os.path.dirname(network_file))
+        else:
+            network_path = None
 
         if self.network_file is not None:
             self.network_info = SnuddaLoad(self.network_file)
@@ -47,9 +59,16 @@ class PlotTraces:
         else:
             self.input_info = None
 
+        self.output_load = SnuddaLoadNetworkSimulation(network_simulation_output_file=file_name,
+                                                       network_path=network_path)
+
+        self.voltage, self.time = self.output_load.get_voltage()
+
     ############################################################################
 
     def read_csv(self):
+
+        assert False, "read_csv is deprecated, use SnuddaLoadNetworkSimulation instead"
 
         data = np.genfromtxt(self.file_name, delimiter=',')
 
@@ -78,7 +97,7 @@ class PlotTraces:
                     title=None, fig_name=None):
 
         if skip_time is not None:
-            print("!!! Excluding first " + str(skip_time) + "s from the plot")
+            print(f"!!! Excluding first {skip_time} s from the plot")
 
         if not trace_id:
             if self.network_info:
