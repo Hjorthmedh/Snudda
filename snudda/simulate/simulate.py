@@ -1566,9 +1566,8 @@ class SnuddaSimulate(object):
         if not output_file:
             output_file = os.path.join(self.network_path, "simulation", "network-output.hdf5")
         elif os.path.sep not in output_file:
-            # If user has specified absolute path use that, but if no path separator then put it in simulation subdir
             output_file = os.path.join(self.network_path, "simulation", output_file)
-
+            
         sv = SnuddaSaveNetworkActivity(output_file=output_file, network_data=self.network_info)
         sv.write(t_save=self.t_save, v_save=self.v_save, v_key=self.v_key,
                  t_spikes=self.t_spikes, id_spikes=self.id_spikes)
@@ -1876,6 +1875,8 @@ if __name__ == "__main__":
                         help="Duration of simulation in seconds")
     parser.add_argument("--verbose", action="store_true")
 
+    parser.add_argument("--outputFile", help="Output hdf5 file (from simulation)",
+                                 dest="output_file", default=None)
     # If called through "nrniv -python Network_simulate.py ..." then argparse
     # gets confused by -python flag, and we need to ignore it
     # parser.add_argument("-python",help=argparse.SUPPRESS,
@@ -1935,13 +1936,18 @@ if __name__ == "__main__":
     sim.check_memory_status()
     print(f"Running simulation for {tSim} ms.")
     sim.run(tSim)  # In milliseconds
-
+    
+    if args.output_file:
+        output_file = args.output_file
+    else:
+        output_file = None
+    
     print("Simulation done, saving output")
-    sim.write_output()
+    sim.write_output(output_file)
 
     stop = timeit.default_timer()
     if sim.pc.id() == 0:
-        print("Program run time: " + str(stop - start))
+        print(f"Program run time: {(stop - start):.0f}")
 
     # sim.plot()
     sys.exit(0)
