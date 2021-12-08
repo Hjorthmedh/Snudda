@@ -1,5 +1,7 @@
 #!/bin/bash -l
 #SBATCH --partition=main
+#SBATCH -o log/runSnudda-%j-output.txt
+#SBATCH -e log/runSnudda-%j-error.txt
 #SBATCH -t 0:30:00
 #SBATCH -J Snudda
 #SBATCH -A 2021-5-492 
@@ -11,6 +13,6 @@ module load snic-env
 export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/.ipython"
 rm -r $IPYTHONDIR
 export IPYTHON_PROFILE=default
-source $HOME/snudda_env/bin/activate
+source $HOME/Snudda/snudda_env/bin/activate
 
 ./Dardel_runSnudda.sh

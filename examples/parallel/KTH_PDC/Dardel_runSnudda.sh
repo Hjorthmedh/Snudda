@@ -44,33 +44,12 @@ else
     fi
 
     echo "SLURM_NODELIST = $SLURM_NODELIST"
-    
-    #.. Obtain infiniband ip - this is faster and also internal
-    ifconfig > ifconfig-info.txt
-    ifconfig ipogif0 | head -n 2 | tail -n 1 | awk '{print $2}' > controller_ip.txt
-    CONTROLLERIP=$(<controller_ip.txt)
-
     let NWORKERS="$SLURM_NTASKS - 1"
 
     echo ">>> NWORKERS " $NWORKERS
     echo ">>> Starting ipcluster `date`"
     
     #.. Start the ipcluster
-#    ipcluster start -n ${NWORKERS} \
-#	      --ip=${CONTROLLERIP} \
-#	      --location=${CONTROLLERIP} \
-#	      --profile=${IPYTHON_PROFILE} \
-#	      --engines=MPIEngineSetLauncher --debug \
-#	      --HeartMonitor.max_heartmonitor_misses=1000 \
-#	      --HubFactory.registration_timeout=600 \
-#	      --HeartMonitor.period=10000 &
-
-#   ipcluster start -n ${NWORKERS} \
-#	      --ip='*' \
-#	      --profile=${IPYTHON_PROFILE} \
-#	      --HeartMonitor.max_heartmonitor_misses=1000 \
-#	      --HubFactory.registration_timeout=600 \
-#	      --HeartMonitor.period=10000 &
     ipcluster start -n ${NWORKERS} \
 	      --ip='*' \
 	      --HeartMonitor.max_heartmonitor_misses=1000 \
@@ -112,10 +91,10 @@ else
     # Disable input generation at the moment
 
     #echo ">>> Input: "`date`
-    #cp -a $SNUDDA_DIR/data/input_config/input-v10-scaled.json ${JOBDIR}/input.json
-    # cp -a $SNUDDA_DIR/data/input_config/external-input-dSTR-scaled.json ${JOBDIR}/input.json
+    # cp -a $SNUDDA_DIR/data/input_config/input-v10-scaled.json ${JOBDIR}/input.json
+    # cp -a $SNUDDA_DIR/data/input_config/external-input-dSTR-scaled-v4.json ${JOBDIR}/input.json
 
-    #snudda input ${JOBDIR} --parallel --time 5
+    # snudda input ${JOBDIR} --parallel --time 5
 
     
     #.. Shut down cluster
