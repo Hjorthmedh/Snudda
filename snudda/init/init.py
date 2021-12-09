@@ -704,6 +704,7 @@ class SnuddaInit(object):
                                     neuron_types,
                                     unit_centre,
                                     probability_function,  # Function of d (distance to centre) as string
+                                    num_neurons=None,
                                     unit_id=None):
 
         if type(neuron_types) != list:
@@ -719,11 +720,15 @@ class SnuddaInit(object):
             self.network_data["PopulationUnits"][structure_name]["ProbabilityFunctions"] = [probability_function]
             self.network_data["PopulationUnits"][structure_name]["unitID"] = [unit_id]
             self.network_data["PopulationUnits"][structure_name]["neuronTypes"] = [neuron_types]
+            self.network_data["PopulationUnits"][structure_name]["numNeurons"] = [num_neurons]
+
         else:
             self.network_data["PopulationUnits"][structure_name]["centres"].append(unit_centre)
             self.network_data["PopulationUnits"][structure_name]["ProbabilityFunctions"].append(probability_function)
             self.network_data["PopulationUnits"][structure_name]["unitID"].append(unit_id)
             self.network_data["PopulationUnits"][structure_name]["neuronTypes"].append(neuron_types)
+            self.network_data["PopulationUnits"][structure_name]["numNeurons"].append(num_neurons)
+
 
     def add_population_unit_random(self, structure_name, neuron_types, fraction_of_neurons, unit_id=None):
 
