@@ -1480,7 +1480,7 @@ class SnuddaInput(object):
                 self.logfile.flush()
 
         if self.verbose or is_error or force_print:
-            print(text)
+            print(text, flush=True)
 
     ############################################################################
 
