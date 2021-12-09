@@ -83,6 +83,13 @@ export PYTHONPATH=$LN/lib/python:$LM/lib/python3.8/
 # ln -s ../../snudda/data/neurons/mechanisms
 
 rm -r x86_64
+
+export CXX=CC
+export CC=cc
+export FC=ftn
+export MPICC=cc
+export MPICXX=CC
+
 nrnivmodl mechanisms/
 
 
