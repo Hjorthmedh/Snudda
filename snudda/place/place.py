@@ -151,7 +151,7 @@ class SnuddaPlace(object):
             self.log_file.write(text + "\n")
 
         if self.verbose:
-            print(text)
+            print(text, flush=True)
 
     ############################################################################
 

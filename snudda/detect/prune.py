@@ -1288,7 +1288,7 @@ class SnuddaPrune(object):
                     self.logfile.flush()
 
             if self.verbose or is_error or force_print:
-                print(text)
+                print(text, flush=True)
         except Exception as e:
             print(text)
             print("Unable to write to log file. Is log file closed?")
