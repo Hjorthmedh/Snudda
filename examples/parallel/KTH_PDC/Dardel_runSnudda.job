@@ -15,4 +15,4 @@ rm -r $IPYTHONDIR
 export IPYTHON_PROFILE=default
 source $HOME/Snudda/snudda_env/bin/activate
 
-./Dardel_runSnudda.sh
+srun ./Dardel_runSnudda.sh
