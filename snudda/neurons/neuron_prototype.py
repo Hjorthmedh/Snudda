@@ -175,14 +175,18 @@ class NeuronPrototype:
 
         return morph_key
 
-    def get_modulation_key(self, modulation_id):
+    def get_modulation_key(self, parameter_id, morphology_id, modulation_id):
 
         if self.modulation_info:
             if type(self.modulation_info) == list:
                 # Old format without keys
                 return None
 
-            modulation_key_list = list(self.modulation_info.keys())
+            param_key = self.get_parameter_key(parameter_id)
+            morph_key = self.get_morphology_key(parameter_id=None, parameter_key=param_key, morphology_id=morphology_id)
+            modulation_key_list = self.meta_info[param_key][morph_key]["neuromodulation"]
+
+            # modulation_key_list = list(self.modulation_info.keys())
             modulation_key = modulation_key_list[modulation_id % len(modulation_key_list)]
         else:
             modulation_key = None
@@ -414,7 +418,9 @@ class NeuronPrototype:
                 morphology_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id)
 
             if modulation_key is None:
-                modulation_key = self.get_modulation_key(modulation_id=modulation_id)
+                modulation_key = self.get_modulation_key(parameter_id=parameter_id,
+                                                         morphology_id=morphology_id,
+                                                         modulation_id=modulation_id)
 
             morph = self.morphology_cache[morph_tag].clone(position=position,
                                                            rotation=rotation,
