@@ -7,6 +7,7 @@
 ./Miniconda_install.sh
 
 source activate_miniconda.sh
+conda activate
 
 module load snic-env
 
@@ -14,6 +15,7 @@ module load snic-env
 module swap PrgEnv-cray PrgEnv-gnu
 module unload cray-libsci atp
 export CRAYPE_LINK_TYPE=dynamic
+export CRAY_ROOTFS=DSL
 
 # # module load craype-ivybridge
 
@@ -34,7 +36,7 @@ export FC=ftn
 export MPICC=cc
 export MPICXX=CC
 
-conda activate
+
 
 # neuron is also installed from requirements.txt, remove non-compatible version
 pip uninstall neuron -y
@@ -127,18 +129,18 @@ pushd $L
 #      --host=x86_64-unknown-linux-gnu --disable-pysetup --without-iv \
 #      CC=cc CXX=CC MPICC=cc MPICXX=CC CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" \
 #      # -LLIBDIR
-
-    echo "About to run"
-    echo `which make`
-	  
+#
+#    echo "About to run"
+#    echo `which make`
+#	  
 #    # make -j   # -j parallel compilation
 #    make -j
 #    make install
-
+#
 #    pushd src/nrnpython
 #      python setup.py install
 #    popd
-    rm -r $L/nrn/share/{demo,examples}
+    # rm -r $L/nrn/share/{demo,examples}
   popd
 
   # install pypandoc

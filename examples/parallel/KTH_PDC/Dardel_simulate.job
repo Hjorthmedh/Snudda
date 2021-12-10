@@ -90,7 +90,7 @@ export FC=ftn
 export MPICC=cc
 export MPICXX=CC
 
-nrnivmodl mechanisms/
+srun -n 1 nrnivmodl mechanisms/
 
 
 # GJ disabled

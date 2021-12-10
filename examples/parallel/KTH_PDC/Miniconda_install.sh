@@ -9,26 +9,6 @@ chmod u+x Miniconda3-latest-Linux-x86_64.sh
 module load snic-env
 L=/cfs/klemming/home/${USER:0:1}/$USER/local/$SNIC_RESOURCE
 
-./Miniconda3-latest-Linux-x86_64.sh -b -p $L/miniconda3
-
-source activate_miniconda.sh
-conda activate
-
-conda update -n base conda -y
-conda install wget -y
-conda install git -y
-conda install cmake -y
-conda install bison -y
-conda install pandoc -y
-conda install flex -y
-conda install ncurses -y
-# conda install openmpi -y
-conda update --all -y
-
-# There is a bug in 3.3.2 which does not handle non-numeric host names correctly
-# conda install mpich=3.2.1 -y
-# Update, we use openmpi instead!
-
 # This is needed to compile mpi4py -- is it really?
 if [ $SNIC_RESOURCE == "tegner" ]; then
     module load gcc/9.2.0
@@ -55,6 +35,28 @@ elif [ $SNIC_RESOURCE == "dardel" ]; then
 else
     echo "Unknown system $SNIC_RESOURCE"
 fi
+
+
+./Miniconda3-latest-Linux-x86_64.sh -b -p $L/miniconda3
+
+source activate_miniconda.sh
+conda activate
+
+conda update -n base conda -y
+conda install wget -y
+conda install git -y
+conda install cmake -y
+conda install bison -y
+conda install pandoc -y
+conda install flex -y
+conda install ncurses -y
+# conda install openmpi -y
+conda update --all -y
+
+# There is a bug in 3.3.2 which does not handle non-numeric host names correctly
+# conda install mpich=3.2.1 -y
+# Update, we use openmpi instead!
+
 
 pip install mpi4py --ignore-installed --no-cache-dir
 

@@ -17,4 +17,4 @@
 # git clone https://github.com/neuronsimulator/nrn -b 8.0.0
 
 
-./Dardel_NEURON_install.sh
+srun -n 1 ./Dardel_NEURON_install.sh
