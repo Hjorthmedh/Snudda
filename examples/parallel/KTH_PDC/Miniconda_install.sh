@@ -1,11 +1,41 @@
 #!/bin/bash
 
 # Download and install miniconda3
+# -- On Dardel compute nodes does not have wget,
+# so you have to do this manually then
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 chmod u+x Miniconda3-latest-Linux-x86_64.sh
 
 module load snic-env
-L=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/$SNIC_RESOURCE
+L=/cfs/klemming/home/${USER:0:1}/$USER/local/$SNIC_RESOURCE
+
+# This is needed to compile mpi4py -- is it really?
+if [ $SNIC_RESOURCE == "tegner" ]; then
+    module load gcc/9.2.0
+    module load openmpi/4.1-gcc-9.2
+
+elif [ $SNIC_RESOURCE == "beskow" ]; then
+    echo "On Beskow"
+
+    # Recompile mpi4py using MPICH
+    export MPICC=cc
+    export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+
+    # module load gcc/10.2.0
+    # module load ??? # What is openmpi module on Beskow?
+   #do something
+elif [ $SNIC_RESOURCE == "dardel" ]; then
+    echo "On Beskow"
+
+    # Recompile mpi4py using MPICH
+    export MPICC=cc
+    export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+
+
+else
+    echo "Unknown system $SNIC_RESOURCE"
+fi
+
 
 ./Miniconda3-latest-Linux-x86_64.sh -b -p $L/miniconda3
 
@@ -27,31 +57,13 @@ conda update --all -y
 # conda install mpich=3.2.1 -y
 # Update, we use openmpi instead!
 
-# This is needed to compile mpi4py -- is it really?
-if [ $SNIC_RESOURCE == "tegner" ]; then
-    module load gcc/9.2.0
-    module load openmpi/4.1-gcc-9.2
-
-elif [ $SNIC_RESOURCE == "beskow" ]; then
-    echo "On Beskow"
-
-    # Recompile mpi4py using MPICH
-    export MPICC=cc
-    export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
-
-    # module load gcc/10.2.0
-    # module load ??? # What is openmpi module on Beskow?
-   #do something
-else
-    echo "Unknown system $SNIC_RESOURCE"
-fi
 
 pip install mpi4py --ignore-installed --no-cache-dir
 
 
 
 
-pushd ../../
+pushd ../../../
 
 # Install Snudda -- only if you do not already have Snudda installed
 # cd $L

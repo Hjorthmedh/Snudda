@@ -151,7 +151,7 @@ class SnuddaPlace(object):
             self.log_file.write(text + "\n")
 
         if self.verbose:
-            print(text)
+            print(text, flush=True)
 
     ############################################################################
 
@@ -765,6 +765,7 @@ class SnuddaPlace(object):
                                          "unitID" : ID of population unit
                                          "fractionOfNeurons" : How large fraction of neurons belong to this unit (used by "random" method)
                                          "neuronTypes" : List of Neuron types that belong to this population unit
+                                         "numNeurons" : Number of neurons in each population unit, only used with radialDensity method
                                          "structure" : Name of structure population unit is located in (VolumeID)
                                          "centres" : Centre of radial density
                                          "ProbabilityFunctions" : Probability function defining unit membership, function of radius
@@ -870,6 +871,7 @@ class SnuddaPlace(object):
             population_unit_info (dict): "method" must be "radialDensity"
                                          "neuronTypes" list of neuron types
                                          "centres" of radial probabilityes, one per neuron type
+                                         "numNeurons" : Number of neurons in each population unit, only used with radialDensity method
                                          "probabilityFunctions" list of probability functions of r (as str)
                                          "unitID" ID of population unit
         """
@@ -882,7 +884,15 @@ class SnuddaPlace(object):
         probability_functions = population_unit_info["ProbabilityFunctions"]
         unit_id = population_unit_info["unitID"]
 
-        assert len(neuron_types) == len(centres) == len(probability_functions) == len(unit_id)
+        if "numNeurons" in population_unit_info and population_unit_info["numNeurons"] is not None:
+            num_neurons = population_unit_info["numNeurons"]
+
+            if np.isscalar(num_neurons):
+                num_neurons = np.full((len(centres),), num_neurons)
+        else:
+            num_neurons = [None for x in centres]
+
+        assert len(neuron_types) == len(centres) == len(probability_functions) == len(unit_id) == len(num_neurons)
 
         # xyz = self.all_neuron_positions()
         unit_probability = np.zeros(centres.shape[0])
@@ -920,6 +930,28 @@ class SnuddaPlace(object):
         for uid in unit_id:
             # Channel 0 is unassigned, no channel, poor homeless neurons!
             self.population_units[uid] = np.where(self.population_unit == uid)[0]
+
+        # Finally if numNeurons is specified, we need to reduce the number of neurons belonging to that unit
+        for u_id, n_neurons in zip(unit_id, num_neurons):
+            if n_neurons is not None:
+                assert len(self.population_units[u_id]) >= n_neurons, \
+                    f"Unable to pick {n_neurons} for population unit {u_id}, only {len(self.population_units[u_id])} available."
+
+                if n_neurons < len(self.population_units[u_id]):
+
+                    perm_nid = np.random.permutation(self.population_units[u_id])
+                    keep_nid = perm_nid[:n_neurons]
+                    self.population_units[u_id] = keep_nid
+
+                    remove_nid = perm_nid[n_neurons:]
+                    for rid in remove_nid:
+                        self.population_unit[rid] = 0
+
+                    if 0 in self.population_units:
+                        self.population_units[0] = np.array(list(set(self.population_units[0]).union(remove_nid)))
+                    else:
+                        self.population_units[0] = remove_nid
+
 
     ############################################################################
 

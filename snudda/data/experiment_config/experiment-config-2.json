@@ -3,7 +3,7 @@
     "meta" : {
 	"simulationDuration" : 3,
 	"vInit" : [[0, -60e-3], [1, -50e-3], [2, -60e-3], [3, -30e-3]],
-	"pair_recording_voltage_file" : "network-voltage-2.txt"
+	"pairRecordingOutputFile" : "network-output-2.hdf5"
     },
     
     "currentInjection" : [

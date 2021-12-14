@@ -16,13 +16,11 @@ import sys
 from collections import OrderedDict
 
 import numpy as np
-import h5py
 import json
 import os
 from glob import glob
 import itertools
-
-import matplotlib.pyplot as plt
+import h5py
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.snudda_path import snudda_parse_path
@@ -970,6 +968,8 @@ class SnuddaInput(object):
             fig: matplotlib figure object
         """
 
+        import matplotlib.pyplot as plt
+
         if fig is None:
             fig = plt.figure()
         # ax = plt.gca()
@@ -1480,7 +1480,7 @@ class SnuddaInput(object):
                 self.logfile.flush()
 
         if self.verbose or is_error or force_print:
-            print(text)
+            print(text, flush=True)
 
     ############################################################################
 
