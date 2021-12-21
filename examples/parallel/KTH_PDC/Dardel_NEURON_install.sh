@@ -116,8 +116,8 @@ pushd $L
       -DCMAKE_BUILD_TYPE:STRING=Release \
       -DCURSES_CURSES_LIBRARY:FILEPATH=$MINIC/lib/libncurses.so \
       -DCURSES_INCLUDE_PATH:PATH=$MINIC/include/ncurses.h \
-      -DLTDL_LIBRARY=/usr/lib64/libltdl.so.7
-      -DREADLINE_LIBRARY=/lib64/libreadline.so.7
+      -DLTDL_LIBRARY=/usr/lib64/libltdl.so.7 \
+      -DREADLINE_LIBRARY=/lib64/libreadline.so.7 \
       -DNCURSES_LIBRARY=/lib64/libncurses.so.6.1
       
   cmake --build . \
