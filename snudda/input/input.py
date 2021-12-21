@@ -16,13 +16,11 @@ import sys
 from collections import OrderedDict
 
 import numpy as np
-import h5py
 import json
 import os
 from glob import glob
 import itertools
-
-import matplotlib.pyplot as plt
+import h5py
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.snudda_path import snudda_parse_path
@@ -238,12 +236,15 @@ class SnuddaInput(object):
                     neuron_in = self.neuron_input[neuron_id][input_type]
                     spike_mat, num_spikes = self.create_spike_matrix(neuron_in["spikes"])
 
-                    it_group.create_dataset("spikes", data=spike_mat)
-                    it_group.create_dataset("nSpikes", data=num_spikes)
+                    it_group.create_dataset("spikes", data=spike_mat, compression="gzip", dtype=np.float32)
+                    it_group.create_dataset("nSpikes", data=num_spikes, dtype=np.int32)
 
-                    it_group.create_dataset("sectionID", data=neuron_in["location"][1].astype(int))
-                    it_group.create_dataset("sectionX", data=neuron_in["location"][2])
-                    it_group.create_dataset("distanceToSoma", data=neuron_in["location"][3])
+                    it_group.create_dataset("sectionID", data=neuron_in["location"][1].astype(int),
+                                            compression="gzip", dtype=np.int16)
+                    it_group.create_dataset("sectionX", data=neuron_in["location"][2],
+                                            compression="gzip", dtype=np.float16)
+                    it_group.create_dataset("distanceToSoma", data=neuron_in["location"][3],
+                                            compression="gzip", dtype=np.float16)
 
                     it_group.create_dataset("freq", data=neuron_in["freq"])
                     it_group.create_dataset("correlation", data=neuron_in["correlation"])
@@ -270,7 +271,8 @@ class SnuddaInput(object):
                     else:
                         chan_spikes = np.array([])
 
-                    it_group.create_dataset("populationUnitSpikes", data=chan_spikes)
+                    it_group.create_dataset("populationUnitSpikes", data=chan_spikes, compression="gzip",
+                                            dtype=np.float32)
 
                     it_group.create_dataset("generator", data=neuron_in["generator"])
 
@@ -279,7 +281,7 @@ class SnuddaInput(object):
                         it_group.create_dataset("parameterFile", data=neuron_in["parameterFile"])
                     # We need to convert this to string to be able to save it
                     it_group.create_dataset("parameterList", data=json.dumps(neuron_in["parameterList"]))
-                    it_group.create_dataset("parameterID", data=neuron_in["parameterID"])
+                    it_group.create_dataset("parameterID", data=neuron_in["parameterID"], dtype=np.int32)
 
                 else:
 
@@ -287,7 +289,7 @@ class SnuddaInput(object):
                     a_group = nid_group.create_group("activity")
                     spikes = self.neuron_input[neuron_id][input_type]["spikes"]
 
-                    a_group.create_dataset("spikes", data=spikes)
+                    a_group.create_dataset("spikes", data=spikes, compression="gzip")
                     generator = self.neuron_input[neuron_id][input_type]["generator"]
                     a_group.create_dataset("generator", data=generator)
 
@@ -428,6 +430,8 @@ class SnuddaInput(object):
         parameter_file_list = []
         parameter_list_list = []
         cluster_size_list = []
+
+        dendrite_location_override_list = []
 
         for (neuron_id, neuron_name, neuron_type, populationUnitID) \
                 in zip(self.neuron_id, self.neuron_name, self.neuron_type, self.population_unit_id):
@@ -606,6 +610,20 @@ class SnuddaInput(object):
 
                     cluster_size_list.append(cluster_size)
 
+                    if "dendriteLocation" in input_info:
+                        assert "morphologyKey" in input_info, \
+                            f"If you specify dendriteLocation you must also specify morphologyKey"
+
+                        assert morphology_key == self.network_data["neurons"][neuron_id]["morphologyKey"], \
+                            f"Neuron {neuron_id} has morphology_key {self.network_data['neurons'][neuron_id]['morphologyKey']}" \
+                            f"which does not match what is specified in input JSON file: {morphology_key}"
+
+                        dend_location = input_info["dendriteLocation"]
+                    else:
+                        dend_location = None
+
+                    dendrite_location_override_list.append(dend_location)
+
                 elif input_inf["generator"] == "csv":
                     csv_file = snudda_parse_path(input_inf["csvFile"] % neuron_id)
 
@@ -654,7 +672,8 @@ class SnuddaInput(object):
                                   parameter_file_list,
                                   parameter_list_list,
                                   seed_list,
-                                  cluster_size_list))
+                                  cluster_size_list,
+                                  dendrite_location_override_list))
 
             self.d_view.scatter("input_list", input_list, block=True)
             cmd_str = "inpt = list(map(nl.make_input_helper_parallel,input_list))"
@@ -693,7 +712,8 @@ class SnuddaInput(object):
                       parameter_file_list,
                       parameter_list_list,
                       seed_list,
-                      cluster_size_list)
+                      cluster_size_list,
+                      dendrite_location_override_list)
 
         # Gather the spikes that were generated in parallel
         for neuron_id, input_type, spikes, loc, synapse_density, frq, \
@@ -965,6 +985,8 @@ class SnuddaInput(object):
             fig_file: path to figure
             fig: matplotlib figure object
         """
+
+        import matplotlib.pyplot as plt
 
         if fig is None:
             fig = plt.figure()
@@ -1320,7 +1342,7 @@ class SnuddaInput(object):
 
             neuron_id, input_type, freq, start, end, synapse_density, num_spike_trains, p_keep, \
                 population_unit_spikes, jitter_dt, population_unit_id, conductance, correlation, mod_file, \
-                parameter_file, parameter_list, random_seed, cluster_size = args
+                parameter_file, parameter_list, random_seed, cluster_size, dendrite_location_override = args
 
             return self.make_input_helper_serial(neuron_id=neuron_id,
                                                  input_type=input_type,
@@ -1339,7 +1361,8 @@ class SnuddaInput(object):
                                                  parameter_file=parameter_file,
                                                  parameter_list=parameter_list,
                                                  random_seed=random_seed,
-                                                 cluster_size=cluster_size)
+                                                 cluster_size=cluster_size,
+                                                 dendrite_location=dendrite_location_override)
 
         except:
             import traceback
@@ -1374,7 +1397,8 @@ class SnuddaInput(object):
                                  parameter_file,
                                  parameter_list,
                                  random_seed,
-                                 cluster_size=None):
+                                 cluster_size=None,
+                                 dendrite_location=None):
 
         """
         Generate poisson input.
@@ -1396,6 +1420,8 @@ class SnuddaInput(object):
             parameter_file: Parameter file for input synapses
             parameter_list: Parameter list (to inline parameters, instead of reading from file)
             random_seed: Random seed.
+            cluster_size: Input synapse cluster size
+            dendrite_location: Override location of dendrites, list of (sec_id, sec_x) tuples.
             """
 
         # First, find out how many inputs and where, based on morphology and
@@ -1426,13 +1452,22 @@ class SnuddaInput(object):
             num_inputs = 1
         else:
 
-            # (x,y,z), secID, secX, dist_to_soma
-            input_loc = self.dendrite_input_locations(neuron_id=neuron_id,
-                                                      synapse_density=synapse_density,
-                                                      num_spike_trains=num_spike_trains,
-                                                      rng=rng,
-                                                      cluster_size=cluster_size,
-                                                      input_type=input_type)
+            if dendrite_location:
+                self.write_log(f"Overriding input location for {input_type} on neuron_id={neuron_id}")
+                sec_id, sec_x = zip(*dendrite_location)
+
+                # TODO: Calculate the correct x,y,z and distance to soma
+                x = y = z = dist_to_soma = np.zeros((len(sec_id),))
+                input_loc = [(x, y, z), np.array(sec_id), np.array(sec_x), dist_to_soma]
+
+            else:
+                # (x,y,z), secID, secX, dist_to_soma
+                input_loc = self.dendrite_input_locations(neuron_id=neuron_id,
+                                                          synapse_density=synapse_density,
+                                                          num_spike_trains=num_spike_trains,
+                                                          rng=rng,
+                                                          cluster_size=cluster_size,
+                                                          input_type=input_type)
 
             num_inputs = input_loc[0].shape[0]
             self.write_log(f"Generating {num_inputs} inputs for {self.neuron_name[neuron_id]}")
@@ -1476,7 +1511,7 @@ class SnuddaInput(object):
                 self.logfile.flush()
 
         if self.verbose or is_error or force_print:
-            print(text)
+            print(text, flush=True)
 
     ############################################################################
 

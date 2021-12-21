@@ -119,11 +119,36 @@ class SnuddaLoadNetworkSimulation:
                     volt_data[int(nid)] = self.network_simulation_file["voltData"][nid][()].copy()
         else:
             for nid in neuron_id:
-                volt_data = self.network_simulation_file["voltData"][nid][()].copy()
+                volt_data[int(nid)] = self.network_simulation_file["voltData"][str(nid)][()].copy()
 
         time_data = self.network_simulation_file["voltData"]["time"][()].copy()
 
         return volt_data, time_data
+
+    def get_current(self, pre_id=None, post_id=None):
+        assert "currentData" in self.network_simulation_file, "No synaptic current data in file"
+
+        pre_id_all = self.network_simulation_file["currentData"]["preID"]
+        post_id_all = self.network_simulation_file["currentData"]["postID"]
+
+        if pre_id is not None and post_id is not None:
+            idx = np.where(np.logical_and(pre_id_all == pre_id, post_id_all == post_id))[0]
+        elif pre_id is not None:
+            idx = np.where(pre_id_all == pre_id)
+        elif post_id is not None:
+            idx = np.where(post_id_all == post_id)
+        else:
+            idx = None
+
+        if idx is not None:
+            cur = self.network_simulation_file["currentData"]["current"][:, idx].copy()
+        else:
+            cur = self.network_simulation_file["currentData"]["current"].copy()
+
+        time = self.network_simulation_file["currentData"]["time"].copy()
+
+        return cur, time
+
 
     def get_neuron_positions(self, neuron_id=None):
 
