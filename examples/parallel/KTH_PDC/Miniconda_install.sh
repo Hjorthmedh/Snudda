@@ -27,6 +27,11 @@ elif [ $SNIC_RESOURCE == "beskow" ]; then
 elif [ $SNIC_RESOURCE == "dardel" ]; then
     echo "On Beskow"
 
+    # module swap PrgEnv-cray PrgEnv-gnu
+    # module unload cray-libsci atp
+    # export CRAYPE_LINK_TYPE=dynamic
+    # export CRAY_ROOTFS=DSL
+    
     # Recompile mpi4py using MPICH
     export MPICC=cc
     export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
@@ -36,6 +41,7 @@ else
     echo "Unknown system $SNIC_RESOURCE"
 fi
 
+CC --version
 
 ./Miniconda3-latest-Linux-x86_64.sh -b -p $L/miniconda3
 
