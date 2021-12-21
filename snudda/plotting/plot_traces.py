@@ -1,4 +1,4 @@
-# python3 plot_traces.py save/traces/network-voltage-0.csv save/network-connect-synapse-file-0.hdf5
+# python3 plot_traces.py save/simulation/network-output.hdf5 save/network-synapses.hdf5
 
 
 import sys
@@ -17,9 +17,9 @@ class PlotTraces:
 
     ############################################################################
 
-    def __init__(self, file_name, network_file=None, input_file=None):
+    def __init__(self, output_file, network_file=None, input_file=None):
 
-        self.file_name = file_name
+        self.output_file = output_file
         self.network_file = network_file
         self.input_file = input_file
 
@@ -31,13 +31,13 @@ class PlotTraces:
         # self.read_csv()
 
         try:
-            self.ID = int(re.findall('\d+', ntpath.basename(file_name))[0])
+            self.ID = int(re.findall('\d+', ntpath.basename(output_file))[0])
         except:
             print("Unable to guess ID, using 666.")
             self.ID = 666
 
-        if network_file is None and "simulation" in file_name:
-            network_path = os.path.dirname(os.path.dirname(file_name))
+        if network_file is None and "simulation" in output_file:
+            network_path = os.path.dirname(os.path.dirname(output_file))
             network_file = os.path.join(network_path, "network-synapses.hdf5")
             if os.path.exists(network_file):
                 self.network_file = network_file
@@ -48,6 +48,7 @@ class PlotTraces:
             network_path = None
 
         if self.network_file is not None:
+            print(f"Loading network info from {self.network_file}")
             self.network_info = SnuddaLoad(self.network_file)
             # assert(int(self.ID) == int(self.networkInfo.data["SlurmID"]))
 
@@ -55,11 +56,19 @@ class PlotTraces:
             self.network_info = None
 
         if self.input_file is not None:
+            print(f"Loading input info from {self.input_file}")
             self.input_info = h5py.File(self.input_file, "r")
         else:
-            self.input_info = None
+            network_path = os.path.dirname(os.path.dirname(output_file))
+            input_file = os.path.join(network_path, "input-spikes.hdf5")
+            if os.path.exists(input_file):
+                self.input_file = input_file
+                print(f"Loading input info from {self.input_file}")
+                self.input_info = h5py.File(self.input_file, "r")
+            else:
+                self.input_info = None
 
-        self.output_load = SnuddaLoadNetworkSimulation(network_simulation_output_file=file_name,
+        self.output_load = SnuddaLoadNetworkSimulation(network_simulation_output_file=output_file,
                                                        network_path=network_path)
 
         self.voltage, self.time = self.output_load.get_voltage()
@@ -70,7 +79,7 @@ class PlotTraces:
 
         assert False, "read_csv is deprecated, use SnuddaLoadNetworkSimulation instead"
 
-        data = np.genfromtxt(self.file_name, delimiter=',')
+        data = np.genfromtxt(self.output_file, delimiter=',')
 
         assert (data[0, 0] == -1)  # First column should be time
 
@@ -256,7 +265,10 @@ class PlotTraces:
 
         trace_id = [x[0] for x in enumerate(neuron_types) if x[1].lower() == neuron_type.lower()]
 
-        num_traces = min(len(trace_id), num_traces)
+        if num_traces is None:
+            num_traces = len(trace_id)
+        else:
+            num_traces = min(len(trace_id), num_traces)
 
         if num_traces <= 0:
             print(f"No traces of {neuron_type} to show")
@@ -273,51 +285,26 @@ class PlotTraces:
 
 if __name__ == "__main__":
 
-    # TODO: Update to use argparser
+    import argparse
+    parser = argparse.ArgumentParser("Plot traces")
+    parser.add_argument("output_file")
+    parser.add_argument("--input_file")
+    parser.add_argument("--network_file")
+    parser.add_argument("--plot_offset", type=float, default=0)
+    parser.add_argument("--skip_time", type=float, default=0)
+    parser.add_argument("--max_num_traces", type=int, default=None)
+    args = parser.parse_args()
 
-    if len(sys.argv) > 1:
-        file_name = sys.argv[1]
-    else:
-        file_name = None
+    npt = PlotTraces(output_file=args.output_file, network_file=args.network_file, input_file=args.input_file)
 
-    if len(sys.argv) > 2:
-        network_file = sys.argv[2]
-    else:
-        network_file = None
-
-    if file_name is not None:
-        npt = PlotTraces(file_name, network_file)
-        # npt.plotTraces(offset=0.2,traceID=[17,40,11,18])
-        # npt.plotTraces(offset=0.2,traceID=[0,1,2,3,4,5,6,7,8,9])
-        # npt.plotTraces(offset=0,traceID=[0,1,2,3,4,5,6,7,8,9])
-        # npt.plotTraces(offset=0,traceID=[0,5,55]) #,5,55])
-        # npt.plotTraces(offset=0,traceID=np.arange(0,100)) #,5,55])
-        # npt.plotTraces(offset=-0.2,traceID=np.arange(0,20),skipTime=0.5)
-        # npt.plotTraces(offset=-0.2,traceID=[5,54],skipTime=0.5)
-        # npt.plotTraces(offset=0.2,traceID=[1,5,7,15,16],skipTime=0.2)
-
-        plot_offset = 0  # -0.2
-        skip_time = 0  # 0.5
-        num_traces_max = 10
-
-        if True:
-            npt.plot_trace_neuron_type(neuron_type="dSPN", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
-            npt.plot_trace_neuron_type(neuron_type="iSPN", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
-            npt.plot_trace_neuron_type(neuron_type="FS", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
-            npt.plot_trace_neuron_type(neuron_type="LTS", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
-            npt.plot_trace_neuron_type(neuron_type="ChIN", num_traces=num_traces_max, offset=plot_offset, skip_time=skip_time)
-
-        if False:
-            npt.plot_trace_neuron_name(neuron_name="FS_0", plot_offset=plot_offset, fig_name="Traced-FS_0.pdf",
-                                       num_offset=10)
-            npt.plot_trace_neuron_name(neuron_name="FS_1", plot_offset=plot_offset, fig_name="Traced-FS_1.pdf")
-            npt.plot_trace_neuron_name(neuron_name="FS_2", plot_offset=plot_offset, fig_name="Traced-FS_2.pdf")
-            npt.plot_trace_neuron_name(neuron_name="FS_3", plot_offset=plot_offset, fig_name="Traced-FS_3.pdf")
-
-    else:
-        print(f"Usage: {sys.argv[0]} network-voltage-XXX.csv my_network/network-synapses.hdf5")
-
-#  TODO: Need to clean up the code and make a new plot function
-
-# import pdb
-# pdb.set_trace()
+    # TODO: Update code so it loops through all existing neuron types by default
+    npt.plot_trace_neuron_type(neuron_type="dSPN", num_traces=args.max_num_traces,
+                               offset=args.plot_offset, skip_time=args.skip_time)
+    npt.plot_trace_neuron_type(neuron_type="iSPN", num_traces=args.max_num_traces,
+                               offset=args.plot_offset, skip_time=args.skip_time)
+    npt.plot_trace_neuron_type(neuron_type="FS", num_traces=args.max_num_traces,
+                               offset=args.plot_offset, skip_time=args.skip_time)
+    npt.plot_trace_neuron_type(neuron_type="LTS", num_traces=args.max_num_traces,
+                               offset=args.plot_offset, skip_time=args.skip_time)
+    npt.plot_trace_neuron_type(neuron_type="ChIN", num_traces=args.max_num_traces,
+                               offset=args.plot_offset, skip_time=args.skip_time)
