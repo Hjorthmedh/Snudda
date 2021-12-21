@@ -45,6 +45,7 @@ echo "Network dir: "$NETWORK_DIR
 ##############
 
 source activate_miniconda.sh
+conda activate
 
 module load snic-env
 
@@ -54,7 +55,7 @@ module unload cray-libsci atp
 export CRAYPE_LINK_TYPE=dynamic
 export CRAY_ROOTFS=DSL
 
-conda activate
+
 
 
 # Snudda bin gets installed here, when we use the user flag above
@@ -90,7 +91,9 @@ export FC=ftn
 export MPICC=cc
 export MPICXX=CC
 
-srun -n 1 nrnivmodl mechanisms/
+CC --version
+
+srun -n 1 nrnivmodl -loadflags "-DLTDL_LIBRARY=/usr/lib64/libltdl.so.7 -DREADLINE_LIBRARY=/lib64/libreadline.so.7 -DNCURSES_LIBRARY=/lib64/libncurses.so.6.1" mechanisms/
 
 
 # GJ disabled
