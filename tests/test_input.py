@@ -85,6 +85,15 @@ class InputTestCase(unittest.TestCase):
                 spikes = input_info["spikes"][()]
                 n_traces = spikes.shape[0]
 
+                if "nInputs" in config_data[neuron_type][input_type]:
+                    if "clusterSize" in config_data[neuron_type][input_type]:
+                        cluster_size = config_data[neuron_type][input_type]["clusterSize"]
+                    else:
+                        cluster_size = 1
+
+                    print(f"Checking number of inputs is {config_data[neuron_type][input_type]['nInputs']} * {cluster_size}")
+                    self.assertEqual(config_data[neuron_type][input_type]["nInputs"]*cluster_size, n_traces)
+
                 max_len = 1
                 if type(start_time) is np.ndarray:
                     max_len = np.maximum(max_len, len(start_time))

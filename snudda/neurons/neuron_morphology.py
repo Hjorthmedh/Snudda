@@ -1047,7 +1047,7 @@ class NeuronMorphology(object):
 
     # TODO: Update the code so that it gives exactly num_locations positions (currently it varies)
 
-    def dendrite_input_locations(self, synapse_density, rng, num_locations=None, return_density=False,
+    def dendrite_input_locations(self, synapse_density, rng, num_locations=None,
                                  cluster_size=None):
 
         """
@@ -1057,32 +1057,17 @@ class NeuronMorphology(object):
             synapse_density : Synapse density as a function f(d), d=distance from soma
             rng : Numpy random stream
             num_locations : Number of input locations (this is average number returned, results vary)
-            return_density : Should the function also return the density
             cluster_size (int): Number of synapse clusters to place (None = no clusters, all placed independently)
         """
 
-        # Calculate the input density at each point in dendrite morphology
-        d = self.dend[:, 4]
-        try:
-            # d is now distance from some, so synapseDensity is a func of d
-            i_density = numexpr.evaluate(synapse_density)
-        except:
-            self.write_log(f"Bad synapse density string: {synapse_density}")
-            import traceback
-            tstr = traceback.format_exc()
-            self.write_log(tstr)
-            assert False, f"Problem with synapse density {synapse_density}"
+        if num_locations is not None:
+            # This function returns the exact number of synapses specified
+            return self.dendrite_input_locations_helper(synapse_density=synapse_density,
+                                                        rng=rng,
+                                                        num_locations=num_locations,
+                                                        cluster_size=cluster_size)
 
-        # if type(i_density) in (int, float): -- this worked for eval, but not for numexpr.evaluate
-        if i_density.ndim == 0:
-            # If iDensity is a constant, we need to set it for all points
-            i_density = float(i_density) * np.ones(d.shape)
-
-        comp_density = (i_density[self.dend_links[:, 0]] + i_density[self.dend_links[:, 1]]) / 2
-        comp_len = self.compartment_length(comp_type="dend")
-
-        # compDensity is in synapses per micrometer, multiply by 1e6
-        expected_synapses = comp_density * comp_len * 1e6
+        expected_synapses = self.get_expected_synapses_per_compartment(synapse_density=synapse_density)
 
         if num_locations is not None:
             expected_synapses *= num_locations / np.sum(expected_synapses)
@@ -1101,6 +1086,7 @@ class NeuronMorphology(object):
 
         # x,y,z, secID, secX
         input_loc = np.zeros((n_syn_tot*cluster_size, 5))
+        d = self.dend[:, 4]
 
         # Iterate over each compartment
         syn_ctr = 0
@@ -1131,12 +1117,98 @@ class NeuronMorphology(object):
 
         assert syn_ctr == input_loc.shape[0], f"Not all input_loc was set. Rows {input_loc.shape[0]}, syn_ctr={syn_ctr}"
 
-        if return_density:
-            # Return xyz,secID,secX,iDensity,distSynSoma
-            return input_loc[:, :3], input_loc[:, 3], input_loc[:, 4], i_density, dist_syn_soma
+        # if return_density:
+        #     # Return xyz,secID,secX,iDensity,distSynSoma
+        #     return input_loc[:, :3], input_loc[:, 3], input_loc[:, 4], i_density, dist_syn_soma
 
         # Return xyz,secID,secX, dist_to_soma (update: now also added distance synapse to soma)
         return input_loc[:, :3], input_loc[:, 3], input_loc[:, 4], dist_syn_soma
+
+    ############################################################################
+
+    def get_expected_synapses_per_compartment(self, synapse_density):
+
+        # Calculate the input density at each point in dendrite morphology
+        d = self.dend[:, 4]
+        try:
+            # d is now distance from some, so synapseDensity is a func of d
+            i_density = numexpr.evaluate(synapse_density)
+        except:
+            self.write_log(f"Bad synapse density string: {synapse_density}")
+            import traceback
+            tstr = traceback.format_exc()
+            self.write_log(tstr)
+            assert False, f"Problem with synapse density {synapse_density}"
+
+        # if type(i_density) in (int, float): -- this worked for eval, but not for numexpr.evaluate
+        if i_density.ndim == 0:
+            # If iDensity is a constant, we need to set it for all points
+            i_density = float(i_density) * np.ones(d.shape)
+
+        comp_density = (i_density[self.dend_links[:, 0]] + i_density[self.dend_links[:, 1]]) / 2
+        comp_len = self.compartment_length(comp_type="dend")
+
+        # comp_density is in synapses per micrometer, multiply by 1e6
+        expected_synapses = comp_density * comp_len * 1e6
+
+        return expected_synapses
+
+    ############################################################################
+
+
+    def dendrite_input_locations_helper(self,
+                                        synapse_density,
+                                        rng,
+                                        num_locations,
+                                        cluster_size=1):
+
+        """
+        Helper function. Places num_location clusters, each containing cluster_size synapses. Density is relative, scaled.
+
+        Args:
+            synapse_density : Synapse density as a function f(d), d = distance on dendrite from soma
+            rng : Numpy random stream
+            num_location (int) : Number of locations
+            cluster_size (int) : Size of synapse clusters
+        """
+
+        expected_synapses = self.get_expected_synapses_per_compartment(synapse_density=synapse_density)
+
+        p_cum = np.cumsum(expected_synapses)
+        rand_vals = rng.uniform(0, p_cum[-1], num_locations)
+
+        num_synapses = num_locations*cluster_size
+        input_loc = np.zeros((num_synapses, 5))
+        dist_syn_soma = np.zeros((num_synapses,))
+
+        d = self.dend[:, 4]
+        syn_ctr = 0
+
+        for r in rand_vals:
+            comp_idx = np.sum(r <= p_cum) - 1
+
+            for j in range(cluster_size):
+
+                comp_x = rng.random()
+
+                dist_syn_soma[syn_ctr] = d[self.dend_links[comp_idx, 0]] * (1 - comp_x) \
+                                         + d[self.dend_links[comp_idx, 1]] * comp_x
+
+                coords = (self.dend[self.dend_links[comp_idx, 0], :3] * (1 - comp_x)
+                          + self.dend[self.dend_links[comp_idx, 1], :3] * comp_x)
+
+                input_loc[syn_ctr, :3] = coords
+                input_loc[syn_ctr, 3] = self.dend_sec_id[comp_idx]
+                input_loc[syn_ctr, 4] = self.dend_sec_x[comp_idx, 0] * (1 - comp_x) \
+                                        + comp_x * self.dend_sec_x[comp_idx, 1]
+
+                syn_ctr += 1
+
+        assert syn_ctr == input_loc.shape[0], f"Not all input_loc was set. Rows {input_loc.shape[0]}, syn_ctr={syn_ctr}"
+
+        # Return xyz,secID,secX, dist_to_soma (update: now also added distance synapse to soma)
+        return input_loc[:, :3], input_loc[:, 3], input_loc[:, 4], dist_syn_soma
+
 
     ############################################################################
 
