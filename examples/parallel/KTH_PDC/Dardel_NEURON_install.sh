@@ -12,8 +12,11 @@ conda activate
 module load snic-env
 
 # --- I have tried with the gnu compiler, and also with the cray compiler
+
+# 2021-12-10 -- Temp comment out, testin CRAY compiler
 module swap PrgEnv-cray PrgEnv-gnu
 module unload cray-libsci atp
+
 export CRAYPE_LINK_TYPE=dynamic
 export CRAY_ROOTFS=DSL
 
@@ -30,11 +33,11 @@ LN=$L/neuron
 
 mkdir -pv $L
 
-export CXX=CC
-export CC=cc
-export FC=ftn
-export MPICC=cc
-export MPICXX=CC
+# export CXX=CC
+# export CC=cc
+# export FC=ftn
+# export MPICC=cc
+# export MPICXX=CC
 
 
 
@@ -112,12 +115,16 @@ pushd $L
       -DNRN_ENABLE_CORENEURON=OFF \
       -DCMAKE_BUILD_TYPE:STRING=Release \
       -DCURSES_CURSES_LIBRARY:FILEPATH=$MINIC/lib/libncurses.so \
-      -DCURSES_INCLUDE_PATH:PATH=$MINIC/include/ncurses.h
-
+      -DCURSES_INCLUDE_PATH:PATH=$MINIC/include/ncurses.h \
+      -DLTDL_LIBRARY=/usr/lib64/libltdl.so.7 \
+      -DREADLINE_LIBRARY=/lib64/libreadline.so.7 \
+      -DNCURSES_LIBRARY=/lib64/libncurses.so.6.1
+      
   cmake --build . \
 	--parallel 1 \
 	--target install 1>$L/build_log_Release.txt 2>$L/build_error_Release.txt
 
+CC --version
     
 #    ./build.sh
 #    autoreconf --force --install
