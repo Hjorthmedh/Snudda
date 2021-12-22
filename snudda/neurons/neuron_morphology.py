@@ -1177,6 +1177,9 @@ class NeuronMorphology(object):
         p_cum = np.cumsum(expected_synapses)
         rand_vals = rng.uniform(0, p_cum[-1], num_locations)
 
+        if cluster_size is None:
+            cluster_size = 1
+
         num_synapses = num_locations*cluster_size
         input_loc = np.zeros((num_synapses, 5))
         dist_syn_soma = np.zeros((num_synapses,))
