@@ -1188,7 +1188,7 @@ class NeuronMorphology(object):
         syn_ctr = 0
 
         for r in rand_vals:
-            comp_idx = np.sum(r <= p_cum) - 1
+            comp_idx = len(p_cum) - np.sum(r < p_cum)
 
             for j in range(cluster_size):
 
