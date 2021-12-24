@@ -32,15 +32,15 @@ LM=$L/miniconda3
 LN=$L/neuron
 
 #Dirty fix for NEURON compilation to work, thanks Tor Kjellson for help
-TMP0_DIR=$L/NEURON_libs
+TMP0_DIR=$L/cray_libs
 
 mkdir -pv $L
 
 mkdir -pv $TMP0_DIR
 pushd $TMP0_DIR
-ln -s /lib64/libncurses.so.6
-ln -s /lib64/libtinfo.so.6
-ln -s /lib64/libreadline.so.7
+ln -s /lib64/libncurses.so.6 libncurses.so
+ln -s /lib64/libtinfo.so.6 libtinfo.so
+ln -s /lib64/libreadline.so.7 libreadline.so
 popd
 
 # export CXX=CC
