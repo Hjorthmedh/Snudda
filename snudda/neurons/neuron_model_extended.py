@@ -85,7 +85,7 @@ class NeuronModel(ephys.models.CellModel):
         params = self.define_parameters(param_file, parameter_id, parameter_key)
 
         if modulation_file is not None:
-            mod_params = self.define_parameters(modulation_file, modulation_id, modulation_key)
+            mod_params = self.define_parameters(parameter_config=modulation_file, parameter_key=modulation_key)
             params = params + mod_params
 
         super(NeuronModel, self).__init__(name=cell_name, morph=morph,
