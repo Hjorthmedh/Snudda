@@ -10,6 +10,7 @@ source activate_miniconda.sh
 conda activate
 
 module load snic-env
+module load PDC
 
 # --- I have tried with the gnu compiler, and also with the cray compiler
 
