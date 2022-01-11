@@ -28,12 +28,12 @@ echo ""
 echo "https://github.com/Hjorthmedh/Snudda/wiki/D.-Setting-up-Tegner-@%C2%A0KTH"
 echo ""
 
-L=/cfs/klemming/home/${USER:0:1}/$USER/local/$SNIC_RESOURCE
-LM=$L/miniconda3
-LN=$L/neuron
+export L=/cfs/klemming/home/${USER:0:1}/$USER/local/$SNIC_RESOURCE
+export LM=$L/miniconda3
+export LN=$L/neuron
 
 #Dirty fix for NEURON compilation to work, thanks Tor Kjellson for help
-TMP0_DIR=$L/cray_libs
+export TMP0_DIR=$L/cray_libs
 
 mkdir -pv $L
 
