@@ -59,11 +59,19 @@ export MINIC=$LM
 
 export PATH=$LM/bin:$LN/bin:$PATH
 # export LD_LIBRARY_PATH=$LN/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$TMP_DIR0:$MPICH_DIR/lib:$LD_LIBRARY_PATH
 export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
 export PYTHONPATH=$LN/lib/python:$LM/lib/python3.8/
 
 export NRN_INSTALL_LOC=$LN
+
+export CXX=CC
+export CC=cc
+export FC=ftn
+export MPICC=cc
+export MPICXX=CC
+
+module load CMake/3.21.2
 
 
 # We need to recompile mpi4py to use mpich libraries of beskow
@@ -116,6 +124,7 @@ pushd $L
 	  #-DCMAKE_BUILD_TYPE=Debug \
 	  
   cmake .. \
+	-DCMAKE_SKIP_RPATH:BOOL=YES \
 	-DNRN_ENABLE_INTERVIEWS=OFF \
 	-DNRN_ENABLE_PYTHON=ON \
 	-DNRN_ENABLE_MPI=ON \
@@ -124,9 +133,11 @@ pushd $L
 	-DNRN_ENABLE_BINARY_SPECIAL=ON \
 	-DNRN_ENABLE_CORENEURON=OFF \
 	-DCMAKE_BUILD_TYPE:STRING=Release \
-	-DREADLINE_LIBRARY:FILEPATH=$TMP0_DIR/libreadline.so \
-	-DCURSES_CURSES_LIBRARY:FILEPATH=$TMP0_DIR/libncurses.so \
-	-DCURSES_EXTRA_LIBRARY:FILEPATH=$TMP0_DIR/libtinfo.so
+	-DREADLINE_LIBRARY:FILEPATH=$TMP_DIR0/libreadline.so \
+	-DCURSES_EXTRA_LIBRARY:FILEPATH=$TMP_DIR0/libtinfo.so \
+	-DCURSES_CURSES_LIBRARY:FILEPATH=$TMP_DIR0/libncurses.so \
+	-DCURSES_NCURSES_LIBRARY:FILEPATH=$TMP_DIR0/libncurses.so \
+	-DCURSES_INCLUDE_PATH:PATH=/usr/include/curses/
   
   cmake --build . \
 	--parallel 1 \
