@@ -42,6 +42,7 @@ pushd $TMP0_DIR
 ln -s /lib64/libncurses.so.6 libncurses.so
 ln -s /lib64/libtinfo.so.6 libtinfo.so
 ln -s /lib64/libreadline.so.7 libreadline.so
+ln -s $LM/lib/libpython3.9.so.1.0 .
 popd
 
 # export CXX=CC
@@ -190,5 +191,17 @@ CC --version
 # popd
 # rm -rf $L/build
 
+
+  # Some dirty fixes...
+  # På rad 32 har du
+  # LDFLAGS = $(LINKFLAGS) $(UserLDFLAGS) ....
+  # /path-to-miniconda/dardel/miniconda3/lib
+  # radera den sista sökvägen - annars får du problem när nrnivmodl körs.
+  
+  mv $L/neuron/bin/nrnmech_makefile $L/neuron/bin/nrnmech_makefile.original
+  python3 purge_ldflags.py $L/neuron/bin/nrnmech_makefile.original > $L/neuron/bin/nrnmech_makefile
+  chmod u+x $L/neuron/bin/nrnmech_makefile
+
+  
 
 conda deactivate
