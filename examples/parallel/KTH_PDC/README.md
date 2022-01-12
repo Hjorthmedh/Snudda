@@ -37,6 +37,18 @@ This will create files in your home directory ```local/dardel``` subdirectory.
 
 You can see the progress of the installation in the ```Snudda/examples/parallel/KTH_PDC/log``` folder. As well as the two files ```local/dardel/build_error_Release.txt``` and ```local/dardel/build_log_Release.txt```.
 
+Finally to test that it worked, you can run:
+
+```
+sbatch Dardel_runSnudda.job
+```
+
+After the network is created, you can start a simulation:
+
+```
+sbatch Dardel_simulate.job
+```
+
 
 # Setting up Snudda on Beskow
 
