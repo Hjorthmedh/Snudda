@@ -465,7 +465,6 @@ class SnuddaSimulate(object):
                 morphology_key = self.network_info["neurons"][ID]["morphologyKey"]
                 modulation_key = self.network_info["neurons"][ID]["modulationKey"]
 
-
                 self.neurons[ID] = NeuronModel(param_file=param,
                                                morph_path=morph,
                                                mech_file=mech,
