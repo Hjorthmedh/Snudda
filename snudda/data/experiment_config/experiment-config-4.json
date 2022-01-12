@@ -3,7 +3,7 @@
     "meta" : {
 	"simulationDuration" : 3,
 	"vInit" : -80e-3,
-	"pair_recording_voltage_file" : "network-voltage-4.txt",
+	"pairRecordingOutputFile" : "network-output-4.hdf5",
 	"reversal_potential" : [["tmGabaA", -40e-3]]
     },
     

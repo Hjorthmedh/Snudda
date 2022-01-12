@@ -403,7 +403,7 @@ class Snudda(object):
 
         assert False, "Old export to SONATA borken, fixme!"
         # TODO: Fix this
-        from snudda.ConvertNetwork import ConvertNetwork
+        from snudda.utils.export_sonata import ExportSonata
 
         print("Exporting to SONATA format")
         print(f"Network path: {self.network_path}")
@@ -420,9 +420,7 @@ class Snudda(object):
 
         out_dir = os.path.join(self.network_path, "SONATA")
 
-        cn = ConvertNetwork(networkFile=network_file,
-                            inputFile=input_file,
-                            outDir=out_dir)
+        cn = ExportSonata(network_file=network_file, input_file=input_file, out_dir=out_dir)
 
     ############################################################################
 

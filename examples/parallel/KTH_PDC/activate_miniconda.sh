@@ -5,7 +5,7 @@
 ##############################################################################
 
 module load snic-env
-L=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/$SNIC_RESOURCE
+L=/cfs/klemming/home/${USER:0:1}/$USER/local/$SNIC_RESOURCE
 
 __conda_setup="$('$L/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
 

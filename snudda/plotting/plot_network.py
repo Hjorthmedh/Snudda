@@ -191,7 +191,17 @@ class PlotNetwork(object):
         neuron_colours = np.array(neuron_colours)
         positions = self.sl.data["neuronPositions"]
 
-        ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], c=neuron_colours, marker='o', s=20,alpha=alphas)
+        pop_unit_idx = np.where(population_unit > 0)[0]
+        unmarked_idx = np.where(population_unit == 0)[0]
+
+        ax.scatter(positions[pop_unit_idx, 0], positions[pop_unit_idx, 1], positions[pop_unit_idx, 2],
+                   c=neuron_colours[pop_unit_idx, :], marker='o', s=20,alpha=1)
+
+        ax.scatter(positions[unmarked_idx, 0], positions[unmarked_idx, 1], positions[unmarked_idx, 2],
+                   c=neuron_colours[unmarked_idx, :], marker='o', s=20,alpha=0.05)
+
+
+        # ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], c=neuron_colours, marker='o', s=20,alpha=alphas)
 
         self.equal_axis(ax)
 
