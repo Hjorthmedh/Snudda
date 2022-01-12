@@ -49,6 +49,7 @@ After the network is created, you can start a simulation:
 sbatch Dardel_simulate.job
 ```
 
+You can find the generated network files and simulation in ```Snudda/examples/parallel/KTH_PDC/networks/test_10k```.
 
 # Setting up Snudda on Beskow
 
