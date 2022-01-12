@@ -10,6 +10,7 @@ source activate_miniconda.sh
 conda activate
 
 module load snic-env
+module load PDC
 
 # --- I have tried with the gnu compiler, and also with the cray compiler
 
@@ -27,11 +28,22 @@ echo ""
 echo "https://github.com/Hjorthmedh/Snudda/wiki/D.-Setting-up-Tegner-@%C2%A0KTH"
 echo ""
 
-L=/cfs/klemming/home/${USER:0:1}/$USER/local/$SNIC_RESOURCE
-LM=$L/miniconda3
-LN=$L/neuron
+export L=/cfs/klemming/home/${USER:0:1}/$USER/local/$SNIC_RESOURCE
+export LM=$L/miniconda3
+export LN=$L/neuron
+
+#Dirty fix for NEURON compilation to work, thanks Tor Kjellson for help
+export TMP0_DIR=$L/cray_libs
 
 mkdir -pv $L
+
+mkdir -pv $TMP0_DIR
+pushd $TMP0_DIR
+ln -s /lib64/libncurses.so.6 libncurses.so
+ln -s /lib64/libtinfo.so.6 libtinfo.so
+ln -s /lib64/libreadline.so.7 libreadline.so
+ln -s $LM/lib/libpython3.9.so.1.0 .
+popd
 
 # export CXX=CC
 # export CC=cc
@@ -49,11 +61,19 @@ export MINIC=$LM
 
 export PATH=$LM/bin:$LN/bin:$PATH
 # export LD_LIBRARY_PATH=$LN/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$TMP0_DIR:$MPICH_DIR/lib:$LD_LIBRARY_PATH
 export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
 export PYTHONPATH=$LN/lib/python:$LM/lib/python3.8/
 
 export NRN_INSTALL_LOC=$LN
+
+export CXX=CC
+export CC=cc
+export FC=ftn
+export MPICC=cc
+export MPICXX=CC
+
+module load CMake/3.21.2
 
 
 # We need to recompile mpi4py to use mpich libraries of beskow
@@ -106,20 +126,21 @@ pushd $L
 	  #-DCMAKE_BUILD_TYPE=Debug \
 	  
   cmake .. \
-      -DNRN_ENABLE_INTERVIEWS=OFF \
-      -DNRN_ENABLE_PYTHON=ON   \
-      -DNRN_ENABLE_MPI=ON   \
-      -DNRN_ENABLE_RX3D=OFF  \
-      -DCMAKE_INSTALL_PREFIX=$NRN_INSTALL_LOC \
-      -DNRN_ENABLE_BINARY_SPECIAL=ON \
-      -DNRN_ENABLE_CORENEURON=OFF \
-      -DCMAKE_BUILD_TYPE:STRING=Release \
-      -DCURSES_CURSES_LIBRARY:FILEPATH=$MINIC/lib/libncurses.so \
-      -DCURSES_INCLUDE_PATH:PATH=$MINIC/include/ncurses.h \
-      -DLTDL_LIBRARY=/usr/lib64/libltdl.so.7 \
-      -DREADLINE_LIBRARY=/lib64/libreadline.so.7 \
-      -DNCURSES_LIBRARY=/lib64/libncurses.so.6.1
-      
+	-DCMAKE_SKIP_RPATH:BOOL=YES \
+	-DNRN_ENABLE_INTERVIEWS=OFF \
+	-DNRN_ENABLE_PYTHON=ON \
+	-DNRN_ENABLE_MPI=ON \
+	-DNRN_ENABLE_RX3D=OFF \
+	-DCMAKE_INSTALL_PREFIX=$NRN_INSTALL_LOC \
+	-DNRN_ENABLE_BINARY_SPECIAL=ON \
+	-DNRN_ENABLE_CORENEURON=OFF \
+	-DCMAKE_BUILD_TYPE:STRING=Release \
+	-DREADLINE_LIBRARY:FILEPATH=$TMP0_DIR/libreadline.so \
+	-DCURSES_EXTRA_LIBRARY:FILEPATH=$TMP0_DIR/libtinfo.so \
+	-DCURSES_CURSES_LIBRARY:FILEPATH=$TMP0_DIR/libncurses.so \
+	-DCURSES_NCURSES_LIBRARY:FILEPATH=$TMP0_DIR/libncurses.so \
+	-DCURSES_INCLUDE_PATH:PATH=/usr/include/curses/
+  
   cmake --build . \
 	--parallel 1 \
 	--target install 1>$L/build_log_Release.txt 2>$L/build_error_Release.txt
@@ -170,5 +191,17 @@ CC --version
 # popd
 # rm -rf $L/build
 
+
+  # Some dirty fixes...
+  # På rad 32 har du
+  # LDFLAGS = $(LINKFLAGS) $(UserLDFLAGS) ....
+  # /path-to-miniconda/dardel/miniconda3/lib
+  # radera den sista sökvägen - annars får du problem när nrnivmodl körs.
+  
+  mv $L/neuron/bin/nrnmech_makefile $L/neuron/bin/nrnmech_makefile.original
+  python3 purge_ldflags.py $L/neuron/bin/nrnmech_makefile.original > $L/neuron/bin/nrnmech_makefile
+  chmod u+x $L/neuron/bin/nrnmech_makefile
+
+  
 
 conda deactivate
