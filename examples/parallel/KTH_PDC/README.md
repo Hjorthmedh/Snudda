@@ -33,7 +33,9 @@ Now run the installation script:
 sbatch Dardel_NEURON_install.job
 ```
 
-This will create files in your home directory ```local/dardel``` subdirectory.
+This will create files in your home directory ```local/dardel``` subdirectory. 
+
+You can see the progress of the installation in the ```Snudda/examples/parallel/KTH_PDC/log``` folder. As well as the two files ```local/dardel/build_error_Release.txt``` and ```local/dardel/build_log_Release.txt```.
 
 
 # Setting up Snudda on Beskow
