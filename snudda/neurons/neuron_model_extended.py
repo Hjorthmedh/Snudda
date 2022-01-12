@@ -84,7 +84,7 @@ class NeuronModel(ephys.models.CellModel):
         mechs = self.define_mechanisms(mechanism_config=mech_file)
         params = self.define_parameters(param_file, parameter_id, parameter_key)
         
-        if modulation_key is not None and modulation_key!="":
+        if modulation_key and modulation_key:
             
             mod_params = self.define_parameters(parameter_config=modulation_file, parameter_key=modulation_key)
             params = params + mod_params
