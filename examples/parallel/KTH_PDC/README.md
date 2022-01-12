@@ -1,3 +1,25 @@
+# Setting up Snudda on Dardel / PDC
+
+First clone Snudda to your home directory:
+```
+git clone https://github.com/Hjorthmedh/Snudda.git
+```
+
+Run the ```Dardel_install_Snudda.sh``` script in ```Snudda/examples/parallell/KTH_PDC```
+
+```
+./Dardel_install_Snudda.sh
+```
+
+Also install ```NEURON```
+
+```
+sbatch Dardel_NEURON_install.job
+```
+
+This will create files in your home directory ```local/dardel``` subdirectory.
+
+
 # Setting up Snudda on Beskow
 
 First create your miniconda environment on Beskow:
