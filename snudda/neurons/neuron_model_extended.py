@@ -47,6 +47,9 @@ class NeuronModel(ephys.models.CellModel):
 
         """
 
+        # OBS, modulation_id is not used. morphology_id, parameter_id and modulation_id will be deprecated
+        # at some point. Key usage is preferred (less risk of mixing models)
+
         self.name = cell_name
         self.type = cell_name.split('_')[0]
         self.parameters = []
@@ -84,7 +87,7 @@ class NeuronModel(ephys.models.CellModel):
         mechs = self.define_mechanisms(mechanism_config=mech_file)
         params = self.define_parameters(param_file, parameter_id, parameter_key)
         
-        if modulation_key and modulation_key:
+        if modulation_key and modulation_file:
             
             mod_params = self.define_parameters(parameter_config=modulation_file, parameter_key=modulation_key)
             params = params + mod_params

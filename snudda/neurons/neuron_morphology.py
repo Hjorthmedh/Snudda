@@ -1155,7 +1155,6 @@ class NeuronMorphology(object):
 
     ############################################################################
 
-
     def dendrite_input_locations_helper(self,
                                         synapse_density,
                                         rng,
@@ -1168,7 +1167,7 @@ class NeuronMorphology(object):
         Args:
             synapse_density : Synapse density as a function f(d), d = distance on dendrite from soma
             rng : Numpy random stream
-            num_location (int) : Number of locations
+            num_locations (int) : Number of locations
             cluster_size (int) : Size of synapse clusters
         """
 
@@ -1194,16 +1193,16 @@ class NeuronMorphology(object):
 
                 comp_x = rng.random()
 
-                dist_syn_soma[syn_ctr] = d[self.dend_links[comp_idx, 0]] * (1 - comp_x) \
-                                         + d[self.dend_links[comp_idx, 1]] * comp_x
+                dist_syn_soma[syn_ctr] = (d[self.dend_links[comp_idx, 0]] * (1 - comp_x)
+                                          + d[self.dend_links[comp_idx, 1]] * comp_x)
 
                 coords = (self.dend[self.dend_links[comp_idx, 0], :3] * (1 - comp_x)
                           + self.dend[self.dend_links[comp_idx, 1], :3] * comp_x)
 
                 input_loc[syn_ctr, :3] = coords
                 input_loc[syn_ctr, 3] = self.dend_sec_id[comp_idx]
-                input_loc[syn_ctr, 4] = self.dend_sec_x[comp_idx, 0] * (1 - comp_x) \
-                                        + comp_x * self.dend_sec_x[comp_idx, 1]
+                input_loc[syn_ctr, 4] = (self.dend_sec_x[comp_idx, 0] * (1 - comp_x)
+                                         + comp_x * self.dend_sec_x[comp_idx, 1])
 
                 syn_ctr += 1
 
@@ -1211,7 +1210,6 @@ class NeuronMorphology(object):
 
         # Return xyz,secID,secX, dist_to_soma (update: now also added distance synapse to soma)
         return input_loc[:, :3], input_loc[:, 3], input_loc[:, 4], dist_syn_soma
-
 
     ############################################################################
 
