@@ -4,7 +4,7 @@
 #SBATCH -e log/Input-%j-error.txt
 #SBATCH -t 0:30:00
 #SBATCH -J SnuddaInput
-#SBATCH -A 2021-5-492 
+#SBATCH -A snic2021-5-492
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=64
 
