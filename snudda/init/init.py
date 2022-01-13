@@ -801,7 +801,8 @@ class SnuddaInit(object):
                         slice_depth=None,
                         neurons_dir=None,
                         neuron_density=80500,
-                        population_unit_SPN_modifier=1,
+                        within_population_unit_SPN_modifier=1,
+                        between_population_unit_SPN_modifier=1,
                         mesh_file=None,
                         mesh_bin_width=None,
                         d_min=None,
@@ -923,17 +924,6 @@ class SnuddaInit(object):
         iSPN_dir = os.path.join(neurons_dir, "striatum", "ispn")
         ChIN_dir = os.path.join(neurons_dir, "striatum", "chin")
         LTS_dir = os.path.join(neurons_dir, "striatum", "lts")
-
-        if "PopulationUnits" in self.network_data and "Striatum" in self.network_data["PopulationUnits"]:
-            num_population_units = len(self.network_data["PopulationUnits"]["Striatum"]["unitID"])
-        else:
-            num_population_units = 1
-
-        if num_population_units <= 1:
-            # Note that the cells that do not belong to a population unit has pop unit 0
-            # TODO: Be careful, neurons with pop unit 0 will count as all being in same "unit" for connectivity purpose
-            # TODO: SHould this be reworked?
-            population_unit_SPN_modifier = 1
 
         # Add the neurons
 
@@ -1122,10 +1112,10 @@ class SnuddaInit(object):
 
         # !!! TODO: When this runs we do not know how many population units will be added...
 
-        P11withinUnit = MSP11 * population_unit_SPN_modifier
-        P11betweenUnit = MSP11
-        P12withinUnit = MSP12 * population_unit_SPN_modifier
-        P12betweenUnit = MSP12
+        P11withinUnit = MSP11 * within_population_unit_SPN_modifier
+        P11betweenUnit = MSP11 * between_population_unit_SPN_modifier
+        P12withinUnit = MSP12 * within_population_unit_SPN_modifier
+        P12betweenUnit = MSP12 * between_population_unit_SPN_modifier
 
         # pfdSPNdSPN = "synapses/v1/trace_table.txt-DD-model-parameters.json"
         # pfdSPNiSPN = "synapses/v1/trace_table.txt-DI-model-parameters.json"
@@ -1239,10 +1229,10 @@ class SnuddaInit(object):
         MSD2GABAfailRate = 0.4  # Taverna 2008, 2mM
 
         # Voxel method
-        P21withinUnit = MSP21 * population_unit_SPN_modifier
-        P21betweenUnit = MSP21
-        P22withinUnit = MSP22 * population_unit_SPN_modifier
-        P22betweenUnit = MSP22
+        P21withinUnit = MSP21 * within_population_unit_SPN_modifier
+        P21betweenUnit = MSP21 * between_population_unit_SPN_modifier
+        P22withinUnit = MSP22 * within_population_unit_SPN_modifier
+        P22betweenUnit = MSP22 * between_population_unit_SPN_modifier
 
         pfiSPNdSPN = os.path.join("$SNUDDA_DATA", "synapses", "striatum", "PlanertFitting-ID-tmgaba-fit.json")
         pfiSPNiSPN = os.path.join("$SNUDDA_DATA", "synapses", "striatum", "PlanertFitting-II-tmgaba-fit.json")

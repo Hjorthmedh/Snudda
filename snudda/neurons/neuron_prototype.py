@@ -183,7 +183,7 @@ class NeuronPrototype:
                 return None
 
             param_key = self.get_parameter_key(parameter_id)
-            morph_key = self.get_morphology_key(parameter_id=None, parameter_key=param_key, morphology_id=morphology_id)
+            morph_key = self.get_morph_key(parameter_id=None, parameter_key=param_key, morphology_id=morphology_id)
             modulation_key_list = self.meta_info[param_key][morph_key]["neuromodulation"]
 
             # modulation_key_list = list(self.modulation_info.keys())
