@@ -6,6 +6,7 @@ from snudda.utils import SnuddaLoad
 from snudda.neurons.neuron_morphology import NeuronMorphology
 from snudda.neurons.neuron_prototype import NeuronPrototype
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 
 class SnuddaPlotInputLocations:
@@ -27,7 +28,7 @@ class SnuddaPlotInputLocations:
     def plot_neuron_inputs(self, neuron_id,
                            input_type=None,
                            show_internal_synapses=True,
-                           external_colour=None, internal_colour=None):
+                           external_colour=None, internal_colour=None, size=10):
 
         # TODO: Add ability to plot touch detected inputs also (use blue colour for them)
 
@@ -39,11 +40,16 @@ class SnuddaPlotInputLocations:
         if not internal_colour:
             internal_colour = "b"
 
+        
         nm = self.load_neuron(neuron_id=neuron_id)
-        ax = nm.plot_neuron(soma_colour=[0, 0, 0], dend_colour=[0, 0, 0], plot_axon=False, plot_dendrite=True)
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax = nm.plot_neuron(soma_colour=[0, 0, 0], dend_colour=[0, 0, 0], plot_axon=False, plot_dendrite=True,show_plot=False,axis=ax)
 
         if len(coords) > 0:
-            ax.scatter(xs=coords[:, 0], ys=coords[:, 1], zs=coords[:, 2], c=external_colour, marker=".")
+            print(f"Plotting {len(coords)} external synapses")
+           
+            ax.scatter(xs=coords[:, 0], ys=coords[:, 1], zs=coords[:, 2], c=external_colour, marker=".", s=size)
 
         if show_internal_synapses:
             syn_coords = self.get_synapse_coords(neuron_id=neuron_id)
