@@ -46,10 +46,10 @@ class NeuronMorphology(object):
 
         self.cache_version = 0.9
 
-        self.position = np.copy(np.array(position))
+        self.position = np.array(position)
 
         if rotation is not None:
-            self.rotation = np.copy(np.array(rotation))
+            self.rotation = np.array(rotation)
         else:
             self.rotation = None
 
@@ -91,7 +91,7 @@ class NeuronMorphology(object):
         self.verbose = verbose
         self.use_cache = use_cache
         self.pickle_version = pickle_version
-        self.logFile = logfile
+        self.log_file = logfile
         self.virtual_neuron = virtual_neuron
 
         self.rotated_flag = False
@@ -274,8 +274,8 @@ class NeuronMorphology(object):
     def write_log(self, text, is_error=False):
 
         """ Write text to log file. Prints on screen if self.verbose or is_error """
-        if self.logFile is not None:
-            self.logFile.write(f"{text}\n")
+        if self.log_file is not None:
+            self.log_file.write(f"{text}\n")
 
         if self.verbose or is_error:
             print(text)
