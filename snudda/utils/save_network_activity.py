@@ -5,6 +5,52 @@ import numpy as np
 from mpi4py import MPI  # This must be imported before neuron, to run parallel
 from neuron import h  # , gui
 
+# TODO:
+#
+# NeuronActivity håller information om alla olika mätningar för en given neuron,
+# Simulate har en lista med NeuronActivity
+#
+# I simulate måste vi:
+# För varje neuron som ska mäta något på, skapa en NeuronActivity och lägg i en lista
+# För varje measurement vi vill spara (ström, voltage, etc), använd add_measurements
+# och sedan
+
+
+class NeuronActivity:
+
+    def __init__(self, neuron_id):
+        self.neuron_id = neuron_id
+        self.time = None
+
+        self.measurements = dict()
+
+    def register_measurement(self, data_type, data, sec_type, sec_id, sec_x):
+        if data_type not in self.measurements:
+            self.measurements[data_type] = CompartmentMeasurements(neuron_id=self.neuron_id, data_type=data_type)
+
+        self.measurements[data_type].append(data=data, sec_type=sec_type, sec_id=sec_id, sec_x=sec_x)
+
+
+class CompartmentMeasurements:
+
+    def __init__(self, neuron_id, data_type):
+        self.neuron_id = neuron_id
+        self.data_type = data_type
+        self.data = []
+        self.sec_type = []  # 1 = soma, 2 = axon, 3 = dendrite
+        self.sec_id = []
+        self.sec_x = []
+
+    def append(self, data, sec_type, sec_id, sec_x):
+        self.data.append(data)
+        self.sec_type.append(sec_type)
+        self.sec_id.append(sec_id)
+        self.sec_x.append(sec_x)
+
+    def convert_data(self):
+        # TODO: !!! Verify that this creates one big numpy array with all the NEURON vectors
+        return np.vstack([np.array(d) for d in self.data])
+
 
 class SnuddaSaveNetworkActivity:
 
@@ -12,6 +58,7 @@ class SnuddaSaveNetworkActivity:
 
         self.output_file = output_file
         self.network_data = network_data
+        self.header_exists = False
 
         self.pc = h.ParallelContext()
 
@@ -44,6 +91,105 @@ class SnuddaSaveNetworkActivity:
 
         return spikes
 
+    # TODO: save_network_activity
+    # 1. write_header -- node 0 skriver metadata till filen
+    # 2. write_spikes -- alla noder skriver sin spikdata
+    # 3. write_soma_voltage -- alla noder skriver soma voltage data
+    # 4. write_compartment_voltage -- alla noder skriver segment voltage
+
+    def write_string_meta_data(self, group, name):
+        string_data = [x[name] for x in self.network_data["neurons"]]
+        max_len = max(1, max([len(x) for x in string_data]))
+        str_type = f"S{max_len}"
+        group.create_dataset(name, (len(string_data),), str_type, string_data, compression="gzip")
+
+    def write_header(self):
+
+        if self.header_exists:
+            return
+
+        self.pc.barrier()
+
+        if int(self.pc.id()) == 0:
+
+            if not os.path.isdir(os.path.dirname(self.output_file)):
+                os.mkdir(os.path.dirname(self.output_file))
+
+            print(f"Writing network output to {self.output_file}")
+            out_file = h5py.File(self.output_file, "w")
+
+            meta_data = out_file.create_group("metaData")
+            out_file.create_group("voltData")
+            out_file.create_group("spikeData")
+
+            if self.network_data:
+                neuron_id = np.array([x["neuronID"] for x in self.network_data["neurons"]])
+                meta_data.create_dataset("ID", data=neuron_id)
+
+                for name in ["name", "type", "morphology", "parameterKey", "morphologyKey", "modulationKey"]:
+                    self.write_string_meta_data(group=meta_data, name=name)
+
+                meta_data.create_dataset("populationUnit", data=self.network_data["populationUnit"], compression="gzip")
+                meta_data.create_dataset("position", data=self.network_data["neuronPositions"], compression="gzip")
+
+            out_file.close()
+
+        self.header_exists = True
+
+    def write_spikes(self, t_spikes, id_spikes):
+
+        self.write_header()
+
+        # Write spike data
+        print("Sorting spikes")
+        spikes = self.spike_sort(t_spikes=t_spikes, id_spikes=id_spikes)
+
+        print("Saving spike data...")
+
+        for i in range(int(self.pc.nhost())):
+            if i == int(self.pc.id()):
+                out_file = h5py.File(self.output_file, "a")
+
+                for idx, spike_times in spikes.items():
+                    out_file["spikeData"].create_dataset(f"{idx:.0f}", data=spike_times*1e-3, compression="gzip")
+
+                out_file.close()
+
+            self.pc.barrier()
+
+    def write_time(self, time):
+
+        self.write_header()
+        self.pc.barrier()
+
+        if int(self.pc.id()) == 0:
+
+            out_file = h5py.File(self.output_file, "w")
+            out_file.create_dataset("time", data=time)
+            out_file.close()
+
+    def write_neuron_activity(self, neuron_activity_list):
+
+        for i in range(int(self.pc.nhost())):
+            out_file = h5py.File(self.output_file, "a")
+
+            for na in neuron_activity_list:
+                neuron_id_str = str(na.neuron_id)
+                if neuron_id_str not in out_file["neurons"]:
+                    out_file["neurons"].create_group(neuron_id_str)
+
+                for m in na.measurements:
+                    out_file["neurons"][neuron_id_str].create_group(m.data_type)
+                    data_group = out_file["neurons"][neuron_id_str][m.data_type]
+                    data_group.create_dataset("data", data=m.convert_data(), compression="gzip")
+                    data_group.create_dataset("sec_type", data=np.array(m.sec_type), compression="gzip")
+                    data_group.create_dataset("sec_id", data=np.array(m.sec_id), compression="gzip")
+                    data_group.create_dataset("sec_x", data=np.array(m.sec_x), compression="gzip")
+
+            out_file.close()
+
+        self.pc.barrier()
+
     def write(self, t_save, v_save, v_key, t_spikes, id_spikes, output_file=None):
 
         """ Write spike data and voltage data to output_file
@@ -56,59 +202,7 @@ class SnuddaSaveNetworkActivity:
             id_spikes : neuron_id of spike times
             """
 
-        if not output_file:
-            output_file = self.output_file
-
-        self.pc.barrier()
-
-        if int(self.pc.id()) == 0:
-
-            if not os.path.isdir(os.path.dirname(output_file)):
-                os.mkdir(os.path.dirname(output_file))
-
-            print(f"Writing network output to {output_file}")
-            out_file = h5py.File(output_file, "w")
-
-            meta_data = out_file.create_group("metaData")
-            out_file.create_group("voltData")
-            out_file.create_group("spikeData")
-
-            if self.network_data:
-                neuron_id = np.array([x["neuronID"] for x in self.network_data["neurons"]])
-                meta_data.create_dataset("ID", data=neuron_id)
-
-                neuron_names = [x["name"] for x in self.network_data["neurons"]]
-                str_type = 'S' + str(max(1, max([len(x) for x in neuron_names])))
-                meta_data.create_dataset("name", (len(neuron_names),), str_type, neuron_names, compression="gzip")
-
-                neuron_types = [x["type"] for x in self.network_data["neurons"]]
-                str_type = 'S' + str(max(1, max([len(x) for x in neuron_types])))
-                meta_data.create_dataset("type", (len(neuron_names),), str_type, neuron_names, compression="gzip")
-
-                swc_list = [n["morphology"] for n in self.network_data["neurons"]]
-                max_swc_len = max([len(x) for x in swc_list])
-                meta_data.create_dataset("morphology", (len(swc_list),), f"S{max_swc_len}",
-                                         swc_list, compression="gzip")
-
-                parameter_keys = [n["parameterKey"] for n in self.network_data["neurons"]]
-                parameter_key_length = max([len(x) for x in parameter_keys])
-                meta_data.create_dataset("parameterKey", (len(parameter_keys),), f"S{parameter_key_length}",
-                                         parameter_keys, compression="gzip")
-
-                morphology_keys = [n["morphologyKey"] for n in self.network_data["neurons"]]
-                morphology_key_length = max(1, max([len(x) for x in morphology_keys]))
-                meta_data.create_dataset("morphologyKey", (len(morphology_keys),), f"S{morphology_key_length}",
-                                         morphology_keys, compression="gzip")
-
-                modulation_keys = [n["modulationKey"] for n in self.network_data["neurons"]]
-                modulation_key_length = max(1, max([len(x) for x in modulation_keys]))
-                meta_data.create_dataset("modulationKey", (len(modulation_keys),), f"S{modulation_key_length}",
-                                         modulation_keys, compression="gzip")
-
-                meta_data.create_dataset("populationUnit", data=self.network_data["populationUnit"], compression="gzip")
-                meta_data.create_dataset("position", data=self.network_data["neuronPositions"], compression="gzip")
-
-            out_file.close()
+        self.write_header()
 
         if not t_save or not v_save or not v_key:
             print("No voltage data saved.")
@@ -129,22 +223,7 @@ class SnuddaSaveNetworkActivity:
 
                 self.pc.barrier()
 
-        # Write spike data
-        print("Sorting spikes")
-        spikes = self.spike_sort(t_spikes=t_spikes, id_spikes=id_spikes)
-
-        print("Saving spike data...")
-
-        for i in range(int(self.pc.nhost())):
-            if i == int(self.pc.id()):
-                out_file = h5py.File(output_file, "a")
-
-                for idx, spike_times in spikes.items():
-                    out_file["spikeData"].create_dataset(f"{idx:.0f}", data=spike_times*1e-3, compression="gzip")
-
-                out_file.close()
-
-            self.pc.barrier()
+        self.write_spikes(t_spikes, id_spikes)
 
     def write_currents(self, t_save, i_save, pre_id, post_id, section_id=None, section_x=None, output_file=None):
 

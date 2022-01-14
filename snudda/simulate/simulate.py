@@ -1284,6 +1284,10 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
+    # TODO:
+    # add_compartment_recording -- neuron_id, section_type, section_id, section_x
+    # write_compartment_recording
+
     def add_recording(self, cell_id=None, side_len=None):
 
         """
@@ -1319,6 +1323,7 @@ class SnuddaSimulate(object):
             sys.exit(-1)
 
         if len(self.t_save) == 0 or self.t_save is None:
+            # TODO: !!! This needs to be registered in save_network_activity
             self.t_save = self.sim.neuron.h.Vector()
             self.t_save.record(self.sim.neuron.h._ref_t)
 
@@ -1330,6 +1335,7 @@ class SnuddaSimulate(object):
 
                 self.pc.threshold(cell_key, self.spike_threshold)    # TODO: Set individual spike thresholds based on parameters
                 v.record(getattr(cell.icell.soma[0](0.5), '_ref_v'))
+                # TODO: !!! This needs to be registered in save_network_activity, and ability to save voltage in compartments and currents
 
                 self.v_save.append(v)
                 self.v_key.append(cell_key)
