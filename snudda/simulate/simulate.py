@@ -517,6 +517,7 @@ class SnuddaSimulate(object):
 
                 # Record all spikes
                 self.pc.spike_record(ID, self.t_spikes, self.id_spikes)
+                # TODO: Put these variables in save_network_activity.py ???
 
     ############################################################################
 
@@ -1623,6 +1624,7 @@ class SnuddaSimulate(object):
         self.network_activity.write_header()
         self.network_activity.write_time()
         self.network_activity.write_neuron_activity()
+        self.network_activity.write_spikes(t_spikes=self.t_spikes, id_spikes=self.id_spikes)
 
     def write_output_OLD(self, output_file=None):
 
