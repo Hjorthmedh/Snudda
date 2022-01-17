@@ -20,18 +20,17 @@ class NeuronActivity:
 
     def __init__(self, neuron_id):
         self.neuron_id = neuron_id
-        self.time = None
 
-        self.measurements = dict()
+        self.data = dict()
 
-    def register_measurement(self, data_type, data, sec_type, sec_id, sec_x):
-        if data_type not in self.measurements:
-            self.measurements[data_type] = CompartmentMeasurements(neuron_id=self.neuron_id, data_type=data_type)
+    def register_data(self, data_type, data, sec_type, sec_id, sec_x):
+        if data_type not in self.data:
+            self.data[data_type] = CompartmentData(neuron_id=self.neuron_id, data_type=data_type)
 
-        self.measurements[data_type].append(data=data, sec_type=sec_type, sec_id=sec_id, sec_x=sec_x)
+        self.data[data_type].append(data=data, sec_type=sec_type, sec_id=sec_id, sec_x=sec_x)
 
 
-class CompartmentMeasurements:
+class CompartmentData:
 
     def __init__(self, neuron_id, data_type):
         self.neuron_id = neuron_id
@@ -41,8 +40,15 @@ class CompartmentMeasurements:
         self.sec_id = []
         self.sec_x = []
 
+        self.sec_type_lookup = { 1 : "soma", 2: "axon", 3: "dend",
+                                 "soma": 1, "axon": 2, "dend":3 }
+
     def append(self, data, sec_type, sec_id, sec_x):
         self.data.append(data)
+        
+        if type(sec_type) == str:
+            sec_type = self.sec_type_lookup[sec_type]
+
         self.sec_type.append(sec_type)
         self.sec_id.append(sec_id)
         self.sec_x.append(sec_x)
@@ -59,10 +65,23 @@ class SnuddaSaveNetworkActivity:
         self.output_file = output_file
         self.network_data = network_data
         self.header_exists = False
+        self.neuron_activities = dict()
+        self.time = None
 
         self.pc = h.ParallelContext()
 
-    def spike_sort(self, t_spikes, id_spikes):
+    def register_data(self, neuron_id, data_type, data, sec_type, sec_id, sec_x):
+        if neuron_id not in self.neuron_activities:
+            self.neuron_activities[neuron_id] = NeuronActivity(neuron_id)
+
+        self.neuron_activities[neuron_id].register_data(data_type=data_type, data=data,
+                                                        sec_type=sec_type, sec_id=sec_id, sec_x=sec_x)
+
+    def register_time(self, time):
+        self.time = time
+
+    @staticmethod
+    def spike_sort(t_spikes, id_spikes):
 
         spike_count = dict()
 
@@ -119,6 +138,7 @@ class SnuddaSaveNetworkActivity:
             out_file = h5py.File(self.output_file, "w")
 
             meta_data = out_file.create_group("metaData")
+            out_file.create_group("neurons")
             out_file.create_group("voltData")
             out_file.create_group("spikeData")
 
@@ -157,28 +177,30 @@ class SnuddaSaveNetworkActivity:
 
             self.pc.barrier()
 
-    def write_time(self, time):
+    def write_time(self):
 
         self.write_header()
         self.pc.barrier()
 
         if int(self.pc.id()) == 0:
 
-            out_file = h5py.File(self.output_file, "w")
-            out_file.create_dataset("time", data=time)
+            out_file = h5py.File(self.output_file, "a")
+            out_file.create_dataset("time", data=self.time)
             out_file.close()
 
-    def write_neuron_activity(self, neuron_activity_list):
+    def write_neuron_activity(self):
+
+        self.write_header()
 
         for i in range(int(self.pc.nhost())):
             out_file = h5py.File(self.output_file, "a")
 
-            for na in neuron_activity_list:
+            for na in self.neuron_activities.values():
                 neuron_id_str = str(na.neuron_id)
                 if neuron_id_str not in out_file["neurons"]:
                     out_file["neurons"].create_group(neuron_id_str)
 
-                for m in na.measurements:
+                for m in na.data.values():
                     out_file["neurons"][neuron_id_str].create_group(m.data_type)
                     data_group = out_file["neurons"][neuron_id_str][m.data_type]
                     data_group.create_dataset("data", data=m.convert_data(), compression="gzip")

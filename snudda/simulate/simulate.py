@@ -56,6 +56,7 @@ class SnuddaSimulate(object):
                  network_path=None,
                  network_file=None,
                  input_file=None,
+                 output_file=None,
                  verbose=False,
                  log_file=None,
                  disable_gap_junctions=False,
@@ -68,6 +69,7 @@ class SnuddaSimulate(object):
             network_path (str): Path to network directory
             network_file (str, optional): Path to network file, default network-synapses.hdf5 in network_path
             input_file (str, optional): Path to input file, default input-spikes.hdf5 in network_path
+            output_file (str, optional): Path to output file, default simulation/output.hdf5
             verbose (bool): Extra printouts
             log_file (str): Path to logfile
             disable_gap_junctions (bool): Disable gap junctions, default False
@@ -100,6 +102,11 @@ class SnuddaSimulate(object):
                 self.input_file = None
         else:
             self.input_file = input_file
+
+        if output_file:
+            self.output_file = output_file
+        else:
+            self.output_file = os.path.join(self.network_path, "simulation", "output.hdf5")
 
         # Init
         self.snudda_loader = None
@@ -169,8 +176,8 @@ class SnuddaSimulate(object):
         self.gap_junction_list = []
         self.external_stim = dict([])
         self.t_save = []
-        self.v_save = []
-        self.v_key = []
+        # self.v_save = []
+        # self.v_key = []
         self.i_save = []
         self.i_key = []
 
@@ -194,6 +201,7 @@ class SnuddaSimulate(object):
         # We need to initialise random streams, see Lytton el at 2016 (p2072)
 
         self.load_network_info(self.network_file)
+        self.network_activity = SnuddaSaveNetworkActivity(output_file=self.output_file, network_data=self.network_info)
 
     def setup(self):
 
@@ -1288,7 +1296,37 @@ class SnuddaSimulate(object):
     # add_compartment_recording -- neuron_id, section_type, section_id, section_x
     # write_compartment_recording
 
-    def add_recording(self, cell_id=None, side_len=None):
+    def add_recording(self, cell_id=None, sec_type=None, sec_id=0, sec_x=0.5):
+
+        if sec_type is None:
+            sec_type = "soma"
+
+        if cell_id is None:
+            cell_id = self.neuron_id
+
+        cell_id = np.array([cid for cid in cell_id if cid in self.neuron_id and not self.is_virtual_neuron[cid]])
+
+        for cid in cell_id:
+            v = self.sim.neuron.h.Vector()
+            self.pc.threshold(cid, self.spike_threshold)  # TODO: Set individual spike thresholds based on parameters
+            if sec_type == "soma":
+                v.record(getattr(self.neurons[cid].icell.soma[sec_id](sec_x), '_ref_v'))
+            elif sec_type == "dend":
+                v.record(getattr(self.neurons[cid].icell.dend[sec_id](sec_x), '_ref_v'))
+            elif sec_type == "axon":
+                v.record(getattr(self.neurons[cid].icell.axon[sec_id](sec_x), '_ref_v'))
+            else:
+                assert False, f"Unknown sec_type: {sec_type}"
+
+            self.network_activity.register_data(neuron_id=cid, data_type="voltage", data=v,
+                                                sec_type=sec_type, sec_id=sec_id, sec_x=sec_x)
+
+        if self.network_activity.time is None:
+            t_save = self.sim.neuron.h.Vector()
+            t_save.record(self.sim.neuron.h._ref_t)
+            self.network_activity.register_time(time=t_save)
+
+    def add_recording_OLD2(self, cell_id=None, side_len=None):
 
         """
         Adds somatic voltage recording to neuron cell_id.
@@ -1381,6 +1419,8 @@ class SnuddaSimulate(object):
     ############################################################################
 
     def plot(self):
+
+        assert False, "plot is deprecated now"
 
         """ Save a plot of voltage trace. """
 
@@ -1564,7 +1604,13 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def write_output(self, output_file=None):
+    def write_output(self):
+
+        self.network_activity.write_header()
+        self.network_activity.write_time()
+        self.network_activity.write_neuron_activity()
+
+    def write_output_OLD(self, output_file=None):
 
         """ Save neuron voltage to HDF5 file """
 

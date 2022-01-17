@@ -562,6 +562,7 @@ class Snudda(object):
 
                 sim = SnuddaSimulateNeuromodulation(network_file=network_file,
                                                     input_file=input_file,
+                                                    output_file=output_file,
                                                     disable_gap_junctions=disable_gj,
                                                     log_file=log_file,
                                                     verbose=args.verbose)
@@ -576,6 +577,7 @@ class Snudda(object):
 
                 sim = SnuddaSimulateNeuromodulationSynapse(network_file=network_file,
                                                            input_file=input_file,
+                                                           output_file=output_file,
                                                            disable_gap_junctions=disable_gj,
                                                            log_file=log_file,
                                                            neuromodulator_description=neuromod_dict)
@@ -590,6 +592,7 @@ class Snudda(object):
             # Simulate is deterministic, no random seed.
             sim = SnuddaSimulate(network_file=network_file,
                                  input_file=input_file,
+                                 output_file=output_file,
                                  disable_gap_junctions=disable_gj,
                                  log_file=log_file,
                                  verbose=args.verbose)
@@ -599,7 +602,7 @@ class Snudda(object):
         sim.check_memory_status()
 
         if args.record_volt:
-            sim.add_recording(side_len=None)  # Side len let you record from a subset
+            sim.add_recording()
             # sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
 
         t_sim = args.time * 1000  # Convert from s to ms for Neuron simulator
@@ -613,7 +616,7 @@ class Snudda(object):
         sim.run(t_sim)  # In milliseconds
 
         print("Simulation done, saving output")
-        sim.write_output(output_file)
+        sim.write_output()
 
         stop = timeit.default_timer()
         if sim.pc.id() == 0:
