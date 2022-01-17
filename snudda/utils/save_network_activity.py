@@ -75,6 +75,19 @@ class CompartmentData:
                                  "soma": 1, "axon": 2, "dend":3 }
 
     def append(self, data, sec_type, sec_id, sec_x):
+
+        # !!! Issue (?): The same compartment can hold several recordings now.
+
+        """
+        Appends a recording for a given compartment.
+
+        Args:
+            data (neuron.h.Vector): NEURON vector for the recording.
+            sec_type (int): Section type (1 = soma, 2 = axon, 3 = dendrite).
+            sec_id (int): Section ID.
+            sec_x (float): Section X (segment location). 
+
+        """
         self.data.append(data)
         
         if type(sec_type) == str:
