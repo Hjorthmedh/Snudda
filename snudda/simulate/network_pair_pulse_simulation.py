@@ -280,7 +280,7 @@ class SnuddaNetworkPairPulseSimulation:
         # record voltage from all neurons
 
         if self.post_type == "ALL":
-            self.snudda_sim.add_recording()
+            self.snudda_sim.add_volt_recording()
         else:
             # Record from all the potential post synaptic neurons
             self.snudda_sim.add_recording_of_type(self.post_type)

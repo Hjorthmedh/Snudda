@@ -124,7 +124,7 @@ class PairRecording(SnuddaSimulate):
                                         end_times=stim_end_time, amplitudes=stim_amplitude)
 
         # Add voltage recordings to neurons
-        self.add_recording()
+        self.add_volt_recording()
 
     @staticmethod
     def to_list(val, new_list_len=1):

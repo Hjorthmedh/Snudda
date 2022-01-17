@@ -586,7 +586,7 @@ class NeuronMorphology(object):
                 continue
 
             links[link_idx, 0:2] = [id0, id1]
-            links[link_idx, 5] = points[idx, 5]     # !!! TODO: Should take from points[idx, 6]
+            links[link_idx, 5] = points[idx, 6]
 
             link_idx += 1
 
@@ -607,7 +607,7 @@ class NeuronMorphology(object):
                 import pdb
                 pdb.set_trace()
 
-        # Make sure soma has a child count > 1 --- no we dont want some as node
+        # Make sure soma has a child count > 1 --- no we dont want soma as node
         # if(points[0,9] == 0):
         #   points[0,9] = 100
 

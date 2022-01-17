@@ -1227,7 +1227,7 @@ class SnuddaSimulate(object):
         cell_id = self.snudda_loader.get_neuron_id_of_type(neuron_type=neuron_type,
                                                            num_neurons=num_neurons)
 
-        self.add_recording(cell_id)
+        self.add_volt_recording(cell_id)
 
     ############################################################################
 
@@ -1296,30 +1296,41 @@ class SnuddaSimulate(object):
     # add_compartment_recording -- neuron_id, section_type, section_id, section_x
     # write_compartment_recording
 
-    def add_recording(self, cell_id=None, sec_type=None, sec_id=0, sec_x=0.5):
+    def add_volt_recording_all(self, cell_id):
 
-        if sec_type is None:
-            sec_type = "soma"
+        for cid in cell_id:
+            sec_id = [0]
+            sec_x = [0.5]
+
+            for sid, sec in enumerate(self.neurons[cell_id].icell.dend):
+                for seg in sec.allseg():
+                    sec_id.append(sid)
+                    sec_x.append(seg.x)
+
+            self.add_volt_recording(cell_id=cell_id, sec_id=sec_id, sec_x=sec_x)
+
+    def add_volt_recording_soma(self, cell_id=None):
 
         if cell_id is None:
             cell_id = self.neuron_id
 
-        cell_id = np.array([cid for cid in cell_id if cid in self.neuron_id and not self.is_virtual_neuron[cid]])
-
         for cid in cell_id:
-            v = self.sim.neuron.h.Vector()
-            self.pc.threshold(cid, self.spike_threshold)  # TODO: Set individual spike thresholds based on parameters
-            if sec_type == "soma":
-                v.record(getattr(self.neurons[cid].icell.soma[sec_id](sec_x), '_ref_v'))
-            elif sec_type == "dend":
-                v.record(getattr(self.neurons[cid].icell.dend[sec_id](sec_x), '_ref_v'))
-            elif sec_type == "axon":
-                v.record(getattr(self.neurons[cid].icell.axon[sec_id](sec_x), '_ref_v'))
-            else:
-                assert False, f"Unknown sec_type: {sec_type}"
+            self.add_volt_recording(cid, [0], [0.5])
 
-            self.network_activity.register_data(neuron_id=cid, data_type="voltage", data=v,
-                                                sec_type=sec_type, sec_id=sec_id, sec_x=sec_x)
+    def add_volt_recording(self, cell_id : int, sec_id, sec_x):
+
+        # cell_id cant be a list, but sec_id and sec_x must be iterable
+
+        sections = self.neurons[cell_id].map_id_to_compartment(sec_id)
+
+        v = self.sim.neuron.h.Vector()
+
+        self.pc.threshold(cell_id, self.spike_threshold)  # TODO: Set individual spike thresholds based on parameters
+        for s, sx, sid in zip(sections, sec_x, sec_id):
+            v.record(getattr(s(sx), '_ref_v'))
+
+            # From the Snudda synapse matrix. sec_id 0 is soma, sec_id >= 1 is dendrite, sec_id <= -1 is axon
+            self.network_activity.register_data(neuron_id=cell_id, data_type="voltage", data=v, sec_id=sid, sec_x=sx)
 
         if self.network_activity.time is None:
             t_save = self.sim.neuron.h.Vector()
@@ -1974,7 +1985,7 @@ if __name__ == "__main__":
     sim.check_memory_status()
 
     if args.record_volt:
-        sim.add_recording(side_len=None)  # Side len let you record from a subset
+        sim.add_volt_recording(side_len=None)  # Side len let you record from a subset
         # sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
         # sim.addRecordingOfType("dSPN",2)
         # sim.addRecordingOfType("iSPN",2)

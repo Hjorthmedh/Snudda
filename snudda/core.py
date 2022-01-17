@@ -602,7 +602,7 @@ class Snudda(object):
         sim.check_memory_status()
 
         if args.record_volt:
-            sim.add_recording()
+            sim.add_volt_recording_soma()
             # sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
 
         t_sim = args.time * 1000  # Convert from s to ms for Neuron simulator

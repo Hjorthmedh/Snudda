@@ -32,15 +32,14 @@ class NeuronActivity:
 
         self.data = dict()
 
-    def register_data(self, data, data_type,  sec_type, sec_id, sec_x):
+    def register_data(self, data, data_type, sec_id, sec_x):
         """
-        Adds a new mesurement. 
+        Adds a new measurement.
             
         Args:
             data (neuron.h.Vector): NEURON vector holding recording.
             data_type (str): Name of the tracked data.
-            sec_type (int): Section type (1 = soma, 2 = axon, 3 = dendrite)
-            sec_id (int): Section ID 
+            sec_id (int): Section ID
             sec_x (float): Section X (segment location)
 
         """
@@ -48,7 +47,7 @@ class NeuronActivity:
         if data_type not in self.data:
             self.data[data_type] = CompartmentData(neuron_id=self.neuron_id, data_type=data_type)
 
-        self.data[data_type].append(data=data, sec_type=sec_type, sec_id=sec_id, sec_x=sec_x)
+        self.data[data_type].append(data=data, sec_id=sec_id, sec_x=sec_x)
 
 
 class CompartmentData:
@@ -67,14 +66,10 @@ class CompartmentData:
         self.neuron_id = neuron_id
         self.data_type = data_type
         self.data = []
-        self.sec_type = []  # 1 = soma, 2 = axon, 3 = dendrite
         self.sec_id = []
         self.sec_x = []
 
-        self.sec_type_lookup = { 1 : "soma", 2: "axon", 3: "dend",
-                                 "soma": 1, "axon": 2, "dend":3 }
-
-    def append(self, data, sec_type, sec_id, sec_x):
+    def append(self, data, sec_id, sec_x):
 
         # !!! Issue (?): The same compartment can hold several recordings now.
 
@@ -83,21 +78,16 @@ class CompartmentData:
 
         Args:
             data (neuron.h.Vector): NEURON vector for the recording.
-            sec_type (int): Section type (1 = soma, 2 = axon, 3 = dendrite).
             sec_id (int): Section ID.
             sec_x (float): Section X (segment location). 
 
         """
         self.data.append(data)
         
-        if type(sec_type) == str:
-            sec_type = self.sec_type_lookup[sec_type]
-
-        self.sec_type.append(sec_type)
         self.sec_id.append(sec_id)
         self.sec_x.append(sec_x)
 
-    def convert_data(self): # Misnomer? (original data is preserved). (Instead "as_ndarray" (like in NEURON)?)
+    def convert_data(self):  # Misnomer? (original data is preserved). (Instead "as_ndarray" (like in NEURON)?)
         """
             Returns:
                 (np.ndarray): Data represented as np.ndarrays 
@@ -118,12 +108,11 @@ class SnuddaSaveNetworkActivity:
 
         self.pc = h.ParallelContext()
 
-    def register_data(self, data_type, neuron_id, data, sec_type, sec_id, sec_x):
+    def register_data(self, data_type, neuron_id, data, sec_id, sec_x):
         if neuron_id not in self.neuron_activities:
             self.neuron_activities[neuron_id] = NeuronActivity(neuron_id)
 
-        self.neuron_activities[neuron_id].register_data(data=data, data_type=data_type, 
-                                                        sec_type=sec_type, sec_id=sec_id, sec_x=sec_x)
+        self.neuron_activities[neuron_id].register_data(data=data, data_type=data_type, sec_id=sec_id, sec_x=sec_x)
 
     def register_time(self, time):
         self.time = time
@@ -252,7 +241,6 @@ class SnuddaSaveNetworkActivity:
                     out_file["neurons"][neuron_id_str].create_group(m.data_type)
                     data_group = out_file["neurons"][neuron_id_str][m.data_type]
                     data_group.create_dataset("data", data=m.convert_data(), compression="gzip")
-                    data_group.create_dataset("sec_type", data=np.array(m.sec_type), compression="gzip")
                     data_group.create_dataset("sec_id", data=np.array(m.sec_id), compression="gzip")
                     data_group.create_dataset("sec_x", data=np.array(m.sec_x), compression="gzip")
 
