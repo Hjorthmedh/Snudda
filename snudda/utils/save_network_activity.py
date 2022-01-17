@@ -92,7 +92,6 @@ class CompartmentData:
             Returns:
                 (np.ndarray): Data represented as np.ndarrays 
         """
-        # TODO: !!! Verify that this creates one big numpy array with all the NEURON vectors
         return np.vstack([np.array(d) for d in self.data])
 
 

@@ -47,6 +47,7 @@ from collections import OrderedDict
 
 import pkg_resources
 import json
+import numpy as np
 
 from snudda.utils import snudda_path
 from snudda.utils.snudda_path import snudda_isfile
@@ -602,8 +603,13 @@ class Snudda(object):
         sim.check_memory_status()
 
         if args.record_volt:
+            # sim.add_volt_recording_all()
             sim.add_volt_recording_soma()
             # sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
+
+        if args.record_all_volt:
+            record_cell_id = np.array([int(x) for x in args.record_all_volt.split(",")])
+            sim.add_volt_recording_all(cell_id=record_cell_id)
 
         t_sim = args.time * 1000  # Convert from s to ms for Neuron simulator
 

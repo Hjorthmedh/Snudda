@@ -1296,18 +1296,21 @@ class SnuddaSimulate(object):
     # add_compartment_recording -- neuron_id, section_type, section_id, section_x
     # write_compartment_recording
 
-    def add_volt_recording_all(self, cell_id):
+    def add_volt_recording_all(self, cell_id=None):
+
+        if cell_id is None:
+            cell_id = self.neuron_id
 
         for cid in cell_id:
             sec_id = [0]
             sec_x = [0.5]
 
-            for sid, sec in enumerate(self.neurons[cell_id].icell.dend):
+            for sid, sec in enumerate(self.neurons[cid].icell.dend):
                 for seg in sec.allseg():
-                    sec_id.append(sid)
+                    sec_id.append(sid+1)  # NEURON indexes from 0, Snudda has soma as 0, and first dendrite is 1
                     sec_x.append(seg.x)
 
-            self.add_volt_recording(cell_id=cell_id, sec_id=sec_id, sec_x=sec_x)
+            self.add_volt_recording(cell_id=cid, sec_id=sec_id, sec_x=sec_x)
 
     def add_volt_recording_soma(self, cell_id=None):
 
