@@ -17,13 +17,34 @@ from neuron import h  # , gui
 
 
 class NeuronActivity:
-
+    """
+        Container class for all recordings associated with a neuron.
+    """
     def __init__(self, neuron_id):
+        """
+        Constructor
+
+        Args:
+            neuron_id  (int): Neuron ID
+        """
+
         self.neuron_id = neuron_id
 
         self.data = dict()
 
-    def register_data(self, data_type, data, sec_type, sec_id, sec_x):
+    def register_data(self, data, data_type,  sec_type, sec_id, sec_x):
+        """
+        Adds a new mesurement. 
+            
+        Args:
+            data (neuron.h.Vector): NEURON vector holding recording.
+            data_type (str): Name of the tracked data.
+            sec_type (int): Section type (1 = soma, 2 = axon, 3 = dendrite)
+            sec_id (int): Section ID 
+            sec_x (float): Section X (segment location)
+
+        """
+
         if data_type not in self.data:
             self.data[data_type] = CompartmentData(neuron_id=self.neuron_id, data_type=data_type)
 
@@ -31,8 +52,18 @@ class NeuronActivity:
 
 
 class CompartmentData:
+    """
+        Container class for recordings from a compartment. 
+    """
 
     def __init__(self, neuron_id, data_type):
+        """
+        Constructor
+
+        Args:
+            neuron_id (int): Neuron ID
+            data_type (str): Name of the tracked data.
+        """
         self.neuron_id = neuron_id
         self.data_type = data_type
         self.data = []
@@ -44,6 +75,19 @@ class CompartmentData:
                                  "soma": 1, "axon": 2, "dend":3 }
 
     def append(self, data, sec_type, sec_id, sec_x):
+
+        # !!! Issue (?): The same compartment can hold several recordings now.
+
+        """
+        Appends a recording for a given compartment.
+
+        Args:
+            data (neuron.h.Vector): NEURON vector for the recording.
+            sec_type (int): Section type (1 = soma, 2 = axon, 3 = dendrite).
+            sec_id (int): Section ID.
+            sec_x (float): Section X (segment location). 
+
+        """
         self.data.append(data)
         
         if type(sec_type) == str:
@@ -53,7 +97,11 @@ class CompartmentData:
         self.sec_id.append(sec_id)
         self.sec_x.append(sec_x)
 
-    def convert_data(self):
+    def convert_data(self): # Misnomer? (original data is preserved). (Instead "as_ndarray" (like in NEURON)?)
+        """
+            Returns:
+                (np.ndarray): Data represented as np.ndarrays 
+        """
         # TODO: !!! Verify that this creates one big numpy array with all the NEURON vectors
         return np.vstack([np.array(d) for d in self.data])
 
@@ -70,11 +118,11 @@ class SnuddaSaveNetworkActivity:
 
         self.pc = h.ParallelContext()
 
-    def register_data(self, neuron_id, data_type, data, sec_type, sec_id, sec_x):
+    def register_data(self, data_type, neuron_id, data, sec_type, sec_id, sec_x):
         if neuron_id not in self.neuron_activities:
             self.neuron_activities[neuron_id] = NeuronActivity(neuron_id)
 
-        self.neuron_activities[neuron_id].register_data(data_type=data_type, data=data,
+        self.neuron_activities[neuron_id].register_data(data=data, data_type=data_type, 
                                                         sec_type=sec_type, sec_id=sec_id, sec_x=sec_x)
 
     def register_time(self, time):
@@ -222,7 +270,7 @@ class SnuddaSaveNetworkActivity:
             v_key : neuron_id of voltage data
             t_spikes : spike times
             id_spikes : neuron_id of spike times
-            """
+        """
 
         self.write_header()
 
