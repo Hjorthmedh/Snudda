@@ -122,8 +122,8 @@ class SnuddaSaveNetworkActivity:
         if neuron_id not in self.neuron_activities:
             self.neuron_activities[neuron_id] = NeuronActivity(neuron_id)
 
-        self.neuron_activities[neuron_id].register_data(data=data, data_type=data_type, sec_type=sec_type, 
-                                                        sec_id=sec_id, sec_x=sec_x)
+        self.neuron_activities[neuron_id].register_data(data=data, data_type=data_type, 
+                                                        sec_type=sec_type, sec_id=sec_id, sec_x=sec_x)
 
     def register_time(self, time):
         self.time = time
