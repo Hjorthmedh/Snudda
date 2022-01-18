@@ -6,9 +6,9 @@ from mpi4py import MPI  # This must be imported before neuron, to run parallel
 from neuron import h  # , gui
 
 # TODO:
-# 1. Döp om NeuronActivity -- så det speglar att det är tidsserie med data
-# 2. Skapa en ärvd klass som också håller reda på pre och postsynaptiska celler (för synapser)
-# 3. Uppdatera register_data så att den har två optional argument, pre och post och om de är givna sparas en ärvd klass
+
+# Check if we can get synapse row number stored somehow...
+
 # 4. Hur ska spikes sparas? (cell id, tid)
 # 5. Gör en generell write funktion som tittar på vilken data som finns och anropar rätt sub-funktioner
 #
@@ -140,7 +140,7 @@ class CompartmentData:
         return np.vstack([np.array(d) for d in self.data])
 
 
-class SnuddaSaveNetworkActivity:
+class SnuddaSaveNetworkRecordings:
 
     def __init__(self, output_file, network_data=None):
 

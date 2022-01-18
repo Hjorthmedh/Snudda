@@ -22,7 +22,7 @@ from collections import OrderedDict
 import numpy as np
 import json
 from snudda.simulate import SnuddaSimulate
-from snudda.utils.save_network_activity import SnuddaSaveNetworkActivity
+from snudda.utils.save_network_recording import SnuddaSaveNetworkRecordings
 
 import neuron
 neuron.h.load_file("stdrun.hoc")
@@ -279,7 +279,7 @@ class PairRecording(SnuddaSimulate):
 
         # Write results to disk
         try:
-            save = SnuddaSaveNetworkActivity(output_file=self.output_file_name)
+            save = SnuddaSaveNetworkRecordings(output_file=self.output_file_name)
             save.write(t_save=self.t_save, v_save=self.v_save, v_key=self.v_key,
                        t_spikes=self.t_spikes, id_spikes=self.id_spikes)
 

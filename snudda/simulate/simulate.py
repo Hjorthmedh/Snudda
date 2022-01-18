@@ -26,7 +26,7 @@ import h5py
 import json
 import timeit
 
-from snudda.utils.save_network_activity import SnuddaSaveNetworkActivity
+from snudda.utils.save_network_recording import SnuddaSaveNetworkRecordings
 from snudda.neurons.neuron_model_extended import NeuronModel
 # from Network_place_neurons import NetworkPlaceNeurons
 import numpy as np
@@ -202,7 +202,7 @@ class SnuddaSimulate(object):
         # We need to initialise random streams, see Lytton el at 2016 (p2072)
 
         self.load_network_info(self.network_file)
-        self.network_activity = SnuddaSaveNetworkActivity(output_file=self.output_file, network_data=self.network_info)
+        self.network_activity = SnuddaSaveNetworkRecordings(output_file=self.output_file, network_data=self.network_info)
 
     def setup(self):
 
@@ -518,7 +518,7 @@ class SnuddaSimulate(object):
 
                 # Record all spikes
                 self.pc.spike_record(ID, self.t_spikes, self.id_spikes)
-                # TODO: Put these variables in save_network_activity.py ???
+                # TODO: Put these variables in save_network_recording.py ???
 
     ############################################################################
 
@@ -1621,7 +1621,7 @@ class SnuddaSimulate(object):
         elif os.path.sep not in output_file:
             output_file = os.path.join(self.network_path, "simulation", output_file)
             
-        sv = SnuddaSaveNetworkActivity(output_file=output_file, network_data=self.network_info)
+        sv = SnuddaSaveNetworkRecordings(output_file=output_file, network_data=self.network_info)
         sv.write(t_save=self.t_save, v_save=self.v_save, v_key=self.v_key,
                  t_spikes=self.t_spikes, id_spikes=self.id_spikes)
 
