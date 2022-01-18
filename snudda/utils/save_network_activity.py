@@ -6,7 +6,15 @@ from mpi4py import MPI  # This must be imported before neuron, to run parallel
 from neuron import h  # , gui
 
 # TODO:
+# 1. Döp om NeuronActivity -- så det speglar att det är tidsserie med data
+# 2. Skapa en ärvd klass som också håller reda på pre och postsynaptiska celler (för synapser)
+# 3. Uppdatera register_data så att den har två optional argument, pre och post och om de är givna sparas en ärvd klass
+# 4. Hur ska spikes sparas? (cell id, tid)
+# 5. Gör en generell write funktion som tittar på vilken data som finns och anropar rätt sub-funktioner
 #
+# Förslag på namn: TimeSeriesData
+#                  EventData
+
 # NeuronActivity håller information om alla olika mätningar för en given neuron,
 # Simulate har en lista med NeuronActivity
 #
@@ -221,12 +229,14 @@ class SnuddaSaveNetworkActivity:
         if int(self.pc.id()) == 0:
 
             out_file = h5py.File(self.output_file, "a")
-            out_file.create_dataset("time", data=self.time)
-            out_file.close()
+            if "time" not in out_file:
+                out_file.create_dataset("time", data=self.time)
+                out_file.close()
 
     def write_neuron_activity(self):
 
         self.write_header()
+        self.write_time()
 
         for i in range(int(self.pc.nhost())):
             out_file = h5py.File(self.output_file, "a")
