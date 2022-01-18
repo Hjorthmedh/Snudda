@@ -11,6 +11,7 @@ from neuron import h  # , gui
 
 # 4. Hur ska spikes sparas? (cell id, tid)
 # 5. Gör en generell write funktion som tittar på vilken data som finns och anropar rätt sub-funktioner
+# -- Skriv tutorial hur man lägger till en egen recording
 #
 # Förslag på namn: TimeSeriesData
 #                  EventData
