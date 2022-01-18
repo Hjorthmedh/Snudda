@@ -607,9 +607,10 @@ class Snudda(object):
             sim.add_volt_recording_soma()
             # sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
 
-        if args.record_all_volt:
-            record_cell_id = np.array([int(x) for x in args.record_all_volt.split(",")])
+        if args.record_all:
+            record_cell_id = np.array([int(x) for x in args.record_all.split(",")])
             sim.add_volt_recording_all(cell_id=record_cell_id)
+            sim.add_synapse_current_recording_all(record_cell_id)
 
         t_sim = args.time * 1000  # Convert from s to ms for Neuron simulator
 

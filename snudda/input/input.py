@@ -12,6 +12,9 @@
 
 # Smith, Galvan, ..., Bolam 2014 -- Bra info om thalamic inputs, CM/PF
 #
+
+# TODO: Randomise conductance for the inputs and store it, use it later when adding external synapses in simulate.py
+
 import sys
 from collections import OrderedDict
 

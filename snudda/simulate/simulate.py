@@ -169,8 +169,9 @@ class SnuddaSimulate(object):
 
         self.virtual_neurons = {}
 
-        self.net_con_list = []  # Avoid premature garbage collection
-        self.synapse_list = []
+        self.net_con_list = []  # Avoid premature garbage collection -- todo: THIS WILL BE REMOVED
+        self.synapse_list = []  # todo: THIS WILL BE REMOVED, replaced by synapse_dict
+        self.synapse_dict = dict()
         self.i_stim = []
         self.v_clamp_list = []
         self.gap_junction_list = []
@@ -701,13 +702,15 @@ class SnuddaSimulate(object):
         source_id_list, dest_id, dend_sections, sec_id, sec_x, synapse_type_id, \
             axon_distance, conductance, parameter_id = self.get_synapse_info(start_row=start_row, end_row=end_row)
 
-        for (src_id, section, section_x, s_type_id, axon_dist, cond, p_id) \
-                in zip(source_id_list, dend_sections, sec_x, synapse_type_id,
+        for (src_id, section, section_id, section_x, s_type_id, axon_dist, cond, p_id) \
+                in zip(source_id_list, dend_sections, sec_id, sec_x, synapse_type_id,
                        axon_distance, conductance, parameter_id):
 
             try:
                 self.add_synapse(cell_id_source=src_id,
+                                 cell_id_dest=dest_id,
                                  dend_compartment=section,
+                                 section_id=section_id,
                                  section_dist=section_x,
                                  synapse_type_id=s_type_id,
                                  axon_dist=axon_dist,
@@ -807,13 +810,7 @@ class SnuddaSimulate(object):
 
         (neuron_id, compartment, seg_x, gj_gid_src, gj_gid_dest, cond) = self.find_local_gap_junctions()
 
-        # import pdb
-        # pdb.set_trace()
-
         try:
-            # WHY??!
-            # ValueError: too many values to unpack (expected 6)
-
             for nid, comp, s_x, gid_src, gid_dest, g \
                     in zip(neuron_id, compartment, seg_x, gj_gid_src, gj_gid_dest, cond):
                 self.add_gap_junction(section=comp,
@@ -836,7 +833,7 @@ class SnuddaSimulate(object):
         """ Helper method, returns channel_module(dend_compartment(section_dist)) """
         return channel_module(dend_compartment(section_dist))
 
-    def add_synapse(self, cell_id_source, dend_compartment, section_dist, conductance,
+    def add_synapse(self, cell_id_source, cell_id_dest, dend_compartment, section_id, section_dist, conductance,
                     parameter_id, synapse_type_id, axon_dist=None):
 
         """
@@ -901,52 +898,31 @@ class SnuddaSimulate(object):
                     import pdb
                     pdb.set_trace()
 
-        # Just create a default expsyn for test, will need to create proper GABA
-        # synapses later
-        # if(synapseType == 'ExpSyn'):
-        #  syn = self.sim.neuron.h.ExpSyn(dendCompartment(sectionDist))
-        # elif(synapseType == 'GABA'):
-        #  syn = self.sim.neuron.h.tmGabaA(dendCompartment(sectionDist))
-        # elif(synapseType == "AMPA_NMDA"):
-        #  syn = self.sim.neuron.h.tmGlut(dendCompartment(sectionDist))
-        # else:
-        #  self.writeLog("Synapse type not implemented: ", synapseType)
-        #  import pdb
-        #  pdb.set_trace()
-
         if axon_dist is not None:
             # axon dist is in micrometer, want delay in ms
             synapse_delay = (1e3 * 1e-6 * axon_dist) / self.axon_speed + self.synapse_delay
         else:
             synapse_delay = self.synapse_delay
 
-        #    self.write_log(f"Synapse delay: {synapse_delay} ms")
-
-        # What do we do if the GID does not exist?
-        # print("GID exists:" + str(self.pc.gid_exists(cellIDsource)))
-
         if self.is_virtual_neuron[cell_id_source]:
             # Source is a virtual neuron, need to read and connect input
             src_name = self.network_info["neurons"][cell_id_source]["name"]
 
-            nc = self.pc.gid_connect(cell_id_source, syn)
-            nc.weight[0] = conductance
-            nc.delay = synapse_delay
-            nc.threshold = self.spike_threshold
+        # Prevent garbage collection in python
+        if (cell_id_source, cell_id_dest) not in self.synapse_dict:
+            self.synapse_dict[cell_id_source, cell_id_dest] = []
 
-            # Prevent garbage collection in python
-            self.net_con_list.append(nc)
-            self.synapse_list.append(syn)
+        nc = self.pc.gid_connect(cell_id_source, syn)
+        nc.weight[0] = conductance
+        nc.delay = synapse_delay
+        nc.threshold = self.spike_threshold
 
-        else:
+        # This prevents garbage collection of syn and nc
+        self.synapse_dict[cell_id_source, cell_id_dest].append((syn, nc, synapse_type_id, section_id))
 
-            nc = self.pc.gid_connect(cell_id_source, syn)
-            nc.weight[0] = conductance
-            nc.delay = synapse_delay
-            nc.threshold = self.spike_threshold
-
-            self.net_con_list.append(nc)
-            self.synapse_list.append(syn)
+        # TODO: Johanna promised to remove these when she is ready for it.
+        self.synapse_list.append(syn)
+        self.net_con_list.append(nc)
 
         return syn
 
@@ -1277,14 +1253,13 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    # TODO:
-    # add_compartment_recording -- neuron_id, section_type, section_id, section_x
-    # write_compartment_recording
-
     def add_volt_recording_all(self, cell_id=None):
 
         if cell_id is None:
             cell_id = self.neuron_id
+
+        if isinstance(cell_id, (int, np.integer)):
+            cell_id = [cell_id]
 
         for cid in cell_id:
             sec_id = [0]
@@ -1318,12 +1293,39 @@ class SnuddaSimulate(object):
             v.record(getattr(s(sx), '_ref_v'))
 
             # From the Snudda synapse matrix. sec_id 0 is soma, sec_id >= 1 is dendrite, sec_id <= -1 is axon
-            self.network_activity.register_data(neuron_id=cell_id, data_type="voltage", data=v, sec_id=sid, sec_x=sx)
+            self.network_activity.register_compartment_data(neuron_id=cell_id, data_type="voltage", data=v, sec_id=sid, sec_x=sx)
 
         if self.network_activity.time is None:
             t_save = self.sim.neuron.h.Vector()
             t_save.record(self.sim.neuron.h._ref_t)
             self.network_activity.register_time(time=t_save)
+
+    def add_synapse_current_recording_all(self, dest_id):
+
+        if isinstance(dest_id, (int, np.integer)):
+            dest_id = [dest_id]
+
+        for d_id in dest_id:
+            for sid, did in self.synapse_dict.keys():
+                if did == d_id:
+                    self.add_synapse_current_recording(sid, did)
+
+    def add_synapse_current_recording(self, source_id, dest_id):
+
+        synapse_info_list = self.synapse_dict[source_id, dest_id]
+
+        for syn, nc, synapse_type_id, sec_id in synapse_info_list:
+
+            data = self.sim.neuron.h.Vector()
+            data.record(syn._ref_i)
+            seg = syn.get_segment()
+
+            self.network_activity.register_synapse_data(neuron_id=dest_id, data=data,
+                                                        synapse_type=synapse_type_id,
+                                                        presynaptic_id=source_id,
+                                                        sec_id=sec_id,
+                                                        sec_x=seg.x,
+                                                        cond=nc.weight[0])
 
     def add_recording_OLD2(self, cell_id=None, side_len=None):
 
