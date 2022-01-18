@@ -1027,8 +1027,8 @@ class SnuddaSimulate(object):
                 self.write_log(f"Warning - No input specified for {name}", is_error=True)
                 continue
 
-            for inputType in self.input_data["input"][str(neuron_id)]:
-                neuron_input = self.input_data["input"][str(neuron_id)][inputType]
+            for input_type in self.input_data["input"][str(neuron_id)]:
+                neuron_input = self.input_data["input"][str(neuron_id)][input_type]
 
                 loc_type = 1 * np.ones((neuron_input["sectionID"].shape[0],))  # Axon-Dend
 
@@ -1042,17 +1042,16 @@ class SnuddaSimulate(object):
                 eval_str = f"self.sim.neuron.h.{mod_file}"
                 channel_module = eval(eval_str)
 
-                for inputID, (section, section_x, paramID, nSpikes) \
+                for input_id, (section, section_x, param_id, n_spikes) \
                         in enumerate(zip(sections,
                                          neuron_input["sectionX"],
                                          neuron_input["parameterID"],
                                          neuron_input["nSpikes"])):
                     # We need to find cellID (int) from neuronID (string, eg. MSD1_3)
 
-                    idx = inputID
-                    spikes = neuron_input["spikes"][inputID, :nSpikes] * 1e3  # Neuron uses ms
-                    assert (spikes >= 0).all(), \
-                        "Negative spike times for neuron " + str(neuron_id) + " " + inputType
+                    idx = input_id
+                    spikes = neuron_input["spikes"][input_id, :n_spikes] * 1e3  # Neuron uses ms
+                    assert (spikes >= 0).all(), f"Negative spike times for neuron {neuron_id} {input_type}"
 
                     # Creating NEURON VecStim and vector
                     # https://www.neuron.yale.edu/phpBB/viewtopic.php?t=3125
@@ -1077,21 +1076,17 @@ class SnuddaSimulate(object):
                     elif section_x == 1.0:
                         section_x = 0.99
 
-                    # !!! Parameters for the tmGlut should be possible to set in the
-                    # input specification !!!
-                    # syn = self.sim.neuron.h.tmGlut(section(sectionX))
                     syn = self.get_external_input_synapse(channel_module, section, section_x)
                     nc = h.NetCon(vs, syn)
 
                     nc.delay = 0.0
-                    # Should weight be between 0 and 1, or in microsiemens?
-                    nc.weight[0] = neuron_input["conductance"][()] * 1e6  # !! what is unit? microsiemens?
+                    nc.weight[0] = neuron_input["conductance"][()] * 1e6  # Neurons needs microsiemens
                     nc.threshold = 0.1
 
                     # Get the modifications of synapse parameters, specific to
                     # this synapse
                     if param_list is not None and len(param_list) > 0:
-                        syn_params = param_list[paramID % len(param_list)]["synapse"]
+                        syn_params = param_list[param_id % len(param_list)]["synapse"]
 
                         for par in syn_params:
                             if par == "expdata":
@@ -1112,20 +1107,9 @@ class SnuddaSimulate(object):
                                      f"but expected >= 0.01 and < 10000")
 
                             setattr(syn, par, par_value)
-                            # eval_str = "syn." + par + "=" + str(syn_params[par])
-                            # self.writeLog("Updating synapse: " + evalStr)
-                            # !!! Can we avoid an eval here, it is soooo SLOW
-                            # exec(eval_str)
-
-                    # !!! Set parameters in synParams
 
                     # Need to save references, otherwise they will be freed
-                    # So sorry, but that is how neuron is
                     self.external_stim[neuron_id].append((v, vs, nc, syn, spikes))
-
-                    # ps = h.PatternStim()
-
-                    # HOW DO WE USE PATTERNSTIM?
 
     ############################################################################
 
