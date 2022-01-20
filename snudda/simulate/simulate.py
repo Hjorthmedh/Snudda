@@ -201,7 +201,12 @@ class SnuddaSimulate(object):
         # We need to initialise random streams, see Lytton el at 2016 (p2072)
 
         self.load_network_info(self.network_file)
-        self.network_activity = SnuddaSaveNetworkRecordings(output_file=self.output_file, network_data=self.network_info)
+        
+        self.record = SnuddaSaveNetworkRecordings(output_file=self.output_file, network_data=self.network_info)
+        self.record.add_unit(data_type="voltage", target_unit="V", conversion_factor=1e-3)
+        self.record.add_unit(data_type="synaptic_current", target_unit="A", conversion_factor=1e-9)
+        self.record.add_unit(data_type="spikes", target_unit="s", conversion_factor=1e-3)
+        # TODO: Add more units as needed https://www.neuron.yale.edu/neuron/static/docs/units/unitchart.html
 
     def setup(self):
 
@@ -521,8 +526,8 @@ class SnuddaSimulate(object):
 
                 self.pc.spike_record(ID, t_spikes, id_spikes)
                 self.check_id_recordings.append((ID, id_spikes))
-                self.network_activity.register_compartment_data("spikes", neuron_id=ID, data=t_spikes,
-                                                                sec_id=-1, sec_x=0.5)
+                self.record.register_compartment_data("spikes", neuron_id=ID, data=t_spikes,
+                                                      sec_id=-1, sec_x=0.5)
 
 
                 # self.pc.spike_record(ID, self.t_spikes, self.id_spikes)
@@ -1300,12 +1305,13 @@ class SnuddaSimulate(object):
             v.record(getattr(s(sx), '_ref_v'))
 
             # From the Snudda synapse matrix. sec_id 0 is soma, sec_id >= 1 is dendrite, sec_id <= -1 is axon
-            self.network_activity.register_compartment_data(neuron_id=cell_id, data_type="voltage", data=v, sec_id=sid, sec_x=sx)
+            self.record.register_compartment_data(neuron_id=cell_id, data_type="voltage", data=v,
+                                                  sec_id=sid, sec_x=sx)
 
-        if self.network_activity.time is None:
+        if self.record.time is None:
             t_save = self.sim.neuron.h.Vector()
             t_save.record(self.sim.neuron.h._ref_t)
-            self.network_activity.register_time(time=t_save)
+            self.record.register_time(time=t_save)
 
     def add_synapse_current_recording_all(self, dest_id):
 
@@ -1327,12 +1333,12 @@ class SnuddaSimulate(object):
             data.record(syn._ref_i)
             seg = syn.get_segment()
 
-            self.network_activity.register_synapse_data(neuron_id=dest_id, data=data,
-                                                        synapse_type=synapse_type_id,
-                                                        presynaptic_id=source_id,
-                                                        sec_id=sec_id,
-                                                        sec_x=seg.x,
-                                                        cond=nc.weight[0])
+            self.record.register_synapse_data(neuron_id=dest_id, data_type="synaptic_current", data=data,
+                                              synapse_type=synapse_type_id,
+                                              presynaptic_id=source_id,
+                                              sec_id=sec_id,
+                                              sec_x=seg.x,
+                                              cond=nc.weight[0])
 
     def add_recording_OLD2(self, cell_id=None, side_len=None):
 
@@ -1614,9 +1620,9 @@ class SnuddaSimulate(object):
 
     def write_output(self):
 
-        self.network_activity.write_header()
-        self.network_activity.write_time()
-        self.network_activity.write_neuron_activity()
+        self.record.write_header()
+        self.record.write_time()
+        self.record.write_neuron_activity()
 
     ############################################################################
 

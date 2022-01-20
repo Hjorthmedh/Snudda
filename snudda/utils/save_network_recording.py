@@ -58,22 +58,22 @@ class NeuronRecordings:
 
         self.data[data_type].append(data=data, sec_id=sec_id, sec_x=sec_x)
 
-    def register_synapse_data(self, data, synapse_type, presynaptic_id, sec_id, sec_x, cond):
+    def register_synapse_data(self, data, data_type, synapse_type, presynaptic_id, sec_id, sec_x, cond):
 
-        if "synapses" not in self.data:
-            self.data["synapses"] = SynapseData(neuron_id=self.neuron_id)
+        if data_type not in self.data:
+            self.data[data_type] = SynapseData(neuron_id=self.neuron_id, data_type=data_type)
 
-        self.data["synapses"].append(data=data, synapse_type=synapse_type, presynaptic_id=presynaptic_id,
-                                     sec_id=sec_id, sec_x=sec_x, cond=cond)
+        self.data[data_type].append(data=data, synapse_type=synapse_type, presynaptic_id=presynaptic_id,
+                                    sec_id=sec_id, sec_x=sec_x, cond=cond)
 
 
 class SynapseData:
 
-    def __init__(self, neuron_id):
+    def __init__(self, neuron_id, data_type):
 
         self.neuron_id = neuron_id
         self.data = []
-        self.data_type = "synapses"
+        self.data_type = data_type
         self.sec_id = []
         self.sec_x = []
         self.synapse_type = []
@@ -88,7 +88,7 @@ class SynapseData:
         self.presynaptic_id.append(presynaptic_id)
         self.cond.append(cond)
 
-    def convert_data(self):
+    def to_numpy(self):
         """
             Returns:
                 (np.ndarray): Data represented as np.ndarrays
@@ -133,7 +133,7 @@ class CompartmentData:
         self.sec_id.append(sec_id)
         self.sec_x.append(sec_x)
 
-    def convert_data(self):  # Misnomer? (original data is preserved). (Instead "as_ndarray" (like in NEURON)?)
+    def to_numpy(self):  # Misnomer? (original data is preserved). (Instead "as_ndarray" (like in NEURON)?)
         """
             Returns:
                 (np.ndarray): Data represented as np.ndarrays 
@@ -151,7 +151,19 @@ class SnuddaSaveNetworkRecordings:
         self.neuron_activities = dict()
         self.time = None
 
+        self.units = dict()
+
         self.pc = h.ParallelContext()
+
+    def add_unit(self, data_type, target_unit, conversion_factor):
+        # Units reference chart: https://www.neuron.yale.edu/neuron/static/docs/units/unitchart.html
+        self.units[data_type] = {"unit": target_unit, "conversion_factor": conversion_factor}
+
+    def get_conversion(self, data_type):
+        if data_type in self.units:
+            return self.units[data_type]["conversion_factor"]
+        else:
+            return 1.0
 
     def register_compartment_data(self, data_type, neuron_id, data, sec_id, sec_x):
         if neuron_id not in self.neuron_activities:
@@ -160,11 +172,12 @@ class SnuddaSaveNetworkRecordings:
         self.neuron_activities[neuron_id].register_compartment_data(data=data, data_type=data_type,
                                                                     sec_id=sec_id, sec_x=sec_x)
 
-    def register_synapse_data(self, neuron_id, data, synapse_type, presynaptic_id, sec_id, sec_x, cond):
+    def register_synapse_data(self, data_type, neuron_id, data, synapse_type, presynaptic_id, sec_id, sec_x, cond):
         if neuron_id not in self.neuron_activities:
             self.neuron_activities[neuron_id] = NeuronRecordings(neuron_id)
 
-        self.neuron_activities[neuron_id].register_synapse_data(data=data, synapse_type=synapse_type,
+        self.neuron_activities[neuron_id].register_synapse_data(data=data, data_type=data_type,
+                                                                synapse_type=synapse_type,
                                                                 presynaptic_id=presynaptic_id,
                                                                 sec_id=sec_id, sec_x=sec_x, cond=cond)
 
@@ -292,13 +305,16 @@ class SnuddaSaveNetworkRecordings:
                     out_file["neurons"].create_group(neuron_id_str)
 
                 for m in na.data.values():
+
+                    conversion_factor = self.get_conversion(m.data_type)
+
                     out_file["neurons"][neuron_id_str].create_group(m.data_type)
                     data_group = out_file["neurons"][neuron_id_str][m.data_type]
-                    data_group.create_dataset("data", data=m.convert_data(), compression="gzip")
+                    data_group.create_dataset("data", data=m.to_numpy() * conversion_factor, compression="gzip")
                     data_group.create_dataset("sec_id", data=np.array(m.sec_id), compression="gzip")
                     data_group.create_dataset("sec_x", data=np.array(m.sec_x), compression="gzip")
 
-                    if m.data_type == "synapses":
+                    if isinstance(m, SynapseData):
                         data_group.create_dataset("synapse_type", data=np.array(m.synapse_type), compression="gzip")
                         data_group.create_dataset("presynaptic_id", data=np.array(m.presynaptic_id), compression="gzip")
                         data_group.create_dataset("cond", data=np.array(m.cond), compression="gzip")
