@@ -186,8 +186,7 @@ class SnuddaSimulate(object):
 
         self.gap_junction_next_gid = 0  # Are these gids separate from cell gids?
 
-        self.t_spikes = h.Vector()
-        self.id_spikes = h.Vector()
+        self.check_id_recordings = [] # Prevent segmentation fault due to garbage collection of spike id
 
         # Make sure the output dir exists, so we don't fail at end because we
         # cant write file
@@ -517,8 +516,16 @@ class SnuddaSimulate(object):
                 # self.netConList.append(nc) -- Not needed according to Lytton et al 2016
 
                 # Record all spikes
-                self.pc.spike_record(ID, self.t_spikes, self.id_spikes)
-                # TODO: Put these variables in save_network_recording.py ???
+                t_spikes = h.Vector()
+                id_spikes = h.Vector()
+
+                self.pc.spike_record(ID, t_spikes, id_spikes)
+                self.check_id_recordings.append((ID, id_spikes))
+                self.network_activity.register_compartment_data("spikes", neuron_id=ID, data=t_spikes,
+                                                                sec_id=-1, sec_x=0.5)
+
+
+                # self.pc.spike_record(ID, self.t_spikes, self.id_spikes)
 
     ############################################################################
 
@@ -1610,20 +1617,6 @@ class SnuddaSimulate(object):
         self.network_activity.write_header()
         self.network_activity.write_time()
         self.network_activity.write_neuron_activity()
-        self.network_activity.write_spikes(t_spikes=self.t_spikes, id_spikes=self.id_spikes)
-
-    def write_output_OLD(self, output_file=None):
-
-        """ Save neuron voltage to HDF5 file """
-
-        if not output_file:
-            output_file = os.path.join(self.network_path, "simulation", "network-output.hdf5")
-        elif os.path.sep not in output_file:
-            output_file = os.path.join(self.network_path, "simulation", output_file)
-            
-        sv = SnuddaSaveNetworkRecordings(output_file=output_file, network_data=self.network_info)
-        sv.write(t_save=self.t_save, v_save=self.v_save, v_key=self.v_key,
-                 t_spikes=self.t_spikes, id_spikes=self.id_spikes)
 
     ############################################################################
 
@@ -1631,42 +1624,6 @@ class SnuddaSimulate(object):
     # -1,t0,t1,t2,t3 ... (time)
     # cellID,v0,v1,v2,v3, ... (voltage for cell #ID)
     # repeat
-
-    def write_voltage_OLD(self,
-                          output_file=None,
-                          down_sampling=10):
-
-        if not output_file:
-            output_file = os.path.join(self.network_path, "simulation", "network-voltage.txt")
-
-        if not os.path.exists(os.path.dirname(output_file)):
-            os.mkdir(os.path.dirname(output_file))
-
-        """ Writes voltage to output_file, with the option to down sample data to save space. """
-
-        for i in range(int(self.pc.nhost())):
-            self.pc.barrier()
-
-            if i == int(self.pc.id()):
-                if i == 0:
-                    mode = 'w'
-                else:
-                    mode = 'a'
-
-                with open(output_file, mode) as voltage_file:
-                    if mode == 'w':
-                        voltage_file.write('-1')  # Indicate that first column is time
-
-                        for t_idx in range(0, len(self.t_save), down_sampling):
-                            voltage_file.write(',%.4f' % self.t_save[t_idx])
-
-                    for v_id, voltage in zip(self.v_key, self.v_save):
-                        voltage_file.write('\n%d' % v_id)
-
-                        for v_idx in range(0, len(voltage), down_sampling):
-                            voltage_file.write(',%.4f' % voltage[v_idx])
-
-            self.pc.barrier()
 
     ############################################################################
 
@@ -1678,6 +1635,8 @@ class SnuddaSimulate(object):
     def write_current(self,
                       output_file="save/traces/network-current",
                       down_sampling=20):
+
+        print("This function will be deprecated in the future")
 
         """ Writes current to output_file, with option to down sample data to save space. """
 
@@ -1839,9 +1798,6 @@ class SnuddaSimulate(object):
             val = param_value
 
         return val
-
-
-
 
     ############################################################################
 

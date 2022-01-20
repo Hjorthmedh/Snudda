@@ -157,14 +157,16 @@ class SnuddaSaveNetworkRecordings:
         if neuron_id not in self.neuron_activities:
             self.neuron_activities[neuron_id] = NeuronRecordings(neuron_id)
 
-        self.neuron_activities[neuron_id].register_compartment_data(data=data, data_type=data_type, sec_id=sec_id, sec_x=sec_x)
+        self.neuron_activities[neuron_id].register_compartment_data(data=data, data_type=data_type,
+                                                                    sec_id=sec_id, sec_x=sec_x)
 
     def register_synapse_data(self, neuron_id, data, synapse_type, presynaptic_id, sec_id, sec_x, cond):
         if neuron_id not in self.neuron_activities:
             self.neuron_activities[neuron_id] = NeuronRecordings(neuron_id)
 
         self.neuron_activities[neuron_id].register_synapse_data(data=data, synapse_type=synapse_type,
-                                                                presynaptic_id=presynaptic_id, sec_id=sec_id, sec_x=sec_x, cond=cond)
+                                                                presynaptic_id=presynaptic_id,
+                                                                sec_id=sec_id, sec_x=sec_x, cond=cond)
 
     def register_time(self, time):
         self.time = time
@@ -228,8 +230,6 @@ class SnuddaSaveNetworkRecordings:
 
             meta_data = out_file.create_group("metaData")
             out_file.create_group("neurons")
-            out_file.create_group("voltData")
-            out_file.create_group("spikeData")
 
             if self.network_data:
                 neuron_id = np.array([x["neuronID"] for x in self.network_data["neurons"]])
