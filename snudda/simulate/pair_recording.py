@@ -286,7 +286,7 @@ class PairRecording(SnuddaSimulate):
             pre_id = np.array([x[0] for x in self.synapse_currents])
             post_id = np.array([x[1] for x in self.synapse_currents])
             cur = [np.array(x[2]) for x in self.synapse_currents]
-            save.write_currents(t_save=self.t_save, i_save=cur, pre_id=pre_id, post_id=post_id)
+            save.write_currents_OLD(t_save=self.t_save, i_save=cur, pre_id=pre_id, post_id=post_id)
 
         except:
             import traceback

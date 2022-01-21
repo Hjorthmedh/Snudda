@@ -1620,9 +1620,7 @@ class SnuddaSimulate(object):
 
     def write_output(self):
 
-        self.record.write_header()
-        self.record.write_time()
-        self.record.write_neuron_activity()
+        self.record.write()
 
     ############################################################################
 

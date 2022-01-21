@@ -258,31 +258,9 @@ class SnuddaSaveNetworkRecordings:
 
         self.header_exists = True
 
-    def write_spikes(self, t_spikes, id_spikes):
+    def write(self):
 
         self.write_header()
-
-        # Write spike data
-        print("Sorting spikes")
-        spikes = self.spike_sort(t_spikes=t_spikes, id_spikes=id_spikes)
-
-        print("Saving spike data...")
-
-        for i in range(int(self.pc.nhost())):
-            if i == int(self.pc.id()):
-                out_file = h5py.File(self.output_file, "a")
-
-                for idx, spike_times in spikes.items():
-                    out_file["spikeData"].create_dataset(f"{idx:.0f}", data=spike_times*1e-3, compression="gzip")
-
-                out_file.close()
-
-            self.pc.barrier()
-
-    def write_time(self):
-
-        self.write_header()
-        self.pc.barrier()
 
         if int(self.pc.id()) == 0:
 
@@ -290,11 +268,6 @@ class SnuddaSaveNetworkRecordings:
             if "time" not in out_file:
                 out_file.create_dataset("time", data=self.time)
                 out_file.close()
-
-    def write_neuron_activity(self):
-
-        self.write_header()
-        self.write_time()
 
         for i in range(int(self.pc.nhost())):
             out_file = h5py.File(self.output_file, "a")
@@ -323,7 +296,7 @@ class SnuddaSaveNetworkRecordings:
 
         self.pc.barrier()
 
-    def write(self, t_save, v_save, v_key, t_spikes, id_spikes, output_file=None):
+    def write_OLD(self, t_save, v_save, v_key, t_spikes, id_spikes, output_file=None):
 
         """ Write spike data and voltage data to output_file
 
@@ -356,9 +329,9 @@ class SnuddaSaveNetworkRecordings:
 
                 self.pc.barrier()
 
-        self.write_spikes(t_spikes, id_spikes)
+        self.write_spikes_OLD(t_spikes, id_spikes)
 
-    def write_currents(self, t_save, i_save, pre_id, post_id, section_id=None, section_x=None, output_file=None):
+    def write_currents_OLD(self, t_save, i_save, pre_id, post_id, section_id=None, section_x=None, output_file=None):
 
         """ This adds currents to an already existing hdf5 output file.
 
