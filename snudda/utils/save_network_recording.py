@@ -266,7 +266,7 @@ class SnuddaSaveNetworkRecordings:
 
             out_file = h5py.File(self.output_file, "a")
             if "time" not in out_file:
-                out_file.create_dataset("time", data=self.time)
+                out_file.create_dataset("time", data=self.time * self.get_conversion("time"))
                 out_file.close()
 
         for i in range(int(self.pc.nhost())):
