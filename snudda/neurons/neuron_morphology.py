@@ -11,6 +11,7 @@ import numpy as np
 import numexpr
 from snudda.utils.snudda_path import snudda_parse_path
 
+# Use np.random.choice for selecting
 
 class NeuronMorphology(object):
 
@@ -1187,6 +1188,8 @@ class NeuronMorphology(object):
         syn_ctr = 0
 
         for r in rand_vals:
+            # TODO: Potentially replace this with np.random.choice?
+            # https://numpy.org/doc/stable/reference/random/generated/numpy.random.choice.html
             comp_idx = len(p_cum) - np.sum(r < p_cum)
 
             for j in range(cluster_size):
