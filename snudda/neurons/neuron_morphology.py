@@ -816,7 +816,7 @@ class NeuronMorphology:
         tmp_id_lookup = dict()
         tmp_x_lookup = dict()
         for idx, (sec_id, sec_x) in enumerate(zip(self.dend_sec_id, self.dend_sec_x)):
-            if sec_id not in self.sec_id_to_links:
+            if sec_id not in self.sec_id_links:
                 tmp_id_lookup[sec_id] = [idx]
                 tmp_x_lookup[sec_id] = sec_x[1]
             else:
