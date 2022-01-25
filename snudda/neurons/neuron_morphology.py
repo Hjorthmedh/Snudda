@@ -1088,7 +1088,7 @@ class NeuronMorphology:
     # TODO: Update the code so that it gives exactly num_locations positions (currently it varies)
 
     def dendrite_input_locations(self, synapse_density, rng, num_locations=None,
-                                 cluster_size=None):
+                                 cluster_size=None, cluster_spread=20e-6):
 
         """
         Randomises input locations on dendrites.
@@ -1105,7 +1105,8 @@ class NeuronMorphology:
             return self.dendrite_input_locations_helper(synapse_density=synapse_density,
                                                         rng=rng,
                                                         num_locations=num_locations,
-                                                        cluster_size=cluster_size)
+                                                        cluster_size=cluster_size,
+                                                        cluster_spread=cluster_spread)
 
         expected_synapses = self.get_expected_synapses_per_compartment(synapse_density=synapse_density)
 
@@ -1231,7 +1232,7 @@ class NeuronMorphology:
 
             x_start, x_end = self.dend_sec_x[link_idx]
             comp_x = (sx - x_start) / (x_start - x_end)
-            start_info = self.dend[self.dend_links[link_idx, 0], :]
+            start_info = self.dend[self.dend_links[link_idx, 0], :]  # x,y,z,radie,soma dist
             end_info = self.dend[self.dend_links[link_idx, 1], :]
             syn_info = start_info * (1 - comp_x) + end_info * comp_x
 
@@ -1243,12 +1244,12 @@ class NeuronMorphology:
 
     ############################################################################
 
-
     def dendrite_input_locations_helper(self,
                                         synapse_density,
                                         rng,
                                         num_locations,
-                                        cluster_size=1):
+                                        cluster_size=1,
+                                        cluster_spread=20e-6):
 
         """
         Helper function. Places num_location clusters, each containing cluster_size synapses. Density is relative, scaled.
@@ -1269,24 +1270,28 @@ class NeuronMorphology:
             cluster_size = 1
 
         num_synapses = num_locations*cluster_size
-        input_loc = np.zeros((num_synapses, 5))
-        dist_syn_soma = np.zeros((num_synapses,))
+        input_loc = np.zeros((num_synapses, 6))
 
         d = self.dend[:, 4]
         syn_ctr = 0
 
-        for r in rand_vals:
-            # TODO: Potentially replace this with np.random.choice?
-            # https://numpy.org/doc/stable/reference/random/generated/numpy.random.choice.html
-            comp_idx = len(p_cum) - np.sum(r < p_cum)
+        assert np.all(expected_synapses >= 0), f"Check your synapse density {synapse_density}, found negative values."
+        exp_sum = np.sum(expected_synapses)
+        assert exp_sum > 0, f"Check your synapse density {synapse_density}, all elements zero."
 
-            for j in range(cluster_size):
+        syn_idx = rng.choice(len(expected_synapses), size=num_locations, replace=True,
+                             p=expected_synapses/exp_sum)
 
-                # This needs to take centre location and spread into account
+        for comp_idx in syn_idx:
+
+            # Cluster centre sec_id:
+            sec_id = self.dend_sec_id[comp_idx]
+            # We place cluster centre in the middle of the 5 micrometer morphology piece
+            sec_x = (self.dend_sec_x[comp_idx, 0] + self.dend_sec_x[comp_idx, 1]) / 2
+
+            if cluster_size is None or cluster_size == 1:
+
                 comp_x = rng.random()
-
-                dist_syn_soma[syn_ctr] = (d[self.dend_links[comp_idx, 0]] * (1 - comp_x)
-                                          + d[self.dend_links[comp_idx, 1]] * comp_x)
 
                 coords = (self.dend[self.dend_links[comp_idx, 0], :3] * (1 - comp_x)
                           + self.dend[self.dend_links[comp_idx, 1], :3] * comp_x)
@@ -1295,13 +1300,25 @@ class NeuronMorphology:
                 input_loc[syn_ctr, 3] = self.dend_sec_id[comp_idx]
                 input_loc[syn_ctr, 4] = (self.dend_sec_x[comp_idx, 0] * (1 - comp_x)
                                          + comp_x * self.dend_sec_x[comp_idx, 1])
+                input_loc[syn_ctr, 5] = (d[self.dend_links[comp_idx, 0]] * (1 - comp_x)
+                                         + d[self.dend_links[comp_idx, 1]] * comp_x)
 
                 syn_ctr += 1
+
+            else:
+                syn_info = self.cluster_synapses(sec_id=sec_id, sec_x=sec_x, count=cluster_size,
+                                                 distance=cluster_spread, rng=rng)
+                input_loc[syn_ctr:syn_ctr+cluster_size, :3] = syn_info[1]  # Synapse x,y,z -- in global coordinate system(!)
+                input_loc[syn_ctr:syn_ctr + cluster_size, 3] = sec_id      # Sec id
+                input_loc[syn_ctr:syn_ctr + cluster_size, 4] = syn_info[0] # Sec x
+                input_loc[syn_ctr:syn_ctr + cluster_size, 5] = syn_info[2] # Soma distance
+
+                syn_ctr += cluster_size
 
         assert syn_ctr == input_loc.shape[0], f"Not all input_loc was set. Rows {input_loc.shape[0]}, syn_ctr={syn_ctr}"
 
         # Return xyz,secID,secX, dist_to_soma (update: now also added distance synapse to soma)
-        return input_loc[:, :3], input_loc[:, 3], input_loc[:, 4], dist_syn_soma
+        return input_loc[:, :3], input_loc[:, 3], input_loc[:, 4], input_loc[:, 5]
 
     ############################################################################
 
