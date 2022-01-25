@@ -807,8 +807,8 @@ class NeuronMorphology:
             self.dend_sec_x = np.zeros((0, 2))
 
         # Lookup for section length based on section id
-        self.sec_id_to_len = np.ones((1+np.max(points[:, 10],)))
-        for sec_id, sec_len in zip(points[:, 10], points[:, 11]):
+        self.sec_id_to_len = np.ones((int(1+np.max(points[:, 10])),))
+        for sec_id, sec_len in zip(points[:, 10].astype(int), points[:, 11]):
             if sec_id >= 0:
                 self.sec_id_to_len[sec_id] = sec_len
 
