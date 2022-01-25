@@ -87,6 +87,12 @@ class NeuronMorphologyTestCase(unittest.TestCase):
         self.assertTrue(np.all(d <= 30e-6))
         self.assertTrue(np.any(d >= 10e-6))
 
+        # TODO: Verify self.nm.sec_id_to_len[0] value ... ie segment length of soma?
+        # xx = self.nm.compartment_length()
+        # np.sum(self.nm.sec_id_to_len[1:])
+        # ska vara samma som np.sum(xx)
+        # och self.nm.sec_id_to_len[0] deals with the soma.
+        
 
 if __name__ == '__main__':
     unittest.main()
