@@ -1,6 +1,7 @@
 import os
 import unittest
 import numpy as np
+import scipy
 
 from snudda.neurons.neuron_morphology import NeuronMorphology
 
@@ -13,7 +14,7 @@ class NeuronMorphologyTestCase(unittest.TestCase):
 
         swc_file = os.path.join(os.path.dirname(__file__), "validation", "striatum", "fs",
                                 "str-fs-e161205_FS1-mMTC180800A-IDB-v20190312", "MTC180800A-IDB-cor-rep.swc")
-        self.nm = NeuronMorphology(swc_filename=swc_file, load_morphology=True)
+        self.nm = NeuronMorphology(swc_filename=swc_file, load_morphology=True, use_cache=False)
 
     def test_input_location(self, stage="dist_to_soma"):
 
@@ -71,7 +72,20 @@ class NeuronMorphologyTestCase(unittest.TestCase):
         self.assertTrue((np.abs(self.nm.axon[:, 2] + new_nm.axon[:, 2]) < 1e-6).all())
 
         new_nm.place(position=np.array([1, 2, 3]))
-        self.assertTrue((np.abs(new_nm.soma[0,:3] - np.array([1, 2, 3])) < 1e-6).all())
+        self.assertTrue((np.abs(new_nm.soma[0, :3] - np.array([1, 2, 3])) < 1e-6).all())
+
+    def test_cluster_synapses(self, stage="cluster_synapses"):
+
+        cluster_sec_x, syn_coords, soma_dist = self.nm.cluster_synapses(sec_id=30, sec_x=0.5,
+                                                                        count=5, distance=30e-6,
+                                                                        rng=np.random.default_rng(20220125))
+
+        self.assertEqual(len(cluster_sec_x), 5)
+        self.assertTrue(np.max(soma_dist) - np.min(soma_dist) <= 30e-6)
+
+        d = scipy.spatial.distance.pdist(syn_coords)
+        self.assertTrue(np.all(d <= 30e-6))
+        self.assertTrue(np.any(d >= 10e-6))
 
 
 if __name__ == '__main__':

@@ -46,7 +46,7 @@ class NeuronMorphology:
                  virtual_neuron=False,
                  axon_stump_id_flag=False):
 
-        self.cache_version = 1.0
+        self.cache_version = 0.99
 
         self.position = np.array(position)
 
@@ -816,9 +816,9 @@ class NeuronMorphology:
         tmp_id_lookup = dict()
         tmp_x_lookup = dict()
         for idx, (sec_id, sec_x) in enumerate(zip(self.dend_sec_id, self.dend_sec_x)):
-            if sec_id not in self.sec_id_links:
+            if sec_id not in tmp_id_lookup:
                 tmp_id_lookup[sec_id] = [idx]
-                tmp_x_lookup[sec_id] = sec_x[1]
+                tmp_x_lookup[sec_id] = [sec_x[1]]
             else:
                 tmp_id_lookup[sec_id].append(idx)
                 tmp_x_lookup[sec_id].append(sec_x[1])
@@ -1216,10 +1216,10 @@ class NeuronMorphology:
         """
 
         sec_len = self.sec_id_to_len[sec_id]
-        min_sec_x = np.max(1e-3, sec_x - 0.5 * distance / sec_len)
-        max_sec_x = np.min(1 - 1e-3, sec_x + 0.5 * distance / sec_len)
+        min_sec_x = np.maximum(1e-3, sec_x - 0.5 * distance / sec_len)
+        max_sec_x = np.minimum(1 - 1e-3, sec_x + 0.5 * distance / sec_len)
 
-        cluster_sec_x = rng.random(low=min_sec_x, high=max_sec_x, size=count)
+        cluster_sec_x = rng.uniform(low=min_sec_x, high=max_sec_x, size=count)
 
         syn_coords = np.zeros((count, 3))
         soma_dist = np.zeros((count,))
