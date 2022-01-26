@@ -76,15 +76,18 @@ class NeuronMorphologyTestCase(unittest.TestCase):
 
     def test_cluster_synapses(self, stage="cluster_synapses"):
 
+        cluster_spread = 30e-6
+        n_synapses = 10
+
         cluster_sec_x, syn_coords, soma_dist = self.nm.cluster_synapses(sec_id=30, sec_x=0.5,
-                                                                        count=5, distance=30e-6,
+                                                                        count=n_synapses, distance=cluster_spread,
                                                                         rng=np.random.default_rng(20220125))
 
-        self.assertEqual(len(cluster_sec_x), 5)
-        self.assertTrue(np.max(soma_dist) - np.min(soma_dist) <= 30e-6)
+        self.assertEqual(len(cluster_sec_x), n_synapses)
+        self.assertTrue(np.max(soma_dist) - np.min(soma_dist) <= cluster_spread)
 
         d = scipy.spatial.distance.pdist(syn_coords)
-        self.assertTrue(np.all(d <= 30e-6))
+        self.assertTrue(np.all(d <= cluster_spread))
         self.assertTrue(np.any(d >= 10e-6))
 
         # TODO: Verify self.nm.sec_id_to_len[0] value ... ie segment length of soma?
@@ -92,7 +95,19 @@ class NeuronMorphologyTestCase(unittest.TestCase):
         # np.sum(self.nm.sec_id_to_len[1:])
         # ska vara samma som np.sum(xx)
         # och self.nm.sec_id_to_len[0] deals with the soma.
-        
+
+        if False:
+            import matplotlib.pyplot as plt
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            ax = self.nm.plot_neuron(plot_axon=False, plot_dendrite=True, axis=ax)
+            ax.scatter(syn_coords[:, 0], syn_coords[:, 1], syn_coords[:, 2], s=5, c="red")
+            fig.show()
+            plt.pause(3)
+
+            import pdb
+            pdb.set_trace()
+
 
 if __name__ == '__main__':
     unittest.main()
