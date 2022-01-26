@@ -433,6 +433,7 @@ class SnuddaInput(object):
         parameter_file_list = []
         parameter_list_list = []
         cluster_size_list = []
+        cluster_spread_list = []
 
         dendrite_location_override_list = []
 
@@ -611,7 +612,13 @@ class SnuddaInput(object):
                     else:
                         cluster_size = None
 
+                    if "clusterSpread" in input_inf:
+                        cluster_spread = input_inf["clusterSpread"]
+                    else:
+                        cluster_spread = 20e-6
+
                     cluster_size_list.append(cluster_size)
+                    cluster_spread_list.append(cluster_spread)
 
                     if "dendriteLocation" in input_info:
                         assert "morphologyKey" in input_info, \
@@ -676,6 +683,7 @@ class SnuddaInput(object):
                                   parameter_list_list,
                                   seed_list,
                                   cluster_size_list,
+                                  cluster_spread_list,
                                   dendrite_location_override_list))
 
             self.d_view.scatter("input_list", input_list, block=True)
@@ -716,6 +724,7 @@ class SnuddaInput(object):
                       parameter_list_list,
                       seed_list,
                       cluster_size_list,
+                      cluster_spread_list,
                       dendrite_location_override_list)
 
         # Gather the spikes that were generated in parallel
@@ -1147,6 +1156,7 @@ class SnuddaInput(object):
                                  synapse_density=None,
                                  num_spike_trains=None,
                                  cluster_size=None,
+                                 cluster_spread=30e-6,
                                  input_type=None):
 
         """
@@ -1158,6 +1168,7 @@ class SnuddaInput(object):
             synapse_density (str): Distance function f(d)
             num_spike_trains (int): Number of spike trains
             cluster_size (int): Size of each synaptic cluster (None = No clustering)
+            cluster_spread (float): Spread of cluster along dendrite (in meters)
             input_type (str): Type of input, eg. "Cortical" or "Thalamic"
         """
 
@@ -1223,7 +1234,9 @@ class SnuddaInput(object):
 
         return morphology.dendrite_input_locations(synapse_density=synapse_density,
                                                    num_locations=num_spike_trains,
-                                                   rng=rng, cluster_size=cluster_size)
+                                                   rng=rng,
+                                                   cluster_size=cluster_size,
+                                                   cluster_spread=cluster_spread)
 
     ############################################################################
 
@@ -1345,7 +1358,8 @@ class SnuddaInput(object):
 
             neuron_id, input_type, freq, start, end, synapse_density, num_spike_trains, p_keep, \
                 population_unit_spikes, jitter_dt, population_unit_id, conductance, correlation, mod_file, \
-                parameter_file, parameter_list, random_seed, cluster_size, dendrite_location_override = args
+                parameter_file, parameter_list, random_seed, cluster_size, cluster_spread, \
+                dendrite_location_override = args
 
             return self.make_input_helper_serial(neuron_id=neuron_id,
                                                  input_type=input_type,
@@ -1365,6 +1379,7 @@ class SnuddaInput(object):
                                                  parameter_list=parameter_list,
                                                  random_seed=random_seed,
                                                  cluster_size=cluster_size,
+                                                 cluster_spread=cluster_spread,
                                                  dendrite_location=dendrite_location_override)
 
         except:
@@ -1401,6 +1416,7 @@ class SnuddaInput(object):
                                  parameter_list,
                                  random_seed,
                                  cluster_size=None,
+                                 cluster_spread=None,
                                  dendrite_location=None):
 
         """
@@ -1424,6 +1440,7 @@ class SnuddaInput(object):
             parameter_list: Parameter list (to inline parameters, instead of reading from file)
             random_seed: Random seed.
             cluster_size: Input synapse cluster size
+            cluster_spread: Spread of cluster along dendrite (in meters)
             dendrite_location: Override location of dendrites, list of (sec_id, sec_x) tuples.
             """
 
@@ -1470,6 +1487,7 @@ class SnuddaInput(object):
                                                           num_spike_trains=num_spike_trains,
                                                           rng=rng,
                                                           cluster_size=cluster_size,
+                                                          cluster_spread=cluster_spread,
                                                           input_type=input_type)
 
             num_inputs = input_loc[0].shape[0]
