@@ -21,7 +21,7 @@
 	    "GABA": {
 		"conductance": [1.1e-9, 1.5e-9],
 		"clusterSize": 5,
-		"clusterSpread": 20e-6,
+		"clusterSpread": 25e-6,
                 "pruning": {
                     "f1": 1,
                     "softMax": 5,

@@ -209,7 +209,7 @@ class SnuddaDetect(object):
         # 5: hyperVoxelID, 6: channelModelID,
         # 7: sourceAxonSomaDist (not SI scaled 1e6, micrometers),
         # 8: destDendSomaDist (not SI scaled 1e6, micrometers)
-        # 9: destSegID, 10: destSegX (int 0 - 1000, SONATA wants float 0.0-1.0)
+        # 9: destSecID, 10: destSecX (int 0 - 1000, SONATA wants float 0.0-1.0)
         # 11: conductance (int, not SI scaled 1e12, in pS)
         # 12: parameterID
         #
@@ -221,7 +221,7 @@ class SnuddaDetect(object):
         self.hyper_voxel_synapses = None
 
         # Columns in hyperVoxelGapJunctions
-        # 0: sourceCellID, 1: destCellID, 2: sourceSegID, 3: destSegID,
+        # 0: sourceCellID, 1: destCellID, 2: sourceSecID, 3: destSecID,
         # 4: sourceSegX, 5: destSegX, 6: voxelX, 7: voxelY, 8: voxelZ,
         # 9: hyperVoxelID, 10: conductance (integer, in pS)
         self.hyper_voxel_gap_junctions = None

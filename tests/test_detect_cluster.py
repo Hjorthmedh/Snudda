@@ -7,6 +7,8 @@ from snudda.place.create_cube_mesh import create_cube_mesh
 from snudda.detect.detect import SnuddaDetect
 from snudda.place.place import SnuddaPlace
 
+from scipy.spatial.distance import pdist
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 
@@ -80,12 +82,68 @@ class TestDetectSynapseCluster(unittest.TestCase):
         if not os.path.exists(fig_path):
             os.mkdir(fig_path)
 
-        if True:   # Set to True to include plot
+        if False:   # Set to True to include plot
             self.sd.plot_hyper_voxel(plot_neurons=True, fig_file_name="touch-detection-clusters-validation")
+
+        # Check that each neuron pair
+        with self.subTest(stage="cluster-size"):
+
+            connection_list = [(4, 0, 5), (4, 1, 5), (4, 2, 5), (4, 3, 5),
+                               (5, 0, 10), (5, 1, 10), (5, 2, 10), (5, 3, 10),
+                               (6, 0, 10), (6, 1, 10), (6, 2, 10), (6, 3, 10),
+                               (7, 0, 10), (7, 1, 10), (7, 2, 10), (7, 3, 10)]
+
+            for pre_id, post_id, n_synapses in connection_list:
+                self.assertTrue(self.check_neuron_pair_has_synapse(pre_id, post_id) == n_synapses)
+
+        with self.subTest(stage="cluster-spread"):
+
+            self.assertTrue(0 <= self.get_synapse_spread(4, 0) <= 25e-6)
+            self.assertTrue(0 <= self.get_synapse_spread(4, 1) <= 25e-6)
+            self.assertTrue(0 <= self.get_synapse_spread(4, 2) <= 25e-6)
+            self.assertTrue(0 <= self.get_synapse_spread(4, 3) <= 25e-6)
 
         # Lägg till tester som kollar positionerna på synapserna
         # import pdb
         # pdb.set_trace()
+
+    def check_neuron_pair_has_synapse(self, pre_neuron, post_neuron):
+
+        connections = dict()
+
+        for synapse_row in self.sd.hyper_voxel_synapses[0:self.sd.hyper_voxel_synapse_ctr, :]:
+
+            loc = (synapse_row[0], synapse_row[1])
+            if loc in connections:
+                connections[loc] += 1
+            else:
+                connections[loc] = 1
+
+        if (pre_neuron, post_neuron) in connections:
+            # print(f"pre: {pre_neuron}, post: {post_neuron}, connections: {connections[(pre_neuron, post_neuron)]}")
+            return connections[(pre_neuron, post_neuron)]
+        else:
+            # print(f"No connection between pre {pre_neuron} and post {post_neuron}")
+            return False
+
+    def get_synapse_spread(self, pre_neuron, post_neuron):
+
+        coords = self.get_synapse_coordinates(pre_neuron, post_neuron)
+        return np.max(pdist(coords))
+
+    def get_synapse_coordinates(self, pre_neuron, post_neuron):
+
+        coord_list = []
+
+        for synapse_row in self.sd.hyper_voxel_synapses[0:self.sd.hyper_voxel_synapse_ctr, :]:
+            if synapse_row[0] == pre_neuron and synapse_row[1] == post_neuron:
+                coord_list.append(self.convert_to_coordinates(synapse_row[2:5]))
+
+        return np.vstack(coord_list)
+
+    def convert_to_coordinates(self, voxel_xyz):
+        return np.array(voxel_xyz) * self.sd.voxel_size + self.sd.hyper_voxel_origo
+
 
 if __name__ == '__main__':
     unittest.main()

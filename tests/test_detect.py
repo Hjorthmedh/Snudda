@@ -115,16 +115,16 @@ class TestDetect(unittest.TestCase):
 
             self.assertEqual(self.sd.hyper_voxel_synapse_ctr, 101)
 
-            for pre_id in range(0, 10):
-                for post_id in range(10, 20):
+            for post_id in range(0, 10):
+                for pre_id in range(10, 20):
                     self.assertEqual(self.check_neuron_pair_has_synapse(pre_id, post_id), 1)
 
-            for pre_id in range(0, 10):
-                for post_id in range(0, 10):
+            for post_id in range(0, 10):
+                for pre_id in range(0, 10):
                     self.assertFalse(self.check_neuron_pair_has_synapse(pre_id, post_id))
 
-            for pre_id in range(10, 20):
-                for post_id in range(10, 20):
+            for post_id in range(10, 20):
+                for pre_id in range(10, 20):
                     self.assertFalse(self.check_neuron_pair_has_synapse(pre_id, post_id))
 
         with self.subTest(stage="synapse_sorting_check"):
@@ -182,9 +182,9 @@ class TestDetect(unittest.TestCase):
 
         connections = dict()
 
-        for synapse_row in self.sd.hyper_voxel_synapses[0:self.sd.hyper_voxel_synapse_ctr,:]:
+        for synapse_row in self.sd.hyper_voxel_synapses[0:self.sd.hyper_voxel_synapse_ctr, :]:
 
-            loc = (synapse_row[1], synapse_row[0])
+            loc = (synapse_row[0], synapse_row[1])
             if loc in connections:
                 connections[loc] += 1
             else:
@@ -281,8 +281,8 @@ class TestDetect(unittest.TestCase):
             self.assertTrue(self.sd.hyper_voxel_synapse_ctr >= 10)
 
             # Verify that all pairs are connected
-            for pre_id in range(0, 10):
-                post_id = pre_id + 10
+            for post_id in range(0, 10):
+                pre_id = post_id + 10
                 self.assertTrue(1 <= self.check_neuron_pair_has_synapse(pre_id, post_id) <= 2)
 
 
