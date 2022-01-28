@@ -40,6 +40,7 @@ class PointCluster:
 
         return np.divide(self.coords[idx, :] - min_coord, max_coord-min_coord)
 
+
 class PointMap:
 
     def __init__(self, source, dest):

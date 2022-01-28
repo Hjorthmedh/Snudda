@@ -256,6 +256,9 @@ class NeuronMorphology:
             new_neuron.dend_links = self.dend_links
             new_neuron.dend_sec_x = self.dend_sec_x
             new_neuron.dend_sec_id = self.dend_sec_id
+            new_neuron.sec_id_links = self.sec_id_links
+            new_neuron.sec_id_links_x = self.sec_id_links_x
+            new_neuron.sec_id_to_len = self.sec_id_to_len
 
             new_neuron.axon_stump_id_flag = self.axon_stump_id_flag
 
@@ -1231,7 +1234,7 @@ class NeuronMorphology:
             assert self.dend_sec_id[link_idx] == sec_id
 
             x_start, x_end = self.dend_sec_x[link_idx]
-            comp_x = (sx - x_start) / (x_start - x_end)
+            comp_x = (x_start - sx) / (x_start - x_end)
             start_info = self.dend[self.dend_links[link_idx, 0], :]  # x,y,z,radie,soma dist
             end_info = self.dend[self.dend_links[link_idx, 1], :]
             syn_info = start_info * (1 - comp_x) + end_info * comp_x

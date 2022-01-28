@@ -1097,7 +1097,7 @@ class SnuddaDetect(object):
             # Maybe make dendrite loop outer, since it has more variables?
             # speedup??
             for (ax_id, ax_dist) in zip(axon_id_list, axon_dist):
-                for (d_id, d_seg_id, d_seg_x, d_dist) \
+                for (d_id, d_sec_id, d_sec_x, d_dist) \
                         in zip(dend_id_list, dend_sec_id, dend_sec_x, dend_dist):
 
                     if ax_id == d_id:
@@ -1122,37 +1122,83 @@ class SnuddaDetect(object):
                             mean_synapse_cond, std_synapse_cond = con_dict[con_type]["conductance"]
                             channel_model_id = con_dict[con_type]["channelModelID"]
 
-                            # We can not do pruning at this stage, since we only see
-                            # synapses within hyper voxel, and pruning depends on
-                            # all synapses between two connected cells.
+                            # Should we add just one synapse, or a cluster of synapses
+                            cluster_size = con_dict[con_type]["clusterSize"]
+                            if cluster_size > 1:
+                                cluster_spread = con_dict[con_type]["clusterSpread"]
 
-                            # Do we have enough space allocated?
-                            if self.hyper_voxel_synapse_ctr >= self.max_synapses:
-                                self.resize_hyper_voxel_synapses_matrix()
+                                # This uses clone in neuron_prototype which should be cached
+                                neuron = self.load_neuron(self.neurons[d_id])
 
-                            # Synapse conductance varies between synapses
-                            # cond = self.hyper_voxel_rng.normal(mean_synapse_cond, std_synapse_cond)
+                                try:
+                                    cluster_sec_x, syn_coords, soma_dist \
+                                        = neuron.cluster_synapses(sec_id=d_sec_id, sec_x=d_sec_x,
+                                                                  count=cluster_size, distance=cluster_spread,
+                                                                  rng=self.hyper_voxel_rng)
+                                except:
+                                    import traceback
+                                    tstr = traceback.format_exc()
+                                    print(tstr)
+                                    import pdb
+                                    pdb.set_trace()
 
-                            # lognormal distribution -- https://www.nature.com/articles/nrn3687
-                            # https://en.wikipedia.org/wiki/Log-normal_distribution
-                            cond = self.hyper_voxel_rng.lognormal(synapse_mu, synapse_sigma)
+                                if self.hyper_voxel_synapse_ctr + cluster_size >= self.max_synapses:
+                                    self.resize_hyper_voxel_synapses_matrix()
 
-                            # Need to make sure the conductance is not negative,
-                            # set lower cap at 10% of mean value
-                            cond = np.maximum(cond, mean_synapse_cond * 0.1)
-                            assert cond > 0, f"Conductance should be larger than 0. cond = {cond}"
+                                cluster_cond = self.hyper_voxel_rng.lognormal(synapse_mu, synapse_sigma, cluster_size)
+                                cluster_cond = np.maximum(cluster_cond, mean_synapse_cond * 0.1)
+                                cluster_param_id = self.hyper_voxel_rng.integers(1000000, size=cluster_size)
 
-                            param_id = self.hyper_voxel_rng.integers(1000000)
+                                # We need to convert coords to hyper voxel coords, to fit with other coords
+                                coords_all = np.round((syn_coords - self.hyper_voxel_origo) / self.voxel_size).astype(int)
 
-                            # Add synapse
-                            self.hyper_voxel_synapses[self.hyper_voxel_synapse_ctr, :] = \
-                                [ax_id, d_id, x, y, z, self.hyper_voxel_id, channel_model_id,
-                                 ax_dist, d_dist, d_seg_id, d_seg_x * 1000, cond * 1e12, param_id]
+                                for d_sec_x, x, y, z, d_dist, cond, param_id \
+                                    in zip(cluster_sec_x, coords_all[:, 0], coords_all[:, 1], coords_all[:, 2],
+                                           soma_dist, cluster_cond, cluster_param_id):
 
-                            # !!! OBS, dSegX is a value between 0 and 1, multiplied by 1000
-                            # need to divide by 1000 later
+                                    assert cond > 0, f"Conductance should be larger than 0. cond = {cond}"
 
-                            self.hyper_voxel_synapse_ctr += 1
+                                    self.hyper_voxel_synapses[self.hyper_voxel_synapse_ctr, :] = \
+                                        [ax_id, d_id, x, y, z, self.hyper_voxel_id, channel_model_id,
+                                         ax_dist, d_dist, d_sec_id, d_sec_x * 1000, cond * 1e12, param_id]
+
+                                    # !!! OBS, dSegX is a value between 0 and 1, multiplied by 1000
+                                    # need to divide by 1000 later
+
+                                    self.hyper_voxel_synapse_ctr += 1
+
+                            else:
+                                # We can not do pruning at this stage, since we only see
+                                # synapses within hyper voxel, and pruning depends on
+                                # all synapses between two connected cells.
+
+                                # Do we have enough space allocated?
+                                if self.hyper_voxel_synapse_ctr >= self.max_synapses:
+                                    self.resize_hyper_voxel_synapses_matrix()
+
+                                # Synapse conductance varies between synapses
+                                # cond = self.hyper_voxel_rng.normal(mean_synapse_cond, std_synapse_cond)
+
+                                # lognormal distribution -- https://www.nature.com/articles/nrn3687
+                                # https://en.wikipedia.org/wiki/Log-normal_distribution
+                                cond = self.hyper_voxel_rng.lognormal(synapse_mu, synapse_sigma)
+
+                                # Need to make sure the conductance is not negative,
+                                # set lower cap at 10% of mean value
+                                cond = np.maximum(cond, mean_synapse_cond * 0.1)
+                                assert cond > 0, f"Conductance should be larger than 0. cond = {cond}"
+
+                                param_id = self.hyper_voxel_rng.integers(1000000)
+
+                                # Add synapse
+                                self.hyper_voxel_synapses[self.hyper_voxel_synapse_ctr, :] = \
+                                    [ax_id, d_id, x, y, z, self.hyper_voxel_id, channel_model_id,
+                                     ax_dist, d_dist, d_sec_id, d_sec_x * 1000, cond * 1e12, param_id]
+
+                                # !!! OBS, dSegX is a value between 0 and 1, multiplied by 1000
+                                # need to divide by 1000 later
+
+                                self.hyper_voxel_synapse_ctr += 1
 
         # Sort the synapses (note sortIdx will not contain the empty rows
         # at the end.
@@ -1163,8 +1209,7 @@ class SnuddaDetect(object):
         # basically how many voxel steps do we need to take to go from
         # simulationOrigo to hyperVoxelOrigo (those were not included, so add them)
         hyper_voxel_offset = np.round((self.hyper_voxel_origo - self.simulation_origo)
-                                      / self.hyper_voxel_width).astype(int) \
-                             * self.hyper_voxel_size
+                                      / self.hyper_voxel_width).astype(int) * self.hyper_voxel_size
 
         # Just a double check...
         assert self.hyper_voxel_id_lookup[int(np.round(hyper_voxel_offset[0] / self.hyper_voxel_size))][
@@ -1955,6 +2000,12 @@ class SnuddaDetect(object):
                 mu = np.log(mean_cond ** 2 / np.sqrt(mean_cond ** 2 + std_cond ** 2))
                 sigma = np.sqrt(np.log(1 + std_cond ** 2 / mean_cond ** 2))
                 con_def[key]["lognormal_mu_sigma"] = [mu, sigma]
+
+                if "clusterSize" not in con_def[key]:
+                    con_def[key]["clusterSize"] = 1
+
+                if "clusterSpread" not in con_def[key]:
+                    con_def[key]["clusterSpread"] = 20e-3
 
             self.connectivity_distributions[pre_type, post_type] = con_def
 

@@ -29,9 +29,7 @@ class TestDetect(unittest.TestCase):
 
         #  TODO: If d_view is None code run sin serial, add test parallel
         sp = SnuddaPlace(config_file=config_file, d_view=None, verbose=True)
-
-        sp.parse_config()
-        sp.write_data(position_file)
+        sp.place()
 
         # We want to load in the ball and stick neuron that has 20 micrometer soma diameter, and axon (along y-axis),
         # and dendrite along (x-axis) out to 100 micrometer distance from centre of soma.
