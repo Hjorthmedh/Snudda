@@ -250,16 +250,6 @@ class SnuddaDetect(object):
         self.max_synapses = 2000000
         self.max_gap_junctions = 100000
 
-        # We have to dynamically create this lookup
-        # self.synapseTypeLookup = { 1 : "GABA",
-        #                           2 : "AMPA_NMDA",
-        #                           3 : "GapJunction",
-        #                           4 : "ACh",
-        #                           5 : "NO"}
-        #
-        # self.synapseTypeReverseLookup = \
-        #    {v: k for k, v in self.synapseTypeLookup.items()}
-
         self.connectivity_distributions = dict([])
         # self.connectivityDistributionsGJ = dict([])
         self.next_channel_model_id = 10
@@ -974,7 +964,7 @@ class SnuddaDetect(object):
         random_seed = self.hyper_voxels[hyper_voxel_id]["randomSeed"]
         self.hyper_voxel_rng = np.random.default_rng(random_seed)
 
-        self.hyper_voxel_coords[hyper_voxel_id] = hyper_voxel_origo  # Used???
+        self.hyper_voxel_coords[hyper_voxel_id] = hyper_voxel_origo
 
         self.hyper_voxel_origo = hyper_voxel_origo
         self.hyper_voxel_id = hyper_voxel_id
@@ -1281,6 +1271,10 @@ class SnuddaDetect(object):
             # No neurons without axons
             return
 
+        # TODO: We need to update the code here to handle projection touch detection also
+        #       for neurons with "probability cloud axons" that should not be rotated
+        #       with the neuron rotation.
+
         for na_neuron in no_axon_neurons:
 
             # There are two types of axon density specified
@@ -1371,7 +1365,7 @@ class SnuddaDetect(object):
 
         end_time = timeit.default_timer()
 
-        self.write_log(f"place_synapses_no_axon_sphere: {end_time - start_time:.1f} s, hyper_id: {hyper_id}")
+        self.write_log(f"place_synapses_no_axon: {end_time - start_time:.1f} s, hyper_id: {hyper_id}")
 
     ############################################################################
 
@@ -2450,6 +2444,8 @@ class SnuddaDetect(object):
 
                 elif neuron.axon_density_type == "xyz":
 
+                    # TODO: Maybe replace random points by a grid for this test step?
+
                     rng = np.random.default_rng(d_seed)
 
                     # Estimate how many points we need to randomly place
@@ -2491,6 +2487,9 @@ class SnuddaDetect(object):
                     self.write_log(f"{neuron.name}: No axon and unknown axon density type: "
                                    f"{neuron.axon_density_type}", is_error=True)
                     assert False, f"No axon for {neuron.name}"
+
+                # TODO: We need to add the neurons that have touch detection projection also here
+                #       to the list of hyper voxels the neuron belongs to
 
                 # Find unique hyper voxel coordinates
                 h_loc = np.unique(np.concatenate([axon_loc, dend_loc]), axis=0).astype(int)
