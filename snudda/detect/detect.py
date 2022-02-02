@@ -2547,10 +2547,10 @@ class SnuddaDetect(object):
         """ Prepares workers for parallel execution if d_view is not None. """
 
         assert self.role == "master", \
-            "setupParallel: Should only be called by master node"
+            "setup_parallel: Should only be called by master node"
 
         if d_view is None:
-            self.write_log("setupParallel called without dView, aborting.")
+            self.write_log("setup_parallel called without dView, aborting.")
             return
 
         if self.workers_initialised:
