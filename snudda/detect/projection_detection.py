@@ -97,8 +97,9 @@ class ProjectionDetection:
 
             for neuron_type in self.projections:
 
-                neuron_id = self.get_neurons_of_type(neuron_type)
-                proj_list.append((neuron_id, neuron_type, seed_lookup[neuron_id]))
+                neuron_id_list = self.get_neurons_of_type(neuron_type)
+                for neuron_id in neuron_id_list:
+                    proj_list.append((neuron_id, neuron_type, seed_lookup[neuron_id]))
 
             self.hyper_voxel_projections = set()
 
@@ -122,7 +123,7 @@ class ProjectionDetection:
                                 self.hyper_voxel_projections[hid].add(neuron_id)
 
             else:
-                neuron_hv_list = map(self.find_hyper_voxel_helper_parallel, proj_list)
+                neuron_hv_list = self.find_hyper_voxel_helper_parallel(proj_list)
 
                 for n_hv in neuron_hv_list:
                     neuron_id = n_hv[0]
@@ -144,11 +145,15 @@ class ProjectionDetection:
             pdb.set_trace()
 
     def find_hyper_voxel_helper_parallel(self, proj_info):
+
         neuron_hv = []
 
         for neuron_id, neuron_type, random_seed in proj_info:
-            neuron_hv.append(self.find_hyper_voxel_helper(neuron_id=neuron_id, neuron_type=neuron_type,
-                                                          random_seed=random_seed))
+            n_id, hyper_voxels = self.find_hyper_voxel_helper(neuron_id=neuron_id, neuron_type=neuron_type,
+                                                              random_seed=random_seed)
+
+            assert n_id == neuron_id
+            neuron_hv.append((n_id, hyper_voxels))
 
         return neuron_hv
 
@@ -162,29 +167,25 @@ class ProjectionDetection:
             hyper_voxels = set()
 
             if neuron_type in self.projections:
-
                 for proj in self.projections[neuron_type]:
                     target_pos, target_rotation, axon_dist = proj["target_info"][neuron_id]
                     num_points = proj["num_points"]
-                    if len(proj["radius"]) == 1:
-                        rx = ry = rz = proj["radius"]
-                    else:
-                        rx, ry, rz = proj["radius"]
 
-                    if "rotation" in proj:
-                        rotation = proj["rotation"]
+                    if isinstance(proj["radius"], (np.ndarray, list)):
+                        rx, ry, rz = proj["radius"]
                     else:
-                        proj = None
+                        rx = ry = rz = proj["radius"]
 
                     # Find better way to calculate intersection between ellipsoid and hyper voxel cubes?
-                    pos = self.ellipsoid_coordinates(target_pos, rx, ry, rz, rotation, num_points, rng)
+                    pos = self.ellipsoid_coordinates(target_pos, rx, ry, rz, target_rotation, num_points, rng)
 
                     hv_idx = ((pos - self.snudda_detect.simulation_origo)
                               / (self.snudda_detect.hyper_voxel_size * self.snudda_detect.voxel_size)).astype(int)
 
-                    hv_id = map(self.snudda_detect.hyper_voxel_id_lookup, hv_idx[:, 0], hv_idx[:, 1], hv_idx[:, 2])
+                    hv_id = map(lambda x, y, z: self.snudda_detect.hyper_voxel_id_lookup[x, y, z],
+                                hv_idx[:, 0], hv_idx[:, 1], hv_idx[:, 2])
 
-                    hyper_voxels += set(hv_id)
+                    hyper_voxels.update(hv_id)
 
         except:
             import traceback
@@ -219,12 +220,12 @@ class ProjectionDetection:
         y_coord = np.multiply(ry * r_scale, np.multiply(np.sin(phi), np.sin(theta)))
         z_coord = np.multiply(rz * r_scale, np.cos(phi))
 
-        pos_offset = np.hstack((x_coord, y_coord, z_coord))
+        pos_offset = np.vstack((x_coord, y_coord, z_coord))
 
         if rotation is not None:
             pos_offset = np.matmul(rotation, pos_offset)
 
-        pos = target_pos + pos_offset
+        pos = target_pos + pos_offset.T
 
         return pos
 
@@ -280,7 +281,7 @@ class ProjectionDetection:
         return self.snudda_detect.neurons[neuron_id]["type"]
 
     def get_neuron_positions(self, neuron_id):
-        return self.neuron_positions[neuron_id, :]
+        return self.snudda_detect.neuron_positions[neuron_id, :]
 
     def delete_projection(self, projection_name, pre_neuron_type):
 
@@ -294,11 +295,12 @@ class ProjectionDetection:
 
     def parse_config(self):
 
-        for con_name, con_config in self.snudda_detect.config["Connectivity"].items():
-            if "projectionFile" in con_config:
-                pre_neuron_type = con_name.split(",")[0]
-                self.add_projection(projection_name=con_name, pre_neuron_type=pre_neuron_type,
-                                    projection_file=con_config["projectionFile"])
+        for con_name, con_info in self.snudda_detect.config["Connectivity"].items():
+            for con_type, con_config in con_info.items():
+                if "projectionFile" in con_config:
+                    pre_neuron_type = con_name.split(",")[0]
+                    self.add_projection(projection_name=f"{con_name},{con_type}", pre_neuron_type=pre_neuron_type,
+                                        projection_file=con_config["projectionFile"])
 
     def add_projection(self, projection_name, pre_neuron_type, projection_file):
 
@@ -316,10 +318,15 @@ class ProjectionDetection:
         with open(projection_file, "r") as f:
             projection_data = json.load(f, object_pairs_hook=OrderedDict)
 
-        if projection_name:
+        if projection_name and projection_name in projection_data:
             proj_file_info = projection_data[projection_name]
         else:
             proj_file_info = projection_data
+
+        assert "source" in proj_file_info, f"'source' must exist in {projection_file}"
+        assert "destination" in proj_file_info, f"'destination' must exist in {projection_file}"
+        assert "radius" in proj_file_info, f"'radius' must exist in {projection_file}"
+        assert "numPoints" in proj_file_info, f"'numPoints' must exist in {projection_file}"
 
         proj_info = dict()
         proj_info["name"] = projection_name
@@ -341,7 +348,7 @@ class ProjectionDetection:
         axon_dist = np.linalg.norm(target_centres - pre_positions, axis=1)
 
         if "rotation" in proj_info:
-            target_rotation = griddata(points=proj_info["dest"], values=["rotation"],
+            target_rotation = griddata(points=proj_info["dest"], values=proj_info["rotation"],
                                        xi=target_centres, method="linear")
         else:
             target_rotation = [None for x in neuron_id]
