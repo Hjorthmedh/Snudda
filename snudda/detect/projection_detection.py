@@ -128,7 +128,7 @@ class ProjectionDetection:
                                 self.hyper_voxel_projections[hid].add(neuron_id)
 
             else:
-                neuron_hv_list = map(self.find_hyper_voxel_helper_parallel, proj_info=proj_list)
+                neuron_hv_list = map(self.find_hyper_voxel_helper_parallel, proj_list)
 
                 for n_hv in neuron_hv_list:
                     neuron_id = n_hv[0]
