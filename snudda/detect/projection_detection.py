@@ -62,10 +62,12 @@ class ProjectionDetection:
     def sync_projection_info(self):
 
         if self.role == "master" and self.d_view is not None:
+
             self.write_log("Synchronising projection info to workers.")
-            self.d_view.push({"proj_info": self.projections}, block=True)
-            cmd_str = "spd.projections = proj_info"
-            self.d_view.execute(cmd_str, block=True)
+            for var_name in ["projections", "hyper_voxel_projections"]:
+                self.d_view.push({"tmp_val": eval(f"self.{var_name}")}, block=True)
+                cmd_str = f"spd.{var_name} = tmp_val"
+                self.d_view.execute(cmd_str, block=True)
 
     def write_log(self, *args, **kvargs):
         # Reuse the log files for snudda_detect
@@ -120,6 +122,7 @@ class ProjectionDetection:
                             self.hyper_voxel_projections[hid] = set([neuron_id])
                         else:
                             self.hyper_voxel_projections[hid].update([neuron_id])
+
             else:
                 neuron_hv_list = self.find_hyper_voxel_helper_parallel(proj_list)
 
@@ -132,6 +135,9 @@ class ProjectionDetection:
                             self.hyper_voxel_projections[hid] = set([neuron_id])
                         else:
                             self.hyper_voxel_projections[hid].update([neuron_id])
+
+            # Make sure the workers get the updated info
+            self.sync_projection_info()
 
         except:
             # TODO: Remove this logging code
@@ -352,7 +358,7 @@ class ProjectionDetection:
         for nid, pos, rot, ad in zip(neuron_id, target_centres, target_rotation, axon_dist):
             if rot is not None:
                 rot_mat = rot.reshape((3, 3))
-                assert np.abs(np.linalg.norm(rot_mat) - 1) < 1e-6, \
+                assert np.abs(np.linalg.det(rot_mat) - 1) < 1e-6, \
                     f"Invalid rotation matrix for {projection_name}: {rot_mat}"
                 proj_info["target_info"][nid] = pos, rot_mat, ad
             else:

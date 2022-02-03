@@ -194,15 +194,12 @@ class TestProjectionDetection(unittest.TestCase):
             # ParameterID, sec_X etc are randomised in hyper voxel, so you need to use same
             # hypervoxel size for reproducability between serial and parallel execution
 
-            # We are missing synapses in parallel execution!!
-            import pdb
-            pdb.set_trace()
-
             # All synapses should be identical regardless of serial or parallel execution path
             self.assertTrue(serial_synapses.shape == parallel_synapses.shape)
             self.assertTrue((serial_synapses == parallel_synapses).all())
 
         os.system("ipcluster stop")
+
 
 if __name__ == '__main__':
     unittest.main()
