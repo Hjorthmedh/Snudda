@@ -103,16 +103,10 @@ class ProjectionDetection:
             self.hyper_voxel_projections = set()
 
             if self.d_view is not None:
-                self.write_log("!! scatter proj_list")
-
                 self.d_view.scatter("proj_list", proj_list, block=True)
-
-                self.write_log("!! calling find_hyper_voxel_helper_parallel")
 
                 cmd_str = "neuron_hv_list = spd.find_hyper_voxel_helper_parallel(proj_info=proj_list)"
                 self.d_view.execute(cmd_str, block=True)
-
-                self.write_log("!! gather results")
 
                 neuron_hv_list = self.d_view.gather("neuron_hv_list", block=True)  # List of list of tuples
 
@@ -140,11 +134,7 @@ class ProjectionDetection:
                         else:
                             self.hyper_voxel_projections[hid].add(neuron_id)
 
-            self.write_log("!! hv found done")
-
-
         except:
-
             # TODO: Remove this logging code
             import traceback
             t_str = traceback.format_exc()
