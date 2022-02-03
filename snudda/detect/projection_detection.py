@@ -111,17 +111,15 @@ class ProjectionDetection:
 
                 neuron_hv_list = self.d_view.gather("neuron_hv_list", block=True)  # List of list of tuples
 
-                for nl_worker in neuron_hv_list:
-                    for n_hv in nl_worker:
-                        neuron_id = n_hv[0]
-                        neuron_hv = n_hv[1]
+                for n_hv in neuron_hv_list:
+                    neuron_id = n_hv[0]
+                    neuron_hv = n_hv[1]
 
-                        for hid in neuron_hv:
-                            if hid not in self.hyper_voxel_projections:
-                                self.hyper_voxel_projections[hid] = set([neuron_id])
-                            else:
-                                self.hyper_voxel_projections[hid].update([neuron_id])
-
+                    for hid in neuron_hv:
+                        if hid not in self.hyper_voxel_projections:
+                            self.hyper_voxel_projections[hid] = set([neuron_id])
+                        else:
+                            self.hyper_voxel_projections[hid].update([neuron_id])
             else:
                 neuron_hv_list = self.find_hyper_voxel_helper_parallel(proj_list)
 
