@@ -52,61 +52,85 @@ class ProjectionDetection:
         with self.d_view.sync_imports():
             from snudda.detect.projection_detection import ProjectionDetection
 
-        self.d_view.push({"random_seed": self.random_seed}, block=True)
-
-        cmd_str = "spd = ProjectionDetection(snudda_detect=sd, role='worker', random_seed=random_seed)"
+        cmd_str = "spd = ProjectionDetection(snudda_detect=sd, role='worker')"
         self.d_view.execute(cmd_str, block=True)
+        cmd_str2 = "sd.projection_detection = spd"
+        self.d_view.execute(cmd_str2, block=True)
 
         self.write_log(f"Workers set up.")
 
     def sync_projection_info(self):
 
-        if self.role == "master" and self.dview is not None:
+        if self.role == "master" and self.d_view is not None:
             self.write_log("Synchronising projection info to workers.")
-            self.dview.push({"proj_info": self.projections}, block=True)
+            self.d_view.push({"proj_info": self.projections}, block=True)
             cmd_str = "spd.projections = proj_info"
-            self.dview.execute(cmd_str, block=True)
+            self.d_view.execute(cmd_str, block=True)
 
     def write_log(self, *args, **kvargs):
         # Reuse the log files for snudda_detect
         self.snudda_detect.write_log(*args, **kvargs)
 
-    def neurons_projections_in_hyper_voxels(self):
+    def find_neurons_projections_in_hyper_voxels(self):
+
+        """ For each hyper voxel, list which neurons project to that hypervoxel"""
 
         if self.role != "master":
             # Master node sets this up
             return
 
-        # In case the user has been naughty and added extra projections in the code.
-        self.sync_projection_info()
+        try:
+            # In case the user has been naughty and added extra projections in the code.
+            self.sync_projection_info()
 
-        """ For each hyper voxel, list which neurons project to that hypervoxel"""
+            ss = np.random.SeedSequence(self.snudda_detect.random_seed + 202222)
+            all_seeds = ss.generate_state(len(self.snudda_detect.neurons))
+            all_neuron_id = sorted([n["neuronID"] for n in self.snudda_detect.neurons])
 
-        ss = np.random.SeedSequence(self.snudda_detect.random_seed + 202222)
-        all_seeds = ss.generate_state(len(self.snudda_detect.neurons))
-        all_neuron_id = sorted([n["neuronID"] for n in self.snudda_detect.neurons])
+            seed_lookup = dict()
+            for s, n in zip(all_seeds, all_neuron_id):
+                seed_lookup[n] = s
 
-        seed_lookup = dict()
-        for s, n in zip(all_seeds, all_neuron_id):
-            seed_lookup[n] = s
+            proj_list = []
 
-        proj_list = []
+            self.write_log("!! about to loop projections")
 
-        for neuron_type in self.projections:
+            for neuron_type in self.projections:
 
-            neuron_id = self.get_neurons_of_type(neuron_type)
-            proj_list.append((neuron_id, neuron_type, seed_lookup[neuron_id]))
+                neuron_id = self.get_neurons_of_type(neuron_type)
+                proj_list.append((neuron_id, neuron_type, seed_lookup[neuron_id]))
 
-        self.hyper_voxel_projections = set()
+            self.hyper_voxel_projections = set()
 
-        if self.d_view is not None:
-            self.d_view.scatter("proj_list", proj_list, block=True)
-            self.d_view.execute("neuron_hv_list = self.find_hyper_voxel_helper_parallel(proj-info=proj_list",
-                                block=True)
-            neuron_hv_list = self.d_view.gather("neuron_hv_list", block=True)  # List of list of tuples
+            if self.d_view is not None:
+                self.write_log("!! scatter proj_list")
 
-            for nl_worker in neuron_hv_list:
-                for n_hv in nl_worker:
+                self.d_view.scatter("proj_list", proj_list, block=True)
+
+                self.write_log("!! calling find_hyper_voxel_helper_parallel")
+
+                cmd_str = "neuron_hv_list = spd.find_hyper_voxel_helper_parallel(proj_info=proj_list)"
+                self.d_view.execute(cmd_str, block=True)
+
+                self.write_log("!! gather results")
+
+                neuron_hv_list = self.d_view.gather("neuron_hv_list", block=True)  # List of list of tuples
+
+                for nl_worker in neuron_hv_list:
+                    for n_hv in nl_worker:
+                        neuron_id = n_hv[0]
+                        neuron_hv = n_hv[1]
+
+                        for hid in neuron_hv:
+                            if hid not in self.hyper_voxel_projections:
+                                self.hyper_voxel_projections = set(neuron_id)
+                            else:
+                                self.hyper_voxel_projections[hid].add(neuron_id)
+
+            else:
+                neuron_hv_list = map(self.find_hyper_voxel_helper_parallel, proj_info=proj_list)
+
+                for n_hv in neuron_hv_list:
                     neuron_id = n_hv[0]
                     neuron_hv = n_hv[1]
 
@@ -116,18 +140,18 @@ class ProjectionDetection:
                         else:
                             self.hyper_voxel_projections[hid].add(neuron_id)
 
-        else:
-            neuron_hv_list = map(self.find_hyper_voxel_helper_parallel, proj_list)
+            self.write_log("!! hv found done")
 
-            for n_hv in neuron_hv_list:
-                neuron_id = n_hv[0]
-                neuron_hv = n_hv[1]
 
-                for hid in neuron_hv:
-                    if hid not in self.hyper_voxel_projections:
-                        self.hyper_voxel_projections = set(neuron_id)
-                    else:
-                        self.hyper_voxel_projections[hid].add(neuron_id)
+        except:
+
+            # TODO: Remove this logging code
+            import traceback
+            t_str = traceback.format_exc()
+            self.write_log(t_str, is_error=True)
+            print(t_str)
+            import pdb
+            pdb.set_trace()
 
     def find_hyper_voxel_helper_parallel(self, proj_info):
         neuron_hv = []
@@ -142,32 +166,40 @@ class ProjectionDetection:
 
         """ Returns hyper voxels that neuron_id (of neuron_type) projects to. """
 
-        rng = np.random.default_rng(random_seed)
+        try:
+            rng = np.random.default_rng(random_seed)
 
-        hyper_voxels = set()
+            hyper_voxels = set()
 
-        for proj in self.projections[neuron_type]:
-            target_pos, target_rotation, axon_dist = proj["target_info"][neuron_id]
-            num_points = proj["num_points"]
-            if len(proj["radius"]) == 1:
-                rx = ry = rz = proj["radius"]
-            else:
-                rx, ry, rz = proj["radius"]
+            if neuron_type in self.projections:
 
-            if "rotation" in proj:
-                rotation = proj["rotation"]
-            else:
-                proj = None
+                for proj in self.projections[neuron_type]:
+                    target_pos, target_rotation, axon_dist = proj["target_info"][neuron_id]
+                    num_points = proj["num_points"]
+                    if len(proj["radius"]) == 1:
+                        rx = ry = rz = proj["radius"]
+                    else:
+                        rx, ry, rz = proj["radius"]
 
-            # Find better way to calculate intersection between ellipsoid and hyper voxel cubes?
-            pos = self.ellipsoid_coordinates(target_pos, rx, ry, rz, rotation, num_points, rng)
+                    if "rotation" in proj:
+                        rotation = proj["rotation"]
+                    else:
+                        proj = None
 
-            hv_idx = ((pos - self.snudda_detect.simulation_origo)
-                      / (self.snudda_detect.hyper_voxel_size * self.snudda_detect.voxel_size)).astype(int)
+                    # Find better way to calculate intersection between ellipsoid and hyper voxel cubes?
+                    pos = self.ellipsoid_coordinates(target_pos, rx, ry, rz, rotation, num_points, rng)
 
-            hv_id = map(self.snudda_detect.hyper_voxel_id_lookup, hv_idx[:, 0], hv_idx[:, 1], hv_idx[:, 2])
+                    hv_idx = ((pos - self.snudda_detect.simulation_origo)
+                              / (self.snudda_detect.hyper_voxel_size * self.snudda_detect.voxel_size)).astype(int)
 
-            hyper_voxels += set(hv_id)
+                    hv_id = map(self.snudda_detect.hyper_voxel_id_lookup, hv_idx[:, 0], hv_idx[:, 1], hv_idx[:, 2])
+
+                    hyper_voxels += set(hv_id)
+
+        except:
+            import traceback
+            t_str = traceback.format_exc()
+            self.write_log(t_str, is_error=True)
 
         return neuron_id, hyper_voxels
 
@@ -206,16 +238,18 @@ class ProjectionDetection:
 
         return pos
 
-    def voxelise_projections(self, rng):
+    def voxelise_projections(self):
 
         """ Add the projection of each neuron in pre_neuron_list to the axon space in currently active hyper voxel
          """
 
-        if self.hyper_voxel_id not in self.hyper_voxel_projections:
+        if self.snudda_detect.hyper_voxel_id not in self.hyper_voxel_projections:
             # No projections in this hyper voxel, skip it
             return
 
-        pre_neuron_list = self.hyper_voxel_projections[self.hyper_voxel_id]
+        rng = self.snudda_detect.hyper_voxel_rng
+
+        pre_neuron_list = self.hyper_voxel_projections[self.snudda_detect.hyper_voxel_id]
 
         for neuron_id in pre_neuron_list:
             neuron_type = self.snudda_detect.neurons[neuron_id]["type"]

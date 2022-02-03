@@ -28,6 +28,7 @@ import pickle
 
 from numba import jit
 
+from snudda.detect.projection_detection import ProjectionDetection
 from snudda.neurons.neuron_morphology import NeuronMorphology
 from snudda.neurons.neuron_prototype import NeuronPrototype
 
@@ -267,6 +268,8 @@ class SnuddaDetect(object):
         # Read positions
         self.read_neuron_positions(position_file)
 
+        self.projection_detection = None  # Helper class for handling projections between structures
+
     def detect(self, restart_detection_flag=True, rc=None):
 
         """
@@ -317,6 +320,10 @@ class SnuddaDetect(object):
             # For each neuron we need to find which hyper voxel it belongs to
             # (can be more than one)
             self.distribute_neurons_parallel(d_view=d_view)
+
+            # We also need to start the projection code
+            self.projection_detection = ProjectionDetection(snudda_detect=self, role=self.role, rc=self.rc)
+            self.projection_detection.find_neurons_projections_in_hyper_voxels()
 
             if d_view is not None:
                 self.parallel_process_hyper_voxels(rc=self.rc, d_view=d_view)
@@ -3256,6 +3263,18 @@ class SnuddaDetect(object):
 
             # This detects the synapses where we use a density distribution for axons
             # self.detectSynapsesNoAxonSLOW (hyperID) # --replaced by placeSynapseNoAxon
+
+            # Finally this adds axon voxels for projections comming from other structures using projection maps
+            try:
+                self.projection_detection.voxelise_projections()
+            except:
+                # !!! TODO remove this bit of logging code
+                import traceback
+                t_str = traceback.format_exc()
+                self.write_log(t_str, is_error=True)
+                print(t_str)
+                import pdb
+                pdb.set_trace()
 
             # The normal voxel synapse detection
             self.detect_synapses()
