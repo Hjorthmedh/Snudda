@@ -22,16 +22,18 @@ class ProjectionDetection:
         self.workers_initialised = False
 
         self.hyper_voxel_projections = dict()
-
-        if self.rc is not None:
-            self.d_view = self.rc.direct_view(targets='all')
+        self.projections = dict()
 
         if not role:
             self.role = "master"
         else:
             self.role = role
 
-        self.projections = dict()
+        self.parse_config()
+
+        if self.rc is not None:
+            self.d_view = self.rc.direct_view(targets='all')
+            self.setup_parallel()
 
     def setup_parallel(self):
 
@@ -75,6 +77,7 @@ class ProjectionDetection:
             # Master node sets this up
             return
 
+        # In case the user has been naughty and added extra projections in the code.
         self.sync_projection_info()
 
         """ For each hyper voxel, list which neurons project to that hypervoxel"""
@@ -126,8 +129,6 @@ class ProjectionDetection:
                     else:
                         self.hyper_voxel_projections[hid].add(neuron_id)
 
-        # Better way to calculate intersection between ellipsoid and hyper voxel cubes?
-
     def find_hyper_voxel_helper_parallel(self, proj_info):
         neuron_hv = []
 
@@ -158,6 +159,7 @@ class ProjectionDetection:
             else:
                 proj = None
 
+            # Find better way to calculate intersection between ellipsoid and hyper voxel cubes?
             pos = self.ellipsoid_coordinates(target_pos, rx, ry, rz, rotation, num_points, rng)
 
             hv_idx = ((pos - self.snudda_detect.simulation_origo)
@@ -204,10 +206,16 @@ class ProjectionDetection:
 
         return pos
 
-    def voxelise_projections(self, pre_neuron_list, rng):
+    def voxelise_projections(self, rng):
 
         """ Add the projection of each neuron in pre_neuron_list to the axon space in currently active hyper voxel
          """
+
+        if self.hyper_voxel_id not in self.hyper_voxel_projections:
+            # No projections in this hyper voxel, skip it
+            return
+
+        pre_neuron_list = self.hyper_voxel_projections[self.hyper_voxel_id]
 
         for neuron_id in pre_neuron_list:
             neuron_type = self.snudda_detect.neurons[neuron_id]["type"]
@@ -260,8 +268,15 @@ class ProjectionDetection:
 
         self.projections[pre_neuron_type] = new_projection_list
 
-    def add_projection(self, projection_name, pre_neuron_type, projection_file, projection_radius=30e-6,
-                       num_points=50):
+    def parse_config(self):
+
+        for con_name, con_config in self.snudda_detect.config["Connectivity"].items():
+            if "projectionFile" in con_config:
+                pre_neuron_type = con_name.split(",")[0]
+                self.add_projection(projection_name=con_name, pre_neuron_type=pre_neuron_type,
+                                    projection_file=con_config["projectionFile"])
+
+    def add_projection(self, projection_name, pre_neuron_type, projection_file):
 
         """
 
@@ -269,7 +284,6 @@ class ProjectionDetection:
                 projection_name (str) : Name of projection
                 pre_neuron_type (str) : Neuron type of presynaptic neuron
                 projection_file (str) : Path to projection file, used by griddata to find target region coordinates
-                num_points (int) : Number of axon voxels placed
 
             Projection mapping and rotations are specified in the projection_file.
 
@@ -314,8 +328,6 @@ class ProjectionDetection:
                 proj_info["target_info"][nid] = pos, rot.reshape((3, 3)), ad
             else:
                 proj_info["target_info"][nid] = pos, None, ad
-
-        proj_info["radius"] = projection_radius
 
         if pre_neuron_type not in self.projections:
             self.projections[pre_neuron_type] = [proj_info]
