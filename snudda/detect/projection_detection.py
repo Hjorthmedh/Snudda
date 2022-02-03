@@ -101,7 +101,7 @@ class ProjectionDetection:
                 for neuron_id in neuron_id_list:
                     proj_list.append((neuron_id, neuron_type, seed_lookup[neuron_id]))
 
-            self.hyper_voxel_projections = set()
+            self.hyper_voxel_projections = dict()
 
             if self.d_view is not None:
                 self.d_view.scatter("proj_list", proj_list, block=True)
@@ -118,9 +118,9 @@ class ProjectionDetection:
 
                         for hid in neuron_hv:
                             if hid not in self.hyper_voxel_projections:
-                                self.hyper_voxel_projections = set(neuron_id)
+                                self.hyper_voxel_projections[hid] = set([neuron_id])
                             else:
-                                self.hyper_voxel_projections[hid].add(neuron_id)
+                                self.hyper_voxel_projections[hid].update([neuron_id])
 
             else:
                 neuron_hv_list = self.find_hyper_voxel_helper_parallel(proj_list)
@@ -131,9 +131,9 @@ class ProjectionDetection:
 
                     for hid in neuron_hv:
                         if hid not in self.hyper_voxel_projections:
-                            self.hyper_voxel_projections = set(neuron_id)
+                            self.hyper_voxel_projections[hid] = set([neuron_id])
                         else:
-                            self.hyper_voxel_projections[hid].add(neuron_id)
+                            self.hyper_voxel_projections[hid].update([neuron_id])
 
         except:
             # TODO: Remove this logging code
@@ -248,22 +248,19 @@ class ProjectionDetection:
             for proj in self.projections[neuron_type]:
                 target_pos, target_rotation, axon_dist = proj["target_info"][neuron_id]
                 num_points = proj["num_points"]
-                if len(proj["radius"]) == 1:
-                    rx = ry = rz = proj["radius"]
-                else:
+                if isinstance(proj["radius"], (np.ndarray, list)):
                     rx, ry, rz = proj["radius"]
-
-                if "rotation" in proj:
-                    rotation = proj["rotation"]
                 else:
-                    proj = None
+                    rx = ry = rz = proj["radius"]
 
-                pos = self.ellipsoid_coordinates(target_pos, rx, ry, rz, rotation, num_points, rng)
+                pos = self.ellipsoid_coordinates(target_pos, rx, ry, rz, target_rotation, num_points, rng)
 
                 # Convert to coordinates in the hyper voxel
-                voxel_coords = np.round((pos - self.snudda_detect.hyper_voxel_origo) / self.snudda_detect.voxel_size)
+                voxel_coords = np.round((pos - self.snudda_detect.hyper_voxel_origo) / self.snudda_detect.voxel_size).astype(int)
 
-                inside_idx = np.where(np.sum(0 <= voxel_coords < self.snudda_detect.hyper_voxel_size, axis=1) == 3)[0]
+                inside_idx = np.where(np.sum(np.logical_and(0 <= voxel_coords,
+                                                            voxel_coords < self.snudda_detect.hyper_voxel_size),
+                                             axis=1) == 3)[0]
 
                 for x, y, z in voxel_coords[inside_idx, :]:
                     if self.snudda_detect.axon_voxel_ctr[x, y, z] < self.snudda_detect.max_axon:
