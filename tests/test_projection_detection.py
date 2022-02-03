@@ -102,6 +102,7 @@ class TestProjectionDetection(unittest.TestCase):
         sd = SnuddaDetect(network_path=self.network_path, hyper_voxel_size=100, verbose=True)
         sd.detect()
 
+        # Old version of projection
         from snudda.detect.project import SnuddaProject
         sp = SnuddaProject(network_path=self.network_path)
         sp.project()
@@ -133,6 +134,70 @@ class TestProjectionDetection(unittest.TestCase):
             # There should be projection synapses between dSPN and iSPN in this toy example
             self.assertTrue(tot_proj_ctr > 0)
 
+        tot_dd_syn_ctr = 0
+        for dspn_id in dspn_id_list:
+            for dspn_id2 in dspn_id_list:
+
+                synapses, synapse_coords = sl.find_synapses(pre_id=dspn_id, post_id=dspn_id2)
+                if synapses is not None:
+                    tot_dd_syn_ctr += synapses.shape[0]
+
+        tot_ii_syn_ctr = 0
+        for ispn_id in ispn_id_list:
+            for ispn_id2 in ispn_id_list:
+
+                synapses, synapse_coords = sl.find_synapses(pre_id=ispn_id, post_id=ispn_id2)
+                if synapses is not None:
+                    tot_ii_syn_ctr += synapses.shape[0]
+
+        with self.subTest(stage="normal_synapses_exist"):
+            # In this toy example neurons are quite sparsely placed, but we should have at least some
+            # synapses
+            self.assertTrue(tot_dd_syn_ctr > 0)
+            self.assertTrue(tot_ii_syn_ctr > 0)
+
+        # We need to run in parallel also to verify we get same result (same random seed)
+
+        serial_synapses = sl.data["synapses"].copy()
+        del sl  # Close old file so we can overwrite it
+
+        os.environ["IPYTHONDIR"] = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
+        os.environ["IPYTHON_PROFILE"] = "default"
+        os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
+        time.sleep(10)
+
+        # Run place, detect and prune in parallel by passing rc
+        from ipyparallel import Client
+        u_file = os.path.join(".ipython", "profile_default", "security", "ipcontroller-client.json")
+        rc = Client(url_file=u_file, timeout=120, debug=False)
+        d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
+
+        from snudda.detect.detect import SnuddaDetect
+        sd = SnuddaDetect(network_path=self.network_path, hyper_voxel_size=100, rc=rc, verbose=True)
+        sd.detect()
+
+        # Old version of project, the new version with touch detection is in detect.
+        from snudda.detect.project import SnuddaProject
+        # TODO: Currently SnuddaProject only runs in serial
+        sp = SnuddaProject(network_path=self.network_path)
+        sp.project()
+
+        from snudda.detect.prune import SnuddaPrune
+        # Prune has different methods for serial and parallel execution, important to test it!
+        sp = SnuddaPrune(network_path=self.network_path, rc=rc, verbose=True)
+        sp.prune()
+
+        with self.subTest(stage="check-parallel-identical"):
+            sl2 = SnuddaLoad(network_file)
+            parallel_synapses = sl2.data["synapses"].copy()
+
+            # ParameterID, sec_X etc are randomised in hyper voxel, so you need to use same
+            # hypervoxel size for reproducability between serial and parallel execution
+
+            # All synapses should be identical regardless of serial or parallel execution path
+            self.assertTrue((serial_synapses == parallel_synapses).all())
+
+        os.system("ipcluster stop")
 
 if __name__ == '__main__':
     unittest.main()
