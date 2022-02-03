@@ -351,7 +351,10 @@ class ProjectionDetection:
         proj_info["target_info"] = dict()
         for nid, pos, rot, ad in zip(neuron_id, target_centres, target_rotation, axon_dist):
             if rot is not None:
-                proj_info["target_info"][nid] = pos, rot.reshape((3, 3)), ad
+                rot_mat = rot.reshape((3, 3))
+                assert np.abs(np.linalg.norm(rot_mat) - 1) < 1e-6, \
+                    f"Invalid rotation matrix for {projection_name}: {rot_mat}"
+                proj_info["target_info"][nid] = pos, rot_mat, ad
             else:
                 proj_info["target_info"][nid] = pos, None, ad
 
