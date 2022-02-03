@@ -22,7 +22,7 @@ from collections import OrderedDict
 import numpy as np
 import json
 from snudda.simulate import SnuddaSimulate
-from snudda.utils.save_network_activity import SnuddaSaveNetworkActivity
+from snudda.utils.save_network_recording import SnuddaSaveNetworkRecordings
 
 import neuron
 neuron.h.load_file("stdrun.hoc")
@@ -124,7 +124,7 @@ class PairRecording(SnuddaSimulate):
                                         end_times=stim_end_time, amplitudes=stim_amplitude)
 
         # Add voltage recordings to neurons
-        self.add_recording()
+        self.add_volt_recording()
 
     @staticmethod
     def to_list(val, new_list_len=1):
@@ -279,14 +279,14 @@ class PairRecording(SnuddaSimulate):
 
         # Write results to disk
         try:
-            save = SnuddaSaveNetworkActivity(output_file=self.output_file_name)
+            save = SnuddaSaveNetworkRecordings(output_file=self.output_file_name)
             save.write(t_save=self.t_save, v_save=self.v_save, v_key=self.v_key,
                        t_spikes=self.t_spikes, id_spikes=self.id_spikes)
 
             pre_id = np.array([x[0] for x in self.synapse_currents])
             post_id = np.array([x[1] for x in self.synapse_currents])
             cur = [np.array(x[2]) for x in self.synapse_currents]
-            save.write_currents(t_save=self.t_save, i_save=cur, pre_id=pre_id, post_id=post_id)
+            save.write_currents_OLD(t_save=self.t_save, i_save=cur, pre_id=pre_id, post_id=post_id)
 
         except:
             import traceback

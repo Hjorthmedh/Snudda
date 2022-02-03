@@ -231,7 +231,11 @@ class SnuddaInit(object):
                           cluster_synapses=False,
                           mod_file=None,
                           parameter_file=None,
-                          channel_param_dictionary=None):
+                          channel_param_dictionary=None,
+                          projection_file=None):
+
+        # OBS, projection file is only needed if you want to create a projection between structures.
+        # For normal touch detection within a volume it is not needed.
 
         if conductance is None:
             conductance = [1.0e-9, 0]
@@ -311,6 +315,9 @@ class SnuddaInit(object):
 
             # Different pruning rules for within and between neuron units
             con_info["pruningOther"] = pruning_info_other
+
+        if projection_file:
+            con_info["projectionFile"] = projection_file
 
         # Json did not like tuples in keys, so we separate by comma
         nt_key = f"{neuron_name},{target_name}"

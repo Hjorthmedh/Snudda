@@ -19,6 +19,7 @@
 	    "synapseDensity" : "0.45*0.05/(1+exp(-(d-30e-6)/5e-6))",
 	    "nInputs": 20,
 	    "clusterSize" : 3,
+	    "clusterSpread" : 30e-6,
 	    "frequency" : [1, 2, 3],
 	    "populationUnitCorrelation" : 0.0,
 	    "jitter" : 0.002,

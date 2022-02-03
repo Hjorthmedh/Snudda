@@ -125,6 +125,7 @@ def snudda_cli():
     simulate_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     simulate_parser.add_argument("--verbose", action="store_true")
     simulate_parser.add_argument("--exportCoreNeuron", action="store_true")
+    simulate_parser.add_argument("--recordALL", dest="record_all", type=str, default=None)
 
     export_parser = sub_parsers.add_parser("export")
     export_parser.add_argument("path", help="Location of network")

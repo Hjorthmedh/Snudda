@@ -20,19 +20,20 @@ if os.environ.get('READTHEDOCS') == 'True':
 else:
     print(f"READTHEDOCS = {os.environ.get('READTHEDOCS')}") 
     install_requires = [
-        "bluepyopt>=1.9.126",
-        "h5py>=3.1.0",
+        "bluepyopt>=1.11.7",
+        "h5py>=3.2.1",
         "ipyparallel>=6.3.0",
         "matplotlib>=3.3.4",
         "mpi4py>=3.0.3",
-        "numpy>=1.20.1",
-        "scipy>=1.6.1",
+        "numpy>=1.20.2",
+        "scipy>=1.6.3",
         "sonata>=0.0.2",
         "pyzmq>=22.0.3",
         "setuptools",
         "psutil",
         "argparse",
-        "numexpr"
+        "numexpr>=2.7.3",
+        "numba>=0.53.1"
     ]
     
 setuptools.setup(

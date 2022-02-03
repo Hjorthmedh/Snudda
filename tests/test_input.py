@@ -94,6 +94,11 @@ class InputTestCase(unittest.TestCase):
                     print(f"Checking number of inputs is {config_data[neuron_type][input_type]['nInputs']} * {cluster_size}")
                     self.assertEqual(config_data[neuron_type][input_type]["nInputs"]*cluster_size, n_traces)
 
+                    if cluster_size > 1:
+                        # Verify that all the clusters have the right size
+                        for ctr in range(0, cluster_size-1):
+                            self.assertTrue(np.all(np.diff(input_info["sectionID"])[ctr::cluster_size] == 0))
+
                 max_len = 1
                 if type(start_time) is np.ndarray:
                     max_len = np.maximum(max_len, len(start_time))

@@ -305,7 +305,7 @@ class SnuddaModelCurrentInjections(object):
         # Also add voltage recording for debugging reasons
         save_voltage = True  # False #True
         if save_voltage:
-            self.snudda_sim.add_recording(cell_id=stim_id)
+            self.snudda_sim.add_volt_recording(cell_id=stim_id)
 
         self.set_gaba_rev(self.gaba_rev)
 

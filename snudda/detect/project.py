@@ -158,7 +158,7 @@ class SnuddaProject(object):
 
         for connection_type, con_info in connection_info.items():
 
-            if "projectionFile" not in con_info:
+            if "projectionFile" not in con_info or "projectionName" not in con_info:
                 # Not a projection, skipping
                 continue
 
