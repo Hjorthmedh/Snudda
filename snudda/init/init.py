@@ -317,7 +317,7 @@ class SnuddaInit(object):
             con_info["pruningOther"] = pruning_info_other
 
         if projection_file:
-            con_info["projectionFile"] = projection_file
+            con_info["projectionConfigFile"] = projection_file
 
         # Json did not like tuples in keys, so we separate by comma
         nt_key = f"{neuron_name},{target_name}"

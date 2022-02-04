@@ -298,10 +298,10 @@ class ProjectionDetection:
 
         for con_name, con_info in self.snudda_detect.config["Connectivity"].items():
             for con_type, con_config in con_info.items():
-                if "projectionFile" in con_config and "projectionName" not in con_config:
+                if "projectionConfigFile" in con_config:
                     pre_neuron_type = con_name.split(",")[0]
                     self.add_projection(projection_name=f"{con_name},{con_type}", pre_neuron_type=pre_neuron_type,
-                                        projection_file=con_config["projectionFile"])
+                                        projection_file=con_config["projectionConfigFile"])
 
     def add_projection(self, projection_name, pre_neuron_type, projection_file):
 
