@@ -300,7 +300,13 @@ class ProjectionDetection:
             for con_type, con_config in con_info.items():
                 if "projectionConfigFile" in con_config:
                     pre_neuron_type = con_name.split(",")[0]
-                    self.add_projection(projection_name=f"{con_name},{con_type}", pre_neuron_type=pre_neuron_type,
+
+                    if "projectionName" in con_config:
+                        projection_name = con_config["projectionName"]
+                    else:
+                        projection_name = f"{con_name},{con_type}"
+
+                    self.add_projection(projection_name=projection_name, pre_neuron_type=pre_neuron_type,
                                         projection_file=con_config["projectionConfigFile"])
 
     def add_projection(self, projection_name, pre_neuron_type, projection_file):

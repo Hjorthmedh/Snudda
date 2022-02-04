@@ -232,7 +232,8 @@ class SnuddaInit(object):
                           mod_file=None,
                           parameter_file=None,
                           channel_param_dictionary=None,
-                          projection_file=None):
+                          projection_file=None,
+                          projection_name=None):
 
         # OBS, projection file is only needed if you want to create a projection between structures.
         # For normal touch detection within a volume it is not needed.
@@ -319,7 +320,10 @@ class SnuddaInit(object):
         if projection_file:
             con_info["projectionConfigFile"] = projection_file
 
-        # Json did not like tuples in keys, so we separate by comma
+        if projection_name:
+            con_info["projectionName"] = projection_name
+
+        # JSON did not like tuples in keys, so we separate by comma
         nt_key = f"{neuron_name},{target_name}"
         if nt_key not in self.network_data["Connectivity"]:
             self.network_data["Connectivity"][nt_key] = dict([])
