@@ -85,47 +85,101 @@ class SnuddaLoadNetworkSimulation:
 
         if neuron_id is None:
             spike_data = dict()
-            for nid in self.network_simulation_file["spikeData"]:
-                spike_data[int(nid)] = self.network_simulation_file["spikeData"][nid][()]
+            for nid in self.network_simulation_file["neurons"]:
+                if "spikes" in self.network_simulation_file[f"neurons{nid}"]:
+                    spike_data[int(nid)] = self.network_simulation_file[f"neurons{nid}/spikes/data"][()].copy()
+
+            # If all neuronID not represented, add empty
+            for nid in self.network_simulation_file["metaData/ID"]:
+                if nid not in spike_data:
+                    spike_data[nid] = np.array([])
 
         elif np.issubdtype(neuron_id, np.integer):
-            if str(neuron_id) in self.network_simulation_file["spikeData"]:
-                spike_data = self.network_simulation_file["spikeData"][str(neuron_id)][()]
+            if str(neuron_id) in self.network_simulation_file["neurons"] \
+               and "spikes" in self.network_simulation_file[f"neurons/{neuron_id}"]:
+                spike_data = self.network_simulation_file[f"neurons{neuron_id}/spikes/data"][()].copy()
             else:
                 spike_data = np.array([])
+
         else:
             spike_data = dict()
             for nid in neuron_id:
-                if str(nid) in self.network_simulation_file["spikeData"]:
-                    spike_data[nid] = self.network_simulation_file["spikeData"][str(nid)][()].copy()
+                if str(nid) in self.network_simulation_file["neurons"] \
+                   and "spikes" in self.network_simulation_file[f"neurons/{nid}"]:
+                    spike_data[nid] = self.network_simulation_file[f"neurons{neuron_id}/spikes/data"][()].copy()
                 else:
                     spike_data[nid] = np.array([])
 
-        # If all neuronID not represented, add empty
-        for nid in self.network_simulation_file["metaData/ID"]:
-            if nid not in spike_data:
-                spike_data[nid] = np.array([])
-
         return spike_data
+
+    def get_data(self, data_type, neuron_id=None):
+
+        """ Returns data for neuron_id """
+
+        data = dict()
+        sec_id_x = dict()
+        syn_info = dict()
+
+        if neuron_id is None:
+            neuron_id = self.network_simulation_file["neurons"].keys()
+
+        for nid in neuron_id:
+            snid = str(nid)
+            inid = int(nid)
+            if data_type in self.network_simulation_file["neurons"][snid]:
+                data[inid] = self.network_simulation_file["neurons"][snid][data_type]["data"][()].copy()
+                sec_id = self.network_simulation_file["neurons"][snid][data_type]["sec_id"][()].copy()
+                sec_x = self.network_simulation_file["neurons"][snid][data_type]["sec_x"][()].copy()
+
+                sec_id_x[inid] = (sec_id, sec_x)
+
+                if "synapse_type" in self.network_simulation_file["neurons"][snid][data_type]:
+                    synapse_type = self.network_simulation_file["neurons"][snid][data_type]["synapse_type"][()].copy()
+                    presynaptic_id = self.network_simulation_file["neurons"][snid][data_type]["presynaptic_id"][()].copy()
+                    cond = self.network_simulation_file["neurons"][snid][data_type]["cond"][()].copy()
+                    syn_info[inid] = (synapse_type, presynaptic_id, cond)
+
+        return data, sec_id_x, syn_info
 
     def get_voltage(self, neuron_id=None):
         """ Return volt data for neuron_id. """
 
-        volt_data = dict()
+        orig_neuron_id = neuron_id
 
-        if neuron_id is None:
-            for nid in self.network_simulation_file["voltData"]:
-                if nid != "time":
-                    volt_data[int(nid)] = self.network_simulation_file["voltData"][nid][()].copy()
+        if np.issubdtype(neuron_id, np.integer):
+            neuron_id = [neuron_id]
+
+        voltage, sec_id_x = self.get_data("voltage", neuron_id=neuron_id)
+
+        if np.issubdtype(orig_neuron_id, np.integer):
+            return voltage[orig_neuron_id]
         else:
-            for nid in neuron_id:
-                volt_data[int(nid)] = self.network_simulation_file["voltData"][str(nid)][()].copy()
+            return voltage
 
-        time_data = self.network_simulation_file["voltData"]["time"][()].copy()
+    def get_synaptic_current(self, pre_id=None, post_id=None):
+        """ Return volt data for neuron_id. """
 
-        return volt_data, time_data
+        current, sec_id_x, syn_info = self.get_data("synaptic_current", neuron_id=post_id)
+
+        if pre_id is None:
+            return current, sec_id_x, syn_info
+
+        filtered_current = dict()
+        filtered_sec_id_x = dict()
+        filtered_syn_info = dict()
+
+        for neuron_id, info in syn_info.items():
+            idx = np.where(syn_info[1] == pre_id)[0]
+            if len(idx) > 0:
+                filtered_current[neuron_id] = current[neuron_id][:, idx]
+                filtered_sec_id_x[neuron_id] = (sec_id_x[neuron_id][0][idx], sec_id_x[neuron_id][1][idx])
+                filtered_syn_info[neuron_id] = (syn_info[neuron_id][0][idx], syn_info[neuron_id][1][idx], syn_info[neuron_id][2][idx])
+
+        return filtered_current, filtered_sec_id_x, filtered_syn_info
 
     def get_current(self, pre_id=None, post_id=None):
+
+        print("This reads old format, need to be updated.")
         assert "currentData" in self.network_simulation_file, "No synaptic current data in file"
 
         pre_id_all = self.network_simulation_file["currentData"]["preID"]
@@ -148,7 +202,6 @@ class SnuddaLoadNetworkSimulation:
         time = self.network_simulation_file["currentData"]["time"].copy()
 
         return cur, time
-
 
     def get_neuron_positions(self, neuron_id=None):
 
