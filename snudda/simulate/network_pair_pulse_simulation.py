@@ -85,7 +85,8 @@ class SnuddaNetworkPairPulseSimulation:
                  current_injection=10e-9,
                  hold_voltage=-80e-3,
                  max_dist=50e-6,
-                 log_file=None):
+                 log_file=None,
+                 random_seed=None):
 
         if os.path.isfile(network_path):
             self.network_file = network_path
@@ -134,6 +135,7 @@ class SnuddaNetworkPairPulseSimulation:
         self.possible_post_id = []
         self.inj_info = []
         self.exp_data = dict()
+        self.random_seed = random_seed
 
     ############################################################################
 
@@ -141,7 +143,8 @@ class SnuddaNetworkPairPulseSimulation:
               volume_type=None,
               neuron_density=80500,
               side_len=200e-6,
-              slice_depth=150e-6):
+              slice_depth=150e-6,
+              random_seed=None):
 
         """ Setup network for pair pulse simulation. If volume_type is 'slice', then side_len and slice_depth are used.
             If volume_type is 'cube' then side_len is used. If side_len is set to None then neuron_density is used.
@@ -150,11 +153,16 @@ class SnuddaNetworkPairPulseSimulation:
 
         from snudda.init.init import SnuddaInit
 
+        if random_seed:
+            self.random_seed = random_seed
+        else:
+            random_seed = self.random_seed
+
         if volume_type is None:
             volume_type = "slice"
 
         config_name = os.path.join(self.network_path, "network-config.json")
-        cnc = SnuddaInit(struct_def={}, config_file=config_name)
+        cnc = SnuddaInit(struct_def={}, config_file=config_name, random_seed=self.random_seed)
         cnc.define_striatum(num_dSPN=n_dSPN, num_iSPN=n_iSPN, num_FS=n_FS, num_LTS=n_LTS, num_ChIN=n_ChIN,
                             volume_type=volume_type, side_len=side_len, slice_depth=slice_depth,
                             neuron_density=neuron_density)
@@ -280,13 +288,13 @@ class SnuddaNetworkPairPulseSimulation:
         # record voltage from all neurons
 
         if self.post_type == "ALL":
-            self.snudda_sim.add_volt_recording()
+            self.snudda_sim.add_volt_recording_soma()
         else:
             # Record from all the potential post synaptic neurons
-            self.snudda_sim.add_recording_of_type(self.post_type)
+            self.snudda_sim.add_recording_of_soma(self.post_type)
 
             # Also save the presynaptic traces for debugging, to make sure they spike
-            self.snudda_sim.add_recording_of_type(self.pre_type)
+            self.snudda_sim.add_recording_of_soma(self.pre_type)
 
         # Run simulation
         self.snudda_sim.run(sim_end * 1e3, hold_v=self.hold_v)
@@ -311,7 +319,8 @@ class SnuddaNetworkPairPulseSimulation:
         self.data = self.snudda_load.data
 
         ssd = SnuddaLoadNetworkSimulation(network_path=self.network_path)
-        voltage, time = ssd.get_voltage()
+        voltage = ssd.get_voltage()
+        time = ssd.get_time()
 
         check_width = 0.05
 

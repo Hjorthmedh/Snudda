@@ -14,7 +14,7 @@ class SnuddaLoadNetworkSimulation:
         if network_simulation_output_file:
             self.network_simulation_output_file_name = network_simulation_output_file
         elif network_path:
-            self.network_simulation_output_file_name = os.path.join(network_path, "simulation", "network-output.hdf5")
+            self.network_simulation_output_file_name = os.path.join(network_path, "simulation", "output.hdf5")
         else:
             self.network_simulation_output_file_name = None
 
@@ -127,7 +127,7 @@ class SnuddaLoadNetworkSimulation:
             snid = str(nid)
             inid = int(nid)
             if data_type in self.network_simulation_file["neurons"][snid]:
-                data[inid] = self.network_simulation_file["neurons"][snid][data_type]["data"][()].copy()
+                data[inid] = self.network_simulation_file["neurons"][snid][data_type]["data"][()].T.copy()
                 sec_id = self.network_simulation_file["neurons"][snid][data_type]["sec_id"][()].copy()
                 sec_x = self.network_simulation_file["neurons"][snid][data_type]["sec_x"][()].copy()
 
@@ -155,6 +155,11 @@ class SnuddaLoadNetworkSimulation:
             return voltage[orig_neuron_id]
         else:
             return voltage
+
+    def get_time(self):
+
+        t = self.network_simulation_file["time"][()].copy()
+        return t
 
     def get_synaptic_current(self, pre_id=None, post_id=None):
         """ Return volt data for neuron_id. """
