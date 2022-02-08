@@ -228,10 +228,10 @@ class SnuddaSaveNetworkRecordings:
 
     def write_header(self):
 
+        self.pc.barrier()
+
         if self.header_exists:
             return
-
-        self.pc.barrier()
 
         if int(self.pc.id()) == 0:
 
@@ -258,6 +258,8 @@ class SnuddaSaveNetworkRecordings:
 
         self.header_exists = True
 
+        self.pc.barrier()
+
     def write(self):
 
         self.write_header()
@@ -270,29 +272,34 @@ class SnuddaSaveNetworkRecordings:
                 out_file.close()
 
         for i in range(int(self.pc.nhost())):
-            out_file = h5py.File(self.output_file, "a")
 
-            for na in self.neuron_activities.values():
-                neuron_id_str = str(na.neuron_id)
-                if neuron_id_str not in out_file["neurons"]:
-                    out_file["neurons"].create_group(neuron_id_str)
+            self.pc.barrier()
 
-                for m in na.data.values():
+            if int(self.pc.id()) == i:
 
-                    conversion_factor = self.get_conversion(m.data_type)
+                out_file = h5py.File(self.output_file, "a")
 
-                    out_file["neurons"][neuron_id_str].create_group(m.data_type)
-                    data_group = out_file["neurons"][neuron_id_str][m.data_type]
-                    data_group.create_dataset("data", data=m.to_numpy() * conversion_factor, compression="gzip")
-                    data_group.create_dataset("sec_id", data=np.array(m.sec_id), compression="gzip")
-                    data_group.create_dataset("sec_x", data=np.array(m.sec_x), compression="gzip")
+                for na in self.neuron_activities.values():
+                    neuron_id_str = str(na.neuron_id)
+                    if neuron_id_str not in out_file["neurons"]:
+                        out_file["neurons"].create_group(neuron_id_str)
 
-                    if isinstance(m, SynapseData):
-                        data_group.create_dataset("synapse_type", data=np.array(m.synapse_type), compression="gzip")
-                        data_group.create_dataset("presynaptic_id", data=np.array(m.presynaptic_id), compression="gzip")
-                        data_group.create_dataset("cond", data=np.array(m.cond), compression="gzip")
+                    for m in na.data.values():
 
-            out_file.close()
+                        conversion_factor = self.get_conversion(m.data_type)
+
+                        out_file["neurons"][neuron_id_str].create_group(m.data_type)
+                        data_group = out_file["neurons"][neuron_id_str][m.data_type]
+                        data_group.create_dataset("data", data=m.to_numpy() * conversion_factor, compression="gzip")
+                        data_group.create_dataset("sec_id", data=np.array(m.sec_id), compression="gzip")
+                        data_group.create_dataset("sec_x", data=np.array(m.sec_x), compression="gzip")
+
+                        if isinstance(m, SynapseData):
+                            data_group.create_dataset("synapse_type", data=np.array(m.synapse_type), compression="gzip")
+                            data_group.create_dataset("presynaptic_id", data=np.array(m.presynaptic_id), compression="gzip")
+                            data_group.create_dataset("cond", data=np.array(m.cond), compression="gzip")
+
+                out_file.close()
 
         self.pc.barrier()
 

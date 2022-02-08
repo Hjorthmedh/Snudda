@@ -1274,7 +1274,9 @@ class SnuddaSimulate(object):
         if isinstance(cell_id, (int, np.integer)):
             cell_id = [cell_id]
 
-        for cid in cell_id:
+        local_cell_id = np.intersect1d(cell_id, list(self.neurons.keys()))
+
+        for cid in local_cell_id:
             sec_id = [0]
             sec_x = [0.5]
 
@@ -1291,9 +1293,11 @@ class SnuddaSimulate(object):
             cell_id = self.neuron_id
 
         for cid in cell_id:
-            self.add_volt_recording(cid, [0], [0.5])
 
-    def add_volt_recording(self, cell_id : int, sec_id, sec_x):
+            if cid in self.neurons.keys():
+                self.add_volt_recording(cid, [0], [0.5])
+
+    def add_volt_recording(self, cell_id: int, sec_id, sec_x):
 
         # cell_id cant be a list, but sec_id and sec_x must be iterable
 
@@ -1883,6 +1887,7 @@ if __name__ == "__main__":
     parser.add_argument("inputFile", help="Network input (HDF5)")
     parser.add_argument("--noVolt", "--novolt", action="store_false", dest="record_volt",
                         help="Exclude voltage when saving results, saves time and space.")
+    parser.add_argument("--recordALL", dest="record_all", type=str, default=None)
     parser.add_argument("--disableGJ", action="store_true",
                         help="Disable gap junctions")
     parser.add_argument("--time", type=float, default=1.5,
@@ -1927,8 +1932,14 @@ if __name__ == "__main__":
 
     pc = h.ParallelContext()
 
+    if args.output_file:
+        output_file = args.output_file
+    else:
+        output_file = None
+
     sim = SnuddaSimulate(network_file=network_data_file,
                          input_file=input_file,
+                         output_file=output_file,
                          disable_gap_junctions=disableGJ,
                          log_file=log_file,
                          verbose=args.verbose)
@@ -1937,13 +1948,12 @@ if __name__ == "__main__":
     sim.check_memory_status()
 
     if args.record_volt:
-        sim.add_volt_recording(side_len=None)  # Side len let you record from a subset
-        # sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
-        # sim.addRecordingOfType("dSPN",2)
-        # sim.addRecordingOfType("iSPN",2)
-        # sim.addRecordingOfType("FS",2)
-        # sim.addRecordingOfType("LTS",2)
-        # sim.addRecordingOfType("ChIN",2)
+        sim.add_volt_recording_soma()
+
+    if args.record_all:
+        record_cell_id = np.array([int(x) for x in args.record_all.split(",")])
+        sim.add_volt_recording_all(cell_id=record_cell_id)
+        sim.add_synapse_current_recording_all(record_cell_id)
 
     tSim = args.time * 1000  # Convert from s to ms for Neuron simulator
 
@@ -1951,13 +1961,10 @@ if __name__ == "__main__":
     print(f"Running simulation for {tSim} ms.")
     sim.run(tSim)  # In milliseconds
     
-    if args.output_file:
-        output_file = args.output_file
-    else:
-        output_file = None
+
     
     print("Simulation done, saving output")
-    sim.write_output(output_file)
+    sim.write_output()
 
     stop = timeit.default_timer()
     if sim.pc.id() == 0:
