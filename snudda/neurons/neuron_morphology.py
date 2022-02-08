@@ -11,8 +11,10 @@ import numpy as np
 import numexpr
 from snudda.utils.snudda_path import snudda_parse_path
 
+# Use np.random.choice for selecting
 
-class NeuronMorphology(object):
+
+class NeuronMorphology:
 
     """ Neuron morphology object. Also see NeuronPrototype class which handles multiple morphology variations. """
     # axonStumpIDFlag should be True if running Network_simulate.py
@@ -44,12 +46,12 @@ class NeuronMorphology(object):
                  virtual_neuron=False,
                  axon_stump_id_flag=False):
 
-        self.cache_version = 0.9
+        self.cache_version = 0.99
 
-        self.position = np.copy(np.array(position))
+        self.position = np.array(position)
 
         if rotation is not None:
-            self.rotation = np.copy(np.array(rotation))
+            self.rotation = np.array(rotation)
         else:
             self.rotation = None
 
@@ -91,7 +93,7 @@ class NeuronMorphology(object):
         self.verbose = verbose
         self.use_cache = use_cache
         self.pickle_version = pickle_version
-        self.logFile = logfile
+        self.log_file = logfile
         self.virtual_neuron = virtual_neuron
 
         self.rotated_flag = False
@@ -118,6 +120,13 @@ class NeuronMorphology(object):
 
         self.dend_sec_id = np.array((1,))
         self.dend_sec_x = np.array((2, 0))
+
+        # Lookup for section length for each section, based on sec_id
+        self.sec_id_to_len = None
+
+        # Lookup for index into self.dend_links based on sec_id
+        self.sec_id_links = dict()
+        self.sec_id_links_x = dict()
 
         if colour is None:
             self.colour = np.random.random((3,))
@@ -247,6 +256,9 @@ class NeuronMorphology(object):
             new_neuron.dend_links = self.dend_links
             new_neuron.dend_sec_x = self.dend_sec_x
             new_neuron.dend_sec_id = self.dend_sec_id
+            new_neuron.sec_id_links = self.sec_id_links
+            new_neuron.sec_id_links_x = self.sec_id_links_x
+            new_neuron.sec_id_to_len = self.sec_id_to_len
 
             new_neuron.axon_stump_id_flag = self.axon_stump_id_flag
 
@@ -274,8 +286,8 @@ class NeuronMorphology(object):
     def write_log(self, text, is_error=False):
 
         """ Write text to log file. Prints on screen if self.verbose or is_error """
-        if self.logFile is not None:
-            self.logFile.write(f"{text}\n")
+        if self.log_file is not None:
+            self.log_file.write(f"{text}\n")
 
         if self.verbose or is_error:
             print(text)
@@ -421,6 +433,11 @@ class NeuronMorphology(object):
         morph["maxDendRadius"] = self.max_dend_radius
         morph["dendDensity"] = self.dend_density
         morph["axonDensity"] = self.axon_density
+
+        morph["secIdToSecLen"] = self.sec_id_to_len
+        morph["secIdLinks"] = self.sec_id_links
+        morph["secIdLinksX"] = self.sec_id_links_x
+
         morph["version"] = self.cache_version
 
         assert (cache_file != self.swc_filename)
@@ -511,6 +528,11 @@ class NeuronMorphology(object):
         else:
             self.axon_density = None
 
+        self.sec_id_to_len = morph["secIdToSecLen"]
+
+        self.sec_id_links = morph["secIdLinks"]
+        self.sec_id_links_x = morph["secIdLinksX"]
+
         # Place neuron -- Do not place neuron, loadNeuronMorphology does that
         # self.place()
 
@@ -586,7 +608,7 @@ class NeuronMorphology(object):
                 continue
 
             links[link_idx, 0:2] = [id0, id1]
-            links[link_idx, 5] = points[idx, 5]     # !!! TODO: Should take from points[idx, 6]
+            links[link_idx, 5] = points[idx, 6]
 
             link_idx += 1
 
@@ -607,7 +629,7 @@ class NeuronMorphology(object):
                 import pdb
                 pdb.set_trace()
 
-        # Make sure soma has a child count > 1 --- no we dont want some as node
+        # Make sure soma has a child count > 1 --- no we dont want soma as node
         # if(points[0,9] == 0):
         #   points[0,9] = 100
 
@@ -786,6 +808,27 @@ class NeuronMorphology(object):
             self.dend_links = np.zeros((0, 2))
             self.dend_sec_id = np.zeros((0,))
             self.dend_sec_x = np.zeros((0, 2))
+
+        # Lookup for section length based on section id
+        self.sec_id_to_len = np.ones((int(1+np.max(points[:, 10])),))
+        for sec_id, sec_len in zip(points[:, 10].astype(int), points[:, 11]):
+            if sec_id >= 0:
+                self.sec_id_to_len[sec_id] = sec_len
+
+        # Lookup table to find self.dend_links with a given section id
+        tmp_id_lookup = dict()
+        tmp_x_lookup = dict()
+        for idx, (sec_id, sec_x) in enumerate(zip(self.dend_sec_id, self.dend_sec_x)):
+            if sec_id not in tmp_id_lookup:
+                tmp_id_lookup[sec_id] = [idx]
+                tmp_x_lookup[sec_id] = [sec_x[1]]
+            else:
+                tmp_id_lookup[sec_id].append(idx)
+                tmp_x_lookup[sec_id].append(sec_x[1])
+
+        for k in tmp_id_lookup.keys():
+            self.sec_id_links[k] = np.array(tmp_id_lookup[k])
+            self.sec_id_links_x[k] = np.array(tmp_x_lookup[k])
 
         # self.dendriteDensity() # -- depricated
         self.find_radius()
@@ -1048,7 +1091,7 @@ class NeuronMorphology(object):
     # TODO: Update the code so that it gives exactly num_locations positions (currently it varies)
 
     def dendrite_input_locations(self, synapse_density, rng, num_locations=None,
-                                 cluster_size=None):
+                                 cluster_size=None, cluster_spread=20e-6):
 
         """
         Randomises input locations on dendrites.
@@ -1065,7 +1108,8 @@ class NeuronMorphology(object):
             return self.dendrite_input_locations_helper(synapse_density=synapse_density,
                                                         rng=rng,
                                                         num_locations=num_locations,
-                                                        cluster_size=cluster_size)
+                                                        cluster_size=cluster_size,
+                                                        cluster_spread=cluster_spread)
 
         expected_synapses = self.get_expected_synapses_per_compartment(synapse_density=synapse_density)
 
@@ -1155,11 +1199,60 @@ class NeuronMorphology(object):
 
     ############################################################################
 
+    def cluster_synapses(self, sec_id, sec_x, count, distance, rng):
+
+        """
+            Randomize sec_x for cluster of 'count' synapses with centre placed at 'sec_id', 'sec_x'
+            spread over 'distance' (but constrained to current section extent).
+
+            Args:
+                sec_id : Section id of cluster centre
+                sec_x : Section x of cluster centre
+                count : Number of synapses in cluster
+                distance : Maximal spread of cluster along dendrite
+                rng : Numpy random stream
+
+            Returns:
+                cluster_sec_x : Section x for cluster synapse
+                coords : Coordinates for synapse (in meters)
+                soma_dist : Distance to soma (in meters)
+        """
+
+        sec_len = self.sec_id_to_len[sec_id]
+        min_sec_x = np.maximum(1e-3, sec_x - 0.5 * distance / sec_len)
+        max_sec_x = np.minimum(1 - 1e-3, sec_x + 0.5 * distance / sec_len)
+
+        cluster_sec_x = rng.uniform(low=min_sec_x, high=max_sec_x, size=count)
+
+        syn_coords = np.zeros((count, 3))
+        soma_dist = np.zeros((count,))
+
+        for i, sx in enumerate(cluster_sec_x):
+            # We also need to calculate the x,y,z coordinates and distance to soma
+            idx = len(self.sec_id_links_x[sec_id]) - np.sum(sx < self.sec_id_links_x[sec_id])
+            link_idx = self.sec_id_links[sec_id][idx]
+            assert self.dend_sec_id[link_idx] == sec_id
+
+            x_start, x_end = self.dend_sec_x[link_idx]
+            comp_x = (x_start - sx) / (x_start - x_end)
+            start_info = self.dend[self.dend_links[link_idx, 0], :]  # x,y,z,radie,soma dist
+            end_info = self.dend[self.dend_links[link_idx, 1], :]
+            syn_info = start_info * (1 - comp_x) + end_info * comp_x
+
+            syn_coords[i, :] = syn_info[:3]
+            soma_dist[i] = syn_info[4]
+
+        # OBS, syn_coords in meters, and soma dist in meters also
+        return cluster_sec_x, syn_coords, soma_dist
+
+    ############################################################################
+
     def dendrite_input_locations_helper(self,
                                         synapse_density,
                                         rng,
                                         num_locations,
-                                        cluster_size=1):
+                                        cluster_size=1,
+                                        cluster_spread=20e-6):
 
         """
         Helper function. Places num_location clusters, each containing cluster_size synapses. Density is relative, scaled.
@@ -1180,21 +1273,28 @@ class NeuronMorphology(object):
             cluster_size = 1
 
         num_synapses = num_locations*cluster_size
-        input_loc = np.zeros((num_synapses, 5))
-        dist_syn_soma = np.zeros((num_synapses,))
+        input_loc = np.zeros((num_synapses, 6))
 
         d = self.dend[:, 4]
         syn_ctr = 0
 
-        for r in rand_vals:
-            comp_idx = len(p_cum) - np.sum(r < p_cum)
+        assert np.all(expected_synapses >= 0), f"Check your synapse density {synapse_density}, found negative values."
+        exp_sum = np.sum(expected_synapses)
+        assert exp_sum > 0, f"Check your synapse density {synapse_density}, all elements zero."
 
-            for j in range(cluster_size):
+        syn_idx = rng.choice(len(expected_synapses), size=num_locations, replace=True,
+                             p=expected_synapses/exp_sum)
+
+        for comp_idx in syn_idx:
+
+            # Cluster centre sec_id:
+            sec_id = self.dend_sec_id[comp_idx]
+            # We place cluster centre in the middle of the 5 micrometer morphology piece
+            sec_x = (self.dend_sec_x[comp_idx, 0] + self.dend_sec_x[comp_idx, 1]) / 2
+
+            if cluster_size is None or cluster_size == 1:
 
                 comp_x = rng.random()
-
-                dist_syn_soma[syn_ctr] = (d[self.dend_links[comp_idx, 0]] * (1 - comp_x)
-                                          + d[self.dend_links[comp_idx, 1]] * comp_x)
 
                 coords = (self.dend[self.dend_links[comp_idx, 0], :3] * (1 - comp_x)
                           + self.dend[self.dend_links[comp_idx, 1], :3] * comp_x)
@@ -1203,13 +1303,36 @@ class NeuronMorphology(object):
                 input_loc[syn_ctr, 3] = self.dend_sec_id[comp_idx]
                 input_loc[syn_ctr, 4] = (self.dend_sec_x[comp_idx, 0] * (1 - comp_x)
                                          + comp_x * self.dend_sec_x[comp_idx, 1])
+                input_loc[syn_ctr, 5] = (d[self.dend_links[comp_idx, 0]] * (1 - comp_x)
+                                         + d[self.dend_links[comp_idx, 1]] * comp_x)
 
                 syn_ctr += 1
+
+            else:
+                syn_info = self.cluster_synapses(sec_id=sec_id, sec_x=sec_x, count=cluster_size,
+                                                 distance=cluster_spread, rng=rng)
+                input_loc[syn_ctr:syn_ctr+cluster_size, :3] = syn_info[1]  # Synapse x,y,z -- in global coordinate system(!)
+                input_loc[syn_ctr:syn_ctr + cluster_size, 3] = sec_id      # Sec id
+                input_loc[syn_ctr:syn_ctr + cluster_size, 4] = syn_info[0] # Sec x
+                input_loc[syn_ctr:syn_ctr + cluster_size, 5] = syn_info[2] # Soma distance
+
+                syn_ctr += cluster_size
 
         assert syn_ctr == input_loc.shape[0], f"Not all input_loc was set. Rows {input_loc.shape[0]}, syn_ctr={syn_ctr}"
 
         # Return xyz,secID,secX, dist_to_soma (update: now also added distance synapse to soma)
-        return input_loc[:, :3], input_loc[:, 3], input_loc[:, 4], dist_syn_soma
+        return input_loc[:, :3], input_loc[:, 3], input_loc[:, 4], input_loc[:, 5]
+
+    ############################################################################
+
+    def place_cluster_helper(self, cluster_xyz, cluster_radius, cluster_size):
+
+        raise NotImplementedError("This is not yet implemented")
+
+        # 1. Identify points on neuron within the cluster radius (length)
+        # 2. Pick n synapses from the positions available, restrict choice to segment id of
+        #    parent/child/grandparent/grandchild segments
+        # help: lookup matrix --> 1 x 5
 
     ############################################################################
 

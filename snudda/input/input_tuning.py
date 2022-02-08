@@ -905,7 +905,7 @@ class InputTuning(object):
         sim.add_external_input()
         sim.check_memory_status()
 
-        sim.add_recording()
+        sim.add_volt_recording()
 
         t_sim = self.max_time * 1000  # Convert from s to ms for Neuron simulator
 

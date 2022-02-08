@@ -1,6 +1,7 @@
 import os
 import unittest
 import numpy as np
+import scipy
 
 from snudda.neurons.neuron_morphology import NeuronMorphology
 
@@ -13,7 +14,7 @@ class NeuronMorphologyTestCase(unittest.TestCase):
 
         swc_file = os.path.join(os.path.dirname(__file__), "validation", "striatum", "fs",
                                 "str-fs-e161205_FS1-mMTC180800A-IDB-v20190312", "MTC180800A-IDB-cor-rep.swc")
-        self.nm = NeuronMorphology(swc_filename=swc_file, load_morphology=True)
+        self.nm = NeuronMorphology(swc_filename=swc_file, load_morphology=True, use_cache=False)
 
     def test_input_location(self, stage="dist_to_soma"):
 
@@ -71,7 +72,41 @@ class NeuronMorphologyTestCase(unittest.TestCase):
         self.assertTrue((np.abs(self.nm.axon[:, 2] + new_nm.axon[:, 2]) < 1e-6).all())
 
         new_nm.place(position=np.array([1, 2, 3]))
-        self.assertTrue((np.abs(new_nm.soma[0,:3] - np.array([1, 2, 3])) < 1e-6).all())
+        self.assertTrue((np.abs(new_nm.soma[0, :3] - np.array([1, 2, 3])) < 1e-6).all())
+
+    def test_cluster_synapses(self, stage="cluster_synapses"):
+
+        cluster_spread = 30e-6
+        n_synapses = 10
+
+        cluster_sec_x, syn_coords, soma_dist = self.nm.cluster_synapses(sec_id=30, sec_x=0.5,
+                                                                        count=n_synapses, distance=cluster_spread,
+                                                                        rng=np.random.default_rng(20220125))
+
+        self.assertEqual(len(cluster_sec_x), n_synapses)
+        self.assertTrue(np.max(soma_dist) - np.min(soma_dist) <= cluster_spread)
+
+        d = scipy.spatial.distance.pdist(syn_coords)
+        self.assertTrue(np.all(d <= cluster_spread))
+        self.assertTrue(np.any(d >= 10e-6))
+
+        # TODO: Verify self.nm.sec_id_to_len[0] value ... ie segment length of soma?
+        # xx = self.nm.compartment_length()
+        # np.sum(self.nm.sec_id_to_len[1:])
+        # ska vara samma som np.sum(xx)
+        # och self.nm.sec_id_to_len[0] deals with the soma.
+
+        if False:
+            import matplotlib.pyplot as plt
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            ax = self.nm.plot_neuron(plot_axon=False, plot_dendrite=True, axis=ax)
+            ax.scatter(syn_coords[:, 0], syn_coords[:, 1], syn_coords[:, 2], s=5, c="red")
+            fig.show()
+            plt.pause(3)
+
+            import pdb
+            pdb.set_trace()
 
 
 if __name__ == '__main__':
