@@ -1201,7 +1201,7 @@ class SnuddaSimulate(object):
         cell_id = self.snudda_loader.get_neuron_id_of_type(neuron_type=neuron_type,
                                                            num_neurons=num_neurons)
 
-        self.add_volt_recording(cell_id)
+        self.add_volt_recording_all(cell_id)
 
     ############################################################################
 
