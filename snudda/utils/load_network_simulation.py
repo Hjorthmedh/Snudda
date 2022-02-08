@@ -94,7 +94,7 @@ class SnuddaLoadNetworkSimulation:
                 if nid not in spike_data:
                     spike_data[nid] = np.array([])
 
-        elif np.issubdtype(neuron_id, np.integer):
+        elif np.issubdtype(type(neuron_id), np.integer):
             if str(neuron_id) in self.network_simulation_file["neurons"] \
                and "spikes" in self.network_simulation_file[f"neurons/{neuron_id}"]:
                 spike_data = self.network_simulation_file[f"neurons{neuron_id}/spikes/data"][()].copy()
@@ -146,12 +146,12 @@ class SnuddaLoadNetworkSimulation:
 
         orig_neuron_id = neuron_id
 
-        if np.issubdtype(neuron_id, np.integer):
+        if np.issubdtype(type(neuron_id), np.integer):
             neuron_id = [neuron_id]
 
         voltage, sec_id_x = self.get_data("voltage", neuron_id=neuron_id)
 
-        if np.issubdtype(orig_neuron_id, np.integer):
+        if np.issubdtype(type(orig_neuron_id), np.integer):
             return voltage[orig_neuron_id]
         else:
             return voltage
