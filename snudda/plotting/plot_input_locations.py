@@ -11,11 +11,16 @@ from mpl_toolkits.mplot3d import Axes3D
 
 class SnuddaPlotInputLocations:
 
-    def __init__(self, network_path):
+    def __init__(self, network_path, input_file=None):
 
         self.network_path = network_path
         self.network_file = os.path.join(network_path, "network-synapses.hdf5")
-        self.input_file = os.path.join(network_path, "input-spikes.hdf5")
+
+        if input_file is None:
+            self.input_file = os.path.join(network_path, "input-spikes.hdf5")
+        else:
+            self.input_file = os.path.join(network_path, input_file)
+            
         self.neuron_cache = dict()
 
         self.snudda_load = SnuddaLoad(self.network_file)
