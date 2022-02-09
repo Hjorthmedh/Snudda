@@ -878,7 +878,7 @@ class SnuddaInput(object):
 
         """
 
-        assert (0 <= p_keep <= 1)
+        assert (0 <= p_keep <= 1), f"p_keep = {p_keep} should be between 0 and 1"
 
         if population_unit_spikes is None:
             population_unit_spikes = self.generate_spikes(freq, time_range, rng=rng)
@@ -1485,7 +1485,10 @@ class SnuddaInput(object):
             num_inputs = input_loc[0].shape[0]
             self.write_log(f"Generating {num_inputs} inputs for {self.neuron_name[neuron_id]}")
 
-            p_keep = 1 / (num_inputs - np.sqrt(correlation) * (num_inputs - 1))
+            if num_inputs > 0:
+                p_keep = 1 / (num_inputs - np.sqrt(correlation) * (num_inputs - 1))
+            else:
+                p_keep = 0
 
             # OBS, nInputs might differ slightly from nSpikeTrains if that is given
             spikes = self.make_correlated_spikes(freq=freq,
