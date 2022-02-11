@@ -138,7 +138,7 @@ class InputTestCase(unittest.TestCase):
                     p_keep = 1 / (n_traces - np.sqrt(correlation) * (n_traces - 1))
 
                     # Is correlation what we expect?
-                    bin_size = jitter + 1e-3
+                    bin_size = 2*jitter + 1e-3
                     n_bins = int(np.ceil(input_time / bin_size)) + 1
                     binned_data = np.zeros((n_bins,))
 
@@ -173,8 +173,27 @@ class InputTestCase(unittest.TestCase):
                     # With P=(1-p_keep) it is just a normal spike, and then there should be 1 + f*dt*(N-1) spikes
                     # in the bin
 
-                    expected_mean = (p_keep * ((n_traces - 1) * p_keep + 1)
-                                     + (1 - p_keep) * (1 + mean_freq * bin_size * (n_traces - 1)))
+                    if len(freq) == 1:
+                        expected_mean = (p_keep * ((n_traces - 1) * p_keep + 1)
+                                         + (1 - p_keep) * (1 + freq[0] * bin_size * (n_traces - 1)))
+
+                    else:
+                        # When calculating expected mean number of simultaneous spikes for a bin with a spike
+                        # we need to take into account that high freq periods are more likely, and they also have
+                        # higher freq during that period
+                        picked_ctr = 0
+                        spike_cnt = 0
+                        for st, et, f in zip(start_time, end_time, freq):
+                            picked_ctr += f*(et-st)  # Number of readouts in this time interval
+                            spike_cnt += f*(et-st) * (p_keep * ((n_traces - 1) * p_keep + 1)
+                                                      + (1 - p_keep) * (1 + f * bin_size * (n_traces - 1)))
+
+                        expected_mean = spike_cnt / picked_ctr
+
+#                        expected_mean = (np.sum(np.multiply((p_keep * ((n_traces - 1) * p_keep + 1)
+#                                                            + (1 - p_keep) * (1 + freq * bin_size * (n_traces - 1))),
+#                                                            np.multiply(end_time - start_time, freq)))
+#                                         / (np.sum(np.multiply(end_time - start_time, freq))))
 
                     print(f"Simultaneous spikes: {np.mean(readout):.2f} (expected {expected_mean:.2f}) "
                           f"- correlation {correlation}")
