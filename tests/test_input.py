@@ -119,13 +119,73 @@ class InputTestCase(unittest.TestCase):
                     freq = np.array([freq]*max_len)
 
                 for st, et, f in zip(start_time, end_time, freq):
-                    idx_x, idx_y = np.where(np.logical_and(st <= spikes, spikes <= et))
+                    t_idx = np.where(np.logical_and(st <= spikes, spikes <= et))[0]
 
-                    f_gen = len(idx_x)/(n_traces * (et-st))
+                    f_gen = len(t_idx) / (n_traces * (et - st))
                     print(f"ID {neuron_id_str} {neuron_name} {input_type} f={f}, f_gen={f_gen}")
 
                     self.assertTrue(f_gen > f - 4*np.sqrt(f)/np.sqrt(n_traces))
                     self.assertTrue(f_gen < f + 4*np.sqrt(f)/np.sqrt(n_traces))
+
+                if "populationUnitCorrelation" in config_data[neuron_type][input_type]:
+                    correlation = config_data[neuron_type][input_type]["populationUnitCorrelation"]
+
+                    if "jitter" in config_data[neuron_type][input_type]:
+                        jitter = config_data[neuron_type][input_type]["jitter"]
+                    else:
+                        jitter = 0
+
+                    p_keep = 1 / (n_traces - np.sqrt(correlation) * (n_traces - 1))
+
+                    # Is correlation what we expect?
+                    bin_size = jitter + 1e-3
+                    n_bins = int(np.ceil(input_time / bin_size)) + 1
+                    binned_data = np.zeros((n_bins,))
+
+                    for t_idx in (spikes.flatten() / bin_size).astype(int):
+                        if t_idx >= 0:
+                            binned_data[t_idx] += 1
+
+                    readout = np.zeros((spikes.size, ))
+                    ctr = 0
+                    for t_idx in (spikes.flatten() / bin_size).astype(int):
+                        try:
+                            if t_idx > 0:
+                                readout[ctr] = binned_data[t_idx]
+                                ctr += 1
+                        except:
+                            import traceback
+                            t_str = traceback.format_exc()
+                            print(t_str)
+                            import pdb
+                            pdb.set_trace()
+
+                    readout = readout[:ctr]
+
+                    if len(freq) == 1:
+                        mean_freq = freq[0]
+                    else:
+                        # Note this is the mean freq during period of spiking (since we dont sample silent periods)
+                        mean_freq = np.sum(np.multiply(end_time - start_time, freq)) / np.sum(end_time - start_time)
+
+                    # If we look at a spike in a spike train, then with P=p_keep it is a mother spike,
+                    # and then there should be (N-1) * p_keep + 1 spikes in that bin.
+                    # With P=(1-p_keep) it is just a normal spike, and then there should be 1 + f*dt*(N-1) spikes
+                    # in the bin
+
+                    expected_mean = (p_keep * ((n_traces - 1) * p_keep + 1)
+                                     + (1 - p_keep) * (1 + mean_freq * bin_size * (n_traces - 1)))
+
+                    print(f"Simultaneous spikes: {np.mean(readout):.2f} (expected {expected_mean:.2f}) "
+                          f"- correlation {correlation}")
+                    try:
+                        self.assertTrue(expected_mean * 0.9 < np.mean(readout) < expected_mean * 1.1)
+                    except:
+                        import traceback
+                        print(traceback.format_exc())
+                        import pdb
+                        pdb.set_trace()
+
 
 
 if __name__ == '__main__':
