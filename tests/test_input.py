@@ -91,8 +91,12 @@ class InputTestCase(unittest.TestCase):
                     else:
                         cluster_size = 1
 
-                    print(f"Checking number of inputs is {config_data[neuron_type][input_type]['nInputs']} * {cluster_size}")
-                    self.assertEqual(config_data[neuron_type][input_type]["nInputs"]*cluster_size, n_traces)
+                    if isinstance(config_data[neuron_type][input_type]['nInputs'], dict):
+                        config_n_inputs = config_data[neuron_type][input_type]['nInputs'][neuron_name]
+                    else:
+                        config_n_inputs = config_data[neuron_type][input_type]['nInputs']
+                    print(f"Checking number of inputs is {config_n_inputs} * {cluster_size}")
+                    self.assertEqual(config_n_inputs * cluster_size, n_traces)
 
                     if cluster_size > 1:
                         # Verify that all the clusters have the right size
@@ -174,7 +178,7 @@ class InputTestCase(unittest.TestCase):
                     # in the bin
 
                     if len(freq) == 1:
-                        expected_mean = (p_keep * ((n_traces - 1) * p_keep + 1)
+                        expected_mean = (p_keep * ((n_traces - 1) * p_keep + 1 + freq[0] * bin_size * n_traces)
                                          + (1 - p_keep) * (1 + freq[0] * bin_size * (n_traces - 1)))
 
                     else:
@@ -185,7 +189,7 @@ class InputTestCase(unittest.TestCase):
                         spike_cnt = 0
                         for st, et, f in zip(start_time, end_time, freq):
                             picked_ctr += f*(et-st)  # Number of readouts in this time interval
-                            spike_cnt += f*(et-st) * (p_keep * ((n_traces - 1) * p_keep + 1)
+                            spike_cnt += f*(et-st) * (p_keep * ((n_traces - 1) * p_keep + 1 + f * bin_size * n_traces)
                                                       + (1 - p_keep) * (1 + f * bin_size * (n_traces - 1)))
 
                         expected_mean = spike_cnt / picked_ctr
@@ -197,14 +201,7 @@ class InputTestCase(unittest.TestCase):
 
                     print(f"Simultaneous spikes: {np.mean(readout):.2f} (expected {expected_mean:.2f}) "
                           f"- correlation {correlation}")
-                    try:
-                        self.assertTrue(expected_mean * 0.9 < np.mean(readout) < expected_mean * 1.1)
-                    except:
-                        import traceback
-                        print(traceback.format_exc())
-                        import pdb
-                        pdb.set_trace()
-
+                    self.assertTrue(expected_mean * 0.9 < np.mean(readout) < expected_mean * 1.1)
 
 
 if __name__ == '__main__':
