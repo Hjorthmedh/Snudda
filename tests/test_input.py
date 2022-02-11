@@ -194,11 +194,6 @@ class InputTestCase(unittest.TestCase):
 
                         expected_mean = spike_cnt / picked_ctr
 
-#                        expected_mean = (np.sum(np.multiply((p_keep * ((n_traces - 1) * p_keep + 1)
-#                                                            + (1 - p_keep) * (1 + freq * bin_size * (n_traces - 1))),
-#                                                            np.multiply(end_time - start_time, freq)))
-#                                         / (np.sum(np.multiply(end_time - start_time, freq))))
-
                     print(f"Simultaneous spikes: {np.mean(readout):.2f} (expected {expected_mean:.2f}) "
                           f"- correlation {correlation}")
                     self.assertTrue(expected_mean * 0.9 < np.mean(readout) < expected_mean * 1.1)
