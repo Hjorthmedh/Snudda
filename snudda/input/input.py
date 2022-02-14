@@ -591,6 +591,8 @@ class SnuddaInput(object):
                             and input_type in self.population_unit_spikes[neuron_type]
                             and population_unit_id in self.population_unit_spikes[neuron_type][input_type]):
 
+                        # TODO: Currently only correlated within a neuron type for a given population unit
+                        #       should the spikes be shared between all neuron types in that population unit?
                         c_spikes = self.population_unit_spikes[neuron_type][input_type][population_unit_id]
                         population_unit_spikes_list.append(c_spikes)
                     else:
