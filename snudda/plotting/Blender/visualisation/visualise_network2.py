@@ -31,14 +31,14 @@ class VisualiseNetwork2(object):
 
         self.blender_output_image = blender_output_image
         
-         if spike_file_name:
+        if spike_file_name:
             spikes = np.loadtxt(spike_file_name, delimiter="\t")        ###The way the spike output files are set up currently one must read all the spikes in the network, even if only visualising a subset
             spike_times_total = spikes[:, 0] / 1e3
             spikes_neuron_id = spikes[:, 1].astype(int)
             spikedict = dict()
             neuron_ids = np.unique(spikes_neuron_id)
             for neuron_id in neuron_ids:
-                idx = np.where(spike_neuron_id == neuron_id)
+                idx = np.where(spikes_neuron_id == neuron_id)
                 neuron_spike_time = spike_times_total[idx]
                 spikedict[str(neuron_id)] = neuron_spike_time
             self.spike_times = spikedict
