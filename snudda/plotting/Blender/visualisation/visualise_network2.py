@@ -35,13 +35,13 @@ class VisualiseNetwork2(object):
             spikes = np.loadtxt(spike_file_name, delimiter="\t")        ###The way the spike output files are set up currently one must read all the spikes in the network, even if only visualising a subset
             spike_times_total = spikes[:, 0] / 1e3
             spikes_neuron_id = spikes[:, 1].astype(int)
-            spikedict = dict()
+            spike_dict = dict()
             neuron_ids = np.unique(spikes_neuron_id)
             for neuron_id in neuron_ids:
                 idx = np.where(spikes_neuron_id == neuron_id)
                 neuron_spike_time = spike_times_total[idx]
-                spikedict[str(neuron_id)] = neuron_spike_time
-            self.spike_times = spikedict
+                spike_dict[str(neuron_id)] = neuron_spike_time
+            self.spike_times = spike_dict
         else:
             self.spike_times = None
         self.neuron_cache = dict([])
