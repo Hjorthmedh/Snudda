@@ -436,7 +436,7 @@ class SnuddaInput(object):
 
         dendrite_location_override_list = []
 
-        for (neuron_id, neuron_name, neuron_type, populationUnitID) \
+        for (neuron_id, neuron_name, neuron_type, population_unit_id) \
                 in zip(self.neuron_id, self.neuron_name, self.neuron_type, self.population_unit_id):
 
             self.neuron_input[neuron_id] = dict([])
@@ -493,11 +493,11 @@ class SnuddaInput(object):
                 if "populationUnitID" in input_inf:
                     pop_unit_id = int(input_inf["populationUnitID"])
 
-                    if type(pop_unit_id) == list and populationUnitID not in pop_unit_id:
+                    if type(pop_unit_id) == list and population_unit_id not in pop_unit_id:
                         # We have a list of functional channels, but this neuron
                         # does not belong to a functional channel in that list
                         continue
-                    elif populationUnitID != pop_unit_id:
+                    elif population_unit_id != pop_unit_id:
                         # We have a single functional channel, but this neuron is not
                         # in that functional channel
                         continue
@@ -579,7 +579,7 @@ class SnuddaInput(object):
                     synapse_density_list.append(synapse_density)
                     num_inputs_list.append(n_inp)
 
-                    population_unit_id_list.append(populationUnitID)
+                    population_unit_id_list.append(population_unit_id)
                     conductance_list.append(cond)
 
                     if "populationUnitCorrelation" in input_inf:
@@ -589,9 +589,11 @@ class SnuddaInput(object):
 
                     if (neuron_type in self.population_unit_spikes
                             and input_type in self.population_unit_spikes[neuron_type]
-                            and populationUnitID in self.population_unit_spikes[neuron_type][input_type]):
+                            and population_unit_id in self.population_unit_spikes[neuron_type][input_type]):
 
-                        c_spikes = self.population_unit_spikes[neuron_type][input_type][populationUnitID]
+                        # TODO: Currently only correlated within a neuron type for a given population unit
+                        #       should the spikes be shared between all neuron types in that population unit?
+                        c_spikes = self.population_unit_spikes[neuron_type][input_type][population_unit_id]
                         population_unit_spikes_list.append(c_spikes)
                     else:
                         # self.write_log(f"No population spikes specified for neuron type {neuron_type}")
@@ -639,14 +641,6 @@ class SnuddaInput(object):
                     self.write_log(f"Unknown input generator: {input_inf['generator']} for {neuron_id}", is_error=True)
 
         seed_list = self.generate_seeds(num_states=len(neuron_id_list))
-
-        # The old code had so that all neurons within a population unit shared the same
-        # mother process, which caused them all to activate at the same time
-        # with high probability. By setting channelSpikeList to None we disable it
-        if False:
-            self.write_log("Clearing populationUnitSpikesList, "
-                           "thus all neurons will have their own mother process for each input", force_print=True)
-            population_unit_spikes_list = [None for x in population_unit_spikes_list]
 
         amr = None
 

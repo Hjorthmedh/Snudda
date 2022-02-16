@@ -91,8 +91,12 @@ class InputTestCase(unittest.TestCase):
                     else:
                         cluster_size = 1
 
-                    print(f"Checking number of inputs is {config_data[neuron_type][input_type]['nInputs']} * {cluster_size}")
-                    self.assertEqual(config_data[neuron_type][input_type]["nInputs"]*cluster_size, n_traces)
+                    if isinstance(config_data[neuron_type][input_type]['nInputs'], dict):
+                        config_n_inputs = config_data[neuron_type][input_type]['nInputs'][neuron_name]
+                    else:
+                        config_n_inputs = config_data[neuron_type][input_type]['nInputs']
+                    print(f"Checking number of inputs is {config_n_inputs} * {cluster_size}")
+                    self.assertEqual(config_n_inputs * cluster_size, n_traces)
 
                     if cluster_size > 1:
                         # Verify that all the clusters have the right size
@@ -119,13 +123,80 @@ class InputTestCase(unittest.TestCase):
                     freq = np.array([freq]*max_len)
 
                 for st, et, f in zip(start_time, end_time, freq):
-                    idx_x, idx_y = np.where(np.logical_and(st <= spikes, spikes <= et))
+                    t_idx = np.where(np.logical_and(st <= spikes, spikes <= et))[0]
 
-                    f_gen = len(idx_x)/(n_traces * (et-st))
+                    f_gen = len(t_idx) / (n_traces * (et - st))
                     print(f"ID {neuron_id_str} {neuron_name} {input_type} f={f}, f_gen={f_gen}")
 
                     self.assertTrue(f_gen > f - 4*np.sqrt(f)/np.sqrt(n_traces))
                     self.assertTrue(f_gen < f + 4*np.sqrt(f)/np.sqrt(n_traces))
+
+                if "populationUnitCorrelation" in config_data[neuron_type][input_type]:
+                    correlation = config_data[neuron_type][input_type]["populationUnitCorrelation"]
+
+                    if "jitter" in config_data[neuron_type][input_type]:
+                        jitter = config_data[neuron_type][input_type]["jitter"]
+                    else:
+                        jitter = 0
+
+                    p_keep = 1 / (n_traces - np.sqrt(correlation) * (n_traces - 1))
+
+                    # Is correlation what we expect?
+                    bin_size = 2*jitter + 1e-3
+                    n_bins = int(np.ceil(input_time / bin_size)) + 1
+                    binned_data = np.zeros((n_bins,))
+
+                    for t_idx in (spikes.flatten() / bin_size).astype(int):
+                        if t_idx >= 0:
+                            binned_data[t_idx] += 1
+
+                    readout = np.zeros((spikes.size, ))
+                    ctr = 0
+                    for t_idx in (spikes.flatten() / bin_size).astype(int):
+                        try:
+                            if t_idx > 0:
+                                readout[ctr] = binned_data[t_idx]
+                                ctr += 1
+                        except:
+                            import traceback
+                            t_str = traceback.format_exc()
+                            print(t_str)
+                            import pdb
+                            pdb.set_trace()
+
+                    readout = readout[:ctr]
+
+                    if len(freq) == 1:
+                        mean_freq = freq[0]
+                    else:
+                        # Note this is the mean freq during period of spiking (since we dont sample silent periods)
+                        mean_freq = np.sum(np.multiply(end_time - start_time, freq)) / np.sum(end_time - start_time)
+
+                    # If we look at a spike in a spike train, then with P=p_keep it is a mother spike,
+                    # and then there should be (N-1) * p_keep + 1 spikes in that bin.
+                    # With P=(1-p_keep) it is just a normal spike, and then there should be 1 + f*dt*(N-1) spikes
+                    # in the bin
+
+                    if len(freq) == 1:
+                        expected_mean = (p_keep * ((n_traces - 1) * p_keep + 1 + freq[0] * bin_size * n_traces)
+                                         + (1 - p_keep) * (1 + freq[0] * bin_size * (n_traces - 1)))
+
+                    else:
+                        # When calculating expected mean number of simultaneous spikes for a bin with a spike
+                        # we need to take into account that high freq periods are more likely, and they also have
+                        # higher freq during that period
+                        picked_ctr = 0
+                        spike_cnt = 0
+                        for st, et, f in zip(start_time, end_time, freq):
+                            picked_ctr += f*(et-st)  # Number of readouts in this time interval
+                            spike_cnt += f*(et-st) * (p_keep * ((n_traces - 1) * p_keep + 1 + f * bin_size * n_traces)
+                                                      + (1 - p_keep) * (1 + f * bin_size * (n_traces - 1)))
+
+                        expected_mean = spike_cnt / picked_ctr
+
+                    print(f"Simultaneous spikes: {np.mean(readout):.2f} (expected {expected_mean:.2f}) "
+                          f"- correlation {correlation}")
+                    self.assertTrue(expected_mean * 0.9 < np.mean(readout) < expected_mean * 1.1)
 
 
 if __name__ == '__main__':
