@@ -1,5 +1,5 @@
-# This script visualises two neurons and the location of the synapses
-# connecting them.
+# Visualises neurons and the location of the synapses connecting them.
+# Tested using Blender 2.93. Should not be used with older version of Blender.
 
 import bpy
 import os
@@ -7,13 +7,14 @@ import mathutils
 import numpy as np
 from snudda.utils.load import SnuddaLoad
 from snudda.utils.snudda_path import snudda_parse_path
+from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
 
 
 class VisualiseNetwork(object):
 
     # You need to provide neuron
     def __init__(self, network_path, blender_save_file=None, blender_output_image=None,
-                 network_json=None):
+                 network_json=None, simulation_output_file_name=None):
 
         self.network_path = network_path
 
@@ -30,6 +31,12 @@ class VisualiseNetwork(object):
             self.blender_save_file = os.path.join(network_path, "visualise-network.blend")
 
         self.blender_output_image = blender_output_image
+        
+        if simulation_output_file_name:
+            self.slns = SnuddaLoadNetworkSimulation(simulation_output_file_name)
+            self.spike_times = self.slns.get_spikes()
+        else:
+            self.spike_times = None
 
         self.neuron_cache = dict([])
 
@@ -44,7 +51,10 @@ class VisualiseNetwork(object):
             self.data = self.sl.data
 
     def visualise(self, neuron_id=None, blender_output_image=None, white_background=True,
-                  show_synapses=True):
+                  show_synapses=True,
+                  camera_location=None,
+                  camera_rotation=None,
+                  camera_scale=None):
 
         if neuron_id:
             neurons = [self.data["neurons"][x] for x in neuron_id]
@@ -55,11 +65,19 @@ class VisualiseNetwork(object):
         if blender_output_image:
             self.blender_output_image = blender_output_image
 
+        if camera_location is None:
+            camera_location = (2.98, 2.68, 4.96)
+
+        if camera_rotation is None:
+            camera_rotation = (1.59, 0, -0.26)
+
+        if camera_scale is None:
+            camera_scale = (1, 1, 1)
+
         origo = self.data["simulationOrigo"]
         voxel_size = self.data["voxelSize"]
 
         # Remove the start cube
-        # bpy.ops.object.delete()
         VisualiseNetwork.clean_scene()
 
         bpy.data.scenes['Scene'].render.engine = 'CYCLES'
@@ -77,33 +95,36 @@ class VisualiseNetwork(object):
 
         # Define materials
         mat_msd1 = bpy.data.materials.new("PKHG")
-        mat_msd1.diffuse_color = (77. / 255, 151. / 255, 1.0)
+        mat_msd1.diffuse_color = (77. / 255, 151. / 255, 1.0, 0.5)
         mat_msd2 = bpy.data.materials.new("PKHG")
-        mat_msd2.diffuse_color = (67. / 255, 55. / 255, 181. / 255)
+        mat_msd2.diffuse_color = (67. / 255, 55. / 255, 181. / 255, 0.5)
         mat_fs = bpy.data.materials.new("PKHG")
-        mat_fs.diffuse_color = (6. / 255, 31. / 255, 85. / 255)
+        mat_fs.diffuse_color = (6. / 255, 31. / 255, 85. / 255, 1.0)
         mat_chin = bpy.data.materials.new("PKHG")
-        mat_chin.diffuse_color = (252. / 255, 102. / 255, 0.0)
+        mat_chin.diffuse_color = (252. / 255, 102. / 255, 0.0, 1.0)
         mat_lts = bpy.data.materials.new("PKHG")
-        mat_lts.diffuse_color = (150. / 255, 63. / 255, 212. / 255)
+        mat_lts.diffuse_color = (150. / 255, 63. / 255, 212. / 255, 1.0)
+        mat_snr = bpy.data.materials.new("PKHG")
+        mat_snr.diffuse_color = (200. / 255, 50. / 255, 50. / 255, 1.0)
         mat_other = bpy.data.materials.new("PKHG")
-        mat_other.diffuse_color = (0.4, 0.4, 0.4)
+        mat_other.diffuse_color = (0.4, 0.4, 0.4, 1.0)
 
         mat_synapse = bpy.data.materials.new("PKHG")
 
-        material_lookup = { "dspn": mat_msd1,
-                            "ispn": mat_msd2,
-                            "fsn": mat_fs,
-                            "fs": mat_fs,
-                            "chin": mat_chin,
-                            "lts": mat_lts,
-                            "synapse": mat_synapse,
-                            "other": mat_other}
+        material_lookup = {"dspn": mat_msd1,
+                           "ispn": mat_msd2,
+                           "fsn": mat_fs,
+                           "fs": mat_fs,
+                           "chin": mat_chin,
+                           "lts": mat_lts,
+                           "SNr": mat_snr,
+                           "synapse": mat_synapse,
+                           "other": mat_other}
 
         if white_background:
-            mat_synapse.diffuse_color = (0.8, 0.0, 0.0)
+            mat_synapse.diffuse_color = (0.8, 0.0, 0.0, 1.0)
         else:
-            mat_synapse.diffuse_color = (1.0, 1.0, 0.9)
+            mat_synapse.diffuse_color = (1.0, 1.0, 0.9, 1.0)
 
         # matSynapse.use_transparency = True
         mat_synapse.use_nodes = True
@@ -136,26 +157,53 @@ class VisualiseNetwork(object):
                 obj.name = f"{neuron['name']}-{neuron['neuronID']}"
                 VisualiseNetwork.link_object(obj)
             else:
-                bpy.ops.import_mesh.swc(filepath=snudda_parse_path(neuron["morphology"]))
+                VisualiseNetwork.read_swc_data(snudda_parse_path(neuron["morphology"]))
                 obj = bpy.context.selected_objects[0]
                 obj.name = f"{neuron['name']}-{neuron['neuronID']}"
 
                 self.neuron_cache[neuron["name"]] = obj
 
             obj.rotation_euler = e_rot
-            print(f"Setting neuron {neuron['neuronID']} ({neuron['name']}) position: {neuron['position'] * 1e3}")
-            obj.location = neuron["position"] * 1e3
+            scale = 1000
+            print(f"Setting neuron {neuron['neuronID']} ({neuron['name']}) position: {neuron['position'] * scale}")
+            obj.location = neuron["position"] * scale
 
             n_type = neuron["type"].lower()
             if n_type in material_lookup:
                 mat = material_lookup[n_type]
             else:
                 mat = material_lookup["other"]
+                
+            if self.spike_times:
+                rest_color = mat.diffuse_color[:]
+                # if animating spike times we need to make a fresh material per neuron
+                mat_spikes = bpy.data.materials.new("PKHG")
+                mat_spikes.diffuse_color = rest_color
+                mat_spikes.keyframe_insert(data_path="diffuse_color", frame=1.0, index=-1)
+                if str(neuron['neuronID']) in self.spike_times.keys():
+                    spikes = self.spike_times[str(neuron['neuronID'])]
 
-            for ch in obj.children:
-                ch.active_material = mat
+                    # convert 'time' to Blender frames; factor of ~100 works nicely
+                    spike_frames = np.round(100 * np.array(spikes))
+                    for t in spike_frames:
+                        mat_spikes.diffuse_color = rest_color
+                        # need to add an instruction to remain at rest colour at a pre-spike time
+                        # so that the colour change is not gradual but quasi-instantaneous
+                        mat_spikes.keyframe_insert(data_path="diffuse_color", frame=t - 1, index=-1)
+                        mat_spikes.diffuse_color = (1, 1, 1, 1)
+                        mat_spikes.keyframe_insert(data_path="diffuse_color", frame=t, index=-1) 
+                        mat_spikes.diffuse_color = rest_color
+                        # change back to rest colour
+                        mat_spikes.keyframe_insert(data_path="diffuse_color", frame=t + 5, index=-1)
+                print("Color......")
+                for ch in obj.children:
+                    ch.active_material = mat_spikes
+            else:   
+                print("Color......")
+                for ch in obj.children:
+                    ch.active_material = mat
 
-            obj.select = False
+            obj.select_set(False)
 
         if show_synapses:
             print("Adding synapses...")
@@ -164,8 +212,7 @@ class VisualiseNetwork(object):
             n_synapses = 0
 
             for ob in bpy.context.selected_objects:
-                ob.select = False
-
+                ob.select_set(False)
             synapse_obj = None
 
             for vis_pre_id in neuron_id:
@@ -185,9 +232,9 @@ class VisualiseNetwork(object):
                         # Draw this neuron (the SWC import scales from micrometers to mm), the
                         # positions in the simulation are in meters, need to scale it to mm for
                         # blender to have same units.
-                        x = (origo[0] + voxel_size * syn[2]) * 1e3
-                        y = (origo[1] + voxel_size * syn[3]) * 1e3
-                        z = (origo[2] + voxel_size * syn[4]) * 1e3
+                        x = (origo[0] + voxel_size * syn[2]) * scale
+                        y = (origo[1] + voxel_size * syn[3]) * scale
+                        z = (origo[2] + voxel_size * syn[4]) * scale
 
                         if synapse_obj:
                             obj = synapse_obj.copy()
@@ -199,10 +246,10 @@ class VisualiseNetwork(object):
                             VisualiseNetwork.link_object(obj)
 
                         else:
-                            bpy.ops.mesh.primitive_uv_sphere_add(location=(x, y, z), size=0.001 * 4)
+                            bpy.ops.mesh.primitive_uv_sphere_add(radius=0.001 * 4,location=(x, y, z), scale=(1, 1, 1))
                             obj = bpy.context.selected_objects[0]
                             obj.active_material = mat_synapse
-                            obj.select = False
+                            obj.select_set(False)
                             synapse_obj = obj
 
                         n_synapses += 1
@@ -214,28 +261,30 @@ class VisualiseNetwork(object):
             print(f"nSynapses = {n_synapses}")
 
         # Add a light source
-
-        lamp_data = bpy.data.lamps.new(name="Sun", type='SUN')
-        lamp_object = bpy.data.objects.new(name="Sun", object_data=lamp_data)
-        bpy.context.scene.objects.link(lamp_object)
+        # Commented out for now. Might want to add it later.
+        # lamp_data = bpy.data.lamps.new(name="Sun", type='SUN')
+        # lamp_object=bpy.ops.object.light_add(type='SUN', radius=1, align='WORLD',
+        #                                      location=(10.0, 10.0, 10.0), scale=(1, 1, 1))
+        # lamp_object = bpy.data.objects.new(name="Sun", object_data=lamp_data)
+        # bpy.context.scene.objects.link(lamp_object)
 
         # Place lamp to a specified location
-        lamp_object.location = (1000.0, 1000.0, 1000.0)
+        # lamp_object.location = (1000.0, 1000.0, 1000.0)
 
         # Reposition camera
+
+        bpy.ops.object.camera_add(enter_editmode=False, align='VIEW',
+                                  location=camera_location,
+                                  rotation=camera_rotation,
+                                  scale=camera_scale)
         cam = bpy.data.objects["Camera"]
-        # cam.location = (2.98,2.68,4.96)
-        # cam.rotation_euler = (1.59,0,-0.26)
-
-        cam.location = (3.19, 3.46, 4.96)
-        cam.rotation_euler = (96.7 * np.pi / 180, 0, -14.3 * np.pi / 180)
-
-        # Is this needed?
-        bpy.context.scene.update()
+        print(bpy.context.selected_objects)
+        bpy.context.scene.camera = cam
 
         bpy.ops.wm.save_as_mainfile(filepath=self.blender_save_file)
 
         if self.blender_output_image:
+            # When testing (e.g. adjusting camera position) you can skip this and just look at the blender file directly
             print("Rendering image.")
             bpy.ops.render.render()
             bpy.data.images['Render Result'].save_render(filepath=self.blender_output_image)
@@ -251,10 +300,10 @@ class VisualiseNetwork(object):
     @staticmethod
     def link_object(obj):
         try:
-            bpy.context.scene.objects.link(obj)  # Blender 2.7
+            bpy.context.collection.objects.link(obj)
         except:
-            print("Blender 2.7 failed, switch over to only use Blender 2.8 syntax")
-            bpy.context.collection.objects.link(obj)  # Blender 2.8
+            print("Blender 2.8 failed. Likely due to 2.7 syntax.")
+            # bpy.context.scene.objects.link(obj)  # Blender 2.7
 
     @staticmethod
     def clean_scene():
@@ -263,3 +312,129 @@ class VisualiseNetwork(object):
         del_list = bpy.context.copy()
         del_list['selected_objects'] = list(bpy.context.scene.objects)
         bpy.ops.object.delete(del_list)
+
+    @staticmethod
+    def read_swc_data(filepath):
+        scale_f = 1000   # factor to downscale the data
+        ''' read swc file '''
+        print(filepath)
+        f = open(filepath)
+        lines = f.readlines()
+        f.close()
+
+        ''' find starting point '''
+        x = 0
+        while lines[x][0] == '#':
+            x += 1
+
+        ''' Create a dictionary with the first item '''
+        data = lines[x].strip().split(' ')
+        soma_id = int(data[0])
+        soma_type = float(data[1])
+        soma_x = float(data[2])
+        soma_y = float(data[3])
+        soma_z = float(data[4])
+        soma_r = float(data[5])
+        soma_parent = int(data[6])
+
+        # We centre the neuron
+        neuron = {soma_id: [soma_type, 0.0, 0.0, 0.0, soma_r, soma_parent]}
+        x += 1
+
+        ''' Read the rest of the lines to the dictionary '''
+        for ls in lines[x:]:
+            data = ls.strip().split(' ')
+            comp_id = int(data[0])
+            comp_type = float(data[1])
+            comp_x = float(data[2])
+            comp_y = float(data[3])
+            comp_z = float(data[4])
+            comp_r = float(data[5])
+            comp_parent = int(data[6])
+
+            # Centre neuron, so soma is at 0,0,0
+            neuron[comp_id] = [comp_type, comp_x - soma_x, comp_y - soma_y, comp_z - soma_z, comp_r, comp_parent]
+
+        bpy.ops.object.empty_add(type='ARROWS',
+                                 location=(neuron[1][1] / scale_f, neuron[1][2] / scale_f, neuron[1][3] / scale_f),
+                                 rotation=(0, 0, 0))
+        a = bpy.context.selected_objects[0]
+        a.name = 'neuron_swc'
+
+        last = -10.0
+
+        ''' Create object '''
+        for key, value in neuron.items():
+
+            if value[0] == 1:
+                # This is the soma, add it
+                soma_radie = value[-2]
+                bpy.ops.mesh.primitive_uv_sphere_add(
+                    location=(value[1] / scale_f, value[2] / scale_f, value[3] / scale_f), radius=soma_radie / scale_f)
+                # bpy.ops.mesh.primitive_uv_sphere_add(location=(value[1],value[2], value[3]),scale=(scale_f,scale_f,scale_f), radius=somaRadie)
+                soma_obj = bpy.context.selected_objects[0]
+                soma_obj.parent = a
+
+                print("Adding soma " + str(value))
+
+            if value[-1] == -1:
+                continue
+
+            if value[0] == 10:
+                continue
+
+            # if we need to start a new bezier curve
+            if value[-1] != last:
+                # trace the origins
+                tracer = bpy.data.curves.new('tracer', 'CURVE')
+                tracer.dimensions = '3D'
+                spline = tracer.splines.new('BEZIER')
+
+                curve = bpy.data.objects.new('curve', tracer)
+                curve.data.use_fill_caps = True  # Added 2019-06-17
+
+                bpy.context.scene.collection.objects.link(curve)
+
+                # render ready curve
+                tracer.resolution_u = 8
+                tracer.bevel_resolution = 8  # Set bevel resolution from Panel options
+                tracer.fill_mode = 'FULL'
+                tracer.bevel_depth = 1.0  # 0.001 # Set bevel depth from Panel options --- THIS REPLACES scale_f when setting radius
+
+                # move nodes to objects
+                p = spline.bezier_points[0]
+                p.co = [neuron[value[-1]][1] / scale_f, neuron[value[-1]][2] / scale_f, neuron[value[-1]][3] / scale_f]
+                # !!! Fixed a radie bug, was [5] should be [4] -- the first column is already removed /Johannes
+                p.radius = neuron[value[-1]][4] / scale_f
+                p.handle_right_type = 'VECTOR'
+                p.handle_left_type = 'VECTOR'
+
+                # import pdb
+                # pdb.set_trace()
+
+                if last > 0:
+                    spline.bezier_points.add(1)
+                    p = spline.bezier_points[-1]
+                    p.co = [value[1] / scale_f, value[2] / scale_f, value[3] / scale_f]
+                    # !!! Fixed a radie bug, was [5] should be [4]
+                    p.radius = value[4] / scale_f
+                    p.handle_right_type = 'VECTOR'
+                    p.handle_left_type = 'VECTOR'
+
+                curve.parent = a
+
+            # if we can continue the last bezier curve
+            if value[-1] == last:
+                spline.bezier_points.add(1)
+                p = spline.bezier_points[-1]
+                p.co = [value[1] / scale_f, value[2] / scale_f, value[3] / scale_f]
+                # !!! Fixed a radie bug, was [5] should be [4]
+                p.radius = value[4] / scale_f
+                p.handle_right_type = 'VECTOR'
+                p.handle_left_type = 'VECTOR'
+
+            last = key
+
+        a.select_set(True)
+
+        return {'FINISHED'}
