@@ -246,7 +246,8 @@ class VisualiseNetwork(object):
                             VisualiseNetwork.link_object(obj)
 
                         else:
-                            bpy.ops.mesh.primitive_uv_sphere_add(radius=0.001 * 4,location=(x, y, z), scale=(1, 1, 1))
+                            bpy.ops.mesh.primitive_uv_sphere_add(radius=0.001 * 4, location=(x, y, z), scale=(1, 1, 1),
+                                                                 segments=16, ring_count=8)
                             obj = bpy.context.selected_objects[0]
                             obj.active_material = mat_synapse
                             obj.select_set(False)
