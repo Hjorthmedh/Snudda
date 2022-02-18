@@ -52,11 +52,30 @@ class VisualiseNetwork(object):
             self.sl.import_json(self.network_json)
             self.data = self.sl.data
 
-    def visualise(self, neuron_id=None, blender_output_image=None, white_background=True,
+    def visualise(self,
+                  neuron_id=None,
+                  blender_output_image=None,
+                  white_background=True,
                   show_synapses=True,
                   camera_location=None,
                   camera_rotation=None,
-                  camera_scale=None):
+                  camera_scale=None,
+                  detail_level=1):
+
+        """
+            Visualise network in blender.
+
+            Args:
+                neuron_id (list) : Neuron ID to visualise, default None means all
+                blender_output_image
+                white_background
+                show_synapses
+                camera_location
+                camera_rotation
+                camera_scale
+                detail_level (int) : 1 = full morphologies, 2 = reduced morphologies, 3 = soma only
+
+        """
 
         if neuron_id:
             neurons = [self.data["neurons"][x] for x in neuron_id]
@@ -159,7 +178,7 @@ class VisualiseNetwork(object):
                 obj.name = f"{neuron['name']}-{neuron['neuronID']}"
                 VisualiseNetwork.link_object(obj)
             else:
-                VisualiseNetwork.read_swc_data(snudda_parse_path(neuron["morphology"]))
+                VisualiseNetwork.read_swc_data(snudda_parse_path(neuron["morphology"]), detail_level=detail_level)
                 obj = bpy.context.selected_objects[0]
                 obj.name = f"{neuron['name']}-{neuron['neuronID']}"
 
