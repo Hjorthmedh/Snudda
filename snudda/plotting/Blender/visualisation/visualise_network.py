@@ -115,10 +115,10 @@ class VisualiseNetwork(object):
             bg.inputs[1].default_value = 0.0
 
         # Define materials
-        mat_msd1 = bpy.data.materials.new("PKHG")
-        mat_msd1.diffuse_color = (77. / 255, 151. / 255, 1.0, 0.5)
-        mat_msd2 = bpy.data.materials.new("PKHG")
-        mat_msd2.diffuse_color = (67. / 255, 55. / 255, 181. / 255, 0.5)
+        mat_dspn = bpy.data.materials.new("PKHG")
+        mat_dspn.diffuse_color = (77. / 255, 151. / 255, 1.0, 0.5)
+        mat_ispn = bpy.data.materials.new("PKHG")
+        mat_ispn.diffuse_color = (67. / 255, 55. / 255, 181. / 255, 0.5)
         mat_fs = bpy.data.materials.new("PKHG")
         mat_fs.diffuse_color = (6. / 255, 31. / 255, 85. / 255, 1.0)
         mat_chin = bpy.data.materials.new("PKHG")
@@ -127,18 +127,24 @@ class VisualiseNetwork(object):
         mat_lts.diffuse_color = (150. / 255, 63. / 255, 212. / 255, 1.0)
         mat_snr = bpy.data.materials.new("PKHG")
         mat_snr.diffuse_color = (200. / 255, 50. / 255, 50. / 255, 1.0)
+        mat_arky = bpy.data.materials.new("PKHG")
+        mat_arky.diffuse_color = (0.5, 0.0, 0.5)
+        mat_proto = bpy.data.materials.new("PKHG")
+        mat_proto.diffuse_color = (0.5, 0.0, 0.5)
+
         mat_other = bpy.data.materials.new("PKHG")
         mat_other.diffuse_color = (0.4, 0.4, 0.4, 1.0)
-
         mat_synapse = bpy.data.materials.new("PKHG")
 
-        material_lookup = {"dspn": mat_msd1,
-                           "ispn": mat_msd2,
+        material_lookup = {"dspn": mat_dspn,
+                           "ispn": mat_ispn,
                            "fsn": mat_fs,
                            "fs": mat_fs,
                            "chin": mat_chin,
                            "lts": mat_lts,
-                           "SNr": mat_snr,
+                           "snr_neuron": mat_snr,
+                           "Proto": mat_proto,
+                           "Akry": mat_arky,
                            "synapse": mat_synapse,
                            "other": mat_other}
 
