@@ -49,7 +49,8 @@ class SnuddaInput(object):
                  random_seed=None,
                  time_interval_overlap_warning=True,
                  logfile=None,
-                 verbose=False):
+                 verbose=False,
+                 useMeta=1):
 
         """
         Constructor.
@@ -72,7 +73,7 @@ class SnuddaInput(object):
         if type(logfile) == str:
             self.logfile = open(logfile, "w")
         else:
-            self.logfile = logfile
+            self.logfile =  logfile
 
         self.verbose = verbose
         self.rc = rc
@@ -130,6 +131,7 @@ class SnuddaInput(object):
         self.neuron_id = [n["neuronID"] for n in self.network_data["neurons"]]
         self.neuron_name = [n["name"] for n in self.network_data["neurons"]]
         self.neuron_type = [n["type"] for n in self.network_data["neurons"]]
+        self.useMeta=useMeta
 
         if time:
             self.time = time  # How long time to generate inputs for
@@ -432,6 +434,10 @@ class SnuddaInput(object):
         cluster_size_list = []
 
         dendrite_location_override_list = []
+        if self.useMeta:
+                print("--------- Meta.json will be used")
+        else:
+                print("--------- Meta.json will NOT be used")
 
         for (neuron_id, neuron_name, neuron_type, populationUnitID) \
                 in zip(self.neuron_id, self.neuron_name, self.neuron_type, self.population_unit_id):
@@ -463,8 +469,7 @@ class SnuddaInput(object):
             morphology_key = self.network_data["neurons"][neuron_id]["morphologyKey"]
             neuron_path = self.network_data["neurons"][neuron_id]["neuronPath"]
             meta_path = os.path.join(neuron_path, "meta.json")
-
-            if os.path.exists(meta_path):
+            if self.useMeta and os.path.exists(meta_path):
                 with open(meta_path, "r") as f:
                     meta_data = json.load(f)
 

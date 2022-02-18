@@ -1,0 +1,19 @@
+#!/bin/bash -l
+#SBATCH --partition=main
+#SBATCH -t 0:30:00
+#SBATCH -J snuddaInput
+#SBATCH -A snic2021-5-492
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+
+#old  2020-5-636 
+module load snic-env
+source ../../../snudda_env/bin/activate
+
+
+chmod +x Beskow_setup_input.sh
+
+#srun ./Beskow_setup_input.sh PD0
+#srun ./Beskow_setup_input.sh PD1
+srun ./Beskow_setup_input.sh PD2
+#srun ./Beskow_setup_input.sh PD3
