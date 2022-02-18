@@ -315,7 +315,16 @@ class VisualiseNetwork(object):
         bpy.ops.object.delete(del_list)
 
     @staticmethod
-    def read_swc_data(filepath):
+    def read_swc_data(filepath, detail_level=1):
+
+        """
+            Read SWC file
+
+            Args:
+                filepath (str) : Path to SWC file
+                detail_level (int) : Detail level 1 = full detail, 2 = reduced quality, 3 = soma only
+
+        """
         scale_f = 1000   # factor to downscale the data
         ''' read swc file '''
         print(filepath)
@@ -366,17 +375,27 @@ class VisualiseNetwork(object):
 
         ''' Create object '''
         for key, value in neuron.items():
+            # value contains: 0: type, 1: x, 2: y, 3: z, 4: r, 5: parent
 
             if value[0] == 1:
+
+                if detail_level > 1:
+                    segments = 10
+                    ring_count = 5
+                else:
+                    segments = 32
+                    ring_count = 16
+
                 # This is the soma, add it
                 soma_radie = value[-2]
-                bpy.ops.mesh.primitive_uv_sphere_add(
-                    location=(value[1] / scale_f, value[2] / scale_f, value[3] / scale_f), radius=soma_radie / scale_f)
-                # bpy.ops.mesh.primitive_uv_sphere_add(location=(value[1],value[2], value[3]),scale=(scale_f,scale_f,scale_f), radius=somaRadie)
+                bpy.ops.mesh.primitive_uv_sphere_add(segments=segments,
+                                                     ring_count=ring_count,
+                                                     location=(value[1]/scale_f, value[2]/scale_f, value[3]/scale_f),
+                                                     radius=soma_radie/scale_f)
                 soma_obj = bpy.context.selected_objects[0]
                 soma_obj.parent = a
 
-                print("Adding soma " + str(value))
+                print(f"Adding soma {value}")
 
             if value[-1] == -1:
                 continue
@@ -409,9 +428,6 @@ class VisualiseNetwork(object):
                 p.radius = neuron[value[-1]][4] / scale_f
                 p.handle_right_type = 'VECTOR'
                 p.handle_left_type = 'VECTOR'
-
-                # import pdb
-                # pdb.set_trace()
 
                 if last > 0:
                     spline.bezier_points.add(1)
