@@ -1,0 +1,159 @@
+#!/bin/bash -l
+#SBATCH --partition=main
+#SBATCH -t 0:59:00
+#SBATCH -J snuddaInputTuning
+#SBATCH -A snic2021-5-492
+#SBATCH --nodes=1
+
+echo "JOB START "`date` 
+#Set NETWORK_DIR, PROJECT_DIR, SNUDDA_DATA, and more 
+source setup_env.sh
+
+let N_WORKERS="$SLURM_NNODES * 32"
+echo "Number of workers is = $SLURM_NNODES"
+
+# Synapse file
+SNUDDA_DIR=$PROJECT_DIR/Snudda/snudda
+echo "Project directory is = $SNUDDA_DIR"
+NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
+NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
+NETWORK_VOLTAGE_FILE=$NETWORK_DIR/simulation/voltage-trace-${SLURM_JOBID}.txt
+
+echo "Network dir: "$NETWORK_DIR
+
+##############
+echo "Loading environment"
+module load snic-env
+# --- I have tried with the gnu compiler, and also with the cray compiler
+module swap PrgEnv-cray PrgEnv-gnu
+module unload cray-libsci atp
+export CRAYPE_LINK_TYPE=dynamic
+export CRAY_ROOTFS=DSL
+
+########## Needed for NEURON
+echo "Setting paths needed for Neuron"
+L=$PROJECT_DIR/snudda_env
+LN=$L/neuron
+export PATH=$L/bin:$LN/bin:$PATH
+export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
+export PYTHONPATH=$LN/lib/python:$PYTHONPATH
+
+
+##################################################################################################
+#neurons_path=$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20211026
+neurons_path=$SNUDDA_DATA/neurons/striatum/$neuronType/$singleNeuronType
+#steps=$(($numInputMax-$numInputMin))
+steps=250
+##################################################################################################
+srun -n 1 python $SNUDDA_DATA_TOOLS/bgmod2bgdata.py --source $source --morphSource $neurons_path --destination $neurons_path
+if [ $? != 0 ]; then
+	echo "Something went wrong during bgmod2bgdata.py aborting!"
+	exit -1
+fi
+##################################################################################################
+inputType=cortical
+echo "STARTING input_tuning setup"
+srun -n 1 python $SNUDDA_DIR/input/input_tuning.py setup $NETWORK_DIR --neurons $neurons_path --neuronType $neuronType --singleNeuronType $neurons_path --numInputMin $numInputMin --numInputMax $numInputMax --inputFrequency [1.0] --numInputSteps $steps --inputDuration 10.0 --inputType $inputType --useMeta $useMeta
+
+echo "Setup finished"
+if [ $? != 0 ]; then
+	echo "Something went wrong during input_tuning setup, aborting!"
+	exit -1
+fi
+
+echo "Starting simulation job"
+srun -n 128 $SNUDDA_DIR/../examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/input/input_tuning.py simulate $NETWORK_DIR
+
+if [ $? != 0 ]; then
+	echo "Something went wrong during input_tuning simulation, aborting!"
+	exit -1
+fi
+
+srun -n 1 python $SNUDDA_DIR/input/input_tuning.py analyse $NETWORK_DIR --inputType $inputType
+if [ $? != 0 ]; then
+	echo "Something went wrong during input_tuning analyse, aborting!"
+	exit -1
+fi
+
+srun -n 1 python plot_network_simulation.py --nametag $NETWORK_NAME --doHistRast 0 --doinpFreqVsSpikerate 0 --doTraces 1 --doInpRast 1 --inputFile "input.hdf5" --inputType $inputType --neuronType $neuronType
+if [ $? != 0 ]; then
+	echo "Something went wrong during plot_network_simulation.py, aborting!"
+	exit -1
+fi
+
+srun -n 1 python $SNUDDA_DATA_TOOLS/analyse_data_and_create_meta.py $NETWORK_DIR --networkName $NETWORK_NAME --neuronsPath $neurons_path --inputType $inputType --neuronType $neuronType --singleNeuronType $singleNeuronType
+if [ $? != 0 ]; then
+	echo "Something went wrong during analyse_data_and_create_meta.py aborting!"
+	exit -1
+fi
+
+################################################################################################
+inputType=thalamic
+srun -n 1 python $SNUDDA_DIR/input/input_tuning.py setup $NETWORK_DIR --neurons $neurons_path --neuronType $neuronType --singleNeuronType $neurons_path --numInputMin $numInputMin --numInputMax $numInputMax --inputFrequency [1.0] --numInputSteps $steps --inputDuration 10.0 --inputType $inputType --useMeta $useMeta
+
+echo "Setup finished"
+if [ $? != 0 ]; then
+	echo "Something went wrong during input_tuning setup, aborting!"
+	exit -1
+fi
+
+echo "Starting simulation job"
+srun -n 128 $SNUDDA_DIR/../examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/input/input_tuning.py simulate $NETWORK_DIR
+
+if [ $? != 0 ]; then
+	echo "Something went wrong during input_tuning simulation, aborting!"
+	exit -1
+fi
+
+srun -n 1 python $SNUDDA_DIR/input/input_tuning.py analyse $NETWORK_DIR --inputType $inputType
+if [ $? != 0 ]; then
+	echo "Something went wrong during input_tuning analyse, aborting!"
+	exit -1
+fi
+
+srun -n 1 python plot_network_simulation.py --nametag $NETWORK_NAME --doHistRast 0 --doinpFreqVsSpikerate 0 --doTraces 1 --doInpRast 1 --inputFile "input.hdf5" --inputType $inputType --neuronType $neuronType
+if [ $? != 0 ]; then
+	echo "Something went wrong during plot_network_simulation.py, aborting!"
+	exit -1
+fi
+
+srun -n 1 python $SNUDDA_DATA_TOOLS/analyse_data_and_create_meta.py $NETWORK_DIR --networkName $NETWORK_NAME --neuronsPath $neurons_path --inputType $inputType --neuronType $neuronType --singleNeuronType $singleNeuronType
+if [ $? != 0 ]; then
+	echo "Something went wrong during analyse_data_and_create_meta.py aborting!"
+	exit -1
+fi
+
+#################################################################################################
+
+useMeta=1
+srun -n 1 python $SNUDDA_DIR/input/input_tuning.py setup $NETWORK_DIR --neurons $neurons_path --neuronType $neuronType --singleNeuronType $neurons_path --numInputMin $numInputMin --numInputMax $numInputMax --inputFrequency [1.0] --numInputSteps $steps --inputDuration 10.0 --inputType $inputType --useMeta $useMeta
+
+echo "Setup finished"
+if [ $? != 0 ]; then
+	echo "Something went wrong during input_tuning setup, aborting!"
+	exit -1
+fi
+
+echo "Starting simulation job"
+srun -n 128 $SNUDDA_DIR/../examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/input/input_tuning.py simulate $NETWORK_DIR
+
+if [ $? != 0 ]; then
+	echo "Something went wrong during input_tuning simulation, aborting!"
+	exit -1
+fi
+
+inputType=corticalthalamic #used as dummy to name figures now, but perhaps implement later to tune both types of inputs in one go (perhaps use useMeta)
+srun -n 1 python $SNUDDA_DIR/input/input_tuning.py analyse $NETWORK_DIR --inputType $inputType
+if [ $? != 0 ]; then
+	echo "Something went wrong during input_tuning analyse, aborting!"
+	exit -1
+fi
+
+srun -n 1 python plot_network_simulation.py --nametag $NETWORK_NAME --doHistRast 0 --doinpFreqVsSpikerate 0 --doTraces 1 --doInpRast 1 --inputFile "input.hdf5" --inputType $inputType --neuronType $neuronType
+if [ $? != 0 ]; then
+	echo "Something went wrong during plot_network_simulation.py, aborting!"
+	exit -1
+fi
+##################################################################################################
+echo "JOB END "`date` 

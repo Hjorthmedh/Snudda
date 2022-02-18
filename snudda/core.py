@@ -386,7 +386,8 @@ class Snudda(object):
                          rc=self.rc,
                          random_seed=random_seed,
                          h5libver=h5libver,
-                         verbose=args.verbose)
+                         verbose=args.verbose,
+                         useMeta=args.useMeta)
         si.generate()
 
         self.stop_parallel()

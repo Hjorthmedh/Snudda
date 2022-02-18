@@ -1,0 +1,34 @@
+#!/bin/bash -l
+#SBATCH --partition=main
+#SBATCH -t 0:30:00
+#SBATCH -J plotSnuddaSim
+#SBATCH -A snic2021-5-492
+#SBATCH --nodes=1
+#SBATCH --tasks-per-node=1
+
+#old  2020-5-636
+#Previous 5 nodes 5 tasks-per-note
+
+echo "JOB START "`date` 
+
+#NETWORK_NAME=PD2_1k_spn03
+#NETWORK_NAME=PD0_1k_spn02
+#NETWORK_NAME=PD0_1k_spn01
+#NETWORK_NAME=PD2_1k_spn01
+NETWORK_NAME=PD2_1k_spn02
+
+NETWORK_DIR=networks/$NETWORK_NAME
+
+#source setup_env.sh
+module load snic-env
+source ../../../snudda_env/bin/activate
+
+#python plot_network_simulation.py
+#python plot_network_simulation.py PD0
+#python plot_network_simulation.py PD1
+#python plot_network_simulation.py PD2
+#python plot_network_simulation.py PD3
+#python plot_network_simulation.py --nametag $NETWORK_NAME --doHistRast 0 --doinpFreqVsSpikerate 0 --doTraces 1 --doInpRast 1 --inputFile "input.hdf5"
+srun python plot_network_simulation.py --nametag $NETWORK_NAME --doHistRast 0 --doinpFreqVsSpikerate 1 --doTraces 0 --doInpRast 0
+
+echo "JOB END "`date` 
