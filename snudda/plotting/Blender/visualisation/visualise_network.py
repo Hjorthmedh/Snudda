@@ -413,14 +413,20 @@ class VisualiseNetwork(object):
                 line_radius.append(neuron[value[-1]][4] / scale_f)
             else:
                 # Add Bezier curve for previous data
-                VisualiseNetwork.add_bezier(curve_parent=a, line_points=line_points, line_radius=line_radius)
+                VisualiseNetwork.add_bezier(curve_parent=a,
+                                            line_points=line_points,
+                                            line_radius=line_radius,
+                                            detail_level=detail_level)
                 line_points = []
                 line_radius = []
 
             last = key
 
         # Add the last line
-        VisualiseNetwork.add_bezier(curve_parent=a, line_points=line_points, line_radius=line_radius)
+        VisualiseNetwork.add_bezier(curve_parent=a,
+                                    line_points=line_points,
+                                    line_radius=line_radius,
+                                    detail_level=detail_level)
         line_points = []
         line_radius = []
 
@@ -429,10 +435,24 @@ class VisualiseNetwork(object):
         return {'FINISHED'}
 
     @staticmethod
-    def add_bezier(curve_parent, line_points, line_radius):
+    def add_bezier(curve_parent, line_points, line_radius, detail_level=1):
 
         if len(line_points) == 0:
             return
+
+        if detail_level > 2:
+            # Only soma
+            return
+
+        if detail_level == 2:
+            # Keep only end points and middle point
+            if len(line_radius) > 3:
+                line_points = [line_points[0],
+                               line_points[int(len(line_radius)/2)],
+                               line_points[-1]]
+                line_radius = [line_radius[0],
+                               line_radius[int(len(line_radius)/2)],
+                               line_radius[-1]]
 
         tracer = bpy.data.curves.new('tracer', 'CURVE')
         tracer.dimensions = '3D'
