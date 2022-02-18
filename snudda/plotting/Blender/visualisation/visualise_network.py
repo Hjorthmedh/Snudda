@@ -491,6 +491,11 @@ class VisualiseNetwork(object):
 
         # move nodes to objects
         spline.bezier_points.foreach_set("co", unpack_list(line_points))
-        spline.bezier_points.foreach_set("radius", unpack_list(line_radius))
-        spline.bezier_points.foreach_set("handle_right_type", unpack_list(['VECTOR'] * len(line_radius)))
-        spline.bezier_points.foreach_set("handle_left_type", unpack_list(['VECTOR'] * len(line_radius)))
+        # spline.bezier_points.foreach_set("radius", unpack_list(line_radius))
+        # spline.bezier_points.foreach_set("handle_right_type", unpack_list(["VECTOR"] * len(line_radius)))
+        # spline.bezier_points.foreach_set("handle_left_type", unpack_list(["VECTOR"] * len(line_radius)))
+
+        for p, r in zip(spline.bezier_points, line_radius):
+            p.radius = r
+            p.handle_right_type = "VECTOR"
+            p.handle_left_type = "VECTOR"
