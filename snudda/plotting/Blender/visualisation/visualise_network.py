@@ -499,3 +499,7 @@ class VisualiseNetwork(object):
             p.radius = r
             p.handle_right_type = "VECTOR"
             p.handle_left_type = "VECTOR"
+
+
+# TODO: Look for speedup -- https://blender.stackexchange.com/questions/7358/python-performance-with-blender-operators
+# TODO: https://blenderartists.org/t/python-slowing-down-over-time/569534/8
