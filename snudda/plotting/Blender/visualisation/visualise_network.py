@@ -2,6 +2,8 @@
 # Tested using Blender 2.93. Should not be used with older version of Blender.
 
 import bpy
+from bpy_extras.io_utils import unpack_list
+
 import os
 import mathutils
 import numpy as np
@@ -373,6 +375,9 @@ class VisualiseNetwork(object):
 
         last = -10.0
 
+        line_points = []
+        line_radius = []
+
         ''' Create object '''
         for key, value in neuron.items():
             # value contains: 0: type, 1: x, 2: y, 3: z, 4: r, 5: parent
@@ -403,55 +408,50 @@ class VisualiseNetwork(object):
             if value[0] == 10:
                 continue
 
-            # if we need to start a new bezier curve
-            if value[-1] != last:
-                # trace the origins
-                tracer = bpy.data.curves.new('tracer', 'CURVE')
-                tracer.dimensions = '3D'
-                spline = tracer.splines.new('BEZIER')
-
-                curve = bpy.data.objects.new('curve', tracer)
-                curve.data.use_fill_caps = True  # Added 2019-06-17
-
-                bpy.context.scene.collection.objects.link(curve)
-
-                # render ready curve
-                tracer.resolution_u = 8
-                tracer.bevel_resolution = 8  # Set bevel resolution from Panel options
-                tracer.fill_mode = 'FULL'
-                tracer.bevel_depth = 1.0  # 0.001 # Set bevel depth from Panel options --- THIS REPLACES scale_f when setting radius
-
-                # move nodes to objects
-                p = spline.bezier_points[0]
-                p.co = [neuron[value[-1]][1] / scale_f, neuron[value[-1]][2] / scale_f, neuron[value[-1]][3] / scale_f]
-                # !!! Fixed a radie bug, was [5] should be [4] -- the first column is already removed /Johannes
-                p.radius = neuron[value[-1]][4] / scale_f
-                p.handle_right_type = 'VECTOR'
-                p.handle_left_type = 'VECTOR'
-
-                if last > 0:
-                    spline.bezier_points.add(1)
-                    p = spline.bezier_points[-1]
-                    p.co = [value[1] / scale_f, value[2] / scale_f, value[3] / scale_f]
-                    # !!! Fixed a radie bug, was [5] should be [4]
-                    p.radius = value[4] / scale_f
-                    p.handle_right_type = 'VECTOR'
-                    p.handle_left_type = 'VECTOR'
-
-                curve.parent = a
-
-            # if we can continue the last bezier curve
             if value[-1] == last:
-                spline.bezier_points.add(1)
-                p = spline.bezier_points[-1]
-                p.co = [value[1] / scale_f, value[2] / scale_f, value[3] / scale_f]
-                # !!! Fixed a radie bug, was [5] should be [4]
-                p.radius = value[4] / scale_f
-                p.handle_right_type = 'VECTOR'
-                p.handle_left_type = 'VECTOR'
+                line_points.append([neuron[value[-1]][1] / scale_f, neuron[value[-1]][2] / scale_f, neuron[value[-1]][3] / scale_f])
+                line_radius.append(neuron[value[-1]][4] / scale_f)
+            else:
+                # Add Bezier curve for previous data
+                VisualiseNetwork.add_bezier(curve_parent=a, line_points=line_points, line_radius=line_radius)
+                line_points = []
+                line_radius = []
 
             last = key
+
+        # Add the last line
+        VisualiseNetwork.add_bezier(curve_parent=a, line_points=line_points, line_radius=line_radius)
+        line_points = []
+        line_radius = []
 
         a.select_set(True)
 
         return {'FINISHED'}
+
+    @staticmethod
+    def add_bezier(curve_parent, line_points, line_radius):
+
+        if len(line_points) == 0:
+            return
+
+        tracer = bpy.data.curves.new('tracer', 'CURVE')
+        tracer.dimensions = '3D'
+        spline = tracer.splines.new('BEZIER')
+
+        curve = bpy.data.objects.new('curve', tracer)
+        curve.data.use_fill_caps = True  # Added 2019-06-17
+        curve.parent = curve_parent
+
+        bpy.context.scene.collection.objects.link(curve)
+
+        # render ready curve
+        tracer.resolution_u = 8
+        tracer.bevel_resolution = 8
+        tracer.fill_mode = 'FULL'
+        tracer.bevel_depth = 1.0
+
+        # move nodes to objects
+        spline.bezier_points.foreach_set("co", unpack_list(line_points))
+        spline.bezier_points.foreach_set("radius", unpack_list(line_radius))
+        spline.bezier_points.foreach_set("handle_right_type", unpack_list(['VECTOR'] * len(line_radius)))
+        spline.bezier_points.foreach_set("handle_left_type", unpack_list(['VECTOR'] * len(line_radius)))
