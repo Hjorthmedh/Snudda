@@ -142,7 +142,7 @@ class VisualiseNetwork(object):
                            "fs": mat_fs,
                            "chin": mat_chin,
                            "lts": mat_lts,
-                           "snr_neuron": mat_snr,
+                           "SNrNeuron": mat_snr,
                            "Proto": mat_proto,
                            "Akry": mat_arky,
                            "synapse": mat_synapse,
