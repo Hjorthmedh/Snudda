@@ -2,7 +2,7 @@
 #Sets general global environment variable and virtual environment for jobs
 echo "Setting up environment"
 #Activate virual environement
-source ../../../snudda_env/bin/activate
+source ../../../../../snudda_env/bin/activate
 ####################################################################
 #Probably most frequency changed variables
 ####################################################################

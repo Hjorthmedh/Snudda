@@ -13,7 +13,7 @@ module load snic-env
 export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/.ipython"
 rm -r $IPYTHONDIR
 export IPYTHON_PROFILE=mpi
-source ../../../snudda_env/bin/activate
+source ../../../../../snudda_env/bin/activate
 
 chmod +x Beskow_runSnudda.sh
 #./Beskow_runSnudda.sh PD0
