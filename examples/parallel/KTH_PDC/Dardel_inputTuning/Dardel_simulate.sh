@@ -32,7 +32,7 @@ echo "Network dir: "$NETWORK_DIR
 
 ##############
 echo "Loading environment"
-source ../../../snudda_env/bin/activate
+source ../../../../../snudda_env/bin/activate
 module load snic-env
 # --- I have tried with the gnu compiler, and also with the cray compiler
 module swap PrgEnv-cray PrgEnv-gnu

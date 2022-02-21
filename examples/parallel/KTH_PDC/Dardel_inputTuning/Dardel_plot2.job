@@ -21,7 +21,7 @@ NETWORK_DIR=networks/$NETWORK_NAME
 
 #source setup_env.sh
 module load snic-env
-source ../../../snudda_env/bin/activate
+source ../../../../../snudda_env/bin/activate
 
 #python plot_network_simulation.py
 #python plot_network_simulation.py PD0

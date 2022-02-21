@@ -8,7 +8,7 @@
 
 #old  2020-5-636 
 module load snic-env
-source ../../../snudda_env/bin/activate
+source ../../../../../snudda_env/bin/activate
 
 
 chmod +x Beskow_setup_input.sh
