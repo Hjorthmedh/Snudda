@@ -545,7 +545,9 @@ class SnuddaInput(object):
 
                             # If a dictionary, then extract the info for the relevant neuron
                             if type(input_inf["nInputs"]) == OrderedDict:
-                                if neuron_name in input_inf["nInputs"]:
+                                if morphology_key in input_inf["nInputs"]:
+                                    n_inp = input_inf["nInputs"][morphology_key]
+                                elif neuron_name in input_inf["nInputs"]:
                                     n_inp = input_inf["nInputs"][neuron_name]
                                 elif neuron_type in input_inf["nInputs"]:
                                     n_inp = input_inf["nInputs"][neuron_type]

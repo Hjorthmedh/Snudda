@@ -2,6 +2,8 @@
 # Tested using Blender 2.93. Should not be used with older version of Blender.
 
 import bpy
+from bpy_extras.io_utils import unpack_list
+
 import os
 import mathutils
 import numpy as np
@@ -50,11 +52,30 @@ class VisualiseNetwork(object):
             self.sl.import_json(self.network_json)
             self.data = self.sl.data
 
-    def visualise(self, neuron_id=None, blender_output_image=None, white_background=True,
+    def visualise(self,
+                  neuron_id=None,
+                  blender_output_image=None,
+                  white_background=True,
                   show_synapses=True,
                   camera_location=None,
                   camera_rotation=None,
-                  camera_scale=None):
+                  camera_scale=None,
+                  detail_level=1):
+
+        """
+            Visualise network in blender.
+
+            Args:
+                neuron_id (list) : Neuron ID to visualise, default None means all
+                blender_output_image
+                white_background
+                show_synapses
+                camera_location
+                camera_rotation
+                camera_scale
+                detail_level (int) : 1 = full morphologies, 2 = reduced morphologies, 3 = soma only
+
+        """
 
         if neuron_id:
             neurons = [self.data["neurons"][x] for x in neuron_id]
@@ -94,10 +115,10 @@ class VisualiseNetwork(object):
             bg.inputs[1].default_value = 0.0
 
         # Define materials
-        mat_msd1 = bpy.data.materials.new("PKHG")
-        mat_msd1.diffuse_color = (77. / 255, 151. / 255, 1.0, 0.5)
-        mat_msd2 = bpy.data.materials.new("PKHG")
-        mat_msd2.diffuse_color = (67. / 255, 55. / 255, 181. / 255, 0.5)
+        mat_dspn = bpy.data.materials.new("PKHG")
+        mat_dspn.diffuse_color = (77. / 255, 151. / 255, 1.0, 0.5)
+        mat_ispn = bpy.data.materials.new("PKHG")
+        mat_ispn.diffuse_color = (67. / 255, 55. / 255, 181. / 255, 0.5)
         mat_fs = bpy.data.materials.new("PKHG")
         mat_fs.diffuse_color = (6. / 255, 31. / 255, 85. / 255, 1.0)
         mat_chin = bpy.data.materials.new("PKHG")
@@ -106,18 +127,24 @@ class VisualiseNetwork(object):
         mat_lts.diffuse_color = (150. / 255, 63. / 255, 212. / 255, 1.0)
         mat_snr = bpy.data.materials.new("PKHG")
         mat_snr.diffuse_color = (200. / 255, 50. / 255, 50. / 255, 1.0)
+        mat_arky = bpy.data.materials.new("PKHG")
+        mat_arky.diffuse_color = (0.5, 0.0, 0.5)
+        mat_proto = bpy.data.materials.new("PKHG")
+        mat_proto.diffuse_color = (0.5, 0.0, 0.5)
+
         mat_other = bpy.data.materials.new("PKHG")
         mat_other.diffuse_color = (0.4, 0.4, 0.4, 1.0)
-
         mat_synapse = bpy.data.materials.new("PKHG")
 
-        material_lookup = {"dspn": mat_msd1,
-                           "ispn": mat_msd2,
+        material_lookup = {"dspn": mat_dspn,
+                           "ispn": mat_ispn,
                            "fsn": mat_fs,
                            "fs": mat_fs,
                            "chin": mat_chin,
                            "lts": mat_lts,
-                           "SNr": mat_snr,
+                           "SNrNeuron": mat_snr,
+                           "Proto": mat_proto,
+                           "Akry": mat_arky,
                            "synapse": mat_synapse,
                            "other": mat_other}
 
@@ -157,7 +184,7 @@ class VisualiseNetwork(object):
                 obj.name = f"{neuron['name']}-{neuron['neuronID']}"
                 VisualiseNetwork.link_object(obj)
             else:
-                VisualiseNetwork.read_swc_data(snudda_parse_path(neuron["morphology"]))
+                VisualiseNetwork.read_swc_data(snudda_parse_path(neuron["morphology"]), detail_level=detail_level)
                 obj = bpy.context.selected_objects[0]
                 obj.name = f"{neuron['name']}-{neuron['neuronID']}"
 
@@ -246,7 +273,8 @@ class VisualiseNetwork(object):
                             VisualiseNetwork.link_object(obj)
 
                         else:
-                            bpy.ops.mesh.primitive_uv_sphere_add(radius=0.001 * 4,location=(x, y, z), scale=(1, 1, 1))
+                            bpy.ops.mesh.primitive_uv_sphere_add(radius=0.001 * 4, location=(x, y, z), scale=(1, 1, 1),
+                                                                 segments=16, ring_count=8)
                             obj = bpy.context.selected_objects[0]
                             obj.active_material = mat_synapse
                             obj.select_set(False)
@@ -314,7 +342,16 @@ class VisualiseNetwork(object):
         bpy.ops.object.delete(del_list)
 
     @staticmethod
-    def read_swc_data(filepath):
+    def read_swc_data(filepath, detail_level=1):
+
+        """
+            Read SWC file
+
+            Args:
+                filepath (str) : Path to SWC file
+                detail_level (int) : Detail level 1 = full detail, 2 = reduced quality, 3 = soma only
+
+        """
         scale_f = 1000   # factor to downscale the data
         ''' read swc file '''
         print(filepath)
@@ -363,19 +400,32 @@ class VisualiseNetwork(object):
 
         last = -10.0
 
+        line_points = []
+        line_radius = []
+
         ''' Create object '''
         for key, value in neuron.items():
+            # value contains: 0: type, 1: x, 2: y, 3: z, 4: r, 5: parent
 
             if value[0] == 1:
+
+                if detail_level > 1:
+                    segments = 10
+                    ring_count = 5
+                else:
+                    segments = 32
+                    ring_count = 16
+
                 # This is the soma, add it
                 soma_radie = value[-2]
-                bpy.ops.mesh.primitive_uv_sphere_add(
-                    location=(value[1] / scale_f, value[2] / scale_f, value[3] / scale_f), radius=soma_radie / scale_f)
-                # bpy.ops.mesh.primitive_uv_sphere_add(location=(value[1],value[2], value[3]),scale=(scale_f,scale_f,scale_f), radius=somaRadie)
+                bpy.ops.mesh.primitive_uv_sphere_add(segments=segments,
+                                                     ring_count=ring_count,
+                                                     location=(value[1]/scale_f, value[2]/scale_f, value[3]/scale_f),
+                                                     radius=soma_radie/scale_f)
                 soma_obj = bpy.context.selected_objects[0]
                 soma_obj.parent = a
 
-                print("Adding soma " + str(value))
+                print(f"Adding soma {value}")
 
             if value[-1] == -1:
                 continue
@@ -383,58 +433,79 @@ class VisualiseNetwork(object):
             if value[0] == 10:
                 continue
 
-            # if we need to start a new bezier curve
-            if value[-1] != last:
-                # trace the origins
-                tracer = bpy.data.curves.new('tracer', 'CURVE')
-                tracer.dimensions = '3D'
-                spline = tracer.splines.new('BEZIER')
-
-                curve = bpy.data.objects.new('curve', tracer)
-                curve.data.use_fill_caps = True  # Added 2019-06-17
-
-                bpy.context.scene.collection.objects.link(curve)
-
-                # render ready curve
-                tracer.resolution_u = 8
-                tracer.bevel_resolution = 8  # Set bevel resolution from Panel options
-                tracer.fill_mode = 'FULL'
-                tracer.bevel_depth = 1.0  # 0.001 # Set bevel depth from Panel options --- THIS REPLACES scale_f when setting radius
-
-                # move nodes to objects
-                p = spline.bezier_points[0]
-                p.co = [neuron[value[-1]][1] / scale_f, neuron[value[-1]][2] / scale_f, neuron[value[-1]][3] / scale_f]
-                # !!! Fixed a radie bug, was [5] should be [4] -- the first column is already removed /Johannes
-                p.radius = neuron[value[-1]][4] / scale_f
-                p.handle_right_type = 'VECTOR'
-                p.handle_left_type = 'VECTOR'
-
-                # import pdb
-                # pdb.set_trace()
-
-                if last > 0:
-                    spline.bezier_points.add(1)
-                    p = spline.bezier_points[-1]
-                    p.co = [value[1] / scale_f, value[2] / scale_f, value[3] / scale_f]
-                    # !!! Fixed a radie bug, was [5] should be [4]
-                    p.radius = value[4] / scale_f
-                    p.handle_right_type = 'VECTOR'
-                    p.handle_left_type = 'VECTOR'
-
-                curve.parent = a
-
-            # if we can continue the last bezier curve
             if value[-1] == last:
-                spline.bezier_points.add(1)
-                p = spline.bezier_points[-1]
-                p.co = [value[1] / scale_f, value[2] / scale_f, value[3] / scale_f]
-                # !!! Fixed a radie bug, was [5] should be [4]
-                p.radius = value[4] / scale_f
-                p.handle_right_type = 'VECTOR'
-                p.handle_left_type = 'VECTOR'
+                line_points.append([neuron[value[-1]][1] / scale_f, neuron[value[-1]][2] / scale_f, neuron[value[-1]][3] / scale_f])
+                line_radius.append(neuron[value[-1]][4] / scale_f)
+            else:
+                # Add Bezier curve for previous data
+                VisualiseNetwork.add_bezier(curve_parent=a,
+                                            line_points=line_points,
+                                            line_radius=line_radius,
+                                            detail_level=detail_level)
+                line_points = []
+                line_radius = []
 
             last = key
+
+        # Add the last line
+        VisualiseNetwork.add_bezier(curve_parent=a,
+                                    line_points=line_points,
+                                    line_radius=line_radius,
+                                    detail_level=detail_level)
+        line_points = []
+        line_radius = []
 
         a.select_set(True)
 
         return {'FINISHED'}
+
+    @staticmethod
+    def add_bezier(curve_parent, line_points, line_radius, detail_level=1):
+
+        if len(line_points) == 0:
+            return
+
+        if detail_level > 2:
+            # Only soma
+            return
+
+        if detail_level == 2:
+            # Keep only end points and middle point
+            if len(line_radius) > 3:
+                line_points = [line_points[0],
+                               line_points[int(len(line_radius)/2)],
+                               line_points[-1]]
+                line_radius = [line_radius[0],
+                               line_radius[int(len(line_radius)/2)],
+                               line_radius[-1]]
+
+        tracer = bpy.data.curves.new('tracer', 'CURVE')
+        tracer.dimensions = '3D'
+        spline = tracer.splines.new('BEZIER')
+
+        curve = bpy.data.objects.new('curve', tracer)
+        curve.data.use_fill_caps = True  # Added 2019-06-17
+        curve.parent = curve_parent
+
+        bpy.context.scene.collection.objects.link(curve)
+
+        # render ready curve
+        tracer.resolution_u = 8
+        tracer.bevel_resolution = 8
+        tracer.fill_mode = 'FULL'
+        tracer.bevel_depth = 1.0
+
+        # move nodes to objects
+        spline.bezier_points.foreach_set("co", unpack_list(line_points))
+        # spline.bezier_points.foreach_set("radius", unpack_list(line_radius))
+        # spline.bezier_points.foreach_set("handle_right_type", unpack_list(["VECTOR"] * len(line_radius)))
+        # spline.bezier_points.foreach_set("handle_left_type", unpack_list(["VECTOR"] * len(line_radius)))
+
+        for p, r in zip(spline.bezier_points, line_radius):
+            p.radius = r
+            p.handle_right_type = "VECTOR"
+            p.handle_left_type = "VECTOR"
+
+
+# TODO: Look for speedup -- https://blender.stackexchange.com/questions/7358/python-performance-with-blender-operators
+# TODO: https://blenderartists.org/t/python-slowing-down-over-time/569534/8
