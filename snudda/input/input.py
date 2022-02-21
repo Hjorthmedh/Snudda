@@ -87,22 +87,28 @@ class SnuddaInput(object):
         elif input_config_file:
             self.network_path = os.path.dirname(input_config_file)
         else:
-            self.network_path = ""
+            self.network_path = None
 
         if input_config_file:
             self.input_config_file = input_config_file
-        else:
+        elif self.network_path:
             self.input_config_file = os.path.join(self.network_path, "input.json")
+        else:
+            self.input_config_file = None
 
         if spike_data_filename:
             self.spike_data_filename = spike_data_filename
-        else:
+        elif self.network_path:
             self.spike_data_filename = os.path.join(self.network_path, "input-spikes.hdf5")
+        else:
+            self.spike_data_filename = None
 
         if hdf5_network_file:
             self.hdf5_network_file = hdf5_network_file
-        else:
+        elif self.network_path:
             self.hdf5_network_file = os.path.join(self.network_path, "network-synapses.hdf5")
+        else:
+            self.hdf5_network_file = None
 
         self.time_interval_overlap_warning = time_interval_overlap_warning
         self.input_info = None
@@ -119,20 +125,25 @@ class SnuddaInput(object):
         self.neuron_input = None
         self.slurm_id = None
 
-        self.snudda_load = SnuddaLoad(self.hdf5_network_file)
-        self.network_data = self.snudda_load.data
-        self.neuron_info = self.network_data["neurons"]
+        self.snudda_load = None
+        self.network_data = None
+        self.neuron_info = None
 
-        self.network_config_file = self.network_data["configFile"]
-        self.position_file = self.network_data["positionFile"]
+        self.network_config_file = None
+        self.position_file = None
 
-        self.axon_stump_id_flag = self.network_data["axonStumpIDFlag"]
-        self.network_slurm_id = self.network_data["SlurmID"]
-        self.population_unit_id = self.network_data["populationUnit"]
+        self.axon_stump_id_flag = None
+        self.network_slurm_id = None
+        self.population_unit_id = []
 
-        self.neuron_id = [n["neuronID"] for n in self.network_data["neurons"]]
-        self.neuron_name = [n["name"] for n in self.network_data["neurons"]]
-        self.neuron_type = [n["type"] for n in self.network_data["neurons"]]
+        self.neuron_id = []
+        self.neuron_name = []
+        self.neuron_type = []
+
+        if self.hdf5_network_file:
+            self.load_network(self.hdf5_network_file)
+        else:
+            print("No network file specified, use load_network to load network info")
 
         if time:
             self.time = time  # How long time to generate inputs for
@@ -149,6 +160,26 @@ class SnuddaInput(object):
         self.neuron_cache = dict([])
 
         self.is_master = is_master
+
+    def load_network(self, hdf5_network_file=None):
+
+        if hdf5_network_file is None:
+            hdf5_network_file = self.hdf5_network_file
+
+        self.snudda_load = SnuddaLoad(hdf5_network_file)
+        self.network_data = self.snudda_load.data
+        self.neuron_info = self.network_data["neurons"]
+
+        self.network_config_file = self.network_data["configFile"]
+        self.position_file = self.network_data["positionFile"]
+
+        self.axon_stump_id_flag = self.network_data["axonStumpIDFlag"]
+        self.network_slurm_id = self.network_data["SlurmID"]
+        self.population_unit_id = self.network_data["populationUnit"]
+
+        self.neuron_id = [n["neuronID"] for n in self.network_data["neurons"]]
+        self.neuron_name = [n["name"] for n in self.network_data["neurons"]]
+        self.neuron_type = [n["type"] for n in self.network_data["neurons"]]
 
     def generate(self):
 
@@ -543,10 +574,20 @@ class SnuddaInput(object):
 
                             # TODO: We need to read this from meta.json
 
+                            dir_name = os.path.basename(neuron_path)
+                            print(f"dir_name = {dir_name}")
+
                             # If a dictionary, then extract the info for the relevant neuron
+                            # Priority order is:
+                            # 1. Morphology key, 2: neuron directory name,
+                            # 3: Neuron name (note this can change if additional neurons are added to neuron type dir)
+                            # 4: Neuron type
+
                             if type(input_inf["nInputs"]) == OrderedDict:
                                 if morphology_key in input_inf["nInputs"]:
                                     n_inp = input_inf["nInputs"][morphology_key]
+                                elif dir_name in input_inf["nInputs"]:
+                                    n_inp = input_inf["nInputs"][dir_name]
                                 elif neuron_name in input_inf["nInputs"]:
                                     n_inp = input_inf["nInputs"][neuron_name]
                                 elif neuron_type in input_inf["nInputs"]:
@@ -855,7 +896,8 @@ class SnuddaInput(object):
     #                  (population unit Spikes are the spikes shared between correlated
     #                   spike trains)
 
-    def make_correlated_spikes(self, freq, time_range, num_spike_trains, p_keep, rng,
+    def make_correlated_spikes(self,
+                               freq, time_range, num_spike_trains, p_keep, rng,
                                population_unit_spikes=None,
                                ret_pop_unit_spikes=False, jitter_dt=None):
 
