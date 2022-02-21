@@ -97,7 +97,7 @@ def snudda_cli():
     input_parser.add_argument("--verbose", action="store_true")
     input_parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
     input_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
-    input_parser.add_argument("--useMeta", help="Use meta.json as stimulation input", type=int, default=1)
+    input_parser.add_argument("-no_meta_input","--no_meta_input", help="Do not use meta.json as stimulation input", action="store_true", default=False)
 
     simulate_parser = sub_parsers.add_parser("simulate")
     simulate_parser.add_argument("path", help="Location of network")
