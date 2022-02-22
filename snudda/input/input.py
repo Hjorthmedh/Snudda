@@ -76,7 +76,7 @@ class SnuddaInput(object):
         if type(logfile) == str:
             self.logfile = open(logfile, "w")
         else:
-            self.logfile =  logfile
+            self.logfile = logfile
 
         self.verbose = verbose
         self.rc = rc
