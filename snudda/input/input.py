@@ -575,7 +575,6 @@ class SnuddaInput(object):
                             # TODO: We need to read this from meta.json
 
                             dir_name = os.path.basename(neuron_path)
-                            print(f"dir_name = {dir_name}")
 
                             # If a dictionary, then extract the info for the relevant neuron
                             # Priority order is:

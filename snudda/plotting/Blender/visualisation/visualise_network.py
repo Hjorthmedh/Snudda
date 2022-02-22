@@ -59,6 +59,7 @@ class VisualiseNetwork(object):
                   white_background=True,
                   show_synapses=True,
                   draw_meshes=True,
+                  full_meshes=None,
                   camera_location=None,
                   camera_rotation=None,
                   camera_scale=None,
@@ -310,6 +311,11 @@ class VisualiseNetwork(object):
 
         if draw_meshes:
             self.add_all_meshes()
+
+        if full_meshes:
+            for struct, mesh_file in full_meshes.items():
+                self.add_mesh_structure(mesh_file=snudda_parse_path(mesh_file), colour=(0.1, 0.1, 0.1),
+                                    alpha=0.1)
 
         bpy.ops.object.camera_add(enter_editmode=False, align='VIEW',
                                   location=camera_location,
