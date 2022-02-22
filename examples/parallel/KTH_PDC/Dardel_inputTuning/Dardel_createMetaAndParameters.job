@@ -1,0 +1,20 @@
+#!/bin/bash -l
+#SBATCH --partition=shared
+#SBATCH -t 0:10:00
+#SBATCH -J snuddaInputTuning
+#SBATCH -A snic2021-5-492
+#SBATCH -n 1
+
+#Set NETWORK_DIR, PROJECT_DIR, SNUDDA_DATA, and more 
+source setup_env.sh
+
+echo "STARTING analyse_data_and_create_meta.py"
+neurons_path=$SNUDDA_DATA/neurons/striatum/$neuronType/$singleNeuronType
+
+srun python $SNUDDA_DATA_TOOLS/bgmod2bgdata.py --source $source --morphSource $neurons_path --destination $neurons_path
+if [ $? != 0 ]; then
+	echo "Something went wrong during bgmod2bgdata.py aborting!"
+	exit -1
+fi
+
+echo "JOB END "`date` 
