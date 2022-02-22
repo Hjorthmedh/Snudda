@@ -3,7 +3,7 @@
 	"CorticalBase" : {
 	    "generator" : "poisson",
 	    "type" : "AMPA_NMDA",
-	    "synapseDensity" : "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "synapseDensity" : "50*1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
 	    "frequency" : 1,
 	    "populationUnitCorrelation" : 0.0,
 	    "jitter" : 0.002,
@@ -30,7 +30,7 @@
 	"Thalamic" : {
 	    "generator" : "poisson",	    
 	    "type" : "AMPA_NMDA",
-	    "synapseDensity" : "0.05*exp(-d/200e-6)",
+	    "synapseDensity" : "20*0.05*exp(-d/200e-6)",
 	    "frequency" : 1,
 	    "populationUnitCorrelation" : 0.0,
 	    "jitter" : 0.01,
@@ -86,7 +86,7 @@
 	"Cortical" : {
 	    "generator" : "poisson",	    
 	    "type" : "AMPA_NMDA",
-	    "synapseDensity": "0.092*(1-exp(-d/200e-6))",	    
+	    "synapseDensity": "50*0.092*(1-exp(-d/200e-6))",	    
 	    "frequency" : 1,
 	    "populationUnitCorrelation" : 0.2,
 	    "jitter" : 0.001,
@@ -99,7 +99,7 @@
 	    "start" : [2.0, 4.0, 7.0],
 	    "end" : [2.5, 4.5, 7.5],
 	    "type" : "AMPA_NMDA",
-	    "synapseDensity": "0.038*(1-exp(-d/200e-6))",
+	    "synapseDensity": "50*0.038*(1-exp(-d/200e-6))",
 	    "frequency" : [1, 10, 100],
 	    "populationUnitCorrelation" : 0.6,
 	    "jitter" : 0.003,
@@ -118,10 +118,10 @@
 	    "modFile":"tmGlut",
 	    "parameterFile":"$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-FS.json",
 	    "nInputs" : {
-		"FS_0" : 600,
-		"FS_1" : 1000,
+		"FS_0" : 2000,
+		"FS_1" : 3000,
 		"FS_2" : 1300,
-		"FS_3" : 800
+		"FS_3" : 1800
 	    }
 	}
 
