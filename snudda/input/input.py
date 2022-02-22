@@ -12,6 +12,9 @@
 
 # Smith, Galvan, ..., Bolam 2014 -- Bra info om thalamic inputs, CM/PF
 #
+
+# TODO: Randomise conductance for the inputs and store it, use it later when adding external synapses in simulate.py
+
 import sys
 from collections import OrderedDict
 
@@ -29,12 +32,12 @@ from snudda.utils.load import SnuddaLoad
 
 nl = None
 
+
 # When specifying vectors for start and end time, they should normally not overlap
 # if we want to allow that, set time_interval_overlap_warning = False
 
 
 class SnuddaInput(object):
-
     """ Generates input for the simulation. """
 
     def __init__(self,
@@ -49,7 +52,8 @@ class SnuddaInput(object):
                  random_seed=None,
                  time_interval_overlap_warning=True,
                  logfile=None,
-                 verbose=False):
+                 verbose=False,
+                 use_meta_input=True):
 
         """
         Constructor.
@@ -84,27 +88,33 @@ class SnuddaInput(object):
         elif input_config_file:
             self.network_path = os.path.dirname(input_config_file)
         else:
-            self.network_path = ""
+            self.network_path = None
 
         if input_config_file:
             self.input_config_file = input_config_file
-        else:
+        elif self.network_path:
             self.input_config_file = os.path.join(self.network_path, "input.json")
+        else:
+            self.input_config_file = None
 
         if spike_data_filename:
             self.spike_data_filename = spike_data_filename
-        else:
+        elif self.network_path:
             self.spike_data_filename = os.path.join(self.network_path, "input-spikes.hdf5")
+        else:
+            self.spike_data_filename = None
 
         if hdf5_network_file:
             self.hdf5_network_file = hdf5_network_file
-        else:
+        elif self.network_path:
             self.hdf5_network_file = os.path.join(self.network_path, "network-synapses.hdf5")
+        else:
+            self.hdf5_network_file = None
 
         self.time_interval_overlap_warning = time_interval_overlap_warning
         self.input_info = None
         self.population_unit_spikes = None
-        self.all_population_units = None # List of all population units in simulation
+        self.all_population_units = None  # List of all population units in simulation
 
         self.num_population_units = None
         self.population_unit_id = None
@@ -116,20 +126,27 @@ class SnuddaInput(object):
         self.neuron_input = None
         self.slurm_id = None
 
-        self.snudda_load = SnuddaLoad(self.hdf5_network_file)
-        self.network_data = self.snudda_load.data
-        self.neuron_info = self.network_data["neurons"]
+        self.snudda_load = None
+        self.network_data = None
+        self.neuron_info = None
 
-        self.network_config_file = self.network_data["configFile"]
-        self.position_file = self.network_data["positionFile"]
+        self.network_config_file = None
+        self.position_file = None
 
-        self.axon_stump_id_flag = self.network_data["axonStumpIDFlag"]
-        self.network_slurm_id = self.network_data["SlurmID"]
-        self.population_unit_id = self.network_data["populationUnit"]
+        self.axon_stump_id_flag = None
+        self.network_slurm_id = None
+        self.population_unit_id = []
 
-        self.neuron_id = [n["neuronID"] for n in self.network_data["neurons"]]
-        self.neuron_name = [n["name"] for n in self.network_data["neurons"]]
-        self.neuron_type = [n["type"] for n in self.network_data["neurons"]]
+        self.use_meta_input=use_meta_input
+
+        self.neuron_id = []
+        self.neuron_name = []
+        self.neuron_type = []
+
+        if self.hdf5_network_file:
+            self.load_network(self.hdf5_network_file)
+        else:
+            print("No network file specified, use load_network to load network info")
 
         if time:
             self.time = time  # How long time to generate inputs for
@@ -146,6 +163,26 @@ class SnuddaInput(object):
         self.neuron_cache = dict([])
 
         self.is_master = is_master
+
+    def load_network(self, hdf5_network_file=None):
+
+        if hdf5_network_file is None:
+            hdf5_network_file = self.hdf5_network_file
+
+        self.snudda_load = SnuddaLoad(hdf5_network_file)
+        self.network_data = self.snudda_load.data
+        self.neuron_info = self.network_data["neurons"]
+
+        self.network_config_file = self.network_data["configFile"]
+        self.position_file = self.network_data["positionFile"]
+
+        self.axon_stump_id_flag = self.network_data["axonStumpIDFlag"]
+        self.network_slurm_id = self.network_data["SlurmID"]
+        self.population_unit_id = self.network_data["populationUnit"]
+
+        self.neuron_id = [n["neuronID"] for n in self.network_data["neurons"]]
+        self.neuron_name = [n["name"] for n in self.network_data["neurons"]]
+        self.neuron_type = [n["type"] for n in self.network_data["neurons"]]
 
     def generate(self):
 
@@ -419,7 +456,6 @@ class SnuddaInput(object):
         end_list = []
         synapse_density_list = []
         num_inputs_list = []
-        p_keep_list = []
         population_unit_spikes_list = []
         jitter_dt_list = []
         population_unit_id_list = []
@@ -430,10 +466,15 @@ class SnuddaInput(object):
         parameter_file_list = []
         parameter_list_list = []
         cluster_size_list = []
+        cluster_spread_list = []
 
         dendrite_location_override_list = []
+        if self.use_meta_input:
+                print("--------- Meta.json will be used")
+        else:
+                print("--------- Meta.json will NOT be used")
 
-        for (neuron_id, neuron_name, neuron_type, populationUnitID) \
+        for (neuron_id, neuron_name, neuron_type, population_unit_id) \
                 in zip(self.neuron_id, self.neuron_name, self.neuron_type, self.population_unit_id):
 
             self.neuron_input[neuron_id] = dict([])
@@ -463,8 +504,7 @@ class SnuddaInput(object):
             morphology_key = self.network_data["neurons"][neuron_id]["morphologyKey"]
             neuron_path = self.network_data["neurons"][neuron_id]["neuronPath"]
             meta_path = os.path.join(neuron_path, "meta.json")
-
-            if os.path.exists(meta_path):
+            if self.use_meta_input and os.path.exists(meta_path):
                 with open(meta_path, "r") as f:
                     meta_data = json.load(f)
 
@@ -490,11 +530,11 @@ class SnuddaInput(object):
                 if "populationUnitID" in input_inf:
                     pop_unit_id = int(input_inf["populationUnitID"])
 
-                    if type(pop_unit_id) == list and populationUnitID not in pop_unit_id:
+                    if type(pop_unit_id) == list and population_unit_id not in pop_unit_id:
                         # We have a list of functional channels, but this neuron
                         # does not belong to a functional channel in that list
                         continue
-                    elif populationUnitID != pop_unit_id:
+                    elif population_unit_id != pop_unit_id:
                         # We have a single functional channel, but this neuron is not
                         # in that functional channel
                         continue
@@ -507,11 +547,6 @@ class SnuddaInput(object):
                     neuron_id_list.append(neuron_id)
                     input_type_list.append(input_type)
                     freq_list.append(input_inf["frequency"])
-
-                    if "populationUnitCorrelation" in input_inf:
-                        p_keep_list.append(np.sqrt(input_inf["populationUnitCorrelation"]))
-                    else:
-                        p_keep_list.append(0)
 
                     if "jitter" in input_inf:
                         jitter_dt_list.append(input_inf["jitter"])
@@ -545,9 +580,20 @@ class SnuddaInput(object):
 
                             # TODO: We need to read this from meta.json
 
+                            dir_name = os.path.basename(neuron_path)
+
                             # If a dictionary, then extract the info for the relevant neuron
+                            # Priority order is:
+                            # 1. Morphology key, 2: neuron directory name,
+                            # 3: Neuron name (note this can change if additional neurons are added to neuron type dir)
+                            # 4: Neuron type
+
                             if type(input_inf["nInputs"]) == OrderedDict:
-                                if neuron_name in input_inf["nInputs"]:
+                                if morphology_key in input_inf["nInputs"]:
+                                    n_inp = input_inf["nInputs"][morphology_key]
+                                elif dir_name in input_inf["nInputs"]:
+                                    n_inp = input_inf["nInputs"][dir_name]
+                                elif neuron_name in input_inf["nInputs"]:
                                     n_inp = input_inf["nInputs"][neuron_name]
                                 elif neuron_type in input_inf["nInputs"]:
                                     n_inp = input_inf["nInputs"][neuron_type]
@@ -581,7 +627,7 @@ class SnuddaInput(object):
                     synapse_density_list.append(synapse_density)
                     num_inputs_list.append(n_inp)
 
-                    population_unit_id_list.append(populationUnitID)
+                    population_unit_id_list.append(population_unit_id)
                     conductance_list.append(cond)
 
                     if "populationUnitCorrelation" in input_inf:
@@ -590,10 +636,12 @@ class SnuddaInput(object):
                         correlation_list.append(0)
 
                     if (neuron_type in self.population_unit_spikes
-                         and input_type in self.population_unit_spikes[neuron_type]
-                             and populationUnitID in self.population_unit_spikes[neuron_type][input_type]):
+                            and input_type in self.population_unit_spikes[neuron_type]
+                            and population_unit_id in self.population_unit_spikes[neuron_type][input_type]):
 
-                        c_spikes = self.population_unit_spikes[neuron_type][input_type][populationUnitID]
+                        # TODO: Currently only correlated within a neuron type for a given population unit
+                        #       should the spikes be shared between all neuron types in that population unit?
+                        c_spikes = self.population_unit_spikes[neuron_type][input_type][population_unit_id]
                         population_unit_spikes_list.append(c_spikes)
                     else:
                         # self.write_log(f"No population spikes specified for neuron type {neuron_type}")
@@ -608,7 +656,13 @@ class SnuddaInput(object):
                     else:
                         cluster_size = None
 
+                    if "clusterSpread" in input_inf:
+                        cluster_spread = input_inf["clusterSpread"]
+                    else:
+                        cluster_spread = 20e-6
+
                     cluster_size_list.append(cluster_size)
+                    cluster_spread_list.append(cluster_spread)
 
                     if "dendriteLocation" in input_info:
                         assert "morphologyKey" in input_info, \
@@ -636,14 +690,6 @@ class SnuddaInput(object):
 
         seed_list = self.generate_seeds(num_states=len(neuron_id_list))
 
-        # The old code had so that all neurons within a population unit shared the same
-        # mother process, which caused them all to activate at the same time
-        # with high probability. By setting channelSpikeList to None we disable it
-        if False:
-            self.write_log("Clearing populationUnitSpikesList, " 
-                           "thus all neurons will have their own mother process for each input",  force_print=True)
-            population_unit_spikes_list = [None for x in population_unit_spikes_list]
-
         amr = None
 
         # Lets try and swap self.lbView for self.dView
@@ -662,7 +708,6 @@ class SnuddaInput(object):
                                   end_list,
                                   synapse_density_list,
                                   num_inputs_list,
-                                  p_keep_list,
                                   population_unit_spikes_list,
                                   jitter_dt_list,
                                   population_unit_id_list,
@@ -673,6 +718,7 @@ class SnuddaInput(object):
                                   parameter_list_list,
                                   seed_list,
                                   cluster_size_list,
+                                  cluster_spread_list,
                                   dendrite_location_override_list))
 
             self.d_view.scatter("input_list", input_list, block=True)
@@ -702,7 +748,6 @@ class SnuddaInput(object):
                       end_list,
                       synapse_density_list,
                       num_inputs_list,
-                      p_keep_list,
                       population_unit_spikes_list,
                       jitter_dt_list,
                       population_unit_id_list,
@@ -713,12 +758,13 @@ class SnuddaInput(object):
                       parameter_list_list,
                       seed_list,
                       cluster_size_list,
+                      cluster_spread_list,
                       dendrite_location_override_list)
 
         # Gather the spikes that were generated in parallel
         for neuron_id, input_type, spikes, loc, synapse_density, frq, \
             jdt, p_uid, cond, corr, timeRange, \
-                mod_file, paramFile, paramList, paramID in amr:
+            mod_file, paramFile, paramList, paramID in amr:
             self.write_log(f"Gathering {neuron_id} - {input_type}")
             self.neuron_input[neuron_id][input_type]["spikes"] = spikes
 
@@ -778,8 +824,8 @@ class SnuddaInput(object):
                 freq = freq_list
 
             assert len(time_range[0]) == len(time_range[1]) == len(freq), \
-                (f"Frequency, start and end time vectors need to be of same length." 
-                    f"\nfreq: {freq}\nstart: {time_range[0]}\nend:{time_range[1]}")
+                (f"Frequency, start and end time vectors need to be of same length."
+                 f"\nfreq: {freq}\nstart: {time_range[0]}\nend:{time_range[1]}")
 
             if self.time_interval_overlap_warning:
                 assert (np.array(time_range[0][1:]) - np.array(time_range[1][0:-1]) >= 0).all(), \
@@ -855,8 +901,9 @@ class SnuddaInput(object):
     #                  (population unit Spikes are the spikes shared between correlated
     #                   spike trains)
 
-    def make_correlated_spikes(self, freq, time_range, num_spike_trains, p_keep, rng,
-                               population_unit_spikes=None, 
+    def make_correlated_spikes(self,
+                               freq, time_range, num_spike_trains, p_keep, rng,
+                               population_unit_spikes=None,
                                ret_pop_unit_spikes=False, jitter_dt=None):
 
         """
@@ -874,7 +921,7 @@ class SnuddaInput(object):
 
         """
 
-        assert (0 <= p_keep <= 1)
+        assert (0 <= p_keep <= 1), f"p_keep = {p_keep} should be between 0 and 1"
 
         if population_unit_spikes is None:
             population_unit_spikes = self.generate_spikes(freq, time_range, rng=rng)
@@ -1069,7 +1116,7 @@ class SnuddaInput(object):
         """ From the master seed, generate a seed sequence for inputs. """
 
         ss = np.random.SeedSequence(self.random_seed)
-        all_seeds = ss.generate_state(num_states+1)
+        all_seeds = ss.generate_state(num_states + 1)
 
         return all_seeds[1:]  # First seed in sequence is reserved for master
 
@@ -1144,6 +1191,7 @@ class SnuddaInput(object):
                                  synapse_density=None,
                                  num_spike_trains=None,
                                  cluster_size=None,
+                                 cluster_spread=30e-6,
                                  input_type=None):
 
         """
@@ -1155,6 +1203,7 @@ class SnuddaInput(object):
             synapse_density (str): Distance function f(d)
             num_spike_trains (int): Number of spike trains
             cluster_size (int): Size of each synaptic cluster (None = No clustering)
+            cluster_spread (float): Spread of cluster along dendrite (in meters)
             input_type (str): Type of input, eg. "Cortical" or "Thalamic"
         """
 
@@ -1220,7 +1269,9 @@ class SnuddaInput(object):
 
         return morphology.dendrite_input_locations(synapse_density=synapse_density,
                                                    num_locations=num_spike_trains,
-                                                   rng=rng, cluster_size=cluster_size)
+                                                   rng=rng,
+                                                   cluster_size=cluster_size,
+                                                   cluster_spread=cluster_spread)
 
     ############################################################################
 
@@ -1260,7 +1311,7 @@ class SnuddaInput(object):
                           "hdf5_network_file": self.hdf5_network_file,
                           "is_master": False,
                           "time": self.time,
-                          "h5libver" : self.h5libver,
+                          "h5libver": self.h5libver,
                           "random_seed": self.random_seed})
 
         self.write_log(f"Scattering engineLogFile = {engine_logfile}")
@@ -1277,10 +1328,10 @@ class SnuddaInput(object):
                        f", time={self.time}, logfile={log_filename[0]})")
 
         cmd_str = ("global nl; nl = SnuddaInput(network_path=network_path, "
-                   "input_config_file=input_config_file, " 
+                   "input_config_file=input_config_file, "
                    "spike_data_filename=spike_data_filename, "
                    "hdf5_network_file=hdf5_network_file,"
-                   "is_master=is_master,time=time, " 
+                   "is_master=is_master,time=time, "
                    "h5libver=h5libver, "
                    " random_seed=random_seed, logfile=log_filename[0])")
 
@@ -1340,9 +1391,10 @@ class SnuddaInput(object):
 
         try:
 
-            neuron_id, input_type, freq, start, end, synapse_density, num_spike_trains, p_keep, \
-                population_unit_spikes, jitter_dt, population_unit_id, conductance, correlation, mod_file, \
-                parameter_file, parameter_list, random_seed, cluster_size, dendrite_location_override = args
+            neuron_id, input_type, freq, start, end, synapse_density, num_spike_trains, \
+            population_unit_spikes, jitter_dt, population_unit_id, conductance, correlation, mod_file, \
+            parameter_file, parameter_list, random_seed, cluster_size, cluster_spread, \
+            dendrite_location_override = args
 
             return self.make_input_helper_serial(neuron_id=neuron_id,
                                                  input_type=input_type,
@@ -1351,7 +1403,6 @@ class SnuddaInput(object):
                                                  t_end=end,
                                                  synapse_density=synapse_density,
                                                  num_spike_trains=num_spike_trains,
-                                                 p_keep=p_keep,
                                                  population_unit_spikes=population_unit_spikes,
                                                  jitter_dt=jitter_dt,
                                                  population_unit_id=population_unit_id,
@@ -1362,6 +1413,7 @@ class SnuddaInput(object):
                                                  parameter_list=parameter_list,
                                                  random_seed=random_seed,
                                                  cluster_size=cluster_size,
+                                                 cluster_spread=cluster_spread,
                                                  dendrite_location=dendrite_location_override)
 
         except:
@@ -1387,7 +1439,6 @@ class SnuddaInput(object):
                                  t_end,
                                  synapse_density,
                                  num_spike_trains,
-                                 p_keep,
                                  population_unit_spikes,
                                  jitter_dt,
                                  population_unit_id,
@@ -1398,6 +1449,7 @@ class SnuddaInput(object):
                                  parameter_list,
                                  random_seed,
                                  cluster_size=None,
+                                 cluster_spread=None,
                                  dendrite_location=None):
 
         """
@@ -1411,16 +1463,17 @@ class SnuddaInput(object):
             t_end: End time of input
             synapse_density: Density function f(d), d=distance to soma along dendrite
             num_spike_trains: Number of spike trains
-            p_keep: Probability to keep channel spike (p_keep = 100% correlated)
             jitter_dt: Amount of time to jitter all spikes
             population_unit_spikes: Population unit spikes
             population_unit_id: Population unit ID
-            conductance: Condutance
+            conductance: Conductance
+            correlation: correlation
             mod_file: Mod file
             parameter_file: Parameter file for input synapses
             parameter_list: Parameter list (to inline parameters, instead of reading from file)
             random_seed: Random seed.
             cluster_size: Input synapse cluster size
+            cluster_spread: Spread of cluster along dendrite (in meters)
             dendrite_location: Override location of dendrites, list of (sec_id, sec_x) tuples.
             """
 
@@ -1442,6 +1495,9 @@ class SnuddaInput(object):
             # Virtual neurons input handled through touch detection
             input_loc = None
 
+            num_inputs = 1
+            p_keep = 1 / (num_inputs - np.sqrt(correlation) * (num_inputs - 1))
+
             spikes = self.make_correlated_spikes(freq=freq,
                                                  time_range=time_range,
                                                  num_spike_trains=1,
@@ -1449,7 +1505,6 @@ class SnuddaInput(object):
                                                  population_unit_spikes=population_unit_spikes,
                                                  jitter_dt=jitter_dt,
                                                  rng=rng)
-            num_inputs = 1
         else:
 
             if dendrite_location:
@@ -1467,10 +1522,16 @@ class SnuddaInput(object):
                                                           num_spike_trains=num_spike_trains,
                                                           rng=rng,
                                                           cluster_size=cluster_size,
+                                                          cluster_spread=cluster_spread,
                                                           input_type=input_type)
 
             num_inputs = input_loc[0].shape[0]
             self.write_log(f"Generating {num_inputs} inputs for {self.neuron_name[neuron_id]}")
+
+            if num_inputs > 0:
+                p_keep = 1 / (num_inputs - np.sqrt(correlation) * (num_inputs - 1))
+            else:
+                p_keep = 0
 
             # OBS, nInputs might differ slightly from nSpikeTrains if that is given
             spikes = self.make_correlated_spikes(freq=freq,

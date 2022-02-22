@@ -97,6 +97,7 @@ def snudda_cli():
     input_parser.add_argument("--verbose", action="store_true")
     input_parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
     input_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
+    input_parser.add_argument("-no_meta_input","--no_meta_input", help="Do not use meta.json as stimulation input", action="store_true", default=False)
 
     simulate_parser = sub_parsers.add_parser("simulate")
     simulate_parser.add_argument("path", help="Location of network")
@@ -125,6 +126,7 @@ def snudda_cli():
     simulate_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     simulate_parser.add_argument("--verbose", action="store_true")
     simulate_parser.add_argument("--exportCoreNeuron", action="store_true")
+    simulate_parser.add_argument("--recordALL", dest="record_all", type=str, default=None)
 
     export_parser = sub_parsers.add_parser("export")
     export_parser.add_argument("path", help="Location of network")

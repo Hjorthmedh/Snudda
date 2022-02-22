@@ -209,7 +209,7 @@ class RegionMesh(object):
                     ic = np.floor((x_point - self.min_coord) / self.bin_width)
                     self.voxel_mask_border[int(ic[0]), int(ic[1]), int(ic[2])] = 1
 
-        self.write_log(f"maxN = {max_num}")
+        self.write_log(f"max_num = {max_num}")
 
     def __del__(self):
         if self.close_log_file:

@@ -155,7 +155,7 @@
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
-                    "f1": 0.38,
+                    "f1": 0.28500000000000003,
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 1.0,
@@ -163,7 +163,7 @@
                     "cluster": false
                 },
                 "pruningOther": {
-                    "f1": 0.38,
+                    "f1": 0.28500000000000003,
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 1.0,
@@ -192,7 +192,7 @@
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
-                    "f1": 0.2,
+                    "f1": 0.164,
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 1.0,
@@ -200,7 +200,7 @@
                     "cluster": false
                 },
                 "pruningOther": {
-                    "f1": 0.2,
+                    "f1": 0.164,
                     "softMax": 3,
                     "mu2": 2.4,
                     "a3": 1.0,
@@ -249,7 +249,7 @@
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
-                    "f1": 0.3,
+                    "f1": 0.279,
                     "softMax": 4,
                     "mu2": 2.4,
                     "a3": 1.0,
@@ -257,7 +257,7 @@
                     "cluster": false
                 },
                 "pruningOther": {
-                    "f1": 0.3,
+                    "f1": 0.279,
                     "softMax": 4,
                     "mu2": 2.4,
                     "a3": 1.0,
@@ -341,7 +341,7 @@
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
-                    "f1": 1.0,
+                    "f1": 0.3,
                     "softMax": 15,
                     "mu2": 3,
                     "a3": 0.3,
@@ -368,7 +368,7 @@
                     "modFile": "tmGabaA"
                 },
                 "pruning": {
-                    "f1": 1.0,
+                    "f1": 0.3,
                     "softMax": 15,
                     "mu2": 3,
                     "a3": 0.3,

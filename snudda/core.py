@@ -47,6 +47,7 @@ from collections import OrderedDict
 
 import pkg_resources
 import json
+import numpy as np
 
 from snudda.utils import snudda_path
 from snudda.utils.snudda_path import snudda_isfile
@@ -376,6 +377,8 @@ class Snudda(object):
             h5libver = "latest"  # default
 
         print(f"Writing input spikes to {spike_file}")
+        
+        use_meta_input=not args.no_meta_input
 
         si = SnuddaInput(input_config_file=input_config,
                          hdf5_network_file=network_file,
@@ -385,7 +388,8 @@ class Snudda(object):
                          rc=self.rc,
                          random_seed=random_seed,
                          h5libver=h5libver,
-                         verbose=args.verbose)
+                         verbose=args.verbose,
+                         use_meta_input=use_meta_input)
         si.generate()
 
         self.stop_parallel()
@@ -562,6 +566,7 @@ class Snudda(object):
 
                 sim = SnuddaSimulateNeuromodulation(network_file=network_file,
                                                     input_file=input_file,
+                                                    output_file=output_file,
                                                     disable_gap_junctions=disable_gj,
                                                     log_file=log_file,
                                                     verbose=args.verbose)
@@ -576,6 +581,7 @@ class Snudda(object):
 
                 sim = SnuddaSimulateNeuromodulationSynapse(network_file=network_file,
                                                            input_file=input_file,
+                                                           output_file=output_file,
                                                            disable_gap_junctions=disable_gj,
                                                            log_file=log_file,
                                                            neuromodulator_description=neuromod_dict)
@@ -590,6 +596,7 @@ class Snudda(object):
             # Simulate is deterministic, no random seed.
             sim = SnuddaSimulate(network_file=network_file,
                                  input_file=input_file,
+                                 output_file=output_file,
                                  disable_gap_junctions=disable_gj,
                                  log_file=log_file,
                                  verbose=args.verbose)
@@ -599,8 +606,14 @@ class Snudda(object):
         sim.check_memory_status()
 
         if args.record_volt:
-            sim.add_recording(side_len=None)  # Side len let you record from a subset
+            # sim.add_volt_recording_all()
+            sim.add_volt_recording_soma()
             # sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
+
+        if args.record_all:
+            record_cell_id = np.array([int(x) for x in args.record_all.split(",")])
+            sim.add_volt_recording_all(cell_id=record_cell_id)
+            sim.add_synapse_current_recording_all(record_cell_id)
 
         t_sim = args.time * 1000  # Convert from s to ms for Neuron simulator
 
@@ -613,7 +626,7 @@ class Snudda(object):
         sim.run(t_sim)  # In milliseconds
 
         print("Simulation done, saving output")
-        sim.write_output(output_file)
+        sim.write_output()
 
         stop = timeit.default_timer()
         if sim.pc.id() == 0:

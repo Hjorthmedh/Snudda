@@ -1,0 +1,47 @@
+#!/bin/bash -l
+#SBATCH --partition=main
+#SBATCH -t 0:10:00
+#SBATCH -J snuddaInputTuning
+#SBATCH -A snic2021-5-492
+#SBATCH --nodes=1
+#SBATCH --tasks-per-node=1
+
+#Set NETWORK_DIR, PROJECT_DIR, SNUDDA_DATA, and more 
+source setup_env.sh
+
+# Synapse file
+SNUDDA_DIR=$PROJECT_DIR/Snudda/snudda
+NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
+NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
+NETWORK_VOLTAGE_FILE=$NETWORK_DIR/simulation/voltage-trace-${SLURM_JOBID}.txt
+
+echo "Network dir: "$NETWORK_DIR
+
+##############
+echo "Loading environment"
+#source ../../../snudda_env/bin/activate
+module load snic-env
+# --- I have tried with the gnu compiler, and also with the cray compiler
+module swap PrgEnv-cray PrgEnv-gnu
+module unload cray-libsci atp
+export CRAYPE_LINK_TYPE=dynamic
+export CRAY_ROOTFS=DSL
+
+########## Needed for NEURON
+echo "Setting paths needed for Neuron"
+L=$PROJECT_DIR/snudda_env
+LN=$L/neuron
+export PATH=$L/bin:$LN/bin:$PATH
+export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
+export PYTHONPATH=$LN/lib/python:$PYTHONPATH
+
+echo "STARTING analyse_data_and_create_meta.py"
+neurons_path=$SNUDDA_DATA/neurons/striatum/$neuronType/$singleNeuronType
+srun python $SNUDDA_DATA_TOOLS/analyse_data_and_create_meta.py $NETWORK_DIR --networkName $NETWORK_NAME --neuronsPath $neurons_path --input_type $input_type --neuronType $neuronType --singleNeuronType $singleNeuronType
+if [ $? != 0 ]; then
+	echo "Something went wrong during analyse_data_and_create_meta.py aborting!"
+	exit -1
+fi
+
+echo "JOB END "`date` 

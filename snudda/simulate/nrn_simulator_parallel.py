@@ -68,7 +68,7 @@ class NrnSimulatorParallel(ephys.simulators.NrnSimulator):
         else:
             self.neuron.h.dt = dt
             self.neuron.h.steps_per_ms = 1.0 / dt
-            print(f'Running Neuron simulator {tstop:.6g} ms, with dt={dt}%r')
+            print(f'Running Neuron simulator {tstop:.6g} ms, with dt={dt}')
 
         if random123_globalindex is None:
             random123_globalindex = self.random123_globalindex
