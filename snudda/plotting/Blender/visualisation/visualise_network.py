@@ -210,9 +210,9 @@ class VisualiseNetwork(object):
                 self.neuron_cache[neuron["name"]] = obj
 
             obj.rotation_euler = e_rot
-            scale = 1000
-            print(f"Setting neuron {neuron['neuronID']} ({neuron['name']}) position: {neuron['position'] * scale}")
-            obj.location = neuron["position"] * scale
+
+            print(f"Setting neuron {neuron['neuronID']} ({neuron['name']}) position: {neuron['position']}")
+            obj.location = neuron["position"] * self.scale_f
 
             n_type = neuron["type"].lower()
 
@@ -331,8 +331,11 @@ class VisualiseNetwork(object):
 
         mat = bpy.data.materials.new("PKHG")
         mat.diffuse_color = (colour[0], colour[1], colour[2], alpha)
+        mat.use_nodes = True
+        mat.node_tree.nodes["Principled BSDF"].inputs['Alpha'].default_value = alpha
+        mat.node_tree.nodes["Principled BSDF"].inputs['Base Color'].default_value = (colour[0], colour[1], colour[2], alpha)
 
-        structure_object = bpy.ops.import_scene.obj(filepath=mesh_file)
+        structure_object = bpy.ops.import_scene.obj(filepath=mesh_file, axis_up="Z", axis_forward="Y")
         o = bpy.context.selected_objects[0]
         # scale_f = 1000
         o.scale[0] = 1 / self.scale_f
@@ -343,8 +346,8 @@ class VisualiseNetwork(object):
     def add_all_meshes(self):
 
         for name, structure in self.sl.config["Volume"].items():
-            self.add_mesh_structure(mesh_file=snudda_parse_path(structure["meshFile"]), colour=(128, 128, 128),
-                                    alpha=0.5)
+            self.add_mesh_structure(mesh_file=snudda_parse_path(structure["meshFile"]), colour=(0.1, 0.1, 0.1),
+                                    alpha=0.1)
 
     @staticmethod
     def copy_children(parent, parent_copy):
@@ -422,7 +425,8 @@ class VisualiseNetwork(object):
 
         bpy.ops.object.empty_add(type='ARROWS',
                                  location=(
-                                 neuron[1][1] / self.scale_f, neuron[1][2] / self.scale_f, neuron[1][3] / self.scale_f),
+                                     neuron[1][1] / self.scale_f, neuron[1][2] / self.scale_f,
+                                     neuron[1][3] / self.scale_f),
                                  rotation=(0, 0, 0))
         a = bpy.context.selected_objects[0]
         a.name = 'neuron_swc'
