@@ -55,7 +55,7 @@ class InputTuning(object):
         self.max_time = None  # self.input_duration * len(self.frequency_range)
 
         if not os.path.isdir(self.network_path):
-            os.mkdir(self.network_path)
+            os.makedirs(self.network_path)
 
         self.network_config_file_name = os.path.join(self.network_path, "network-config.json")
         self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
@@ -114,7 +114,7 @@ class InputTuning(object):
 
     def setup_input(self, input_type=None, num_input_min=100, num_input_max=1000,
                     input_duration=10,
-                    input_frequency_range=None,useMeta=1):
+                    input_frequency_range=None,use_meta_input=True):
 
         if not input_frequency_range:
             input_frequency_range = [1.0]
@@ -169,7 +169,7 @@ class InputTuning(object):
                          hdf5_network_file=os.path.join(self.network_path, 'network-synapses.hdf5'),
                          spike_data_filename=self.input_spikes_file,
                          time=self.max_time,
-                         logfile=os.path.join(self.network_path,"log","input.txt"),useMeta=useMeta)
+                         logfile=os.path.join(self.network_path,"log","input.txt"),use_meta_input=use_meta_input)
         si.generate()
 
         # Info we need to run right duration of simulation
@@ -178,10 +178,10 @@ class InputTuning(object):
     def analyse_results(self,input_type='', show_plots=False):
         
         frequency_data, voltage_data = self.load_data()
-        self.plot_frequency_data(frequency_data, show_plots=show_plots, input_type2=input_type)
-        self.plot_frequency_data_alt(frequency_data, show_plots=show_plots, input_type2=input_type)
-        self.plot_volt_data(voltage_data, show_plots=show_plots, input_type2=input_type)
-        self.plot_volt_vs_ninputs(voltage_data, show_plots=show_plots, input_type2=input_type)
+        self.plot_frequency_data(frequency_data, show_plots=show_plots, input_type_name=input_type)
+        self.plot_frequency_data_alt(frequency_data, show_plots=show_plots, input_type_name=input_type)
+        self.plot_volt_data(voltage_data, show_plots=show_plots, input_type_name=input_type)
+        self.plot_volt_vs_ninputs(voltage_data, show_plots=show_plots, input_type_name=input_type)
 
         print(f"To plot traces:\n" 
               f"python3 plotting/Network_plot_traces.py {self.network_path}output_volt.txt " 
@@ -197,8 +197,8 @@ class InputTuning(object):
         spike_data = output_data_loader.get_spikes()
 
         # cell_id = output_data_loader.get_id_of_neuron_type()
-        volt, time = output_data_loader.get_voltage()
-
+        volt = output_data_loader.get_voltage()
+        time = output_data_loader.get_time()
         # We need to figure out what neuronID correspond to that morphologies
         # Then figure out what input frequencies the different runs had
 
@@ -350,7 +350,7 @@ class InputTuning(object):
 
         return spike_times
 
-    def plot_volt_data(self, volt_data, show_plots=True, input_type2=''):
+    def plot_volt_data(self, volt_data, show_plots=True, input_type_name=''):
 
         for neuron_name in volt_data:
             fig, ax = plt.subplots()
@@ -381,8 +381,8 @@ class InputTuning(object):
                 plt.show()
                 plt.pause(0.001)
 
-            #fig_name = os.path.join(self.network_path, "figures", f"input-scaling-freq-{neuron_name}-mean-voltage-{input_type2}.pdf")
-            fig_name = os.path.join(self.network_path, "figures", f"input-scaling-freq-{neuron_name}-mean-voltage-{input_type2}.png")
+            #fig_name = os.path.join(self.network_path, "figures", f"input-scaling-freq-{neuron_name}-mean-voltage-{input_type_name}.pdf")
+            fig_name = os.path.join(self.network_path, "figures", f"input-scaling-freq-{neuron_name}-mean-voltage-{input_type_name}.png")
             if not os.path.exists(os.path.dirname(fig_name)):
                 os.mkdir(os.path.dirname(fig_name))
 
@@ -390,7 +390,7 @@ class InputTuning(object):
 
             if not show_plots:
                 plt.close()
-    def plot_volt_vs_ninputs(self, volt_data, show_plots=True, input_type2=''):
+    def plot_volt_vs_ninputs(self, volt_data, show_plots=True, input_type_name=''):
 
         for neuron_name in volt_data:
             fig, ax = plt.subplots()
@@ -423,8 +423,8 @@ class InputTuning(object):
                 plt.show()
                 plt.pause(0.001)
 
-            #fig_name = os.path.join(self.network_path, "figures", f"input-scaling-ninputs-{neuron_name}-mean-voltage-{input_type2}.pdf")
-            fig_name = os.path.join(self.network_path, "figures", f"input-scaling-ninputs-{neuron_name}-mean-voltage-{input_type2}.png")
+            #fig_name = os.path.join(self.network_path, "figures", f"input-scaling-ninputs-{neuron_name}-mean-voltage-{input_type_name}.pdf")
+            fig_name = os.path.join(self.network_path, "figures", f"input-scaling-ninputs-{neuron_name}-mean-voltage-{input_type_name}.png")
             if not os.path.exists(os.path.dirname(fig_name)):
                 os.mkdir(os.path.dirname(fig_name))
 
@@ -436,7 +436,7 @@ class InputTuning(object):
     # TODO: Extract spiking frequency (skip first second for each interval to let network settle)
     # TODO: Create summary graphs
 
-    def plot_frequency_data(self, frequency_data, show_plots=True, input_type2=''):
+    def plot_frequency_data(self, frequency_data, show_plots=True, input_type_name=''):
 
         for neuron_name in frequency_data:
             fig, ax = plt.subplots()
@@ -467,8 +467,8 @@ class InputTuning(object):
                 plt.show()
                 plt.pause(0.001)
 
-            #fig_name = os.path.join(self.network_path, "figures", f"input-scaling-freq-{neuron_name}-{input_type2}.pdf")
-            fig_name = os.path.join(self.network_path, "figures", f"input-scaling-freq-{neuron_name}-{input_type2}.png")
+            #fig_name = os.path.join(self.network_path, "figures", f"input-scaling-freq-{neuron_name}-{input_type_name}.pdf")
+            fig_name = os.path.join(self.network_path, "figures", f"input-scaling-freq-{neuron_name}-{input_type_name}.png")
             if not os.path.exists(os.path.dirname(fig_name)):
                 os.mkdir(os.path.dirname(fig_name))
 
@@ -477,7 +477,7 @@ class InputTuning(object):
             if not show_plots:
                 plt.close()
 
-    def plot_frequency_data_alt(self, frequency_data, show_plots=True, input_type2=''):
+    def plot_frequency_data_alt(self, frequency_data, show_plots=True, input_type_name=''):
 
         _freq_data = dict()
         _all_num_inputs = []
@@ -546,8 +546,8 @@ class InputTuning(object):
                 plt.show()
                 plt.pause(0.001)
 
-            #fig_name = os.path.join(self.network_path, "figures", f"input-scaling-ninputs-{neuron_name}-{input_type2}.pdf")
-            fig_name = os.path.join(self.network_path, "figures", f"input-scaling-ninputs-{neuron_name}-{input_type2}.png")
+            #fig_name = os.path.join(self.network_path, "figures", f"input-scaling-ninputs-{neuron_name}-{input_type_name}.pdf")
+            fig_name = os.path.join(self.network_path, "figures", f"input-scaling-ninputs-{neuron_name}-{input_type_name}.png")
             if not os.path.exists(os.path.dirname(fig_name)):
                 os.mkdir(os.path.dirname(fig_name))
 
@@ -950,7 +950,8 @@ class InputTuning(object):
         sim.add_external_input()
         sim.check_memory_status()
 
-        sim.add_volt_recording()
+        #sim.add_volt_recording()
+        sim.add_volt_recording_soma()
 
         t_sim = self.max_time * 1000  # Convert from s to ms for Neuron simulator
 
@@ -1012,12 +1013,12 @@ if __name__ == "__main__":
     parser.add_argument("networkPath", help="Network path")
     parser.add_argument("--neurons", help="Neurons path")
     parser.add_argument("--mechDir", type=str, help="Path to mechanisms",default=None)
-    parser.add_argument("--inputType", help="Type of external input",
-                        choices=["thalamic", "cortical","corticalthalamic"], default="thalamic")#only use corticalthalamic in analyse
+    parser.add_argument("--input_type", help="Type of external input",
+                        choices=["thalamic", "cortical","corticothalamic"], default="thalamic")#only use corticalthalamic in analyse
     parser.add_argument("--numInputSteps", type=int, help="Number of steps for number of inputs to neurons",
                         default=10)
-    parser.add_argument("--numInputMin", type=int, help="Minimum number of synaptic inputs of inputType", default=100)
-    parser.add_argument("--numInputMax", type=int, help="Maximum number of synaptic inputs of inputType", default=1000)
+    parser.add_argument("--numInputMin", type=int, help="Minimum number of synaptic inputs of input_type", default=100)
+    parser.add_argument("--numInputMax", type=int, help="Maximum number of synaptic inputs of input_type", default=1000)
     parser.add_argument("--inputDuration", type=float, default=10.0,
                         help="Duration of each frequency test, longer need for irregularly firing neurons")
     parser.add_argument("--inputFrequency", type=str, default="[0,1,2,5]",
@@ -1026,7 +1027,7 @@ if __name__ == "__main__":
                         help="Optional, if only we want to simulate one neuron type, eg. FS")
     parser.add_argument("--singleNeuronType", default=None, type=str,
                         help="Optional, if only we want to simulate one neuron subtype, eg. FS_1")
-    parser.add_argument("--useMeta", default=1, type=int)
+    parser.add_argument("--no_meta_input", action="store_true", default=False)
     args = parser.parse_args()
 
     # TODO: Let the user choose input type, duration for each "run", frequency range, number of input range
@@ -1042,12 +1043,12 @@ if __name__ == "__main__":
                                     num_replicas=args.numInputSteps,
                                     neuron_types=args.neuronType,
                                     single_neuron_path=args.singleNeuronType)
-        input_scaling.setup_input(input_type=args.inputType,
+        input_scaling.setup_input(input_type=args.input_type,
                                   num_input_min=args.numInputMin,
                                   num_input_max=args.numInputMax,
                                   input_duration=args.inputDuration,
                                   input_frequency_range=input_frequency,
-                                  useMeta=args.useMeta)
+                                  use_meta_input=not args.no_meta_input)
 
         print("Tip, to run in parallel on your local machine use: "
               "mpiexec -n 4 python3 tuning/input_tuning.py simulate <yournetworkhere>")
@@ -1060,7 +1061,7 @@ if __name__ == "__main__":
 
     elif args.action == "analyse":
         # input_scaling.plot_generated_input()
-        input_scaling.analyse_results(input_type=args.inputType)
+        input_scaling.analyse_results(input_type=args.input_type)
 
 
     else:

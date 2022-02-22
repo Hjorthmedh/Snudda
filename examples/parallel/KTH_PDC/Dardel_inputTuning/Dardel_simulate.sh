@@ -21,7 +21,7 @@ else
 fi
 
 # Synapse file
-SNUDDA_DIR=/cfs/klemming/scratch/${USER:0:1}/$USER/Projects/SnuddaProj09/Snudda/snudda
+SNUDDA_DIR=/cfs/klemming/scratch/${USER:0:1}/$USER/Projects/SnuddaProj10/Snudda/snudda
 
 NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
@@ -42,7 +42,7 @@ export CRAY_ROOTFS=DSL
 
 ########## Needed for NEURON
 echo "Setting paths needed for Neuron"
-L=/cfs/klemming/scratch/${USER:0:1}/$USER/Projects/SnuddaProj09/snudda_env
+L=/cfs/klemming/scratch/${USER:0:1}/$USER/Projects/SnuddaProj10/snudda_env
 LN=$L/neuron
 export PATH=$L/bin:$LN/bin:$PATH
 export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
@@ -67,7 +67,7 @@ export PYTHONPATH=$LN/lib/python:$PYTHONPATH
 # srun -n $N_WORKERS $SNUDDA_DIR/../examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
 
 # GJ active
-srun -n $N_WORKERS $SNUDDA_DIR/../examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 10.0
+srun -n $N_WORKERS $SNUDDA_DIR/../examples/parallel/KTH_PDC/Dardel_inputTuning/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 10.0
 #srun -n $N_WORKERS $SNUDDA_DIR/../examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 3.5
 #srun -n 1 $SNUDDA_DIR/../examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
 

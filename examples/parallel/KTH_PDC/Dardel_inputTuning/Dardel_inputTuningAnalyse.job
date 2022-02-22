@@ -39,7 +39,7 @@ export PYTHONPATH=$LN/lib/python:$PYTHONPATH
 echo "STARTING input_tuning analyse"
 #python $SNUDDA_DIR/input/input_tuning.py setup $NETWORK_DIR --neurons $SNUDDA_DATA/neurons/striatum --neuronType dSPN --numInputMin 100 --numInputMax 200 --inputFrequency [1.0,5.0]
 #srun python $SNUDDA_DIR/input/input_tuning.py analyse $NETWORK_DIR --neurons $SNUDDA_DATA/neurons/striatum --neuronType dSPN
-srun python $SNUDDA_DIR/input/input_tuning.py analyse $NETWORK_DIR --inputType $inputType
+srun python $SNUDDA_DIR/input/input_tuning.py analyse $NETWORK_DIR --input_type $input_type
 if [ $? != 0 ]; then
 	echo "Something went wrong during input_tuning analyse, aborting!"
 	#ipcluster stop	

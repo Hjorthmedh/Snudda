@@ -53,6 +53,6 @@ if [ $? != 0 ]; then
 	exit -1
 fi
 
-srun -n $N_WORKERS $SNUDDA_DIR/../examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/input/input_tuning.py simulate $NETWORK_DIR
+srun -n $N_WORKERS $SNUDDA_DIR/../examples/parallel/KTH_PDC/Dardel_inputTuning/x86_64/special -mpi -python $SNUDDA_DIR/input/input_tuning.py simulate $NETWORK_DIR
 
 echo "JOB END "`date` 

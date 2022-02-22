@@ -45,7 +45,7 @@ steps=$(($numInputMax-$numInputMin))
 steps=250
 echo $numInputMin
 echo $numInputMax
-srun python $SNUDDA_DIR/input/input_tuning.py setup $NETWORK_DIR --neurons $neurons_path --neuronType dspn --singleNeuronType $neurons_path --numInputMin $numInputMin --numInputMax $numInputMax --inputFrequency [1.0] --numInputSteps $steps --inputDuration 10.0 --inputType $inputType --useMeta $useMeta
+srun python $SNUDDA_DIR/input/input_tuning.py setup $NETWORK_DIR --neurons $neurons_path --neuronType dspn --singleNeuronType $neurons_path --numInputMin $numInputMin --numInputMax $numInputMax --inputFrequency '[1.0]' --numInputSteps $steps --inputDuration 10.0 --input_type $input_type $no_meta_input
 
 if [ $? != 0 ]; then
 	echo "Something went wrong during input_tuning setup, aborting!"

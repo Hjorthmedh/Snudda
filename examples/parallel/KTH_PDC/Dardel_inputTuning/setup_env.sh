@@ -18,7 +18,7 @@ export NETWORK_NAME=inptun_PD2_dspn2_01 #str-dspn-e150917_c6_D1-m21-6-DE-v202110
 
 
 export NETWORK_DIR=networks/$NETWORK_NAME
-export PROJECT_DIR=/cfs/klemming/scratch/${USER:0:1}/$USER/Projects/SnuddaProj09
+export PROJECT_DIR=/cfs/klemming/scratch/${USER:0:1}/$USER/Projects/SnuddaProj10
 ####################################################################
 export SNUDDA_DATA_TOOLS=BasalGangliaData/tools
 #SNUDDA_DATA_TOOLS can sometimes be different from $bgdata/tools, so it's better to use separate variable
@@ -83,9 +83,10 @@ export numInputMin=100
 #export numInputMin=150
 #############
 
-export inputType=cortical
-#export inputType=thalamic
-#export inputType=corticalthalamic #used as dummy to name figures now, but perhaps implement later to tune both types of inputs in one go (perhaps use useMeta)
-export useMeta=0
+export input_type=cortical
+#export input_type=thalamic
+#export input_type=corticothalamic #used as dummy to name figures now, but perhaps implement later to tune both types of inputs in one go (perhaps use use_meta_input)
+#export no_meta_input=--no_meta_input
+export no_meta_input=
 
 echo "Environment setup at end"

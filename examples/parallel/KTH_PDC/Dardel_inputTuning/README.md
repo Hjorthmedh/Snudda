@@ -6,7 +6,6 @@ Just be aware that you may have to adapt paths in the batch files (and setup_env
 Use Python 3.7 or above. For example on the Dardel cluster write:
 ```
 module load cray-python
-module load daint-mc
 module swap PrgEnv-cray PrgEnv-gnu
 ``` 
 Change directory in terminal to somewhere you want the clone and the run:
@@ -18,7 +17,7 @@ You probably want to install it in a virtual environment. If so run the followin
 python -m venv snudda_env
 source snudda_env/bin/activate
 ```
-Before we install Snudda, just cd in to the Snudda clone and install some requirements manally:
+Before we install Snudda, just cd in to the Snudda clone and install some requirements manually:
 ```
 cd Snudda
 MPICC=cc pip install mpi4py
@@ -27,10 +26,26 @@ You may want to make sure you have latest pip
 ```
 pip install --upgrade pip
 ```
+The follwoing packages needs to be installed due to input_tuning.py
+```
+pip install quantities
+pip install neo
+pip install elephant
+```
 Then just install requirements and Snudda
 ```
 pip install -r requirements.txt
 pip install -e .[dev]
+```
+
+Now just go in to your script folder, for example /examples/parallel/KTH_PDC/Dardel_inputTuning/, 
+and download your neuron data, for example BasalGangliaData and bgmod. In the example files I've used a reorganized version of bgmod to have only the essential folders,
+so you will need to adapt that.
+Finally, create a link to and compile your neuron mechanisms with the following commands.
+```
+ln -s BasalGangliaData/data/neurons/mechanisms
+rm -r x86_64
+nrnivmodl mechanisms
 ```
 Now the installation is done.
 
@@ -56,13 +71,13 @@ So you can write the following to get 1 hour compute time through bash:
 ```
 salloc --nodes=1 -t 1:00:00 -A snic2021-5-492 -p main
 ```
-Lets say you wanted to run Dardel_plot.job. So first you might have to run: 
+Lets say you wanted to run Dardel_plot_input_tuning.job. So first you might have to run: 
 ```
-chmod +x Dardel_plot.job
+chmod +x Dardel_plot_input_tuning.job
 ```
 Then just run: 
 ```
-./Dardel_plot.job
+./Dardel_plot_input_tuning.job
 ```
 I've had some problems with the jobs that use parallel computing when running like this in bash.
 So I would only do it for the jobs that use 1 node and 1 task per node (srun -n 1 ....).
@@ -87,7 +102,7 @@ Tuning of background input to neurons (number of input synapses VS neuron membra
 Creates input.hdf5.
 First time, run it with cortical input (inputType=cortical in setup_env.sh).
 It runs input_tuning.py setup.
-Make sure useMeta=0 in setup_env.sh.
+Make sure no_meta_input=--no_meta_input in setup_env.sh.
 ```
 sbatch Dardel_inputTuningSetup.job
 ```
@@ -105,7 +120,7 @@ sbatch Dardel_inputTuningAnalyse.job
 ```
 Plots traces and input spikes.
 ```
-sbatch Dardel_plot.job
+sbatch Dardel_plot_input_tuning.job
 ```
 Check which membr pot are in accepted range and inserts the passed voltages in to meta.json.
 Runs BasalGangliaData/tools/analyse_data_and_create_meta.py
@@ -114,23 +129,23 @@ Runs BasalGangliaData/tools/analyse_data_and_create_meta.py
 sbatch Dardel_transfer2Meta.job
 ```
 Now run input tuning setup with thalamic input (change inputType to thalamic in setup_env.sh).
-Make sure useMeta=0 in setup_env.sh
+Make sure no_meta_input=--no_meta_input in setup_env.sh
 ```
 sbatch Dardel_inputTuningSetup.job
 sbatch Dardel_inputTuningSimulate.job 
 sbatch Dardel_inputTuningAnalyse.job
-sbatch Dardel_plot.job
+sbatch Dardel_plot_input_tuning.job
 sbatch Dardel_transfer2Meta.job
 ```
 Now make the input tuning setup again , and it will show only the input from meta.json (no step changes).
-Set useMeta=1 in setup_env.sh
+Set no_meta_input= in setup_env.sh
 ```
 sbatch Dardel_inputTuningSetup.job
 sbatch Dardel_inputTuningSimulate.job
 ```
 Now also set inputType=corticalthalamic in setup_env.sh, in order to name figures differently.
 ```
-sbatch Dardel_plot.job
+sbatch Dardel_plot_input_tuning.job
 sbatch Dardel_inputTuningAnalyse.job
 ```
 #################################################################################################

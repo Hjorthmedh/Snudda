@@ -71,7 +71,8 @@ class PlotTraces:
         self.output_load = SnuddaLoadNetworkSimulation(network_simulation_output_file=output_file,
                                                        network_path=network_path)
 
-        self.voltage, self.time = self.output_load.get_voltage()
+        self.voltage = self.output_load.get_voltage()
+        self.time = self.output_load.get_time()
 
     ############################################################################
 
@@ -249,7 +250,7 @@ class PlotTraces:
 
         time.sleep(1)
         return fig
-        def plot_traces_sep(self, trace_id=None, offset=150e-3, colours=None, skip_time=None,
+    def plot_traces_sep(self, trace_id=None, offset=150e-3, colours=None, skip_time=None,
                     title=None, fig_name=None, fig_size=None, folderName=''):
         #Plot traces and save as separate images
         if skip_time is not None:

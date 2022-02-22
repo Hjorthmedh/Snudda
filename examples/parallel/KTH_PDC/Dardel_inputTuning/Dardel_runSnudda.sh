@@ -59,7 +59,7 @@ else
 	exit -1
     fi
     #################################################################################################################
-    python removeConnections.py ${JOBDIR} #Removes all synapses between neurons, but does not touch cortical/thalamic input
+    python remove_connections.py ${JOBDIR} #Removes all synapses between neurons, but does not touch cortical/thalamic input
     #################################################################################################################
     echo "SLURM_NODELIST = $SLURM_NODELIST"
     
