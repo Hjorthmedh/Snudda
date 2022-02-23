@@ -57,15 +57,16 @@ class SnuddaLoadNetworkSimulation:
 
         n_spikes = 0
         for spikes in spike_data.values():
-            n_spikes += len(spikes)
+            n_spikes += spikes.size
 
         merged_spike_data = np.full((n_spikes, 2), np.nan)
         idx = 0
 
         for neuron_id, spikes in spike_data.items():
-            merged_spike_data[idx:idx+len(spikes), 0] = spikes
-            merged_spike_data[idx:idx+len(spikes), 1] = neuron_id
-            idx += len(spikes)
+            if spikes.size > 0:
+                merged_spike_data[idx:idx+spikes.size, 0] = spikes
+                merged_spike_data[idx:idx+spikes.size, 1] = neuron_id
+                idx += spikes.size
 
         # Sort the spikes after time
         idx = np.argsort(merged_spike_data[:, 0])
