@@ -36,8 +36,8 @@ class SnuddaPlotSpikeRaster2:
 
         self.spike_time = spike_data[:, 0]
         self.spike_neuron_id = spike_data[:, 1].astype(int)
-        #self.traces = self.snudda_simulation_load.get_voltage()
-        self.traces, self.time = self.snudda_simulation_load.get_voltage()
+        self.traces = self.snudda_simulation_load.get_voltage()
+        self.time = self.snudda_simulation_load.get_time()
 
     def make_figures_directory(self):
 
