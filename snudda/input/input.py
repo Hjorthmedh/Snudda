@@ -470,9 +470,9 @@ class SnuddaInput(object):
 
         dendrite_location_override_list = []
         if self.use_meta_input:
-                print("--------- Meta.json will be used")
+            self.write_log("Input from meta.json will be used")
         else:
-                print("--------- Meta.json will NOT be used")
+            self.write_log("Input from meta.json will NOT be used")
 
         for (neuron_id, neuron_name, neuron_type, population_unit_id) \
                 in zip(self.neuron_id, self.neuron_name, self.neuron_type, self.population_unit_id):
