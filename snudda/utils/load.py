@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
+import json
+import sys
+import timeit
 from collections import OrderedDict
 
 import numpy as np
-import timeit
-import json
-import sys
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
 
 
 class SnuddaLoad(object):
-
     """
     Load data from network-neuron-positions.hdf5 or network-neuron-synapses.hdf5 into python dictionary
     """
@@ -219,7 +218,7 @@ class SnuddaLoad(object):
                 # !!! Convert from voxel idx to coordinates
                 if f["network/synapses"].shape[0] > 0:
                     data["synapseCoords"] = f["network/synapses"][:, 2:5] * f["meta/voxelSize"][()] \
-                        + f["meta/simulationOrigo"][()]
+                                            + f["meta/simulationOrigo"][()]
                 else:
                     data["synapseCoords"] = np.zeros((3, 0))
             else:
@@ -340,7 +339,7 @@ class SnuddaLoad(object):
             axon_density_type, axon_density, axon_density_radius, \
             axon_density_bounds_xyz, \
             morph, neuron_path, \
-            parameter_id, morphology_id, modulation_id,\
+            parameter_id, morphology_id, modulation_id, \
             parameter_key, morphology_key, modulation_key \
                 in zip(hdf5_file["network/neurons/name"][:],
                        hdf5_file["network/neurons/neuronID"][:],
@@ -786,7 +785,6 @@ class SnuddaLoad(object):
 
 
 def snudda_load_cli():
-
     """ Command line parser for SnuddaLoad script """
 
     from argparse import ArgumentParser
@@ -863,7 +861,7 @@ def snudda_load_cli():
             if args.detailed:
                 idx = np.where(synapses[0][:, 0] == nid)
                 for i in idx[0]:
-                    print(f" -- SegID {synapses[0][i, 9]}, SegX {synapses[0][i, 10]*1e-3:.4f}, "
+                    print(f" -- SegID {synapses[0][i, 9]}, SegX {synapses[0][i, 10] * 1e-3:.4f}, "
                           f"Coord: {synapses[1][i, :]}")
 
                 print("")
@@ -881,7 +879,7 @@ def snudda_load_cli():
             if args.detailed:
                 idx = np.where(synapses[0][:, 1] == nid)
                 for i in idx[0]:
-                    print(f" -- SegID {synapses[0][i, 9]}, SegX {synapses[0][i, 10]*1e-3:.4f}, "
+                    print(f" -- SegID {synapses[0][i, 9]}, SegX {synapses[0][i, 10] * 1e-3:.4f}, "
                           f"Coord: {synapses[1][i, :]}")
 
                 print("")
