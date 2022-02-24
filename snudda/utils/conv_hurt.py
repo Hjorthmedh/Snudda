@@ -1,11 +1,13 @@
 # Must have a __init__.py file in module directory
 
-import json
-import h5py
 import csv
-from collections import OrderedDict
+import json
 import os
+from collections import OrderedDict
+
+import h5py
 import numpy as np
+
 
 # TODO: This needs to be updated to match the latest SONATA release.
 
@@ -103,9 +105,9 @@ class ConvHurt(object):
         # subsequent elements are the inputs (can be more than one)
 
         node_files = [OrderedDict([("nodes_file", sim_node),
-                                  ("node_types_file", sim_node_type)])]
+                                   ("node_types_file", sim_node_type)])]
         node_files += [OrderedDict([("nodes_file", os.path.join("$NETWORK_DIR", x, f"{x}_nodes.hdf5")),
-                                   ("node_types_file", os.path.join("$NETWORK_DIR", x, f"{x}_node_types.csv"))])
+                                    ("node_types_file", os.path.join("$NETWORK_DIR", x, f"{x}_node_types.csv"))])
                        for x in input_structures]
 
         edge_files = [OrderedDict([("edges_file", sim_edge), ("edge_types_file", sim_edge_type)])]
@@ -460,7 +462,7 @@ if __name__ == "__main__":
     edge_data = OrderedDict([("sec_id", np.array([10, 22, 33, 24, 15])),
                              ("sec_x", np.array([0.1, 0.3, 0.5, 0.2, 0])),
                              ("syn_weight", np.array([0.1e-9, 2e-9, 3e-9,
-                                                     0.3e-9, 0.1e-9])),
+                                                      0.3e-9, 0.1e-9])),
                              ("delay", 1e3 * np.array([1e-3, 4e-3, 2e-3, 5e-3, 1e-3]))])
 
     ch.write_edges(edge_file="striatum_edges.hdf5",
