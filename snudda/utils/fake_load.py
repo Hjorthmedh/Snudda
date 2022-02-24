@@ -1,8 +1,10 @@
 import json
+from collections import OrderedDict
+
 import numpy as np
+
 from snudda.utils.load import SnuddaLoad
 from snudda.utils.numpy_encoder import NumpyEncoder
-from collections import OrderedDict
 
 
 class FakeLoad(SnuddaLoad):
@@ -22,8 +24,8 @@ class FakeLoad(SnuddaLoad):
             # Fix for connectivityDistributions
             data_copy["connectivityDistributions"] = OrderedDict()
             for pre_id, post_id in self.data["connectivityDistributions"].keys():
-                data_copy["connectivityDistributions"][f"{pre_id}$${post_id}"] =\
-                    self.data["connectivityDistributions"][pre_id,post_id]
+                data_copy["connectivityDistributions"][f"{pre_id}$${post_id}"] = \
+                    self.data["connectivityDistributions"][pre_id, post_id]
 
             data_copy["connectivityDistributions"]
 
@@ -56,4 +58,3 @@ class FakeLoad(SnuddaLoad):
 
         if "config" in self.data:
             self.config = json.loads(self.data["config"], object_pairs_hook=OrderedDict)
-
