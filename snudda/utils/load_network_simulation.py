@@ -179,7 +179,8 @@ class SnuddaLoadNetworkSimulation:
             if len(idx) > 0:
                 filtered_current[neuron_id] = current[neuron_id][:, idx]
                 filtered_sec_id_x[neuron_id] = (sec_id_x[neuron_id][0][idx], sec_id_x[neuron_id][1][idx])
-                filtered_syn_info[neuron_id] = (syn_info[neuron_id][0][idx], syn_info[neuron_id][1][idx], syn_info[neuron_id][2][idx])
+                filtered_syn_info[neuron_id] = (syn_info[neuron_id][0][idx], syn_info[neuron_id][1][idx],
+                                                syn_info[neuron_id][2][idx])
 
         return filtered_current, filtered_sec_id_x, filtered_syn_info
 

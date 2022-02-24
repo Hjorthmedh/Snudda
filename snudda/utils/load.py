@@ -88,6 +88,7 @@ class SnuddaLoad(object):
         Args:
             network_file (str) : Network file to load data from
             load_synapses (bool) : Load synapses into memory, or read on demand from file (keeps file open)
+            load_morph
 
         Returns:
             data (dictionary) : Dictionary with data.
@@ -840,7 +841,7 @@ def snudda_load_cli():
         else:
             print(f"Neurons of type {args.listT}:")
             n_of_type = [(x["neuronID"], x["name"]) for x in nl.data["neurons"]
-                       if x["type"] == args.listT]
+                         if x["type"] == args.listT]
             for nid, name in n_of_type:
                 print("%d : %s" % (nid, name))
 
