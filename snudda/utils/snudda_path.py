@@ -1,12 +1,12 @@
 import os
 
+
 # We allow user to use $DATA to specify the Snudda data folder.
 # Default is the Snudda/snudda/data folder, but the user can set the SNUDDA_DATA environment variable
 #
 
 
 def snudda_parse_path(path):
-
     """ Parses a data path, replacing $DATA with the path to SNUDDA_DATA set by environment variable.
 
     Args:
@@ -50,7 +50,7 @@ def snudda_simplify_path(path):
     """
     data_path = snudda_parse_path("$SNUDDA_DATA")
     real_path = os.path.realpath(path)
-    
+
     if path and data_path in real_path:
         path = real_path.replace(data_path, "$SNUDDA_DATA")
 

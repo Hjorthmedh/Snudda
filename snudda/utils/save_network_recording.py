@@ -5,6 +5,7 @@ import numpy as np
 from mpi4py import MPI  # This must be imported before neuron, to run parallel
 from neuron import h  # , gui
 
+
 # TODO:
 
 # Check if we can get synapse row number stored somehow...
