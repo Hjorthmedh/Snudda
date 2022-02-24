@@ -126,9 +126,9 @@ class SnuddaNetworkPairPulseSimulation:
         # self.volt_file_alt_mask = os.path.join(self.network_path,
         #                                        f"synapse-calibration-volt-{self.pre_type}-*.txt")
 
-        self.snudda_sim = None   # Defined in run_sim
+        self.snudda_sim = None  # Defined in run_sim
         self.snudda_load = None  # Defined in analyse
-        self.data = None         # Defind in analyse
+        self.data = None  # Defind in analyse
         self.holding_i_clamp_list = []
         self.pre_id = []
         self.possible_post_id = []
