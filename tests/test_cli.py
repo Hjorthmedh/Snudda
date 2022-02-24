@@ -135,19 +135,6 @@ class TestCLI(unittest.TestCase):
                     tstr = traceback.format_exc()
                     print(tstr)
 
-            if False:
-                try:
-                    from snudda.simulate.simulate import SnuddaSimulate
-                    ss = SnuddaSimulate(network_path="tiny_parallel")
-                    ss.run(100)
-                    ss.write_spikes()
-                except:
-                    import traceback
-                    tstr = traceback.format_exc()
-                    print(tstr)
-                    import pdb
-                    pdb.set_trace()
-                
             print("Time to run simulation...")
             run_cli_command("simulate tiny_parallel --time 0.1")
 
