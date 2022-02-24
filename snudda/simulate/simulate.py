@@ -14,40 +14,34 @@
 #
 ############################################################################
 
+import json
+import os
+import re
+import timeit
 # Plot all sections
 # [neuron.h.psection(x) for x in neuron.h.allsec()]
 from collections import OrderedDict
 
-from mpi4py import MPI  # This must be imported before neuron, to run parallel
-from neuron import h  # , gui
-import neuron
-import bluepyopt.ephys as ephys
 import h5py
-import json
-import timeit
-
-from snudda.utils.save_network_recording import SnuddaSaveNetworkRecordings
-from snudda.neurons.neuron_model_extended import NeuronModel
+import neuron
 import numpy as np
-from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
-
-import re
-import os
+from neuron import h  # , gui
 
 import snudda.utils.memory
-
-# !!! Need to gracefully handle the situation where there are more workers than
-# number of neurons, currently we get problem when adding the voltage saving
-
-##############################################################################
-
+from snudda.neurons.neuron_model_extended import NeuronModel
+from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
 # If simulationConfig is set, those values override other values
 from snudda.utils.load import SnuddaLoad
+from snudda.utils.save_network_recording import SnuddaSaveNetworkRecordings
 from snudda.utils.snudda_path import snudda_parse_path
 
 
-class SnuddaSimulate(object):
+# !!! Need to gracefully handle the situation where there are more workers than
+# number of neurons, currently we get problem when adding the voltage saving
+##############################################################################
 
+
+class SnuddaSimulate(object):
     """ Simulate network """
 
     def __init__(self,
@@ -153,7 +147,7 @@ class SnuddaSimulate(object):
         # !!! different for AMPA and GABA?
         self.synapse_weight = 10.0  # microsiemens
         self.synapse_delay = 1  # ms
-        self.spike_threshold = -20   # TODO: Let each neuron type have individual spike threshold, based on what config file says.
+        self.spike_threshold = -20  # TODO: Let each neuron type have individual spike threshold, based on what config file says.
         self.axon_speed = 0.8  # Tepper and Lee 2007, Wilson 1986, Wilson 1990
         # refs taken from Damodaran et al 2013
 
@@ -194,7 +188,7 @@ class SnuddaSimulate(object):
         # We need to initialise random streams, see Lytton el at 2016 (p2072)
 
         self.load_network_info(self.network_file)
-        
+
         self.record = SnuddaSaveNetworkRecordings(output_file=self.output_file, network_data=self.network_info)
         self.record.add_unit(data_type="voltage", target_unit="V", conversion_factor=1e-3)
         self.record.add_unit(data_type="synaptic_current", target_unit="A", conversion_factor=1e-9)
@@ -311,11 +305,11 @@ class SnuddaSimulate(object):
         # TODO: Change to these ranges: range_borders = np.linspace(0, num_neurons, n_workers + 1).astype(int)
         #       will be faster, because of new numbering of neurons.
 
-        range_borders = np.linspace(0, self.num_neurons, self.pc.nhost()+1).astype(int)
+        range_borders = np.linspace(0, self.num_neurons, self.pc.nhost() + 1).astype(int)
         start_pos = range_borders[0]
         neuron_nodes = []
         for idx, end_pos in enumerate(range_borders[1:]):
-            neuron_nodes += [idx]*(end_pos - start_pos)
+            neuron_nodes += [idx] * (end_pos - start_pos)
             start_pos = end_pos
 
         self.neuron_nodes = neuron_nodes
@@ -585,7 +579,7 @@ class SnuddaSimulate(object):
             tstr = traceback.format_exc()
             self.write_log(tstr, is_error=True)
 
-            assert False, ("find_next_synapse_group: If synapses was not loaded into memory, your problem is probably " 
+            assert False, ("find_next_synapse_group: If synapses was not loaded into memory, your problem is probably "
                            "that the HDF5 file that holds the synapses were closed. Sorry.")
 
         if next_row >= num_syn_rows:
@@ -675,14 +669,14 @@ class SnuddaSimulate(object):
         self.verify_synapse_placement(dend_sections, sec_x, dest_id, voxel_coords)
 
         return source_id_list, dest_id, dend_sections, sec_id, sec_x, synapse_type_id, \
-            axon_distance, conductance, parameter_id
+               axon_distance, conductance, parameter_id
 
     def connect_neuron_synapses(self, start_row, end_row):
 
         """ Connects the synapses present in the synapse matrix between start_row and end_row-1. """
 
         source_id_list, dest_id, dend_sections, sec_id, sec_x, synapse_type_id, \
-            axon_distance, conductance, parameter_id = self.get_synapse_info(start_row=start_row, end_row=end_row)
+        axon_distance, conductance, parameter_id = self.get_synapse_info(start_row=start_row, end_row=end_row)
 
         for (src_id, section, section_id, section_x, s_type_id, axon_dist, cond, p_id) \
                 in zip(source_id_list, dend_sections, sec_id, sec_x, synapse_type_id,
@@ -1238,7 +1232,7 @@ class SnuddaSimulate(object):
 
             for sid, sec in enumerate(self.neurons[cid].icell.dend):
                 for seg in sec.allseg():
-                    sec_id.append(sid+1)  # NEURON indexes from 0, Snudda has soma as 0, and first dendrite is 1
+                    sec_id.append(sid + 1)  # NEURON indexes from 0, Snudda has soma as 0, and first dendrite is 1
                     sec_x.append(seg.x)
 
             self.add_volt_recording(cell_id=cid, sec_id=sec_id, sec_x=sec_x)
@@ -1289,7 +1283,6 @@ class SnuddaSimulate(object):
         synapse_info_list = self.synapse_dict[source_id, dest_id]
 
         for syn, nc, synapse_type_id, sec_id in synapse_info_list:
-
             data = self.sim.neuron.h.Vector()
             data.record(syn._ref_i)
             seg = syn.get_segment()
@@ -1454,14 +1447,13 @@ class SnuddaSimulate(object):
                     all_sec = [x for x in neuron.h.allsec() if "axon" not in str(x)]
                     for x in np.linspace(0, 1, 10):
                         sec_pos = np.array([[h.x3d(x, sec=sec),
-                                            h.y3d(x, sec=sec),
-                                            h.z3d(x, sec=sec)]
-                                           for sec in all_sec])
+                                             h.y3d(x, sec=sec),
+                                             h.z3d(x, sec=sec)]
+                                            for sec in all_sec])
 
                         ax.scatter(sec_pos[:, 0], sec_pos[:, 1], sec_pos[:, 2], color="blue")
 
                 plt.savefig("DEBUG-plot-bad-synapse-placement.pdf", dpi=600)
-
 
                 import pdb
                 pdb.set_trace()
