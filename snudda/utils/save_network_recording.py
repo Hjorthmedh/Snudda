@@ -29,6 +29,7 @@ class NeuronRecordings:
     """
         Container class for all recordings associated with a neuron.
     """
+
     def __init__(self, neuron_id):
         """
         Constructor
@@ -70,7 +71,6 @@ class NeuronRecordings:
 class SynapseData:
 
     def __init__(self, neuron_id, data_type):
-
         self.neuron_id = neuron_id
         self.data = []
         self.data_type = data_type
@@ -116,7 +116,6 @@ class CompartmentData:
         self.sec_x = []
 
     def append(self, data, sec_id, sec_x):
-
         # !!! Issue (?): The same compartment can hold several recordings now.
 
         """
@@ -129,7 +128,7 @@ class CompartmentData:
 
         """
         self.data.append(data)
-        
+
         self.sec_id.append(sec_id)
         self.sec_x.append(sec_x)
 
@@ -210,7 +209,7 @@ class SnuddaSaveNetworkRecordings:
         for idx in spikes:
             assert len(spikes[idx]) == 0 or not np.isnan(spikes[idx][-1])
             assert (idx in spike_ctr and spikes[idx].shape[0] == spike_ctr[idx]) \
-                or (idx not in spike_ctr and len(spikes[idx]) == 0)
+                   or (idx not in spike_ctr and len(spikes[idx]) == 0)
 
         return spikes
 
@@ -296,7 +295,8 @@ class SnuddaSaveNetworkRecordings:
 
                         if isinstance(m, SynapseData):
                             data_group.create_dataset("synapse_type", data=np.array(m.synapse_type), compression="gzip")
-                            data_group.create_dataset("presynaptic_id", data=np.array(m.presynaptic_id), compression="gzip")
+                            data_group.create_dataset("presynaptic_id", data=np.array(m.presynaptic_id),
+                                                      compression="gzip")
                             data_group.create_dataset("cond", data=np.array(m.cond), compression="gzip")
 
                 out_file.close()
@@ -330,7 +330,7 @@ class SnuddaSaveNetworkRecordings:
                         out_file["voltData"].create_dataset("time", data=t_save * 1e-3, compression="gzip")
 
                     for neuron_id, voltage in zip(v_key, v_save):
-                        out_file["voltData"].create_dataset(str(neuron_id), data=voltage*1e-3, compression="gzip")
+                        out_file["voltData"].create_dataset(str(neuron_id), data=voltage * 1e-3, compression="gzip")
 
                     out_file.close()
 
