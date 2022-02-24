@@ -1,14 +1,13 @@
+import json
 from collections import OrderedDict
 
 import numpy as np
-import json
 from scipy.interpolate import griddata
 
 from snudda.neurons.neuron_morphology import NeuronMorphology
 
 
 class SnuddaRotate:
-
     """ Rotation object. """
 
     def __init__(self, config_file=None):
@@ -51,7 +50,7 @@ class SnuddaRotate:
     @staticmethod
     def random_z_rotate(rng):
         """ Helper method, rotate around z-axis (of SWC coordinates)"""
-        ang = 2*np.pi*rng.uniform()
+        ang = 2 * np.pi * rng.uniform()
 
         return np.array([[np.cos(ang), -np.sin(ang), 0],
                          [np.sin(ang), np.cos(ang), 0],
@@ -66,7 +65,7 @@ class SnuddaRotate:
             rotation_mode, field_position, field_rotation = "random", None, None
 
         if not rotation_mode or rotation_mode.lower() == "none":
-            rotation_matrices = [np.eye]*neuron_positions.shape[0]
+            rotation_matrices = [np.eye] * neuron_positions.shape[0]
 
         elif rotation_mode in ["random", "default"]:
             rotation_matrices = [NeuronMorphology.rand_rotation_matrix(rand_nums=rng.random(size=(3,)))
@@ -137,7 +136,7 @@ class SnuddaRotate:
 
         if volume_name in rotation_field_data:
             assert "position" in rotation_field_data[volume_name] \
-                and "rotation" in rotation_field_data[volume_name], \
+                   and "rotation" in rotation_field_data[volume_name], \
                 f"Missing position and/or rotation tag in volume {volume_name}"
 
             return np.array(rotation_field_data[volume_name]["position"]) * 1e-6, \
