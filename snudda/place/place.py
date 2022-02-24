@@ -9,28 +9,27 @@
 # Grant Agreements No. 720270 and No. 785907, No 945539
 # (Human Brain Project SGA1, SGA2, SGA3).
 
+import json
+import os
 #
 import sys
+from collections import OrderedDict
 
+import h5py
 import numexpr
 import numpy as np
 import scipy.cluster
-import os
-from collections import OrderedDict
-import h5py
-import json
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
-from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists
 from snudda.place.region_mesh import RegionMesh
 from snudda.place.rotation import SnuddaRotate
+from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists
 
 ''' This code places all neurons in space, but does not setup their
     connectivity. That is done by detect.py and prune.py '''
 
 
 class SnuddaPlace(object):
-
     """ Places neurons in 3D space. Use detect to add connections, and prune to remove redundant connections. """
 
     def __init__(self,
@@ -391,7 +390,8 @@ class SnuddaPlace(object):
                                     (f"Missing Coordinates and/or Density data for "
                                      f"volume {volume_id}, neuron type {neuron_type}")
 
-                                coord = np.array(density_data[volume_id][neuron_type]["Coordinates"]) * 1e-6  # Convert to SI
+                                # Convert to SI (* 1e-6)
+                                coord = np.array(density_data[volume_id][neuron_type]["Coordinates"]) * 1e-6
                                 density = np.array(density_data[volume_id][neuron_type]["Density"])
 
                                 if self.griddata_interpolation:
@@ -906,7 +906,7 @@ class SnuddaPlace(object):
                     in enumerate(zip(centres, neuron_types, probability_functions)):
 
                 if neuron_type in neuron_type_list:
-                    d = np.linalg.norm(pos-centre_pos)
+                    d = np.linalg.norm(pos - centre_pos)
                     unit_probability[idx] = numexpr.evaluate(p_func)
                 else:
                     unit_probability[idx] = 0  # That unit does not contain this neuron type
@@ -952,7 +952,6 @@ class SnuddaPlace(object):
                     else:
                         self.population_units[0] = remove_nid
 
-
     ############################################################################
 
     def init_population_units(self):
@@ -978,7 +977,7 @@ class SnuddaPlace(object):
         colours = np.zeros((len(self.neurons),))
         r_start = 0
         for idx, r_end in enumerate(range_borders[1:]):
-            colours[r_start:r_end] = idx+1
+            colours[r_start:r_end] = idx + 1
             r_start = r_end
 
         xyz = self.all_neuron_positions()
@@ -999,7 +998,7 @@ class SnuddaPlace(object):
         """
 
         n_workers = len(self.d_view) if self.d_view is not None else 1
-        n_clusters = np.maximum(n_workers*5, 100)
+        n_clusters = np.maximum(n_workers * 5, 100)
         n_clusters = np.minimum(n_clusters, len(self.neurons))
 
         xyz = self.all_neuron_positions()
@@ -1035,7 +1034,7 @@ class SnuddaPlace(object):
                 current_cluster = local_centroid_order[0]
 
                 take_n = np.minimum(len(cluster_member_list[current_cluster]), range_end - range_start)
-                neuron_order[neuron_order_ctr:neuron_order_ctr+take_n] = cluster_member_list[current_cluster][:take_n]
+                neuron_order[neuron_order_ctr:neuron_order_ctr + take_n] = cluster_member_list[current_cluster][:take_n]
                 neuron_order_ctr += take_n
 
                 del cluster_member_list[current_cluster][:take_n]
@@ -1053,7 +1052,7 @@ class SnuddaPlace(object):
                            f"neurons unaccounted for",
                            is_error=True)
             self.write_log(f"incorrect neuron_order={neuron_order} (printed for debugging)")
-            neuron_order = self.cluster_neurons(n_trials=n_trials-1)
+            neuron_order = self.cluster_neurons(n_trials=n_trials - 1)
 
         # TODO: This occured once on Tegner, why did it happen?
         assert np.count_nonzero(neuron_order < 0) == 0, \
@@ -1102,5 +1101,4 @@ class SnuddaPlace(object):
 
 
 if __name__ == "__main__":
-
     assert False, "Please use snudda.py place networks/yournetwork"
