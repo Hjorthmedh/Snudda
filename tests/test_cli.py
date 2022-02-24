@@ -118,12 +118,7 @@ class TestCLI(unittest.TestCase):
             print(f"Running: {eval_str}")
             os.system(eval_str)
 
-            # print("---> Testing to run simulate using os.system instead")
-            # os.system("snudda simulate tiny_parallel --time 0.1")
-
-
-            # For the unittest we for some reason need to load mechansism
-            # separately
+            # For the unittest we for some reason need to load mechansism separately
             from mpi4py import MPI  # This must be imported before neuron, to run parallel
             from neuron import h  # , gui
             import neuron
