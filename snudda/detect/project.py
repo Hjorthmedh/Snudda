@@ -1,23 +1,20 @@
 # In addition to adding synapses using touch detection we also want the ability to add connections
 # when we do not have an axon, for example over long range between structures, to connect them together.
 # This is what project.py is responsible for.
-from collections import OrderedDict
-
-import numpy as np
 import json
 import os
-import h5py
+from collections import OrderedDict
 
+import h5py
+import numpy as np
 from scipy.interpolate import griddata
 
 from snudda.detect.detect import SnuddaDetect
-from snudda.neurons.neuron_morphology import NeuronMorphology
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.load import SnuddaLoad
 
 
 class SnuddaProject(object):
-
     """ Adds projections between neurons, useful for connecting different regions with long range connections. """
 
     # TODO: Add support for log files!!
@@ -168,11 +165,11 @@ class SnuddaProject(object):
 
             if "projectionName" in con_info:
                 proj_name = con_info["projectionName"]
-                projection_source = np.array(projection_data[proj_name]["source"])*1e-6
-                projection_destination = np.array(projection_data[proj_name]["destination"])*1e-6
+                projection_source = np.array(projection_data[proj_name]["source"]) * 1e-6
+                projection_destination = np.array(projection_data[proj_name]["destination"]) * 1e-6
             else:
-                projection_source = np.array(projection_data["source"])*1e-6
-                projection_destination = np.array(projection_data["destination"])*1e-6
+                projection_source = np.array(projection_data["source"]) * 1e-6
+                projection_destination = np.array(projection_data["destination"]) * 1e-6
 
             if "projectionRadius" in con_info:
                 projection_radius = con_info["projectionRadius"]
@@ -283,7 +280,7 @@ class SnuddaProject(object):
                     sigma = np.sqrt(np.log(1 + conductance_std ** 2 / conductance_mean ** 2))
 
                     cond = self.rng.lognormal(mu, sigma, len(sec_x))
-                    cond = np.maximum(cond, conductance_mean*0.1)  # Lower bound, prevent negative.
+                    cond = np.maximum(cond, conductance_mean * 0.1)  # Lower bound, prevent negative.
                     param_id = self.rng.integers(1000000, size=len(sec_x))
 
                     # TODO: Add code to extend synapses matrix if it is full
@@ -293,7 +290,7 @@ class SnuddaProject(object):
                              xyz[i, 0], xyz[i, 1], xyz[i, 2],
                              -1,  # Hypervoxelid
                              channel_model_id,
-                             ax_dist*1e6, dist_to_soma[i]*1e6,
+                             ax_dist * 1e6, dist_to_soma[i] * 1e6,
                              sec_id[i], sec_x[i] * 1000,
                              cond[i] * 1e12, param_id[i]]
                         self.synapse_ctr += 1
