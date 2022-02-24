@@ -1791,7 +1791,7 @@ if __name__ == "__main__":
     sim.check_memory_status()
     print(f"Running simulation for {tSim} ms.")
     sim.run(tSim)  # In milliseconds
-    
+
     print("Simulation done, saving output")
     sim.write_output()
 

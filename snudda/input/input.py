@@ -15,17 +15,17 @@
 
 # TODO: Randomise conductance for the inputs and store it, use it later when adding external synapses in simulate.py
 
+import json
+import os
 import sys
 from collections import OrderedDict
 
-import numpy as np
-import json
-import os
 import h5py
+import numpy as np
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
-from snudda.utils.snudda_path import snudda_parse_path
 from snudda.utils.load import SnuddaLoad
+from snudda.utils.snudda_path import snudda_parse_path
 
 nl = None
 
@@ -1299,7 +1299,7 @@ class SnuddaInput(object):
             return
 
         with self.d_view.sync_imports():
-            from snudda.input.input import SnuddaInput
+            pass
 
         self.d_view.push({"network_path": self.network_path,
                           "input_config_file": self.input_config_file,
@@ -1388,9 +1388,9 @@ class SnuddaInput(object):
         try:
 
             neuron_id, input_type, freq, start, end, synapse_density, num_spike_trains, \
-                population_unit_spikes, jitter_dt, population_unit_id, conductance, correlation, mod_file, \
-                parameter_file, parameter_list, random_seed, cluster_size, cluster_spread, \
-                dendrite_location_override = args
+            population_unit_spikes, jitter_dt, population_unit_id, conductance, correlation, mod_file, \
+            parameter_file, parameter_list, random_seed, cluster_size, cluster_spread, \
+            dendrite_location_override = args
 
             return self.make_input_helper_serial(neuron_id=neuron_id,
                                                  input_type=input_type,
