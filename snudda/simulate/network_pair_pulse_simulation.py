@@ -48,17 +48,16 @@
 # since both voltages are recorded
 
 import os
-import glob
 import sys
-
-import numpy as np
-from snudda.simulate.simulate import SnuddaSimulate
-from snudda.utils.load import SnuddaLoad
-from snudda.utils import SnuddaLoadNetworkSimulation
 
 import matplotlib
 import matplotlib.pyplot as plt
 import neuron
+import numpy as np
+
+from snudda.simulate.simulate import SnuddaSimulate
+from snudda.utils import SnuddaLoadNetworkSimulation
+from snudda.utils.load import SnuddaLoad
 
 
 # We want to match Taverna 2008 data:
