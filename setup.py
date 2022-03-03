@@ -33,7 +33,8 @@ else:
         "psutil",
         "argparse",
         "numexpr>=2.7.3",
-        "numba>=0.53.1"
+        "numba>=0.53.1",
+        "igraph"
     ]
     
 setuptools.setup(
