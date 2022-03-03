@@ -64,7 +64,7 @@ class SwapToDegenerateMorphologies:
         """ Each iteration will return the synapses between one pair of neurons. """
 
         data_loc = "network/synapses"
-        if data_type is not None and data_type == "gapJunctions"
+        if data_type is not None and data_type == "gapJunctions":
             data_loc = "network/gapJunctions"
 
         start_idx = 0
@@ -105,10 +105,10 @@ class SwapToDegenerateMorphologies:
             new_synapses[syn_ctr:syn_ctr+new_syn.shape[0]] = new_syn
             syn_ctr += new_syn.shape[0]
 
-        self.new_hdf5["network"].create_dataset("synapses", data=new_synapses, compression="lzf")
+        self.new_hdf5["network"].create_dataset("synapses", data=new_synapses[:syn_ctr, :], compression="lzf")
 
         num_synapses = np.zeros((1,), dtype=np.uint64)
-        self.new_hdf5["network"].create_dataset("nSynapses", data=new_synapses.shape[0], dtype=np.uint64)
+        self.new_hdf5["network"].create_dataset("nSynapses", data=syn_ctr, dtype=np.uint64)
 
     def filter_gap_junctions(self):
         # First version, will keep all synapses in memory to write a more efficient file
@@ -121,23 +121,31 @@ class SwapToDegenerateMorphologies:
             new_gap_junctions[gj_ctr:gj_ctr+new_gap_junctions.shape[0]] = new_gj
             gj_ctr += new_gj.shape[0]
 
-        self.new_hdf5["network"].create_dataset("gapJunctions", data=new_gap_junctions, compression="lzf")
+        self.new_hdf5["network"].create_dataset("gapJunctions", data=new_gap_junctions[gj_ctr, :], compression="lzf")
 
         num_gap_junctions = np.zeros((1,), dtype=np.uint64)
-        self.new_hdf5["network"].create_dataset("nGapJunctions", data=new_gap_junctions.shape[0], dtype=np.uint64)
+        self.new_hdf5["network"].create_dataset("nGapJunctions", data=gj_ctr, dtype=np.uint64)
 
-    def get_morphology(self, neuron_id):
+    def get_morphology(self, neuron_id=None, hdf5=None, neuron_path=None, parameter_key=None, morphology_key=None):
 
-        param_key = self.new_hdf5["networks/neurons/neuronID/parameterKey"][neuron_id]
-        morph_key = self.new_hdf5["networks/neurons/neuronID/morphologyKey"][neuron_id]
-        neuron_path = self.new_hdf5["networks/neurons/neuronID/neuronPath"][neuron_id]
+        """ If neuron_id is given, that neuron will be loaded."""
+
+        if neuron_id and hdf5:
+            neuron_path = hdf5["networks/neurons/neuronID/neuronPath"][neuron_id]
+            parameter_key = hdf5["networks/neurons/neuronID/parameterKey"][neuron_id]
+            morphology_key = hdf5["networks/neurons/neuronID/morphologyKey"][neuron_id]
+
+        assert neuron_path is not None and parameter_key is not None and morphology_key is not None, \
+            "Either provide neuron_id, hdf5 or the three neuron_path, parameter_key and morphology_key"
 
         neuron_prototype = NeuronPrototype(neuron_path=neuron_path)
-        neuron = neuron_prototype.get_morphology(parameter_key=param_key, morph_key=morph_key)
-        neuron.place(self.original_data["neuronPositions"][neuron_id, :])
+        neuron = neuron_prototype.get_morphology(parameter_key=parameter_key, morph_key=morphology_key)
+
+        if neuron_id and hdf5:
+            pos = hdf5["network/neurons/position"][neuron_id, :]
+            neuron.place(pos)
 
         return neuron
-
 
     def filter_synapses_helper(self, synapses, max_dist=5e-6):
         pre_id = synapses[0, 0]
@@ -149,8 +157,8 @@ class SwapToDegenerateMorphologies:
         assert (synapses[:, 0] == pre_id).all()
         assert (synapses[:, 1] == post_id).all()
 
-        pre_neuron = self.get_morphology(pre_id)
-        post_neuron = self.get_morphology(post_id)
+        pre_neuron = self.get_morphology(neuron_id=pre_id, hdf5=self.new_hdf5)
+        post_neuron = self.get_morphology(neuron_id=post_id, hdf5=self.new_hdf5)
 
         if pre_neuron.axon.size > 0:
             # If there is an axon, use it to filter
@@ -185,8 +193,8 @@ class SwapToDegenerateMorphologies:
         assert (gap_junctions[:, 0] == pre_id).all()
         assert (gap_junctions[:, 1] == post_id).all()
 
-        pre_neuron = self.get_morphology(pre_id)
-        post_neuron = self.get_morphology(post_id)
+        pre_neuron = self.get_morphology(pre_id, hdf5=self.new_hdf5)
+        post_neuron = self.get_morphology(post_id, hdf5=self.new_hdf5)
 
         pre_dend = KDTree(pre_neuron.dend)
         post_dend = KDTree(post_neuron.dend)
@@ -250,24 +258,40 @@ class SwapToDegenerateMorphologies:
 
         return new_param_key, new_morph_key, new_neuron_path
 
-    def create_morphology_mapping(self,
-                                  original_neuron_path,
-                                  original_parameter_key,
-                                  original_morphology_key,
-                                  new_neuron_path,
-                                  new_parameter_key,
-                                  new_morphology_key):
+    def get_coord_to_sec_id_dict(self, neuron_id, hdf5):
 
-        # For each morphology pair, create a lookup for section ID
-        #
+        coord_to_sec_id_x = dict()
+        for link, sec_id, sec_x in zip(morph.dend_links, morph.dend_sec_id, morph.dend_sec_X):
+            coord = morph.dend[link[1], :]
 
-        # TODO: Fortsätt här. Skapa self.morphology_map
-        #       [org_morph_key][new_morph_key][section_id][section_x]
-        #       ---> new_section_id , new_section_x    eller None om ej kvar
+            coord_to_sec_id_x[coord] = (sec_id, sec_x[1])
 
-    # Idea:
-    # 1. Use a KD tree for each neurons dendrites and axons (where available)
-    # 2. For each synapse, check if it is still close to an existing point on the presynaptic axon and
-    #    postsynaptic dendrite.
-    # 3. Remap the section ID and section X for the remaining
-    # 4. Update the config file
+
+    def get_sec_location(self, coords, neuron_path, parameter_key, morphology_key, max_dist=5e-6):
+
+        morph = self.get_morphology(neuron_path=neuron_path,
+                                    parameter_key=parameter_key,
+                                    morphology_key=morphology_key)
+
+        dend = KDTree(morph.dend)
+        sec_id = np.zeros((dend.shape[0],), dtype=int)
+        sec_x = np.zeros((dend.shape[0],))
+
+        coord_to_sec_id_x = dict()
+        for link, sec_id, sec_x in zip(morph.dend_links, morph.dend_sec_id, morph.dend_sec_X):
+            coord = morph.dend[link[1], :]
+
+            coord_to_sec_id_x[coord] = (sec_id, sec_x[1])
+
+        for idx, coord in enumerate(coords):
+            closest_coord = dend.query(coord)
+
+            if np.linalg.norm(closest_coord - coord) < max_dist:
+                syn_sec_id, syn_sec_x = coord_to_sec_id_x[closest_coord]
+                sec_id[idx] = syn_sec_id
+                sec_x[idx] = syn_sec_x
+            else:
+                sec_id[idx] = np.nan
+                sec_x[idx] = np.nan
+
+        return sec_id, sec_x
