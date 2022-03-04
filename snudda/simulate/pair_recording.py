@@ -54,8 +54,9 @@ class PairRecording(SnuddaSimulate):
         self.experiment_config_file = experiment_config_file
         self.experiment_config = self.read_experiment_config(experiment_config_file=experiment_config_file)
 
-        if self.experiment_config["meta"]["pairRecordingOutputFile"]:
-            self.output_file = self.experiment_config["meta"]["pairRecordingOutputFile"]
+        if "pairRecordingOutputFile" in self.experiment_config["meta"].keys():
+            self.output_file = os.path.join(self.network_path, "simulation",
+                                            self.experiment_config["meta"]["pairRecordingOutputFile"])
         else:
             self.output_file = os.path.join(self.network_path, "simulation", "output.hdf5")
 
@@ -238,8 +239,9 @@ class PairRecording(SnuddaSimulate):
             sim_id = pre_id
 
             for pid in pre_id:
-                if self.snudda_loader.find_synapses(pre_id=pid)[0] is not None:
-                    post_id = set(self.snudda_loader.find_synapses(pre_id=pid)[0][:, 1])
+                found_syn=self.snudda_loader.find_synapses(pre_id=pid)[0]
+                if found_syn is not None:
+                    post_id = set(found_syn[:, 1])
                     sim_id = sim_id.union(post_id)
 
             self.simulate_neuron_ids = sorted(list(sim_id))
@@ -283,7 +285,7 @@ class PairRecording(SnuddaSimulate):
 
         # Write results to disk
         try:
-            self.record.output_file=self.output_file
+            self.record.output_file = self.output_file
             self.write_output()
 
             # pre_id = np.array([x[0] for x in self.synapse_currents])
