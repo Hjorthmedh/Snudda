@@ -14,6 +14,7 @@ class SwapToDegenerateMorphologies:
 
     def __init__(self, original_network_file, new_network_file,
                  original_snudda_data_dir, new_snudda_data_dir,
+                 original_input_file, new_input_file,
                  morphology_mapping_file):
 
         """ This code replaces the neuron morphologies in the original network with user provided degenerated copies
@@ -35,6 +36,9 @@ class SwapToDegenerateMorphologies:
         self.original_snudda_data_dir = original_snudda_data_dir
         self.new_snudda_data_dir = new_snudda_data_dir
 
+        self.original_input_file = original_input_file
+        self.new_input_file = new_input_file
+
         self.original_network_loader = SnuddaLoad(self.original_network_file)
         self.original_hdf5 = self.original_network_loader.hdf5_file
         self.original_data = self.original_network_loader.data
@@ -44,7 +48,7 @@ class SwapToDegenerateMorphologies:
 
         self.morphology_map = dict()
 
-    def write_new_file(self):
+    def write_network_new_file(self):
 
         self.new_hdf5 = h5py.File(self.new_network_file)
         h5py.Group.copy(source=self.original_hdf5["meta"], dest=self.new_hdf5["meta"])
@@ -102,7 +106,7 @@ class SwapToDegenerateMorphologies:
 
         for synapses in self.synapse_iterator():
             new_syn = self.filter_synapses_helper(synapses)
-            new_synapses[syn_ctr:syn_ctr+new_syn.shape[0]] = new_syn
+            new_synapses[syn_ctr:syn_ctr + new_syn.shape[0]] = new_syn
             syn_ctr += new_syn.shape[0]
 
         self.new_hdf5["network"].create_dataset("synapses", data=new_synapses[:syn_ctr, :], compression="lzf")
@@ -118,7 +122,7 @@ class SwapToDegenerateMorphologies:
 
         for gj in self.gap_junction_iterator():
             new_gj = self.filter_gap_junctions_helper(gj)
-            new_gap_junctions[gj_ctr:gj_ctr+new_gap_junctions.shape[0]] = new_gj
+            new_gap_junctions[gj_ctr:gj_ctr + new_gap_junctions.shape[0]] = new_gj
             gj_ctr += new_gj.shape[0]
 
         self.new_hdf5["network"].create_dataset("gapJunctions", data=new_gap_junctions[gj_ctr, :], compression="lzf")
@@ -213,8 +217,15 @@ class SwapToDegenerateMorphologies:
 
         return gap_junctions[keep_gap_junctions, :]
 
-
     # TODO!! We also need to filter external input
+
+    def find_old_morphology(self, neuron_id):
+
+        orig_morph_key = self.original_data["neurons"][neuron_id]["morphologyKey"]
+        orig_param_key = self.original_data["neurons"][neuron_id]["parameterKey"]
+        orig_neuron_path = self.original_data["neurons"][neuron_id]["neuronPath"]
+
+        return orig_param_key, orig_morph_key, orig_neuron_path
 
     def find_morpology(self, neuron_id):
 
@@ -258,15 +269,6 @@ class SwapToDegenerateMorphologies:
 
         return new_param_key, new_morph_key, new_neuron_path
 
-    def get_coord_to_sec_id_dict(self, neuron_id, hdf5):
-
-        coord_to_sec_id_x = dict()
-        for link, sec_id, sec_x in zip(morph.dend_links, morph.dend_sec_id, morph.dend_sec_X):
-            coord = morph.dend[link[1], :]
-
-            coord_to_sec_id_x[coord] = (sec_id, sec_x[1])
-
-
     def get_sec_location(self, coords, neuron_path, parameter_key, morphology_key, max_dist=5e-6):
 
         morph = self.get_morphology(neuron_path=neuron_path,
@@ -295,3 +297,98 @@ class SwapToDegenerateMorphologies:
                 sec_x[idx] = np.nan
 
         return sec_id, sec_x
+
+    def filter_external_input(self, neuron_id, sec_id, sec_x, max_dist=5e-6):
+
+        # TODO: This code needs to return index of the input synapses to keep
+        keep_idx = np.ones((len(sec_id),), dtype=bool)
+        new_sec_id = np.zeros(sec_id.shape, dtype=int)
+        new_sec_x = np.zeros(sec_x.shape)
+
+        old_param_key, old_morph_key, old_path = self.find_old_morphology(neuron_id=neuron_id)
+        new_param_key, new_morph_key, new_path = self.find_morpology(neuron_id=neuron_id)
+
+        old_morph = self.get_morphology(parameter_key=old_param_key,
+                                        morphology_key=old_morph_key,
+                                        neuron_path=old_path)
+
+        new_morph = self.get_morphology(parameter_key=new_param_key,
+                                        morphology_key=new_morph_key,
+                                        neuron_path=new_path)
+
+        new_tree = KDTree(new_morph.dend)
+
+        for input_idx, (sid, sx) in enumerate(zip(sec_id, sec_x)):
+            # First link larger than sx
+            idx = np.where(old_morph.sec_id_links_x[sid] > sx)[0][0]
+            link_idx = old_morph.sec_id_links[sid][idx]
+            assert old_morph.dend_sec_id[link_idx] == sid
+
+            d_link = old_morph.dend_links[link_idx]
+            d_link_x = old_morph.dend_sec_x[link_idx, :]
+
+            dx = (sx - d_link_x[0]) / (d_link_x[1] - d_link_x[0])
+
+            coord = old_morph.dend[d_link[0], :] \
+                + dx * (old_morph.dend[d_link[1], :] - old_morph.dend[d_link[0], :])
+
+            closest_coord = new_tree.query(coord)
+
+            if np.linalg.norm(coord - closest_coord) > max_dist:
+                keep_idx[input_idx] = False
+                continue
+
+            # Next find sec_id and sec_x on new morphology
+            new_sec_id[input_idx] =
+            new_sec_x[input_idx] =
+
+        # For each sec_id, sec_x we need to see if it is still in morphology, and the name of it
+
+        return keep_idx, new_sec_id[keep_idx], new_sec_x[keep_idx]
+
+    def write_new_input_file(self):
+
+        old_input = h5py.File(self.original_input_file, "r")
+        new_input = h5py.File(self.new_input_file, "w")
+        h5py.Group.copy(source=old_input["config"], dest=new_input["config"])
+
+        for neuron in old_input["input"].keys():
+            neuron_group = new_input["input"].create_group(neuron)
+
+            for input_type in old_input["input"][neuron].keys():
+                # Note: This code assumes these are real neuron and not just virtual neurons.
+                #       it does not handle the virtual neuron case here.
+                old_input_data = old_input["input"][neuron][input_type]
+
+                keep_idx, new_sec_id, new_sec_x \
+                    = self.filter_external_input(neuron_id=int(neuron),
+                                                 sec_id=old_input_data["sectionID"],
+                                                 sec_x=old_input_data["sectionX"])
+
+                if len(keep_idx) == 0:
+                    continue
+
+                input_group = neuron_group.create_group(input_type)
+
+                input_group.create_dataset("spikes", data=old_input_data[:, keep_idx], compression="gzip",
+                                           dtype=np.float32)
+                input_group.create_dataset("nSpikes", data=old_input_data["nSpikes"][keep_idx], dtype=np.int32)
+                input_group.create_dataset("sectionID", data=new_sec_id,
+                                           compression="gzip", dtype=np.int16)
+                input_group.create_dataset("sectionX", data=new_sec_x,
+                                           compression="gzip", dtype=np.float16)
+
+                input_group.create_dataset("distanceToSoma", data=old_input_data["distanceToSoma"][keep_idx],
+                                           compression="gzip", dtype=np.float16)
+
+                for data_name in ["freq", "correlation", "jitter", "synapseDensity", "start", "end", "conductance",
+                                  "populationUnitID", "populationUnitSpikes", "generator",
+                                  "modFile", "parameterFile", "parameterList", "parameterID"]:
+                    if data_name in old_input_data:
+                        h5py.Group.copy(source=old_input_data[data_name], dest=input_group[data_name])
+
+                if "jitter" in old_input_data:
+                    h5py.Group.copy(source=old_input_data["jitter"], dest=input_group["jitter"])
+
+        old_input.close()
+        new_input.close()
