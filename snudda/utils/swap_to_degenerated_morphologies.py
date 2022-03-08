@@ -45,6 +45,9 @@ class SwapToDegenerateMorphologies:
 
         self.morphology_map = dict()
 
+        self.neuron_cache = dict()
+        self.kd_tree_cache = dict()
+
     def write_network_new_file(self):
 
         print(f"Writing new network to {self.new_network_file}")
@@ -88,6 +91,8 @@ class SwapToDegenerateMorphologies:
                     and self.original_hdf5[data_loc][next_idx, 0] == last_pre \
                     and self.original_hdf5[data_loc][next_idx, 1] == last_post:
                 next_idx += 1
+                if next_idx % 100 == 0:
+                    print(f"{next_idx} / {num_synapses}")
 
             if next_idx < num_synapses:
                 last_pre = self.original_hdf5[data_loc][next_idx, 0]
@@ -126,7 +131,7 @@ class SwapToDegenerateMorphologies:
 
         for gj in self.gap_junction_iterator():
             new_gj = self.filter_gap_junctions_helper(gj)
-            new_gap_junctions[gj_ctr:gj_ctr + new_gap_junctions.shape[0]] = new_gj
+            new_gap_junctions[gj_ctr:gj_ctr + new_gj.shape[0]] = new_gj
             gj_ctr += new_gj.shape[0]
 
         self.new_hdf5["network"].create_dataset("gapJunctions", data=new_gap_junctions[gj_ctr, :], compression="lzf")
@@ -137,6 +142,15 @@ class SwapToDegenerateMorphologies:
     def get_morphology(self, neuron_id=None, hdf5=None, neuron_path=None, parameter_key=None, morphology_key=None):
 
         """ If neuron_id is given, that neuron will be loaded."""
+
+        # print(f"Neuron cache size: {len(self.neuron_cache)}")
+
+        if neuron_id is not None and neuron_id in self.neuron_cache:
+            return self.neuron_cache[neuron_id]
+
+        if (neuron_path is not None and parameter_key is not None and morphology_key is not None
+                and (neuron_path, parameter_key, morphology_key) in self.neuron_cache):
+            return self.neuron_cache[(neuron_path, parameter_key, morphology_key)]
 
         if neuron_id is not None and hdf5 is not None:
             neuron_path = SnuddaLoad.to_str(hdf5["network/neurons/neuronPath"][neuron_id])
@@ -156,6 +170,12 @@ class SwapToDegenerateMorphologies:
         neuron_prototype = NeuronPrototype(neuron_path=neuron_path, neuron_name=None)
         neuron = neuron_prototype.clone(parameter_key=parameter_key, morphology_key=morphology_key,
                                         position=pos, rotation=rot)
+
+        if neuron_id is not None:
+            self.neuron_cache[neuron_id] = neuron
+        else:
+            self.neuron_cache[(neuron_path, parameter_key, morphology_key)] = neuron
+
         return neuron
 
     def filter_synapses_helper(self, synapses, max_dist=5e-6):
@@ -177,13 +197,8 @@ class SwapToDegenerateMorphologies:
         pre_neuron = self.get_morphology(neuron_id=pre_id, hdf5=self.new_hdf5)
         post_neuron = self.get_morphology(neuron_id=post_id, hdf5=self.new_hdf5)
 
-        if pre_neuron.axon.size > 0:
-            # If there is an axon, use it to filter
-            pre_axon = KDTree(pre_neuron.axon[:, :3])
-        else:
-            pre_axon = None
-
-        post_dend = KDTree(post_neuron.dend[:, :3])
+        pre_axon = self.get_kd_tree(pre_neuron, "axon")
+        post_dend = self.get_kd_tree(post_neuron, "dend")
 
         for idx, syn in enumerate(synapses):
             syn_coord = syn[2:5] * self.original_data["voxelSize"] + self.original_data["simulationOrigo"]
@@ -214,8 +229,8 @@ class SwapToDegenerateMorphologies:
         pre_neuron = self.get_morphology(pre_id, hdf5=self.new_hdf5)
         post_neuron = self.get_morphology(post_id, hdf5=self.new_hdf5)
 
-        pre_dend = KDTree(pre_neuron.dend[:, :3])
-        post_dend = KDTree(post_neuron.dend[:, :3])
+        pre_dend = self.get_kd_tree(pre_neuron, "dend")
+        post_dend = self.get_kd_tree(post_neuron, "dend")
 
         for idx, gj in enumerate(gap_junctions):
             gj_coord = gj[6:9] * self.original_data["voxelSize"] + self.original_data["simulationOrigo"]
@@ -293,7 +308,7 @@ class SwapToDegenerateMorphologies:
                                     parameter_key=parameter_key,
                                     morphology_key=morphology_key)
 
-        dend = KDTree(morph.dend[:, :3])
+        dend = self.get_kd_tree(morph, "dend")
         sec_id = np.zeros((dend.shape[0],), dtype=int)
         sec_x = np.zeros((dend.shape[0],))
 
@@ -334,7 +349,7 @@ class SwapToDegenerateMorphologies:
                                         morphology_key=new_morph_key,
                                         neuron_path=new_path)
 
-        new_tree = KDTree(new_morph.dend[:, :3])
+        new_tree = self.get_kd_tree(new_morph, "dend")
 
         coord_to_sec_id_x = dict()
         for link, sec_id, sec_x in zip(new_morph.dend_links, new_morph.dend_sec_id, new_morph.dend_sec_X):
@@ -354,7 +369,7 @@ class SwapToDegenerateMorphologies:
             dx = (sx - d_link_x[0]) / (d_link_x[1] - d_link_x[0])
 
             coord = old_morph.dend[d_link[0], :] \
-                + dx * (old_morph.dend[d_link[1], :] - old_morph.dend[d_link[0], :])
+                    + dx * (old_morph.dend[d_link[1], :] - old_morph.dend[d_link[0], :])
 
             closest_dist, closest_point = new_tree.query(coord)
 
@@ -416,11 +431,25 @@ class SwapToDegenerateMorphologies:
         old_input.close()
         new_input.close()
 
+    def get_kd_tree(self, neuron, tree_type):
+
+        if (neuron, tree_type) not in self.kd_tree_cache:
+
+            coords = {"axon": neuron.axon[:, :3],
+                      "dend": neuron.dend[:, :3]}
+
+            if coords[tree_type].size > 0:
+                self.kd_tree_cache[(neuron, tree_type)] = KDTree(coords[tree_type])
+            else:
+                self.kd_tree_cache[(neuron, tree_type)] = None
+
+        return self.kd_tree_cache[(neuron, tree_type)]
+
 
 def cli():
-
-    parser = ArgumentParser(description="Replace WT morphologies with PD morphologies, remove orphaned synapses and input",
-                            formatter_class=RawTextHelpFormatter)
+    parser = ArgumentParser(
+        description="Replace WT morphologies with PD morphologies, remove orphaned synapses and input",
+        formatter_class=RawTextHelpFormatter)
 
     parser.add_argument("original_network_path", type=str)
     parser.add_argument("new_network_path", type=str)
