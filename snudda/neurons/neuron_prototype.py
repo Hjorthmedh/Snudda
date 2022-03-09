@@ -265,7 +265,7 @@ class NeuronPrototype:
 
         if morph_path is None:
             print(f"morph_path is None for {self.neuron_name} path: {self.neuron_path}. "
-                  f"Is SNUDDA_DATA set correctly? ({os.environ['SNUDDA_DATA']})")
+                  f"Is SNUDDA_DATA set correctly? ({os.environ['SNUDDA_DATA'] if 'SNUDDA_DATA' in os.environ else None})")
             import pdb
             pdb.set_trace()
 

@@ -854,12 +854,13 @@ class SnuddaPrune(object):
                                      maxshape=(None, 11),
                                      compression=self.h5compression)
 
-        num_synapses = np.zeros((1,), dtype=np.uint64)
-        num_gap_junctions = np.zeros((1,), dtype=np.uint64)
+        # num_synapses = np.zeros((1,), dtype=np.uint64)
+        # num_gap_junctions = np.zeros((1,), dtype=np.uint64)
+        # network_group.create_dataset("nSynapses", data=num_synapses, dtype=np.uint64)
+        # network_group.create_dataset("nGapJunctions", data=num_gap_junctions, dtype=np.uint64)
 
-        network_group.create_dataset("nSynapses", data=num_synapses, dtype=np.uint64)
-        network_group.create_dataset("nGapJunctions", data=num_gap_junctions,
-                                     dtype=np.uint64)
+        network_group.create_dataset("nSynapses", data=0, dtype=np.uint64)
+        network_group.create_dataset("nGapJunctions", data=0, dtype=np.uint64)
 
         self.out_file = out_file
 
@@ -1098,8 +1099,11 @@ class SnuddaPrune(object):
                      f"received {syn_before_total}, expected {synapse_ctr.sum()}")
 
             # Need to resize synapse matrix
-            n_synapses = self.out_file["network/nSynapses"][0]
-            n_gj = self.out_file["network/nGapJunctions"][0]
+            # n_synapses = self.out_file["network/nSynapses"][0]
+            # n_gj = self.out_file["network/nGapJunctions"][0]
+            n_synapses = self.out_file["network/nSynapses"][()]
+            n_gj = self.out_file["network/nGapJunctions"][()]
+
             self.out_file["network/synapses"].resize((n_synapses, self.out_file["network/synapses"].shape[1]))
             self.out_file["network/gapJunctions"].resize((n_gj, self.out_file["network/gapJunctions"].shape[1]))
 
@@ -2113,7 +2117,7 @@ class SnuddaPrune(object):
 
         # Time to write synapses to file
         n_keep_tot = sum(keep_row_flag)
-        write_start_pos = int(output_file["network/" + h5_syn_n][0])
+        write_start_pos = int(output_file["network/" + h5_syn_n][()])
         write_end_pos = write_start_pos + n_keep_tot
 
         if n_keep_tot > 0:
@@ -2122,7 +2126,7 @@ class SnuddaPrune(object):
                 synapses[keep_row_flag, :]
 
             # Update counters
-            output_file["network/" + h5_syn_n][0] = write_end_pos
+            output_file["network/" + h5_syn_n][()] = write_end_pos
 
         else:
             self.write_log("No synapses kept, resizing")

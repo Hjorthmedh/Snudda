@@ -52,6 +52,10 @@ class SwapToDegenerateMorphologies:
 
         self.kd_tree_cache = dict()
 
+    def close(self):
+        self.new_hdf5.close()
+        self.old_hdf5.close()
+
     def write_network_new_file(self):
 
         print(f"Writing new network to {self.new_network_file}")
@@ -78,9 +82,9 @@ class SwapToDegenerateMorphologies:
         data_loc = "network/synapses"
         if data_type is not None and data_type == "gapJunctions":
             data_loc = "network/gapJunctions"
-            num_synapses = self.old_hdf5["network/nGapJunctions"][()][0]
+            num_synapses = self.old_hdf5["network/nGapJunctions"][()]
         else:
-            num_synapses = self.old_hdf5["network/nSynapses"][()][0]
+            num_synapses = self.old_hdf5["network/nSynapses"][()]
 
         start_idx = 0
         next_idx = 0
@@ -111,6 +115,8 @@ class SwapToDegenerateMorphologies:
             yield synapses[start_idx:next_idx, :]
             start_idx = next_idx
 
+        print(f"{next_idx} / {num_synapses}")
+
     def gap_junction_iterator(self, load_gap_junctions=True):
 
         """ Each iteration will return the gap junctions between one pair of neurons. """
@@ -133,6 +139,10 @@ class SwapToDegenerateMorphologies:
         num_synapses = np.zeros((1,), dtype=np.uint64)
         self.new_hdf5["network"].create_dataset("nSynapses", data=syn_ctr, dtype=np.uint64)
 
+        print(f"Keeping {self.new_hdf5['network/nSynapses'][()]} "
+              f"out of {self.old_hdf5['network/nSynapses'][()]} synapses "
+              f"({self.new_hdf5['network/nSynapses'][()] / self.old_hdf5['network/nSynapses'][()]*100:.3f} %)")
+
     def filter_gap_junctions(self):
         # First version, will keep all synapses in memory to write a more efficient file
         new_gap_junctions = np.zeros(self.old_hdf5["network/gapJunctions"].shape,
@@ -144,10 +154,14 @@ class SwapToDegenerateMorphologies:
             new_gap_junctions[gj_ctr:gj_ctr + new_gj.shape[0]] = new_gj
             gj_ctr += new_gj.shape[0]
 
-        self.new_hdf5["network"].create_dataset("gapJunctions", data=new_gap_junctions[gj_ctr, :], compression="lzf")
+        self.new_hdf5["network"].create_dataset("gapJunctions", data=new_gap_junctions[:gj_ctr, :], compression="lzf")
 
         num_gap_junctions = np.zeros((1,), dtype=np.uint64)
         self.new_hdf5["network"].create_dataset("nGapJunctions", data=gj_ctr, dtype=np.uint64)
+
+        print(f"Keeping {self.new_hdf5['network/nGapJunctions'][()]} "
+              f"out of {self.old_hdf5['network/nGapJunctions'][()]} gap junctions "
+              f"({self.new_hdf5['network/nGapJunctions'][()] / self.old_hdf5['network/nGapJunctions'][()]*100:.3f} %)")
 
     def get_morphology(self, neuron_id=None, hdf5=None, neuron_path=None, parameter_key=None, morphology_key=None):
 
@@ -235,7 +249,7 @@ class SwapToDegenerateMorphologies:
         keep_idx_post, new_post_sec_id, new_post_sec_x \
             = self.remap_sections_helper(neuron_id=post_id, old_sec_id=old_post_sec_id, old_sec_x=old_post_sec_x)
 
-        keep_idx = np.logical_and(keep_idx_pre, keep_idx_post)
+        keep_idx = np.intersect1d(keep_idx_pre, keep_idx_post)
 
         edited_gap_junctions = gap_junctions.copy()
         edited_gap_junctions[:, 2] = new_pre_sec_id
@@ -244,9 +258,6 @@ class SwapToDegenerateMorphologies:
         edited_gap_junctions[:, 5] = new_post_sec_x
 
         return edited_gap_junctions[keep_idx, :]
-
-
-    # TODO!! We also need to filter external input
 
     def find_old_morphology(self, neuron_id):
 
@@ -344,6 +355,9 @@ class SwapToDegenerateMorphologies:
         for neuron in old_input["input"].keys():
             neuron_group = new_input["input"].create_group(neuron)
 
+            old_n = 0
+            new_n = 0
+
             for input_type in old_input["input"][neuron].keys():
                 # Note: This code assumes these are real neuron and not just virtual neurons.
                 #       it does not handle the virtual neuron case here.
@@ -359,13 +373,11 @@ class SwapToDegenerateMorphologies:
 
                 input_group = neuron_group.create_group(input_type)
 
-                input_group.create_dataset("spikes", data=old_input_data[:, keep_idx], compression="gzip",
-                                           dtype=np.float32)
+                input_group.create_dataset("spikes", data=old_input_data["spikes"][keep_idx, :],
+                                           compression="gzip", dtype=np.float32)
                 input_group.create_dataset("nSpikes", data=old_input_data["nSpikes"][keep_idx], dtype=np.int32)
-                input_group.create_dataset("sectionID", data=new_sec_id,
-                                           compression="gzip", dtype=np.int16)
-                input_group.create_dataset("sectionX", data=new_sec_x,
-                                           compression="gzip", dtype=np.float16)
+                input_group.create_dataset("sectionID", data=new_sec_id[keep_idx], compression="gzip", dtype=np.int16)
+                input_group.create_dataset("sectionX", data=new_sec_x[keep_idx], compression="gzip", dtype=np.float16)
 
                 input_group.create_dataset("distanceToSoma", data=old_input_data["distanceToSoma"][keep_idx],
                                            compression="gzip", dtype=np.float16)
@@ -375,6 +387,13 @@ class SwapToDegenerateMorphologies:
                                   "modFile", "parameterFile", "parameterList", "parameterID"]:
                     if data_name in old_input_data:
                         old_input_data.copy(source=old_input_data[data_name], dest=input_group)
+
+                old_n += old_input_data['spikes'].shape[0]
+                new_n += len(keep_idx)
+
+            print(f"Processed input to {self.old_data['neurons'][int(neuron)]['name']} ({neuron}), "
+                  f"keeping {new_n} out of {old_n} inputs "
+                  f"({new_n / old_n * 100 :.2f} %)")
 
         old_input.close()
         new_input.close()
@@ -418,7 +437,7 @@ class SwapToDegenerateMorphologies:
 
         coord_to_sec_id_x = dict()
         for link, old_sec_id, old_sec_x in zip(old_morph.dend_links, old_morph.dend_sec_id, old_morph.dend_sec_x):
-            coord = (old_morph.dend[link[1], :3] * 1e3).astype(int)
+            coord = (old_morph.dend[link[1], :3] * 1e9).astype(int)
             coord_to_sec_id_x[coord[0], coord[1], coord[2]] = (old_sec_id, old_sec_x[1])
 
         old_to_new_sec_id = dict()
@@ -426,7 +445,7 @@ class SwapToDegenerateMorphologies:
                                  # that value will map to sec_x 1.0 in new (stored as int sec_x*1000)
 
         for link, new_sec_id, new_sec_x in zip(new_morph.dend_links, new_morph.dend_sec_id, new_morph.dend_sec_x):
-            coord = (new_morph.dend[link[1], :3] * 1e3).astype(int)
+            coord = (new_morph.dend[link[1], :3] * 1e9).astype(int)
             old_sec_id, old_sec_x = coord_to_sec_id_x[coord[0], coord[1], coord[2]]
 
             old_to_new_sec_id[old_sec_id] = new_sec_id
@@ -435,9 +454,14 @@ class SwapToDegenerateMorphologies:
             else:
                 old_sec_x_list[old_sec_id].append(old_sec_x)
 
-        neuron_section_lookup = dict()
+        neuron_section_lookup = {0: (0, 1.0)}  # Add SOMA mapping. ID 0 --> ID 0, entire "section" remains i.e. 1.0
+
         for old_sec_id in old_to_new_sec_id.keys():
             neuron_section_lookup[old_sec_id] = (old_to_new_sec_id[old_sec_id], np.max(old_sec_x_list[old_sec_id]))
+
+        assert len(neuron_section_lookup) > 10, (f"Section lookup has fewer than 10 elements. Does morphologies match?"
+                                                 f"\nOld = {old_path, old_param_key, old_morph_key}"
+                                                 f"\nNew = {new_path, new_param_key, new_morph_key}")
 
         self.section_lookup[old_param_key, old_morph_key, old_path] = neuron_section_lookup
 
@@ -454,7 +478,7 @@ class SwapToDegenerateMorphologies:
                 old_sec_x (np.array) : Section X of old section (note in synapse matrix format, int 0-1000)
 
             Returns:
-                keep_idx (np.array) : Bool array
+                keep_idx (np.array) : Indexes to keep
                 new_sec_id (np.array) : Section ID of new section, positions are np.nan if not mapped
                 new_sec_x (np.array) : Section X of new section, positions are np.nan if not mapped
 
@@ -469,15 +493,17 @@ class SwapToDegenerateMorphologies:
         lookup = self.section_lookup[old_param_key, old_morph_key, old_path]
 
         for idx, (old_id, old_x) in enumerate(zip(old_sec_id, old_sec_x)):
-            if old_id in lookup and old_x <= lookup[old_id][1]:
+            if old_id in lookup and old_x <= 1000*lookup[old_id][1]:
                 new_id = lookup[old_id][0]
-                new_x = old_x / lookup[old_id][1] * 1000
+                new_x = int(old_x / lookup[old_id][1])
+
+                assert 0 <= new_x <= 1000, f"Out of range new_x={new_x} (required 0-1000)"
 
                 keep_idx[idx] = True
                 new_sec_id[idx] = new_id
                 new_sec_x[idx] = new_x
 
-        return keep_idx, new_sec_id, new_sec_x
+        return np.where(keep_idx)[0], new_sec_id, new_sec_x
 
 
 def cli():
@@ -508,6 +534,8 @@ def cli():
                                         new_input_file=new_input_file)
     swap.write_network_new_file()
     swap.write_new_input_file()
+
+    swap.close()
 
 
 if __name__ == "__main__":
