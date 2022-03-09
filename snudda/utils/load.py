@@ -176,23 +176,29 @@ class SnuddaLoad(object):
             data["nNeurons"] = f["network/neurons/neuronID"].shape[0]
             data["neuronID"] = f["network/neurons/neuronID"][()]
 
-            if f["network/nSynapses"].shape == ():
-                data["nSynapses"] = f["network/nSynapses"][()]
-            else:
-                data["nSynapses"] = f["network/nSynapses"][0]
+            if "nSynapses" in f["network"]:
+                if f["network/nSynapses"].shape == ():
+                    data["nSynapses"] = f["network/nSynapses"][()]
+                else:
+                    data["nSynapses"] = f["network/nSynapses"][0]
 
-            if data["nSynapses"] != f["network/synapses"].shape[0]:
-                print(f"Expected {data['nSynapses']} synapses, found {f['network/synapses'].shape[0]} synapse rows")
+                if data["nSynapses"] != f["network/synapses"].shape[0]:
+                    print(f"Expected {data['nSynapses']} synapses, found {f['network/synapses'].shape[0]} synapse rows")
+                    data["nSynapses"] = f["network/synapses"].shape[0]
+            else:
                 data["nSynapses"] = f["network/synapses"].shape[0]
 
-            if f["network/nGapJunctions"].shape == ():
-                data["nGapJunctions"] = f["network/nGapJunctions"][()]
-            else:
-                data["nGapJunctions"] = f["network/nGapJunctions"][0]
+            if "nGapJunctions" in f["network"]:
+                if f["network/nGapJunctions"].shape == ():
+                    data["nGapJunctions"] = f["network/nGapJunctions"][()]
+                else:
+                    data["nGapJunctions"] = f["network/nGapJunctions"][0]
 
-            if data["nGapJunctions"] != f["network/gapJunctions"].shape[0]:
-                print(f"Expected {data['nGapJunctions']} gap junctions, "
-                      f"found {f['network/gapJunctions'].shape[0]} gap junction rows")
+                if data["nGapJunctions"] != f["network/gapJunctions"].shape[0]:
+                    print(f"Expected {data['nGapJunctions']} gap junctions, "
+                          f"found {f['network/gapJunctions'].shape[0]} gap junction rows")
+                    data["nGapJunctions"] = f["network/gapJunctions"].shape[0]
+            else:
                 data["nGapJunctions"] = f["network/gapJunctions"].shape[0]
 
             if data["nSynapses"] > 100e6:
