@@ -1173,7 +1173,7 @@ class SnuddaPrune(object):
                 next_syn += n
             f.close()
 
-        self.out_file["network/" + h5_syn_n][0] = next_syn
+        self.out_file["network/" + h5_syn_n] = next_syn
 
         end_time2 = timeit.default_timer()
         self.write_log(f"combine_files ({merge_data_type}): {end_time2 - start_time:.1f}s")
