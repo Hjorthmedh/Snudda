@@ -178,73 +178,63 @@ class SwapToDegenerateMorphologies:
 
         return neuron
 
-    def filter_synapses_helper(self, synapses, max_dist=5e-6):
+    def filter_synapses_helper(self, synapses):
+
+        """ This currently only takes DENDRITE degeneration into account.
+            AXON degeneration is not taken into account for synapse removal.
+        """
+
         pre_id = synapses[0, 0]
         post_id = synapses[0, 1]
 
+        assert (synapses[:, 0] == pre_id).all()
+        assert (synapses[:, 1] == post_id).all()
+
         keep_synapses = np.ones((synapses.shape[0],), dtype=bool)
 
-        # Sanity check that we only have synapses between one pair of neurons
-        try:
-            assert (synapses[:, 0] == pre_id).all()
-            assert (synapses[:, 1] == post_id).all()
-        except:
-            import traceback
-            print(traceback.format_exc())
-            import pdb
-            pdb.set_trace()
+        old_sec_id = synapses[:, 9]
+        old_sec_x = synapses[:, 10]
 
-        pre_neuron = self.get_morphology(neuron_id=pre_id, hdf5=self.new_hdf5)
-        post_neuron = self.get_morphology(neuron_id=post_id, hdf5=self.new_hdf5)
+        keep_idx, new_sec_id, new_sec_x \
+            = self.remap_sections_helper(neuron_id=post_id, old_sec_id=old_sec_id, old_sec_x=old_sec_x)
 
-        pre_axon = self.get_kd_tree(pre_neuron, "axon")
-        post_dend = self.get_kd_tree(post_neuron, "dend")
+        edited_synapses = synapses.copy()
 
-        for idx, syn in enumerate(synapses):
-            syn_coord = syn[2:5] * self.original_data["voxelSize"] + self.original_data["simulationOrigo"]
+        edited_synapses[:, 9] = new_sec_id
+        edited_synapses[:, 10] = new_sec_x
 
-            closest_dist, closest_post_point = post_dend.query(syn_coord)
+        return edited_synapses[keep_idx, :]
 
-            if closest_dist > max_dist:
-                keep_synapses[idx] = False
-
-            if pre_axon and keep_synapses[idx]:
-                closest_dist, closest_pre_point = pre_axon.query(syn_coord)
-                if closest_dist > max_dist:
-                    keep_synapses[idx] = False
-
-        return synapses[keep_synapses, :]
-
-    def filter_gap_junctions_helper(self, gap_junctions, max_dist=5e-6):
+    def filter_gap_junctions_helper(self, gap_junctions):
 
         # Gap junctions are bidirectional, but call them pre and post out of habit
         pre_id = gap_junctions[0, 0]
         post_id = gap_junctions[0, 1]
 
-        keep_gap_junctions = np.ones((gap_junctions.shape[0],), dtype=bool)
-
         assert (gap_junctions[:, 0] == pre_id).all()
         assert (gap_junctions[:, 1] == post_id).all()
 
-        pre_neuron = self.get_morphology(pre_id, hdf5=self.new_hdf5)
-        post_neuron = self.get_morphology(post_id, hdf5=self.new_hdf5)
+        old_pre_sec_id = gap_junctions[:, 2]
+        old_pre_sec_x = gap_junctions[:, 4]
+        old_post_sec_id = gap_junctions[:, 3]
+        old_post_sec_x = gap_junctions[:, 5]
 
-        pre_dend = self.get_kd_tree(pre_neuron, "dend")
-        post_dend = self.get_kd_tree(post_neuron, "dend")
+        keep_idx_pre, new_pre_sec_id, new_pre_sec_x \
+            = self.remap_sections_helper(neuron_id=pre_id, old_sec_id=old_pre_sec_id, old_sec_x=old_pre_sec_x)
 
-        for idx, gj in enumerate(gap_junctions):
-            gj_coord = gj[6:9] * self.original_data["voxelSize"] + self.original_data["simulationOrigo"]
+        keep_idx_post, new_post_sec_id, new_post_sec_x \
+            = self.remap_sections_helper(neuron_id=post_id, old_sec_id=old_post_sec_id, old_sec_x=old_post_sec_x)
 
-            pre_dist, closest_pre_point = pre_dend.query(gj_coord)
-            post_dist, closest_post_point = post_dend.query(gj_coord)
+        keep_idx = np.logical_and(keep_idx_pre, keep_idx_post)
 
-            if pre_dist > max_dist:
-                keep_gap_junctions[idx] = False
+        edited_gap_junctions = gap_junctions.copy()
+        edited_gap_junctions[:, 2] = new_pre_sec_id
+        edited_gap_junctions[:, 3] = new_post_sec_id
+        edited_gap_junctions[:, 4] = new_pre_sec_x
+        edited_gap_junctions[:, 5] = new_post_sec_x
 
-            if post_dist > max_dist:
-                keep_gap_junctions[idx] = False
+        return edited_gap_junctions[keep_idx, :]
 
-        return gap_junctions[keep_gap_junctions, :]
 
     # TODO!! We also need to filter external input
 
@@ -331,7 +321,7 @@ class SwapToDegenerateMorphologies:
 
         return sec_id, sec_x
 
-    def filter_external_input(self, neuron_id, sec_id, sec_x, max_dist=5e-6):
+    def filter_external_input_helper(self, neuron_id, sec_id, sec_x):
 
         # TODO: This code needs to return index of the input synapses to keep
         keep_idx = np.ones((len(sec_id),), dtype=bool)
@@ -402,9 +392,9 @@ class SwapToDegenerateMorphologies:
                 old_input_data = old_input["input"][neuron][input_type]
 
                 keep_idx, new_sec_id, new_sec_x \
-                    = self.filter_external_input(neuron_id=int(neuron),
-                                                 sec_id=old_input_data["sectionID"],
-                                                 sec_x=old_input_data["sectionX"])
+                    = self.remap_sections_helper(neuron_id=int(neuron),
+                                                 old_sec_id=old_input_data["sectionID"],
+                                                 old_sec_x=old_input_data["sectionX"])
 
                 if len(keep_idx) == 0:
                     continue
@@ -444,6 +434,91 @@ class SwapToDegenerateMorphologies:
                 self.kd_tree_cache[(neuron, tree_type)] = None
 
         return self.kd_tree_cache[(neuron, tree_type)]
+
+    def create_section_lookup(self):
+
+        pass
+
+    # Note this does not take AXON degeneration into account, need to do that separately
+    def create_section_lookup_helper(self, neuron_id):
+
+        old_param_key, old_morph_key, old_path = self.find_old_morphology(neuron_id=neuron_id)
+        new_param_key, new_morph_key, new_path = self.find_morpology(neuron_id=neuron_id)
+
+        if (old_param_key, old_morph_key, old_path) in self.section_lookup:
+            # We already have the morphology in the section_lookup
+            return
+
+        old_morph = self.get_morphology(parameter_key=old_param_key,
+                                        morphology_key=old_morph_key,
+                                        neuron_path=old_path)
+
+        new_morph = self.get_morphology(parameter_key=new_param_key,
+                                        morphology_key=new_morph_key,
+                                        neuron_path=new_path)
+
+        coord_to_sec_id_x = dict()
+        for link, old_sec_id, old_sec_x in zip(old_morph.dend_links, old_morph.dend_sec_id, old_morph.dend_sec_X):
+            coord = (old_morph.dend[link[1], :3] * 1e3).astype(int)
+            coord_to_sec_id_x[coord] = (old_sec_id, old_sec_x[1])
+
+        old_to_new_sec_id = dict()
+        old_sec_x_list = dict()  # We just need to find the maximal old sec_x still present,
+                                 # that value will map to sec_x 1.0 in new (stored as int sec_x*1000)
+
+        for link, new_sec_id, new_sec_x in zip(new_morph.dend_links, new_morph.dend_sec_id, new_morph.dend_sec_X):
+            coord = (new_morph.dend[link[1], :3] * 1e3).astype(int)
+            old_sec_id, old_sec_x = coord_to_sec_id_x[coord]
+
+            old_to_new_sec_id[old_sec_id] = new_sec_id
+            if old_sec_id not in old_sec_x_list:
+                old_sec_x_list[old_sec_id] = [old_sec_x]
+            else:
+                old_sec_x_list[old_sec_id].append(old_sec_x)
+
+        neuron_section_lookup = dict()
+        for old_sec_id in old_to_new_sec_id.keys():
+            neuron_section_lookup[old_sec_id] = (old_to_new_sec_id[old_sec_id], np.max(old_sec_x_list[old_sec_id]))
+
+        self.section_lookup[old_param_key, old_morph_key, old_path] = neuron_section_lookup
+
+    def remap_sections_helper(self, neuron_id, old_sec_id, old_sec_x):
+
+        """
+            Remaps sections for neuron_id
+
+            This does currently NOT take AXON DEGENERATION into account
+
+            Args:
+                neuron_id (int) : Neuron ID
+                old_sec_id (np.array) : Section ID of old section
+                old_sec_x (np.array) : Section X of old section (note in synapse matrix format, int 0-1000)
+
+            Returns:
+                keep_idx (np.array) : Bool array
+                new_sec_id (np.array) : Section ID of new section, positions are np.nan if not mapped
+                new_sec_x (np.array) : Section X of new section, positions are np.nan if not mapped
+
+        """
+
+        keep_idx = np.zeros(old_sec_id.shape, dtype=bool)
+        new_sec_id = np.zeros(old_sec_id.shape, dtype=int) * np.nan
+        new_sec_x = np.zeros(old_sec_id.shape, dtype=int) * np.nan
+
+        old_param_key, old_morph_key, old_path = self.find_old_morphology(neuron_id=neuron_id)
+
+        lookup = self.section_lookup[old_param_key, old_morph_key, old_path]
+
+        for idx, (old_id, old_x) in enumerate(zip(old_sec_id, old_sec_x)):
+            if old_id in lookup and old_x <= lookup[old_id][1]:
+                new_id = lookup[old_id][0]
+                new_x = old_x / lookup[old_id][1] * 1000
+
+                keep_idx[idx] = True
+                new_sec_id[idx] = new_id
+                new_sec_x[idx] = new_x
+
+        return keep_idx, new_sec_id, new_sec_x
 
 
 def cli():
