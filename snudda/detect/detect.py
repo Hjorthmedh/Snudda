@@ -53,6 +53,7 @@ class SnuddaDetect(object):
                  role=None,  # Default: "master"
                  rc=None,
                  axon_stump_id_flag=False,
+                 simulation_origo = None,  # Auto detect
                  h5libver=None,  # Default: "latest"
                  random_seed=None,
                  debug_flag=False):
@@ -76,6 +77,7 @@ class SnuddaDetect(object):
             role (str, optional): Parallel role, i.e. "master" or "worker"
             rc (ipyparallel.Client, optional): iPyParallel client, if given program will run in parallel
             axon_stump_id_flag (bool, optional): Recalculate segment IDs to account for axon stump? (default False)
+            simulation_origo (np.array, optional): Origo for touch detection hypervoxels and voxels, voxel coordinates must always positive.
             h5libver (string, optional): h5py library version (default "latest")
             random_seed (int, optional): Random seed
             debug_flag (bool, optional): Save additional information for debugging (Default: False)
@@ -193,7 +195,7 @@ class SnuddaDetect(object):
         self.hyper_voxel_id_lookup = None
         self.num_hyper_voxels = None
         self.hyper_voxel_width = self.hyper_voxel_size * self.voxel_size
-        self.simulation_origo = None
+        self.simulation_origo = np.array(simulation_origo)
 
         self.config = None
 
@@ -2343,7 +2345,12 @@ class SnuddaDetect(object):
                 (min_coord, max_coord) = self.find_min_max_coord()
 
             # Simulation origo is in meters
-            self.simulation_origo = min_coord
+            if self.simulation_origo is None:
+                self.simulation_origo = min_coord
+            else:
+                assert (self.simulation_origo < min_coord).all(), \
+                    ( f"Simulation origo ({self.simulation_origo}) must be smaller than {min_coord}. "
+                      f"This since all voxel and hyper voxel coordinates must be positive." )
 
             assert ((self.num_bins - self.num_bins[0]) == 0).all(), "Hyper voxels should be cubes"
 
