@@ -195,7 +195,7 @@ class SnuddaDetect(object):
         self.hyper_voxel_id_lookup = None
         self.num_hyper_voxels = None
         self.hyper_voxel_width = self.hyper_voxel_size * self.voxel_size
-        self.simulation_origo = np.array(simulation_origo)
+        self.simulation_origo = np.array(simulation_origo) if simulation_origo is not None else None
 
         self.config = None
 
@@ -2348,7 +2348,7 @@ class SnuddaDetect(object):
             if self.simulation_origo is None:
                 self.simulation_origo = min_coord
             else:
-                assert (self.simulation_origo < min_coord).all(), \
+                assert (self.simulation_origo <= min_coord).all(), \
                     ( f"Simulation origo ({self.simulation_origo}) must be smaller than {min_coord}. "
                       f"This since all voxel and hyper voxel coordinates must be positive." )
 
