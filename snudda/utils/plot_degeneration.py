@@ -18,12 +18,14 @@ class PlotDegeneration:
 
         ax = self.original_plot.plot_neuron_inputs(neuron_id=neuron_id,
                                                    neuron_colour=np.array([0.3, 0.3, 0.3]),
+                                                   external_colour=np.array([1, 0.5, 0.5]),
+                                                   internal_colour=np.array([0.5, 0.5, 1]),
                                                    save_fig=False)
         self.degenerated_plot.plot_neuron_inputs(neuron_id=neuron_id,
                                                  neuron_colour=np.array([0, 0, 0]),
                                                  ax=ax, save_fig=True)
 
-        
+
 def cli():
 
     import argparse

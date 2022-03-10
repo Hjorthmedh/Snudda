@@ -56,7 +56,7 @@ class SwapToDegenerateMorphologies:
         self.new_hdf5.close()
         self.old_hdf5.close()
 
-    def write_network_new_file(self):
+    def write_new_network_file(self):
 
         print(f"Writing new network to {self.new_network_file}")
         self.new_hdf5 = h5py.File(self.new_network_file, "w")
@@ -220,12 +220,12 @@ class SwapToDegenerateMorphologies:
         old_sec_x = synapses[:, 10]
 
         keep_idx, new_sec_id, new_sec_x \
-            = self.remap_sections_helper(neuron_id=post_id, old_sec_id=old_sec_id, old_sec_x=old_sec_x)
+            = self.remap_sections_helper(neuron_id=post_id, old_sec_id=old_sec_id, old_sec_x=old_sec_x/1000)
 
         edited_synapses = synapses.copy()
 
         edited_synapses[:, 9] = new_sec_id
-        edited_synapses[:, 10] = new_sec_x
+        edited_synapses[:, 10] = new_sec_x * 1000
 
         return edited_synapses[keep_idx, :]
 
@@ -244,18 +244,18 @@ class SwapToDegenerateMorphologies:
         old_post_sec_x = gap_junctions[:, 5]
 
         keep_idx_pre, new_pre_sec_id, new_pre_sec_x \
-            = self.remap_sections_helper(neuron_id=pre_id, old_sec_id=old_pre_sec_id, old_sec_x=old_pre_sec_x)
+            = self.remap_sections_helper(neuron_id=pre_id, old_sec_id=old_pre_sec_id, old_sec_x=old_pre_sec_x/1000)
 
         keep_idx_post, new_post_sec_id, new_post_sec_x \
-            = self.remap_sections_helper(neuron_id=post_id, old_sec_id=old_post_sec_id, old_sec_x=old_post_sec_x)
+            = self.remap_sections_helper(neuron_id=post_id, old_sec_id=old_post_sec_id, old_sec_x=old_post_sec_x/1000)
 
         keep_idx = np.intersect1d(keep_idx_pre, keep_idx_post)
 
         edited_gap_junctions = gap_junctions.copy()
         edited_gap_junctions[:, 2] = new_pre_sec_id
         edited_gap_junctions[:, 3] = new_post_sec_id
-        edited_gap_junctions[:, 4] = new_pre_sec_x
-        edited_gap_junctions[:, 5] = new_post_sec_x
+        edited_gap_junctions[:, 4] = new_pre_sec_x * 1000
+        edited_gap_junctions[:, 5] = new_post_sec_x * 1000
 
         return edited_gap_junctions[keep_idx, :]
 
@@ -475,7 +475,7 @@ class SwapToDegenerateMorphologies:
             Args:
                 neuron_id (int) : Neuron ID
                 old_sec_id (np.array) : Section ID of old section
-                old_sec_x (np.array) : Section X of old section (note in synapse matrix format, int 0-1000)
+                old_sec_x (np.array) : Section X of old section (float 0-1)
 
             Returns:
                 keep_idx (np.array) : Indexes to keep
@@ -486,18 +486,18 @@ class SwapToDegenerateMorphologies:
 
         keep_idx = np.zeros(old_sec_id.shape, dtype=bool)
         new_sec_id = np.zeros(old_sec_id.shape, dtype=int) * np.nan
-        new_sec_x = np.zeros(old_sec_id.shape, dtype=int) * np.nan
+        new_sec_x = np.zeros(old_sec_id.shape) * np.nan
 
         old_param_key, old_morph_key, old_path = self.find_old_morphology(neuron_id=neuron_id)
 
         lookup = self.section_lookup[old_param_key, old_morph_key, old_path]
 
         for idx, (old_id, old_x) in enumerate(zip(old_sec_id, old_sec_x)):
-            if old_id in lookup and old_x <= 1000*lookup[old_id][1]:
+            if old_id in lookup and old_x <= lookup[old_id][1]:
                 new_id = lookup[old_id][0]
                 new_x = int(old_x / lookup[old_id][1])
 
-                assert 0 <= new_x <= 1000, f"Out of range new_x={new_x} (required 0-1000)"
+                assert 0 <= new_x <= 1, f"Out of range new_x={new_x} (required 0-1)"
 
                 keep_idx[idx] = True
                 new_sec_id[idx] = new_id
@@ -532,7 +532,7 @@ def cli():
                                         new_snudda_data_dir=args.new_snudda_path,
                                         original_input_file=original_input_file,
                                         new_input_file=new_input_file)
-    swap.write_network_new_file()
+    swap.write_new_network_file()
     swap.write_new_input_file()
 
     swap.close()
