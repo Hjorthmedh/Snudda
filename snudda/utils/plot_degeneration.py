@@ -1,26 +1,42 @@
-import h5py
+import os
 import numpy as np
-import matplotlib.pyplot as plt
-
-from snudda import SnuddaLoad
+from snudda.plotting.plot_input_locations import SnuddaPlotInputLocations
 
 
 class PlotDegeneration:
 
-    def __init__(self, original_network_file, original_input_file, degenerated_network_file, degenerated_input_file):
+    def __init__(self, original_network_path, degenerated_network_path):
 
-        self.original_network_file = original_network_file
-        self.original_input_file = original_input_file
+        self.original_plot = SnuddaPlotInputLocations(network_path=original_network_path)
+        self.degenerated_plot = SnuddaPlotInputLocations(network_path=degenerated_network_path)
 
-        self.degenerated_network_file = degenerated_network_file
-        self.degenerated_input_file = degenerated_input_file
+        self.fig_path = os.path.join(degenerated_network_path, "figures")
+        if not os.path.exists(self.fig_path):
+            os.mkdir(self.fig_path)
 
-        self.original_network_loader = SnuddaLoad(self.original_network_file)
-        self.degenerated_network_loader = SnuddaLoad(self.degenerated_network_file)
+    def plot_neuron(self, neuron_id):
 
-        self.original_data = self.original_network_loader.data
-        self.degenerated_data = self.degenerated_network_loader.data
+        ax = self.original_plot.plot_neuron_inputs(neuron_id=neuron_id,
+                                                   neuron_colour=np.array([0.3, 0.3, 0.3]),
+                                                   save_fig=False)
+        self.degenerated_plot.plot_neuron_inputs(neuron_id=neuron_id,
+                                                 neuron_colour=np.array([0, 0, 0]),
+                                                 ax=ax, save_fig=True)
 
-        self.original_input = h5py.File(self.original_input_file, 'r')
-        self.degenerated_input = h5py.File(self.degenerated_input_file, 'r')
+        
+def cli():
 
+    import argparse
+    parser = argparse.ArgumentParser("plot_degeneration")
+    parser.add_argument("original_network_path", help="Path to original network directory")
+    parser.add_argument("degenerated_network_path", help="Path to degenerated network directory")
+    parser.add_argument("neuron_id", help="Neuron ID to inspect", type=int)
+    args = parser.parse_args()
+
+    pd = PlotDegeneration(original_network_path=args.original_network_path,
+                          degenerated_network_path=args.degenerated_network_path)
+    pd.plot_neuron(neuron_id=args.neuron_id)
+
+
+if __name__ == "__main__":
+    cli()

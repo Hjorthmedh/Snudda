@@ -11,10 +11,22 @@ from mpl_toolkits.mplot3d import Axes3D
 
 class SnuddaPlotInputLocations:
 
-    def __init__(self, network_path, input_file=None):
+    def __init__(self, network_path=None, network_file=None, input_file=None):
+
+        if not network_path:
+            if network_file:
+                network_path = os.path.dirname(network_file)
+            elif input_file:
+                network_path = os.path.dirname(input_file)
+            else:
+                network_path = "./"
 
         self.network_path = network_path
-        self.network_file = os.path.join(network_path, "network-synapses.hdf5")
+
+        if network_file is None:
+            self.network_file = os.path.join(network_path, "network-synapses.hdf5")
+        else:
+            self.network_file = network_file
 
         if input_file is None:
             self.input_file = os.path.join(network_path, "input-spikes.hdf5")
@@ -33,7 +45,10 @@ class SnuddaPlotInputLocations:
     def plot_neuron_inputs(self, neuron_id,
                            input_type=None,
                            show_internal_synapses=True,
-                           external_colour=None, internal_colour=None, size=10):
+                           external_colour=None, internal_colour=None,
+                           ax=None, neuron_colour=None,
+                           size=10,
+                           save_fig=True):
 
         # TODO: Add ability to plot touch detected inputs also (use blue colour for them)
 
@@ -45,11 +60,18 @@ class SnuddaPlotInputLocations:
         if not internal_colour:
             internal_colour = "b"
 
-        
         nm = self.load_neuron(neuron_id=neuron_id)
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        ax = nm.plot_neuron(soma_colour=[0, 0, 0], dend_colour=[0, 0, 0], plot_axon=False, plot_dendrite=True,show_plot=False,axis=ax)
+
+        if ax is None:
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+
+        if neuron_colour is None:
+            neuron_colour = np.array([0, 0, 0])
+
+        ax = nm.plot_neuron(soma_colour=neuron_colour, dend_colour=neuron_colour,
+                            plot_axon=False, plot_dendrite=True,
+                            show_plot=False, axis=ax)
 
         if len(coords) > 0:
             print(f"Plotting {len(coords)} external synapses")
@@ -80,8 +102,11 @@ class SnuddaPlotInputLocations:
         if not os.path.exists(fig_path):
             os.mkdir(fig_path)
 
-        fig_name = os.path.join(fig_path, f_name)
-        plt.savefig(fig_name, dpi=300)
+        if save_fig:
+            fig_name = os.path.join(fig_path, f_name)
+            plt.savefig(fig_name, dpi=300)
+
+        return ax
 
     def get_input_locations(self, neuron_id, input_type=None):
 
@@ -131,10 +156,10 @@ class SnuddaPlotInputLocations:
 
         if neuron_id not in self.neuron_cache:
             neuron_info = self.snudda_load.data["neurons"][neuron_id]
-            nm = NeuronMorphology(name=neuron_info["name"],
-                                  swc_filename=neuron_info["morphology"],
-                                  position=neuron_info["position"],
-                                  rotation=neuron_info["rotation"])
+
+            np = NeuronPrototype(neuron_path=neuron_info["neuronPath"], neuron_name=neuron_info["name"])
+            nm = np.clone(parameter_key=neuron_info["parameterKey"], morphology_key=neuron_info["morphologyKey"],
+                          position=neuron_info["position"], rotation=neuron_info["rotation"])
             self.neuron_cache[neuron_id] = nm
 
         return self.neuron_cache[neuron_id]
@@ -155,7 +180,7 @@ class SnuddaPlotInputLocations:
 def plot_input_location_cli():
 
     import argparse
-    parser = argparse.ArgumentParser("Plot input locations")
+    parser = argparse.ArgumentParser("plot_input_locations")
     parser.add_argument("networkPath", help="Path to network directory")
     parser.add_argument("neuronID", help="NeuronID to inspect", type=int)
     parser.add_argument("--inputType", help="Input type to show (default all)", default=None, type=str)
