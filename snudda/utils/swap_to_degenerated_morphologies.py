@@ -440,7 +440,9 @@ class SwapToDegenerateMorphologies:
             coord_to_sec_id_x[coord[0], coord[1], coord[2]] = (old_sec_id, old_sec_x[1])
 
         old_to_new_sec_id = dict()
-        old_sec_x_list = dict()  # We just need to find the maximal old sec_x still present,
+        old_sec_x_list = dict()
+        new_sec_x_list = dict()
+        # We just need to find the maximal old sec_x still present,
                                  # that value will map to sec_x 1.0 in new (stored as int sec_x*1000)
 
         for link, new_sec_id, new_sec_x in zip(new_morph.dend_links, new_morph.dend_sec_id, new_morph.dend_sec_x):
@@ -459,34 +461,25 @@ class SwapToDegenerateMorphologies:
 
             if old_sec_id not in old_sec_x_list:
                 old_sec_x_list[old_sec_id] = [old_sec_x]
+                new_sec_x_list[old_sec_id] = [new_sec_x[1]]
             else:
                 old_sec_x_list[old_sec_id].append(old_sec_x)
+                new_sec_x_list[old_sec_id].append(new_sec_x[1])
 
-        neuron_section_lookup = {0: (0, 1.0)}  # Add SOMA mapping. ID 0 --> ID 0, entire "section" remains i.e. 1.0
+        neuron_section_lookup = {0: (0, np.array([0, 1]), np.array([0, 1]))}  # Add SOMA mapping. ID 0-1 --> ID 0-1
 
         for old_sec_id in old_to_new_sec_id.keys():
-            neuron_section_lookup[old_sec_id] = (old_to_new_sec_id[old_sec_id], np.max(old_sec_x_list[old_sec_id]))
+
+            assert (np.diff(old_sec_x_list[old_sec_id]) > 0).all()
+            assert (np.diff(new_sec_x_list[old_sec_id]) > 0).all()
+
+            neuron_section_lookup[old_sec_id] = (old_to_new_sec_id[old_sec_id],
+                                                 np.array(old_sec_x_list[old_sec_id]),
+                                                 np.array(new_sec_x_list[old_sec_id]))
 
         assert len(neuron_section_lookup) > 10, (f"Section lookup has fewer than 10 elements. Does morphologies match?"
                                                  f"\nOld = {old_path, old_param_key, old_morph_key}"
                                                  f"\nNew = {new_path, new_param_key, new_morph_key}")
-
-        # Let's add one more check.
-        for old_sec_id, (new_sec_id, old_sec_x_max) in neuron_section_lookup.items():
-
-            old_idx = np.where(old_morph.dend_sec_id == old_sec_id)[0]
-            new_idx = np.where(new_morph.dend_sec_id == new_sec_id)[0]
-            old_coords = old_morph.dend[old_morph.dend_links[old_idx, 1], :3]
-            new_coords = new_morph.dend[new_morph.dend_links[new_idx, 1], :3]
-
-            for coord in new_coords:
-                try:
-                    assert np.sum((old_coords == coord).all(-1)) == 1, "Each new coord should exist in the old coord list"
-                except:
-                    import traceback
-                    print(traceback.format_exc())
-                    import pdb
-                    pdb.set_trace()
 
             # Check that all new_coords exist in the old_coords list.
 
@@ -520,15 +513,24 @@ class SwapToDegenerateMorphologies:
         lookup = self.section_lookup[old_param_key, old_morph_key, old_path]
 
         for idx, (old_id, old_x) in enumerate(zip(old_sec_id, old_sec_x)):
-            if old_id in lookup and old_x <= lookup[old_id][1]:
+            if old_id in lookup:
                 new_id = lookup[old_id][0]
-                new_x = int(old_x / lookup[old_id][1])
 
-                assert 0 <= new_x <= 1, f"Out of range new_x={new_x} (required 0-1)"
+                # We know range of old x that are still valid, and new x they map to. If outside, returns nan
+                try:
+                    new_x = np.interp(old_x, lookup[old_id][1], lookup[old_id][2], right=np.nan, left=np.nan)
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
 
-                keep_idx[idx] = True
-                new_sec_id[idx] = new_id
-                new_sec_x[idx] = new_x
+                if not np.isnan(new_x):
+                    assert 0 <= new_x <= 1, f"Out of range new_x={new_x} (required 0-1)"
+
+                    keep_idx[idx] = True
+                    new_sec_id[idx] = new_id
+                    new_sec_x[idx] = new_x
 
         return np.where(keep_idx)[0], new_sec_id, new_sec_x
 
