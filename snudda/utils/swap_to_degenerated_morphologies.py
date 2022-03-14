@@ -427,17 +427,16 @@ class SwapToDegenerateMorphologies:
             # We already have the morphology in the section_lookup
             return
 
-        old_morph = self.get_morphology(parameter_key=old_param_key,
-                                        morphology_key=old_morph_key,
-                                        neuron_path=old_path)
-
-        new_morph = self.get_morphology(parameter_key=new_param_key,
-                                        morphology_key=new_morph_key,
-                                        neuron_path=new_path)
+        old_morph = self.get_morphology(parameter_key=old_param_key, morphology_key=old_morph_key, neuron_path=old_path)
+        new_morph = self.get_morphology(parameter_key=new_param_key, morphology_key=new_morph_key, neuron_path=new_path)
 
         coord_to_sec_id_x = dict()
         for link, old_sec_id, old_sec_x in zip(old_morph.dend_links, old_morph.dend_sec_id, old_morph.dend_sec_x):
             coord = (old_morph.dend[link[1], :3] * 1e9).astype(int)
+
+            assert (coord[0], coord[1], coord[2]) not in coord_to_sec_id_x, \
+                f"Coordinates {(coord[0], coord[1], coord[2])} already exists in {coord_to_sec_id_x}"
+
             coord_to_sec_id_x[coord[0], coord[1], coord[2]] = (old_sec_id, old_sec_x[1])
 
         old_to_new_sec_id = dict()
@@ -448,7 +447,16 @@ class SwapToDegenerateMorphologies:
             coord = (new_morph.dend[link[1], :3] * 1e9).astype(int)
             old_sec_id, old_sec_x = coord_to_sec_id_x[coord[0], coord[1], coord[2]]
 
-            old_to_new_sec_id[old_sec_id] = new_sec_id
+            # TODO: What happens if a branch looses one of its side branches, will then those two sections
+            #       be merged into one? This code will then complain.
+
+            if old_sec_id in old_to_new_sec_id:
+                assert old_to_new_sec_id[old_sec_id] == new_sec_id, \
+                    (f"Old sec_id {old_sec_id} maps to multiple " 
+                     f"new sec_id {new_sec_id} and {old_to_new_sec_id[old_sec_id]}")
+            else:
+               old_to_new_sec_id[old_sec_id] = new_sec_id
+
             if old_sec_id not in old_sec_x_list:
                 old_sec_x_list[old_sec_id] = [old_sec_x]
             else:
@@ -462,6 +470,25 @@ class SwapToDegenerateMorphologies:
         assert len(neuron_section_lookup) > 10, (f"Section lookup has fewer than 10 elements. Does morphologies match?"
                                                  f"\nOld = {old_path, old_param_key, old_morph_key}"
                                                  f"\nNew = {new_path, new_param_key, new_morph_key}")
+
+        # Let's add one more check.
+        for old_sec_id, (new_sec_id, old_sec_x_max) in neuron_section_lookup.items():
+
+            old_idx = np.where(old_morph.dend_sec_id == old_sec_id)[0]
+            new_idx = np.where(new_morph.dend_sec_id == new_sec_id)[0]
+            old_coords = old_morph.dend[old_morph.dend_links[old_idx, 1], :3]
+            new_coords = new_morph.dend[new_morph.dend_links[new_idx, 1], :3]
+
+            for coord in new_coords:
+                try:
+                    assert np.sum((old_coords == coord).all(-1)) == 1, "Each new coord should exist in the old coord list"
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
+
+            # Check that all new_coords exist in the old_coords list.
 
         self.section_lookup[old_param_key, old_morph_key, old_path] = neuron_section_lookup
 
