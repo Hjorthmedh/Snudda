@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
+import json
+import sys
+import timeit
 from collections import OrderedDict
 
 import numpy as np
-import timeit
-import json
-import sys
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
 
 
 class SnuddaLoad(object):
-
     """
     Load data from network-neuron-positions.hdf5 or network-neuron-synapses.hdf5 into python dictionary
     """
@@ -88,6 +87,7 @@ class SnuddaLoad(object):
         Args:
             network_file (str) : Network file to load data from
             load_synapses (bool) : Load synapses into memory, or read on demand from file (keeps file open)
+            load_morph
 
         Returns:
             data (dictionary) : Dictionary with data.
@@ -176,19 +176,29 @@ class SnuddaLoad(object):
             data["nNeurons"] = f["network/neurons/neuronID"].shape[0]
             data["neuronID"] = f["network/neurons/neuronID"][()]
 
-            try:
-                data["nSynapses"] = f["network/nSynapses"][0]
+            if "nSynapses" in f["network"]:
+                if f["network/nSynapses"].shape == ():
+                    data["nSynapses"] = f["network/nSynapses"][()]
+                else:
+                    data["nSynapses"] = f["network/nSynapses"][0]
+
                 if data["nSynapses"] != f["network/synapses"].shape[0]:
                     print(f"Expected {data['nSynapses']} synapses, found {f['network/synapses'].shape[0]} synapse rows")
-            except:
+                    data["nSynapses"] = f["network/synapses"].shape[0]
+            else:
                 data["nSynapses"] = f["network/synapses"].shape[0]
 
-            try:
-                data["nGapJunctions"] = f["network/nGapJunctions"][0]
+            if "nGapJunctions" in f["network"]:
+                if f["network/nGapJunctions"].shape == ():
+                    data["nGapJunctions"] = f["network/nGapJunctions"][()]
+                else:
+                    data["nGapJunctions"] = f["network/nGapJunctions"][0]
+
                 if data["nGapJunctions"] != f["network/gapJunctions"].shape[0]:
                     print(f"Expected {data['nGapJunctions']} gap junctions, "
                           f"found {f['network/gapJunctions'].shape[0]} gap junction rows")
-            except:
+                    data["nGapJunctions"] = f["network/gapJunctions"].shape[0]
+            else:
                 data["nGapJunctions"] = f["network/gapJunctions"].shape[0]
 
             if data["nSynapses"] > 100e6:
@@ -218,7 +228,7 @@ class SnuddaLoad(object):
                 # !!! Convert from voxel idx to coordinates
                 if f["network/synapses"].shape[0] > 0:
                     data["synapseCoords"] = f["network/synapses"][:, 2:5] * f["meta/voxelSize"][()] \
-                        + f["meta/simulationOrigo"][()]
+                                            + f["meta/simulationOrigo"][()]
                 else:
                     data["synapseCoords"] = np.zeros((3, 0))
             else:
@@ -339,7 +349,7 @@ class SnuddaLoad(object):
             axon_density_type, axon_density, axon_density_radius, \
             axon_density_bounds_xyz, \
             morph, neuron_path, \
-            parameter_id, morphology_id, modulation_id,\
+            parameter_id, morphology_id, modulation_id, \
             parameter_key, morphology_key, modulation_key \
                 in zip(hdf5_file["network/neurons/name"][:],
                        hdf5_file["network/neurons/neuronID"][:],
@@ -785,7 +795,6 @@ class SnuddaLoad(object):
 
 
 def snudda_load_cli():
-
     """ Command line parser for SnuddaLoad script """
 
     from argparse import ArgumentParser
@@ -840,7 +849,7 @@ def snudda_load_cli():
         else:
             print(f"Neurons of type {args.listT}:")
             n_of_type = [(x["neuronID"], x["name"]) for x in nl.data["neurons"]
-                       if x["type"] == args.listT]
+                         if x["type"] == args.listT]
             for nid, name in n_of_type:
                 print("%d : %s" % (nid, name))
 
@@ -862,7 +871,7 @@ def snudda_load_cli():
             if args.detailed:
                 idx = np.where(synapses[0][:, 0] == nid)
                 for i in idx[0]:
-                    print(f" -- SegID {synapses[0][i, 9]}, SegX {synapses[0][i, 10]*1e-3:.4f}, "
+                    print(f" -- SegID {synapses[0][i, 9]}, SegX {synapses[0][i, 10] * 1e-3:.4f}, "
                           f"Coord: {synapses[1][i, :]}")
 
                 print("")
@@ -880,7 +889,7 @@ def snudda_load_cli():
             if args.detailed:
                 idx = np.where(synapses[0][:, 1] == nid)
                 for i in idx[0]:
-                    print(f" -- SegID {synapses[0][i, 9]}, SegX {synapses[0][i, 10]*1e-3:.4f}, "
+                    print(f" -- SegID {synapses[0][i, 9]}, SegX {synapses[0][i, 10] * 1e-3:.4f}, "
                           f"Coord: {synapses[1][i, :]}")
 
                 print("")

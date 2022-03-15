@@ -1,11 +1,9 @@
 """ Based on BluePyOpt exampel code by Werner van Geit, 
 modified by Johannes Hjorth """
 
-import os
 import json
+import os
 from collections import OrderedDict
-
-import numpy as np
 
 import bluepyopt.ephys as ephys
 
@@ -13,7 +11,6 @@ from snudda.neurons.neuron_prototype import NeuronPrototype
 
 
 class NeuronModel(ephys.models.CellModel):
-
     """ Extended NeuronModel for simulation. """
 
     def __init__(self,
@@ -86,9 +83,8 @@ class NeuronModel(ephys.models.CellModel):
         morph = self.define_morphology(replace_axon=True, morph_file=morph_file)
         mechs = self.define_mechanisms(mechanism_config=mech_file)
         params = self.define_parameters(param_file, parameter_id, parameter_key)
-        
+
         if modulation_key and modulation_file:
-            
             mod_params = self.define_parameters(parameter_config=modulation_file, parameter_key=modulation_key)
             params = params + mod_params
 
@@ -112,7 +108,7 @@ class NeuronModel(ephys.models.CellModel):
 
         if "modpath" in mech_definitions:
             mod_path = os.path.join(self.script_dir, mech_definitions["modpath"])
-            print("mod_path set to " + mod_path + " (not yet implemented)")
+            print(f"mod_path set to {mod_path} (not yet implemented)")
         else:
             mod_path = None
 
@@ -199,9 +195,7 @@ class NeuronModel(ephys.models.CellModel):
                 bounds = param_config['bounds']
                 value = None
             else:
-                raise Exception(
-                    'Parameter config has to have bounds or value: %s'
-                    % param_config)
+                raise Exception(f"Parameter config has to have bounds or value: {param_config}")
 
             if param_config['type'] == 'global':
                 parameters.append(
@@ -245,12 +239,7 @@ class NeuronModel(ephys.models.CellModel):
                             bounds=bounds,
                             locations=[seclist_loc]))
             else:
-                raise Exception(
-                    'Param config type has to be global, section or range: %s' %
-                    param_config)
-
-            # import pdb
-            # pdb.set_trace()
+                raise Exception(f"Param config type has to be global, section or range: {param_config}")
 
         return parameters
 

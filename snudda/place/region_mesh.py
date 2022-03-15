@@ -1,17 +1,16 @@
+import os
+import pickle
+import re
 import sys
+import timeit
 
 import numpy as np
 import scipy
-from scipy import ndimage
 from numba import jit
-import re
-import os
-import pickle
-import timeit
+from scipy import ndimage
 
 
 class RegionMesh(object):
-
     """ Handles neuron placement within a 3D mesh. """
 
     def __init__(self, filename, d_view=None, role="master",
@@ -114,8 +113,8 @@ class RegionMesh(object):
         self.next_neuron_type = 1
         self.reject_ctr = None
 
-        # Used or set by setup_voxel_list
-        self.max_neurons_voxel = int(np.ceil(300000*(self.bin_width/1e-3)**3))  # We assume no more than 300k neurons per mm3
+        # Used or set by setup_voxel_list, we assume no more than 300k neurons per mm3
+        self.max_neurons_per_voxel = int(np.ceil(300000 * (self.bin_width / 1e-3) ** 3))
         self.voxel_next_neuron = None
         self.voxel_neurons = None
 
@@ -232,10 +231,10 @@ class RegionMesh(object):
         self.write_log("Setting up parallel")
 
         assert self.role == "master", \
-            "setupParallel should only be called by master"
+            "setup_parallel should only be called by master"
 
         if self.workers_initialised:
-            self.write_log("setupParallel: workers already initialised")
+            self.write_log("setup_parallel: workers already initialised")
             return
 
         with d_view.sync_imports():
@@ -246,8 +245,7 @@ class RegionMesh(object):
             d_view.push({"filename": self.filename}, block=True)
 
             if self.logfile_name is not None:
-                engine_log_file = [self.logfile_name + "-"
-                                   + str(x) for x in range(0, len(d_view))]
+                engine_log_file = [f"{self.logfile_name}-{x}" for x in range(0, len(d_view))]
             else:
                 engine_log_file = [[] for x in range(0, len(d_view))]
 
@@ -262,9 +260,9 @@ class RegionMesh(object):
             import uuid
             import traceback
             tstr = traceback.format_exc()
-            tmp = open("save/tmp-striatum-mesh-log-file-" + str(uuid.uuid4()), 'w')
-            tmp.write("Exception: " + str(e))
-            tmp.write("Trace:" + tstr)
+            tmp = open(os.path.join("save", f"tmp-striatum-mesh-log-file-{uuid.uuid4()}"), 'w')
+            tmp.write(f"Exception: {e}")
+            tmp.write(f"Trace: {tstr}")
             tmp.close()
             self.write_log(tstr, is_error=True)
             import pdb
@@ -518,8 +516,8 @@ class RegionMesh(object):
                 for m in inner_mask:
                     self.voxel_mask_inner = np.logical_or(self.voxel_mask_inner, m)
 
-        self.write_log(f"Fraction of border voxels: " 
-                       f"{np.sum(self.voxel_mask_border)/np.prod(self.voxel_mask_border.shape)}")
+        self.write_log(f"Fraction of border voxels: "
+                       f"{np.sum(self.voxel_mask_border) / np.prod(self.voxel_mask_border.shape)}")
 
         self.save_cache()
 
@@ -716,14 +714,6 @@ class RegionMesh(object):
 
         intersect_count = np.sum((0 <= r) * (r <= 1) * (0 <= s) * (s <= 1) * (0 <= t) * (s + t <= 1))
 
-        # print(f"{point} intersection count {intersect_count}")
-
-        # if np.random.uniform() < 0.05:
-        #     if (np.mod(intersect_count, 2) == 1) != self.ray_casting_OLD(point):
-        #         print(f"New function differs from old for point {point}... check why")
-        #         import pdb
-        #         pdb.set_trace()
-
         return np.mod(intersect_count, 2) == 1
 
     ############################################################################
@@ -805,7 +795,7 @@ class RegionMesh(object):
 
         self.voxel_next_neuron = np.zeros(self.num_bins, dtype=int)
         self.voxel_neurons = np.zeros((self.num_bins[0], self.num_bins[1],
-                                       self.num_bins[2], self.max_neurons_voxel, 3))
+                                       self.num_bins[2], self.max_neurons_per_voxel, 3))
 
     ############################################################################
 
@@ -1037,8 +1027,8 @@ class RegionMesh(object):
 
                 if self.voxel_next_neuron[vox_idx[0], vox_idx[1], vox_idx[2]] > 0:
                     tmp = self.voxel_neurons[vox_idx[0], vox_idx[1], vox_idx[2],
-                                             0:self.voxel_next_neuron[vox_idx[0], vox_idx[1], vox_idx[2]],
-                                             :] - putative_loc
+                          0:self.voxel_next_neuron[vox_idx[0], vox_idx[1], vox_idx[2]],
+                          :] - putative_loc
 
                     min_dist2 = min(min_dist2, np.min(np.sum(np.square(tmp), axis=1)))
 
@@ -1063,11 +1053,11 @@ class RegionMesh(object):
                 # lots of distance comparisons
                 try:
                     self.voxel_neurons[voxel_idx[0], voxel_idx[1], voxel_idx[2],
-                                       self.voxel_next_neuron[voxel_idx[0], voxel_idx[1], voxel_idx[2]], :] = putative_loc
+                    self.voxel_next_neuron[voxel_idx[0], voxel_idx[1], voxel_idx[2]], :] = putative_loc
                     self.voxel_next_neuron[voxel_idx[0], voxel_idx[1], voxel_idx[2]] += 1
                 except:
-                    self.write_log(f"If you see this error you probably need to increase " 
-                                   f"self.max_neurons_voxel={self.max_neurons_voxel}")
+                    self.write_log(f"If you see this error you probably need to increase "
+                                   f"self.max_neurons_voxel={self.max_neurons_per_voxel}")
                     import traceback
                     tstr = traceback.format_exc()
                     print(tstr)
@@ -1342,7 +1332,7 @@ class RegionMesh(object):
 
         xc = (self.neuron_coords[bad_idx, :] - self.min_coord) % self.bin_width
         ax.scatter(xc[:, 0], xc[:, 1], xc[:, 2], 'black')
-        plt.title("Bad neuron locations: " + str(xc.shape[0]))
+        plt.title(f"Bad neuron locations: {xc.shape[0]}")
         plt.axis('tight')
         plt.xlabel('X')
         plt.ylabel('Y')
@@ -1352,10 +1342,10 @@ class RegionMesh(object):
         plt.pause(0.001)
 
         try:
-            assert self.d_min <= np.min(min_dist), "dMin criteria not fulfilled: " \
-                                                  + str(np.min(min_dist)) + " < dMin = " + str(self.d_min)
+            assert self.d_min <= np.min(min_dist), \
+                f"d_min criteria not fulfilled: {np.min(min_dist)} < d_min = {self.d_min}"
         except:
-            self.write_log("dMin not fulfilled")
+            self.write_log(f"d_min criteria not fulfilled: {np.min(min_dist)} < d_min = {self.d_min}")
             import pdb
             pdb.set_trace()
 
@@ -1375,7 +1365,7 @@ class RegionMesh(object):
 
         for i in range(0, 1000):
             test_point = np.random.uniform(0, 1e-6, 3) \
-                        + np.array([0, 0, 0]) * 1e-6
+                         + np.array([0, 0, 0]) * 1e-6
 
             # testPoint = np.array([0.5,0.61,0.5])*1e-6
 
@@ -1437,11 +1427,11 @@ if __name__ == "__main__":
         rc = Client(profile=os.getenv('IPYTHON_PROFILE'),
                     # sshserver='127.0.0.1',
                     debug=False)
-        print('Client IDs: ' + str(rc.ids))
+        print(f"Client IDs: {rc.ids}")
 
         # http://davidmasad.com/blog/simulation-with-ipyparallel/
         # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
-        print("Client IDs: " + str(rc.ids))
+        print(f"Client IDs: {rc.ids}")
         d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
     else:
         print("No IPYTHON_PROFILE enviroment variable set, running in serial")
@@ -1460,9 +1450,9 @@ if __name__ == "__main__":
     nNeurons = 1730000
     neuronPos = sm.place_neurons(nNeurons)
     # sm.verify_d_min()
-    sm.plot_neurons(pdf_name="figures/striatum-fig-somas.png")
+    sm.plot_neurons(pdf_name=os.path.join("figures", "striatum-fig-somas.png"))
 
-    sm.plot_struct(pdf_name="figures/striatum-fig-struct.png")
+    sm.plot_struct(pdf_name=os.path.join("figures", "striatum-fig-struct.png"))
 
     # sm.testPlot()
     # sm.testPlotCached()

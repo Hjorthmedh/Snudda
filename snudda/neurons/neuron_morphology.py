@@ -7,16 +7,18 @@
 # etc...
 #
 
-import numpy as np
 import numexpr
+import numpy as np
+
 from snudda.utils.snudda_path import snudda_parse_path
+
 
 # Use np.random.choice for selecting
 
 
 class NeuronMorphology:
-
     """ Neuron morphology object. Also see NeuronPrototype class which handles multiple morphology variations. """
+
     # axonStumpIDFlag should be True if running Network_simulate.py
     # it should be False if we are running Neurodamus simulation.
 
@@ -810,7 +812,7 @@ class NeuronMorphology:
             self.dend_sec_x = np.zeros((0, 2))
 
         # Lookup for section length based on section id
-        self.sec_id_to_len = np.ones((int(1+np.max(points[:, 10])),))
+        self.sec_id_to_len = np.ones((int(1 + np.max(points[:, 10])),))
         for sec_id, sec_len in zip(points[:, 10].astype(int), points[:, 11]):
             if sec_id >= 0:
                 self.sec_id_to_len[sec_id] = sec_len
@@ -859,7 +861,7 @@ class NeuronMorphology:
         p1 = self.dend[self.dend_links[link_idx[0], 0], :3]
         p2 = self.dend[self.dend_links[link_idx[0], 1], :3]
 
-        coords = p2 * section_x + (1-section_x) * p1
+        coords = p2 * section_x + (1 - section_x) * p1
 
         return coords
 
@@ -928,7 +930,6 @@ class NeuronMorphology:
             soma_colour = self.colour
 
         import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
 
         if axis is None:
             fig = plt.figure()
@@ -1003,9 +1004,9 @@ class NeuronMorphology:
 
             if self.soma.shape[0] == 1:
                 u, v = np.mgrid[0:2 * np.pi:20j, 0:np.pi:10j]
-                x = (self.soma[0, 3] * np.cos(u) * np.sin(v) + self.soma[0, 0] - plot_origo[0])*plot_scale
-                y = (self.soma[0, 3] * np.sin(u) * np.sin(v) + self.soma[0, 1] - plot_origo[1])*plot_scale
-                z = (self.soma[0, 3] * np.cos(v) + self.soma[0, 2] - plot_origo[2])*plot_scale
+                x = (self.soma[0, 3] * np.cos(u) * np.sin(v) + self.soma[0, 0] - plot_origo[0]) * plot_scale
+                y = (self.soma[0, 3] * np.sin(u) * np.sin(v) + self.soma[0, 1] - plot_origo[1]) * plot_scale
+                z = (self.soma[0, 3] * np.cos(v) + self.soma[0, 2] - plot_origo[2]) * plot_scale
 
                 ax.plot_wireframe(x, y, z, color=soma_colour, alpha=alpha)
             else:
@@ -1129,7 +1130,7 @@ class NeuronMorphology:
         dist_syn_soma = []
 
         # x,y,z, secID, secX
-        input_loc = np.zeros((n_syn_tot*cluster_size, 5))
+        input_loc = np.zeros((n_syn_tot * cluster_size, 5))
         d = self.dend[:, 4]
 
         # Iterate over each compartment
@@ -1137,7 +1138,7 @@ class NeuronMorphology:
         for i_comp, n_syn in enumerate(number_of_synapses):
 
             # Add synapses to that compartment
-            for j in range(0, n_syn*cluster_size):
+            for j in range(0, n_syn * cluster_size):
                 # print('Compartment containing a synapse',iComp)
                 # print('Distance from soma',self.dend[iComp][4]*1e6,'$mum$')
                 input_loc[syn_ctr, 3] = self.dend_sec_id[i_comp]
@@ -1272,7 +1273,7 @@ class NeuronMorphology:
         if cluster_size is None:
             cluster_size = 1
 
-        num_synapses = num_locations*cluster_size
+        num_synapses = num_locations * cluster_size
         input_loc = np.zeros((num_synapses, 6))
 
         d = self.dend[:, 4]
@@ -1283,7 +1284,7 @@ class NeuronMorphology:
         assert exp_sum > 0, f"Check your synapse density {synapse_density}, all elements zero."
 
         syn_idx = rng.choice(len(expected_synapses), size=num_locations, replace=True,
-                             p=expected_synapses/exp_sum)
+                             p=expected_synapses / exp_sum)
 
         for comp_idx in syn_idx:
 
@@ -1311,10 +1312,11 @@ class NeuronMorphology:
             else:
                 syn_info = self.cluster_synapses(sec_id=sec_id, sec_x=sec_x, count=cluster_size,
                                                  distance=cluster_spread, rng=rng)
-                input_loc[syn_ctr:syn_ctr+cluster_size, :3] = syn_info[1]  # Synapse x,y,z -- in global coordinate system(!)
-                input_loc[syn_ctr:syn_ctr + cluster_size, 3] = sec_id      # Sec id
-                input_loc[syn_ctr:syn_ctr + cluster_size, 4] = syn_info[0] # Sec x
-                input_loc[syn_ctr:syn_ctr + cluster_size, 5] = syn_info[2] # Soma distance
+                input_loc[syn_ctr:syn_ctr + cluster_size, :3] = syn_info[
+                    1]  # Synapse x,y,z -- in global coordinate system(!)
+                input_loc[syn_ctr:syn_ctr + cluster_size, 3] = sec_id  # Sec id
+                input_loc[syn_ctr:syn_ctr + cluster_size, 4] = syn_info[0]  # Sec x
+                input_loc[syn_ctr:syn_ctr + cluster_size, 5] = syn_info[2]  # Soma distance
 
                 syn_ctr += cluster_size
 
@@ -1386,7 +1388,8 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("file_name", help="Path to neuron file")
     parser.add_argument("--step", default=None,
-                        help="Display segment ID and segment X for sections with segment step for text output (e.g. 10)", type=int)
+                        help="Display segment ID and segment X for sections with segment step for text output (e.g. 10)",
+                        type=int)
     args = parser.parse_args()
 
     nm = NeuronMorphology(swc_filename=args.file_name, verbose=True, use_cache=False)
@@ -1396,23 +1399,7 @@ if __name__ == "__main__":
         nm.debug_plot(plot_step=args.step)
     else:
         import matplotlib.pyplot as plt
+
         nm.plot_neuron(show_plot=False)
         plt.show()
 
-
-    # nm.setAxonDensity("3e9*np.exp(-d/100e-6)",300e-6)
-
-    # nm.plotDensity()
-
-    # ax1 = nm.plot_neuron()
-
-    # print("In main function")
-    # import pdb
-    # pdb.set_trace()
-
-    # nm2 = nm.clone(rotation=nm.rand_rotation_matrix(), position=np.array([0.001, 0.001, 0.001]))
-    # nm2.plot_neuron(ax1)
-
-    # raw_input("Test")
-    # import pdb
-    # pdb.set_trace()

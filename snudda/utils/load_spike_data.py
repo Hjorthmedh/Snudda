@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
+
 from snudda.utils.load import SnuddaLoad
 
 
@@ -72,11 +73,11 @@ class SnuddaLoadSpikeData:
         return spikes, neuron_id
 
     def print_freq_info(self,
-                      neuron_id=None,
-                      neuron_name=None,
-                      neuron_type=None,
-                      time_range=None
-                      ):
+                        neuron_id=None,
+                        neuron_name=None,
+                        neuron_type=None,
+                        time_range=None
+                        ):
 
         freq_list, nid = self.get_freq(neuron_id=neuron_id,
                                        neuron_name=neuron_name,
@@ -118,7 +119,6 @@ class SnuddaLoadSpikeData:
 
 
 def snudda_load_spike_data_cli():
-
     """ Command line parser for SnuddaLoadSpikeData script """
 
     from argparse import ArgumentParser
@@ -149,5 +149,4 @@ def snudda_load_spike_data_cli():
 
 
 if __name__ == "__main__":
-
     snudda_load_spike_data_cli()

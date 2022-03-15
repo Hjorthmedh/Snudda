@@ -14,15 +14,14 @@ import os
 import sys
 
 import h5py
-import numpy as np
-import time
 import numexpr
+import numpy as np
+
 
 # TODO: Check that no population unit list needs to be remapped also, this is old code that was just refactored...
 
 
 class SnuddaCut(object):
-
     """ Cuts part of the volume, to simulate creating a slice of tissue, or other cut. """
 
     def __init__(self, network_file, cut_equation="z>0",
@@ -95,7 +94,7 @@ class SnuddaCut(object):
             print("No somas left, aborting!")
             sys.exit(-1)
 
-        print(f"Keeping {num_soma_keep} out of {len(soma_keep_flag)}" 
+        print(f"Keeping {num_soma_keep} out of {len(soma_keep_flag)}"
               "neurons (the others have soma outside of cut plane)")
 
         # We need to remap neuronID in the synapses and gap junction matrix
@@ -227,7 +226,6 @@ class SnuddaCut(object):
     ############################################################################
 
     def synapses_inside(self, cut_equation_lambda, data_type="synapses"):
-
 
         """ Check if synapses are inside cut_equation_lambda. Returns a numpy bool array.
 

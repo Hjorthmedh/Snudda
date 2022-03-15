@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
+import json
 import os.path
+import sys
 from collections import OrderedDict
 
-from snudda.utils.load import SnuddaLoad
 import h5py
 import numpy as np
-import sys
-import json
+
+from snudda.utils.load import SnuddaLoad
 
 
 class SnuddaAblateNetwork:
-
     """ Ablate neurons or synapses from a network.
 
         For an example config see Snudda/examples/config/example-ablation-config.json
@@ -116,7 +116,7 @@ class SnuddaAblateNetwork:
 
         n_original_synapses = synapse_data.shape[0]
 
-        for idx, (pre_id, post_id) in enumerate(zip(synapse_data[:,0], synapse_data[:,1])):
+        for idx, (pre_id, post_id) in enumerate(zip(synapse_data[:, 0], synapse_data[:, 1])):
 
             if idx % 10000000 == 0:
                 print(f"{idx}/{n_original_synapses} synapses processed")
@@ -307,7 +307,6 @@ class SnuddaAblateNetwork:
 
 
 def snudda_ablate_network_cli():
-
     from argparse import ArgumentParser
 
     # TODO: Fix so ablation can be specified using a json file for more complex ablations
@@ -376,8 +375,8 @@ def snudda_ablate_network_cli():
         if args.remove_connection.count(";") > 0:
 
             for c in args.remove_connection.split(";"):
-                
-                assert args.remove_connection.count(",") == 1, "Format is --remove_connection pre_neuron_type,post_neuron_type"
+                assert args.remove_connection.count(",") == 1, \
+                    "Format is --remove_connection pre_neuron_type, post_neuron_type"
 
                 pre_type, post_type = c.split(",")
                 mod_network.remove_connection(pre_neuron_type=pre_type, post_neuron_type=post_type,
@@ -385,7 +384,8 @@ def snudda_ablate_network_cli():
 
 
         else:
-            assert args.remove_connection.count(",") == 1, "Format is --remove_connection pre_neuron_type,post_neuron_type"
+            assert args.remove_connection.count(",") == 1, \
+                "Format is --remove_connection pre_neuron_type,post_neuron_type"
 
             pre_type, post_type = args.remove_connection.split(",")
             mod_network.remove_connection(pre_neuron_type=pre_type, post_neuron_type=post_type,

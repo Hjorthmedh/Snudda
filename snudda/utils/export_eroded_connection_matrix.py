@@ -8,7 +8,6 @@ from snudda.utils.export_connection_matrix import SnuddaExportConnectionMatrix
 class SnuddaExportErodedConnectionMatrix(SnuddaExportConnectionMatrix):
 
     def __init__(self, in_file, out_file, fraction_kept=1.0, save_sparse=True, permute=False):
-
         super().__init__(in_file=in_file, out_file=out_file, save_sparse=save_sparse, save_on_init=False)
 
         self.con_mat = self.erode(mat=self.con_mat, fraction_kept=fraction_kept)
@@ -20,7 +19,6 @@ class SnuddaExportErodedConnectionMatrix(SnuddaExportConnectionMatrix):
 
     @staticmethod
     def erode(mat, fraction_kept=1.0):
-
         erode_mat = np.random.uniform(size=mat.shape) <= fraction_kept
         mat = np.multiply(erode_mat, mat)
 
@@ -28,7 +26,6 @@ class SnuddaExportErodedConnectionMatrix(SnuddaExportConnectionMatrix):
 
     @staticmethod
     def permute_all(mat):
-
         row_permute = np.random.permutation(mat.shape[0])
         col_permute = np.random.permutation(mat.shape[1])
 

@@ -1,0 +1,20 @@
+#!/bin/bash -l
+#SBATCH --partition=main
+#SBATCH -t 2:00:00
+#SBATCH -J snuddaSimulate
+#SBATCH -A snic2021-5-492
+#SBATCH --nodes=4
+#SBATCH --tasks-per-node=128
+
+#old   2020-5-636
+#old nodes 20 taskpernode 32 , time 2:00:00
+
+#module load snic-env
+#source ../../../snudda_env/bin/activate
+
+
+chmod +x Beskow_simulate.sh
+#./Beskow_simulate.sh PD0
+#./Beskow_simulate.sh PD1
+./Beskow_simulate.sh PD2
+#./Beskow_simulate.sh PD3

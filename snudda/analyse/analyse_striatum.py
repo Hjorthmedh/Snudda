@@ -4,11 +4,11 @@
 #
 #
 
-import numpy as np
-import sys
 import os
+import sys
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from snudda.analyse.analyse import SnuddaAnalyse
 
@@ -168,21 +168,21 @@ if __name__ == "__main__":
     if plotHenrike:
         yMaxH = None  # 0.5
 
-        nas.plot_connection_probability("dSPN", "iSPN", 
-                                        dist_3d=dist3D, 
-                                        exp_max_dist=[50e-6, 100e-6], 
+        nas.plot_connection_probability("dSPN", "iSPN",
+                                        dist_3d=dist3D,
+                                        exp_max_dist=[50e-6, 100e-6],
                                         exp_data=[3 / 47.0, 3 / 66.0],
                                         exp_data_detailed=[(3, 47), (3, 66)],
                                         y_max=yMaxH)
-        nas.plot_connection_probability("dSPN", "dSPN", 
-                                        dist_3d=dist3D, 
-                                        exp_max_dist=[50e-6, 100e-6], 
+        nas.plot_connection_probability("dSPN", "dSPN",
+                                        dist_3d=dist3D,
+                                        exp_max_dist=[50e-6, 100e-6],
                                         exp_data=[5 / 19.0, 3 / 43.0],
                                         exp_data_detailed=[(5, 19), (3, 43)],
                                         y_max=yMaxH)
-        nas.plot_connection_probability("iSPN", "dSPN", 
-                                        dist_3d=dist3D, 
-                                        exp_max_dist=[50e-6, 100e-6], 
+        nas.plot_connection_probability("iSPN", "dSPN",
+                                        dist_3d=dist3D,
+                                        exp_max_dist=[50e-6, 100e-6],
                                         exp_data=[13 / 47.0, 10 / 80.0],
                                         exp_data_detailed=[(13, 47), (10, 80)],
                                         y_max=yMaxH)

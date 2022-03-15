@@ -377,6 +377,8 @@ class Snudda(object):
             h5libver = "latest"  # default
 
         print(f"Writing input spikes to {spike_file}")
+        
+        use_meta_input=not args.no_meta_input
 
         si = SnuddaInput(input_config_file=input_config,
                          hdf5_network_file=network_file,
@@ -386,7 +388,8 @@ class Snudda(object):
                          rc=self.rc,
                          random_seed=random_seed,
                          h5libver=h5libver,
-                         verbose=args.verbose)
+                         verbose=args.verbose,
+                         use_meta_input=use_meta_input)
         si.generate()
 
         self.stop_parallel()

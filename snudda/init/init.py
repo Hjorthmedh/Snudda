@@ -3,24 +3,25 @@
 # !!! Currently writing full path for the files in the snudda data directory
 #     this makes moving between computers difficult. Fix...
 
+import collections
+import glob
+import json
+import os.path
+import sys
+
+import numexpr
 #
 # Add a function so that $SNUDDADATA refers to the base datapath for snudda
 #
 import numpy as np
-import numexpr
-import sys
-import os.path
-import glob
-import collections
+
 from snudda.place.create_cube_mesh import create_cube_mesh
 from snudda.place.create_slice_mesh import create_slice_mesh
-
-import json
-from snudda.utils.snudda_path import snudda_parse_path, snudda_simplify_path
-from snudda.utils.snudda_path import snudda_path_exists
+from snudda.utils.numpy_encoder import NumpyEncoder
 from snudda.utils.snudda_path import snudda_isdir
 from snudda.utils.snudda_path import snudda_isfile
-from snudda.utils.numpy_encoder import NumpyEncoder
+from snudda.utils.snudda_path import snudda_parse_path, snudda_simplify_path
+from snudda.utils.snudda_path import snudda_path_exists
 
 
 class SnuddaInit(object):
@@ -67,7 +68,7 @@ class SnuddaInit(object):
 
         if self.config_file and self.network_path:
             assert self.network_path == os.path.dirname(self.config_file), \
-               f"network_path {self.network_path} and config_file path {self.config_file} must match"
+                f"network_path {self.network_path} and config_file path {self.config_file} must match"
 
         self.network_data["Connectivity"] = dict([])
         self.network_data["Neurons"] = dict([])
@@ -468,11 +469,11 @@ class SnuddaInit(object):
                     hoc_file = [None]
 
                 neuron_file_list.append((d,
-                                        swc_file,
-                                        par_file,
-                                        mech_file,
-                                        modulation_file,
-                                        hoc_file[0]))
+                                         swc_file,
+                                         par_file,
+                                         mech_file,
+                                         modulation_file,
+                                         hoc_file[0]))
 
         # First check how many unique cells we hava available, then we
         # calculate how many of each to use in simulation
@@ -600,7 +601,7 @@ class SnuddaInit(object):
         else:
             swc_file = glob.glob(os.path.join(snudda_parse_path(neuron_dir), "*swc"))
             assert len(swc_file) == 1, \
-                (f"If no morphology is given in parameter.json then " 
+                (f"If no morphology is given in parameter.json then "
                  f"{snudda_parse_path(neuron_dir)} should contain exactly one swc file")
 
             swc_file = snudda_simplify_path(swc_file[0])
@@ -739,7 +740,6 @@ class SnuddaInit(object):
             self.network_data["PopulationUnits"][structure_name]["unitID"].append(unit_id)
             self.network_data["PopulationUnits"][structure_name]["neuronTypes"].append(neuron_types)
             self.network_data["PopulationUnits"][structure_name]["numNeurons"].append(num_neurons)
-
 
     def add_population_unit_random(self, structure_name, neuron_types, fraction_of_neurons, unit_id=None):
 
@@ -893,7 +893,7 @@ class SnuddaInit(object):
             # 1.73 million neurons, volume of allen striatal mesh is 21.5mm3
             striatum_volume = 1e-9 * num_neurons / neuron_density  # 80.5e3
             striatum_side_len = striatum_volume ** (1. / 3)
-            striatum_centre = np.array([4750e-6,4000e-6, 7750e-6])
+            striatum_centre = np.array([4750e-6, 4000e-6, 7750e-6])
 
             if num_neurons < 500:
                 mesh_bin_width = striatum_side_len
@@ -1169,7 +1169,7 @@ class SnuddaInit(object):
                                target_name="dSPN",
                                connection_type="GABA",
                                dist_pruning=SPN2SPNdistDepPruning,
-                               f1=0.38*0.75, soft_max=3, mu2=2.4,
+                               f1=0.38 * 0.75, soft_max=3, mu2=2.4,
                                a3=P11withinUnit,
                                a3_other=P11betweenUnit,
                                conductance=MSD1gGABA,
@@ -1185,7 +1185,7 @@ class SnuddaInit(object):
                                target_name="iSPN",
                                connection_type="GABA",
                                dist_pruning=SPN2SPNdistDepPruning,
-                               f1=0.20*0.82, soft_max=3, mu2=2.4,
+                               f1=0.20 * 0.82, soft_max=3, mu2=2.4,
                                a3=P12withinUnit,
                                a3_other=P12betweenUnit,
                                conductance=MSD1gGABA,
@@ -1256,7 +1256,7 @@ class SnuddaInit(object):
                                target_name="dSPN",
                                connection_type="GABA",
                                dist_pruning=SPN2SPNdistDepPruning,
-                               f1=0.3*0.93, soft_max=4, mu2=2.4,
+                               f1=0.3 * 0.93, soft_max=4, mu2=2.4,
                                a3=P21withinUnit,
                                a3_other=P21betweenUnit,
                                conductance=MSD2gGABA,
@@ -1389,7 +1389,7 @@ class SnuddaInit(object):
                                target_name="dSPN",
                                connection_type="GABA",
                                dist_pruning=LTSDistDepPruning,
-                               f1=1.0*0.3, soft_max=15, mu2=3, a3=0.3,
+                               f1=1.0 * 0.3, soft_max=15, mu2=3, a3=0.3,
                                conductance=LTSgGABA,
                                cluster_synapses=False,
                                parameter_file=pfLTSdSPN,
@@ -1402,7 +1402,7 @@ class SnuddaInit(object):
                                target_name="iSPN",
                                connection_type="GABA",
                                dist_pruning=LTSDistDepPruning,
-                               f1=1.0*0.3, soft_max=15, mu2=3, a3=0.3,
+                               f1=1.0 * 0.3, soft_max=15, mu2=3, a3=0.3,
                                conductance=LTSgGABA,
                                cluster_synapses=False,
                                parameter_file=pfLTSiSPN,
@@ -1529,8 +1529,10 @@ class SnuddaInit(object):
 
         # We should have both ipsi and contra, M1 and S1 input, for now
         # picking one
-        cortexSynParMS = os.path.join("$SNUDDA_DATA", "synapses", "striatum", "M1RH_Analysis_190925.h5-parameters-MS.json")
-        cortexSynParFS = os.path.join("$SNUDDA_DATA", "synapses", "striatum", "M1RH_Analysis_190925.h5-parameters-FS.json")
+        cortexSynParMS = os.path.join("$SNUDDA_DATA", "synapses", "striatum",
+                                      "M1RH_Analysis_190925.h5-parameters-MS.json")
+        cortexSynParFS = os.path.join("$SNUDDA_DATA", "synapses", "striatum",
+                                      "M1RH_Analysis_190925.h5-parameters-FS.json")
 
         self.add_neuron_target(neuron_name="CortexAxon",
                                target_name="dSPN",
@@ -1601,9 +1603,9 @@ class SnuddaInit(object):
         # Define targets
 
         thalamus_syn_par_ms = os.path.join("$SNUDDA_DATA", "synapses", "striatum",
-                                        "TH_Analysis_191001.h5-parameters-MS.json")
+                                           "TH_Analysis_191001.h5-parameters-MS.json")
         thalamus_syn_par_fs = os.path.join("$SNUDDA_DATA", "synapses", "striatum",
-                                        "TH_Analysis_191001.h5-parameters-FS.json")
+                                           "TH_Analysis_191001.h5-parameters-FS.json")
 
         thalamus_glut_cond = [1e-9, 0.1e-9]
 
@@ -1692,31 +1694,31 @@ if __name__ == "__main__":
 
     if full_striatum:
         struct_def = {"Striatum": 1730000,
-                     "GPe": 28500,
-                     "GPi": 2000,
-                     "SNr": 20800,
-                     "STN": 8400,
-                     "Cortex": 1,
-                     "Thalamus": 1}
+                      "GPe": 28500,
+                      "GPi": 2000,
+                      "SNr": 20800,
+                      "STN": 8400,
+                      "Cortex": 1,
+                      "Thalamus": 1}
 
         # !!! TEMP, only do stratium for now
         struct_def = {"Striatum": 1730000,
-                     "GPe": 0,
-                     "GPi": 0,
-                     "SNr": 0,
-                     "STN": 0,
-                     "Cortex": 0,
-                     "Thalamus": 0}
+                      "GPe": 0,
+                      "GPi": 0,
+                      "SNr": 0,
+                      "STN": 0,
+                      "Cortex": 0,
+                      "Thalamus": 0}
 
 
     else:
         struct_def = {"Striatum": 100000,
-                     "GPe": 0,
-                     "GPi": 0,
-                     "SNr": 0,
-                     "STN": 0,
-                     "Cortex": 0,
-                     "Thalamus": 0}
+                      "GPe": 0,
+                      "GPi": 0,
+                      "SNr": 0,
+                      "STN": 0,
+                      "Cortex": 0,
+                      "Thalamus": 0}
 
     nTotals = 0
     for x in struct_def:
