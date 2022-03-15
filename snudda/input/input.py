@@ -758,7 +758,7 @@ class SnuddaInput(object):
 
         # Gather the spikes that were generated in parallel
         for neuron_id, input_type, spikes, loc, synapse_density, frq, \
-            jdt, p_uid, cond, corr, timeRange, mod_file, paramFile, paramList, paramID in amr:
+            jdt, p_uid, cond, corr, timeRange, mod_file, param_file, param_list, param_id in amr:
 
             self.write_log(f"Gathering {neuron_id} - {input_type}")
             self.neuron_input[neuron_id][input_type]["spikes"] = spikes
@@ -783,9 +783,9 @@ class SnuddaInput(object):
 
             self.neuron_input[neuron_id][input_type]["generator"] = "poisson"
             self.neuron_input[neuron_id][input_type]["modFile"] = mod_file
-            self.neuron_input[neuron_id][input_type]["parameterFile"] = paramFile
-            self.neuron_input[neuron_id][input_type]["parameterList"] = paramList
-            self.neuron_input[neuron_id][input_type]["parameterID"] = paramID
+            self.neuron_input[neuron_id][input_type]["parameterFile"] = param_file
+            self.neuron_input[neuron_id][input_type]["parameterList"] = param_list
+            self.neuron_input[neuron_id][input_type]["parameterID"] = param_id
 
         return self.neuron_input
 
