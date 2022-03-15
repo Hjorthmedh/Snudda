@@ -1141,8 +1141,7 @@ class SnuddaDetect(object):
                                 cluster_param_id = self.hyper_voxel_rng.integers(1000000, size=cluster_size)
 
                                 # We need to convert coords to hyper voxel coords, to fit with other coords
-                                coords_all = np.round((syn_coords - self.hyper_voxel_origo) / self.voxel_size).astype(
-                                    int)
+                                coords_all = np.round((syn_coords - self.hyper_voxel_origo)/self.voxel_size).astype(int)
 
                                 for d_sec_x, x, y, z, d_dist, cond, param_id \
                                         in zip(cluster_sec_x, coords_all[:, 0], coords_all[:, 1], coords_all[:, 2],
@@ -1330,7 +1329,6 @@ class SnuddaDetect(object):
                 (na_voxel_coords, na_axon_dist) = self.no_axon_points_xyz(na_neuron["position"],
                                                                           na_neuron["rotation"],
                                                                           na_neuron["axonDensity"],
-                                                                          # axon_density_func,
                                                                           na_neuron["axonDensityBoundsXYZ"])
             else:
                 self.write_log(f"Unknown axonDensityType: {na_neuron['axonDensityType']}\n{na_neuron}", is_error=True)
@@ -2399,15 +2397,13 @@ class SnuddaDetect(object):
                 neuron_id = n["neuronID"]
 
                 if neuron.dend.shape[0] > 0:
-                    dend_loc = np.floor((neuron.dend[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(
-                        int)
+                    dend_loc = np.floor((neuron.dend[:, :3] - self.simulation_origo)/self.hyper_voxel_width).astype(int)
                 else:
                     dend_loc = np.zeros((0, 3))
 
                 if neuron.axon.shape[0] > 0:
                     # We have an axon, use it
-                    axon_loc = np.floor((neuron.axon[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(
-                        int)
+                    axon_loc = np.floor((neuron.axon[:, :3] - self.simulation_origo)/self.hyper_voxel_width).astype(int)
 
                 elif neuron.axon_density_type == "r":
 
@@ -2442,8 +2438,7 @@ class SnuddaDetect(object):
                     axon_cloud[:, 1] = y + neuron.soma[0, 1]
                     axon_cloud[:, 2] = z + neuron.soma[0, 2]
 
-                    axon_loc = np.floor((axon_cloud[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(
-                        int)
+                    axon_loc = np.floor((axon_cloud[:, :3] - self.simulation_origo)/self.hyper_voxel_width).astype(int)
 
                     axon_inside_flag = [0 <= xa < self.hyper_voxel_id_lookup.shape[0]
                                         and 0 <= ya < self.hyper_voxel_id_lookup.shape[1]
@@ -2484,8 +2479,7 @@ class SnuddaDetect(object):
                     axon_cloud = np.matmul(neuron.rotation,
                                            axon_cloud.transpose()).transpose() + neuron.position
 
-                    axon_loc = np.floor((axon_cloud[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(
-                        int)
+                    axon_loc = np.floor((axon_cloud[:, :3] - self.simulation_origo)/self.hyper_voxel_width).astype(int)
 
                     axon_inside_flag = [0 <= x < self.hyper_voxel_id_lookup.shape[0]
                                         and 0 <= y < self.hyper_voxel_id_lookup.shape[1]
