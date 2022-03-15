@@ -26,7 +26,7 @@ class SnuddaModifyNetworkTestCase(unittest.TestCase):
         if not os.path.exists(self.original_file):
             print("Missing test network, generating it first.")
             from snudda.init import SnuddaInit
-            SnuddaInit(network_path=self.network_path, struct_def={"Striatum": 200})
+            SnuddaInit(network_path=self.network_path, struct_def={"Striatum": 200}, random_seed=999)
 
             from snudda.place import SnuddaPlace
             sp = SnuddaPlace(network_path=self.network_path)

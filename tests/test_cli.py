@@ -1,4 +1,8 @@
-import unittest, os, sys, argparse, time
+import argparse
+import os
+import sys
+import time
+import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import snudda.cli
@@ -114,12 +118,7 @@ class TestCLI(unittest.TestCase):
             print(f"Running: {eval_str}")
             os.system(eval_str)
 
-            # print("---> Testing to run simulate using os.system instead")
-            # os.system("snudda simulate tiny_parallel --time 0.1")
-
-
-            # For the unittest we for some reason need to load mechansism
-            # separately
+            # For the unittest we for some reason need to load mechansism separately
             from mpi4py import MPI  # This must be imported before neuron, to run parallel
             from neuron import h  # , gui
             import neuron
@@ -135,19 +134,6 @@ class TestCLI(unittest.TestCase):
                     tstr = traceback.format_exc()
                     print(tstr)
 
-            if False:
-                try:
-                    from snudda.simulate.simulate import SnuddaSimulate
-                    ss = SnuddaSimulate(network_path="tiny_parallel")
-                    ss.run(100)
-                    ss.write_spikes()
-                except:
-                    import traceback
-                    tstr = traceback.format_exc()
-                    print(tstr)
-                    import pdb
-                    pdb.set_trace()
-                
             print("Time to run simulation...")
             run_cli_command("simulate tiny_parallel --time 0.1")
 

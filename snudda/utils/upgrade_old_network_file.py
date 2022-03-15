@@ -3,7 +3,6 @@ import h5py
 
 
 def upgrade_old_network_file(file_name):
-
     """ Adds morphologyID filed if missing to network_file """
 
     print(f"Opening {file_name}")
@@ -41,11 +40,10 @@ def upgrade_old_network_file(file_name):
 
 
 if __name__ == "__main__":
-
     from argparse import ArgumentParser
+
     parser = ArgumentParser(description="Upgrade snudda network file (hdf5), adding missing morphologyID field")
     parser.add_argument("network_file", help="Network file (hdf5)", type=str)
     args = parser.parse_args()
 
     upgrade_old_network_file(args.network_file)
-

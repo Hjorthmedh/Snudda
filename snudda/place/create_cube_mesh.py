@@ -1,9 +1,9 @@
-import numpy as np
 import os
+
+import numpy as np
 
 
 def create_cube_mesh(file_name, centre_point, side_len, description=None, verbose=False):
-
     """
     Creates a cube mesh in wavefront file format.
 

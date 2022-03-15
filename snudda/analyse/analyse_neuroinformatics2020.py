@@ -4,11 +4,11 @@
 #
 #
 
-import numpy as np
-import sys
 import os
+import sys
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from snudda.analyse.analyse import SnuddaAnalyse
 
@@ -23,15 +23,15 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
             self.simDir = os.path.dirname(sim_dir)
         else:
             self.simDir = sim_dir
-            hdf5_file = sim_dir + "/network-synapses.hdf5"
+            hdf5_file = os.path.join(sim_dir, "network-synapses.hdf5")
 
             if not os.path.exists(hdf5_file):
-                alt_hdf5_file = sim_dir + "/network-connect-voxel-pruned-synapse-file.hdf5"
+                alt_hdf5_file = os.path.join(sim_dir, "network-connect-voxel-pruned-synapse-file.hdf5")
 
                 if os.path.exists(alt_hdf5_file):
                     hfd5_file = alt_hdf5_file
 
-        print("Loading " + str(hdf5_file))
+        print(f"Loading {hdf5_file}")
 
         super().__init__(hdf5_file=hdf5_file, load_cache=True,
                          volume_type=volume_type,
@@ -132,7 +132,7 @@ if __name__ == "__main__":
 
     if len(sys.argv) > 1:
         sim_dir = sys.argv[1]
-        print("Reading network from " + str(sim_dir))
+        print(f"Reading network from {sim_dir}")
     else:
         print("Please specify which directory the striatum network files is in")
         sys.exit(-1)
