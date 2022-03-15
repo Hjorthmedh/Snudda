@@ -77,11 +77,13 @@ class SnuddaPlotInputLocations:
         if len(coords) > 0:
             print(f"Plotting {len(coords)} external synapses")
            
-            ax.scatter(xs=coords[:, 0], ys=coords[:, 1], zs=coords[:, 2], c=external_colour, marker=".", s=size)
+            ax.scatter(xs=coords[:, 0], ys=coords[:, 1], zs=coords[:, 2],
+                       c=external_colour, marker=".", s=size)
 
         if show_internal_synapses:
             syn_coords = self.get_synapse_coords(neuron_id=neuron_id)
-            ax.scatter(xs=syn_coords[:, 0], ys=syn_coords[:, 1], zs=syn_coords[:, 2], c=internal_colour, marker=".")
+            ax.scatter(xs=syn_coords[:, 0], ys=syn_coords[:, 1], zs=syn_coords[:, 2],
+                       c=internal_colour, marker=".", s=size)
 
         neuron_name = self.snudda_load.data["neurons"][neuron_id]["name"]
 
@@ -171,12 +173,36 @@ class SnuddaPlotInputLocations:
         synapses, synapse_coords = self.snudda_load.find_synapses(post_id=neuron_id)
 
         assert (neuron_id == synapses[:, 1]).all(), f"Internal error, post_id should be {neuron_id} for all"
+
+        # Also get synapse coords from section id and section x
+        section_id = synapses[:, 9]
+        section_x = synapses[:, 10] * 1e-3
+
+        nm = self.load_neuron(neuron_id=neuron_id)
+        coords = np.zeros((len(section_id), 3))
+
+        for idx, (sec_id, sec_x) in enumerate(zip(section_id, section_x)):
+            coords[idx, :] = nm.get_section_coordinates(section_id=sec_id, section_x=sec_x)
+
+        dist = np.linalg.norm(coords - synapse_coords, axis=-1)
+        max_dist = np.sqrt(3*(5e-6 ** 2))
+        assert (dist <= max_dist).all(), \
+            (f"Synapse coordinates mismatch {synapse_coords[np.where(dist > max_dist)[0], :]} "
+             f"vs {coords[np.where(dist > max_dist)[0], :]}")
+
         pre_id = synapses[:, 0]
 
         if pre_type:
             pre_id_list = self.snudda_load.get_neuron_id_of_type(pre_type=pre_type)
 
-        return synapse_coords
+            keep_idx = []
+            for idx, pid in enumerate(pre_id):
+                if pid in pre_id_list:
+                    keep_idx.append(idx)
+
+            coords = coords[idx, :]
+
+        return coords
 
 
 def plot_input_location_cli():
