@@ -49,7 +49,8 @@ class SnuddaPlotInputLocations:
                            ax=None, neuron_colour=None,
                            size=10,
                            save_fig=True,
-                           dpi=300):
+                           dpi=300,
+                           show_figure=True):
 
         # TODO: Add ability to plot touch detected inputs also (use blue colour for them)
 
@@ -64,7 +65,7 @@ class SnuddaPlotInputLocations:
         nm = self.load_neuron(neuron_id=neuron_id)
 
         if ax is None:
-            fig = plt.figure()
+            fig = plt.figure(visible=show_figure)
             ax = fig.add_subplot(111, projection='3d')
 
         if neuron_colour is None:
@@ -109,6 +110,10 @@ class SnuddaPlotInputLocations:
             fig_name = os.path.join(fig_path, f_name)
             plt.savefig(fig_name, dpi=dpi)
             print(f"Figure written: {fig_name}")
+
+        if show_figure:
+            fig = ax.get_figure()
+            fig.set_visible(show_figure)
 
         return ax
 

@@ -36,6 +36,9 @@ class SwapToDegenerateMorphologies:
         self.original_snudda_data_dir = original_snudda_data_dir
         self.new_snudda_data_dir = new_snudda_data_dir
 
+        assert self.original_snudda_data_dir != self.new_snudda_data_dir, \
+            f"SNUDDA_DATA_DIR should be different for WT and degenerated"
+
         self.original_input_file = original_input_file
         self.new_input_file = new_input_file
 
@@ -48,8 +51,6 @@ class SwapToDegenerateMorphologies:
         self.neuron_cache = dict()
 
         self.create_section_lookup()
-
-
         self.kd_tree_cache = dict()
 
     def close(self):
@@ -57,6 +58,9 @@ class SwapToDegenerateMorphologies:
         self.old_hdf5.close()
 
     def write_new_network_file(self):
+
+        if not os.path.isdir(os.path.dirname(self.new_network_file)):
+            os.mkdir(os.path.dirname(self.new_network_file))
 
         print(f"Writing new network to {self.new_network_file}")
         self.new_hdf5 = h5py.File(self.new_network_file, "w")
@@ -277,8 +281,8 @@ class SwapToDegenerateMorphologies:
 
         # We assume the new morphology is in the same relative path, but using a different SNUDDA_DATA
         orig_neuron_path = SnuddaLoad.to_str(self.old_data["neurons"][neuron_id]["neuronPath"])
-        orig_simple_path = snudda_simplify_path(orig_neuron_path, self.original_snudda_data_dir)
-        new_neuron_path = snudda_parse_path(orig_simple_path, self.new_snudda_data_dir)
+        orig_simple_path = snudda_simplify_path(orig_neuron_path, os.path.realpath(self.original_snudda_data_dir))
+        new_neuron_path = snudda_parse_path(orig_simple_path, os.path.realpath(self.new_snudda_data_dir))
 
         if orig_morph_key == '':
             # Only a single morpholoy
@@ -343,6 +347,9 @@ class SwapToDegenerateMorphologies:
         return sec_id, sec_x
 
     def write_new_input_file(self):
+
+        if not os.path.isdir(os.path.dirname(self.new_input_file)):
+            os.mkdir(os.path.dirname(self.new_input_file))
 
         print(f"Writing new input data to {self.new_input_file}")
 
@@ -447,7 +454,17 @@ class SwapToDegenerateMorphologies:
 
         for link, new_sec_id, new_sec_x in zip(new_morph.dend_links, new_morph.dend_sec_id, new_morph.dend_sec_x):
             coord = (new_morph.dend[link[1], :3] * 1e9).astype(int)
-            old_sec_id, old_sec_x = coord_to_sec_id_x[coord[0], coord[1], coord[2]]
+
+            try:
+                old_sec_id, old_sec_x = coord_to_sec_id_x[coord[0], coord[1], coord[2]]
+            except:
+                import traceback
+                print(traceback.format_exc())
+                print(f"Coordinate point in old file missing in new file.\n"
+                      f"Old morphology: {old_morph.swc_filename}\n"
+                      f"New morphology: {new_morph.swc_filename}")
+                import pdb
+                pdb.set_trace()
 
             # TODO: What happens if a branch looses one of its side branches, will then those two sections
             #       be merged into one? This code will then complain.
