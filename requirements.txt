@@ -17,4 +17,4 @@ setuptools
 psutil >= 5.8.0
 cython  # Needed for compiling NEURON
 numba>=0.55.1  # Optimisation
-
+# igraph

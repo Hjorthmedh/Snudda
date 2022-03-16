@@ -16,20 +16,20 @@
 #
 #
 
+import json
 import os
 from collections import OrderedDict
 
+import neuron
 import numpy as np
-import json
+
 from snudda.simulate import SnuddaSimulate
 from snudda.utils.save_network_recording import SnuddaSaveNetworkRecordings
 
-import neuron
 neuron.h.load_file("stdrun.hoc")
 
 
 class PairRecording(SnuddaSimulate):
-
     """ Runs simulation with current injections to one or more neurons. This code can be used to simulate
         a subset of the neurons, ie the neurons receiving current injections and their post synaptic targets.
 
@@ -142,7 +142,7 @@ class PairRecording(SnuddaSimulate):
         """
 
         if type(val) not in [list, np.ndarray, range]:
-            val = [val]*new_list_len
+            val = [val] * new_list_len
 
         return val
 
@@ -306,7 +306,7 @@ class PairRecording(SnuddaSimulate):
         """ Connects the synapses present in the synapse matrix between start_row and end_row-1. """
 
         source_id_list, dest_id, dend_sections, sec_id, sec_x, synapse_type_id, \
-            axon_distance, conductance, parameter_id = self.get_synapse_info(start_row=start_row, end_row=end_row)
+        axon_distance, conductance, parameter_id = self.get_synapse_info(start_row=start_row, end_row=end_row)
 
         for (src_id, section, section_x, s_type_id, axon_dist, cond, p_id) \
                 in zip(source_id_list, dend_sections, sec_x, synapse_type_id,
@@ -350,7 +350,7 @@ class PairRecording(SnuddaSimulate):
             cur_end = self.to_list(cur_info["end"])
             cur_times = list(zip(cur_start, cur_end))
 
-            skip_time = cur_start[0]/2
+            skip_time = cur_start[0] / 2
 
             assert type(pre_id) == int, f"Plot traces assumes one pre-synaptic neuron stimulated: {pre_id}"
             if self.snudda_loader.find_synapses(pre_id=pre_id)[0] is None:
@@ -379,7 +379,7 @@ class PairRecording(SnuddaSimulate):
         if mark_current:
             import matplotlib.pyplot as plt
             for t_start, t_end in mark_current:
-                plt.plot([t_start-skip_time, t_end-skip_time], [mark_current_y, mark_current_y], 'r-', linewidth=5)
+                plt.plot([t_start - skip_time, t_end - skip_time], [mark_current_y, mark_current_y], 'r-', linewidth=5)
 
     def mark_synapses_for_recording(self, pre_neuron_id, post_neuron_id):
 
@@ -400,4 +400,3 @@ class PairRecording(SnuddaSimulate):
         for syn in self.synapse_list:
             if channel_name == syn.hname().split("[")[0]:
                 syn.e = v_rev * 1e3
-

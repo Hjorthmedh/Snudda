@@ -48,17 +48,16 @@
 # since both voltages are recorded
 
 import os
-import glob
 import sys
-
-import numpy as np
-from snudda.simulate.simulate import SnuddaSimulate
-from snudda.utils.load import SnuddaLoad
-from snudda.utils import SnuddaLoadNetworkSimulation
 
 import matplotlib
 import matplotlib.pyplot as plt
 import neuron
+import numpy as np
+
+from snudda.simulate.simulate import SnuddaSimulate
+from snudda.utils import SnuddaLoadNetworkSimulation
+from snudda.utils.load import SnuddaLoad
 
 
 # We want to match Taverna 2008 data:
@@ -127,9 +126,9 @@ class SnuddaNetworkPairPulseSimulation:
         # self.volt_file_alt_mask = os.path.join(self.network_path,
         #                                        f"synapse-calibration-volt-{self.pre_type}-*.txt")
 
-        self.snudda_sim = None   # Defined in run_sim
+        self.snudda_sim = None  # Defined in run_sim
         self.snudda_load = None  # Defined in analyse
-        self.data = None         # Defind in analyse
+        self.data = None  # Defind in analyse
         self.holding_i_clamp_list = []
         self.pre_id = []
         self.possible_post_id = []

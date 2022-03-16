@@ -28,8 +28,6 @@ class NrnSimulatorParallel(ephys.simulators.NrnSimulator):
         self.pc = self.neuron.h.ParallelContext()
         self.pc.set_maxstep(10)
 
-
-
     def run(
             self,
             tstop=None,

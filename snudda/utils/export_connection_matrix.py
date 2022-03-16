@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 import numpy as np
+
 from snudda.utils.load import SnuddaLoad
 
-class SnuddaExportConnectionMatrix(object):
 
+class SnuddaExportConnectionMatrix(object):
     """ Exports a connection matrix from network. """
 
     def __init__(self, in_file, out_file, save_sparse=True, save_on_init=True):

@@ -1,6 +1,7 @@
-import numpy as np
 import json
 from collections import OrderedDict
+
+import numpy as np
 from scipy.interpolate import griddata
 
 
@@ -260,7 +261,8 @@ class ProjectionDetection:
                 pos = self.ellipsoid_coordinates(target_pos, rx, ry, rz, target_rotation, num_points, rng)
 
                 # Convert to coordinates in the hyper voxel
-                voxel_coords = np.round((pos - self.snudda_detect.hyper_voxel_origo) / self.snudda_detect.voxel_size).astype(int)
+                voxel_coords = np.round((pos - self.snudda_detect.hyper_voxel_origo)
+                                        / self.snudda_detect.voxel_size).astype(int)
 
                 inside_idx = np.where(np.sum(np.logical_and(0 <= voxel_coords,
                                                             voxel_coords < self.snudda_detect.hyper_voxel_size),
@@ -374,5 +376,3 @@ class ProjectionDetection:
             self.projections[pre_neuron_type] = [proj_info]
         else:
             self.projections[pre_neuron_type].append(proj_info)
-
-

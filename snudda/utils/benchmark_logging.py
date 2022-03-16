@@ -1,11 +1,10 @@
-import os
 import json
+import os
 import timeit
 from collections import OrderedDict
 
 
 class BenchmarkLogging:
-
     """ Saves benchmark logging when running snudda from command line.
 
     Trivial example below:
@@ -62,7 +61,7 @@ class BenchmarkLogging:
 
         if running_neuron:
             # We are running neuron, different way to detect number of workers
-            from mpi4py import MPI
+            from mpi4py import MPI   # Import mpi before NEURON for parallel
             from neuron import h
             self.pc = h.ParallelContext()
             return self.pc.nhost()
@@ -149,4 +148,3 @@ class BenchmarkLogging:
 
         with open(self.log_file, "w") as fw:
             json.dump(data, fw, indent=4)
-

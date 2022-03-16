@@ -1,13 +1,11 @@
-import os
-from glob import glob
 import json
+import os
 from collections import OrderedDict
 
 
 class CreateParameterMorphologyInputMap:
 
     def __init__(self):
-
 
         pass
 
@@ -33,7 +31,6 @@ class CreateParameterMorphologyInputMap:
                 mapping_data[key] = OrderedDict()
 
             for m in p["morphology"]:
-
                 mapping_data[key][m] = OrderedDict()
                 mapping_data[key][m]["Cortical"] = 100
                 mapping_data[key][m]["Thalamic"] = 100

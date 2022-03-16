@@ -1,13 +1,12 @@
 """ Based on BluePyOpt exampel code by Werner van Geit, 
 modified by Johannes Hjorth """
 
-import os
 import json
+import os
 from collections import OrderedDict
 
-import numpy as np
-
 import bluepyopt.ephys as ephys
+import numpy as np
 
 script_dir = os.path.dirname(__file__)
 config_dir = os.path.join(script_dir, 'config')
@@ -20,7 +19,6 @@ def define_mechanisms(mechanism_config=None):
     """Define mechanisms"""
 
     assert (mechanism_config is not None)
-    # print("Using mechanmism config: " + mechanism_config)
 
     with open(os.path.join(config_dir, mechanism_config), "r") as f:
         mech_definitions = json.load(f, object_pairs_hook=OrderedDict)
@@ -78,9 +76,7 @@ def define_parameters(parameter_config=None):
             bounds = param_config['bounds']
             value = None
         else:
-            raise Exception(
-                'Parameter config has to have bounds or value: %s'
-                % param_config)
+            raise Exception(f"Parameter config has to have bounds or value: {param_config}")
 
         if param_config['type'] == 'global':
             parameters.append(
@@ -124,12 +120,7 @@ def define_parameters(parameter_config=None):
                         bounds=bounds,
                         locations=[seclist_loc]))
         else:
-            raise Exception(
-                'Param config type has to be global, section or range: %s' %
-                param_config)
-
-    # import pdb
-    # pdb.set_trace()
+            raise Exception(f"Param config type has to be global, section or range: {param_config}")
 
     return parameters
 
@@ -140,8 +131,6 @@ def define_morphology(replace_axon=True, morph_file=None):
     """Define morphology. Handles SWC and ASC."""
 
     assert (morph_file is not None)
-
-    # print("Using morphology: " + morph_file)
 
     return ephys.morphologies.NrnFileMorphology(
         os.path.join(
@@ -238,5 +227,3 @@ def find_dend_compartment(neuron, synapse_xyz, loc_type, sim):
 
     return dend_loc
 
-# Add a generic synapse to location
-# def addSynapse(neuron, location):

@@ -5,12 +5,13 @@
 # - Check what axon and dendrite propagation speeds should be
 #
 
-import sys
 import json
-from collections import OrderedDict
-import numpy as np
-import h5py
 import os
+import sys
+from collections import OrderedDict
+
+import h5py
+import numpy as np
 
 from conv_hurt import ConvHurt
 from load import SnuddaLoad
@@ -131,30 +132,30 @@ class ExportSonata(object):
 
         # These should match edgeTypeLookup
         edge_csv_data = OrderedDict([('template',
-                                     ['MSGABA',  # 1
-                                      'MSGABA',  # 2
-                                      'MSGABA',  # 3
-                                      'MSGABA',  # 4
-                                      'FSGABA',  # 5
-                                      'FSGABA',  # 6
-                                      'AChSyn',  # 7
-                                      'AChSyn',  # 8
-                                      'FSGABA',  # 9
-                                      'MSGABA',  # 10
-                                      'MSGABA',  # 11
-                                      'MSGABA',  # 12
-                                      'MSGABA',  # 13
-                                      'FSGABA',  # 14
-                                      'AChSyn',  # 15
-                                      'ThalamusGlu',  # 16
-                                      'ThalamusGlu',  # 17
-                                      'ThalamusGlu',  # 18
-                                      'ThalamusGlu',  # 19
-                                      'CortexGlu',  # 20
-                                      'CortexGlu',  # 21
-                                      'CortexGlu',  # 22
-                                      'CortexGlu',  # 23
-                                      ])])
+                                      ['MSGABA',  # 1
+                                       'MSGABA',  # 2
+                                       'MSGABA',  # 3
+                                       'MSGABA',  # 4
+                                       'FSGABA',  # 5
+                                       'FSGABA',  # 6
+                                       'AChSyn',  # 7
+                                       'AChSyn',  # 8
+                                       'FSGABA',  # 9
+                                       'MSGABA',  # 10
+                                       'MSGABA',  # 11
+                                       'MSGABA',  # 12
+                                       'MSGABA',  # 13
+                                       'FSGABA',  # 14
+                                       'AChSyn',  # 15
+                                       'ThalamusGlu',  # 16
+                                       'ThalamusGlu',  # 17
+                                       'ThalamusGlu',  # 18
+                                       'ThalamusGlu',  # 19
+                                       'CortexGlu',  # 20
+                                       'CortexGlu',  # 21
+                                       'CortexGlu',  # 22
+                                       'CortexGlu',  # 23
+                                       ])])
 
         ch.write_edges_csv(edge_csv_file="Striatum/Striatum_edge_types.csv",
                            edge_type_id=edge_type_id,
