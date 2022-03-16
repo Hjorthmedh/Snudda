@@ -101,8 +101,9 @@ class SwapToDegenerateMorphologies:
 
         assert num_synapses == synapses.shape[0]
 
-        last_pre = synapses[0, 0]
-        last_post = synapses[0, 1]
+        if num_synapses > 0:
+            last_pre = synapses[0, 0]
+            last_post = synapses[0, 1]
 
         while next_idx < num_synapses:
             while next_idx < num_synapses \
@@ -303,7 +304,7 @@ class SwapToDegenerateMorphologies:
         possible_keys = []
 
         for param_key, param_data in new_meta_info.items():
-            for morph_key, morph_data in param_data():
+            for morph_key, morph_data in param_data.items():
                 morph_name = morph_data["morphology"]
                 if orig_morph_name == morph_name:
                     possible_keys.append((param_key, morph_key))
