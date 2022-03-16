@@ -371,7 +371,8 @@ class NeuronMorphology:
         if rotation is not None:
 
             assert np.abs(np.linalg.det(rotation) - 1) < 1e-6, \
-                "place: determinant of rotation matrix should be 1 (did you miss matmul when multiplying?)"
+                (f"place: determinant of rotation matrix should be 1 (did you miss matmul when multiplying?)"
+                 f"rotation = {rotation}, det(rotation) = {np.linalg.det(rotation)}")
 
             self.rotated_flag = True
 
