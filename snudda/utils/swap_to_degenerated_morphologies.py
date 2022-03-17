@@ -71,10 +71,17 @@ class SwapToDegenerateMorphologies:
         # Update parameter keys and morphology keys
         for idx, neuron_id in enumerate(self.new_hdf5["network/neurons/neuronID"]):
             assert idx == neuron_id, "There should be no gaps in numbering."
-            param_key, morph_key, neuron_path = self.find_morpology(neuron_id)
+            param_key, morph_key, neuron_path, param_id, morph_id = self.find_morpology(neuron_id)
             self.new_hdf5[f"network/neurons/parameterKey"][idx] = param_key
             self.new_hdf5[f"network/neurons/morphologyKey"][idx] = morph_key
             self.new_hdf5[f"network/neurons/neuronPath"][idx] = neuron_path
+            self.new_hdf5[f"network/neurons/parameterID"][idx] = param_id
+            self.new_hdf5[f"network/neurons/morphologyID"][idx] = morph_id
+
+            old_morph = SnuddaLoad.to_str(self.new_hdf5[f"network/neurons/morphology"][idx])
+            new_morph = old_morph.replace(self.original_snudda_data_dir, self.new_snudda_data_dir)
+            self.new_hdf5[f"network/neurons/morphology"][idx] = new_morph
+
 
         self.filter_synapses()
         self.filter_gap_junctions()
@@ -316,7 +323,11 @@ class SwapToDegenerateMorphologies:
         idx = np.random.randint(low=0, high=len(possible_keys))
         new_param_key, new_morph_key = possible_keys[idx]
 
-        return new_param_key, new_morph_key, new_neuron_path
+        # We also need parameter_id and morphology_id
+        parameter_id = np.where([x == new_param_key for x in new_meta_info.keys()])[0][0]
+        morphology_id = np.where([x == new_morph_key for x in new_meta_info[new_param_key].keys()])[0][0]
+
+        return new_param_key, new_morph_key, new_neuron_path, parameter_id, morphology_id
 
     def get_sec_location(self, coords, neuron_path, parameter_key, morphology_key, max_dist=5e-6):
 
@@ -429,7 +440,7 @@ class SwapToDegenerateMorphologies:
     def create_section_lookup_helper(self, neuron_id):
 
         old_param_key, old_morph_key, old_path = self.find_old_morphology(neuron_id=neuron_id)
-        new_param_key, new_morph_key, new_path = self.find_morpology(neuron_id=neuron_id)
+        new_param_key, new_morph_key, new_path, _, _ = self.find_morpology(neuron_id=neuron_id)
 
         if (old_param_key, old_morph_key, old_path) in self.section_lookup:
             # We already have the morphology in the section_lookup
