@@ -280,9 +280,9 @@ class VisualiseNetwork(object):
                         # Draw this neuron (the SWC import scales from micrometers to mm), the
                         # positions in the simulation are in meters, need to scale it to mm for
                         # blender to have same units.
-                        x = (origo[0] + voxel_size * syn[2]) * scale
-                        y = (origo[1] + voxel_size * syn[3]) * scale
-                        z = (origo[2] + voxel_size * syn[4]) * scale
+                        x = (origo[0] + voxel_size * syn[2]) * self.scale_f
+                        y = (origo[1] + voxel_size * syn[3]) * self.scale_f
+                        z = (origo[2] + voxel_size * syn[4]) * self.scale_f
 
                         if synapse_obj:
                             obj = synapse_obj.copy()
