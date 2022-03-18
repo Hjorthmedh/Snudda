@@ -29,17 +29,14 @@
 import os
 import sys
 
-from snudda.simulate.simulate import SnuddaSimulate
-from snudda.utils.load import SnuddaLoad
-from snudda.init.init import SnuddaInit
-from snudda import Snudda
-
-import numpy as np
-
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
 
-import neuron
+from snudda import Snudda
+from snudda.init.init import SnuddaInit
+from snudda.simulate.simulate import SnuddaSimulate
+from snudda.utils.load import SnuddaLoad
 
 
 class SnuddaModelCurrentInjections(object):

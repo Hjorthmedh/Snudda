@@ -1,5 +1,4 @@
 def cleanup_memory(d_view, variable_list):
-
     """ Clear variables in variable_list on workers specified by d_view.
 
     Args:
@@ -14,7 +13,6 @@ def cleanup_memory(d_view, variable_list):
 
 # Cleans up memory on workers after execution
 def cleanup(rc, state):
-
     """ When place, detect, prune are run one after the other, we do not need to keep them all in memory
     at the same time. As one finishes, we can clear the memory.
 

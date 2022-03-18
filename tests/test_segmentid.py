@@ -37,6 +37,8 @@ class SegmentIdTestCase(unittest.TestCase):
         print(f"Loading neuron {morph_file}")
         snudda_neuron = NeuronMorphology(name="fs", swc_filename=morph_file, use_cache=False)
 
+        self.assertTrue((snudda_neuron.soma[0, :3] == 0).all(), f"Soma should be centered for {morph_file}.")
+
         # Load morphology into NEURON
         neuron_model = NeuronModel(param_file=os.path.join("data", "fake-parameters.json"),
                                    morph_path=morph_file,

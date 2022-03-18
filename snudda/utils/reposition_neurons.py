@@ -2,7 +2,6 @@ import h5py
 
 
 class RepositionNeurons(object):
-
     """ Reposition neurons in the network file. """
 
     def __init__(self, position_file):
@@ -40,7 +39,7 @@ class RepositionNeurons(object):
             verbose : Print info?
         """
 
-        info = (f"Moving neuron {neuron_id} from {self.hdf5_file['network/neurons/position'][neuron_id]} " 
+        info = (f"Moving neuron {neuron_id} from {self.hdf5_file['network/neurons/position'][neuron_id]} "
                 f"to {position}")
         if rotation is not None:
             info += f" setting rotation to {rotation}"
@@ -51,7 +50,7 @@ class RepositionNeurons(object):
         self.hdf5_file["network/neurons/position"][neuron_id] = position
 
         if rotation is not None:
-            self.hdf5_file["network/neurons/rotation"][neuron_id] = rotation.reshape((9, ))
+            self.hdf5_file["network/neurons/rotation"][neuron_id] = rotation.reshape((9,))
 
     def set_morphology_id(self, neuron_id, morphology_id):
 

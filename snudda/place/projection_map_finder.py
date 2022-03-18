@@ -12,7 +12,6 @@ class PointCluster:
         self.num = 0
 
     def generate_cube(self, centre, side, num):
-
         self.coords = side * np.random.uniform(size=(num, 3))
         self.coords[:, 0] += centre[0]
         self.coords[:, 1] += centre[1]
@@ -22,7 +21,6 @@ class PointCluster:
         self.calc_distance()
 
     def generate_disk(self, centre, side, num):
-
         self.coords = side * np.random.uniform(size=(num, 3))
         self.coords[:, 0] += centre[0]
         self.coords[:, 1] += centre[1]
@@ -38,7 +36,7 @@ class PointCluster:
         min_coord = np.min(self.coords)
         max_coord = np.max(self.coords)
 
-        return np.divide(self.coords[idx, :] - min_coord, max_coord-min_coord)
+        return np.divide(self.coords[idx, :] - min_coord, max_coord - min_coord)
 
 
 class PointMap:
@@ -68,10 +66,10 @@ class PointMap:
         test_map[b] = self.map[a]
 
         energy_before = np.sum(np.multiply(self.source.dist[a, :], self.dest.dist[a_dest, :][test_map])) \
-            + np.sum(np.multiply(self.source.dist[b, :], self.dest.dist[b_dest, :][test_map]))
+                        + np.sum(np.multiply(self.source.dist[b, :], self.dest.dist[b_dest, :][test_map]))
 
         energy_after = np.sum(np.multiply(self.source.dist[a, :], self.dest.dist[b_dest, :][test_map])) \
-            + np.sum(np.multiply(self.source.dist[b, :], self.dest.dist[a_dest, :][test_map]))
+                       + np.sum(np.multiply(self.source.dist[b, :], self.dest.dist[a_dest, :][test_map]))
 
         return energy_after - energy_before
 
@@ -106,7 +104,6 @@ class PointMap:
             p_swap = 1 / (1 + np.exp(4 * energy_change / self.start_energy * 100))
             print(f"{idx}/{n_iter}  energy = {self.energy()}, p_swap = {p_swap}")
             if px < p_swap:
-
                 # Swap the two if energy
                 old_a = self.map[a]
                 self.map[a] = self.map[b]
@@ -147,4 +144,5 @@ if __name__ == "__main__":
     pm.iterate(10000)
 
     import pdb
+
     pdb.set_trace()

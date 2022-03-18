@@ -1,21 +1,24 @@
 import os
 
+
 # We allow user to use $DATA to specify the Snudda data folder.
 # Default is the Snudda/snudda/data folder, but the user can set the SNUDDA_DATA environment variable
 #
 
 
-def snudda_parse_path(path):
-
+def snudda_parse_path(path, snudda_data=None):
     """ Parses a data path, replacing $DATA with the path to SNUDDA_DATA set by environment variable.
 
     Args:
         path (str) : Path to modify
+        snudda_data (str) : Path to SNUDDA_DATA, this is optional, and if given overrides environment variable
         """
 
     if path and ("$DATA" in path or "$SNUDDA_DATA" in path):
 
-        if "SNUDDA_DATA" in os.environ:
+        if snudda_data:
+            data_path_str = snudda_data
+        elif "SNUDDA_DATA" in os.environ:
             data_path_str = os.environ["SNUDDA_DATA"]
         else:
             data_path_str = os.path.join(os.path.dirname(__file__), os.pardir, "data")
@@ -42,15 +45,22 @@ def snudda_path_exists(path):
     return os.path.exists(snudda_parse_path(path))
 
 
-def snudda_simplify_path(path):
+def snudda_simplify_path(path, snudda_data=None):
     """ Simplifies path, replacing any occurance of SNUDDA_DATA in the path with $SNUDDA_DATA.
 
     Args:
         path (str) : Path to be simplified
+        snudda_data (str) : Path to SNUDDA_DATA, this is optional, and if given overrides environment variable
+
     """
-    data_path = snudda_parse_path("$SNUDDA_DATA")
+
+    if snudda_data:
+        data_path = snudda_data
+    else:
+        data_path = snudda_parse_path("$SNUDDA_DATA")
+
     real_path = os.path.realpath(path)
-    
+
     if path and data_path in real_path:
         path = real_path.replace(data_path, "$SNUDDA_DATA")
 

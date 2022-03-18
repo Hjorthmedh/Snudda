@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import os
 
-import numpy as np
 import h5py
+import numpy as np
 
 from snudda.utils.load import SnuddaLoad
 
@@ -57,15 +57,16 @@ class SnuddaLoadNetworkSimulation:
 
         n_spikes = 0
         for spikes in spike_data.values():
-            n_spikes += len(spikes)
+            n_spikes += spikes.size
 
         merged_spike_data = np.full((n_spikes, 2), np.nan)
         idx = 0
 
         for neuron_id, spikes in spike_data.items():
-            merged_spike_data[idx:idx+len(spikes), 0] = spikes
-            merged_spike_data[idx:idx+len(spikes), 1] = neuron_id
-            idx += len(spikes)
+            if spikes.size > 0:
+                merged_spike_data[idx:idx + spikes.size, 0] = spikes
+                merged_spike_data[idx:idx + spikes.size, 1] = neuron_id
+                idx += spikes.size
 
         # Sort the spikes after time
         idx = np.argsort(merged_spike_data[:, 0])
@@ -96,7 +97,7 @@ class SnuddaLoadNetworkSimulation:
 
         elif np.issubdtype(type(neuron_id), np.integer):
             if str(neuron_id) in self.network_simulation_file["neurons"] \
-               and "spikes" in self.network_simulation_file[f"neurons/{neuron_id}"]:
+                    and "spikes" in self.network_simulation_file[f"neurons/{neuron_id}"]:
                 spike_data = self.network_simulation_file[f"neurons/{neuron_id}/spikes/data"][()].copy()
             else:
                 spike_data = np.array([])
@@ -105,7 +106,7 @@ class SnuddaLoadNetworkSimulation:
             spike_data = dict()
             for nid in neuron_id:
                 if str(nid) in self.network_simulation_file["neurons"] \
-                   and "spikes" in self.network_simulation_file[f"neurons/{nid}"]:
+                        and "spikes" in self.network_simulation_file[f"neurons/{nid}"]:
                     spike_data[nid] = self.network_simulation_file[f"neurons/{neuron_id}/spikes/data"][()].copy()
                 else:
                     spike_data[nid] = np.array([])
@@ -135,7 +136,8 @@ class SnuddaLoadNetworkSimulation:
 
                 if "synapse_type" in self.network_simulation_file["neurons"][snid][data_type]:
                     synapse_type = self.network_simulation_file["neurons"][snid][data_type]["synapse_type"][()].copy()
-                    presynaptic_id = self.network_simulation_file["neurons"][snid][data_type]["presynaptic_id"][()].copy()
+                    presynaptic_id = self.network_simulation_file["neurons"][snid][data_type]["presynaptic_id"][
+                        ()].copy()
                     cond = self.network_simulation_file["neurons"][snid][data_type]["cond"][()].copy()
                     syn_info[inid] = (synapse_type, presynaptic_id, cond)
 
@@ -178,7 +180,8 @@ class SnuddaLoadNetworkSimulation:
             if len(idx) > 0:
                 filtered_current[neuron_id] = current[neuron_id][:, idx]
                 filtered_sec_id_x[neuron_id] = (sec_id_x[neuron_id][0][idx], sec_id_x[neuron_id][1][idx])
-                filtered_syn_info[neuron_id] = (syn_info[neuron_id][0][idx], syn_info[neuron_id][1][idx], syn_info[neuron_id][2][idx])
+                filtered_syn_info[neuron_id] = (syn_info[neuron_id][0][idx], syn_info[neuron_id][1][idx],
+                                                syn_info[neuron_id][2][idx])
 
         return filtered_current, filtered_sec_id_x, filtered_syn_info
 
@@ -236,5 +239,4 @@ def load_network_simulation_cli():
 
 
 if __name__ == "__main__":
-
     load_network_simulation_cli()

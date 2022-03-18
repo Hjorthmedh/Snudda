@@ -8,7 +8,6 @@ from snudda.utils.snudda_path import snudda_parse_path
 
 
 class NeuronPrototype:
-
     """ Helper class, returns a neuron prototype based on parameter_id, morph_id and modulation_id """
 
     def __init__(self,
@@ -162,7 +161,7 @@ class NeuronPrototype:
         else:
             par_key = self.get_parameter_key(parameter_id=parameter_id)
             assert parameter_key is None or par_key == parameter_key, \
-                (f"parameter_id = {parameter_id} gives parameter_key {par_key}, " 
+                (f"parameter_id = {parameter_id} gives parameter_key {par_key}, "
                  f"different from parameter_key {parameter_key} provided")
 
         if self.meta_info:
@@ -266,7 +265,7 @@ class NeuronPrototype:
 
         if morph_path is None:
             print(f"morph_path is None for {self.neuron_name} path: {self.neuron_path}. "
-                  f"Is SNUDDA_DATA set correctly? ({os.environ['SNUDDA_DATA']})")
+                  f"Is SNUDDA_DATA set correctly? ({os.environ['SNUDDA_DATA'] if 'SNUDDA_DATA' in os.environ else None})")
             import pdb
             pdb.set_trace()
 
@@ -407,7 +406,7 @@ class NeuronPrototype:
 
         if get_cache_original:
             assert position is None and rotation is None and modulation_id is None, \
-                    "If get_cache_original is passed position, rotation and modulation_id must be None"
+                "If get_cache_original is passed position, rotation and modulation_id must be None"
             morph = self.morphology_cache[morph_tag]
         else:
             # Add the keys also for parameter, morphology and modulation
@@ -431,4 +430,3 @@ class NeuronPrototype:
                                                            morphology_key=morphology_key,
                                                            modulation_key=modulation_key)
         return morph
-
