@@ -250,8 +250,12 @@ class RegionMesh(object):
                 engine_log_file = [[] for x in range(0, len(d_view))]
 
             d_view.scatter('logfile_name', engine_log_file, block=True)
+            d_view.push({"raytrace_borders": self.raytrace_borders,
+                         "d_min": self.d_min,
+                         "bin_width": self.bin_width})
 
-            cmd_str = "sm = RegionMesh(filename=filename,role='worker',logfile_name=logfile_name[0])"
+            cmd_str = ("sm = RegionMesh(filename=filename, role='worker', logfile_name=logfile_name[0],"
+                       "raytrace_borders=raytrace_borders, d_min=d_min, bin_width=bin_width)")
 
             d_view.execute(cmd_str, block=True)
             self.write_log("Worker RegionMesh setup done.")
