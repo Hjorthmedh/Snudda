@@ -21,7 +21,7 @@ if [[ -d "/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data" ]]; then
     export SNUDDA_DATA="/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data"
     echo "Setting SNUDDA_DATA to $SNUDDA_DATA"
     rm mechanisms
-    ln -s $SNUDDA_DATA/neurons/mechanisms/neurons/mechanisms_ptr/ mechanisms
+    ln -s $SNUDDA_DATA/neurons/mechanisms_ptr/ mechanisms
 else
     echo "SNUDDA_DATA environment variable not changed (may be empty): $SNUDDA_DATA"
     rm mechanisms
