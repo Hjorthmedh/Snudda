@@ -21,7 +21,7 @@ if [[ -d "/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data" ]]; then
     export SNUDDA_DATA="/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data"
     echo "Setting SNUDDA_DATA to $SNUDDA_DATA"
     rm mechanisms
-    ln -s $SNUDDA_DATA/neurons/mechanisms_ptr mechanisms
+    ln -s $SNUDDA_DATA/neurons/mechanisms/ mechanisms
 else
     echo "SNUDDA_DATA environment variable not changed (may be empty): $SNUDDA_DATA"
     rm mechanisms
@@ -103,7 +103,7 @@ srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/
 # srun -n $N_WORKERS $SNUDDA_DIR/../examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
 
 # GJ active
-srun -n $N_WORKERS $SNUDDA_DIR/../examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 10
+srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 10
 
 
 # Original version, start neuron from python, does not work on beskow
