@@ -497,7 +497,7 @@ class Snudda(object):
         if args.output_file:
             output_file = args.output_file
         else:
-            output_file = os.path.join(self.network_path, "simulation", "network-output.hdf5")
+            output_file = os.path.join(self.network_path, "simulation", "output.hdf5")
 
         self.make_dir_if_needed(os.path.join(self.network_path, "simulation"))
 

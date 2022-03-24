@@ -2791,21 +2791,21 @@ class SnuddaDetect(object):
 
         """
 
-        voxel_overflow_ctr = self.fill_voxels_dend_helper(voxel_space=voxel_space,
-                                                          voxel_space_ctr=voxel_space_ctr,
-                                                          voxel_sec_id=voxel_sec_id,
-                                                          voxel_sec_x=voxel_sec_x,
-                                                          voxel_soma_dist=voxel_soma_dist,
-                                                          coords=coords,
-                                                          links=links,
-                                                          seg_id=seg_id,
-                                                          seg_x=seg_x,
-                                                          neuron_id=neuron_id,
-                                                          self_hyper_voxel_origo=self.hyper_voxel_origo,
-                                                          self_voxel_size=self.voxel_size,
-                                                          self_num_bins=self.num_bins,
-                                                          self_max_dend=self.max_dend,
-                                                          self_step_multiplier=self.step_multiplier)
+        voxel_overflow_ctr = SnuddaDetect.fill_voxels_dend_helper(voxel_space=voxel_space,
+                                                                  voxel_space_ctr=voxel_space_ctr,
+                                                                  voxel_sec_id=voxel_sec_id,
+                                                                  voxel_sec_x=voxel_sec_x,
+                                                                  voxel_soma_dist=voxel_soma_dist,
+                                                                  coords=coords,
+                                                                  links=links,
+                                                                  seg_id=seg_id,
+                                                                  seg_x=seg_x,
+                                                                  neuron_id=neuron_id,
+                                                                  self_hyper_voxel_origo=self.hyper_voxel_origo,
+                                                                  self_voxel_size=self.voxel_size,
+                                                                  self_num_bins=self.num_bins,
+                                                                  self_max_dend=self.max_dend,
+                                                                  self_step_multiplier=self.step_multiplier)
 
         self.voxel_overflow_counter += voxel_overflow_ctr
 
@@ -3009,25 +3009,27 @@ class SnuddaDetect(object):
 
         """
 
-        voxel_overflow_ctr = self.fill_voxels_axon_helper(voxel_space=voxel_space,
-                                                          voxel_space_ctr=voxel_space_ctr,
-                                                          voxel_axon_dist=voxel_axon_dist,
-                                                          coords=coords,
-                                                          links=links,
-                                                          neuron_id=neuron_id,
-                                                          self_hyper_voxel_origo=self.hyper_voxel_origo,
-                                                          self_voxel_size=self.voxel_size,
-                                                          self_num_bins=self.num_bins,
-                                                          self_max_axon=self.max_axon,
-                                                          self_step_multiplier=self.step_multiplier)
+        voxel_overflow_ctr = SnuddaDetect.fill_voxels_axon_helper(voxel_space=voxel_space,
+                                                                  voxel_space_ctr=voxel_space_ctr,
+                                                                  voxel_axon_dist=voxel_axon_dist,
+                                                                  coords=coords,
+                                                                  links=links,
+                                                                  neuron_id=neuron_id,
+                                                                  self_hyper_voxel_origo=self.hyper_voxel_origo,
+                                                                  self_voxel_size=self.voxel_size,
+                                                                  self_num_bins=self.num_bins,
+                                                                  self_max_axon=self.max_axon,
+                                                                  self_step_multiplier=self.step_multiplier)
 
         self.voxel_overflow_counter += voxel_overflow_ctr
 
     @staticmethod
     @jit(nopython=True, fastmath=True, cache=True)
-    def fill_voxels_axon_helper(voxel_space, voxel_space_ctr,
+    def fill_voxels_axon_helper(voxel_space,
+                                voxel_space_ctr,
                                 voxel_axon_dist,
-                                coords, links,
+                                coords,
+                                links,
                                 neuron_id,
                                 self_hyper_voxel_origo,
                                 self_voxel_size,
