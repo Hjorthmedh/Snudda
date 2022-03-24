@@ -1231,7 +1231,7 @@ class NeuronMorphology:
 
         for i, sx in enumerate(cluster_sec_x):
             if sec_id == 0:
-                syn_coords[i, :] = self.soma[:3]
+                syn_coords[i, :] = self.soma[0, :3]
                 soma_dist[i] = 0  # We are on the soma
             else:
                 # We also need to calculate the x,y,z coordinates and distance to soma
