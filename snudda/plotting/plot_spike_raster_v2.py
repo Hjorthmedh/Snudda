@@ -25,7 +25,7 @@ class SnuddaPlotSpikeRaster2:
             self.simulation_file = os.path.join(self.network_path, "simulation", "output.hdf5")
 
         if figure_path:
-            self.figure_path = figure_pa
+            self.figure_path = figure_path
         else:
             self.figure_path = os.path.join(self.network_path, "figures", "network-spike-raster.png")
 
