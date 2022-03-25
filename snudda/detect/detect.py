@@ -1115,12 +1115,20 @@ class SnuddaDetect(object):
 
                             # Should we add just one synapse, or a cluster of synapses
                             cluster_size = con_dict[con_type]["clusterSize"]
+                            if isinstance(cluster_size, (np.ndarray, list)):
+                                cluster_size_mean = cluster_size[0]
+                                cluster_size_std = cluster_size[1]
+                                cluster_size = round(self.hyper_voxel_rng.normal(loc = cluster_size_mean, scale = cluster_size_std))
                             if cluster_size > 1:
                                 cluster_spread = con_dict[con_type]["clusterSpread"]
+                                if isinstance(cluster_spread, (np.ndarray, list)):
+                                    cluster_spread_mean = cluster_spread[0]
+                                    cluster_spread_std = cluster_spread[1]
+                                    cluster_spread = self.hyper_voxel_rng.normal(loc = cluster_spread_mean, scale = cluster_spread_std)
 
                                 # This uses clone in neuron_prototype which should be cached
                                 neuron = self.load_neuron(self.neurons[d_id])
-
+                                
                                 try:
                                     cluster_sec_x, syn_coords, soma_dist \
                                         = neuron.cluster_synapses(sec_id=d_sec_id, sec_x=d_sec_x,
