@@ -145,11 +145,18 @@ class VisualiseNetwork(object):
         mat_lts.diffuse_color = (150. / 255, 63. / 255, 212. / 255, 1.0)
 
         mat_snr = bpy.data.materials.new("PKHG")
+
+        # PURPLE
+
         mat_snr.diffuse_color = (102 / 255, 0 / 255, 102 / 255, 1.0)
         mat_snr.diffuse_color = (102 / 255, 0 / 255, 102 / 255, 1.0)
 
+        # BLUE-PURPLE
+
         mat_arky = bpy.data.materials.new("PKHG")
-        mat_arky.diffuse_color = (153 / 255, 153 / 255, 0 / 255, 1.0)
+        mat_arky.diffuse_color = (43 / 255, 0 / 255, 255 / 255, 1.0)
+
+        # GREEN
         mat_proto = bpy.data.materials.new("PKHG")
         mat_proto.diffuse_color = (0 / 255, 130 / 255, 0 / 255, 1.0)
 
@@ -165,7 +172,7 @@ class VisualiseNetwork(object):
                            "lts": mat_lts,
                            "snrneurons": mat_snr,
                            "proto": mat_proto,
-                           "akry": mat_arky,
+                           "arky": mat_arky,
                            "synapse": mat_synapse,
                            "other": mat_other}
 
