@@ -21,17 +21,18 @@ class PlotDegeneration:
                                                    external_colour=np.array([1, 0.5, 0]),
                                                    internal_colour=np.array([1, 0.5, 0]),
                                                    size=1,
-                                                   save_fig=False)
+                                                   save_fig=False, show_figure=False)
         # ax = None
         self.degenerated_plot.plot_neuron_inputs(neuron_id=neuron_id,
                                                  neuron_colour=np.array([0, 0, 0]),
                                                  ax=ax,
                                                  size=50,
-                                                 save_fig=True)
+                                                 save_fig=True, show_figure=True)
 
         import matplotlib.pyplot as plt
         plt.show()
         plt.pause(10)
+
 
 def cli():
 

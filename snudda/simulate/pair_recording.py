@@ -54,7 +54,11 @@ class PairRecording(SnuddaSimulate):
         self.experiment_config_file = experiment_config_file
         self.experiment_config = self.read_experiment_config(experiment_config_file=experiment_config_file)
 
-        self.output_file_name = None
+        if "pairRecordingOutputFile" in self.experiment_config["meta"].keys():
+            self.output_file = os.path.join(self.network_path, "simulation",
+                                            self.experiment_config["meta"]["pairRecordingOutputFile"])
+        else:
+            self.output_file = os.path.join(self.network_path, "simulation", "output.hdf5")
 
         # Variables for synapse current recording
         self.synapse_currents = []
@@ -94,7 +98,7 @@ class PairRecording(SnuddaSimulate):
         self.sim_duration = self.experiment_config["meta"]["simulationDuration"]
 
         if "pairRecordingOutputFile" in self.experiment_config["meta"]:
-            self.output_file_name = os.path.join(self.network_path, "simulation",
+            self.output_file = os.path.join(self.network_path, "simulation",
                                                  self.experiment_config["meta"]["pairRecordingOutputFile"])
 
         # Setup v_init for each neuron_id specified
@@ -124,7 +128,7 @@ class PairRecording(SnuddaSimulate):
                                         end_times=stim_end_time, amplitudes=stim_amplitude)
 
         # Add voltage recordings to neurons
-        self.add_volt_recording()
+        self.add_volt_recording_all()
 
     @staticmethod
     def to_list(val, new_list_len=1):
@@ -235,8 +239,10 @@ class PairRecording(SnuddaSimulate):
             sim_id = pre_id
 
             for pid in pre_id:
-                post_id = set(self.snudda_loader.find_synapses(pre_id=pid)[0][:, 1])
-                sim_id = sim_id.union(post_id)
+                found_syn=self.snudda_loader.find_synapses(pre_id=pid)[0]
+                if found_syn is not None:
+                    post_id = set(found_syn[:, 1])
+                    sim_id = sim_id.union(post_id)
 
             self.simulate_neuron_ids = sorted(list(sim_id))
 
@@ -279,14 +285,13 @@ class PairRecording(SnuddaSimulate):
 
         # Write results to disk
         try:
-            save = SnuddaSaveNetworkRecordings(output_file=self.output_file_name)
-            save.write(t_save=self.t_save, v_save=self.v_save, v_key=self.v_key,
-                       t_spikes=self.t_spikes, id_spikes=self.id_spikes)
+            self.record.output_file = self.output_file
+            self.write_output()
 
-            pre_id = np.array([x[0] for x in self.synapse_currents])
-            post_id = np.array([x[1] for x in self.synapse_currents])
-            cur = [np.array(x[2]) for x in self.synapse_currents]
-            save.write_currents_OLD(t_save=self.t_save, i_save=cur, pre_id=pre_id, post_id=post_id)
+            # pre_id = np.array([x[0] for x in self.synapse_currents])
+            # post_id = np.array([x[1] for x in self.synapse_currents])
+            # cur = [np.array(x[2]) for x in self.synapse_currents]
+            # save.write_currents_OLD(t_save=self.t_save, i_save=cur, pre_id=pre_id, post_id=post_id)
 
         except:
             import traceback
@@ -309,7 +314,9 @@ class PairRecording(SnuddaSimulate):
 
             try:
                 syn = self.add_synapse(cell_id_source=src_id,
+                                       cell_id_dest=dest_id,
                                        dend_compartment=section,
+                                       section_id=sec_id,
                                        section_dist=section_x,
                                        synapse_type_id=s_type_id,
                                        axon_dist=axon_dist,
@@ -330,7 +337,7 @@ class PairRecording(SnuddaSimulate):
 
     def plot_trace_overview(self):
         from snudda.plotting import PlotTraces
-        pt = PlotTraces(output_file=self.output_file_name,
+        pt = PlotTraces(output_file=self.output_file,
                         network_file=self.network_file)
 
         pt.plot_traces([x for x in pt.voltage])
@@ -346,8 +353,10 @@ class PairRecording(SnuddaSimulate):
             skip_time = cur_start[0] / 2
 
             assert type(pre_id) == int, f"Plot traces assumes one pre-synaptic neuron stimulated: {pre_id}"
-
-            post_id = set(self.snudda_loader.find_synapses(pre_id=pre_id)[0][:, 1])
+            if self.snudda_loader.find_synapses(pre_id=pre_id)[0] is None:
+                post_id =[]
+            else:
+                post_id = set(self.snudda_loader.find_synapses(pre_id=pre_id)[0][:, 1])
 
             for pid in post_id:
                 fig_name = f"Current-injection-pre-{pre_id}-post-{pid}.pdf"
@@ -364,7 +373,7 @@ class PairRecording(SnuddaSimulate):
             n_synapses = self.snudda_loader.find_synapses(pre_id=pre_id, post_id=post_id)[0].shape[0]
             title = f"{self.neurons[pre_id].name} -> {self.neurons[post_id].name} ({n_synapses} synapses)"
 
-        pt = PlotTraces(output_file=self.output_file_name, network_file=self.network_file)
+        pt = PlotTraces(output_file=self.output_file, network_file=self.network_file)
         fig = pt.plot_traces(trace_id=post_id, offset=offset, title=title, fig_name=fig_name, skip_time=skip_time)
 
         if mark_current:

@@ -250,8 +250,12 @@ class RegionMesh(object):
                 engine_log_file = [[] for x in range(0, len(d_view))]
 
             d_view.scatter('logfile_name', engine_log_file, block=True)
+            d_view.push({"raytrace_borders": self.raytrace_borders,
+                         "d_min": self.d_min,
+                         "bin_width": self.bin_width})
 
-            cmd_str = "sm = RegionMesh(filename=filename,role='worker',logfile_name=logfile_name[0])"
+            cmd_str = ("sm = RegionMesh(filename=filename, role='worker', logfile_name=logfile_name[0],"
+                       "raytrace_borders=raytrace_borders, d_min=d_min, bin_width=bin_width)")
 
             d_view.execute(cmd_str, block=True)
             self.write_log("Worker RegionMesh setup done.")
@@ -462,15 +466,14 @@ class RegionMesh(object):
         if self.role == "master":
             self.setup_parallel()
 
-        self.min_coord = np.floor((np.min(self.mesh_vec, axis=0)
-                                   - self.padding) / self.bin_width) * self.bin_width
-        self.max_coord = np.ceil((np.max(self.mesh_vec, axis=0)
-                                  + self.padding) / self.bin_width) * self.bin_width
+        self.min_coord = np.floor((np.min(self.mesh_vec, axis=0) - self.padding) / self.bin_width) * self.bin_width
+        self.max_coord = np.ceil((np.max(self.mesh_vec, axis=0) + self.padding) / self.bin_width) * self.bin_width
 
-        self.num_bins = np.array(np.ceil((self.max_coord - self.min_coord) / self.bin_width + 1),
-                                 dtype=int)
+        self.num_bins = np.array(np.ceil((self.max_coord - self.min_coord) / self.bin_width + 1), dtype=int)
 
         self.write_log(f"Voxel mask: {self.num_bins[0]} x {self.num_bins[1]} x {self.num_bins[2]}")
+        self.write_log(f"min coord: {self.min_coord}, max coord {self.max_coord},"
+                       f"\npadding {self.padding}, bin width {self.bin_width}")
 
         self.voxel_mask_inner = np.zeros(self.num_bins, dtype=bool)
         self.voxel_mask_border = np.zeros(self.num_bins, dtype=bool)
@@ -509,9 +512,9 @@ class RegionMesh(object):
 
                 self.d_view.scatter("x_range", all_x, block=True)
                 self.write_log("Starting parallel job")
-                self.d_view.execute("innerMask = sm._voxel_mask_helper(x_range)", block=True)
+                self.d_view.execute("inner_mask = sm._voxel_mask_helper(x_range)", block=True)
                 self.write_log("Gathering results")
-                inner_mask = self.d_view.gather("innerMask", block=True)
+                inner_mask = self.d_view.gather("inner_mask", block=True)
 
                 for m in inner_mask:
                     self.voxel_mask_inner = np.logical_or(self.voxel_mask_inner, m)

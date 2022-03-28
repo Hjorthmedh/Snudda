@@ -22,7 +22,7 @@ class SnuddaPlotSpikeRaster2:
         if simulation_file:
             self.simulation_file = simulation_file
         else:
-            self.simulation_file = os.path.join(self.network_path, "simulation", "network-output.hdf5")
+            self.simulation_file = os.path.join(self.network_path, "simulation", "output.hdf5")
 
         if figure_path:
             self.figure_path = figure_path
@@ -212,6 +212,7 @@ class SnuddaPlotSpikeRaster2:
         if not os.path.isdir(os.path.basename(self.figure_path)):
             os.makedirs(os.path.basename(self.figure_path))
 
+        print(f"Writing figure to {self.figure_path}")
         plt.savefig(self.figure_path, dpi=300)
 
         plt.ion()
@@ -277,6 +278,7 @@ class SnuddaPlotSpikeRaster2:
         if not os.path.isdir(os.path.basename(self.figure_path)):
             os.makedirs(os.path.basename(self.figure_path))
 
+        print(f"Saving figure to {self.figure_path}")
         plt.savefig(self.figure_path, dpi=300)
 
         plt.ion()

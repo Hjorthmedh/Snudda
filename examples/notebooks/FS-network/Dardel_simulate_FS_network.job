@@ -2,11 +2,11 @@
 #SBATCH --partition=main
 #SBATCH -o log/Simulate-%j-output.txt
 #SBATCH -e log/Simulate-%j-error.txt
-#SBATCH -t 6:59:00
-#SBATCH --time-min=3:59:00
+#SBATCH -t 0:59:00
+#SBATCH --time-min=0:59:00
 #SBATCH -J Simulate
 #SBATCH -A snic2021-5-492 
-#SBATCH --nodes=5-10
+#SBATCH --nodes=2-5
 #SBATCH --tasks-per-node=64
 #SBATCH --mail-type=ALL
 
@@ -33,7 +33,7 @@ SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/snudda
 
 # You need to point this as the directory where you created the network in
 #NETWORK_DIR=$SNUDDA_DIR/../../networks/TegnerRun.959380
-NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k
+NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/notebooks/FS-network/FS_network_1
 
 NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
@@ -103,7 +103,7 @@ srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/
 # srun -n $N_WORKERS $SNUDDA_DIR/../examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
 
 # GJ active
-srun -n $N_WORKERS $SNUDDA_DIR/../examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 3.5 
+srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 10
 
 
 # Original version, start neuron from python, does not work on beskow

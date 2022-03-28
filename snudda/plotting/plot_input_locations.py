@@ -49,7 +49,8 @@ class SnuddaPlotInputLocations:
                            ax=None, neuron_colour=None,
                            size=10,
                            save_fig=True,
-                           dpi=300):
+                           dpi=300,
+                           show_figure=True):
 
         # TODO: Add ability to plot touch detected inputs also (use blue colour for them)
 
@@ -64,7 +65,7 @@ class SnuddaPlotInputLocations:
         nm = self.load_neuron(neuron_id=neuron_id)
 
         if ax is None:
-            fig = plt.figure()
+            fig = plt.figure(visible=show_figure)
             ax = fig.add_subplot(111, projection='3d')
 
         if neuron_colour is None:
@@ -109,6 +110,10 @@ class SnuddaPlotInputLocations:
             fig_name = os.path.join(fig_path, f_name)
             plt.savefig(fig_name, dpi=dpi)
             print(f"Figure written: {fig_name}")
+
+        if show_figure:
+            fig = ax.get_figure()
+            fig.set_visible(show_figure)
 
         return ax
 
@@ -185,10 +190,11 @@ class SnuddaPlotInputLocations:
             coords[idx, :] = nm.get_section_coordinates(section_id=sec_id, section_x=sec_x)
 
         dist = np.linalg.norm(coords - synapse_coords, axis=-1)
-        max_dist = np.sqrt(3*(5e-6 ** 2))
+        max_dist = 10e-6  # np.sqrt(3*(5e-6 ** 2))
         assert (dist <= max_dist).all(), \
             (f"Synapse coordinates mismatch {synapse_coords[np.where(dist > max_dist)[0], :]} "
-             f"vs {coords[np.where(dist > max_dist)[0], :]}")
+             f"vs {coords[np.where(dist > max_dist)[0], :]}"
+             f" (distances {dist[np.where(dist > max_dist)[0]]} with allowed max_dist = {max_dist})")
 
         pre_id = synapses[:, 0]
 

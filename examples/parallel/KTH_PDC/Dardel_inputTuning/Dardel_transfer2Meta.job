@@ -38,7 +38,7 @@ export PYTHONPATH=$LN/lib/python:$PYTHONPATH
 
 echo "STARTING analyse_data_and_create_meta.py"
 neurons_path=$SNUDDA_DATA/neurons/striatum/$neuronType/$singleNeuronType
-srun python $SNUDDA_DATA_TOOLS/analyse_data_and_create_meta.py $NETWORK_DIR --networkName $NETWORK_NAME --neuronsPath $neurons_path --input_type $input_type --neuronType $neuronType --singleNeuronType $singleNeuronType
+srun python $SNUDDA_DATA_TOOLS/analyse_data_and_create_meta.py $NETWORK_DIR --networkName $NETWORK_NAME --neuronsPath $neurons_path --input_type $input_type --neuronType $neuronType --singleNeuronType $singleNeuronType --snudda_data_tools $SNUDDA_DATA_TOOLS
 if [ $? != 0 ]; then
 	echo "Something went wrong during analyse_data_and_create_meta.py aborting!"
 	exit -1

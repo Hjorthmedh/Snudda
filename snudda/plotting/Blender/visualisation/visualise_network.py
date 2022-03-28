@@ -263,7 +263,8 @@ class VisualiseNetwork(object):
 
         if show_synapses:
             print("Adding synapses...")
-
+            self.syn_coll = bpy.data.collections.new(name="Synapses") 
+            bpy.context.scene.collection.children.link(self.syn_coll)
             # Draw the synapses
             n_synapses = 0
 
@@ -288,9 +289,9 @@ class VisualiseNetwork(object):
                         # Draw this neuron (the SWC import scales from micrometers to mm), the
                         # positions in the simulation are in meters, need to scale it to mm for
                         # blender to have same units.
-                        x = (origo[0] + voxel_size * syn[2]) * scale
-                        y = (origo[1] + voxel_size * syn[3]) * scale
-                        z = (origo[2] + voxel_size * syn[4]) * scale
+                        x = (origo[0] + voxel_size * syn[2]) * self.scale_f
+                        y = (origo[1] + voxel_size * syn[3]) * self.scale_f
+                        z = (origo[2] + voxel_size * syn[4]) * self.scale_f
 
                         if synapse_obj:
                             obj = synapse_obj.copy()
@@ -314,10 +315,16 @@ class VisualiseNetwork(object):
                         # print(f"Added synapse #{n_synapses} at {[x, y, z]}")
                         if n_synapses % 5000 == 0:
                             print(f"Synapses added so far: {n_synapses}")
-
+            bpy.ops.object.select_all( action='DESELECT' )
+            bpy.ops.object.select_pattern(pattern="synapse*")
+            s_objs = bpy.context.selected_objects
+            for s in s_objs:
+                self.syn_coll.objects.link(s)
             print(f"nSynapses = {n_synapses}")
 
         if draw_meshes:
+            self.struct_coll = bpy.data.collections.new(name="Structures") #create new coll in data
+            bpy.context.scene.collection.children.link(self.struct_coll) #add new coll to the scene
             self.add_all_meshes()
 
         if full_meshes:
@@ -356,7 +363,7 @@ class VisualiseNetwork(object):
         o.scale[1] = 1 / self.scale_f
         o.scale[2] = 1 / self.scale_f
         o.active_material = mat
-
+        self.struct_coll.objects.link(o)
     def add_all_meshes(self):
 
         for name, structure in self.sl.config["Volume"].items():

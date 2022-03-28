@@ -36,6 +36,9 @@ class SwapToDegenerateMorphologies:
         self.original_snudda_data_dir = original_snudda_data_dir
         self.new_snudda_data_dir = new_snudda_data_dir
 
+        assert self.original_snudda_data_dir != self.new_snudda_data_dir, \
+            f"SNUDDA_DATA_DIR should be different for WT and degenerated"
+
         self.original_input_file = original_input_file
         self.new_input_file = new_input_file
 
@@ -48,8 +51,6 @@ class SwapToDegenerateMorphologies:
         self.neuron_cache = dict()
 
         self.create_section_lookup()
-
-
         self.kd_tree_cache = dict()
 
     def close(self):
@@ -57,6 +58,9 @@ class SwapToDegenerateMorphologies:
         self.old_hdf5.close()
 
     def write_new_network_file(self):
+
+        if not os.path.isdir(os.path.dirname(self.new_network_file)):
+            os.mkdir(os.path.dirname(self.new_network_file))
 
         print(f"Writing new network to {self.new_network_file}")
         self.new_hdf5 = h5py.File(self.new_network_file, "w")
@@ -67,10 +71,17 @@ class SwapToDegenerateMorphologies:
         # Update parameter keys and morphology keys
         for idx, neuron_id in enumerate(self.new_hdf5["network/neurons/neuronID"]):
             assert idx == neuron_id, "There should be no gaps in numbering."
-            param_key, morph_key, neuron_path = self.find_morpology(neuron_id)
+            param_key, morph_key, neuron_path, param_id, morph_id = self.find_morpology(neuron_id)
             self.new_hdf5[f"network/neurons/parameterKey"][idx] = param_key
             self.new_hdf5[f"network/neurons/morphologyKey"][idx] = morph_key
             self.new_hdf5[f"network/neurons/neuronPath"][idx] = neuron_path
+            self.new_hdf5[f"network/neurons/parameterID"][idx] = param_id
+            self.new_hdf5[f"network/neurons/morphologyID"][idx] = morph_id
+
+            old_morph = SnuddaLoad.to_str(self.new_hdf5[f"network/neurons/morphology"][idx])
+            new_morph = old_morph.replace(self.original_snudda_data_dir, self.new_snudda_data_dir)
+            self.new_hdf5[f"network/neurons/morphology"][idx] = new_morph
+
 
         self.filter_synapses()
         self.filter_gap_junctions()
@@ -97,8 +108,9 @@ class SwapToDegenerateMorphologies:
 
         assert num_synapses == synapses.shape[0]
 
-        last_pre = synapses[0, 0]
-        last_post = synapses[0, 1]
+        if num_synapses > 0:
+            last_pre = synapses[0, 0]
+            last_post = synapses[0, 1]
 
         while next_idx < num_synapses:
             while next_idx < num_synapses \
@@ -277,8 +289,8 @@ class SwapToDegenerateMorphologies:
 
         # We assume the new morphology is in the same relative path, but using a different SNUDDA_DATA
         orig_neuron_path = SnuddaLoad.to_str(self.old_data["neurons"][neuron_id]["neuronPath"])
-        orig_simple_path = snudda_simplify_path(orig_neuron_path, self.original_snudda_data_dir)
-        new_neuron_path = snudda_parse_path(orig_simple_path, self.new_snudda_data_dir)
+        orig_simple_path = snudda_simplify_path(orig_neuron_path, os.path.realpath(self.original_snudda_data_dir))
+        new_neuron_path = snudda_parse_path(orig_simple_path, os.path.realpath(self.new_snudda_data_dir))
 
         if orig_morph_key == '':
             # Only a single morpholoy
@@ -299,7 +311,7 @@ class SwapToDegenerateMorphologies:
         possible_keys = []
 
         for param_key, param_data in new_meta_info.items():
-            for morph_key, morph_data in param_data():
+            for morph_key, morph_data in param_data.items():
                 morph_name = morph_data["morphology"]
                 if orig_morph_name == morph_name:
                     possible_keys.append((param_key, morph_key))
@@ -311,7 +323,11 @@ class SwapToDegenerateMorphologies:
         idx = np.random.randint(low=0, high=len(possible_keys))
         new_param_key, new_morph_key = possible_keys[idx]
 
-        return new_param_key, new_morph_key, new_neuron_path
+        # We also need parameter_id and morphology_id
+        parameter_id = np.where([x == new_param_key for x in new_meta_info.keys()])[0][0]
+        morphology_id = np.where([x == new_morph_key for x in new_meta_info[new_param_key].keys()])[0][0]
+
+        return new_param_key, new_morph_key, new_neuron_path, parameter_id, morphology_id
 
     def get_sec_location(self, coords, neuron_path, parameter_key, morphology_key, max_dist=5e-6):
 
@@ -343,6 +359,9 @@ class SwapToDegenerateMorphologies:
         return sec_id, sec_x
 
     def write_new_input_file(self):
+
+        if not os.path.isdir(os.path.dirname(self.new_input_file)):
+            os.mkdir(os.path.dirname(self.new_input_file))
 
         print(f"Writing new input data to {self.new_input_file}")
 
@@ -421,7 +440,7 @@ class SwapToDegenerateMorphologies:
     def create_section_lookup_helper(self, neuron_id):
 
         old_param_key, old_morph_key, old_path = self.find_old_morphology(neuron_id=neuron_id)
-        new_param_key, new_morph_key, new_path = self.find_morpology(neuron_id=neuron_id)
+        new_param_key, new_morph_key, new_path, _, _ = self.find_morpology(neuron_id=neuron_id)
 
         if (old_param_key, old_morph_key, old_path) in self.section_lookup:
             # We already have the morphology in the section_lookup
@@ -447,7 +466,17 @@ class SwapToDegenerateMorphologies:
 
         for link, new_sec_id, new_sec_x in zip(new_morph.dend_links, new_morph.dend_sec_id, new_morph.dend_sec_x):
             coord = (new_morph.dend[link[1], :3] * 1e9).astype(int)
-            old_sec_id, old_sec_x = coord_to_sec_id_x[coord[0], coord[1], coord[2]]
+
+            try:
+                old_sec_id, old_sec_x = coord_to_sec_id_x[coord[0], coord[1], coord[2]]
+            except:
+                import traceback
+                print(traceback.format_exc())
+                print(f"Coordinate point in old file missing in new file.\n"
+                      f"Old morphology: {old_morph.swc_filename}\n"
+                      f"New morphology: {new_morph.swc_filename}")
+                import pdb
+                pdb.set_trace()
 
             # TODO: What happens if a branch looses one of its side branches, will then those two sections
             #       be merged into one? This code will then complain.
