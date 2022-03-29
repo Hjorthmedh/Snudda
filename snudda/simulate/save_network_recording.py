@@ -138,20 +138,7 @@ class CompartmentData:
             Returns:
                 (np.ndarray): Data represented as np.ndarrays 
         """
-        try:
-            return np.vstack([np.array(d) for d in self.data])
-        except:
-            # TEMP DEBUG, why is this wrong suddenly? NEURON CHANGE?
-            import traceback
-            print(traceback.format_exc())
-            print(f"[d for d in self.data] = {[d for d in self.data]}")
-            for d in self.data:
-                print(f"Doing np.array on {d}")
-                print(f"{np.array(d)}")
-            print(f"[np.array(d) for d in self.data] = {[np.array(d) for d in self.data]}")
-            # import pdb
-            # pdb.set_trace()
-            assert False, traceback.format_exc()
+        return np.vstack([np.array(d) if d.size() > 0 else np.array([]) for d in self.data])
 
 
 class SnuddaSaveNetworkRecordings:
