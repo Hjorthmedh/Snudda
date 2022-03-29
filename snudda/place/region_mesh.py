@@ -197,8 +197,8 @@ class RegionMesh(object):
             dx = np.linalg.norm(coord2 - coord1)
             dy = np.linalg.norm(coord3 - coord1)
 
-            nx = int(2 * np.ceil(dx / self.bin_width)) + 1
-            ny = int(2 * np.ceil(dy / self.bin_width)) + 1
+            nx = int(10 * np.ceil(dx / self.bin_width)) + 11
+            ny = int(10 * np.ceil(dy / self.bin_width)) + 11
 
             max_num = max(max_num, max(nx, ny))
 
