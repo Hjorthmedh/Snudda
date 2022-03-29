@@ -42,6 +42,7 @@ class RegionMesh(object):
 
         self.role = role
         self.workers_initialised = False
+        self.cache_file_version = 1.11
 
         self.verbose = verbose
         self.close_log_file = False
@@ -197,8 +198,8 @@ class RegionMesh(object):
             dx = np.linalg.norm(coord2 - coord1)
             dy = np.linalg.norm(coord3 - coord1)
 
-            nx = int(2 * np.ceil(dx / self.bin_width)) + 1
-            ny = int(2 * np.ceil(dy / self.bin_width)) + 1
+            nx = int(10 * np.ceil(dx / self.bin_width)) + 11
+            ny = int(10 * np.ceil(dy / self.bin_width)) + 11
 
             max_num = max(max_num, max(nx, ny))
 
@@ -316,6 +317,8 @@ class RegionMesh(object):
         self.voxel_mask_inner = data["voxelMaskInner"]
         self.voxel_mask_border = data["voxelMaskBorder"]
 
+        assert self.cache_file_version == data["version"], f"Old mesh cache version."
+
         self.point_out = self.max_coord + np.array([1e-1, 1e-2, 1e-3])
         # self.point_out = self.max_coord + 1e-2
 
@@ -350,6 +353,7 @@ class RegionMesh(object):
         data["padding"] = self.padding
         data["binWidth"] = self.bin_width
         data["raytraceBorders"] = self.raytrace_borders
+        data["version"] = self.cache_file_version
 
         self.write_log(f"Saving mesh cache file {self.cache_file}")
         with open(self.cache_file, 'wb') as f:

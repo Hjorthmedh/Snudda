@@ -7,6 +7,5 @@ Snudda Neurons
 
     snudda.neurons.neuron_morphology
     snudda.neurons.neuron_prototype
-    snudda.neurons.neuron_model
     snudda.neurons.neuron_model_extended
     
