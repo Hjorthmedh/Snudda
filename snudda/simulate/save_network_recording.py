@@ -138,7 +138,7 @@ class CompartmentData:
             Returns:
                 (np.ndarray): Data represented as np.ndarrays 
         """
-        return np.vstack([np.array(d) for d in self.data])
+        return np.vstack([np.array(d) if d.size() > 0 else np.array([]) for d in self.data])
 
 
 class SnuddaSaveNetworkRecordings:

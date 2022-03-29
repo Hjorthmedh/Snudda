@@ -24,7 +24,6 @@ import neuron
 import numpy as np
 
 from snudda.simulate import SnuddaSimulate
-from snudda.utils.save_network_recording import SnuddaSaveNetworkRecordings
 
 neuron.h.load_file("stdrun.hoc")
 

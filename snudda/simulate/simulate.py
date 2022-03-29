@@ -32,7 +32,7 @@ from snudda.neurons.neuron_model_extended import NeuronModel
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
 # If simulationConfig is set, those values override other values
 from snudda.utils.load import SnuddaLoad
-from snudda.utils.save_network_recording import SnuddaSaveNetworkRecordings
+from snudda.simulate.save_network_recording import SnuddaSaveNetworkRecordings
 from snudda.utils.snudda_path import snudda_parse_path
 
 
