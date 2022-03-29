@@ -145,7 +145,12 @@ class CompartmentData:
             import traceback
             print(traceback.format_exc())
             print(f"[d for d in self.data] = {[d for d in self.data]}")
+            for d in self.data:
+                print(f"Doing np.array on {d}")
+                print(f"{np.array(d)}")
             print(f"[np.array(d) for d in self.data] = {[np.array(d) for d in self.data]}")
+            # import pdb
+            # pdb.set_trace()
             assert False, traceback.format_exc()
 
 
