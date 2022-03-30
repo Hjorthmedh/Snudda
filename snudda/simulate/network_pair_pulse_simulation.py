@@ -407,7 +407,7 @@ class SnuddaNetworkPairPulseSimulation:
         matplotlib.rcParams.update({'font.size': 22})
 
         sort_idx = np.argsort(amp)
-        if len(sort_idx) > n_max_show:
+        if n_max_show is not None and len(sort_idx) > n_max_show:
             keep_idx = [sort_idx[int(np.round(x))] for x in np.linspace(0, len(sort_idx) - 1, n_max_show)]
         else:
             keep_idx = sort_idx
@@ -503,6 +503,7 @@ if __name__ == "__main__":
                         help="Post synaptic neuron type (for run task, "
                              "postType can be 'ALL' to record from all neuron)")
     parser.add_argument("--maxDist", help="Only check neuron pairs within (mum)", type=float, default=None)
+    parser.add_argument("--nShow", help="Number of traces to show", type=int, default=0)
     args = parser.parse_args()
 
     if args.maxDist is None:
@@ -556,4 +557,10 @@ if __name__ == "__main__":
         pps.run_sim(gaba_rev=GABA_rev)
 
     elif args.task == "analyse":
-        pps.analyse()
+
+        if args.nShow == 0:
+            n_show = None
+        else:
+            n_show = args.nShow
+
+        pps.analyse(n_max_show=n_show)
