@@ -546,11 +546,11 @@ class SnuddaLoad(object):
         Returns subset of synapses.
 
         Args:
-            pre_id (int) : Pre-synaptic neuron ID
+            pre_id (int) : Pre-synaptic neuron ID (can also be a list)
             n_max (int) : Maximum number of synapses to return
 
         Returns:
-            Subset of synapse matrix.
+            Subset of synapse matrix, synapse coordinates
 
         """
 
@@ -791,6 +791,42 @@ class SnuddaLoad(object):
 
         return neuron_id
 
+    def find_gap_junctions(self, neuron_id, n_max=1000000):
+
+        """ Find gap junctions associated with neuron_id
+
+        Args:
+            neuron_id (int) : Neuron with gap junction (can also be a list)
+            n_max (int) : Maximum number of gap junctions to return
+
+        Returns:
+            Subset of gap junction matrix, gap junction coordinates
+
+        """
+
+        if self.verbose:
+            print(f"Finding gap junctions connecting neuron {neuron_id}")
+
+        gap_junctions = np.zeros((n_max, 11), dtype=np.int32)
+        gj_ctr = 0
+
+        if np.issubdtype(type(neuron_id), np.integer):
+            for gj_list in self.gap_junction_iterator():
+                for gj in gj_list:
+                    if gj[0] == neuron_id or gj[1] == neuron_id:
+                        gap_junctions[gj_ctr, :] = gj
+                        gj_ctr += 1
+        else:
+            for gj_list in self.gap_junction_iterator():
+                for gj in gj_list:
+                    if gj[0] in neuron_id or gj[1] in neuron_id:
+                        gap_junctions[gj_ctr, :] = gj
+                        gj_ctr += 1
+
+        gj_coords = gap_junctions[:, 6:9][:gj_ctr, :] * self.data["voxelSize"] + self.data["simulationOrigo"]
+
+        return gap_junctions[:gj_ctr, :], gj_coords
+
     ############################################################################
 
 
@@ -801,15 +837,11 @@ def snudda_load_cli():
 
     parser = ArgumentParser(description="Load snudda network file (hdf5)")
     parser.add_argument("networkFile", help="Network file (hdf5)", type=str)
-    parser.add_argument("--listN", help="Lists neurons in network",
-                        action="store_true")
-    parser.add_argument("--listT", type=str,
-                        help="List neurons of type, --listT ? list the types.",
-                        default=None)
-    parser.add_argument("--listPre", help="List pre synaptic neurons",
-                        type=int)
-    parser.add_argument("--listPost", help="List post synaptic neurons (slow)",
-                        type=int)
+    parser.add_argument("--listN", help="Lists neurons in network", action="store_true")
+    parser.add_argument("--listT", type=str, help="List neurons of type, --listT ? list the types.", default=None)
+    parser.add_argument("--listPre", help="List pre synaptic neurons", type=int)
+    parser.add_argument("--listPost", help="List post synaptic neurons (slow)", type=int)
+    parser.add_argument("--listGJ", help="List gap junctions (slow)", type=int)
     parser.add_argument("--keepOpen", help="This prevents loading of synapses to memory, and keeps HDF5 file open",
                         action="store_true")
     parser.add_argument("--detailed", help="More information", action="store_true")
@@ -856,43 +888,79 @@ def snudda_load_cli():
     if args.listPre is not None:
         print(f"List neurons pre-synaptic to neuronID = {args.listPre} "
               f"({nl.data['neurons'][args.listPre]['name']})")
-        synapses = nl.find_synapses(post_id=args.listPre)
+        synapses, synapse_coords = nl.find_synapses(post_id=args.listPre)
 
-        if synapses[0] is None:
+        if synapses is None:
             # Nothing to display
             sys.exit(0)
 
-        pre_id = np.unique(synapses[0][:, 0])
+        pre_id = np.unique(synapses[:, 0])
 
         for nid, name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"] if x["neuronID"] in pre_id]:
-            n_syn = np.sum(synapses[0][:, 0] == nid)
+            n_syn = np.sum(synapses[:, 0] == nid)
             print(f"{nid} : {name} ({n_syn} synapses)")
 
             if args.detailed:
-                idx = np.where(synapses[0][:, 0] == nid)
-                for i in idx[0]:
-                    print(f" -- SegID {synapses[0][i, 9]}, SegX {synapses[0][i, 10] * 1e-3:.4f}, "
-                          f"Coord: {synapses[1][i, :]}")
+                idx = np.where(synapses[:, 0] == nid)[0]
+                for i in idx:
+                    print(f" -- SecID {synapses[i, 9]}, SecX {synapses[i, 10] * 1e-3:.2f}, "
+                          f"Soma dist: {synapses[i,8]:.1f} μm, "
+                          f"Coord: ({synapse_coords[i, 0]*1e6:.1f}, "
+                          f"{synapse_coords[i, 1]*1e6:.1f}, "
+                          f"{synapse_coords[i, 2]*1e6:.1f}) μm, "
+                          f"Cond: {synapses[i, 11] * 1e-3:.2f} nS")
 
                 print("")
 
     if args.listPost is not None:
-        print("List neurons post-synaptic to neuronID = " + str(args.listPost)
-              + " (" + str(nl.data["neurons"][args.listPost]["name"]) + ")")
-        synapses = nl.find_synapses(pre_id=args.listPost)
-        post_id = np.unique(synapses[0][:, 1])
+        print(f"List neurons post-synaptic to neuronID = {args.listPost}"
+              f" ({nl.data['neurons'][args.listPost]['name']})")
+        synapses, synapse_coords = nl.find_synapses(pre_id=args.listPost)
+        post_id = np.unique(synapses[:, 1])
 
         for nid, name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"] if x["neuronID"] in post_id]:
-            n_syn = np.sum(synapses[0][:, 1] == nid)
+            n_syn = np.sum(synapses[:, 1] == nid)
             print(f"{nid} : {name} ({n_syn} synapses)")
 
             if args.detailed:
-                idx = np.where(synapses[0][:, 1] == nid)
-                for i in idx[0]:
-                    print(f" -- SegID {synapses[0][i, 9]}, SegX {synapses[0][i, 10] * 1e-3:.4f}, "
-                          f"Coord: {synapses[1][i, :]}")
+                idx = np.where(synapses[:, 1] == nid)[0]
+                for i in idx:
+                    print(f" -- SecID {synapses[i, 9]}, SecX {synapses[i, 10] * 1e-3:.2f}, "
+                          f"Soma dist: {synapses[i,8]:.1f} μm, "
+                          f"Coord: ({synapse_coords[i, 0]*1e6:.1f}, "
+                          f"{synapse_coords[i, 1]*1e6:.1f}, "
+                          f"{synapse_coords[i, 2]*1e6:.1f}) μm, "
+                          f"Cond: {synapses[i, 11] * 1e-3:.2f} nS")
 
                 print("")
+
+    if args.listGJ is not None:
+        print(f"List gap junctions of neuronID = {args.listGJ}"
+              f" ({nl.data['neurons'][args.listGJ]['name']})")
+        gap_junctions, gap_junction_coords = nl.find_gap_junctions(neuron_id=args.listGJ)
+        connected_id = set(gap_junctions[:, 0]).union(gap_junctions[:, 1])
+        connected_id.remove(args.listGJ)
+
+        for nid, name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"] if x["neuronID"] in connected_id]:
+            n_gj = np.sum(gap_junctions[:, 0] == nid) + np.sum(gap_junctions[:, 1] == nid)
+            print(f"{nid} : {name} ({n_gj} gap junctions)")
+
+            if args.detailed:
+                idx1 = np.where(gap_junctions[:, 0] == nid)[0]
+                for i in idx1:
+                    print(f" -- SecID {gap_junctions[i, 2]}, SecX {gap_junctions[i, 4] * 1e-3:.3f}, "
+                          f"Coord: ({gap_junction_coords[i, 0]*1e6:.1f}, "
+                          f"{gap_junction_coords[i, 1]*1e6:.1f}, "
+                          f"{gap_junction_coords[i, 2]*1e6:.1f}) μm, "
+                          f"Cond: {gap_junctions[i, 10] * 1e-3:.3f} nS")
+
+                idx2 = np.where(gap_junctions[:, 1] == nid)[0]
+                for i in idx2:
+                    print(f" -- SecID {gap_junctions[i, 3]}, SecX {gap_junctions[i, 5] * 1e-3:.3f}, "
+                          f"Coord: ({gap_junction_coords[i, 0]*1e6:.1f}, "
+                          f"{gap_junction_coords[i, 1]*1e6:.1f}, "
+                          f"{gap_junction_coords[i, 2]*1e6:.1f}) μm, "
+                          f"Cond: {gap_junctions[i, 10] * 1e-3:.3f} nS")
 
 
 if __name__ == "__main__":

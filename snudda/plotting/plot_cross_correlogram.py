@@ -73,9 +73,11 @@ class PlotCrossCorrelogram:
         plt.xlabel("Time (s)")
         plt.ylabel("Count")
         plt.show()
+
         if fig_file_name:
             if not os.path.isdir(os.path.dirname(fig_file_name)):
                 print(f"Creating directory {os.path.dirname(fig_file_name)}")
                 os.mkdir(os.path.dirname(fig_file_name))
 
             plt.savefig(fig_file_name, dpi=300)
+

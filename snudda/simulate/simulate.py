@@ -32,7 +32,7 @@ from snudda.neurons.neuron_model_extended import NeuronModel
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
 # If simulationConfig is set, those values override other values
 from snudda.utils.load import SnuddaLoad
-from snudda.utils.save_network_recording import SnuddaSaveNetworkRecordings
+from snudda.simulate.save_network_recording import SnuddaSaveNetworkRecordings
 from snudda.utils.snudda_path import snudda_parse_path
 
 
@@ -767,6 +767,8 @@ class SnuddaSimulate(object):
         compartment = np.concatenate([compartment_a, compartment_b])
         seg_x = np.concatenate([seg_xa, seg_xb])
         cond = np.concatenate([cond_a, cond_b])
+        
+        print(f"Found {len(neuron_id)} local gap junctions on node.")
 
         return neuron_id, compartment, seg_x, gj_gid_src, gj_gid_dest, cond
 
@@ -779,7 +781,7 @@ class SnuddaSimulate(object):
         """ Setup gap junctions. Note that a gap junction is not complete until it has been setup by both workers
             that it is located on. """
 
-        self.write_log("connectNetworkGapJunctionsLOCAL")
+        self.write_log("connect_network_gap_junctions_local")
 
         (neuron_id, compartment, seg_x, gj_gid_src, gj_gid_dest, cond) = self.find_local_gap_junctions()
 

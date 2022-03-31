@@ -1230,19 +1230,23 @@ class NeuronMorphology:
         soma_dist = np.zeros((count,))
 
         for i, sx in enumerate(cluster_sec_x):
-            # We also need to calculate the x,y,z coordinates and distance to soma
-            idx = len(self.sec_id_links_x[sec_id]) - np.sum(sx < self.sec_id_links_x[sec_id])
-            link_idx = self.sec_id_links[sec_id][idx]
-            assert self.dend_sec_id[link_idx] == sec_id
+            if sec_id == 0:
+                syn_coords[i, :] = self.soma[0, :3]
+                soma_dist[i] = 0  # We are on the soma
+            else:
+                # We also need to calculate the x,y,z coordinates and distance to soma
+                idx = len(self.sec_id_links_x[sec_id]) - np.sum(sx < self.sec_id_links_x[sec_id])
+                link_idx = self.sec_id_links[sec_id][idx]
+                assert self.dend_sec_id[link_idx] == sec_id
 
-            x_start, x_end = self.dend_sec_x[link_idx]
-            comp_x = (x_start - sx) / (x_start - x_end)
-            start_info = self.dend[self.dend_links[link_idx, 0], :]  # x,y,z,radie,soma dist
-            end_info = self.dend[self.dend_links[link_idx, 1], :]
-            syn_info = start_info * (1 - comp_x) + end_info * comp_x
+                x_start, x_end = self.dend_sec_x[link_idx]
+                comp_x = (x_start - sx) / (x_start - x_end)
+                start_info = self.dend[self.dend_links[link_idx, 0], :]  # x,y,z,radie,soma dist
+                end_info = self.dend[self.dend_links[link_idx, 1], :]
+                syn_info = start_info * (1 - comp_x) + end_info * comp_x
 
-            syn_coords[i, :] = syn_info[:3]
-            soma_dist[i] = syn_info[4]
+                syn_coords[i, :] = syn_info[:3]
+                soma_dist[i] = syn_info[4]
 
         # OBS, syn_coords in meters, and soma dist in meters also
         return cluster_sec_x, syn_coords, soma_dist
