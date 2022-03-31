@@ -29,6 +29,8 @@ else
     echo "PYTHONPATH: "$PYTHONPATH
     echo "LD_LIBRARY_PATH: "$LD_LIBRARY_PATH
 
+    python3 FS_network_make_config_2-cur-inj.py
+    
     echo ">>>>>> Main process starting ipcluster"
     echo
 

@@ -1,7 +1,7 @@
 #!/bin/bash -l
 #SBATCH --partition=main
-#SBATCH -o log/Simulate-%j-output.txt
-#SBATCH -e log/Simulate-%j-error.txt
+#SBATCH -o log/simulate-network-cur-inj-%j-output.txt
+#SBATCH -e log/simulate-network-cur-inj-%j-error.txt
 #SBATCH -t 0:59:00
 #SBATCH --time-min=0:59:00
 #SBATCH -J Simulate

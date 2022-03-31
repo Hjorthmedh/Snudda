@@ -1,7 +1,7 @@
 #!/bin/bash -l
 #SBATCH --partition=main
-#SBATCH -o log/runSnudda-%j-output.txt
-#SBATCH -e log/runSnudda-%j-error.txt
+#SBATCH -o log/create-network-cur-inj-%j-output.txt
+#SBATCH -e log/create-network-cur-inj-%j-error.txt
 #SBATCH -t 0:19:00
 #SBATCH -J Snudda
 #SBATCH -A snic2021-5-492
@@ -14,7 +14,5 @@ export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/.ipython"
 rm -r $IPYTHONDIR
 export IPYTHON_PROFILE=default
 source $HOME/Snudda/snudda_env/bin/activate
-
-python3 FS_network_make_config_2-cur-inj.py
 
 srun ./Dardel_create_FS_network-cur-inj.sh
