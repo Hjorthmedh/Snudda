@@ -197,7 +197,7 @@ class TestProjectionDetection(unittest.TestCase):
             # All synapses should be identical regardless of serial or parallel execution path
             self.assertTrue(serial_synapses.shape == parallel_synapses.shape,
                             f"serial shape: {serial_synapses.shape}, parallel shape: {parallel_synapses.shape}\n"
-                            f"Serial synapse matrix: {parallel_synapses.shape}\n"
+                            f"Serial synapse matrix: {parallel_synapses}\n"
                             f"Parallel synapse matrix: {parallel_synapses}\n")
             self.assertTrue((serial_synapses == parallel_synapses).all())
 
