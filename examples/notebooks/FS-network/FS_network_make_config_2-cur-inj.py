@@ -1,16 +1,20 @@
 # This writes JSON config file for network with current injection
 
 import os
-os.environ["SNUDDA_DATA"] = "../../../../BasalGangliaData/data/"
+os.environ["SNUDDA_DATA"] = "../../../../BasalGangliaData/data"
 assert os.path.isdir(os.getenv("SNUDDA_DATA")), f"You need to have BasalGangliaData installed for this example. You can run this example without it, but then do not execute this cell."
 
 network_path = os.path.join("FS_network_2-cur-inj")
 
+
 from snudda.place import create_cube_mesh
 mesh_file = os.path.join(network_path, "mesh", "volume.obj")
+
+print(f"Creating cube mesh: {mesh_file}")
+
 create_cube_mesh(mesh_file, [0,0,0], 1e-3, "FS network volume")
 
-
+print("Creating config file...")
 
 from snudda.simulate.network_pair_pulse_simulation import SnuddaNetworkPairPulseSimulation
 n_dSPN = 0
@@ -36,8 +40,11 @@ pps = SnuddaNetworkPairPulseSimulation(network_path=network_path,
                                        current_injection = cur_inj,
                                        random_seed=123)
 
+print("Running setup config")
+
 pps.setup(n_dSPN=n_dSPN, n_iSPN=n_iSPN,
           n_FS=n_FS, n_LTS=n_LTS, n_ChIN=n_ChIN,
           volume_type=volume_type,
           side_len=side_len)
 
+print(f"Config created in {network_path}")

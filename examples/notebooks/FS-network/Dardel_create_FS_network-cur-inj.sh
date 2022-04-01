@@ -16,19 +16,23 @@ else
     echo "SNUDDA_DATA environment variable not changed (may be empty): $SNUDDA_DATA"
 fi
 
-mkdir -p $JOBDIR
 
 if [ $SLURM_PROCID -gt 0 ]; then
 	mock_string="Not main process"
 
 else
 
+    mkdir -p $JOBDIR
+    
     # For debug purposes:                                                         
     echo "PATH: "$PATH
     echo "IPYTHONDIR: "$IPYTHONDIR
     echo "PYTHONPATH: "$PYTHONPATH
     echo "LD_LIBRARY_PATH: "$LD_LIBRARY_PATH
 
+    # Moved to outer script
+    # srun python3 FS_network_make_config_2-cur-inj.py
+    
     echo ">>>>>> Main process starting ipcluster"
     echo
 

@@ -50,8 +50,6 @@
 import os
 import sys
 
-import matplotlib
-import matplotlib.pyplot as plt
 import neuron
 import numpy as np
 
@@ -308,6 +306,9 @@ class SnuddaNetworkPairPulseSimulation:
 
     def analyse(self, max_dist=None, n_max_show=10, pre_id=None, post_type=None):
 
+        import matplotlib
+        import matplotlib.pyplot as plt
+        
         self.setup_exp_data()
 
         if max_dist is None:
@@ -492,6 +493,12 @@ class SnuddaNetworkPairPulseSimulation:
 
 if __name__ == "__main__":
 
+    if '-python' in sys.argv:
+        print("Called through NEURON special file, fixing arguments")
+        pythonidx = sys.argv.index('-python')
+        if len(sys.argv) > pythonidx:
+            sys.argv = sys.argv[pythonidx + 1:]
+    
     from argparse import ArgumentParser
 
     parser = ArgumentParser(description="Calibrate synapse conductances")
