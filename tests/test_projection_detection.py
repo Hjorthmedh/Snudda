@@ -198,12 +198,14 @@ class TestProjectionDetection(unittest.TestCase):
 
             if serial_synapses.shape != parallel_synapses.shape:
                 import json
+                from snudda.utils.numpy_encoder import NumpyEncoder
+
                 save_problem = dict()
                 save_problem["serial"] = serial_synapses
                 save_problem["parallel"] = parallel_synapses
 
                 with open("projection-detection-synapses-mismatch.json", "wt") as f:
-                    json.dump(save_problem, f)
+                    json.dump(save_problem, f, indent=4, cls=NumpyEncoder)
 
             # All synapses should be identical regardless of serial or parallel execution path
             self.assertTrue(serial_synapses.shape == parallel_synapses.shape,
