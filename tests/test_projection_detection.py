@@ -194,10 +194,21 @@ class TestProjectionDetection(unittest.TestCase):
             # ParameterID, sec_X etc are randomised in hyper voxel, so you need to use same
             # hypervoxel size for reproducability between serial and parallel execution
 
+            print(f"serial shape: {serial_synapses.shape}, parallel shape: {parallel_synapses.shape}")
+
+            if serial_synapses.shape != parallel_synapses.shape:
+                import json
+                save_problem = dict()
+                save_problem["serial"] = serial_synapses
+                save_problem["parallel"] = parallel_synapses
+
+                with open("projection-detection-synapses-mismatch.json", "wt") as f:
+                    json.dump(save_problem, f)
+
             # All synapses should be identical regardless of serial or parallel execution path
             self.assertTrue(serial_synapses.shape == parallel_synapses.shape,
                             f"serial shape: {serial_synapses.shape}, parallel shape: {parallel_synapses.shape}\n"
-                            f"Serial synapse matrix: {parallel_synapses}\n"
+                            f"Serial synapse matrix: {serial_synapses}\n"
                             f"Parallel synapse matrix: {parallel_synapses}\n")
             self.assertTrue((serial_synapses == parallel_synapses).all())
 
