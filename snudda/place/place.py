@@ -931,7 +931,7 @@ class SnuddaPlace(object):
             # Channel 0 is unassigned, no channel, poor homeless neurons!
             self.population_units[uid] = np.where(self.population_unit == uid)[0]
 
-        # Finally if numNeurons is specified, we need to reduce the number of neurons belonging to that unit
+        # Finally if num_neurons is specified, we need to reduce the number of neurons belonging to that unit
         for u_id, n_neurons in zip(unit_id, num_neurons):
             if n_neurons is not None:
                 assert len(self.population_units[u_id]) >= n_neurons, \
@@ -948,7 +948,7 @@ class SnuddaPlace(object):
                         self.population_unit[rid] = 0
 
                     if 0 in self.population_units:
-                        self.population_units[0] = np.array(list(set(self.population_units[0]).union(remove_nid)))
+                        self.population_units[0] = np.sort(np.array(list(set(self.population_units[0]).union(remove_nid))))
                     else:
                         self.population_units[0] = remove_nid
 
