@@ -1,12 +1,12 @@
 #!/bin/bash -l
 #SBATCH --partition=main
-#SBATCH -o log/Simulate-%j-output.txt
-#SBATCH -e log/Simulate-%j-error.txt
-#SBATCH -t 0:59:00
-#SBATCH --time-min=0:59:00
+#SBATCH -o log/simulate-network-cur-inj-%j-output.txt
+#SBATCH -e log/simulate-network-cur-inj-%j-error.txt
+#SBATCH -t 9:59:00
+#SBATCH --time-min=5:59:00
 #SBATCH -J Simulate
 #SBATCH -A snic2021-5-492 
-#SBATCH --nodes=2-5
+#SBATCH --nodes=5-15
 #SBATCH --tasks-per-node=64
 #SBATCH --mail-type=ALL
 
@@ -99,6 +99,6 @@ which nrnivmodl
 srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/libreadline.so.7 -lncurses=/lib64/libncurses.so.6.1" -loadflags "-DLTDL_LIBRARY=/usr/lib64/libltdl.so.7 -DREADLINE_LIBRARY=/lib64/libreadline.so.7 -DNCURSES_LIBRARY=/lib64/libncurses.so.6.1" mechanisms/
 
 
-srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python ../../snudda/simulate/network_pair_pulse_simulation.py run Planert2010 FS_network_2-cur-inj --pre FS
+srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python ../../../snudda/simulate/network_pair_pulse_simulation.py run Planert2010 FS_network_2-cur-inj --pre FS
 
 

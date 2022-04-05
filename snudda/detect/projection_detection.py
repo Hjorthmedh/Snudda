@@ -245,7 +245,7 @@ class ProjectionDetection:
 
         rng = self.snudda_detect.hyper_voxel_rng
 
-        pre_neuron_list = self.hyper_voxel_projections[self.snudda_detect.hyper_voxel_id]
+        pre_neuron_list = np.sort([x for x in self.hyper_voxel_projections[self.snudda_detect.hyper_voxel_id]])
 
         for neuron_id in pre_neuron_list:
             neuron_type = self.snudda_detect.neurons[neuron_id]["type"]
