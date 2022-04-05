@@ -400,3 +400,12 @@ class PairRecording(SnuddaSimulate):
         for syn in self.synapse_list:
             if channel_name == syn.hname().split("[")[0]:
                 syn.e = v_rev * 1e3
+if __name__ == "__main__":
+    from argparse import ArgumentParser, RawTextHelpFormatter
+
+    parser = ArgumentParser("Input Scaling", formatter_class=RawTextHelpFormatter)
+    parser.add_argument("network_path")
+    parser.add_argument("--experiment_config_file")
+    args = parser.parse_args()
+    pr = PairRecording(network_path=args.network_path, experiment_config_file=args.experiment_config_file)
+    pr.run()
