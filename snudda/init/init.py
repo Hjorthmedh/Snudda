@@ -230,6 +230,8 @@ class SnuddaInit(object):
                           a3_other=None,
                           conductance=None,
                           cluster_synapses=False,
+                          clusterSize = 1,
+                          clusterSpread = None,
                           mod_file=None,
                           parameter_file=None,
                           channel_param_dictionary=None,
@@ -271,6 +273,8 @@ class SnuddaInit(object):
         con_info = dict([])
         con_info["conductance"] = [cond, cond_std]  # Mean, Std
         con_info["channelParameters"] = channel_param_dictionary
+        con_info["clusterSize"] = clusterSize
+        con_info["clusterSpread"] = clusterSpread
         pruning_info = dict([])
         pruning_info["f1"] = f1
         pruning_info["softMax"] = soft_max
