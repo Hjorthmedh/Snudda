@@ -8,4 +8,6 @@ ssh $SLURM_NODELIST
 # Then return to this directory
 # Finally run the local creation script:
 
-interactive-node-create-config.sh
+cd Snudda/examples/notebooks/FS-network
+
+./interactive-node-create-config.sh
