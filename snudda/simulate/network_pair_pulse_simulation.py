@@ -247,12 +247,12 @@ class SnuddaNetworkPairPulseSimulation:
 
     ############################################################################
 
-    def run_sim(self, gaba_rev, pre_id=None):
+    def run_sim(self, gaba_rev, pre_id=None, disable_gap_junctions=False):
 
         self.snudda_sim = SnuddaSimulate(network_file=self.network_file,
                                          input_file=None,
                                          log_file=self.log_file,
-                                         disable_gap_junctions=True)
+                                         disable_gap_junctions=disable_gap_junctions)
 
         self.snudda_sim.setup()
 

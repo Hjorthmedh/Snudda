@@ -909,7 +909,7 @@ class SnuddaSimulate(object):
     def add_gap_junction(self,
                          section, section_dist,
                          gid_source_gj, gid_dest_gj,
-                         g_gap_junction=0.5e-9):
+                         g_gap_junction):
 
         """
         Add gap junction.
