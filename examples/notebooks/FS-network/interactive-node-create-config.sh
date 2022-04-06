@@ -12,4 +12,5 @@ else
     echo "SNUDDA_DATA environment variable not changed (may be empty): $SNUDDA_DATA"
 fi
 
+mkdir FS_network_2-cur-inj
 srun python3 FS_network_make_config_2-cur-inj.py
