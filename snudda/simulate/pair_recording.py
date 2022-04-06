@@ -219,7 +219,7 @@ class PairRecording(SnuddaSimulate):
 
     def set_v_init(self, neuron_id, v_init):
         """ Set initial voltage v_init for neurons speciefied by neuron_id.
-            If neuron_id = None (default), all neurons get v_hold set.
+            If neuron_id = None (default), all neurons get v_init set.
 
             Args:
                 v_init = Initial voltage (list or int) in volt (SI-units)
