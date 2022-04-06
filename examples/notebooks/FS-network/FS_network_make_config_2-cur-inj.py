@@ -12,14 +12,15 @@ mesh_file = os.path.join(network_path, "mesh", "volume.obj")
 
 print(f"Creating cube mesh: {mesh_file}")
 
-create_cube_mesh(mesh_file, [0,0,0], 1e-3, "FS network volume")
+# create_cube_mesh(mesh_file, [0,0,0], 1e-3, "FS network volume")
+create_cube_mesh(mesh_file, [0,0,0], 0.4571e-3, "FS network volume")
 
 print("Creating config file...")
 
 from snudda.simulate.network_pair_pulse_simulation import SnuddaNetworkPairPulseSimulation
 n_dSPN = 0
 n_iSPN = 0
-n_FS = 1050
+n_FS = 100 # 1050
 n_LTS = 0
 n_ChIN = 0
 
