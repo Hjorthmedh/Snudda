@@ -149,7 +149,7 @@ class PairRecording(SnuddaSimulate):
 
     def set_v_hold(self, v_hold, neuron_id=None):
 
-        """ This function is currently not implemented. If you choose to use it beware that
+        """ This function is currently not called by default. If you choose to use it beware that
             the holding current may change the excitability of your neuron.
 
             Set holding voltage v_hold for neurons speciefied by neuron_id.
