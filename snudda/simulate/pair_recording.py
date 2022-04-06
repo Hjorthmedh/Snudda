@@ -48,6 +48,7 @@ class PairRecording(SnuddaSimulate):
         self.sim_duration = None
         self.holding_i_clamp_list = []
         self.v_init_saved = dict()
+        self.v_hold_saved = dict()
 
         # Do stuff with experiment_config
         self.experiment_config_file = experiment_config_file
@@ -145,13 +146,16 @@ class PairRecording(SnuddaSimulate):
 
         return val
 
-    def set_v_init(self, v_init, neuron_id=None):
+    def set_v_hold(self, v_hold, neuron_id=None):
 
-        """ Set initial voltage v_init for neurons speciefied by neuron_id.
-            If neuron_id = None (default), all neurons get v_init set.
+        """ This function is currently not called by default. If you choose to use it beware that
+            the holding current may change the excitability of your neuron.
+
+            Set holding voltage v_hold for neurons speciefied by neuron_id.
+            If neuron_id = None (default), all neurons get v_hold set.
 
             Args:
-                v_init = Initial voltage (list or int) in volt (SI-units)
+                v_hold = Holding voltage (list or int) in volt (SI-units)
                 neuron_id = Neuron ID of neurons affected (list, int or None)
 
             """
@@ -160,7 +164,7 @@ class PairRecording(SnuddaSimulate):
             neuron_id = self.neuron_id
 
         neuron_id = self.to_list(neuron_id)
-        v_init = self.to_list(v_init, new_list_len=len(neuron_id))
+        v_hold = self.to_list(v_hold, new_list_len=len(neuron_id))
 
         assert self.sim_duration is not None, \
             f"setup_holding_volt: Please set self.end_time, for holding current"
@@ -172,16 +176,16 @@ class PairRecording(SnuddaSimulate):
         missing_id = [x for x in self.neurons.keys() if x not in neuron_id and x in self.neuron_id]
 
         if len(missing_id) > 0:
-            print(f"Warning: v_init is not specified for neurons {missing_id}")
+            print(f"Warning: v_hold is not specified for neurons {missing_id}")
 
-        for s, vi in zip(soma_list, v_init):
+        for s, vi in zip(soma_list, v_hold):
             vc = neuron.h.SEClamp(s(0.5))
             vc.rs = 1e-9
             vc.amp1 = vi * 1e3
             vc.dur1 = 200
             soma_v_clamp.append((s, vc))
 
-        self.set_v_init_helper(neuron_id=neuron_id, v_init=v_init)
+        self.set_v_hold_helper(neuron_id=neuron_id, v_hold=v_hold)
         neuron.h.finitialize()
 
         neuron.h.tstop = 200
@@ -189,7 +193,7 @@ class PairRecording(SnuddaSimulate):
 
         self.holding_i_clamp_list = []
 
-        assert self.sim_duration is not None, ("set_v_init: self.end_time must be set before calling, "
+        assert self.sim_duration is not None, ("set_v_hold: self.end_time must be set before calling, "
                                                "IClamps need to know their duration.")
 
         # Setup iClamps
@@ -205,9 +209,27 @@ class PairRecording(SnuddaSimulate):
         vc = None
 
         # Set voltage also
-        self.set_v_init_helper(neuron_id=neuron_id, v_init=v_init)
+        self.set_v_hold_helper(neuron_id=neuron_id, v_hold=v_hold)
 
-    def set_v_init_helper(self, neuron_id, v_init):
+    def set_v_hold_helper(self, neuron_id, v_hold):
+        for nid, v in zip(neuron_id, v_hold):
+            self.set_resting_voltage(neuron_id=nid, rest_volt=v)
+            self.v_hold_saved[nid] = v
+
+    def set_v_init(self, neuron_id, v_init):
+        """ Set initial voltage v_init for neurons speciefied by neuron_id.
+            If neuron_id = None (default), all neurons get v_init set.
+
+            Args:
+                v_init = Initial voltage (list or int) in volt (SI-units)
+                neuron_id = Neuron ID of neurons affected (list, int or None)
+
+            """
+        if neuron_id is None:
+            neuron_id = self.neuron_id
+
+        neuron_id = self.to_list(neuron_id)
+        v_init = self.to_list(v_init, new_list_len=len(neuron_id))
         for nid, v in zip(neuron_id, v_init):
             self.set_resting_voltage(neuron_id=nid, rest_volt=v)
             self.v_init_saved[nid] = v
@@ -399,3 +421,12 @@ class PairRecording(SnuddaSimulate):
         for syn in self.synapse_list:
             if channel_name == syn.hname().split("[")[0]:
                 syn.e = v_rev * 1e3
+if __name__ == "__main__":
+    from argparse import ArgumentParser, RawTextHelpFormatter
+
+    parser = ArgumentParser("Input Scaling", formatter_class=RawTextHelpFormatter)
+    parser.add_argument("network_path")
+    parser.add_argument("--experiment_config_file")
+    args = parser.parse_args()
+    pr = PairRecording(network_path=args.network_path, experiment_config_file=args.experiment_config_file)
+    pr.run()
