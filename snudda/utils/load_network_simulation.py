@@ -227,7 +227,9 @@ class SnuddaLoadNetworkSimulation:
         return neuron_type
 
     def iter_neuron_type(self):
-        neuron_types = list(set(self.get_neuron_type())).sort()
+        neuron_types = list(set(self.get_neuron_type()))
+        neuron_types.sort()
+                
         for x in neuron_types:
             yield x
 
