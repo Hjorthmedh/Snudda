@@ -422,9 +422,15 @@ class PairRecording(SnuddaSimulate):
             if channel_name == syn.hname().split("[")[0]:
                 syn.e = v_rev * 1e3
 if __name__ == "__main__":
-    from argparse import ArgumentParser, RawTextHelpFormatter
+    import sys
+    if '-python' in sys.argv:
+        print("Network_simulate.py called through nrniv, fixing arguments")
+        pythonidx = sys.argv.index('-python')
+        if len(sys.argv) > pythonidx:
+            sys.argv = sys.argv[pythonidx + 1:]
 
-    parser = ArgumentParser("Input Scaling", formatter_class=RawTextHelpFormatter)
+    from argparse import ArgumentParser, RawTextHelpFormatter
+    parser = ArgumentParser("Pair recording", formatter_class=RawTextHelpFormatter)
     parser.add_argument("network_path")
     parser.add_argument("--experiment_config_file")
     args = parser.parse_args()
