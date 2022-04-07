@@ -35,7 +35,7 @@ class PairRecording(SnuddaSimulate):
         First create your own network using Snudda init/place/detect/prune. Then use PairRecording to setup
         and run simulation.
 
-        For example experiment configuration files, see Snudda/snudda/data/experiment-config/ directory
+        For example experiment configuration files, see Snudda/snudda/data/experiment-config/pair_recording directory
 
     """
 
@@ -111,6 +111,15 @@ class PairRecording(SnuddaSimulate):
                 v_init = self.experiment_config["meta"]["vInit"]
 
             self.set_v_init(neuron_id=neuron_id, v_init=v_init)
+
+        if "vHold" in self.experiment_config["meta"]:
+            if type(self.experiment_config["meta"]["vHold"]) == list:
+                neuron_id, v_hold = zip(*self.experiment_config["meta"]["vHold"])
+            else:
+                neuron_id = None
+                v_hold = self.experiment_config["meta"]["Hold"]
+
+            self.set_v_hold(neuron_id=neuron_id, v_init=v_hold)
 
         if "reversal_potential" in self.experiment_config["meta"]:
             for channel_name, v_rev in self.experiment_config["meta"]["reversal_potential"]:
