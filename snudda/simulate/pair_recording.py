@@ -269,10 +269,16 @@ class PairRecording(SnuddaSimulate):
             sim_id = pre_id
 
             for pid in pre_id:
-                found_syn=self.snudda_loader.find_synapses(pre_id=pid)[0]
+                found_syn = self.snudda_loader.find_synapses(pre_id=pid)[0]
+                found_gj = self.snudda_loader.find_gap_junctions(neuron_id=pid)[0]
+
                 if found_syn is not None:
                     post_id = set(found_syn[:, 1])
                     sim_id = sim_id.union(post_id)
+
+                if found_gj is not None:
+                    gj_id = set(found_gj[:, 1])
+                    sim_id = sim_id.union(gj_id)
 
             self.simulate_neuron_ids = sorted(list(sim_id))
 
@@ -317,11 +323,6 @@ class PairRecording(SnuddaSimulate):
         try:
             self.record.output_file = self.output_file
             self.write_output()
-
-            # pre_id = np.array([x[0] for x in self.synapse_currents])
-            # post_id = np.array([x[1] for x in self.synapse_currents])
-            # cur = [np.array(x[2]) for x in self.synapse_currents]
-            # save.write_currents_OLD(t_save=self.t_save, i_save=cur, pre_id=pre_id, post_id=post_id)
 
         except:
             import traceback
@@ -430,6 +431,8 @@ class PairRecording(SnuddaSimulate):
         for syn in self.synapse_list:
             if channel_name == syn.hname().split("[")[0]:
                 syn.e = v_rev * 1e3
+
+
 if __name__ == "__main__":
     import sys
     if '-python' in sys.argv:

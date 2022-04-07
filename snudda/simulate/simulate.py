@@ -134,6 +134,11 @@ class SnuddaSimulate(object):
             self.log_file = os.path.join(self.network_path, "log", "simulation-log.txt")
 
         if type(self.log_file) == str:
+            log_dir_name = os.path.dirname(self.log_file)
+            if not os.path.exists(log_dir_name):
+                print(f"Creating {log_dir_name}")
+                os.makedirs(log_dir_name)
+
             self.log_file += f'-{int(self.pc.id())}'
             self.log_file = open(self.log_file, "w")
 
