@@ -1115,7 +1115,7 @@ class SnuddaDetect(object):
 
                             # Should we add just one synapse, or a cluster of synapses
                             cluster_size = con_dict[con_type]["clusterSize"]
-                            
+
                             if isinstance(cluster_size, (np.ndarray, list)):
                                 cluster_size = round(self.hyper_voxel_rng.normal(loc = cluster_size[0], scale = cluster_size[1]))
                                 
@@ -1123,7 +1123,7 @@ class SnuddaDetect(object):
                                 cluster_spread = con_dict[con_type]["clusterSpread"]
                                 
                                 if isinstance(cluster_spread, (np.ndarray, list)):
-                                    cluster_spread = self.hyper_voxel_rng.normal(loc = cluster_spread[0], scale = cluster_spread[1])
+                                    cluster_spread = np.maximum(np.abs(self.hyper_voxel_rng.normal(loc = cluster_spread[0], scale = cluster_spread[1])),5e-6)
 
                                 # This uses clone in neuron_prototype which should be cached
                                 neuron = self.load_neuron(self.neurons[d_id])
@@ -1152,7 +1152,7 @@ class SnuddaDetect(object):
 
                                 for d_sec_x, x, y, z, d_dist, cond, param_id \
                                         in zip(cluster_sec_x, coords_all[:, 0], coords_all[:, 1], coords_all[:, 2],
-                                               soma_dist, cluster_cond, cluster_param_id):
+                                               soma_dist * 1e6, cluster_cond, cluster_param_id):
                                     assert cond > 0, f"Conductance should be larger than 0. cond = {cond}"
 
                                     self.hyper_voxel_synapses[self.hyper_voxel_synapse_ctr, :] = \

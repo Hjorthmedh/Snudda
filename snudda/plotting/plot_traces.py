@@ -250,8 +250,13 @@ class PlotTraces:
 
         time.sleep(1)
         return fig
+
     def plot_traces_sep(self, trace_id=None, offset=150e-3, colours=None, skip_time=None,
-                    title=None, fig_name=None, fig_size=None, folderName=''):
+                        title=None, fig_name=None, fig_size=None, folder_name=None):
+
+        if folder_name is None:
+            folder_name = ""
+
         #Plot traces and save as separate images
         if skip_time is not None:
             print(f"!!! Excluding first {skip_time} s from the plot")
@@ -297,7 +302,6 @@ class PlotTraces:
         if not fig_size:
             fig_size = (10, 5)
 
-
         if skip_time is not None:
             time_idx = np.where(self.time >= skip_time)[0]
         else:
@@ -307,8 +311,8 @@ class PlotTraces:
         fig_path = os.path.join(os.path.dirname(os.path.realpath(self.network_file)), "figures")
         if not os.path.exists(fig_path):
             os.makedirs(fig_path)
-        if not os.path.exists(os.path.join(fig_path, str(self.ID)+folderName)):
-            os.makedirs(os.path.join(fig_path, str(self.ID)+folderName))
+        if not os.path.exists(os.path.join(fig_path, str(self.ID) + folder_name)):
+            os.makedirs(os.path.join(fig_path, str(self.ID) + folder_name))
         plot_count = 0
         for r in trace_id:
             fig = plt.figure(figsize=fig_size)
@@ -334,7 +338,7 @@ class PlotTraces:
             plt.title(title)
             plt.tight_layout()
             
-            plt.savefig(os.path.join(fig_path, str(self.ID)+folderName,'Network-spikes-' + str(self.ID)+'-'+str(r) +"-"+title+ ".png"))
+            plt.savefig(os.path.join(fig_path, str(self.ID) + folder_name, 'Network-spikes-' + str(self.ID) + '-' + str(r) + "-" + title + ".png"))
             plt.close(fig)
 
     ############################################################################
@@ -377,18 +381,16 @@ if __name__ == "__main__":
     parser.add_argument("--plot_offset", type=float, default=0)
     parser.add_argument("--skip_time", type=float, default=0)
     parser.add_argument("--max_num_traces", type=int, default=None)
+    parser.add_argument("--traceID", type=str, default=None, help="Trace ID to plot, separated by comma: e.g. 1,3,14")
     args = parser.parse_args()
 
     npt = PlotTraces(output_file=args.output_file, network_file=args.network_file, input_file=args.input_file)
 
-    # TODO: Update code so it loops through all existing neuron types by default
-    npt.plot_trace_neuron_type(neuron_type="dSPN", num_traces=args.max_num_traces,
-                               offset=args.plot_offset, skip_time=args.skip_time)
-    npt.plot_trace_neuron_type(neuron_type="iSPN", num_traces=args.max_num_traces,
-                               offset=args.plot_offset, skip_time=args.skip_time)
-    npt.plot_trace_neuron_type(neuron_type="FS", num_traces=args.max_num_traces,
-                               offset=args.plot_offset, skip_time=args.skip_time)
-    npt.plot_trace_neuron_type(neuron_type="LTS", num_traces=args.max_num_traces,
-                               offset=args.plot_offset, skip_time=args.skip_time)
-    npt.plot_trace_neuron_type(neuron_type="ChIN", num_traces=args.max_num_traces,
-                               offset=args.plot_offset, skip_time=args.skip_time)
+    if args.traceID is not None:
+        trace_id = [int(x) for x in args.traceID.split(",")]
+        npt.plot_traces(offset=args.plot_offset, trace_id=trace_id, skip_time=args.skip_time,
+                        title=f"Traces {args.traceID}")
+    else:
+        for neuron_type in npt.output_load.iter_neuron_type():
+            npt.plot_trace_neuron_type(neuron_type=neuron_type, num_traces=args.max_num_traces,
+                                       offset=args.plot_offset, skip_time=args.skip_time)

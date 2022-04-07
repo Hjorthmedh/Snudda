@@ -50,8 +50,6 @@
 import os
 import sys
 
-import matplotlib
-import matplotlib.pyplot as plt
 import neuron
 import numpy as np
 
@@ -119,12 +117,6 @@ class SnuddaNetworkPairPulseSimulation:
 
         self.inj_spacing = 0.5  # Tried with 0.2 before, too close
         self.inj_duration = 1e-3
-
-        # Voltage file
-        # self.volt_file = os.path.join(self.network_path,
-        #                               f"synapse-calibration-volt-{self.pre_type}-{self.post_type}.txt")
-        # self.volt_file_alt_mask = os.path.join(self.network_path,
-        #                                        f"synapse-calibration-volt-{self.pre_type}-*.txt")
 
         self.snudda_sim = None  # Defined in run_sim
         self.snudda_load = None  # Defined in analyse
@@ -249,12 +241,12 @@ class SnuddaNetworkPairPulseSimulation:
 
     ############################################################################
 
-    def run_sim(self, gaba_rev, pre_id=None):
+    def run_sim(self, gaba_rev, pre_id=None, disable_gap_junctions=False):
 
         self.snudda_sim = SnuddaSimulate(network_file=self.network_file,
                                          input_file=None,
                                          log_file=self.log_file,
-                                         disable_gap_junctions=True)
+                                         disable_gap_junctions=disable_gap_junctions)
 
         self.snudda_sim.setup()
 
@@ -308,6 +300,9 @@ class SnuddaNetworkPairPulseSimulation:
 
     def analyse(self, max_dist=None, n_max_show=10, pre_id=None, post_type=None):
 
+        import matplotlib
+        import matplotlib.pyplot as plt
+        
         self.setup_exp_data()
 
         if max_dist is None:
@@ -407,7 +402,7 @@ class SnuddaNetworkPairPulseSimulation:
         matplotlib.rcParams.update({'font.size': 22})
 
         sort_idx = np.argsort(amp)
-        if len(sort_idx) > n_max_show:
+        if n_max_show is not None and len(sort_idx) > n_max_show:
             keep_idx = [sort_idx[int(np.round(x))] for x in np.linspace(0, len(sort_idx) - 1, n_max_show)]
         else:
             keep_idx = sort_idx
@@ -492,6 +487,12 @@ class SnuddaNetworkPairPulseSimulation:
 
 if __name__ == "__main__":
 
+    if '-python' in sys.argv:
+        print("Called through NEURON special file, fixing arguments")
+        pythonidx = sys.argv.index('-python')
+        if len(sys.argv) > pythonidx:
+            sys.argv = sys.argv[pythonidx + 1:]
+    
     from argparse import ArgumentParser
 
     parser = ArgumentParser(description="Calibrate synapse conductances")
@@ -503,6 +504,7 @@ if __name__ == "__main__":
                         help="Post synaptic neuron type (for run task, "
                              "postType can be 'ALL' to record from all neuron)")
     parser.add_argument("--maxDist", help="Only check neuron pairs within (mum)", type=float, default=None)
+    parser.add_argument("--nShow", help="Number of traces to show", type=int, default=0)
     args = parser.parse_args()
 
     if args.maxDist is None:
@@ -556,4 +558,10 @@ if __name__ == "__main__":
         pps.run_sim(gaba_rev=GABA_rev)
 
     elif args.task == "analyse":
-        pps.analyse()
+
+        if args.nShow == 0:
+            n_show = None
+        else:
+            n_show = args.nShow
+
+        pps.analyse(n_max_show=n_show)
