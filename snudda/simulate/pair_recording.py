@@ -337,7 +337,10 @@ class PairRecording(SnuddaSimulate):
 
     def connect_neuron_synapses(self, start_row, end_row):
 
-        """ Connects the synapses present in the synapse matrix between start_row and end_row-1. """
+        """ Connects the synapses present in the synapse matrix between start_row and end_row-1.
+
+        This method overloads the normal connect_neuron_synapses, to also add recording of synaptic currents
+        """
 
         source_id_list, dest_id, dend_sections, sec_id, sec_x, synapse_type_id, \
         axon_distance, conductance, parameter_id = self.get_synapse_info(start_row=start_row, end_row=end_row)
@@ -447,7 +450,7 @@ if __name__ == "__main__":
     from argparse import ArgumentParser, RawTextHelpFormatter
     parser = ArgumentParser("Pair recording", formatter_class=RawTextHelpFormatter)
     parser.add_argument("network_path")
-    parser.add_argument("--experiment_config_file")
+    parser.add_argument("experiment_config_file")
     args = parser.parse_args()
     pr = PairRecording(network_path=args.network_path, experiment_config_file=args.experiment_config_file)
     pr.run()
