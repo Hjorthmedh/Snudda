@@ -81,7 +81,7 @@ class PairRecording(SnuddaSimulate):
         if "neuronSubset" in self.experiment_config["meta"]:
             neuron_subset = self.experiment_config["meta"]["neuronSubset"]
         else:
-            neuron_subset = "prepost"
+            neuron_subset = "all"  # "prepost"
 
         self.set_neurons_to_simulate(neuron_subset)
 
@@ -247,6 +247,9 @@ class PairRecording(SnuddaSimulate):
 
         """ Sets subset of neurons to simulate. If selection "prepost" neurons receiving current injection and
             their post synaptic targets are included. If selection is "all" or None, then all neurons are included.
+
+            If you simulate with gap junctions, you need to make sure that each neuron simulated also have all
+            gap junction coupled neuron simulated.
 
         Args:
             selection (string or list of int) : What neurons to include in simulation ("prepost", "all"),
