@@ -1,14 +1,14 @@
 {
     "meta" : {
-	"simulationDuration" : 2,
+	"simulationDuration" : 1,
 	"pairRecordingOutputFile" : "FS-gap-junction-output.hdf5"
     },
     "currentInjection" : [
 	{
-	"neuronID": 0,
-	"start": [0.5, 1.0, 1.5],
-	"end": [0.510, 1.050, 2.0], 
-	"amplitude": 10e-9
+	    "neuronID": 0,
+	    "start": [0.3, 0.8],
+	    "end": [0.4, 0.81], 
+	    "amplitude": 5e-9
 	}
     ]
     
