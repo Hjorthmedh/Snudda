@@ -12,6 +12,7 @@ class AnalyseGapJunctionCoupling:
     def __init__(self, network_path, experiment_config_file):
 
         self.network_path = network_path
+        self.figure_path = os.path.join(network_path, "figures")
         self.experiment_file = experiment_config_file
         self.experiment_config = PairRecording.read_experiment_config(experiment_config_file)
         self.network_simulation = None
@@ -134,11 +135,14 @@ class AnalyseGapJunctionCoupling:
 
         for neuron_id, trace_data_list in trace_info.items():
 
-            plt.figure()
+            fig = plt.figure()
+            coupling = []
 
             for trace_data in trace_data_list:
                 assert neuron_id == trace_data["pre_neuron_id"]
                 post_neuron_id = trace_data["post_neuron_id"]
+                coupling = coupling + trace_data["coupling"]
+
                 get_id = [neuron_id, *post_neuron_id]
                 volt, time = self.get_trace(neuron_id_list=get_id,
                                             start_time=trace_data["start_time"],
@@ -146,6 +150,14 @@ class AnalyseGapJunctionCoupling:
                                             time_padding=0.1)
                 plt.plot(time, volt[:, 0], 'k', linewidth=2)
                 plt.plot(time, volt[:, 1:], 'k', linewidth=1)
+
+            plt.title(f"Coupling: {np.mean(coupling):.4f} ({np.min(coupling):.4f} - {np.max(coupling):.4f}), "
+                      f"duration {duration*1e3:.0f} ms")
+
+            fig_name = os.path.join(self.figure_path,
+                                    f"gap-junction-coupling-neuron-{neuron_id}-duration-{duration}.png")
+
+            plt.savefig(fig_name, dpi=300)
 
         plt.show()
         plt.pause(1)
