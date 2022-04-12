@@ -21,6 +21,9 @@ class AnalyseGapJunctionCoupling:
 
         self.load_simulation_data()
 
+        if not os.path.exists(self.figure_path):
+            os.makedirs(self.figure_path)
+
     def load_simulation_data(self):
 
         if "meta" in self.experiment_config and "pairRecordingOutputFile" in self.experiment_config["meta"]:
@@ -65,9 +68,6 @@ class AnalyseGapJunctionCoupling:
 
             for st, et, amp in zip(cur_start_time, cur_end_time, cur_amplitude):
                 dur = et - st
-
-                #import pdb
-                #pdb.set_trace()
 
                 if ((duration is None or np.abs(dur - duration) < 1e-5)
                     and (amplitude is None or np.abs(amp - amplitude) < 1e-13)):
