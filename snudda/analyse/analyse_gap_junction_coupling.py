@@ -102,9 +102,12 @@ class AnalyseGapJunctionCoupling:
             info["post_neuron_id"] = []
             info["coupling"] = []
 
+            pre_amp = self.extract_amplitude(neuron_id, start_time, end_time)
+
             coupled_neuron_id = self.find_gap_junction_neighbours(neuron_id=neuron_id)
             for cid in coupled_neuron_id:
-                coupling = self.extract_amplitude(cid, start_time, end_time)
+                post_amp = self.extract_amplitude(cid, start_time, end_time)
+                coupling = post_amp / pre_amp
                 coupling_factors.append(coupling)
                 info["post_neuron_id"].append(cid)
                 info["coupling"].append(coupling)
