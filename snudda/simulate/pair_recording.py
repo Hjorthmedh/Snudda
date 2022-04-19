@@ -99,7 +99,7 @@ class PairRecording(SnuddaSimulate):
 
         if "pairRecordingOutputFile" in self.experiment_config["meta"]:
             self.output_file = os.path.join(self.network_path, "simulation",
-                                                 self.experiment_config["meta"]["pairRecordingOutputFile"])
+                                            self.experiment_config["meta"]["pairRecordingOutputFile"])
 
         # Setup v_init for each neuron_id specified
         if "vInit" in self.experiment_config["meta"]:
@@ -136,8 +136,17 @@ class PairRecording(SnuddaSimulate):
                 self.add_current_pulses(neuron_id=nid, start_times=stim_start_time,
                                         end_times=stim_end_time, amplitudes=stim_amplitude)
 
-        # Add voltage recordings to neurons
-        self.add_volt_recording_all()
+        if "record" in self.experiment_config["meta"]:
+            if self.experiment_config["meta"]["record"].lower() == "soma":
+                self.add_volt_recording_soma()
+            elif self.experiment_config["meta"]["record"].lower() == "all":
+                self.add_volt_recording_all()
+            else:
+                assert False, (f"Unknown record option {self.experiment_config['meta']['record']}. "
+                               f"Valid options are 'soma' or 'all'")
+        else:
+            # Add voltage recordings to neurons
+            self.add_volt_recording_soma()
 
     @staticmethod
     def to_list(val, new_list_len=1):

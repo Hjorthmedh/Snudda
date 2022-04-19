@@ -12,6 +12,7 @@ class AnalyseGapJunctionCoupling:
     def __init__(self, network_path, experiment_config_file):
 
         self.network_path = network_path
+        self.figure_path = os.path.join(network_path, "figures")
         self.experiment_file = experiment_config_file
         self.experiment_config = PairRecording.read_experiment_config(experiment_config_file)
         self.network_simulation = None
@@ -19,6 +20,9 @@ class AnalyseGapJunctionCoupling:
         self.neighbour_id_cache = dict()
 
         self.load_simulation_data()
+
+        if not os.path.exists(self.figure_path):
+            os.makedirs(self.figure_path)
 
     def load_simulation_data(self):
 
@@ -64,7 +68,9 @@ class AnalyseGapJunctionCoupling:
 
             for st, et, amp in zip(cur_start_time, cur_end_time, cur_amplitude):
                 dur = et - st
-                if (duration is None or dur == duration) and (amplitude is None or amp == amplitude):
+
+                if ((duration is None or np.abs(dur - duration) < 1e-5)
+                    and (amplitude is None or np.abs(amp - amplitude) < 1e-13)):
                     yield neuron_id, st, et
 
     def extract_amplitude(self, neuron_id, start_time, end_time):
@@ -84,11 +90,77 @@ class AnalyseGapJunctionCoupling:
     def extract_coupling(self, duration=None, amplitude=None):
 
         coupling_factors = []
+        trace_info = dict()
 
         for neuron_id, start_time, end_time in self.get_intervals(duration=duration, amplitude=amplitude):
 
+            info = dict()
+            info["pre_neuron_id"] = neuron_id
+            info["start_time"] = start_time
+            info["end_time"] = end_time
+
+            info["post_neuron_id"] = []
+            info["coupling"] = []
+
+            pre_amp = self.extract_amplitude(neuron_id, start_time, end_time)
+
             coupled_neuron_id = self.find_gap_junction_neighbours(neuron_id=neuron_id)
             for cid in coupled_neuron_id:
-                coupling_factors.append(self.extract_amplitude(cid, start_time, end_time))
+                post_amp = self.extract_amplitude(cid, start_time, end_time)
+                coupling = post_amp / pre_amp
+                coupling_factors.append(coupling)
+                info["post_neuron_id"].append(cid)
+                info["coupling"].append(coupling)
 
-        return coupling_factors
+            if neuron_id not in trace_info:
+                trace_info[neuron_id] = []
+
+            trace_info[neuron_id].append(info)
+
+        return coupling_factors, trace_info
+
+    def get_trace(self, neuron_id_list, start_time, end_time, time_padding=0):
+
+        time = self.network_simulation.get_time()
+        idx = np.where(np.logical_and(start_time - time_padding <= time, time <= end_time + time_padding))[0]
+
+        traces = np.zeros((len(idx), len(neuron_id_list)))
+
+        for i, neuron_id in enumerate(neuron_id_list):
+            volt = self.network_simulation.get_voltage(neuron_id=neuron_id)
+            traces[:, i] = volt[idx][:, 0]  # 0 column is usually soma
+
+        return traces, time[idx]
+
+    def plot_coupling(self, duration, amplitude):
+
+        coupling_factors, trace_info = self.extract_coupling(duration=duration, amplitude=amplitude)
+
+        for neuron_id, trace_data_list in trace_info.items():
+
+            fig = plt.figure()
+            coupling = []
+
+            for trace_data in trace_data_list:
+                assert neuron_id == trace_data["pre_neuron_id"]
+                post_neuron_id = trace_data["post_neuron_id"]
+                coupling = coupling + trace_data["coupling"]
+
+                get_id = [neuron_id, *post_neuron_id]
+                volt, time = self.get_trace(neuron_id_list=get_id,
+                                            start_time=trace_data["start_time"],
+                                            end_time=trace_data["end_time"],
+                                            time_padding=0.1)
+                plt.plot(time, volt[:, 0], 'k', linewidth=2)
+                plt.plot(time, volt[:, 1:], 'k', linewidth=1)
+
+            plt.title(f"Coupling: {np.mean(coupling):.4f} ({np.min(coupling):.4f} - {np.max(coupling):.4f}), "
+                      f"duration {duration*1e3:.0f} ms")
+
+            fig_name = os.path.join(self.figure_path,
+                                    f"gap-junction-coupling-neuron-{neuron_id}-duration-{duration}.png")
+
+            plt.savefig(fig_name, dpi=300)
+
+        plt.show()
+        plt.pause(1)
