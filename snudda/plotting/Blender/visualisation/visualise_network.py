@@ -105,17 +105,19 @@ class VisualiseNetwork(object):
         VisualiseNetwork.clean_scene()
 
         # Add a light source
-        #sun_location = (10, 10, 10)
-        #lamp_data = bpy.data.lights.new(name="Sun", type='SUN')
+        # TODO: Add choice of adding a light source, instead of True here.
+        if True:
+            sun_location = (10, 10, 10)
+            lamp_data = bpy.data.lights.new(name="Sun", type='SUN')
 
         # Create new object, pass the light data
-        #sun_object = bpy.data.objects.new(name="sun_object", object_data=lamp_data)
+            sun_object = bpy.data.objects.new(name="sun_object", object_data=lamp_data)
 
         # Link object to collection in context
-        #bpy.context.collection.objects.link(sun_object)
+            bpy.context.collection.objects.link(sun_object)
 
         # Change light position
-        #sun_object.location = sun_location
+            sun_object.location = sun_location
 
         bpy.data.scenes['Scene'].render.engine = 'CYCLES'
         world = bpy.data.worlds['World']
