@@ -1260,10 +1260,11 @@ class SnuddaSimulate(object):
 
         sections = self.neurons[cell_id].map_id_to_compartment(sec_id)
 
-        v = self.sim.neuron.h.Vector()
+        
 
         self.pc.threshold(cell_id, self.spike_threshold)  # TODO: Set individual spike thresholds based on parameters
         for s, sx, sid in zip(sections, sec_x, sec_id):
+            v = self.sim.neuron.h.Vector()
             v.record(getattr(s(sx), '_ref_v'))
 
             # From the Snudda synapse matrix. sec_id 0 is soma, sec_id >= 1 is dendrite, sec_id <= -1 is axon

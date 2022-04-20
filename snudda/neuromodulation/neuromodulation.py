@@ -29,6 +29,8 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                                                             disable_gap_junctions=disable_gap_junctions,
                                                             simulation_config=simulation_config)
 
+        print(" Using neuromodulation module in Snudda")
+
     def neuron_vector(self, vector):
 
         return self.sim.neuron.h.Vector(vector)
@@ -92,6 +94,11 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                     for seg in comp:
                         for mech in seg:
                             if mech.name() in modulate_section:
+
+                                # Check that modulation value is not equal to 1.0 otherwise modulation will not work
+                                assert getattr(mech, f"maxMod{modulation}") != 1.0, "NeuronModel has not loaded modulation.json," \
+                                                                                    "neuromodulation is not turned on within the model"
+
                                 setattr(mech, "mod" + modulation, 1)
                                 self.neuromodulation[modulation]['modulation_vector'].play(
                                     getattr(mech, "_ref_level" + modulation),
