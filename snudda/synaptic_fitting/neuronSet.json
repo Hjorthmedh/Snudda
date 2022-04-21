@@ -1,6 +1,6 @@
 {
     "dSPN": {
-	"neuronPath": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20211026",
+        "neuronPath": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20211026",
         "neuronParameterID": 0,
         "neuronModulationID": 0,
         "synapseDensity": "0.05/(1+exp(-(d-150e-6)/5e-6))",
@@ -19,13 +19,13 @@
         "baselineVoltage": -0.08
     },
     "SPN": {
-	"neuronPath" : "$DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20211028",
+        "neuronPath": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20211028",
         "neuronParameterID": 0,
         "neuronModulationID": 0,
         "synapseDensity": "0.05/(1+exp(-(d-150e-6)/5e-6))",
         "nSynapses": 20,
         "baselineVoltage": -0.08,
-        "holdingCurrent": 2.610107685541152e-10
+        "holdingCurrent": 1.2740031252178596e-10
     },
     "FS": {
         "neuronMorphology": "$DATA/neurons/striatum/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20190225/DR-rat-Mar-13-08-1-536-R-cor-rep.swc",

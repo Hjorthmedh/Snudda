@@ -194,7 +194,7 @@ class OptimiseSynapsesFull(object):
 
     def load_parameter_data(self):
 
-        self.synapse_parameter_data = ParameterBookkeeper(old_book_file=self.parameter_data_file_name)
+        self.synapse_parameter_data = ParameterBookkeeper(old_book_file=self.parameter_data_file_name, n_max=20)
         self.synapse_parameter_data.check_integrity()
 
         best_dataset = self.synapse_parameter_data.get_best_dataset()
@@ -1377,6 +1377,7 @@ if __name__ == "__main__":
                         help="plotting previous optimised model")
     parser.add_argument("--prettyplot", action="store_true",
                         help="plotting traces for article")
+    parser.add_argument("--compile", action="store_true", help="Compile NEURON modules")
 
     parser.add_argument("--data", help="Snudda data directory",
                         default=os.path.join("..", "..", "..", "BasalGangliaData", "data"))
@@ -1388,15 +1389,19 @@ if __name__ == "__main__":
 
     snudda_data_dir = os.getenv("SNUDDA_DATA")
 
-    if os.path.exists("x86_64"):
-        shutil.rmtree("x86_64")
+    if args.compile:
+        if os.path.exists("x86_64"):
+            shutil.rmtree("x86_64")
 
-    if os.path.exists("mechanisms"):
-        os.remove("mechanisms")
+        if os.path.exists("mechanisms"):
+            os.remove("mechanisms")
 
-    os.symlink(os.path.join(snudda_data_dir, "neurons", "mechanisms"), "mechanisms")
-    print("Compiling neuron mechanisms: nrnivmodl mechanisms")
-    os.system("nrnivmodl mechanisms/")
+        os.symlink(os.path.join(snudda_data_dir, "neurons", "mechanisms"), "mechanisms")
+        print("Compiling neuron mechanisms: nrnivmodl mechanisms")
+        os.system("nrnivmodl mechanisms/")
+    else:
+        print("Assuming correct NEURON mod files are compiled, if you need to compile then add --compile flag.")
+
     opt_method = args.optMethod
 
     print(f"Reading file : {args.datafile}")
@@ -1442,8 +1447,8 @@ if __name__ == "__main__":
         else:
             pretty_plot_flag = False
 
-        ly.plot_data(show=True, pretty_plot=pretty_plot_flag)
+        ly.plot_data(show=True, pretty_plot=pretty_plot_flag, skip_time=0)
 
         sys.exit(0)
 
-    ly.parallel_optimise_single_cell(n_trials=2)
+    ly.parallel_optimise_single_cell(n_trials=100)
