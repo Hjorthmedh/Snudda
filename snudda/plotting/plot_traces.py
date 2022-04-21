@@ -182,7 +182,7 @@ class PlotTraces:
 
             plt.plot(self.time[time_idx] - skip_time,
                      self.voltage[r][time_idx] + ofs,
-                     color=colour)
+                     color=colour, linewidth=0.1)
 
             if offset:
                 ofs += offset
@@ -204,7 +204,7 @@ class PlotTraces:
         if title is not None:
             plt.title(title)
 
-        if offset != 0:
+        if offset != 0 and offset is not None:
             ax = fig.axes[0]
             ax.set_yticklabels([])
 
@@ -222,7 +222,7 @@ class PlotTraces:
             else:
                 fig_name = f"Network-voltage-trace-{self.ID}-{types_in_plot.pop()}-colour.pdf"
 
-        plt.savefig(os.path.join(fig_path, fig_name), dpi=300)
+        plt.savefig(os.path.join(fig_path, fig_name), dpi=600)
         print(f"Saving to figure {fig_name}")
 
         plt.ion()
