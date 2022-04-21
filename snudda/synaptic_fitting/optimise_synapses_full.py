@@ -554,14 +554,6 @@ class OptimiseSynapsesFull(object):
 
         # !!! We need to get the baseline depolarisation in another way
 
-        try:
-            neuron_path = c_prop["neuronPath"]
-        except:
-            import traceback
-            print(traceback.format_exc())
-            import pdb
-            pdb.set_trace()
-
         self.rsr_synapse_model = \
             RunSynapseRun(neuron_path=snudda_parse_path(c_prop["neuronPath"]),
                           stim_times=t_stim,
