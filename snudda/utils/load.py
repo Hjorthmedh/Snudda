@@ -827,6 +827,34 @@ class SnuddaLoad(object):
 
         return gap_junctions[:gj_ctr, :], gj_coords
 
+    def get_centre_neurons_iterator(self, n_neurons=None, neuron_type=None, centre_point=None):
+
+        """ Return neuron id:s, starting from the centre most and moving outwards
+
+        Args:
+            n_neurons (int) : Number of neurons to return, None = all available
+            neuron_type (str) : Type of neurons to return, None = all available
+            centre_point (np.array) : x,y,z of centre position, None = auto detect centre
+        """
+
+        if centre_point is None:
+            centre_point = np.mean(self.data["neuronPositions"], axis=0)
+
+        dist_to_centre = np.linalg.norm(self.data["neuronPositions"] - centre_point, axis=-1)
+        idx = np.argsort(dist_to_centre)
+
+        neuron_ctr = 0
+
+        for neuron_id in idx:
+            if neuron_type is not None and self.data["neurons"]["type"] != neuron_type:
+                continue
+
+            yield neuron_id, dist_to_centre[neuron_id]
+            neuron_ctr += 1
+
+            if n_neurons is not None and neuron_ctr >= n_neurons:
+                return
+
     ############################################################################
 
 
@@ -845,6 +873,7 @@ def snudda_load_cli():
     parser.add_argument("--keepOpen", help="This prevents loading of synapses to memory, and keeps HDF5 file open",
                         action="store_true")
     parser.add_argument("--detailed", help="More information", action="store_true")
+    parser.add_argument("--centre", help="List n neurons in centre (-1 = all)", type=int)
 
     args = parser.parse_args()
 
@@ -961,6 +990,17 @@ def snudda_load_cli():
                           f"{gap_junction_coords[i, 1]*1e6:.1f}, "
                           f"{gap_junction_coords[i, 2]*1e6:.1f}) μm, "
                           f"Cond: {gap_junctions[i, 10] * 1e-3:.3f} nS")
+
+    if args.centre:
+        if args.centre < 0:
+            n_neurons = None
+        else:
+            n_neurons = args.centre
+
+        for neuron_id, centre_dist in nl.get_centre_neurons_iterator(n_neurons):
+            pos = nl.data["neurons"][neuron_id]["position"] * 1e6
+            name = nl.data["neurons"][neuron_id]["name"]
+            print(f"{neuron_id} {name}: ({pos[0]:.1f}, {pos[1]:.1f}, {pos[2]:.1f}) μm, distance to centre {centre_dist*1e6:.1f} μm")
 
 
 if __name__ == "__main__":

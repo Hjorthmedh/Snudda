@@ -34,12 +34,14 @@ class SnuddaAnalyse(object):
                  low_memory=False,
                  side_len=250e-6,
                  volume_type="cube",
+                 volume_id=None,
                  n_max_analyse=None,
                  show_plots=False,
                  close_plots=True):  # "cube" or "full"
 
         self.debug = False
         self.show_plots = show_plots
+        self.volume_id = volume_id  # TODO: Make use of the volume_id argument passed
 
         print(f"Assuming volume type: {volume_type} [cube or full]")
 
@@ -432,7 +434,10 @@ class SnuddaAnalyse(object):
     ############################################################################
 
     def get_sub_pop(self, volume_type="cube", volume_part="centre", side_len=None,
-                    neuron_id=None, volume_id="Striatum", num_max_analyse=None):
+                    neuron_id=None, volume_id=None, num_max_analyse=None):
+
+        if volume_id is None:
+            volume_id = self.volume_id
 
         # print("volumeType=" + volumeType + ",volumePart=" + volumePart + ",sideLen=" +str(sideLen))
 
@@ -495,7 +500,10 @@ class SnuddaAnalyse(object):
 
     ############################################################################
 
-    def centre_neurons(self, side_len=None, neuron_id=None, volume_id="Striatum"):
+    def centre_neurons(self, side_len=None, neuron_id=None, volume_id=None):
+
+        if volume_id is None:
+            volume_id = self.volume_id
 
         if side_len is None:
             side_len = self.side_len
@@ -503,8 +511,7 @@ class SnuddaAnalyse(object):
         if volume_id is None:
             idx = np.arange(0, self.network["nNeurons"])
         else:
-            idx = np.where([x["volumeID"] == volume_id
-                            for x in self.network["neurons"]])[0]
+            idx = np.where([x["volumeID"] == volume_id for x in self.network["neurons"]])[0]
 
         min_coord = np.min(self.network["neuronPositions"][idx, :], axis=0)
         max_coord = np.max(self.network["neuronPositions"][idx, :], axis=0)
@@ -542,8 +549,7 @@ class SnuddaAnalyse(object):
             # pos = self.network["neurons"][nid]["position"]
             pos = self.positions[nid, :]
 
-            assert volume_id is None \
-                   or self.network["neurons"][nid]["volumeID"] == volume_id, \
+            assert volume_id is None or self.network["neurons"][nid]["volumeID"] == volume_id, \
                 f"Neuron {nid} does not belong to volumeID {volume_id}"
 
             if (abs(pos[0] - x_centre) <= side_len
@@ -562,7 +568,10 @@ class SnuddaAnalyse(object):
     #
     # <--->
 
-    def corner_neurons(self, side_len=None, neuron_id=None, volume_id="Striatum"):
+    def corner_neurons(self, side_len=None, neuron_id=None, volume_id=None):
+
+        if volume_id is None:
+            volume_id = self.volume_id
 
         if side_len is None:
             side_len = self.side_len
@@ -570,8 +579,7 @@ class SnuddaAnalyse(object):
         if volume_id is None:
             idx = np.arange(0, self.network["nNeurons"])
         else:
-            idx = np.where([x["volumeID"] == volume_id
-                            for x in self.network["neurons"]])[0]
+            idx = np.where([x["volumeID"] == volume_id for x in self.network["neurons"]])[0]
 
         if len(idx) == 0:
             print(f"No neurons found in volume {volume_id}")
@@ -669,8 +677,11 @@ class SnuddaAnalyse(object):
     ############################################################################
 
     def plot_num_synapses_per_pair(self, pre_type, post_type, side_len=None,
-                                   name_str="", volume_id="Striatum",
+                                   name_str="", volume_id=None,
                                    connection_type="synapses"):
+
+        if volume_id is None:
+            volume_id = self.volume_id
 
         if side_len is None:
             side_len = self.side_len
@@ -852,6 +863,9 @@ class SnuddaAnalyse(object):
                                     y_max=None,
                                     connection_type="synapses",
                                     draw_step=False):
+
+        if volume_id is None:
+            volume_id = self.volume_id
 
         assert pre_type is not None
         assert post_type is not None
@@ -1085,7 +1099,10 @@ class SnuddaAnalyse(object):
                                              exp_data=None,
                                              exp_data_detailed=None,
                                              dist_3d=True,
-                                             volume_id="Striatum"):
+                                             volume_id=None):
+
+        if volume_id is None:
+            volume_id = self.volume_id
 
         if pre_type not in self.populations:
             print(f"plotConnectionProbabilityChannels: {pre_type} is not in the simulation")
@@ -1464,8 +1481,11 @@ class SnuddaAnalyse(object):
     ############################################################################
 
     def num_incoming_connections(self, neuron_type, pre_type, side_len=None,
-                                 volume_id="Striatum",
+                                 volume_id=None,
                                  connection_type="synapses"):
+
+        if volume_id is None:
+            volume_id = self.volume_id
 
         if side_len is None:
             side_len = 100e-6
@@ -1504,17 +1524,21 @@ class SnuddaAnalyse(object):
             n_syn[i] = np.sum(cons)
 
         return n_con, n_syn
-    
-    
-    def num_outgoing_connections(self, post_type, pre_type, side_len=None,
-                                 volume_id="Striatum",
+
+    def num_outgoing_connections(self,
+                                 post_type,
+                                 pre_type,
+                                 side_len=None,
+                                 volume_id=None,
                                  connection_type="synapses"):
+
+        if volume_id is None:
+            volume_id = self.volume_id
 
         if side_len is None:
             side_len = 100e-6
 
-        print("Calculating number of outgoing connections " + pre_type
-              + " -> " + post_type)
+        print(f"Calculating number of outgoing connections {pre_type} -> {post_type}")
 
         # Only use post synaptic cell in central part of structure,
         # to minimize edge effect
@@ -1741,7 +1765,10 @@ class SnuddaAnalyse(object):
 
     # Loop through all synapses, create distance histogram
 
-    def synapse_dist(self, side_len=None, volume_id="Striatum"):
+    def synapse_dist(self, side_len=None, volume_id=None):
+
+        if volume_id is None:
+            volume_id = self.volume_id
 
         if side_len is None:
             side_len = self.side_len
@@ -2057,7 +2084,10 @@ class SnuddaAnalyse(object):
     # So we want to calculate dendritic length, and then divide the synapses by
     # that
 
-    def dendrite_density(self, num_bins, bin_width, side_len=None, volume_id="Striatum"):
+    def dendrite_density(self, num_bins, bin_width, side_len=None, volume_id=None):
+
+        if volume_id is None:
+            volume_id = self.volume_id
 
         if side_len is None:
             side_len = self.side_len

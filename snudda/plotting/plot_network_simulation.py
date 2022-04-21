@@ -31,7 +31,7 @@ def plot_network_simulation(nametag,doHistRast=True,doTraces=True,doInpRast=True
         network_file = os.path.join(network_path,"network-synapses.hdf5")
         network_output = os.path.join(network_path,"simulation", "output.hdf5")
         pt=PlotTraces(network_output, network_file=network_file)
-        pt.plot_traces_sep(folderName=input_type)
+        pt.plot_traces_sep(folder_name=input_type)
         pt.plot_traces(fig_name="traces.pdf")
     
     ##############################################################

@@ -118,12 +118,6 @@ class SnuddaNetworkPairPulseSimulation:
         self.inj_spacing = 0.5  # Tried with 0.2 before, too close
         self.inj_duration = 1e-3
 
-        # Voltage file
-        # self.volt_file = os.path.join(self.network_path,
-        #                               f"synapse-calibration-volt-{self.pre_type}-{self.post_type}.txt")
-        # self.volt_file_alt_mask = os.path.join(self.network_path,
-        #                                        f"synapse-calibration-volt-{self.pre_type}-*.txt")
-
         self.snudda_sim = None  # Defined in run_sim
         self.snudda_load = None  # Defined in analyse
         self.data = None  # Defind in analyse
@@ -247,12 +241,12 @@ class SnuddaNetworkPairPulseSimulation:
 
     ############################################################################
 
-    def run_sim(self, gaba_rev, pre_id=None):
+    def run_sim(self, gaba_rev, pre_id=None, disable_gap_junctions=False):
 
         self.snudda_sim = SnuddaSimulate(network_file=self.network_file,
                                          input_file=None,
                                          log_file=self.log_file,
-                                         disable_gap_junctions=True)
+                                         disable_gap_junctions=disable_gap_junctions)
 
         self.snudda_sim.setup()
 

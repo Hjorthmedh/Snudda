@@ -35,7 +35,7 @@ class PairRecording(SnuddaSimulate):
         First create your own network using Snudda init/place/detect/prune. Then use PairRecording to setup
         and run simulation.
 
-        For example experiment configuration files, see Snudda/snudda/data/experiment-config/ directory
+        For example experiment configuration files, see Snudda/snudda/data/experiment-config/pair_recording directory
 
     """
 
@@ -81,7 +81,7 @@ class PairRecording(SnuddaSimulate):
         if "neuronSubset" in self.experiment_config["meta"]:
             neuron_subset = self.experiment_config["meta"]["neuronSubset"]
         else:
-            neuron_subset = "prepost"
+            neuron_subset = "all"  # "prepost"
 
         self.set_neurons_to_simulate(neuron_subset)
 
@@ -99,7 +99,7 @@ class PairRecording(SnuddaSimulate):
 
         if "pairRecordingOutputFile" in self.experiment_config["meta"]:
             self.output_file = os.path.join(self.network_path, "simulation",
-                                                 self.experiment_config["meta"]["pairRecordingOutputFile"])
+                                            self.experiment_config["meta"]["pairRecordingOutputFile"])
 
         # Setup v_init for each neuron_id specified
         if "vInit" in self.experiment_config["meta"]:
@@ -111,6 +111,15 @@ class PairRecording(SnuddaSimulate):
                 v_init = self.experiment_config["meta"]["vInit"]
 
             self.set_v_init(neuron_id=neuron_id, v_init=v_init)
+
+        if "vHold" in self.experiment_config["meta"]:
+            if type(self.experiment_config["meta"]["vHold"]) == list:
+                neuron_id, v_hold = zip(*self.experiment_config["meta"]["vHold"])
+            else:
+                neuron_id = None
+                v_hold = self.experiment_config["meta"]["Hold"]
+
+            self.set_v_hold(neuron_id=neuron_id, v_init=v_hold)
 
         if "reversal_potential" in self.experiment_config["meta"]:
             for channel_name, v_rev in self.experiment_config["meta"]["reversal_potential"]:
@@ -127,8 +136,17 @@ class PairRecording(SnuddaSimulate):
                 self.add_current_pulses(neuron_id=nid, start_times=stim_start_time,
                                         end_times=stim_end_time, amplitudes=stim_amplitude)
 
-        # Add voltage recordings to neurons
-        self.add_volt_recording_all()
+        if "record" in self.experiment_config["meta"]:
+            if self.experiment_config["meta"]["record"].lower() == "soma":
+                self.add_volt_recording_soma()
+            elif self.experiment_config["meta"]["record"].lower() == "all":
+                self.add_volt_recording_all()
+            else:
+                assert False, (f"Unknown record option {self.experiment_config['meta']['record']}. "
+                               f"Valid options are 'soma' or 'all'")
+        else:
+            # Add voltage recordings to neurons
+            self.add_volt_recording_soma()
 
     @staticmethod
     def to_list(val, new_list_len=1):
@@ -239,6 +257,9 @@ class PairRecording(SnuddaSimulate):
         """ Sets subset of neurons to simulate. If selection "prepost" neurons receiving current injection and
             their post synaptic targets are included. If selection is "all" or None, then all neurons are included.
 
+            If you simulate with gap junctions, you need to make sure that each neuron simulated also have all
+            gap junction coupled neuron simulated.
+
         Args:
             selection (string or list of int) : What neurons to include in simulation ("prepost", "all"),
                                                 or a list of neuron_id to simulate
@@ -260,10 +281,16 @@ class PairRecording(SnuddaSimulate):
             sim_id = pre_id
 
             for pid in pre_id:
-                found_syn=self.snudda_loader.find_synapses(pre_id=pid)[0]
+                found_syn = self.snudda_loader.find_synapses(pre_id=pid)[0]
+                found_gj = self.snudda_loader.find_gap_junctions(neuron_id=pid)[0]
+
                 if found_syn is not None:
                     post_id = set(found_syn[:, 1])
                     sim_id = sim_id.union(post_id)
+
+                if found_gj is not None:
+                    gj_id = set(found_gj[:, 1])
+                    sim_id = sim_id.union(gj_id)
 
             self.simulate_neuron_ids = sorted(list(sim_id))
 
@@ -309,11 +336,6 @@ class PairRecording(SnuddaSimulate):
             self.record.output_file = self.output_file
             self.write_output()
 
-            # pre_id = np.array([x[0] for x in self.synapse_currents])
-            # post_id = np.array([x[1] for x in self.synapse_currents])
-            # cur = [np.array(x[2]) for x in self.synapse_currents]
-            # save.write_currents_OLD(t_save=self.t_save, i_save=cur, pre_id=pre_id, post_id=post_id)
-
         except:
             import traceback
             t_str = traceback.format_exc()
@@ -324,7 +346,10 @@ class PairRecording(SnuddaSimulate):
 
     def connect_neuron_synapses(self, start_row, end_row):
 
-        """ Connects the synapses present in the synapse matrix between start_row and end_row-1. """
+        """ Connects the synapses present in the synapse matrix between start_row and end_row-1.
+
+        This method overloads the normal connect_neuron_synapses, to also add recording of synaptic currents
+        """
 
         source_id_list, dest_id, dend_sections, sec_id, sec_x, synapse_type_id, \
         axon_distance, conductance, parameter_id = self.get_synapse_info(start_row=start_row, end_row=end_row)
@@ -421,6 +446,8 @@ class PairRecording(SnuddaSimulate):
         for syn in self.synapse_list:
             if channel_name == syn.hname().split("[")[0]:
                 syn.e = v_rev * 1e3
+
+
 if __name__ == "__main__":
     import sys
     if '-python' in sys.argv:
@@ -432,7 +459,7 @@ if __name__ == "__main__":
     from argparse import ArgumentParser, RawTextHelpFormatter
     parser = ArgumentParser("Pair recording", formatter_class=RawTextHelpFormatter)
     parser.add_argument("network_path")
-    parser.add_argument("--experiment_config_file")
+    parser.add_argument("experiment_config_file")
     args = parser.parse_args()
     pr = PairRecording(network_path=args.network_path, experiment_config_file=args.experiment_config_file)
     pr.run()

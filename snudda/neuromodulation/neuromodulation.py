@@ -12,6 +12,7 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                  network_path=None,
                  network_file=None,
                  input_file=None,
+                 output_file=None,
                  verbose=False,
                  log_file=None,
                  disable_gap_junctions=True,
@@ -22,10 +23,13 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
         super(SnuddaSimulateNeuromodulation, self).__init__(network_path=network_path,
                                                             network_file=network_file,
                                                             input_file=input_file,
+                                                            output_file=output_file,
                                                             verbose=verbose,
                                                             log_file=log_file,
                                                             disable_gap_junctions=disable_gap_junctions,
                                                             simulation_config=simulation_config)
+
+        print(" Using neuromodulation module in Snudda")
 
     def neuron_vector(self, vector):
 
@@ -90,6 +94,11 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                     for seg in comp:
                         for mech in seg:
                             if mech.name() in modulate_section:
+
+                                # Check that modulation value is not equal to 1.0 otherwise modulation will not work
+                                assert getattr(mech, f"maxMod{modulation}") != 1.0, "NeuronModel has not loaded modulation.json," \
+                                                                                    "neuromodulation is not turned on within the model"
+
                                 setattr(mech, "mod" + modulation, 1)
                                 self.neuromodulation[modulation]['modulation_vector'].play(
                                     getattr(mech, "_ref_level" + modulation),
