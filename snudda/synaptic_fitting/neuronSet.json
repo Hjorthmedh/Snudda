@@ -1,9 +1,6 @@
 {
     "dSPN": {
-        "neuronMorphology": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/WT-P270-20-15ak-cor.swc",
-        "neuronParameters": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/parameters.json",
-        "neuronMechanisms": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/mechanisms.json",
-        "neuronModulation": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/modulation.json",
+	"neuronPath": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20211026",
         "neuronParameterID": 0,
         "neuronModulationID": 0,
         "synapseDensity": "0.05/(1+exp(-(d-150e-6)/5e-6))",
@@ -22,10 +19,7 @@
         "baselineVoltage": -0.08
     },
     "SPN": {
-        "neuronMorphology": "$DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20210212/morphology/21-6-DE-cor-rep-ax-res3.swc",
-        "neuronParameters": "$DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20210212/parameters.json",
-        "neuronMechanisms": "$DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20210212/mechanisms.json",
-        "neuronModulation": "$DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20210212/modulation.json",
+	"neuronPath" : "$DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20211028",
         "neuronParameterID": 0,
         "neuronModulationID": 0,
         "synapseDensity": "0.05/(1+exp(-(d-150e-6)/5e-6))",

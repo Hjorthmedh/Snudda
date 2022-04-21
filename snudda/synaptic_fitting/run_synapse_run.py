@@ -1,6 +1,10 @@
+import sys
+import os.path
+
 import neuron
 import numpy as np
 
+from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
 
 import bluepyopt.ephys as ephys
@@ -17,16 +21,18 @@ from snudda.neurons.neuron_morphology import NeuronMorphology
 class RunSynapseRun(object):
 
     def __init__(self,
-                 neuron_morphology,
-                 neuron_mechanisms,
-                 neuron_parameters,
-                 neuron_modulation,
                  stim_times,
                  synapse_density,
                  num_synapses,
+                 neuron_path=None,
+                 neuron_morphology=None,
+                 neuron_mechanisms=None,
+                 neuron_parameters=None,
+                 neuron_modulation=None,
                  synapse_section_id=None,  # if given, nSynapses is ignored
                  synapse_section_x=None,  # same # of elements as synapseSectionID
                  neuron_parameter_id=0,  # Which param set in parameter file to use
+                 neuron_morphology_id=0,
                  neuron_modulation_id=0,
                  holding_voltage=-70e-3,
                  holding_current=None,
@@ -59,6 +65,23 @@ class RunSynapseRun(object):
         self.synapse_section_id = None
         self.synapse_section_x = None
 
+        if neuron_path is None and neuron_parameters is not None:
+            neuron_path = os.path.dirname(neuron_parameters)
+
+        self.neuron_path = neuron_path
+
+        if neuron_parameters is None and self.neuron_path is not None:
+            neuron_parameters = os.path.join(self.neuron_path, "parameters.json")
+
+        if neuron_morphology is None and self.neuron_path is not None:
+            neuron_morphology = os.path.join(self.neuron_path, "morphology")
+
+        if neuron_mechanisms is None and self.neuron_path is not None:
+            neuron_mechanisms = os.path.join(self.neuron_path, "mechanisms.json")
+
+        if neuron_modulation is None and self.neuron_path is not None:
+            neuron_modulation = os.path.join(self.neuron_path, "modulation.json")
+
         # Done in NrnSimulatorParallel
         # neuron.h.load_file('stdrun.hoc')
 
@@ -68,7 +91,12 @@ class RunSynapseRun(object):
 
         # We load the neuron morphology object also, used to place synapses
         self.write_log(f"Using morphology: {neuron_morphology}")
-        self.morphology = NeuronMorphology(swc_filename=neuron_morphology)
+        neuron_prototype = NeuronPrototype(neuron_path=neuron_path,
+                                           neuron_name="OptimisationNeuron")
+        self.morphology = neuron_prototype.clone(parameter_id=neuron_parameter_id,
+                                                 morphology_id=neuron_morphology_id,
+                                                 modulation_id=neuron_modulation_id)
+        # self.morphology = NeuronMorphology(swc_filename=neuron_morphology)
 
         # We need to setup the Neuron model
         self.neuron = NeuronModel(param_file=neuron_parameters,
@@ -77,6 +105,7 @@ class RunSynapseRun(object):
                                   cell_name="OptimisationNeuron",
                                   modulation_file=neuron_modulation,
                                   parameter_id=neuron_parameter_id,
+                                  morphology_id=neuron_morphology_id,
                                   modulation_id=neuron_modulation_id)
 
         self.neuron.instantiate(sim=self.sim)

@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import timeit
 from collections import OrderedDict
@@ -93,7 +94,7 @@ class OptimiseSynapsesFull(object):
 
         self.pretty_plot = pretty_plot
 
-        print("Init optMethod = " + str(opt_method))
+        print(f"Init optMethod = {opt_method}")
 
         if self.log_file_name is not None and len(self.log_file_name) > 0:
             print(f"Log file: {self.log_file_name}")
@@ -553,11 +554,16 @@ class OptimiseSynapsesFull(object):
 
         # !!! We need to get the baseline depolarisation in another way
 
+        try:
+            neuron_path = c_prop["neuronPath"]
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
+
         self.rsr_synapse_model = \
-            RunSynapseRun(neuron_morphology=snudda_parse_path(c_prop["neuronMorphology"]),
-                          neuron_mechanisms=snudda_parse_path(c_prop["neuronMechanisms"]),
-                          neuron_parameters=snudda_parse_path(c_prop["neuronParameters"]),
-                          neuron_modulation=snudda_parse_path(c_prop["neuronModulation"]),
+            RunSynapseRun(neuron_path=snudda_parse_path(c_prop["neuronPath"]),
                           stim_times=t_stim,
                           num_synapses=n_synapses,
                           synapse_density=synapse_density,
@@ -1399,12 +1405,12 @@ if __name__ == "__main__":
     os.symlink(os.path.join(snudda_data_dir, "neurons", "mechanisms"), "mechanisms")
     print("Compiling neuron mechanisms: nrnivmodl mechanisms")
     os.system("nrnivmodl mechanisms/")
-    optMethod = args.optMethod
+    opt_method = args.optMethod
 
     print(f"Reading file : {args.datafile}")
     print(f"Synapse type : {args.st}")
     print(f"Synapse params : {args.synapseParameters}")
-    print(f"Optimisation method : {optMethod}")
+    print(f"Optimisation method : {opt_method}")
 
     print(f"IPYTHON_PROFILE = {os.getenv('IPYTHON_PROFILE')}")
     print(f"SNUDDA_DATA = {os.getenv('SNUDDA_DATA')}")
@@ -1435,7 +1441,7 @@ if __name__ == "__main__":
                               synapse_parameter_file=args.synapseParameters,
                               synapse_type=args.st, d_view=d_view,
                               role="master",
-                              log_file_name=log_file_name, opt_method=optMethod)
+                              log_file_name=log_file_name, opt_method=opt_method)
 
     if args.plot or args.prettyplot:
 
