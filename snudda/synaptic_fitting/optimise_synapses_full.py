@@ -1451,4 +1451,4 @@ if __name__ == "__main__":
 
         sys.exit(0)
 
-    ly.parallel_optimise_single_cell(n_trials=100)
+    ly.parallel_optimise_single_cell(n_trials=1000)
