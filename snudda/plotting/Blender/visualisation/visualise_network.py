@@ -105,17 +105,19 @@ class VisualiseNetwork(object):
         VisualiseNetwork.clean_scene()
 
         # Add a light source
-        sun_location = (10, 10, 10)
-        lamp_data = bpy.data.lights.new(name="Sun", type='SUN')
+        # TODO: Add choice of adding a light source, instead of True here.
+        if True:
+            sun_location = (10, 10, 10)
+            lamp_data = bpy.data.lights.new(name="Sun", type='SUN')
 
         # Create new object, pass the light data
-        sun_object = bpy.data.objects.new(name="sun_object", object_data=lamp_data)
+            sun_object = bpy.data.objects.new(name="sun_object", object_data=lamp_data)
 
         # Link object to collection in context
-        bpy.context.collection.objects.link(sun_object)
+            bpy.context.collection.objects.link(sun_object)
 
         # Change light position
-        sun_object.location = sun_location
+            sun_object.location = sun_location
 
         bpy.data.scenes['Scene'].render.engine = 'CYCLES'
         world = bpy.data.worlds['World']
@@ -145,12 +147,20 @@ class VisualiseNetwork(object):
         mat_lts.diffuse_color = (150. / 255, 63. / 255, 212. / 255, 1.0)
 
         mat_snr = bpy.data.materials.new("PKHG")
-        mat_snr.diffuse_color = (204. / 255, 204. / 255, 1. / 255, 1.0)
+
+        # PURPLE
+
+        mat_snr.diffuse_color = (102 / 255, 0 / 255, 102 / 255, 1.0)
+        mat_snr.diffuse_color = (102 / 255, 0 / 255, 102 / 255, 1.0)
+
+        # BLUE-PURPLE
 
         mat_arky = bpy.data.materials.new("PKHG")
-        mat_arky.diffuse_color = (64. / 255, 64. / 255, 1.0, 1.0)
+        mat_arky.diffuse_color = (43 / 255, 0 / 255, 255 / 255, 1.0)
+
+        # GREEN
         mat_proto = bpy.data.materials.new("PKHG")
-        mat_proto.diffuse_color = (1. / 255, 1.0, 1. / 255, 1.0)
+        mat_proto.diffuse_color = (0 / 255, 130 / 255, 0 / 255, 1.0)
 
         mat_other = bpy.data.materials.new("PKHG")
         mat_other.diffuse_color = (0.4, 0.4, 0.4, 1.0)
@@ -164,7 +174,7 @@ class VisualiseNetwork(object):
                            "lts": mat_lts,
                            "snrneurons": mat_snr,
                            "proto": mat_proto,
-                           "akry": mat_arky,
+                           "arky": mat_arky,
                            "synapse": mat_synapse,
                            "other": mat_other}
 

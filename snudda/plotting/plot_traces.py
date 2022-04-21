@@ -302,7 +302,6 @@ class PlotTraces:
         if not fig_size:
             fig_size = (10, 5)
 
-
         if skip_time is not None:
             time_idx = np.where(self.time >= skip_time)[0]
         else:
@@ -395,4 +394,3 @@ if __name__ == "__main__":
         for neuron_type in npt.output_load.iter_neuron_type():
             npt.plot_trace_neuron_type(neuron_type=neuron_type, num_traces=args.max_num_traces,
                                        offset=args.plot_offset, skip_time=args.skip_time)
-        

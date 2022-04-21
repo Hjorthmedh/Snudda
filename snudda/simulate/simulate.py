@@ -134,6 +134,11 @@ class SnuddaSimulate(object):
             self.log_file = os.path.join(self.network_path, "log", "simulation-log.txt")
 
         if type(self.log_file) == str:
+            log_dir_name = os.path.dirname(self.log_file)
+            if not os.path.exists(log_dir_name):
+                print(f"Creating {log_dir_name}")
+                os.makedirs(log_dir_name)
+
             self.log_file += f'-{int(self.pc.id())}'
             self.log_file = open(self.log_file, "w")
 
@@ -909,7 +914,7 @@ class SnuddaSimulate(object):
     def add_gap_junction(self,
                          section, section_dist,
                          gid_source_gj, gid_dest_gj,
-                         g_gap_junction=0.5e-9):
+                         g_gap_junction):
 
         """
         Add gap junction.
@@ -1255,10 +1260,11 @@ class SnuddaSimulate(object):
 
         sections = self.neurons[cell_id].map_id_to_compartment(sec_id)
 
-        v = self.sim.neuron.h.Vector()
+        
 
         self.pc.threshold(cell_id, self.spike_threshold)  # TODO: Set individual spike thresholds based on parameters
         for s, sx, sid in zip(sections, sec_x, sec_id):
+            v = self.sim.neuron.h.Vector()
             v.record(getattr(s(sx), '_ref_v'))
 
             # From the Snudda synapse matrix. sec_id 0 is soma, sec_id >= 1 is dendrite, sec_id <= -1 is axon

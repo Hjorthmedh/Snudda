@@ -233,6 +233,7 @@ class SnuddaLoadNetworkSimulation:
         for x in neuron_types:
             yield x
 
+
 def load_network_simulation_cli():
     from argparse import ArgumentParser
 
