@@ -121,8 +121,8 @@ class TestProject(unittest.TestCase):
         network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         sl = SnuddaLoad(network_file)
 
-        dspn_id_list = sl.get_cell_id_of_type("dSPN")
-        ispn_id_list = sl.get_cell_id_of_type("iSPN")
+        dspn_id_list = sl.get_neuron_id_of_type("dSPN")
+        ispn_id_list = sl.get_neuron_id_of_type("iSPN")
 
         tot_proj_ctr = 0
 
@@ -167,7 +167,7 @@ class TestProject(unittest.TestCase):
         os.environ["IPYTHONDIR"] = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
         os.environ["IPYTHON_PROFILE"] = "default"
         os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
-        time.sleep(10)
+        time.sleep(15)
 
         # Run place, detect and prune in parallel by passing rc
         from ipyparallel import Client

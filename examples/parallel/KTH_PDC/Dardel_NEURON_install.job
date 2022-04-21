@@ -1,0 +1,20 @@
+#!/bin/bash -l
+#SBATCH --partition=main
+#SBATCH -o log/NEURON_install-%j-output.txt
+#SBATCH -e log/NEURON_install-%j-error.txt
+#SBATCH -t 0:30:00
+#SBATCH -J NeuronInstall
+#SBATCH -A snic2021-5-492
+#SBATCH --nodes=1
+#SBATCH --tasks-per-node=64
+
+# OBS, you need to wget the latest miniconda. Save in this folder.
+#
+# wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+# chmod u+x Miniconda3-latest-Linux-x86_64.sh
+#
+# and you also need to git clone neuron into your local/dardel folder
+# git clone https://github.com/neuronsimulator/nrn -b 8.0.0
+
+
+srun -n 1 ./Dardel_NEURON_install.sh

@@ -1,24 +1,35 @@
 # In addition to adding synapses using touch detection we also want the ability to add connections
 # when we do not have an axon, for example over long range between structures, to connect them together.
 # This is what project.py is responsible for.
-
-import numpy as np
 import json
 import os
-import h5py
+from collections import OrderedDict
 
+import h5py
+import numpy as np
 from scipy.interpolate import griddata
 
 from snudda.detect.detect import SnuddaDetect
-from snudda.neurons.neuron_morphology import NeuronMorphology
+from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.load import SnuddaLoad
 
 
 class SnuddaProject(object):
+    """ Adds projections between neurons, useful for connecting different regions with long range connections. """
 
     # TODO: Add support for log files!!
     # TODO: Add support for parallel execution
     def __init__(self, network_path, rng=None, random_seed=None, h5libver=None):
+
+        """
+        Constructor.
+
+        Args:
+            network_path: Path to network directory
+            rng: Numpy random stream
+            random_seed: Random seed
+            h5libver: Version of hdf5 driver to use
+        """
 
         self.network_path = network_path
         self.network_info = None
@@ -42,7 +53,7 @@ class SnuddaProject(object):
         config_file = os.path.join(self.network_path, "network-config.json")
 
         with open(config_file, "r") as f:
-            self.config = json.load(f)
+            self.config = json.load(f, object_pairs_hook=OrderedDict)
 
         if not h5libver:
             self.h5libver = "latest"
@@ -64,6 +75,8 @@ class SnuddaProject(object):
 
     def read_neuron_positions(self):
 
+        """ Reads in neuron positions from network-neuron-positions.hdf5 """
+
         position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
         self.network_info = SnuddaLoad(position_file)
 
@@ -76,11 +89,27 @@ class SnuddaProject(object):
     # This is a simplified version of the prototype load in detect
     def read_prototypes(self):
 
+        """ Reads in neuron prototypes. Simplified version of what same function in detect.py does. """
+
         for name, definition in self.config["Neurons"].items():
 
             morph = definition["morphology"]
+            param = definition["parameters"]
 
-            self.prototype_neurons[name] = NeuronMorphology(name=name, swc_filename=morph)
+            if "modulation" in definition:
+                modulation = definition["modulation"]
+            else:
+                modulation = None
+
+            mechanisms = definition["mechanisms"]
+
+            # TODO: Need to update to use NeuronPrototype !!!
+            self.prototype_neurons[name] = NeuronPrototype(neuron_name=name,
+                                                           neuron_path=None,
+                                                           morphology_path=morph,
+                                                           parameter_path=param,
+                                                           modulation_path=modulation,
+                                                           mechanism_path=mechanisms)
 
         # TODO: The code below is duplicate from detect.py, update so both use same code base
         for name, definition in self.config["Connectivity"].items():
@@ -104,6 +133,8 @@ class SnuddaProject(object):
 
     def project(self, write=True):
 
+        """ Create projections between neurons. """
+
         for (pre_type, post_type), connection_info in self.connectivity_distributions.items():
             self.connect_projection_helper(pre_type, post_type, connection_info)
 
@@ -112,23 +143,33 @@ class SnuddaProject(object):
 
     def connect_projection_helper(self, pre_neuron_type, post_neuron_type, connection_info):
 
+        """
+        Helper function for project.
+
+        Args:
+            pre_neuron_type: Type of presynaptic neuron
+            post_neuron_type: Type of postsynaptic neuron
+            connection_info: Connection info
+
+        """
+
         for connection_type, con_info in connection_info.items():
 
-            if "projectionFile" not in con_info:
+            if "projectionFile" not in con_info or "projectionName" not in con_info:
                 # Not a projection, skipping
                 continue
 
             projection_file = con_info["projectionFile"]
             with open(projection_file, "r") as f:
-                projection_data = json.load(f)
+                projection_data = json.load(f, object_pairs_hook=OrderedDict)
 
             if "projectionName" in con_info:
                 proj_name = con_info["projectionName"]
-                projection_source = np.array(projection_data[proj_name]["source"])*1e-6
-                projection_destination = np.array(projection_data[proj_name]["destination"])*1e-6
+                projection_source = np.array(projection_data[proj_name]["source"]) * 1e-6
+                projection_destination = np.array(projection_data[proj_name]["destination"]) * 1e-6
             else:
-                projection_source = np.array(projection_data["source"])*1e-6
-                projection_destination = np.array(projection_data["destination"])*1e-6
+                projection_source = np.array(projection_data["source"]) * 1e-6
+                projection_destination = np.array(projection_data["destination"]) * 1e-6
 
             if "projectionRadius" in con_info:
                 projection_radius = con_info["projectionRadius"]
@@ -167,11 +208,11 @@ class SnuddaProject(object):
             channel_model_id = con_info["channelModelID"]
 
             # Find all the presynaptic neurons in the network
-            pre_id_list = self.network_info.get_cell_id_of_type(pre_neuron_type)
+            pre_id_list = self.network_info.get_neuron_id_of_type(pre_neuron_type)
             pre_positions = self.network_info.data["neuronPositions"][pre_id_list, :]
 
             # Find all the postsynaptic neurons in the network
-            post_id_list = self.network_info.get_cell_id_of_type(post_neuron_type)
+            post_id_list = self.network_info.get_neuron_id_of_type(post_neuron_type)
             post_name_list = [self.network_info.data["name"][x] for x in post_id_list]
             post_positions = self.network_info.data["neuronPositions"][post_id_list, :]
 
@@ -214,7 +255,15 @@ class SnuddaProject(object):
                     morph_prototype = self.prototype_neurons[t_name]
                     position = self.network_info.data["neurons"][t_id]["position"]
                     rotation = self.network_info.data["neurons"][t_id]["rotation"]
-                    morph = morph_prototype.clone(position=position, rotation=rotation)
+                    parameter_id = self.network_info.data["neurons"][t_id]["parameterID"]
+                    morphology_id = self.network_info.data["neurons"][t_id]["morphologyID"]
+                    modulation_id = self.network_info.data["neurons"][t_id]["modulationID"]
+
+                    morph = morph_prototype.clone(parameter_id=parameter_id,
+                                                  morphology_id=morphology_id,
+                                                  modulation_id=modulation_id,
+                                                  position=position,
+                                                  rotation=rotation)
 
                     # We are not guaranteed to get n_syn positions, so use len(sec_x) to get how many after
                     # TODO: Fix so dendrite_input_locations always returns  n_syn synapses
@@ -225,8 +274,13 @@ class SnuddaProject(object):
                     # We need to convert xyz into voxel coordinates to match data format of synapse matrix
                     xyz = np.round((xyz - self.simulation_origo) / self.voxel_size)
 
-                    cond = self.rng.normal(conductance_mean, conductance_std, len(sec_x))
-                    cond = np.maximum(cond, conductance_mean*0.1)  # Lower bound, prevent negative.
+                    # https://www.nature.com/articles/nrn3687 -- lognormal
+                    # TODO: Precompute these
+                    mu = np.log(conductance_mean ** 2 / np.sqrt(conductance_mean ** 2 + conductance_std ** 2))
+                    sigma = np.sqrt(np.log(1 + conductance_std ** 2 / conductance_mean ** 2))
+
+                    cond = self.rng.lognormal(mu, sigma, len(sec_x))
+                    cond = np.maximum(cond, conductance_mean * 0.1)  # Lower bound, prevent negative.
                     param_id = self.rng.integers(1000000, size=len(sec_x))
 
                     # TODO: Add code to extend synapses matrix if it is full
@@ -236,12 +290,14 @@ class SnuddaProject(object):
                              xyz[i, 0], xyz[i, 1], xyz[i, 2],
                              -1,  # Hypervoxelid
                              channel_model_id,
-                             ax_dist*1e6, dist_to_soma[i]*1e6,
+                             ax_dist * 1e6, dist_to_soma[i] * 1e6,
                              sec_id[i], sec_x[i] * 1000,
                              cond[i] * 1e12, param_id[i]]
                         self.synapse_ctr += 1
 
     def write(self):
+
+        """ Writes projection data to file. """
 
         # Before writing synapses, lets make sure they are sorted.
         # Sort order: columns 1 (dest), 0 (src), 6 (synapse type)

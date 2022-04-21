@@ -15,8 +15,10 @@ import time
 class PlotSpikeRaster(object):
 
     def __init__(self, spike_file_name, network_file=None, skip_time=0.0, type_order=None, end_time=2.0,
-                 figsize=None):
-
+                 figsize=None,type_division=None):
+        #type_division: divides plot in two parts based on neuron type.
+        #   Example 1: [["dspn","ispn"],["chin", "fsn","lts"]]
+        #   Example 2: [["dspn","ispn","chin", "fsn","lts"],[]]
         self.spike_file_name = spike_file_name
 
         self.time = []
@@ -46,9 +48,10 @@ class PlotSpikeRaster(object):
             self.plot_raster(skip_time=skip_time)
             time.sleep(1)
         else:
-
+            if type_division is None:
+                type_division = [["dspn", "ispn"], ["chin", "fsn", "lts"]]
             self.sort_traces()
-            self.plot_colour_raster(skip_time=skip_time, type_order=type_order)
+            self.plot_colour_raster(skip_time=skip_time, type_order=type_order,type_division=type_division)
             time.sleep(1)
 
     ############################################################################
@@ -91,15 +94,14 @@ class PlotSpikeRaster(object):
         plt.draw()
         plt.pause(0.001)
 
-
         print("Figure done")
 
     ############################################################################
 
-    def plot_colour_raster(self, skip_time, plot_idx="sort", type_order=None, figsize=None):
+    def plot_colour_raster(self, skip_time, plot_idx="sort", type_order=None, figsize=None, type_division=None):
 
         if plot_idx == "sort":
-          plot_idx, tick_pos, tick_text, type_dict = self.sort_traces(type_order)
+            plot_idx, tick_pos, tick_text, type_dict = self.sort_traces(type_order)
         else:
             tick_pos, tick_text = None, None
 
@@ -119,12 +121,21 @@ class PlotSpikeRaster(object):
         cols = [colours[c] for c in cell_types]
 
         if not figsize:
-            figsize = (6,4)
+            figsize = (6, 4)
+
         fig = plt.figure(figsize=figsize)
         r = 4
         grid = plt.GridSpec(r, r, hspace=0, wspace=0)
-        ax = fig.add_subplot(grid[1:, :])
-        atop = fig.add_subplot(grid[0, :])
+        ax = fig.add_subplot(grid[2:, :])
+        if (len(type_division[0]) > 0) & (len(type_division[1]) > 0):
+            atop = fig.add_subplot(grid[0, :])
+            atop2 = fig.add_subplot(grid[1, :])
+        elif (len(type_division[0]) == 0) & (len(type_division[1]) == 0):
+            print("No neuron type to show in histogram due to empty variable type_division.")
+        elif (len(type_division[0]) == 0) | (len(type_division[1]) == 0):
+            atop = fig.add_subplot(grid[0:2, :])
+            atop2 = atop
+
         t_idx = np.where(self.time >= skip_time)[0]
 
         cols2 = [colours[cell_types[int(s)]] for s in self.spike_id]
@@ -134,25 +145,41 @@ class PlotSpikeRaster(object):
                    color=[cols2[t] for t in t_idx], s=1,
                    linewidths=0.1)
 
+        # histogram
         spike_count = []
 
-        end_time = np.max([self.end_time, np.max(self.time)]) - skip_time
-
-        # histogram
+        max0=0
+        max1=0
+    
         for t in type_order:
-            pruned_spikes = [self.time[int(i)] - skip_time for i in t_idx if i in type_dict[t]]
+            pruned_spikes = self.time[type_dict[t]] - skip_time
+            pruned_spikes = pruned_spikes[pruned_spikes>0]
+            num_of_type = len([x["type"] for x in self.network_info.data["neurons"] if x["type"].lower() == t])
+            bin_width = 0.01 #10  # ms
+            bin_range = np.arange(0, self.end_time + skip_time + bin_width, bin_width)
 
-            num_of_type = len([x["type"] for x in self.network_info.data["neurons"] if x["type"].upper() == t.upper()])
-
-            atop.hist(pruned_spikes,
-                      bins=int(end_time * 100),
-                      range=(0, end_time),
-                      density=0,
-                      color=colours[t],
-                      alpha=1.0,
-                      histtype='step')
-
-            spike_count.append((t, len(pruned_spikes), num_of_type))
+            if t in type_division[0]:
+                counts0, bins0, bars0 = atop.hist(pruned_spikes,
+                                                  bins=bin_range,
+                                                  range=(skip_time, self.time[-1]),
+                                                  density=0,
+                                                  color=colours[t],
+                                                  alpha=1.0,
+                                                  histtype='step',
+                                                  weights=np.ones_like(pruned_spikes) / bin_width / num_of_type)
+                spike_count.append((t, len(pruned_spikes), num_of_type))
+                max0 = max(np.append(counts0, max0))
+            elif t in type_division[1]:
+                counts1, bins1, bars1 = atop2.hist(pruned_spikes,
+                                                   bins=bin_range,
+                                                   range=(skip_time, self.time[-1]),
+                                                   density=0,
+                                                   color=colours[t],
+                                                   alpha=1.0,
+                                                   histtype='step',
+                                                   weights=np.ones_like(pruned_spikes) / bin_width / num_of_type)
+                spike_count.append((t, len(pruned_spikes), num_of_type))
+                max1 = max(np.append(counts1, max1))
 
         ax.invert_yaxis()
 
@@ -164,17 +191,22 @@ class PlotSpikeRaster(object):
             ax.ylabel('Neurons')
 
         # set axes ---------------------------------------------------
-        atop.axis('off')
+        atop.set_xticklabels([])
+        atop.set_ylabel('Mean spikes/s')
         # UPDATE here to set specific range for plot window!!!!
-
+        end_time = np.max([self.end_time, np.max(self.time)]) - skip_time
         for st, sc, n in spike_count:
             print(f"{st} ({n}): {sc/(n*end_time)} Hz, total spikes {sc}")
-
-        atop.set_xlim([-0.01, end_time + 0.01])
+        if len(type_division[0]) > 0:
+            atop.set_xlim([-0.01, end_time + 0.01])
+            atop.set_yticks([0, round(max0*0.8)])  #Make sure ticks don't overlap between subplots
+        if len(type_division[1]) > 0:
+            atop2.set_xticklabels([])
+            atop2.set_xlim([-0.01, end_time + 0.01])
+            atop2.set_yticks([0, round(max1*0.8)])
         ax.set_xlim([-0.01, end_time + 0.01])
-
         m = len(self.network_info.data["neurons"])
-        offset = m * 0.05  # 5%
+        offset = m * 0.08  # 5%
         ax.set_ylim([-offset, m + offset])
         # -----------------------------------------------------------
         # plt.savefig('figures/Network-spike-raster-' + str(self.ID) + "-colour.pdf")
@@ -187,7 +219,8 @@ class PlotSpikeRaster(object):
 
         # have updated the name of the saved file to be the same as the fileName
         fn = os.path.basename(self.spike_file_name)
-        fig_name = '{}/{}{}'.format(fig_path, fn.split('.')[0], '-colour.pdf')
+        #fig_name = '{}/{}{}'.format(fig_path, fn.split('.')[0], '-colour3.pdf')
+        fig_name = '{}/{}{}'.format(fig_path, fn.split('.')[0], '-colour3.png')
         print(f"Saving {fig_name}")
         plt.savefig(fig_name, dpi=600)
 
@@ -195,7 +228,6 @@ class PlotSpikeRaster(object):
         plt.show()
         plt.draw()
         plt.pause(0.001)
-
 
         ############################################################################
 
@@ -244,10 +276,8 @@ class PlotSpikeRaster(object):
 
         return plot_lookup
 
-    ############################################################################
-
-
 ############################################################################
+
 
 if __name__ == "__main__":
 

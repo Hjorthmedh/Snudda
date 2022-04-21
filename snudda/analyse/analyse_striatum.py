@@ -4,11 +4,11 @@
 #
 #
 
-import numpy as np
-import sys
 import os
+import sys
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from snudda.analyse.analyse import SnuddaAnalyse
 
@@ -17,21 +17,18 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
 
     def __init__(self, sim_dir, volume_type="cube", side_len=300e-6):
 
+        assert os.path.exists(sim_dir), f"SnuddaAnalyseStriatum: Error {sim_dir} does not exist!"
+
         if os.path.isfile(sim_dir):
-            # We allow the user to also send in a hdf5 file as simDir...
+            # We allow the user to also send in a hdf5 file as sim_dir...
             hdf5_file = sim_dir
-            self.simDir = os.path.dirname(sim_dir)
+            self.sim_dir = os.path.dirname(sim_dir)
         else:
-            self.simDir = sim_dir
-            hdf5_file = sim_dir + "/network-synapses.hdf5"
+            assert os.path.isdir(sim_dir), f"SnuddaAnalyseStriatum: Expected sim_dir {sim_dir} to be a directory"
+            self.sim_dir = sim_dir
+            hdf5_file = os.path.join(sim_dir, "network-synapses.hdf5")
 
-            if not os.path.exists(hdf5_file):
-                alt_hdf5_file = sim_dir + "/network-connect-voxel-pruned-synapse-file.hdf5"
-
-                if os.path.exists(alt_hdf5_file):
-                    hdf5_file = alt_hdf5_file
-
-        print("Loading " + str(hdf5_file))
+        print(f"Loading {hdf5_file}")
 
         super().__init__(hdf5_file=hdf5_file, load_cache=True,
                          volume_type=volume_type,
@@ -44,10 +41,10 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
 
     def plot_fslt_scum_dist(self, plot_fs=True, plot_lts=True):
 
-        pair_list_list = [[("FSN", "dSPN"), ("LTS", "dSPN")],
-                          [("FSN", "iSPN"), ("LTS", "iSPN")]]
-        figure_name_list = ["synapseCumulativeDistance-FSN-and-LTS-to-dSPN.png",
-                            "synapseCumulativeDistance-FSN-and-LTS-to-iSPN.png"]
+        pair_list_list = [[("FS", "dSPN"), ("LTS", "dSPN")],
+                          [("FS", "iSPN"), ("LTS", "iSPN")]]
+        figure_name_list = ["synapseCumulativeDistance-FS-and-LTS-to-dSPN.png",
+                            "synapseCumulativeDistance-FS-and-LTS-to-iSPN.png"]
         figure_colour_list = [(6. / 255, 31. / 255, 85. / 255),
                               (150. / 255, 63. / 255, 212. / 255)]
         fill_range = [[0, 100e-6], [50e-6, 250e-6]]
@@ -57,7 +54,7 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
         assert plot_fs or plot_lts, "You must plot either FS or LTS, or both"
 
         if not plot_fs:
-            figure_name_list = [x.replace("FSN-and-", "") for x in figure_name_list]
+            figure_name_list = [x.replace("FS-and-", "") for x in figure_name_list]
         if not plot_lts:
             figure_name_list = [x.replace("and-LTS-", "") for x in figure_name_list]
 
@@ -77,7 +74,7 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
                     continue
 
                 try:
-                    pair_id = tuple([self.allTypes.index(x) for x in pair])
+                    pair_id = tuple([self.all_types.index(x) for x in pair])
                 except:
                     import traceback
                     tstr = traceback.format_exc()
@@ -130,10 +127,10 @@ if __name__ == "__main__":
 
     if len(sys.argv) > 1:
         sim_dir = sys.argv[1]
-        print("Reading network from " + str(sim_dir))
+        print(f"Reading network from {sim_dir}")
     else:
         print("Please specify which directory the striatum network files is in")
-        exit(-1)
+        sys.exit(-1)
 
     nas = SnuddaAnalyseStriatum(sim_dir, volume_type="cube")
 
@@ -158,34 +155,34 @@ if __name__ == "__main__":
 
     nas.plot_synapse_cum_dist_summary(pair_list=[("dSPN", "dSPN"),
                                                  ("iSPN", "dSPN"),
-                                                 ("FSN", "dSPN"),
+                                                 ("FS", "dSPN"),
                                                  ("LTS", "dSPN"),
                                                  ("ChIN", "dSPN")])
 
     nas.plot_synapse_cum_dist_summary(pair_list=[("dSPN", "iSPN"),
                                                  ("iSPN", "iSPN"),
-                                                 ("FSN", "iSPN"),
+                                                 ("FS", "iSPN"),
                                                  ("LTS", "iSPN"),
                                                  ("ChIN", "iSPN")])
 
     if plotHenrike:
         yMaxH = None  # 0.5
 
-        nas.plot_connection_probability("dSPN", "iSPN", 
-                                        dist_3d=dist3D, 
-                                        exp_max_dist=[50e-6, 100e-6], 
+        nas.plot_connection_probability("dSPN", "iSPN",
+                                        dist_3d=dist3D,
+                                        exp_max_dist=[50e-6, 100e-6],
                                         exp_data=[3 / 47.0, 3 / 66.0],
                                         exp_data_detailed=[(3, 47), (3, 66)],
                                         y_max=yMaxH)
-        nas.plot_connection_probability("dSPN", "dSPN", 
-                                        dist_3d=dist3D, 
-                                        exp_max_dist=[50e-6, 100e-6], 
+        nas.plot_connection_probability("dSPN", "dSPN",
+                                        dist_3d=dist3D,
+                                        exp_max_dist=[50e-6, 100e-6],
                                         exp_data=[5 / 19.0, 3 / 43.0],
                                         exp_data_detailed=[(5, 19), (3, 43)],
                                         y_max=yMaxH)
-        nas.plot_connection_probability("iSPN", "dSPN", 
-                                        dist_3d=dist3D, 
-                                        exp_max_dist=[50e-6, 100e-6], 
+        nas.plot_connection_probability("iSPN", "dSPN",
+                                        dist_3d=dist3D,
+                                        exp_max_dist=[50e-6, 100e-6],
                                         exp_data=[13 / 47.0, 10 / 80.0],
                                         exp_data_detailed=[(13, 47), (10, 80)],
                                         y_max=yMaxH)
@@ -203,7 +200,7 @@ if __name__ == "__main__":
 
     # !!! Check edge effects
 
-    nas.plot_incoming_connections(neuron_type="iSPN", pre_type="FSN")
+    nas.plot_incoming_connections(neuron_type="iSPN", pre_type="FS")
     nas.plot_incoming_connections(neuron_type="iSPN", pre_type="ChIN")
     nas.plot_incoming_connections(neuron_type="iSPN", pre_type="LTS")
 
@@ -218,45 +215,45 @@ if __name__ == "__main__":
         nas.plot_incoming_connections(neuron_type="iSPN", pre_type="ChIN")
 
     if True:
-        nas.plot_connection_probability("FSN", "iSPN",
+        nas.plot_connection_probability("FS", "iSPN",
                                         dist_3d=dist3D,
                                         exp_max_dist=[100e-6, 150e-6, 250e-6],
                                         exp_data=[6 / 9.0, 21 / 54.0, 27 / 77.0],
                                         exp_data_detailed=[(6, 9), (21, 54), (27, 77)],
                                         y_max=None)
 
-        nas.plot_connection_probability("FSN", "dSPN",
+        nas.plot_connection_probability("FS", "dSPN",
                                         dist_3d=dist3D,
                                         exp_max_dist=[100e-6, 150e-6, 250e-6],
                                         exp_data=[8 / 9.0, 29 / 48.0, 48 / 90.0],
                                         exp_data_detailed=[(8, 9), (29, 48), (48, 90)],
                                         y_max=None)
 
-        nas.plot_num_synapses_per_pair("FSN", "dSPN")
-        nas.plot_num_synapses_per_pair("FSN", "iSPN")
+        nas.plot_num_synapses_per_pair("FS", "dSPN")
+        nas.plot_num_synapses_per_pair("FS", "iSPN")
 
         #  Gittis,...,Kreitzer 2010 (p2228) -- 7/12 (and 3/4 reciprocal) -- distance?
         # FS->FS synapses weaker, 1.1 +/- 1.5nS
 
-        nas.plot_connection_probability("FSN", "FSN",
+        nas.plot_connection_probability("FS", "FS",
                                         dist_3d=dist3D,
                                         exp_max_dist=[250e-6],
                                         exp_data=[7 / 12.0],
                                         exp_data_detailed=[(7, 12)])
 
-        nas.plot_num_synapses_per_pair("FSN", "FSN")
+        nas.plot_num_synapses_per_pair("FS", "FS")
 
         # Koos & Tepper 1999, 2/6
-        nas.plot_connection_probability("FSN", "FSN",
+        nas.plot_connection_probability("FS", "FS",
                                         dist_3d=dist3D,
                                         connection_type="gapjunctions",
                                         exp_max_dist=[250e-6, 250e-6],
                                         exp_data=[2 / 6.0, 3 / 7.0],
                                         exp_data_detailed=[(2, 6), (3, 7)], )
 
-        nas.plot_num_synapses_per_pair("FSN", "FSN", connection_type="gapjunctions")
+        nas.plot_num_synapses_per_pair("FS", "FS", connection_type="gapjunctions")
 
-        nas.plot_incoming_connections(neuron_type="FSN", pre_type="FSN",
+        nas.plot_incoming_connections(neuron_type="FS", pre_type="FS",
                                       connection_type="gapjunctions")
 
     nas.plot_fslt_scum_dist()
@@ -266,14 +263,12 @@ if __name__ == "__main__":
     nas.plot_num_synapses_per_pair("dSPN", "ChIN")
     nas.plot_num_synapses_per_pair("iSPN", "ChIN")
 
-    nas.plot_incoming_connections(neuron_type="FSN", pre_type="FSN")
-    nas.plot_incoming_connections(neuron_type="FSN", pre_type="FSN")
+    nas.plot_incoming_connections(neuron_type="FS", pre_type="FS")
+    nas.plot_incoming_connections(neuron_type="FS", pre_type="FS")
 
-    nas.plot_num_synapses_per_pair("ChIN", "FSN")
+    nas.plot_num_synapses_per_pair("ChIN", "FS")
 
     nas.plot_synapse_cum_dist()
-
-    nas.plot_synapse_dist(density_flag=True)
 
     if plotLTS:
         # 3/21 LTS->MS, Basal Ganglia book --- distance??
@@ -297,7 +292,7 @@ if __name__ == "__main__":
         # Voltage deflection... 0.5mV and 0.8mV
         # (check Szydlowski et al 2013, what Cl rev)
         #
-        nas.plot_connection_probability("FSN", "LTS",
+        nas.plot_connection_probability("FS", "LTS",
                                         dist_3d=dist3D,
                                         exp_max_dist=[250e-6],
                                         exp_data=[2.0 / 12],
@@ -306,7 +301,7 @@ if __name__ == "__main__":
         nas.plot_num_synapses_per_pair("LTS", "dSPN")
         nas.plot_num_synapses_per_pair("LTS", "iSPN")
         nas.plot_num_synapses_per_pair("LTS", "ChIN")
-        nas.plot_num_synapses_per_pair("FSN", "LTS")
+        nas.plot_num_synapses_per_pair("FS", "LTS")
 
         # This plots figures for the article
 
@@ -375,7 +370,7 @@ if __name__ == "__main__":
         #                              expDataDetailed=[(62,89)],
         #                              yMax=1.0)
 
-        nas.plot_connection_probability("ChIN", "FSN",
+        nas.plot_connection_probability("ChIN", "FS",
                                         dist_3d=dist3D,
                                         y_max=None)
 
@@ -408,18 +403,20 @@ if __name__ == "__main__":
     if True:
         nas.plot_incoming_connections(neuron_type="dSPN", pre_type="iSPN")
         nas.plot_incoming_connections(neuron_type="dSPN", pre_type="dSPN")
-        nas.plot_incoming_connections(neuron_type="dSPN", pre_type="FSN")
+        nas.plot_incoming_connections(neuron_type="dSPN", pre_type="FS")
 
         nas.plot_incoming_connections(neuron_type="iSPN", pre_type="iSPN")
         nas.plot_incoming_connections(neuron_type="iSPN", pre_type="dSPN")
-        nas.plot_incoming_connections(neuron_type="iSPN", pre_type="FSN")
+        nas.plot_incoming_connections(neuron_type="iSPN", pre_type="FS")
 
         nas.plot_incoming_connections(neuron_type="dSPN", pre_type="LTS")
         nas.plot_incoming_connections(neuron_type="iSPN", pre_type="LTS")
         nas.plot_incoming_connections(neuron_type="ChIN", pre_type="LTS")
 
         nas.plot_incoming_connections(neuron_type="LTS", pre_type="ChIN")
-        nas.plot_incoming_connections(neuron_type="LTS", pre_type="FSN")
+        nas.plot_incoming_connections(neuron_type="LTS", pre_type="FS")
 
         nas.plot_incoming_connections(neuron_type="ChIN", pre_type="dSPN")
         nas.plot_incoming_connections(neuron_type="ChIN", pre_type="iSPN")
+
+    nas.plot_synapse_dist(density_flag=True)

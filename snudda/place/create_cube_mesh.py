@@ -1,8 +1,20 @@
-import numpy as np
 import os
+
+import numpy as np
 
 
 def create_cube_mesh(file_name, centre_point, side_len, description=None, verbose=False):
+    """
+    Creates a cube mesh in wavefront file format.
+
+    Args:
+        file_name (str) : Path to output file
+        centre_point (float, float, float): Centre of cube
+        side_len (float) : Side of cube
+        description (str) : Description added to file header
+        verbose (bool) : Display extra information
+
+    """
 
     mesh_dir = os.path.dirname(file_name)
     if len(mesh_dir) > 0 and not os.path.exists(mesh_dir):
@@ -13,10 +25,10 @@ def create_cube_mesh(file_name, centre_point, side_len, description=None, verbos
 
     if verbose:
         print("Creating cube mesh")
-        print("File: " + str(file_name))
-        print("Centre: " + str(centre_point))
-        print("Side: " + str(side_len))
-        print("Description: " + str(description))
+        print(f"File: {file_name}")
+        print(f"Centre: {centre_point}")
+        print(f"Side: {side_len}")
+        print(f"Description: {description}")
 
     vertex = np.array([[0.0, 0.0, 0.0],
                        [0.0, 0.0, 1.0],

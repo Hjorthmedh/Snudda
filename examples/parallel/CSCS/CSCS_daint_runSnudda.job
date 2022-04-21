@@ -1,0 +1,24 @@
+#!/bin/bash -l
+
+#SBATCH --job-name=Snudda
+#SBATCH --ntasks=36
+#SBATCH --cpus-per-task=1
+#SBATCH --account=ich030
+#SBATCH --time=01:00:00
+#SBATCH --partition=normal
+#SBATCH --constraint=mc
+#SBATCH --error=save/snudda-std.err
+#SBATCH --output=save/snudda-std.out
+
+export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
+
+module load daint-mc
+module swap PrgEnv-cray PrgEnv-gnu
+source ~/snudda_env/bin/activate
+
+export IPYTHONDIR="/users/$USER/.ipython"
+rm -r $IPYTHONDIR
+export IPYTHON_PROFILE=mpi
+
+
+./CSCS_daint_runSnudda.sh

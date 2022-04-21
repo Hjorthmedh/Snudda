@@ -56,9 +56,9 @@ class PlotInput(object):
 
     def plot_input(self, neuron_type, num_neurons, fig_size=None):
 
-        neuron_id = self.network_info.get_cell_id_of_type(neuron_type=neuron_type,
-                                                          num_neurons=num_neurons,
-                                                          random_permute=True)
+        neuron_id = self.network_info.get_neuron_id_of_type(neuron_type=neuron_type,
+                                                            num_neurons=num_neurons,
+                                                            random_permute=True)
         target_id = [str(x) for x in np.sort(neuron_id)]
 
         if len(target_id) == 0:
@@ -79,7 +79,7 @@ class PlotInput(object):
         assert np.array([self.network_info.data["populationUnit"][x] == population_unit_id for x in neuron_id]).all()
 
         if neuron_type:
-            neuron_id2 = self.network_info.get_cell_id_of_type(neuron_type)
+            neuron_id2 = self.network_info.get_neuron_id_of_type(neuron_type)
             neuron_id = list(set(neuron_id).intersection(set(neuron_id2)))
 
         if num_neurons:

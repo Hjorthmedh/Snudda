@@ -1,12 +1,37 @@
-import os
 import json
+import os
 import timeit
 from collections import OrderedDict
 
 
 class BenchmarkLogging:
+    """ Saves benchmark logging when running snudda from command line.
+
+    Trivial example below:
+
+    import time
+    bl = BenchmarkLogging("/home/hjorth/HBP/Snudda/snudda")
+    bl.start_timer("test")
+    time.sleep(1)
+    bl.start_timer("test2")
+    time.sleep(2)
+    bl.stop_timer("test2")
+    bl.stop_timer("test")
+    bl.write_log()
+
+    """
 
     def __init__(self, network_path, parallel_flag=False, log_file=None, running_neuron=False):
+
+        """
+        Constructor.
+
+        Args:
+            network_path (str): Path to network
+            parallel_flag (bool): Running in parallel, should we determine number of workers?
+            log_file (str) : Log file to save text to
+            running_neuron (bool) : Are we running NEURON? (Sets method for determining number of workers)
+        """
 
         if log_file:
             self.log_file = log_file
@@ -26,9 +51,17 @@ class BenchmarkLogging:
 
     def get_number_of_workers(self, running_neuron):
 
+        """
+        Returns number of workers.
+
+        Args:
+            running_neuron (bool) : Are we running NEURON? Used when determining number of workers).
+
+        """
+
         if running_neuron:
             # We are running neuron, different way to detect number of workers
-            from mpi4py import MPI
+            from mpi4py import MPI   # Import mpi before NEURON for parallel
             from neuron import h
             self.pc = h.ParallelContext()
             return self.pc.nhost()
@@ -52,6 +85,9 @@ class BenchmarkLogging:
 
     @staticmethod
     def get_network_name(network_path):
+
+        """ Returns network name based on network_path. """
+
         if os.path.basename(network_path):
             network_name = os.path.basename(network_path)
         else:
@@ -60,12 +96,18 @@ class BenchmarkLogging:
         return network_name
 
     def start_timer(self, item_name):
+
+        """ Start benchmark timer for item_name. """
+
         self.start_time[item_name] = timeit.default_timer()
 
     def stop_timer(self, item_name):
+        """ Stops benchmark timer for item_name. """
         self.end_time[item_name] = timeit.default_timer()
 
     def write_log(self):
+
+        """ Writes to log. """
 
         if self.pc and self.pc.id() != 0:
             # If this is true we are running NEURON, and with id != 0 we are not master node, just return
@@ -106,15 +148,3 @@ class BenchmarkLogging:
 
         with open(self.log_file, "w") as fw:
             json.dump(data, fw, indent=4)
-
-
-if __name__ == "__main__":
-    import time
-    bl = BenchmarkLogging("/home/hjorth/HBP/Snudda/snudda")
-    bl.start_timer("test")
-    time.sleep(1)
-    bl.start_timer("test2")
-    time.sleep(2)
-    bl.stop_timer("test2")
-    bl.stop_timer("test")
-    bl.write_log()

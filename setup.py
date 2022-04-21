@@ -13,6 +13,30 @@ for (dirpath, dirnames, filenames) in os.walk(data_folder):
     if len(filenames) > 0:
         data_files.append(os.path.join(rel_folder, "*"))
 
+if os.environ.get('READTHEDOCS') == 'True':
+    # We are in the readthedocs.org environment
+    print("READTHEDOCS environment detected, clearing install_requires")
+    install_requires = []
+else:
+    print(f"READTHEDOCS = {os.environ.get('READTHEDOCS')}") 
+    install_requires = [
+        "bluepyopt>=1.11.7",
+        "h5py>=3.2.1",
+        "ipyparallel>=6.3.0",
+        "matplotlib>=3.3.4",
+        "mpi4py>=3.0.3",
+        "numpy>=1.20.2",
+        "scipy>=1.6.3",
+        "sonata>=0.0.2",
+        "pyzmq>=22.0.3",
+        "setuptools",
+        "psutil",
+        "argparse",
+        "numexpr>=2.7.3",
+        "numba>=0.53.1",
+        # "igraph"
+    ]
+    
 setuptools.setup(
     name="snudda",
     version=__version__,
@@ -32,21 +56,11 @@ setuptools.setup(
     package_data={
         "snudda": data_files,
     },
-    entry_points={"console_scripts": ["snudda = snudda.cli:snudda_cli"]},
-    install_requires=[
-        "bluepyopt>=1.9.126",
-        "h5py>=3.1.0",
-        "ipyparallel>=6.3.0",
-        "matplotlib>=3.3.4",
-        "mpi4py>=3.0.3",
-        "numpy>=1.20.1",
-        "scipy>=1.6.1",
-        "sonata>=0.0.2",
-        "pyzmq>=22.0.3",
-        "setuptools",
-        "psutil",
-        "argparse",
-        "numexpr"
-    ],
+    entry_points={"console_scripts": ["snudda = snudda.cli:snudda_cli",
+                                      "snudda_load = snudda.utils.load:snudda_load_cli",
+                                      "snudda_load_simulation_data = snudda.utils.load_network_simulation:load_network_simulation_cli",
+                                      "snudda_ablate_network = snudda.utils.ablate_network:snudda_ablate_network_cli",
+                                      "snudda_plot_network = snudda.plotting.plot_network:snudda_plot_network_cli" ]},
+    install_requires=install_requires,
     extras_require={"dev": ["sphinx"]},
 )

@@ -16,7 +16,7 @@ if __name__ == "__main__":
     sim_name = args.network
     neurons_dir = args.neurons
 
-    connect_neurons = False
+    connect_neurons = True
 
     # simName = "networks/FSmorphTest2orig"
     # simName = "networks/FSmorphTest1b"
@@ -41,11 +41,7 @@ if __name__ == "__main__":
 #                        volume_type="cube", neurons_dir=neurons_dir)
     # cnc.define_striatum(num_dSPN=47500, num_iSPN=47500, num_FS=1300, num_LTS=0, num_ChIN=0,
     #                     volume_type="cube", neurons_dir=neurons_dir)
-
-    #    cnc.define_striatum(num_dSPN=25000, num_iSPN=25000, num_FS=0, num_LTS=0, num_ChIN=0,
-#                        volume_type="cube", neurons_dir=neurons_dir)
-
-    cnc.define_striatum(num_dSPN=25000, num_iSPN=25000, num_FS=685, num_LTS=580, num_ChIN=0,
+    cnc.define_striatum(num_dSPN=25000, num_iSPN=25000, num_FS=500, num_LTS=0, num_ChIN=0,
                         volume_type="cube", neurons_dir=neurons_dir)
     cnc.write_json(config_name)
 

@@ -1,0 +1,4 @@
+salloc --nodes=1 -t 1:00:00 -A snic2021-5-492 -p main
+echo $SLURM_NODELIST
+ssh $SLURM_NODELIST
+

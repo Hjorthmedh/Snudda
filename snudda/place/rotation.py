@@ -1,13 +1,23 @@
-import numpy as np
 import json
+from collections import OrderedDict
+
+import numpy as np
 from scipy.interpolate import griddata
 
 from snudda.neurons.neuron_morphology import NeuronMorphology
 
 
 class SnuddaRotate:
+    """ Rotation object. """
 
     def __init__(self, config_file=None):
+
+        """
+        Constructor
+
+        Args:
+            config_file: Path to network config file
+        """
 
         self.rotation_lookup = dict()
         self.config = None
@@ -16,9 +26,10 @@ class SnuddaRotate:
             self.parse_config_file(config_file=config_file)
 
     def parse_config_file(self, config_file):
+        """ Parse config_file, sets self.rotation_lookup """
 
         with open(config_file, "r") as f:
-            self.config = json.load(f)
+            self.config = json.load(f, object_pairs_hook=OrderedDict)
 
         # Parse the config
         for volume_name in self.config["Volume"]:
@@ -38,13 +49,15 @@ class SnuddaRotate:
 
     @staticmethod
     def random_z_rotate(rng):
-        ang = 2*np.pi*rng.uniform()
+        """ Helper method, rotate around z-axis (of SWC coordinates)"""
+        ang = 2 * np.pi * rng.uniform()
 
         return np.array([[np.cos(ang), -np.sin(ang), 0],
                          [np.sin(ang), np.cos(ang), 0],
                          [0, 0, 1]])
 
     def get_rotations(self, volume_name, neuron_type, neuron_positions, rng):
+        """ Gets rotations for neuron_type in volumne name at neuron_positions """
 
         if (volume_name, neuron_type) in self.rotation_lookup:
             rotation_mode, field_position, field_rotation = self.rotation_lookup[volume_name, neuron_type]
@@ -52,7 +65,7 @@ class SnuddaRotate:
             rotation_mode, field_position, field_rotation = "random", None, None
 
         if not rotation_mode or rotation_mode.lower() == "none":
-            rotation_matrices = [np.eye]*neuron_positions.shape[0]
+            rotation_matrices = [np.eye] * neuron_positions.shape[0]
 
         elif rotation_mode in ["random", "default"]:
             rotation_matrices = [NeuronMorphology.rand_rotation_matrix(rand_nums=rng.random(size=(3,)))
@@ -83,6 +96,7 @@ class SnuddaRotate:
 
     @staticmethod
     def rotation_matrix_from_vectors(vec1, vec2):
+        """ Creates a rotation matrix to rotate vec1 into vec2."""
 
         # Special case, which gives cross product zero
         if (vec1 == vec2).all():
@@ -115,13 +129,14 @@ class SnuddaRotate:
 
     @staticmethod
     def load_rotation_field(rotation_field_file, volume_name):
+        """ Loads rotation field for volumne_name from rotation_field_file """
 
         with open(rotation_field_file, "r") as f:
-            rotation_field_data = json.load(f)
+            rotation_field_data = json.load(f, object_pairs_hook=OrderedDict)
 
         if volume_name in rotation_field_data:
             assert "position" in rotation_field_data[volume_name] \
-                and "rotation" in rotation_field_data[volume_name], \
+                   and "rotation" in rotation_field_data[volume_name], \
                 f"Missing position and/or rotation tag in volume {volume_name}"
 
             return np.array(rotation_field_data[volume_name]["position"]) * 1e-6, \

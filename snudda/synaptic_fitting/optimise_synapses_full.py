@@ -1,6 +1,7 @@
 import os
 import shutil
 import timeit
+from collections import OrderedDict
 
 import numpy as np
 import scipy
@@ -110,7 +111,7 @@ class OptimiseSynapsesFull(object):
         if synapse_parameter_file:
             with open(synapse_parameter_file, 'r') as f:
                 print(f"Reading synapse parameters from {synapse_parameter_file}")
-                self.synapse_parameters = json.load(f)["data"]
+                self.synapse_parameters = json.load(f, object_pairs_hook=OrderedDict)["data"]
         else:
             self.synapse_parameters = {}
 
@@ -137,7 +138,7 @@ class OptimiseSynapsesFull(object):
 
         with open(model_bounds, 'r') as f:
             print(f"Loading model bounds from {model_bounds}")
-            self.model_bounds = json.load(f)
+            self.model_bounds = json.load(f, object_pairs_hook=OrderedDict)
 
         if load_parameters:
             self.load_parameter_data()
@@ -167,7 +168,7 @@ class OptimiseSynapsesFull(object):
 
         self.write_log(f"Loading {data_file}")
         with open(data_file, "r") as f:
-            self.data = json.load(f)
+            self.data = json.load(f, object_pairs_hook=OrderedDict)
 
             self.volt = np.array(self.data["data"]["mean_norm_trace"])
             self.sample_freq = self.data["metadata"]["sample_frequency"]
@@ -323,7 +324,7 @@ class OptimiseSynapsesFull(object):
 
         if self.cell_properties is None:
             with open(self.neuron_set_file, 'r') as f:
-                self.cell_properties = json.load(f)
+                self.cell_properties = json.load(f, object_pairs_hook=OrderedDict)
 
         cell_type = self.data["metadata"]["cell_type"]
 
@@ -334,7 +335,7 @@ class OptimiseSynapsesFull(object):
         cell_type = self.data["metadata"]["cell_type"]
 
         with open(self.neuron_set_file, 'r') as f:
-            self.cell_properties = json.load(f)
+            self.cell_properties = json.load(f, object_pairs_hook=OrderedDict)
 
         self.cell_properties[cell_type]["holdingCurrent"] = holding_current
 
@@ -509,7 +510,6 @@ class OptimiseSynapsesFull(object):
 
                 import pdb
                 pdb.set_trace()
-
 
         return peak_height.copy(), decay_fits, v_base
 
@@ -1418,7 +1418,6 @@ if __name__ == "__main__":
             # http://davidmasad.com/blog/simulation-with-ipyparallel/
             # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
             d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
-            lb_view = rc.load_balanced_view(targets='all')
         except:
             import traceback
             t_str = traceback.format_exc()
@@ -1447,6 +1446,6 @@ if __name__ == "__main__":
 
         ly.plot_data(show=True, pretty_plot=pretty_plot_flag)
 
-        exit(0)
+        sys.exit(0)
 
     ly.parallel_optimise_single_cell(n_trials=2)

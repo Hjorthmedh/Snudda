@@ -5,15 +5,18 @@ from snudda.utils.benchmark_logging import BenchmarkLogging
 import os
 import sys
 
-def snudda_cli():
 
+def snudda_cli():
+    """
+    Command line parser for Snudda.
+    Valid actions are: init, place, detect, prune, input, simulate, help
+    """
 
     if '-python' in sys.argv:
         print("Snudda's cli.py called through nrniv, fixing arguments")
         pythonidx = sys.argv.index('-python')
         if len(sys.argv) > pythonidx:
             sys.argv = sys.argv[pythonidx + 1:]
-
 
     # print(f"Current working directory: {os.getcwd()}")
     
@@ -35,8 +38,12 @@ def snudda_cli():
     # init_parser.add_argument("size", type=int, help="Number of neurons in network", default=None)
     init_parser.add_argument("-size", "--size", dest="size",
                              type=int, help="Number of neurons in network", default=None)
+    init_parser.add_argument("--neurons_dir", type=str, default=None,
+                             help="Path to neurons_dir, default is $DATA/neurons")
     init_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory",
                              action="store_true")
+    init_parser.add_argument("-connectionFile", "--connectionFile", default=None,
+                             help="Use connectivity from user specified JSON file")
     init_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
     init_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     init_parser.add_argument("--verbose", action="store_true")
@@ -73,6 +80,8 @@ def snudda_cli():
     prune_parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
     prune_parser.add_argument("--keepfiles", action="store_true",
                               help="Keep temp and voxel files after pruning (e.g. useful if you want to rerun pruning)")
+    prune_parser.add_argument("--savePutative", action="store_true",
+                              help="Also saved network-putative-synapses.hdf5 with unpruned network")
     prune_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
 
     input_parser = sub_parsers.add_parser("input")
@@ -88,6 +97,7 @@ def snudda_cli():
     input_parser.add_argument("--verbose", action="store_true")
     input_parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
     input_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
+    input_parser.add_argument("-no_meta_input","--no_meta_input", help="Do not use meta.json as stimulation input", action="store_true", default=False)
 
     simulate_parser = sub_parsers.add_parser("simulate")
     simulate_parser.add_argument("path", help="Location of network")
@@ -95,13 +105,13 @@ def snudda_cli():
                                  dest="network_file", default=None)
     simulate_parser.add_argument("--inputFile", help="Input hdf5 file (for simulation)",
                                  dest="input_file", default=None)
+    simulate_parser.add_argument("--outputFile", help="Output hdf5 file (from simulation)",
+                                 dest="output_file", default=None)
 
     simulate_parser.add_argument("--time", type=float, default=2.5, help="Duration of simulation in seconds")
 
-    simulate_parser.add_argument("--voltOut", "--voltout", dest="volt_out", default=None,
-                                 help="Name of voltage output file (csv)")
-    simulate_parser.add_argument("--spikesOut", "--spikesout", dest="spikes_out", default=None,
-                                 help="Name of spike output file (csv)")
+    simulate_parser.add_argument("--noVolt", "--novolt", dest="record_volt", action="store_false",
+                                 help="Exclude voltage data, to save time and space.")
     simulate_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
 
     simulate_parser.add_argument("--neuromodulation", type=str, default=None,
@@ -116,6 +126,7 @@ def snudda_cli():
     simulate_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     simulate_parser.add_argument("--verbose", action="store_true")
     simulate_parser.add_argument("--exportCoreNeuron", action="store_true")
+    simulate_parser.add_argument("--recordALL", dest="record_all", type=str, default=None)
 
     export_parser = sub_parsers.add_parser("export")
     export_parser.add_argument("path", help="Location of network")
@@ -142,8 +153,8 @@ def snudda_cli():
                "help": snudda.help_info}
 
     if args.profile:
-        prof_file = "profile-" + args.action + ".prof"
-        print("Saving profile data to: " + prof_file)
+        prof_file = f"profile-{args.action}.prof"
+        print(f"Saving profile data to: {prof_file}")
         import cProfile
         cProfile.runctx("actions[args.action](args)", None, locals(), filename=prof_file)
 

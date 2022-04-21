@@ -147,7 +147,7 @@ class TestPrune(unittest.TestCase):
             sl = SnuddaLoad(pruned_output, verbose=True)
 
             # Try and load a neuron
-            n = sl.load_neuron(0)
+            n = sl.load_neuron(neuron_id=0)
             self.assertTrue(type(n) == NeuronMorphology)
 
             syn_ctr = 0
@@ -168,8 +168,8 @@ class TestPrune(unittest.TestCase):
             self.assertTrue((syn[:, 1] == 3).all())
             self.assertEqual(syn.shape[0], 36)
 
-            cell_id_perm = sl.get_cell_id_of_type("ballanddoublestick", random_permute=True, num_neurons=28)
-            cell_id = sl.get_cell_id_of_type("ballanddoublestick", random_permute=False)
+            cell_id_perm = sl.get_neuron_id_of_type("ballanddoublestick", random_permute=True, num_neurons=28)
+            cell_id = sl.get_neuron_id_of_type("ballanddoublestick", random_permute=False)
 
             self.assertEqual(len(cell_id_perm), 28)
             self.assertEqual(len(cell_id), 28)

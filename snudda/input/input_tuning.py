@@ -1,23 +1,23 @@
 import ast
-import os
-import glob
 import collections
+import glob
 import json
-
-import h5py
-
-from snudda.place.create_cube_mesh import create_cube_mesh
-from snudda.neurons.neuron_morphology import NeuronMorphology
-from snudda.init.init import SnuddaInit
-from snudda.input.input import SnuddaInput
-from snudda.utils.load import SnuddaLoad
-from snudda.simulate.simulate import SnuddaSimulate
-from snudda.core import Snudda
-import numpy as np
+import os
+import sys
 import timeit
 
+import h5py
 import matplotlib.pyplot as plt
+import numpy as np
 
+from snudda.core import Snudda
+from snudda.init.init import SnuddaInit
+from snudda.input.input import SnuddaInput
+from snudda.neurons.neuron_prototype import NeuronPrototype
+from snudda.place.create_cube_mesh import create_cube_mesh
+from snudda.simulate.simulate import SnuddaSimulate
+from snudda.utils import SnuddaLoadNetworkSimulation
+from snudda.utils.load import SnuddaLoad
 from snudda.utils.snudda_path import snudda_isdir, snudda_parse_path, snudda_simplify_path
 
 
@@ -44,7 +44,6 @@ class InputTuning(object):
         self.input_info = None
         self.neuron_info = None
         self.init_rng = None
-
         # TODO: Check baseline, close to threshold...
         # TODO: Check when at tonic activity, how sharp short burst can we get without depolarisation block
         self.frequency_range = None
@@ -52,27 +51,36 @@ class InputTuning(object):
         self.max_time = None  # self.input_duration * len(self.frequency_range)
 
         if not os.path.isdir(self.network_path):
-            os.mkdir(self.network_path)
+            os.makedirs(self.network_path)
 
         self.network_config_file_name = os.path.join(self.network_path, "network-config.json")
         self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         self.input_config_file = os.path.join(self.network_path, "input_config.json")
         self.input_spikes_file = os.path.join(self.network_path, 'input.hdf5')
 
-        self.output_spike_file = os.path.join(self.network_path, 'output_spikes.txt')
-        self.output_volt_file = os.path.join(self.network_path, 'output_volt.txt')
-
         self.core = Snudda(self.network_path)
 
     # Writes config files
 
-    def setup_network(self, neurons_path, num_replicas=10, neuron_types=None):
+    def setup_network(self, neurons_path=None, num_replicas=10, neuron_types=None,
+                      parameter_key=None, morphology_key=None, modulation_key=None,
+                      single_neuron_path=None):
+
+        if not morphology_key and not parameter_key and not modulation_key:
+            all_combinations = True
+        else:
+            all_combinations = False
 
         # TODO: num_replicas should be set by a parameter, it affects how many duplicates of each neuron
         # and thus how many steps we have between n_min and n_max number of inputs specified.
         config_def = self.create_network_config(neurons_path=neurons_path,
                                                 num_replicas=num_replicas,
-                                                neuron_types=neuron_types)
+                                                neuron_types=neuron_types,
+                                                single_neuron_path=single_neuron_path,
+                                                parameter_key=parameter_key,
+                                                morphology_key=morphology_key,
+                                                modulation_key=modulation_key,
+                                                all_combinations=all_combinations)
 
         print(f"Writing network config file to {self.network_config_file_name}")
         with open(self.network_config_file_name, "w") as f:
@@ -89,7 +97,7 @@ class InputTuning(object):
         from snudda.detect.prune import SnuddaPrune
 
         sp = SnuddaPlace(network_path=self.network_path)
-        sp.parse_config()
+        sp.parse_config(resort_neurons=False)  # By not resorting neurons, we have original order
         sp.write_data()
 
         sd = SnuddaDetect(network_path=self.network_path)
@@ -102,7 +110,7 @@ class InputTuning(object):
 
     def setup_input(self, input_type=None, num_input_min=100, num_input_max=1000,
                     input_duration=10,
-                    input_frequency_range=None):
+                    input_frequency_range=None, use_meta_input=True):
 
         if not input_frequency_range:
             input_frequency_range = [1.0]
@@ -125,18 +133,18 @@ class InputTuning(object):
 
         if input_type == 'cortical':
             synapse_density = synapse_density_cortical_input
-            synapse_parameter_file = { "dspn": cortical_SPN_synapse_parameter_file,
-                                       "ispn": cortical_SPN_synapse_parameter_file,
-                                       "fs": cortical_FS_synapse_parameter_file,
-                                       "lts": cortical_LTS_synapse_parameter_file,
-                                       "chin": cortical_ChIN_synapse_parameter_file }
+            synapse_parameter_file = {"dspn": cortical_SPN_synapse_parameter_file,
+                                      "ispn": cortical_SPN_synapse_parameter_file,
+                                      "fs": cortical_FS_synapse_parameter_file,
+                                      "lts": cortical_LTS_synapse_parameter_file,
+                                      "chin": cortical_ChIN_synapse_parameter_file}
             print("Using cortical synapse density for input.")
         elif input_type == 'thalamic':
             synapse_density = synapse_density_thalamic_input
-            synapse_parameter_file = { "dspn": thalamic_SPN_synapse_parameter_file,
-                                       "ispn": thalamic_SPN_synapse_parameter_file,
-                                       "fs": thalamic_FS_synapse_parameter_file,
-                                       "chin": thalamic_ChIN_synapse_parameter_file }
+            synapse_parameter_file = {"dspn": thalamic_SPN_synapse_parameter_file,
+                                      "ispn": thalamic_SPN_synapse_parameter_file,
+                                      "fs": thalamic_FS_synapse_parameter_file,
+                                      "chin": thalamic_ChIN_synapse_parameter_file}
             print("Using thalamic synapse density for input")
         else:
             synapse_density = "1"
@@ -145,7 +153,7 @@ class InputTuning(object):
 
         self.create_input_config(input_config_file=self.input_config_file,
                                  input_type=input_type,
-                                 input_frequency=list(self.frequency_range),  #[1.0],
+                                 input_frequency=list(self.frequency_range),  # [1.0],
                                  n_input_min=num_input_min,
                                  n_input_max=num_input_max,
                                  synapse_conductance=0.5e-9,
@@ -156,47 +164,47 @@ class InputTuning(object):
         si = SnuddaInput(input_config_file=self.input_config_file,
                          hdf5_network_file=os.path.join(self.network_path, 'network-synapses.hdf5'),
                          spike_data_filename=self.input_spikes_file,
-                         time=self.max_time)
+                         time=self.max_time,
+                         logfile=os.path.join(self.network_path, "log", "input.txt"), use_meta_input=use_meta_input)
         si.generate()
 
         # Info we need to run right duration of simulation
         self.write_tuning_info()
 
-    def analyse_results(self, show_plots=False):
+    def analyse_results(self, input_type='', show_plots=False):
 
         frequency_data, voltage_data = self.load_data()
-        self.plot_frequency_data(frequency_data, show_plots=show_plots)
-        self.plot_frequency_data_alt(frequency_data, show_plots=show_plots)
-        self.plot_volt_data(voltage_data, show_plots=show_plots)
+        self.plot_frequency_data(frequency_data, show_plots=show_plots, input_type_name=input_type)
+        self.plot_frequency_data_alt(frequency_data, show_plots=show_plots, input_type_name=input_type)
+        self.plot_volt_data(voltage_data, show_plots=show_plots, input_type_name=input_type)
+        self.plot_volt_vs_ninputs(voltage_data, show_plots=show_plots, input_type_name=input_type)
 
-        print(f"To plot traces:\n" 
-              f"python3 plotting/Network_plot_traces.py {self.network_path}output_volt.txt " 
+        print(f"To plot traces:\n"
+              f"python3 plotting/Network_plot_traces.py {self.network_path}output_volt.txt "
               f"{self.network_path}network-synapses.hdf5 ")
 
     def load_data(self, skip_time=0.0):
 
         network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         network_info = SnuddaLoad(network_file)
+        input_data = h5py.File(self.input_spikes_file, "r")
 
-        spike_data_file = os.path.join(self.network_path, "output_spikes.txt")
-        n_neurons = network_info.data["nNeurons"]
-        spike_data = self.load_spike_data(spike_data_file, n_neurons)
+        output_data_loader = SnuddaLoadNetworkSimulation(network_path=self.network_path)
+        spike_data = output_data_loader.get_spikes()
 
-        volt_file = os.path.join(self.network_path, "output_volt.txt")
-        cell_id, time, volt = self.load_voltage_data(volt_file)
-
+        # cell_id = output_data_loader.get_id_of_neuron_type()
+        volt = output_data_loader.get_voltage()
+        time = output_data_loader.get_time()
         # We need to figure out what neuronID correspond to that morphologies
         # Then figure out what input frequencies the different runs had
 
-        neuron_id_list = [x["neuronID"] for x in network_info.data["neurons"]]
-        neuron_name_list = [x["name"] for x in network_info.data["neurons"]]
-
-        neuron_id_name_pairs = [(x["neuronID"], x["name"]) for x in network_info.data["neurons"]]
+        neuron_id_list = output_data_loader.get_id_of_neuron_type()
+        neuron_name_list = output_data_loader.get_neuron_name()
 
         # For each morphology-model we have a list of the run with that model
         neuron_id_lookup = dict()
 
-        for neuron_id, neuron_name in neuron_id_name_pairs:
+        for neuron_id, neuron_name in zip(neuron_id_list, neuron_name_list):
             if neuron_name in neuron_id_lookup:
                 neuron_id_lookup[neuron_name].append(neuron_id)
             else:
@@ -206,18 +214,19 @@ class InputTuning(object):
         input_config = self.load_input_config()
 
         n_inputs_lookup = dict()
-        for neuron_label in input_config.keys():
+
+        for neuron_label in input_data["input"]:
             neuron_id = int(neuron_label)
             n_inputs = 0
 
-            for input_type in input_config[neuron_label].keys():
-                n_inputs += input_config[neuron_label][input_type]["nInputs"]
+            for input_type in input_data["input"][neuron_label]:
+                n_inputs += input_data["input"][neuron_label][input_type]["spikes"].shape[0]
 
             n_inputs_lookup[neuron_id] = n_inputs
 
         frequency_data = dict()
         voltage_data = dict()
-        
+
         for neuron_name in neuron_id_lookup.keys():
             frequency_data[neuron_name] = dict()
             voltage_data[neuron_name] = dict()
@@ -234,7 +243,7 @@ class InputTuning(object):
                                                                             config_data=input_config,
                                                                             neuron_id=neuron_id,
                                                                             skip_time=skip_time)
-                voltage_data[neuron_name][n_inputs] = self.extract_voltage(volt=volt, 
+                voltage_data[neuron_name][n_inputs] = self.extract_voltage(volt=volt,
                                                                            time=time,
                                                                            config_data=input_config,
                                                                            neuron_id=neuron_id,
@@ -260,10 +269,18 @@ class InputTuning(object):
 
         for start_time, end_time, input_freq in zip(cfg_data["start"], cfg_data["end"], cfg_data["frequency"]):
 
-            assert start_time + skip_time < end_time, "Too large skip time, no data to analyse"
-            spike_idx = np.where((start_time + skip_time <= spike_data[neuron_id])
-                                 & (spike_data[neuron_id] <= end_time))[0]
-            output_freq = len(spike_idx) / (end_time - start_time)
+            assert start_time + skip_time < end_time, \
+                f"Too large skip time, no data to analyse. start {start_time} + skip {skip_time} < end {end_time}"
+
+            try:
+                spike_idx = np.where((start_time + skip_time <= spike_data[neuron_id])
+                                     & (spike_data[neuron_id] <= end_time))[0]
+                output_freq = len(spike_idx) / (end_time - start_time)
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
 
             input_frequency.append(input_freq)
             output_frequency.append(output_freq)
@@ -277,18 +294,9 @@ class InputTuning(object):
 
         input_config_file = os.path.join(self.network_path, "input_config.json")
         with open(input_config_file) as f:
-            input_config = json.load(f)
+            input_config = json.load(f, object_pairs_hook=collections.OrderedDict)
 
         return input_config
-
-    def load_voltage_data(self, file_name):
-
-        data = np.genfromtxt(file_name, delimiter=',')
-        t = data[0, 1:] * 1e-3
-        cell_id = data[1:, 0].astype(int)
-        volt = data[1:, 1:]*1e-3
-
-        return cell_id, t, volt
 
     def extract_voltage(self, volt, time, config_data, neuron_id, skip_time=0.0):
 
@@ -303,16 +311,15 @@ class InputTuning(object):
         max_voltage = []
 
         for start_time, end_time, input_freq in zip(cfg_data["start"], cfg_data["end"], cfg_data["frequency"]):
-
             assert start_time + skip_time < end_time, "Too large skip time, no data to analyse"
 
             idx = np.where((start_time + skip_time <= time) & (time <= end_time))[0]
-            v = volt[neuron_id, :][idx]
+            v = volt[neuron_id][idx]
 
             input_frequency.append(input_freq)
             mean_voltage.append(np.mean(v))
             max_voltage.append(np.max(v))
-  
+
         input_frequency = np.array(input_frequency)
         mean_voltage = np.array(mean_voltage)
         max_voltage = np.array(max_voltage)
@@ -337,15 +344,15 @@ class InputTuning(object):
 
         return spike_times
 
-    def plot_volt_data(self, volt_data, show_plots=True):
+    def plot_volt_data(self, volt_data, show_plots=True, input_type_name=''):
 
         for neuron_name in volt_data:
             fig, ax = plt.subplots()
             legend_text = []
             input_type_all = None
 
-            cmap = plt.get_cmap('tab20', len(volt_data))
-            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(volt_data))])
+            cmap = plt.get_cmap('tab20', len(volt_data[neuron_name]))
+            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(volt_data[neuron_name]))])
 
             for num_input in volt_data[neuron_name]:
                 input_freq, mean_voltage, max_voltage, input_type = volt_data[neuron_name][num_input]
@@ -356,11 +363,11 @@ class InputTuning(object):
                     input_type_all = input_type
 
                 legend_text.append(f"n={num_input}")
-                ax.plot(input_freq, mean_voltage)
+                ax.plot(input_freq, mean_voltage, linestyle='-', marker='o')
 
             plt.title(f"{neuron_name} receiving {input_type_all} input")
             plt.xlabel("Input frequency (per synapse)")
-            plt.ylabel("Mean voltage")
+            plt.ylabel("Mean membrane potential (V)")
             ax.legend(legend_text)
 
             if show_plots:
@@ -368,7 +375,9 @@ class InputTuning(object):
                 plt.show()
                 plt.pause(0.001)
 
-            fig_name = os.path.join(self.network_path, "figures", f"input-scaling-freq-{neuron_name}-mean-voltage.pdf")
+            # fig_name = os.path.join(self.network_path, "figures", f"input-scaling-freq-{neuron_name}-mean-voltage-{input_type_name}.pdf")
+            fig_name = os.path.join(self.network_path, "figures",
+                                    f"input-scaling-freq-{neuron_name}-mean-voltage-{input_type_name}.png")
             if not os.path.exists(os.path.dirname(fig_name)):
                 os.mkdir(os.path.dirname(fig_name))
 
@@ -377,18 +386,61 @@ class InputTuning(object):
             if not show_plots:
                 plt.close()
 
+    def plot_volt_vs_ninputs(self, volt_data, show_plots=True, input_type_name=''):
+
+        for neuron_name in volt_data:
+            fig, ax = plt.subplots()
+            legend_text = []
+            input_type_all = None
+
+            cmap = plt.get_cmap('tab20', len(volt_data[neuron_name]))
+            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(volt_data[neuron_name]))])
+            num_inputs = []
+            mean_voltages = []
+            for num_input in volt_data[neuron_name]:
+                input_freq, mean_voltage, max_voltage, input_type = volt_data[neuron_name][num_input]
+                num_inputs.append(num_input)
+                mean_voltages.append(mean_voltage)
+                if input_type_all:
+                    assert input_type == input_type_all, "All input types must be the same for neuron"
+                else:
+                    input_type_all = input_type
+
+            # legend_text.append(f"input freq.={input_freq[0]}Hz")#Currently assumes one frequency used. Fix later if necessary
+            # ax.legend(legend_text)
+            ax.plot(num_inputs, mean_voltages, linestyle='None', marker='o')
+            # plt.title(f"{neuron_name} receiving {input_type_all} input")
+            plt.xlabel("Number of synapses")
+            plt.ylabel("Mean membrane potential (V)")
+
+            if show_plots:
+                plt.ion()
+                plt.show()
+                plt.pause(0.001)
+
+            # fig_name = os.path.join(self.network_path, "figures", f"input-scaling-ninputs-{neuron_name}-mean-voltage-{input_type_name}.pdf")
+            fig_name = os.path.join(self.network_path, "figures",
+                                    f"input-scaling-ninputs-{neuron_name}-mean-voltage-{input_type_name}.png")
+            if not os.path.exists(os.path.dirname(fig_name)):
+                os.mkdir(os.path.dirname(fig_name))
+
+            plt.savefig(fig_name, bbox_inches='tight', dpi=300)
+
+            if not show_plots:
+                plt.close()
+
     # TODO: Extract spiking frequency (skip first second for each interval to let network settle)
     # TODO: Create summary graphs
 
-    def plot_frequency_data(self, frequency_data, show_plots=True):
+    def plot_frequency_data(self, frequency_data, show_plots=True, input_type_name=''):
 
         for neuron_name in frequency_data:
             fig, ax = plt.subplots()
             legend_text = []
             input_type_all = None
 
-            cmap = plt.get_cmap('tab20', len(frequency_data))
-            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(frequency_data))])
+            cmap = plt.get_cmap('tab20', len(frequency_data[neuron_name]))
+            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(frequency_data[neuron_name]))])
 
             for num_input in frequency_data[neuron_name]:
                 input_freq, output_freq, input_type = frequency_data[neuron_name][num_input]
@@ -411,7 +463,9 @@ class InputTuning(object):
                 plt.show()
                 plt.pause(0.001)
 
-            fig_name = os.path.join(self.network_path, "figures", f"input-scaling-freq-{neuron_name}.pdf")
+            # fig_name = os.path.join(self.network_path, "figures", f"input-scaling-freq-{neuron_name}-{input_type_name}.pdf")
+            fig_name = os.path.join(self.network_path, "figures",
+                                    f"input-scaling-freq-{neuron_name}-{input_type_name}.png")
             if not os.path.exists(os.path.dirname(fig_name)):
                 os.mkdir(os.path.dirname(fig_name))
 
@@ -420,7 +474,7 @@ class InputTuning(object):
             if not show_plots:
                 plt.close()
 
-    def plot_frequency_data_alt(self, frequency_data, show_plots=True):
+    def plot_frequency_data_alt(self, frequency_data, show_plots=True, input_type_name=''):
 
         _freq_data = dict()
         _all_num_inputs = []
@@ -471,8 +525,8 @@ class InputTuning(object):
             fig, ax = plt.subplots()
             legend_text = []
 
-            cmap = plt.get_cmap("tab20")
-            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(frequency_data))])
+            cmap = plt.get_cmap("tab20", len(freq_data[neuron_name]))
+            ax.set_prop_cycle('color', [cmap(i) for i in range(0, len(freq_data[neuron_name]))])
 
             for input_freq in freq_data[neuron_name]:
                 num_input, output_freq = freq_data[neuron_name][input_freq]
@@ -481,7 +535,7 @@ class InputTuning(object):
 
             plt.title(f"{neuron_name} receiving {input_type_all} input")
             plt.xlabel("Number of synapses")
-            plt.ylabel("Firing frequency")
+            plt.ylabel("Spikes/s")
             ax.legend(legend_text)
 
             if show_plots:
@@ -489,7 +543,9 @@ class InputTuning(object):
                 plt.show()
                 plt.pause(0.001)
 
-            fig_name = os.path.join(self.network_path, "figures", f"input-scaling-ninputs-{neuron_name}.pdf")
+            # fig_name = os.path.join(self.network_path, "figures", f"input-scaling-ninputs-{neuron_name}-{input_type_name}.pdf")
+            fig_name = os.path.join(self.network_path, "figures",
+                                    f"input-scaling-ninputs-{neuron_name}-{input_type_name}.png")
             if not os.path.exists(os.path.dirname(fig_name)):
                 os.mkdir(os.path.dirname(fig_name))
 
@@ -498,10 +554,39 @@ class InputTuning(object):
             if not show_plots:
                 plt.close()
 
+    def get_neuron_info(self, neuron_path):
+
+        neuron_path = snudda_parse_path(neuron_path)
+
+        neuron_info = collections.OrderedDict()
+
+        # Find neuron morphology swc file, obs currently assume lowercase(!)
+        neuron_morph = SnuddaInit.get_morphologies(neuron_path)
+
+        parameter_file = os.path.join(neuron_path, "parameters.json")
+        mechanism_file = os.path.join(neuron_path, "mechanisms.json")
+        modulation_file = os.path.join(neuron_path, "modulation.json")  # Optional
+        meta_file = os.path.join(neuron_path, "meta.json")
+
+        # Check if empty neuron_morph_list, or if more than one morphology
+        assert os.path.isfile(parameter_file), f"Missing parameter file {parameter_file}"
+        assert os.path.isfile(mechanism_file), f"Missing mechanism file {mechanism_file}"
+
+        neuron_info["morphology"] = snudda_simplify_path(neuron_morph)
+        neuron_info["parameters"] = snudda_simplify_path(parameter_file)
+        neuron_info["mechanisms"] = snudda_simplify_path(mechanism_file)
+        neuron_info["meta"] = snudda_simplify_path(meta_file)
+
+        # Modulation file is optional
+        if os.path.isfile(modulation_file):
+            neuron_info["modulation"] = snudda_simplify_path(modulation_file)
+
+        return neuron_info
+
     # This loops through all single neuron directories in neurons_path
     # in preparation of writing a network config file
 
-    def gather_all_neurons(self, neuron_types=None):
+    def gather_all_neurons(self, neuron_types=None, all_combinations=True):
         all_neurons = collections.OrderedDict()
 
         assert snudda_isdir(self.neurons_path), f"Neurons directory {self.neurons_path} does not exist."
@@ -531,42 +616,29 @@ class InputTuning(object):
             neuron_ctr = 0
 
             for nd in neuron_dir:
-                neuron_info = collections.OrderedDict()
+                neuron_info = self.get_neuron_info(nd)
 
-                # Find neuron morphology swc file, obs currently assume lowercase(!)
-                neuron_morph_list = glob.glob(os.path.join(nd, '*swc'))
+                if all_combinations:
+                    assert "meta" in neuron_info and neuron_info["meta"], \
+                        f"meta.json required for all_combinations=True. {os.path.dirname(neuron_info['parameters'])}"
 
-                parameter_file = os.path.join(nd, "parameters.json")
-                mechanism_file = os.path.join(nd, "mechanisms.json")
-                modulation_file = os.path.join(nd, "modulation.json")  # Optional
+                    neuron_info_combination_list = self.get_all_combinations(neuron_info)
+                    for ni in neuron_info_combination_list:
+                        n_name = os.path.basename(os.path.dirname(ni["parameters"]))
+                        param_key = ni["parameterKey"]
+                        morph_key = ni["morphologyKey"]
+                        short_name = n_name[:min(10, len(n_name))]
+                        neuron_name = f"{neuron_type}_{short_name}_{param_key}_{morph_key}".replace("-", "_")
+                        all_neurons[neuron_name] = ni
+                        neuron_ctr += 1
+                else:
+                    neuron_name = os.path.basename(os.path.dirname(neuron_info["parameters"]))
+                    neuron_ctr += 1
 
-                if len(neuron_morph_list) == 0:
-                    assert (not os.path.isfile(parameter_file) and not os.path.isfile(mechanism_file)), \
-                        f"Directory {nd} has parameter.json or mechanism.json but no swc file."
-
-                    # No swc file, skipping directory
-                    continue
-
-                # Check if empty neuron_morph_list, or if more than one morphology
-                assert len(neuron_morph_list) == 1, f"Should only be one swc file in {nd}"
-                assert os.path.isfile(parameter_file), f"Missing parameter file {parameter_file}"
-                assert os.path.isfile(mechanism_file), f"Missing mechanism file {mechanism_file}"
-
-                neuron_info["morphology"] = snudda_simplify_path(neuron_morph_list[0])
-                neuron_info["parameters"] = snudda_simplify_path(parameter_file)
-                neuron_info["mechanisms"] = snudda_simplify_path(mechanism_file)
-
-                # Modulation file is optional
-                if os.path.isfile(modulation_file):
-                    neuron_info["modulation"] = snudda_simplify_path(modulation_file)
-
-                neuron_name = f"{neuron_type}_{neuron_ctr}"
-                neuron_ctr += 1
-
-                all_neurons[neuron_name] = neuron_info
+                    all_neurons[neuron_name] = neuron_info
 
             if neuron_ctr > 0:
-                print(f"Found {neuron_ctr} neurons in {ntd}")
+                print(f"Found {neuron_ctr} neuron models in {ntd}")
 
         assert len(all_neurons) > 0, (f"No neurons selected. Did you specify an incorrect neuronType? {neuron_types}"
                                       f"\nSee skipped neurons above error message for available ones.")
@@ -574,12 +646,61 @@ class InputTuning(object):
         return all_neurons
 
     @staticmethod
-    def has_axon(swc_file):
-        nm = NeuronMorphology(swc_filename=snudda_parse_path(swc_file))
+    def get_all_combinations(neuron_info):
 
-        return len(nm.axon) > 0
+        assert "meta" in neuron_info and neuron_info["meta"]
 
-    def create_network_config(self, neurons_path, num_replicas=10, random_seed=None, neuron_types=None):
+        pm_list = []
+
+        with open(snudda_parse_path(neuron_info["parameters"]), "r") as pf:
+            param_data = json.load(pf)
+
+        with open(snudda_parse_path(neuron_info["meta"]), "r") as mf:
+            meta_data = json.load(mf)
+
+        for p_idx, p_key in enumerate(param_data):
+            assert p_key in meta_data, f"parameter key {p_key} missing in {neuron_info['meta_file']}"
+            for m_idx, m_key in enumerate(meta_data[p_key]):
+                ni = neuron_info.copy()
+                ni["morphologyKey"] = m_key
+                ni["parameterKey"] = p_key
+                ni["morphology_file"] = os.path.join(ni["morphology"], meta_data[p_key][m_key]["morphology"])
+                ni["parameter_id"] = p_idx
+                ni["morphology_id"] = m_idx
+
+                pm_list.append(ni)
+
+        return pm_list
+
+    @staticmethod
+    def has_axon(neuron_info):
+
+        nm = NeuronPrototype(neuron_name="JJJ",
+                             neuron_path=None,
+                             morphology_path=neuron_info["morphology"],
+                             parameter_path=neuron_info["parameters"],
+                             mechanism_path=neuron_info["mechanisms"],
+                             virtual_neuron=False,
+                             axon_stump_id_flag=False)
+        nm.instantiate()
+        return nm.all_have_axon()
+
+    def create_network_config(self,
+                              neurons_path=None,
+                              num_replicas=10,
+                              random_seed=None,
+                              neuron_types=None,
+                              single_neuron_path=None,
+                              parameter_key=None,
+                              morphology_key=None,
+                              modulation_key=None,
+                              all_combinations=True):
+
+        """ Create a network with num_replicas number of replicas of each neuron found in
+            neuron_path (e.g. Snudda/data/neurons). Alternatively if only one neuron model
+            is required, use single_neuron_path pointing to neuron
+            (e.g. Snudda/data/neurons/striatum/fs/fs_model_1)
+            """
 
         self.neurons_path = neurons_path
 
@@ -598,7 +719,23 @@ class InputTuning(object):
         config_def["Volume"] = volume_def
         config_def["Connectivity"] = dict()  # Unconnected
 
-        neuron_def = self.gather_all_neurons(neuron_types=neuron_types)
+        if single_neuron_path:
+            # Override and only get one neuron
+            assert type(neuron_types) == str, "neuron_types must be string if single_neuron_path set"
+            neuron_def = collections.OrderedDict()
+            neuron_def[neuron_types] = self.get_neuron_info(single_neuron_path)
+
+            if parameter_key:
+                neuron_def[neuron_types]["parameterKey"] = parameter_key
+
+            if morphology_key:
+                neuron_def[neuron_types]["morphologyKey"] = morphology_key
+
+            if modulation_key:
+                neuron_def[neuron_types]["modulationKey"] = modulation_key
+
+        else:
+            neuron_def = self.gather_all_neurons(neuron_types=neuron_types, all_combinations=all_combinations)
 
         fake_axon_density = ["r", "1", 10e-6]
 
@@ -608,8 +745,8 @@ class InputTuning(object):
             neuron_def[n]["rotationMode"] = "random"
             neuron_def[n]["hoc"] = None
 
-            if not self.has_axon(neuron_def[n]["morphology"]):
-                print(f"Morphology {neuron_def[n]['morphology']} has no axon, faking it.")
+            if not self.has_axon(neuron_def[n]):
+                print(f"One or more of morphologies {neuron_def[n]['morphology']} has no axon, faking it.")
                 # We will have no connections in this test network, so add empty density
                 neuron_def[n]["axonDensity"] = fake_axon_density
 
@@ -710,7 +847,7 @@ class InputTuning(object):
         assert type(input_frequency) == list, f"add_input: input_freq should be a list: {input_frequency}"
         n_steps = len(input_frequency)
         input_start = input_duration * np.arange(0, n_steps)
-        input_end = input_duration * np.arange(1, n_steps+1)
+        input_end = input_duration * np.arange(1, n_steps + 1)
 
         self.input_info[input_target] = collections.OrderedDict()
         self.input_info[input_target][input_type] = collections.OrderedDict()
@@ -756,7 +893,8 @@ class InputTuning(object):
                     if input_type not in distance_to_soma:
                         distance_to_soma[input_type] = []
 
-                    distance_to_soma[input_type].append(input_spike_data["input"][str(nid)][input_type]["distanceToSoma"][:])
+                    distance_to_soma[input_type].append(
+                        input_spike_data["input"][str(nid)][input_type]["distanceToSoma"][:])
 
             plt.title(f"Input to {nt}")
             plt.xlabel("Time (s)")
@@ -776,7 +914,7 @@ class InputTuning(object):
             leg = []
             for input_type in distance_to_soma:
                 leg.append(input_type)
-                ax2.hist(np.concatenate(distance_to_soma[input_type])*1e6, 50, histtype="step")
+                ax2.hist(np.concatenate(distance_to_soma[input_type]) * 1e6, 50, histtype="step")
 
             plt.legend(leg)
             plt.title(f"Synapses onto {nt}")
@@ -791,12 +929,14 @@ class InputTuning(object):
         input_spike_data.close()
         network_data.close()
 
-    def simulate(self):
+    def simulate(self, mech_dir=None):
+
+        from snudda.core import Snudda
+        Snudda.compile_mechanisms(mech_dir=mech_dir)
 
         # Get info so we can set max_time correctly
         self.read_tuning_info()
 
-        from mpi4py import MPI
         from neuron import h  # , gui
         start = timeit.default_timer()
 
@@ -804,11 +944,12 @@ class InputTuning(object):
 
         sim = SnuddaSimulate(network_file=self.network_file,
                              input_file=self.input_spikes_file)
-
+        sim.setup()
         sim.add_external_input()
         sim.check_memory_status()
 
-        sim.add_recording()
+        # sim.add_volt_recording()
+        sim.add_volt_recording_soma()
 
         t_sim = self.max_time * 1000  # Convert from s to ms for Neuron simulator
 
@@ -817,8 +958,7 @@ class InputTuning(object):
         sim.run(t_sim)  # In milliseconds
 
         print("Simulation done, saving output")
-        sim.write_spikes(self.output_spike_file )
-        sim.write_voltage(self.output_volt_file)
+        sim.write_output()
 
         stop = timeit.default_timer()
         if sim.pc.id() == 0:
@@ -833,7 +973,7 @@ class InputTuning(object):
 
         try:
             with open(tuning_info_file, 'rt') as f:
-                tuning_meta_data = json.load(f)
+                tuning_meta_data = json.load(f, object_pairs_hook=collections.OrderedDict)
 
             # max_time is the important one, we want to make sure we simulate correct duration without having the user
             # provide the parameter twice
@@ -857,25 +997,36 @@ class InputTuning(object):
 
 
 if __name__ == "__main__":
+
+    if '-python' in sys.argv:
+        print("Network_simulate.py called through nrniv, fixing arguments")
+        pythonidx = sys.argv.index('-python')
+        if len(sys.argv) > pythonidx:
+            sys.argv = sys.argv[pythonidx + 1:]
+
     from argparse import ArgumentParser, RawTextHelpFormatter
 
     parser = ArgumentParser("Input Scaling", formatter_class=RawTextHelpFormatter)
     parser.add_argument("action", choices=["setup", "simulate", "analyse"], help="Action to run.")
     parser.add_argument("networkPath", help="Network path")
     parser.add_argument("--neurons", help="Neurons path")
-    parser.add_argument("--inputType", help="Type of external input",
-                        choices=["thalamic", "cortical"], default="thalamic")
+    parser.add_argument("--mechDir", type=str, help="Path to mechanisms", default=None)
+    parser.add_argument("--input_type", help="Type of external input",
+                        choices=["thalamic", "cortical", "corticothalamic"],
+                        default="thalamic")  # only use corticalthalamic in analyse
     parser.add_argument("--numInputSteps", type=int, help="Number of steps for number of inputs to neurons",
                         default=10)
-    parser.add_argument("--numInputMin", type=int, help="Minimum number of synaptic inputs of inputType", default=100)
-    parser.add_argument("--numInputMax", type=int, help="Maximum number of synaptic inputs of inputType", default=1000)
+    parser.add_argument("--numInputMin", type=int, help="Minimum number of synaptic inputs of input_type", default=100)
+    parser.add_argument("--numInputMax", type=int, help="Maximum number of synaptic inputs of input_type", default=1000)
     parser.add_argument("--inputDuration", type=float, default=10.0,
                         help="Duration of each frequency test, longer need for irregularly firing neurons")
     parser.add_argument("--inputFrequency", type=str, default="[0,1,2,5]",
                         help="Input frequency, float or list of floats")
     parser.add_argument("--neuronType", default=None, type=str,
-                        help="Optional, if only we want to simulate one neuron type, eg. FSN")
-
+                        help="Optional, if only we want to simulate one neuron type, eg. FS")
+    parser.add_argument("--singleNeuronType", default=None, type=str,
+                        help="Optional, if only we want to simulate one neuron subtype, eg. FS_1")
+    parser.add_argument("--no_meta_input", action="store_true", default=False)
     args = parser.parse_args()
 
     # TODO: Let the user choose input type, duration for each "run", frequency range, number of input range
@@ -889,12 +1040,14 @@ if __name__ == "__main__":
 
         input_scaling.setup_network(neurons_path=args.neurons,
                                     num_replicas=args.numInputSteps,
-                                    neuron_types=args.neuronType)
-        input_scaling.setup_input(input_type=args.inputType,
+                                    neuron_types=args.neuronType,
+                                    single_neuron_path=args.singleNeuronType)
+        input_scaling.setup_input(input_type=args.input_type,
                                   num_input_min=args.numInputMin,
                                   num_input_max=args.numInputMax,
                                   input_duration=args.inputDuration,
-                                  input_frequency_range=input_frequency)
+                                  input_frequency_range=input_frequency,
+                                  use_meta_input=not args.no_meta_input)
 
         print("Tip, to run in parallel on your local machine use: "
               "mpiexec -n 4 python3 tuning/input_tuning.py simulate <yournetworkhere>")
@@ -903,16 +1056,15 @@ if __name__ == "__main__":
         print("Run simulation...")
         print("Tip, to run in parallel on your local machine use: "
               "mpiexec -n 4 python3 tuning/input_tuning.py simulate <yournetworkhere>")
-        input_scaling.simulate()
+        input_scaling.simulate(mech_dir=args.mechDir)
 
     elif args.action == "analyse":
         # input_scaling.plot_generated_input()
-        input_scaling.analyse_results()
+        input_scaling.analyse_results(input_type=args.input_type)
 
 
     else:
         print(f"Unknown action {args.action}")
-
 
     # python3 input_tuning/input_tuning.py setup networks/input_scaling_v1/ data/neurons/striatum/
     # mpiexec -n 4 python3 input_tuning/input_tuning.py simulate networks/input_scaling_v1/ < input.txt &> output-tuning.txt &

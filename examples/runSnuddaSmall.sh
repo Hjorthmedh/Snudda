@@ -1,18 +1,22 @@
 export IPYTHONDIR="`pwd`/.ipython"
-export IPYTHON_PROFILE=Snudda_LOCAL
+export IPYTHON_PROFILE=default
 
-ipcluster start -n 6 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
+# If the BasalGangliaData directory exists, then use that for our data
+if [[ -d "../../BasalGangliaData/data" ]]; then
+    export SNUDDA_DATA="../../BasalGangliaData/data"
+    echo "Setting SNUDDA_DATA to $SNUDDA_DATA"
+else
+    echo "SNUDDA_DATA environment variable not changed (may be empty): $SNUDDA_DATA"
+fi
+    
+ipcluster start --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20
 
-simName=networks/test-10k
-# simName=networks/test-20k
-# simName=networks/test-50k
+simName=networks/test-1000
 
 #snudda init $simName --size 1760000
 #snudda init $simName --size 100000
-snudda init $simName --size 10000 --overwrite
-# snudda init $simName --size 20000 --overwrite
-#snudda init $simName --size 50000 --overwrite
+snudda init $simName --size 1000 --overwrite
 
 snudda place $simName --parallel
 snudda detect $simName --volumeID Striatum --parallel
@@ -20,7 +24,7 @@ snudda prune $simName --parallel
 
 # Copy over template input, you might need to update the path here if not
 # run from the examples directory
-cp -a ../snudda/data/input_config/input-tinytest-v9-freq-vectors.json $simName/input.json
+cp -a ../snudda/data/input_config/external-input-dSTR-scaled-v3.json $simName/input.json
 echo "Make sure the input config file was found, otherwise provide your own"
 
 # TODO, maybe use to get snudda base install dir:
@@ -39,6 +43,6 @@ ipcluster stop
 # Remember you need to run "nrnivmodl data/cellspecs/mechanisms"
 # first to create the mechanisms
 
-# !!! Uncomment the line below to run simulation
-# mpiexec -n 6 snudda simulate $simName
+mpiexec -x SNUDDA_DATA snudda simulate $simName --verbose
+
 

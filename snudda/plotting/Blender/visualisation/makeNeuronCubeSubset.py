@@ -111,8 +111,8 @@ for ps,rt,mo,nm,nID in zip(pos,rot,morph,name,neuronID):
   elif(nType == "iSPN"):
     print(str(nID) + " iSPN" + " - " + str(ctr) + "/" + str(nTotal))
     mat = matMSD2
-  elif(nType == "FSN"):
-    print(str(nID) + " FSN" + " - " + str(ctr) + "/" + str(nTotal))
+  elif(nType == "FS"):
+    print(str(nID) + " FS" + " - " + str(ctr) + "/" + str(nTotal))
     mat = matFS
   elif(nType == "ChIN"):
     print(str(nID) + " ChIN" + " - " + str(ctr) + "/" + str(nTotal))
