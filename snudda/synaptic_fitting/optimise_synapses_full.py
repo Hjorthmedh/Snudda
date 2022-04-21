@@ -87,6 +87,7 @@ class OptimiseSynapsesFull(object):
         self.time = None
         self.stim_time = None
         self.cell_type = None
+        self.trace_holding_voltage = None
 
         self.synapse_parameters = None
         self.synapse_section_id = None
@@ -173,6 +174,11 @@ class OptimiseSynapsesFull(object):
 
             self.volt = np.array(self.data["data"]["mean_norm_trace"])
             self.sample_freq = self.data["metadata"]["sample_frequency"]
+
+            if "holding_voltage" in self.data["metadata"]:
+                self.trace_holding_voltage = self.data["metadata"]["trace_holding_voltage"]
+            else:
+                self.trace_holding_voltage = None
 
             dt = 1 / self.sample_freq
             self.time = 0 + dt * np.arange(0, len(self.volt))
@@ -552,14 +558,24 @@ class OptimiseSynapsesFull(object):
         else:
             holding_current = None
 
-        # !!! We need to get the baseline depolarisation in another way
+        # Use the trace holding voltage if it exists, otherwise use the holding voltage in the neuronSet json file.
+        if self.trace_holding_voltage is not None:
+            trace_holding_voltage = self.trace_holding_voltage
+        elif "baselineVoltage" in c_prop:
+            trace_holding_voltage = c_prop["baselineVoltage"]
+        else:
+            assert f"You need to specify either a trace_holding_voltage in {self.data_file}" \
+                   f"or specify baselineVoltage in neuronSet.json for the neuron type in question."
+
+        # Temporarily force regeneration of holding current
+        holding_current = None
 
         self.rsr_synapse_model = \
             RunSynapseRun(neuron_path=snudda_parse_path(c_prop["neuronPath"]),
                           stim_times=t_stim,
                           num_synapses=n_synapses,
                           synapse_density=synapse_density,
-                          holding_voltage=c_prop["baselineVoltage"],
+                          holding_voltage=trace_holding_voltage,
                           holding_current=holding_current,
                           synapse_type=self.synapse_type,
                           params=params,
@@ -1451,4 +1467,4 @@ if __name__ == "__main__":
 
         sys.exit(0)
 
-    ly.parallel_optimise_single_cell(n_trials=1000)
+    ly.parallel_optimise_single_cell(n_trials=2)
