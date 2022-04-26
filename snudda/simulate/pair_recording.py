@@ -343,7 +343,10 @@ class PairRecording(SnuddaSimulate):
             import traceback
             t_str = traceback.format_exc()
             self.write_log(t_str)
-            self.write_log(f"Saving failed, whoops. Entering debug mode.")
+            self.write_log(f"Saving failed, whoops. Entering debug mode.\n"
+                           f"You might have had {self.output_file} opened elsewhere. Try closing it, then type:\n"
+                           f"> self.write_output()\n"
+                           f"If you are lucky, this will work and you wont loose any data.")
             import pdb
             pdb.set_trace()
 
@@ -458,6 +461,14 @@ class PairRecording(SnuddaSimulate):
         pt = PlotTraces(output_file=self.output_file, network_file=self.network_file, experiment_name=experiment_name)
         pt.plot_traces(trace_id=post_id, offset=offset, title=title, fig_name=fig_name, skip_time=skip_time,
                        mark_current=mark_current, mark_current_y=mark_current_y)
+
+    def plot_synaptic_currents(self, post_id):
+
+        from snudda.plotting import PlotTraces
+
+        experiment_name = self.get_experiment_name()
+        pt = PlotTraces(output_file=self.output_file, network_file=self.network_file, experiment_name=experiment_name)
+        pt.plot_synaptic_currents(post_id=post_id)
 
     def mark_synapses_for_recording(self, pre_neuron_id, post_neuron_id):
 

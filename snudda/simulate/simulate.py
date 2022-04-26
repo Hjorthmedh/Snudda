@@ -1274,7 +1274,7 @@ class SnuddaSimulate(object):
             t_save.record(self.sim.neuron.h._ref_t)
             self.record.register_time(time=t_save)
 
-    def add_synapse_current_recording_all(self, dest_id=None, max_synapses=100):
+    def add_synapse_current_recording_all(self, dest_id=None, max_synapses=500):
 
         """
             Record all synaptic currents to neuron dest_id. If dest_id is None then all synaptic currents are recorded.
@@ -1282,7 +1282,7 @@ class SnuddaSimulate(object):
 
             Args:
                 dest_id (int or list of ints) : Postsynaptic neuron ID
-                max_synapses (int) : Maximum number of synapses to record from (default: 100)
+                max_synapses (int) : Maximum number of synapses to record from (default: 500)
         """
 
         syn_ctr = 0
