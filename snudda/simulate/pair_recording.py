@@ -422,7 +422,12 @@ class PairRecording(SnuddaSimulate):
             n_synapses = self.snudda_loader.find_synapses(pre_id=pre_id, post_id=post_id)[0].shape[0]
             title = f"{self.neurons[pre_id].name} -> {self.neurons[post_id].name} ({n_synapses} synapses)"
 
-        pt = PlotTraces(output_file=self.output_file, network_file=self.network_file)
+        if "experiment_name" in self.experiment_config["meta"]:
+            experiment_name = self.experiment_config["meta"]["experiment_name"]
+        else:
+            experiment_name = None
+
+        pt = PlotTraces(output_file=self.output_file, network_file=self.network_file, experiment_name=experiment_name)
         pt.plot_traces(trace_id=post_id, offset=offset, title=title, fig_name=fig_name, skip_time=skip_time,
                        mark_current=mark_current, mark_current_y=mark_current_y)
 

@@ -17,7 +17,7 @@ class PlotTraces:
 
     ############################################################################
 
-    def __init__(self, output_file, network_file=None, input_file=None):
+    def __init__(self, output_file, network_file=None, input_file=None, experiment_name=None):
 
         self.output_file = output_file
         self.network_file = network_file
@@ -28,13 +28,10 @@ class PlotTraces:
 
         self.neuron_name_remap = {"FSN": "FS"}
 
-        # self.read_csv()
-
-        try:
-            self.ID = int(re.findall('\d+', ntpath.basename(output_file))[0])
-        except:
-            print("Unable to guess ID, using 666.")
-            self.ID = 666
+        if experiment_name is not None:
+            self.experiment_name = experiment_name
+        else:
+            self.experiment_name = ""
 
         if network_file is None and "simulation" in output_file:
             network_path = os.path.dirname(os.path.dirname(output_file))
@@ -50,8 +47,6 @@ class PlotTraces:
         if self.network_file is not None:
             print(f"Loading network info from {self.network_file}")
             self.network_info = SnuddaLoad(self.network_file)
-            # assert(int(self.ID) == int(self.networkInfo.data["SlurmID"]))
-
         else:
             self.network_info = None
 
@@ -232,17 +227,15 @@ class PlotTraces:
 
         plt.tight_layout()
 
-        # plt.savefig('figures/Network-spikes-' + str(self.ID) + "-colour.pdf")
-
         fig_path = os.path.join(os.path.dirname(os.path.realpath(self.network_file)), "figures")
         if not os.path.exists(fig_path):
             os.makedirs(fig_path)
 
         if fig_name is None:
             if len(types_in_plot) > 1:
-                fig_name = f"Network-voltage-trace-{self.ID}-{'-'.join(types_in_plot)}-colour.pdf"
+                fig_name = f"Network-voltage-trace-{self.experiment_name}-{'-'.join(types_in_plot)}.pdf"
             else:
-                fig_name = f"Network-voltage-trace-{self.ID}-{types_in_plot.pop()}-colour.pdf"
+                fig_name = f"Network-voltage-trace-{self.experiment_name}-{types_in_plot.pop()}.pdf"
 
         plt.savefig(os.path.join(fig_path, fig_name), dpi=600)
         print(f"Saving to figure {fig_name}")
@@ -333,8 +326,8 @@ class PlotTraces:
         fig_path = os.path.join(os.path.dirname(os.path.realpath(self.network_file)), "figures")
         if not os.path.exists(fig_path):
             os.makedirs(fig_path)
-        if not os.path.exists(os.path.join(fig_path, str(self.ID) + folder_name)):
-            os.makedirs(os.path.join(fig_path, str(self.ID) + folder_name))
+        if not os.path.exists(os.path.join(fig_path, str(self.experiment_name) + folder_name)):
+            os.makedirs(os.path.join(fig_path, str(self.experiment_name) + folder_name))
         plot_count = 0
         for r in trace_id:
             fig = plt.figure(figsize=fig_size)
@@ -360,7 +353,8 @@ class PlotTraces:
             plt.title(title)
             plt.tight_layout()
             
-            plt.savefig(os.path.join(fig_path, str(self.ID) + folder_name, 'Network-spikes-' + str(self.ID) + '-' + str(r) + "-" + title + ".png"))
+            plt.savefig(os.path.join(fig_path, str(self.experiment_name) + folder_name,
+                                     f"Network-spikes-{self.experiment_name}-{r}-{title}.png"))
             plt.close(fig)
 
     ############################################################################

@@ -1,6 +1,7 @@
 {
 
     "meta" : {
+	"name" : "Example7",
 	"simulationDuration" : 4,
 	"vHold" : -80e-3,
 	"pairRecordingOutputFile" : "network-output-7.hdf5",
