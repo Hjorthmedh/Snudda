@@ -238,6 +238,7 @@ class PlotTraces:
                 fig_name = f"Network-voltage-trace-{self.experiment_name}-{types_in_plot.pop()}.pdf"
 
         plt.savefig(os.path.join(fig_path, fig_name), dpi=600)
+
         print(f"Saving to figure {fig_name}")
 
         plt.ion()
@@ -353,7 +354,7 @@ class PlotTraces:
             plt.title(title)
             plt.tight_layout()
             
-            plt.savefig(os.path.join(fig_path, str(self.experiment_name) + folder_name,
+            plt.savefig(os.path.join(fig_path, self.experiment_name + folder_name,
                                      f"Network-spikes-{self.experiment_name}-{r}-{title}.png"))
             plt.close(fig)
 
