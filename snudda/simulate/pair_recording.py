@@ -233,6 +233,7 @@ class PairRecording(SnuddaSimulate):
         for nid, v in zip(neuron_id, v_hold):
             self.set_resting_voltage(neuron_id=nid, rest_volt=v)
             self.v_hold_saved[nid] = v
+            self.v_init_saved[nid] = v
 
     def set_v_init(self, neuron_id, v_init):
         """ Set initial voltage v_init for neurons speciefied by neuron_id.
@@ -396,16 +397,18 @@ class PairRecording(SnuddaSimulate):
             cur_end = self.to_list(cur_info["end"])
             cur_times = list(zip(cur_start, cur_end))
 
-            skip_time = cur_start[0] / 2
+            skip_time = 0  # cur_start[0] / 2
 
             assert type(pre_id) == int, f"Plot traces assumes one pre-synaptic neuron stimulated: {pre_id}"
             if self.snudda_loader.find_synapses(pre_id=pre_id)[0] is None:
-                post_id =[]
+                post_id = []
             else:
                 post_id = set(self.snudda_loader.find_synapses(pre_id=pre_id)[0][:, 1])
 
             for pid in post_id:
                 fig_name = f"Current-injection-pre-{pre_id}-post-{pid}.pdf"
+                print(f"fig_name={fig_name}, cur_times={cur_times}, mark_current_y={mark_current_y}")
+
                 self.plot_trace(pre_id=pre_id, post_id=pid, fig_name=fig_name,
                                 mark_current=cur_times, mark_current_y=mark_current_y,
                                 skip_time=skip_time)
@@ -420,12 +423,8 @@ class PairRecording(SnuddaSimulate):
             title = f"{self.neurons[pre_id].name} -> {self.neurons[post_id].name} ({n_synapses} synapses)"
 
         pt = PlotTraces(output_file=self.output_file, network_file=self.network_file)
-        fig = pt.plot_traces(trace_id=post_id, offset=offset, title=title, fig_name=fig_name, skip_time=skip_time)
-
-        if mark_current:
-            import matplotlib.pyplot as plt
-            for t_start, t_end in mark_current:
-                plt.plot([t_start - skip_time, t_end - skip_time], [mark_current_y, mark_current_y], 'r-', linewidth=5)
+        pt.plot_traces(trace_id=post_id, offset=offset, title=title, fig_name=fig_name, skip_time=skip_time,
+                       mark_current=mark_current, mark_current_y=mark_current_y)
 
     def mark_synapses_for_recording(self, pre_neuron_id, post_neuron_id):
 

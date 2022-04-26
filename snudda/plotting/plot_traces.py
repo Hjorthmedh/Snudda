@@ -104,7 +104,24 @@ class PlotTraces:
     ############################################################################
 
     def plot_traces(self, trace_id=None, offset=150e-3, colours=None, skip_time=None,
+                    line_width=1,
+                    mark_current=None, mark_current_y=None,
                     title=None, fig_name=None):
+
+        """
+            Plot the traces of neuron trace_id
+
+            Args:
+                trace_id (int or list) : ID of trace to show, can be integer or list
+                offset (float) : Offset between multiple traces, float or None
+                colours : What colour to plot
+                skip_time (float) : Skip portion of the start, modifies time shown
+                mark_current (list) : List of tuples of start, end time
+                mark_current_y (float) : Y-coordinate of where to mark the current
+                title (str) : Plot title
+                fig_name (str) : Figure file to save to
+
+        """
 
         if skip_time is not None:
             print(f"!!! Excluding first {skip_time} s from the plot")
@@ -162,7 +179,7 @@ class PlotTraces:
         for r in trace_id:
 
             if r not in self.voltage:
-                print("Missing data for trace " + str(r))
+                print(f"Missing data for trace {r}")
                 continue
 
             plot_count += 1
@@ -182,10 +199,15 @@ class PlotTraces:
 
             plt.plot(self.time[time_idx] - skip_time,
                      self.voltage[r][time_idx] + ofs,
-                     color=colour, linewidth=0.1)
+                     color=colour, linewidth=line_width)
 
             if offset:
                 ofs += offset
+
+        if mark_current is not None:
+            import matplotlib.pyplot as plt
+            for t_start, t_end in mark_current:
+                plt.plot([t_start - skip_time, t_end - skip_time], [mark_current_y, mark_current_y], 'r-', linewidth=5)
 
         if plot_count == 0:
             plt.close()
