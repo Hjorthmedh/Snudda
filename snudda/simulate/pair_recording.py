@@ -117,9 +117,9 @@ class PairRecording(SnuddaSimulate):
                 neuron_id, v_hold = zip(*self.experiment_config["meta"]["vHold"])
             else:
                 neuron_id = None
-                v_hold = self.experiment_config["meta"]["Hold"]
+                v_hold = self.experiment_config["meta"]["vHold"]
 
-            self.set_v_hold(neuron_id=neuron_id, v_init=v_hold)
+            self.set_v_hold(neuron_id=neuron_id, v_hold=v_hold)
 
         if "reversal_potential" in self.experiment_config["meta"]:
             for channel_name, v_rev in self.experiment_config["meta"]["reversal_potential"]:

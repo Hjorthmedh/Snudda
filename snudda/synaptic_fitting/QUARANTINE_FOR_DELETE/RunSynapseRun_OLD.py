@@ -507,7 +507,7 @@ class RunSynapseRun(object):
 #    import pdb
 #    pdb.set_trace()
 
-    neuron.h.v_init = self.holdingVoltage*1e3 
+    neuron.h.v_hold = self.holdingVoltage * 1e3
     neuron.h.tstop = time*1e3
     neuron.h.run()
 
