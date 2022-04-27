@@ -1260,8 +1260,6 @@ class SnuddaSimulate(object):
 
         sections = self.neurons[cell_id].map_id_to_compartment(sec_id)
 
-        
-
         self.pc.threshold(cell_id, self.spike_threshold)  # TODO: Set individual spike thresholds based on parameters
         for s, sx, sid in zip(sections, sec_x, sec_id):
             v = self.sim.neuron.h.Vector()
@@ -1276,19 +1274,45 @@ class SnuddaSimulate(object):
             t_save.record(self.sim.neuron.h._ref_t)
             self.record.register_time(time=t_save)
 
-    def add_synapse_current_recording_all(self, dest_id):
+    def add_synapse_current_recording_all(self, dest_id=None, max_synapses=500):
 
-        if isinstance(dest_id, (int, np.integer)):
-            dest_id = [dest_id]
+        """
+            Record all synaptic currents to neuron dest_id. If dest_id is None then all synaptic currents are recorded.
+            The total number of currents recorded is capped at max_synapses.
 
-        for d_id in dest_id:
+            Args:
+                dest_id (int or list of ints) : Postsynaptic neuron ID
+                max_synapses (int) : Maximum number of synapses to record from (default: 500)
+        """
+
+        syn_ctr = 0
+
+        if dest_id is None:
+            self.write_log("Warning, recording ALL synapse currents.", force_print=True)
+
             for sid, did in self.synapse_dict.keys():
-                if did == d_id:
-                    self.add_synapse_current_recording(sid, did)
+                if syn_ctr > max_synapses:
+                    break
+
+                syn_ctr += self.add_synapse_current_recording(sid, did)
+
+        else:
+            if isinstance(dest_id, (int, np.integer)):
+                dest_id = [dest_id]
+
+            for d_id in dest_id:
+                for sid, did in self.synapse_dict.keys():
+                    if did == d_id and syn_ctr < max_synapses:
+                        syn_ctr += self.add_synapse_current_recording(sid, did)
+
+        if syn_ctr > max_synapses:
+            self.write_log(f"Warning: Not recording all synapse currents requested, capped at max_synapses={max_synapses}",
+                           force_print=True)
 
     def add_synapse_current_recording(self, source_id, dest_id):
 
         synapse_info_list = self.synapse_dict[source_id, dest_id]
+        syn_ctr = 0
 
         for syn, nc, synapse_type_id, sec_id in synapse_info_list:
             data = self.sim.neuron.h.Vector()
@@ -1301,6 +1325,9 @@ class SnuddaSimulate(object):
                                               sec_id=sec_id,
                                               sec_x=seg.x,
                                               cond=nc.weight[0])
+            syn_ctr += 1
+
+        return syn_ctr
 
     ############################################################################
 

@@ -61,7 +61,7 @@ class PairRecording(SnuddaSimulate):
             self.output_file = os.path.join(self.network_path, "simulation", "output.hdf5")
 
         # Variables for synapse current recording
-        self.synapse_currents = []
+        # self.synapse_currents = []
         self.record_from_pair = []
 
         self.parse_experiment_config()
@@ -117,9 +117,9 @@ class PairRecording(SnuddaSimulate):
                 neuron_id, v_hold = zip(*self.experiment_config["meta"]["vHold"])
             else:
                 neuron_id = None
-                v_hold = self.experiment_config["meta"]["Hold"]
+                v_hold = self.experiment_config["meta"]["vHold"]
 
-            self.set_v_hold(neuron_id=neuron_id, v_init=v_hold)
+            self.set_v_hold(neuron_id=neuron_id, v_hold=v_hold)
 
         if "reversal_potential" in self.experiment_config["meta"]:
             for channel_name, v_rev in self.experiment_config["meta"]["reversal_potential"]:
@@ -147,6 +147,8 @@ class PairRecording(SnuddaSimulate):
         else:
             # Add voltage recordings to neurons
             self.add_volt_recording_soma()
+
+        self.setup_synaptic_recordings()
 
     @staticmethod
     def to_list(val, new_list_len=1):
@@ -233,6 +235,7 @@ class PairRecording(SnuddaSimulate):
         for nid, v in zip(neuron_id, v_hold):
             self.set_resting_voltage(neuron_id=nid, rest_volt=v)
             self.v_hold_saved[nid] = v
+            self.v_init_saved[nid] = v
 
     def set_v_init(self, neuron_id, v_init):
         """ Set initial voltage v_init for neurons speciefied by neuron_id.
@@ -340,11 +343,16 @@ class PairRecording(SnuddaSimulate):
             import traceback
             t_str = traceback.format_exc()
             self.write_log(t_str)
-            self.write_log(f"Saving failed, whoops. Entering debug mode.")
+            self.write_log(f"Saving failed, whoops. Entering debug mode.\n"
+                           f"You might have had {self.output_file} opened elsewhere. Try closing it, then type:\n"
+                           f"> self.write_output()\n"
+                           f"If you are lucky, this will work and you wont loose any data.")
             import pdb
             pdb.set_trace()
 
-    def connect_neuron_synapses(self, start_row, end_row):
+    def connect_neuron_synapses_REMOVE(self, start_row, end_row):
+
+        assert False, "No longer used. REMOVE ME!"
 
         """ Connects the synapses present in the synapse matrix between start_row and end_row-1.
 
@@ -381,14 +389,25 @@ class PairRecording(SnuddaSimulate):
                 import pdb
                 pdb.set_trace()
 
+    def setup_synaptic_recordings(self):
+        for src_id, dest_id in self.record_from_pair:
+            self.add_synapse_current_recording(src_id, dest_id)
+
     def plot_trace_overview(self):
         from snudda.plotting import PlotTraces
+
+        if "experiment_name" in self.experiment_config["meta"]:
+            experiment_name = self.experiment_config["meta"]["experiment_name"]
+        else:
+            experiment_name = None
+
         pt = PlotTraces(output_file=self.output_file,
-                        network_file=self.network_file)
+                        network_file=self.network_file,
+                        experiment_name=experiment_name)
 
         pt.plot_traces([x for x in pt.voltage])
 
-    def plot_traces(self, mark_current_y=-80.05e-3):
+    def plot_traces(self, mark_current_y=-80.05e-3, trace_id=None):
 
         for cur_info in self.experiment_config["currentInjection"]:
             pre_id = cur_info["neuronID"]
@@ -400,15 +419,33 @@ class PairRecording(SnuddaSimulate):
 
             assert type(pre_id) == int, f"Plot traces assumes one pre-synaptic neuron stimulated: {pre_id}"
             if self.snudda_loader.find_synapses(pre_id=pre_id)[0] is None:
-                post_id =[]
+                post_id = []
             else:
                 post_id = set(self.snudda_loader.find_synapses(pre_id=pre_id)[0][:, 1])
 
+            experiment_name = self.get_experiment_name(empty_is_none=False)
+
             for pid in post_id:
-                fig_name = f"Current-injection-pre-{pre_id}-post-{pid}.pdf"
+
+                if trace_id is not None and pid not in trace_id:
+                    print(f"Skipping trace {pid}, not in trace_id={trace_id}")
+                    continue
+
+                fig_name = f"Current-injection-{experiment_name}-pre-{pre_id}-post-{pid}.pdf"
+
                 self.plot_trace(pre_id=pre_id, post_id=pid, fig_name=fig_name,
                                 mark_current=cur_times, mark_current_y=mark_current_y,
                                 skip_time=skip_time)
+
+    def get_experiment_name(self, empty_is_none=True):
+        if "experiment_name" in self.experiment_config["meta"]:
+            experiment_name = self.experiment_config["meta"]["experiment_name"]
+        elif empty_is_none:
+            experiment_name = None
+        else:
+            experiment_name = ""
+
+        return experiment_name
 
     def plot_trace(self, pre_id, post_id, offset=0, title=None, fig_name=None, skip_time=0,
                    mark_current=None, mark_current_y=None):
@@ -419,13 +456,19 @@ class PairRecording(SnuddaSimulate):
             n_synapses = self.snudda_loader.find_synapses(pre_id=pre_id, post_id=post_id)[0].shape[0]
             title = f"{self.neurons[pre_id].name} -> {self.neurons[post_id].name} ({n_synapses} synapses)"
 
-        pt = PlotTraces(output_file=self.output_file, network_file=self.network_file)
-        fig = pt.plot_traces(trace_id=post_id, offset=offset, title=title, fig_name=fig_name, skip_time=skip_time)
+        experiment_name = self.get_experiment_name()
 
-        if mark_current:
-            import matplotlib.pyplot as plt
-            for t_start, t_end in mark_current:
-                plt.plot([t_start - skip_time, t_end - skip_time], [mark_current_y, mark_current_y], 'r-', linewidth=5)
+        pt = PlotTraces(output_file=self.output_file, network_file=self.network_file, experiment_name=experiment_name)
+        pt.plot_traces(trace_id=post_id, offset=offset, title=title, fig_name=fig_name, skip_time=skip_time,
+                       mark_current=mark_current, mark_current_y=mark_current_y)
+
+    def plot_synaptic_currents(self, post_id):
+
+        from snudda.plotting import PlotTraces
+
+        experiment_name = self.get_experiment_name()
+        pt = PlotTraces(output_file=self.output_file, network_file=self.network_file, experiment_name=experiment_name)
+        pt.plot_synaptic_currents(post_id=post_id)
 
     def mark_synapses_for_recording(self, pre_neuron_id, post_neuron_id):
 

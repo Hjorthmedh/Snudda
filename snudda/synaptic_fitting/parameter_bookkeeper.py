@@ -35,6 +35,8 @@ class ParameterBookkeeper:
         data["section_x"] = section_x
         data["error"] = error
 
+        assert error >= 0, f"Error should be positive: error given {error}"
+
         if dt is not None:
             data["dt"] = dt
         if volt is not None:
@@ -60,7 +62,9 @@ class ParameterBookkeeper:
 
     def merge(self, *other_books):
 
+        # We need to heapify the returned list before we use it as a heap again
         self.book = list(heapq.merge(self.book, *other_books))
+        heapq.heapify(self.book)
 
         # We need to remove surplus elements
         book_len = len(self.book)

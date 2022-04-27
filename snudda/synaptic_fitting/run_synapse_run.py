@@ -183,7 +183,8 @@ class RunSynapseRun(object):
             self.i_clamp.dur = 2 * self.time * 1e3
 
             self.set_resting_voltage(self.holding_voltage * 1e3)
-            self.write_log(f"Set holding current {holding_current}A and holding voltage {holding_voltage}V")
+            self.write_log(f"Set holding current {holding_current}A and holding voltage {holding_voltage}V,"
+                           f" until {self.i_clamp.dur} ms")
             return holding_current
 
         self.write_log("Updating holding current, might take a bit of time")
@@ -552,7 +553,7 @@ class RunSynapseRun(object):
 
         self.set_resting_voltage(self.holding_voltage * 1e3)
 
-        neuron.h.v_init = self.holding_voltage * 1e3
+        neuron.h.v_hold = self.holding_voltage * 1e3
         neuron.h.tstop = time * 1e3
         self.write_log("About to start NEURON... stay safe")
         neuron.h.run()
