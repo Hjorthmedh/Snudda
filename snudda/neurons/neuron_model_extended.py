@@ -90,7 +90,7 @@ class NeuronModel(ephys.models.CellModel):
                                                     parameter_key=modulation_key)
             elif modulation_id:
                 mod_params = self.define_parameters(parameter_config=modulation_file,
-                                                    parameter_id=parameter_id)
+                                                    parameter_id=modulation_id)
 
             params = params + mod_params
 
