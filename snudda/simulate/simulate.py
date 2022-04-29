@@ -95,10 +95,12 @@ class SnuddaSimulate(object):
         else:
             self.input_file = input_file
 
-        if output_file:
+        if output_file is not None:
             self.output_file = output_file
         else:
             self.output_file = os.path.join(self.network_path, "simulation", "output.hdf5")
+
+        self.write_log(f"Set output_file to {self.output_file}")
 
         # Init
         self.snudda_loader = None
@@ -142,8 +144,8 @@ class SnuddaSimulate(object):
             self.log_file += f'-{int(self.pc.id())}'
             self.log_file = open(self.log_file, "w")
 
-        self.write_log(f"Using networkFile: {self.network_file}")
-        self.write_log(f"Using inputFile: {self.input_file}")
+        self.write_log(f"Using network_file: {self.network_file}")
+        self.write_log(f"Using input_file: {self.input_file}")
 
         if self.log_file is not None:
             self.write_log(f"Using logFile: {self.log_file.name}")
@@ -200,6 +202,12 @@ class SnuddaSimulate(object):
         self.record.add_unit(data_type="spikes", target_unit="s", conversion_factor=1e-3)
         self.record.add_unit(data_type="time", target_unit="s", conversion_factor=1e-3)
         # TODO: Add more units as needed https://www.neuron.yale.edu/neuron/static/docs/units/unitchart.html
+
+    # def __del__(self):
+    #     print("Destructor called -- explicitly deleting neurons from NEURON")
+    #     for n in self.neurons.values():
+    #         for k, v in n.__dict__.items():
+    #            del v
 
     def setup(self):
 
@@ -276,7 +284,7 @@ class SnuddaSimulate(object):
         self.config_file = config_file
         self.write_log(f"Loading config file {config_file}")
 
-        # Add checks to see that config file and networkFile matches
+        # Add checks to see that config file and network_file matches
 
         import json
         with open(config_file, 'r') as config_file:
@@ -527,7 +535,6 @@ class SnuddaSimulate(object):
         else:
             self.write_log("Adding gap junctions.")
 
-            # TODO: Check difference with old non-local version
             self.connect_network_gap_junctions_local()
             self.pc.setup_transfer()
 
@@ -1498,39 +1505,6 @@ class SnuddaSimulate(object):
     def write_output(self):
 
         self.record.write()
-
-    def write_current(self,
-                      output_file="save/traces/network-current",
-                      down_sampling=20):
-
-        print("This function will be deprecated in the future")
-        assert False, "Remove this assert to use the old code. But better yet, update it to use new SnuddaSaveNetworkRecordings."
-
-        """ Writes current to output_file, with option to down sample data to save space. """
-
-        for i in range(int(self.pc.nhost())):
-            self.pc.barrier()
-
-            if i == int(self.pc.id()):
-                if i == 0:
-                    mode = 'w'
-                else:
-                    mode = 'a'
-
-                with open(output_file, mode) as current_file:
-                    if mode == 'w':
-                        current_file.write('-1')  # Indiciate that first column is time
-
-                        for tIdx in range(0, len(self.t_save), down_sampling):
-                            current_file.write(',%.4f' % self.t_save[tIdx])
-
-                    for iID, cur in zip(self.i_key, self.i_save):
-                        current_file.write('\n%d' % iID)
-
-                        for iIdx in range(0, len(cur), down_sampling):
-                            current_file.write(',%.4f' % cur[iIdx])
-
-            self.pc.barrier()
 
     ##############################################################################
 
