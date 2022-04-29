@@ -127,17 +127,16 @@ class NeuronPrototype:
         else:
             self.modulation_info = None
 
-    def get_num_morphologies(self, parameter_id):
+    def get_num_morphologies(self, parameter_id=None, parameter_key=None):
 
-        if self.parameter_info:
-            par_key_list = list(self.parameter_info.keys())
-            par_key = par_key_list[parameter_id % len(par_key_list)]
-            par_set = self.parameter_info[par_key]
-        else:
-            par_key = None
+        if parameter_key is None:
+            parameter_key = self.get_parameter_key(parameter_id=parameter_id)
+        elif parameter_id is not None:
+            assert parameter_key == self.get_parameter_key(parameter_id=parameter_id), \
+                f"Internal error, parameter_id {parameter_id} does not match parameter_key {parameter_key} specified."
 
-        if self.meta_info and par_key:
-            morph_key_list = self.meta_info[par_key].keys()
+        if self.meta_info and parameter_key:
+            morph_key_list = self.meta_info[parameter_key].keys()
             return len(morph_key_list)
         else:
             return 1
@@ -275,21 +274,28 @@ class NeuronPrototype:
 
         return morph_path
 
-    def get_parameters(self, parameter_id):
+    def get_parameters(self, parameter_id=None, parameter_key=None):
         """
         Returns neuron parameter set
 
         Args:
             parameter_id (int) : parameter ID, which of the parameter sets to use
+            parameter_key (str) : parameter key for the parameter set
 
         Returns:
             One parameter set as a list of dictionaries
         """
 
         if self.parameter_info:
-            par_key_list = list(self.parameter_info.keys())
-            par_key = par_key_list[parameter_id % len(par_key_list)]
-            par_set = self.parameter_info[par_key]
+            if parameter_key is not None:
+                assert parameter_key is self.parameter_info, \
+                    f"Parameter key {parameter_key} not in parameter_info {self.parameter_info}"
+                par_set = self.parameter_info[parameter_key]
+            else:
+                assert parameter_id is not None, "If parameter_key is not set, then parameter_id must be set"
+                par_key_list = list(self.parameter_info.keys())
+                par_key = par_key_list[parameter_id % len(par_key_list)]
+                par_set = self.parameter_info[par_key]
         else:
             par_set = []
 
