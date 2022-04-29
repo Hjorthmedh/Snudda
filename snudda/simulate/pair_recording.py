@@ -195,16 +195,11 @@ class PairRecording(SnuddaSimulate):
             neuron_id = self.neuron_id
             neuron_id = self.to_list(neuron_id)
             v_hold = self.to_list(v_hold, new_list_len=len(neuron_id))
-
-        # addition to avoid len(neuron_id)=1 when vHold is list
-        # without this soma_list=0 when neuron_id is a list
-        if type(neuron_id) == tuple:
+        else:
             neuron_id = [x for x in neuron_id]
-        if type(v_hold) == tuple:
             v_hold = [x for x in v_hold]
 
-        assert self.sim_duration is not None, \
-            f"setup_holding_volt: Please set self.end_time, for holding current"
+        assert self.sim_duration is not None, f"setup_holding_volt: Please set self.end_time, for holding current"
 
         # Setup vClamps to calculate what holding current will be needed
         soma_v_clamp = []
