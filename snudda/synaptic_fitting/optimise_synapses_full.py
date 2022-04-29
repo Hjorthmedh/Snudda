@@ -1399,7 +1399,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if "data" in args:
+    if args.data:
         os.environ["SNUDDA_DATA"] = args.data
 
     snudda_data_dir = os.getenv("SNUDDA_DATA")
