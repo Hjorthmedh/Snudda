@@ -1395,8 +1395,7 @@ if __name__ == "__main__":
                         help="plotting traces for article")
     parser.add_argument("--compile", action="store_true", help="Compile NEURON modules")
 
-    parser.add_argument("--data", help="Snudda data directory",
-                        default=os.path.join("..", "..", "..", "BasalGangliaData", "data"))
+    parser.add_argument("--data", help="Snudda data directory")
 
     args = parser.parse_args()
 
