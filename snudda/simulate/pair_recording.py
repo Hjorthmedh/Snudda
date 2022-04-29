@@ -409,6 +409,14 @@ class PairRecording(SnuddaSimulate):
 
     def plot_traces(self, mark_current_y=-80.05e-3, trace_id=None):
 
+        """
+           Plot traces of post synaptic neuron activation, this assumes only one neuron was stimulated
+
+           Args:
+               mark_current_y (float) : Y-axis value to mark current injections at
+               trace_id (list, optional) : Trace ID to show (default None, meaning all post synaptic traces)
+           """
+
         for cur_info in self.experiment_config["currentInjection"]:
             pre_id = cur_info["neuronID"]
             cur_start = self.to_list(cur_info["start"])
