@@ -17,7 +17,7 @@ fi
 
 mkdir -p $JOBDIR
 
-if [ $SLURM_PROCID -gt 0 ]; then
+if [ "$SLURM_PROCID" -gt 0 ]; then
 	mock_string="Not main process"
 
 else
