@@ -100,8 +100,6 @@ class SnuddaSimulate(object):
         else:
             self.output_file = os.path.join(self.network_path, "simulation", "output.hdf5")
 
-        self.write_log(f"Set output_file to {self.output_file}")
-
         # Init
         self.snudda_loader = None
         self.network_info = None
@@ -144,8 +142,12 @@ class SnuddaSimulate(object):
             self.log_file += f'-{int(self.pc.id())}'
             self.log_file = open(self.log_file, "w")
 
+        # Earliest point we can write to log file, it needs to be opened.
+
         self.write_log(f"Using network_file: {self.network_file}")
         self.write_log(f"Using input_file: {self.input_file}")
+        self.write_log(f"Using output_file: {self.output_file}")
+
 
         if self.log_file is not None:
             self.write_log(f"Using logFile: {self.log_file.name}")
@@ -1521,7 +1523,7 @@ class SnuddaSimulate(object):
         """
 
         if self.log_file is not None:
-            self.log_file.write(text + "\n")
+            self.log_file.write(f"{text}\n")
             if flush:
                 self.log_file.flush()
 
