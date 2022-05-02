@@ -230,6 +230,8 @@ class SnuddaInit(object):
                           a3_other=None,
                           conductance=None,
                           cluster_synapses=False,
+                          cluster_size=1,
+                          cluster_spread=None,
                           mod_file=None,
                           parameter_file=None,
                           channel_param_dictionary=None,
@@ -271,6 +273,8 @@ class SnuddaInit(object):
         con_info = dict([])
         con_info["conductance"] = [cond, cond_std]  # Mean, Std
         con_info["channelParameters"] = channel_param_dictionary
+        con_info["clusterSize"] = cluster_size
+        con_info["clusterSpread"] = cluster_spread
         pruning_info = dict([])
         pruning_info["f1"] = f1
         pruning_info["softMax"] = soft_max
@@ -439,8 +443,9 @@ class SnuddaInit(object):
         # TODO: We should force users to use same name as the directory name
         # ie, fs/FS_0 directory should be named FS_0
 
-        # Find which neurons are available in neuronDir
-        dir_list = glob.glob(snudda_parse_path(neuron_dir) + "/*")
+        # Find which neurons are available in neuron_dir
+        # OBS, we need to sort the list of neuron directories, so every computer gets the same order
+        dir_list = sorted(glob.glob(os.path.join(snudda_parse_path(neuron_dir), "*")))
         neuron_file_list = []
 
         assert len(dir_list) > 0, f"Neuron dir {snudda_parse_path(neuron_dir)} is empty!"

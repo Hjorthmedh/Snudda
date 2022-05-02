@@ -1123,7 +1123,7 @@ class SnuddaDetect(object):
                                 cluster_spread = con_dict[con_type]["clusterSpread"]
                                 
                                 if isinstance(cluster_spread, (np.ndarray, list)):
-                                    cluster_spread = self.hyper_voxel_rng.normal(loc = cluster_spread[0], scale = cluster_spread[1])
+                                    cluster_spread = np.maximum(np.abs(self.hyper_voxel_rng.normal(loc = cluster_spread[0], scale = cluster_spread[1])),5e-6)
 
                                 # This uses clone in neuron_prototype which should be cached
                                 neuron = self.load_neuron(self.neurons[d_id])

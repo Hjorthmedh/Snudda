@@ -8,6 +8,16 @@
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=64
 
+
+echo "*************************************************************************"
+echo " "
+echo "If the network file fails to create, run interactively to create it"
+echo "See interactive-node.txt for more information, "
+echo "and use interactive-node-create-config.sh"
+echo " "
+echo "*************************************************************************"
+echo " "
+
 module load snic-env
 
 export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/.ipython"

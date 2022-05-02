@@ -1113,9 +1113,9 @@ class SnuddaPrune(object):
 
         assert self.keep_files, "keep_files must be True to use this feature"
 
-        putative_file_name = os.path.join(self.network_path, "network-putative-synapses.hdf5")
-
-        self.write_log(f"Saving putative synapses to {putative_file_name}")
+        putative_file_name = os.path.join(self.network_path, "network-putative-synapses-NOT-SORTED.hdf5")
+        self.write_log(f"Saving putative synapses to {putative_file_name}, OBS the synapses are not sorted. "
+                       f"!!! Many functions assume the synapse matrix is sorted on destination ID, source ID")
 
         old_out_file = self.out_file
         self.out_file = None

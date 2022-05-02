@@ -1,16 +1,24 @@
 #!/bin/bash
 
+rm -r .ipython
 
 export IPYTHONDIR="`pwd`/.ipython"
-export IPYTHON_PROFILE=Default
+export IPYTHON_PROFILE=default
 
-ipcluster start -n 2 --profile=$IPYTHON_PROFILE --ip=127.0.0.1 \
-	  --engines=MPIEngineSetLauncher --debug \
-	  --HeartMonitor.max_heartmonitor_misses=1000 \
-	  --HubFactory.registration_timeout=600 \
-	  --HeartMonitor.period=100000 &
+# If the BasalGangliaData directory exists, then use that for our data                      
+if [[ -d "../../../BasalGangliaData/data" ]]; then
+    export SNUDDA_DATA="../../../BasalGangliaData/data"
+    echo "Setting SNUDDA_DATA to $SNUDDA_DATA"
+else
+    echo "SNUDDA_DATA environment variable not changed (may be empty): $SNUDDA_DATA"
+fi
+
+ipcluster start --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20
 
 python3 optimise_synapses_full.py ../data/synapses/example_data/10_MSN12_GBZ_CC_H20.json --synapseParameters ../data/synapses/example_data/M1LH-contra_dSPN.json
 
 ipcluster stop
+
+
+python3 optimise_synapses_full.py ../data/synapses/example_data/10_MSN12_GBZ_CC_H20.json --synapseParameters ../data/synapses/example_data/M1LH-contra_dSPN.json --plot

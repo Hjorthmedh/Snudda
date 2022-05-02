@@ -144,7 +144,6 @@ class CompartmentData:
 class SnuddaSaveNetworkRecordings:
 
     def __init__(self, output_file, network_data=None):
-
         self.output_file = output_file
         self.network_data = network_data
         self.header_exists = False
@@ -154,6 +153,10 @@ class SnuddaSaveNetworkRecordings:
         self.units = dict()
 
         self.pc = h.ParallelContext()
+
+    def set_new_output_file(self, output_file):
+        self.output_file = output_file
+        self.header_exists = False
 
     def add_unit(self, data_type, target_unit, conversion_factor):
         # Units reference chart: https://www.neuron.yale.edu/neuron/static/docs/units/unitchart.html

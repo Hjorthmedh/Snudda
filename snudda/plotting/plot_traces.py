@@ -8,6 +8,8 @@ import h5py
 import numpy as np
 from snudda.utils.load import SnuddaLoad
 from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
+import matplotlib.pyplot as plt
+
 import re
 import ntpath
 import time
@@ -17,7 +19,7 @@ class PlotTraces:
 
     ############################################################################
 
-    def __init__(self, output_file, network_file=None, input_file=None):
+    def __init__(self, output_file, network_file=None, input_file=None, experiment_name=None):
 
         self.output_file = output_file
         self.network_file = network_file
@@ -28,13 +30,10 @@ class PlotTraces:
 
         self.neuron_name_remap = {"FSN": "FS"}
 
-        # self.read_csv()
-
-        try:
-            self.ID = int(re.findall('\d+', ntpath.basename(output_file))[0])
-        except:
-            print("Unable to guess ID, using 666.")
-            self.ID = 666
+        if experiment_name is not None:
+            self.experiment_name = experiment_name
+        else:
+            self.experiment_name = ""
 
         if network_file is None and "simulation" in output_file:
             network_path = os.path.dirname(os.path.dirname(output_file))
@@ -50,8 +49,6 @@ class PlotTraces:
         if self.network_file is not None:
             print(f"Loading network info from {self.network_file}")
             self.network_info = SnuddaLoad(self.network_file)
-            # assert(int(self.ID) == int(self.networkInfo.data["SlurmID"]))
-
         else:
             self.network_info = None
 
@@ -104,7 +101,24 @@ class PlotTraces:
     ############################################################################
 
     def plot_traces(self, trace_id=None, offset=150e-3, colours=None, skip_time=None,
+                    line_width=1,
+                    mark_current=None, mark_current_y=None,
                     title=None, fig_name=None):
+
+        """
+            Plot the traces of neuron trace_id
+
+            Args:
+                trace_id (int or list) : ID of trace to show, can be integer or list
+                offset (float) : Offset between multiple traces, float or None
+                colours : What colour to plot
+                skip_time (float) : Skip portion of the start, modifies time shown
+                mark_current (list) : List of tuples of start, end time
+                mark_current_y (float) : Y-coordinate of where to mark the current
+                title (str) : Plot title
+                fig_name (str) : Figure file to save to
+
+        """
 
         if skip_time is not None:
             print(f"!!! Excluding first {skip_time} s from the plot")
@@ -126,8 +140,6 @@ class PlotTraces:
 
         print(f"Plotting traces: {trace_id}")
         print(f"Plotted {len(trace_id)} traces (total {len(self.voltage)})")
-
-        import matplotlib.pyplot as plt
 
         types_in_plot = set()
 
@@ -162,7 +174,7 @@ class PlotTraces:
         for r in trace_id:
 
             if r not in self.voltage:
-                print("Missing data for trace " + str(r))
+                print(f"Missing data for trace {r}")
                 continue
 
             plot_count += 1
@@ -182,10 +194,14 @@ class PlotTraces:
 
             plt.plot(self.time[time_idx] - skip_time,
                      self.voltage[r][time_idx] + ofs,
-                     color=colour)
+                     color=colour, linewidth=line_width)
 
             if offset:
                 ofs += offset
+
+        if mark_current is not None:
+            for t_start, t_end in mark_current:
+                plt.plot([t_start - skip_time, t_end - skip_time], [mark_current_y, mark_current_y], 'r-', linewidth=5)
 
         if plot_count == 0:
             plt.close()
@@ -204,25 +220,22 @@ class PlotTraces:
         if title is not None:
             plt.title(title)
 
-        if offset != 0:
+        if offset != 0 and offset is not None:
             ax = fig.axes[0]
             ax.set_yticklabels([])
 
         plt.tight_layout()
 
-        # plt.savefig('figures/Network-spikes-' + str(self.ID) + "-colour.pdf")
-
-        fig_path = os.path.join(os.path.dirname(os.path.realpath(self.network_file)), "figures")
-        if not os.path.exists(fig_path):
-            os.makedirs(fig_path)
+        fig_path = self.get_figure_path()
 
         if fig_name is None:
             if len(types_in_plot) > 1:
-                fig_name = f"Network-voltage-trace-{self.ID}-{'-'.join(types_in_plot)}-colour.pdf"
+                fig_name = f"Network-voltage-trace-{self.experiment_name}-{'-'.join(types_in_plot)}.pdf"
             else:
-                fig_name = f"Network-voltage-trace-{self.ID}-{types_in_plot.pop()}-colour.pdf"
+                fig_name = f"Network-voltage-trace-{self.experiment_name}-{types_in_plot.pop()}.pdf"
 
-        plt.savefig(os.path.join(fig_path, fig_name), dpi=300)
+        plt.savefig(os.path.join(fig_path, fig_name), dpi=600)
+
         print(f"Saving to figure {fig_name}")
 
         plt.ion()
@@ -231,6 +244,15 @@ class PlotTraces:
         plt.pause(0.5)  # Show interactive plot (that user can interact with for a short period of time)
 
         return fig
+
+    def get_figure_path(self):
+
+        fig_path = os.path.join(os.path.dirname(os.path.realpath(self.network_file)), "figures")
+        if not os.path.exists(fig_path):
+            os.makedirs(fig_path)
+
+        return fig_path
+
 
     ############################################################################
 
@@ -250,8 +272,13 @@ class PlotTraces:
 
         time.sleep(1)
         return fig
+
     def plot_traces_sep(self, trace_id=None, offset=150e-3, colours=None, skip_time=None,
-                    title=None, fig_name=None, fig_size=None, folderName=''):
+                        title=None, fig_name=None, fig_size=None, folder_name=None):
+
+        if folder_name is None:
+            folder_name = ""
+
         #Plot traces and save as separate images
         if skip_time is not None:
             print(f"!!! Excluding first {skip_time} s from the plot")
@@ -274,8 +301,6 @@ class PlotTraces:
         print(f"Plotting traces: {trace_id}")
         print(f"Plotted {len(trace_id)} traces (total {len(self.voltage)})")
 
-        import matplotlib.pyplot as plt
-
         types_in_plot = set()
 
         if self.network_info is not None:
@@ -297,18 +322,16 @@ class PlotTraces:
         if not fig_size:
             fig_size = (10, 5)
 
-
         if skip_time is not None:
             time_idx = np.where(self.time >= skip_time)[0]
         else:
             skip_time = 0.0
             time_idx = range(0, len(self.time))
 
-        fig_path = os.path.join(os.path.dirname(os.path.realpath(self.network_file)), "figures")
-        if not os.path.exists(fig_path):
-            os.makedirs(fig_path)
-        if not os.path.exists(os.path.join(fig_path, str(self.ID)+folderName)):
-            os.makedirs(os.path.join(fig_path, str(self.ID)+folderName))
+        fig_path = self.get_figure_path()
+
+        if not os.path.exists(os.path.join(fig_path, str(self.experiment_name) + folder_name)):
+            os.makedirs(os.path.join(fig_path, str(self.experiment_name) + folder_name))
         plot_count = 0
         for r in trace_id:
             fig = plt.figure(figsize=fig_size)
@@ -334,7 +357,8 @@ class PlotTraces:
             plt.title(title)
             plt.tight_layout()
             
-            plt.savefig(os.path.join(fig_path, str(self.ID)+folderName,'Network-spikes-' + str(self.ID)+'-'+str(r) +"-"+title+ ".png"))
+            plt.savefig(os.path.join(fig_path, self.experiment_name + folder_name,
+                                     f"Network-spikes-{self.experiment_name}-{r}-{title}.png"))
             plt.close(fig)
 
     ############################################################################
@@ -366,6 +390,35 @@ class PlotTraces:
 
     ############################################################################
 
+    def plot_synaptic_currents(self, post_id):
+
+        """
+            Plot synaptic currents impinging on neuron post_id
+
+            Args: post_id (int) : Neuron ID of post synaptic neuron
+        """
+
+        data, sec_id_x, syn_info = self.output_load.get_data("synaptic_current", neuron_id=[post_id])
+        time = self.output_load.get_time()
+
+        plt.figure()
+        line_id_list = []
+        for trace, pre_id in zip(data[post_id].T, syn_info[post_id][1]):
+            plt.plot(time, trace, label=pre_id)
+
+        plt.legend()
+        plt.xlabel("Time (s)")
+        plt.ylabel("Current (A)")
+        plt.title(f"Synaptic currents on {post_id} ({self.network_info.data['neurons'][post_id]['name']})")
+        plt.ion()
+        plt.show()
+
+        fig_path = self.get_figure_path()
+        fig_name = os.path.join(fig_path, f"{self.experiment_name}-synaptic-currents-{post_id}.png")
+        plt.savefig(fig_name, dpi=300)
+
+    ############################################################################
+
 
 if __name__ == "__main__":
 
@@ -377,18 +430,16 @@ if __name__ == "__main__":
     parser.add_argument("--plot_offset", type=float, default=0)
     parser.add_argument("--skip_time", type=float, default=0)
     parser.add_argument("--max_num_traces", type=int, default=None)
+    parser.add_argument("--traceID", type=str, default=None, help="Trace ID to plot, separated by comma: e.g. 1,3,14")
     args = parser.parse_args()
 
     npt = PlotTraces(output_file=args.output_file, network_file=args.network_file, input_file=args.input_file)
 
-    # TODO: Update code so it loops through all existing neuron types by default
-    npt.plot_trace_neuron_type(neuron_type="dSPN", num_traces=args.max_num_traces,
-                               offset=args.plot_offset, skip_time=args.skip_time)
-    npt.plot_trace_neuron_type(neuron_type="iSPN", num_traces=args.max_num_traces,
-                               offset=args.plot_offset, skip_time=args.skip_time)
-    npt.plot_trace_neuron_type(neuron_type="FS", num_traces=args.max_num_traces,
-                               offset=args.plot_offset, skip_time=args.skip_time)
-    npt.plot_trace_neuron_type(neuron_type="LTS", num_traces=args.max_num_traces,
-                               offset=args.plot_offset, skip_time=args.skip_time)
-    npt.plot_trace_neuron_type(neuron_type="ChIN", num_traces=args.max_num_traces,
-                               offset=args.plot_offset, skip_time=args.skip_time)
+    if args.traceID is not None:
+        trace_id = [int(x) for x in args.traceID.split(",")]
+        npt.plot_traces(offset=args.plot_offset, trace_id=trace_id, skip_time=args.skip_time,
+                        title=f"Traces {args.traceID}")
+    else:
+        for neuron_type in npt.output_load.iter_neuron_type():
+            npt.plot_trace_neuron_type(neuron_type=neuron_type, num_traces=args.max_num_traces,
+                                       offset=args.plot_offset, skip_time=args.skip_time)

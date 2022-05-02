@@ -95,7 +95,7 @@ class SnuddaSimulate(object):
         else:
             self.input_file = input_file
 
-        if output_file:
+        if output_file is not None:
             self.output_file = output_file
         else:
             self.output_file = os.path.join(self.network_path, "simulation", "output.hdf5")
@@ -134,11 +134,20 @@ class SnuddaSimulate(object):
             self.log_file = os.path.join(self.network_path, "log", "simulation-log.txt")
 
         if type(self.log_file) == str:
+            log_dir_name = os.path.dirname(self.log_file)
+            if not os.path.exists(log_dir_name):
+                print(f"Creating {log_dir_name}")
+                os.makedirs(log_dir_name)
+
             self.log_file += f'-{int(self.pc.id())}'
             self.log_file = open(self.log_file, "w")
 
-        self.write_log(f"Using networkFile: {self.network_file}")
-        self.write_log(f"Using inputFile: {self.input_file}")
+        # Earliest point we can write to log file, it needs to be opened.
+
+        self.write_log(f"Using network_file: {self.network_file}")
+        self.write_log(f"Using input_file: {self.input_file}")
+        self.write_log(f"Using output_file: {self.output_file}")
+
 
         if self.log_file is not None:
             self.write_log(f"Using logFile: {self.log_file.name}")
@@ -195,6 +204,12 @@ class SnuddaSimulate(object):
         self.record.add_unit(data_type="spikes", target_unit="s", conversion_factor=1e-3)
         self.record.add_unit(data_type="time", target_unit="s", conversion_factor=1e-3)
         # TODO: Add more units as needed https://www.neuron.yale.edu/neuron/static/docs/units/unitchart.html
+
+    # def __del__(self):
+    #     print("Destructor called -- explicitly deleting neurons from NEURON")
+    #     for n in self.neurons.values():
+    #         for k, v in n.__dict__.items():
+    #            del v
 
     def setup(self):
 
@@ -271,7 +286,7 @@ class SnuddaSimulate(object):
         self.config_file = config_file
         self.write_log(f"Loading config file {config_file}")
 
-        # Add checks to see that config file and networkFile matches
+        # Add checks to see that config file and network_file matches
 
         import json
         with open(config_file, 'r') as config_file:
@@ -522,7 +537,6 @@ class SnuddaSimulate(object):
         else:
             self.write_log("Adding gap junctions.")
 
-            # TODO: Check difference with old non-local version
             self.connect_network_gap_junctions_local()
             self.pc.setup_transfer()
 
@@ -909,7 +923,7 @@ class SnuddaSimulate(object):
     def add_gap_junction(self,
                          section, section_dist,
                          gid_source_gj, gid_dest_gj,
-                         g_gap_junction=0.5e-9):
+                         g_gap_junction):
 
         """
         Add gap junction.
@@ -1255,10 +1269,9 @@ class SnuddaSimulate(object):
 
         sections = self.neurons[cell_id].map_id_to_compartment(sec_id)
 
-        v = self.sim.neuron.h.Vector()
-
         self.pc.threshold(cell_id, self.spike_threshold)  # TODO: Set individual spike thresholds based on parameters
         for s, sx, sid in zip(sections, sec_x, sec_id):
+            v = self.sim.neuron.h.Vector()
             v.record(getattr(s(sx), '_ref_v'))
 
             # From the Snudda synapse matrix. sec_id 0 is soma, sec_id >= 1 is dendrite, sec_id <= -1 is axon
@@ -1270,19 +1283,45 @@ class SnuddaSimulate(object):
             t_save.record(self.sim.neuron.h._ref_t)
             self.record.register_time(time=t_save)
 
-    def add_synapse_current_recording_all(self, dest_id):
+    def add_synapse_current_recording_all(self, dest_id=None, max_synapses=500):
 
-        if isinstance(dest_id, (int, np.integer)):
-            dest_id = [dest_id]
+        """
+            Record all synaptic currents to neuron dest_id. If dest_id is None then all synaptic currents are recorded.
+            The total number of currents recorded is capped at max_synapses.
 
-        for d_id in dest_id:
+            Args:
+                dest_id (int or list of ints) : Postsynaptic neuron ID
+                max_synapses (int) : Maximum number of synapses to record from (default: 500)
+        """
+
+        syn_ctr = 0
+
+        if dest_id is None:
+            self.write_log("Warning, recording ALL synapse currents.", force_print=True)
+
             for sid, did in self.synapse_dict.keys():
-                if did == d_id:
-                    self.add_synapse_current_recording(sid, did)
+                if syn_ctr > max_synapses:
+                    break
+
+                syn_ctr += self.add_synapse_current_recording(sid, did)
+
+        else:
+            if isinstance(dest_id, (int, np.integer)):
+                dest_id = [dest_id]
+
+            for d_id in dest_id:
+                for sid, did in self.synapse_dict.keys():
+                    if did == d_id and syn_ctr < max_synapses:
+                        syn_ctr += self.add_synapse_current_recording(sid, did)
+
+        if syn_ctr > max_synapses:
+            self.write_log(f"Warning: Not recording all synapse currents requested, capped at max_synapses={max_synapses}",
+                           force_print=True)
 
     def add_synapse_current_recording(self, source_id, dest_id):
 
         synapse_info_list = self.synapse_dict[source_id, dest_id]
+        syn_ctr = 0
 
         for syn, nc, synapse_type_id, sec_id in synapse_info_list:
             data = self.sim.neuron.h.Vector()
@@ -1295,6 +1334,9 @@ class SnuddaSimulate(object):
                                               sec_id=sec_id,
                                               sec_x=seg.x,
                                               cond=nc.weight[0])
+            syn_ctr += 1
+
+        return syn_ctr
 
     ############################################################################
 
@@ -1466,39 +1508,6 @@ class SnuddaSimulate(object):
 
         self.record.write()
 
-    def write_current(self,
-                      output_file="save/traces/network-current",
-                      down_sampling=20):
-
-        print("This function will be deprecated in the future")
-        assert False, "Remove this assert to use the old code. But better yet, update it to use new SnuddaSaveNetworkRecordings."
-
-        """ Writes current to output_file, with option to down sample data to save space. """
-
-        for i in range(int(self.pc.nhost())):
-            self.pc.barrier()
-
-            if i == int(self.pc.id()):
-                if i == 0:
-                    mode = 'w'
-                else:
-                    mode = 'a'
-
-                with open(output_file, mode) as current_file:
-                    if mode == 'w':
-                        current_file.write('-1')  # Indiciate that first column is time
-
-                        for tIdx in range(0, len(self.t_save), down_sampling):
-                            current_file.write(',%.4f' % self.t_save[tIdx])
-
-                    for iID, cur in zip(self.i_key, self.i_save):
-                        current_file.write('\n%d' % iID)
-
-                        for iIdx in range(0, len(cur), down_sampling):
-                            current_file.write(',%.4f' % cur[iIdx])
-
-            self.pc.barrier()
-
     ##############################################################################
 
     def write_log(self, text, flush=True, is_error=False, force_print=False):
@@ -1514,7 +1523,7 @@ class SnuddaSimulate(object):
         """
 
         if self.log_file is not None:
-            self.log_file.write(text + "\n")
+            self.log_file.write(f"{text}\n")
             if flush:
                 self.log_file.flush()
 

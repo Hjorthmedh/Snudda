@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-import json
+import os
 import sys
+import json
 import timeit
 from collections import OrderedDict
 
 import numpy as np
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
+from snudda.utils.numpy_encoder import NumpyEncoder
 
 
 class SnuddaLoad(object):
@@ -437,47 +439,6 @@ class SnuddaLoad(object):
 
     ############################################################################
 
-    def load_neuron(self, neuron_id):
-
-        """
-        Loads a specific neuron. Returns a NeuronMorphology object.
-
-        Args:
-            neuron_id (int): Neuron ID
-
-        Returns:
-            NeuronMorphology object.
-
-        """
-
-        neuron_info = self.data["neurons"][neuron_id]
-        self.load_config_file()
-
-        prototype_info = self.config["Neurons"][neuron_info["name"]]
-
-        neuron_prototype = NeuronPrototype(neuron_name=neuron_info["name"],
-                                           morphology_path=prototype_info["morphology"],
-                                           mechanism_path=prototype_info["mechanisms"],
-                                           modulation_path=prototype_info["modulation"],
-                                           neuron_path=None,
-                                           load_morphology=True)
-
-        # Each parameter set specifies a subset of morphologies it is valid for, so it is not enough to know
-        # what neuron name the morphology belongs to, we need parameterID and morphologyID also.
-        parameter_id = neuron_info["parameterID"]
-        morphology_id = neuron_info["morphologyID"]
-        modulation_id = neuron_info["modulationID"]
-
-        neuron = neuron_prototype.clone(parameter_id=parameter_id,
-                                        morphology_id=morphology_id,
-                                        modulation_id=modulation_id,
-                                        position=neuron_info["position"],
-                                        rotation=neuron_info["rotation"])
-
-        return neuron
-
-    ############################################################################
-
     def synapse_iterator(self, chunk_size=1000000, data_type="synapses"):
 
         """
@@ -791,6 +752,53 @@ class SnuddaLoad(object):
 
         return neuron_id
 
+    def load_neuron(self, neuron_id):
+
+        """
+        Loads a specific neuron. Returns a NeuronMorphology object.
+
+        Args:
+            neuron_id (int): Neuron ID
+
+        Returns:
+            NeuronMorphology object.
+
+        """
+
+        neuron_prototype = NeuronPrototype(neuron_path=self.data["neurons"][neuron_id]["neuronPath"],
+                                           neuron_name=self.data["neurons"][neuron_id]["name"])
+        neuron_object = neuron_prototype.clone(parameter_key=self.data["neurons"][neuron_id]["parameterKey"],
+                                               morphology_key=self.data["neurons"][neuron_id]["morphologyKey"],
+                                               modulation_key=self.data["neurons"][neuron_id]["modulationKey"],
+                                               position=self.data["neurons"][neuron_id]["position"],
+                                               rotation=self.data["neurons"][neuron_id]["rotation"])
+        return neuron_object
+
+    def get_neuron_keys(self, neuron_id):
+        n = self.data["neurons"][neuron_id]
+        return n["parameterKey"], n["morphologyKey"], n["modulationKey"]
+
+    def get_neuron_params(self, neuron_id):
+
+        neuron_path = self.data["neurons"][neuron_id]["neuronPath"]
+        parameter_key = self.data["neurons"][neuron_id]["parameterKey"]
+        parameter_file = os.path.join(neuron_path, "parameters.json")
+        with open(parameter_file, "r") as f:
+            parameter_data = json.load(f)
+
+        param_data = parameter_data[parameter_key]
+
+        if "modulationKey" in self.data["neurons"][neuron_id]:
+            modulation_key = self.data["neurons"][neuron_id]["modulationKey"]
+            modulation_file = os.path.join(neuron_path, "modulation.json")
+            with open(modulation_file, "r") as f:
+                modulation_data = json.load(f)
+            mod_data = modulation_data[modulation_key]
+        else:
+            mod_data = None
+
+        return param_data, mod_data
+
     def find_gap_junctions(self, neuron_id, n_max=1000000):
 
         """ Find gap junctions associated with neuron_id
@@ -827,6 +835,34 @@ class SnuddaLoad(object):
 
         return gap_junctions[:gj_ctr, :], gj_coords
 
+    def get_centre_neurons_iterator(self, n_neurons=None, neuron_type=None, centre_point=None):
+
+        """ Return neuron id:s, starting from the centre most and moving outwards
+
+        Args:
+            n_neurons (int) : Number of neurons to return, None = all available
+            neuron_type (str) : Type of neurons to return, None = all available
+            centre_point (np.array) : x,y,z of centre position, None = auto detect centre
+        """
+
+        if centre_point is None:
+            centre_point = np.mean(self.data["neuronPositions"], axis=0)
+
+        dist_to_centre = np.linalg.norm(self.data["neuronPositions"] - centre_point, axis=-1)
+        idx = np.argsort(dist_to_centre)
+
+        neuron_ctr = 0
+
+        for neuron_id in idx:
+            if neuron_type is not None and self.data["neurons"]["type"] != neuron_type:
+                continue
+
+            yield neuron_id, dist_to_centre[neuron_id]
+            neuron_ctr += 1
+
+            if n_neurons is not None and neuron_ctr >= n_neurons:
+                return
+
     ############################################################################
 
 
@@ -845,6 +881,8 @@ def snudda_load_cli():
     parser.add_argument("--keepOpen", help="This prevents loading of synapses to memory, and keeps HDF5 file open",
                         action="store_true")
     parser.add_argument("--detailed", help="More information", action="store_true")
+    parser.add_argument("--centre", help="List n neurons in centre (-1 = all)", type=int)
+    parser.add_argument("--listParam", help="List parameters for neuron_id", type=int)
 
     args = parser.parse_args()
 
@@ -961,6 +999,23 @@ def snudda_load_cli():
                           f"{gap_junction_coords[i, 1]*1e6:.1f}, "
                           f"{gap_junction_coords[i, 2]*1e6:.1f}) μm, "
                           f"Cond: {gap_junctions[i, 10] * 1e-3:.3f} nS")
+
+    if args.listParam is not None:
+        param_data, mod_data = nl.get_neuron_params(neuron_id=args.listParam)
+        print(f"Neuron ID {args.listParam}\n"
+              f"parameters: {json.dumps(param_data, indent=4, cls=NumpyEncoder)}\n\n"
+              f"modulation: {json.dumps(mod_data, indent=4, cls=NumpyEncoder)}\n")
+
+    if args.centre:
+        if args.centre < 0:
+            n_neurons = None
+        else:
+            n_neurons = args.centre
+
+        for neuron_id, centre_dist in nl.get_centre_neurons_iterator(n_neurons):
+            pos = nl.data["neurons"][neuron_id]["position"] * 1e6
+            name = nl.data["neurons"][neuron_id]["name"]
+            print(f"{neuron_id} {name}: ({pos[0]:.1f}, {pos[1]:.1f}, {pos[2]:.1f}) μm, distance to centre {centre_dist*1e6:.1f} μm")
 
 
 if __name__ == "__main__":

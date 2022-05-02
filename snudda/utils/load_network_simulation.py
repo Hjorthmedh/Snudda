@@ -136,8 +136,7 @@ class SnuddaLoadNetworkSimulation:
 
                 if "synapse_type" in self.network_simulation_file["neurons"][snid][data_type]:
                     synapse_type = self.network_simulation_file["neurons"][snid][data_type]["synapse_type"][()].copy()
-                    presynaptic_id = self.network_simulation_file["neurons"][snid][data_type]["presynaptic_id"][
-                        ()].copy()
+                    presynaptic_id = self.network_simulation_file["neurons"][snid][data_type]["presynaptic_id"][()].copy()
                     cond = self.network_simulation_file["neurons"][snid][data_type]["cond"][()].copy()
                     syn_info[inid] = (synapse_type, presynaptic_id, cond)
 
@@ -225,6 +224,13 @@ class SnuddaLoadNetworkSimulation:
             neuron_type = [SnuddaLoad.to_str(x) for x in self.network_simulation_file["metaData/type"]]
 
         return neuron_type
+
+    def iter_neuron_type(self):
+        neuron_types = list(set(self.get_neuron_type()))
+        neuron_types.sort()
+                
+        for x in neuron_types:
+            yield x
 
 
 def load_network_simulation_cli():
