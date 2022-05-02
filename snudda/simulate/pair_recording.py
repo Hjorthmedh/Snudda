@@ -39,9 +39,25 @@ class PairRecording(SnuddaSimulate):
 
     """
 
-    def __init__(self, network_path, experiment_config_file):
+    def __init__(self, network_path, experiment_config_file, output_file=None, disable_gap_junctions=False, verbose=False):
 
-        super().__init__(network_path=network_path)
+        # Do stuff with experiment_config
+        self.experiment_config_file = experiment_config_file
+        self.experiment_config = self.read_experiment_config(experiment_config_file=experiment_config_file)
+
+        if output_file is None:
+            if "pairRecordingOutputFile" in self.experiment_config["meta"].keys():
+                output_file = os.path.join(network_path, "simulation",
+                                           self.experiment_config["meta"]["pairRecordingOutputFile"])
+            else:
+                output_file = os.path.join(network_path, "simulation", "output.hdf5")
+
+        print(f"Pair recording output file: {output_file}")
+
+        super().__init__(network_path=network_path,
+                         output_file=output_file,
+                         disable_gap_junctions=disable_gap_junctions,
+                         verbose=verbose)
 
         self.simulate_neuron_ids = None
 
@@ -50,21 +66,14 @@ class PairRecording(SnuddaSimulate):
         self.v_init_saved = dict()
         self.v_hold_saved = dict()
 
-        # Do stuff with experiment_config
-        self.experiment_config_file = experiment_config_file
-        self.experiment_config = self.read_experiment_config(experiment_config_file=experiment_config_file)
-
-        if "pairRecordingOutputFile" in self.experiment_config["meta"].keys():
-            self.output_file = os.path.join(self.network_path, "simulation",
-                                            self.experiment_config["meta"]["pairRecordingOutputFile"])
-        else:
-            self.output_file = os.path.join(self.network_path, "simulation", "output.hdf5")
-
         # Variables for synapse current recording
         # self.synapse_currents = []
         self.record_from_pair = []
 
         self.parse_experiment_config()
+
+    # def __del__(self):
+    #     super().__del__()
 
     @staticmethod
     def read_experiment_config(experiment_config_file):
@@ -97,9 +106,11 @@ class PairRecording(SnuddaSimulate):
 
         self.sim_duration = self.experiment_config["meta"]["simulationDuration"]
 
-        if "pairRecordingOutputFile" in self.experiment_config["meta"]:
-            self.output_file = os.path.join(self.network_path, "simulation",
-                                            self.experiment_config["meta"]["pairRecordingOutputFile"])
+        if self.output_file is None:
+            if "pairRecordingOutputFile" in self.experiment_config["meta"]:
+                self.output_file = os.path.join(self.network_path, "simulation",
+                                                self.experiment_config["meta"]["pairRecordingOutputFile"])
+                self.record.set_new_output_file(self.output_file)
 
         # Setup v_init for each neuron_id specified
         if "vInit" in self.experiment_config["meta"]:
@@ -182,12 +193,13 @@ class PairRecording(SnuddaSimulate):
 
         if neuron_id is None:
             neuron_id = self.neuron_id
+            neuron_id = self.to_list(neuron_id)
+            v_hold = self.to_list(v_hold, new_list_len=len(neuron_id))
+        else:
+            neuron_id = [x for x in neuron_id]
+            v_hold = [x for x in v_hold]
 
-        neuron_id = self.to_list(neuron_id)
-        v_hold = self.to_list(v_hold, new_list_len=len(neuron_id))
-
-        assert self.sim_duration is not None, \
-            f"setup_holding_volt: Please set self.end_time, for holding current"
+        assert self.sim_duration is not None, f"setup_holding_volt: Please set self.end_time, for holding current"
 
         # Setup vClamps to calculate what holding current will be needed
         soma_v_clamp = []
@@ -393,13 +405,14 @@ class PairRecording(SnuddaSimulate):
         for src_id, dest_id in self.record_from_pair:
             self.add_synapse_current_recording(src_id, dest_id)
 
-    def plot_trace_overview(self):
+    def plot_trace_overview(self, experiment_name=None):
         from snudda.plotting import PlotTraces
 
-        if "experiment_name" in self.experiment_config["meta"]:
-            experiment_name = self.experiment_config["meta"]["experiment_name"]
-        else:
-            experiment_name = None
+        if experiment_name is None:
+            if "experiment_name" in self.experiment_config["meta"]:
+                experiment_name = self.experiment_config["meta"]["experiment_name"]
+            else:
+                experiment_name = None
 
         pt = PlotTraces(output_file=self.output_file,
                         network_file=self.network_file,
@@ -408,6 +421,14 @@ class PairRecording(SnuddaSimulate):
         pt.plot_traces([x for x in pt.voltage])
 
     def plot_traces(self, mark_current_y=-80.05e-3, trace_id=None):
+
+        """
+           Plot traces of post synaptic neuron activation, this assumes only one neuron was stimulated
+
+           Args:
+               mark_current_y (float) : Y-axis value to mark current injections at
+               trace_id (list, optional) : Trace ID to show (default None, meaning all post synaptic traces)
+           """
 
         for cur_info in self.experiment_config["currentInjection"]:
             pre_id = cur_info["neuronID"]

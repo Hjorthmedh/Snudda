@@ -15,7 +15,7 @@ fi
 
 mkdir -p $JOBDIR
 
-if [ $SLURM_PROCID -gt 0 ]; then
+if [ "$SLURM_PROCID" -gt 0 ]; then
         mock_string="Not main process"
 
 else
@@ -50,9 +50,9 @@ else
     echo ">>> Wait 120s to allow engines to start"
     sleep 120 #60
 
-    python3 optimise_synapses_full.py ../../../snudda/data/synapses/example_data/10_MSN12_GBZ_CC_H20.json --synapseParameters ../../../snudda/data/synapses/example_data/M1LH-contra_dSPN.json --compile
+    python3 ../../../../snudda/synaptic_fitting/optimise_synapses_full.py ../../../../snudda/data/synapses/example_data/10_MSN12_GBZ_CC_H20.json --synapseParameters ../../../../snudda/data/synapses/example_data/M1LH-contra_dSPN.json --compile
 
-        python3 optimise_synapses_full.py ../../../snudda/data/synapses/example_data/10_MSN12_GBZ_CC_H20.json --synapseParameters ../../../snudda/data/synapses/example_data/M1LH-contra_dSPN.json --plot
+    python3 ../../../../snudda/synaptic_fitting/optimise_synapses_full.py ../../../../snudda/data/synapses/example_data/10_MSN12_GBZ_CC_H20.json --synapseParameters ../../../../snudda/data/synapses/example_data/M1LH-contra_dSPN.json --plot
 
 
 fi

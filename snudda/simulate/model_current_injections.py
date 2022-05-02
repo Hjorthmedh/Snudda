@@ -176,7 +176,7 @@ class SnuddaModelCurrentInjections(object):
             self.simulate_network_chuhma2011(sim_name)
 
         elif sim_type == "Straub2016FS" or sim_type == "Straub2016LTS":
-            self.simulateNetworkStraub2016(sim_name, sim_type)
+            self.simulate_network_straub_2016(sim_name, sim_type)
 
         elif sim_type == "Szydlowski2013":
             self.simulate_network_szydlowski_2013(sim_name)
@@ -230,7 +230,7 @@ class SnuddaModelCurrentInjections(object):
 
     ############################################################################
 
-    def simulateNetworkStraub2016(self, sim_name, sim_type):
+    def simulate_network_straub_2016(self, sim_name, sim_type):
 
         if self.snudda_sim is None:
             log_file = os.path.join(sim_name, "log", "simlog.txt")
@@ -247,7 +247,7 @@ class SnuddaModelCurrentInjections(object):
         elif sim_type == "Straub2016LTS":
             stim_id = [x["neuronID"] for x in self.snudda_sim.network_info["neurons"] if "LTS" in x["type"]]
         else:
-            print(f"simulateNetworkStraub2016: Unknown simType : {sim_type}")
+            print(f"simulate_network_straub_2016: Unknown sim_type : {sim_type}")
             sys.exit(-1)
 
         measure_id = [x["neuronID"] for x in self.snudda_sim.network_info["neurons"]
