@@ -144,8 +144,12 @@ class PairRecording(SnuddaSimulate):
             stim_amplitude = self.to_list(cur_info["amplitude"])
 
             for nid in stim_neuron_id:
+
                 self.add_current_pulses(neuron_id=nid, start_times=stim_start_time,
                                         end_times=stim_end_time, amplitudes=stim_amplitude)
+
+                if "noise_amplitude" in cur_info:
+                    self.add_noise(neuron_id=nid, noise_std=cur_info["noise_amplitude"], duration=self.sim_duration)
 
         if "record" in self.experiment_config["meta"]:
             if self.experiment_config["meta"]["record"].lower() == "soma":

@@ -1619,6 +1619,23 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
+    def add_noise(self, neuron_id, duration, noise_amp=0, noise_std=0.1e-9):
+
+        t_vec = h.Vector(np.linspace(0.0, duration*1e3, int(duration*1e3 / h.dt)))
+
+        noise_current = np.random.normal(noise_amp*1e9, noise_std*1e9, len(t_vec))
+        noise_current_vector = h.Vector()
+        noise_current_vector.from_python(noise_current)
+
+        i_clamp = self.sim.neuron.h.IClamp(0.5, sec=self.neurons[neuron_id].icell.soma[0])
+        i_clamp.delay = 0.0
+        i_clamp.dur = 1e9
+        noise_current_vector.play(i_clamp._ref_amp, t_vec, True)
+
+        self.i_stim.append((i_clamp, t_vec, noise_current_vector))
+
+############################################################################
+
     def get_spike_file_name(self):
         """ Returns filename for spike data file. """
 
