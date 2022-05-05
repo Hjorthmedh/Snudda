@@ -231,8 +231,11 @@ class PlotTraces:
         if fig_name is None:
             if len(types_in_plot) > 1:
                 fig_name = f"Network-voltage-trace-{self.experiment_name}-{'-'.join(types_in_plot)}.pdf"
+            elif len(trace_id) <= 10:
+                trace_id_str = '-'.join([str(x) for x in trace_id])
+                fig_name = f"Network-voltage-trace-{self.experiment_name}-{types_in_plot.pop()}-{trace_id_str}.pdf"
             else:
-                fig_name = f"Network-voltage-trace-{self.experiment_name}-{types_in_plot.pop()}.pdf"
+                fig_name = f"Network-voltage-trace-{self.experiment_name}-{types_in_plot.pop()}-traces.pdf"
 
         plt.savefig(os.path.join(fig_path, fig_name), dpi=600)
 

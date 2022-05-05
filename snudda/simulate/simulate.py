@@ -1572,7 +1572,17 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def add_current_pulses(self, neuron_id, start_times, end_times, amplitudes):
+    def add_current_pulses(self, neuron_id, start_times, end_times, amplitudes, amp_spread=None):
+
+        """ Inject current pulses into a neuron
+
+        Args:
+            neuron_id (int) : ID of neuron receiving current injection
+            start_times (list, ndarray) : List of start times
+            end_times (list, ndarray) : List of end times
+            amplitudes (list, ndarray) : List of amplitudes
+            amp_spread (float) : Uncertainty in the amplitudes
+        """
 
         assert type(neuron_id) == int, "add_current_pulses only works on one neuron_id at a time"
 
@@ -1584,6 +1594,9 @@ class SnuddaSimulate(object):
 
         if type(amplitudes) != np.ndarray:
             amplitudes = np.array(amplitudes)
+
+        if amp_spread is not None:
+            amplitudes += np.random.normal(loc=0, scale=amp_spread, size=amplitudes.shape)
 
         assert (end_times - start_times).all() > 0, \
             (f"All start times must be before corresponding end times: "
@@ -1619,9 +1632,26 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def add_noise(self, neuron_id, duration, noise_amp=0, noise_std=0.1e-9):
+    def add_noise(self, neuron_id, duration, start_time=0, noise_amp=0, noise_std=0.1e-9, dt=None):
 
-        t_vec = h.Vector(np.linspace(0.0, duration*1e3, int(duration*1e3 / h.dt)))
+        """
+            Add noise starting at time 0, for duration.
+
+            Args:
+                neuron_id (int) : ID of neuro injected
+                duration (float) : How long is the pulse (in seconds)
+                start_time (float) : When does the pulse start (in seconds)
+                noise_amp (float) : Mean mplitude of noise (in ampere)
+                noise_std (float) : Standard deviation of noise (in ampere)
+                dt (float) : How often does the noise change (in seconds, default = 0.001s)
+
+        """
+        if dt is None:
+            dt = h.dt
+        else:
+            dt *= 1e3 # Convert to ms
+
+        t_vec = h.Vector(np.linspace(start_time*1e3, duration*1e3, int(duration*1e3 / dt)))
 
         noise_current = np.random.normal(noise_amp*1e9, noise_std*1e9, len(t_vec))
         noise_current_vector = h.Vector()

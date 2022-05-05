@@ -2,7 +2,7 @@
 
     "meta" : {
 	"experiment_name" : "FS_network_3",
-	"simulationDuration" : 0.5,
+	"simulationDuration" : 1,
 	"vInit" : -80e-3,
 	"pairRecordingOutputFile" : "output.hdf5",
 	"reversal_potential" : [["tmGabaA", -65e-3]],
@@ -15,7 +15,9 @@
 	    "start" : [0],
 	    "end" : [2],
 	    "amplitude" : 0.4e-9,
-	    "noise_amplitude" : 0.05e-9
+	    "amp_spread" : 0.05e-9,
+	    "noise_amplitude" : 0.05e-9,
+	    "noise_dt" : 0.001
 	}	
 
     ],
