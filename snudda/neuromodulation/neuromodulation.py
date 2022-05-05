@@ -137,7 +137,11 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
             Adding the modulation to the receptor
         """
         for key, value in modulation_parameter.items():
-            setattr(syn, f"{key}{modulation}",value)
+            setattr(syn, f"{key}{modulation}", value)
+
+            if self.verbose:
+                print(f" {key}{modulation} set to {value} at {syn}")
+
 
         self.neuromodulation[modulation]['modulation_vector'].play(
             getattr(syn, f"_ref_level{modulation}"), self.sim.neuron.h.dt)
