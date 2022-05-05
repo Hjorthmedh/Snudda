@@ -1238,9 +1238,9 @@ class SnuddaSimulate(object):
             sec_x = [0.5]
 
             for sid, sec in enumerate(self.neurons[cid].icell.dend):
-                for seg in sec.allseg():
-                    sec_id.append(sid + 1)  # NEURON indexes from 0, Snudda has soma as 0, and first dendrite is 1
-                    sec_x.append(seg.x)
+                
+                sec_id.append(sid + 1)  # NEURON indexes from 0, Snudda has soma as 0, and first dendrite is 1
+                sec_x.append(0.5)
 
             self.add_volt_recording(cell_id=cid, sec_id=sec_id, sec_x=sec_x)
 
