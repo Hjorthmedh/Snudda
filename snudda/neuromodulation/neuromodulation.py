@@ -29,7 +29,7 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                                                             disable_gap_junctions=disable_gap_junctions,
                                                             simulation_config=simulation_config)
 
-        print(" Using neuromodulation module in Snudda")
+        self.write_log(" Using neuromodulation module in Snudda")
 
     def neuron_vector(self, vector):
 
