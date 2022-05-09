@@ -239,7 +239,7 @@ class PlotTraces:
 
         plt.savefig(os.path.join(fig_path, fig_name), dpi=600)
 
-        print(f"Saving to figure {fig_name}")
+        print(f"Saving to figure {os.path.join(fig_path, fig_name)}")
 
         plt.ion()
         plt.show()
@@ -423,7 +423,7 @@ class PlotTraces:
     ############################################################################
 
 
-if __name__ == "__main__":
+def snudda_plot_traces_cli():
 
     import argparse
     parser = argparse.ArgumentParser("Plot traces")
@@ -446,3 +446,7 @@ if __name__ == "__main__":
         for neuron_type in npt.output_load.iter_neuron_type():
             npt.plot_trace_neuron_type(neuron_type=neuron_type, num_traces=args.max_num_traces,
                                        offset=args.plot_offset, skip_time=args.skip_time)
+
+
+if __name__ == "__main__":
+    snudda_plot_traces_cli()
