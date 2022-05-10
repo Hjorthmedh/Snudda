@@ -543,7 +543,7 @@ class SnuddaLoad(object):
 
     # Either give preID and postID, or just postID
 
-    def find_synapses(self, pre_id=None, post_id=None, silent=True):
+    def find_synapses(self, pre_id=None, post_id=None, silent=True, return_index=False):
 
         """
         Returns subset of synapses.
@@ -561,9 +561,13 @@ class SnuddaLoad(object):
         if self.data["synapses"].shape[0] == 0:
             if not silent:
                 print("No synapses in network")
-            return None, None
+            if return_index:
+                return None, None, None
+            else:
+                return None, None
 
         if post_id is None:
+            assert return_index is False, "You must specify pre_id and post_id if return_index is True"
             return self.find_synapses_slow(pre_id=pre_id)
 
         assert post_id is not None, "Must specify at least postID"
@@ -614,7 +618,11 @@ class SnuddaLoad(object):
             # No synapses found
             if self.verbose:
                 print("No synapses found")
-            return None, None
+
+            if return_index:
+                return None, None, None
+            else:
+                return None, None
 
         # Find start of synapse range
         idx_b1 = idx_found
@@ -643,7 +651,10 @@ class SnuddaLoad(object):
         # Calculate coordinates
         synapse_coords = synapses[:, 2:5] * self.data["voxelSize"] + self.data["simulationOrigo"]
 
-        return synapses, synapse_coords
+        if return_index:
+            return synapses, synapse_coords, (idx_b1, idx_b2+1)
+        else:
+            return synapses, synapse_coords
 
     ############################################################################
 

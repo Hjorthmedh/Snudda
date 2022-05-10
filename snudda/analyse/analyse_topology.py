@@ -5,7 +5,7 @@ from snudda.utils.export_connection_matrix import SnuddaExportConnectionMatrix
 from collections import OrderedDict
 
 
-class AnalyseTopology:
+class SnuddaAnalyseTopology:
 
     def __init__(self, network_file):
 
@@ -130,7 +130,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    at = AnalyseTopology(network_file=args.network_file)
+    at = SnuddaAnalyseTopology(network_file=args.network_file)
     for simplex in args.simplex_files[0]:
         at.load_simplex_file(simplex)
 

@@ -90,7 +90,7 @@ class SnuddaSimulate(object):
             if os.path.exists(default_input_file):
                 self.input_file = default_input_file
             else:
-                print("Warning: No synaptic input file given!")
+                print("Warning: No external synaptic input file given!")
                 self.input_file = None
         else:
             self.input_file = input_file
@@ -289,8 +289,8 @@ class SnuddaSimulate(object):
         # Add checks to see that config file and network_file matches
 
         import json
-        with open(config_file, 'r') as config_file:
-            self.config = json.load(config_file, object_pairs_hook=OrderedDict)
+        with open(config_file, 'r') as cf:
+            self.config = json.load(cf, object_pairs_hook=OrderedDict)
 
         # I do not know if the gap junction GIDs are a separate entity from the
         # neuron cell GIDs, so to be on safe side, let's make sure they

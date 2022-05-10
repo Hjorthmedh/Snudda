@@ -39,7 +39,9 @@ class PairRecording(SnuddaSimulate):
 
     """
 
-    def __init__(self, network_path, experiment_config_file, output_file=None, disable_gap_junctions=False, verbose=False):
+    def __init__(self, network_path, experiment_config_file,
+                 output_file=None, network_file=None,
+                 disable_gap_junctions=False, verbose=False):
 
         # Do stuff with experiment_config
         self.experiment_config_file = experiment_config_file
@@ -55,6 +57,7 @@ class PairRecording(SnuddaSimulate):
         print(f"Pair recording output file: {output_file}")
 
         super().__init__(network_path=network_path,
+                         network_file=network_file,
                          output_file=output_file,
                          disable_gap_junctions=disable_gap_junctions,
                          verbose=verbose)

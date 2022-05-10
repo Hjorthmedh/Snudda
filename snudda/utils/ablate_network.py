@@ -42,6 +42,7 @@ class SnuddaAblateNetwork:
 
         self.keep_neuron_id = None
         self.removed_connection_type = None
+        self.remove_pair_connection_list = None
 
         self.reset_network()
 
@@ -51,11 +52,15 @@ class SnuddaAblateNetwork:
 
         self.keep_neuron_id = set(self.in_file["network/neurons/neuronID"][:])
         self.removed_connection_type = []
+        self.remove_pair_connection_list = []
 
     def remove_neuron_id(self, neuron_id):
 
         print(f"Removing neuron_id={set(neuron_id)}")
         self.keep_neuron_id = self.keep_neuron_id - set(neuron_id)
+
+    def only_keep_neuron_id(self, neuron_id):
+        self.keep_neuron_id = set(neuron_id)
 
     def remove_neuron_type(self, neuron_type, p_remove=1):
 
@@ -99,6 +104,9 @@ class SnuddaAblateNetwork:
 
         print(f"Marking {pre_neuron_type}, {post_neuron_type} synapses for removal (P={p_remove}).")
         self.removed_connection_type.append((pre_neuron_type, post_neuron_type, p_remove))
+
+    def remove_pair_connection(self, pre_id, post_id):
+        self.remove_pair_connection_list.append((pre_id, post_id))
 
     def filter_synapses(self, data_type):
 
@@ -145,6 +153,15 @@ class SnuddaAblateNetwork:
                     prev_status = 0
 
         print(f"{n_original_synapses}/{n_original_synapses} synapses processed")
+
+        if len(self.remove_pair_connection_list) > 0:
+            print(f"Warning, removing individual synapses ({len(self.remove_pair_connection_list)}) can be slow, "
+                  f"use this with caution.")
+            for pre_id, post_id in self.remove_pair_connection_list:
+                _, _, synapse_idx = self.snudda_load.find_synapses(pre_id=pre_id, post_id=post_id, return_index=True)
+                if synapse_idx is not None:
+                    keep_flag[synapse_idx] = False
+
         print("Filtering done.")
 
         return keep_flag
