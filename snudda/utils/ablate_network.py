@@ -166,7 +166,13 @@ class SnuddaAblateNetwork:
 
         return keep_flag
 
-    def write_network(self, out_file_name=None):
+    def write_remapping_file(self, remap_file_name):
+
+        with open(remap_file_name, "w") as f:
+            for new_id, old_id in enumerate(self.keep_neuron_id):
+                f.write(f"{old_id}, {new_id}\n")
+
+    def write_network(self, out_file_name=None, print_remapping=False):
 
         """ Write network to hdf5 file: output_file_name """
 
@@ -198,6 +204,16 @@ class SnuddaAblateNetwork:
         remap_id = np.full((len(self.snudda_load.data["neurons"]),), np.nan, dtype=int)
         for new_id, old_id in enumerate(soma_keep_id):
             remap_id[old_id] = new_id
+
+        if print_remapping:
+            print("Remapping neurons:")
+            for new_id, old_id in enumerate(soma_keep_id):
+                assert remap_id[old_id] == new_id, f"Internal error with remap_id"
+                if old_id == new_id:
+                    print(f"{old_id} the same")
+                else:
+                    print(f"{old_id} -> {new_id}")
+            print("")
 
         network_group = out_file.create_group("network")
         neuron_group = network_group.create_group("neurons")
@@ -321,6 +337,9 @@ class SnuddaAblateNetwork:
             print("No synapses found (assuming this was a save file with only position information).")
 
         out_file.close()
+
+        remapping_file = f"{out_file_name}-remapping.txt"
+        self.write_remapping_file(remapping_file)
 
 
 def snudda_ablate_network_cli():
