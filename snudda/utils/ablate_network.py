@@ -206,7 +206,7 @@ class SnuddaAblateNetwork:
             remap_id[old_id] = new_id
 
         if print_remapping:
-            print("Remapping neurons:")
+            print("\nRemapping neurons:")
             for new_id, old_id in enumerate(soma_keep_id):
                 assert remap_id[old_id] == new_id, f"Internal error with remap_id"
                 if old_id == new_id:
