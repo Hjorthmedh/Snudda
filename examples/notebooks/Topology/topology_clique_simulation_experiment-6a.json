@@ -1,0 +1,54 @@
+{
+
+    "meta" : {
+	"experiment_name" : "TopologyClique-6a",
+	"simulationDuration" : 1,
+	"vHold" : -80e-3,
+	"pairRecordingOutputFile" : "TCS-output-6a.hdf5",
+	"reversal_potential" : [["tmGabaA", -65e-3]],
+	"neuronSubset" : "prepost"
+    },
+    
+    "currentInjection" : [
+	{
+	    "neuronID" : 1,
+	    "start" : [0],
+	    "end" : [1],
+	    "amplitude" : 0.25e-9
+	},
+	{
+	    "neuronID" : 2,
+	    "start" : [0],
+	    "end" : [1],
+	    "amplitude" : 0.25e-9
+	},
+	{
+	    "neuronID" : 3,
+	    "start" : [0],
+	    "end" : [1],
+	    "amplitude" : 0.25e-9
+	},
+	{
+	    "neuronID" : 4,
+	    "start" : [0],
+	    "end" : [1],
+	    "amplitude" : 0.25e-9
+	},
+	{
+	    "neuronID" : 5,
+	    "start" : [0],
+	    "end" : [1],
+	    "amplitude" : 0.25e-9
+	},
+	{
+	    "neuronID" : 6,
+	    "start" : [0],
+	    "end" : [1],
+	    "amplitude" : 0.25e-9
+	}
+
+    ],
+
+    "recordSynapticCurrent" : [[0, 6], [1, 6]]
+	
+}
