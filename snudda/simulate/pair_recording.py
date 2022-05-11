@@ -495,7 +495,12 @@ class PairRecording(SnuddaSimulate):
         from snudda.plotting import PlotTraces
 
         if not title:
-            n_synapses = self.snudda_loader.find_synapses(pre_id=pre_id, post_id=post_id)[0].shape[0]
+            synapses, _ = self.snudda_loader.find_synapses(pre_id=pre_id, post_id=post_id)
+            if synapses is not None:
+                n_synapses = synapses.shape[0]
+            else:
+                n_synapses = 0
+
             title = f"{self.neurons[pre_id].name} -> {self.neurons[post_id].name} ({n_synapses} synapses)"
 
         experiment_name = self.get_experiment_name()
