@@ -282,7 +282,7 @@ class PlotTraces:
         if folder_name is None:
             folder_name = ""
 
-        #Plot traces and save as separate images
+        # Plot traces and save as separate images
         if skip_time is not None:
             print(f"!!! Excluding first {skip_time} s from the plot")
 
@@ -339,13 +339,13 @@ class PlotTraces:
         for r in trace_id:
             fig = plt.figure(figsize=fig_size)
             if r not in self.voltage:
-                print("Missing data for trace " + str(r))
+                print(f"Missing data for trace {r}")
                 continue
 
             plot_count += 1
             types_in_plot.add(self.network_info.data["neurons"][r]["type"])
 
-            plt.plot(self.time[time_idx] - skip_time,1000*self.voltage[r][time_idx] ,color='black')
+            plt.plot(self.time[time_idx] - skip_time,1000*self.voltage[r][time_idx], color='black')
 
             plt.xlabel('Time (s)')
             plt.ylabel('Membrane potential (mV)')
