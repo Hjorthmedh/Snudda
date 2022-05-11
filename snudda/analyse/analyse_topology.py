@@ -97,6 +97,36 @@ class SnuddaAnalyseTopology:
 
         return multiplicity
 
+    def filter_multiplicity(self, multiplicity, dimension, neuron_type_list, multiplicity_requirement=None):
+
+        """
+
+        Args:
+            multiplicity (OrderedDict) : Multiplicity dictionary
+            dimension (int) : Dimension of data to look at
+            neuron_type_list (list) : Filtering information, e.g. [('FS', 2), ('dSPN', 1)] means that
+                                      only cliques that contain exactly 2 FS and 1 dSPN are kept
+            multiplicity_requirement (int) : Multiplicity of the simplex kept, default = None (no filtering)
+
+        Returns:
+            filtered_multiplicity (OrderedDict) : Only returns dimension data
+                                  """
+
+        filtered_multiplicity = OrderedDict()
+
+        for neurons_key, mult in multiplicity[dimension].items():
+            neuron_types = [self.snudda_load.data["neurons"][x]["type"] for x in neurons_key]
+
+            keep_simplex = True if multiplicity_requirement is None else mult == multiplicity_requirement
+
+            for neuron_type, neuron_type_number in neuron_type_list:
+                if np.sum([neuron_type == x for x in neuron_types]) != neuron_type_number:
+                    keep_simplex = False
+
+            if keep_simplex:
+                filtered_multiplicity[neurons_key] = mult
+
+        return filtered_multiplicity
 
     def print_multiplicity(self, fixed=True):
 

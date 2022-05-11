@@ -43,6 +43,8 @@ class SnuddaAblateNetwork:
         self.keep_neuron_id = None
         self.removed_connection_type = None
         self.remove_pair_connection_list = None
+        self.remove_all_synapses = False
+        self.remove_all_gap_junctions = False
 
         self.reset_network()
 
@@ -53,6 +55,15 @@ class SnuddaAblateNetwork:
         self.keep_neuron_id = set(self.in_file["network/neurons/neuronID"][:])
         self.removed_connection_type = []
         self.remove_pair_connection_list = []
+
+        self.remove_all_synapses = False
+        self.remove_all_gap_junctions = False
+
+    def ablate_all_synapses(self):
+        self.remove_all_synapses = True
+
+    def ablate_all_gap_junctions(self):
+        self.remove_all_gap_junctions = True
 
     def remove_neuron_id(self, neuron_id):
 
@@ -115,6 +126,12 @@ class SnuddaAblateNetwork:
         synapse_data = self.in_file[f"network/{data_type}"]
 
         keep_flag = np.zeros((synapse_data.shape[0],), dtype=bool)
+
+        # Shortcut, if user wants to remove all, skip the processing part
+        if data_type == "synapses" and self.remove_all_synapses:
+            return keep_flag  # All zero
+        elif data_type == "gapJunctions" and self.remove_all_gap_junctions:
+            return keep_flag
 
         neuron_types = [n["type"] for n in self.snudda_load.data["neurons"]]
 
