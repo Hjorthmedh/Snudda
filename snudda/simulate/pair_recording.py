@@ -501,7 +501,7 @@ class PairRecording(SnuddaSimulate):
             else:
                 n_synapses = 0
 
-            title = f"{self.neurons[pre_id].name} ({pre_id}}) -> " \
+            title = f"{self.neurons[pre_id].name} ({pre_id}) -> " \
                     f"{self.neurons[post_id].name} ({post_id}) ({n_synapses} synapses)"
 
         experiment_name = self.get_experiment_name()
