@@ -39,7 +39,7 @@ class SnuddaAnalyseTopology:
 
         is_same = len(list(sim_A.iter_neuron_id())) == len(list(sim_B.iter_neuron_id()))
 
-        for nid_A, nid_B in zip(sim_A.iter_neuron_id(), sim_B.iter_neuron_id())
+        for nid_A, nid_B in zip(sim_A.iter_neuron_id(), sim_B.iter_neuron_id()):
             is_same = is_same and nid_A == nid_B
             is_same = is_same and sim_A.get_neuron_keys(nid_A) == sim_B.get_neuron_keys(nid_B)
 
@@ -64,7 +64,7 @@ class SnuddaAnalyseTopology:
 
             t_diff = np.kron(s_a, np.ones(s_b.T.shape)) - np.kron(np.ones(s_a.shape), s_b.T)
             min_pos = np.argmin(np.abs(t_diff), axis=0)
-            t_min_diff = [t_diff[m[0], m[1]] for m in zip(min_pos, range(len(min_pos))]
+            t_min_diff = [t_diff[m[0], m[1]] for m in zip(min_pos, range(len(min_pos)))]
 
             import pdb
             pdb.set_trace()
