@@ -20,7 +20,7 @@
 	    "neuronID" : 2,
 	    "start" : [0],
 	    "end" : [1],
-	    "amplitude" : 0.25e-9
+	    "amplitude" : 0.2e-9
 	},
 	{
 	    "neuronID" : 3,

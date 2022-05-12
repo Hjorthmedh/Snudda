@@ -1,16 +1,21 @@
+import os
 import numpy as np
 
 from snudda.utils.load import SnuddaLoad
+from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
 from snudda.utils.export_connection_matrix import SnuddaExportConnectionMatrix
 from collections import OrderedDict
 
 
 class SnuddaAnalyseTopology:
 
+    """ Analyses the topology, and the effect of topology """
+
     def __init__(self, network_file):
 
         self.network_file = network_file
         self.snudda_load = SnuddaLoad(network_file=network_file)
+        self.simulation_data = dict()
         self.simplex_data = dict()
 
         secm = SnuddaExportConnectionMatrix(in_file=self.network_file, out_file="dummy_file", save_on_init=False)
@@ -22,6 +27,47 @@ class SnuddaAnalyseTopology:
         self.simplex_data[simplex_dimension] = data
 
         print(f"Loaded simplex data of dimension {simplex_dimension} from {simplex_file_name}")
+
+    def load_simulation_data(self, data_key, simulation_output=None):
+        self.simulation_data[data_key] = SnuddaLoadNetworkSimulation(network_path=os.path.dirname(self.network_file),
+                                                                     network_simulation_output_file=simulation_output)
+
+    def check_same_neurons(self, data_key_A, data_key_B):
+
+        sim_A = self.simulation_data[data_key_A]
+        sim_B = self.simulation_data[data_key_B]
+
+        is_same = len(list(sim_A.iter_neuron_id())) == len(list(sim_B.iter_neuron_id()))
+
+        for nid_A, nid_B in zip(sim_A.iter_neuron_id(), sim_B.iter_neuron_id())
+            is_same = is_same and nid_A == nid_B
+            is_same = is_same and sim_A.get_neuron_keys(nid_A) == sim_B.get_neuron_keys(nid_B)
+
+        return is_same
+
+    def compare_spike_times(self, data_key_A, data_key_B):
+
+        # Check that the neurons compared are the same (by verifying parameter key, morphology key, modulation key)
+        assert self.check_same_neurons(data_key_A, data_key_B), f"data_keys have different neurons in the network"
+
+        # Match spikes against each other, compute change...
+
+        sim_A = self.simulation_data[data_key_A]
+        sim_B = self.simulation_data[data_key_B]
+
+        spikes_A = sim_A.get_spikes()
+        spikes_B = sim_B.get_spikes()
+
+        for neuron_id in spikes_A.keys():
+            s_a = spikes_A[neuron_id]
+            s_b = spikes_B[neuron_id]
+
+            t_diff = np.kron(s_a, np.ones(s_b.T.shape)) - np.kron(np.ones(s_a.shape), s_b.T)
+            min_pos = np.argmin(np.abs(t_diff), axis=0)
+            t_min_diff = [t_diff[m[0], m[1]] for m in zip(min_pos, range(len(min_pos))]
+
+            import pdb
+            pdb.set_trace()
 
     def verify_source_sink_order(self):
 

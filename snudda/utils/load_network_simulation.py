@@ -232,6 +232,16 @@ class SnuddaLoadNetworkSimulation:
         for x in neuron_types:
             yield x
 
+    def iter_neuron_id(self):
+        for x in self.network_simulation_file["network/neurons/neuronID"]:
+            yield x
+
+    def get_neuron_keys(self, neuron_id):
+        param_key = self.network_simulation_file["network/neurons/parameterKey"][neuron_id]
+        morph_key = self.network_simulation_file["network/neuron/morphologyKey"][neuron_id]
+        mod_key = self.network_simulation_file["network/neuron/modulationKey"][neuron_id]
+
+        return param_key, morph_key, mod_key
 
 def load_network_simulation_cli():
     from argparse import ArgumentParser

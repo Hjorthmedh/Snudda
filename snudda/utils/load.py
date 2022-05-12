@@ -785,6 +785,10 @@ class SnuddaLoad(object):
                                                rotation=self.data["neurons"][neuron_id]["rotation"])
         return neuron_object
 
+    def iter_neuron_id(self):
+        for x in self.data["neurons"].keys():
+            return x
+
     def get_neuron_keys(self, neuron_id):
         n = self.data["neurons"][neuron_id]
         return n["parameterKey"], n["morphologyKey"], n["modulationKey"]
