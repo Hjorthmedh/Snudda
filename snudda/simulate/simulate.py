@@ -1105,7 +1105,7 @@ class SnuddaSimulate(object):
                 rest_volt = [x for x in self.neurons[neuron_id].parameters
                              if "param_name" in x and x["param_name"] == "v_init"][0]["value"] * 1e-3
 
-            self.write_log(f"Neuron {self.neurons[neuron_id].name} ({neuron_id  }) resting voltage = {rest_volt * 1e3}")
+            self.write_log(f"Neuron {self.neurons[neuron_id].name} ({neuron_id}) resting voltage = {rest_volt * 1e3}")
 
             soma = [x for x in self.neurons[neuron_id].icell.soma]
             axon = [x for x in self.neurons[neuron_id].icell.axon]
