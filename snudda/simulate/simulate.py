@@ -115,6 +115,7 @@ class SnuddaSimulate(object):
         self.sim_start_time = 0
         self.fih_time = None
         self.last_sim_report_time = 0
+        self.sample_dt = 0.0005
 
         self.pc = h.ParallelContext()
 
@@ -129,6 +130,9 @@ class SnuddaSimulate(object):
 
             if "logFile" in sim_info:
                 self.log_file = open(sim_info["logFile"], "w")
+
+            if "sampleDt" in sim_info:
+                self.sample_dt = sim_info["sampleDt"]
 
         if self.log_file is None:
             self.log_file = os.path.join(self.network_path, "log", "simulation-log.txt")
@@ -147,7 +151,6 @@ class SnuddaSimulate(object):
         self.write_log(f"Using network_file: {self.network_file}")
         self.write_log(f"Using input_file: {self.input_file}")
         self.write_log(f"Using output_file: {self.output_file}")
-
 
         if self.log_file is not None:
             self.write_log(f"Using logFile: {self.log_file.name}")
@@ -198,7 +201,8 @@ class SnuddaSimulate(object):
 
         self.load_network_info(self.network_file)
 
-        self.record = SnuddaSaveNetworkRecordings(output_file=self.output_file, network_data=self.network_info)
+        self.record = SnuddaSaveNetworkRecordings(output_file=self.output_file, network_data=self.network_info,
+                                                  sample_dt=self.sample_dt)
         self.record.add_unit(data_type="voltage", target_unit="V", conversion_factor=1e-3)
         self.record.add_unit(data_type="synaptic_current", target_unit="A", conversion_factor=1e-9)
         self.record.add_unit(data_type="spikes", target_unit="s", conversion_factor=1e-3)
@@ -521,7 +525,7 @@ class SnuddaSimulate(object):
 
                 self.pc.spike_record(ID, t_spikes, id_spikes)
                 self.check_id_recordings.append((ID, id_spikes))
-                self.record.register_compartment_data("spikes", neuron_id=ID, data=t_spikes, sec_id=-1, sec_x=0.5)
+                self.record.register_spike_data(neuron_id=ID, data=t_spikes, sec_id=-1, sec_x=0.5)
 
     ############################################################################
 
@@ -1232,7 +1236,7 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def add_volt_recording_all(self, cell_id=None):
+    def add_volt_recording_all(self, cell_id=None, centre_only_flag=True):
 
         if cell_id is None:
             cell_id = self.neuron_id
@@ -1247,9 +1251,14 @@ class SnuddaSimulate(object):
             sec_x = [0.5]
 
             for sid, sec in enumerate(self.neurons[cid].icell.dend):
-                for seg in sec.allseg():
-                    sec_id.append(sid + 1)  # NEURON indexes from 0, Snudda has soma as 0, and first dendrite is 1
-                    sec_x.append(seg.x)
+
+                if centre_only_flag:
+                    sec_id.append(sid+1)
+                    sec_x.append(0.5)
+                else:
+                    for seg in sec.allseg():
+                        sec_id.append(sid + 1)  # NEURON indexes from 0, Snudda has soma as 0, and first dendrite is 1
+                        sec_x.append(seg.x)
 
             self.add_volt_recording(cell_id=cid, sec_id=sec_id, sec_x=sec_x)
 
@@ -1770,7 +1779,9 @@ if __name__ == "__main__":
     parser.add_argument("inputFile", help="Network input (HDF5)")
     parser.add_argument("--noVolt", "--novolt", action="store_false", dest="record_volt",
                         help="Exclude voltage when saving results, saves time and space.")
-    parser.add_argument("--recordALL", dest="record_all", type=str, default=None)
+    parser.add_argument("--recordALLcompartments", dest="record_all_compartments", type=str, default=None)
+    parser.add_argument("--recordALLsynapses", dest="record_all_synapses", type=str, default=None)
+
     parser.add_argument("--disableGJ", action="store_true",
                         help="Disable gap junctions")
     parser.add_argument("--time", type=float, default=1.5,
@@ -1831,9 +1842,12 @@ if __name__ == "__main__":
     if args.record_volt:
         sim.add_volt_recording_soma()
 
-    if args.record_all:
+    if args.record_all_compartments:
         record_cell_id = np.array([int(x) for x in args.record_all.split(",")])
-        sim.add_volt_recording_all(cell_id=record_cell_id)
+        sim.add_volt_recording_all(cell_id=record_cell_id, centre_only_flag=True)
+
+    if args.record_all_synapses:
+        record_cell_id = np.array([int(x) for x in args.record_all.split(",")])
         sim.add_synapse_current_recording_all(record_cell_id)
 
     tSim = args.time * 1000  # Convert from s to ms for Neuron simulator
