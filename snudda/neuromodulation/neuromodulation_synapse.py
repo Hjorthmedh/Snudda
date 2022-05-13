@@ -1,5 +1,4 @@
 from typing import List, Any
-
 from snudda.simulate.simulate import SnuddaSimulate
 import snudda.neuromodulation.modulation as modulation
 import snudda.neuromodulation.translator as translator
@@ -53,6 +52,8 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
         # Change the self.custom_setup from None, and execute the custom setup code within this file
         self.cell_type_ion_channels_per_section = self.ion_channels_per_section()
         self.key_list = self.modulation_keys()
+
+        self.write_log(" Using neuromodulation module in Snudda")
 
     def setup(self):
 
@@ -194,6 +195,16 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
                 if mechanism_name in ion_channels:
 
+                    if self.verbose:
+                        for name, value in sec.psection()['density_mechs'][mechanism_name].items():
+                            if "maxMod" in name:
+                                for v in value:
+                                    print(f" Value of {name} is {v} for {mechanism_name}")
+                                    assert v != 1.0 and v > 0, "NeuronModel has not loaded modulation.json," \
+                                                                          "neuromodulation is not turned on within the model"
+
+
+
                     level_list = [type_level for type_level in [*sec.psection()['density_mechs'][mechanism_name].keys()] if 'level' in type_level]
                     mod_key_list = [f"mod{n.replace('level','')}_{mechanism_name_ptr}" for n in level_list]
                     sec.insert(mechanism_name_ptr)
@@ -261,6 +272,8 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
     def get_synapse(self, channel_module, dend_compartment, section_dist):
 
+        cell_name = str(dend_compartment).split("_")[0]
+
         syn = None
         # add lookup on channel_module to skip split
         if str(channel_module).split('()')[0] not in self.connector:
@@ -280,6 +293,23 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                     for neurotransmitter_key in level:
                         # remove this parameter by setting default 1
                         setattr(syn, f"mod{neurotransmitter_key.replace('level', '')}", 1)
+
+                        modulator = neurotransmitter_key.replace('level', '')
+                        receptor_name = str(channel_module).split('()')[0]
+                        if self.neuromodulator_description[modulator]["cells"][cell_name]["receptors"]:
+                            if receptor_name in self.neuromodulator_description[modulator]["cells"][cell_name]["receptors"]:
+                                parameters = self.neuromodulator_description[modulator]["cells"][cell_name]["receptors"][receptor_name]
+
+                                for p, v in parameters.items():
+                                    setattr(syn,f"{p}{modulator}",v)
+
+                                    if self.verbose:
+                                        print(f" Value of {p}{modulator} is {getattr(syn, f'{p}{modulator}')} at {syn}")
+                                        assert getattr(syn,f'{p}{modulator}') != 1.0 and getattr(syn,f'{p}{modulator}') > 0, "NeuronModel has not loaded modulation.json," \
+                                                            "neuromodulation is not turned on within the model"
+                                        assert getattr(syn, f"mod{modulator}") == 1.0
+
+
                         self.sim.neuron.h.setpointer(pointer, neurotransmitter_key, syn)
 
         if syn is None:
@@ -289,6 +319,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
     def get_external_input_synapse(self, channel_module, section, section_x):
 
+        cell_name = str(section).split("_")[0]
         syn = None
 
         for point_process_in_section in section(section_x).point_processes():
@@ -306,6 +337,23 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                 for neurotransmitter_key in level:
                     setattr(syn, 'mod' + neurotransmitter_key.replace('level', ''), 1)
                     self.sim.neuron.h.setpointer(pointer, neurotransmitter_key, syn)
+
+                    modulator = neurotransmitter_key.replace('level', '')
+                    receptor_name = str(channel_module).split('()')[0]
+                    if self.neuromodulator_description[modulator]["cells"][cell_name]["receptors"]:
+                        if receptor_name in self.neuromodulator_description[modulator]["cells"][cell_name]["receptors"]:
+                            parameters = self.neuromodulator_description[modulator]["cells"][cell_name]["receptors"][
+                                receptor_name]
+
+                            for p, v in parameters.items():
+                                setattr(syn, f"{p}{modulator}", v)
+
+                                if self.verbose:
+                                    print(f" Value of {p}{modulator} is {getattr(syn, f'{p}{modulator}')} at {syn}")
+                                    assert getattr(syn, f'{p}{modulator}') != 1.0 and getattr(syn,
+                                                                                              f'{p}{modulator}') > 0, "NeuronModel has not loaded modulation.json," \
+                                                                                                                      "neuromodulation is not turned on within the model"
+                                    assert getattr(syn, f"mod{modulator}") == 1.0
 
         if syn is None:
             syn = channel_module(section(section_x))

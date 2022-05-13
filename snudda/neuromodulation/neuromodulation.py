@@ -96,7 +96,7 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                             if mech.name() in modulate_section:
 
                                 # Check that modulation value is not equal to 1.0 otherwise modulation will not work
-                                assert getattr(mech, f"maxMod{modulation}") != 1.0, "NeuronModel has not loaded modulation.json," \
+                                assert getattr(mech, f"maxMod{modulation}") != 1.0 and getattr(mech, f"maxMod{modulation}") > 0, "NeuronModel has not loaded modulation.json," \
                                                                                     "neuromodulation is not turned on within the model"
 
                                 setattr(mech, "mod" + modulation, 1)
