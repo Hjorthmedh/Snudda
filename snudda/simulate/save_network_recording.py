@@ -143,12 +143,13 @@ class CompartmentData:
 
 class SnuddaSaveNetworkRecordings:
 
-    def __init__(self, output_file, network_data=None):
+    def __init__(self, output_file, network_data=None, sample_dt=None):
         self.output_file = output_file
         self.network_data = network_data
         self.header_exists = False
         self.neuron_activities = dict()
         self.time = None
+        self.sample_dt = sample_dt
 
         self.units = dict()
 
@@ -263,15 +264,28 @@ class SnuddaSaveNetworkRecordings:
 
         self.pc.barrier()
 
+    def get_sample_step(self):
+
+        if self.sample_dt is None:
+            return None
+        else:
+            converted_time = self.time * self.get_conversion("time")
+            dt = converted_time[1] - converted_time[0]
+            sample_step = int(np.round(self.sample_dt / dt))
+            return sample_step
+
     def write(self):
 
         self.write_header()
+
+        sample_step = self.get_sample_step()
 
         if int(self.pc.id()) == 0:
 
             out_file = h5py.File(self.output_file, "a")
             if "time" not in out_file:
-                out_file.create_dataset("time", data=self.time * self.get_conversion("time"))
+                print(f"Using sample dt = {self.sample_dt} (sample step size {sample_step})")
+                out_file.create_dataset("time", data=np.array(self.time)[::sample_step] * self.get_conversion("time"))
                 out_file.close()
 
         for i in range(int(self.pc.nhost())):
@@ -279,6 +293,7 @@ class SnuddaSaveNetworkRecordings:
             self.pc.barrier()
 
             if int(self.pc.id()) == i:
+                print(f"Worker {i+1}/{int(self.pc.nhost())} writing data to {self.output_file}")
 
                 out_file = h5py.File(self.output_file, "a")
 
@@ -293,7 +308,9 @@ class SnuddaSaveNetworkRecordings:
 
                         out_file["neurons"][neuron_id_str].create_group(m.data_type)
                         data_group = out_file["neurons"][neuron_id_str][m.data_type]
-                        data_group.create_dataset("data", data=m.to_numpy() * conversion_factor, compression="gzip")
+                        data_group.create_dataset("data",
+                                                  data=m.to_numpy()[::sample_step, :] * conversion_factor,
+                                                  compression="gzip")
                         data_group.create_dataset("sec_id", data=np.array(m.sec_id), compression="gzip")
                         data_group.create_dataset("sec_x", data=np.array(m.sec_x), compression="gzip")
 

@@ -115,6 +115,7 @@ class SnuddaSimulate(object):
         self.sim_start_time = 0
         self.fih_time = None
         self.last_sim_report_time = 0
+        self.sample_dt = 0.001
 
         self.pc = h.ParallelContext()
 
@@ -129,6 +130,9 @@ class SnuddaSimulate(object):
 
             if "logFile" in sim_info:
                 self.log_file = open(sim_info["logFile"], "w")
+
+            if "sampleDt" in sim_info:
+                self.sample_dt = sim_info["sampleDt"]
 
         if self.log_file is None:
             self.log_file = os.path.join(self.network_path, "log", "simulation-log.txt")
@@ -147,7 +151,6 @@ class SnuddaSimulate(object):
         self.write_log(f"Using network_file: {self.network_file}")
         self.write_log(f"Using input_file: {self.input_file}")
         self.write_log(f"Using output_file: {self.output_file}")
-
 
         if self.log_file is not None:
             self.write_log(f"Using logFile: {self.log_file.name}")
@@ -198,7 +201,8 @@ class SnuddaSimulate(object):
 
         self.load_network_info(self.network_file)
 
-        self.record = SnuddaSaveNetworkRecordings(output_file=self.output_file, network_data=self.network_info)
+        self.record = SnuddaSaveNetworkRecordings(output_file=self.output_file, network_data=self.network_info,
+                                                  sample_dt=self.sample_dt)
         self.record.add_unit(data_type="voltage", target_unit="V", conversion_factor=1e-3)
         self.record.add_unit(data_type="synaptic_current", target_unit="A", conversion_factor=1e-9)
         self.record.add_unit(data_type="spikes", target_unit="s", conversion_factor=1e-3)
