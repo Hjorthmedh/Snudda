@@ -68,6 +68,14 @@ class NeuronRecordings:
         self.data[data_type].append(data=data, synapse_type=synapse_type, presynaptic_id=presynaptic_id,
                                     sec_id=sec_id, sec_x=sec_x, cond=cond)
 
+    def register_spike_data(self, data, sec_id, sec_x):
+
+        data_type = "spikes"
+        if data_type not in self.data:
+            self.data[data_type] = SpikeData(neuron_id=self.neuron_id)
+
+        self.data[data_type].append(data=data, sec_id=sec_id, sec_x=sec_x)
+
 
 class SynapseData:
 
@@ -141,6 +149,12 @@ class CompartmentData:
         return np.vstack([np.array(d) if d.size() > 0 else np.array([]) for d in self.data])
 
 
+class SpikeData(CompartmentData):
+
+    def __init__(self, neuron_id):
+        super().__init__(neuron_id, data_type="spikes")
+
+
 class SnuddaSaveNetworkRecordings:
 
     def __init__(self, output_file, network_data=None, sample_dt=None):
@@ -184,6 +198,12 @@ class SnuddaSaveNetworkRecordings:
                                                                 synapse_type=synapse_type,
                                                                 presynaptic_id=presynaptic_id,
                                                                 sec_id=sec_id, sec_x=sec_x, cond=cond)
+
+    def register_spike_data(self, neuron_id, data, sec_id, sec_x):
+        if neuron_id not in self.neuron_activities:
+            self.neuron_activities[neuron_id] = NeuronRecordings(neuron_id)
+
+        self.neuron_activities[neuron_id].register_spike_data(data=data, sec_id=sec_id, sec_x=sec_x)
 
     def register_time(self, time):
         self.time = time
@@ -308,9 +328,17 @@ class SnuddaSaveNetworkRecordings:
 
                         out_file["neurons"][neuron_id_str].create_group(m.data_type)
                         data_group = out_file["neurons"][neuron_id_str][m.data_type]
+
+                        if isinstance(m, SpikeData):
+                            # Spike data is not a time series, and should never be downsampled
+                            data_sample_step = None
+                        else:
+                            data_sample_step = sample_step
+
                         data_group.create_dataset("data",
-                                                  data=m.to_numpy()[::sample_step, :] * conversion_factor,
+                                                  data=m.to_numpy()[:   , ::data_sample_step] * conversion_factor,
                                                   compression="gzip")
+
                         data_group.create_dataset("sec_id", data=np.array(m.sec_id), compression="gzip")
                         data_group.create_dataset("sec_x", data=np.array(m.sec_x), compression="gzip")
 
