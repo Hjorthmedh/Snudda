@@ -584,7 +584,8 @@ class Snudda(object):
                                                            output_file=output_file,
                                                            disable_gap_junctions=disable_gj,
                                                            log_file=log_file,
-                                                           neuromodulator_description=neuromod_dict)
+                                                           neuromodulator_description=neuromod_dict,
+                                                           verbose=args.verbose)
 
                 sim.setup()
                 sim.add_external_input()
