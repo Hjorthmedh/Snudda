@@ -68,6 +68,14 @@ class NeuronRecordings:
         self.data[data_type].append(data=data, synapse_type=synapse_type, presynaptic_id=presynaptic_id,
                                     sec_id=sec_id, sec_x=sec_x, cond=cond)
 
+    def register_spike_data(self, data, sec_id, sec_x):
+
+        data_type = "spikes"
+        if data_type not in self.data:
+            self.data[data_type] = SpikeData(neuron_id=self.neuron_id)
+
+        self.data[data_type].append(data=data, sec_id=sec_id, sec_x=sec_x)
+
 
 class SynapseData:
 
@@ -141,19 +149,29 @@ class CompartmentData:
         return np.vstack([np.array(d) if d.size() > 0 else np.array([]) for d in self.data])
 
 
+class SpikeData(CompartmentData):
+
+    def __init__(self, neuron_id):
+        super().__init__(neuron_id, data_type="spikes")
+
+
 class SnuddaSaveNetworkRecordings:
 
-    def __init__(self, output_file, network_data=None):
-
+    def __init__(self, output_file, network_data=None, sample_dt=None):
         self.output_file = output_file
         self.network_data = network_data
         self.header_exists = False
         self.neuron_activities = dict()
         self.time = None
+        self.sample_dt = sample_dt
 
         self.units = dict()
 
         self.pc = h.ParallelContext()
+
+    def set_new_output_file(self, output_file):
+        self.output_file = output_file
+        self.header_exists = False
 
     def add_unit(self, data_type, target_unit, conversion_factor):
         # Units reference chart: https://www.neuron.yale.edu/neuron/static/docs/units/unitchart.html
@@ -180,6 +198,12 @@ class SnuddaSaveNetworkRecordings:
                                                                 synapse_type=synapse_type,
                                                                 presynaptic_id=presynaptic_id,
                                                                 sec_id=sec_id, sec_x=sec_x, cond=cond)
+
+    def register_spike_data(self, neuron_id, data, sec_id, sec_x):
+        if neuron_id not in self.neuron_activities:
+            self.neuron_activities[neuron_id] = NeuronRecordings(neuron_id)
+
+        self.neuron_activities[neuron_id].register_spike_data(data=data, sec_id=sec_id, sec_x=sec_x)
 
     def register_time(self, time):
         self.time = time
@@ -260,15 +284,28 @@ class SnuddaSaveNetworkRecordings:
 
         self.pc.barrier()
 
+    def get_sample_step(self):
+
+        if self.sample_dt is None:
+            return None
+        else:
+            converted_time = self.time * self.get_conversion("time")
+            dt = converted_time[1] - converted_time[0]
+            sample_step = int(np.round(self.sample_dt / dt))
+            return sample_step
+
     def write(self):
 
         self.write_header()
+
+        sample_step = self.get_sample_step()
 
         if int(self.pc.id()) == 0:
 
             out_file = h5py.File(self.output_file, "a")
             if "time" not in out_file:
-                out_file.create_dataset("time", data=self.time * self.get_conversion("time"))
+                print(f"Using sample dt = {self.sample_dt} (sample step size {sample_step})")
+                out_file.create_dataset("time", data=np.array(self.time)[::sample_step] * self.get_conversion("time"))
                 out_file.close()
 
         for i in range(int(self.pc.nhost())):
@@ -276,6 +313,7 @@ class SnuddaSaveNetworkRecordings:
             self.pc.barrier()
 
             if int(self.pc.id()) == i:
+                print(f"Worker {i+1}/{int(self.pc.nhost())} writing data to {self.output_file}")
 
                 out_file = h5py.File(self.output_file, "a")
 
@@ -290,7 +328,17 @@ class SnuddaSaveNetworkRecordings:
 
                         out_file["neurons"][neuron_id_str].create_group(m.data_type)
                         data_group = out_file["neurons"][neuron_id_str][m.data_type]
-                        data_group.create_dataset("data", data=m.to_numpy() * conversion_factor, compression="gzip")
+
+                        if isinstance(m, SpikeData):
+                            # Spike data is not a time series, and should never be downsampled
+                            data_sample_step = None
+                        else:
+                            data_sample_step = sample_step
+
+                        data_group.create_dataset("data",
+                                                  data=m.to_numpy()[:   , ::data_sample_step] * conversion_factor,
+                                                  compression="gzip")
+
                         data_group.create_dataset("sec_id", data=np.array(m.sec_id), compression="gzip")
                         data_group.create_dataset("sec_x", data=np.array(m.sec_x), compression="gzip")
 

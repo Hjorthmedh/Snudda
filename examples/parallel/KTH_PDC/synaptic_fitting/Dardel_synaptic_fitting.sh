@@ -1,9 +1,7 @@
 #!/bin/bash
 
 SNUDDA_DIR=$HOME/Snudda/snudda
-JOBDIR=networks/test_10k
-
-SIMSIZE=10000
+JOBDIR=networks/synaptic_fitting
 
 # If the BasalGangliaData directory exists, then use that for our data
 #/cfs/klemming/scratch/${USER:0:1}/$USER/BasalGangliaData/data
@@ -18,7 +16,7 @@ fi
 mkdir -p $JOBDIR
 
 if [ "$SLURM_PROCID" -gt 0 ]; then
-	mock_string="Not main process"
+        mock_string="Not main process"
 
 else
 
@@ -31,8 +29,8 @@ else
     echo ">>>>>> Main process starting ipcluster"
     echo
 
-    echo "Start time: " > start_time_input.txt
-    date >> start_time_input.txt
+    echo "Start time: " > start_time_synaptic_fitting.txt
+    date >> start_time_synaptic_fitting.txt
 
     echo "SLURM_NODELIST = $SLURM_NODELIST"
     let NWORKERS="$SLURM_NTASKS - 1"
@@ -42,32 +40,22 @@ else
     
     #.. Start the ipcluster
     ipcluster start -n ${NWORKERS} \
-	      --ip='*' \
-	      --HeartMonitor.max_heartmonitor_misses=1000 \
-	      --HubFactory.registration_timeout=600 \
-	      --HeartMonitor.period=10000 & 
+              --ip='*' \
+              --HeartMonitor.max_heartmonitor_misses=1000 \
+              --HubFactory.registration_timeout=600 \
+              --HeartMonitor.period=10000 & 
 
     
     #.. Sleep to allow engines to start
     echo ">>> Wait 120s to allow engines to start"
     sleep 120 #60
 
+    python3 ../../../../snudda/synaptic_fitting/optimise_synapses_full.py ../../../../snudda/data/synapses/example_data/10_MSN12_GBZ_CC_H20.json --synapseParameters ../../../../snudda/data/synapses/example_data/M1LH-contra_dSPN.json --compile
 
-    # Disable input generation at the moment
+    python3 ../../../../snudda/synaptic_fitting/optimise_synapses_full.py ../../../../snudda/data/synapses/example_data/10_MSN12_GBZ_CC_H20.json --synapseParameters ../../../../snudda/data/synapses/example_data/M1LH-contra_dSPN.json --plot
 
-    #echo ">>> Input: "`date`
-    # cp -a $SNUDDA_DIR/data/input_config/input-v10-scaled.json ${JOBDIR}/input.json
-    cp -a $SNUDDA_DIR/data/input_config/external-input-dSTR-scaled-v4.json ${JOBDIR}/input.json
-
-    # snudda input ${JOBDIR} --parallel --time 5
-    echo "Temp running in serial -- due to perlmutter bug on Cray https://docs.nersc.gov/development/libraries/hdf5/"
-    snudda input ${JOBDIR} --time 5 --verbose 
-
-    
-    #.. Shut down cluster
-    # ipcluster stop	
-
-    date
-    echo "JOB END "`date` start_time_network_connect.txt
 
 fi
+
+
+    
