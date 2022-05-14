@@ -1,6 +1,9 @@
 import json
-
+from neuron import hoc
 import numpy as np
+from snudda.neurons.neuron_model_extended import NeuronModel
+import types
+import nrn
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -15,6 +18,17 @@ class NumpyEncoder(json.JSONEncoder):
             return int(obj)
         elif type(obj) in [bytes, np.bytes_]:
             return obj.decode()
+        elif isinstance(obj, hoc.HocObject):
+            if "to_python" in dir(obj):
+                return obj.to_python()
+            else:
+                return str(obj)
+        elif isinstance(obj, NeuronModel):
+            return str(obj)
+        elif isinstance(obj, types.BuiltinMethodType):
+            return str(obj)
+        elif isinstance(obj, nrn.Segment):
+            return str(obj)
         else:
             # return super(NumpyEncoder, self).default(obj)
             return json.JSONEncoder.default(self, obj)
