@@ -142,7 +142,6 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
             if self.verbose:
                 print(f" {key}{modulation} set to {value} at {syn}")
 
-
         self.neuromodulation[modulation]['modulation_vector'].play(
             getattr(syn, f"_ref_level{modulation}"), self.sim.neuron.h.dt)
 

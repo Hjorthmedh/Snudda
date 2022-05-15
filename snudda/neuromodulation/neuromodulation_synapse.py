@@ -199,11 +199,11 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                         for name, value in sec.psection()['density_mechs'][mechanism_name].items():
                             if "maxMod" in name:
                                 for v in value:
-                                    print(f" Value of {name} is {v} for {mechanism_name}")
-                                    assert v != 1.0 and v > 0, "NeuronModel has not loaded modulation.json," \
-                                                                          "neuromodulation is not turned on within the model"
 
+                                    if self.verbose:
+                                        print(f" Value of {name} is {v} for {mechanism_name}")
 
+                                    assert v > 0, "Modulation value should be positive"
 
                     level_list = [type_level for type_level in [*sec.psection()['density_mechs'][mechanism_name].keys()] if 'level' in type_level]
                     mod_key_list = [f"mod{n.replace('level','')}_{mechanism_name_ptr}" for n in level_list]
@@ -301,11 +301,11 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                                 parameters = self.neuromodulator_description[modulator]["cells"][cell_name]["receptors"][receptor_name]
 
                                 for p, v in parameters.items():
-                                    setattr(syn,f"{p}{modulator}",v)
+                                    setattr(syn, f"{p}{modulator}", v)
 
                                     if self.verbose:
                                         print(f" Value of {p}{modulator} is {getattr(syn, f'{p}{modulator}')} at {syn}")
-                                        assert getattr(syn,f'{p}{modulator}') != 1.0 and getattr(syn,f'{p}{modulator}') > 0, "NeuronModel has not loaded modulation.json," \
+                                        assert getattr(syn, f'{p}{modulator}') != 1.0 and getattr(syn, f'{p}{modulator}') > 0, "NeuronModel has not loaded modulation.json," \
                                                             "neuromodulation is not turned on within the model"
                                         assert getattr(syn, f"mod{modulator}") == 1.0
 
