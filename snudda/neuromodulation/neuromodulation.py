@@ -29,7 +29,7 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                                                             disable_gap_junctions=disable_gap_junctions,
                                                             simulation_config=simulation_config)
 
-        print(" Using neuromodulation module in Snudda")
+        self.write_log(" Using neuromodulation module in Snudda")
 
     def neuron_vector(self, vector):
 
@@ -96,7 +96,7 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                             if mech.name() in modulate_section:
 
                                 # Check that modulation value is not equal to 1.0 otherwise modulation will not work
-                                assert getattr(mech, f"maxMod{modulation}") != 1.0, "NeuronModel has not loaded modulation.json," \
+                                assert getattr(mech, f"maxMod{modulation}") != 1.0 and getattr(mech, f"maxMod{modulation}") > 0, "NeuronModel has not loaded modulation.json," \
                                                                                     "neuromodulation is not turned on within the model"
 
                                 setattr(mech, "mod" + modulation, 1)
@@ -118,7 +118,7 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                     syn_name = self.get_syn_name(syntuple[3])
 
                     if cell_type_name in synapses.keys() and syn_name in synapses[cell_type_name].keys():
-                        self.modulate_receptor(syn=syntuple[3], modulation=modulation)
+                        self.modulate_receptor(syn=syntuple[3], modulation=modulation, modulation_parameter=synapses[cell_type_name][syn_name])
 
         if intrinsic:
             for syn in self.synapse_list:
@@ -127,13 +127,22 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                 syn_name = self.get_syn_name(syn)
 
                 if cell_type_name in synapses.keys() and syn_name in synapses[cell_type_name].keys():
-                    self.modulate_receptor(syn=syn, modulation=modulation)
+                    self.modulate_receptor(syn=syn, modulation=modulation, modulation_parameter=synapses[cell_type_name][syn_name])
 
-    def modulate_receptor(self, syn, modulation):
+    def modulate_receptor(self, syn, modulation, modulation_parameter):
 
-        setattr(syn, "mod" + modulation, 1)
-        
+        setattr(syn, f"mod{modulation}", 1)
+
+        """
+            Adding the modulation to the receptor
+        """
+        for key, value in modulation_parameter.items():
+            setattr(syn, f"{key}{modulation}", value)
+
+            if self.verbose:
+                print(f" {key}{modulation} set to {value} at {syn}")
+
 
         self.neuromodulation[modulation]['modulation_vector'].play(
-            getattr(syn, "_ref_level" + modulation), self.sim.neuron.h.dt)
+            getattr(syn, f"_ref_level{modulation}"), self.sim.neuron.h.dt)
 

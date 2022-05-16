@@ -26,7 +26,7 @@ class NeuromodulationSynapse:
         self.synapse_modulation.update({neuromodulation_key: {'connector': connector,
                                                     'cells': dict()}})
 
-    def add_cell_modulation(self, neuromodulation_key, cell, ion_channels, receptors, extrinsic, type_connection):
+    def add_cell_modulation(self, neuromodulation_key, cell, ion_channels=None, receptors=None, extrinsic=None, type_connection=None):
 
         self.synapse_modulation[neuromodulation_key]['cells'].update({cell: {
                                                              'ion_channels': ion_channels,

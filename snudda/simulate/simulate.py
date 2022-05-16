@@ -1260,6 +1260,7 @@ class SnuddaSimulate(object):
                         sec_id.append(sid + 1)  # NEURON indexes from 0, Snudda has soma as 0, and first dendrite is 1
                         sec_x.append(seg.x)
 
+
             self.add_volt_recording(cell_id=cid, sec_id=sec_id, sec_x=sec_x)
 
     def add_volt_recording_soma(self, cell_id=None):
