@@ -1,4 +1,5 @@
 import os
+import json
 import numpy as np
 
 from snudda.utils.load import SnuddaLoad
@@ -6,15 +7,30 @@ from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
 from snudda.utils.export_connection_matrix import SnuddaExportConnectionMatrix
 from collections import OrderedDict
 
+import matplotlib.pyplot as plt
+
 
 class SnuddaAnalyseTopologyActivity:
 
     def __init__(self):
 
         self.simulation_data = dict()
+        self.mapping_list = dict()
+        self.mapping_dictionary = dict()
 
     def load_simulation_data(self, data_key, simulation_output=None):
         self.simulation_data[data_key] = SnuddaLoadNetworkSimulation(network_simulation_output_file=simulation_output)
+        self.load_mapping_file(data_key)
+
+    def load_mapping_file(self, data_key):
+        mapping_file = f"{self.simulation_data[data_key]['networkFile']}-remapping.txt"
+        with open(mapping_file, "r") as f:
+            self.mapping_list[data_key] = json.load(f)
+
+        self.mapping_dictionary[data_key] = OrderedDict()
+
+        for row in self.mapping_list[data_key]:
+            self.mapping_dictionary[data_key][row[0]] = row[1]
 
     def check_same_neurons(self, data_key_a, data_key_b):
 
@@ -58,3 +74,40 @@ class SnuddaAnalyseTopologyActivity:
             spike_time_difference[neuron_id] = np.array(t_min_diff_a), np.array(t_min_diff_b)
 
         return spike_time_difference
+
+    def plot_spike_delta_histogram(self, data_key_a=None, data_key_b=None,
+                                   plot_title=None, direction=0):
+
+        spike_time_difference = self.get_spike_deltas(data_key_a=data_key_a, data_key_b=data_key_b)
+
+        range_min = -10e-3
+        range_max = 2e-3
+        bin_size = 0.5e-3
+        n_bins = int(np.ceil((range_max-range_min) / bin_size))
+
+        fig = plt.figure()
+
+        neuron_names = self.simulation_data[data_key_a].get_neuron_name()
+        plt.set_cmap("autumn")
+
+        hist_data = []
+        hist_label = []
+
+        for nid in spike_time_difference.keys():
+            hist_data.append(spike_time_difference[nid][direction])
+            hist_label.append(f"{neuron_names[nid]} ({nid})")
+
+        plt.hist(hist_data, range=(range_min, range_max), bins=n_bins,
+                 label=hist_label, histtype="barstacked")
+
+            #plt.ion()
+            #plt.show()
+            #import pdb
+            #pdb.set_trace()
+
+        plt.xlabel("Time difference (s)")
+        plt.ylabel("Count")
+        plt.title(plot_title)
+        plt.legend()
+        plt.ion()
+        plt.show()

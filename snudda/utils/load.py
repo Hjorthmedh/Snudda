@@ -158,6 +158,9 @@ class SnuddaLoad(object):
         start_time = timeit.default_timer()
         data = dict([])
 
+        # Save a reference to the name of the loaded network file
+        data["networkFile"] = self.network_file
+
         # Blender notebook has hdf5 library/header file mismatch, so importing this only where needed
         # This allows us to use fake_load.py in snudda.utils
 

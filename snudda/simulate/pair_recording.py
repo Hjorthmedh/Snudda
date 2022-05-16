@@ -379,7 +379,7 @@ class PairRecording(SnuddaSimulate):
             self.write_log(f"Saving failed, whoops. Entering debug mode.\n"
                            f"You might have had {self.output_file} opened elsewhere. Try closing it, then type:\n"
                            f"> self.write_output()\n"
-                           f"If you are lucky, this will work and you wont loose any data.")
+                           f"If you are lucky, this will work and you wont loose any data.", is_error=True)
             import pdb
             pdb.set_trace()
 

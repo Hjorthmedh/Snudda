@@ -71,7 +71,7 @@ class SnuddaAblateNetwork:
         self.keep_neuron_id = self.keep_neuron_id - set(neuron_id)
 
     def only_keep_neuron_id(self, neuron_id):
-        self.keep_neuron_id = set(neuron_id)
+        self.keep_neuron_id = list(neuron_id)       # Changed from "set" to "list", to preserve order
 
     def remove_neuron_type(self, neuron_type, p_remove=1):
 
