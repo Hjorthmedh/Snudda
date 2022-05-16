@@ -266,7 +266,9 @@ class SnuddaSaveNetworkRecordings:
             out_file = h5py.File(self.output_file, "w")
 
             meta_data = out_file.create_group("metaData")
-            meta_data.create_dataset("networkFile", self.network_data["networkFile"])
+            print("CHeck why not able to save...")
+            
+            meta_data.create_dataset("networkFile", data=self.network_data["networkFile"])
             out_file.create_group("neurons")
 
             if self.network_data:
