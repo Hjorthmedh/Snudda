@@ -68,16 +68,18 @@ class PlotCrossCorrelogram:
 
         bin_count, bin_edges = self.calculate_all_pair_cross_correlogram(neuron_id=neuron_id)
 
-        plt.figure()
-        plt.stairs(values=bin_count, edges=bin_edges)
-        plt.xlabel("Time (s)")
-        plt.ylabel("Count")
-        plt.show()
+        if bin_count is not None:
 
-        if fig_file_name:
-            if not os.path.isdir(os.path.dirname(fig_file_name)):
-                print(f"Creating directory {os.path.dirname(fig_file_name)}")
-                os.mkdir(os.path.dirname(fig_file_name))
+            plt.figure()
+            plt.stairs(values=bin_count, edges=bin_edges)
+            plt.xlabel("Time (s)")
+            plt.ylabel("Count")
+            plt.show()
 
-            plt.savefig(fig_file_name, dpi=300)
+            if fig_file_name:
+                if not os.path.isdir(os.path.dirname(fig_file_name)):
+                    print(f"Creating directory {os.path.dirname(fig_file_name)}")
+                    os.mkdir(os.path.dirname(fig_file_name))
+
+                plt.savefig(fig_file_name, dpi=300)
 

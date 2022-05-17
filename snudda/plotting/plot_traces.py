@@ -73,24 +73,6 @@ class PlotTraces:
 
     ############################################################################
 
-    def read_csv(self):
-
-        assert False, "read_csv is deprecated, use SnuddaLoadNetworkSimulation instead"
-
-        data = np.genfromtxt(self.output_file, delimiter=',')
-
-        assert (data[0, 0] == -1)  # First column should be time
-
-        self.time = data[0, 1:] / 1e3
-
-        self.voltage = dict()
-
-        for rows in data[1:, :]:
-            c_id = int(rows[0])
-            self.voltage[c_id] = rows[1:] * 1e-3
-
-    ############################################################################
-
     def neuron_name(self, neuron_type):
 
         if neuron_type in self.neuron_name_remap:

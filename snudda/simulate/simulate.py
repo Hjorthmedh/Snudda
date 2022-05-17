@@ -51,6 +51,7 @@ class SnuddaSimulate(object):
                  output_file=None,
                  verbose=False,
                  log_file=None,
+                 disable_synapses=False,
                  disable_gap_junctions=False,
                  simulation_config=None):
 
@@ -65,6 +66,7 @@ class SnuddaSimulate(object):
             verbose (bool): Extra printouts
             log_file (str): Path to logfile
             disable_gap_junctions (bool): Disable gap junctions, default False
+            disable_synapses (bool): Disable synapses, default False
             simulation_config (str, optional): Path to config file with simulation info (including network_path)
 
         """
@@ -163,6 +165,7 @@ class SnuddaSimulate(object):
         self.axon_speed = 0.8  # Tepper and Lee 2007, Wilson 1986, Wilson 1990
         # refs taken from Damodaran et al 2013
 
+        self.disable_synapses = disable_synapses
         self.disable_gap_junctions = disable_gap_junctions
 
         self.synapse_type_lookup = {1: "GABA", 2: "AMPA_NMDA", 3: "GapJunction"}
@@ -537,7 +540,7 @@ class SnuddaSimulate(object):
 
         # Add gap junctions
         if self.disable_gap_junctions:
-            self.write_log("!!! Gap junctions disabled.")
+            self.write_log("!!! Gap junctions disabled.", force_print=True)
         else:
             self.write_log("Adding gap junctions.")
 
@@ -545,9 +548,40 @@ class SnuddaSimulate(object):
             self.pc.setup_transfer()
 
         # Add synapses
-        self.connect_network_synapses()
+        if self.disable_synapses:
+            self.write_log("!!! Synapses disabled.", force_print=True)
+        else:
+            self.write_log("Adding synapses.")
+            self.connect_network_synapses()
 
         self.pc.barrier()
+
+    def set_new_output_file(self, new_output_file):
+        self.write_log(f"Setting output file to {new_output_file}")
+        self.output_file = new_output_file
+        self.record.set_new_output_file(new_output_file)
+
+    def reenable_synapses(self, new_output_file=None):
+
+        assert self.disable_synapses, f"You can only reenable synapses if they were previously disabled"
+        self.write_log("Re-enabling previously disabled synapses", force_print=True)
+
+        self.disable_synapses = False
+        self.connect_network_synapses()
+
+        if new_output_file:
+            self.set_new_output_file(new_output_file)
+
+    def reenable_gap_junctions(self, new_output_file=None):
+        assert self.disable_gap_junctions, f"You can only reenable gap junctions if they were previously disabled"
+        self.write_log("Re-enabling previously disabled gap junctions", force_print=True)
+
+        self.disable_gap_junctions = False
+        self.connect_network_gap_junctions_local()
+        self.pc.setup_transfer()
+
+        if new_output_file:
+            self.set_new_output_file(new_output_file)
 
     ############################################################################
 

@@ -267,7 +267,7 @@ class SnuddaSaveNetworkRecordings:
 
             meta_data = out_file.create_group("metaData")
             print("CHeck why not able to save...")
-            
+
             meta_data.create_dataset("networkFile", data=self.network_data["networkFile"])
             out_file.create_group("neurons")
 

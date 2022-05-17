@@ -543,6 +543,10 @@ class Snudda(object):
         if disable_gj:
             print("!!! WE HAVE DISABLED GAP JUNCTIONS !!!")
 
+        disable_synapses = args.disable_synapses
+        if disable_synapses:
+            print("!!! SYNAPSES DISABLED")
+
         log_file = os.path.join(os.path.dirname(network_file), "log", "network-simulation-log.txt")
 
         log_dir = os.path.join(os.path.dirname(network_file), "log")
@@ -558,7 +562,8 @@ class Snudda(object):
                 neuromod_dict = json.load(neuromod_f, object_pairs_hook=OrderedDict)
 
             if 'type' not in neuromod_dict:
-                print(f"Neuromodulation is not defined correctly in {args.neuromodulation} : 'type' is missing. Did you specify the correct file?")
+                print(f"Neuromodulation is not defined correctly in {args.neuromodulation} : 'type' is missing. "
+                      f"Did you specify the correct file?")
                 sys.exit(-1)
 
             elif 'replay' in neuromod_dict['type']:
@@ -568,6 +573,7 @@ class Snudda(object):
                                                     input_file=input_file,
                                                     output_file=output_file,
                                                     disable_gap_junctions=disable_gj,
+                                                    disable_synapses=disable_synapses,
                                                     log_file=log_file,
                                                     verbose=args.verbose)
 
