@@ -77,17 +77,13 @@ class SnuddaAnalyseTopologyActivity:
         return spike_time_difference
 
     def plot_spike_delta_histogram(self, data_key_a=None, data_key_b=None,
-                                   plot_title=None, direction=0):
+                                   plot_title=None, direction=0,
+                                   range_min=-10e-3, range_max=2e-3, bin_size=0.5e-3):
 
         spike_time_difference = self.get_spike_deltas(data_key_a=data_key_a, data_key_b=data_key_b)
-
-        range_min = -10e-3
-        range_max = 2e-3
-        bin_size = 0.5e-3
         n_bins = int(np.ceil((range_max-range_min) / bin_size))
 
         fig = plt.figure()
-
         neuron_names = self.simulation_data[data_key_a].get_neuron_name()
         plt.set_cmap("autumn")
 
