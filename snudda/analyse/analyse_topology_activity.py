@@ -69,8 +69,8 @@ class SnuddaAnalyseTopologyActivity:
             min_pos_a = np.argmin(np.abs(t_diff), axis=0)
             min_pos_b = np.argmin(np.abs(t_diff), axis=1)
 
-            t_min_diff_a = [t_diff[m[0], m[1]] for m in zip(min_pos_a, range(len(min_pos_a)))]
-            t_min_diff_b = [-t_diff[m[0], m[1]] for m in zip(min_pos_b, range(len(min_pos_b)))]
+            t_min_diff_a = [t_diff[m[0], m[1]] for m in zip(range(len(min_pos_b)), min_pos_a)]
+            t_min_diff_b = [-t_diff[m[0], m[1]] for m in zip(min_pos_b, range(len(min_pos_a)))]
 
             spike_time_difference[neuron_id] = np.array(t_min_diff_a), np.array(t_min_diff_b)
 
