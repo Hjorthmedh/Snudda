@@ -46,7 +46,7 @@ class SnuddaAnalyseTopologyActivity:
 
         return is_same
 
-    def get_spike_deltas(self, data_key_a, data_key_b):
+    def get_spike_deltas(self, data_key_a, data_key_b, match_closest=True):
 
         # Check that the neurons compared are the same (by verifying parameter key, morphology key, modulation key)
         assert self.check_same_neurons(data_key_a, data_key_b), f"data_keys have different neurons in the network"
@@ -66,14 +66,19 @@ class SnuddaAnalyseTopologyActivity:
             s_b = spikes_b[neuron_id]
 
             if s_a.size > 0 and s_b.size > 0:
-                t_diff = np.kron(np.ones(s_a.shape), s_b.T) - np.kron(s_a, np.ones(s_b.T.shape))
-                min_pos_a = np.argmin(np.abs(t_diff), axis=1)
-                min_pos_b = np.argmin(np.abs(t_diff), axis=0)
 
-                t_min_diff_a = [t_diff[m[0], m[1]] for m in zip(range(len(min_pos_b)), min_pos_a)]
-                t_min_diff_b = [-t_diff[m[0], m[1]] for m in zip(min_pos_b, range(len(min_pos_a)))]
+                if match_closest:
+                    t_diff = np.kron(np.ones(s_a.shape), s_b.T) - np.kron(s_a, np.ones(s_b.T.shape))
+                    min_pos_a = np.argmin(np.abs(t_diff), axis=1)
+                    min_pos_b = np.argmin(np.abs(t_diff), axis=0)
 
-                spike_time_difference[neuron_id] = np.array(t_min_diff_a), np.array(t_min_diff_b)
+                    t_min_diff_a = [t_diff[m[0], m[1]] for m in zip(range(len(min_pos_b)), min_pos_a)]
+                    t_min_diff_b = [-t_diff[m[0], m[1]] for m in zip(min_pos_b, range(len(min_pos_a)))]
+
+                    spike_time_difference[neuron_id] = np.array(t_min_diff_a), np.array(t_min_diff_b)
+                else:
+                    n_compare = min(s_a.size, s_b.size)
+                    spike_time_difference[neuron_id] = s_b[:n_compare] - s_a[:n_compare]
             else:
                 # At least one of the spike trains does not have any spikes
                 spike_time_difference[neuron_id] = np.array([]), np.array([])
@@ -82,9 +87,11 @@ class SnuddaAnalyseTopologyActivity:
 
     def plot_spike_delta_histogram(self, data_key_a=None, data_key_b=None,
                                    plot_title=None, direction=0,
+                                   match_closest=True,
                                    range_min=-10e-3, range_max=2e-3, bin_size=0.5e-3):
 
-        spike_time_difference = self.get_spike_deltas(data_key_a=data_key_a, data_key_b=data_key_b)
+        spike_time_difference = self.get_spike_deltas(data_key_a=data_key_a, data_key_b=data_key_b,
+                                                      match_closest=match_closest)
         n_bins = int(np.ceil((range_max-range_min) / bin_size)) + 1
 
         fig = plt.figure()
