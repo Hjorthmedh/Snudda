@@ -655,7 +655,7 @@ class SnuddaLoad(object):
         synapse_coords = synapses[:, 2:5] * self.data["voxelSize"] + self.data["simulationOrigo"]
 
         if return_index:
-            return synapses, synapse_coords, (idx_b1, idx_b2+1)
+            return synapses, synapse_coords, np.arange(idx_b1, idx_b2+1)
         else:
             return synapses, synapse_coords
 
