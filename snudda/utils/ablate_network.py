@@ -318,7 +318,7 @@ class SnuddaAblateNetwork:
             syn_keep_idx = np.where(keep_syn_flag)[0]
             for idx, row_idx in enumerate(syn_keep_idx):
 
-                if idx % 50000 == 0:
+                if idx % 50000 == 0 and idx > 0:
                     print(f"{idx} / {num_syn} synapse rows parsed")
 
                 # We need to remap the neuronID if some neurons have been removed!!
@@ -333,7 +333,7 @@ class SnuddaAblateNetwork:
                                          chunks=syn_mat.chunks, maxshape=(None, syn_mat.shape[1]),
                                          compression=syn_mat.compression)
 
-            print(f"{n_synapses} / {num_syn} synapse rows parsed")
+            print(f"{num_syn} / {num_syn} synapse rows parsed")
             print("Synapse matrix written.")
 
             print(f"Keeping {num_syn} synapses (out of {syn_mat.shape[0]})")
