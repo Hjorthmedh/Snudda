@@ -177,8 +177,14 @@ class SnuddaAblateNetwork:
             for pre_id, post_id in self.remove_pair_connection_list:
                 if data_type == "synapses":
                     _, _, synapse_idx = self.snudda_load.find_synapses(pre_id=pre_id, post_id=post_id, return_index=True)
+                elif data_type == "gapJunctions":
+                    print(f"WARNING: If there are any gap junctions between {pre_id}, {post_id} they will not have been removed ")
+                    # TODO: There is currently only find_gap_junctions that take neuron_id as parameter, not pre and post id
+                    #       so we can not find the gap junction pairs, this will need to be added in the future.
+                    # _, _, synapse_idx = self.snudda_load.find_gap_junctions(pre_id=pre_id, post_id=post_id, return_index=True)
+                    synapse_idx = None
                 else:
-                    _, _, synapse_idx = self.snudda_load.find_gap_junctions(pre_id=pre_id, post_id=post_id, return_index=True)
+                    assert f"Unkown data type: {data_type}, should be 'synapses' or 'gapJunctions'"
 
                 if synapse_idx is not None:
                     for syn_idx in synapse_idx:

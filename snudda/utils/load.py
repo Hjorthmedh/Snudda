@@ -856,7 +856,6 @@ class SnuddaLoad(object):
                         gj_index_list[gj_ctr] = gj_index
                     gj_index += 1
 
-
         gj_coords = gap_junctions[:, 6:9][:gj_ctr, :] * self.data["voxelSize"] + self.data["simulationOrigo"]
 
         if return_index:
