@@ -23,10 +23,11 @@ class SnuddaAnalyseTopologyActivity:
         self.load_mapping_file(data_key)
 
     def load_mapping_file(self, data_key):
-        mapping_file = f"{self.simulation_data[data_key]['networkFile']}-remapping.txt"
-        with open(mapping_file, "r") as f:
-            self.mapping_list[data_key] = json.load(f)
 
+        network_file = SnuddaLoad.to_str(self.simulation_data[data_key].network_simulation_file["metaData"]["networkFile"][()])
+        mapping_file = f"{network_file}-remapping.txt"
+
+        self.mapping_list[data_key] = np.genfromtxt(mapping_file, delimiter=',', dtype=int)
         self.mapping_dictionary[data_key] = OrderedDict()
 
         for row in self.mapping_list[data_key]:
