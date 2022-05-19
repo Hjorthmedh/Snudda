@@ -3,7 +3,7 @@
         "Cortical" : {
             "conductance" : 5e-10,
             "frequency" : 2,
-            "nInputs" : 500,
+            "nInputs" : 400,
             "generator" : "poisson",        
             "type" : "AMPA_NMDA",
             "synapseDensity": "0.092*(1-exp(-d/200e-6))",           
@@ -16,7 +16,7 @@
 	"thalamic": {
             "conductance": 5e-10,
             "frequency": 2.0,
-            "nInputs": 500,	    
+            "nInputs": 400,	    
             "generator": "poisson",
             "jitter": 0.0,
             "modFile": "tmGlut",

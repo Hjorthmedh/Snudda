@@ -117,7 +117,7 @@ class SnuddaSimulate(object):
         self.sim_start_time = 0
         self.fih_time = None
         self.last_sim_report_time = 0
-        self.sample_dt = 0.0005
+        self.sample_dt = None  # None means all values, 0.0005 means 0.5ms time resolution in saved files
 
         self.pc = h.ParallelContext()
 
