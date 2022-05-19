@@ -817,13 +817,14 @@ class SnuddaLoad(object):
 
         return param_data, mod_data
 
-    def find_gap_junctions(self, neuron_id, n_max=1000000):
+    def find_gap_junctions(self, neuron_id, n_max=1000000, return_index=False):
 
         """ Find gap junctions associated with neuron_id
 
         Args:
             neuron_id (int) : Neuron with gap junction (can also be a list)
             n_max (int) : Maximum number of gap junctions to return
+            return_index (bool): Should third return value index be present
 
         Returns:
             Subset of gap junction matrix, gap junction coordinates
@@ -835,6 +836,8 @@ class SnuddaLoad(object):
 
         gap_junctions = np.zeros((n_max, 11), dtype=np.int32)
         gj_ctr = 0
+        gj_index = 0
+        gj_index_list = np.zeros((n_max,), dtype=int)
 
         if np.issubdtype(type(neuron_id), np.integer):
             for gj_list in self.gap_junction_iterator():
@@ -842,16 +845,24 @@ class SnuddaLoad(object):
                     if gj[0] == neuron_id or gj[1] == neuron_id:
                         gap_junctions[gj_ctr, :] = gj
                         gj_ctr += 1
+                        gj_index_list[gj_ctr] = gj_index
+                    gj_index += 1
         else:
             for gj_list in self.gap_junction_iterator():
                 for gj in gj_list:
                     if gj[0] in neuron_id or gj[1] in neuron_id:
                         gap_junctions[gj_ctr, :] = gj
                         gj_ctr += 1
+                        gj_index_list[gj_ctr] = gj_index
+                    gj_index += 1
+
 
         gj_coords = gap_junctions[:, 6:9][:gj_ctr, :] * self.data["voxelSize"] + self.data["simulationOrigo"]
 
-        return gap_junctions[:gj_ctr, :], gj_coords
+        if return_index:
+            return gap_junctions[:gj_ctr, :], gj_coords, gj_index_list[:gj_ctr]
+        else:
+            return gap_junctions[:gj_ctr, :], gj_coords
 
     def get_centre_neurons_iterator(self, n_neurons=None, neuron_type=None, centre_point=None):
 

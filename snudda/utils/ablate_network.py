@@ -175,7 +175,11 @@ class SnuddaAblateNetwork:
             print(f"Warning, removing individual synapses ({len(self.remove_pair_connection_list)}) can be slow, "
                   f"use this with caution.")
             for pre_id, post_id in self.remove_pair_connection_list:
-                _, _, synapse_idx = self.snudda_load.find_synapses(pre_id=pre_id, post_id=post_id, return_index=True)
+                if data_type == "synapses":
+                    _, _, synapse_idx = self.snudda_load.find_synapses(pre_id=pre_id, post_id=post_id, return_index=True)
+                else:
+                    _, _, synapse_idx = self.snudda_load.find_gap_junctions(pre_id=pre_id, post_id=post_id, return_index=True)
+
                 if synapse_idx is not None:
                     for syn_idx in synapse_idx:
                         keep_flag[syn_idx] = False
