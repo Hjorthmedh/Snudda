@@ -78,7 +78,7 @@ class SnuddaAnalyseTopologyActivity:
                     spike_time_difference[neuron_id] = np.array(t_min_diff_a), np.array(t_min_diff_b)
                 else:
                     n_compare = min(s_a.size, s_b.size)
-                    spike_time_difference[neuron_id] = s_b[:n_compare] - s_a[:n_compare]
+                    spike_time_difference[neuron_id] = s_b[0, :n_compare] - s_a[0, :n_compare]
             else:
                 # At least one of the spike trains does not have any spikes
                 spike_time_difference[neuron_id] = np.array([]), np.array([])
