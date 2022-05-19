@@ -444,7 +444,7 @@ class PairRecording(SnuddaSimulate):
 
         pt.plot_traces([x for x in pt.voltage])
 
-    def plot_traces(self, mark_current_y=-80.05e-3, trace_id=None):
+    def plot_traces(self, mark_current_y=-80.05e-3, trace_id=None, offset=150e-3):
 
         """
            Plot traces of post synaptic neuron activation, this assumes only one neuron was stimulated
@@ -480,7 +480,7 @@ class PairRecording(SnuddaSimulate):
 
                 self.plot_trace(pre_id=pre_id, post_id=pid, fig_name=fig_name,
                                 mark_current=cur_times, mark_current_y=mark_current_y,
-                                skip_time=skip_time)
+                                skip_time=skip_time, offset=offset)
 
     def get_experiment_name(self, empty_is_none=True):
         if "experiment_name" in self.experiment_config["meta"]:
