@@ -67,8 +67,8 @@ class SnuddaAnalyseTopologyActivity:
 
             if s_a.size > 0 and s_b.size > 0:
                 t_diff = np.kron(np.ones(s_a.shape), s_b.T) - np.kron(s_a, np.ones(s_b.T.shape))
-                min_pos_a = np.argmin(np.abs(t_diff), axis=0)
-                min_pos_b = np.argmin(np.abs(t_diff), axis=1)
+                min_pos_a = np.argmin(np.abs(t_diff), axis=1)
+                min_pos_b = np.argmin(np.abs(t_diff), axis=0)
 
                 t_min_diff_a = [t_diff[m[0], m[1]] for m in zip(range(len(min_pos_b)), min_pos_a)]
                 t_min_diff_b = [-t_diff[m[0], m[1]] for m in zip(min_pos_b, range(len(min_pos_a)))]
