@@ -81,7 +81,7 @@ class SnuddaAnalyseTopologyActivity:
                                    range_min=-10e-3, range_max=2e-3, bin_size=0.5e-3):
 
         spike_time_difference = self.get_spike_deltas(data_key_a=data_key_a, data_key_b=data_key_b)
-        n_bins = int(np.ceil((range_max-range_min) / bin_size))
+        n_bins = int(np.ceil((range_max-range_min) / bin_size)) + 1
 
         fig = plt.figure()
         neuron_names = self.simulation_data[data_key_a].get_neuron_name()
