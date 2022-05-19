@@ -65,7 +65,7 @@ class SnuddaAnalyseTopologyActivity:
             s_a = spikes_a[neuron_id]
             s_b = spikes_b[neuron_id]
 
-            if len(s_a) > 0 and len(s_b) > 0:
+            if s_a.size > 0 and s_b.size > 0:
                 t_diff = np.kron(np.ones(s_a.shape), s_b.T) - np.kron(s_a, np.ones(s_b.T.shape))
                 min_pos_a = np.argmin(np.abs(t_diff), axis=0)
                 min_pos_b = np.argmin(np.abs(t_diff), axis=1)
