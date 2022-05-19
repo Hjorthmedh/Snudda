@@ -177,7 +177,8 @@ class SnuddaAblateNetwork:
             for pre_id, post_id in self.remove_pair_connection_list:
                 _, _, synapse_idx = self.snudda_load.find_synapses(pre_id=pre_id, post_id=post_id, return_index=True)
                 if synapse_idx is not None:
-                    keep_flag[synapse_idx] = False
+                    for syn_idx in synapse_idx:
+                        keep_flag[syn_idx] = False
 
         print("Filtering done.")
 
