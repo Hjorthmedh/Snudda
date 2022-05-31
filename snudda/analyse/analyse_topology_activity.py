@@ -120,12 +120,13 @@ class SnuddaAnalyseTopologyActivity:
             if s_a.size > 0 and s_b.size > 0:
 
                 if matching_method == "closest":
-                    spike_time_difference[neuron_id] = self.match_closest_spikes(s_a, s_b)
+                    spike_time_difference[neuron_id] = self.match_closest_spikes(s_a.flatten(), s_b.flatten())
                 elif matching_method == "order":
                     n_compare = min(s_a.size, s_b.size)
-                    spike_time_difference[neuron_id] = self.match_order_spikes(s_a, s_b)
+                    spike_time_difference[neuron_id] = self.match_order_spikes(s_a.flatten(), s_b.flatten())
                 elif matching_method == "closestunique":
-                    spike_time_difference[neuron_id] = self.match_closest_unique(s_a, s_b, delta_t=delta_t)
+                    spike_time_difference[neuron_id] = self.match_closest_unique(s_a.flatten(), s_b.flatten(),
+                                                                                 delta_t=delta_t)
                 else:
                     assert False, f"Unknown matching_method={matching_method}, " \
                                   f"please use ('closest', 'order', 'closestunique')"
