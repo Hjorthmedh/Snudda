@@ -83,6 +83,8 @@ class SnuddaAnalyseTopologyActivity:
                     i_b += 1
                     break
 
+        i_a = 0
+
         for i_b, t_b in enumerate(spike_train_b):
 
             while i_a < len(spike_train_a) and spike_train_a[i_a] - t_b < delta_t:
