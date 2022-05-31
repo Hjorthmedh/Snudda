@@ -93,6 +93,8 @@ class SnuddaAnalyseTopologyActivity:
                     i_a += 1
                     break
 
+        return dt_list_a, dt_list_b
+
     def get_spike_deltas(self, data_key_a, data_key_b, matching_method, delta_t=5e-3):
 
         """
@@ -129,7 +131,8 @@ class SnuddaAnalyseTopologyActivity:
                     n_compare = min(s_a.size, s_b.size)
                     spike_time_difference[neuron_id] = self.match_order_spikes(s_a, s_b)
                 elif matching_method == "closestunique":
-                    spike_time_difference[neuron_id] = self.match_closest_unique(s_a.flatten(), s_b.flatten(),
+                    spike_time_difference[neuron_id] = self.match_closest_unique(s_a.flatten(),
+                                                                                 s_b.flatten(),
                                                                                  delta_t=delta_t)
                 else:
                     assert False, f"Unknown matching_method={matching_method}, " \
