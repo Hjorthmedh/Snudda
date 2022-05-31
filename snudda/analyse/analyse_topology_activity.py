@@ -80,6 +80,8 @@ class SnuddaAnalyseTopologyActivity:
                     i_b += 1
                 else:
                     dt_list_a[i_a] = spike_train_b[i_b] - t_a
+                    i_b += 1
+                    break
 
         for i_b, t_b in enumerate(spike_train_b):
 
@@ -88,6 +90,8 @@ class SnuddaAnalyseTopologyActivity:
                     i_a += 1
                 else:
                     dt_list_b[i_b] = spike_train_a[i_a] - t_b
+                    i_a += 1
+                    break
 
     def get_spike_deltas(self, data_key_a, data_key_b, matching_method, delta_t=5e-3):
 
