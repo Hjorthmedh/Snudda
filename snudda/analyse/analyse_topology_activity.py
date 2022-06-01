@@ -111,9 +111,9 @@ class SnuddaAnalyseTopologyActivity:
         i_b = 0
  #       while spike_times_b[i_b] <
 
-        i_b = 0
-        for i_a, (ta_0, ta_1) in enumerate(zip(spike_times_a, np.append(spike_times_a[1:], np.inf))):
-            if spike_times_b[i_b]
+        # i_b = 0
+        # for i_a, (ta_0, ta_1) in enumerate(zip(spike_times_a, np.append(spike_times_a[1:], np.inf))):
+        #    if spike_times_b[i_b]
 
     def get_spike_deltas(self, data_key_a, data_key_b, matching_method, delta_t=5e-3):
 
