@@ -97,6 +97,24 @@ class SnuddaAnalyseTopologyActivity:
 
         return dt_list_a, dt_list_b
 
+    def get_triggered_deltas(self, spike_times_a, spike_times_b):
+
+        # The idea here is that for each spike in spike_train_a, we want to find the delta_t to all the spikes
+        # following in spike_train_b (but before the next spike in spike_train_a). Sort of like a JPSTH.
+
+        assert False, "Working on this functoin"
+
+        dt_list_a = np.full(spike_times_a.shape, np.nan)
+        dt_list_b = np.full(spike_times_b.shape, np.nan)
+
+        i_a = 0
+        i_b = 0
+ #       while spike_times_b[i_b] <
+
+        i_b = 0
+        for i_a, (ta_0, ta_1) in enumerate(zip(spike_times_a, np.append(spike_times_a[1:], np.inf))):
+            if spike_times_b[i_b]
+
     def get_spike_deltas(self, data_key_a, data_key_b, matching_method, delta_t=5e-3):
 
         """

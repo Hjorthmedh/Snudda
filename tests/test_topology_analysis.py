@@ -26,5 +26,6 @@ class TestTopologyAnalysis(unittest.TestCase):
         self.assertTrue(np.allclose(delta_b[idx_b], ref_b[idx_b]))
         self.assertTrue((np.isnan(ref_b[np.isnan(delta_b)])).all())
 
+
 if __name__ == '__main__':
     unittest.main()
