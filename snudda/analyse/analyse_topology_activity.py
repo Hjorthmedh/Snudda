@@ -96,7 +96,7 @@ class SnuddaAnalyseTopologyActivity:
 
         return dt_list_a, dt_list_b
 
-    def get_triggered_deltas(self, spike_times_a, spike_times_b):
+    def get_spike_triggered_deltas(self, spike_times_a, spike_times_b):
 
         # The idea here is that for each spike in spike_train_a, we want to find the delta_t to all the spikes
         # following in spike_train_b (but before the next spike in spike_train_a). Sort of like a JPSTH.
@@ -119,7 +119,7 @@ class SnuddaAnalyseTopologyActivity:
         Args:
             data_key_a : Data key for first dataset
             data_key_b : Data key for second dataset
-            matching_method : Method to use for spike matching "closest", "order", "closestunique", "triggered"
+            matching_method : Method to use for spike matching "closest", "order", "closestunique", "spike_triggered"
             delta_t : Optional, used by "closestunique" method (default 5e-3s)
 
         """
@@ -150,11 +150,11 @@ class SnuddaAnalyseTopologyActivity:
                     spike_time_difference[neuron_id] = self.match_order_spikes(s_a, s_b)
                 elif matching_method == "closestunique":
                     spike_time_difference[neuron_id] = self.match_closest_unique(s_a, s_b, delta_t=delta_t)
-                elif matching_method == "triggered":
-                    spike_time_difference[neuron_id] = self.get_triggered_deltas(s_a, s_b), np.array([])
+                elif matching_method == "spike_triggered":
+                    spike_time_difference[neuron_id] = self.get_spike_triggered_deltas(s_a, s_b), np.array([])
                 else:
                     assert False, f"Unknown matching_method={matching_method}, " \
-                                  f"please use ('closest', 'order', 'closestunique')"
+                                  f"please use ('closest', 'order', 'closestunique', 'spike_triggered')"
             else:
                 # At least one of the spike trains does not have any spikes
                 spike_time_difference[neuron_id] = np.array([]), np.array([])

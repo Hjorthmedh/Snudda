@@ -33,7 +33,7 @@ class TestTopologyAnalysis(unittest.TestCase):
             spikes_a = np.array([1, 2, 3, 4, 5, 6])
             spikes_b = np.array([0, 0.1, 1.1, 1.2, 3.2, 4, 5.5, 10, 11])
 
-            delta_t = sa.get_triggered_deltas(spikes_a, spikes_b)
+            delta_t = sa.get_spike_triggered_deltas(spikes_a, spikes_b)
 
             self.assertTrue(np.isnan(delta_t[0:2]).all())
             self.assertTrue(np.allclose(delta_t[2:], np.array([0.1, 0.2, 0.2, 0, 0.5, 4, 5])))
