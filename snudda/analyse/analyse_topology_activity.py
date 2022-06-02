@@ -174,6 +174,28 @@ class SnuddaAnalyseTopologyActivity:
         plt.ion()
         plt.show()
 
+    def plot_jpsth_all(self, data_key_a, data_key_b, trigger_times, duration=None, bin_size=2e-3, time_range=None):
+
+        if duration is None and len(trigger_times) > 1:
+            duration = trigger_times[1] - trigger_times[0]
+
+        assert self.check_same_neurons(data_key_a, data_key_b), f"data_keys have different neurons in the network"
+
+        # Match spikes against each other, compute change...
+        sim_a = self.simulation_data[data_key_a]
+        sim_b = self.simulation_data[data_key_b]
+
+        spikes_a = sim_a.get_spikes()
+        spikes_b = sim_b.get_spikes()
+
+        for neuron_id in spikes_a.keys():
+            s_a = self.filter_times(spikes_a[neuron_id].flatten(), time_range)
+            s_b = self.filter_times(spikes_b[neuron_id].flatten(), time_range)
+
+            if s_a.size > 0 and s_b.size > 0:
+                self.plot_jpsth(spike_times_a=s_a, spike_times_b=s_b,
+                                trigger_times=trigger_times, duration=duration, bin_size=bin_size)
+
     def get_spike_deltas(self, data_key_a, data_key_b, matching_method, delta_t=5e-3, time_range=None):
 
         """
