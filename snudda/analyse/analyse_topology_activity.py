@@ -151,8 +151,6 @@ class SnuddaAnalyseTopologyActivity:
 
     def plot_jpsth(self, spike_times_a, spike_times_b, trigger_times, duration=None, bin_size=2e-3):
 
-        import matplotlib.pyplot as plt
-
         if duration is None and len(trigger_times) > 1:
             duration = trigger_times[1] - trigger_times[0]
 
@@ -170,7 +168,9 @@ class SnuddaAnalyseTopologyActivity:
 
         x, y = zip(*spike_combos)
 
-        plt.hist2d(x=x, y=y, bins=int(np.ceil(duration/bin_size)+1), range=[[0, duration], [0, duration]])
+        plt.figure()
+        plt.hist2d(x=np.array(x), y=np.array(y),
+                   bins=int(np.ceil(duration/bin_size)+1), range=[[0, duration], [0, duration]])
         plt.ion()
         plt.show()
 
@@ -250,7 +250,6 @@ class SnuddaAnalyseTopologyActivity:
             return spike_times
         else:
             return spike_times[time_range[0] <= spike_times <= time_range[1]]
-
 
     def plot_spike_delta_histogram(self, data_key_a=None, data_key_b=None,
                                    plot_title=None, direction=0,

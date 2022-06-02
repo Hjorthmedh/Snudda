@@ -157,6 +157,8 @@ class SpikeData(CompartmentData):
 
 class SnuddaSaveNetworkRecordings:
 
+    # TODO: Add saving of simulation_config file (and experiment_config_file for pair recording)
+
     def __init__(self, output_file, network_data=None, sample_dt=None):
         self.output_file = output_file
         self.network_data = network_data
