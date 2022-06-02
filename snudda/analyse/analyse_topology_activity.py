@@ -128,7 +128,7 @@ class SnuddaAnalyseTopologyActivity:
 
             if start_idx < len(spike_times):
                 if subtract_trigger:
-                    spike_times[start_idx:end_idx] - trigger_t
+                    yield spike_times[start_idx:end_idx] - trigger_t
                 else:
                     yield spike_times[start_idx:end_idx]
 
