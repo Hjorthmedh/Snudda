@@ -49,7 +49,7 @@ class SnuddaAnalyseTopologyActivity:
     def match_closest_spikes(self, spike_train_a, spike_train_b):
 
         # This function assumes there are spike in both spike trains
-        t_diff = (np.kron(np.ones(spike_train_a.size, 1), spike_train_b)
+        t_diff = (np.kron(np.ones((spike_train_a.size, 1)), spike_train_b)
                   - np.kron(spike_train_a.reshape(spike_train_a.size, 1), np.ones(spike_train_b.shape)))
         min_pos_a = np.argmin(np.abs(t_diff), axis=1)
         min_pos_b = np.argmin(np.abs(t_diff), axis=0)
