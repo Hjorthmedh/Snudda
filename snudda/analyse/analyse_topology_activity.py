@@ -113,6 +113,67 @@ class SnuddaAnalyseTopologyActivity:
 
         return spike_dt
 
+    def get_triggered_spikes(self, spike_times, trigger_times, duration):
+
+        start_idx = 0
+
+        for trigger_t in trigger_times:
+            while start_idx < len(spike_times) and spike_times[start_idx] < trigger_t:
+                start_idx += 1
+
+            end_idx = start_idx
+
+            while end_idx < len(spike_times) and spike_times[end_idx] <= trigger_t + duration:
+                end_idx += 1
+
+            if start_idx < len(spike_times):
+                yield spike_times[start_idx:end_idx]
+
+    def get_jpsth(self, spike_times_a, spike_times_b, trigger_times, duration=None, bin_size=2e-3):
+
+        if duration is None and len(trigger_times) > 1:
+            duration = trigger_times[1] - trigger_times[0]
+
+        jpsth = np.zeros((bin_size, bin_size), dtype=int)
+
+        for spikes_a, spikes_b in zip(self.get_triggered_spikes(spike_times=spike_times_a,
+                                                                trigger_times=trigger_times,
+                                                                duration=duration),
+                                      self.get_triggered_spikes(spike_times=spike_times_b,
+                                                                trigger_times=trigger_times,
+                                                                duration=duration)):
+
+            for idx_a in np.floor(spikes_a / bin_size):
+                for idx_b in np.floor(spikes_b / bin_size):
+                    jpsth[idx_a, idx_b] += 1
+
+        return jpsth
+
+    def plot_jpsth(self, spike_times_a, spike_times_b, trigger_times, duration=None, bin_size=2e-3):
+
+        import matplotlib.pyplot as plt
+
+        if duration is None and len(trigger_times) > 1:
+            duration = trigger_times[1] - trigger_times[0]
+
+        spike_combos = []
+
+        for spikes_a, spikes_b in zip(self.get_triggered_spikes(spike_times=spike_times_a,
+                                                                trigger_times=trigger_times,
+                                                                duration=duration),
+                                      self.get_triggered_spikes(spike_times=spike_times_b,
+                                                                trigger_times=trigger_times,
+                                                                duration=duration)):
+            for t_a in spikes_a:
+                for t_b in spikes_b:
+                    spike_combos.append((t_a, t_b))
+
+        x, y = zip(*spike_combos)
+
+        plt.hist2d(x=x, y=y, bins=int(np.ceil(duration/bin_size)+1), range=[[0, duration], [0, duration]])
+        plt.ion()
+        plt.show()
+
     def get_spike_deltas(self, data_key_a, data_key_b, matching_method, delta_t=5e-3, time_range=None):
 
         """
