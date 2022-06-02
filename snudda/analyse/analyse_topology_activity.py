@@ -113,7 +113,7 @@ class SnuddaAnalyseTopologyActivity:
 
         return spike_dt
 
-    def get_triggered_spikes(self, spike_times, trigger_times, duration):
+    def get_triggered_spikes(self, spike_times, trigger_times, duration, subtract_trigger=True):
 
         start_idx = 0
 
@@ -127,7 +127,10 @@ class SnuddaAnalyseTopologyActivity:
                 end_idx += 1
 
             if start_idx < len(spike_times):
-                yield spike_times[start_idx:end_idx]
+                if subtract_trigger:
+                    spike_times[start_idx:end_idx] - trigger_t
+                else:
+                    yield spike_times[start_idx:end_idx]
 
     def get_jpsth(self, spike_times_a, spike_times_b, trigger_times, duration=None, bin_size=2e-3):
 
