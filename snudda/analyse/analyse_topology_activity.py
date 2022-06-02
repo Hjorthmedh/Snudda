@@ -174,6 +174,9 @@ class SnuddaAnalyseTopologyActivity:
         plt.figure()
         plt.hist2d(x=np.array(x), y=np.array(y),
                    bins=int(np.ceil(duration/bin_size)+1), range=[[0, duration], [0, duration]])
+        plt.colorbar()
+        plt.xlabel("Ablated: time (s)")
+        plt.ylabel("Fully ablated: time (s)")
         plt.ion()
         plt.show()
 
