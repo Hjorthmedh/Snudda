@@ -49,8 +49,8 @@ class SnuddaAnalyseTopologyActivity:
     def match_closest_spikes(self, spike_train_a, spike_train_b):
 
         # This function assumes there are spike in both spike trains
-        t_diff = (np.kron(np.ones(spike_train_a.shape), spike_train_b.T)
-                  - np.kron(spike_train_a, np.ones(spike_train_b.T.shape)))
+        t_diff = (np.kron(np.ones(spike_train_a.size, 1), spike_train_b)
+                  - np.kron(spike_train_a.reshape(spike_train_a.size, 1), np.ones(spike_train_b.shape)))
         min_pos_a = np.argmin(np.abs(t_diff), axis=1)
         min_pos_b = np.argmin(np.abs(t_diff), axis=0)
 
@@ -62,15 +62,14 @@ class SnuddaAnalyseTopologyActivity:
     def match_order_spikes(self, spike_train_a, spike_train_b):
 
         n_compare = min(spike_train_a.size, spike_train_b.size)
-        return spike_train_b[0, :n_compare] - spike_train_a[0, :n_compare], \
-            spike_train_a[0, :n_compare] - spike_train_b[0, :n_compare]
+        return spike_train_b[:n_compare] - spike_train_a[:n_compare], \
+            spike_train_a[:n_compare] - spike_train_b[:n_compare]
 
     def match_closest_unique(self, spike_train_a, spike_train_b, delta_t):
 
         dt_list_a = np.full(spike_train_a.shape, np.nan, dtype=float)
         dt_list_b = np.full(spike_train_b.shape, np.nan, dtype=float)
 
-        i_a = 0
         i_b = 0
 
         for i_a, t_a in enumerate(spike_train_a):
@@ -102,26 +101,25 @@ class SnuddaAnalyseTopologyActivity:
         # The idea here is that for each spike in spike_train_a, we want to find the delta_t to all the spikes
         # following in spike_train_b (but before the next spike in spike_train_a). Sort of like a JPSTH.
 
-        assert False, "Working on this functoin"
+        spike_dt = np.full(spike_times_b.shape, np.nan)
 
-        dt_list_a = np.full(spike_times_a.shape, np.nan)
-        dt_list_b = np.full(spike_times_b.shape, np.nan)
+        idx_a = len(spike_times_a) - 1
 
-        i_a = 0
-        i_b = 0
- #       while spike_times_b[i_b] <
+        for idx_b, t_b in zip(np.flip(np.arange(0, len(spike_times_b))), np.flip(spike_times_b)):
+            while idx_a >= 0 and spike_times_a[idx_a] > t_b:
+                idx_a -= 1
 
-        # i_b = 0
-        # for i_a, (ta_0, ta_1) in enumerate(zip(spike_times_a, np.append(spike_times_a[1:], np.inf))):
-        #    if spike_times_b[i_b]
+            spike_dt[idx_b] = t_b - spike_times_a[idx_a] if idx_a >= 0 else np.nan
 
-    def get_spike_deltas(self, data_key_a, data_key_b, matching_method, delta_t=5e-3):
+        return spike_dt
+
+    def get_spike_deltas(self, data_key_a, data_key_b, matching_method, delta_t=5e-3, time_range=None):
 
         """
         Args:
             data_key_a : Data key for first dataset
             data_key_b : Data key for second dataset
-            matching_method : Method to use for spike matching "closest", "order", "closestunique"
+            matching_method : Method to use for spike matching "closest", "order", "closestunique", "triggered"
             delta_t : Optional, used by "closestunique" method (default 5e-3s)
 
         """
@@ -140,8 +138,8 @@ class SnuddaAnalyseTopologyActivity:
         spike_time_difference = dict()
 
         for neuron_id in spikes_a.keys():
-            s_a = spikes_a[neuron_id]
-            s_b = spikes_b[neuron_id]
+            s_a = self.filter_times(spikes_a[neuron_id].flatten(), time_range)
+            s_b = self.filter_times(spikes_b[neuron_id].flatten(), time_range)
 
             if s_a.size > 0 and s_b.size > 0:
 
@@ -151,9 +149,9 @@ class SnuddaAnalyseTopologyActivity:
                     n_compare = min(s_a.size, s_b.size)
                     spike_time_difference[neuron_id] = self.match_order_spikes(s_a, s_b)
                 elif matching_method == "closestunique":
-                    spike_time_difference[neuron_id] = self.match_closest_unique(s_a.flatten(),
-                                                                                 s_b.flatten(),
-                                                                                 delta_t=delta_t)
+                    spike_time_difference[neuron_id] = self.match_closest_unique(s_a, s_b, delta_t=delta_t)
+                elif matching_method == "triggered":
+                    spike_time_difference[neuron_id] = self.get_triggered_deltas(s_a, s_b), np.array([])
                 else:
                     assert False, f"Unknown matching_method={matching_method}, " \
                                   f"please use ('closest', 'order', 'closestunique')"
@@ -162,6 +160,14 @@ class SnuddaAnalyseTopologyActivity:
                 spike_time_difference[neuron_id] = np.array([]), np.array([])
 
         return spike_time_difference
+
+    def filter_times(self, spike_times, time_range=None):
+
+        if time_range is None:
+            return spike_times
+        else:
+            return spike_times[time_range[0] <= spike_times <= time_range[1]]
+
 
     def plot_spike_delta_histogram(self, data_key_a=None, data_key_b=None,
                                    plot_title=None, direction=0,
