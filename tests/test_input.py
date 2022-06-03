@@ -258,6 +258,68 @@ class InputTestCase(unittest.TestCase):
 
                         pdb.set_trace()
 
+    def test_arbitrary_function(self):
+
+        func_lambda = lambda t: t*100
+        func_str = "t*100"
+
+        si_empty = SnuddaInput()
+
+        for func in [func_str, func_lambda]:
+
+            # We run this twice, for string functions and for lambda functions
+
+            rng = np.random.default_rng(112)
+            spikes = si_empty.generate_spikes_function(frequency_function=func, time_range=[1, 10], dt=1e-4, rng=rng)
+            isi = np.diff(spikes)
+
+            self.assertTrue((isi > 0).all(), "Resulting spikes should be sorted")
+
+            with self.subTest("Checking no spikes before t=1"):
+                t_idx = np.where(spikes < 1)[0]
+                self.assertTrue(len(t_idx) == 0, "There should be no spikes before t=1")
+
+            # Check average frequency at around 3,5,7,9 seconds.
+
+            for t_check in [3, 5, 7, 9]:
+                t_range = [t_check-0.1, t_check+0.1]
+                freq = self.find_freq_in_range(spikes, t_range)
+
+                with self.subTest(f"Checking frequency at {t_check} (expecting around {t_check*100} Hz)"):
+                    self.assertTrue(t_check*80 <= freq <= t_check*120,
+                                    f"Found frequency {freq} Hz at {t_check}s, expected {t_check*100} Hz")
+
+    def find_spikes_in_range(self, spikes, time_range):
+        t_idx = np.where(np.logical_and(time_range[0] <= spikes, spikes <= time_range[1]))[0]
+        return spikes[t_idx]
+
+    def find_freq_in_range(self, spikes, time_range):
+        return len(self.find_spikes_in_range(spikes, time_range)) / (time_range[1] - time_range[0])
+
+    def test_arbitrary_function_range(self):
+
+        func_lambda = lambda t: t*100
+        func_str = "t*100"
+
+        t_range = [[1, 2], [4, 5]]
+
+        si_empty = SnuddaInput()
+
+        for func in [func_str, func_lambda]:
+
+            # We run this twice, for string functions and for lambda functions
+
+            rng = np.random.default_rng(112)
+            spikes = si_empty.generate_spikes_function(frequency_function=func, time_range=t_range, dt=1e-4, rng=rng)
+
+            with self.subTest("Freq test"):
+                self.assertTrue(0.8 <= self.find_freq_in_range(spikes, [1, 2]) <= 2.2)
+                self.assertTrue(self.find_freq_in_range(spikes, [2, 4]) == 0)
+                self.assertTrue(3.6 <= self.find_freq_in_range(spikes, [4, 5]) <= 6)
+
+
+
+
 
 if __name__ == '__main__':
     unittest.main()

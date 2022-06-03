@@ -21,6 +21,7 @@ import sys
 from collections import OrderedDict
 
 import h5py
+import numexpr
 import numpy as np
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
@@ -405,33 +406,49 @@ class SnuddaInput(object):
 
             for input_type in self.input_info[cell_type]:
 
+                if "start" in self.input_info[cell_type][input_type]:
+                    start_time = self.input_info[cell_type][input_type]["start"]
+                else:
+                    start_time = 0
+
+                if "end" in self.input_info[cell_type][input_type]:
+                    end_time = self.input_info[cell_type][input_type]["end"]
+                else:
+                    end_time = self.time
+
+                if "populationUnitID" in self.input_info[cell_type][input_type]:
+                    pop_unit_list = \
+                        self.input_info[cell_type][input_type]["populationUnitID"]
+
+                    if type(pop_unit_list) != list:
+                        pop_unit_list = [pop_unit_list]
+                else:
+                    pop_unit_list = self.all_population_units
+
+                # Handle Poisson input
                 if self.input_info[cell_type][input_type]["generator"] == "poisson":
 
                     freq = self.input_info[cell_type][input_type]["frequency"]
                     self.population_unit_spikes[cell_type][input_type] = dict([])
 
-                    if "start" in self.input_info[cell_type][input_type]:
-                        start_time = self.input_info[cell_type][input_type]["start"]
-                    else:
-                        start_time = 0
-
-                    if "end" in self.input_info[cell_type][input_type]:
-                        end_time = self.input_info[cell_type][input_type]["end"]
-                    else:
-                        end_time = self.time
-
-                    if "populationUnitID" in self.input_info[cell_type][input_type]:
-                        pop_unit_list = \
-                            self.input_info[cell_type][input_type]["populationUnitID"]
-
-                        if type(pop_unit_list) != list:
-                            pop_unit_list = [pop_unit_list]
-                    else:
-                        pop_unit_list = self.all_population_units
-
                     for idxPopUnit in pop_unit_list:
                         self.population_unit_spikes[cell_type][input_type][idxPopUnit] = \
                             self.generate_spikes(freq=freq, time_range=(start_time, end_time), rng=rng)
+
+                # Handle frequency function
+                # TODO: We also need to handle the frequency_function for the normal spikes, just not population unit spikes
+
+                elif self.input_info[cell_type][input_type]["generator"] == "frequency_function":
+
+                    frequency_function = self.input_info[cell_type][input_type]["frequencyFunction"]
+
+                    for idxPopUnit in pop_unit_list:
+                        self.population_unit_spikes[cell_type][input_type][idxPopUnit] = \
+                            self.generate_spikes_function(frequency_function=frequency_function, time_range=(start_time, end_time), rng=rng)
+
+                else:
+                    assert False, f"Unknown input generator {self.input_info[cell_type][input_type]['generator']} " \
+                                  f"for cell_type {cell_type}, input_type {input_type}"
 
         return self.population_unit_spikes
 
@@ -682,6 +699,11 @@ class SnuddaInput(object):
                         = np.genfromtxt(csv_file, delimiter=',')
                     self.neuron_input[neuron_id][input_type]["generator"] = "csv"
 
+                elif input_inf["generator"] == "frequencyFunction":
+
+                    # TODO: Need to implement this. See how it is done for population unit spikes
+                    assert False, "This is not yet fully implemented!"
+
                 else:
                     self.write_log(f"Unknown input generator: {input_inf['generator']} for {neuron_id}", is_error=True)
 
@@ -791,7 +813,7 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    def generate_spikes_helper(self, frequencies, time_ranges, rng):
+    def generate_spikes_helper(self, frequencies, time_ranges, rng, master_func=None):
 
         """
         Generates spike trains with given frequencies within time_ranges, using rng stream.
@@ -800,11 +822,15 @@ class SnuddaInput(object):
              frequencies (list): List of frequencies
              time_ranges (list): List of tuples with start and end time for each frequency range
              rng: Numpy random stream
+             master_func: Which function to call
         """
+        if master_func is None:
+            master_func = self.generate_spikes
+
         t_spikes = []
 
         for f, t_start, t_end in zip(frequencies, time_ranges[0], time_ranges[1]):
-            t_spikes.append(self.generate_spikes(f, (t_start, t_end), rng))
+            t_spikes.append(master_func(f, (t_start, t_end), rng))
 
         # Double check correct dimension
         return np.sort(np.concatenate(t_spikes))
@@ -855,6 +881,37 @@ class SnuddaInput(object):
             # Frequency was 0 or negative(!)
             assert not freq < 0, "Negative frequency specified."
             return np.array([])
+
+    def generate_spikes_function(self, frequency_function, time_range, dt, rng):
+
+        """
+
+        Generates frequency based on frequency_function.
+
+        Args
+            frequency_function: vector based python function taking t as argument, returning momentary frequency
+                                if it is not a python then numexpr.evaluate is run on it (with t as argument)
+            time_range: Interval of time to generate spikes for
+            rng: Numpy rng object
+        """
+
+        if type(time_range[0]) == list:
+            return self.generate_spikes_helper(frequencies=frequency_function, time_ranges=time_range, rng=rng,
+                                               master_func=self.generate_spikes_function)
+
+        t = np.arange(time_range[0], time_range[1], dt)
+        if callable(frequency_function):
+            p_input = frequency_function(t)*dt
+        else:
+            p_input = numexpr.evaluate(frequency_function)*dt
+
+        assert (p_input >= 0).all(), f"Probability to spike within dt={dt} should be non-negative: " \
+                                     f"frequency_function {frequency_function}"
+        assert (p_input <= 1).all(), f"Too high frequency, P > 1 for dt={dt} : frequency_function {frequency_function}"
+
+        spike_mask = rng.uniform(size=t.shape) < p_input
+        t_idx = np.where(spike_mask)[0]
+        return t[t_idx]
 
     ############################################################################
 
