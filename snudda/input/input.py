@@ -830,7 +830,7 @@ class SnuddaInput(object):
         t_spikes = []
 
         for f, t_start, t_end in zip(frequencies, time_ranges[0], time_ranges[1]):
-            t_spikes.append(master_func(f, (t_start, t_end), rng))
+            t_spikes.append(master_func(f, (t_start, t_end), rng=rng))
 
         # Double check correct dimension
         return np.sort(np.concatenate(t_spikes))
@@ -882,7 +882,7 @@ class SnuddaInput(object):
             assert not freq < 0, "Negative frequency specified."
             return np.array([])
 
-    def generate_spikes_function(self, frequency_function, time_range, dt, rng):
+    def generate_spikes_function(self, frequency_function, time_range, rng, dt=1e-4):
 
         """
 
