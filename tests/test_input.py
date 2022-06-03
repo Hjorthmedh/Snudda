@@ -301,7 +301,7 @@ class InputTestCase(unittest.TestCase):
         func_lambda = lambda t: t*100
         func_str = "t*100"
 
-        t_range = [[1, 2], [4, 5]]
+        t_range = [[1, 4], [2, 5]]
 
         si_empty = SnuddaInput()
 
@@ -313,12 +313,14 @@ class InputTestCase(unittest.TestCase):
             spikes = si_empty.generate_spikes_function(frequency_function=func, time_range=t_range, dt=1e-4, rng=rng)
 
             with self.subTest("Freq test"):
-                self.assertTrue(0.8 <= self.find_freq_in_range(spikes, [1, 2]) <= 2.2)
-                self.assertTrue(self.find_freq_in_range(spikes, [2, 4]) == 0)
-                self.assertTrue(3.6 <= self.find_freq_in_range(spikes, [4, 5]) <= 6)
+                self.assertTrue(100 <= self.find_freq_in_range(spikes, [1, 2]) <= 200,
+                                f"Expected frequency 150Hz, found {self.find_freq_in_range(spikes, [1, 2])} Hz")
 
+                self.assertTrue(self.find_freq_in_range(spikes, [2, 4]) == 0,
+                                f"Expected frequency 0Hz, found {self.find_freq_in_range(spikes, [2, 4])} Hz")
 
-
+                self.assertTrue(400 <= self.find_freq_in_range(spikes, [4, 5]) <= 500,
+                                f"Expected frequency 500Hz, found {self.find_freq_in_range(spikes, [4, 5])} Hz")
 
 
 if __name__ == '__main__':

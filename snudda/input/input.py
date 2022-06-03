@@ -444,7 +444,9 @@ class SnuddaInput(object):
 
                     for idxPopUnit in pop_unit_list:
                         self.population_unit_spikes[cell_type][input_type][idxPopUnit] = \
-                            self.generate_spikes_function(frequency_function=frequency_function, time_range=(start_time, end_time), rng=rng)
+                            self.generate_spikes_function(frequency_function=frequency_function,
+                                                          time_range=(start_time, end_time),
+                                                          rng=rng)
 
                 else:
                     assert False, f"Unknown input generator {self.input_info[cell_type][input_type]['generator']} " \
@@ -813,7 +815,7 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    def generate_spikes_helper(self, frequencies, time_ranges, rng, master_func=None):
+    def generate_spikes_helper(self, frequencies, time_ranges, rng):
 
         """
         Generates spike trains with given frequencies within time_ranges, using rng stream.
@@ -822,15 +824,12 @@ class SnuddaInput(object):
              frequencies (list): List of frequencies
              time_ranges (list): List of tuples with start and end time for each frequency range
              rng: Numpy random stream
-             master_func: Which function to call
         """
-        if master_func is None:
-            master_func = self.generate_spikes
 
         t_spikes = []
 
         for f, t_start, t_end in zip(frequencies, time_ranges[0], time_ranges[1]):
-            t_spikes.append(master_func(f, (t_start, t_end), rng=rng))
+            t_spikes.append(self.generate_spikes(f, (t_start, t_end), rng=rng))
 
         # Double check correct dimension
         return np.sort(np.concatenate(t_spikes))
@@ -882,10 +881,29 @@ class SnuddaInput(object):
             assert not freq < 0, "Negative frequency specified."
             return np.array([])
 
+    def generate_spikes_function_helper(self, frequencies, time_ranges, rng, dt):
+
+        """
+        Generates spike trains with given frequencies within time_ranges, using rng stream.
+
+        Args:
+             frequencies (list): List of frequencies
+             time_ranges (list): List of tuples with start and end time for each frequency range
+             rng: Numpy random stream
+             dt: timestep
+        """
+
+        t_spikes = []
+
+        for t_start, t_end in zip(time_ranges[0], time_ranges[1]):
+            t_spikes.append(self.generate_spikes_function(frequencies, (t_start, t_end), rng=rng, dt=dt))
+
+        # Double check correct dimension
+        return np.sort(np.concatenate(t_spikes))
+
     def generate_spikes_function(self, frequency_function, time_range, rng, dt=1e-4):
 
         """
-
         Generates frequency based on frequency_function.
 
         Args
@@ -893,17 +911,29 @@ class SnuddaInput(object):
                                 if it is not a python then numexpr.evaluate is run on it (with t as argument)
             time_range: Interval of time to generate spikes for
             rng: Numpy rng object
+            dt: timestep
         """
 
         if type(time_range[0]) == list:
-            return self.generate_spikes_helper(frequencies=frequency_function, time_ranges=time_range, rng=rng,
-                                               master_func=self.generate_spikes_function)
+            return self.generate_spikes_function_helper(frequencies=frequency_function,
+                                                        time_ranges=time_range,
+                                                        rng=rng, dt=dt)
 
         t = np.arange(time_range[0], time_range[1], dt)
         if callable(frequency_function):
             p_input = frequency_function(t)*dt
         else:
-            p_input = numexpr.evaluate(frequency_function)*dt
+            print(f"Evaluating {frequency_function} (type: {type(frequency_function)})")
+
+            ddt = dt  # evaluate seems to overwrite dt...?
+            try:
+                p_input = numexpr.evaluate(frequency_function)
+                p_input *= dt
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
 
         assert (p_input >= 0).all(), f"Probability to spike within dt={dt} should be non-negative: " \
                                      f"frequency_function {frequency_function}"
