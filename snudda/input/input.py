@@ -198,9 +198,6 @@ class SnuddaInput(object):
             self.setup_parallel()
 
             # Make the "master input" for each channel
-            # TODO: Having common spikes within a population unit caused problems, a lot of neurons fired at same
-            # time. To avoid this the population_spike_list is cleared in make_neuron_input_parallel
-            # Should rewrite this later.
             rng = self.get_master_node_rng()
             self.make_population_unit_spike_trains(rng=rng)
 
@@ -433,21 +430,25 @@ class SnuddaInput(object):
 
                     for idxPopUnit in pop_unit_list:
                         self.population_unit_spikes[cell_type][input_type][idxPopUnit] = \
-                            self.generate_spikes(freq=freq, time_range=(start_time, end_time), rng=rng)
+                            self.generate_poisson_spikes(freq=freq, time_range=(start_time, end_time), rng=rng)
 
                 # Handle frequency function
-                # TODO: We also need to handle the frequency_function for the normal spikes, just not population unit spikes
-
                 elif self.input_info[cell_type][input_type]["generator"] == "frequency_function":
 
                     frequency_function = self.input_info[cell_type][input_type]["frequencyFunction"]
+                    self.population_unit_spikes[cell_type][input_type] = dict([])
 
                     for idxPopUnit in pop_unit_list:
-                        self.population_unit_spikes[cell_type][input_type][idxPopUnit] = \
-                            self.generate_spikes_function(frequency_function=frequency_function,
-                                                          time_range=(start_time, end_time),
-                                                          rng=rng)
-
+                        try:
+                            self.population_unit_spikes[cell_type][input_type][idxPopUnit] = \
+                                self.generate_spikes_function(frequency_function=frequency_function,
+                                                              time_range=(start_time, end_time),
+                                                              rng=rng)
+                        except:
+                            import traceback
+                            print(traceback.format_exc())
+                            import pdb
+                            pdb.set_trace()
                 else:
                     assert False, f"Unknown input generator {self.input_info[cell_type][input_type]['generator']} " \
                                   f"for cell_type {cell_type}, input_type {input_type}"
@@ -483,6 +484,8 @@ class SnuddaInput(object):
         cluster_size_list = []
         cluster_spread_list = []
 
+        generator_list = []
+
         dendrite_location_override_list = []
         if self.use_meta_input:
             self.write_log("Input from meta.json will be used")
@@ -510,10 +513,10 @@ class SnuddaInput(object):
 
             # Also see if we have additional input specified in the meta.json file for the neuron?
 
-            # TODO: Add baseline activity:
-            #       1. From neuron_id derive the parameter_id and morphology_id
-            #       2. Using parameter_id, morphology_id check if the meta.json has any additional input specified
-            #       3. Add the input to input_info
+            # Add baseline activity:
+            #  1. From neuron_id derive the parameter_id and morphology_id
+            #  2. Using parameter_id, morphology_id check if the meta.json has any additional input specified
+            #  3. Add the input to input_info
 
             parameter_key = self.network_data["neurons"][neuron_id]["parameterKey"]
             morphology_key = self.network_data["neurons"][neuron_id]["morphologyKey"]
@@ -558,160 +561,176 @@ class SnuddaInput(object):
 
                 self.neuron_input[neuron_id][input_type] = dict([])
 
-                if input_inf["generator"] == "poisson":
-                    neuron_id_list.append(neuron_id)
-                    input_type_list.append(input_type)
-                    freq_list.append(input_inf["frequency"])
-
-                    if "jitter" in input_inf:
-                        jitter_dt_list.append(input_inf["jitter"])
-                    else:
-                        jitter_dt_list.append(None)
-
-                    if "start" in input_inf:
-                        start_list.append(input_inf["start"])
-                    else:
-                        start_list.append(0.0)  # Default start at beginning
-
-                    if "end" in input_inf:
-                        end_list.append(input_inf["end"])
-                    else:
-                        end_list.append(self.time)
-
-                    if input_type.lower() == "VirtualNeuron".lower():
-                        # Virtual neurons spikes specify their activity, location and conductance not used
-                        cond = None
-                        n_inp = 1
-
-                        mod_file = None
-                        parameter_file = None
-                        parameter_list = None
-                    else:
-                        assert "location" not in input_inf, \
-                            "Location in input config has been replaced with synapseDensity"
-                        cond = input_inf["conductance"]
-
-                        if "nInputs" in input_inf:
-
-                            # TODO: We need to read this from meta.json
-
-                            dir_name = os.path.basename(neuron_path)
-
-                            # If a dictionary, then extract the info for the relevant neuron
-                            # Priority order is:
-                            # 1. Morphology key, 2: neuron directory name,
-                            # 3: Neuron name (note this can change if additional neurons are added to neuron type dir)
-                            # 4: Neuron type
-
-                            if type(input_inf["nInputs"]) == OrderedDict:
-                                if morphology_key in input_inf["nInputs"]:
-                                    n_inp = input_inf["nInputs"][morphology_key]
-                                elif dir_name in input_inf["nInputs"]:
-                                    n_inp = input_inf["nInputs"][dir_name]
-                                elif neuron_name in input_inf["nInputs"]:
-                                    n_inp = input_inf["nInputs"][neuron_name]
-                                elif neuron_type in input_inf["nInputs"]:
-                                    n_inp = input_inf["nInputs"][neuron_type]
-                                else:
-                                    n_inp = None
-                            else:
-                                n_inp = input_inf["nInputs"]
-
-                        else:
-                            n_inp = None
-
-                        mod_file = input_inf["modFile"]
-                        if type(mod_file) in [bytes, np.bytes_]:
-                            mod_file = mod_file.decode()
-
-                        if "parameterFile" in input_inf:
-                            parameter_file = input_inf["parameterFile"]
-                        else:
-                            parameter_file = None
-
-                        if "parameterList" in input_inf:
-                            parameter_list = input_inf["parameterList"]
-                        else:
-                            parameter_list = None
-
-                    if "synapseDensity" in input_inf:
-                        synapse_density = input_inf["synapseDensity"]
-                    else:
-                        synapse_density = "1"
-
-                    synapse_density_list.append(synapse_density)
-                    num_inputs_list.append(n_inp)
-
-                    population_unit_id_list.append(population_unit_id)
-                    conductance_list.append(cond)
-
-                    if "populationUnitCorrelation" in input_inf:
-                        correlation_list.append(input_inf["populationUnitCorrelation"])
-                    else:
-                        correlation_list.append(0)
-
-                    if (neuron_type in self.population_unit_spikes
-                            and input_type in self.population_unit_spikes[neuron_type]
-                            and population_unit_id in self.population_unit_spikes[neuron_type][input_type]):
-
-                        # TODO: Currently only correlated within a neuron type for a given population unit
-                        #       should the spikes be shared between all neuron types in that population unit?
-                        c_spikes = self.population_unit_spikes[neuron_type][input_type][population_unit_id]
-                        population_unit_spikes_list.append(c_spikes)
-                    else:
-                        # self.write_log(f"No population spikes specified for neuron type {neuron_type}")
-                        population_unit_spikes_list.append(None)
-
-                    mod_file_list.append(mod_file)
-                    parameter_file_list.append(parameter_file)
-                    parameter_list_list.append(parameter_list)
-
-                    if "clusterSize" in input_inf:
-                        cluster_size = input_inf["clusterSize"]
-                    else:
-                        cluster_size = None
-
-                    if "clusterSpread" in input_inf:
-                        cluster_spread = input_inf["clusterSpread"]
-                    else:
-                        cluster_spread = 20e-6
-
-                    cluster_size_list.append(cluster_size)
-                    cluster_spread_list.append(cluster_spread)
-
-                    if "dendriteLocation" in input_info:
-                        assert "morphologyKey" in input_info, \
-                            f"If you specify dendriteLocation you must also specify morphologyKey"
-
-                        assert morphology_key == self.network_data["neurons"][neuron_id]["morphologyKey"], \
-                            f"Neuron {neuron_id} has morphology_key " \
-                            f"{self.network_data['neurons'][neuron_id]['morphologyKey']}" \
-                            f"which does not match what is specified in input JSON file: {morphology_key}"
-
-                        dend_location = input_info["dendriteLocation"]
-                    else:
-                        dend_location = None
-
-                    dendrite_location_override_list.append(dend_location)
-
-                elif input_inf["generator"] == "csv":
+                if input_inf["generator"] == "csv":
                     csv_file = snudda_parse_path(input_inf["csvFile"] % neuron_id)
 
                     self.neuron_input[neuron_id][input_type]["spikes"] \
                         = np.genfromtxt(csv_file, delimiter=',')
                     self.neuron_input[neuron_id][input_type]["generator"] = "csv"
 
-                elif input_inf["generator"] == "frequencyFunction":
+                    # Done for CSV input
+                    continue
 
-                    # TODO: Need to implement this. See how it is done for population unit spikes
-                    assert False, "This is not yet fully implemented!"
+                # These parameters are shared between "poisson" and "frequency_function"
+
+                neuron_id_list.append(neuron_id)
+                input_type_list.append(input_type)
+
+                if "jitter" in input_inf:
+                    jitter_dt_list.append(input_inf["jitter"])
+                else:
+                    jitter_dt_list.append(None)
+
+                if "start" in input_inf:
+                    start_list.append(input_inf["start"])
+                else:
+                    start_list.append(0.0)  # Default start at beginning
+
+                if "end" in input_inf:
+                    end_list.append(input_inf["end"])
+                else:
+                    end_list.append(self.time)
+
+                if input_type.lower() == "VirtualNeuron".lower():
+                    # Virtual neurons spikes specify their activity, location and conductance not used
+                    cond = None
+                    n_inp = 1
+
+                    mod_file = None
+                    parameter_file = None
+                    parameter_list = None
+                else:
+                    assert "location" not in input_inf, \
+                        "Location in input config has been replaced with synapseDensity"
+                    cond = input_inf["conductance"]
+
+                    if "nInputs" in input_inf:
+
+                        # TODO: We need to read this from meta.json
+
+                        dir_name = os.path.basename(neuron_path)
+
+                        # If a dictionary, then extract the info for the relevant neuron
+                        # Priority order is:
+                        # 1. Morphology key, 2: neuron directory name,
+                        # 3: Neuron name (note this can change if additional neurons are added to neuron type dir)
+                        # 4: Neuron type
+
+                        if type(input_inf["nInputs"]) == OrderedDict:
+                            if morphology_key in input_inf["nInputs"]:
+                                n_inp = input_inf["nInputs"][morphology_key]
+                            elif dir_name in input_inf["nInputs"]:
+                                n_inp = input_inf["nInputs"][dir_name]
+                            elif neuron_name in input_inf["nInputs"]:
+                                n_inp = input_inf["nInputs"][neuron_name]
+                            elif neuron_type in input_inf["nInputs"]:
+                                n_inp = input_inf["nInputs"][neuron_type]
+                            else:
+                                n_inp = None
+                        else:
+                            n_inp = input_inf["nInputs"]
+
+                    else:
+                        n_inp = None
+
+                    mod_file = input_inf["modFile"]
+                    if type(mod_file) in [bytes, np.bytes_]:
+                        mod_file = mod_file.decode()
+
+                    if "parameterFile" in input_inf:
+                        parameter_file = input_inf["parameterFile"]
+                    else:
+                        parameter_file = None
+
+                    if "parameterList" in input_inf:
+                        parameter_list = input_inf["parameterList"]
+                    else:
+                        parameter_list = None
+
+                if "synapseDensity" in input_inf:
+                    synapse_density = input_inf["synapseDensity"]
+                else:
+                    synapse_density = "1"
+
+                synapse_density_list.append(synapse_density)
+                num_inputs_list.append(n_inp)
+
+                population_unit_id_list.append(population_unit_id)
+                conductance_list.append(cond)
+
+                if "populationUnitCorrelation" in input_inf:
+                    correlation_list.append(input_inf["populationUnitCorrelation"])
+                else:
+                    correlation_list.append(0)
+
+                if (neuron_type in self.population_unit_spikes
+                        and input_type in self.population_unit_spikes[neuron_type]
+                        and population_unit_id in self.population_unit_spikes[neuron_type][input_type]):
+
+                    # TODO: Currently only correlated within a neuron type for a given population unit
+                    #       should the spikes be shared between all neuron types in that population unit?
+                    c_spikes = self.population_unit_spikes[neuron_type][input_type][population_unit_id]
+                    population_unit_spikes_list.append(c_spikes)
+                else:
+                    # self.write_log(f"No population spikes specified for neuron type {neuron_type}")
+                    population_unit_spikes_list.append(None)
+
+                mod_file_list.append(mod_file)
+                parameter_file_list.append(parameter_file)
+                parameter_list_list.append(parameter_list)
+
+                if "clusterSize" in input_inf:
+                    cluster_size = input_inf["clusterSize"]
+                else:
+                    cluster_size = None
+
+                if "clusterSpread" in input_inf:
+                    cluster_spread = input_inf["clusterSpread"]
+                else:
+                    cluster_spread = 20e-6
+
+                cluster_size_list.append(cluster_size)
+                cluster_spread_list.append(cluster_spread)
+
+                if "dendriteLocation" in input_info:
+                    assert "morphologyKey" in input_info, \
+                        f"If you specify dendriteLocation you must also specify morphologyKey"
+
+                    assert morphology_key == self.network_data["neurons"][neuron_id]["morphologyKey"], \
+                        f"Neuron {neuron_id} has morphology_key " \
+                        f"{self.network_data['neurons'][neuron_id]['morphologyKey']}" \
+                        f"which does not match what is specified in input JSON file: {morphology_key}"
+
+                    dend_location = input_info["dendriteLocation"]
+                else:
+                    dend_location = None
+
+                dendrite_location_override_list.append(dend_location)
+
+                if input_inf["generator"] == "poisson":
+                    freq_list.append(input_inf["frequency"])
+                    generator_list.append("poisson")
+
+                elif input_inf["generator"] == "frequency_function":
+                    freq_list.append(input_inf["frequencyFunction"])
+                    generator_list.append("frequency_function")
 
                 else:
                     self.write_log(f"Unknown input generator: {input_inf['generator']} for {neuron_id}", is_error=True)
+                    assert False, f"Unknown input generator {input_inf['generator']}"
 
         seed_list = self.generate_seeds(num_states=len(neuron_id_list))
 
         amr = None
+
+        assert len(neuron_id_list) == len(input_type_list) == len(freq_list)\
+            == len(start_list) == len(end_list) == len(synapse_density_list) == len(num_inputs_list)\
+            == len(num_inputs_list) == len(population_unit_spikes_list) == len(jitter_dt_list)\
+            == len(population_unit_id_list) == len(conductance_list) == len(correlation_list)\
+            == len(mod_file_list) == len(parameter_file_list) == len(parameter_list_list)\
+            == len(seed_list) == len(cluster_size_list) == len(cluster_spread_list)\
+            == len(dendrite_location_override_list) == len(generator_list),\
+            "Internal error, input lists length missmatch"
 
         # Lets try and swap self.lbView for self.dView
         if self.d_view is not None:
@@ -740,7 +759,8 @@ class SnuddaInput(object):
                                   seed_list,
                                   cluster_size_list,
                                   cluster_spread_list,
-                                  dendrite_location_override_list))
+                                  dendrite_location_override_list,
+                                  generator_list))
 
             self.d_view.scatter("input_list", input_list, block=True)
             cmd_str = "inpt = list(map(nl.make_input_helper_parallel,input_list))"
@@ -778,7 +798,8 @@ class SnuddaInput(object):
                       seed_list,
                       cluster_size_list,
                       cluster_spread_list,
-                      dendrite_location_override_list)
+                      dendrite_location_override_list,
+                      generator_list)
 
         # Gather the spikes that were generated in parallel
         for neuron_id, input_type, spikes, loc, synapse_density, frq, \
@@ -815,7 +836,7 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    def generate_spikes_helper(self, frequencies, time_ranges, rng):
+    def generate_poisson_spikes_helper(self, frequencies, time_ranges, rng):
 
         """
         Generates spike trains with given frequencies within time_ranges, using rng stream.
@@ -829,12 +850,12 @@ class SnuddaInput(object):
         t_spikes = []
 
         for f, t_start, t_end in zip(frequencies, time_ranges[0], time_ranges[1]):
-            t_spikes.append(self.generate_spikes(f, (t_start, t_end), rng=rng))
+            t_spikes.append(self.generate_poisson_spikes(f, (t_start, t_end), rng=rng))
 
         # Double check correct dimension
         return np.sort(np.concatenate(t_spikes))
 
-    def generate_spikes(self, freq, time_range, rng):
+    def generate_poisson_spikes(self, freq, time_range, rng):
         # This generates poisson spikes with frequency freq, for a given time range
 
         if type(time_range[0]) == list:
@@ -851,7 +872,7 @@ class SnuddaInput(object):
                 assert (np.array(time_range[0][1:]) - np.array(time_range[1][0:-1]) >= 0).all(), \
                     f"Time range should not overlap: start: {time_range[0]}, end: {time_range[1]}"
 
-            return self.generate_spikes_helper(frequencies=freq, time_ranges=time_range, rng=rng)
+            return self.generate_poisson_spikes_helper(frequencies=freq, time_ranges=time_range, rng=rng)
 
         # https://stackoverflow.com/questions/5148635/how-to-simulate-poisson-arrival
         start_time = time_range[0]
@@ -881,7 +902,7 @@ class SnuddaInput(object):
             assert not freq < 0, "Negative frequency specified."
             return np.array([])
 
-    def generate_spikes_function_helper(self, frequencies, time_ranges, rng, dt):
+    def generate_spikes_function_helper(self, frequencies, time_ranges, rng, dt, p_keep=1):
 
         """
         Generates spike trains with given frequencies within time_ranges, using rng stream.
@@ -893,15 +914,20 @@ class SnuddaInput(object):
              dt: timestep
         """
 
+        if type(frequencies) == list:
+            frequency_list = frequencies
+        else:
+            frequency_list = [frequencies for x in time_ranges[0]]
+
         t_spikes = []
 
-        for t_start, t_end in zip(time_ranges[0], time_ranges[1]):
-            t_spikes.append(self.generate_spikes_function(frequencies, (t_start, t_end), rng=rng, dt=dt))
+        for freq, t_start, t_end in zip(frequency_list, time_ranges[0], time_ranges[1]):
+            t_spikes.append(self.generate_spikes_function(freq, (t_start, t_end), rng=rng, dt=dt, p_keep=p_keep))
 
         # Double check correct dimension
         return np.sort(np.concatenate(t_spikes))
 
-    def generate_spikes_function(self, frequency_function, time_range, rng, dt=1e-4):
+    def generate_spikes_function(self, frequency_function, time_range, rng, dt=1e-4, p_keep=1):
 
         """
         Generates frequency based on frequency_function.
@@ -909,26 +935,32 @@ class SnuddaInput(object):
         Args
             frequency_function: vector based python function taking t as argument, returning momentary frequency
                                 if it is not a python then numexpr.evaluate is run on it (with t as argument)
+                                OBS: t passed to the function is 0 at the stimultion start time, e.g. for a stimulus
+                                that starts at time 4s seconds, f(t=0) is calculated, and at the end 5s f(t=1) is calculated.
             time_range: Interval of time to generate spikes for
             rng: Numpy rng object
             dt: timestep
         """
+
+        assert 0 <= p_keep <= 1, f"Error: p_keep = {p_keep}, valid range 0-1."
 
         if type(time_range[0]) == list:
             return self.generate_spikes_function_helper(frequencies=frequency_function,
                                                         time_ranges=time_range,
                                                         rng=rng, dt=dt)
 
-        t = np.arange(time_range[0], time_range[1], dt)
+        t = np.arange(0, time_range[1] - time_range[0], dt)
+
         if callable(frequency_function):
-            p_input = frequency_function(t)*dt
+            p_input = frequency_function(t) * dt * p_keep
         else:
-            print(f"Evaluating {frequency_function} (type: {type(frequency_function)})")
+            # print(f"Evaluating {frequency_function} (type: {type(frequency_function)})")
 
             ddt = dt  # evaluate seems to overwrite dt...?
             try:
                 p_input = numexpr.evaluate(frequency_function)
-                p_input *= dt
+                p_input = p_input * dt * p_keep
+                # p_input = p_input * p_keep
             except:
                 import traceback
                 print(traceback.format_exc())
@@ -941,7 +973,7 @@ class SnuddaInput(object):
 
         spike_mask = rng.uniform(size=t.shape) < p_input
         t_idx = np.where(spike_mask)[0]
-        return t[t_idx]
+        return t[t_idx] + time_range[0]
 
     ############################################################################
 
@@ -986,13 +1018,14 @@ class SnuddaInput(object):
     def make_correlated_spikes(self,
                                freq, time_range, num_spike_trains, p_keep, rng,
                                population_unit_spikes=None,
-                               ret_pop_unit_spikes=False, jitter_dt=None):
+                               ret_pop_unit_spikes=False, jitter_dt=None,
+                               input_generator=None):
 
         """
         Make correlated spikes.
 
         Args:
-            freq (float): frequency of spike train
+            freq (float or str): frequency of spike train
             time_range (tuple): start time, end time of spike train
             num_spike_trains (int): number of spike trains to generate
             p_keep (float): fraction of shared channel spikes to include in spike train, p_keep=1 (100% correlated)
@@ -1001,25 +1034,40 @@ class SnuddaInput(object):
             ret_pop_unit_spikes (bool): if false, returns only spikes,
                                         if true returns (spikes, population unit spikes)
             jitter_dt (float): amount to jitter all spikes
-
+            input_generator (str) : "poisson" (default) or "frequency_functon"
         """
 
         assert (0 <= p_keep <= 1), f"p_keep = {p_keep} should be between 0 and 1"
 
         if population_unit_spikes is None:
-            population_unit_spikes = self.generate_spikes(freq, time_range, rng=rng)
+            population_unit_spikes = self.generate_poisson_spikes(freq, time_range, rng=rng)
 
-        if type(freq) == list:
-            unique_freq = [f * (1 - p_keep) for f in freq]
-        else:
-            unique_freq = freq * (1 - p_keep)
         spike_trains = []
 
-        for i in range(0, num_spike_trains):
-            t_unique = self.generate_spikes(unique_freq, time_range, rng)
-            t_population_unit = self.cull_spikes(population_unit_spikes, p_keep, rng)
+        if input_generator == "poisson":
 
-            spike_trains.append(self.mix_spikes([t_unique, t_population_unit]))
+            if type(freq) == list:
+                unique_freq = [f * (1 - p_keep) for f in freq]
+            else:
+                unique_freq = freq * (1 - p_keep)
+
+            for i in range(0, num_spike_trains):
+                t_unique = self.generate_poisson_spikes(unique_freq, time_range, rng)
+                t_population_unit = self.cull_spikes(population_unit_spikes, p_keep, rng)
+
+                spike_trains.append(self.mix_spikes([t_unique, t_population_unit]))
+
+        elif input_generator == "frequency_function":
+
+            for i in range(0, num_spike_trains):
+                t_unique = self.generate_spikes_function(frequency_function=freq,
+                                                         time_range=time_range,
+                                                         rng=rng, p_keep=1-p_keep)
+                t_population_unit = self.cull_spikes(population_unit_spikes, p_keep, rng)
+                spike_trains.append(self.mix_spikes([t_unique, t_population_unit]))
+
+        else:
+            assert False, f"Unknown input_generator = {input_generator} (use poisson or frequency_function)"
 
         # if(False):
         # self.verifyCorrelation(spikeTrains=spikeTrains) # THIS STEP IS VERY VERY SLOW
@@ -1050,7 +1098,7 @@ class SnuddaInput(object):
         spike_trains = []
 
         for i in range(0, n_spike_trains):
-            spike_trains.append(self.generate_spikes(freq, (t_start, t_end), rng))
+            spike_trains.append(self.generate_poisson_spikes(freq, (t_start, t_end), rng))
 
         return spike_trains
 
@@ -1477,7 +1525,7 @@ class SnuddaInput(object):
             neuron_id, input_type, freq, start, end, synapse_density, num_spike_trains, \
             population_unit_spikes, jitter_dt, population_unit_id, conductance, correlation, mod_file, \
             parameter_file, parameter_list, random_seed, cluster_size, cluster_spread, \
-            dendrite_location_override = args
+            dendrite_location_override, input_generator = args
 
             return self.make_input_helper_serial(neuron_id=neuron_id,
                                                  input_type=input_type,
@@ -1497,7 +1545,8 @@ class SnuddaInput(object):
                                                  random_seed=random_seed,
                                                  cluster_size=cluster_size,
                                                  cluster_spread=cluster_spread,
-                                                 dendrite_location=dendrite_location_override)
+                                                 dendrite_location=dendrite_location_override,
+                                                 input_generator=input_generator)
 
         except:
             import traceback
@@ -1533,7 +1582,8 @@ class SnuddaInput(object):
                                  random_seed,
                                  cluster_size=None,
                                  cluster_spread=None,
-                                 dendrite_location=None):
+                                 dendrite_location=None,
+                                 input_generator=None):
 
         """
         Generate poisson input.
@@ -1558,6 +1608,7 @@ class SnuddaInput(object):
             cluster_size: Input synapse cluster size
             cluster_spread: Spread of cluster along dendrite (in meters)
             dendrite_location: Override location of dendrites, list of (sec_id, sec_x) tuples.
+            input_generator: "poisson" or "frequency_function"
             """
 
         # First, find out how many inputs and where, based on morphology and
@@ -1581,13 +1632,15 @@ class SnuddaInput(object):
             num_inputs = 1
             p_keep = 1 / (num_inputs - np.sqrt(correlation) * (num_inputs - 1))
 
+            # !!! Pass the input_generator
             spikes = self.make_correlated_spikes(freq=freq,
                                                  time_range=time_range,
                                                  num_spike_trains=1,
                                                  p_keep=p_keep,
                                                  population_unit_spikes=population_unit_spikes,
                                                  jitter_dt=jitter_dt,
-                                                 rng=rng)
+                                                 rng=rng,
+                                                 input_generator=input_generator)
         else:
 
             if dendrite_location:
@@ -1608,7 +1661,7 @@ class SnuddaInput(object):
                                                           cluster_spread=cluster_spread)
 
             num_inputs = input_loc[0].shape[0]
-            self.write_log(f"Generating {num_inputs} inputs for {self.neuron_name[neuron_id]}")
+            self.write_log(f"Generating {num_inputs} inputs for {self.neuron_name[neuron_id]} ({neuron_id})")
 
             if num_inputs > 0:
                 p_keep = 1 / (num_inputs - np.sqrt(correlation) * (num_inputs - 1))
@@ -1622,7 +1675,8 @@ class SnuddaInput(object):
                                                  p_keep=p_keep,
                                                  population_unit_spikes=population_unit_spikes,
                                                  jitter_dt=jitter_dt,
-                                                 rng=rng)
+                                                 rng=rng,
+                                                 input_generator=input_generator)
 
         # We need to pick which parameter set to use for the input also
         parameter_id = rng.integers(1e6, size=num_inputs)

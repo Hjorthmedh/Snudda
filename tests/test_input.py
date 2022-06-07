@@ -60,7 +60,7 @@ class InputTestCase(unittest.TestCase):
         freq = [100, 200, 300]
         start_times = [2, 5, 7]
         end_times = [3, 6, 9]
-        spike_times = si2.generate_spikes(freq=freq, time_range=(start_times, end_times), rng=rng)
+        spike_times = si2.generate_poisson_spikes(freq=freq, time_range=(start_times, end_times), rng=rng)
 
         for st, et, f in zip(start_times, end_times, freq):
             t_idx = np.where(np.logical_and(st <= spike_times, spike_times <= et))[0]
@@ -84,7 +84,7 @@ class InputTestCase(unittest.TestCase):
                         f"n_after={len(culled_spike_times)} (expected {len(spike_times)*p_keep} +/- {2*s}), "
                         f"p_keep={p_keep}")
 
-        spike_times2 = si2.generate_spikes(freq=10, time_range=[0, 10], rng=rng)
+        spike_times2 = si2.generate_poisson_spikes(freq=10, time_range=[0, 10], rng=rng)
         mixed_spike_times = si2.mix_spikes([spike_times, spike_times2])
 
         self.assertTrue((np.diff(mixed_spike_times) >= 0).all())
@@ -96,6 +96,8 @@ class InputTestCase(unittest.TestCase):
         self.assertTrue((np.abs(spike_times - jittered_spikes[0]) < 4*jitter_dt).all())
 
     def test_input_1(self):
+
+        # This tests Poisson inputs
 
         input_time = 10
         input_config = os.path.join(self.network_path, "input-test-1.json")
@@ -109,8 +111,6 @@ class InputTestCase(unittest.TestCase):
 
         input_data = h5py.File(spike_file, 'r')
         config_data = json.loads(input_data["config"][()])
-
-        # TODO: Add checks
 
         # Loop through all inputs, and verify them
 
@@ -258,6 +258,31 @@ class InputTestCase(unittest.TestCase):
 
                         pdb.set_trace()
 
+    def test_input_2(self):
+
+        # This tests function based frequency input
+
+        input_time = 1
+        input_config = os.path.join(self.network_path, "input-test-2.json")
+        spike_file = os.path.join(self.network_path, "input-spikes-2.hdf5")
+
+        si = SnuddaInput(input_config_file=input_config,
+                         hdf5_network_file=self.network_file,
+                         spike_data_filename=spike_file,
+                         time=input_time, verbose=True)
+        si.generate()
+
+        input_data = h5py.File(spike_file, 'r')
+        config_data = json.loads(input_data["config"][()])
+
+        # Check input generated, this focuses on the frequency function generation
+        # and also checks input correlation
+
+        # TODO: Add checks
+
+
+
+
     def test_arbitrary_function(self):
 
         func_lambda = lambda t: t*100
@@ -286,7 +311,7 @@ class InputTestCase(unittest.TestCase):
                 freq = self.find_freq_in_range(spikes, t_range)
 
                 with self.subTest(f"Checking frequency at {t_check} (expecting around {t_check*100} Hz)"):
-                    self.assertTrue(t_check*80 <= freq <= t_check*120,
+                    self.assertTrue((t_check-1)*80 <= freq <= (t_check-1)*120,
                                     f"Found frequency {freq} Hz at {t_check}s, expected {t_check*100} Hz")
 
     def find_spikes_in_range(self, spikes, time_range):
@@ -299,9 +324,9 @@ class InputTestCase(unittest.TestCase):
     def test_arbitrary_function_range(self):
 
         func_lambda = lambda t: t*100
-        func_str = "t*100"
+        func_str = "t*100"  # OBS, t=0 at the start of each new stimulus
 
-        t_range = [[1, 4], [2, 5]]
+        t_range = [[1, 4], [2, 7]]
 
         si_empty = SnuddaInput()
 
@@ -313,14 +338,14 @@ class InputTestCase(unittest.TestCase):
             spikes = si_empty.generate_spikes_function(frequency_function=func, time_range=t_range, dt=1e-4, rng=rng)
 
             with self.subTest("Freq test"):
-                self.assertTrue(100 <= self.find_freq_in_range(spikes, [1, 2]) <= 200,
-                                f"Expected frequency 150Hz, found {self.find_freq_in_range(spikes, [1, 2])} Hz")
+                self.assertTrue(40 <= self.find_freq_in_range(spikes, [1, 2]) <= 60,
+                                f"Expected frequency 50Hz, found {self.find_freq_in_range(spikes, [1, 2])} Hz")
 
                 self.assertTrue(self.find_freq_in_range(spikes, [2, 4]) == 0,
                                 f"Expected frequency 0Hz, found {self.find_freq_in_range(spikes, [2, 4])} Hz")
 
-                self.assertTrue(400 <= self.find_freq_in_range(spikes, [4, 5]) <= 500,
-                                f"Expected frequency 500Hz, found {self.find_freq_in_range(spikes, [4, 5])} Hz")
+                self.assertTrue(135 <= self.find_freq_in_range(spikes, [4, 7]) <= 165,
+                                f"Expected frequency 150Hz, found {self.find_freq_in_range(spikes, [4, 5])} Hz")
 
 
 if __name__ == '__main__':
