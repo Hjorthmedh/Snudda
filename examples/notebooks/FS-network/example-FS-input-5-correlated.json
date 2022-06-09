@@ -1,0 +1,29 @@
+{
+    "FS" : {
+        "Cortical_signal" : {
+            "conductance" : 5e-10,
+            "frequency" : 2,
+            "nInputs" : 300,
+            "generator" : "poisson",        
+            "type" : "AMPA_NMDA",
+            "synapseDensity": "0.092*(1-exp(-d/200e-6))",           
+            "populationUnitCorrelation" : 0.8,
+            "jitter" : 0.001,
+            "modFile": "tmGlut",
+            "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json"
+        },
+    
+	"Thalamic_signal": {
+            "conductance": 5e-10,
+            "frequency": 2.0,
+            "nInputs": 300,	    
+            "generator": "poisson",
+            "jitter": 0.0,
+            "modFile": "tmGlut",
+            "parameterFile": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-FS.json",
+            "populationUnitCorrelation": 0.9,
+            "synapseDensity": "0.05*exp(-d/200e-6)",
+            "type": "AMPA_NMDA"
+        }
+    }
+}

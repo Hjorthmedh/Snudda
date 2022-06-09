@@ -1661,12 +1661,14 @@ class SnuddaInput(object):
                                                           cluster_spread=cluster_spread)
 
             num_inputs = input_loc[0].shape[0]
-            self.write_log(f"Generating {num_inputs} inputs for {self.neuron_name[neuron_id]} ({neuron_id})")
 
             if num_inputs > 0:
                 p_keep = 1 / (num_inputs - np.sqrt(correlation) * (num_inputs - 1))
             else:
                 p_keep = 0
+
+            self.write_log(f"Generating {num_inputs} inputs (correlation={correlation}, p_keep={p_keep}) "
+                           f"for {self.neuron_name[neuron_id]} ({neuron_id})")
 
             # OBS, nInputs might differ slightly from nSpikeTrains if that is given
             spikes = self.make_correlated_spikes(freq=freq,
