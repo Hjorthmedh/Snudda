@@ -151,8 +151,9 @@ class PairRecording(SnuddaSimulate):
             if "amplitude" in cur_info:
                 stim_amplitude = self.to_list(cur_info["amplitude"])
             elif "requestedFrequency" in cur_info:
+                requested_freq = self.to_list(cur_info["requestedFrequency"])
                 stim_amplitude = self.get_corresponding_current_injection(neuron_id=stim_neuron_id,
-                                                                          frequency=cur_info["requestedFrequency"])
+                                                                          frequency=requested_freq) 
             else:
                 assert False, f"You need to specify 'amplitude' or 'requestedFrequency' for neuron_id {stim_neuron_id}"
 
