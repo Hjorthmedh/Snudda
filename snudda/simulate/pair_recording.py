@@ -147,7 +147,14 @@ class PairRecording(SnuddaSimulate):
             stim_neuron_id = self.to_list(cur_info["neuronID"])
             stim_start_time = self.to_list(cur_info["start"])
             stim_end_time = self.to_list(cur_info["end"])
-            stim_amplitude = self.to_list(cur_info["amplitude"])
+
+            if "amplitude" in cur_info:
+                stim_amplitude = self.to_list(cur_info["amplitude"])
+            elif "requestedFrequency" in cur_info:
+                stim_amplitude = self.get_corresponding_current_injection(neuron_id=stim_neuron_id,
+                                                                          frequency=cur_info["requestedFrequency"])
+            else:
+                assert False, f"You need to specify 'amplitude' or 'requestedFrequency' for neuron_id {stim_neuron_id}"
 
             if "amp_spread" in cur_info:
                 amp_spread = cur_info["amp_spread"]
@@ -184,6 +191,37 @@ class PairRecording(SnuddaSimulate):
             self.add_volt_recording_soma()
 
         self.setup_synaptic_recordings()
+
+    def get_corresponding_current_injection(self, neuron_id, frequency):
+
+        """ Extracts what current injection is needed to get requested frequency from if_info.json """
+
+        if_file = os.path.join(self.network_info["neurons"][neuron_id]["neuronPath"], "if_info.json")
+        parameter_key = self.network_info["neurons"][neuron_id]["parameterKey"]
+        morphology_key = self.network_info["neurons"][neuron_id]["morphologyKey"]
+
+        assert os.path.isfile(if_file), f"Unable determine current to get frequency {frequency}, needs {if_file}"
+
+        with open(if_file, "r") as f:
+            if_data = json.load(f)
+
+        current_list = if_data[parameter_key][morphology_key]["current"]
+        frequency_list = if_data[parameter_key][morphology_key]["frequency"]
+
+        assert (np.diff(current_list) > 0).all(), f"Injected currents are not increasing in file: {if_file} " \
+                                                  f"for parameter_key {parameter_key}, morphology_key {morphology_key}"
+
+        current = np.interp(frequency, frequency_list, current_list)
+
+        if frequency < frequency_list[0]:
+            self.write_log(f"WARNING: Neuron {neuron_id} requested frequency {frequency}, "
+                           f"but lowest frequency in {if_file} is {frequency_list[0]}")
+
+        if frequency > frequency_list[-1]:
+            self.write_log(f"WARNING: Neuron {neuron_id} requested frequency {frequency}, "
+                           f"but highest frequency in {if_file} is {frequency_list[-1]}")
+
+        return current
 
     @staticmethod
     def to_list(val, new_list_len=1):
@@ -385,45 +423,6 @@ class PairRecording(SnuddaSimulate):
                            f"If you are lucky, this will work and you wont loose any data.", is_error=True)
             import pdb
             pdb.set_trace()
-
-    def connect_neuron_synapses_REMOVE(self, start_row, end_row):
-
-        assert False, "No longer used. REMOVE ME!"
-
-        """ Connects the synapses present in the synapse matrix between start_row and end_row-1.
-
-        This method overloads the normal connect_neuron_synapses, to also add recording of synaptic currents
-        """
-
-        source_id_list, dest_id, dend_sections, sec_id, sec_x, synapse_type_id, \
-        axon_distance, conductance, parameter_id = self.get_synapse_info(start_row=start_row, end_row=end_row)
-
-        for (src_id, section, section_x, s_type_id, axon_dist, cond, p_id) \
-                in zip(source_id_list, dend_sections, sec_x, synapse_type_id,
-                       axon_distance, conductance, parameter_id):
-
-            try:
-                syn = self.add_synapse(cell_id_source=src_id,
-                                       cell_id_dest=dest_id,
-                                       dend_compartment=section,
-                                       section_id=sec_id,
-                                       section_dist=section_x,
-                                       synapse_type_id=s_type_id,
-                                       axon_dist=axon_dist,
-                                       conductance=cond,
-                                       parameter_id=p_id)
-
-                if (src_id, dest_id) in self.record_from_pair:
-                    self.write_log(f"Adding synaptic recording {src_id} -> {dest_id} (NEURON)")
-                    syn_i = neuron.h.Vector().record(syn._ref_i)
-                    self.synapse_currents.append((src_id, dest_id, syn_i))
-
-            except:
-                import traceback
-                tstr = traceback.format_exc()
-                self.write_log(tstr, is_error=True)
-                import pdb
-                pdb.set_trace()
 
     def setup_synaptic_recordings(self):
         for src_id, dest_id in self.record_from_pair:
