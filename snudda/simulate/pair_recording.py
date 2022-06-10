@@ -214,11 +214,11 @@ class PairRecording(SnuddaSimulate):
 
         current = np.interp(frequency, frequency_list, current_list)
 
-        if frequency < frequency_list[0]:
+        if (np.array(frequency) < frequency_list[0]).any():
             self.write_log(f"WARNING: Neuron {neuron_id} requested frequency {frequency}, "
                            f"but lowest frequency in {if_file} is {frequency_list[0]}")
 
-        if frequency > frequency_list[-1]:
+        if (np.array(frequency) > frequency_list[-1]).any():
             self.write_log(f"WARNING: Neuron {neuron_id} requested frequency {frequency}, "
                            f"but highest frequency in {if_file} is {frequency_list[-1]}")
 
