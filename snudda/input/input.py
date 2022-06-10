@@ -499,11 +499,11 @@ class SnuddaInput(object):
 
             # The input can be specified using neuron_id, neuron_name or neuron_type
             if str(neuron_id) in self.input_info:
-                input_info = self.input_info[str(neuron_id)]
+                input_info = self.input_info[str(neuron_id)].copy()
             elif neuron_name in self.input_info:
-                input_info = self.input_info[neuron_name]
+                input_info = self.input_info[neuron_name].copy()
             elif neuron_type in self.input_info:
-                input_info = self.input_info[neuron_type]
+                input_info = self.input_info[neuron_type].copy()
             else:
                 input_info = dict()
 
@@ -530,7 +530,11 @@ class SnuddaInput(object):
                         and "input" in meta_data[parameter_key][morphology_key]:
 
                     for inp_name, inp_data in meta_data[parameter_key][morphology_key]["input"].items():
-                        input_info[inp_name] = inp_data
+                        if inp_name in input_info:
+                            self.write_log(f"!!! Warning, redefining {inp_name} input for neuron "
+                                           f"{self.network_data['neurons'][neuron_id]['name']} {neuron_id}",
+                                           force_print=True)
+                            input_info[inp_name] = inp_data
 
             if len(input_info) == 0:
                 self.write_log(f"!!! Warning, no synaptic input for neuron ID {neuron_id}, "
