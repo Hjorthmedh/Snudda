@@ -148,21 +148,21 @@ class PairRecording(SnuddaSimulate):
             stim_start_time = self.to_list(cur_info["start"])
             stim_end_time = self.to_list(cur_info["end"])
 
-            if "amplitude" in cur_info:
-                stim_amplitude = self.to_list(cur_info["amplitude"])
-            elif "requestedFrequency" in cur_info:
-                requested_freq = self.to_list(cur_info["requestedFrequency"])
-                stim_amplitude = self.get_corresponding_current_injection(neuron_id=stim_neuron_id,
-                                                                          frequency=requested_freq) 
-            else:
-                assert False, f"You need to specify 'amplitude' or 'requestedFrequency' for neuron_id {stim_neuron_id}"
-
             if "amp_spread" in cur_info:
                 amp_spread = cur_info["amp_spread"]
             else:
                 amp_spread = None
 
             for nid in stim_neuron_id:
+
+                if "amplitude" in cur_info:
+                    stim_amplitude = self.to_list(cur_info["amplitude"])
+                elif "requestedFrequency" in cur_info:
+                    requested_freq = self.to_list(cur_info["requestedFrequency"])
+                    stim_amplitude = self.get_corresponding_current_injection(neuron_id=nid,
+                                                                              frequency=requested_freq)
+                else:
+                    assert False, f"You need to specify 'amplitude' or 'requestedFrequency' for neuron_id {stim_neuron_id}"
 
                 self.add_current_pulses(neuron_id=nid, start_times=stim_start_time,
                                         end_times=stim_end_time, amplitudes=stim_amplitude,
