@@ -547,7 +547,7 @@ class SnuddaInput(object):
                                    f" (input_type was commented with ! before name)")
                     continue
 
-                input_inf = input_info[input_type]
+                input_inf = input_info[input_type].copy()
 
                 if "populationUnitID" in input_inf:
                     pop_unit_id = int(input_inf["populationUnitID"])
