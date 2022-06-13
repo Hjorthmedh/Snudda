@@ -151,6 +151,14 @@ At this time, conductances (and channel states and currents are
 calculated at the midpoint of a dt interval.  Membrane potential and
 concentrations are calculated at the edges of a dt interval.  With
 secondorder=2 everything turns out to be second order correct.
+
+From model:
+Maurice N, Mercer J, Chan CS, Hernandez-Lopez S, Held J, Tkatch T, Surmeier DJ. 
+D2 dopamine receptor-mediated modulation of voltage-dependent Na+ channels 
+reduces autonomous activity in striatal cholinergic interneurons. 
+J Neurosci. 2004 Nov 17;24(46):10289-301. doi: 10.1523/JNEUROSCI.2155-04.2004. 
+PMID: 15548642; PMCID: PMC6730305.
+
 ENDCOMMENT
 
 

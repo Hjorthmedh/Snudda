@@ -222,6 +222,8 @@ class PairRecording(SnuddaSimulate):
             self.write_log(f"WARNING: Neuron {neuron_id} requested frequency {frequency}, "
                            f"but highest frequency in {if_file} is {frequency_list[-1]}", force_print=True)
 
+        print(f'neuron_id: {neuron_id}, current:{current}')
+
         return current
 
     @staticmethod

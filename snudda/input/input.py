@@ -862,11 +862,12 @@ class SnuddaInput(object):
     def generate_poisson_spikes(self, freq, time_range, rng):
         # This generates poisson spikes with frequency freq, for a given time range
 
-        if type(time_range[0]) == list:
+        assert np.size(freq) == np.size(time_range[0]) or np.size(freq) == 1
 
-            if type(freq) != list:
-                freq_list = [freq for t in time_range[0]]
-                freq = freq_list
+        if np.size(time_range[0]) > 1:
+
+            if np.size(freq) == 1:
+                freq = np.full(np.size(time_range[0]), freq)
 
             assert len(time_range[0]) == len(time_range[1]) == len(freq), \
                 (f"Frequency, start and end time vectors need to be of same length."
@@ -918,15 +919,20 @@ class SnuddaInput(object):
              dt: timestep
         """
 
-        if type(frequencies) == list:
+        if np.size(frequencies) == np.size(time_ranges[0]):
             frequency_list = frequencies
         else:
-            frequency_list = [frequencies for x in time_ranges[0]]
+            frequency_list = np.full(np.size(time_ranges[0]), frequencies)
+
+        if np.size(p_keep) == np.size(time_ranges[0]):
+            p_keep_list = p_keep
+        else:
+            p_keep_list = np.full(np.size(time_ranges[0]), p_keep)
 
         t_spikes = []
 
-        for freq, t_start, t_end in zip(frequency_list, time_ranges[0], time_ranges[1]):
-            t_spikes.append(self.generate_spikes_function(freq, (t_start, t_end), rng=rng, dt=dt, p_keep=p_keep))
+        for freq, t_start, t_end, p_k in zip(frequency_list, time_ranges[0], time_ranges[1], p_keep_list):
+            t_spikes.append(self.generate_spikes_function(freq, (t_start, t_end), rng=rng, dt=dt, p_keep=p_k))
 
         # Double check correct dimension
         return np.sort(np.concatenate(t_spikes))
@@ -946,12 +952,14 @@ class SnuddaInput(object):
             dt: timestep
         """
 
-        assert 0 <= p_keep <= 1, f"Error: p_keep = {p_keep}, valid range 0-1."
-
-        if type(time_range[0]) == list:
+        if np.size(time_range[0]) > 1:
             return self.generate_spikes_function_helper(frequencies=frequency_function,
                                                         time_ranges=time_range,
-                                                        rng=rng, dt=dt)
+                                                        rng=rng, dt=dt, p_keep=p_keep)
+
+        assert 0 <= p_keep <= 1, \
+            f"Error: p_keep = {p_keep}, valid range 0-1. If p_keep is a list, " \
+            f"then time_ranges must be two lists, ie. (start_times, end_times)"
 
         t = np.arange(0, time_range[1] - time_range[0], dt)
 
@@ -994,7 +1002,7 @@ class SnuddaInput(object):
     ############################################################################
 
     @staticmethod
-    def cull_spikes(spikes, p_keep, rng):
+    def cull_spikes(spikes, p_keep, rng, time_range=None):
 
         """
         Keeps a fraction of all spikes.
@@ -1003,9 +1011,35 @@ class SnuddaInput(object):
             spikes: Spike train
             p_keep: Probability to keep each spike
             rng: Numpy random number stream
+            time_range: If p_keep is vector, this specifies which part of those ranges each p_keep is for
         """
 
-        return spikes[rng.random(spikes.shape) < p_keep]
+        if time_range is None:
+            assert np.size(p_keep) == 1, f"If not time_range is given then p_keep must be a scalar. p_keep = {p_keep}"
+            return spikes[rng.random(spikes.shape) < p_keep]
+        else:
+            if np.size(time_range[0]) == 1:
+                old_time_range = time_range
+                time_range = (np.array([time_range[0]]), np.array([time_range[1]]))
+
+            if np.size(p_keep) == 1:
+                p_keep = np.full(np.size(time_range[0]), p_keep)
+            
+            p_keep_spikes = np.zeros(spikes.shape)
+            
+            try:
+                for p_k, start, end in zip(p_keep, time_range[0], time_range[1]):
+                    idx = np.where(np.logical_and(start <= spikes, spikes <= end))[0]
+                    p_keep_spikes[idx] = p_k
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
+              
+        return spikes[rng.random(spikes.shape) < p_keep_spikes]
+
+            
 
     ############################################################################
 
@@ -1032,7 +1066,7 @@ class SnuddaInput(object):
             freq (float or str): frequency of spike train
             time_range (tuple): start time, end time of spike train
             num_spike_trains (int): number of spike trains to generate
-            p_keep (float): fraction of shared channel spikes to include in spike train, p_keep=1 (100% correlated)
+            p_keep (float or list of floats): fraction of shared channel spikes to include in spike train, p_keep=1 (100% correlated)
             rng: Numpy random number stream
             population_unit_spikes
             ret_pop_unit_spikes (bool): if false, returns only spikes,
@@ -1041,7 +1075,7 @@ class SnuddaInput(object):
             input_generator (str) : "poisson" (default) or "frequency_functon"
         """
 
-        assert (0 <= p_keep <= 1), f"p_keep = {p_keep} should be between 0 and 1"
+        assert np.all(np.logical_and(0 <= p_keep, p_keep <= 1)), f"p_keep = {p_keep} should be between 0 and 1"
 
         if population_unit_spikes is None:
             population_unit_spikes = self.generate_poisson_spikes(freq, time_range, rng=rng)
@@ -1050,14 +1084,13 @@ class SnuddaInput(object):
 
         if input_generator == "poisson":
 
-            if type(freq) == list:
-                unique_freq = [f * (1 - p_keep) for f in freq]
-            else:
-                unique_freq = freq * (1 - p_keep)
+            unique_freq = np.multiply(freq, 1 - p_keep)
 
             for i in range(0, num_spike_trains):
                 t_unique = self.generate_poisson_spikes(unique_freq, time_range, rng)
-                t_population_unit = self.cull_spikes(population_unit_spikes, p_keep, rng)
+                t_population_unit = self.cull_spikes(spikes=population_unit_spikes,
+                                                     p_keep=p_keep, rng=rng,
+                                                     time_range=time_range)
 
                 spike_trains.append(self.mix_spikes([t_unique, t_population_unit]))
 
@@ -1067,7 +1100,9 @@ class SnuddaInput(object):
                 t_unique = self.generate_spikes_function(frequency_function=freq,
                                                          time_range=time_range,
                                                          rng=rng, p_keep=1-p_keep)
-                t_population_unit = self.cull_spikes(population_unit_spikes, p_keep, rng)
+                t_population_unit = self.cull_spikes(spikes=population_unit_spikes,
+                                                     p_keep=p_keep, rng=rng,
+                                                     time_range=time_range)
                 spike_trains.append(self.mix_spikes([t_unique, t_population_unit]))
 
         else:
@@ -1634,7 +1669,7 @@ class SnuddaInput(object):
             input_loc = None
 
             num_inputs = 1
-            p_keep = 1 / (num_inputs - np.sqrt(correlation) * (num_inputs - 1))
+            p_keep = np.divide(1, (num_inputs - np.sqrt(correlation) * (num_inputs - 1)))
 
             # !!! Pass the input_generator
             spikes = self.make_correlated_spikes(freq=freq,
@@ -1667,7 +1702,7 @@ class SnuddaInput(object):
             num_inputs = input_loc[0].shape[0]
 
             if num_inputs > 0:
-                p_keep = 1 / (num_inputs - np.sqrt(correlation) * (num_inputs - 1))
+                p_keep = np.divide(1, (num_inputs - np.sqrt(correlation) * (num_inputs - 1)))
             else:
                 p_keep = 0
 
