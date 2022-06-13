@@ -137,6 +137,8 @@ class RegionMesh(object):
         # binWidth 1e-4 (8090s) --> 2.7 % border voxels
         # binWidth 0.5e-4 (??? s) --> ?? % border voxels
 
+        assert os.path.exists(filename), f"Mesh file {filename} missing"
+
         self.filename = filename
         self.cache_file = f"{filename}-{int(1e6 * self.bin_width)}{rt_str}-cache.pickle"
         self.pickle_version = pickle_version

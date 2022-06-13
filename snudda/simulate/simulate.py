@@ -51,6 +51,7 @@ class SnuddaSimulate(object):
                  output_file=None,
                  verbose=False,
                  log_file=None,
+                 disable_synapses=False,
                  disable_gap_junctions=False,
                  simulation_config=None):
 
@@ -65,6 +66,7 @@ class SnuddaSimulate(object):
             verbose (bool): Extra printouts
             log_file (str): Path to logfile
             disable_gap_junctions (bool): Disable gap junctions, default False
+            disable_synapses (bool): Disable synapses, default False
             simulation_config (str, optional): Path to config file with simulation info (including network_path)
 
         """
@@ -90,7 +92,7 @@ class SnuddaSimulate(object):
             if os.path.exists(default_input_file):
                 self.input_file = default_input_file
             else:
-                print("Warning: No synaptic input file given!")
+                print("Warning: No external synaptic input file given!")
                 self.input_file = None
         else:
             self.input_file = input_file
@@ -115,7 +117,7 @@ class SnuddaSimulate(object):
         self.sim_start_time = 0
         self.fih_time = None
         self.last_sim_report_time = 0
-        self.sample_dt = 0.0005
+        self.sample_dt = None  # None means all values, 0.0005 means 0.5ms time resolution in saved files
 
         self.pc = h.ParallelContext()
 
@@ -163,6 +165,7 @@ class SnuddaSimulate(object):
         self.axon_speed = 0.8  # Tepper and Lee 2007, Wilson 1986, Wilson 1990
         # refs taken from Damodaran et al 2013
 
+        self.disable_synapses = disable_synapses
         self.disable_gap_junctions = disable_gap_junctions
 
         self.synapse_type_lookup = {1: "GABA", 2: "AMPA_NMDA", 3: "GapJunction"}
@@ -293,8 +296,8 @@ class SnuddaSimulate(object):
         # Add checks to see that config file and network_file matches
 
         import json
-        with open(config_file, 'r') as config_file:
-            self.config = json.load(config_file, object_pairs_hook=OrderedDict)
+        with open(config_file, 'r') as cf:
+            self.config = json.load(cf, object_pairs_hook=OrderedDict)
 
         # I do not know if the gap junction GIDs are a separate entity from the
         # neuron cell GIDs, so to be on safe side, let's make sure they
@@ -537,7 +540,7 @@ class SnuddaSimulate(object):
 
         # Add gap junctions
         if self.disable_gap_junctions:
-            self.write_log("!!! Gap junctions disabled.")
+            self.write_log("!!! Gap junctions disabled.", force_print=True)
         else:
             self.write_log("Adding gap junctions.")
 
@@ -545,9 +548,40 @@ class SnuddaSimulate(object):
             self.pc.setup_transfer()
 
         # Add synapses
-        self.connect_network_synapses()
+        if self.disable_synapses:
+            self.write_log("!!! Synapses disabled.", force_print=True)
+        else:
+            self.write_log("Adding synapses.")
+            self.connect_network_synapses()
 
         self.pc.barrier()
+
+    def set_new_output_file(self, new_output_file):
+        self.write_log(f"Setting output file to {new_output_file}")
+        self.output_file = new_output_file
+        self.record.set_new_output_file(new_output_file)
+
+    def reenable_synapses(self, new_output_file=None):
+
+        assert self.disable_synapses, f"You can only reenable synapses if they were previously disabled"
+        self.write_log("Re-enabling previously disabled synapses", force_print=True)
+
+        self.disable_synapses = False
+        self.connect_network_synapses()
+
+        if new_output_file:
+            self.set_new_output_file(new_output_file)
+
+    def reenable_gap_junctions(self, new_output_file=None):
+        assert self.disable_gap_junctions, f"You can only reenable gap junctions if they were previously disabled"
+        self.write_log("Re-enabling previously disabled gap junctions", force_print=True)
+
+        self.disable_gap_junctions = False
+        self.connect_network_gap_junctions_local()
+        self.pc.setup_transfer()
+
+        if new_output_file:
+            self.set_new_output_file(new_output_file)
 
     ############################################################################
 
@@ -1109,7 +1143,7 @@ class SnuddaSimulate(object):
                 rest_volt = [x for x in self.neurons[neuron_id].parameters
                              if "param_name" in x and x["param_name"] == "v_init"][0]["value"] * 1e-3
 
-            self.write_log(f"Neuron {self.neurons[neuron_id].name} resting voltage = {rest_volt * 1e3}")
+            self.write_log(f"Neuron {self.neurons[neuron_id].name} ({neuron_id}) resting voltage = {rest_volt * 1e3}")
 
             soma = [x for x in self.neurons[neuron_id].icell.soma]
             axon = [x for x in self.neurons[neuron_id].icell.axon]
@@ -1582,7 +1616,17 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def add_current_pulses(self, neuron_id, start_times, end_times, amplitudes):
+    def add_current_pulses(self, neuron_id, start_times, end_times, amplitudes, amp_spread=None):
+
+        """ Inject current pulses into a neuron
+
+        Args:
+            neuron_id (int) : ID of neuron receiving current injection
+            start_times (list, ndarray) : List of start times
+            end_times (list, ndarray) : List of end times
+            amplitudes (list, ndarray) : List of amplitudes
+            amp_spread (float) : Uncertainty in the amplitudes
+        """
 
         assert type(neuron_id) == int, "add_current_pulses only works on one neuron_id at a time"
 
@@ -1594,6 +1638,9 @@ class SnuddaSimulate(object):
 
         if type(amplitudes) != np.ndarray:
             amplitudes = np.array(amplitudes)
+
+        if amp_spread is not None:
+            amplitudes += np.random.normal(loc=0, scale=amp_spread, size=amplitudes.shape)
 
         assert (end_times - start_times).all() > 0, \
             (f"All start times must be before corresponding end times: "
@@ -1628,6 +1675,40 @@ class SnuddaSimulate(object):
         self.i_stim.append((i_clamp, t_vec, amp_vec))
 
     ############################################################################
+
+    def add_noise(self, neuron_id, duration, start_time=0, noise_amp=0, noise_std=0.1e-9, dt=None):
+
+        """
+            Add noise starting at time 0, for duration.
+
+            Args:
+                neuron_id (int) : ID of neuro injected
+                duration (float) : How long is the pulse (in seconds)
+                start_time (float) : When does the pulse start (in seconds)
+                noise_amp (float) : Mean mplitude of noise (in ampere)
+                noise_std (float) : Standard deviation of noise (in ampere)
+                dt (float) : How often does the noise change (in seconds, default = 0.001s)
+
+        """
+        if dt is None:
+            dt = h.dt
+        else:
+            dt *= 1e3 # Convert to ms
+
+        t_vec = h.Vector(np.linspace(start_time*1e3, duration*1e3, int(duration*1e3 / dt)))
+
+        noise_current = np.random.normal(noise_amp*1e9, noise_std*1e9, len(t_vec))
+        noise_current_vector = h.Vector()
+        noise_current_vector.from_python(noise_current)
+
+        i_clamp = self.sim.neuron.h.IClamp(0.5, sec=self.neurons[neuron_id].icell.soma[0])
+        i_clamp.delay = 0.0
+        i_clamp.dur = 1e9
+        noise_current_vector.play(i_clamp._ref_amp, t_vec, True)
+
+        self.i_stim.append((i_clamp, t_vec, noise_current_vector))
+
+############################################################################
 
     def get_spike_file_name(self):
         """ Returns filename for spike data file. """

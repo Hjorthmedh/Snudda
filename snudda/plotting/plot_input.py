@@ -28,6 +28,10 @@ class PlotInput(object):
             print(f"Specify a network_path with a network file, to get neuron type in figure")
             self.network_info = None
 
+    def close(self):
+        print(f"Closing {self.input_data.filename}")
+        self.input_data.close()
+
     def load_input(self, input_file):
         self.input_data = h5py.File(input_file, "r")
 

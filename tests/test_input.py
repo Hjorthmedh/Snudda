@@ -60,7 +60,7 @@ class InputTestCase(unittest.TestCase):
         freq = [100, 200, 300]
         start_times = [2, 5, 7]
         end_times = [3, 6, 9]
-        spike_times = si2.generate_spikes(freq=freq, time_range=(start_times, end_times), rng=rng)
+        spike_times = si2.generate_poisson_spikes(freq=freq, time_range=(start_times, end_times), rng=rng)
 
         for st, et, f in zip(start_times, end_times, freq):
             t_idx = np.where(np.logical_and(st <= spike_times, spike_times <= et))[0]
@@ -84,7 +84,18 @@ class InputTestCase(unittest.TestCase):
                         f"n_after={len(culled_spike_times)} (expected {len(spike_times)*p_keep} +/- {2*s}), "
                         f"p_keep={p_keep}")
 
-        spike_times2 = si2.generate_spikes(freq=10, time_range=[0, 10], rng=rng)
+        p_keep2 = np.array([0.2, 0.5, 1])
+        t_range = (start_times, end_times)
+        culled_spike_times2 = si2.cull_spikes(spikes=spike_times, p_keep=p_keep2, rng=rng, time_range=t_range)
+
+        for st, et, pk, f in zip(start_times, end_times, p_keep2, freq):
+            n_spikes = len(np.where(np.logical_and(st <= culled_spike_times2,
+                                                   culled_spike_times2 <= et))[0])
+            n_expected = (et - st) * f * pk
+
+            self.assertTrue(0.8*n_expected <= n_spikes <= 1.2*n_expected, f"Found {n_spikes}, expected {n_expected} (+/- 20%)")
+
+        spike_times2 = si2.generate_poisson_spikes(freq=10, time_range=[0, 10], rng=rng)
         mixed_spike_times = si2.mix_spikes([spike_times, spike_times2])
 
         self.assertTrue((np.diff(mixed_spike_times) >= 0).all())
@@ -96,6 +107,8 @@ class InputTestCase(unittest.TestCase):
         self.assertTrue((np.abs(spike_times - jittered_spikes[0]) < 4*jitter_dt).all())
 
     def test_input_1(self):
+
+        # This tests Poisson inputs
 
         input_time = 10
         input_config = os.path.join(self.network_path, "input-test-1.json")
@@ -109,8 +122,6 @@ class InputTestCase(unittest.TestCase):
 
         input_data = h5py.File(spike_file, 'r')
         config_data = json.loads(input_data["config"][()])
-
-        # TODO: Add checks
 
         # Loop through all inputs, and verify them
 
@@ -189,7 +200,9 @@ class InputTestCase(unittest.TestCase):
                     else:
                         jitter = 0
 
-                    p_keep = 1 / (n_traces - np.sqrt(correlation) * (n_traces - 1))
+                    p_keep = np.divide(1, (n_traces - np.sqrt(correlation) * (n_traces - 1)))
+                    if np.size(p_keep) == 1:
+                        p_keep = np.full(np.size(start_time), p_keep)
 
                     # Is correlation what we expect?
                     bin_size = 2*jitter + 1e-3
@@ -216,7 +229,7 @@ class InputTestCase(unittest.TestCase):
 
                     readout = readout[:ctr]
 
-                    if len(freq) == 1:
+                    if np.size(freq) == 1:
                         mean_freq = freq[0]
                     else:
                         # Note this is the mean freq during period of spiking (since we dont sample silent periods)
@@ -227,22 +240,24 @@ class InputTestCase(unittest.TestCase):
                     # With P=(1-p_keep) it is just a normal spike, and then there should be 1 + f*dt*(N-1) spikes
                     # in the bin
 
-                    if len(freq) == 1:
-                        expected_mean = (p_keep * ((n_traces - 1) * p_keep + 1 + freq[0] * bin_size * n_traces)
-                                         + (1 - p_keep) * (1 + freq[0] * bin_size * (n_traces - 1)))
+                    # REMOVE THIS
+                    #if np.size(freq) == 1:
+                    #    expected_mean = (p_keep * ((n_traces - 1) * p_keep + 1 + freq[0] * bin_size * n_traces)
+                    #                     + (1 - p_keep) * (1 + freq[0] * bin_size * (n_traces - 1)))
+                    # END REMOVE
 
-                    else:
-                        # When calculating expected mean number of simultaneous spikes for a bin with a spike
-                        # we need to take into account that high freq periods are more likely, and they also have
-                        # higher freq during that period
-                        picked_ctr = 0
-                        spike_cnt = 0
-                        for st, et, f in zip(start_time, end_time, freq):
-                            picked_ctr += f*(et-st)  # Number of readouts in this time interval
-                            spike_cnt += f*(et-st) * (p_keep * ((n_traces - 1) * p_keep + 1 + f * bin_size * n_traces)
-                                                      + (1 - p_keep) * (1 + f * bin_size * (n_traces - 1)))
+                    # When calculating expected mean number of simultaneous spikes for a bin with a spike
+                    # we need to take into account that high freq periods are more likely, and they also have
+                    # higher freq during that period
+                    picked_ctr = 0
+                    spike_cnt = 0
 
-                        expected_mean = spike_cnt / picked_ctr
+                    for st, et, f, p_k in zip(start_time, end_time, freq, p_keep):
+                        picked_ctr += f*(et-st)  # Number of readouts in this time interval
+                        spike_cnt += f*(et-st) * (p_k * ((n_traces - 1) * p_k + 1 + f * bin_size * n_traces)
+                                                  + (1 - p_k) * (1 + f * bin_size * (n_traces - 1)))
+
+                    expected_mean = spike_cnt / picked_ctr
 
                     print(f"Simultaneous spikes: {np.mean(readout):.2f} (expected {expected_mean:.2f}) "
                           f"- correlation {correlation}")
@@ -257,6 +272,95 @@ class InputTestCase(unittest.TestCase):
                         import pdb
 
                         pdb.set_trace()
+
+    def test_input_2(self):
+
+        # This tests function based frequency input
+
+        input_time = 1
+        input_config = os.path.join(self.network_path, "input-test-2.json")
+        spike_file = os.path.join(self.network_path, "input-spikes-2.hdf5")
+
+        si = SnuddaInput(input_config_file=input_config,
+                         hdf5_network_file=self.network_file,
+                         spike_data_filename=spike_file,
+                         time=input_time, verbose=True)
+        si.generate()
+
+        input_data = h5py.File(spike_file, 'r')
+        config_data = json.loads(input_data["config"][()])
+
+        # Check input generated, this focuses on the frequency function generation
+        # and also checks input correlation
+
+        # TODO: Add checks
+
+
+
+
+    def test_arbitrary_function(self):
+
+        func_lambda = lambda t: t*100
+        func_str = "t*100"
+
+        si_empty = SnuddaInput()
+
+        for func in [func_str, func_lambda]:
+
+            # We run this twice, for string functions and for lambda functions
+
+            rng = np.random.default_rng(112)
+            spikes = si_empty.generate_spikes_function(frequency_function=func, time_range=[1, 10], dt=1e-4, rng=rng)
+            isi = np.diff(spikes)
+
+            self.assertTrue((isi > 0).all(), "Resulting spikes should be sorted")
+
+            with self.subTest("Checking no spikes before t=1"):
+                t_idx = np.where(spikes < 1)[0]
+                self.assertTrue(len(t_idx) == 0, "There should be no spikes before t=1")
+
+            # Check average frequency at around 3,5,7,9 seconds.
+
+            for t_check in [3, 5, 7, 9]:
+                t_range = [t_check-0.1, t_check+0.1]
+                freq = self.find_freq_in_range(spikes, t_range)
+
+                with self.subTest(f"Checking frequency at {t_check} (expecting around {t_check*100} Hz)"):
+                    self.assertTrue((t_check-1)*80 <= freq <= (t_check-1)*120,
+                                    f"Found frequency {freq} Hz at {t_check}s, expected {t_check*100} Hz")
+
+    def find_spikes_in_range(self, spikes, time_range):
+        t_idx = np.where(np.logical_and(time_range[0] <= spikes, spikes <= time_range[1]))[0]
+        return spikes[t_idx]
+
+    def find_freq_in_range(self, spikes, time_range):
+        return len(self.find_spikes_in_range(spikes, time_range)) / (time_range[1] - time_range[0])
+
+    def test_arbitrary_function_range(self):
+
+        func_lambda = lambda t: t*100
+        func_str = "t*100"  # OBS, t=0 at the start of each new stimulus
+
+        t_range = [[1, 4], [2, 7]]
+
+        si_empty = SnuddaInput()
+
+        for func in [func_str, func_lambda]:
+
+            # We run this twice, for string functions and for lambda functions
+
+            rng = np.random.default_rng(112)
+            spikes = si_empty.generate_spikes_function(frequency_function=func, time_range=t_range, dt=1e-4, rng=rng)
+
+            with self.subTest("Freq test"):
+                self.assertTrue(40 <= self.find_freq_in_range(spikes, [1, 2]) <= 60,
+                                f"Expected frequency 50Hz, found {self.find_freq_in_range(spikes, [1, 2])} Hz")
+
+                self.assertTrue(self.find_freq_in_range(spikes, [2, 4]) == 0,
+                                f"Expected frequency 0Hz, found {self.find_freq_in_range(spikes, [2, 4])} Hz")
+
+                self.assertTrue(135 <= self.find_freq_in_range(spikes, [4, 7]) <= 165,
+                                f"Expected frequency 150Hz, found {self.find_freq_in_range(spikes, [4, 5])} Hz")
 
 
 if __name__ == '__main__':
