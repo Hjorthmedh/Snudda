@@ -68,7 +68,7 @@ class PairRecording(SnuddaSimulate):
         self.simulate_neuron_ids = None
 
         self.sim_duration = None
-        self.holding_i_clamp_list = []
+        self.holding_i_clamp_list = dict()
         self.v_init_saved = dict()
         self.v_hold_saved = dict()
 
@@ -161,6 +161,13 @@ class PairRecording(SnuddaSimulate):
                     requested_freq = self.to_list(cur_info["requestedFrequency"])
                     stim_amplitude = self.get_corresponding_current_injection(neuron_id=nid,
                                                                               frequency=requested_freq)
+
+                    if nid in self.holding_i_clamp_list:
+                        _, cur = self.holding_i_clamp_list[nid]
+                        self.write_log(f"Compensating for holding current, reducing {stim_amplitude} A by {cur} A")
+                        stim_amplitude -= cur
+
+                    v_holder = self.v_hold_saved[nid]
                 else:
                     assert False, f"You need to specify 'amplitude' or 'requestedFrequency' for neuron_id {stim_neuron_id}"
 
@@ -268,19 +275,19 @@ class PairRecording(SnuddaSimulate):
 
         # Setup vClamps to calculate what holding current will be needed
         soma_v_clamp = []
-        soma_list = [self.neurons[x].icell.soma[0] for x in neuron_id if x in self.neuron_id]
+        soma_list = [(self.neurons[x].icell.soma[0], x) for x in neuron_id if x in self.neuron_id]
 
         missing_id = [x for x in self.neurons.keys() if x not in neuron_id and x in self.neuron_id]
 
         if len(missing_id) > 0:
             print(f"Warning: v_hold is not specified for neurons {missing_id}")
 
-        for s, vi in zip(soma_list, v_hold):
+        for (s, nid), vi in zip(soma_list, v_hold):
             vc = neuron.h.SEClamp(s(0.5))
             vc.rs = 1e-9
             vc.amp1 = vi * 1e3
             vc.dur1 = 200
-            soma_v_clamp.append((s, vc))
+            soma_v_clamp.append((s, vc, nid))
 
         self.set_v_hold_helper(neuron_id=neuron_id, v_hold=v_hold)
         neuron.h.finitialize()
@@ -288,18 +295,19 @@ class PairRecording(SnuddaSimulate):
         neuron.h.tstop = 200
         neuron.h.run()
 
-        self.holding_i_clamp_list = []
+        # Dont override
+        # self.holding_i_clamp_list = dict()
 
         assert self.sim_duration is not None, ("set_v_hold: self.end_time must be set before calling, "
                                                "IClamps need to know their duration.")
 
         # Setup iClamps
-        for s, vc in soma_v_clamp:
+        for s, vc, nid in soma_v_clamp:
             cur = float(vc.i)
             ic = neuron.h.IClamp(s(0.5))
             ic.amp = cur
             ic.dur = 2 * self.sim_duration * 1e3
-            self.holding_i_clamp_list.append(ic)
+            self.holding_i_clamp_list[nid] = ic, cur * 1e-9
 
         # Remove vClamps
         v_clamps = None
