@@ -38,7 +38,7 @@ class PairRecordingTestCase(unittest.TestCase):
         self.experiment_config_file = os.path.join(self.network_path, "experiment.json")
         network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         self.pr = PairRecording(network_path=self.network_path, network_file=network_file,
-                                experiment_config_file=experiment_config_file)
+                                experiment_config_file=self.experiment_config_file)
         self.pr.run()
 
     def test_frequency(self):
