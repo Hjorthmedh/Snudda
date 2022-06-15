@@ -2,7 +2,7 @@
 
     "meta" : {
 	"experiment_name" : "PairRecordingUnitTest",
-	"simulationDuration" : 0.3,
+	"simulationDuration" : 1,
 	"vHold" : -80e-3,
 	"pairRecordingOutputFile" : "pair-recording-simulation.hdf5",
 	"reversal_potential" : [["tmGabaA", -65e-3]],
