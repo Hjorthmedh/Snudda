@@ -637,6 +637,8 @@ class SnuddaInit(object):
         if not filename:
             filename = self.config_file
 
+        assert filename is not None, f"You must specify network_path or config_file when creating SnuddaInit"
+
         # Create directory if it does not already exist
         dir_name = os.path.dirname(filename)
         if not os.path.exists(dir_name):

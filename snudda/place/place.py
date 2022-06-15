@@ -934,8 +934,9 @@ class SnuddaPlace(object):
         # Finally if num_neurons is specified, we need to reduce the number of neurons belonging to that unit
         for u_id, n_neurons in zip(unit_id, num_neurons):
             if n_neurons is not None:
+
                 assert len(self.population_units[u_id]) >= n_neurons, \
-                    f"Unable to pick {n_neurons} for population unit {u_id}, only {len(self.population_units[u_id])} available."
+                    f"Unable to pick {n_neurons} for population unit {u_id}, only {len(self.population_units[u_id])} ({neuron_types[u_id]}) available."
 
                 if n_neurons < len(self.population_units[u_id]):
 

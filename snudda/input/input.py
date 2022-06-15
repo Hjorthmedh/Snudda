@@ -404,18 +404,17 @@ class SnuddaInput(object):
             for input_type in self.input_info[cell_type]:
 
                 if "start" in self.input_info[cell_type][input_type]:
-                    start_time = self.input_info[cell_type][input_type]["start"]
+                    start_time = np.array(self.input_info[cell_type][input_type]["start"])
                 else:
                     start_time = 0
 
                 if "end" in self.input_info[cell_type][input_type]:
-                    end_time = self.input_info[cell_type][input_type]["end"]
+                    end_time = np.array(self.input_info[cell_type][input_type]["end"])
                 else:
                     end_time = self.time
 
                 if "populationUnitID" in self.input_info[cell_type][input_type]:
-                    pop_unit_list = \
-                        self.input_info[cell_type][input_type]["populationUnitID"]
+                    pop_unit_list = self.input_info[cell_type][input_type]["populationUnitID"]
 
                     if type(pop_unit_list) != list:
                         pop_unit_list = [pop_unit_list]
@@ -522,6 +521,7 @@ class SnuddaInput(object):
             morphology_key = self.network_data["neurons"][neuron_id]["morphologyKey"]
             neuron_path = self.network_data["neurons"][neuron_id]["neuronPath"]
             meta_path = os.path.join(neuron_path, "meta.json")
+
             if self.use_meta_input and os.path.exists(meta_path):
                 with open(meta_path, "r") as f:
                     meta_data = json.load(f)
@@ -534,7 +534,7 @@ class SnuddaInput(object):
                             self.write_log(f"!!! Warning, redefining {inp_name} input for neuron "
                                            f"{self.network_data['neurons'][neuron_id]['name']} {neuron_id}",
                                            force_print=True)
-                            input_info[inp_name] = inp_data
+                        input_info[inp_name] = inp_data
 
             if len(input_info) == 0:
                 self.write_log(f"!!! Warning, no synaptic input for neuron ID {neuron_id}, "
@@ -586,12 +586,12 @@ class SnuddaInput(object):
                     jitter_dt_list.append(None)
 
                 if "start" in input_inf:
-                    start_list.append(input_inf["start"])
+                    start_list.append(np.array(input_inf["start"]))
                 else:
                     start_list.append(0.0)  # Default start at beginning
 
                 if "end" in input_inf:
-                    end_list.append(input_inf["end"])
+                    end_list.append(np.array(input_inf["end"]))
                 else:
                     end_list.append(self.time)
 
@@ -1172,7 +1172,7 @@ class SnuddaInput(object):
             spikes = spike_trains[i] + rng.normal(0, dt, spike_trains[i].shape)
 
             # No modulo time jittering if list of times specified
-            if time_range is not None and type(time_range[0]) != list:
+            if time_range is not None and np.size(time_range[0]) == 1:
                 start = time_range[0]
                 end = time_range[1]
                 spikes = np.mod(spikes - start, end - start) + start
