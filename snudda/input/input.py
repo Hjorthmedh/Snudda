@@ -521,6 +521,7 @@ class SnuddaInput(object):
             morphology_key = self.network_data["neurons"][neuron_id]["morphologyKey"]
             neuron_path = self.network_data["neurons"][neuron_id]["neuronPath"]
             meta_path = os.path.join(neuron_path, "meta.json")
+
             if self.use_meta_input and os.path.exists(meta_path):
                 with open(meta_path, "r") as f:
                     meta_data = json.load(f)
@@ -533,7 +534,7 @@ class SnuddaInput(object):
                             self.write_log(f"!!! Warning, redefining {inp_name} input for neuron "
                                            f"{self.network_data['neurons'][neuron_id]['name']} {neuron_id}",
                                            force_print=True)
-                            input_info[inp_name] = inp_data
+                        input_info[inp_name] = inp_data
 
             if len(input_info) == 0:
                 self.write_log(f"!!! Warning, no synaptic input for neuron ID {neuron_id}, "
