@@ -78,7 +78,10 @@ class SnuddaPlotSpikeRaster2:
         self.make_figures_directory()
         # Gets a list of all the neurons' types
         neuron_type_list = self.snudda_load.get_neuron_types(return_set=False)
+        neuron_population_unit_list = self.snudda_load.get_neuron_population_units(return_set=False)
+
         neuron_type_map = dict()
+
         if end_time is None:
             end_time = 1.02 * max(self.time)
         if type_order is None:
@@ -95,7 +98,10 @@ class SnuddaPlotSpikeRaster2:
 
         # For each neuron, associate the number of the type it is
         neuron_type_idx = np.array([neuron_type_map[x] for x in neuron_type_list])
-        neuron_order = np.argsort(neuron_type_idx)
+
+        neuron_order = np.lexsort((neuron_population_unit_list, neuron_type_idx))
+
+        # neuron_order = np.argsort(neuron_type_idx)
         neuron_order_lookup = np.zeros(neuron_order.shape)
 
         for idx, no in enumerate(neuron_order):
@@ -227,6 +233,8 @@ class SnuddaPlotSpikeRaster2:
 
         # Gets a list of all the neurons' types
         neuron_type_list = self.snudda_load.get_neuron_types(return_set=False)
+        neuron_population_unit_list = self.snudda_load.get_neuron_population_units(return_set=False)
+
         neuron_type_map = dict()
 
         if type_order is None:
@@ -239,7 +247,9 @@ class SnuddaPlotSpikeRaster2:
 
         # For each neuron, associate the number of the type it is
         neuron_type_idx = np.array([neuron_type_map[x] for x in neuron_type_list])
-        neuron_order = np.argsort(neuron_type_idx)
+        # neuron_order = np.argsort(neuron_type_idx)
+        neuron_order = np.lexsort((neuron_population_unit_list, neuron_type_idx))
+
         neuron_order_lookup = np.zeros(neuron_order.shape)
 
         for idx, no in enumerate(neuron_order):

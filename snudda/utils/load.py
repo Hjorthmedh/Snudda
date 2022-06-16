@@ -666,6 +666,18 @@ class SnuddaLoad(object):
 
     ############################################################################
 
+    def get_neuron_population_units(self, neuron_id=None, return_set=False):
+
+        if neuron_id:
+            neuron_population_units = self.data["populationUnit"][neuron_id].flatten().copy()
+        else:
+            neuron_population_units = self.data["populationUnit"].flatten().copy()
+
+        if return_set:
+            return set(neuron_population_units)
+        else:
+            return neuron_population_units
+
     def get_neuron_types(self, neuron_id=None, return_set=False):
 
         if neuron_id:
@@ -726,6 +738,13 @@ class SnuddaLoad(object):
 
         return neuron_id
 
+    def get_neuron_id(self):
+
+        neuron_id = np.array([x["neuronID"] for x in self.data["neurons"]])
+
+        return neuron_id
+
+
     def get_neuron_id_with_name(self, neuron_name):
 
         """
@@ -738,7 +757,7 @@ class SnuddaLoad(object):
             List of neuron ID
         """
 
-        neuron_id = [x["neuronID"] for x in self.data["neurons"] if x["name"] == neuron_name]
+        neuron_id = np.array([x["neuronID"] for x in self.data["neurons"] if x["name"] == neuron_name])
 
         return neuron_id
 
