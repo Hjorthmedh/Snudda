@@ -1,4 +1,6 @@
 import os
+from collections import OrderedDict
+
 import numpy as np
 
 from snudda.utils.load import SnuddaLoad
@@ -221,6 +223,46 @@ class SnuddaPlotSpikeRaster2:
         print(f"Writing figure to {self.figure_path}")
         plt.savefig(self.figure_path, dpi=300)
 
+        plt.ion()
+        plt.show()
+
+    def plot_spike_histogram(self, population_id=None, skip_time=0, end_time=None, fig_size=None, bin_size=50e-3):
+
+        if population_id is None:
+            population_id = self.snudda_load.get_neuron_population_units(return_set=True)
+
+        self.make_figures_directory()
+
+        fig = plt.figure(figsize=fig_size)
+        ax = fig.add_subplot()
+
+        pop_members = OrderedDict()
+        pop_spikes = OrderedDict()
+
+        if np.issubdtype(type(population_id), np.integer):
+            population_id = np.array([population_id])
+
+        for pid in population_id:
+            pop_members[pid] = self.snudda_load.get_population_unit_members(pid)
+
+            spikes = self.snudda_simulation_load.get_spikes(pop_members[pid])
+            pop_spikes[pid] = self.snudda_simulation_load.merge_spikes(spikes)[:, 0]
+
+        if end_time is None:
+            end_time = self.snudda_simulation_load.get_time()[-1]
+
+        bins = np.arange(skip_time, end_time, bin_size)
+        weights = [np.full(y.shape, 1/(len(x)*bin_size)) for x, y in zip(pop_members.values(), pop_spikes.values())]
+
+        plt.hist(x=pop_spikes.values(), bins=bins, weights=weights,
+                 histtype="step", label=[str(x) for x in pop_spikes.keys()])
+        plt.xlabel("Time (s)")
+        plt.ylabel("Frequency (Hz)")
+        ax.legend()
+
+        fig_name = os.path.join(self.network_path, "figures",
+                                f"spike-frequency-pop-units{'-'.join([str(x) for x in pop_members.keys()])}.pdf")
+        plt.savefig(fig_name, dpi=300)
         plt.ion()
         plt.show()
 
