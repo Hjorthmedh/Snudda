@@ -201,6 +201,13 @@ class PlotNetwork(object):
 
         self.equal_axis(ax)
 
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+        ax.set_zlabel("z")
+
+        for pop in pop_units:
+            print(f"Population unit {pop} has {len(np.where(population_unit == pop)[0])} neurons")
+
     def equal_axis(self, ax):
 
         x_min, x_max = ax.get_xlim()
