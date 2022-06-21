@@ -452,6 +452,22 @@ class SnuddaInput(object):
                     assert False, f"Unknown input generator {self.input_info[cell_type][input_type]['generator']} " \
                                   f"for cell_type {cell_type}, input_type {input_type}"
 
+                if "setMotherSpikes" in self.input_info[cell_type][input_type]:
+                    self.write_log(f"Warning, overwriting mother spikes for {cell_type} {input_type} with user defined spikes")
+
+                    for idxPopUnit in pop_unit_list:
+                        # User defined mother spikes
+                        self.population_unit_spikes[cell_type][input_type][idxPopUnit] = \
+                            np.array(self.input_info[cell_type][input_type]["setMotherSpikes"])
+
+                if "addMotherSpikes" in self.input_info[cell_type][input_type]:
+                    self.write_log(f"Adding user defined extra spikes to mother process for {cell_type} {input_type}")
+
+                    for idxPopUnit in pop_unit_list:
+                        self.population_unit_spikes[cell_type][input_type][idxPopUnit] = \
+                            np.sort(np.concatenate((self.population_unit_spikes[cell_type][input_type][idxPopUnit],
+                                                   np.array(self.input_info[cell_type][input_type]["addMotherSpikes"]))))
+
         return self.population_unit_spikes
 
     ############################################################################

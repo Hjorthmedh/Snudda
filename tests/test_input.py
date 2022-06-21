@@ -277,7 +277,7 @@ class InputTestCase(unittest.TestCase):
 
         # This tests function based frequency input
 
-        input_time = 1
+        input_time = 0.5
         input_config = os.path.join(self.network_path, "input-test-2.json")
         spike_file = os.path.join(self.network_path, "input-spikes-2.hdf5")
 
@@ -289,6 +289,21 @@ class InputTestCase(unittest.TestCase):
 
         input_data = h5py.File(spike_file, 'r')
         config_data = json.loads(input_data["config"][()])
+
+        some_spikes = input_data["input/1/Cortical/spikes"][()].flatten()
+        some_spikes = some_spikes[some_spikes >= 0]
+
+        for extra_spike in [0.2, 0.3, 0.45]:
+            self.assertTrue(np.sum(np.abs(some_spikes - extra_spike) < 1e-4) == 3993 )
+            self.assertTrue(np.sum(np.abs(some_spikes - extra_spike + 0.05) < 1e-3) < 5)
+
+        some_spikes2 = input_data["input/1/Thalamic/spikes"][()].flatten()
+        some_spikes2 = some_spikes2[some_spikes2 >= 0]
+
+        for spike in [0.1, 0.2, 0.3]:
+            self.assertTrue(np.sum(np.abs(some_spikes2 - spike) < 1e-4) == 2000 )
+
+        self.assertTrue(np.size(some_spikes2) == 6000)
 
         # Check input generated, this focuses on the frequency function generation
         # and also checks input correlation
