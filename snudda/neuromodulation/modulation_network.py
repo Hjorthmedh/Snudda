@@ -3,6 +3,7 @@ import os
 import numpy as np
 import copy
 
+
 class Neuromodulation:
 
     def __init__(self):
@@ -45,24 +46,22 @@ class Neuromodulation:
     def ion_channel_modulation(self, neurotransmitter, cell_type, section, ion_channels):
 
         if cell_type not in self.network_wide[self.name_to_key[neurotransmitter]]['ion_channels'].keys():
+            self.network_wide[self.name_to_key[neurotransmitter]]['ion_channels'].update({cell_type: dict()})
 
-            self.network_wide[self.name_to_key[neurotransmitter]]['ion_channels'].update({cell_type : dict()})
-
-            
-        self.network_wide[self.name_to_key[neurotransmitter]]['ion_channels'][cell_type].update({section : ion_channels})
+        self.network_wide[self.name_to_key[neurotransmitter]]['ion_channels'][cell_type].update({section: ion_channels})
 
     def receptor_modulation(self, neurotransmitter, cell_type, receptor, modulation):
 
         if cell_type not in self.network_wide[self.name_to_key[neurotransmitter]]['receptors'].keys():
-            self.network_wide[self.name_to_key[neurotransmitter]]['receptors'].update({cell_type : dict()})
-                
-        self.network_wide[self.name_to_key[neurotransmitter]]['receptors'][cell_type].update({receptor : modulation})
+            self.network_wide[self.name_to_key[neurotransmitter]]['receptors'].update({cell_type: dict()})
+
+        self.network_wide[self.name_to_key[neurotransmitter]]['receptors'][cell_type].update({receptor: modulation})
 
     def presynaptic_receptor_modulation(self, neurotransmitter, cell_type, receptor, modulation):
 
         if cell_type not in self.network_wide[self.name_to_key[neurotransmitter]]['presynaptic'].keys():
             self.network_wide[self.name_to_key[neurotransmitter]]['presynaptic'].update({cell_type: dict()})
-                
+
         self.network_wide[self.name_to_key[neurotransmitter]]['presynaptic'][cell_type].update({receptor: modulation})
 
     def plot_transient(self, neurotransmitter):
@@ -76,15 +75,12 @@ class Neuromodulation:
         method = getattr(modulation, temp['method'])
         modulation_vector = method(temp['parameters'])
 
-
-
         plt.figure()
         plt.title(f" Transient for the modulation using {neurotransmitter} ")
         plt.plot(duration, modulation_vector)
         plt.ylabel("Modulation")
-        plt.xlabel( "Time (ms)")
+        plt.xlabel("Time (ms)")
         plt.show()
-
 
     def save(self, dir_path, name):
 
@@ -94,7 +90,6 @@ class Neuromodulation:
             for neurotransmitter in self.network_wide.keys():
                 self.network_wide[neurotransmitter].update({'dt': self.dt})
 
-
         for neurotransmitter, modulation in self.network_wide.items():
 
             for cell, sections in modulation["ion_channels"].items():
@@ -103,13 +98,14 @@ class Neuromodulation:
                     if section in sections:
                         pass
                     else:
-                        sections.update({section : list()})
+                        sections.update({section: list()})
 
         temp = dict()
         temp.update({'type': self.type})
         temp.update({'description': self.network_wide})
         with open(os.path.join(dir_path, name), 'w') as out_file:
-            json.dump(temp, out_file)
+            json.dump(temp, out_file, indent=4, sort_keys=True)
+
 
 if __name__ == "__main__":
     neurotransmitter = "dopamine"
@@ -123,22 +119,21 @@ if __name__ == "__main__":
     name = "dopamine_modulation.json"
     dir_path = ""
     nl.set_modulation(neurotransmitter=neurotransmitter, neurotransmitter_key=neurotransmitter_key)
-    nl.transient(neurotransmitter=neurotransmitter, \
-                 method='alpha_background', \
-                 duration=3000, \
+    nl.transient(neurotransmitter=neurotransmitter,
+                 method="alpha_background",
+                 duration=3000,
                  parameters={"tstart": tstart,
                              "tonic": tonic,
                              "gmax_increase": gmax_increase,
                              "tau": tau})
 
-    nl.ion_channel_modulation(neurotransmitter=neurotransmitter, \
-                              cell_type="dSPN", \
-                              section="soma", \
+    nl.ion_channel_modulation(neurotransmitter=neurotransmitter,
+                              cell_type="dSPN",
+                              section="soma",
                               ion_channels=["kas_ms", "kaf_ms", "can_ms"])
-    nl.ion_channel_modulation(neurotransmitter=neurotransmitter, \
-                              cell_type="dSPN", \
-                              section="dendrite", \
+    nl.ion_channel_modulation(neurotransmitter=neurotransmitter,
+                              cell_type="dSPN",
+                              section="dendrite",
                               ion_channels=["kas_ms", "kaf_ms"])
-
 
     nl.save(dir_path=dir_path, name=name)

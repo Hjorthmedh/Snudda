@@ -14,6 +14,12 @@ import h5py
 
 class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
+    """
+
+        Class for simulating neuromodulation using the adaptive mode
+
+    """
+
     def __init__(self,
                  network_path=None,
                  network_file=None,
@@ -29,6 +35,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
         @type neuromodulation_weight: float
 
         """
+        self.neuromodulation_synapse_ids = None
         self.neuromodulator_description = neuromodulator_description['description']
         self.neuromodulation = dict()
         self.current_cell = None
@@ -38,7 +45,6 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
         self.connector = [info['connector'] for info in self.neuromodulator_description.values()]
         self.module_connector = [k+'()'for k in self.connector]
         self.mod_str = dict(zip(self.module_connector, self.connector))
-
 
         super(SnuddaSimulateNeuromodulationSynapse, self).__init__(network_path=network_path,
                                                                    network_file=network_file,
@@ -65,7 +71,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
         # Neuromodulation requires this to be run, before connect_network
 
-        #self.synapse_parameters is loaded in self.setup_neurons, hence it is None before
+        # self.synapse_parameters is loaded in self.setup_neurons, hence it is None before
 
         self.neuromodulation_synapse_ids = [sid for sid, synapse in self.synapse_parameters.items() if
                                             str(synapse[0]) in self.module_connector]
@@ -140,7 +146,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
         gpcr_synapse_info = np.take([source_id_list, dend_sections, sec_x, sec_id], gpcr_synapse_index, axis=1).transpose()
 
-        #rewrite code as it is sorted on sec_id, jump in step of sec_id and add to dict
+        # rewrite code as it is sorted on sec_id, jump in step of sec_id and add to dict
         sort_idx = gpcr_synapse_info[:, -1].argsort()
 
         gpcr_synapse_info = gpcr_synapse_info[sort_idx]

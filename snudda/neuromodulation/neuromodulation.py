@@ -8,6 +8,12 @@ import os
 
 class SnuddaSimulateNeuromodulation(SnuddaSimulate):
 
+    """
+
+    Class for simulating neuromodulation using the replay mode
+
+    """
+
     def __init__(self,
                  network_path=None,
                  network_file=None,
