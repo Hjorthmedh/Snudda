@@ -448,5 +448,33 @@
             "rotationMode": "random",
             "volumeID": "Striatum"
         }
+    },
+    "PopulationUnits": {
+        "AllUnitID": [
+            1,
+            2
+        ],
+        "Striatum": {
+            "method": "random",
+            "fractionOfNeurons": [
+                0.4,
+                0.4
+            ],
+            "unitID": [
+                1,
+                2
+            ],
+            "neuronTypes": [
+                [
+                    "dSPN",
+                    "FS"
+                ],
+                [
+                    "dSPN",
+                    "FS"
+                ]
+            ],
+            "structure": "Striatum"
+        }
     }
 }

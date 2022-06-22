@@ -88,7 +88,7 @@
 	    "generator" : "frequency_function",	    
 	    "type" : "AMPA_NMDA",
 	    "synapseDensity": "50*0.092*(1-exp(-d/200e-6))",	    
-	    "frequencyFunction" : "1*t",
+	    "frequencyFunction" : "10*t",
 	    "addMotherSpikes" : [0.2, 0.3, 0.45],
 	    "populationUnitCorrelation" : 1,
 	    "jitter" : 0.0,
