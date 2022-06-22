@@ -22,7 +22,8 @@
 	    "clusterSpread" : 30e-6,
 	    "frequencyFunction" : ["1", "20*t", "3"],
 	    "populationUnitCorrelation" : 0.9,
-	    "jitter" : 0.002,
+	    "populationUnitCorrelationFraction" : 0.5,
+	    "jitter" : 0.0,
 	    "conductance" : 0.5e-9,
 	    "modFile": "tmGlut",
 	    "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
