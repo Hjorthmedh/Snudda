@@ -386,6 +386,34 @@ class InputTestCase(unittest.TestCase):
                 self.assertTrue(135 <= self.find_freq_in_range(spikes, [4, 7]) <= 165,
                                 f"Expected frequency 150Hz, found {self.find_freq_in_range(spikes, [4, 5])} Hz")
 
+    def test_fraction_mixing(self):
+
+        si_empty = SnuddaInput()
+        rng = np.random.default_rng(112)
+
+        spikes_a = np.arange(0, 10, 0.1)
+        spikes_b = np.arange(0.01, 10, 0.1)
+        fraction_a = [0.9, 0.1]
+        fraction_b = [0.1, 0.9]
+        time_range = [[0, 5], [5, 8]]
+
+        mixed_spikes = SnuddaInput.mix_fraction_of_spikes(spikes_a=spikes_a, spikes_b=spikes_b,
+                                                          fraction_a=fraction_a, fraction_b=fraction_b,
+                                                          rng=rng, time_range=time_range)
+
+        # No spikes after t=8s, since outside time range
+        self.assertEqual(np.sum(mixed_spikes > 8), 0)
+
+        n_a_1 = np.logical_and((mixed_spikes + 1e-7) % 0.1 < 1e-5, mixed_spikes <= 5)
+        n_b_1 = np.logical_and((mixed_spikes + 1e-7) % 0.1 > 1e-5, mixed_spikes <= 5)
+        n_a_2 = np.logical_and((mixed_spikes + 1e-7) % 0.1 < 1e-5, mixed_spikes >= 5)
+        n_b_2 = np.logical_and((mixed_spikes + 1e-7) % 0.1 > 1e-5, mixed_spikes >= 5)
+
+        self.assertTrue(40 < np.sum(n_a_1) < 50)
+        self.assertTrue(1 < np.sum(n_b_1) < 10)
+        self.assertTrue(1 < np.sum(n_a_2) < 6)
+        self.assertTrue(20 < np.sum(n_b_2) < 30)
+
 
 if __name__ == '__main__':
     unittest.main()

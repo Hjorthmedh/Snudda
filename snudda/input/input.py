@@ -699,7 +699,7 @@ class SnuddaInput(object):
                     correlation_list.append(0)
 
                 if "populationUnitCorrelationFraction" in input_inf:
-                    population_unit_fraction_list.append(input_inf["populationUnitCorrelationFraction"])
+                    population_unit_fraction_list.append(np.array(input_inf["populationUnitCorrelationFraction"]))
                 else:
                     population_unit_fraction_list.append(1)
 
@@ -1050,7 +1050,7 @@ class SnuddaInput(object):
         return np.sort(np.concatenate(spikes))
 
     @staticmethod
-    def mix_fraction_of_spikes(spikes_a, spikes_b, fraction_a, fraction_b, rng):
+    def mix_fraction_of_spikes_OLD(spikes_a, spikes_b, fraction_a, fraction_b, rng):
 
         """ Picks fraction_a of spikes_a and fraction_b of spikes_b and returns sorted spike train
 
@@ -1072,6 +1072,70 @@ class SnuddaInput(object):
         idx_b = rng.choice(np.size(spikes_b), size=len_b_rand, replace=False)
 
         return np.sort(np.concatenate([spikes_a[idx_a], spikes_b[idx_b]]))
+
+
+    @staticmethod
+    def mix_fraction_of_spikes(spikes_a, spikes_b, fraction_a, fraction_b, rng, time_range=None):
+
+        """ Picks fraction_a of spikes_a and fraction_b of spikes_b and returns sorted spike train
+
+        Args:
+            spikes_a (np.array) : Spike train A
+            spikes_b (np.array) : Spike train B
+            fraction_a (float) : Fraction of spikes in train A picked, e.g 0.4 means 40% of spikes are picked
+            fraction_b (float) : Fraction of spikes in train B picked
+            rng : Numpy rng object
+            time_range : (start_times, end_times) for the different fractions
+        """
+
+        p_keep_a = np.zeros((np.size(spikes_a),))
+        p_keep_b = np.zeros((np.size(spikes_b),))
+
+        if time_range is None:
+            assert np.size(fraction_a) == np.size(fraction_b) == 1
+
+            assert 0 <= fraction_a <= 1 and 0 <= fraction_b <= 1
+
+            p_keep_a[:] = fraction_a
+            p_keep_b[:] = fraction_b
+        else:
+            assert len(time_range) == 2
+            assert np.ndim(time_range[0]) == np.ndim(time_range[1])
+
+            if np.ndim(time_range[0]) == 0:
+                time_range = (np.array([time_range[0]]), np.array([time_range[1]]))
+
+            if np.ndim(fraction_a) == 0:
+                fraction_a = np.full(time_range[0].shape, fraction_a)
+            else:
+                fraction_a = np.array(fraction_a)
+
+            if np.ndim(fraction_b) == 0:
+                fraction_b = np.full(time_range[0].shape, fraction_b)
+            else:
+                fraction_b = np.array(fraction_b)
+
+            assert np.size(fraction_a) == np.size(fraction_b) == np.size(time_range[0]) == np.size(time_range[1])
+            assert np.logical_and(0 <= fraction_a, fraction_a <= 1).all() \
+                and np.logical_and(0 <= fraction_b, fraction_b <= 1).all()
+
+            try:
+                for start, end, f_a, f_b in zip(*time_range, fraction_a, fraction_b):
+                    idx_a = np.where(np.logical_and(start <= spikes_a, spikes_a <= end))[0]
+                    idx_b = np.where(np.logical_and(start <= spikes_b, spikes_b <= end))[0]
+                    p_keep_a[idx_a] = f_a
+                    p_keep_b[idx_b] = f_b
+
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
+
+        keep_idx_a = np.where(p_keep_a >= rng.uniform(size=p_keep_a.shape))[0]
+        keep_idx_b = np.where(p_keep_b >= rng.uniform(size=p_keep_b.shape))[0]
+
+        return np.sort(np.concatenate([spikes_a[keep_idx_a], spikes_b[keep_idx_b]]))
 
     ############################################################################
 
@@ -1771,13 +1835,13 @@ class SnuddaInput(object):
             else:
                 p_keep = 0
 
-            if population_unit_fraction < 1 and population_unit_spikes is not None:
+            if population_unit_spikes is not None:
                 neuron_correlated_spikes = self.generate_spikes_helper(frequency=freq, time_range=time_range, rng=rng,
                                                                        input_generator=input_generator)
 
                 mother_spikes = SnuddaInput.mix_fraction_of_spikes(population_unit_spikes, neuron_correlated_spikes,
                                                                    population_unit_fraction, 1-population_unit_fraction,
-                                                                   rng=rng)
+                                                                   rng=rng, time_range=time_range)
             else:
                 mother_spikes = population_unit_spikes
 
