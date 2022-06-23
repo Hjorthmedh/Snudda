@@ -1115,9 +1115,12 @@ class SnuddaInput(object):
             else:
                 fraction_b = np.array(fraction_b)
 
-            assert np.size(fraction_a) == np.size(fraction_b) == np.size(time_range[0]) == np.size(time_range[1])
+            assert np.size(fraction_a) == np.size(fraction_b) == np.size(time_range[0]) == np.size(time_range[1]), \
+                f"Lengths must match for time_range start {time_range[0]}, end {time_range[1]}, " \
+                f"fraction_a {fraction_a} and fraction_b {fraction_b}"
             assert np.logical_and(0 <= fraction_a, fraction_a <= 1).all() \
-                and np.logical_and(0 <= fraction_b, fraction_b <= 1).all()
+                and np.logical_and(0 <= fraction_b, fraction_b <= 1).all(), \
+                f"Fractions must be between 0 and 1: {fraction_a}, {fraction_b}"
 
             try:
                 for start, end, f_a, f_b in zip(*time_range, fraction_a, fraction_b):

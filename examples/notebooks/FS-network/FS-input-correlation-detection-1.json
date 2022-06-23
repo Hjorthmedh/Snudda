@@ -3,10 +3,11 @@
         "cortical_signal_1" : {
             "conductance" : 5e-10,
             "frequency" : 2,
-	    "start" : [0, 0.5, 0.6],
-	    "end" : [0.5, 0.6, 1.5],
+	    "start" : [0, 0.4],
+	    "end" : [0.4, 0.55],
 	    "addMotherSpikes": [0.501],
-	    "populationUnitCorrelation" : [0, 0.5, 0],
+	    "populationUnitCorrelation" : [0.9, 0.9],
+	    "populationUnitCorrelationFraction" : [0, 1],
 	    "populationUnitID" : 1,
             "nInputs" : 300,
             "generator" : "poisson",        
@@ -20,10 +21,11 @@
 	"thalamic_signal_1": {
             "conductance": 5e-10,
             "frequency": 2.0,
-	    "start": [0, 1, 1.1],
-	    "end": [1, 1.1, 1.5],
+	    "start": [0.8, 1],
+	    "end": [1, 1.15],
 	    "addMotherSpikes": [1.001],
-	    "populationUnitCorrelation": [0, 0.5, 0],
+	    "populationUnitCorrelation": [0.9, 0.9],
+	    "populationUnitCorrelationFraction" : [0, 1],
 	    "populationUnitID" : 1,
             "nInputs": 300,	    
             "generator": "poisson",
@@ -38,7 +40,7 @@
             "conductance" : 5e-10,
             "frequency" : 2,
 	    "start" : [0],
-	    "end" : [1.5],
+	    "end" : [0.55],
 	    "populationUnitCorrelation" : [0],
 	    "populationUnitID" : 2,
             "nInputs" : 300,
@@ -53,8 +55,8 @@
 	"thalamic_nosignal_2": {
             "conductance": 5e-10,
             "frequency": 2.0,
-	    "start": [0],
-	    "end": [1.5],
+	    "start": [0.8],
+	    "end": [1.15],
 	    "populationUnitCorrelation": [0],
 	    "populationUnitID" : 2,
             "nInputs": 300,	    
@@ -64,7 +66,9 @@
             "parameterFile": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-FS.json",
             "synapseDensity": "0.05*exp(-d/200e-6)",
             "type": "AMPA_NMDA"
-        }
+        },
+	"cortical": { "generator": "poisson", "frequency" : 1 },
+	"thalamic": { "generator": "poisson", "frequency" : 1 }
     }
     
 }
