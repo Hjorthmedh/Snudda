@@ -140,7 +140,7 @@ class PlotInput(object):
                     y_pos += 1
 
                 plt.scatter(np.concatenate(spikes_x), np.concatenate(spikes_y),
-                            color=colours(input_ctr), marker='.', s=7)
+                            color=colours(input_ctr), marker='.', s=4)
 
                 y_pos_avg = (y_pos + y_pos_start)/2
                 ytick_pos.append(y_pos_avg)
