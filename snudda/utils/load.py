@@ -360,7 +360,7 @@ class SnuddaLoad(object):
             axon_density_bounds_xyz, \
             morph, neuron_path, \
             parameter_id, morphology_id, modulation_id, \
-            parameter_key, morphology_key, modulation_key \
+            parameter_key, morphology_key, modulation_key, population_unit_id \
                 in zip(hdf5_file["network/neurons/name"][:],
                        hdf5_file["network/neurons/neuronID"][:],
                        hdf5_file["network/neurons/hoc"][:],
@@ -381,7 +381,8 @@ class SnuddaLoad(object):
                        hdf5_file["network/neurons/modulationID"][:],
                        hdf5_file["network/neurons/parameterKey"][:],
                        hdf5_file["network/neurons/morphologyKey"][:],
-                       hdf5_file["network/neurons/modulationKey"][:]
+                       hdf5_file["network/neurons/modulationKey"][:],
+                       hdf5_file["network/neurons/populationUnitID"][:]
                        ):
 
             n = dict([])
@@ -430,6 +431,8 @@ class SnuddaLoad(object):
             n["parameterKey"] = SnuddaLoad.to_str(parameter_key)
             n["morphologyKey"] = SnuddaLoad.to_str(morphology_key)
             n["modulationKey"] = SnuddaLoad.to_str(modulation_key)
+
+            n["populationUnit"] = population_unit_id
 
             neurons.append(n)
 
@@ -666,6 +669,18 @@ class SnuddaLoad(object):
 
     ############################################################################
 
+    def get_neuron_population_units(self, neuron_id=None, return_set=False):
+
+        if neuron_id:
+            neuron_population_units = self.data["populationUnit"][neuron_id].flatten().copy()
+        else:
+            neuron_population_units = self.data["populationUnit"].flatten().copy()
+
+        if return_set:
+            return set(neuron_population_units)
+        else:
+            return neuron_population_units
+
     def get_neuron_types(self, neuron_id=None, return_set=False):
 
         if neuron_id:
@@ -726,6 +741,12 @@ class SnuddaLoad(object):
 
         return neuron_id
 
+    def get_neuron_id(self):
+
+        neuron_id = np.array([x["neuronID"] for x in self.data["neurons"]])
+
+        return neuron_id
+
     def get_neuron_id_with_name(self, neuron_name):
 
         """
@@ -738,7 +759,7 @@ class SnuddaLoad(object):
             List of neuron ID
         """
 
-        neuron_id = [x["neuronID"] for x in self.data["neurons"] if x["name"] == neuron_name]
+        neuron_id = np.array([x["neuronID"] for x in self.data["neurons"] if x["name"] == neuron_name])
 
         return neuron_id
 
@@ -937,8 +958,8 @@ def snudda_load_cli():
                 print("%d : %s  (x: %f, y: %f, z: %f), par_key: %s, morph_key: %s, mod_key: %s"
                       % (nid, name, pos[0], pos[1], pos[2], par_key, morph_key, mod_key))
         else:
-            for nid, name, pos in [(x["neuronID"], x["name"], x["position"]) for x in nl.data["neurons"]]:
-                print("%d : %s  (x: %f, y: %f, z: %f)" % (nid, name, pos[0], pos[1], pos[2]))
+            for nid, name, pos, pid in [(x["neuronID"], x["name"], x["position"], x["populationUnit"]) for x in nl.data["neurons"]]:
+                print("%d : %s [%d] (x: %f, y: %f, z: %f)" % (nid, name, pid, pos[0], pos[1], pos[2]))
 
     if args.listT is not None:
         if args.listT == "?":

@@ -294,7 +294,7 @@ class SnuddaSaveNetworkRecordings:
         if self.sample_dt is None:
             return None
         else:
-            converted_time = self.time * self.get_conversion("time")
+            converted_time = np.array(self.time) * self.get_conversion("time")
             dt = converted_time[1] - converted_time[0]
             sample_step = int(np.round(self.sample_dt / dt))
             return sample_step

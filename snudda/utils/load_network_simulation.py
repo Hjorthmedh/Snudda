@@ -107,7 +107,7 @@ class SnuddaLoadNetworkSimulation:
             for nid in neuron_id:
                 if str(nid) in self.network_simulation_file["neurons"] \
                         and "spikes" in self.network_simulation_file[f"neurons/{nid}"]:
-                    spike_data[nid] = self.network_simulation_file[f"neurons/{neuron_id}/spikes/data"][()].copy()
+                    spike_data[nid] = self.network_simulation_file[f"neurons/{nid}/spikes/data"][()].copy()
                 else:
                     spike_data[nid] = np.array([])
 
