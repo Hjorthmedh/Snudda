@@ -251,7 +251,7 @@ class SnuddaPlotSpikeRaster2:
         if end_time is None:
             end_time = self.snudda_simulation_load.get_time()[-1]
 
-        bins = np.arange(skip_time, end_time, bin_size)
+        bins = np.arange(skip_time, end_time+bin_size/2, bin_size)
         weights = [np.full(y.shape, 1/(len(x)*bin_size)) for x, y in zip(pop_members.values(), pop_spikes.values())]
 
         plt.hist(x=pop_spikes.values(), bins=bins, weights=weights,

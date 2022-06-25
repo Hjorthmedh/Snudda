@@ -427,8 +427,8 @@ class SnuddaInput(object):
                     freq = self.input_info[cell_type][input_type]["frequency"]
                     self.population_unit_spikes[cell_type][input_type] = dict([])
 
-                    for idxPopUnit in pop_unit_list:
-                        self.population_unit_spikes[cell_type][input_type][idxPopUnit] = \
+                    for idx_pop_unit in pop_unit_list:
+                        self.population_unit_spikes[cell_type][input_type][idx_pop_unit] = \
                             self.generate_poisson_spikes(freq=freq, time_range=(start_time, end_time), rng=rng)
 
                 # Handle frequency function
@@ -437,9 +437,9 @@ class SnuddaInput(object):
                     frequency_function = self.input_info[cell_type][input_type]["frequencyFunction"]
                     self.population_unit_spikes[cell_type][input_type] = dict([])
 
-                    for idxPopUnit in pop_unit_list:
+                    for idx_pop_unit in pop_unit_list:
                         try:
-                            self.population_unit_spikes[cell_type][input_type][idxPopUnit] = \
+                            self.population_unit_spikes[cell_type][input_type][idx_pop_unit] = \
                                 self.generate_spikes_function(frequency_function=frequency_function,
                                                               time_range=(start_time, end_time),
                                                               rng=rng)
@@ -455,17 +455,17 @@ class SnuddaInput(object):
                 if "setMotherSpikes" in self.input_info[cell_type][input_type]:
                     self.write_log(f"Warning, overwriting mother spikes for {cell_type} {input_type} with user defined spikes")
 
-                    for idxPopUnit in pop_unit_list:
+                    for idx_pop_unit in pop_unit_list:
                         # User defined mother spikes
-                        self.population_unit_spikes[cell_type][input_type][idxPopUnit] = \
+                        self.population_unit_spikes[cell_type][input_type][idx_pop_unit] = \
                             np.array(self.input_info[cell_type][input_type]["setMotherSpikes"])
 
                 if "addMotherSpikes" in self.input_info[cell_type][input_type]:
                     self.write_log(f"Adding user defined extra spikes to mother process for {cell_type} {input_type} -- but not for population unit 0")
 
-                    for idxPopUnit in pop_unit_list:
-                        self.population_unit_spikes[cell_type][input_type][idxPopUnit] = \
-                            np.sort(np.concatenate((self.population_unit_spikes[cell_type][input_type][idxPopUnit],
+                    for idx_pop_unit in pop_unit_list:
+                        self.population_unit_spikes[cell_type][input_type][idx_pop_unit] = \
+                            np.sort(np.concatenate((self.population_unit_spikes[cell_type][input_type][idx_pop_unit],
                                                    np.array(self.input_info[cell_type][input_type]["addMotherSpikes"]))))
 
         return self.population_unit_spikes
