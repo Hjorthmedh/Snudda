@@ -2,11 +2,11 @@
     "FS" : {
         "cortical_signal_1" : {
             "conductance" : 5e-10,
-            "frequency" : [7, 7, 7.5, 7.5, 8, 8, 8.5, 8.5, 9, 9],
-	    "start" : [0, 2, 4, 6, 8,  10, 12, 14, 16, 18],
-	    "end" :   [2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
+            "frequency" : [8, 8, 8, 8],
+	    "start" : [0, 5, 10, 15],
+	    "end" :   [5, 10, 15, 20],
 	    "populationUnitCorrelation" : 0.8,
-	    "populationUnitCorrelationFraction" : [0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+	    "populationUnitCorrelationFraction" : [0, 1, 0, 1],
 	    "populationUnitID" : 1,
             "nInputs" : 100,
             "generator" : "poisson",        
