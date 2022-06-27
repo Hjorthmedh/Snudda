@@ -18,7 +18,7 @@ class TestNeuromodulationAdaptive(unittest.TestCase):
         args.action = "init"
         args.size = 10
         args.overwrite = True
-        args.path = os.path.join(os.path.dirname(__file__), "test_network_neuromodulation_adaptive")
+        args.path = os.path.join(os.path.dirname(__file__),"networks", "test_network_neuromodulation_adaptive")
         args.randomseed = 12345
         args.neurons_dir = os.path.join(os.path.dirname(__file__), "neuromodulation", "data", "neurons")
         args.input = os.path.join(os.path.dirname(__file__), "neuromodulation", "data", "input", "input.json")
@@ -88,9 +88,9 @@ class TestNeuromodulationAdaptive(unittest.TestCase):
         os.environ["SNUDDA_DATA"] = os.path.join(os.path.dirname(__file__), "neuromodulation", "data")
         args.neuromodulation = os.path.join(os.path.dirname(__file__), "neuromodulation", "data", "modulation",
                                             "dopamine_acetylcholine_modulation.json")
-        args.path = os.path.join(os.path.dirname(__file__), "test_network_neuromodulation_adaptive")
+        args.path = os.path.join(os.path.dirname(__file__), "networks", "test_network_neuromodulation_adaptive")
         args.output_file = os.path.join(os.path.dirname(__file__), "simulation", "test.hdf5")
-        args.time = 0.1
+        args.time = 0.01
         args.nrnivmodl = os.path.join(os.environ["SNUDDA_DATA"], "neurons", "mechanisms_ptr", "da_ch")
         args.network_file = None
 
@@ -108,6 +108,10 @@ class TestNeuromodulationAdaptive(unittest.TestCase):
         s = Snudda(network_path=args.path)
         s.simulate(args=args)
 
+        self.assertTrue(os.path.exists(args.output_file))
+        self.assertTrue(os.path.exists(args.path))
+        self.assertTrue(os.path.exists(os.path.join(args.path, "input-spikes.hdf5")))
 
 if __name__ == "__main__":
+
     unittest.main()

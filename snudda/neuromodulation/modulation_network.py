@@ -84,21 +84,70 @@ class Neuromodulation:
 
     def save(self, dir_path, name):
 
+        cell_types = list()
+        sections = ["axon", "dendrite", "soma"]
+        modulation_types = ["ion_channels", "receptors", "presynaptic"]
+
         if not self.dt:
             raise ValueError(' Set time step for simulation')
         else:
-            for neurotransmitter in self.network_wide.keys():
-                self.network_wide[neurotransmitter].update({'dt': self.dt})
+            for neurotransmitter_type in self.network_wide.keys():
+                self.network_wide[neurotransmitter_type].update({'dt': self.dt})
 
-        for neurotransmitter, modulation in self.network_wide.items():
+        # Add all the types of modulation, if they do not exist
 
-            for cell, sections in modulation["ion_channels"].items():
+        for m in modulation_types:
 
-                for section in ["axon", "dendrite", "soma"]:
-                    if section in sections:
+            for neurotransmitter_type in self.network_wide:
+                if m not in self.network_wide[neurotransmitter_type]:
+                    self.network_wide[neurotransmitter_type].update({m: dict()})
+
+        # Add all cell types to all the types of modulation
+
+        for neurotransmitter_type, modulation_information in self.network_wide.items():
+
+            for m in modulation_information:
+                if m in modulation_types:
+                    for c in modulation_information[m]:
+                        if c not in cell_types:
+                            cell_types.append(c)
+
+        for neurotransmitter_type, modulation_type in self.network_wide.items():
+
+            if "ion_channels" in modulation_type:
+
+                for cell_type in cell_types:
+
+                    if cell_type in modulation_type["ion_channels"]:
+
+                        for section in sections:
+                            if section in modulation_type["ion_channels"][cell_type]:
+                                pass
+                            else:
+                                modulation_type["ion_channels"][cell_type].update({section: list()})
+                    else:
+                        modulation_type["ion_channels"].update({cell_type: dict()})
+
+                        for section in sections:
+                            modulation_type["ion_channels"][cell_type].update({section: list()})
+
+            if "receptors" in modulation_type:
+
+                for cell_type in cell_types:
+
+                    if cell_type in modulation_type["receptors"]:
                         pass
                     else:
-                        sections.update({section: list()})
+                        modulation_type["receptors"].update({cell_type: dict()})
+
+            if "presynaptic" in modulation_type:
+
+                for cell_type in cell_types:
+
+                    if cell_type in modulation_type["presynaptic"]:
+                        pass
+                    else:
+                        modulation_type["presynaptic"].update({cell_type: dict()})
 
         temp = dict()
         temp.update({'type': self.type})
@@ -114,14 +163,16 @@ if __name__ == "__main__":
     tonic = 0.2
     gmax_increase = 0.8
     tau = 500
+    duration = 3000
+    dt = 0.025
     nl = Neuromodulation()
-    nl.set_timestep(dt=0.025)
+    nl.set_timestep(dt=dt)
     name = "dopamine_modulation.json"
     dir_path = ""
     nl.set_modulation(neurotransmitter=neurotransmitter, neurotransmitter_key=neurotransmitter_key)
     nl.transient(neurotransmitter=neurotransmitter,
                  method="alpha_background",
-                 duration=3000,
+                 duration=duration,
                  parameters={"tstart": tstart,
                              "tonic": tonic,
                              "gmax_increase": gmax_increase,
@@ -137,3 +188,5 @@ if __name__ == "__main__":
                               ion_channels=["kas_ms", "kaf_ms"])
 
     nl.save(dir_path=dir_path, name=name)
+
+    
