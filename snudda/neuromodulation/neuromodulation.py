@@ -8,6 +8,12 @@ import os
 
 class SnuddaSimulateNeuromodulation(SnuddaSimulate):
 
+    """
+
+    Class for simulating neuromodulation using the replay mode
+
+    """
+
     def __init__(self,
                  network_path=None,
                  network_file=None,
@@ -143,7 +149,6 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
 
             if self.verbose:
                 print(f" {key}{modulation} set to {value} at {syn}")
-
 
         self.neuromodulation[modulation]['modulation_vector'].play(
             getattr(syn, f"_ref_level{modulation}"), self.sim.neuron.h.dt)
