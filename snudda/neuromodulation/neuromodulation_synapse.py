@@ -28,6 +28,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                  verbose=False,
                  log_file=None,
                  disable_gap_junctions=True,
+                 disable_synapses=False,
                  simulation_config=None,
                  neuromodulator_description=None):
         """
@@ -53,6 +54,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                                                                    verbose=verbose,
                                                                    log_file=log_file,
                                                                    disable_gap_junctions=disable_gap_junctions,
+                                                                   disable_synapses=disable_synapses,
                                                                    simulation_config=simulation_config)
 
         # Change the self.custom_setup from None, and execute the custom setup code within this file
