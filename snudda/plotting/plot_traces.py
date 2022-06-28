@@ -73,24 +73,6 @@ class PlotTraces:
 
     ############################################################################
 
-    def read_csv(self):
-
-        assert False, "read_csv is deprecated, use SnuddaLoadNetworkSimulation instead"
-
-        data = np.genfromtxt(self.output_file, delimiter=',')
-
-        assert (data[0, 0] == -1)  # First column should be time
-
-        self.time = data[0, 1:] / 1e3
-
-        self.voltage = dict()
-
-        for rows in data[1:, :]:
-            c_id = int(rows[0])
-            self.voltage[c_id] = rows[1:] * 1e-3
-
-    ############################################################################
-
     def neuron_name(self, neuron_type):
 
         if neuron_type in self.neuron_name_remap:
@@ -231,12 +213,15 @@ class PlotTraces:
         if fig_name is None:
             if len(types_in_plot) > 1:
                 fig_name = f"Network-voltage-trace-{self.experiment_name}-{'-'.join(types_in_plot)}.pdf"
+            elif len(trace_id) <= 10:
+                trace_id_str = '-'.join([str(x) for x in trace_id])
+                fig_name = f"Network-voltage-trace-{self.experiment_name}-{types_in_plot.pop()}-{trace_id_str}.pdf"
             else:
-                fig_name = f"Network-voltage-trace-{self.experiment_name}-{types_in_plot.pop()}.pdf"
+                fig_name = f"Network-voltage-trace-{self.experiment_name}-{types_in_plot.pop()}-traces.pdf"
 
         plt.savefig(os.path.join(fig_path, fig_name), dpi=600)
 
-        print(f"Saving to figure {fig_name}")
+        print(f"Saving to figure {os.path.join(fig_path, fig_name)}")
 
         plt.ion()
         plt.show()
@@ -279,7 +264,7 @@ class PlotTraces:
         if folder_name is None:
             folder_name = ""
 
-        #Plot traces and save as separate images
+        # Plot traces and save as separate images
         if skip_time is not None:
             print(f"!!! Excluding first {skip_time} s from the plot")
 
@@ -336,13 +321,13 @@ class PlotTraces:
         for r in trace_id:
             fig = plt.figure(figsize=fig_size)
             if r not in self.voltage:
-                print("Missing data for trace " + str(r))
+                print(f"Missing data for trace {r}")
                 continue
 
             plot_count += 1
             types_in_plot.add(self.network_info.data["neurons"][r]["type"])
 
-            plt.plot(self.time[time_idx] - skip_time,1000*self.voltage[r][time_idx] ,color='black')
+            plt.plot(self.time[time_idx] - skip_time,1000*self.voltage[r][time_idx], color='black')
 
             plt.xlabel('Time (s)')
             plt.ylabel('Membrane potential (mV)')
@@ -420,7 +405,7 @@ class PlotTraces:
     ############################################################################
 
 
-if __name__ == "__main__":
+def snudda_plot_traces_cli():
 
     import argparse
     parser = argparse.ArgumentParser("Plot traces")
@@ -443,3 +428,7 @@ if __name__ == "__main__":
         for neuron_type in npt.output_load.iter_neuron_type():
             npt.plot_trace_neuron_type(neuron_type=neuron_type, num_traces=args.max_num_traces,
                                        offset=args.plot_offset, skip_time=args.skip_time)
+
+
+if __name__ == "__main__":
+    snudda_plot_traces_cli()

@@ -36,6 +36,44 @@ class AnalyseGapJunctionCoupling:
                                                                                     "simulation",
                                                                                     output_file))
 
+    def get_gap_junction_connection_matrix(self):
+
+        num_neurons = len(self.network_info.data["neuronID"])
+        gj_connection_matrix = np.zeros((num_neurons, num_neurons), dtype=int)
+
+        for gj_list in self.network_info.gap_junction_iterator():
+            for gj in gj_list:
+                gj_connection_matrix[gj[0], gj[1]] += 1
+                gj_connection_matrix[gj[1], gj[0]] += 1
+
+        return gj_connection_matrix
+
+    def get_gj_list(self, n_pairs=10):
+
+        gj_matrix = self.get_gap_junction_connection_matrix()
+        # We sort the items in the upper triangular part of the matrix
+        gj_list = np.triu(gj_matrix).flatten()
+        idx = np.argsort(-gj_list)
+
+        # Get back original 2-d indexing
+        row, col = np.unravel_index(idx, gj_matrix.shape)
+
+        n_max = np.sum(gj_list[idx] > 0)
+
+        if n_pairs is not None:
+            n_shown = min(n_pairs, n_max)
+        else:
+            n_shown = n_max
+
+        return row[:n_shown], col[:n_shown], gj_list[idx[:n_shown]]
+
+    def print_gj_list(self, n_pairs=10):
+
+        gj_a_list, gj_b_list, num_gj_list = self.get_gj_list(n_pairs=n_pairs)
+
+        for gj_a, gj_b, num_gj in zip(gj_a_list, gj_b_list, num_gj_list):
+            print(f"{gj_a} -- {gj_b} : {num_gj} gap junctions")
+
     def find_gap_junction_neighbours(self, neuron_id):
 
         if neuron_id not in self.neighbour_id_cache:
@@ -150,12 +188,12 @@ class AnalyseGapJunctionCoupling:
                 volt, time = self.get_trace(neuron_id_list=get_id,
                                             start_time=trace_data["start_time"],
                                             end_time=trace_data["end_time"],
-                                            time_padding=0.1)
+                                            time_padding=0.05)
                 plt.plot(time, volt[:, 0], 'k', linewidth=2)
                 plt.plot(time, volt[:, 1:], 'k', linewidth=1)
 
             plt.title(f"Coupling: {np.mean(coupling):.4f} ({np.min(coupling):.4f} - {np.max(coupling):.4f}), "
-                      f"duration {duration*1e3:.0f} ms")
+                      f"duration {duration*1e3:.0f} ms (neuron {neuron_id})")
 
             fig_name = os.path.join(self.figure_path,
                                     f"gap-junction-coupling-neuron-{neuron_id}-duration-{duration}.png")

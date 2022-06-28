@@ -2,16 +2,27 @@ TITLE Slowly inactivating A-type potassium current (Kv1.2)
 
 COMMENT
 
-neuromodulation is added as functions:
+Neuromodulation is added as functions:
     
-    modulation = 1 + damod*(maxMod-1)
+    modulationDA = 1 + modDA*(maxModDA-1)*levelDA
 
 where:
     
-    damod  [0]: is a switch for turning modulation on or off {1/0}
-    maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
+    modDA  [0]: is a switch for turning modulation on or off {1/0}
+    maxModDA [1]: is the maximum modulation for this specific channel (read from the param file)
                     e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+    levelDA  [0]: is an additional parameter for scaling modulation. 
+                Can be used simulate non static modulation by gradually changing the value from 0 to 1 {0-1}
+									
+	  Further neuromodulators can be added by for example:
+          modulationDA = 1 + modDA*(maxModDA-1)
+	  modulationACh = 1 + modACh*(maxModACh-1)
+	  ....
 
+	  etc. for other neuromodulators
+	  
+	   
+								     
 [] == default values
 {} == ranges
     
@@ -21,7 +32,7 @@ NEURON {
     SUFFIX kas_fs
     USEION k READ ek WRITE ik
     RANGE gbar, gk, ik, shift, q
-    RANGE damod, maxMod
+    RANGE modDA, maxModDA, levelDA
 }
 
 UNITS {
@@ -36,8 +47,9 @@ PARAMETER {
     :q = 1	: room temperature 22-24 C
     q = 3	: body temperature 33 C
     shift = 0
-    damod = 0
-    maxMod = 1
+    modDA = 0
+    maxModDA = 1
+    levelDA = 0
 }
 
 ASSIGNED {
@@ -55,7 +67,7 @@ STATE { m h }
 
 BREAKPOINT {
     SOLVE states METHOD cnexp
-    gk = gbar*m*m*(h*a+1-a)*modulation()
+    gk = gbar*m*m*(h*a+1-a)*modulationDA()
     ik = gk*(v-ek)
 }
 
@@ -80,10 +92,10 @@ PROCEDURE rates() {
     UNITSON
 }
 
-FUNCTION modulation() {
+FUNCTION modulationDA() {
     : returns modulation factor
     
-    modulation = 1 + damod*(maxMod-1)
+    modulationDA = 1 + modDA*(maxModDA-1)*levelDA 
 }
 
 COMMENT

@@ -131,3 +131,13 @@ networks
 save/
 /snudda/examples/controller_ip.txt
 /snudda/examples/start_time_network_connect.txt
+
+docs/detect
+docs/input
+docs/neurons
+docs/place
+docs/simulate
+docs/utils
+
+example/notebooks/*/networks
+

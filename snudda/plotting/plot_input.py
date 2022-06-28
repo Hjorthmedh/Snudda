@@ -28,6 +28,10 @@ class PlotInput(object):
             print(f"Specify a network_path with a network file, to get neuron type in figure")
             self.network_info = None
 
+    def close(self):
+        print(f"Closing {self.input_data.filename}")
+        self.input_data.close()
+
     def load_input(self, input_file):
         self.input_data = h5py.File(input_file, "r")
 
@@ -123,11 +127,20 @@ class PlotInput(object):
             for input_type in data:
 
                 y_pos_start = y_pos
+
+                spikes_x = []
+                spikes_y = []
+
                 for spike_train in data[input_type]:
                     idx = np.where(spike_train > 0)[0]
-                    plt.scatter(spike_train[idx], y_pos * np.ones((len(idx),)),
-                                color=colours(input_ctr), marker='.', s=7)
+                    spikes_x.append(spike_train[idx].flatten())
+                    spikes_y.append((y_pos * np.ones((len(idx),))).flatten())
+                    #plt.scatter(spike_train[idx], y_pos * np.ones((len(idx),)),
+                    #            color=colours(input_ctr), marker='.', s=7)
                     y_pos += 1
+
+                plt.scatter(np.concatenate(spikes_x), np.concatenate(spikes_y),
+                            color=colours(input_ctr), marker='.', s=4)
 
                 y_pos_avg = (y_pos + y_pos_start)/2
                 ytick_pos.append(y_pos_avg)

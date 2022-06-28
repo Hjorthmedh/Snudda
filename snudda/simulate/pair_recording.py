@@ -39,7 +39,11 @@ class PairRecording(SnuddaSimulate):
 
     """
 
-    def __init__(self, network_path, experiment_config_file, output_file=None, disable_gap_junctions=False, verbose=False):
+    def __init__(self, network_path, experiment_config_file,
+                 output_file=None, network_file=None,
+                 disable_gap_junctions=False,
+                 disable_synapses=False,
+                 verbose=False):
 
         # Do stuff with experiment_config
         self.experiment_config_file = experiment_config_file
@@ -55,14 +59,16 @@ class PairRecording(SnuddaSimulate):
         print(f"Pair recording output file: {output_file}")
 
         super().__init__(network_path=network_path,
+                         network_file=network_file,
                          output_file=output_file,
+                         disable_synapses=disable_synapses,
                          disable_gap_junctions=disable_gap_junctions,
                          verbose=verbose)
 
         self.simulate_neuron_ids = None
 
         self.sim_duration = None
-        self.holding_i_clamp_list = []
+        self.holding_i_clamp_list = dict()
         self.v_init_saved = dict()
         self.v_hold_saved = dict()
 
@@ -141,11 +147,44 @@ class PairRecording(SnuddaSimulate):
             stim_neuron_id = self.to_list(cur_info["neuronID"])
             stim_start_time = self.to_list(cur_info["start"])
             stim_end_time = self.to_list(cur_info["end"])
-            stim_amplitude = self.to_list(cur_info["amplitude"])
+
+            if "amp_spread" in cur_info:
+                amp_spread = cur_info["amp_spread"]
+            else:
+                amp_spread = None
 
             for nid in stim_neuron_id:
+
+                if "amplitude" in cur_info:
+                    stim_amplitude = self.to_list(cur_info["amplitude"])
+                elif "requestedFrequency" in cur_info:
+                    requested_freq = self.to_list(cur_info["requestedFrequency"])
+                    stim_amplitude = self.get_corresponding_current_injection(neuron_id=nid,
+                                                                              frequency=requested_freq)
+
+                    if nid in self.holding_i_clamp_list:
+                        _, cur = self.holding_i_clamp_list[nid]
+                        self.write_log(f"Compensating for holding current, reducing {stim_amplitude} A by {cur} A")
+                        stim_amplitude -= cur
+
+                    v_holder = self.v_hold_saved[nid]
+                else:
+                    assert False, f"You need to specify 'amplitude' or 'requestedFrequency' for neuron_id {stim_neuron_id}"
+
                 self.add_current_pulses(neuron_id=nid, start_times=stim_start_time,
-                                        end_times=stim_end_time, amplitudes=stim_amplitude)
+                                        end_times=stim_end_time, amplitudes=stim_amplitude,
+                                        amp_spread=amp_spread)
+
+                if "noise_amplitude" in cur_info:
+
+                    if "noise_dt" in cur_info:
+                        noise_dt = cur_info["noise_dt"]  # dt = how often does noise current change
+                    else:
+                        noise_dt = None
+
+                    self.add_noise(neuron_id=nid, noise_std=cur_info["noise_amplitude"],
+                                   duration=self.sim_duration,
+                                   dt=noise_dt)
 
         if "record" in self.experiment_config["meta"]:
             if self.experiment_config["meta"]["record"].lower() == "soma":
@@ -160,6 +199,39 @@ class PairRecording(SnuddaSimulate):
             self.add_volt_recording_soma()
 
         self.setup_synaptic_recordings()
+
+    def get_corresponding_current_injection(self, neuron_id, frequency):
+
+        """ Extracts what current injection is needed to get requested frequency from if_info.json """
+
+        if_file = os.path.join(self.network_info["neurons"][neuron_id]["neuronPath"], "if_info.json")
+        parameter_key = self.network_info["neurons"][neuron_id]["parameterKey"]
+        morphology_key = self.network_info["neurons"][neuron_id]["morphologyKey"]
+
+        assert os.path.isfile(if_file), f"Unable determine current to get frequency {frequency}, needs {if_file}"
+
+        with open(if_file, "r") as f:
+            if_data = json.load(f)
+
+        current_list = if_data[parameter_key][morphology_key]["current"]
+        frequency_list = if_data[parameter_key][morphology_key]["frequency"]
+
+        assert (np.diff(current_list) > 0).all(), f"Injected currents are not increasing in file: {if_file} " \
+                                                  f"for parameter_key {parameter_key}, morphology_key {morphology_key}"
+
+        current = np.interp(frequency, frequency_list, current_list)
+
+        if (np.array(frequency) < frequency_list[0]).any():
+            self.write_log(f"WARNING: Neuron {neuron_id} requested frequency {frequency}, "
+                           f"but lowest frequency in {if_file} is {frequency_list[0]}", force_print=True)
+
+        if (np.array(frequency) > frequency_list[-1]).any():
+            self.write_log(f"WARNING: Neuron {neuron_id} requested frequency {frequency}, "
+                           f"but highest frequency in {if_file} is {frequency_list[-1]}", force_print=True)
+
+        print(f'neuron_id: {neuron_id}, current:{current}')
+
+        return current
 
     @staticmethod
     def to_list(val, new_list_len=1):
@@ -203,19 +275,19 @@ class PairRecording(SnuddaSimulate):
 
         # Setup vClamps to calculate what holding current will be needed
         soma_v_clamp = []
-        soma_list = [self.neurons[x].icell.soma[0] for x in neuron_id if x in self.neuron_id]
+        soma_list = [(self.neurons[x].icell.soma[0], x) for x in neuron_id if x in self.neuron_id]
 
         missing_id = [x for x in self.neurons.keys() if x not in neuron_id and x in self.neuron_id]
 
         if len(missing_id) > 0:
             print(f"Warning: v_hold is not specified for neurons {missing_id}")
 
-        for s, vi in zip(soma_list, v_hold):
+        for (s, nid), vi in zip(soma_list, v_hold):
             vc = neuron.h.SEClamp(s(0.5))
             vc.rs = 1e-9
             vc.amp1 = vi * 1e3
             vc.dur1 = 200
-            soma_v_clamp.append((s, vc))
+            soma_v_clamp.append((s, vc, nid))
 
         self.set_v_hold_helper(neuron_id=neuron_id, v_hold=v_hold)
         neuron.h.finitialize()
@@ -223,18 +295,19 @@ class PairRecording(SnuddaSimulate):
         neuron.h.tstop = 200
         neuron.h.run()
 
-        self.holding_i_clamp_list = []
+        # Dont override
+        # self.holding_i_clamp_list = dict()
 
         assert self.sim_duration is not None, ("set_v_hold: self.end_time must be set before calling, "
                                                "IClamps need to know their duration.")
 
         # Setup iClamps
-        for s, vc in soma_v_clamp:
+        for s, vc, nid in soma_v_clamp:
             cur = float(vc.i)
             ic = neuron.h.IClamp(s(0.5))
             ic.amp = cur
             ic.dur = 2 * self.sim_duration * 1e3
-            self.holding_i_clamp_list.append(ic)
+            self.holding_i_clamp_list[nid] = ic, cur * 1e-9
 
         # Remove vClamps
         v_clamps = None
@@ -358,48 +431,9 @@ class PairRecording(SnuddaSimulate):
             self.write_log(f"Saving failed, whoops. Entering debug mode.\n"
                            f"You might have had {self.output_file} opened elsewhere. Try closing it, then type:\n"
                            f"> self.write_output()\n"
-                           f"If you are lucky, this will work and you wont loose any data.")
+                           f"If you are lucky, this will work and you wont loose any data.", is_error=True)
             import pdb
             pdb.set_trace()
-
-    def connect_neuron_synapses_REMOVE(self, start_row, end_row):
-
-        assert False, "No longer used. REMOVE ME!"
-
-        """ Connects the synapses present in the synapse matrix between start_row and end_row-1.
-
-        This method overloads the normal connect_neuron_synapses, to also add recording of synaptic currents
-        """
-
-        source_id_list, dest_id, dend_sections, sec_id, sec_x, synapse_type_id, \
-        axon_distance, conductance, parameter_id = self.get_synapse_info(start_row=start_row, end_row=end_row)
-
-        for (src_id, section, section_x, s_type_id, axon_dist, cond, p_id) \
-                in zip(source_id_list, dend_sections, sec_x, synapse_type_id,
-                       axon_distance, conductance, parameter_id):
-
-            try:
-                syn = self.add_synapse(cell_id_source=src_id,
-                                       cell_id_dest=dest_id,
-                                       dend_compartment=section,
-                                       section_id=sec_id,
-                                       section_dist=section_x,
-                                       synapse_type_id=s_type_id,
-                                       axon_dist=axon_dist,
-                                       conductance=cond,
-                                       parameter_id=p_id)
-
-                if (src_id, dest_id) in self.record_from_pair:
-                    self.write_log(f"Adding synaptic recording {src_id} -> {dest_id} (NEURON)")
-                    syn_i = neuron.h.Vector().record(syn._ref_i)
-                    self.synapse_currents.append((src_id, dest_id, syn_i))
-
-            except:
-                import traceback
-                tstr = traceback.format_exc()
-                self.write_log(tstr, is_error=True)
-                import pdb
-                pdb.set_trace()
 
     def setup_synaptic_recordings(self):
         for src_id, dest_id in self.record_from_pair:
@@ -420,7 +454,7 @@ class PairRecording(SnuddaSimulate):
 
         pt.plot_traces([x for x in pt.voltage])
 
-    def plot_traces(self, mark_current_y=-80.05e-3, trace_id=None):
+    def plot_traces(self, mark_current_y=-80.05e-3, trace_id=None, offset=150e-3):
 
         """
            Plot traces of post synaptic neuron activation, this assumes only one neuron was stimulated
@@ -456,7 +490,7 @@ class PairRecording(SnuddaSimulate):
 
                 self.plot_trace(pre_id=pre_id, post_id=pid, fig_name=fig_name,
                                 mark_current=cur_times, mark_current_y=mark_current_y,
-                                skip_time=skip_time)
+                                skip_time=skip_time, offset=offset)
 
     def get_experiment_name(self, empty_is_none=True):
         if "experiment_name" in self.experiment_config["meta"]:
@@ -474,8 +508,14 @@ class PairRecording(SnuddaSimulate):
         from snudda.plotting import PlotTraces
 
         if not title:
-            n_synapses = self.snudda_loader.find_synapses(pre_id=pre_id, post_id=post_id)[0].shape[0]
-            title = f"{self.neurons[pre_id].name} -> {self.neurons[post_id].name} ({n_synapses} synapses)"
+            synapses, _ = self.snudda_loader.find_synapses(pre_id=pre_id, post_id=post_id)
+            if synapses is not None:
+                n_synapses = synapses.shape[0]
+            else:
+                n_synapses = 0
+
+            title = f"{self.neurons[pre_id].name} ({pre_id}) -> " \
+                    f"{self.neurons[post_id].name} ({post_id}) ({n_synapses} synapses)"
 
         experiment_name = self.get_experiment_name()
 

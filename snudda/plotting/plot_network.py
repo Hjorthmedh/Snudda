@@ -167,7 +167,7 @@ class PlotNetwork(object):
 
         return neuron
 
-    def plot_populations(self):
+    def plot_populations(self, unmarked_alpha=0.3):
 
         fig = plt.figure(figsize=(6, 6.5))
         ax = plt.axes(projection='3d')
@@ -178,15 +178,12 @@ class PlotNetwork(object):
         pop_units = sorted(list(set(population_unit)))
         cmap = plt.get_cmap('tab20', len(pop_units))
         neuron_colours = []
-        alphas = []
 
         for idx, pu in enumerate(population_unit):
             if pu > 0:
                 neuron_colours.append(list(cmap(pu)))
-                alphas.append(1)
             else:
-                neuron_colours.append([0.7, 0.7, 0.7, 1.0])
-                alphas.append(0.05)
+                neuron_colours.append([0.6, 0.6, 0.6, 1.0])
 
         neuron_colours = np.array(neuron_colours)
         positions = self.sl.data["neuronPositions"]
@@ -195,15 +192,21 @@ class PlotNetwork(object):
         unmarked_idx = np.where(population_unit == 0)[0]
 
         ax.scatter(positions[pop_unit_idx, 0], positions[pop_unit_idx, 1], positions[pop_unit_idx, 2],
-                   c=neuron_colours[pop_unit_idx, :], marker='o', s=20,alpha=1)
+                   c=neuron_colours[pop_unit_idx, :], marker='o', s=20, alpha=1)
 
         ax.scatter(positions[unmarked_idx, 0], positions[unmarked_idx, 1], positions[unmarked_idx, 2],
-                   c=neuron_colours[unmarked_idx, :], marker='o', s=20,alpha=0.05)
-
+                   c=neuron_colours[unmarked_idx, :], marker='o', s=20, alpha=unmarked_alpha)
 
         # ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], c=neuron_colours, marker='o', s=20,alpha=alphas)
 
         self.equal_axis(ax)
+
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+        ax.set_zlabel("z")
+
+        for pop in pop_units:
+            print(f"Population unit {pop} has {len(np.where(population_unit == pop)[0])} neurons")
 
     def equal_axis(self, ax):
 

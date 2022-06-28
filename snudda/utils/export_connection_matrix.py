@@ -26,7 +26,7 @@ class SnuddaExportConnectionMatrix(object):
 
         data = self.sl.data
 
-        self.con_mat = self.create_con_mat()
+        self.con_mat = self.create_connection_matrix()
         self.neuron_type = [x["type"] for x in data["neurons"]]
         self.neuron_name = [x["name"] for x in data["neurons"]]
         self.neuron_morph = [x["morphology"] for x in data["neurons"]]
@@ -66,7 +66,7 @@ class SnuddaExportConnectionMatrix(object):
 
     ############################################################################
 
-    def create_con_mat(self):
+    def create_connection_matrix(self):
 
         """ Creates the connection matrix from the synapse matrix data. """
 
