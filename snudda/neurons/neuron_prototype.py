@@ -211,7 +211,7 @@ class NeuronPrototype:
 
         return input_info
 
-    def get_morphology(self, parameter_id=None, morphology_id=None, parameter_key=None, morphology_key=None):
+    def get_morphology(self, parameter_key=None, morphology_key=None, parameter_id=None, morphology_id=None):
 
         """
         Returns morphology for a given parameter_id, morphology_id combination.
@@ -274,13 +274,13 @@ class NeuronPrototype:
 
         return morph_path
 
-    def get_parameters(self, parameter_id=None, parameter_key=None):
+    def get_parameters(self, parameter_key=None, parameter_id=None):
         """
         Returns neuron parameter set
 
         Args:
-            parameter_id (int) : parameter ID, which of the parameter sets to use
             parameter_key (str) : parameter key for the parameter set
+            parameter_id (int) : parameter ID, which of the parameter sets to use
 
         Returns:
             One parameter set as a list of dictionaries
@@ -288,8 +288,8 @@ class NeuronPrototype:
 
         if self.parameter_info:
             if parameter_key is not None:
-                assert parameter_key is self.parameter_info, \
-                    f"Parameter key {parameter_key} not in parameter_info {self.parameter_info}"
+                assert parameter_key in self.parameter_info, \
+                    f"Parameter key {parameter_key} not in parameter_info {self.parameter_info}. ERROR, no key: {parameter_key}"
                 par_set = self.parameter_info[parameter_key]
             else:
                 assert parameter_id is not None, "If parameter_key is not set, then parameter_id must be set"
@@ -301,12 +301,13 @@ class NeuronPrototype:
 
         return par_set
 
-    def get_modulation_parameters(self, modulation_id):
+    def get_modulation_parameters(self, modulation_key=None, modulation_id=None):
 
         """
-        Returns modulation parameter set
+        Returns modulation parameter set, give either ID or key
 
         Args:
+            modulation_key (str) : modulation key
             modulation_id (int) : modulation ID, which of the modulation parameter sets to use
 
         Returns:
@@ -314,7 +315,13 @@ class NeuronPrototype:
         """
 
         if self.modulation_info:
-            modulation_set = self.modulation_info[modulation_id % len(self.modulation_info)]
+            if modulation_key:
+                modulation_set = self.modulation_info[modulation_key]
+            elif modulation_id is not None:
+                possible_keys = [x for x in self.modulation_info.keys()]
+                modulation_set = self.modulation_info[possible_keys[modulation_id % len(self.modulation_info)]]
+            else:
+                assert False, f"You need to specify modulation_key or modulation_id to look up a modulation set"
         else:
             modulation_set = []
 

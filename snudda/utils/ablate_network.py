@@ -42,6 +42,9 @@ class SnuddaAblateNetwork:
 
         self.keep_neuron_id = None
         self.removed_connection_type = None
+        self.remove_pair_connection_list = None
+        self.remove_all_synapses = False
+        self.remove_all_gap_junctions = False
 
         self.reset_network()
 
@@ -51,11 +54,24 @@ class SnuddaAblateNetwork:
 
         self.keep_neuron_id = set(self.in_file["network/neurons/neuronID"][:])
         self.removed_connection_type = []
+        self.remove_pair_connection_list = []
+
+        self.remove_all_synapses = False
+        self.remove_all_gap_junctions = False
+
+    def ablate_all_synapses(self):
+        self.remove_all_synapses = True
+
+    def ablate_all_gap_junctions(self):
+        self.remove_all_gap_junctions = True
 
     def remove_neuron_id(self, neuron_id):
 
         print(f"Removing neuron_id={set(neuron_id)}")
         self.keep_neuron_id = self.keep_neuron_id - set(neuron_id)
+
+    def only_keep_neuron_id(self, neuron_id):
+        self.keep_neuron_id = list(neuron_id)       # Changed from "set" to "list", to preserve order
 
     def remove_neuron_type(self, neuron_type, p_remove=1):
 
@@ -100,6 +116,9 @@ class SnuddaAblateNetwork:
         print(f"Marking {pre_neuron_type}, {post_neuron_type} synapses for removal (P={p_remove}).")
         self.removed_connection_type.append((pre_neuron_type, post_neuron_type, p_remove))
 
+    def remove_pair_connection(self, pre_id, post_id):
+        self.remove_pair_connection_list.append((pre_id, post_id))
+
     def filter_synapses(self, data_type):
 
         """ Filters synapses, data_type is either 'synapses' or 'gapJunctions' """
@@ -107,6 +126,12 @@ class SnuddaAblateNetwork:
         synapse_data = self.in_file[f"network/{data_type}"]
 
         keep_flag = np.zeros((synapse_data.shape[0],), dtype=bool)
+
+        # Shortcut, if user wants to remove all, skip the processing part
+        if data_type == "synapses" and self.remove_all_synapses:
+            return keep_flag  # All zero
+        elif data_type == "gapJunctions" and self.remove_all_gap_junctions:
+            return keep_flag
 
         neuron_types = [n["type"] for n in self.snudda_load.data["neurons"]]
 
@@ -145,11 +170,37 @@ class SnuddaAblateNetwork:
                     prev_status = 0
 
         print(f"{n_original_synapses}/{n_original_synapses} synapses processed")
+
+        if len(self.remove_pair_connection_list) > 0:
+            print(f"Warning, removing individual synapses ({len(self.remove_pair_connection_list)}) can be slow, "
+                  f"use this with caution.")
+            for pre_id, post_id in self.remove_pair_connection_list:
+                if data_type == "synapses":
+                    _, _, synapse_idx = self.snudda_load.find_synapses(pre_id=pre_id, post_id=post_id, return_index=True)
+                elif data_type == "gapJunctions":
+                    print(f"WARNING: If there are any gap junctions between {pre_id}, {post_id} they will not have been removed ")
+                    # TODO: There is currently only find_gap_junctions that take neuron_id as parameter, not pre and post id
+                    #       so we can not find the gap junction pairs, this will need to be added in the future.
+                    # _, _, synapse_idx = self.snudda_load.find_gap_junctions(pre_id=pre_id, post_id=post_id, return_index=True)
+                    synapse_idx = None
+                else:
+                    assert f"Unkown data type: {data_type}, should be 'synapses' or 'gapJunctions'"
+
+                if synapse_idx is not None:
+                    for syn_idx in synapse_idx:
+                        keep_flag[syn_idx] = False
+
         print("Filtering done.")
 
         return keep_flag
 
-    def write_network(self, out_file_name=None):
+    def write_remapping_file(self, remap_file_name):
+
+        with open(remap_file_name, "w") as f:
+            for new_id, old_id in enumerate(self.keep_neuron_id):
+                f.write(f"{old_id}, {new_id}\n")
+
+    def write_network(self, out_file_name=None, print_remapping=False):
 
         """ Write network to hdf5 file: output_file_name """
 
@@ -181,6 +232,16 @@ class SnuddaAblateNetwork:
         remap_id = np.full((len(self.snudda_load.data["neurons"]),), np.nan, dtype=int)
         for new_id, old_id in enumerate(soma_keep_id):
             remap_id[old_id] = new_id
+
+        if print_remapping:
+            print("\nRemapping neurons:")
+            for new_id, old_id in enumerate(soma_keep_id):
+                assert remap_id[old_id] == new_id, f"Internal error with remap_id"
+                if old_id == new_id:
+                    print(f"{old_id} the same")
+                else:
+                    print(f"{old_id} -> {new_id}")
+            print("")
 
         network_group = out_file.create_group("network")
         neuron_group = network_group.create_group("neurons")
@@ -257,7 +318,7 @@ class SnuddaAblateNetwork:
             syn_keep_idx = np.where(keep_syn_flag)[0]
             for idx, row_idx in enumerate(syn_keep_idx):
 
-                if idx % 50000 == 0:
+                if idx % 50000 == 0 and idx > 0:
                     print(f"{idx} / {num_syn} synapse rows parsed")
 
                 # We need to remap the neuronID if some neurons have been removed!!
@@ -272,7 +333,7 @@ class SnuddaAblateNetwork:
                                          chunks=syn_mat.chunks, maxshape=(None, syn_mat.shape[1]),
                                          compression=syn_mat.compression)
 
-            print(f"{n_synapses} / {num_syn} synapse rows parsed")
+            print(f"{num_syn} / {num_syn} synapse rows parsed")
             print("Synapse matrix written.")
 
             print(f"Keeping {num_syn} synapses (out of {syn_mat.shape[0]})")
@@ -304,6 +365,9 @@ class SnuddaAblateNetwork:
             print("No synapses found (assuming this was a save file with only position information).")
 
         out_file.close()
+
+        remapping_file = f"{out_file_name}-remapping.txt"
+        self.write_remapping_file(remapping_file)
 
 
 def snudda_ablate_network_cli():

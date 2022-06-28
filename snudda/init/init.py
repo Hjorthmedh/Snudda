@@ -129,15 +129,15 @@ class SnuddaInit(object):
             d_min = 15e-6
 
         if struct_mesh == "cube":
-            assert slice_depth is None, "define_structure: sliceDepth is not used for cubes, please set to None"
+            assert slice_depth is None, "define_structure: slice_depth is not used for cubes, please set to None"
             assert side_len is not None, "define_structure: cube needs sideLen specified"
-            assert struct_centre is not None, "define_structure: cube needs a structCentre"
+            assert struct_centre is not None, "define_structure: cube needs a struct_centre"
 
             struct_mesh = os.path.join(self.network_path, "mesh", f"{struct_name}-cube-mesh-{side_len}.obj")
 
             if mesh_bin_width is None:
                 mesh_bin_width = side_len / 3.0
-                print("Setting mesh_bin_width to " + str(mesh_bin_width))
+                print(f"Setting mesh_bin_width to {mesh_bin_width}")
 
             create_cube_mesh(file_name=struct_mesh,
                              centre_point=struct_centre,
@@ -637,6 +637,8 @@ class SnuddaInit(object):
         if not filename:
             filename = self.config_file
 
+        assert filename is not None, f"You must specify network_path or config_file when creating SnuddaInit"
+
         # Create directory if it does not already exist
         dir_name = os.path.dirname(filename)
         if not os.path.exists(dir_name):
@@ -906,6 +908,8 @@ class SnuddaInit(object):
                 mesh_bin_width = striatum_side_len / 5
             else:
                 mesh_bin_width = striatum_side_len / 10
+
+            # mesh_bin_width = striatum_side_len / 20
 
             # Reduced striatum, due to few neurons
             self.define_structure(struct_name="Striatum",

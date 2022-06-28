@@ -137,6 +137,8 @@ class RegionMesh(object):
         # binWidth 1e-4 (8090s) --> 2.7 % border voxels
         # binWidth 0.5e-4 (??? s) --> ?? % border voxels
 
+        assert os.path.exists(filename), f"Mesh file {filename} missing"
+
         self.filename = filename
         self.cache_file = f"{filename}-{int(1e6 * self.bin_width)}{rt_str}-cache.pickle"
         self.pickle_version = pickle_version
@@ -838,7 +840,6 @@ class RegionMesh(object):
 
     def check_padding_zone(self, coords):
 
-        # TODO: Check/remember why min was taken here :)
         idx = np.array(np.floor((coords - self.min_coord) / self.bin_width), dtype=int)
 
         return self.voxel_mask_padding[idx[0], idx[1], idx[2]]
@@ -891,7 +892,7 @@ class RegionMesh(object):
 
         # If this is not fulfilled, then we need to update the range values below
         assert 2 * d_min < self.bin_width, \
-            "2*dMin (2 * " + str(d_min) + ") must be smaller than binWidth (" + str(self.bin_width) + ")"
+            f"2*d_min (2 * {d_min}) must be smaller than bin_width ({self.bin_width})"
 
         if neuron_type in self.neuron_types:
             neuron_type_id = self.neuron_types[neuron_type]
@@ -953,8 +954,7 @@ class RegionMesh(object):
 
             # Check that we are not too close to existing points
             # Only check the neighbouring voxels, to speed things up
-            voxel_idx = np.array(np.floor((putative_loc - self.min_coord)
-                                          / self.bin_width), dtype=int)
+            voxel_idx = np.array(np.floor((putative_loc - self.min_coord) / self.bin_width), dtype=int)
 
             # Density check is fast, do that to get an early rejection if needed
             # TODO: When a function is defined it is relatively fast, but when griddata is used

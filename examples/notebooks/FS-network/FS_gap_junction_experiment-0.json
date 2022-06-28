@@ -7,22 +7,35 @@
     "currentInjection" : [
 	{
 	    "neuronID": 19,
-	    "start": [0.2, 0.5],
-	    "end": [0.3, 0.51], 
-	    "amplitude": 5e-10
+	    "start": [0.2],
+	    "end": [0.25], 
+	    "amplitude": 4e-10
 	},
 	{
-	    "neuronID": 27,
-	    "start": [0.7, 1.0],
-	    "end": [0.8, 1.01], 
-	    "amplitude": 5e-10
+	    "neuronID": 22,
+	    "start": [0.5],
+	    "end": [0.55], 
+	    "amplitude": 3e-10
 	},
 	{
-	    "neuronID": 14,
-	    "start": [1.2, 1.5],
-	    "end": [1.3, 1.51], 
-	    "amplitude": 5e-10
+	    "neuronID": 47,
+	    "start": [0.8],
+	    "end": [0.85], 
+	    "amplitude": 4e-10
+	},
+	{
+	    "neuronID": 68,
+	    "start": [1.1],
+	    "end": [1.15], 
+	    "amplitude": 4e-10
+	},
+	{
+	    "neuronID": 11,
+	    "start": [1.4],
+	    "end": [1.45], 
+	    "amplitude": 4e-10
 	}
+	
     ]
     
 }

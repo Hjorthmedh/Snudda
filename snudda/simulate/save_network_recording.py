@@ -178,6 +178,8 @@ class SpikeData(CompartmentData):
 
 class SnuddaSaveNetworkRecordings:
 
+    # TODO: Add saving of simulation_config file (and experiment_config_file for pair recording)
+
     def __init__(self, output_file, network_data=None, sample_dt=None):
         self.output_file = output_file
         self.network_data = network_data
@@ -287,6 +289,9 @@ class SnuddaSaveNetworkRecordings:
             out_file = h5py.File(self.output_file, "w")
 
             meta_data = out_file.create_group("metaData")
+            print("CHeck why not able to save...")
+
+            meta_data.create_dataset("networkFile", data=self.network_data["networkFile"])
             out_file.create_group("neurons")
 
             if self.network_data:
@@ -310,7 +315,7 @@ class SnuddaSaveNetworkRecordings:
         if self.sample_dt is None:
             return None
         else:
-            converted_time = self.time * self.get_conversion("time")
+            converted_time = np.array(self.time) * self.get_conversion("time")
             dt = converted_time[1] - converted_time[0]
             sample_step = int(np.round(self.sample_dt / dt))
             return sample_step

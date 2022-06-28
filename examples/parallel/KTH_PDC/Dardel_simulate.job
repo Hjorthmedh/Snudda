@@ -5,7 +5,7 @@
 #SBATCH -t 6:59:00
 #SBATCH --time-min=3:59:00
 #SBATCH -J Simulate
-#SBATCH -A snic2021-5-492 
+#SBATCH -A snic2022-5-245
 #SBATCH --nodes=5-10
 #SBATCH --tasks-per-node=64
 #SBATCH --mail-type=ALL

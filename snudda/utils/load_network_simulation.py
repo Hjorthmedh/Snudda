@@ -107,7 +107,7 @@ class SnuddaLoadNetworkSimulation:
             for nid in neuron_id:
                 if str(nid) in self.network_simulation_file["neurons"] \
                         and "spikes" in self.network_simulation_file[f"neurons/{nid}"]:
-                    spike_data[nid] = self.network_simulation_file[f"neurons/{neuron_id}/spikes/data"][()].copy()
+                    spike_data[nid] = self.network_simulation_file[f"neurons/{nid}/spikes/data"][()].copy()
                 else:
                     spike_data[nid] = np.array([])
 
@@ -197,8 +197,8 @@ class SnuddaLoadNetworkSimulation:
     def get_id_of_neuron_type(self, neuron_type=None):
 
         if neuron_type:
-            neuron_id = [x for x, y in zip(self.network_simulation_file["metaData/ID"],
-                                           self.network_simulation_file["metaData/type"])
+            neuron_id = [x for x, y in zip(self.network_simulation_file["metaData/ID"][()],
+                                           self.network_simulation_file["metaData/type"][()])
                          if SnuddaLoad.to_str(y).lower() == neuron_type.lower()]
         else:
             neuron_id = self.network_simulation_file["metaData/ID"][()].copy()
@@ -207,21 +207,21 @@ class SnuddaLoadNetworkSimulation:
 
     def get_neuron_name(self, neuron_id=None):
         if neuron_id:
-            neuron_name = [SnuddaLoad.to_str(x) for x, y in zip(self.network_simulation_file["metaData/name"],
-                                                                self.network_simulation_file["metaData/ID"])
+            neuron_name = [SnuddaLoad.to_str(x) for x, y in zip(self.network_simulation_file["metaData/name"][()],
+                                                                self.network_simulation_file["metaData/ID"][()])
                            if y in neuron_id]
         else:
-            neuron_name = [SnuddaLoad.to_str(x) for x in self.network_simulation_file["metaData/name"]]
+            neuron_name = [SnuddaLoad.to_str(x) for x in self.network_simulation_file["metaData/name"][()]]
 
         return neuron_name
 
     def get_neuron_type(self, neuron_id=None):
         if neuron_id:
-            neuron_type = [SnuddaLoad.to_str(x) for x, y in zip(self.network_simulation_file["metaData/type"],
-                                                                self.network_simulation_file["metaData/ID"])
+            neuron_type = [SnuddaLoad.to_str(x) for x, y in zip(self.network_simulation_file["metaData/type"][()],
+                                                                self.network_simulation_file["metaData/ID"][()])
                            if y in neuron_id]
         else:
-            neuron_type = [SnuddaLoad.to_str(x) for x in self.network_simulation_file["metaData/type"]]
+            neuron_type = [SnuddaLoad.to_str(x) for x in self.network_simulation_file["metaData/type"][()]]
 
         return neuron_type
 
@@ -231,6 +231,17 @@ class SnuddaLoadNetworkSimulation:
                 
         for x in neuron_types:
             yield x
+
+    def iter_neuron_id(self):
+        for x in self.network_simulation_file["metaData/ID"]:
+            yield x
+
+    def get_neuron_keys(self, neuron_id):
+        param_key = self.network_simulation_file["metaData/parameterKey"][neuron_id]
+        morph_key = self.network_simulation_file["metaData/morphologyKey"][neuron_id]
+        mod_key = self.network_simulation_file["metaData/modulationKey"][neuron_id]
+
+        return param_key, morph_key, mod_key
 
 
 def load_network_simulation_cli():

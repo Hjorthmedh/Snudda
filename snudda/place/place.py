@@ -882,7 +882,7 @@ class SnuddaPlace(object):
         neuron_types = population_unit_info["neuronTypes"]
         centres = np.array(population_unit_info["centres"])
         probability_functions = population_unit_info["ProbabilityFunctions"]
-        unit_id = population_unit_info["unitID"]
+        unit_id = np.array(population_unit_info["unitID"])
 
         if "numNeurons" in population_unit_info and population_unit_info["numNeurons"] is not None:
             num_neurons = population_unit_info["numNeurons"]
@@ -934,8 +934,9 @@ class SnuddaPlace(object):
         # Finally if num_neurons is specified, we need to reduce the number of neurons belonging to that unit
         for u_id, n_neurons in zip(unit_id, num_neurons):
             if n_neurons is not None:
+
                 assert len(self.population_units[u_id]) >= n_neurons, \
-                    f"Unable to pick {n_neurons} for population unit {u_id}, only {len(self.population_units[u_id])} available."
+                    f"Unable to pick {n_neurons} for population unit {u_id}, only {len(self.population_units[u_id])} ({neuron_types[np.where(unit_id == u_id)[0][0]]}) available."
 
                 if n_neurons < len(self.population_units[u_id]):
 

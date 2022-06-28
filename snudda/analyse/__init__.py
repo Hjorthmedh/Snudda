@@ -1,3 +1,4 @@
 from snudda.analyse.analyse import SnuddaAnalyse
 from snudda.analyse.analyse_striatum import SnuddaAnalyseStriatum
+from snudda.analyse.analyse_topology_activity import SnuddaAnalyseTopologyActivity
 
