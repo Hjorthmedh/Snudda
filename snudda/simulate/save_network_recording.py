@@ -1,10 +1,31 @@
 import os.path
-
 import h5py
 import numpy as np
 from mpi4py import MPI  # This must be imported before neuron, to run parallel
 from neuron import h  # , gui
 
+
+"""
+
+    Data hierarchy:
+    
+    SnuddaSaveNetworkRecordings - The Class which contains the data to be saved from the simulation
+    
+        Each Neuron has an instance of the NeuronRecordings class
+        
+            Within the NeuronRecordings class, the data can be saved as either:
+            
+                CompartmentData class, using self.register_compartment_data(**)
+                    This contains all data within a neuron compartment (seg)
+                
+                SynapseData class, using self.register_synapse_data(**)
+                    This contains all data within a synapse (point process)
+                    
+                SpikeData class, using self.register_spike_data(**)
+                    This contains all spiking data (events) from a neuron
+                    (the only data class which is not a time series)
+
+"""
 
 # TODO:
 
