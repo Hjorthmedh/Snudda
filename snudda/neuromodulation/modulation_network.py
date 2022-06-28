@@ -60,7 +60,6 @@ class Neuromodulation:
     def presynaptic_receptor_modulation(self, neurotransmitter, cell_type, receptor, modulation):
 
         if cell_type not in self.network_wide[self.name_to_key[neurotransmitter]]['presynaptic'].keys():
-            self.network_wide[self.name_to_key[neurotransmitter]]['presynaptic'].update({cell_type: dict()})
 
         self.network_wide[self.name_to_key[neurotransmitter]]['presynaptic'][cell_type].update({receptor: modulation})
 
