@@ -14,6 +14,12 @@ import h5py
 
 class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
+    """
+
+        Class for simulating neuromodulation using the adaptive mode
+
+    """
+
     def __init__(self,
                  network_path=None,
                  network_file=None,
@@ -22,6 +28,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                  verbose=False,
                  log_file=None,
                  disable_gap_junctions=True,
+                 disable_synapses=False,
                  simulation_config=None,
                  neuromodulator_description=None):
         """
@@ -29,6 +36,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
         @type neuromodulation_weight: float
 
         """
+        self.neuromodulation_synapse_ids = None
         self.neuromodulator_description = neuromodulator_description['description']
         self.neuromodulation = dict()
         self.current_cell = None
@@ -39,7 +47,6 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
         self.module_connector = [k+'()'for k in self.connector]
         self.mod_str = dict(zip(self.module_connector, self.connector))
 
-
         super(SnuddaSimulateNeuromodulationSynapse, self).__init__(network_path=network_path,
                                                                    network_file=network_file,
                                                                    input_file=input_file,
@@ -47,6 +54,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                                                                    verbose=verbose,
                                                                    log_file=log_file,
                                                                    disable_gap_junctions=disable_gap_junctions,
+                                                                   disable_synapses=disable_synapses,
                                                                    simulation_config=simulation_config)
 
         # Change the self.custom_setup from None, and execute the custom setup code within this file
@@ -65,7 +73,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
         # Neuromodulation requires this to be run, before connect_network
 
-        #self.synapse_parameters is loaded in self.setup_neurons, hence it is None before
+        # self.synapse_parameters is loaded in self.setup_neurons, hence it is None before
 
         self.neuromodulation_synapse_ids = [sid for sid, synapse in self.synapse_parameters.items() if
                                             str(synapse[0]) in self.module_connector]
@@ -140,7 +148,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
         gpcr_synapse_info = np.take([source_id_list, dend_sections, sec_x, sec_id], gpcr_synapse_index, axis=1).transpose()
 
-        #rewrite code as it is sorted on sec_id, jump in step of sec_id and add to dict
+        # rewrite code as it is sorted on sec_id, jump in step of sec_id and add to dict
         sort_idx = gpcr_synapse_info[:, -1].argsort()
 
         gpcr_synapse_info = gpcr_synapse_info[sort_idx]
@@ -199,11 +207,11 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                         for name, value in sec.psection()['density_mechs'][mechanism_name].items():
                             if "maxMod" in name:
                                 for v in value:
-                                    print(f" Value of {name} is {v} for {mechanism_name}")
-                                    assert v != 1.0 and v > 0, "NeuronModel has not loaded modulation.json," \
-                                                                          "neuromodulation is not turned on within the model"
 
+                                    if self.verbose:
+                                        print(f" Value of {name} is {v} for {mechanism_name}")
 
+                                    assert v > 0, "Modulation value should be positive"
 
                     level_list = [type_level for type_level in [*sec.psection()['density_mechs'][mechanism_name].keys()] if 'level' in type_level]
                     mod_key_list = [f"mod{n.replace('level','')}_{mechanism_name_ptr}" for n in level_list]
@@ -301,11 +309,11 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                                 parameters = self.neuromodulator_description[modulator]["cells"][cell_name]["receptors"][receptor_name]
 
                                 for p, v in parameters.items():
-                                    setattr(syn,f"{p}{modulator}",v)
+                                    setattr(syn, f"{p}{modulator}", v)
 
                                     if self.verbose:
                                         print(f" Value of {p}{modulator} is {getattr(syn, f'{p}{modulator}')} at {syn}")
-                                        assert getattr(syn,f'{p}{modulator}') != 1.0 and getattr(syn,f'{p}{modulator}') > 0, "NeuronModel has not loaded modulation.json," \
+                                        assert getattr(syn, f'{p}{modulator}') != 1.0 and getattr(syn, f'{p}{modulator}') > 0, "NeuronModel has not loaded modulation.json," \
                                                             "neuromodulation is not turned on within the model"
                                         assert getattr(syn, f"mod{modulator}") == 1.0
 

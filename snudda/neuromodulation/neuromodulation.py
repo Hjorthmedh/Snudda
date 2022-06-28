@@ -8,6 +8,12 @@ import os
 
 class SnuddaSimulateNeuromodulation(SnuddaSimulate):
 
+    """
+
+    Class for simulating neuromodulation using the replay mode
+
+    """
+
     def __init__(self,
                  network_path=None,
                  network_file=None,
@@ -16,6 +22,7 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                  verbose=False,
                  log_file=None,
                  disable_gap_junctions=True,
+                 disable_synapses=False,
                  simulation_config=None):
 
         self.neuromodulation = dict()
@@ -27,6 +34,7 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                                                             verbose=verbose,
                                                             log_file=log_file,
                                                             disable_gap_junctions=disable_gap_junctions,
+                                                            disable_synapses=disable_synapses,
                                                             simulation_config=simulation_config)
 
         self.write_log(" Using neuromodulation module in Snudda")
@@ -141,7 +149,6 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
 
             if self.verbose:
                 print(f" {key}{modulation} set to {value} at {syn}")
-
 
         self.neuromodulation[modulation]['modulation_vector'].play(
             getattr(syn, f"_ref_level{modulation}"), self.sim.neuron.h.dt)
