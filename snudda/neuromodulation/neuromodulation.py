@@ -15,7 +15,8 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                  output_file=None,
                  verbose=False,
                  log_file=None,
-                 disable_gap_junctions=True,
+                 disable_gap_junctions=False,
+                 disable_synapses=False,
                  simulation_config=None):
 
         self.neuromodulation = dict()
@@ -27,6 +28,7 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                                                             verbose=verbose,
                                                             log_file=log_file,
                                                             disable_gap_junctions=disable_gap_junctions,
+                                                            disable_synapses=disable_synapses,
                                                             simulation_config=simulation_config)
 
         self.write_log(" Using neuromodulation module in Snudda")
