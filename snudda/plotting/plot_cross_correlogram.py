@@ -52,9 +52,19 @@ class PlotCrossCorrelogram:
             idx_b = np.where(np.logical_and(time_range[0] <= spike_times_b,
                                             spike_times_b <= time_range[1]))[0]
 
-            t_diff = (np.kron(spike_times_a[idx_a], np.ones(spike_times_b[idx_b].shape).T)
-                      - np.kron(np.ones(spike_times_a[idx_a].shape), spike_times_b[idx_b].T)).flatten()
 
+            if len(idx_a) == 0 or len(idx_b) == 0:
+                t_diff = np.array([])
+            else:
+                try:
+                    t_diff = (np.kron(spike_times_a[:, idx_a], np.ones(spike_times_b[:, idx_b].shape).T)
+                              - np.kron(np.ones(spike_times_a[:, idx_a].shape), spike_times_b[:, idx_b].T)).flatten()
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
+                
         else:
 
             t_diff = (np.kron(spike_times_a, np.ones(spike_times_b.shape).T)
