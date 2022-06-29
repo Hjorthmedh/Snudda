@@ -11,7 +11,7 @@ class PlotCrossCorrelogram:
 
         self.sim_data = SnuddaLoadNetworkSimulation(network_simulation_output_file=simulation_file)
 
-    def calculate_all_pair_cross_correlogram(self, neuron_id):
+    def calculate_all_pair_cross_correlogram(self, neuron_id, time_range=None):
 
         bin_count_total = None
         bin_edges = None
@@ -30,7 +30,8 @@ class PlotCrossCorrelogram:
                 if spike_data[nb].size == 0:
                     continue
 
-                bin_count, edges = self.calculate_cross_correlogram(spike_data[na], spike_data[nb])
+                bin_count, edges = self.calculate_cross_correlogram(spike_data[na], spike_data[nb],
+                                                                    time_range=time_range)
 
                 if bin_edges is None:
                     bin_edges = edges
@@ -42,10 +43,22 @@ class PlotCrossCorrelogram:
         return bin_count_total, bin_edges
 
     @staticmethod
-    def calculate_cross_correlogram(spike_times_a, spike_times_b, n_bins=101, width=50e-3):
+    def calculate_cross_correlogram(spike_times_a, spike_times_b, n_bins=101, width=50e-3, time_range=None):
 
-        t_diff = (np.kron(spike_times_a, np.ones(spike_times_b.shape).T)
-                  - np.kron(np.ones(spike_times_a.shape), spike_times_b.T)).flatten()
+        if time_range is not None:
+            idx_a = np.where(np.logical_and(time_range[0] <= spike_times_a,
+                                            spike_times_a <= time_range[1]))[0]
+
+            idx_b = np.where(np.logical_and(time_range[0] <= spike_times_b,
+                                            spike_times_b <= time_range[1]))[0]
+
+            t_diff = (np.kron(spike_times_a[idx_a], np.ones(spike_times_b[idx_b].shape).T)
+                      - np.kron(np.ones(spike_times_a[idx_a].shape), spike_times_b[idx_b].T)).flatten()
+
+        else:
+
+            t_diff = (np.kron(spike_times_a, np.ones(spike_times_b.shape).T)
+                      - np.kron(np.ones(spike_times_a.shape), spike_times_b.T)).flatten()
 
         t_diff = t_diff[np.where(abs(t_diff) <= width)[0]]
 
@@ -64,9 +77,9 @@ class PlotCrossCorrelogram:
         if fig_file_name:
             plt.savefig(fig_file_name, dpi=300)
 
-    def plot_all_pair_cross_correlogram(self, neuron_id, fig_file_name=None):
+    def plot_all_pair_cross_correlogram(self, neuron_id, fig_file_name=None, time_range=None):
 
-        bin_count, bin_edges = self.calculate_all_pair_cross_correlogram(neuron_id=neuron_id)
+        bin_count, bin_edges = self.calculate_all_pair_cross_correlogram(neuron_id=neuron_id, time_range=time_range)
 
         if bin_count is not None:
 
@@ -74,6 +87,8 @@ class PlotCrossCorrelogram:
             plt.stairs(values=bin_count, edges=bin_edges)
             plt.xlabel("Time (s)")
             plt.ylabel("Count")
+            if time_range is not None:
+                plt.title(f"From {time_range[0]}s to {time_range[1]}s")
             plt.show()
 
             if fig_file_name:
