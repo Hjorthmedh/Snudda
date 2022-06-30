@@ -52,7 +52,6 @@ class PlotCrossCorrelogram:
             idx_b = np.where(np.logical_and(time_range[0] <= spike_times_b,
                                             spike_times_b <= time_range[1]))[0]
 
-
             if len(idx_a) == 0 or len(idx_b) == 0:
                 t_diff = np.array([])
             else:
@@ -83,7 +82,9 @@ class PlotCrossCorrelogram:
         plt.stairs(values=bin_count, edges=bin_edges)
         plt.xlabel("Time (s)")
         plt.ylabel("Count")
+        plt.ion()
         plt.show()
+
         if fig_file_name:
             plt.savefig(fig_file_name, dpi=300)
 
