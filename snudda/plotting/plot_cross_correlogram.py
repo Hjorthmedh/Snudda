@@ -32,14 +32,16 @@ class PlotCrossCorrelogram:
                 if spike_data[nb].size == 0:
                     continue
 
-                bin_count, edges = self.calculate_cross_correlogram(spike_data[na], spike_data[nb],
+                bin_count, edges = self.calculate_cross_correlogram(spike_data[na],
+                                                                    spike_data[nb],
                                                                     time_range=time_range)
 
+                
                 shuffle_count, shuffle_edges = self.calculate_cross_correlogram(self.shuffle_spikes(spike_data[na], time_range=time_range),
                                                                                 self.shuffle_spikes(spike_data[nb], time_range=time_range),
                                                                                 time_range=time_range)
 
-
+                
                 assert (edges == shuffle_edges).all()
                 
                 if bin_edges is None:
@@ -54,6 +56,7 @@ class PlotCrossCorrelogram:
                 else:
                     shuffle_count_total += shuffle_count
 
+                    
         if shuffle_correct:
             bin_count_total -= shuffle_count_total
 
@@ -64,10 +67,10 @@ class PlotCrossCorrelogram:
 
         if time_range is not None:
             idx_a = np.where(np.logical_and(time_range[0] <= spike_times_a,
-                                            spike_times_a <= time_range[1]))[0]
+                                            spike_times_a <= time_range[1]))[1]
 
             idx_b = np.where(np.logical_and(time_range[0] <= spike_times_b,
-                                            spike_times_b <= time_range[1]))[0]
+                                            spike_times_b <= time_range[1]))[1]
 
             if len(idx_a) == 0 or len(idx_b) == 0:
                 t_diff = np.array([])
@@ -91,6 +94,14 @@ class PlotCrossCorrelogram:
         bin_count, bin_edges = np.histogram(t_diff, bins=n_bins, range=[-width, width])
         return bin_count, bin_edges
 
+    def get_range(self, spike_times, time_range):
+
+        idx = np.where(np.logical_and(time_range[0] <= spike_times.flatten(),
+                                      spike_times.flatten() <= time_range[1]))[0]
+
+        return spike_times[:, idx]
+        
+    
     def shuffle_spikes(self, spike_times, time_range):
 
         if time_range:
@@ -98,12 +109,15 @@ class PlotCrossCorrelogram:
             idx = np.where(np.logical_and(time_range[0] <= spike_times.flatten(),
                                           spike_times.flatten() <= time_range[1]))[0]
 
+            if np.size(idx) == 0:
+                return np.array([[]])
+            
             isi = np.diff(spike_times.flatten()[idx])
-            isi = np.append(isi, spike_times.flatten()[0] - time_range[0])
-            st = np.cumsum(np.random.permutation(isi)).reshape(1, (len(isi)))
+            isi = np.append(isi, spike_times.flatten()[idx[0]] - time_range[0])
+            st = np.cumsum(np.random.permutation(isi)).reshape(1, (len(idx)))
             st += np.random.uniform(low=time_range[0], high=time_range[0])
-            st = st % (time_range[1] - time_range[0]) + time_range[0]
-
+            st = np.sort(st % (time_range[1] - time_range[0]) + time_range[0])
+            
             return st
             
         isi = np.diff(spike_times)
