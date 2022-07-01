@@ -35,8 +35,8 @@ class PlotCrossCorrelogram:
                 bin_count, edges = self.calculate_cross_correlogram(spike_data[na], spike_data[nb],
                                                                     time_range=time_range)
 
-                shuffle_count, shuffle_edges = self.calculate_cross_correlogram(self.shuffle_spikes(spike_data[na]),
-                                                                                self.shuffle_spikes(spike_data[nb]),
+                shuffle_count, shuffle_edges = self.calculate_cross_correlogram(self.shuffle_spikes(spike_data[na], time_range=time_range),
+                                                                                self.shuffle_spikes(spike_data[nb], time_range=time_range),
                                                                                 time_range=time_range)
 
                 if bin_edges is None:
@@ -88,9 +88,25 @@ class PlotCrossCorrelogram:
         bin_count, bin_edges = np.histogram(t_diff, bins=n_bins, range=[-width, width])
         return bin_count, bin_edges
 
-    def shuffle_spikes(self, spike_times):
+    def shuffle_spikes(self, spike_times, time_range):
 
-        return np.cumsum(np.random.permutation(np.diff(spike_times))).reshape(spike_times.shape)
+        if time_range:
+            
+            idx = np.where(np.logical_and(time_range[0] <= spike_times.flatten(),
+                                          spike_times.flatten() <= time_range[1]))[0]
+
+            isi = np.diff(spike_times.flatten()[idx])
+            isi = np.append(isi, spike_times.flatten()[0] - time_range[0])
+            st = np.cumsum(np.random.permutation(isi)).reshape(1, (len(isi)))
+            st += np.random.uniform(low=time_range[0], high=time_range[0])
+            st = st % (time_range[1] - time_range[0]) + time_range[0]
+
+            return st
+            
+        isi = np.diff(spike_times)
+        isi = np.append(isi, spike_times.flatten()[0])
+        
+        return np.cumsum(np.random.permutation(isi)).reshape(spike_times.shape)
 
     def plot_cross_correlogram(self, spike_times_a, spike_times_b, fig_file_name=None):
 
