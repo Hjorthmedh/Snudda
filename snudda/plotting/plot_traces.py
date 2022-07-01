@@ -83,7 +83,7 @@ class PlotTraces:
     ############################################################################
 
     def plot_traces(self, trace_id=None, offset=150e-3, colours=None, skip_time=None,
-                    line_width=1,
+                    line_width=1, fig_size=None,
                     mark_current=None, mark_current_y=None,
                     title=None, fig_name=None):
 
@@ -141,7 +141,7 @@ class PlotTraces:
 
             cols = [colours[c] if c in colours else [0, 0, 0] for c in cell_types]
 
-        fig = plt.figure()
+        fig = plt.figure(figsize=fig_size)
 
         ofs = 0
 
@@ -241,18 +241,19 @@ class PlotTraces:
 
     ############################################################################
 
-    def plot_trace_neuron_name(self, neuron_name, num_traces=1, skip_time=0, plot_offset=0, fig_name=None, num_offset=0):
+    def plot_trace_neuron_name(self, neuron_name, num_traces=1, skip_time=0, plot_offset=0, fig_name=None,
+                               fig_size=None, num_offset=0):
         assert self.network_info is not None, "You need to specify networkInfo file"
         neuron_names = [x["name"] for x in self.network_info.data["neurons"]]
         traceID = [x[0] for x in enumerate(neuron_names) if x[1].lower() == neuron_name.lower()]
         num_traces = min(len(traceID), num_traces)
 
         if num_traces <= 0:
-            print("No traces of neuron(s) " + str(neuron_name) + " to show")
+            print(f"No traces of neuron(s) {neuron_name} to show")
             return
 
         fig = self.plot_traces(offset=plot_offset, trace_id=traceID[num_offset:num_offset + num_traces],
-                               skip_time=skip_time,
+                               skip_time=skip_time, fig_size=fig_size,
                                title=neuron_names[traceID[0]], fig_name=fig_name)
 
         time.sleep(1)
@@ -348,7 +349,7 @@ class PlotTraces:
 
     ############################################################################
 
-    def plot_trace_neuron_type(self, neuron_type, num_traces=10, offset=0, skip_time=0.0):
+    def plot_trace_neuron_type(self, neuron_type, num_traces=10, offset=0, skip_time=0.0, fig_size=None):
 
         assert self.network_info is not None, "You need to specify networkInfo file"
 
@@ -368,14 +369,14 @@ class PlotTraces:
             return
 
         fig = self.plot_traces(offset=offset, trace_id=trace_id[:num_traces], skip_time=skip_time,
-                               title=self.neuron_name(neuron_type))
+                               title=self.neuron_name(neuron_type), fig_size=fig_size)
 
         time.sleep(1)
         return fig
 
     ############################################################################
 
-    def plot_synaptic_currents(self, post_id):
+    def plot_synaptic_currents(self, post_id, fig_size=None):
 
         """
             Plot synaptic currents impinging on neuron post_id
@@ -386,7 +387,7 @@ class PlotTraces:
         data, sec_id_x, syn_info = self.output_load.get_data("synaptic_current", neuron_id=[post_id])
         time = self.output_load.get_time()
 
-        plt.figure()
+        plt.figure(figsize=fig_size)
         line_id_list = []
         for trace, pre_id in zip(data[post_id].T, syn_info[post_id][1]):
             plt.plot(time, trace, label=pre_id)
@@ -427,7 +428,8 @@ def snudda_plot_traces_cli():
     else:
         for neuron_type in npt.output_load.iter_neuron_type():
             npt.plot_trace_neuron_type(neuron_type=neuron_type, num_traces=args.max_num_traces,
-                                       offset=args.plot_offset, skip_time=args.skip_time)
+                                       offset=args.plot_offset, skip_time=args.skip_time,
+                                       fig_size=(10, 5))
 
 
 if __name__ == "__main__":
