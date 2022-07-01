@@ -90,7 +90,7 @@ class PlotCrossCorrelogram:
 
     def shuffle_spikes(self, spike_times):
 
-        return np.cumsum(np.random.permutation(np.diff(spike_times)))
+        return np.cumsum(np.random.permutation(np.diff(spike_times))).reshape(spike_times.shape)
 
     def plot_cross_correlogram(self, spike_times_a, spike_times_b, fig_file_name=None):
 
