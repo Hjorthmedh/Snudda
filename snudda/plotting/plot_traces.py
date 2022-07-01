@@ -337,7 +337,7 @@ class PlotTraces:
                 for input_type in self.input_info["input"][str(trace_id[0])]:
                     n_inputs += self.input_info["input"][str(trace_id[0])][input_type]["spikes"].shape[0]
 
-                title = f"{self.network_info.data['neurons'][trace_id[0]]['name']} receiving {n_inputs} inputs"
+                title = f"{self.network_info.data['neurons'][trace_id[0]]['name']} receiving {n_inputs} synaptic inputs"
             title = f"{self.network_info.data['neurons'][trace_id[r]]['name']}"
             plt.title(title)
             plt.tight_layout()
