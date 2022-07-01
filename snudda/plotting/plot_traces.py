@@ -238,7 +238,6 @@ class PlotTraces:
 
         return fig_path
 
-
     ############################################################################
 
     def plot_trace_neuron_name(self, neuron_name, num_traces=1, skip_time=0, plot_offset=0, fig_name=None,
