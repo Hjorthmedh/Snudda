@@ -118,6 +118,8 @@ class SnuddaPlotSpikeRaster2:
         if not fig_size:
             fig_size = (10, 10)
         fig = plt.figure(figsize=fig_size)
+        plt.rcParams.update({'font.size': 22})
+
         r = 4
         grid = plt.GridSpec(r, r, hspace=0, wspace=0)
         ax = fig.add_subplot(grid[2:, :])
@@ -232,15 +234,18 @@ class SnuddaPlotSpikeRaster2:
         plt.show()
 
     def plot_spike_histogram(self, population_id=None, skip_time=0, end_time=None, fig_size=None, bin_size=50e-3,
-                             fig_file=None):
+                             fig_file=None, ax=None, label_text=None):
 
         if population_id is None:
             population_id = self.snudda_load.get_neuron_population_units(return_set=True)
 
         self.make_figures_directory()
 
-        fig = plt.figure(figsize=fig_size)
-        ax = fig.add_subplot()
+        if ax is None:
+            fig = plt.figure(figsize=fig_size)
+            ax = fig.add_subplot()
+
+        plt.rcParams.update({'font.size': 22})
 
         pop_members = OrderedDict()
         pop_spikes = OrderedDict()
@@ -266,15 +271,20 @@ class SnuddaPlotSpikeRaster2:
         plt.ylabel("Frequency (Hz)")
         ax.legend()
 
+        if label_text is None:
+            label_text = ""
+
         if fig_file is None:
             fig_file = os.path.join(self.figure_path,
-                                    f"spike-frequency-pop-units{'-'.join([str(x) for x in pop_members.keys()])}.pdf")
+                                    f"spike-frequency-pop-units{'-'.join([f'{label_text}{x}' for x in pop_members.keys()])}.pdf")
         else:
             fig_file = os.path.join(self.figure_path, fig_file)
 
         plt.savefig(fig_file, dpi=300)
         plt.ion()
         plt.show()
+
+        return ax
 
     def plot_spike_raster(self, type_order=None, skip_time=0, end_time=None, fig_size=None, fig_file=None):
 
