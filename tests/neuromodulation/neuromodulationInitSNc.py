@@ -93,36 +93,6 @@ class neuromodulationInit(SnuddaInit):
                                mod_file="concDA",
                                channel_param_dictionary=None)
 
-        self.add_neuron_target(neuron_name="DopaminergicAxon",
-                               target_name="FSN",
-                               connection_type="Dopamine",
-                               dist_pruning=None,
-                               f1=None, soft_max=None, mu2=None, a3=None,
-                               conductance=DopaminergicCond,
-                               parameter_file=None,
-                               mod_file="concDA",
-                               channel_param_dictionary=None)
-
-        self.add_neuron_target(neuron_name="DopaminergicAxon",
-                               target_name="LTS",
-                               connection_type="Dopamine",
-                               dist_pruning=None,
-                               f1=None, soft_max=None, mu2=None, a3=None,
-                               conductance=DopaminergicCond,
-                               parameter_file=None,
-                               mod_file="concDA",
-                               channel_param_dictionary=None)
-
-        self.add_neuron_target(neuron_name="DopaminergicAxon",
-                               target_name="ChIN",
-                               connection_type="Dopamine",
-                               dist_pruning=None,
-                               f1=None, soft_max=None, mu2=None, a3=None,
-                               conductance=DopaminergicCond,
-                               parameter_file=None,
-                               mod_file="concDA",
-                               channel_param_dictionary=None)
-
     def define_striatum_neuromodulation(self,
                                         num_neurons=None,
                                         f_dSPN=0.475,
