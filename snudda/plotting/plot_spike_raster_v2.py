@@ -234,7 +234,7 @@ class SnuddaPlotSpikeRaster2:
         plt.show()
 
     def plot_spike_histogram(self, population_id=None, skip_time=0, end_time=None, fig_size=None, bin_size=50e-3,
-                             fig_file=None, ax=None, label_text=None):
+                             fig_file=None, ax=None, label_text=None, show_figure=True):
 
         if population_id is None:
             population_id = self.snudda_load.get_neuron_population_units(return_set=True)
@@ -282,7 +282,9 @@ class SnuddaPlotSpikeRaster2:
 
         plt.savefig(fig_file, dpi=300)
         plt.ion()
-        plt.show()
+
+        if show_figure:
+            plt.show()
 
         return ax
 
