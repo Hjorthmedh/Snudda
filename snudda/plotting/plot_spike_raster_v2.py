@@ -265,7 +265,7 @@ class SnuddaPlotSpikeRaster2:
         bins = np.arange(skip_time, end_time+bin_size/2, bin_size)
         weights = [np.full(y.shape, 1/(len(x)*bin_size)) for x, y in zip(pop_members.values(), pop_spikes.values())]
 
-        plt.hist(x=pop_spikes.values(), bins=bins, weights=weights,
+        plt.hist(x=pop_spikes.values(), bins=bins, weights=weights, linewidth=3,
                  histtype="step", label=[str(x) for x in pop_spikes.keys()])
         plt.xlabel("Time (s)")
         plt.ylabel("Frequency (Hz)")
