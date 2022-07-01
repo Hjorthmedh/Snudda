@@ -39,6 +39,9 @@ class PlotCrossCorrelogram:
                                                                                 self.shuffle_spikes(spike_data[nb], time_range=time_range),
                                                                                 time_range=time_range)
 
+
+                assert (edges == shuffle_edges).all()
+                
                 if bin_edges is None:
                     bin_edges = edges
                     bin_count_total = bin_count
