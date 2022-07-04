@@ -61,6 +61,10 @@ class TestNeuromodulationAdaptive(unittest.TestCase):
                                ion_channels={
                                    "soma": ["kir_ms", "cal12_ms", "cal13_ms", "can_ms", "Im_ms"],
                                    "dendrite": ["kir_ms", "cal12_ms", "cal13_ms"]},
+                               receptors={"tmGabaA": {"maxMod": 0.99},
+                                          "tmGlut": {"maxMod_AMPA": 0.8,
+                                                     "maxMod_NMDA": 0.8,
+                                                     "failRate": 1.3}},
                                type_connection="spiking-concentration")
 
         sw.add_cell_modulation(neuromodulation_key="ACh",
@@ -68,6 +72,10 @@ class TestNeuromodulationAdaptive(unittest.TestCase):
                                ion_channels={
                                    "soma": ["kir_ms", "cal12_ms", "cal13_ms", "can_ms"],
                                    "dendrite": ["kir_ms", "cal12_ms", "cal13_ms"]},
+                               receptors={"tmGabaA": {"maxMod": 0.99},
+                                          "tmGlut": {"maxMod_AMPA": 0.8,
+                                                     "maxMod_NMDA": 0.8,
+                                                     "failRate": 1.3}},
                                type_connection="spiking-concentration")
 
         # Dopamine

@@ -41,6 +41,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
         self.neuromodulation = dict()
         self.current_cell = None
         self.syn_gpcrs = list()
+        self.inplace_gpcrs = list()
         self.cell_modulator = dict()
         self.neuromodulation_weight = neuromodulator_description['weight']
         self.connector = [info['connector'] for info in self.neuromodulator_description.values()]
@@ -220,6 +221,25 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                     mod_key_list = [f"mod{n.replace('level','')}_{mechanism_name_ptr}" for n in level_list]
                     sec.insert(mechanism_name_ptr)
 
+
+                    # Inplace of
+
+                    for syn in self.connector:
+                        neuromodulation_key = syn.replace("conc", "")
+
+                        for segment in sec:
+
+                            fake = self.sim.neuron.h.concHld(segment)
+                            self.inplace_gpcrs.append(fake)
+                            pointer = fake._ref_concentration
+                            # talk to NEURON maybe they can help change this, so you don't have to replace the mechanisms, crashes with uninitialised pointers
+                            for neurotransmitter_level, mod_key in zip(level_list, mod_key_list):
+
+                                if neuromodulation_key in mod_key:
+                                    setattr(segment, mod_key, 1)
+                                    self.sim.neuron.h.setpointer(pointer, neurotransmitter_level,
+                                                                 getattr(segment, mechanism_name_ptr))
+
                     for syn in self.connector:
 
                         neuromodulation_key = syn.replace("conc", "")
@@ -299,6 +319,9 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
             channel_module_p = eval(f"self.sim.neuron.h.{str(channel_module).split('()')[0]}_ptr")
 
+            if self.verbose:
+                print(dend_compartment(section_dist).point_processes())
+
             for point_process_in_section in dend_compartment(section_dist).point_processes():
 
                 neuromodulation_name = str(point_process_in_section).split('[')[0]
@@ -309,6 +332,12 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                     syn = channel_module_p(dend_compartment(section_dist))
 
                     level = [x for x in dir(syn) if 'level' in x]
+
+                    for nkey in level:
+                        fake = self.sim.neuron.h.concHld(dend_compartment(section_dist))
+                        self.inplace_gpcrs.append(fake)
+                        pointer = fake._ref_concentration
+                        self.sim.neuron.h.setpointer(pointer, nkey, syn)
 
                     pointer = point_process_in_section._ref_concentration
 
@@ -336,6 +365,9 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
                             self.sim.neuron.h.setpointer(pointer, neurotransmitter_key, syn)
 
+                            if self.verbose:
+                                print(f" Value of {neurotransmitter_key} is {getattr(syn, f'{neurotransmitter_key}')} at {syn} on {cell_name}")
+
         if syn is None:
             syn = channel_module(dend_compartment(section_dist))
 
@@ -345,6 +377,9 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
         cell_name = str(section).split("_")[0]
         syn = None
+
+        if self.verbose:
+            print(section(section_x).point_processes())
 
         for point_process_in_section in section(section_x).point_processes():
 
@@ -359,6 +394,12 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
 
                 level = [x for x in dir(syn) if 'level' in x]
 
+                for nkey in level:
+                    fake = self.sim.neuron.h.concHld(section(section_x))
+                    self.inplace_gpcrs.append(fake)
+                    pointer = fake._ref_concentration
+                    self.sim.neuron.h.setpointer(pointer, nkey, syn)
+
                 pointer = point_process_in_section._ref_concentration
 
                 for neurotransmitter_key in level:
@@ -366,6 +407,9 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                     if neuromodulation_name_key in neurotransmitter_key:
                         setattr(syn, 'mod' + neurotransmitter_key.replace('level', ''), 1)
                         self.sim.neuron.h.setpointer(pointer, neurotransmitter_key, syn)
+
+                        if self.verbose:
+                            print(f" Value of {neurotransmitter_key} is {getattr(syn, f'{neurotransmitter_key}')} at {syn} on {cell_name}")
 
                         modulator = neurotransmitter_key.replace('level', '')
                         receptor_name = str(channel_module).split('()')[0]
