@@ -88,7 +88,14 @@ class TestDump(unittest.TestCase):
         args.path = os.path.join(os.path.dirname(__file__), "test_network_neuromodulation")
         args.output_file = os.path.join(os.path.dirname(__file__), "simulation", "test.hdf5")
         args.time = 0.01
-        args.nrnivmodl = os.path.join(os.environ["SNUDDA_DATA"], "neurons", "mechanisms")
+        args.nrnivmodl = os.path.join(os.environ["SNUDDA_DATA"], "mechanisms")
+
+        if os.path.exists("mechanisms"):
+            pass
+        else:
+            os.system(f"ln -s {args.nrnivmodl}")
+            os.system("nrnivmodl mechanisms")
+
         args.network_file = None
 
         args.disable_gj = False

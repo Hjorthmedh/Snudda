@@ -95,7 +95,14 @@ class TestNeuromodulationAdaptiveDA(unittest.TestCase):
         args.path = os.path.join(os.path.dirname(__file__), "networks", "test_network_neuromodulation_adaptive_da")
         args.output_file = os.path.join(os.path.dirname(__file__), "simulation", "test.hdf5")
         args.time = 0.01
-        args.nrnivmodl = os.path.join(os.environ["SNUDDA_DATA"], "neurons", "mechanisms_ptr", "da")
+        args.nrnivmodl = os.path.join(os.environ["SNUDDA_DATA"], "mechanisms-ptr", "da")
+
+        if os.path.exists("da"):
+            pass
+        else:
+            os.system(f"ln -s {args.nrnivmodl}")
+            os.system("nrnivmodl mechanisms")
+
         args.network_file = None
 
         args.disable_gj = False
