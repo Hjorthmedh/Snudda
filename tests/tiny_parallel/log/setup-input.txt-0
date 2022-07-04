@@ -1,0 +1,35 @@
+Time = 10
+Using hdf5 version latest
+Reading config file tiny_parallel/network-config.json
+Using random seed provided by command line: 2694170246
+Creating prototype ChIN_0
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f0f60a93310>
+Generating 1 inputs (correlation=0.0, p_keep=1.0, population_unit_fraction=1) for ChIN_0 (0)
+About to clone cache of ChIN_0.
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f0f60a93310>
+Generating 2 inputs (correlation=0.0, p_keep=0.5, population_unit_fraction=1) for ChIN_0 (0)
+About to clone cache of ChIN_0.
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f0f60a93310>
+Generating 8 inputs (correlation=0.0, p_keep=0.125, population_unit_fraction=1) for ChIN_0 (0)
+Creating prototype iSPN_3
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f0f609aa690>
+Generating 72 inputs (correlation=0.0, p_keep=0.013888888888888888, population_unit_fraction=1) for iSPN_3 (1)
+About to clone cache of iSPN_3.
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f0f609aa690>
+Generating 32 inputs (correlation=0.0, p_keep=0.03125, population_unit_fraction=1) for iSPN_3 (1)
+About to clone cache of iSPN_3.
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f0f609aa690>
+Generating 63 inputs (correlation=0.0, p_keep=0.015873015873015872, population_unit_fraction=1) for iSPN_3 (1)
+Creating prototype dSPN_3
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f0f608efdd0>
+Generating 263 inputs (correlation=0.0, p_keep=0.0038022813688212928, population_unit_fraction=1) for dSPN_3 (2)
+About to clone cache of dSPN_3.
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f0f608efdd0>
+Generating 95 inputs (correlation=0.0, p_keep=0.010526315789473684, population_unit_fraction=1) for dSPN_3 (2)
+About to clone cache of dSPN_3.
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f0f608efdd0>
+Generating 146 inputs (correlation=0.0, p_keep=0.00684931506849315, population_unit_fraction=1) for dSPN_3 (2)
+Creating prototype iSPN_0
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f0f60840d50>
+Generating 95 inputs (correlation=0.0, p_keep=0.010526315789473684, population_unit_fraction=1) for iSPN_0 (3)
+Execution done on workers

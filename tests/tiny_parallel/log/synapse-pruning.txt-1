@@ -1,0 +1,51 @@
+Log file tiny_parallel/log/synapse-pruning.txt-1 created.
+Using hdf5 driver sec2, latest version
+Opening work history file: tiny_parallel/log/network-detect-worklog.hdf5
+Using random seed provided by command line: 765394208
+Using default scratch path: tiny_parallel/temp
+big_merge_helper (synapses): neuron_range = (3, 7)
+Opening voxel file: tiny_parallel/voxels/network-putative-synapses-29.hdf5
+Checking that b'tiny_parallel/voxels/network-putative-synapses-29.hdf5' matches circuit settings
+Setting max_channel_type to 25 from h_id=29
+min_unique_id: 1050, max_unique_id: 2450
+Opening voxel file: tiny_parallel/voxels/network-putative-synapses-24.hdf5
+Checking that b'tiny_parallel/voxels/network-putative-synapses-24.hdf5' matches circuit settings
+min_unique_id: 1050, max_unique_id: 2450
+Opening voxel file: tiny_parallel/voxels/network-putative-synapses-5.hdf5
+Checking that b'tiny_parallel/voxels/network-putative-synapses-5.hdf5' matches circuit settings
+min_unique_id: 1050, max_unique_id: 2450
+Opening voxel file: tiny_parallel/voxels/network-putative-synapses-4.hdf5
+Checking that b'tiny_parallel/voxels/network-putative-synapses-4.hdf5' matches circuit settings
+min_unique_id: 1050, max_unique_id: 2450
+Opening voxel file: tiny_parallel/voxels/network-putative-synapses-9.hdf5
+Checking that b'tiny_parallel/voxels/network-putative-synapses-9.hdf5' matches circuit settings
+min_unique_id: 1050, max_unique_id: 2450
+Opening voxel file: tiny_parallel/voxels/network-putative-synapses-25.hdf5
+Checking that b'tiny_parallel/voxels/network-putative-synapses-25.hdf5' matches circuit settings
+min_unique_id: 1050, max_unique_id: 2450
+Opening voxel file: tiny_parallel/voxels/network-putative-synapses-28.hdf5
+Checking that b'tiny_parallel/voxels/network-putative-synapses-28.hdf5' matches circuit settings
+min_unique_id: 1050, max_unique_id: 2450
+Opening voxel file: tiny_parallel/voxels/network-putative-synapses-8.hdf5
+Checking that b'tiny_parallel/voxels/network-putative-synapses-8.hdf5' matches circuit settings
+min_unique_id: 1050, max_unique_id: 2450
+Setting up out file tiny_parallel/temp/synapses-for-neurons-3-to-7-MERGE-ME.hdf5
+max_axon_voxel_ctr = 4
+max_dend_voxel_ctr = 4
+Read 636 out of total 3156 synapses
+Flushing tiny_parallel/temp/synapses-for-neurons-3-to-7-MERGE-ME.hdf5 data: network/synapses
+network/synapses new size (636, 13)
+big_merge_helper: done
+big_merge_helper (gapJunctions): neuron_range = (3, 7)
+Opening voxel file: tiny_parallel/voxels/network-putative-synapses-25.hdf5
+min_unique_id: 1050, max_unique_id: 2450
+Setting up out file tiny_parallel/temp/gapJunctions-for-neurons-3-to-7-MERGE-ME.hdf5
+Opening synapse file: tiny_parallel/temp/synapses-for-neurons-3-to-7-MERGE-ME.hdf5
+prune_synapses: synapseFile=<HDF5 file "synapses-for-neurons-3-to-7-MERGE-ME.hdf5" (mode r)>, outputFileName=tiny_parallel/temp/worker-temp-synapses-file-1, rowRange=None (synapses)
+About to calculate block ranges (1 blocks)
+Find block ranges. From 0 to 636 block size 636
+synapse_range=[(0, 636)]
+blockRanges=[(0, 636)]
+Writing to tiny_parallel/temp/worker-temp-synapses-file-1
+Pruning range: (0, 636)
+prune_synapses: No synapse_file specified for gapJunctions -- none detected?

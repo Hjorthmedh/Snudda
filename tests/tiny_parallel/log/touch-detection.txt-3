@@ -1,0 +1,75 @@
+Using hdf5 driver version: latest
+Memory: 5911470080 free, 16591253504 total
+Each hyper voxel has 100 x 100 x 100 voxels
+Touch detecting all volumes
+Loading from tiny_parallel/network-config.json
+Using random seed provided by command line: 2252541163
+Reading prototype for: FS_1
+Reading prototype for: FS_3
+Reading prototype for: dSPN_0
+Reading prototype for: dSPN_1
+Reading prototype for: dSPN_2
+Reading prototype for: dSPN_3
+Reading prototype for: iSPN_0
+Reading prototype for: iSPN_1
+Reading prototype for: iSPN_2
+Reading prototype for: iSPN_3
+Reading prototype for: ChIN_0
+Setting axon density for neuron without axon
+Reading prototype for: LTS_0
+Setting axon density for neuron without axon
+Loading connectivity information
+Memory: 5838700544 free, 16591253504 total
+Reading positions from file: tiny_parallel/network-neuron-positions.hdf5
+Memory: 5838446592 free, 16591253504 total
+Position file read.
+Finding minMax coord in volumeID = None
+distribute_neurons: neuronIdx = [ 5 13  0] (n=3)
+80 hyper voxels in total
+Pre allocation done.
+Calculated distribution of neurons: 0.0 seconds
+Processing hyper voxel : 24/80 (14 neurons)
+Placing 40727 random axon points for ChIN_0
+num_points = 40727
+Placing 40727 random axon points for ChIN_0 (cached)
+num_points = 40727
+place_synapses_no_axon: 0.3 s, hyper_id: 24
+detect_synapses: 56 took 0.0 s
+detectGapJunctions: 0.0 s
+Wrote hyper voxel 24 (56 synapses, 0 gap junctions)
+process_hyper_voxel: 24 took 0.9 s
+Processing hyper voxel : 4/80 (10 neurons)
+Placing 40727 random axon points for ChIN_0 (cached)
+num_points = 40727
+place_synapses_no_axon: 0.0 s, hyper_id: 4
+detect_synapses: 6 took 0.0 s
+detectGapJunctions: 0.0 s
+Wrote hyper voxel 4 (6 synapses, 0 gap junctions)
+process_hyper_voxel: 4 took 0.7 s
+Processing hyper voxel : 21/80 (7 neurons)
+detect_synapses: 0 took 0.0 s
+detectGapJunctions: 0.0 s
+Wrote hyper voxel 21 (0 synapses, 0 gap junctions)
+process_hyper_voxel: 21 took 0.4 s
+Processing hyper voxel : 6/80 (5 neurons)
+Bounding box appears to be outside hyper voxel
+place_synapses_no_axon: 0.0 s, hyper_id: 6
+detect_synapses: 0 took 0.0 s
+detectGapJunctions: 0.0 s
+Wrote hyper voxel 6 (0 synapses, 0 gap junctions)
+process_hyper_voxel: 6 took 0.3 s
+Processing hyper voxel : 20/80 (2 neurons)
+detect_synapses: 0 took 0.0 s
+detectGapJunctions: 0.0 s
+Wrote hyper voxel 20 (0 synapses, 0 gap junctions)
+process_hyper_voxel: 20 took 0.3 s
+Processing hyper voxel : 44/80 (1 neurons)
+detect_synapses: 0 took 0.0 s
+detectGapJunctions: 0.0 s
+Wrote hyper voxel 44 (0 synapses, 0 gap junctions)
+process_hyper_voxel: 44 took 0.2 s
+Processing hyper voxel : 49/80 (1 neurons)
+detect_synapses: 0 took 0.0 s
+detectGapJunctions: 0.0 s
+Wrote hyper voxel 49 (0 synapses, 0 gap junctions)
+process_hyper_voxel: 49 took 0.1 s
