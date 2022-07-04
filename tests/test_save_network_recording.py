@@ -94,7 +94,7 @@ class TestSaveNetworkRecording(unittest.TestCase):
         args.disable_synapses = False
         args.exportCoreNeuron = False
         args.input_file = None
-        args.mech_dir = os.path.join(os.environ["SNUDDA_DATA"], "mechanisms")
+        args.mech_dir = None
         args.network_file = None
         args.profile = False
         args.randomseed = None
@@ -107,19 +107,6 @@ class TestSaveNetworkRecording(unittest.TestCase):
         else:
             os.system(f"ln -s {args.nrnivmodl}")
             os.system("nrnivmodl mechanisms")
-
-        from mpi4py import MPI  # This must be imported before neuron, to run parallel
-        from neuron import h  # , gui
-        import neuron
-
-        if os.path.exists("x86_64/.libs/libnrnmech.so"):
-            print("!!! Manually loading libraries")
-            try:
-                h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
-            except:
-                import traceback
-                tstr = traceback.format_exc()
-                print(tstr)
 
         from snudda.core import Snudda
 

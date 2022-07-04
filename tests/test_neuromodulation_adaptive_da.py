@@ -101,7 +101,7 @@ class TestNeuromodulationAdaptiveDA(unittest.TestCase):
             pass
         else:
             os.system(f"ln -s {args.nrnivmodl}")
-            os.system("nrnivmodl mechanisms")
+            os.system("nrnivmodl da")
 
         args.network_file = None
 

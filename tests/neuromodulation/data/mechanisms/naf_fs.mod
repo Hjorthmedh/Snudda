@@ -2,16 +2,27 @@ TITLE Fast transient sodium current
 
 COMMENT
 
-neuromodulation is added as functions:
+Neuromodulation is added as functions:
     
-    modulation = 1 + damod*(maxMod-1)
+    modulationDA = 1 + modDA*(maxModDA-1)*levelDA
 
 where:
     
-    damod  [0]: is a switch for turning modulation on or off {1/0}
-    maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
+    modDA  [0]: is a switch for turning modulation on or off {1/0}
+    maxModDA [1]: is the maximum modulation for this specific channel (read from the param file)
                     e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+    levelDA  [0]: is an additional parameter for scaling modulation. 
+                Can be used simulate non static modulation by gradually changing the value from 0 to 1 {0-1}
+									
+	  Further neuromodulators can be added by for example:
+          modulationDA = 1 + modDA*(maxModDA-1)
+	  modulationACh = 1 + modACh*(maxModACh-1)
+	  ....
 
+	  etc. for other neuromodulators
+	  
+	   
+								     
 [] == default values
 {} == ranges
     
@@ -21,7 +32,7 @@ NEURON {
     SUFFIX naf_fs
     USEION na READ ena WRITE ina
     RANGE gbar, gna, ina, q
-    RANGE damod, maxMod
+    RANGE modDA, maxModDA, levelDA
 }
 
 UNITS {
@@ -34,8 +45,9 @@ PARAMETER {
     gbar = 0.0 	(S/cm2) 
     :q = 1	: room temperature 22 C
     q = 1.8	: body temperature 35 C
-    damod = 0
-    maxMod = 1
+    modDA = 0
+    maxModDA = 1
+    levelDA = 0
 }
 
 ASSIGNED {
@@ -53,7 +65,7 @@ STATE { m h }
 
 BREAKPOINT {
     SOLVE states METHOD cnexp
-    gna = gbar*m*m*m*h*modulation()
+    gna = gbar*m*m*m*h*modulationDA()
     ina = gna*(v-ena)
 }
 
@@ -78,10 +90,10 @@ PROCEDURE rates() {
     UNITSON
 }
 
-FUNCTION modulation() {
+FUNCTION modulationDA() {
     : returns modulation factor
     
-    modulation = 1 + damod*(maxMod-1)
+    modulationDA = 1 + modDA*(maxModDA-1)*levelDA 
 }
 
 COMMENT

@@ -97,7 +97,6 @@ class TestDump(unittest.TestCase):
             os.system("nrnivmodl mechanisms")
 
         args.network_file = None
-
         args.disable_gj = False
         args.exportCoreNeuron = False
         args.input_file = None

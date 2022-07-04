@@ -1,84 +1,90 @@
 {
+    "type": "adaptive",
     "description": {
         "DA": {
-            "dt": 0.025,
-            "duration": 3000,
-            "ion_channels": {
-                "FSN": {
-                    "axon": [],
-                    "dendrite": [
-                        "kir_fs"
-                    ],
-                    "soma": [
-                        "kir_fs",
-                        "kas_fs",
-                        "kaf_fs",
-                        "naf_fs"
-                    ]
-                },
+            "connector": "concDA",
+            "cells": {
                 "dSPN": {
-                    "axon": [],
-                    "dendrite": [
-                        "kas_ms",
-                        "kaf_ms"
+                    "ion_channels": {
+                        "soma": [
+                            "kas_ms",
+                            "kaf_ms",
+                            "can_ms"
+                        ],
+                        "dendrite": [
+                            "kaf_ms",
+                            "kas_ms"
+                        ]
+                    },
+                    "receptors": {
+                        "tmGabaA": {
+                            "maxMod": 0.8
+                        },
+                        "tmGlut": {
+                            "maxMod_AMPA": 1.2,
+                            "maxMod_NMDA": 1.3,
+                            "failRate": 0.7
+                        }
+                    },
+                    "extrinsic": [
+                        "CorticalBase",
+                        "CorticalSignal",
+                        "Thalamic"
                     ],
-                    "soma": [
-                        "kas_ms",
-                        "kaf_ms",
-                        "can_ms"
-                    ]
+                    "type": "spiking-concentration"
                 },
                 "iSPN": {
-                    "axon": [
-                        "kir_ms",
-                        "kas_ms",
-                        "kaf_ms",
-                        "naf_ms",
-                        "cal12_ms",
-                        "cal13_ms",
-                        "can_ms",
-                        "car_ms"
+                    "ion_channels": {
+                        "soma": [
+                            "kir_ms",
+                            "kas_ms",
+                            "kaf_ms",
+                            "naf_ms",
+                            "cal12_ms",
+                            "cal13_ms",
+                            "can_ms",
+                            "car_ms"
+                        ],
+                        "dendrite": [
+                            "kir_ms",
+                            "kas_ms",
+                            "kaf_ms",
+                            "naf_ms",
+                            "cal12_ms",
+                            "cal13_ms",
+                            "can_ms",
+                            "car_ms"
+                        ],
+                        "axon": [
+                            "kir_ms",
+                            "kas_ms",
+                            "kaf_ms",
+                            "naf_ms",
+                            "cal12_ms",
+                            "cal13_ms",
+                            "can_ms",
+                            "car_ms"
+                        ]
+                    },
+                    "receptors": {
+                        "tmGabaA": {
+                            "maxMod": 0.99
+                        },
+                        "tmGlut": {
+                            "maxMod_AMPA": 0.8,
+                            "maxMod_NMDA": 0.8,
+                            "failRate": 1.3
+                        }
+                    },
+                    "extrinsic": [
+                        "CorticalBase",
+                        "CorticalSignal",
+                        "Thalamic"
                     ],
-                    "dendrite": [
-                        "kir_ms",
-                        "kas_ms",
-                        "kaf_ms",
-                        "naf_ms",
-                        "cal12_ms",
-                        "cal13_ms",
-                        "can_ms",
-                        "car_ms"
-                    ],
-                    "soma": [
-                        "kir_ms",
-                        "kas_ms",
-                        "kaf_ms",
-                        "naf_ms",
-                        "cal12_ms",
-                        "cal13_ms",
-                        "can_ms",
-                        "car_ms"
-                    ]
+                    "type": "spiking-concentration"
                 }
-            },
-            "method": "alpha",
-            "name": "dopamine",
-            "parameters": {
-                "gmax": 1,
-                "tau": 300,
-                "tstart": 700
-            },
-            "presynaptic": {
-                "FSN": {},
-                "dSPN": {},
-                "iSPN": {}
-            },
-            "receptors": {
-                "FSN": {},
-                "dSPN": {},
-                "iSPN": {}
             }
         }
     },
-    "type": "replay"
+    "weight": 0.01
 }

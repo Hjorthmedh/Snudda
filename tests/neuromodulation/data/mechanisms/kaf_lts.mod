@@ -1,4 +1,4 @@
-TITLE Fast delayed rectifier potassium current (Kv3.1/3.2)
+TITLE Fast A-type potassium current (Kv4.2)
 
 COMMENT
 
@@ -28,9 +28,8 @@ where:
     
 ENDCOMMENT
 
-
 NEURON {
-    SUFFIX kdr_lts
+    SUFFIX kaf_lts
     USEION k READ ek WRITE ik
     RANGE gbar, gk, ik, q
     RANGE modDA, maxModDA, levelDA
@@ -43,8 +42,8 @@ UNITS {
 }
 
 PARAMETER {
-    gbar = 0.0 (S/cm2) 
-    :q = 1	: room temperature
+    gbar = 0.0 	(S/cm2) 
+    :q = 1	: room temperature (unspecified)
     q = 3	: body temperature 35 C
     modDA = 0
     maxModDA = 1
@@ -58,30 +57,36 @@ ASSIGNED {
     gk (S/cm2)
     minf
     mtau (ms)
+    hinf
+    htau (ms)
 }
 
-STATE { m }
+STATE { m h }
 
 BREAKPOINT {
     SOLVE states METHOD cnexp
-    gk = gbar*m
+    gk = gbar*m*m*h*modulationDA()
     ik = gk*(v-ek)
 }
 
 DERIVATIVE states {
     rates()
     m' = (minf-m)/mtau*q
+    h' = (hinf-h)/htau*q
 }
 
 INITIAL {
     rates()
     m = minf
+    h = hinf
 }
 
 PROCEDURE rates() {
     UNITSOFF
-    minf = 1/(1+exp((v-(-13))/(-6)))
-    mtau = 11.1
+    minf = 1/(1+exp((v-(-10))/(-17.7)))
+    mtau = (0.9+1.1/(1+exp((v-(-30))/10)))*2
+    hinf = 1/(1+exp((v-(-75.6))/11.8))
+    htau = 14
     UNITSON
 }
 
@@ -93,25 +98,29 @@ FUNCTION modulationDA() {
 
 COMMENT
 
-Original data and model by Baranauskas et al (1999) [1] for globus
-pallidus neurons from young adult rat.  The temperature was not
-specified. Potentials were not corrected for the liquid junction
-potential, which was estimated to be 1-2 mV.
+Original data by Tkatch et al (2000) [1]. Neostriatal neurons were acutely
+dissociated from young adult rats, age P28-P42.  Electrophysiological
+recordings were done at unspecified temperature (room temperature 20-22 C
+assumed). Potentials were not corrected for the liquid junction potential
+(estimated 1-2 mV).
 
-Kinetics of m1 type is used as in [2,3]. Room temperature 20-23 C
-is assumed.
+Conductance kinetics of m2h type is used [2].  Activation m^1 matches
+experimental data [1, Fig.2C]. Activation time constants were fitted to
+tabulated data [1, Fig.2B] by Alexander Kozlov <akozlov@kth.se> and scaled
+up x2 for m2 kinetics.  Slope of inactivation function fitted to the data
+[1, Fig.3B] with half inactivation potential -75.6 mV. Temperature factor
+q between 3 [2] and 1.5 [3] was used for body temperature.
 
-NEURON implementation by Alexander Kozlov <akozlov@kth.se>.
+[1] Tkatch T, Baranauskas G, Surmeier DJ (2000) Kv4.2 mRNA abundance and
+A-type K(+) current amplitude are linearly related in basal ganglia and
+basal forebrain neurons. J Neurosci 20(2):579-88.
 
-[1] Baranauskas G, Tkatch T, Surmeier DJ (1999) Delayed rectifier currents
-in rat globus pallidus neurons are attributable to Kv2.1 and Kv3.1/3.2
-K(+) channels. J Neurosci 19(15):6394-404.
+[2] Wolf JA, Moyer JT, Lazarewicz MT, Contreras D, Benoit-Marand M,
+O'Donnell P, Finkel LH (2005) NMDA/AMPA ratio impacts state transitions
+and entrainment to oscillations in a computational model of the nucleus
+accumbens medium spiny projection neuron. J Neurosci 25(40):9080-95.
 
-[2] Migliore M, Hoffman DA, Magee JC, Johnston D (1999) Role of an
-A-type K+ conductance in the back-propagation of action potentials in the
-dendrites of hippocampal pyramidal neurons. J Comput Neurosci 7(1):5-15.
-
-[3] Evans RC, Morera-Herreras T, Cui Y, Du K, Sheehan T, Kotaleski JH,
+[3]  Evans RC, Morera-Herreras T, Cui Y, Du K, Sheehan T, Kotaleski JH,
 Venance L, Blackwell KT (2012) The effects of NMDA subunit composition on
 calcium influx and spike timing-dependent plasticity in striatal medium
 spiny neurons. PLoS Comput Biol 8(4):e1002493.

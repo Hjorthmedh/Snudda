@@ -28,7 +28,7 @@ class TestNeuromodulationAdaptiveDA(unittest.TestCase):
         config_name = os.path.join(args.path, "network-config.json")
         cnc = neuromodulationInit(config_file=config_name, random_seed=12345)
 
-        cnc.define_striatum_neuromodulation(num_dSPN=5, num_iSPN=5, num_ChIN=5, volume_type="cube", neurons_dir=args.neurons_dir)
+        cnc.define_striatum_neuromodulation(num_dSPN=2, num_iSPN=2, num_ChIN=5, volume_type="cube", neurons_dir=args.neurons_dir)
         dirName = os.path.dirname(config_name)
 
         if not os.path.exists(dirName):
@@ -89,7 +89,7 @@ class TestNeuromodulationAdaptiveDA(unittest.TestCase):
             pass
         else:
             os.system(f"ln -s {args.nrnivmodl}")
-            os.system("nrnivmodl mechanisms")
+            os.system("nrnivmodl ach")
 
         args.network_file = None
 
