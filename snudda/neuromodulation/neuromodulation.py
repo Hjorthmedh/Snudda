@@ -21,7 +21,7 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                  output_file=None,
                  verbose=False,
                  log_file=None,
-                 disable_gap_junctions=True,
+                 disable_gap_junctions=False,
                  disable_synapses=False,
                  simulation_config=None):
 
