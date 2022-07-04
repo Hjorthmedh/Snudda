@@ -86,10 +86,36 @@ class TestSaveNetworkRecording(unittest.TestCase):
         args.path = os.path.join(os.path.dirname(__file__), "test_network_neuromodulation")
         args.output_file = os.path.join(os.path.dirname(__file__), "simulation", "test.hdf5")
         args.time = 0.1
-        args.nrnivmodl = os.path.join(os.environ["SNUDDA_DATA"], "neurons", "mechanisms")
+        args.nrnivmodl = os.path.join(os.environ["SNUDDA_DATA"], "mechanisms")
+        print("Running nrnivmodl:")
+        mech_dir = os.path.join(os.environ["SNUDDA_DATA"], "mechanisms")
+
+        if not os.path.exists("mechanisms"):
+            print("----> Copying mechanisms")
+            # os.symlink(mech_dir, "mechanisms")
+            from distutils.dir_util import copy_tree
+            copy_tree(mech_dir, "mechanisms")
+        else:
+            print("------------->   !!! mechanisms already exists")
+
+        eval_str = f"nrnivmodl mechanisms"  # f"nrnivmodl {mech_dir}
+        print(f"Running: {eval_str}")
+        os.system(eval_str)
+
+        if os.path.exists("x86_64/.libs/libnrnmech.so"):
+            print("!!! Manually loading libraries")
+            try:
+                h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
+            except:
+                import traceback
+                tstr = traceback.format_exc()
+                print(tstr)
+
+
         args.network_file = None
 
         args.disable_gj = False
+        args.disable_synapses = False
         args.exportCoreNeuron = False
         args.input_file = None
         args.mech_dir = None
