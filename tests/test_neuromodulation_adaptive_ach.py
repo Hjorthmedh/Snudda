@@ -97,7 +97,7 @@ class TestNeuromodulationAdaptiveDA(unittest.TestCase):
         args.disable_synapses = False
         args.exportCoreNeuron = False
         args.input_file = None
-        args.mech_dir = None
+        args.mech_dir = os.path.join(os.environ["SNUDDA_DATA"], "mechanisms-ptr", "ach")
         args.network_file = None
         args.profile = False
         args.randomseed = None
