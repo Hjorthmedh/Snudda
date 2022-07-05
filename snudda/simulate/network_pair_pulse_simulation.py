@@ -46,7 +46,7 @@
 # * Look at plot with traces overlayed and histogram of voltage amplitudes
 # (When you do preType to postType, you also get preType to preType for free
 # since both voltages are recorded
-
+import json
 import os
 import sys
 
@@ -56,7 +56,7 @@ import numpy as np
 from snudda.simulate.simulate import SnuddaSimulate
 from snudda.utils import SnuddaLoadNetworkSimulation
 from snudda.utils.load import SnuddaLoad
-
+from snudda.utils import snudda_parse_path
 
 # We want to match Taverna 2008 data:
 
@@ -464,23 +464,20 @@ class SnuddaNetworkPairPulseSimulation:
 
     ############################################################################
 
-    def setup_exp_data(self):
+    def setup_exp_data(self, data_file=None):
 
         self.exp_data = dict()
 
-        planert_d1_d1 = (0.24, 0.15)
-        planert_d1_d2 = (0.33, 0.15)
-        planert_d2_d1 = (0.27, 0.09)
-        planert_d2_d2 = (0.45, 0.44)
-        planert_fs_d1 = (4.8, 4.9)
-        planert_fs_d2 = (3.1, 4.1)
+        if data_file is None:
+            data_file = snudda_parse_path(os.path.join("$DATA", "synapses", "pair_pulse_experiment_data.json"))
 
-        self.exp_data[("Planert2010", "dSPN", "dSPN")] = planert_d1_d1
-        self.exp_data[("Planert2010", "dSPN", "iSPN")] = planert_d1_d2
-        self.exp_data[("Planert2010", "iSPN", "dSPN")] = planert_d2_d1
-        self.exp_data[("Planert2010", "iSPN", "iSPN")] = planert_d2_d2
-        self.exp_data[("Planert2010", "FS", "dSPN")] = planert_fs_d1
-        self.exp_data[("Planert2010", "FS", "iSPN")] = planert_fs_d2
+        with open(data_file, "r") as f:
+            exp_data = json.load(f)
+
+        for exp_name, exp_info in exp_data.items():
+            for pre_neuron in exp_info:
+                for post_neuron in exp_info[pre_neuron]:
+                    self.exp_data[exp_name, pre_neuron, post_neuron] = exp_info[pre_neuron][post_neuron]
 
     ############################################################################
 
