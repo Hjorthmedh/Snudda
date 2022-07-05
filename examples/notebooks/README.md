@@ -32,4 +32,4 @@ Here is a collection of Jupyter Notebooks, some of the workflows are split over 
 
 
 ## Additional notebooks
-* [Paired current injection](network_pair_pulse_simulation.ipynb) in a simulated network
+* [Paired current injection](validation/synapses/network_pair_pulse_simulation.ipynb) in a simulated network
