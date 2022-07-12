@@ -123,10 +123,11 @@ class TestSaveNetworkRecording(unittest.TestCase):
         should_be = np.ones_like(test_array) * 0.5
 
         dt_step = f["time"][()][1] - f["time"][()][0]
-        d = np.round(dt_step, 4)
+        d = np.round(dt_step, 8)
+        print(d)
 
         self.assertTrue((should_be == test_array).all())
-        self.assertTrue(d == 0.0005)
+        self.assertTrue(d == 2.5e-05)
 
     def testNeuronRecordings(self):
 

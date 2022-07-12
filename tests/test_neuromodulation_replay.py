@@ -56,6 +56,26 @@ class TestNeuromodulationReplay(unittest.TestCase):
                                            modulation={"maxMod_AMPA": 1.2,
                                                        "maxMod_NMDA": 1.3,
                                                        "failRate": 0.7})
+        neuron_type = "iSPN"
+        nl.receptor_modulation(neurotransmitter=neurotransmitter,
+                               cell_type=neuron_type,
+                               receptor="tmGabaA",
+                               modulation={"maxMod": 0.8})
+
+        nl.presynaptic_receptor_modulation(neurotransmitter=neurotransmitter,
+                                           cell_type=neuron_type,
+                                           receptor="tmGlut",
+                                           modulation={"maxMod_AMPA": 1.2,
+                                                       "maxMod_NMDA": 1.3,
+                                                       "failRate": 0.7})
+
+        neuron_type = "FSN"
+        nl.presynaptic_receptor_modulation(neurotransmitter=neurotransmitter,
+                                           cell_type=neuron_type,
+                                           receptor="tmGlut",
+                                           modulation={"maxMod_AMPA": 1.2,
+                                                       "maxMod_NMDA": 1.3,
+                                                       "failRate": 0.7})
 
         nl.save(dir_path=os.path.join(os.path.dirname(__file__), "neuromodulation", "data", "modulation"),
                 name="dopamine_modulation_receptors_only.json")
