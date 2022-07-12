@@ -45,6 +45,7 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
         self.cell_modulator = dict()
         self.neuromodulation_weight = neuromodulator_description['weight']
         self.connector = [info['connector'] for info in self.neuromodulator_description.values()]
+        self.name_modulation_keys = [c.replace("conc", "") for c in self.connector]
         self.module_connector = [k+'()'for k in self.connector]
         self.mod_str = dict(zip(self.module_connector, self.connector))
 
@@ -334,10 +335,12 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                     level = [x for x in dir(syn) if 'level' in x]
 
                     for nkey in level:
-                        fake = self.sim.neuron.h.concHld(dend_compartment(section_dist))
-                        self.inplace_gpcrs.append(fake)
-                        pointer = fake._ref_concentration
-                        self.sim.neuron.h.setpointer(pointer, nkey, syn)
+
+                        if nkey.replace("level", "") in self.name_modulation_keys:
+                            fake = self.sim.neuron.h.concHld(dend_compartment(section_dist))
+                            self.inplace_gpcrs.append(fake)
+                            pointer = fake._ref_concentration
+                            self.sim.neuron.h.setpointer(pointer, nkey, syn)
 
                     pointer = point_process_in_section._ref_concentration
 
@@ -395,10 +398,12 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                 level = [x for x in dir(syn) if 'level' in x]
 
                 for nkey in level:
-                    fake = self.sim.neuron.h.concHld(section(section_x))
-                    self.inplace_gpcrs.append(fake)
-                    pointer = fake._ref_concentration
-                    self.sim.neuron.h.setpointer(pointer, nkey, syn)
+
+                    if nkey.replace("level", "") in self.name_modulation_keys:
+                        fake = self.sim.neuron.h.concHld(section(section_x))
+                        self.inplace_gpcrs.append(fake)
+                        pointer = fake._ref_concentration
+                        self.sim.neuron.h.setpointer(pointer, nkey, syn)
 
                 pointer = point_process_in_section._ref_concentration
 
