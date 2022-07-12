@@ -1,11 +1,12 @@
 import unittest
 import numpy as np
 from snudda.place.rotation import SnuddaRotate
-
+import os
 
 class TestRotation(unittest.TestCase):
 
     def setUp(self):
+
 
         self.sr = SnuddaRotate()
         self.sr.parse_config_file("data/RotationTest.json")

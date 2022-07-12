@@ -345,6 +345,48 @@
                 }
             }
         },
+        "ChIN,dSPN": {
+            "acetylcholine": {
+                "conductance": [
+                    1e-09,
+                    0
+                ],
+                "channelParameters": {
+                    "modFile": "concACh"
+                },
+                "clusterSize": 1,
+                "clusterSpread": null,
+                "pruning": {
+                    "f1": null,
+                    "softMax": null,
+                    "mu2": null,
+                    "a3": null,
+                    "distPruning": null,
+                    "cluster": false
+                }
+            }
+        },
+        "ChIN,iSPN": {
+            "acetylcholine": {
+                "conductance": [
+                    1e-09,
+                    0
+                ],
+                "channelParameters": {
+                    "modFile": "concACh"
+                },
+                "clusterSize": 1,
+                "clusterSpread": null,
+                "pruning": {
+                    "f1": null,
+                    "softMax": null,
+                    "mu2": null,
+                    "a3": null,
+                    "distPruning": null,
+                    "cluster": false
+                }
+            }
+        },
         "LTS,dSPN": {
             "GABA": {
                 "conductance": [
@@ -427,10 +469,10 @@
     },
     "Neurons": {
         "FS_0": {
-            "morphology": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/MTC180800A-IDB-cor-rep.swc",
-            "parameters": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/parameters.json",
-            "mechanisms": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/mechanisms.json",
-            "modulation": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/modulation.json",
+            "morphology": "/home/jofrony/Documents/Repositories/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/MTC180800A-IDB-cor-rep.swc",
+            "parameters": "/home/jofrony/Documents/Repositories/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/parameters.json",
+            "mechanisms": "/home/jofrony/Documents/Repositories/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/mechanisms.json",
+            "modulation": "/home/jofrony/Documents/Repositories/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/modulation.json",
             "num": 5,
             "hoc": null,
             "neuronType": "neuron",
@@ -438,10 +480,10 @@
             "volumeID": "Striatum"
         },
         "dSPN_0": {
-            "morphology": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc",
-            "parameters": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/parameters.json",
-            "mechanisms": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/mechanisms.json",
-            "modulation": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/modulation.json",
+            "morphology": "/home/jofrony/Documents/Repositories/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc",
+            "parameters": "/home/jofrony/Documents/Repositories/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/parameters.json",
+            "mechanisms": "/home/jofrony/Documents/Repositories/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/mechanisms.json",
+            "modulation": "/home/jofrony/Documents/Repositories/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/modulation.json",
             "num": 5,
             "hoc": null,
             "neuronType": "neuron",

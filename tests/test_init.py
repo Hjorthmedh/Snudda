@@ -8,6 +8,7 @@ class TestInit(unittest.TestCase):
 
     def setUp(self):
 
+        os.environ["SNUDDA_DATA"] = os.path.join(os.path.dirname(__file__), "..", "snudda", "data")
         if os.path.dirname(__file__):
             os.chdir(os.path.dirname(__file__))
 

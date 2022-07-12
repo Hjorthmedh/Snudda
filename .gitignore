@@ -1,11 +1,3 @@
-#Temporary removed 
-tests/da_ach
-tests/mechs/
-tests/original
-tests/test_network_neuromodulation/
-tests/test_network_neuromodulation_adaptive/
-
-
 .ipython
 *.pickle
 *.hdf5
