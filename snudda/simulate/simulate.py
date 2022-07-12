@@ -122,7 +122,7 @@ class SnuddaSimulate(object):
         self.pc = h.ParallelContext()
 
         if simulation_config:
-
+        
             with open(simulation_config, "r") as f:
                 sim_info = json.load(f, object_pairs_hook=OrderedDict)
 
