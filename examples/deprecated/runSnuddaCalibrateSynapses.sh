@@ -17,7 +17,7 @@ export IPYTHONDIR="`pwd`/.ipython"
 export IPYTHON_PROFILE=Snudda_LOCAL
 
 ipcluster stop
-ipcluster start -n 12 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
+ipcluster start -n 6 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 
 sleep 10
 
@@ -34,11 +34,11 @@ echo "Type Ctrl+D after inspecting the cut"
 python3 snudda_cut.py $simName/network-pruned-synapses.hdf5 "abs(z)<100e-6"
 #python3 snudda_cut.py $simName/network-pruned-synapses.hdf5 "abs(z-0.00511)<100e-6"
 
-mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run Planert2010 $simName/network-cut-slice.hdf5 --pre dSPN --post iSPN
+mpiexec -n 6 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run Planert2010 $simName/network-cut-slice.hdf5 --pre dSPN --post iSPN
 
-mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run Planert2010 $simName/network-cut-slice.hdf5 --pre iSPN --post dSPN
+mpiexec -n 6 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run Planert2010 $simName/network-cut-slice.hdf5 --pre iSPN --post dSPN
 
-mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run Planert2010 $simName/network-cut-slice.hdf5 --pre FSN --post ALL
+mpiexec -n 6 -map-by socket:OVERSUBSCRIBE python3 snudda_calibrate_synapses.py run Planert2010 $simName/network-cut-slice.hdf5 --pre FSN --post ALL
 
 python3 snudda_calibrate_synapses.py analyse Planert2010 $simName --pre dSPN --post iSPN
 python3 snudda_calibrate_synapses.py analyse Planert2010 $simName --pre dSPN --post dSPN
