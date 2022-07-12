@@ -122,8 +122,6 @@ class SegmentIdTestCase(unittest.TestCase):
 
     def test_all_dir(self):
 
-        os.environ["SNUDDA_DATA"] = os.path.join(os.path.dirname(__file__), "..", "snudda", "data")
-
         neuron_dirs = [snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "dspn")),
                        snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "ispn")),
                        snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "fs")),
