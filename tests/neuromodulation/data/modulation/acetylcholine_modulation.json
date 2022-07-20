@@ -1,0 +1,48 @@
+{
+    "type": "adaptive",
+    "description": {
+        "ACh": {
+            "connector": "concACh",
+            "cells": {
+                "dSPN": {
+                    "ion_channels": {
+                        "soma": [
+                            "kir_ms",
+                            "cal12_ms",
+                            "cal13_ms",
+                            "can_ms",
+                            "Im_ms"
+                        ],
+                        "dendrite": [
+                            "kir_ms",
+                            "cal12_ms",
+                            "cal13_ms"
+                        ]
+                    },
+                    "receptors": {},
+                    "extrinsic": {},
+                    "type": "spiking-concentration"
+                },
+                "iSPN": {
+                    "ion_channels": {
+                        "soma": [
+                            "kir_ms",
+                            "cal12_ms",
+                            "cal13_ms",
+                            "can_ms"
+                        ],
+                        "dendrite": [
+                            "kir_ms",
+                            "cal12_ms",
+                            "cal13_ms"
+                        ]
+                    },
+                    "receptors": {},
+                    "extrinsic": {},
+                    "type": "spiking-concentration"
+                }
+            }
+        }
+    },
+    "weight": 0.01
+}
