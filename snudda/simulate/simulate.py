@@ -122,7 +122,9 @@ class SnuddaSimulate(object):
         self.pc = h.ParallelContext()
 
         if simulation_config:
-            sim_info = json.load(simulation_config, object_pairs_hook=OrderedDict)
+        
+            with open(simulation_config, "r") as f:
+                sim_info = json.load(f, object_pairs_hook=OrderedDict)
 
             if "networkFile" in sim_info:
                 self.network_file = sim_info["networkFile"]

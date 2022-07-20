@@ -1332,16 +1332,16 @@ class SnuddaInit(object):
         # ================================================================
         # commenting gabaergic ChIN -> SPN connections Feb. 25th 2020 (RL)
 
-        if True:
+        if False:
             self.add_neuron_target(neuron_name="ChIN",
                                    target_name="dSPN",
-                                   connection_type="acetylcholine",
+                                   connection_type="GABA",
                                    dist_pruning=None,
-                                   f1=None, soft_max=None, mu2=None, a3=None,
+                                   f1=0.5, soft_max=10, mu2=15, a3=0.1,  # SM 15
                                    conductance=ChINgGABA,
                                    cluster_synapses=False,
                                    parameter_file=pfChINdSPN,
-                                   mod_file="concACh",
+                                   mod_file="tmGabaA",
                                    channel_param_dictionary=None)
 
             # TEST SETTING THIS TO ACh (SHOULD BE GABA), will this change?
@@ -1349,13 +1349,13 @@ class SnuddaInit(object):
 
             self.add_neuron_target(neuron_name="ChIN",
                                    target_name="iSPN",
-                                   connection_type="acetylcholine",
+                                   connection_type="GABA",
                                    dist_pruning=None,
-                                   f1=None, soft_max=None, mu2=None, a3=None,
+                                   f1=0.5, soft_max=10, mu2=10, a3=0.1,  # SM 12
                                    conductance=ChINgGABA,
                                    cluster_synapses=False,
-                                   parameter_file=pfChINdSPN,
-                                   mod_file="concACh",
+                                   parameter_file=pfChINiSPN,
+                                   mod_file="tmGabaA",
                                    channel_param_dictionary=None)
         # ================================================================
 

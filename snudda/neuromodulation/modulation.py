@@ -7,6 +7,23 @@ def alpha_sub_function(t_step, tau, tstart, gmax):
     return gmax * ((t_step - tstart) / tau) * np.exp(1 - ((t_step - tstart) / tau))
 
 
+def alpha_repetition(parameter=None):
+
+    time_step_array = parameter['time_step_array']
+    tstarts = parameter['tstart']
+    gmax = parameter['gmax']
+    tau = parameter['tau']
+    magnitude = np.zeros_like(time_step_array)
+
+    for tstart in tstarts:
+
+        index = np.where(time_step_array > tstart)
+        start_index = index[0][0]
+
+        magnitude[start_index:] = alpha_sub_function(np.take(time_step_array, index), tau, tstart, gmax)
+
+    return magnitude
+
 def alpha(parameter=None):
 
     time_step_array = parameter['time_step_array']
