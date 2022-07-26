@@ -148,8 +148,8 @@ class SnuddaAnalyseTopology:
                     print(f"Multiplicity {reps} for {count} simplices")
 
             print("")
-        import pdb
-        pdb.set_trace()
+        #import pdb
+        #pdb.set_trace()
 
 
 if __name__ == "__main__":
