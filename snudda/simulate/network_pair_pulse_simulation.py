@@ -282,10 +282,12 @@ class SnuddaNetworkPairPulseSimulation:
             self.snudda_sim.add_volt_recording_soma()
         else:
             # Record from all the potential post synaptic neurons
-            self.snudda_sim.add_recording_of_soma(self.post_type)
+            post_id = self.snudda_sim.snudda_loader.get_neuron_id_of_type(self.post_type)
+            self.snudda_sim.add_volt_recording_soma(post_id)
 
             # Also save the presynaptic traces for debugging, to make sure they spike
-            self.snudda_sim.add_recording_of_soma(self.pre_type)
+            pre_id = self.snudda_sim.snudda_loader.get_neuron_id_of_type(self.pre_type)
+            self.snudda_sim.add_volt_recording_soma(pre_id)
 
         # Run simulation
         self.snudda_sim.run(sim_end * 1e3, hold_v=self.hold_v)
@@ -461,6 +463,8 @@ class SnuddaNetworkPairPulseSimulation:
         plt.savefig(hist_fig, dpi=300)
 
         plt.pause(10)
+
+        return model_mean, model_std, trace_fig, hist_fig
 
     ############################################################################
 
