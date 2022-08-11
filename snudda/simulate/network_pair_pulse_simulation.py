@@ -446,8 +446,8 @@ class SnuddaNetworkPairPulseSimulation:
 
         plt.tight_layout()
         plt.ion()
-        plt.show()
         plt.savefig(trace_fig, dpi=300)
+        plt.show()
 
         plt.figure()
         plt.hist(amp * 1e3, bins=20)
@@ -459,8 +459,8 @@ class SnuddaNetworkPairPulseSimulation:
         plt.gca().spines["top"].set_visible(False)
 
         plt.tight_layout()
-        plt.show()
         plt.savefig(hist_fig, dpi=300)
+        plt.show()
 
         plt.pause(10)
 
