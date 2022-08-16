@@ -393,7 +393,9 @@ class SnuddaNetworkPairPulseSimulation:
             t_max[i] = t[idx_max[i]] - t[0]
             amp[i] = v[idx_max[i]] - v[0]
 
-        assert len(amp) > 0, "No responses... too short distance!"
+        if len(amp) <= 0:
+            print("No responses... too short distance!")
+            return None, None, None, None 
 
         print(f"Min amp: {np.min(amp)}")
         print(f"Max amp: {np.max(amp)}")
