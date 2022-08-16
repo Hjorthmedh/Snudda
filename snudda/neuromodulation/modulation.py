@@ -47,7 +47,11 @@ def step(parameter=None):
     step_stop = parameter['duration'] + parameter['tstart']
     gmax = parameter['gmax']
 
-    magnitude = np.zeros_like(time_step_array)
+    if "base" in parameter:
+        base = parameter["base"]
+    else:
+        base = 0
+    magnitude = np.zeros_like(time_step_array) + base
 
     start_index = np.where(np.logical_and(time_step_array > tstart, time_step_array < step_stop))[0][0]
 
