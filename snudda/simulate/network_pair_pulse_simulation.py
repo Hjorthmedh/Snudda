@@ -332,6 +332,10 @@ class SnuddaNetworkPairPulseSimulation:
 
         assert post_type != "ALL", "You need to specify a neuron type as post_type, e.g. FS"
 
+        assert self.post_type == post_type or self.post_type == "ALL", \
+            f"You can only analyse post_type data that you recorded (e.g. {self.post_type}), " \
+            f"to record data from all neuron types use post_type=ALL"
+
         self.possible_post_id = [x["neuronID"] for x in self.data["neurons"] if x["type"] == post_type]
 
         # injInfo contains (preID,injStartTime)
@@ -360,8 +364,16 @@ class SnuddaNetworkPairPulseSimulation:
 
                 # There is a bit of synaptic delay, so we can take voltage
                 # at first timestep as baseline
+
+                if t + check_width > np.max(time):
+                    print(f"Simulation only run to {np.max(time)}s, missing pulses at {t}s (check_width={check_width}s)")
+                    continue
+
                 t_idx = np.where(np.logical_and(t <= time, time <= t + check_width))[0]
-                synapse_data.append((time[t_idx], voltage[post_id][t_idx]))
+                synapse_data.append((time[t_idx], voltage[post_id][t_idx], pre_id, post_id))
+
+                assert len(t_idx) > 0, f"Internal error, no time points recorded between {t} and {t+check_width} " \
+                                       f"for synapse pre_id={pre_id}, post_id={post_id}"
 
         if max_dist is not None:
             print(f"Number of pairs excluded, distance > {max_dist * 1e6} mum : {too_far_away}")
@@ -385,11 +397,18 @@ class SnuddaNetworkPairPulseSimulation:
         idx_max = np.zeros((len(synapse_data),), dtype=int)
         t_max = np.zeros((len(synapse_data),))
 
-        for i, (t, v) in enumerate(synapse_data):
+        for i, (t, v, pre_id, post_id) in enumerate(synapse_data):
             # Save the largest deflection -- with sign
-            idx_max[i] = np.argmax(np.abs(v - v[0]))
-            t_max[i] = t[idx_max[i]] - t[0]
-            amp[i] = v[idx_max[i]] - v[0]
+            try:
+                idx_max[i] = np.argmax(np.abs(v - v[0]))
+                t_max[i] = t[idx_max[i]] - t[0]
+                amp[i] = v[idx_max[i]] - v[0]
+            except:
+                import traceback
+                t_str = traceback.format_exc()
+                print(t_str)
+                import pdb
+                pdb.set_trace()
 
         assert len(amp) > 0, "No responses... too short distance!"
 
@@ -409,7 +428,7 @@ class SnuddaNetworkPairPulseSimulation:
 
         plt.figure()
         for x in keep_idx:
-            t, v = synapse_data[x]
+            t, v, pre_id, post_id = synapse_data[x]
 
             plt.plot((t - t[0]) * 1e3, (v - v[0]) * 1e3, color="black")
 
