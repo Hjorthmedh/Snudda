@@ -1,3 +1,4 @@
+import itertools
 import os
 import numpy as np
 
@@ -121,6 +122,9 @@ class SnuddaAnalyseTopology:
 
             keep_simplex = True if multiplicity_requirement is None else mult == multiplicity_requirement
 
+            if keep_simplex is False:
+                continue
+
             for neuron_type, neuron_type_number in neuron_type_list:
                 if np.sum([neuron_type == x for x in neuron_types]) != neuron_type_number:
                     keep_simplex = False
@@ -148,8 +152,35 @@ class SnuddaAnalyseTopology:
                     print(f"Multiplicity {reps} for {count} simplices")
 
             print("")
-        import pdb
-        pdb.set_trace()
+        #import pdb
+        #pdb.set_trace()
+
+    def get_clique_composition_permutations(self, dimension, neuron_types=None):
+
+        if neuron_types is None:
+            neuron_types = self.snudda_load.get_neuron_types()
+
+        clique_combinations = [x for x in itertools.combinations_with_replacement(neuron_types, dimension+1)]
+
+        return clique_combinations
+
+    def get_clique_neuron_type_composition_statistics(self, multiplicity, dimension):
+
+        count = OrderedDict()
+        neuron_type_lookup = dict()
+
+        for neuron_id, neuron_type in zip([x["neuronID"] for x in self.snudda_load.data["neurons"]],
+                                          [x["type"] for x in self.snudda_load.data["neurons"]]):
+            neuron_type_lookup[neuron_id] = neuron_type
+
+        for neuron_keys, mult in multiplicity[dimension].items():
+            neuron_type_list = tuple(sorted([neuron_type_lookup[nk] for nk in neuron_keys]))
+            if neuron_type_list not in count:
+                count[neuron_type_list] = 1
+            else:
+                count[neuron_type_list] += 1
+
+        return count
 
 
 if __name__ == "__main__":
