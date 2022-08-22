@@ -45,8 +45,8 @@ class TestCLI(unittest.TestCase):
                 import shutil
                 shutil.rmtree(network_path)
         
-                os.mkdir(network_path)
-                os.chdir(network_path)
+            os.mkdir(network_path)
+            os.chdir(network_path)
 
         with self.subTest(stage="setup-parallel"):
             os.environ["IPYTHONDIR"] = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
