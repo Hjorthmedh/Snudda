@@ -1,0 +1,58 @@
+{
+    "RandomSeed": {
+        "masterseed": 1234,
+        "init": 2906597030,
+        "place": 1602421836,
+        "detect": 216676975,
+        "prune": 2698621808,
+        "input": 507409703,
+        "simulate": 2825158027
+    },
+    "Volume": {
+	"TestStriatum": {
+	    "type": "mesh",
+	    "dMin": 1e-5,
+	    "meshFile": "mesh/simple_mesh.obj",
+	    "meshBinWidth": 5e-5
+	}
+    },
+    "Connectivity": {
+	"ballanddoublestick,ballanddoublestick": {
+	    "GABA": {
+		"conductance": [1.1e-9, 1.5e-9],
+                "pruning": {
+                    "f1": 1,
+                    "softMax": 5,
+                    "mu2": null,
+                    "a3": 0.6,
+                    "distPruning": null
+                }
+	    },
+            "GapJunction": {
+                "conductance": [5e-10, 1e-10],
+                "channelParameters": null,
+                "pruning": {
+                    "f1": 1,
+                    "softMax": 8,
+                    "mu2": null,
+                    "a3": 1.0,
+                    "distPruning": null
+                }
+            }
+	}
+    },
+    "Neurons": {
+	"ballanddoublestick_0": {
+            "morphology": "validation/ballanddoublestick/double.swc",
+            "parameters": "",
+            "mechanisms": "",
+            "modulation": "",
+            "num": 20,
+            "hoc": null,
+            "neuronType": "neuron",
+            "rotationMode": "",
+            "volumeID": "TestStriatum"
+
+	}
+    }
+}
