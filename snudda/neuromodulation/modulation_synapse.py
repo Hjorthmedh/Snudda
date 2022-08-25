@@ -30,6 +30,13 @@ class NeuromodulationSynapse:
 
         if ion_channels is None:
             ion_channels = dict(soma=list(), dendrite=list(), axon=list())
+
+        if receptors is None:
+            receptors = dict()
+
+        if extrinsic is None:
+            extrinsic = dict()
+
         self.synapse_modulation[neuromodulation_key]['cells'].update({cell: {
             'ion_channels': ion_channels,
             'receptors': receptors,

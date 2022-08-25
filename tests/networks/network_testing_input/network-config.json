@@ -35,8 +35,6 @@
                     ],
                     "modFile": "tmGabaA"
                 },
-                "clusterSize": 1,
-                "clusterSpread": null,
                 "pruning": {
                     "f1": 0.15,
                     "softMax": 5,
@@ -52,8 +50,6 @@
                     1e-10
                 ],
                 "channelParameters": null,
-                "clusterSize": 1,
-                "clusterSpread": null,
                 "pruning": {
                     "f1": 0.7,
                     "softMax": 8,
@@ -82,8 +78,6 @@
                     "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-FD-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
-                "clusterSize": 1,
-                "clusterSpread": null,
                 "pruning": {
                     "f1": 0.5,
                     "softMax": 5,
@@ -112,8 +106,6 @@
                     "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-FI-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
-                "clusterSize": 1,
-                "clusterSpread": null,
                 "pruning": {
                     "f1": 0.5,
                     "softMax": 5,
@@ -133,8 +125,6 @@
                 "channelParameters": {
                     "modFile": "tmGabaA"
                 },
-                "clusterSize": 1,
-                "clusterSpread": null,
                 "pruning": {
                     "f1": 0.15,
                     "softMax": 3,
@@ -164,8 +154,6 @@
                     "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-DD-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
-                "clusterSize": 1,
-                "clusterSpread": null,
                 "pruning": {
                     "f1": 0.28500000000000003,
                     "softMax": 3,
@@ -203,8 +191,6 @@
                     "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-DI-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
-                "clusterSize": 1,
-                "clusterSpread": null,
                 "pruning": {
                     "f1": 0.164,
                     "softMax": 3,
@@ -233,8 +219,6 @@
                     "failRate": 0.7,
                     "modFile": "tmGabaA"
                 },
-                "clusterSize": 1,
-                "clusterSpread": null,
                 "pruning": {
                     "f1": 0.1,
                     "softMax": 3,
@@ -264,8 +248,6 @@
                     "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-ID-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
-                "clusterSize": 1,
-                "clusterSpread": null,
                 "pruning": {
                     "f1": 0.279,
                     "softMax": 4,
@@ -303,8 +285,6 @@
                     "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-II-tmgaba-fit.json",
                     "modFile": "tmGabaA"
                 },
-                "clusterSize": 1,
-                "clusterSpread": null,
                 "pruning": {
                     "f1": 0.55,
                     "softMax": 4,
@@ -333,8 +313,6 @@
                     "failRate": 0.4,
                     "modFile": "tmGabaA"
                 },
-                "clusterSize": 1,
-                "clusterSpread": null,
                 "pruning": {
                     "f1": 0.1,
                     "softMax": 3,
@@ -362,8 +340,6 @@
                     ],
                     "modFile": "tmGabaA"
                 },
-                "clusterSize": 1,
-                "clusterSpread": null,
                 "pruning": {
                     "f1": 0.3,
                     "softMax": 15,
@@ -391,8 +367,6 @@
                     ],
                     "modFile": "tmGabaA"
                 },
-                "clusterSize": 1,
-                "clusterSpread": null,
                 "pruning": {
                     "f1": 0.3,
                     "softMax": 15,
@@ -412,8 +386,6 @@
                 "channelParameters": {
                     "modFile": "tmGabaA"
                 },
-                "clusterSize": 1,
-                "clusterSpread": null,
                 "pruning": {
                     "f1": 0.5,
                     "softMax": 10,
@@ -447,34 +419,6 @@
             "neuronType": "neuron",
             "rotationMode": "random",
             "volumeID": "Striatum"
-        }
-    },
-    "PopulationUnits": {
-        "AllUnitID": [
-            1,
-            2
-        ],
-        "Striatum": {
-            "method": "random",
-            "fractionOfNeurons": [
-                0.4,
-                0.4
-            ],
-            "unitID": [
-                1,
-                2
-            ],
-            "neuronTypes": [
-                [
-                    "dSPN",
-                    "FS"
-                ],
-                [
-                    "dSPN",
-                    "FS"
-                ]
-            ],
-            "structure": "Striatum"
         }
     }
 }
