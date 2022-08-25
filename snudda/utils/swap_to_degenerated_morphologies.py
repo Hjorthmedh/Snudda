@@ -19,8 +19,10 @@ class SwapToDegenerateMorphologies:
                  original_input_file, new_input_file):
 
         """ This code replaces the neuron morphologies in the original network with user provided degenerated copies
-            of the neurons. The synapses that are on removed dendritic or axonal branches will also be removed.
+            of the neurons. The synapses that are on removed dendritic will also be removed.
             The section ID and section X is also updated to match the new degenerated morphologies.
+
+            TODO: Handle axon degeneration (or increase)
 
             Args:
                 original_network_file (str) : Path to input network-synapses.hdf5
@@ -234,6 +236,8 @@ class SwapToDegenerateMorphologies:
         keep_idx, new_sec_id, new_sec_x \
             = self.remap_sections_helper(neuron_id=post_id, old_sec_id=old_sec_id, old_sec_x=old_sec_x/1000)
 
+        # TODO: Add axon degeneration check...
+
         edited_synapses = synapses.copy()
 
         edited_synapses[:, 9] = new_sec_id
@@ -293,8 +297,12 @@ class SwapToDegenerateMorphologies:
         new_neuron_path = snudda_parse_path(orig_simple_path, os.path.realpath(self.new_snudda_data_dir))
 
         if orig_morph_key == '':
-            # Only a single morpholoy
-            return '', '', new_neuron_path
+            # Only a single morphology
+
+            original_morphology_id = self.old_data["neurons"][neuron_id]["morphologyID"]
+            original_parameter_id = self.old_data["neurons"][neuron_id]["parameterID"]
+
+            return '', '', new_neuron_path, original_parameter_id, original_morphology_id
 
         # Here we assume there is a meta.json file
         with open(os.path.join(orig_neuron_path, "meta.json"), "r") as f:
@@ -440,6 +448,7 @@ class SwapToDegenerateMorphologies:
     def create_section_lookup_helper(self, neuron_id):
 
         old_param_key, old_morph_key, old_path = self.find_old_morphology(neuron_id=neuron_id)
+
         new_param_key, new_morph_key, new_path, _, _ = self.find_morpology(neuron_id=neuron_id)
 
         if (old_param_key, old_morph_key, old_path) in self.section_lookup:
@@ -472,7 +481,7 @@ class SwapToDegenerateMorphologies:
             except:
                 import traceback
                 print(traceback.format_exc())
-                print(f"Coordinate point in old file missing in new file.\n"
+                print(f"Coordinate point in new file missing in old file.\n"
                       f"Old morphology: {old_morph.swc_filename}\n"
                       f"New morphology: {new_morph.swc_filename}")
                 import pdb

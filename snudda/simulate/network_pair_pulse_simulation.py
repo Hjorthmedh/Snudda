@@ -262,6 +262,8 @@ class SnuddaNetworkPairPulseSimulation:
 
         sim_end = self.inj_info[-1][1] + self.inj_spacing
 
+        print(f"Running with sim_end = {sim_end}s")
+
         # Set the holding voltage
         self.setup_holding_volt(hold_v=self.hold_v, sim_end=sim_end)
 
