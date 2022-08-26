@@ -16,7 +16,8 @@ class SwapToDegenerateMorphologies:
 
     def __init__(self, original_network_file, new_network_file,
                  original_snudda_data_dir, new_snudda_data_dir,
-                 original_input_file, new_input_file):
+                 original_input_file, new_input_file,
+                 filter_axon=False):
 
         """ This code replaces the neuron morphologies in the original network with user provided degenerated copies
             of the neurons. The synapses that are on removed dendritic will also be removed.
@@ -50,10 +51,13 @@ class SwapToDegenerateMorphologies:
 
         self.morphology_map = dict()
         self.section_lookup = dict()
-        self.neuron_cache = dict()
+        self.neuron_cache_key = dict()
+        self.neuron_cache_id = dict()
 
         self.create_section_lookup()
         self.kd_tree_cache = dict()
+
+        self.filter_axon = filter_axon
 
     def close(self):
         self.new_hdf5.close()
@@ -84,8 +88,7 @@ class SwapToDegenerateMorphologies:
             new_morph = old_morph.replace(self.original_snudda_data_dir, self.new_snudda_data_dir)
             self.new_hdf5[f"network/neurons/morphology"][idx] = new_morph
 
-
-        self.filter_synapses()
+        self.filter_synapses(filter_axon=self.filter_axon)
         self.filter_gap_junctions()
 
     def synapse_iterator(self, data_type=None, load_synapses=True):
@@ -137,14 +140,14 @@ class SwapToDegenerateMorphologies:
 
         return self.synapse_iterator(data_type="gapJunctions", load_synapses=load_gap_junctions)
 
-    def filter_synapses(self):
+    def filter_synapses(self, filter_axon=False):
         # First version, will keep all synapses in memory to write a more efficient file
         new_synapses = np.zeros(self.old_hdf5["network/synapses"].shape,
                                 dtype=self.old_hdf5["network/synapses"].dtype)
         syn_ctr = 0
 
         for synapses in self.synapse_iterator():
-            new_syn = self.filter_synapses_helper(synapses)
+            new_syn = self.filter_synapses_helper(synapses, filter_axon=filter_axon)
             new_synapses[syn_ctr:syn_ctr + new_syn.shape[0]] = new_syn
             syn_ctr += new_syn.shape[0]
 
@@ -183,12 +186,12 @@ class SwapToDegenerateMorphologies:
 
         # print(f"Neuron cache size: {len(self.neuron_cache)}")
 
-        if neuron_id is not None and neuron_id in self.neuron_cache:
-            return self.neuron_cache[neuron_id]
+        if neuron_id is not None and neuron_id in self.neuron_cache_id:
+            return self.neuron_cache_id[neuron_id]
 
         if (neuron_path is not None and parameter_key is not None and morphology_key is not None
-                and (neuron_path, parameter_key, morphology_key) in self.neuron_cache):
-            return self.neuron_cache[(neuron_path, parameter_key, morphology_key)]
+                and (neuron_path, parameter_key, morphology_key) in self.neuron_cache_key):
+            return self.neuron_cache_key[(neuron_path, parameter_key, morphology_key)]
 
         if neuron_id is not None and hdf5 is not None:
             neuron_path = SnuddaLoad.to_str(hdf5["network/neurons/neuronPath"][neuron_id])
@@ -198,7 +201,7 @@ class SwapToDegenerateMorphologies:
         assert neuron_path is not None and parameter_key is not None and morphology_key is not None, \
             "Either provide neuron_id, hdf5 or the three neuron_path, parameter_key and morphology_key"
 
-        if neuron_id and hdf5:
+        if neuron_id is not None and hdf5:
             pos = hdf5["network/neurons/position"][neuron_id, :]
             rot = hdf5["network/neurons/rotation"][neuron_id, :].reshape(3, 3)
         else:
@@ -210,13 +213,13 @@ class SwapToDegenerateMorphologies:
                                         position=pos, rotation=rot)
 
         if neuron_id is not None:
-            self.neuron_cache[neuron_id] = neuron
+            self.neuron_cache_id[neuron_id] = neuron
         else:
-            self.neuron_cache[(neuron_path, parameter_key, morphology_key)] = neuron
+            self.neuron_cache_key[(neuron_path, parameter_key, morphology_key)] = neuron
 
         return neuron
 
-    def filter_synapses_helper(self, synapses):
+    def filter_synapses_helper(self, synapses, filter_axon=False):
 
         """ This currently only takes DENDRITE degeneration into account.
             AXON degeneration is not taken into account for synapse removal.
@@ -236,14 +239,49 @@ class SwapToDegenerateMorphologies:
         keep_idx, new_sec_id, new_sec_x \
             = self.remap_sections_helper(neuron_id=post_id, old_sec_id=old_sec_id, old_sec_x=old_sec_x/1000)
 
-        # TODO: Add axon degeneration check...
-
         edited_synapses = synapses.copy()
 
         edited_synapses[:, 9] = new_sec_id
         edited_synapses[:, 10] = new_sec_x * 1000
 
-        return edited_synapses[keep_idx, :]
+        if filter_axon:
+            filtered_synapses = self.filter_axonal_synapses_helper(edited_synapses[keep_idx, :])
+        else:
+            filtered_synapses = edited_synapses[keep_idx, :]
+
+        return filtered_synapses
+
+    def filter_axonal_synapses_helper(self, synapses, max_dist=7.5e-6):
+
+        """ Filter the synapses that have the axon degeneration, presynaptic neurons without axons are ignored. """
+
+        pre_id = synapses[:, 0]
+        synapse_voxels = synapses[:, 2:5]
+        simulation_origo = self.old_hdf5["meta/simulationOrigo"][()]
+        voxel_size = self.old_hdf5["meta/voxelSize"][()]
+
+        synapse_coordinates = simulation_origo + voxel_size*synapse_voxels
+
+        keep_idx = np.ones((synapses.shape[0],), dtype=bool)
+
+        # Loop through all the synapses, if they have an axon check that there is an axonal point close to synapse
+        for idx, (pid, coord) in enumerate(zip(pre_id, synapse_coordinates)):
+
+            morph = self.get_morphology(neuron_id=pid, hdf5=self.new_hdf5)
+
+            if len(morph.axon) == 0:
+                # No pre-synaptic axon exists for this neuron (no info, so keep synapse)
+                continue
+
+            axon_tree = self.get_kd_tree(morph, "axon")
+
+            closest_dist, closest_point = axon_tree.query(coord)
+
+            # Here we assume one query per point, so closest_dist should be a scalar
+            if closest_dist > max_dist:
+                keep_idx[idx] = 0
+
+        return synapses[keep_idx, :].copy()
 
     def filter_gap_junctions_helper(self, gap_junctions):
 

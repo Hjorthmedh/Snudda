@@ -671,7 +671,7 @@ class SnuddaLoad(object):
 
     def get_neuron_population_units(self, neuron_id=None, return_set=False):
 
-        if neuron_id:
+        if neuron_id is not None:
             neuron_population_units = self.data["populationUnit"][neuron_id].flatten().copy()
         else:
             neuron_population_units = self.data["populationUnit"].flatten().copy()
@@ -683,7 +683,7 @@ class SnuddaLoad(object):
 
     def get_neuron_types(self, neuron_id=None, return_set=False):
 
-        if neuron_id:
+        if neuron_id is not None:
             neuron_types = [self.data["neurons"][x]["type"] for x in neuron_id]
         else:
             neuron_types = [x["type"] for x in self.data["neurons"]]

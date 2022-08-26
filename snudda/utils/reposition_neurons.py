@@ -55,7 +55,7 @@ class RepositionNeurons(object):
     def set_morphology_id(self, neuron_id, morphology_id):
 
         """ Set morphologyID for neuron with neuron_id (neuron_id = None means all neurons) """
-        if neuron_id:
+        if neuron_id is not None:
             self.hdf5_file["network/neurons/morphologyID"][neuron_id] = morphology_id
         else:
             self.hdf5_file["network/neurons/morphologyID"][:] = morphology_id
@@ -63,7 +63,7 @@ class RepositionNeurons(object):
     def set_morphology_key(self, neuron_id, morphology_key):
 
         """ Set morphologyKey for neuron with neuron_id (neuron_id = None means all neurons) """
-        if neuron_id:
+        if neuron_id is not None:
             self.hdf5_file["network/neurons/morphologyKey"][neuron_id] = morphology_key
         else:
             self.hdf5_file["network/neurons/morphologyKey"][:] = morphology_key
@@ -72,7 +72,7 @@ class RepositionNeurons(object):
 
         """ Set parameterKey for neuron with neuron_id (neuron_id = None means all neurons) """
 
-        if neuron_id:
+        if neuron_id is not None:
             self.hdf5_file["network/neurons/parameterKey"][neuron_id] = parameter_key
         else:
             self.hdf5_file["network/neurons/parameterKey"][:] = parameter_key
@@ -81,7 +81,7 @@ class RepositionNeurons(object):
 
         """ Set parameterID for neuron with neuron_id (neuron_id = None means all neurons) """
 
-        if neuron_id:
+        if neuron_id is not None:
             self.hdf5_file["network/neurons/parameterID"][neuron_id] = parameter_id
         else:
             self.hdf5_file["network/neurons/parameterID"][:] = parameter_id
@@ -90,7 +90,7 @@ class RepositionNeurons(object):
 
         """ Set modulationID for neuron with neuron_id (neuron_id = None means all neurons) """
 
-        if neuron_id:
+        if neuron_id is not None:
             self.hdf5_file["network/neurons/modulationID"][neuron_id] = modulation_id
         else:
             self.hdf5_file["network/neurons/modulationID"][:] = modulation_id
@@ -99,7 +99,7 @@ class RepositionNeurons(object):
 
         """ Set modulationKey for neuron with neuron_id (neuron_id = None means all neurons) """
 
-        if neuron_id:
+        if neuron_id is not None:
             self.hdf5_file["network/neurons/modulationKey"][neuron_id] = modulation_key
         else:
             self.hdf5_file["network/neurons/modulationKey"][:] = modulation_key
