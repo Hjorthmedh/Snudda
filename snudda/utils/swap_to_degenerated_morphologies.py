@@ -180,14 +180,21 @@ class SwapToDegenerateMorphologies:
               f"out of {self.old_hdf5['network/nGapJunctions'][()]} gap junctions "
               f"({self.new_hdf5['network/nGapJunctions'][()] / self.old_hdf5['network/nGapJunctions'][()]*100:.3f} %)")
 
-    def get_morphology(self, neuron_id=None, hdf5=None, neuron_path=None, parameter_key=None, morphology_key=None):
+    def get_morphology(self, neuron_id=None, hdf5=None, neuron_path=None, parameter_key=None, morphology_key=None,
+                       neuron_cache_id=None, neuron_cache_key=None):
 
         """ If neuron_id is given, that neuron will be loaded."""
 
+        if neuron_cache_id is None:
+            neuron_cache_id = self.neuron_cache_id
+
+        if neuron_cache_key is None:
+            neuron_cache_key = self.neuron_cache_key
+
         # print(f"Neuron cache size: {len(self.neuron_cache)}")
 
-        if neuron_id is not None and neuron_id in self.neuron_cache_id:
-            return self.neuron_cache_id[neuron_id]
+        if neuron_id is not None and neuron_id in neuron_cache_id:
+            return neuron_cache_id[neuron_id]
 
         if (neuron_path is not None and parameter_key is not None and morphology_key is not None
                 and (neuron_path, parameter_key, morphology_key) in self.neuron_cache_key):
@@ -213,9 +220,9 @@ class SwapToDegenerateMorphologies:
                                         position=pos, rotation=rot)
 
         if neuron_id is not None:
-            self.neuron_cache_id[neuron_id] = neuron
+            neuron_cache_id[neuron_id] = neuron
         else:
-            self.neuron_cache_key[(neuron_path, parameter_key, morphology_key)] = neuron
+            neuron_cache_key[(neuron_path, parameter_key, morphology_key)] = neuron
 
         return neuron
 
@@ -463,19 +470,22 @@ class SwapToDegenerateMorphologies:
         old_input.close()
         new_input.close()
 
-    def get_kd_tree(self, neuron, tree_type):
+    def get_kd_tree(self, neuron, tree_type, kd_tree_cache=None):
 
-        if (neuron, tree_type) not in self.kd_tree_cache:
+        if kd_tree_cache is None:
+            kd_tree_cache = self.kd_tree_cache
+
+        if (neuron, tree_type) not in kd_tree_cache:
 
             coords = {"axon": neuron.axon[:, :3],
                       "dend": neuron.dend[:, :3]}
 
             if coords[tree_type].size > 0:
-                self.kd_tree_cache[(neuron, tree_type)] = cKDTree(coords[tree_type])
+                kd_tree_cache[(neuron, tree_type)] = cKDTree(coords[tree_type])
             else:
-                self.kd_tree_cache[(neuron, tree_type)] = None
+                kd_tree_cache[(neuron, tree_type)] = None
 
-        return self.kd_tree_cache[(neuron, tree_type)]
+        return kd_tree_cache[(neuron, tree_type)]
 
     def create_section_lookup(self):
 

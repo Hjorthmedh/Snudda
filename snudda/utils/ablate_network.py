@@ -50,7 +50,7 @@ class SnuddaAblateNetwork:
 
     def reset_network(self):
 
-        """ Mars all neurons to be kept. """
+        """ Marks all neurons to be kept. """
 
         self.keep_neuron_id = set(self.in_file["network/neurons/neuronID"][:])
         self.removed_connection_type = []
@@ -212,7 +212,7 @@ class SnuddaAblateNetwork:
         print(f"Writing to {out_file_name}")
         out_file = h5py.File(out_file_name, "w", libver=self.h5libver, driver=self.h5driver)
 
-        if "config" in out_file:
+        if "config" in self.in_file:
             self.in_file.copy("config", out_file)
 
         self.in_file.copy("meta", out_file)
@@ -262,7 +262,7 @@ class SnuddaAblateNetwork:
                 # 2D data, need to make sure to maintain dimensions
                 data_shape = (num_soma_keep, data.shape[1])
             else:
-                print("writeCutSlice: Only handle 0D, 1D and 2D data, update code!")
+                print("write_network: Only handle 0D, 1D and 2D data, update code!")
                 sys.exit(-1)
 
             if var_name == "neuronID":
