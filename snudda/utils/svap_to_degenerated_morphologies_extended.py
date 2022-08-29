@@ -131,3 +131,4 @@ class SwapToDegenerateMorphologiesExtended(SwapToDegenerateMorphologies):
 
     # TODO: Update filter_gap_junctions to also handle growth on dendrites
 
+    # TODO: Also handle the new inputs that might arrive on growing morphologies...
