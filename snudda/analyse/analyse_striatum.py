@@ -166,32 +166,32 @@ if __name__ == "__main__":
                                                  ("ChIN", "iSPN")])
 
     if plotHenrike:
-        yMaxH = None  # 0.5
+        y_max_H = None  # 0.5
 
         nas.plot_connection_probability("dSPN", "iSPN",
                                         dist_3d=dist3D,
                                         exp_max_dist=[50e-6, 100e-6],
                                         exp_data=[3 / 47.0, 3 / 66.0],
                                         exp_data_detailed=[(3, 47), (3, 66)],
-                                        y_max=yMaxH)
+                                        y_max=y_max_H)
         nas.plot_connection_probability("dSPN", "dSPN",
                                         dist_3d=dist3D,
                                         exp_max_dist=[50e-6, 100e-6],
                                         exp_data=[5 / 19.0, 3 / 43.0],
                                         exp_data_detailed=[(5, 19), (3, 43)],
-                                        y_max=yMaxH)
+                                        y_max=y_max_H)
         nas.plot_connection_probability("iSPN", "dSPN",
                                         dist_3d=dist3D,
                                         exp_max_dist=[50e-6, 100e-6],
                                         exp_data=[13 / 47.0, 10 / 80.0],
                                         exp_data_detailed=[(13, 47), (10, 80)],
-                                        y_max=yMaxH)
+                                        y_max=y_max_H)
         nas.plot_connection_probability("iSPN", "iSPN",
                                         dist_3d=dist3D,
                                         exp_max_dist=[50e-6, 100e-6],
                                         exp_data=[14 / 39.0, 7 / 31.0],
                                         exp_data_detailed=[(14, 39), (7, 31)],
-                                        y_max=yMaxH)
+                                        y_max=y_max_H)
 
     nas.plot_num_synapses_per_pair("dSPN", "dSPN")
     nas.plot_num_synapses_per_pair("dSPN", "iSPN")

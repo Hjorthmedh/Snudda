@@ -28,6 +28,9 @@ class MergeSynapseFiles:
                                        New synapses are added if the new morphology dendrites or axon did not exist
                                        in the old morphologies.
 
+                                       !!! OBS, make sure coordinates are transformed for all synapses since simulation
+                                       origo might be different
+
 
 
 
