@@ -3,7 +3,7 @@ import os
 
 import h5py
 import numpy as np
-from scipy.spatial import KDTree
+from scipy.spatial import cKDTree
 
 from argparse import ArgumentParser, RawTextHelpFormatter
 
@@ -471,7 +471,7 @@ class SwapToDegenerateMorphologies:
                       "dend": neuron.dend[:, :3]}
 
             if coords[tree_type].size > 0:
-                self.kd_tree_cache[(neuron, tree_type)] = KDTree(coords[tree_type])
+                self.kd_tree_cache[(neuron, tree_type)] = cKDTree(coords[tree_type])
             else:
                 self.kd_tree_cache[(neuron, tree_type)] = None
 
