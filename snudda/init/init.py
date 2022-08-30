@@ -1096,12 +1096,13 @@ class SnuddaInit(object):
                                channel_param_dictionary=None)
 
         # FS-FS gap junction, currently without pruning
+        #  McKeon, ... , Matheur 2022, 6/78 -- coupling 0.0006 to 0.0789
         if True:
             self.add_neuron_target(neuron_name="FS",
                                    target_name="FS",
                                    connection_type="GapJunction",
                                    dist_pruning=None,
-                                   f1=0.7, soft_max=8, mu2=2, a3=1.0,
+                                   f1=0.7, soft_max=8, mu2=2, a3=0.5,  # Changed a1 from 1 to 0.5
                                    conductance=FS_gGapJunction,
                                    cluster_synapses=False,
                                    channel_param_dictionary=None)

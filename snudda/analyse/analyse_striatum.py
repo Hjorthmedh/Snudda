@@ -244,12 +244,13 @@ if __name__ == "__main__":
         nas.plot_num_synapses_per_pair("FS", "FS")
 
         # Koos & Tepper 1999, 2/6
+        # McKeon, ... , Matheur 2022, 6/78 -- coupling 0.0006 to 0.0789
         nas.plot_connection_probability("FS", "FS",
                                         dist_3d=dist3D,
                                         connection_type="gapjunctions",
-                                        exp_max_dist=[250e-6, 250e-6],
-                                        exp_data=[2 / 6.0, 3 / 7.0],
-                                        exp_data_detailed=[(2, 6), (3, 7)], )
+                                        exp_max_dist=[200e-6, 250e-6, 250e-6],
+                                        exp_data=[6/78.0, 2 / 6.0, 3 / 7.0],
+                                        exp_data_detailed=[(6, 78), (2, 6), (3, 7)], )
 
         nas.plot_num_synapses_per_pair("FS", "FS", connection_type="gapjunctions")
 
