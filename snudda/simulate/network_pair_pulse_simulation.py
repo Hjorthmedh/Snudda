@@ -250,14 +250,14 @@ class SnuddaNetworkPairPulseSimulation:
 
         self.snudda_sim.setup()
 
-        # A current pulse to all pre synaptic neurons, one at a time
+        # A current pulse to all pre-synaptic neurons, one at a time
         if pre_id:
             print(f"Using user defined pre_id: {pre_id}")
             self.pre_id = pre_id
         else:
             self.pre_id = [x["neuronID"] for x in self.snudda_sim.network_info["neurons"] if x["type"] == self.pre_type]
 
-        # injInfo contains (preID,injStartTime)
+        # inj_info contains (pre_id, inj_start_time)
         self.inj_info = list(zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id))))
 
         sim_end = self.inj_info[-1][1] + self.inj_spacing
@@ -285,11 +285,12 @@ class SnuddaNetworkPairPulseSimulation:
         else:
             # Record from all the potential post synaptic neurons
             post_id = self.snudda_sim.snudda_loader.get_neuron_id_of_type(self.post_type)
-            self.snudda_sim.add_volt_recording_soma(post_id)
 
             # Also save the presynaptic traces for debugging, to make sure they spike
             pre_id = self.snudda_sim.snudda_loader.get_neuron_id_of_type(self.pre_type)
-            self.snudda_sim.add_volt_recording_soma(pre_id)
+
+            id_to_record = set(pre_id).union(set(post_id))
+            self.snudda_sim.add_volt_recording_soma(id_to_record)
 
         # Run simulation
         self.snudda_sim.run(sim_end * 1e3, hold_v=self.hold_v)
