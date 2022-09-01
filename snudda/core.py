@@ -702,6 +702,7 @@ class Snudda(object):
     ############################################################################
 
     def cleanup_workers(self):
+
         self.logfile.write(f"Calling cleanup on workers.")
         # Cleanup, and do garbage collection
 

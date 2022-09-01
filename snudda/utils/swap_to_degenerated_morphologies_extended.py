@@ -66,13 +66,13 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
     def get_additional_synapses(self, synapse_distance_treshold=10e-6):
 
-        new_synapses = np.zeros(self.original_network_loader.data["synapses"].shape, dtype=np.int32)
+        new_synapses = np.zeros(self.updated_network_loader.data["synapses"].shape, dtype=np.int32)
         new_synapse_ctr = 0
 
         # Calculate coordinate remapping for updated synapses
 
-        voxel_size = self.original_network_loader.data["voxelSize"]
-        assert voxel_size == self.updated_network_loader.data["voxelSize"], f"Voxel size mismatch between networks"
+        voxel_size = self.updated_network_loader.data["voxelSize"]
+        assert voxel_size == self.original_network_loader.data["voxelSize"], f"Voxel size mismatch between networks"
 
         orig_sim_origo = self.original_network_loader.data["simulationOrigo"]
         updated_sim_origo = self.updated_network_loader.data["simulationOrigo"]
@@ -116,7 +116,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
             added_idx = list(added_idx)
             added_synapses = synapses[added_idx, :].copy()
-            added_synapses[:, 2:5] = added_synapses + voxel_transform
+            added_synapses[:, 2:5] = added_synapses[:, 2:5] + voxel_transform
             new_synapses[new_synapse_ctr:new_synapse_ctr+len(added_idx), :] = added_synapses
             new_synapse_ctr += len(added_idx)
 
@@ -125,7 +125,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
     def sort_synapses(self, synapses):
 
         # Sort order: columns 1 (dest), 0 (src), 6 (synapse type)
-        sort_idx = np.lexsort(synapses, [6, 0, 1]).transpose()
+        sort_idx = np.lexsort(synapses[:, [6, 0, 1]].transpose())
         return synapses[sort_idx, :].copy()
 
     def filter_synapses(self, filter_axon=False):
@@ -139,10 +139,14 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         new_synapses = np.zeros((num_rows, num_cols), dtype=self.old_hdf5["network/synapses"].dtype)
         syn_ctr = 0
 
+        # Keep synapses in original network that are still within the new morphologies
         for synapses in self.synapse_iterator():
             new_syn = self.filter_synapses_helper(synapses, filter_axon=filter_axon)
             new_synapses[syn_ctr:syn_ctr + new_syn.shape[0]] = new_syn
             syn_ctr += new_syn.shape[0]
+
+        import pdb
+        pdb.set_trace()
 
         # Here add the new synapses from growing axons and dendrites
         additional_synapses = self.get_additional_synapses()
@@ -161,6 +165,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
               f"out of {self.old_hdf5['network/nSynapses'][()]} synapses "
               f"({self.new_hdf5['network/nSynapses'][()] / self.old_hdf5['network/nSynapses'][()]*100:.3f} %)")
 
+        # self.close()
 
     # TODO: Update filter_gap_junctions to also handle growth on dendrites
 

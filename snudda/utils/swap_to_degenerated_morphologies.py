@@ -526,7 +526,7 @@ class SwapToDegeneratedMorphologies:
         old_sec_x_list = dict()
         new_sec_x_list = dict()
         # We just need to find the maximal old sec_x still present,
-                                 # that value will map to sec_x 1.0 in new (stored as int sec_x*1000)
+        # that value will map to sec_x 1.0 in new (stored as int sec_x*1000)
 
         for link, new_sec_id, new_sec_x in zip(new_morph.dend_links, new_morph.dend_sec_id, new_morph.dend_sec_x):
             coord = (new_morph.dend[link[1], :3] * 1e9).astype(int)
@@ -648,12 +648,12 @@ def cli():
     original_input_file = os.path.join(args.original_network_path, "input-spikes.hdf5")
     new_input_file = os.path.join(args.new_network_path, "input-spikes.hdf5")
 
-    swap = SwapToDegenerateMorphologies(original_network_file=original_network_file,
-                                        new_network_file=new_network_file,
-                                        original_snudda_data_dir=args.original_snudda_path,
-                                        new_snudda_data_dir=args.new_snudda_path,
-                                        original_input_file=original_input_file,
-                                        new_input_file=new_input_file)
+    swap = SwapToDegeneratedMorphologies(original_network_file=original_network_file,
+                                         new_network_file=new_network_file,
+                                         original_snudda_data_dir=args.original_snudda_path,
+                                         new_snudda_data_dir=args.new_snudda_path,
+                                         original_input_file=original_input_file,
+                                         new_input_file=new_input_file)
     swap.write_new_network_file()
     swap.write_new_input_file()
 

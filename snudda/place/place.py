@@ -1003,7 +1003,7 @@ class SnuddaPlace(object):
         n_clusters = np.minimum(n_clusters, len(self.neurons))
 
         xyz = self.all_neuron_positions()
-        centroids, labels = scipy.cluster.vq.kmeans2(xyz, n_clusters, minit="points")
+        centroids, labels = scipy.cluster.vq.kmeans2(xyz, n_clusters, minit="points", seed=self.random_generator)
 
         n_centroids = centroids.shape[0]
         assert n_centroids == n_clusters
