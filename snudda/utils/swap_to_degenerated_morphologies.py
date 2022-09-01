@@ -12,11 +12,11 @@ from snudda.utils.load import SnuddaLoad
 from snudda.utils.snudda_path import snudda_simplify_path, snudda_parse_path
 
 
-class SwapToDegenerateMorphologies:
+class SwapToDegeneratedMorphologies:
 
     def __init__(self, original_network_file, new_network_file,
                  original_snudda_data_dir, new_snudda_data_dir,
-                 original_input_file, new_input_file,
+                 original_input_file=None, new_input_file=None,
                  filter_axon=False):
 
         """ This code replaces the neuron morphologies in the original network with user provided degenerated copies
@@ -204,6 +204,9 @@ class SwapToDegenerateMorphologies:
             neuron_path = SnuddaLoad.to_str(hdf5["network/neurons/neuronPath"][neuron_id])
             parameter_key = SnuddaLoad.to_str(hdf5["network/neurons/parameterKey"][neuron_id])
             morphology_key = SnuddaLoad.to_str(hdf5["network/neurons/morphologyKey"][neuron_id])
+            neuron_name = SnuddaLoad.to_str(hdf5["network/neurons/name"][neuron_id])
+        else:
+            neuron_name = None
 
         assert neuron_path is not None and parameter_key is not None and morphology_key is not None, \
             "Either provide neuron_id, hdf5 or the three neuron_path, parameter_key and morphology_key"
@@ -215,7 +218,7 @@ class SwapToDegenerateMorphologies:
             pos = None
             rot = None
 
-        neuron_prototype = NeuronPrototype(neuron_path=neuron_path, neuron_name=None)
+        neuron_prototype = NeuronPrototype(neuron_path=neuron_path, neuron_name=neuron_name)
         neuron = neuron_prototype.clone(parameter_key=parameter_key, morphology_key=morphology_key,
                                         position=pos, rotation=rot)
 
@@ -412,6 +415,10 @@ class SwapToDegenerateMorphologies:
         return sec_id, sec_x
 
     def write_new_input_file(self):
+
+        if self.original_input_file is None:
+            print("No input file supplied, no new input file created")
+            return
 
         if not os.path.isdir(os.path.dirname(self.new_input_file)):
             os.mkdir(os.path.dirname(self.new_input_file))

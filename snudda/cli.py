@@ -44,13 +44,13 @@ def snudda_cli():
                              action="store_true")
     init_parser.add_argument("-connectionFile", "--connectionFile", default=None,
                              help="Use connectivity from user specified JSON file")
-    init_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
+    init_parser.add_argument("-randomseed", "--randomseed", "--seed", default=None, help="Random seed", type=int)
     init_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     init_parser.add_argument("--verbose", action="store_true")
 
     place_parser = sub_parsers.add_parser("place")
     place_parser.add_argument("path", help="Location of network")
-    place_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
+    place_parser.add_argument("-randomseed", "--randomseed", "--seed", default=None, help="Random seed", type=int)
     place_parser.add_argument("--raytraceBorders", help="Ray traces for more precise mesh edge detection",
                               action="store_true", dest="raytrace_borders", default=False)
     place_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
@@ -60,7 +60,7 @@ def snudda_cli():
 
     detect_parser = sub_parsers.add_parser("detect")
     detect_parser.add_argument("path", help="Location of network")
-    detect_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
+    detect_parser.add_argument("-randomseed", "--randomseed", "--seed", default=None, help="Random seed", type=int)
     detect_parser.add_argument("-cont", "--cont", help="Continue partial touch detection", action="store_true")
     detect_parser.add_argument("-hvsize", "--hvsize", default=100,
                                help="Hyper voxel size, eg. 100 = 100x100x100 voxels in hypervoxel")
@@ -72,7 +72,7 @@ def snudda_cli():
 
     prune_parser = sub_parsers.add_parser("prune")
     prune_parser.add_argument("path", help="Location of network")
-    prune_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
+    prune_parser.add_argument("-randomseed", "--randomseed", "--seed", default=None, help="Random seed", type=int)
     prune_parser.add_argument("--configFile", dest="config_file", default=None,
                               help="Prune using different network config file, useful when tuning pruning")
     prune_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
@@ -92,7 +92,7 @@ def snudda_cli():
     input_parser.add_argument("--networkFile", help="Network file, if not network-synapses.hdf5",
                               dest="network_file")
     input_parser.add_argument("--time", type=float, default=None, help="Duration of simulation in seconds")
-    input_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
+    input_parser.add_argument("-randomseed", "--randomseed", "--seed", default=None, help="Random seed", type=int)
     input_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     input_parser.add_argument("--verbose", action="store_true")
     input_parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
@@ -112,7 +112,7 @@ def snudda_cli():
 
     simulate_parser.add_argument("--noVolt", "--novolt", dest="record_volt", action="store_false",
                                  help="Exclude voltage data, to save time and space.")
-    simulate_parser.add_argument("-randomseed", "--randomseed", default=None, help="Random seed", type=int)
+    simulate_parser.add_argument("-randomseed", "--randomseed", "--seed", default=None, help="Random seed", type=int)
 
     simulate_parser.add_argument("--neuromodulation", type=str, default=None,
                                  help=('replay plays back a vector of modulation level, '
