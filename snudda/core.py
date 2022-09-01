@@ -710,7 +710,9 @@ class Snudda(object):
                      "\nsyn_before = None\nsyn_after = None\ninpt = None"
                      "\nmerge_result_syn = None\nmerge_result_gj = None"
                      "\nimport gc\ngc.collect()")
-        self.d_view.execute(clean_cmd, block=True)
+
+        if self.d_view is not None:
+            self.d_view.execute(clean_cmd, block=True)
 
     ############################################################################
 
