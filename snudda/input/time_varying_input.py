@@ -7,7 +7,8 @@ class TimeVaryingInput:
 
         pass
 
-    def get_stretch_time(self, frequency_function, end_time, start_time=0, dt=0.01, check_positive=True):
+    @staticmethod
+    def get_stretch_time(frequency_function, end_time, start_time=0, dt=0.01, check_positive=True):
 
         """ We want to stretch the time, so that a Poisson process with frequency 1Hz will result in a time varying
             Poisson process with the instantaneous frequncy_function from 0 to end_time, with time resolution dt.
@@ -34,7 +35,8 @@ class TimeVaryingInput:
 
         return func, stretch_end_time
 
-    def _poisson_helper(self, end_time, rng):
+    @staticmethod
+    def _poisson_helper(end_time, rng):
 
         t_diff = -np.log(1.0 - rng.random(int(np.ceil(max(1, end_time)))))  # Generate 1 Hz spiking
         t_spikes = [np.cumsum(t_diff)]
@@ -51,24 +53,27 @@ class TimeVaryingInput:
         # Return spike times
         return np.concatenate(t_spikes)
 
-    def generate_spikes(self, frequency_function, end_time, rng, start_time=0, n_spike_trains=1):
+    @staticmethod
+    def generate_spikes(frequency_function, end_time, rng, start_time=0, n_spike_trains=1):
 
-        stretch_func, stretched_end_time = self.get_stretch_time(frequency_function=frequency_function,
-                                                                 start_time=start_time, end_time=end_time)
+        stretch_func, stretched_end_time = TimeVaryingInput.get_stretch_time(frequency_function=frequency_function,
+                                                                             start_time=start_time, end_time=end_time)
         spike_trains = []
 
         for idx in range(0, n_spike_trains):
-            t_spike = self._poisson_helper(end_time=stretched_end_time, rng=rng)
+            t_spike = TimeVaryingInput._poisson_helper(end_time=stretched_end_time, rng=rng)
             spike_trains.append(stretch_func(t_spike))  # Stretch the spike times
 
         return spike_trains
 
-    def test_spike_frequency(self):
+    @staticmethod
+    def test_spike_frequency():
 
         func = lambda t: 5*np.cos(10*2*np.pi*t) + 6
         rng = np.random.default_rng()
 
-        spikes = self.generate_spikes(frequency_function=func, start_time=1, end_time=3, n_spike_trains=10000, rng=rng)
+        spikes = TimeVaryingInput.generate_spikes(frequency_function=func, start_time=1, end_time=3,
+                                                  n_spike_trains=10000, rng=rng)
 
         all_spikes = np.concatenate(spikes)
 
@@ -85,14 +90,11 @@ class TimeVaryingInput:
         plt.show()
         plt.pause(0.1)
 
-        import pdb
-        pdb.set_trace()
-
 
 if __name__ == "__main__":
 
-    tvi = TimeVaryingInput()
-
-    tvi.test_spike_frequency()
+    TimeVaryingInput.test_spike_frequency()
+    import pdb
+    pdb.set_trace()
 
 
