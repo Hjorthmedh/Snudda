@@ -145,9 +145,6 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             new_synapses[syn_ctr:syn_ctr + new_syn.shape[0]] = new_syn
             syn_ctr += new_syn.shape[0]
 
-        import pdb
-        pdb.set_trace()
-
         # Here add the new synapses from growing axons and dendrites
         additional_synapses = self.get_additional_synapses()
         new_synapses[syn_ctr:syn_ctr+additional_synapses.shape[0], :] = additional_synapses
@@ -166,6 +163,8 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
               f"({self.new_hdf5['network/nSynapses'][()] / self.old_hdf5['network/nSynapses'][()]*100:.3f} %)")
 
         # self.close()
+
+    # TODO: Profile the code to see what the bottleneck is...
 
     # TODO: Update filter_gap_junctions to also handle growth on dendrites
 

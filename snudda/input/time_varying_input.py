@@ -27,7 +27,7 @@ class TimeVaryingInput:
         if check_positive:
             frequency[frequency <= 0] = 0
 
-        stretched_time = np.cumsum(frequency)
+        stretched_time = np.cumsum(frequency*dt) - frequency[0]*dt  # We want stretched time to start at 0
         func = lambda t: np.interp(t, stretched_time, time)
         stretch_end_time = stretched_time[-1]
 
@@ -66,14 +66,19 @@ class TimeVaryingInput:
         func = lambda t: 5*np.cos(10*2*np.pi*t) + 6
         rng = np.random.default_rng()
 
-        spikes = self.generate_spikes(frequency_function=func, end_time=3, n_spike_trains=1000, rng=rng)
+        spikes = self.generate_spikes(frequency_function=func, end_time=3, n_spike_trains=10000, rng=rng)
 
         all_spikes = np.concatenate(spikes)
 
         import matplotlib.pyplot as plt
         plt.figure()
 
-        plt.hist(all_spikes, bins=300)
+        # We generate 3 seconds of data, 1000 trains, 3000 seconds of total data
+        # we place that in 1000 bins, so if we weight result by 1/3 we should show approximate instantaneous frequency
+        plt.hist(all_spikes, bins=1000, weights=np.full(all_spikes.shape, 1/30))
+        plt.xlabel("Time (s)")
+        plt.ylabel("Frequency (Hz)")
+        plt.title("Oscillating between 1 and 11 Hz, periodicity 0.1s")
         plt.ion()
         plt.show()
         plt.pause(0.1)
