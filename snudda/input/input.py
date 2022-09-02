@@ -24,6 +24,7 @@ import h5py
 import numexpr
 import numpy as np
 
+from snudda.input.time_varying_input import TimeVaryingInput
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.load import SnuddaLoad
 from snudda.utils.snudda_path import snudda_parse_path
@@ -984,8 +985,16 @@ class SnuddaInput(object):
         for freq, t_start, t_end, p_k in zip(frequency_list, time_ranges[0], time_ranges[1], p_keep_list):
             t_spikes.append(self.generate_spikes_function(freq, (t_start, t_end), rng=rng, dt=dt, p_keep=p_k))
 
+        try:
+            spikes = np.sort(np.concatenate(t_spikes))
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
+
         # Double check correct dimension
-        return np.sort(np.concatenate(t_spikes))
+        return spikes
 
     def generate_spikes_function(self, frequency_function, time_range, rng, dt=1e-4, p_keep=1):
 
@@ -1013,31 +1022,24 @@ class SnuddaInput(object):
             f"Error: p_keep = {p_keep}, valid range 0-1. If p_keep is a list, " \
             f"then time_ranges must be two lists, ie. (start_times, end_times)"
 
-        t = np.arange(0, time_range[1] - time_range[0], dt)
-
         if callable(frequency_function):
-            p_input = frequency_function(t) * dt * p_keep
+            func = lambda t: frequency_function(t) * p_keep
         else:
-            # print(f"Evaluating {frequency_function} (type: {type(frequency_function)})")
-
-            ddt = dt  # evaluate seems to overwrite dt...?
             try:
-                p_input = numexpr.evaluate(frequency_function)
-                p_input = p_input * dt * p_keep
-                # p_input = p_input * p_keep
+                func_str = f"{frequency_function}*{p_keep}"
+                func = lambda t: numexpr.evaluate(func_str)
             except:
                 import traceback
                 print(traceback.format_exc())
                 import pdb
                 pdb.set_trace()
 
-        assert (p_input >= 0).all(), f"Probability to spike within dt={dt} should be non-negative: " \
-                                     f"frequency_function {frequency_function}"
-        assert (p_input <= 1).all(), f"Too high frequency, P > 1 for dt={dt} : frequency_function {frequency_function}"
+        # TODO: Utilise the n_spike trains better
+        spikes = TimeVaryingInput.generate_spikes(frequency_function=func,
+                                                  start_time=time_range[0], end_time=time_range[1],
+                                                  n_spike_trains=1, rng=rng)[0].T
 
-        spike_mask = rng.uniform(size=t.shape) < p_input
-        t_idx = np.where(spike_mask)[0]
-        return t[t_idx] + time_range[0]
+        return spikes
 
     ############################################################################
 

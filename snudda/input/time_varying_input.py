@@ -26,12 +26,22 @@ class TimeVaryingInput:
         time = np.arange(start_time, end_time, dt)
         frequency = frequency_function(time)
 
+        # If frequency was a scalar, extend it to be that frequency in entire time range
+        if frequency.size == 1:
+            frequency = np.full(time.shape, frequency)
+
         if check_positive:
             frequency[frequency <= 0] = 0
 
-        stretched_time = np.cumsum(frequency*dt) - frequency[0]*dt  # We want stretched time to start at 0
-        func = lambda t: np.interp(t, stretched_time, time)
-        stretch_end_time = stretched_time[-1]
+        try:
+            stretched_time = np.cumsum(frequency*dt) - frequency[0]*dt  # We want stretched time to start at 0
+            func = lambda t: np.interp(t, stretched_time, time)
+            stretch_end_time = stretched_time[-1]
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
 
         return func, stretch_end_time
 
