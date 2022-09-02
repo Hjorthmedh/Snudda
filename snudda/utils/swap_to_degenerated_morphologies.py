@@ -176,9 +176,15 @@ class SwapToDegeneratedMorphologies:
         num_gap_junctions = np.zeros((1,), dtype=np.uint64)
         self.new_hdf5["network"].create_dataset("nGapJunctions", data=gj_ctr, dtype=np.uint64)
 
-        print(f"Keeping {self.new_hdf5['network/nGapJunctions'][()]} "
-              f"out of {self.old_hdf5['network/nGapJunctions'][()]} gap junctions "
-              f"({self.new_hdf5['network/nGapJunctions'][()] / self.old_hdf5['network/nGapJunctions'][()]*100:.3f} %)")
+        try:
+            print(f"Keeping {self.new_hdf5['network/nGapJunctions'][()]} "
+                  f"out of {self.old_hdf5['network/nGapJunctions'][()]} gap junctions "
+                  f"({self.new_hdf5['network/nGapJunctions'][()] / max(1, self.old_hdf5['network/nGapJunctions'][()])*100:.3f} %)")
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
 
     def get_morphology(self, neuron_id=None, hdf5=None, neuron_path=None, parameter_key=None, morphology_key=None,
                        neuron_cache_id=None, neuron_cache_key=None):

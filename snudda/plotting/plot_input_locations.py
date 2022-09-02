@@ -191,10 +191,10 @@ class SnuddaPlotInputLocations:
 
         dist = np.linalg.norm(coords - synapse_coords, axis=-1)
         max_dist = 10e-6  # np.sqrt(3*(5e-6 ** 2))
-        assert (dist <= max_dist).all(), \
-            (f"Synapse coordinates mismatch {synapse_coords[np.where(dist > max_dist)[0], :]} "
-             f"vs {coords[np.where(dist > max_dist)[0], :]}"
-             f" (distances {dist[np.where(dist > max_dist)[0]]} with allowed max_dist = {max_dist})")
+        if (dist > max_dist).any():
+            print(f"Synapse coordinates mismatch {synapse_coords[np.where(dist > max_dist)[0], :]} "
+                  f"vs {coords[np.where(dist > max_dist)[0], :]}"
+                  f" (distances {dist[np.where(dist > max_dist)[0]]} with allowed max_dist = {max_dist})")
 
         pre_id = synapses[:, 0]
 

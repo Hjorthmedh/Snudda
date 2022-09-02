@@ -66,6 +66,70 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
     def get_additional_synapses(self, synapse_distance_treshold=10e-6):
 
+        # Calculate coordinate remapping for updated synapses
+
+        voxel_size = self.updated_network_loader.data["voxelSize"]
+        assert voxel_size == self.original_network_loader.data["voxelSize"], f"Voxel size mismatch between networks"
+
+        orig_sim_origo = self.original_network_loader.data["simulationOrigo"]
+        updated_sim_origo = self.updated_network_loader.data["simulationOrigo"]
+
+        origo_diff = updated_sim_origo - orig_sim_origo
+        voxel_transform = np.round(origo_diff / voxel_size)
+
+        pre_neuron_synapses = dict()
+        post_neuron_synapses = dict()
+
+        for nid in self.updated_network_loader.get_neuron_id():
+            pre_neuron_synapses[nid] = []
+            post_neuron_synapses[nid] = []
+
+        synapse_matrix = self.updated_network_loader.data["synapses"]
+
+        keep_idx = np.zeros((synapse_matrix.shape[0],), dtype=bool)
+
+        for idx, synapse_row in enumerate(synapse_matrix):   # !!! Do we need [()] at the end?
+            pre_neuron_synapses[synapse_row[0]].append(idx)
+            post_neuron_synapses[synapse_row[1]].append(idx)
+
+        for nid in self.updated_network_loader.get_neuron_id():
+            if nid % 100 == 0:
+                print(f"Processing neuron {nid}")
+
+            pre_idx = np.array(pre_neuron_synapses[nid], dtype=int)
+            post_idx = np.array(post_neuron_synapses[nid], dtype=int)
+
+            pre_coords = synapse_matrix[pre_idx, 2:5] * voxel_size + updated_sim_origo
+            post_coords = synapse_matrix[post_idx, 2:5] * voxel_size + updated_sim_origo
+
+            morph = self.get_morphology(neuron_id=nid, hdf5=self.old_hdf5,
+                                        neuron_cache_id=self.old_neuron_cache_id)
+
+            dend_kd_tree = self.get_kd_tree(morph, "dend", kd_tree_cache=self.old_kd_tree_cache)
+            synapse_dend_dist, _ = dend_kd_tree.query(post_coords)
+            keep_idx[post_idx[np.where(synapse_dend_dist > synapse_distance_treshold)[0]]] = True
+
+            if self.updated_network_loader.data["neurons"][nid]["axonDensity"] is None:
+                try:
+                    axon_kd_tree = self.get_kd_tree(morph, "axon", kd_tree_cache=self.old_kd_tree_cache)
+                    synapse_axon_dist, _ = axon_kd_tree.query(pre_coords)
+                    keep_idx[pre_idx[np.where(synapse_axon_dist > synapse_distance_treshold)[0]]] = True
+
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
+            else:
+                print(f"No axon for neuron {morph.name} ({nid})")
+
+        added_synapses = synapse_matrix[keep_idx, :].copy()
+        added_synapses[:, 2:5] = added_synapses[:, 2:5] + voxel_transform
+
+        return added_synapses
+
+    def get_additional_synapses_OLD_SLOW(self, synapse_distance_treshold=10e-6):
+
         new_synapses = np.zeros(self.updated_network_loader.data["synapses"].shape, dtype=np.int32)
         new_synapse_ctr = 0
 
@@ -79,6 +143,15 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
         origo_diff = orig_sim_origo - updated_sim_origo
         voxel_transform = np.round(origo_diff / voxel_size)
+
+        # This gets really slow for even small networks... idea for optimisation.
+        # 1. Go through synapse matrix, for each synapse check pre and post neuron
+        #    add synapse row to a list for the pre_neuron, and another list for the post_neuron
+        # 2. Go through the pre neurons' lists. One list at a time, check those coordinates against
+        #    the kd_tree.
+        # 3. Go through post neurons' lists. Check kd_tree for dendrites
+        # 4. Use the results from 2 and 3 to determine which synapses should be kept in the matrix
+        # 5. Sort the matrix again.
 
         for synapses in self.updated_network_loader.synapse_iterator():
             synapse_coords = synapses[:, 2:5] * voxel_size + updated_sim_origo

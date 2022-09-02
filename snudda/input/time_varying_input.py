@@ -79,7 +79,7 @@ class TimeVaryingInput:
     @staticmethod
     def test_spike_frequency():
 
-        func = lambda t: 5*np.cos(10*2*np.pi*t) + 6
+        func = lambda t: 5*np.cos(10*2*np.pi*t) + 6 + 10*t
         rng = np.random.default_rng()
 
         spikes = TimeVaryingInput.generate_spikes(frequency_function=func, start_time=1, end_time=3,
