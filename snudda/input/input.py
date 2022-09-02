@@ -989,6 +989,8 @@ class SnuddaInput(object):
 
     def generate_spikes_function(self, frequency_function, time_range, rng, dt=1e-4, p_keep=1):
 
+        # TODO: Replace this with the code in time_varying_input.py
+
         """
         Generates frequency based on frequency_function.
 
