@@ -7,7 +7,7 @@ class TimeVaryingInput:
 
         pass
 
-    def get_stretch_time(self, frequency_function, end_time, dt=0.01, check_positive=True):
+    def get_stretch_time(self, frequency_function, end_time, start_time=0, dt=0.01, check_positive=True):
 
         """ We want to stretch the time, so that a Poisson process with frequency 1Hz will result in a time varying
             Poisson process with the instantaneous frequncy_function from 0 to end_time, with time resolution dt.
@@ -17,11 +17,12 @@ class TimeVaryingInput:
             Args:
                 frequency_function : a numpy compatible function that takes an array and returns an array
                 end_time : end time of the valid time range
+                start_time : start_time that function is defined for
                 dt : time resolution of the sampling of the frequency function
 
         """
 
-        time = np.arange(0, end_time, dt)
+        time = np.arange(start_time, end_time, dt)
         frequency = frequency_function(time)
 
         if check_positive:
@@ -50,9 +51,10 @@ class TimeVaryingInput:
         # Return spike times
         return np.concatenate(t_spikes)
 
-    def generate_spikes(self, frequency_function, end_time, rng, n_spike_trains=1):
+    def generate_spikes(self, frequency_function, end_time, rng, start_time=0, n_spike_trains=1):
 
-        stretch_func, stretched_end_time = self.get_stretch_time(frequency_function=frequency_function, end_time=end_time)
+        stretch_func, stretched_end_time = self.get_stretch_time(frequency_function=frequency_function,
+                                                                 start_time=start_time, end_time=end_time)
         spike_trains = []
 
         for idx in range(0, n_spike_trains):
@@ -66,7 +68,7 @@ class TimeVaryingInput:
         func = lambda t: 5*np.cos(10*2*np.pi*t) + 6
         rng = np.random.default_rng()
 
-        spikes = self.generate_spikes(frequency_function=func, end_time=3, n_spike_trains=10000, rng=rng)
+        spikes = self.generate_spikes(frequency_function=func, start_time=1, end_time=3, n_spike_trains=10000, rng=rng)
 
         all_spikes = np.concatenate(spikes)
 
@@ -75,7 +77,7 @@ class TimeVaryingInput:
 
         # We generate 3 seconds of data, 1000 trains, 3000 seconds of total data
         # we place that in 1000 bins, so if we weight result by 1/3 we should show approximate instantaneous frequency
-        plt.hist(all_spikes, bins=1000, weights=np.full(all_spikes.shape, 1/30))
+        plt.hist(all_spikes, bins=1000, weights=np.full(all_spikes.shape, 1/20))
         plt.xlabel("Time (s)")
         plt.ylabel("Frequency (Hz)")
         plt.title("Oscillating between 1 and 11 Hz, periodicity 0.1s")
