@@ -8,23 +8,31 @@ class TimeVaryingInput:
         pass
 
     @staticmethod
-    def get_stretch_time(frequency_function, end_time, start_time=0, dt=0.01, check_positive=True):
+    def get_stretch_time(frequency_function, end_time, start_time=0, dt=0.01, check_positive=True, start_at_zero=True):
 
         """ We want to stretch the time, so that a Poisson process with frequency 1Hz will result in a time varying
-            Poisson process with the instantaneous frequncy_function from 0 to end_time, with time resolution dt.
+            Poisson process with the instantaneous frequency_function from 0 to end_time, with time resolution dt.
 
-            Any frequency values < 0 are treated as 0
+            Any frequency values < 0 are treated as 0.
 
             Args:
                 frequency_function : a numpy compatible function that takes an array and returns an array
                 end_time : end time of the valid time range
                 start_time : start_time that function is defined for
                 dt : time resolution of the sampling of the frequency function
+                start_at_zero (bool) : If start_at_zero is True, then the frequency function is f(t=0)
+                                       at the start of each interval, if False the simulation time is used.
 
         """
 
         time = np.arange(start_time, end_time, dt)
-        frequency = frequency_function(time)
+
+        if start_at_zero:
+            func_time = np.arange(0, end_time - start_time, dt)
+        else:
+            func_time = time
+
+        frequency = frequency_function(func_time)
 
         # If frequency was a scalar, extend it to be that frequency in entire time range
         if frequency.size == 1:
@@ -64,10 +72,24 @@ class TimeVaryingInput:
         return np.concatenate(t_spikes)
 
     @staticmethod
-    def generate_spikes(frequency_function, end_time, rng, start_time=0, n_spike_trains=1):
+    def generate_spikes(frequency_function, end_time, rng, start_time=0, n_spike_trains=1, start_at_zero=True):
+
+        """
+            Generates spikes with frequency f(t) where f is specified by frequency_function.
+
+            Args:
+                frequency_function : Either a python function, or a string of a function of t, e.g. "sin(2*pi*5*t)"
+                end_time (float) : End time of spike train
+                start_time (float) : Start time of spike train (default 0)
+                n_spike_trains (int) : Number of spike trains, default 1
+                start_at_zero (bool) : Is t=0 at the start of the time interval the function is active within?
+                                       Default True. If set to False the simulation t is sent directly to the
+                                       frequency_function.
+        """
 
         stretch_func, stretched_end_time = TimeVaryingInput.get_stretch_time(frequency_function=frequency_function,
-                                                                             start_time=start_time, end_time=end_time)
+                                                                             start_time=start_time, end_time=end_time,
+                                                                             start_at_zero=start_at_zero)
         spike_trains = []
 
         for idx in range(0, n_spike_trains):
