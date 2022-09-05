@@ -155,12 +155,21 @@ class SnuddaAnalyseTopology:
         #import pdb
         #pdb.set_trace()
 
-    def get_clique_composition_permutations(self, dimension, neuron_types=None):
+    def get_clique_composition_combination(self, dimension, neuron_types=None):
 
         if neuron_types is None:
             neuron_types = self.snudda_load.get_neuron_types()
 
         clique_combinations = [x for x in itertools.combinations_with_replacement(neuron_types, dimension+1)]
+
+        return clique_combinations
+        
+    def get_clique_composition_disposition(self, dimension, neuron_types=None):
+
+        if neuron_types is None:
+            neuron_types = self.snudda_load.get_neuron_types()
+
+        clique_combinations = [x for x in itertools.product(neuron_types, repeat=dimension+1)]
 
         return clique_combinations
 

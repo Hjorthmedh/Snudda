@@ -179,6 +179,8 @@ class Snudda(object):
 
         sp.place()
 
+        self.cleanup_workers()
+
         self.stop_parallel()
         self.close_log_file()
 
@@ -266,6 +268,8 @@ class Snudda(object):
         sp = SnuddaProject(network_path=self.network_path)
         sp.project()
 
+        self.cleanup_workers()
+
         self.stop_parallel()
         self.close_log_file()
 
@@ -320,6 +324,8 @@ class Snudda(object):
 
         if args.savePutative:
             sp.save_putative_synapses()
+
+        self.cleanup_workers()
 
         self.stop_parallel()
         self.close_log_file()
@@ -391,6 +397,8 @@ class Snudda(object):
                          verbose=args.verbose,
                          use_meta_input=use_meta_input)
         si.generate()
+
+        self.cleanup_workers()
 
         self.stop_parallel()
         self.close_log_file()
@@ -693,8 +701,25 @@ class Snudda(object):
 
     ############################################################################
 
+    def cleanup_workers(self):
+
+        self.logfile.write(f"Calling cleanup on workers.")
+        # Cleanup, and do garbage collection
+
+        clean_cmd = ("sm = None\nsd = None\nsp = None\nspd = None\nnl = None\nsim = None"
+                     "\ninner_mask = None\nmin_max = None\nneuron_hv_list = None"
+                     "\nsyn_before = None\nsyn_after = None\ninpt = None"
+                     "\nmerge_result_syn = None\nmerge_result_gj = None"
+                     "\nimport gc\ngc.collect()")
+
+        if self.d_view is not None:
+            self.d_view.execute(clean_cmd, block=True)
+
+    ############################################################################
+
     def stop_parallel(self):
 
+        print("stop_parallel disabled, to keep pool running.")
         # Disable this function, keep the pool running for now
         return
 

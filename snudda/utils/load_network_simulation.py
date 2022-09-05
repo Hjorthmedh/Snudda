@@ -206,7 +206,7 @@ class SnuddaLoadNetworkSimulation:
         return neuron_id
 
     def get_neuron_name(self, neuron_id=None):
-        if neuron_id:
+        if neuron_id is not None:
             neuron_name = [SnuddaLoad.to_str(x) for x, y in zip(self.network_simulation_file["metaData/name"][()],
                                                                 self.network_simulation_file["metaData/ID"][()])
                            if y in neuron_id]
@@ -216,7 +216,7 @@ class SnuddaLoadNetworkSimulation:
         return neuron_name
 
     def get_neuron_type(self, neuron_id=None):
-        if neuron_id:
+        if neuron_id is not None:
             neuron_type = [SnuddaLoad.to_str(x) for x, y in zip(self.network_simulation_file["metaData/type"][()],
                                                                 self.network_simulation_file["metaData/ID"][()])
                            if y in neuron_id]
