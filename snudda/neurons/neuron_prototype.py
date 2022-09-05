@@ -105,7 +105,7 @@ class NeuronPrototype:
 
         if par_path is None or not os.path.exists(par_path):
             if self.verbose:
-                print(f"Missing parameter.json : {par_path}")
+                print(f"Missing parameters.json : {par_path}")
     
             self.parameter_info = None
             return

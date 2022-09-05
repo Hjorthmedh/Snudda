@@ -43,7 +43,7 @@
     },
     "Neurons": {
 	"ballanddoublestick_0": {
-            "morphology": "validation/ballanddoublestick_original/morphology",
+            "morphology": "validation/ballanddoublestick_degenerated/morphology",
             "parameters": "",
             "mechanisms": "",
             "modulation": "",

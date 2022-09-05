@@ -74,6 +74,22 @@ class SwapToDegeneratedMorphologies:
         network_group = self.new_hdf5.create_group("network")
         self.old_hdf5.copy(source=self.old_hdf5["network/neurons"], dest=self.new_hdf5["network"])
 
+        if len(self.new_snudda_data_dir) > len(self.original_snudda_data_dir):
+            n_elements = self.new_hdf5[f"network/neurons/morphology"].size
+            old_size = int(np.ceil(self.new_hdf5[f"network/neurons/morphology"].nbytes / n_elements))
+            new_size = old_size + len(self.new_snudda_data_dir) - len(self.original_snudda_data_dir)
+
+            del self.new_hdf5[f"network/neurons/morphology"]
+            self.new_hdf5["network/neurons"].create_dataset("morphology",
+                                                            (n_elements,), f"S{new_size}", compression="gzip")
+
+            n_elements = self.new_hdf5[f"network/neurons/neuronPath"].size
+            old_size = int(np.ceil(self.new_hdf5[f"network/neurons/neuronPath"].nbytes / n_elements))
+            new_size = old_size + 100
+            del self.new_hdf5[f"network/neurons/neuronPath"]
+            self.new_hdf5["network/neurons"].create_dataset("neuronPath",
+                                                            (n_elements,), f"S{new_size}", compression="gzip")
+
         # Update parameter keys and morphology keys
         for idx, neuron_id in enumerate(self.new_hdf5["network/neurons/neuronID"]):
             assert idx == neuron_id, "There should be no gaps in numbering."
@@ -84,7 +100,7 @@ class SwapToDegeneratedMorphologies:
             self.new_hdf5[f"network/neurons/parameterID"][idx] = param_id
             self.new_hdf5[f"network/neurons/morphologyID"][idx] = morph_id
 
-            old_morph = SnuddaLoad.to_str(self.new_hdf5[f"network/neurons/morphology"][idx])
+            old_morph = SnuddaLoad.to_str(self.old_hdf5[f"network/neurons/morphology"][idx])
             new_morph = old_morph.replace(self.original_snudda_data_dir, self.new_snudda_data_dir)
             self.new_hdf5[f"network/neurons/morphology"][idx] = new_morph
 
@@ -576,7 +592,7 @@ class SwapToDegeneratedMorphologies:
                                                  np.array(old_sec_x_list[old_sec_id]),
                                                  np.array(new_sec_x_list[old_sec_id]))
 
-        assert len(neuron_section_lookup) > 10, (f"Section lookup has fewer than 10 elements. Does morphologies match?"
+        assert len(neuron_section_lookup) > 3, (f"Section lookup has few elements. Does morphologies match?"
                                                  f"\nOld = {old_path, old_param_key, old_morph_key}"
                                                  f"\nNew = {new_path, new_param_key, new_morph_key}")
 

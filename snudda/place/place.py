@@ -595,7 +595,11 @@ class SnuddaPlace(object):
 
         swc_list = [n.swc_filename.encode("ascii", "ignore") for n in self.neurons]
         max_swc_len = max([len(x) for x in swc_list])
-        neuron_group.create_dataset("morphology", (len(swc_list),), f"S{max_swc_len}", swc_list,
+        #neuron_group.create_dataset("morphology", (len(swc_list),), f"S{max_swc_len}", swc_list,
+        #                            compression="gzip")
+
+        neuron_group.create_dataset("morphology", (len(swc_list),), data=swc_list,
+                                    dtype=h5py.special_dtype(vlen=bytes),
                                     compression="gzip")
 
         neuron_path = [n.neuron_path.encode("ascii", "ignore") for n in self.neurons]

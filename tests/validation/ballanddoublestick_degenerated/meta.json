@@ -1,40 +1,40 @@
 {
     "p0" : {
 	"m0" : {
-	    "morphology" : "ballanddoublestick_0.swc"
+	    "morphology" : "double_0.swc"
 	},
 	"m1" : {
-	    "morphology" : "ballanddoublestick_1.swc"
+	    "morphology" : "double_1.swc"
 	}
     },
 	
     "p1" : {
 	"m1" : {
-	    "morphology" : "ballanddoublestick_1.swc"
+	    "morphology" : "double_1.swc"
 	},
 	"m2" : {
-	    "morphology" : "ballanddoublestick_2.swc"
+	    "morphology" : "double_2.swc"
 	}
     },
 
     "p2" : {
 	"m0" : {
-	    "morphology" : "ballanddoublestick_0.swc"
+	    "morphology" : "double_0.swc"
 	},
 	"m2" : {
-	    "morphology" : "ballanddoublestick_2.swc"
+	    "morphology" : "double_2.swc"
 	}
     },
 
     "p3" : {
 	"m0" : {
-	    "morphology" : "ballanddoublestick_0.swc"
+	    "morphology" : "double_0.swc"
 	},
 	"m1" : {
-	    "morphology" : "ballanddoublestick_1.swc"
+	    "morphology" : "double_1.swc"
 	},
 	"m2" : {
-	    "morphology" : "ballanddoublestick_2.swc"
+	    "morphology" : "double_2.swc"
 	}
     }
 }
