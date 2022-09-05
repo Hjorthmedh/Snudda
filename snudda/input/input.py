@@ -1232,6 +1232,10 @@ class SnuddaInput(object):
         else:
             assert False, f"Unknown input_generator {input_generator}"
 
+
+        # TODO: For frequency_functions we can skip parts of the loop and directly request n_spike_trains
+        #       That would speed up the frequency_function generation call
+
         for i in range(0, num_spike_trains):
             t_unique = self.generate_spikes_helper(frequency=pop_freq, time_range=time_range, rng=rng,
                                                    input_generator=input_generator)
