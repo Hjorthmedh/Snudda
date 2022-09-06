@@ -81,12 +81,18 @@ class MyTestCase(unittest.TestCase):
 
         pn = PlotNetwork(network_A)
         pn.plot(plot_axon=True, plot_dendrite=True, plot_synapses=True, fig_name="original-network.png")
+        pn.close()
 
         pn2 = PlotNetwork(network_B)
         pn2.plot(plot_axon=True, plot_dendrite=True, plot_synapses=True, fig_name="degenerated-network.png")
+        pn2.close()
 
-        pn2 = PlotNetwork(network_C)
-        pn2.plot(plot_axon=True, plot_dendrite=True, plot_synapses=True, fig_name="degenerated-network.png")
+        pn3 = PlotNetwork(network_C)
+        pn3.plot(plot_axon=True, plot_dendrite=True, plot_synapses=True, fig_name="degenerated-network.png")
+        pn3.close()
+
+        import pdb
+        pdb.set_trace()
 
     def set_neuron_positions(self, network_file):
 
@@ -151,7 +157,7 @@ class MyTestCase(unittest.TestCase):
         degen_load = SnuddaLoad(self.network_C)
 
         self.assertEqual(orig_load.data["nSynapses"], 159)
-        self.assertEqual(degen_load.data["nSynapses"], 152) 
+        self.assertEqual(degen_load.data["nSynapses"], 152)
 
         self.assertEqual(True, True)  # add assertion here
 

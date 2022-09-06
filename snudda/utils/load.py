@@ -981,6 +981,7 @@ def snudda_load_cli():
         print(f"List neurons pre-synaptic to neuronID = {args.listPre} "
               f"({nl.data['neurons'][args.listPre]['name']})")
         synapses, synapse_coords = nl.find_synapses(post_id=args.listPre)
+        print(f"The neuron receives {synapses.shape[0]} synapses")
 
         if synapses is None:
             print("No pre synaptic neurons were found.")
@@ -1007,6 +1008,7 @@ def snudda_load_cli():
         print(f"List neurons post-synaptic to neuronID = {args.listPost}"
               f" ({nl.data['neurons'][args.listPost]['name']}):")
         synapses, synapse_coords = nl.find_synapses(pre_id=args.listPost)
+        print(f"The neuron makes {synapses.shape[0]} synapses on other neurons")
 
         if synapses is None:
             print("No post synaptic targets found.")
