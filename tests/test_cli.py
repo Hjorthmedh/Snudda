@@ -176,3 +176,8 @@ class TestCLI(unittest.TestCase):
         copyfile(input_file, "tiny_serial/input.json")
         with self.subTest(stage="input"):
             run_cli_command("input tiny_serial --time 1.0 --inputFile tiny_serial/input-spikes.hdf5")
+
+    def tearDown(self) -> None:
+
+        # Exit the test directory
+        os.chdir("..")

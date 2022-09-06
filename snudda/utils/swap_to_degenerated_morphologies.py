@@ -66,6 +66,7 @@ class SwapToDegeneratedMorphologies:
     def write_new_network_file(self):
 
         if not os.path.isdir(os.path.dirname(self.new_network_file)):
+            print(f"Creating directory {os.path.dirname(self.new_network_file)}")
             os.mkdir(os.path.dirname(self.new_network_file))
 
         print(f"Writing new network to {self.new_network_file}")
