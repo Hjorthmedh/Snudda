@@ -1,0 +1,26 @@
+{
+    "merge_files_syn": [
+        "/home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive_da/temp/synapses-for-neurons-0-to-14-MERGE-ME.hdf5"
+    ],
+    "merge_neuron_range_syn": [
+        [
+            0,
+            14
+        ]
+    ],
+    "merge_syn_ctr": [
+        12884
+    ],
+    "merge_files_gj": [
+        null
+    ],
+    "merge_neuron_range_gj": [
+        [
+            0,
+            14
+        ]
+    ],
+    "merge_gj_ctr": [
+        0
+    ]
+}

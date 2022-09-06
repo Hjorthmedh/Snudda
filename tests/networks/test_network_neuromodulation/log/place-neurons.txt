@@ -1,0 +1,12 @@
+Starting log file
+Using hdf5 version: latest
+Parsing configuration file /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation/network-config.json
+Reading random seed from config file: 3048105090
+Using mesh_bin_width 4.989626526218353e-05
+Cube or slice mesh, switching to serial processing.
+Using dimensions from config file
+Adding: 5 dSPN_0
+Adding: 5 iSPN_0
+Re-sorting the neuron IDs
+Writing data to HDF5 file: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation/network-neuron-positions.hdf5
+Program run time: 5.7sEnd of log. Closing file.

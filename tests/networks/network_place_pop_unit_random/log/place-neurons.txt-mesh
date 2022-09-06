@@ -1,0 +1,35 @@
+No mesh cache file found (/home/jofrony/Documents/Repositories/Snudda/tests/networks/network_place_pop_unit_random/mesh/Striatum-cube-mesh-0.00029276455555044695.obj-58-cache.pickle)
+Running in serial
+Voxel mask: 10 x 9 x 9
+min coord: [0.00450857 0.00374739 0.00749477], max coord [0.004977   0.00421581 0.0079632 ],
+padding 5.855291111008939e-05, bin width 5.855291111008939e-05
+Processing x = 0
+Processing x = 1
+Processing x = 2
+Processing x = 3
+Processing x = 4
+Processing x = 5
+Processing x = 6
+Processing x = 7
+Processing x = 8
+Processing x = 9
+Fraction of border voxels: 0.0
+Saving mesh cache file /home/jofrony/Documents/Repositories/Snudda/tests/networks/network_place_pop_unit_random/mesh/Striatum-cube-mesh-0.00029276455555044695.obj-58-cache.pickle
+Calculation time: 0.008616616999461257 s
+Setup voxel list
+Setup place neurons
+Update padding mask
+Setup done
+Inner voxel bin volume: 0.0 mm³
+Placed 5 in 0.001304622000134259 s
+Placed 5 in 0.0014509419997921214 s
+Placed 5 in 0.0008055340003920719 s
+Placed 5 in 0.0008458150005026255 s
+Placed 250 in 0.06955323200054409 s
+Placed 250 in 0.09081796499958728 s
+Placed 250 in 0.09272274500017375 s
+Placed 250 in 0.10888315600004717 s
+Placed 250 in 0.1361356480001632 s
+Placed 250 in 0.15818256999955338 s
+Placed 250 in 0.19208958000035636 s
+Placed 250 in 0.22701519600013853 s

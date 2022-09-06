@@ -1,0 +1,21 @@
+Found old cache file (networks/network_density/mesh/slice.obj-500-cache.pickle), ignoring.
+Running in serial
+Voxel mask: 7 x 7 x 7
+min coord: [-0.0005 -0.0005 -0.0005], max coord [0.0025 0.0025 0.0025],
+padding 0.0005, bin width 0.0005
+Processing x = 0
+Processing x = 1
+Processing x = 2
+Processing x = 3
+Processing x = 4
+Processing x = 5
+Processing x = 6
+Fraction of border voxels: 0.0
+Saving mesh cache file networks/network_density/mesh/slice.obj-500-cache.pickle
+Calculation time: 0.0038182669995876495 s
+Setup voxel list
+Setup place neurons
+Update padding mask
+Setup done
+Inner voxel bin volume: 8.0 mm³
+Placed 2000 in 0.6010969560002195 s

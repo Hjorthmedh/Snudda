@@ -1,0 +1,17 @@
+Using hdf5 version: latest
+Parsing configuration file networks/network_testing_project/network-config.json
+Reading random seed from config file: 2973253328
+Using mesh_bin_width 5e-05
+Using dimensions from config file
+Using mesh_bin_width 5e-05
+Using dimensions from config file
+Adding: 5 dSPN_0
+Adding: 5 dSPN_1
+Adding: 5 dSPN_2
+Adding: 5 dSPN_3
+Adding: 5 iSPN_0
+Adding: 5 iSPN_1
+Adding: 5 iSPN_2
+Adding: 5 iSPN_3
+Re-sorting the neuron IDs
+Writing data to HDF5 file: networks/network_testing_project/network-neuron-positions.hdf5

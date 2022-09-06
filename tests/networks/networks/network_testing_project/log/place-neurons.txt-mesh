@@ -1,0 +1,54 @@
+No mesh cache file found (networks/network_testing_project/mesh/volume_A.obj-50-cache.pickle)
+Running in serial
+Voxel mask: 10 x 9 x 9
+min coord: [ 0.0048 -0.0002 -0.0002], max coord [0.0052 0.0002 0.0002],
+padding 5e-05, bin width 5e-05
+Processing x = 0
+Processing x = 1
+Processing x = 2
+Processing x = 3
+Processing x = 4
+Processing x = 5
+Processing x = 6
+Processing x = 7
+Processing x = 8
+Processing x = 9
+Fraction of border voxels: 0.0
+Saving mesh cache file networks/network_testing_project/mesh/volume_A.obj-50-cache.pickle
+Calculation time: 0.007753570999739168 s
+Setup voxel list
+Setup place neurons
+Update padding mask
+Setup done
+Inner voxel bin volume: 0.0 mm³
+No mesh cache file found (networks/network_testing_project/mesh/volume_B.obj-50-cache.pickle)
+Running in serial
+Voxel mask: 10 x 9 x 9
+min coord: [-0.0052 -0.0002 -0.0002], max coord [-0.0048  0.0002  0.0002],
+padding 5e-05, bin width 5e-05
+Processing x = 0
+Processing x = 1
+Processing x = 2
+Processing x = 3
+Processing x = 4
+Processing x = 5
+Processing x = 6
+Processing x = 7
+Processing x = 8
+Processing x = 9
+Fraction of border voxels: 0.0
+Saving mesh cache file networks/network_testing_project/mesh/volume_B.obj-50-cache.pickle
+Calculation time: 0.008276947000013024 s
+Setup voxel list
+Setup place neurons
+Update padding mask
+Setup done
+Inner voxel bin volume: 0.0 mm³
+Placed 5 in 0.0010518190001675976 s
+Placed 5 in 0.0008588860000600107 s
+Placed 5 in 0.0007491329997719731 s
+Placed 5 in 0.0006314299998848583 s
+Placed 5 in 0.0004281490000721533 s
+Placed 5 in 0.0007944280005176552 s
+Placed 5 in 0.0004432120003912132 s
+Placed 5 in 0.0010032820000560605 s

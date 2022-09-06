@@ -1,0 +1,3 @@
+Using hdf5 version: latest
+Config file does not exist: /home/jofrony/Documents/Repositories/Snudda/tests/networks/network_testing_prune3/network-config.json
+Run snudda init <your directory> first

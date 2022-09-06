@@ -1,0 +1,70 @@
+Starting log file
+Using hdf5 driver sec2, latest version
+Opening work history file: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/log/network-detect-worklog.hdf5
+Reading random seed from config file: 924159892
+Using default scratch path: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/temp
+Skipping FSN to FSN connection
+Skipping FSN to dSPN connection
+Skipping FSN to iSPN connection
+Skipping FSN to LTS connection
+Skipping ChIN to LTS connection
+Skipping ChIN to FSN connection
+Skipping LTS to dSPN connection
+Skipping LTS to iSPN connection
+Skipping LTS to ChIN connection
+big_merge_helper (synapses): neuron_range = [ 0 15]
+Opening voxel file: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/voxels/network-putative-synapses-21.hdf5
+Checking that b'/home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/voxels/network-putative-synapses-21.hdf5' matches circuit settings
+Setting max_channel_type to 29 from h_id=21
+min_unique_id: 0, max_unique_id: 6525
+Opening voxel file: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/voxels/network-putative-synapses-22.hdf5
+Checking that b'/home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/voxels/network-putative-synapses-22.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 6525
+Opening voxel file: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/voxels/network-putative-synapses-5.hdf5
+Checking that b'/home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/voxels/network-putative-synapses-5.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 6525
+Opening voxel file: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/voxels/network-putative-synapses-25.hdf5
+Checking that b'/home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/voxels/network-putative-synapses-25.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 6525
+Opening voxel file: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/voxels/network-putative-synapses-20.hdf5
+Checking that b'/home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/voxels/network-putative-synapses-20.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 6525
+Opening voxel file: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/voxels/network-putative-synapses-17.hdf5
+Checking that b'/home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/voxels/network-putative-synapses-17.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 6525
+Opening voxel file: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/voxels/network-putative-synapses-18.hdf5
+Checking that b'/home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/voxels/network-putative-synapses-18.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 6525
+Opening voxel file: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/voxels/network-putative-synapses-37.hdf5
+Checking that b'/home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/voxels/network-putative-synapses-37.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 6525
+Opening voxel file: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/voxels/network-putative-synapses-1.hdf5
+Checking that b'/home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/voxels/network-putative-synapses-1.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 6525
+Setting up out file /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/temp/synapses-for-neurons-0-to-15-MERGE-ME.hdf5
+max_axon_voxel_ctr = 6
+max_dend_voxel_ctr = 3
+Read 15803 out of total 15803 synapses
+Flushing /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/temp/synapses-for-neurons-0-to-15-MERGE-ME.hdf5 data: network/synapses
+network/synapses new size (15803, 13)
+big_merge_helper: done
+big_merge_helper (gapJunctions): neuron_range = [ 0 15]
+Setting up out file /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/temp/gapJunctions-for-neurons-0-to-15-MERGE-ME.hdf5
+gather_neuron_synapses took 0.2 s
+Warning, multiple_files but running synapses in serial
+Writing to /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/network-synapses.hdf5
+Opening synapse file: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/temp/synapses-for-neurons-0-to-15-MERGE-ME.hdf5
+prune_synapses: synapseFile=<HDF5 file "synapses-for-neurons-0-to-15-MERGE-ME.hdf5" (mode r)>, outputFileName=None, rowRange=None (synapses)
+About to calculate block ranges (1 blocks)
+Find block ranges. From 0 to 15803 block size 15803
+synapse_range=[(0, 15803)]
+blockRanges=[(0, 15803)]
+Output file already set: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/network-synapses.hdf5
+Pruning range: (0, 15803)
+Warning, multiple_files but running gapJunctions in serial
+Output file already set: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/network-synapses.hdf5
+prune_synapses: No synapse_file specified for gapJunctions -- none detected?
+Removing temp files from /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/temp
+Removing temp files from /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation_adaptive/voxels
+prune synapses and gap junctions: 0.3s
+Program run time: 0.3sEnd of log. Closing file.

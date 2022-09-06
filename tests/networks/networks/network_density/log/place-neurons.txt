@@ -1,0 +1,9 @@
+Using hdf5 version: latest
+Parsing configuration file networks/network_density/network-config.json
+Reading random seed from config file: 1602421836
+Using mesh_bin_width 0.0005
+Cube or slice mesh, switching to serial processing.
+Using dimensions from config file
+Adding: 2000 FS_0
+Re-sorting the neuron IDs
+Writing data to HDF5 file: networks/network_density/network-neuron-positions.hdf5
