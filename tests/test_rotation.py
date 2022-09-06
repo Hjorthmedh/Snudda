@@ -1,3 +1,4 @@
+import os
 import unittest
 import numpy as np
 from snudda.place.rotation import SnuddaRotate
