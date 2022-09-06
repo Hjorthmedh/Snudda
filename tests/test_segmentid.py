@@ -25,6 +25,10 @@ class SegmentIdTestCase(unittest.TestCase):
     """
 
     def setUp(self) -> None:
+
+        if os.path.dirname(__file__):
+            os.chdir(os.path.dirname(__file__))
+
         self.sim = NrnSimulatorParallel(cvode_active=False)
 
     def test_segment_id_numbering(self, morph_file=None):

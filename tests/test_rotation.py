@@ -7,6 +7,9 @@ class TestRotation(unittest.TestCase):
 
     def setUp(self):
 
+        if os.path.dirname(__file__):
+            os.chdir(os.path.dirname(__file__))
+
         self.sr = SnuddaRotate()
         self.sr.parse_config_file("data/RotationTest.json")
 

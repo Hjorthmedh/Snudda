@@ -189,4 +189,5 @@ class TestCLI(unittest.TestCase):
     def tearDown(self) -> None:
 
         # Exit the test directory
-        os.chdir("..")
+        if os.path.dirname(__file__):
+            os.chdir(os.path.dirname(__file__))

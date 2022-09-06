@@ -13,6 +13,9 @@ class MyTestCase(unittest.TestCase):
 
     def setUp(self):
 
+        if os.path.dirname(__file__):
+            os.chdir(os.path.dirname(__file__))
+
         network_A = os.path.join("networks", "network_testing_degeneration", "A")
         network_B = os.path.join("networks", "network_testing_degeneration", "B")
         network_C = os.path.join("networks", "network_testing_degeneration", "C")

@@ -20,6 +20,10 @@ from snudda.analyse import SnuddaAnalyse
 class SnuddaModifyNetworkTestCase(unittest.TestCase):
 
     def setUp(self) -> None:
+
+        if os.path.dirname(__file__):
+            os.chdir(os.path.dirname(__file__))
+
         self.network_path = os.path.join("networks", "modify_network")
         self.original_file = os.path.join(self.network_path, "network-synapses.hdf5")
 

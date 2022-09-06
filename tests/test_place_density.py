@@ -20,6 +20,7 @@ class SnuddaDensityTest(unittest.TestCase):
         # We want to setup a volume with density variations
         if os.path.dirname(__file__):
             os.chdir(os.path.dirname(__file__))
+
         print(f"Current directory (detect): {os.path.dirname(os.path.realpath(__file__))}")
 
         neuron_dir = os.path.join(os.path.dirname(__file__), "validation")
