@@ -91,9 +91,6 @@ class MyTestCase(unittest.TestCase):
         pn3.plot(plot_axon=True, plot_dendrite=True, plot_synapses=True, fig_name="degenerated-network.png")
         pn3.close()
 
-        import pdb
-        pdb.set_trace()
-
     def set_neuron_positions(self, network_file):
 
         with h5py.File(network_file, "r+") as hdf5_file:
