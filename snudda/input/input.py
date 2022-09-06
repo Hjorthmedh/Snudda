@@ -435,7 +435,7 @@ class SnuddaInput(object):
                 # Handle frequency function
                 elif self.input_info[cell_type][input_type]["generator"] == "frequency_function":
 
-                    frequency_function = self.input_info[cell_type][input_type]["frequencyFunction"]
+                    frequency_function = self.input_info[cell_type][input_type]["frequency"]
                     self.population_unit_spikes[cell_type][input_type] = dict([])
 
                     for idx_pop_unit in pop_unit_list:
@@ -753,7 +753,7 @@ class SnuddaInput(object):
                     generator_list.append("poisson")
 
                 elif input_inf["generator"] == "frequency_function":
-                    freq_list.append(input_inf["frequencyFunction"])
+                    freq_list.append(input_inf["frequency"])
                     generator_list.append("frequency_function")
 
                 else:
