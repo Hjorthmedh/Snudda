@@ -134,6 +134,15 @@ class TestCLI(unittest.TestCase):
                     tstr = traceback.format_exc()
                     print(tstr)
 
+            if os.path.exists("aarch64/.libs/libnrnmech.so"):
+                print("Manually loading libraries")
+                try:
+                    h.nrn_load_dll("aarch64/.libs/libnrnmech.so")
+                except:
+                    import traceback
+                    tstr = traceback.format_exc()
+                    print(tstr)
+
             print("Time to run simulation...")
             run_cli_command("simulate tiny_parallel --time 0.1")
 

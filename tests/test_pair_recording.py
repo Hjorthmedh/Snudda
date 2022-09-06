@@ -20,6 +20,11 @@ class PairRecordingTestCase(unittest.TestCase):
         if os.path.isdir("x86_64"):
             import shutil
             shutil.rmtree("x86_64")
+
+        if os.path.isdir("aarch64"):
+            import shutil
+            shutil.rmtree("aarch64")
+
         os.system(f"nrnivmodl {os.path.join('validation', 'mechanisms')}")
 
         from snudda import SnuddaPlace

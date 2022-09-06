@@ -1408,6 +1408,9 @@ if __name__ == "__main__":
         if os.path.exists("x86_64"):
             shutil.rmtree("x86_64")
 
+        if os.path.exists("aarch64"):
+            shutil.rmtree("aarch64")
+
         if os.path.exists("mechanisms"):
             os.remove("mechanisms")
 
