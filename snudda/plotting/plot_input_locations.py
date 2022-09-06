@@ -52,8 +52,6 @@ class SnuddaPlotInputLocations:
                            dpi=300,
                            show_figure=True):
 
-        # TODO: Add ability to plot touch detected inputs also (use blue colour for them)
-
         coords = self.get_input_coords(neuron_id=neuron_id, input_type=input_type)
 
         if external_colour is None:

@@ -139,7 +139,7 @@ class SwapToDegeneratedMorphologies:
                     and synapses[next_idx, 0] == last_pre \
                     and synapses[next_idx, 1] == last_post:
                 next_idx += 1
-                if next_idx % 10000 == 0:
+                if next_idx % 1000000 == 0:
                     print(f"{next_idx} / {num_synapses}")
 
             if next_idx < num_synapses:
