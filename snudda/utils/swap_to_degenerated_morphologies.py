@@ -264,13 +264,11 @@ class SwapToDegeneratedMorphologies:
         assert (synapses[:, 0] == pre_id).all()
         assert (synapses[:, 1] == post_id).all()
 
-        keep_synapses = np.ones((synapses.shape[0],), dtype=bool)
-
         old_sec_id = synapses[:, 9]
         old_sec_x = synapses[:, 10]
 
         keep_idx, new_sec_id, new_sec_x \
-            = self.remap_sections_helper(neuron_id=post_id, old_sec_id=old_sec_id, old_sec_x=old_sec_x/1000)
+            = self.remap_sections_helper(neuron_id=post_id, old_sec_id=old_sec_id, old_sec_x=old_sec_x/1000.0)
 
         edited_synapses = synapses.copy()
 
@@ -284,7 +282,7 @@ class SwapToDegeneratedMorphologies:
 
         return filtered_synapses
 
-    def filter_axonal_synapses_helper(self, synapses, max_dist=7.5e-6):
+    def filter_axonal_synapses_helper(self, synapses, max_dist=2.6e-6):
 
         """ Filter the synapses that have the axon degeneration, presynaptic neurons without axons are ignored. """
 
@@ -297,16 +295,25 @@ class SwapToDegeneratedMorphologies:
 
         keep_idx = np.ones((synapses.shape[0],), dtype=bool)
 
+        loaded_pid = None
+        axon_tree = None
+
         # Loop through all the synapses, if they have an axon check that there is an axonal point close to synapse
         for idx, (pid, coord) in enumerate(zip(pre_id, synapse_coordinates)):
 
-            morph = self.get_morphology(neuron_id=pid, hdf5=self.new_hdf5)
+            if pid != loaded_pid:
 
-            if len(morph.axon) == 0:
+                morph = self.get_morphology(neuron_id=pid, hdf5=self.new_hdf5)
+                loaded_pid = pid
+
+                if len(morph.axon) > 0:
+                    axon_tree = self.get_kd_tree(morph, "axon")
+                else:
+                    axon_tree = None
+
+            if axon_tree is None:
                 # No pre-synaptic axon exists for this neuron (no info, so keep synapse)
                 continue
-
-            axon_tree = self.get_kd_tree(morph, "axon")
 
             closest_dist, closest_point = axon_tree.query(coord)
 

@@ -64,7 +64,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
                 f"Position mismatch for neuron {orig_neuron['neuronID']}: " \
                 f"{orig_neuron['rotation']} {updated_neuron['rotation']}"
 
-    def get_additional_synapses(self, synapse_distance_treshold=10e-6):
+    def get_additional_synapses(self, synapse_distance_treshold=2.6e-6):
 
         # Calculate coordinate remapping for updated synapses
 
@@ -88,7 +88,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
         keep_idx = np.zeros((synapse_matrix.shape[0],), dtype=bool)
 
-        for idx, synapse_row in enumerate(synapse_matrix):   # !!! Do we need [()] at the end?
+        for idx, synapse_row in enumerate(synapse_matrix):
             pre_neuron_synapses[synapse_row[0]].append(idx)
             post_neuron_synapses[synapse_row[1]].append(idx)
 
@@ -108,6 +108,8 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             dend_kd_tree = self.get_kd_tree(morph, "dend", kd_tree_cache=self.old_kd_tree_cache)
             synapse_dend_dist, _ = dend_kd_tree.query(post_coords)
             keep_idx[post_idx[np.where(synapse_dend_dist > synapse_distance_treshold)[0]]] = True
+
+            # Print how far away synapses were?
 
             if self.updated_network_loader.data["neurons"][nid]["axonDensity"] is None:
                 try:

@@ -142,7 +142,6 @@ class MyTestCase(unittest.TestCase):
 
             hdf5_file.close()
 
-
     def test_something(self):
 
         # Load the networks
@@ -152,7 +151,7 @@ class MyTestCase(unittest.TestCase):
         degen_load = SnuddaLoad(self.network_C)
 
         self.assertEqual(orig_load.data["nSynapses"], 159)
-        self.assertEqual(degen_load.data["nSynapses"], 161)  #TODO : Verify!!
+        self.assertEqual(degen_load.data["nSynapses"], 152) 
 
         self.assertEqual(True, True)  # add assertion here
 
