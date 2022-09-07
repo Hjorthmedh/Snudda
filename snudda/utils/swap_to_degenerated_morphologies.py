@@ -60,8 +60,12 @@ class SwapToDegeneratedMorphologies:
         self.filter_axon = filter_axon
 
     def close(self):
-        self.new_hdf5.close()
-        self.old_hdf5.close()
+
+        if self.new_hdf5:
+            self.new_hdf5.close()
+
+        if self.old_hdf5:
+            self.old_hdf5.close()
 
     def write_new_network_file(self):
 
@@ -504,8 +508,7 @@ class SwapToDegeneratedMorphologies:
                   f"keeping {new_n} out of {old_n} inputs "
                   f"({new_n / old_n * 100 :.2f} %)")
 
-        old_input.close()
-        new_input.close()
+        self.close()
 
     def get_kd_tree(self, neuron, tree_type, kd_tree_cache=None):
 
