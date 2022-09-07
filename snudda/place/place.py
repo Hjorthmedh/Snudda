@@ -558,7 +558,8 @@ class SnuddaPlace(object):
 
         # Meta data
         save_meta_data = [(self.config_file, "configFile"),
-                          (json.dumps(config), "config")]
+                          (json.dumps(config), "config"),
+                          (snudda_parse_path("$DATA"), "snuddaData")]
 
         meta_group = pos_file.create_group("meta")
 
