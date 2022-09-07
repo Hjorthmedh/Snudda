@@ -3,6 +3,8 @@ import numpy as np
 from snudda import SnuddaLoad
 from snudda.utils.swap_to_degenerated_morphologies import SwapToDegeneratedMorphologies
 
+# TODO: We need to reapply the pruning rule to all neurons...
+
 
 class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
