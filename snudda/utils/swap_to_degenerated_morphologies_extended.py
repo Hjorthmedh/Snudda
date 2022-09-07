@@ -43,6 +43,11 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
         self.check_same_network()
 
+    def close(self):
+
+        super().close()
+        self.updated_hdf5.close()
+
     def check_same_network(self):
 
         assert len(self.original_network_loader.data["neurons"]) == len(self.updated_network_loader.data["neurons"]),\
@@ -170,7 +175,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
               f"out of {self.old_hdf5['network/nSynapses'][()]} synapses "
               f"({self.new_hdf5['network/nSynapses'][()] / self.old_hdf5['network/nSynapses'][()]*100:.3f} %)")
 
-        # self.close()
+        self.close()
 
     # TODO: Profile the code to see what the bottleneck is...
 
