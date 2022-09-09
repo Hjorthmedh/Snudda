@@ -1,0 +1,20 @@
+Found old cache file (/home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation/mesh/Striatum-cube-mesh-4.989626526218353e-05.obj-49-cache.pickle), ignoring.
+Running in serial
+Voxel mask: 5 x 6 x 5
+min coord: [0.00464035 0.00389191 0.00763413], max coord [0.00483994 0.00409149 0.00783371],
+padding 4.989626526218353e-05, bin width 4.989626526218353e-05
+Processing x = 0
+Processing x = 1
+Processing x = 2
+Processing x = 3
+Processing x = 4
+Fraction of border voxels: 0.0
+Saving mesh cache file /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation/mesh/Striatum-cube-mesh-4.989626526218353e-05.obj-49-cache.pickle
+Calculation time: 5.305803118999847 s
+Setup voxel list
+Setup place neurons
+Update padding mask
+Setup done
+Inner voxel bin volume: 0.0 mm³
+Placed 5 in 0.05154144399989491 s
+Placed 5 in 0.24660984299998745 s

@@ -1,0 +1,20 @@
+No mesh cache file found (networks/network_testing_place/mesh/Striatum-cube-mesh-6.286535491496336e-05.obj-62-cache.pickle)
+Running in serial
+Voxel mask: 5 x 5 x 6
+min coord: [0.00465204 0.00389765 0.00760671], max coord [0.0049035  0.00414911 0.00785817],
+padding 6.286535491496336e-05, bin width 6.286535491496336e-05
+Processing x = 0
+Processing x = 1
+Processing x = 2
+Processing x = 3
+Processing x = 4
+Fraction of border voxels: 0.0
+Saving mesh cache file networks/network_testing_place/mesh/Striatum-cube-mesh-6.286535491496336e-05.obj-62-cache.pickle
+Calculation time: 0.002027730000008887 s
+Setup voxel list
+Setup place neurons
+Update padding mask
+Setup done
+Inner voxel bin volume: 0.0 mm³
+Placed 10 in 0.05724732800081256 s
+Placed 10 in 0.05600009499994485 s

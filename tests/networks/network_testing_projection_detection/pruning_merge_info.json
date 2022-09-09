@@ -1,0 +1,62 @@
+{
+    "merge_files_syn": [
+        "networks/network_testing_projection_detection/temp/synapses-for-neurons-0-to-10-MERGE-ME.hdf5",
+        "networks/network_testing_projection_detection/temp/synapses-for-neurons-10-to-20-MERGE-ME.hdf5",
+        "networks/network_testing_projection_detection/temp/synapses-for-neurons-20-to-30-MERGE-ME.hdf5",
+        "networks/network_testing_projection_detection/temp/synapses-for-neurons-30-to-40-MERGE-ME.hdf5"
+    ],
+    "merge_neuron_range_syn": [
+        [
+            0,
+            10
+        ],
+        [
+            10,
+            20
+        ],
+        [
+            20,
+            30
+        ],
+        [
+            30,
+            40
+        ]
+    ],
+    "merge_syn_ctr": [
+        2931,
+        1475,
+        1082,
+        845
+    ],
+    "merge_files_gj": [
+        null,
+        null,
+        null,
+        null
+    ],
+    "merge_neuron_range_gj": [
+        [
+            0,
+            10
+        ],
+        [
+            10,
+            20
+        ],
+        [
+            20,
+            30
+        ],
+        [
+            30,
+            40
+        ]
+    ],
+    "merge_gj_ctr": [
+        0,
+        0,
+        0,
+        0
+    ]
+}

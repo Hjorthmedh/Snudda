@@ -1,0 +1,152 @@
+Using network_file: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation/network-synapses.hdf5
+Using input_file: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation/input-spikes.hdf5
+Using output_file: /home/jofrony/Documents/Repositories/Snudda/tests/simulation/test.hdf5
+Using logFile: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation/log/network-simulation-log.txt-0
+Worker 0 : Loading network from /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation/network-synapses.hdf5
+Loading config file /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation/network-config.json
+ Using neuromodulation module in Snudda
+0 : Memory status: 65% free
+Distributing neurons.
+Setup neurons
+Node 0 - cell 0 dSPN_0
+Neuron dSPN_0 (0) resting voltage = -86.0
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 1 dSPN_0
+Neuron dSPN_0 (1) resting voltage = -86.0
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 2 iSPN_0
+Neuron iSPN_0 (2) resting voltage = -86.0
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 3 iSPN_0
+Neuron iSPN_0 (3) resting voltage = -86.0
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 4 iSPN_0
+Neuron iSPN_0 (4) resting voltage = -86.0
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 5 iSPN_0
+Neuron iSPN_0 (5) resting voltage = -86.0
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 6 dSPN_0
+Neuron dSPN_0 (6) resting voltage = -86.0
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 7 dSPN_0
+Neuron dSPN_0 (7) resting voltage = -86.0
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 8 dSPN_0
+Neuron dSPN_0 (8) resting voltage = -86.0
+!!! Popping extra segment from neuron -- temp fix!
+Node 0 - cell 9 iSPN_0
+Neuron iSPN_0 (9) resting voltage = -86.0
+!!! Popping extra segment from neuron -- temp fix!
+0 : Memory status: 65% free
+Adding gap junctions.
+connect_network_gap_junctions_local
+Finding node local gap junctions...
+Adding synapses.
+connect_network_synapses
+0 : Memory status: 65% free
+Adding external (cortical, thalamic) input from /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation/input-spikes.hdf5
+0 : Memory status: 66% free
+0 : Memory status: 66% free
+Running simulation for 0.1 s
+1% done. Elapsed: 0.2 s, estimated time left: 21.1 s
+2% done. Elapsed: 0.4 s, estimated time left: 21.0 s
+3% done. Elapsed: 0.6 s, estimated time left: 20.4 s
+4% done. Elapsed: 0.9 s, estimated time left: 21.3 s
+5% done. Elapsed: 1.2 s, estimated time left: 21.9 s
+6% done. Elapsed: 1.4 s, estimated time left: 22.5 s
+7% done. Elapsed: 1.8 s, estimated time left: 23.9 s
+8% done. Elapsed: 2.1 s, estimated time left: 24.2 s
+9% done. Elapsed: 2.5 s, estimated time left: 24.9 s
+10% done. Elapsed: 2.9 s, estimated time left: 26.2 s
+11% done. Elapsed: 3.3 s, estimated time left: 27.0 s
+12% done. Elapsed: 3.7 s, estimated time left: 27.1 s
+13% done. Elapsed: 3.9 s, estimated time left: 26.2 s
+14% done. Elapsed: 4.1 s, estimated time left: 25.5 s
+15% done. Elapsed: 4.4 s, estimated time left: 25.1 s
+16% done. Elapsed: 4.7 s, estimated time left: 24.7 s
+17% done. Elapsed: 5.0 s, estimated time left: 24.2 s
+18% done. Elapsed: 5.4 s, estimated time left: 24.4 s
+19% done. Elapsed: 5.7 s, estimated time left: 24.5 s
+20% done. Elapsed: 6.1 s, estimated time left: 24.5 s
+21% done. Elapsed: 6.5 s, estimated time left: 24.5 s
+22% done. Elapsed: 6.9 s, estimated time left: 24.6 s
+23% done. Elapsed: 7.4 s, estimated time left: 24.8 s
+24% done. Elapsed: 7.7 s, estimated time left: 24.5 s
+25% done. Elapsed: 8.1 s, estimated time left: 24.4 s
+26% done. Elapsed: 8.6 s, estimated time left: 24.4 s
+27% done. Elapsed: 8.9 s, estimated time left: 24.1 s
+28% done. Elapsed: 9.3 s, estimated time left: 24.0 s
+29% done. Elapsed: 9.8 s, estimated time left: 23.9 s
+30% done. Elapsed: 10.3 s, estimated time left: 23.9 s
+31% done. Elapsed: 10.7 s, estimated time left: 23.9 s
+32% done. Elapsed: 11.0 s, estimated time left: 23.3 s
+33% done. Elapsed: 11.2 s, estimated time left: 22.7 s
+34% done. Elapsed: 11.4 s, estimated time left: 22.2 s
+35% done. Elapsed: 11.6 s, estimated time left: 21.6 s
+36% done. Elapsed: 11.9 s, estimated time left: 21.1 s
+37% done. Elapsed: 12.1 s, estimated time left: 20.6 s
+38% done. Elapsed: 12.3 s, estimated time left: 20.0 s
+39% done. Elapsed: 12.5 s, estimated time left: 19.5 s
+40% done. Elapsed: 12.7 s, estimated time left: 19.0 s
+41% done. Elapsed: 12.9 s, estimated time left: 18.5 s
+42% done. Elapsed: 13.1 s, estimated time left: 18.1 s
+43% done. Elapsed: 13.3 s, estimated time left: 17.7 s
+44% done. Elapsed: 13.5 s, estimated time left: 17.2 s
+45% done. Elapsed: 13.7 s, estimated time left: 16.8 s
+46% done. Elapsed: 13.9 s, estimated time left: 16.4 s
+47% done. Elapsed: 14.2 s, estimated time left: 16.0 s
+48% done. Elapsed: 14.4 s, estimated time left: 15.6 s
+49% done. Elapsed: 14.8 s, estimated time left: 15.4 s
+50% done. Elapsed: 15.0 s, estimated time left: 15.0 s
+51% done. Elapsed: 15.3 s, estimated time left: 14.7 s
+52% done. Elapsed: 15.6 s, estimated time left: 14.4 s
+53% done. Elapsed: 15.8 s, estimated time left: 14.0 s
+54% done. Elapsed: 16.1 s, estimated time left: 13.7 s
+55% done. Elapsed: 16.4 s, estimated time left: 13.4 s
+56% done. Elapsed: 16.7 s, estimated time left: 13.1 s
+57% done. Elapsed: 17.0 s, estimated time left: 12.8 s
+58% done. Elapsed: 17.2 s, estimated time left: 12.5 s
+59% done. Elapsed: 17.5 s, estimated time left: 12.2 s
+60% done. Elapsed: 17.7 s, estimated time left: 11.8 s
+61% done. Elapsed: 17.9 s, estimated time left: 11.5 s
+62% done. Elapsed: 18.1 s, estimated time left: 11.1 s
+63% done. Elapsed: 18.5 s, estimated time left: 10.9 s
+64% done. Elapsed: 18.9 s, estimated time left: 10.6 s
+65% done. Elapsed: 19.2 s, estimated time left: 10.3 s
+66% done. Elapsed: 19.5 s, estimated time left: 10.1 s
+67% done. Elapsed: 19.7 s, estimated time left: 9.7 s
+68% done. Elapsed: 20.1 s, estimated time left: 9.4 s
+69% done. Elapsed: 20.4 s, estimated time left: 9.2 s
+70% done. Elapsed: 20.7 s, estimated time left: 8.9 s
+71% done. Elapsed: 21.0 s, estimated time left: 8.6 s
+72% done. Elapsed: 21.2 s, estimated time left: 8.2 s
+73% done. Elapsed: 21.4 s, estimated time left: 7.9 s
+74% done. Elapsed: 21.6 s, estimated time left: 7.6 s
+75% done. Elapsed: 21.9 s, estimated time left: 7.3 s
+76% done. Elapsed: 22.3 s, estimated time left: 7.0 s
+77% done. Elapsed: 22.7 s, estimated time left: 6.8 s
+78% done. Elapsed: 23.0 s, estimated time left: 6.5 s
+79% done. Elapsed: 23.3 s, estimated time left: 6.2 s
+80% done. Elapsed: 23.5 s, estimated time left: 5.9 s
+81% done. Elapsed: 23.7 s, estimated time left: 5.5 s
+82% done. Elapsed: 23.8 s, estimated time left: 5.2 s
+83% done. Elapsed: 24.1 s, estimated time left: 4.9 s
+84% done. Elapsed: 24.5 s, estimated time left: 4.7 s
+85% done. Elapsed: 24.8 s, estimated time left: 4.4 s
+86% done. Elapsed: 25.1 s, estimated time left: 4.1 s
+87% done. Elapsed: 25.4 s, estimated time left: 3.8 s
+88% done. Elapsed: 25.7 s, estimated time left: 3.5 s
+89% done. Elapsed: 25.9 s, estimated time left: 3.2 s
+90% done. Elapsed: 26.1 s, estimated time left: 2.9 s
+91% done. Elapsed: 26.3 s, estimated time left: 2.6 s
+92% done. Elapsed: 26.5 s, estimated time left: 2.3 s
+93% done. Elapsed: 26.7 s, estimated time left: 2.0 s
+94% done. Elapsed: 26.9 s, estimated time left: 1.7 s
+95% done. Elapsed: 27.1 s, estimated time left: 1.4 s
+96% done. Elapsed: 27.3 s, estimated time left: 1.1 s
+97% done. Elapsed: 27.5 s, estimated time left: 0.9 s
+98% done. Elapsed: 27.7 s, estimated time left: 0.6 s
+99% done. Elapsed: 27.9 s, estimated time left: 0.3 s
+Simulation done.
+Simulation run time: 28.1 s

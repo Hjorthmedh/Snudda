@@ -1,0 +1,18 @@
+Log file networks/network_testing_project/log/synapse-pruning.txt created.
+Using hdf5 driver sec2, latest version
+Opening work history file: networks/network_testing_project/log/network-detect-worklog.hdf5
+Reading random seed from config file: 1950554525
+Using default scratch path: networks/network_testing_project/temp
+Setting up workers: 2022-08-08 16:46:26
+Workers setup: 2022-08-08 16:46:26
+gather_neuron_synapses took 0.5 s
+Workers already initialised.
+Writing to networks/network_testing_project/network-synapses.hdf5
+combine_files (synapses): 0.0s
+prune_synapses_parallel (573/3832 synapses, 15.0% kept): 0.1s
+Workers already initialised.
+combine_files (gapJunctions): 0.0s
+prune_synapses_parallel (0/0 gapJunctions, 0.0% kept): 0.0s
+Removing temp files from networks/network_testing_project/temp
+Removing temp files from networks/network_testing_project/voxels
+prune synapses and gap junctions: 0.7s

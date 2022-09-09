@@ -1,0 +1,103 @@
+Log file networks/modify_network/log/synapse-pruning.txt created.
+Using hdf5 driver sec2, latest version
+Opening work history file: networks/modify_network/log/network-detect-worklog.hdf5
+Reading random seed from config file: 725428872
+Using default scratch path: networks/modify_network/temp
+big_merge_helper (synapses): neuron_range = [  0 200]
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-25.hdf5
+Checking that b'networks/modify_network/voxels/network-putative-synapses-25.hdf5' matches circuit settings
+Setting max_channel_type to 23 from h_id=25
+min_unique_id: 0, max_unique_id: 920000
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-21.hdf5
+Checking that b'networks/modify_network/voxels/network-putative-synapses-21.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 920000
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-5.hdf5
+Checking that b'networks/modify_network/voxels/network-putative-synapses-5.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 920000
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-24.hdf5
+Checking that b'networks/modify_network/voxels/network-putative-synapses-24.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 920000
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-26.hdf5
+Checking that b'networks/modify_network/voxels/network-putative-synapses-26.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 920000
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-45.hdf5
+Checking that b'networks/modify_network/voxels/network-putative-synapses-45.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 920000
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-29.hdf5
+Checking that b'networks/modify_network/voxels/network-putative-synapses-29.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 920000
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-1.hdf5
+Checking that b'networks/modify_network/voxels/network-putative-synapses-1.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 920000
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-6.hdf5
+Checking that b'networks/modify_network/voxels/network-putative-synapses-6.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 920000
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-4.hdf5
+Checking that b'networks/modify_network/voxels/network-putative-synapses-4.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 920000
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-22.hdf5
+Checking that b'networks/modify_network/voxels/network-putative-synapses-22.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 920000
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-41.hdf5
+Checking that b'networks/modify_network/voxels/network-putative-synapses-41.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 920000
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-20.hdf5
+Checking that b'networks/modify_network/voxels/network-putative-synapses-20.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 920000
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-9.hdf5
+Checking that b'networks/modify_network/voxels/network-putative-synapses-9.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 920000
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-44.hdf5
+Checking that b'networks/modify_network/voxels/network-putative-synapses-44.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 920000
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-30.hdf5
+Checking that b'networks/modify_network/voxels/network-putative-synapses-30.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 920000
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-46.hdf5
+Checking that b'networks/modify_network/voxels/network-putative-synapses-46.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 920000
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-28.hdf5
+Checking that b'networks/modify_network/voxels/network-putative-synapses-28.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 920000
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-49.hdf5
+Checking that b'networks/modify_network/voxels/network-putative-synapses-49.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 920000
+Setting up out file networks/modify_network/temp/synapses-for-neurons-0-to-200-MERGE-ME.hdf5
+max_axon_voxel_ctr = 15
+max_dend_voxel_ctr = 7
+Read 554934 out of total 554934 synapses
+Flushing networks/modify_network/temp/synapses-for-neurons-0-to-200-MERGE-ME.hdf5 data: network/synapses
+network/synapses new size (554934, 13)
+big_merge_helper: done
+big_merge_helper (gapJunctions): neuron_range = [  0 200]
+Opening voxel file: networks/modify_network/voxels/network-putative-synapses-25.hdf5
+min_unique_id: 0, max_unique_id: 920000
+Setting up out file networks/modify_network/temp/gapJunctions-for-neurons-0-to-200-MERGE-ME.hdf5
+Read 13 out of total 13 gapJunctions
+Flushing networks/modify_network/temp/gapJunctions-for-neurons-0-to-200-MERGE-ME.hdf5 data: network/gapJunctions
+network/gapJunctions new size (13, 11)
+big_merge_helper: done
+gather_neuron_synapses took 1.2 s
+Warning, multiple_files but running synapses in serial
+Writing to networks/modify_network/network-synapses.hdf5
+Opening synapse file: networks/modify_network/temp/synapses-for-neurons-0-to-200-MERGE-ME.hdf5
+prune_synapses: synapseFile=<HDF5 file "synapses-for-neurons-0-to-200-MERGE-ME.hdf5" (mode r)>, outputFileName=None, rowRange=None (synapses)
+About to calculate block ranges (1 blocks)
+Find block ranges. From 0 to 554934 block size 554934
+synapse_range=[(0, 554934)]
+blockRanges=[(0, 554934)]
+Output file already set: networks/modify_network/network-synapses.hdf5
+Pruning range: (0, 554934)
+Warning, multiple_files but running gapJunctions in serial
+Output file already set: networks/modify_network/network-synapses.hdf5
+Opening synapse file: networks/modify_network/temp/gapJunctions-for-neurons-0-to-200-MERGE-ME.hdf5
+prune_synapses: synapseFile=<HDF5 file "gapJunctions-for-neurons-0-to-200-MERGE-ME.hdf5" (mode r)>, outputFileName=None, rowRange=None (gapJunctions)
+About to calculate block ranges (1 blocks)
+Find block ranges. From 0 to 13 block size 13
+synapse_range=[(0, 13)]
+blockRanges=[(0, 13)]
+Output file already set: networks/modify_network/network-synapses.hdf5
+Pruning range: (0, 13)
+Removing temp files from networks/modify_network/temp
+Removing temp files from networks/modify_network/voxels
+prune synapses and gap junctions: 5.9s

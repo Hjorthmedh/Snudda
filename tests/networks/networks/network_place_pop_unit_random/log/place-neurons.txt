@@ -1,0 +1,20 @@
+Using hdf5 version: latest
+Parsing configuration file /home/jofrony/Documents/Repositories/Snudda/tests/networks/network_place_pop_unit_random/network-config.json
+Reading random seed from config file: 3302600465
+Using mesh_bin_width 5.855291111008939e-05
+Cube or slice mesh, switching to serial processing.
+Using dimensions from config file
+Adding: 5 FS_0
+Adding: 5 FS_1
+Adding: 5 FS_2
+Adding: 5 FS_3
+Adding: 250 dSPN_0
+Adding: 250 dSPN_1
+Adding: 250 dSPN_2
+Adding: 250 dSPN_3
+Adding: 250 iSPN_0
+Adding: 250 iSPN_1
+Adding: 250 iSPN_2
+Adding: 250 iSPN_3
+Re-sorting the neuron IDs
+Writing data to HDF5 file: /home/jofrony/Documents/Repositories/Snudda/tests/networks/network_place_pop_unit_random/network-neuron-positions.hdf5

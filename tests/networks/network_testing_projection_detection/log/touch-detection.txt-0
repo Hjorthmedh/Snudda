@@ -1,0 +1,94 @@
+Using hdf5 driver version: latest
+Memory: 5309984768 free, 16591261696 total
+Each hyper voxel has 100 x 100 x 100 voxels
+Touch detecting all volumes
+Loading from networks/network_testing_projection_detection/network-config.json
+Using random seed provided by command line: 387799215
+Reading prototype for: dSPN_0
+Reading prototype for: dSPN_1
+Reading prototype for: dSPN_2
+Reading prototype for: dSPN_3
+Reading prototype for: iSPN_0
+Reading prototype for: iSPN_1
+Reading prototype for: iSPN_2
+Reading prototype for: iSPN_3
+Loading connectivity information
+Memory: 5288300544 free, 16591261696 total
+Reading positions from file: networks/network_testing_projection_detection/network-neuron-positions.hdf5
+Memory: 5281075200 free, 16591261696 total
+Position file read.
+Finding minMax coord in volumeID = None
+distribute_neurons: neuronIdx = [14 23  4 12 20 10  6 31 34 22] (n=10)
+592 hyper voxels in total
+Pre allocation done.
+Calculated distribution of neurons: 0.1 seconds
+Processing hyper voxel : 549/592 (20 neurons)
+detect_synapses: 1580 took 0.0 s
+detect_gap_junctions: No gap junctions defined in connectivity rules
+Wrote hyper voxel 549 (1580 synapses, 0 gap junctions)
+process_hyper_voxel: 549 took 0.4 s
+Processing hyper voxel : 545/592 (15 neurons)
+detect_synapses: 148 took 0.0 s
+detect_gap_junctions: No gap junctions defined in connectivity rules
+Wrote hyper voxel 545 (148 synapses, 0 gap junctions)
+process_hyper_voxel: 545 took 0.3 s
+Processing hyper voxel : 25/592 (13 neurons)
+detect_synapses: 14 took 0.0 s
+detect_gap_junctions: No gap junctions defined in connectivity rules
+Wrote hyper voxel 25 (14 synapses, 0 gap junctions)
+process_hyper_voxel: 25 took 0.2 s
+Processing hyper voxel : 533/592 (12 neurons)
+detect_synapses: 13 took 0.0 s
+detect_gap_junctions: No gap junctions defined in connectivity rules
+Wrote hyper voxel 533 (13 synapses, 0 gap junctions)
+process_hyper_voxel: 533 took 0.2 s
+Processing hyper voxel : 9/592 (10 neurons)
+detect_synapses: 5 took 0.0 s
+detect_gap_junctions: No gap junctions defined in connectivity rules
+Wrote hyper voxel 9 (5 synapses, 0 gap junctions)
+process_hyper_voxel: 9 took 0.2 s
+Processing hyper voxel : 561/592 (9 neurons)
+detect_synapses: 7 took 0.0 s
+detect_gap_junctions: No gap junctions defined in connectivity rules
+Wrote hyper voxel 561 (7 synapses, 0 gap junctions)
+process_hyper_voxel: 561 took 0.2 s
+Processing hyper voxel : 26/592 (7 neurons)
+detect_synapses: 6 took 0.0 s
+detect_gap_junctions: No gap junctions defined in connectivity rules
+Wrote hyper voxel 26 (6 synapses, 0 gap junctions)
+process_hyper_voxel: 26 took 0.3 s
+Processing hyper voxel : 37/592 (6 neurons)
+detect_synapses: 0 took 0.0 s
+detect_gap_junctions: No gap junctions defined in connectivity rules
+Wrote hyper voxel 37 (0 synapses, 0 gap junctions)
+process_hyper_voxel: 37 took 0.2 s
+Processing hyper voxel : 562/592 (4 neurons)
+detect_synapses: 0 took 0.0 s
+detect_gap_junctions: No gap junctions defined in connectivity rules
+Wrote hyper voxel 562 (0 synapses, 0 gap junctions)
+process_hyper_voxel: 562 took 0.3 s
+Processing hyper voxel : 532/592 (4 neurons)
+detect_synapses: 0 took 0.0 s
+detect_gap_junctions: No gap junctions defined in connectivity rules
+Wrote hyper voxel 532 (0 synapses, 0 gap junctions)
+process_hyper_voxel: 532 took 0.2 s
+Processing hyper voxel : 554/592 (2 neurons)
+detect_synapses: 0 took 0.0 s
+detect_gap_junctions: No gap junctions defined in connectivity rules
+Wrote hyper voxel 554 (0 synapses, 0 gap junctions)
+process_hyper_voxel: 554 took 0.2 s
+Processing hyper voxel : 38/592 (2 neurons)
+detect_synapses: 0 took 0.0 s
+detect_gap_junctions: No gap junctions defined in connectivity rules
+Wrote hyper voxel 38 (0 synapses, 0 gap junctions)
+process_hyper_voxel: 38 took 0.2 s
+Processing hyper voxel : 41/592 (1 neurons)
+detect_synapses: 0 took 0.0 s
+detect_gap_junctions: No gap junctions defined in connectivity rules
+Wrote hyper voxel 41 (0 synapses, 0 gap junctions)
+process_hyper_voxel: 41 took 0.2 s
+Processing hyper voxel : 42/592 (1 neurons)
+detect_synapses: 0 took 0.0 s
+detect_gap_junctions: No gap junctions defined in connectivity rules
+Wrote hyper voxel 42 (0 synapses, 0 gap junctions)
+process_hyper_voxel: 42 took 0.1 s

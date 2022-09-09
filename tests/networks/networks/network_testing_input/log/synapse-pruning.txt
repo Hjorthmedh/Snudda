@@ -1,0 +1,83 @@
+Log file networks/network_testing_input/log/synapse-pruning.txt created.
+Using hdf5 driver sec2, latest version
+Opening work history file: networks/network_testing_input/log/network-detect-worklog.hdf5
+Reading random seed from config file: 507409703
+Using default scratch path: networks/network_testing_input/temp
+Skipping FS to iSPN connection
+Skipping FS to LTS connection
+Skipping dSPN to iSPN connection
+Skipping dSPN to ChIN connection
+Skipping iSPN to dSPN connection
+Skipping iSPN to iSPN connection
+Skipping iSPN to ChIN connection
+Skipping LTS to dSPN connection
+Skipping LTS to iSPN connection
+Skipping LTS to ChIN connection
+big_merge_helper (synapses): neuron_range = [ 0 10]
+Opening voxel file: networks/network_testing_input/voxels/network-putative-synapses-0.hdf5
+Checking that b'networks/network_testing_input/voxels/network-putative-synapses-0.hdf5' matches circuit settings
+Setting max_channel_type to 23 from h_id=0
+min_unique_id: 0, max_unique_id: 2300
+Opening voxel file: networks/network_testing_input/voxels/network-putative-synapses-1.hdf5
+Checking that b'networks/network_testing_input/voxels/network-putative-synapses-1.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 2300
+Opening voxel file: networks/network_testing_input/voxels/network-putative-synapses-9.hdf5
+Checking that b'networks/network_testing_input/voxels/network-putative-synapses-9.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 2300
+Opening voxel file: networks/network_testing_input/voxels/network-putative-synapses-3.hdf5
+Checking that b'networks/network_testing_input/voxels/network-putative-synapses-3.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 2300
+Opening voxel file: networks/network_testing_input/voxels/network-putative-synapses-10.hdf5
+Checking that b'networks/network_testing_input/voxels/network-putative-synapses-10.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 2300
+Opening voxel file: networks/network_testing_input/voxels/network-putative-synapses-12.hdf5
+Checking that b'networks/network_testing_input/voxels/network-putative-synapses-12.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 2300
+Opening voxel file: networks/network_testing_input/voxels/network-putative-synapses-13.hdf5
+Checking that b'networks/network_testing_input/voxels/network-putative-synapses-13.hdf5' matches circuit settings
+min_unique_id: 0, max_unique_id: 2300
+Setting up out file networks/network_testing_input/temp/synapses-for-neurons-0-to-10-MERGE-ME.hdf5
+max_axon_voxel_ctr = 4
+max_dend_voxel_ctr = 4
+Read 2489 out of total 2489 synapses
+Flushing networks/network_testing_input/temp/synapses-for-neurons-0-to-10-MERGE-ME.hdf5 data: network/synapses
+network/synapses new size (2489, 13)
+big_merge_helper: done
+big_merge_helper (gapJunctions): neuron_range = [ 0 10]
+Opening voxel file: networks/network_testing_input/voxels/network-putative-synapses-0.hdf5
+min_unique_id: 0, max_unique_id: 2300
+Opening voxel file: networks/network_testing_input/voxels/network-putative-synapses-9.hdf5
+min_unique_id: 0, max_unique_id: 2300
+Opening voxel file: networks/network_testing_input/voxels/network-putative-synapses-3.hdf5
+min_unique_id: 0, max_unique_id: 2300
+Opening voxel file: networks/network_testing_input/voxels/network-putative-synapses-12.hdf5
+min_unique_id: 0, max_unique_id: 2300
+Setting up out file networks/network_testing_input/temp/gapJunctions-for-neurons-0-to-10-MERGE-ME.hdf5
+Read 111 out of total 111 gapJunctions
+Flushing networks/network_testing_input/temp/gapJunctions-for-neurons-0-to-10-MERGE-ME.hdf5 data: network/gapJunctions
+network/gapJunctions new size (111, 11)
+big_merge_helper: done
+gather_neuron_synapses took 0.1 s
+Warning, multiple_files but running synapses in serial
+Writing to networks/network_testing_input/network-synapses.hdf5
+Opening synapse file: networks/network_testing_input/temp/synapses-for-neurons-0-to-10-MERGE-ME.hdf5
+prune_synapses: synapseFile=<HDF5 file "synapses-for-neurons-0-to-10-MERGE-ME.hdf5" (mode r)>, outputFileName=None, rowRange=None (synapses)
+About to calculate block ranges (1 blocks)
+Find block ranges. From 0 to 2489 block size 2489
+synapse_range=[(0, 2489)]
+blockRanges=[(0, 2489)]
+Output file already set: networks/network_testing_input/network-synapses.hdf5
+Pruning range: (0, 2489)
+Warning, multiple_files but running gapJunctions in serial
+Output file already set: networks/network_testing_input/network-synapses.hdf5
+Opening synapse file: networks/network_testing_input/temp/gapJunctions-for-neurons-0-to-10-MERGE-ME.hdf5
+prune_synapses: synapseFile=<HDF5 file "gapJunctions-for-neurons-0-to-10-MERGE-ME.hdf5" (mode r)>, outputFileName=None, rowRange=None (gapJunctions)
+About to calculate block ranges (1 blocks)
+Find block ranges. From 0 to 111 block size 111
+synapse_range=[(0, 111)]
+blockRanges=[(0, 111)]
+Output file already set: networks/network_testing_input/network-synapses.hdf5
+Pruning range: (0, 111)
+Removing temp files from networks/network_testing_input/temp
+Removing temp files from networks/network_testing_input/voxels
+prune synapses and gap junctions: 0.1s

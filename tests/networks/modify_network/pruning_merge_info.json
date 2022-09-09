@@ -1,0 +1,26 @@
+{
+    "merge_files_syn": [
+        "networks/modify_network/temp/synapses-for-neurons-0-to-200-MERGE-ME.hdf5"
+    ],
+    "merge_neuron_range_syn": [
+        [
+            0,
+            200
+        ]
+    ],
+    "merge_syn_ctr": [
+        554934
+    ],
+    "merge_files_gj": [
+        "networks/modify_network/temp/gapJunctions-for-neurons-0-to-200-MERGE-ME.hdf5"
+    ],
+    "merge_neuron_range_gj": [
+        [
+            0,
+            200
+        ]
+    ],
+    "merge_gj_ctr": [
+        13
+    ]
+}
