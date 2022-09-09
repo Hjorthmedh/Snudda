@@ -1,0 +1,210 @@
+{
+    "nm20b1b6f5": [
+        {
+            "dist_type": "uniform",
+            "mech": "kir_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kir_fs",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.717425859940308
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kir_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kir_fs",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7040436794880651
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_fs",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.9497859536643813
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_fs",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 1.0278156750949852
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "naf_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_naf_fs",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 1.0370012148246819
+        }
+    ],
+    "nm6cdb36e4": [
+        {
+            "dist_type": "uniform",
+            "mech": "kir_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kir_fs",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.809762700785465
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kir_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kir_fs",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.8430378732744839
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_fs",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.8808290128214932
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_fs",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 1.0044883182996898
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "naf_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_naf_fs",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.9923654799338905
+        }
+    ],
+    "nma473c971": [
+        {
+            "dist_type": "uniform",
+            "mech": "kir_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kir_fs",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.8291788226133312
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kir_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kir_fs",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7875174422525385
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_fs",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.9675319002346239
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_fs",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 1.046366276050103
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "naf_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_naf_fs",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.9883441518825777
+        }
+    ],
+    "nmec0360fc": [
+        {
+            "dist_type": "uniform",
+            "mech": "kir_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kir_fs",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.8583450076165329
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kir_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kir_fs",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.8057789839505809
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_fs",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.8704133683281796
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_fs",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 1.0425596638292662
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "naf_fs",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_naf_fs",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.9571036058197887
+        }
+    ]
+}

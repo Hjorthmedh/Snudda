@@ -9,85 +9,85 @@ Running makePopulationUnitSpikeTrains
 Running make_neuron_input_parallel
 Input from meta.json will be used
 Running input generation in serial
+Creating prototype dSPN_1
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c884ffb10>
+Generating 274 inputs (correlation=0.0, p_keep=0.0036496350364963502, population_unit_fraction=1) for dSPN_1 (0)
+Gathering 0 - cortical_background
+About to clone cache of dSPN_1.
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c884ffb10>
+Generating 165 inputs (correlation=0.0, p_keep=0.006060606060606061, population_unit_fraction=1) for dSPN_1 (0)
+Gathering 0 - thalamic_background
 Creating prototype dSPN_0
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8e9fda90>
-Generating 216 inputs (correlation=0.0, p_keep=0.004629629629629629, population_unit_fraction=1) for dSPN_0 (0)
-Gathering 0 - cortical
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c88368490>
+Generating 221 inputs (correlation=0.0, p_keep=0.004524886877828055, population_unit_fraction=1) for dSPN_0 (1)
+Gathering 1 - cortical_background
 About to clone cache of dSPN_0.
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8e9fda90>
-Generating 136 inputs (correlation=0.0, p_keep=0.007352941176470588, population_unit_fraction=1) for dSPN_0 (0)
-Gathering 0 - thalamic
-About to clone cache of dSPN_0.
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8ea89bd0>
-Generating 198 inputs (correlation=0.0, p_keep=0.005050505050505051, population_unit_fraction=1) for dSPN_0 (1)
-Gathering 1 - cortical
-About to clone cache of dSPN_0.
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8ea89bd0>
-Generating 137 inputs (correlation=0.0, p_keep=0.0072992700729927005, population_unit_fraction=1) for dSPN_0 (1)
-Gathering 1 - thalamic
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c88368490>
+Generating 154 inputs (correlation=0.0, p_keep=0.006493506493506494, population_unit_fraction=1) for dSPN_0 (1)
+Gathering 1 - thalamic_background
+Creating prototype iSPN_3
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c881313d0>
+Generating 53 inputs (correlation=0.0, p_keep=0.018867924528301886, population_unit_fraction=1) for iSPN_3 (2)
+Gathering 2 - cortical_background
+About to clone cache of iSPN_3.
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c881313d0>
+Generating 40 inputs (correlation=0.0, p_keep=0.025, population_unit_fraction=1) for iSPN_3 (2)
+Gathering 2 - thalamic_background
+Creating prototype iSPN_2
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c87eba090>
+Generating 148 inputs (correlation=0.0, p_keep=0.006756756756756757, population_unit_fraction=1) for iSPN_2 (3)
+Gathering 3 - cortical_background
+About to clone cache of iSPN_2.
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c87eba090>
+Generating 121 inputs (correlation=0.0, p_keep=0.008264462809917356, population_unit_fraction=1) for iSPN_2 (3)
+Gathering 3 - thalamic_background
 Creating prototype iSPN_0
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8e84b0d0>
-Generating 105 inputs (correlation=0.0, p_keep=0.009523809523809525, population_unit_fraction=1) for iSPN_0 (2)
-Gathering 2 - cortical
-About to clone cache of iSPN_0.
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8e84b0d0>
-Generating 115 inputs (correlation=0.0, p_keep=0.008695652173913044, population_unit_fraction=1) for iSPN_0 (2)
-Gathering 2 - thalamic
-About to clone cache of iSPN_0.
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8e8bb4d0>
-Generating 105 inputs (correlation=0.0, p_keep=0.009523809523809525, population_unit_fraction=1) for iSPN_0 (3)
-Gathering 3 - cortical
-About to clone cache of iSPN_0.
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8e8bb4d0>
-Generating 86 inputs (correlation=0.0, p_keep=0.011627906976744186, population_unit_fraction=1) for iSPN_0 (3)
-Gathering 3 - thalamic
-About to clone cache of iSPN_0.
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8e8bb4d0>
-Generating 108 inputs (correlation=0.0, p_keep=0.009259259259259259, population_unit_fraction=1) for iSPN_0 (4)
-Gathering 4 - cortical
-About to clone cache of iSPN_0.
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8e8bb4d0>
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c87d6ee90>
 Generating 98 inputs (correlation=0.0, p_keep=0.01020408163265306, population_unit_fraction=1) for iSPN_0 (4)
-Gathering 4 - thalamic
+Gathering 4 - cortical_background
 About to clone cache of iSPN_0.
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8e8c3350>
-Generating 95 inputs (correlation=0.0, p_keep=0.010526315789473684, population_unit_fraction=1) for iSPN_0 (5)
-Gathering 5 - cortical
-About to clone cache of iSPN_0.
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8e8c3350>
-Generating 97 inputs (correlation=0.0, p_keep=0.010309278350515464, population_unit_fraction=1) for iSPN_0 (5)
-Gathering 5 - thalamic
-About to clone cache of dSPN_0.
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8e860050>
-Generating 204 inputs (correlation=0.0, p_keep=0.004901960784313725, population_unit_fraction=1) for dSPN_0 (6)
-Gathering 6 - cortical
-About to clone cache of dSPN_0.
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8e860050>
-Generating 150 inputs (correlation=0.0, p_keep=0.006666666666666667, population_unit_fraction=1) for dSPN_0 (6)
-Gathering 6 - thalamic
-About to clone cache of dSPN_0.
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8e860050>
-Generating 217 inputs (correlation=0.0, p_keep=0.004608294930875576, population_unit_fraction=1) for dSPN_0 (7)
-Gathering 7 - cortical
-About to clone cache of dSPN_0.
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8e860050>
-Generating 146 inputs (correlation=0.0, p_keep=0.00684931506849315, population_unit_fraction=1) for dSPN_0 (7)
-Gathering 7 - thalamic
-About to clone cache of dSPN_0.
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8e9fda90>
-Generating 221 inputs (correlation=0.0, p_keep=0.004524886877828055, population_unit_fraction=1) for dSPN_0 (8)
-Gathering 8 - cortical
-About to clone cache of dSPN_0.
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8e9fda90>
-Generating 154 inputs (correlation=0.0, p_keep=0.006493506493506494, population_unit_fraction=1) for dSPN_0 (8)
-Gathering 8 - thalamic
-About to clone cache of iSPN_0.
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8e8bb4d0>
-Generating 95 inputs (correlation=0.0, p_keep=0.010526315789473684, population_unit_fraction=1) for iSPN_0 (9)
-Gathering 9 - cortical
-About to clone cache of iSPN_0.
-morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7fdf8e8bb4d0>
-Generating 88 inputs (correlation=0.0, p_keep=0.011363636363636364, population_unit_fraction=1) for iSPN_0 (9)
-Gathering 9 - thalamic
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c87d6ee90>
+Generating 99 inputs (correlation=0.0, p_keep=0.010101010101010102, population_unit_fraction=1) for iSPN_0 (4)
+Gathering 4 - thalamic_background
+Creating prototype iSPN_1
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c87a0ddd0>
+Generating 237 inputs (correlation=0.0, p_keep=0.004219409282700422, population_unit_fraction=1) for iSPN_1 (5)
+Gathering 5 - cortical_background
+About to clone cache of iSPN_1.
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c87a0ddd0>
+Generating 176 inputs (correlation=0.0, p_keep=0.005681818181818182, population_unit_fraction=1) for iSPN_1 (5)
+Gathering 5 - thalamic_background
+Creating prototype dSPN_3
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c87602f90>
+Generating 389 inputs (correlation=0.0, p_keep=0.002570694087403599, population_unit_fraction=1) for dSPN_3 (6)
+Gathering 6 - cortical_background
+About to clone cache of dSPN_3.
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c87602f90>
+Generating 251 inputs (correlation=0.0, p_keep=0.00398406374501992, population_unit_fraction=1) for dSPN_3 (6)
+Gathering 6 - thalamic_background
+About to clone cache of dSPN_1.
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c87d76d90>
+Generating 276 inputs (correlation=0.0, p_keep=0.0036231884057971015, population_unit_fraction=1) for dSPN_1 (7)
+Gathering 7 - cortical_background
+About to clone cache of dSPN_1.
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c87d76d90>
+Generating 219 inputs (correlation=0.0, p_keep=0.0045662100456621, population_unit_fraction=1) for dSPN_1 (7)
+Gathering 7 - thalamic_background
+Creating prototype dSPN_2
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c8752b510>
+Generating 119 inputs (correlation=0.0, p_keep=0.008403361344537815, population_unit_fraction=1) for dSPN_2 (8)
+Gathering 8 - cortical_background
+About to clone cache of dSPN_2.
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c8752b510>
+Generating 82 inputs (correlation=0.0, p_keep=0.012195121951219513, population_unit_fraction=1) for dSPN_2 (8)
+Gathering 8 - thalamic_background
+About to clone cache of iSPN_3.
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c881313d0>
+Generating 52 inputs (correlation=0.0, p_keep=0.019230769230769232, population_unit_fraction=1) for iSPN_3 (9)
+Gathering 9 - cortical_background
+About to clone cache of iSPN_3.
+morphology = <snudda.neurons.neuron_morphology.NeuronMorphology object at 0x7f7c881313d0>
+Generating 50 inputs (correlation=0.0, p_keep=0.02, population_unit_fraction=1) for iSPN_3 (9)
+Gathering 9 - thalamic_background
 Writing spikes to /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation/input-spikes.hdf5
 Program run time: 0.5sEnd of log. Closing file.

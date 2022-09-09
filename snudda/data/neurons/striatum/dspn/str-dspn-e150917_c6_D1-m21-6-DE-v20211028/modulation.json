@@ -1,0 +1,1522 @@
+{
+    "nm0510560b": [
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.6597327138054729
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7274669621396808
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.750484192192071
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7794668105335815
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.23452882142826859
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        }
+    ],
+    "nm5546081a": [
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.6788126250960834
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7060033434254506
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.7800385676042133
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7559105150613185
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.5996844283089691
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        }
+    ],
+    "nm5fb5d682": [
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.6674258599403081
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.6540436794880652
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.8332619845547937
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.827815675094985
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.8960097185974554
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        }
+    ],
+    "nm65dcf311": [
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.6856766865498968
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.6909140528535174
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.7709220986107933
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.753832890435547
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.957525186960207
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        }
+    ],
+    "nm6ec167c3": [
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.6671899188726649
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.6809247555612626
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.8262103309142658
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.799829168912321
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.8075255955290901
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        }
+    ],
+    "nm7e50d4a6": [
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.7018210761179814
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.67572164493612
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.8398931090709435
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.8038734828640256
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.4081644048689153
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        }
+    ],
+    "nma7768235": [
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.6507432847276683
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7204343595486675
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.7537195860772521
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7993156270911749
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.4777680016320221
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        }
+    ],
+    "nmc29bbaca": [
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.830752097342148
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.6842074031493847
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.8446597921283354
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.8151011937521482
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.6281953577532542
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        }
+    ],
+    "nmcb2c88c3": [
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.6837262660483081
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.6661349675025566
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.8123387110783218
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.7512714280283131
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.7003821234154137
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        }
+    ],
+    "nmd86e3c46": [
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.6980688075978096
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.6504902242797166
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kas_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kas_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.8332709322801326
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0.8479031650861909
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "kaf_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_kaf_ms",
+            "sectionlist": "basal",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "maxModDA",
+            "name": "modulationDA",
+            "param_name": "maxModDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0.7586401851034612
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "levelDA",
+            "name": "modulationDA",
+            "param_name": "levelDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        },
+        {
+            "dist_type": "uniform",
+            "mech": "can_ms",
+            "mech_param": "modDA",
+            "name": "modulationDA",
+            "param_name": "modDA_can_ms",
+            "sectionlist": "somatic",
+            "type": "range",
+            "value": 0
+        }
+    ]
+}

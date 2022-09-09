@@ -9,18 +9,30 @@ SLOW
 
 6/18/2003
 
-neuromodulation is added as functions:
+Neuromodulation is added as functions:
     
-    modulation = 1 + damod*(maxMod-1)
+    modulationDA = 1 + modDA*(maxModDA-1)*levelDA
 
 where:
     
-    damod  [0]: is a switch for turning modulation on or off {1/0}
-    maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
+    modDA  [0]: is a switch for turning modulation on or off {1/0}
+    maxModDA [1]: is the maximum modulation for this specific channel (read from the param file)
                     e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+    levelDA  [0]: is an additional parameter for scaling modulation. 
+                Can be used simulate non static modulation by gradually changing the value from 0 to 1 {0-1}
+									
+	  Further neuromodulators can be added by for example:
+          modulationDA = 1 + modDA*(maxModDA-1)
+	  modulationACh = 1 + modACh*(maxModACh-1)
+	  ....
 
+	  etc. for other neuromodulators
+	  
+	   
+								     
 [] == default values
 {} == ranges
+    
     
 ENDCOMMENT
 
@@ -36,7 +48,7 @@ NEURON {
 	GLOBAL g0
 	GLOBAL d0
 	GLOBAL aS1, aS2, bS
-    RANGE damod, maxMod
+        RANGE modDA, maxModDA, levelDA
 }
 
 UNITS {
@@ -68,8 +80,10 @@ PARAMETER {
 	Coff = 0.1	(1/ms)
 	Oon = .7	(1/ms)
 	Ooff = 0.01	(1/ms)
-    damod = 0
-    maxMod = 1
+
+        modDA = 0
+        maxModDA = 1
+        levelDA = 0
 }
 
 ASSIGNED {
@@ -107,7 +121,7 @@ STATE {
 
 BREAKPOINT {
 	SOLVE kin METHOD sparse
-	g = gbar*o*modulation()
+	g = gbar*o*modulationDA()
 	ina = g*(v-ena)
 	ct = c1 + c2 + c3 + c4 + c5
 	ift = i1 + i2 + i3 + i4 + i5 + i6
@@ -156,8 +170,8 @@ PROCEDURE rates(v(millivolt)) {
 	a = ((Coff/Con)/(Ooff/Oon))^(1/8)
 }
 
-FUNCTION modulation() {
+FUNCTION modulationDA() {
     : returns modulation factor
     
-    modulation = 1 + damod*(maxMod-1)
+    modulationDA = 1 + modDA*(maxModDA-1)*levelDA 
 }
