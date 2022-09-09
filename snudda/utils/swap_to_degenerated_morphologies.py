@@ -23,8 +23,6 @@ class SwapToDegeneratedMorphologies:
             of the neurons. The synapses that are on removed dendritic will also be removed.
             The section ID and section X is also updated to match the new degenerated morphologies.
 
-            TODO: Handle axon degeneration (or increase)
-
             Args:
                 original_network_file (str) : Path to input network-synapses.hdf5
                 new_network_file (str) : Path to output network-synapses.hdf5
@@ -112,27 +110,39 @@ class SwapToDegeneratedMorphologies:
         self.filter_synapses(filter_axon=self.filter_axon)
         self.filter_gap_junctions()
 
-    def synapse_iterator(self, data_type=None, load_synapses=True):
+    def synapse_iterator(self, data_type=None, load_synapses=True, synapses=None):
 
-        """ Each iteration will return the synapses between one pair of neurons. """
+        """ Each iteration will return the synapses between one pair of neurons.
 
-        data_loc = "network/synapses"
-        if data_type is not None and data_type == "gapJunctions":
-            data_loc = "network/gapJunctions"
-            num_synapses = self.old_hdf5["network/nGapJunctions"][()]
-        else:
-            num_synapses = self.old_hdf5["network/nSynapses"][()]
+            Normally loads the data from the hdf5 file, but if synapses is given,
+            then it will use the provided matrix instead. The synapses argument is used by
+            post_degeneration_pruning in swap_to_degenerated_morphology.
+
+        """
 
         start_idx = 0
         next_idx = 0
 
-        # Load synapses into memory
-        if load_synapses:
-            synapses = self.old_hdf5[data_loc][()].copy()
-        else:
-            synapses = self.old_hdf5[data_loc]
+        if synapses is None:
+            data_loc = "network/synapses"
+            if data_type is not None and data_type == "gapJunctions":
+                data_loc = "network/gapJunctions"
+                num_synapses = self.old_hdf5["network/nGapJunctions"][()]
+            else:
+                num_synapses = self.old_hdf5["network/nSynapses"][()]
 
-        assert num_synapses == synapses.shape[0]
+            # Load synapses into memory
+            if load_synapses:
+                synapses = self.old_hdf5[data_loc][()].copy()
+            else:
+                synapses = self.old_hdf5[data_loc]
+
+            assert num_synapses == synapses.shape[0]
+
+        else:
+            assert data_type is None, (f"If synapses is given, the data will not be loaded from the hdf5 file, "
+                                       f"leave data_type as None")
+            num_synapses = synapses.shape[0]
 
         if num_synapses > 0:
             last_pre = synapses[0, 0]

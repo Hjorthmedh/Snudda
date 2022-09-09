@@ -5,6 +5,7 @@ import os
 # Default is the Snudda/snudda/data folder, but the user can set the SNUDDA_DATA environment variable
 #
 
+# TODO: Add SNUDDA_PATH to network_config file
 
 def snudda_parse_path(path, snudda_data=None):
     """ Parses a data path, replacing $DATA with the path to SNUDDA_DATA set by environment variable.
