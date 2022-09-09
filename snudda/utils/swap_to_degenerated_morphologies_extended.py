@@ -100,7 +100,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             pre_neuron_synapses[nid] = []
             post_neuron_synapses[nid] = []
 
-        synapse_matrix = self.updated_network_loader.data["synapses"].copy()
+        synapse_matrix = self.updated_network_loader.data["synapses"][()].copy()
 
         keep_idx = np.zeros((synapse_matrix.shape[0],), dtype=bool)
 
