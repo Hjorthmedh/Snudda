@@ -242,6 +242,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             n_syn = synapse_set.shape[0]
 
             if mu2 is not None:
+                # TODO: We need to compensate for the old p_mu, i.e. p_real = p_mu_new / p_mu_old
                 p_mu = 1.0 / (1.0 + np.exp(-8.0 / mu2 * (n_syn - mu2)))
             else:
                 p_mu = 1
