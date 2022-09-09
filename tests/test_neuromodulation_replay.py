@@ -81,8 +81,6 @@ class TestNeuromodulationReplay(unittest.TestCase):
         args.path = os.path.join(os.path.dirname(__file__), "networks", "test_network_neuromodulation")
         args.output_file = os.path.join(os.path.dirname(__file__), "simulation", "test.hdf5")
         args.time = 2.0
-        args.nrnivmodl = os.path.join(os.path.dirname(__file__), os.path.pardir,
-                                    "snudda", "data", "neurons", "mechanisms")
         args.network_file = None
 
         args.disable_gj = False
