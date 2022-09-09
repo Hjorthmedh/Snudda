@@ -177,14 +177,16 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         # Resort the new synapse matrix
         sorted_synapses = self.sort_synapses(new_synapses[:syn_ctr, :])
 
+        config = json.loads(self.updated_network_loader.data["config"], object_pairs_hook=OrderedDict)
         pruned_synapses = self.post_degeneration_pruning(synapses=sorted_synapses,
-                                                         network_config=self.updated_network_loader.data["config"],
+                                                         network_config=config,
                                                          rng=self.rng)
+        sorted_synapses = None
 
-        self.new_hdf5["network"].create_dataset("synapses", data=pruned_synapses                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        , compression="lzf")
+        self.new_hdf5["network"].create_dataset("synapses", data=pruned_synapses, compression="lzf")
 
         num_synapses = np.zeros((1,), dtype=np.uint64)
-        self.new_hdf5["network"].create_dataset("nSynapses", data=syn_ctr, dtype=np.uint64)
+        self.new_hdf5["network"].create_dataset("nSynapses", data=pruned_synapses.shape[0], dtype=np.uint64)
 
         print(f"Keeping {self.new_hdf5['network/nSynapses'][()]} "
               f"out of {self.old_hdf5['network/nSynapses'][()]} synapses "
@@ -194,44 +196,52 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
         """ Args:
             synapses: Synapse matrix to prune
-            network_config: The config file that was used to generate the network, can be the path to file,
-                            or a dictionary with the data loaded
+            network_config: The config as a dictionary
+            rng: Numpy random generator
         """
 
-        if type(network_config) not in (dict, OrderedDict):
-            with open(network_config, "r") as f:
-                config = json.load(f)
-        else:
-            config = network_config
-
         # This prunes the network synapses after the generation/growth phase
+        print("Running post degeneration pruning of synapses")
 
         keep_synapse_flag = np.ones((synapses.shape[0]), dtype=bool)
 
         type_lookup = self.updated_network_loader.get_neuron_types()
         mu2_lookup = dict()
 
-        for conf_key, conf_info in config["Connections"].items():
+        for conf_key, conf_info in network_config["Connectivity"].items():
             pre_type, post_type = conf_key.split(",")
 
             if pre_type not in mu2_lookup:
                 mu2_lookup[pre_type] = dict()
 
-            # OBS, this does not take into account population units. Neurons belonging to different population unit
-            # can have a different mu2, but we have never used that option.
-            mu2_lookup[pre_type][post_type] = conf_info["mu2"]
+            if post_type not in mu2_lookup[pre_type]:
+                mu2_lookup[pre_type][post_type] = dict()
+
+            for con_type, con_info in conf_info.items():
+
+                #import pdb
+                #pdb.set_trace()
+
+                channel_model_id = con_info["channelModelID"]
+
+                # OBS, this does not take into account population units. Neurons belonging to different population unit
+                # can have a different mu2, but we have never used that option.
+                mu2_lookup[pre_type][post_type][channel_model_id] = con_info["pruning"]["mu2"]
 
         synapse_ctr = 0
 
         for synapse_set in self.synapse_iterator(synapses=synapses):
 
             pre_id = synapse_set[0, 0]
-            post_id = synapse_set[1, 0]
+            post_id = synapse_set[0, 1]
+            channel_model_id = synapse_set[0, 6]
 
-            assert (synapse_set[0, :] == pre_id).all()
-            assert (synapse_set[1, :] == post_id).all()
+            assert (synapse_set[:, 0] == pre_id).all()
+            assert (synapse_set[:, 1] == post_id).all()
+            assert (synapse_set[:, 6] == channel_model_id).all(), \
+                f"Code is written with assumption that all synapses between a pair of neurons are of the same type"
 
-            mu2 = mu2_lookup[type_lookup[pre_id]][type_lookup[post_id]]
+            mu2 = mu2_lookup[type_lookup[pre_id]][type_lookup[post_id]][channel_model_id]
             n_syn = synapse_set.shape[0]
 
             if mu2 is not None:
@@ -243,9 +253,9 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             synapse_ctr += n_syn
 
         print(f"Post pruning. Keeping {np.sum(keep_synapse_flag)}/{len(keep_synapse_flag)} "
-              f"({np.sum(keep_synapse_flag)/len(keep_synapse_flag)}%)")
+              f"({np.sum(keep_synapse_flag)/len(keep_synapse_flag):.3f}%)")
 
-        return synapses[:, keep_synapse_flag]
+        return synapses[keep_synapse_flag, :]
 
 
     # TODO: Profile the code to see what the bottleneck is...

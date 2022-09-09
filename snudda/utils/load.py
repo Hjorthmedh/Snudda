@@ -174,11 +174,11 @@ class SnuddaLoad(object):
 
         # We need to keep f open if load_synapses = False, using "with" would close file
 
-        if "config" in f:
+        if "config" in f["meta"]:
             if self.verbose:
                 print("Loading config data from HDF5")
-            data["config"] = SnuddaLoad.to_str(f["config"][()])
-            self.config = json.loads(f["config"][()], object_pairs_hook=OrderedDict)
+            data["config"] = SnuddaLoad.to_str(f["meta/config"][()])
+            self.config = json.loads(f["meta/config"][()], object_pairs_hook=OrderedDict)
 
         # Added so this code can also load the position file, which
         # does not have the network group yet
