@@ -97,6 +97,9 @@ class TestNeuromodulationReplay(unittest.TestCase):
         args.record_volt = True
         args.verbose = False
 
+        import shutil
+        shutil.rmtree("mechanisms")
+
         print("Running nrnivmodl:")
         mech_dir = os.path.join(os.path.dirname(__file__), os.path.pardir,
                                 "snudda", "data", "neurons", "mechanisms")
