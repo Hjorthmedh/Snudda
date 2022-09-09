@@ -219,9 +219,6 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
             for con_type, con_info in conf_info.items():
 
-                #import pdb
-                #pdb.set_trace()
-
                 channel_model_id = con_info["channelModelID"]
 
                 # OBS, this does not take into account population units. Neurons belonging to different population unit
@@ -249,11 +246,14 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             else:
                 p_mu = 1
 
-            keep_synapse_flag[synapse_ctr:synapse_ctr + n_syn] = p_mu >= rng.random(n_syn)
+            keep_synapse_flag[synapse_ctr:synapse_ctr + n_syn] = p_mu >= rng.random()
             synapse_ctr += n_syn
 
+            #import pdb
+            #pdb.set_trace()
+
         print(f"Post pruning. Keeping {np.sum(keep_synapse_flag)}/{len(keep_synapse_flag)} "
-              f"({np.sum(keep_synapse_flag)/len(keep_synapse_flag):.3f}%)")
+              f"({np.sum(keep_synapse_flag)/len(keep_synapse_flag)*100:.3f}%)")
 
         return synapses[keep_synapse_flag, :]
 
