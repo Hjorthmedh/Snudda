@@ -201,7 +201,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         """
 
         # This prunes the network synapses after the generation/growth phase
-        print("Running post degeneration pruning of synapses")
+        print("Running post degeneration pruning of synapses", flush=True)
 
         keep_synapse_flag = np.ones((synapses.shape[0]), dtype=bool)
 
