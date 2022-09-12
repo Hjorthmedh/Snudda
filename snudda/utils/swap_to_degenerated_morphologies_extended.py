@@ -264,27 +264,30 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             mu2 = mu2_lookup[type_lookup[pre_id]][type_lookup[post_id]][channel_model_id]
             n_syn = synapse_set.shape[0]
 
-            if old_post_id * n_neurons + old_pre_id == post_id * n_neurons + pre_id:
-                old_n_syn = old_synapse_set.shape[0]
-                old_p_mu = 1.0 / (1.0 + np.exp(-8.0 / mu2 * (old_n_syn - mu2)))
-
-                assert old_channel_mod_id is None or old_channel_mod_id == channel_model_id, \
-                    (f"post_degeneration_pruning: Internal error, we have assumed only one type of synapses between "
-                     f"pairs of neurons in this degenerated code.\n"
-                     f"channel_mod_id = {channel_model_id}, old_channel_mod_id = {old_channel_mod_id}\n"
-                     f"synapse_set = {synapse_set}\n"
-                     f"old_synapse_set = {old_synapse_set}")
-
-            else:
-                old_p_mu = 1
-
-            if mu2 is not None:
-                # TODO: We need to compensate for the old p_mu, i.e. p_real = p_mu_new / p_mu_old
-                p_mu = 1.0 / (1.0 + np.exp(-8.0 / mu2 * (n_syn - mu2)))
-                print(f"p_mu = {p_mu} ({p_mu / old_p_mu}) -- {old_p_mu}")
-                p_mu /= old_p_mu  # Correction factor for previous mu2 pruning
-            else:
+            if mu2 is None:
                 p_mu = 1
+
+            else:
+
+                if old_post_id * n_neurons + old_pre_id == post_id * n_neurons + pre_id:
+                    old_n_syn = old_synapse_set.shape[0]
+
+                    old_p_mu = 1.0 / (1.0 + np.exp(-8.0 / mu2 * (old_n_syn - mu2)))
+
+                    assert old_channel_mod_id is None or old_channel_mod_id == channel_model_id, \
+                        (f"post_degeneration_pruning: Internal error, we have assumed only one type of synapses between "
+                         f"pairs of neurons in this degenerated code.\n"
+                         f"channel_mod_id = {channel_model_id}, old_channel_mod_id = {old_channel_mod_id}\n"
+                         f"synapse_set = {synapse_set}\n"
+                         f"old_synapse_set = {old_synapse_set}")
+
+                else:
+                    old_p_mu = 1
+
+                # We need to compensate for the old p_mu, i.e. p_real = p_mu_new / p_mu_old
+                p_mu = 1.0 / (1.0 + np.exp(-8.0 / mu2 * (n_syn - mu2)))
+                # print(f"p_mu = {p_mu} ({p_mu / old_p_mu}) -- {old_p_mu}")
+                p_mu /= old_p_mu  # Correction factor for previous mu2 pruning
 
             keep_synapse_flag[synapse_ctr:synapse_ctr + n_syn] = p_mu >= rng.random()
             synapse_ctr += n_syn
