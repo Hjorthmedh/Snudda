@@ -281,6 +281,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             if mu2 is not None:
                 # TODO: We need to compensate for the old p_mu, i.e. p_real = p_mu_new / p_mu_old
                 p_mu = 1.0 / (1.0 + np.exp(-8.0 / mu2 * (n_syn - mu2)))
+                print(f"p_mu = {p_mu} ({p_mu / old_p_mu}) -- {old_p_mu}")
                 p_mu /= old_p_mu  # Correction factor for previous mu2 pruning
             else:
                 p_mu = 1
