@@ -184,7 +184,7 @@ class SnuddaInit(object):
                               z_len=slice_depth,
                               description=struct_name + " slice mesh")
 
-        if not snudda_path_exists(struct_mesh):
+        if not snudda_path_exists(struct_mesh, self.snudda_data):
             print(f"Warning struct mesh {struct_mesh} is missing!")
 
         assert struct_name not in self.network_data["Volume"], \
@@ -365,7 +365,7 @@ class SnuddaInit(object):
             f"replace_connectivity: One of connection_file and connection_dict should be given"
 
         if connection_file:
-            connection_file = snudda_parse_path(connection_file)
+            connection_file = snudda_parse_path(connection_file, self.snudda_data)
             print(f"Reading connectivity from {connection_file}")
             assert os.path.isfile(connection_file), f"Connection JSON file {connection_file} does not exist."
 
@@ -453,34 +453,34 @@ class SnuddaInit(object):
                 # print(str(axonDensity[3]) + " " + str(name) \
                 #      + " axon points to place")
 
-        print(f"Adding neurons: {name} from dir {snudda_parse_path(neuron_dir)}")
+        print(f"Adding neurons: {name} from dir {snudda_parse_path(neuron_dir, self.snudda_data)}")
         # TODO: We should force users to use same name as the directory name
         # ie, fs/FS_0 directory should be named FS_0
 
         # Find which neurons are available in neuron_dir
         # OBS, we need to sort the list of neuron directories, so every computer gets the same order
-        dir_list = sorted(glob.glob(os.path.join(snudda_parse_path(neuron_dir), "*")))
+        dir_list = sorted(glob.glob(os.path.join(snudda_parse_path(neuron_dir, self.snudda_data), "*")))
         neuron_file_list = []
 
-        assert len(dir_list) > 0, f"Neuron dir {snudda_parse_path(neuron_dir)} is empty!"
+        assert len(dir_list) > 0, f"Neuron dir {snudda_parse_path(neuron_dir, self.snudda_data)} is empty!"
 
         for fd in dir_list:
 
-            d = snudda_simplify_path(fd)
+            d = snudda_simplify_path(fd, self.snudda_data)
 
-            if snudda_isdir(d):
+            if snudda_isdir(d, self.snudda_data):
                 # We want to maintain the $SNUDDA_DATA keyword in the path so that the user can move
                 # the config file between systems and still run it.
                 par_file = os.path.join(d, "parameters.json")
                 mech_file = os.path.join(d, "mechanisms.json")
                 modulation_file = os.path.join(d, "modulation.json")
-                if not snudda_path_exists(modulation_file):
+                if not snudda_path_exists(modulation_file, self.snudda_data):
                     modulation_file = None
 
-                sd = snudda_parse_path(d)
+                sd = snudda_parse_path(d, self.snudda_data)
                 swc_file = self.get_morphologies(sd)
                 hoc_file = glob.glob(os.path.join(sd, "*hoc"))
-                hoc_file = [snudda_simplify_path(hf) for hf in hoc_file]
+                hoc_file = [snudda_simplify_path(hf, self.snudda_data) for hf in hoc_file]
 
                 assert len(hoc_file) <= 1, f"Morph dir {sd} contains more than one hoc file"
 
@@ -517,14 +517,14 @@ class SnuddaInit(object):
             unique_name = name + "_" + str(ctr)
             cell_data = dict([])
 
-            if not snudda_isfile(par_file) and model_type != "virtual":
-                print(f"Parameter file not found: {snudda_parse_path(par_file)}")
+            if not snudda_isfile(par_file, self.snudda_data) and model_type != "virtual":
+                print(f"Parameter file not found: {snudda_parse_path(par_file, self.snudda_data)}")
 
-            if not snudda_isfile(mech_file) and model_type != "virtual":
-                print(f"Mechanism file not found: {snudda_parse_path(mech_file)}")
+            if not snudda_isfile(mech_file, self.snudda_data) and model_type != "virtual":
+                print(f"Mechanism file not found: {snudda_parse_path(mech_file, self.snudda_data)}")
 
-            if hoc_file is not None and not snudda_isfile(hoc_file):
-                print(f"Hoc file not found: {snudda_parse_path(hoc_file)}")
+            if hoc_file is not None and not snudda_isfile(hoc_file, self.snudda_data):
+                print(f"Hoc file not found: {snudda_parse_path(hoc_file, self.snudda_data)}")
 
             cell_data["morphology"] = swc_file
             cell_data["parameters"] = par_file
@@ -546,8 +546,7 @@ class SnuddaInit(object):
 
             self.network_data["Neurons"][unique_name] = cell_data
 
-    @staticmethod
-    def get_morphologies(neuron_dir):
+    def get_morphologies(self, neuron_dir):
         """
         Returns SWC morphology(s) path or file, depending on 'morphology' if specified in parameters.json or not.
 
@@ -587,7 +586,7 @@ class SnuddaInit(object):
         if has_meta:
 
             morph_dir = os.path.join(neuron_dir, "morphology")
-            morph_dir_full = snudda_parse_path(morph_dir)
+            morph_dir_full = snudda_parse_path(morph_dir, self.snudda_data)
             assert os.path.exists(morph_dir_full), \
                 f"Morphology directory missing: {morph_dir_full}"
 
@@ -615,15 +614,15 @@ class SnuddaInit(object):
             assert len(missing_morph) == 0, \
                 f"The following morphologies in {meta_file} are missing: {', '.join(missing_morph)}"
 
-            return snudda_simplify_path(morph_dir)
+            return snudda_simplify_path(morph_dir, self.snudda_data)
 
         else:
             swc_file = glob.glob(os.path.join(snudda_parse_path(neuron_dir), "*swc"))
             assert len(swc_file) == 1, \
                 (f"If no morphology is given in parameter.json then "
-                 f"{snudda_parse_path(neuron_dir)} should contain exactly one swc file")
+                 f"{snudda_parse_path(neuron_dir, self.snudda_data)} should contain exactly one swc file")
 
-            swc_file = snudda_simplify_path(swc_file[0])
+            swc_file = snudda_simplify_path(swc_file[0], self.snudda_data)
             return swc_file
 
     def add_neuron_density(self, volume_id, neuron_type, density_func=None, density_file=None):
@@ -951,7 +950,7 @@ class SnuddaInit(object):
         if neurons_dir is None:
             neurons_dir = os.path.join("$SNUDDA_DATA", "neurons")
 
-        print(f"Neurons for striatum read from {snudda_parse_path(neurons_dir)}/striatum")
+        print(f"Neurons for striatum read from {snudda_parse_path(neurons_dir, self.snudda_data)}/striatum")
 
         FS_dir = os.path.join(neurons_dir, "striatum", "fs")
         dSPN_dir = os.path.join(neurons_dir, "striatum", "dspn")

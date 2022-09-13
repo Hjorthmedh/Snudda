@@ -24,6 +24,7 @@ import h5py
 import numexpr
 import numpy as np
 
+from snudda.utils.snudda_path import get_snudda_data
 from snudda.input.time_varying_input import TimeVaryingInput
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.load import SnuddaLoad
@@ -41,6 +42,7 @@ class SnuddaInput(object):
 
     def __init__(self,
                  network_path=None,
+                 snudda_data=None,
                  input_config_file=None,
                  spike_data_filename=None,
                  hdf5_network_file=None,
@@ -59,6 +61,7 @@ class SnuddaInput(object):
 
         Args:
             network_path (str): Path to network directory
+            snudda_data (str): Path to Snudda Data
             input_config_file (str): Path to input config file, default input.json in network_path
             spike_data_filename (str): Path to output file, default input-spikes.hdf5
             hdf5_network_file (str): Path to network file, default network-synapses.hdf5
@@ -88,6 +91,9 @@ class SnuddaInput(object):
             self.network_path = os.path.dirname(input_config_file)
         else:
             self.network_path = None
+
+        self.snudda_data = get_snudda_data(snudda_data=snudda_data,
+                                           network_path=self.network_path)
 
         if input_config_file:
             self.input_config_file = input_config_file
@@ -358,14 +364,15 @@ class SnuddaInput(object):
 
         self.write_log(f"Loading input configuration from {self.input_config_file}")
 
-        with open(snudda_parse_path(self.input_config_file), 'rt') as f:
+        with open(snudda_parse_path(self.input_config_file, self.snudda_data), 'rt') as f:
             self.input_info = json.load(f, object_pairs_hook=OrderedDict)
 
         for neuron_type in self.input_info:
             for input_type in self.input_info[neuron_type]:
                 if "parameterFile" in self.input_info[neuron_type][input_type]:
                     # Allow user to use $DATA to refer to snudda data directory
-                    par_file = snudda_parse_path(self.input_info[neuron_type][input_type]["parameterFile"])
+                    par_file = snudda_parse_path(self.input_info[neuron_type][input_type]["parameterFile"],
+                                                 self.snudda_data)
 
                     with open(par_file, 'r') as f:
                         par_data_dict = json.load(f, object_pairs_hook=OrderedDict)
@@ -598,7 +605,7 @@ class SnuddaInput(object):
                 self.neuron_input[neuron_id][input_type] = dict([])
 
                 if input_inf["generator"] == "csv":
-                    csv_file = snudda_parse_path(input_inf["csvFile"] % neuron_id)
+                    csv_file = snudda_parse_path(input_inf["csvFile"] % neuron_id, self.snudda_data)
 
                     self.neuron_input[neuron_id][input_type]["spikes"] \
                         = np.genfromtxt(csv_file, delimiter=',')
@@ -1553,6 +1560,7 @@ class SnuddaInput(object):
         else:
             self.write_log(f"Creating prototype {neuron_name}")
             morphology_prototype = NeuronPrototype(neuron_name=neuron_name,
+                                                   snudda_data=self.snudda_data,
                                                    morphology_path=morphology_path,
                                                    parameter_path=parameters_path,
                                                    modulation_path=modulation_path,

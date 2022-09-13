@@ -255,6 +255,7 @@ class SwapToDegeneratedMorphologies:
             pos = None
             rot = None
 
+        # TODO: Check if we need to pass snudda_data here!!!
         neuron_prototype = NeuronPrototype(neuron_path=neuron_path, neuron_name=neuron_name)
         neuron = neuron_prototype.clone(parameter_key=parameter_key, morphology_key=morphology_key,
                                         position=pos, rotation=rot)

@@ -438,10 +438,11 @@ class Snudda(object):
     ############################################################################
 
     @staticmethod
-    def compile_mechanisms(mech_dir=None):
+    def compile_mechanisms(mech_dir=None, snudda_data=None):
 
         if not mech_dir:
-            mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons", "mechanisms")))
+            mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons", "mechanisms"),
+                                                                      snudda_data=snudda_data))
 
         if not os.path.exists("x86_64") and not os.path.exists("nrnmech.dll"):
 
@@ -524,7 +525,12 @@ class Snudda(object):
             mech_dir = args.mech_dir
         else:
             # Take into account which SNUDDA_DATA the user wants to use
-            mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons", "mechanisms")))
+            from snudda.utils.snudda_path import get_snudda_data
+            snudda_data = get_snudda_data(snudda_data=args.snudda_data,
+                                          network_path=self.network_path)
+
+            mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons", "mechanisms"),
+                                                                      snudda_data))
 
             if args.neuromodulation is not None:
                 # read neuromod file and determine if it is replay or adaptive, then if and import the correct one
@@ -533,7 +539,8 @@ class Snudda(object):
 
                 if "adaptive" in neuromod_dict["type"]:
                     mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons",
-                                                                                           "mechanisms_ptr")))
+                                                                                           "mechanisms_ptr"),
+                                                                              snudda_data=snudda_data))
         self.compile_mechanisms(mech_dir=mech_dir)
 
         save_dir = os.path.join(os.path.dirname(network_file), "simulation")

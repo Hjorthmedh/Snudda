@@ -109,8 +109,10 @@ def snudda_cli():
                                  dest="input_file", default=None)
     simulate_parser.add_argument("--outputFile", help="Output hdf5 file (from simulation)",
                                  dest="output_file", default=None)
-
     simulate_parser.add_argument("--time", type=float, default=2.5, help="Duration of simulation in seconds")
+
+    simulate_parser.add_argument("--snudda_data", "--SnuddaData", type=str, default=None, dest="snudda_data",
+                                 help="Path to SNUDDA_DATA")
 
     simulate_parser.add_argument("--noVolt", "--novolt", dest="record_volt", action="store_false",
                                  help="Exclude voltage data, to save time and space.")

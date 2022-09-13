@@ -46,9 +46,11 @@ class NeuronMorphology:
                  pickle_version=-1,
                  logfile=None,
                  virtual_neuron=False,
-                 axon_stump_id_flag=False):
+                 axon_stump_id_flag=False,
+                 snudda_data=None):
 
         self.cache_version = 0.99
+        self.snudda_data = snudda_data
 
         self.position = np.array(position)
 
@@ -412,7 +414,7 @@ class NeuronMorphology:
         """ Saves cache_file with morphology """
 
         if cache_file is None:
-            cache_file = snudda_parse_path(self.cache_filename)
+            cache_file = snudda_parse_path(self.cache_filename, self.snudda_data)
 
         if cache_file is None:
             self.write_log("Unable to save neuron cache file, no cache_file name specified.")
@@ -458,7 +460,7 @@ class NeuronMorphology:
         """ Checks if cache_file exists """
 
         if cache_file is None:
-            cache_file = snudda_parse_path(self.cache_filename)
+            cache_file = snudda_parse_path(self.cache_filename, self.snudda_data)
 
         cache_flag = False
 
@@ -466,7 +468,7 @@ class NeuronMorphology:
 
         if os.path.isfile(cache_file):
 
-            swc_time = os.path.getmtime(snudda_parse_path(self.swc_filename))
+            swc_time = os.path.getmtime(snudda_parse_path(self.swc_filename, self.snudda_data))
             cache_time = os.path.getmtime(cache_file)
 
             if cache_time > swc_time:
@@ -487,7 +489,7 @@ class NeuronMorphology:
         """ Loads morphology from cache_file. """
 
         if cache_file is None:
-            cache_file = snudda_parse_path(self.cache_filename)
+            cache_file = snudda_parse_path(self.cache_filename, self.snudda_data)
 
         assert cache_file is not None, "Unable to open cache file, cache file name not set."
 
@@ -551,7 +553,7 @@ class NeuronMorphology:
         """ Loads morphology from swc_file """
 
         if not swc_file:
-            swc_file = snudda_parse_path(self.swc_filename)
+            swc_file = snudda_parse_path(self.swc_filename, self.snudda_data)
 
         with open(swc_file, 'r') as f:
             lines = f.readlines()

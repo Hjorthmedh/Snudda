@@ -9,6 +9,7 @@ import h5py
 import numpy as np
 from scipy.interpolate import griddata
 
+from snudda.utils.snudda_path import get_snudda_data
 from snudda.detect.detect import SnuddaDetect
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.load import SnuddaLoad
@@ -19,7 +20,7 @@ class SnuddaProject(object):
 
     # TODO: Add support for log files!!
     # TODO: Add support for parallel execution
-    def __init__(self, network_path, rng=None, random_seed=None, h5libver=None):
+    def __init__(self, network_path, snudda_data=None, rng=None, random_seed=None, h5libver=None):
 
         """
         Constructor.
@@ -32,6 +33,9 @@ class SnuddaProject(object):
         """
 
         self.network_path = network_path
+        self.snudda_data = get_snudda_data(snudda_data=snudda_data,
+                                           network_path=self.network_path)
+
         self.network_info = None
         self.work_history_file = os.path.join(self.network_path, "log", "network-detect-worklog.hdf5")
         self.output_file_name = os.path.join(self.network_path, "network-projection-synapses.hdf5")
@@ -106,6 +110,7 @@ class SnuddaProject(object):
             # TODO: Need to update to use NeuronPrototype !!!
             self.prototype_neurons[name] = NeuronPrototype(neuron_name=name,
                                                            neuron_path=None,
+                                                           snudda_data=self.snudda_data,
                                                            morphology_path=morph,
                                                            parameter_path=param,
                                                            modulation_path=modulation,
