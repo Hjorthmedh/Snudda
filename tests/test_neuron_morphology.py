@@ -10,6 +10,9 @@ class NeuronMorphologyTestCase(unittest.TestCase):
 
     def setUp(self):
 
+        if os.path.dirname(__file__):
+            os.chdir(os.path.dirname(__file__))
+
         #swc_file = os.path.join(os.path.dirname(__file__), "validation", "ballanddoublestick", "double.swc")
 
         swc_file = os.path.join(os.path.dirname(__file__), "validation", "striatum", "fs",

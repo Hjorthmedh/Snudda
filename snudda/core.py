@@ -50,7 +50,7 @@ import json
 import numpy as np
 
 from snudda.utils import snudda_path
-from snudda.utils.snudda_path import snudda_isfile
+from snudda.utils.snudda_path import snudda_isfile, get_snudda_data
 
 
 def get_data_file(*dirs):
@@ -128,6 +128,7 @@ class Snudda(object):
         config_file = os.path.join(self.network_path, "network-config.json")
         SnuddaInit(struct_def=struct_def,
                    neurons_dir=args.neurons_dir,
+                   snudda_data=args.snudda_data,
                    config_file=config_file,
                    random_seed=random_seed,
                    connection_override_file=args.connectionFile)
@@ -356,7 +357,8 @@ class Snudda(object):
         else:
             input_config = os.path.join(self.network_path, "input.json")
 
-        if not snudda_isfile(input_config):
+        snudda_data = get_snudda_data(network_path=self.network_path)
+        if not snudda_isfile(input_config, snudda_data=snudda_data):
             print(f"Missing input config file: {input_config}")
             return
 
@@ -437,10 +439,11 @@ class Snudda(object):
     ############################################################################
 
     @staticmethod
-    def compile_mechanisms(mech_dir=None):
+    def compile_mechanisms(mech_dir=None, snudda_data=None):
 
         if not mech_dir:
-            mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons", "mechanisms")))
+            mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons", "mechanisms"),
+                                                                      snudda_data=snudda_data))
 
         if not os.path.exists("x86_64") and not os.path.exists("nrnmech.dll"):
 
@@ -461,6 +464,8 @@ class Snudda(object):
                 h.nrn_load_dll("nrnmech.dll")
             elif os.path.exists("x86_64"):
                 h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
+            elif os.path.exists("aarch64"):
+                h.nrn_load_dll("test-project/aarch64/.libs/libnrnmech.so")
             else:
                 print(f"Could not find compiled mechanisms. Compile using 'nrnivmodl {mech_dir}' "
                       f"and retry simulation.")
@@ -521,7 +526,12 @@ class Snudda(object):
             mech_dir = args.mech_dir
         else:
             # Take into account which SNUDDA_DATA the user wants to use
-            mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons", "mechanisms")))
+            from snudda.utils.snudda_path import get_snudda_data
+            snudda_data = get_snudda_data(snudda_data=args.snudda_data,
+                                          network_path=self.network_path)
+
+            mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons", "mechanisms"),
+                                                                      snudda_data))
 
             if args.neuromodulation is not None:
                 # read neuromod file and determine if it is replay or adaptive, then if and import the correct one
@@ -530,7 +540,8 @@ class Snudda(object):
 
                 if "adaptive" in neuromod_dict["type"]:
                     mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons",
-                                                                                           "mechanisms_ptr")))
+                                                                                           "mechanisms_ptr"),
+                                                                              snudda_data=snudda_data))
         self.compile_mechanisms(mech_dir=mech_dir)
 
         save_dir = os.path.join(os.path.dirname(network_file), "simulation")

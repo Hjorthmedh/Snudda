@@ -134,6 +134,15 @@ class TestCLI(unittest.TestCase):
                     tstr = traceback.format_exc()
                     print(tstr)
 
+            if os.path.exists("aarch64/.libs/libnrnmech.so"):
+                print("Manually loading libraries")
+                try:
+                    h.nrn_load_dll("aarch64/.libs/libnrnmech.so")
+                except:
+                    import traceback
+                    tstr = traceback.format_exc()
+                    print(tstr)
+
             print("Time to run simulation...")
             run_cli_command("simulate tiny_parallel --time 0.1")
 
@@ -176,3 +185,9 @@ class TestCLI(unittest.TestCase):
         copyfile(input_file, "tiny_serial/input.json")
         with self.subTest(stage="input"):
             run_cli_command("input tiny_serial --time 1.0 --inputFile tiny_serial/input-spikes.hdf5")
+
+    def tearDown(self) -> None:
+
+        # Exit the test directory
+        if os.path.dirname(__file__):
+            os.chdir(os.path.dirname(__file__))

@@ -23,8 +23,6 @@ class SwapToDegeneratedMorphologies:
             of the neurons. The synapses that are on removed dendritic will also be removed.
             The section ID and section X is also updated to match the new degenerated morphologies.
 
-            TODO: Handle axon degeneration (or increase)
-
             Args:
                 original_network_file (str) : Path to input network-synapses.hdf5
                 new_network_file (str) : Path to output network-synapses.hdf5
@@ -60,12 +58,17 @@ class SwapToDegeneratedMorphologies:
         self.filter_axon = filter_axon
 
     def close(self):
-        self.new_hdf5.close()
-        self.old_hdf5.close()
+
+        if self.new_hdf5:
+            self.new_hdf5.close()
+
+        if self.old_hdf5:
+            self.old_hdf5.close()
 
     def write_new_network_file(self):
 
         if not os.path.isdir(os.path.dirname(self.new_network_file)):
+            print(f"Creating directory {os.path.dirname(self.new_network_file)}")
             os.mkdir(os.path.dirname(self.new_network_file))
 
         print(f"Writing new network to {self.new_network_file}")
@@ -73,6 +76,22 @@ class SwapToDegeneratedMorphologies:
         self.old_hdf5.copy(source=self.old_hdf5["meta"], dest=self.new_hdf5)
         network_group = self.new_hdf5.create_group("network")
         self.old_hdf5.copy(source=self.old_hdf5["network/neurons"], dest=self.new_hdf5["network"])
+
+        if len(self.new_snudda_data_dir) > len(self.original_snudda_data_dir):
+            n_elements = self.new_hdf5[f"network/neurons/morphology"].size
+            old_size = int(np.ceil(self.new_hdf5[f"network/neurons/morphology"].nbytes / n_elements))
+            new_size = old_size + len(self.new_snudda_data_dir) - len(self.original_snudda_data_dir)
+
+            del self.new_hdf5[f"network/neurons/morphology"]
+            self.new_hdf5["network/neurons"].create_dataset("morphology",
+                                                            (n_elements,), f"S{new_size}", compression="gzip")
+
+            n_elements = self.new_hdf5[f"network/neurons/neuronPath"].size
+            old_size = int(np.ceil(self.new_hdf5[f"network/neurons/neuronPath"].nbytes / n_elements))
+            new_size = old_size + 100
+            del self.new_hdf5[f"network/neurons/neuronPath"]
+            self.new_hdf5["network/neurons"].create_dataset("neuronPath",
+                                                            (n_elements,), f"S{new_size}", compression="gzip")
 
         # Update parameter keys and morphology keys
         for idx, neuron_id in enumerate(self.new_hdf5["network/neurons/neuronID"]):
@@ -84,34 +103,46 @@ class SwapToDegeneratedMorphologies:
             self.new_hdf5[f"network/neurons/parameterID"][idx] = param_id
             self.new_hdf5[f"network/neurons/morphologyID"][idx] = morph_id
 
-            old_morph = SnuddaLoad.to_str(self.new_hdf5[f"network/neurons/morphology"][idx])
+            old_morph = SnuddaLoad.to_str(self.old_hdf5[f"network/neurons/morphology"][idx])
             new_morph = old_morph.replace(self.original_snudda_data_dir, self.new_snudda_data_dir)
             self.new_hdf5[f"network/neurons/morphology"][idx] = new_morph
 
         self.filter_synapses(filter_axon=self.filter_axon)
         self.filter_gap_junctions()
 
-    def synapse_iterator(self, data_type=None, load_synapses=True):
+    def synapse_iterator(self, data_type=None, load_synapses=True, synapses=None):
 
-        """ Each iteration will return the synapses between one pair of neurons. """
+        """ Each iteration will return the synapses between one pair of neurons.
 
-        data_loc = "network/synapses"
-        if data_type is not None and data_type == "gapJunctions":
-            data_loc = "network/gapJunctions"
-            num_synapses = self.old_hdf5["network/nGapJunctions"][()]
-        else:
-            num_synapses = self.old_hdf5["network/nSynapses"][()]
+            Normally loads the data from the hdf5 file, but if synapses is given,
+            then it will use the provided matrix instead. The synapses argument is used by
+            post_degeneration_pruning in swap_to_degenerated_morphology.
+
+        """
 
         start_idx = 0
         next_idx = 0
 
-        # Load synapses into memory
-        if load_synapses:
-            synapses = self.old_hdf5[data_loc][()].copy()
-        else:
-            synapses = self.old_hdf5[data_loc]
+        if synapses is None:
+            data_loc = "network/synapses"
+            if data_type is not None and data_type == "gapJunctions":
+                data_loc = "network/gapJunctions"
+                num_synapses = self.old_hdf5["network/nGapJunctions"][()]
+            else:
+                num_synapses = self.old_hdf5["network/nSynapses"][()]
 
-        assert num_synapses == synapses.shape[0]
+            # Load synapses into memory
+            if load_synapses:
+                synapses = self.old_hdf5[data_loc][()].copy()
+            else:
+                synapses = self.old_hdf5[data_loc]
+
+            assert num_synapses == synapses.shape[0]
+
+        else:
+            assert data_type is None, (f"If synapses is given, the data will not be loaded from the hdf5 file, "
+                                       f"leave data_type as None")
+            num_synapses = synapses.shape[0]
 
         if num_synapses > 0:
             last_pre = synapses[0, 0]
@@ -122,7 +153,7 @@ class SwapToDegeneratedMorphologies:
                     and synapses[next_idx, 0] == last_pre \
                     and synapses[next_idx, 1] == last_post:
                 next_idx += 1
-                if next_idx % 10000 == 0:
+                if next_idx % 1000000 == 0:
                     print(f"{next_idx} / {num_synapses}")
 
             if next_idx < num_synapses:
@@ -224,6 +255,7 @@ class SwapToDegeneratedMorphologies:
             pos = None
             rot = None
 
+        # TODO: Check if we need to pass snudda_data here!!!
         neuron_prototype = NeuronPrototype(neuron_path=neuron_path, neuron_name=neuron_name)
         neuron = neuron_prototype.clone(parameter_key=parameter_key, morphology_key=morphology_key,
                                         position=pos, rotation=rot)
@@ -247,13 +279,11 @@ class SwapToDegeneratedMorphologies:
         assert (synapses[:, 0] == pre_id).all()
         assert (synapses[:, 1] == post_id).all()
 
-        keep_synapses = np.ones((synapses.shape[0],), dtype=bool)
-
         old_sec_id = synapses[:, 9]
         old_sec_x = synapses[:, 10]
 
         keep_idx, new_sec_id, new_sec_x \
-            = self.remap_sections_helper(neuron_id=post_id, old_sec_id=old_sec_id, old_sec_x=old_sec_x/1000)
+            = self.remap_sections_helper(neuron_id=post_id, old_sec_id=old_sec_id, old_sec_x=old_sec_x/1000.0)
 
         edited_synapses = synapses.copy()
 
@@ -267,7 +297,7 @@ class SwapToDegeneratedMorphologies:
 
         return filtered_synapses
 
-    def filter_axonal_synapses_helper(self, synapses, max_dist=7.5e-6):
+    def filter_axonal_synapses_helper(self, synapses, max_dist=2.6e-6):
 
         """ Filter the synapses that have the axon degeneration, presynaptic neurons without axons are ignored. """
 
@@ -280,16 +310,25 @@ class SwapToDegeneratedMorphologies:
 
         keep_idx = np.ones((synapses.shape[0],), dtype=bool)
 
+        loaded_pid = None
+        axon_tree = None
+
         # Loop through all the synapses, if they have an axon check that there is an axonal point close to synapse
         for idx, (pid, coord) in enumerate(zip(pre_id, synapse_coordinates)):
 
-            morph = self.get_morphology(neuron_id=pid, hdf5=self.new_hdf5)
+            if pid != loaded_pid:
 
-            if len(morph.axon) == 0:
+                morph = self.get_morphology(neuron_id=pid, hdf5=self.new_hdf5)
+                loaded_pid = pid
+
+                if len(morph.axon) > 0:
+                    axon_tree = self.get_kd_tree(morph, "axon")
+                else:
+                    axon_tree = None
+
+            if axon_tree is None:
                 # No pre-synaptic axon exists for this neuron (no info, so keep synapse)
                 continue
-
-            axon_tree = self.get_kd_tree(morph, "axon")
 
             closest_dist, closest_point = axon_tree.query(coord)
 
@@ -480,8 +519,7 @@ class SwapToDegeneratedMorphologies:
                   f"keeping {new_n} out of {old_n} inputs "
                   f"({new_n / old_n * 100 :.2f} %)")
 
-        old_input.close()
-        new_input.close()
+        self.close()
 
     def get_kd_tree(self, neuron, tree_type, kd_tree_cache=None):
 
@@ -576,7 +614,7 @@ class SwapToDegeneratedMorphologies:
                                                  np.array(old_sec_x_list[old_sec_id]),
                                                  np.array(new_sec_x_list[old_sec_id]))
 
-        assert len(neuron_section_lookup) > 10, (f"Section lookup has fewer than 10 elements. Does morphologies match?"
+        assert len(neuron_section_lookup) > 3, (f"Section lookup has few elements. Does morphologies match?"
                                                  f"\nOld = {old_path, old_param_key, old_morph_key}"
                                                  f"\nNew = {new_path, new_param_key, new_morph_key}")
 

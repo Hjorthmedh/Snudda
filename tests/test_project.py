@@ -6,6 +6,10 @@ import time
 class TestProject(unittest.TestCase):
 
     def setUp(self):
+
+        if os.path.dirname(__file__):
+            os.chdir(os.path.dirname(__file__))
+
         from snudda.place.create_cube_mesh import create_cube_mesh
 
         # Create cube meshes

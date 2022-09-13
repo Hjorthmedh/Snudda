@@ -8,7 +8,7 @@ import os
 import mathutils
 import numpy as np
 from snudda.utils.load import SnuddaLoad
-from snudda.utils.snudda_path import snudda_parse_path
+from snudda.utils.snudda_path import snudda_parse_path, get_snudda_data
 from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
 
 
@@ -19,6 +19,7 @@ class VisualiseNetwork(object):
                  network_json=None, simulation_output_file_name=None):
 
         self.network_path = network_path
+        self.snudda_data = get_snudda_data(network_path=network_path)
         self.scale_f = 1000  # factor to downscale the data
 
         if network_json:
@@ -214,7 +215,7 @@ class VisualiseNetwork(object):
                 obj.name = f"{neuron['name']}-{neuron['neuronID']}"
                 VisualiseNetwork.link_object(obj)
             else:
-                self.read_swc_data(filepath=snudda_parse_path(neuron["morphology"]), detail_level=detail_level)
+                self.read_swc_data(filepath=snudda_parse_path(neuron["morphology"], self.snudda_data), detail_level=detail_level)
                 obj = bpy.context.selected_objects[0]
                 obj.name = f"{neuron['name']}-{neuron['neuronID']}"
 
@@ -331,7 +332,7 @@ class VisualiseNetwork(object):
 
         if full_meshes:
             for struct, mesh_file in full_meshes.items():
-                self.add_mesh_structure(mesh_file=snudda_parse_path(mesh_file), colour=(0.1, 0.1, 0.1),
+                self.add_mesh_structure(mesh_file=snudda_parse_path(mesh_file, self.snudda_data), colour=(0.1, 0.1, 0.1),
                                     alpha=0.1)
 
         bpy.ops.object.camera_add(enter_editmode=False, align='VIEW',
@@ -369,7 +370,7 @@ class VisualiseNetwork(object):
     def add_all_meshes(self):
 
         for name, structure in self.sl.config["Volume"].items():
-            self.add_mesh_structure(mesh_file=snudda_parse_path(structure["meshFile"]), colour=(0.1, 0.1, 0.1),
+            self.add_mesh_structure(mesh_file=snudda_parse_path(structure["meshFile"], self.snudda_data), colour=(0.1, 0.1, 0.1),
                                     alpha=0.1)
 
     @staticmethod
