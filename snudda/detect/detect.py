@@ -543,7 +543,8 @@ class SnuddaDetect(object):
         for keys in self.connectivity_distributions:
             tmp_con_dist["$$".join(keys)] = self.connectivity_distributions[keys]
 
-        save_meta_data = [(self.slurm_id, "SlurmID"),
+        save_meta_data = [(self.snudda_data, "snuddaData"),
+                          (self.slurm_id, "SlurmID"),
                           (self.config_file, "configFile"),
                           (self.position_file, "positionFile"),
                           (self.voxel_size, "voxelSize"),
@@ -2107,6 +2108,7 @@ class SnuddaDetect(object):
             meta_data.create_dataset("hyperVoxelOrigo", data=self.hyper_voxel_origo)
             meta_data.create_dataset("simulationOrigo", data=self.simulation_origo)
 
+            meta_data.create_dataset("snuddaData", data=self.snudda_data)
             meta_data.create_dataset("SlurmID", data=self.slurm_id)
             meta_data.create_dataset("voxelSize", data=self.voxel_size)
             meta_data.create_dataset("hyperVoxelSize", data=self.hyper_voxel_size)

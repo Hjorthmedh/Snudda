@@ -50,7 +50,7 @@ import json
 import numpy as np
 
 from snudda.utils import snudda_path
-from snudda.utils.snudda_path import snudda_isfile
+from snudda.utils.snudda_path import snudda_isfile, get_snudda_data
 
 
 def get_data_file(*dirs):
@@ -357,7 +357,7 @@ class Snudda(object):
         else:
             input_config = os.path.join(self.network_path, "input.json")
 
-        snudda_data = get_data_file(network_path=self.network_path)
+        snudda_data = get_snudda_data(network_path=self.network_path)
         if not snudda_isfile(input_config, snudda_data=snudda_data):
             print(f"Missing input config file: {input_config}")
             return
