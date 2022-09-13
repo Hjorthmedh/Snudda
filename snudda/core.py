@@ -128,6 +128,7 @@ class Snudda(object):
         config_file = os.path.join(self.network_path, "network-config.json")
         SnuddaInit(struct_def=struct_def,
                    neurons_dir=args.neurons_dir,
+                   snudda_data=args.snudda_data,
                    config_file=config_file,
                    random_seed=random_seed,
                    connection_override_file=args.connectionFile)

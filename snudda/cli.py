@@ -38,8 +38,10 @@ def snudda_cli():
     # init_parser.add_argument("size", type=int, help="Number of neurons in network", default=None)
     init_parser.add_argument("-size", "--size", dest="size",
                              type=int, help="Number of neurons in network", default=None)
+    init_parser.add_argument("--snudda_data", "--SnuddaData", type=str, default=None, dest="snudda_data",
+                             help="Path to SNUDDA_DATA")
     init_parser.add_argument("--neurons_dir", type=str, default=None,
-                             help="Path to neurons_dir, default is $DATA/neurons")
+                             help="Path to neurons_dir, default is $DATA/neurons (DEPRECATED, use --snudda_data instead")
     init_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory",
                              action="store_true")
     init_parser.add_argument("-connectionFile", "--connectionFile", default=None,

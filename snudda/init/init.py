@@ -30,6 +30,7 @@ class SnuddaInit(object):
     def __init__(self,
                  network_path=None,
                  struct_def=None,
+                 snudda_data=None,
                  neurons_dir=None,
                  config_file=None,
                  random_seed=None,
@@ -40,7 +41,8 @@ class SnuddaInit(object):
            Args:
            network_path (str): location of network files
            struct_def (dict, optional): definition of struct to create
-           neurons_dir (str, optional): path to neurons, default is $SNUDDA_DATA/neurons
+           snudda_data (str, optional): Path to SNUDDA_DATA
+           neurons_dir (str, optional): path to neurons, default is $SNUDDA_DATA/neurons (DEPRECATED)
            config_file (str, optional): name of network config file, default network-config.json
            random_seed (int, optional): random seed"""
 
@@ -48,7 +50,18 @@ class SnuddaInit(object):
 
         self.network_data = collections.OrderedDict([])
 
+        if snudda_data:
+            self.snudda_data = snudda_data
+        elif neurons_dir:
+            self.snudda_data = os.path.dirname(neurons_dir)
+        else:
+            self.snudda_data = None
+
+        if self.snudda_data is not None:
+            self.network_data["SnuddaData"] =  self.snudda_data
+
         self.network_data["RandomSeed"], self.init_rng = SnuddaInit.setup_random_seeds(random_seed)
+
         self.network_data["Volume"] = collections.OrderedDict([])
         self.num_neurons_total = 0
 
@@ -65,6 +78,7 @@ class SnuddaInit(object):
             self.network_path = os.path.dirname(config_file)
         else:
             self.network_path = ""
+
 
         if self.config_file and self.network_path:
             assert self.network_path == os.path.dirname(self.config_file), \
