@@ -357,7 +357,8 @@ class Snudda(object):
         else:
             input_config = os.path.join(self.network_path, "input.json")
 
-        if not snudda_isfile(input_config):
+        snudda_data = get_data_file(network_path=self.network_path)
+        if not snudda_isfile(input_config, snudda_data=snudda_data):
             print(f"Missing input config file: {input_config}")
             return
 

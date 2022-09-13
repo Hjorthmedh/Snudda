@@ -1,10 +1,11 @@
 # blender -b -P visualiseStriatumNeurons.py
+import os.path
 
 import bpy
 import mathutils
 import numpy as np
 import h5py
-from snudda.utils.snudda_path import snudda_parse_path
+from snudda.utils.snudda_path import snudda_parse_path, get_snudda_data
 
 
 # The script loads this position file and renders it
@@ -28,7 +29,9 @@ else:
 pngFile = outFile.replace(".blend",".png")
 assert pngFile != outFile, "Something went wrong with renaming"
 
-   
+network_path = os.path.basename(posFile)
+snudda_data = get_snudda_data(network_path=network_path)
+
 fi = h5py.File(posFile,"r")
 
 neuronID = fi["network/neurons/neuronID"].value
@@ -92,7 +95,7 @@ for ps,rt,mo,nm,nID in zip(pos,rot,morph,name,neuronID):
     
   else:
     print("Loading morphology " + str(mo))
-    bpy.ops.import_mesh.swc(filepath=snudda_parse_path(mo))
+    bpy.ops.import_mesh.swc(filepath=snudda_parse_path(mo, snudda_data))
     # obj = bpy.data.objects[-1]
     obj = bpy.context.selected_objects[0] 
 
