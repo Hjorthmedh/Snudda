@@ -284,10 +284,10 @@ class SnuddaLoad(object):
             data["axonStumpIDFlag"] = f["meta/axonStumpIDFlag"][()]
 
         if "meta/snuddaData" in f:
-            data["snuddaData"] = SnuddaLoad.to_str(f["meta/snuddaData"][()])
+            data["SnuddaData"] = SnuddaLoad.to_str(f["meta/snuddaData"][()])
 
             if self.snudda_data is None:
-                self.snudda_data = data["snuddaData"]
+                self.snudda_data = data["SnuddaData"]
 
         data["neurons"] = self.extract_neurons(f)
 

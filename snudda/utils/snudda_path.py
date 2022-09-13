@@ -10,7 +10,7 @@ import numpy as np
 # TODO: Add SNUDDA_PATH to network_config file
 
 
-def snudda_parse_path(path, snudda_data=None):
+def snudda_parse_path(path, snudda_data):
     """ Parses a data path, replacing $DATA with the path to SNUDDA_DATA set by environment variable.
 
     Args:
@@ -97,22 +97,22 @@ def read_snudda_data_from_config(config_file):
     return snudda_data
 
 
-def snudda_isfile(path, snudda_data=None):
+def snudda_isfile(path, snudda_data):
     """ Checks if path is a file. """
     return os.path.isfile(snudda_parse_path(path, snudda_data))
 
 
-def snudda_isdir(path, snudda_data=None):
+def snudda_isdir(path, snudda_data):
     """ Checks if path is a directory. """
     return os.path.isdir(snudda_parse_path(path, snudda_data))
 
 
-def snudda_path_exists(path, snudda_data=None):
+def snudda_path_exists(path, snudda_data):
     """ Checks if path exists. """
     return os.path.exists(snudda_parse_path(path, snudda_data))
 
 
-def snudda_simplify_path(path, snudda_data=None):
+def snudda_simplify_path(path, snudda_data):
     """ Simplifies path, replacing any occurance of SNUDDA_DATA in the path with $SNUDDA_DATA.
 
     Args:
