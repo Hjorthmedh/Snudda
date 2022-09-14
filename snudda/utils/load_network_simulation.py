@@ -157,7 +157,7 @@ class SnuddaLoadNetworkSimulation:
         else:
             return voltage
 
-"""
+    """
     def check_depolarisation_block(self, threshold=0, max_duration=100e-3):
 
         neuron_id = np.array(sorted(self.network_simulation_file["neurons"].keys()))
@@ -201,7 +201,7 @@ class SnuddaLoadNetworkSimulation:
         blocked_neurons = np.where(block_flag)
         return blocked_neurons
 
-"""
+    """
 
     def get_time(self):
 
