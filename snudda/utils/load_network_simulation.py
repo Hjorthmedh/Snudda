@@ -157,6 +157,52 @@ class SnuddaLoadNetworkSimulation:
         else:
             return voltage
 
+"""
+    def check_depolarisation_block(self, threshold=0, max_duration=100e-3):
+
+        neuron_id = np.array(sorted(self.network_simulation_file["neurons"].keys()))
+        assert (np.diff(neuron_id) == 1).all() and neuron_id[0] == 0, f"Failed sanity check on neuron ID"
+
+        block_flag = np.zeros((len(neuron_id),), dtype=bool)
+
+        time = self.get_time()
+        dt = time[1] - time[0]
+        csum_threshold = max_duration / dt
+
+        voltage, sec_id_x, _ = self.get_data("voltage", neuron_id=None)
+
+        for neuron_id, (volt, sidx) in enumerate(zip(voltage, sec_id_x)):
+            v_thresh = volt > threshold
+
+            v_idx = np.where(v_thresh)[0]
+            np.diff(v_idx) 
+
+
+        for idx, (volt, sidx) in enumerate(zip(voltage, sec_id_x)):
+            v_idx = np.where(sidx[0] == 0)
+            csum = 0
+            max_csum = 0
+            block_times = []
+            t_start_block = 0
+
+            for t_idx, vt in enumerate(voltage[:, v_idx]):
+
+                if vt > threshold:
+                    csum += 1
+                    if csum > max_csum:
+                        max_csum = csum
+                else:
+                    csum = 0
+                    t_start_block = t_idx
+
+            if max_csum > csum_threshold:
+                block_flag[idx] = True
+
+        blocked_neurons = np.where(block_flag)
+        return blocked_neurons
+
+"""
+
     def get_time(self):
 
         t = self.network_simulation_file["time"][()].copy()

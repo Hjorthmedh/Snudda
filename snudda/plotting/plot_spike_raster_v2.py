@@ -72,6 +72,7 @@ class SnuddaPlotSpikeRaster2:
 
         return neuron_colours
 
+    # TODO: Add background colour to population units
     def plot_hist_raster(self, type_order=None, skip_time=0, end_time=None, fig_size=None, type_division=None, fig_file=None):
         # type_division: divides plot in two parts based on neuron type.
         #   Example 1: [["dspn","ispn"],["chin", "fsn","lts"]]
@@ -176,7 +177,7 @@ class SnuddaPlotSpikeRaster2:
             num_of_type = len(type_dict[t])  #
             nspikes = len(pruned_spikes)
             bin_width = 0.05  # 10  # ms
-            bin_range = np.arange(0, end_time + skip_time + bin_width, bin_width)
+            bin_range = np.arange(0, end_time - skip_time + bin_width, bin_width)
             if (nspikes > 0) & (t.lower() in type_division[0]):
                 counts0, bins0, bars0 = atop.hist(pruned_spikes,
                                                   bins=bin_range,
@@ -220,6 +221,7 @@ class SnuddaPlotSpikeRaster2:
             if end_time:
                 x_lim = (x_lim[0], end_time)
             ax.set_xlim(x_lim)
+
         atop.set_xlim(x_lim)
         atop2.set_xlim(x_lim)
         atop.set_xticklabels([])
@@ -362,9 +364,13 @@ class SnuddaPlotSpikeRaster2:
 
         if skip_time or end_time:
             x_lim = ax.get_xlim()
-            x_lim = (0, x_lim[1])
+            x_lim = (0, self.time[1] - skip_time)
             if end_time:
                 x_lim = (x_lim[0], end_time)
+            ax.set_xlim(x_lim)
+        else:
+            x_lim = ax.get_xlim()
+            x_lim = (self.time[0], self.time[1])
             ax.set_xlim(x_lim)
 
         if not os.path.isdir(os.path.basename(self.figure_path)):
