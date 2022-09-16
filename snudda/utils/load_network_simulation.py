@@ -90,6 +90,7 @@ class SnuddaLoadNetworkSimulation:
         if neuron_id is None:
             spike_data = OrderedDict()
             for nid in self.network_simulation_file["neurons"]:
+
                 if "spikes" in self.network_simulation_file[f"neurons/{nid}"]:
                     spike_data[int(nid)] = self.network_simulation_file[f"neurons/{nid}/spikes/data"][()].copy()
 
@@ -301,15 +302,17 @@ class SnuddaLoadNetworkSimulation:
 
         print(f"Writing spikes to csv file {csv_file}")
         print(f"Writing metadata to {meta_file}")
+        print("OBS, only neurons that have spikes are written to file.")
 
         with open(csv_file, "wt") as f, open(meta_file, "wt") as fm:
 
             spikes = self.get_spikes(neuron_id=neuron_id)
+
             for nid, spike_train in spikes.items():
 
                 # Skip empty spike trains
-                if len(spike_train) > 1:
-                    f.write(f"{','.join([str(x) for x in spike_train])}\n")
+                if spike_train.size > 0:
+                    f.write(f"{','.join([f'{x:.5f}' for x in spike_train.flatten()])}\n")
                     fm.write(f"{nid}, {network_data['neurons'][nid]['name']}, "
                              f"{network_data['populationUnit'][nid]}, "
                              f"{','.join([str(x) for x in network_data['neurons'][nid]['position']])}\n")
