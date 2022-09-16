@@ -427,10 +427,10 @@
     },
     "Neurons": {
         "dSPN_0": {
-            "morphology": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20211026/morphology",
-            "parameters": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20211026/parameters.json",
-            "mechanisms": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20211026/mechanisms.json",
-            "modulation": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20211026/modulation.json",
+            "morphology": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/mechanisms.json",
+            "modulation": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/modulation.json",
             "num": 1,
             "hoc": null,
             "neuronType": "neuron",
@@ -438,10 +438,10 @@
             "volumeID": "Striatum"
         },
         "dSPN_1": {
-            "morphology": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20211026/morphology",
-            "parameters": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20211026/parameters.json",
-            "mechanisms": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20211026/mechanisms.json",
-            "modulation": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20211026/modulation.json",
+            "morphology": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/WT-P270-20-15ak-cor.swc",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/mechanisms.json",
+            "modulation": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521/modulation.json",
             "num": 2,
             "hoc": null,
             "neuronType": "neuron",
@@ -449,10 +449,10 @@
             "volumeID": "Striatum"
         },
         "dSPN_2": {
-            "morphology": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20211028/morphology",
-            "parameters": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20211028/parameters.json",
-            "mechanisms": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20211028/mechanisms.json",
-            "modulation": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20211028/modulation.json",
+            "morphology": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503/21-6-DE-cor-rep-ax.swc",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503/mechanisms.json",
+            "modulation": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503/modulation.json",
             "num": 1,
             "hoc": null,
             "neuronType": "neuron",
@@ -460,10 +460,10 @@
             "volumeID": "Striatum"
         },
         "dSPN_3": {
-            "morphology": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c9_D1-mWT-1215MSN03-v20211026/morphology",
-            "parameters": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c9_D1-mWT-1215MSN03-v20211026/parameters.json",
-            "mechanisms": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c9_D1-mWT-1215MSN03-v20211026/mechanisms.json",
-            "modulation": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c9_D1-mWT-1215MSN03-v20211026/modulation.json",
+            "morphology": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/WT-1215MSN03-cor-rep-ax2.swc",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/mechanisms.json",
+            "modulation": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/modulation.json",
             "num": 1,
             "hoc": null,
             "neuronType": "neuron",
@@ -471,10 +471,10 @@
             "volumeID": "Striatum"
         },
         "iSPN_0": {
-            "morphology": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20211026/morphology",
-            "parameters": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20211026/parameters.json",
-            "mechanisms": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20211026/mechanisms.json",
-            "modulation": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20211026/modulation.json",
+            "morphology": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611/51-5-DE-cor-rep-ax.swc",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611/mechanisms.json",
+            "modulation": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611/modulation.json",
             "num": 1,
             "hoc": null,
             "neuronType": "neuron",
@@ -482,10 +482,10 @@
             "volumeID": "Striatum"
         },
         "iSPN_1": {
-            "morphology": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20211026/morphology",
-            "parameters": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20211026/parameters.json",
-            "mechanisms": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20211026/mechanisms.json",
-            "modulation": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20211026/modulation.json",
+            "morphology": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603/WT-MSN1-cor-rep-ax.swc",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603/mechanisms.json",
+            "modulation": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603/modulation.json",
             "num": 1,
             "hoc": null,
             "neuronType": "neuron",
@@ -493,10 +493,10 @@
             "volumeID": "Striatum"
         },
         "iSPN_2": {
-            "morphology": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20211026/morphology",
-            "parameters": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20211026/parameters.json",
-            "mechanisms": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20211026/mechanisms.json",
-            "modulation": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20211026/modulation.json",
+            "morphology": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/WT-P270-09-15ak-cor.swc",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/mechanisms.json",
+            "modulation": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527/modulation.json",
             "num": 1,
             "hoc": null,
             "neuronType": "neuron",
@@ -504,10 +504,10 @@
             "volumeID": "Striatum"
         },
         "iSPN_3": {
-            "morphology": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20211026/morphology",
-            "parameters": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20211026/parameters.json",
-            "mechanisms": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20211026/mechanisms.json",
-            "modulation": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20211026/modulation.json",
+            "morphology": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529/46-3-DE-cor-rep-ax.swc",
+            "parameters": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529/parameters.json",
+            "mechanisms": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529/mechanisms.json",
+            "modulation": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529/modulation.json",
             "num": 2,
             "hoc": null,
             "neuronType": "neuron",

@@ -10,17 +10,17 @@ Processing x = 3
 Processing x = 4
 Fraction of border voxels: 0.0
 Saving mesh cache file /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation/mesh/Striatum-cube-mesh-4.989626526218353e-05.obj-49-cache.pickle
-Calculation time: 4.137108774011722 s
+Calculation time: 4.81574761399952 s
 Setup voxel list
 Setup place neurons
 Update padding mask
 Setup done
 Inner voxel bin volume: 0.0 mm³
-Placed 1 in 0.000688497006194666 s
-Placed 2 in 0.008694089017808437 s
-Placed 1 in 0.00042099301936104894 s
-Placed 1 in 0.03645039699040353 s
-Placed 1 in 0.0036579320149030536 s
-Placed 1 in 0.004081245977431536 s
-Placed 1 in 0.0004997699870727956 s
-Placed 2 in 0.1308225959946867 s
+Placed 1 in 0.0010575420001259772 s
+Placed 2 in 0.011292193000372208 s
+Placed 1 in 0.0010613200001898804 s
+Placed 1 in 0.04985172699980467 s
+Placed 1 in 0.0047049759996298235 s
+Placed 1 in 0.004441678999683063 s
+Placed 1 in 0.0004936470004395233 s
+Placed 2 in 0.16872048300047027 s

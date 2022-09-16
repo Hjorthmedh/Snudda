@@ -1,7 +1,7 @@
 Starting log file
 Already have a log file setup, ignoring
 Using hdf5 driver version: latest
-Memory: 3544772608 free, 16591261696 total
+Memory: 12622053376 free, 16591261696 total
 Each hyper voxel has 100 x 100 x 100 voxels
 Touch detecting all volumes
 Removing old files /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation/network-synapses.hdf5
@@ -19,9 +19,9 @@ Reading prototype for: iSPN_1
 Reading prototype for: iSPN_2
 Reading prototype for: iSPN_3
 Loading connectivity information
-Memory: 3525402624 free, 16591261696 total
+Memory: 12616368128 free, 16591261696 total
 Reading positions from file: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation/network-neuron-positions.hdf5
-Memory: 3525402624 free, 16591261696 total
+Memory: 12614819840 free, 16591261696 total
 Position file read.
 setup_parallel called without dView, aborting.
 Removing old work history file
@@ -38,119 +38,83 @@ Calculated distribution of neurons: 0.1 seconds
 Writing neuron distribution history to file
 !! about to loop projections
 setup_process_hyper_voxel_state_history: Creating new work history.
-Skipping 45 empty hyper voxels
-Processing hyper voxel : 17/64 (10 neurons)
-detect_synapses: 53 took 0.0 s
+Skipping 51 empty hyper voxels
+Processing hyper voxel : 1/64 (10 neurons)
+detect_synapses: 32 took 0.0 s
 detectGapJunctions: 0.0 s
-Wrote hyper voxel 17 (53 synapses, 0 gap junctions)
-process_hyper_voxel: 17 took 0.2 s
-HyperID 17 completed - 53  synapses and 0 gap junctions found (in 0.18258562797564082 s)
-Processing hyper voxel : 21/64 (10 neurons)
-detect_synapses: 1600 took 0.0 s
-detectGapJunctions: 0.1 s
-Wrote hyper voxel 21 (1600 synapses, 0 gap junctions)
-process_hyper_voxel: 21 took 0.3 s
-HyperID 21 completed - 1600  synapses and 0 gap junctions found (in 0.32189743299386464 s)
+Wrote hyper voxel 1 (32 synapses, 0 gap junctions)
+process_hyper_voxel: 1 took 0.2 s
+HyperID 1 completed - 32  synapses and 0 gap junctions found (in 0.22115543499967316 s)
 Processing hyper voxel : 4/64 (10 neurons)
-detect_synapses: 3 took 0.0 s
-detectGapJunctions: 0.0 s
-Wrote hyper voxel 4 (3 synapses, 0 gap junctions)
-process_hyper_voxel: 4 took 0.1 s
-HyperID 4 completed - 3  synapses and 0 gap junctions found (in 0.10863200298626907 s)
-Processing hyper voxel : 5/64 (10 neurons)
-detect_synapses: 92 took 0.0 s
-detectGapJunctions: 0.0 s
-Wrote hyper voxel 5 (92 synapses, 0 gap junctions)
-process_hyper_voxel: 5 took 0.1 s
-HyperID 5 completed - 92  synapses and 0 gap junctions found (in 0.11665719002485275 s)
-Processing hyper voxel : 20/64 (10 neurons)
-detect_synapses: 130 took 0.0 s
-detectGapJunctions: 0.0 s
-Wrote hyper voxel 20 (130 synapses, 0 gap junctions)
-process_hyper_voxel: 20 took 0.1 s
-HyperID 20 completed - 130  synapses and 0 gap junctions found (in 0.1360575619910378 s)
-Processing hyper voxel : 16/64 (8 neurons)
-detect_synapses: 17 took 0.0 s
-detectGapJunctions: 0.0 s
-Wrote hyper voxel 16 (17 synapses, 0 gap junctions)
-process_hyper_voxel: 16 took 0.1 s
-HyperID 16 completed - 17  synapses and 0 gap junctions found (in 0.10404017599648796 s)
-Processing hyper voxel : 1/64 (7 neurons)
 detect_synapses: 1 took 0.0 s
 detectGapJunctions: 0.0 s
-Wrote hyper voxel 1 (1 synapses, 0 gap junctions)
-process_hyper_voxel: 1 took 0.1 s
-HyperID 1 completed - 1  synapses and 0 gap junctions found (in 0.10194381600013003 s)
-Processing hyper voxel : 0/64 (4 neurons)
-detect_synapses: 0 took 0.0 s
+Wrote hyper voxel 4 (1 synapses, 0 gap junctions)
+process_hyper_voxel: 4 took 0.2 s
+HyperID 4 completed - 1  synapses and 0 gap junctions found (in 0.23865923599987582 s)
+Processing hyper voxel : 5/64 (10 neurons)
+detect_synapses: 203 took 0.0 s
 detectGapJunctions: 0.0 s
-Wrote hyper voxel 0 (0 synapses, 0 gap junctions)
+Wrote hyper voxel 5 (203 synapses, 0 gap junctions)
+process_hyper_voxel: 5 took 0.2 s
+HyperID 5 completed - 203  synapses and 0 gap junctions found (in 0.2022484400004032 s)
+Processing hyper voxel : 17/64 (10 neurons)
+detect_synapses: 631 took 0.0 s
+detectGapJunctions: 0.0 s
+Wrote hyper voxel 17 (631 synapses, 0 gap junctions)
+process_hyper_voxel: 17 took 0.2 s
+HyperID 17 completed - 631  synapses and 0 gap junctions found (in 0.18185923199962417 s)
+Processing hyper voxel : 20/64 (10 neurons)
+detect_synapses: 99 took 0.0 s
+detectGapJunctions: 0.0 s
+Wrote hyper voxel 20 (99 synapses, 0 gap junctions)
+process_hyper_voxel: 20 took 0.2 s
+HyperID 20 completed - 99  synapses and 0 gap junctions found (in 0.18341125400002056 s)
+Processing hyper voxel : 21/64 (10 neurons)
+detect_synapses: 1361 took 0.0 s
+detectGapJunctions: 0.0 s
+Wrote hyper voxel 21 (1361 synapses, 0 gap junctions)
+process_hyper_voxel: 21 took 0.3 s
+HyperID 21 completed - 1361  synapses and 0 gap junctions found (in 0.27921429199977865 s)
+Processing hyper voxel : 16/64 (9 neurons)
+detect_synapses: 70 took 0.0 s
+detectGapJunctions: 0.0 s
+Wrote hyper voxel 16 (70 synapses, 0 gap junctions)
+process_hyper_voxel: 16 took 0.2 s
+HyperID 16 completed - 70  synapses and 0 gap junctions found (in 0.18331496399969183 s)
+Processing hyper voxel : 0/64 (7 neurons)
+detect_synapses: 3 took 0.0 s
+detectGapJunctions: 0.0 s
+Wrote hyper voxel 0 (3 synapses, 0 gap junctions)
 process_hyper_voxel: 0 took 0.1 s
-HyperID 0 completed - 0  synapses and 0 gap junctions found (in 0.08526331200846471 s)
-Processing hyper voxel : 18/64 (3 neurons)
+HyperID 0 completed - 3  synapses and 0 gap junctions found (in 0.12886011199952918 s)
+Processing hyper voxel : 18/64 (2 neurons)
 detect_synapses: 0 took 0.0 s
 detectGapJunctions: 0.0 s
 Wrote hyper voxel 18 (0 synapses, 0 gap junctions)
 process_hyper_voxel: 18 took 0.1 s
-HyperID 18 completed - 0  synapses and 0 gap junctions found (in 0.07912796101300046 s)
-Processing hyper voxel : 22/64 (3 neurons)
+HyperID 18 completed - 0  synapses and 0 gap junctions found (in 0.10188866200041957 s)
+Processing hyper voxel : 22/64 (2 neurons)
 detect_synapses: 0 took 0.0 s
 detectGapJunctions: 0.0 s
 Wrote hyper voxel 22 (0 synapses, 0 gap junctions)
 process_hyper_voxel: 22 took 0.1 s
-HyperID 22 completed - 0  synapses and 0 gap junctions found (in 0.09230708199902438 s)
-Processing hyper voxel : 33/64 (2 neurons)
-detect_synapses: 0 took 0.0 s
-detectGapJunctions: 0.0 s
-Wrote hyper voxel 33 (0 synapses, 0 gap junctions)
-process_hyper_voxel: 33 took 0.1 s
-HyperID 33 completed - 0  synapses and 0 gap junctions found (in 0.08091553999111056 s)
+HyperID 22 completed - 0  synapses and 0 gap junctions found (in 0.09596401900034834 s)
 Processing hyper voxel : 25/64 (2 neurons)
 detect_synapses: 0 took 0.0 s
 detectGapJunctions: 0.0 s
 Wrote hyper voxel 25 (0 synapses, 0 gap junctions)
 process_hyper_voxel: 25 took 0.1 s
-HyperID 25 completed - 0  synapses and 0 gap junctions found (in 0.07597160898149014 s)
-Processing hyper voxel : 37/64 (2 neurons)
-detect_synapses: 0 took 0.0 s
-detectGapJunctions: 0.0 s
-Wrote hyper voxel 37 (0 synapses, 0 gap junctions)
-process_hyper_voxel: 37 took 0.1 s
-HyperID 37 completed - 0  synapses and 0 gap junctions found (in 0.08399676100816578 s)
-Processing hyper voxel : 8/64 (1 neurons)
-detect_synapses: 0 took 0.0 s
-detectGapJunctions: 0.0 s
-Wrote hyper voxel 8 (0 synapses, 0 gap junctions)
-process_hyper_voxel: 8 took 0.1 s
-HyperID 8 completed - 0  synapses and 0 gap junctions found (in 0.07317777702701278 s)
-Processing hyper voxel : 6/64 (1 neurons)
-detect_synapses: 0 took 0.0 s
-detectGapJunctions: 0.0 s
-Wrote hyper voxel 6 (0 synapses, 0 gap junctions)
-process_hyper_voxel: 6 took 0.1 s
-HyperID 6 completed - 0  synapses and 0 gap junctions found (in 0.07385684698238038 s)
+HyperID 25 completed - 0  synapses and 0 gap junctions found (in 0.09529406399997242 s)
 Processing hyper voxel : 2/64 (1 neurons)
 detect_synapses: 0 took 0.0 s
 detectGapJunctions: 0.0 s
 Wrote hyper voxel 2 (0 synapses, 0 gap junctions)
 process_hyper_voxel: 2 took 0.1 s
-HyperID 2 completed - 0  synapses and 0 gap junctions found (in 0.08170887001324445 s)
-Processing hyper voxel : 24/64 (1 neurons)
-detect_synapses: 0 took 0.0 s
-detectGapJunctions: 0.0 s
-Wrote hyper voxel 24 (0 synapses, 0 gap junctions)
-process_hyper_voxel: 24 took 0.1 s
-HyperID 24 completed - 0  synapses and 0 gap junctions found (in 0.0822860460029915 s)
+HyperID 2 completed - 0  synapses and 0 gap junctions found (in 0.0854488949998995 s)
 Processing hyper voxel : 32/64 (1 neurons)
 detect_synapses: 0 took 0.0 s
 detectGapJunctions: 0.0 s
 Wrote hyper voxel 32 (0 synapses, 0 gap junctions)
 process_hyper_voxel: 32 took 0.1 s
-HyperID 32 completed - 0  synapses and 0 gap junctions found (in 0.0738007540057879 s)
-Processing hyper voxel : 9/64 (1 neurons)
-detect_synapses: 0 took 0.0 s
-detectGapJunctions: 0.0 s
-Wrote hyper voxel 9 (0 synapses, 0 gap junctions)
-process_hyper_voxel: 9 took 0.1 s
-HyperID 9 completed - 0  synapses and 0 gap junctions found (in 0.07822010698146187 s)
+HyperID 32 completed - 0  synapses and 0 gap junctions found (in 0.08227177000026131 s)
 Program run time: 2.3sEnd of log. Closing file.

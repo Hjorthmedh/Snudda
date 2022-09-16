@@ -15,4 +15,4 @@ Adding: 1 iSPN_2
 Adding: 2 iSPN_3
 Re-sorting the neuron IDs
 Writing data to HDF5 file: /home/jofrony/Documents/Repositories/Snudda/tests/networks/test_network_neuromodulation/network-neuron-positions.hdf5
-Program run time: 4.4sEnd of log. Closing file.
+Program run time: 5.1sEnd of log. Closing file.
