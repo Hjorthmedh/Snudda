@@ -293,7 +293,12 @@ class SnuddaLoadNetworkSimulation:
 
         return param_key, morph_key, mod_key
 
-    def export_to_csv(self, csv_file, neuron_id=None):
+    def export_to_csv(self, csv_file, neuron_id=None, time_scale=1.0):
+
+        """
+            Set time_scale to 1000 if you want ms
+
+        """
 
         meta_file = f"{csv_file}-meta"
 
@@ -312,7 +317,7 @@ class SnuddaLoadNetworkSimulation:
 
                 # Skip empty spike trains
                 if spike_train.size > 0:
-                    f.write(f"{','.join([f'{x:.5f}' for x in spike_train.flatten()])}\n")
+                    f.write(f"{','.join([f'{time_scale*x:.5f}' for x in spike_train.flatten()])}\n")
                     fm.write(f"{nid}, {network_data['neurons'][nid]['name']}, "
                              f"{network_data['populationUnit'][nid]}, "
                              f"{','.join([str(x) for x in network_data['neurons'][nid]['position']])}\n")
