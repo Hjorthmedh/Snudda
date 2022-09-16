@@ -330,13 +330,14 @@ def load_network_simulation_cli():
     parser.add_argument("dataFile", help="Data file")
     parser.add_argument("--export_spike_file", help="Name of csv file to export spikes to",
                         default=None)
+    parser.add_argument("--time_scale", default=1.0, type=float)
     args = parser.parse_args()
 
     slna = SnuddaLoadNetworkSimulation(network_simulation_output_file=args.dataFile)
     slna.load()
 
     if args.export_spike_file is not None:
-        slna.export_to_csv(csv_file=args.export_spike_file)
+        slna.export_to_csv(csv_file=args.export_spike_file, time_scale=args.time_scale)
 
 
 if __name__ == "__main__":
