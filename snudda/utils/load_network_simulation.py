@@ -293,23 +293,23 @@ class SnuddaLoadNetworkSimulation:
 
         return param_key, morph_key, mod_key
 
-    def export_to_csv(self, csv_file, neuron_id=None, time_scale=1.0):
+    def export_to_txt(self, txt_file, neuron_id=None, time_scale=1.0):
 
         """
             Set time_scale to 1000 if you want ms
 
         """
 
-        meta_file = f"{csv_file}-meta"
+        meta_file = f"{txt_file}-meta"
 
         network_loader = SnuddaLoad(network_file=self.network_path)
         network_data = network_loader.data
 
-        print(f"Writing spikes to csv file {csv_file}")
+        print(f"Writing spikes to csv file {txt_file}")
         print(f"Writing metadata to {meta_file}")
         print("OBS, only neurons that have spikes are written to file.")
 
-        with open(csv_file, "wt") as f, open(meta_file, "wt") as fm:
+        with open(txt_file, "wt") as f, open(meta_file, "wt") as fm:
 
             spikes = self.get_spikes(neuron_id=neuron_id)
 
@@ -317,7 +317,7 @@ class SnuddaLoadNetworkSimulation:
 
                 # Skip empty spike trains
                 if spike_train.size > 0:
-                    f.write(f"{', '.join([f'{time_scale*x:.5f}' for x in spike_train.flatten()])}\n")
+                    f.write(f"{' '.join([f'{time_scale*x:.5f}' for x in spike_train.flatten()])}\n")
                     fm.write(f"{nid}, {network_data['neurons'][nid]['name']}, "
                              f"{network_data['populationUnit'][nid]}, "
                              f"{','.join([str(x) for x in network_data['neurons'][nid]['position']])}\n")
@@ -337,7 +337,7 @@ def load_network_simulation_cli():
     slna.load()
 
     if args.export_spike_file is not None:
-        slna.export_to_csv(csv_file=args.export_spike_file, time_scale=args.time_scale)
+        slna.export_to_txt(txt_file=args.export_spike_file, time_scale=args.time_scale)
 
 
 if __name__ == "__main__":
