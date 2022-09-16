@@ -317,7 +317,7 @@ class SnuddaLoadNetworkSimulation:
 
                 # Skip empty spike trains
                 if spike_train.size > 0:
-                    f.write(f"{','.join([f'{time_scale*x:.5f}' for x in spike_train.flatten()])}\n")
+                    f.write(f"{', '.join([f'{time_scale*x:.5f}' for x in spike_train.flatten()])}\n")
                     fm.write(f"{nid}, {network_data['neurons'][nid]['name']}, "
                              f"{network_data['populationUnit'][nid]}, "
                              f"{','.join([str(x) for x in network_data['neurons'][nid]['position']])}\n")
