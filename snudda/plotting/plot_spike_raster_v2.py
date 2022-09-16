@@ -286,7 +286,6 @@ class SnuddaPlotSpikeRaster2:
         plt.ylabel("Frequency (Hz)", fontsize=20)
         ax.legend()
 
-
         if fig_file is None:
             fig_file = os.path.join(self.figure_path,
                                     f"spike-frequency-pop-units{'-'.join([f'{x}' for x in pop_members.keys()])}.pdf")
@@ -370,7 +369,7 @@ class SnuddaPlotSpikeRaster2:
             ax.set_xlim(x_lim)
         else:
             x_lim = ax.get_xlim()
-            x_lim = (self.time[0], self.time[1])
+            x_lim = (self.time[0], self.time[-1])
             ax.set_xlim(x_lim)
 
         if not os.path.isdir(os.path.basename(self.figure_path)):
