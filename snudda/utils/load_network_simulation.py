@@ -3,6 +3,7 @@ import os
 
 import h5py
 import numpy as np
+from collections import OrderedDict
 
 from snudda.utils.load import SnuddaLoad
 
@@ -14,14 +15,16 @@ class SnuddaLoadNetworkSimulation:
         if network_simulation_output_file:
             self.network_simulation_output_file_name = network_simulation_output_file
         elif network_path:
-            self.network_simulation_output_file_name = os.path.join(network_path, "simulation", "output.hdf5")
+            self.network_simulation_output_file_name = os.path.join(network_path,
+                                                                    "simulation",
+                                                                    "output.hdf5")
         else:
             self.network_simulation_output_file_name = None
 
         if network_path:
             self.network_path = network_path
         elif self.network_simulation_output_file_name:
-            self.network_path = os.path.basename(os.path.basename(self.network_simulation_output_file_name))
+            self.network_path = os.path.dirname(os.path.dirname(self.network_simulation_output_file_name))
         else:
             self.network_path = None
 
@@ -85,7 +88,7 @@ class SnuddaLoadNetworkSimulation:
         """
 
         if neuron_id is None:
-            spike_data = dict()
+            spike_data = OrderedDict()
             for nid in self.network_simulation_file["neurons"]:
                 if "spikes" in self.network_simulation_file[f"neurons/{nid}"]:
                     spike_data[int(nid)] = self.network_simulation_file[f"neurons/{nid}/spikes/data"][()].copy()
@@ -103,7 +106,7 @@ class SnuddaLoadNetworkSimulation:
                 spike_data = np.array([])
 
         else:
-            spike_data = dict()
+            spike_data = OrderedDict()
             for nid in neuron_id:
                 if str(nid) in self.network_simulation_file["neurons"] \
                         and "spikes" in self.network_simulation_file[f"neurons/{nid}"]:
@@ -117,9 +120,9 @@ class SnuddaLoadNetworkSimulation:
 
         """ Returns data for neuron_id """
 
-        data = dict()
-        sec_id_x = dict()
-        syn_info = dict()
+        data = OrderedDict()
+        sec_id_x = OrderedDict()
+        syn_info = OrderedDict()
 
         if neuron_id is None:
             neuron_id = self.network_simulation_file["neurons"].keys()
@@ -216,9 +219,9 @@ class SnuddaLoadNetworkSimulation:
         if pre_id is None:
             return current, sec_id_x, syn_info
 
-        filtered_current = dict()
-        filtered_sec_id_x = dict()
-        filtered_syn_info = dict()
+        filtered_current = OrderedDict()
+        filtered_sec_id_x = OrderedDict()
+        filtered_syn_info = OrderedDict()
 
         for neuron_id, info in syn_info.items():
             idx = np.where(syn_info[1] == pre_id)[0]
@@ -289,16 +292,43 @@ class SnuddaLoadNetworkSimulation:
 
         return param_key, morph_key, mod_key
 
+    def export_to_csv(self, csv_file, neuron_id=None):
+
+        meta_file = f"{csv_file}-meta"
+
+        network_loader = SnuddaLoad(network_file=self.network_path)
+        network_data = network_loader.data
+
+        print(f"Writing spikes to csv file {csv_file}")
+        print(f"Writing metadata to {meta_file}")
+
+        with open(csv_file, "wt") as f, open(meta_file, "wt") as fm:
+
+            spikes = self.get_spikes(neuron_id=neuron_id)
+            for nid, spike_train in spikes.items():
+
+                # Skip empty spike trains
+                if len(spike_train) > 1:
+                    f.write(f"{','.join([str(x) for x in spike_train])}\n")
+                    fm.write(f"{nid}, {network_data['neurons'][nid]['name']}, "
+                             f"{network_data['populationUnit'][nid]}, "
+                             f"{','.join([str(x) for x in network_data['neurons'][nid]['position']])}\n")
+
 
 def load_network_simulation_cli():
     from argparse import ArgumentParser
 
     parser = ArgumentParser(description="Load snudda activity data (spikes and or voltage)")
     parser.add_argument("dataFile", help="Data file")
+    parser.add_argument("--export_spike_file", help="Name of csv file to export spikes to",
+                        default=None)
     args = parser.parse_args()
 
     slna = SnuddaLoadNetworkSimulation(network_simulation_output_file=args.dataFile)
     slna.load()
+
+    if args.export_spike_file is not None:
+        slna.export_to_csv(csv_file=args.export_spike_file)
 
 
 if __name__ == "__main__":
