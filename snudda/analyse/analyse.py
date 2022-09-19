@@ -664,8 +664,8 @@ class SnuddaAnalyse(object):
         plt.gca().spines["top"].set_visible(False)
 
         plt.tight_layout()
-        plt.pause(0.001)
         plt.savefig(full_fig_name)
+        plt.pause(0.001)
         # plt.savefig(full_fig_name.replace('.pdf', '.eps'))
 
         print("Wrote " + full_fig_name)
@@ -673,6 +673,8 @@ class SnuddaAnalyse(object):
         if self.close_plots:
             time.sleep(1)
             plt.close()
+
+        return full_fig_name
 
     ############################################################################
 
@@ -1078,13 +1080,13 @@ class SnuddaAnalyse(object):
         fig_name = (f"Network-distance-dependent-connection-probability-{pre_type}"
                     f"-to-{post_type}-{connection_type}{proj_text}")
 
-        self.save_figure(plt, fig_name)
+        full_fig_name = self.save_figure(plt, fig_name)
 
         if self.show_plots:
             plt.show()
 
         plt.pause(0.001)
-        return model_probs, fig_name
+        return model_probs, full_fig_name
 
     ############################################################################
 
