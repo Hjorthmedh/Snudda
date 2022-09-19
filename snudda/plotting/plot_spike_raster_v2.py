@@ -372,8 +372,8 @@ class SnuddaPlotSpikeRaster2:
             x_lim = (self.time[0], self.time[-1])
             ax.set_xlim(x_lim)
 
-        if not os.path.isdir(os.path.basename(self.figure_path)):
-            os.makedirs(os.path.basename(self.figure_path))
+        if not os.path.isdir(os.path.dirname(self.figure_path)):
+            os.makedirs(os.path.dirname(self.figure_path))
 
         if fig_file is None:
             fig_file = "spike_raster.pdf"
