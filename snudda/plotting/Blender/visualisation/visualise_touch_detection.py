@@ -5,11 +5,14 @@ import bpy
 import mathutils
 import numpy as np
 import h5py
-from snudda.utils.snudda_path import snudda_parse_path
+from snudda.utils.snudda_path import snudda_parse_path, get_snudda_data
+import os
 
 #network_file = "/home/hjorth/HBP/example/network/delme/network-synapses.hdf5"
 network_file = "/home/hjorth/HBP/example/network/delme2/network-synapses.hdf5"
+network_path = os.path.basename(network_file)
 
+snudda_data = get_snudda_data(network_path=network_path)
 
 out_file = "two-neurons-synapses.blend"
 
@@ -84,7 +87,7 @@ mat_synapse.node_tree.links.new(material_output.inputs[0], emission.outputs[0])
 for ps, rt, mo, nm, n_id in zip(pos, rot, morph, name, neuron_id):
 
     e_rot = mathutils.Matrix(rt.reshape(3, 3)).to_euler()
-    bpy.ops.import_mesh.swc(filepath=snudda_parse_path(mo))
+    bpy.ops.import_mesh.swc(filepath=snudda_parse_path(mo, snudda_data))
     obj = bpy.context.selected_objects[0]
 
     obj.rotation_euler = e_rot

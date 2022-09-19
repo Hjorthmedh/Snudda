@@ -12,7 +12,7 @@ import neuron
 import json
 import time
 
-from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists
+from snudda.utils.snudda_path import snudda_parse_path, get_snudda_data
 from snudda.synaptic_fitting.parameter_bookkeeper import ParameterBookkeeper
 
 # TODO: 2021-05-31 -- Add option to enable/disable trace smoothing
@@ -56,6 +56,7 @@ class OptimiseSynapsesFull(object):
     # datafile is JSON file from Ilaria's Igor extraction
 
     def __init__(self, data_file, synapse_type="glut", load_parameters=True,
+                 snudda_data=None,
                  role="master", d_view=None, verbose=True, log_file_name=None,
                  opt_method="sobol", pretty_plot=False,
                  model_bounds="model_bounds.json",
@@ -65,6 +66,7 @@ class OptimiseSynapsesFull(object):
 
         # Parallel execution role, "master" or "servant"
         self.role = role
+        self.snudda_data = get_snudda_data(snudda_data=snudda_data)
 
         self.parallel_setup_flag = False  # Set to True when servants are done setup
         self.d_view = d_view
@@ -571,7 +573,7 @@ class OptimiseSynapsesFull(object):
         holding_current = None
 
         self.rsr_synapse_model = \
-            RunSynapseRun(neuron_path=snudda_parse_path(c_prop["neuronPath"]),
+            RunSynapseRun(neuron_path=snudda_parse_path(c_prop["neuronPath"], self.snudda_data),
                           stim_times=t_stim,
                           num_synapses=n_synapses,
                           synapse_density=synapse_density,
@@ -1294,9 +1296,11 @@ class OptimiseSynapsesFull(object):
                           "load_parameters": self.load_parameters,
                           "normalise_trace": self.normalise_trace,
                           "neuron_set_file": self.neuron_set_file,
+                          "snudda_data": self.snudda_data,
                           "role": "servant"}, block=True)
 
         cmd_str = ("ly = OptimiseSynapsesFull(data_file=data_file, synapse_parameter_file=synapse_parameter_file, "
+                   "                          snudda_data=snudda_data,"
                    "                          synapse_type=synapse_type,role=role, load_parameters=load_parameters,"
                    "                          normalise_trace=normalise_trace, neuron_set_file=neuron_set_file," 
                    "                          log_file_name=engine_log_file[0])")
@@ -1407,6 +1411,9 @@ if __name__ == "__main__":
     if args.compile:
         if os.path.exists("x86_64"):
             shutil.rmtree("x86_64")
+
+        if os.path.exists("aarch64"):
+            shutil.rmtree("aarch64")
 
         if os.path.exists("mechanisms"):
             os.remove("mechanisms")

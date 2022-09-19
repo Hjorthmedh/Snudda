@@ -57,6 +57,7 @@ from snudda.simulate.simulate import SnuddaSimulate
 from snudda.utils import SnuddaLoadNetworkSimulation
 from snudda.utils.load import SnuddaLoad
 from snudda.utils import snudda_parse_path
+from snudda.utils.snudda_path import get_snudda_data
 
 # We want to match Taverna 2008 data:
 
@@ -83,7 +84,8 @@ class SnuddaNetworkPairPulseSimulation:
                  hold_voltage=-80e-3,
                  max_dist=50e-6,
                  log_file=None,
-                 random_seed=None):
+                 random_seed=None,
+                 snudda_data=None):
 
         if os.path.isfile(network_path):
             self.network_file = network_path
@@ -91,6 +93,8 @@ class SnuddaNetworkPairPulseSimulation:
         else:
             self.network_file = os.path.join(network_path, "network-synapses.hdf5")
             self.network_path = network_path
+
+        self.snudda_data = get_snudda_data(snudda_data=snudda_data)
 
         self.exp_type = exp_type
 
@@ -250,17 +254,19 @@ class SnuddaNetworkPairPulseSimulation:
 
         self.snudda_sim.setup()
 
-        # A current pulse to all pre synaptic neurons, one at a time
+        # A current pulse to all pre-synaptic neurons, one at a time
         if pre_id:
             print(f"Using user defined pre_id: {pre_id}")
             self.pre_id = pre_id
         else:
             self.pre_id = [x["neuronID"] for x in self.snudda_sim.network_info["neurons"] if x["type"] == self.pre_type]
 
-        # injInfo contains (preID,injStartTime)
+        # inj_info contains (pre_id, inj_start_time)
         self.inj_info = list(zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id))))
 
         sim_end = self.inj_info[-1][1] + self.inj_spacing
+
+        print(f"Running with sim_end = {sim_end}s")
 
         # Set the holding voltage
         self.setup_holding_volt(hold_v=self.hold_v, sim_end=sim_end)
@@ -282,10 +288,13 @@ class SnuddaNetworkPairPulseSimulation:
             self.snudda_sim.add_volt_recording_soma()
         else:
             # Record from all the potential post synaptic neurons
-            self.snudda_sim.add_recording_of_soma(self.post_type)
+            post_id = self.snudda_sim.snudda_loader.get_neuron_id_of_type(self.post_type)
 
             # Also save the presynaptic traces for debugging, to make sure they spike
-            self.snudda_sim.add_recording_of_soma(self.pre_type)
+            pre_id = self.snudda_sim.snudda_loader.get_neuron_id_of_type(self.pre_type)
+
+            id_to_record = set(pre_id).union(set(post_id))
+            self.snudda_sim.add_volt_recording_soma(id_to_record)
 
         # Run simulation
         self.snudda_sim.run(sim_end * 1e3, hold_v=self.hold_v)
@@ -332,6 +341,10 @@ class SnuddaNetworkPairPulseSimulation:
 
         assert post_type != "ALL", "You need to specify a neuron type as post_type, e.g. FS"
 
+        assert self.post_type == post_type or self.post_type == "ALL", \
+            f"You can only analyse post_type data that you recorded (e.g. {self.post_type}), " \
+            f"to record data from all neuron types use post_type=ALL"
+
         self.possible_post_id = [x["neuronID"] for x in self.data["neurons"] if x["type"] == post_type]
 
         # injInfo contains (preID,injStartTime)
@@ -360,8 +373,16 @@ class SnuddaNetworkPairPulseSimulation:
 
                 # There is a bit of synaptic delay, so we can take voltage
                 # at first timestep as baseline
+
+                if t + check_width > np.max(time):
+                    print(f"Simulation only run to {np.max(time)}s, missing pulses at {t}s (check_width={check_width}s)")
+                    continue
+
                 t_idx = np.where(np.logical_and(t <= time, time <= t + check_width))[0]
-                synapse_data.append((time[t_idx], voltage[post_id][t_idx]))
+                synapse_data.append((time[t_idx], voltage[post_id][t_idx], pre_id, post_id))
+
+                assert len(t_idx) > 0, f"Internal error, no time points recorded between {t} and {t+check_width} " \
+                                       f"for synapse pre_id={pre_id}, post_id={post_id}"
 
         if max_dist is not None:
             print(f"Number of pairs excluded, distance > {max_dist * 1e6} mum : {too_far_away}")
@@ -385,13 +406,22 @@ class SnuddaNetworkPairPulseSimulation:
         idx_max = np.zeros((len(synapse_data),), dtype=int)
         t_max = np.zeros((len(synapse_data),))
 
-        for i, (t, v) in enumerate(synapse_data):
+        for i, (t, v, pre_id, post_id) in enumerate(synapse_data):
             # Save the largest deflection -- with sign
-            idx_max[i] = np.argmax(np.abs(v - v[0]))
-            t_max[i] = t[idx_max[i]] - t[0]
-            amp[i] = v[idx_max[i]] - v[0]
+            try:
+                idx_max[i] = np.argmax(np.abs(v - v[0]))
+                t_max[i] = t[idx_max[i]] - t[0]
+                amp[i] = v[idx_max[i]] - v[0]
+            except:
+                import traceback
+                t_str = traceback.format_exc()
+                print(t_str)
+                import pdb
+                pdb.set_trace()
 
-        assert len(amp) > 0, "No responses... too short distance!"
+        if len(amp) <= 0:
+            print("No responses... too short distance!")
+            return None, None, None, None 
 
         print(f"Min amp: {np.min(amp)}")
         print(f"Max amp: {np.max(amp)}")
@@ -409,7 +439,7 @@ class SnuddaNetworkPairPulseSimulation:
 
         plt.figure()
         for x in keep_idx:
-            t, v = synapse_data[x]
+            t, v, pre_id, post_id = synapse_data[x]
 
             plt.plot((t - t[0]) * 1e3, (v - v[0]) * 1e3, color="black")
 
@@ -444,8 +474,8 @@ class SnuddaNetworkPairPulseSimulation:
 
         plt.tight_layout()
         plt.ion()
-        plt.show()
         plt.savefig(trace_fig, dpi=300)
+        plt.show()
 
         plt.figure()
         plt.hist(amp * 1e3, bins=20)
@@ -457,10 +487,12 @@ class SnuddaNetworkPairPulseSimulation:
         plt.gca().spines["top"].set_visible(False)
 
         plt.tight_layout()
-        plt.show()
         plt.savefig(hist_fig, dpi=300)
+        plt.show()
 
         plt.pause(10)
+
+        return model_mean, model_std, trace_fig, hist_fig
 
     ############################################################################
 
@@ -469,7 +501,8 @@ class SnuddaNetworkPairPulseSimulation:
         self.exp_data = dict()
 
         if data_file is None:
-            data_file = snudda_parse_path(os.path.join("$DATA", "synapses", "pair_pulse_experiment_data.json"))
+            data_file = snudda_parse_path(os.path.join("$DATA", "synapses", "pair_pulse_experiment_data.json"),
+                                          self.snudda_data)
 
         with open(data_file, "r") as f:
             exp_data = json.load(f)

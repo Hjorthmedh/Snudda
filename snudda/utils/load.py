@@ -18,15 +18,16 @@ class SnuddaLoad(object):
 
     ############################################################################
 
-    def __init__(self, network_file, load_synapses=True, verbose=False):
+    def __init__(self, network_file, snudda_data=None, load_synapses=True, verbose=False):
 
         """
         Constructor
 
         Args:
             network_file (str) : Data file to load
-            load_synapses (bool) : Whether to read synapses into memory, or keep them on disk (this keeps file open)
-            verbose (bool) : Print more info during execution
+            snudda_data (str, optional) : Snudda Data path, if you want to override the one specified in the hdf5 file
+            load_synapses (bool, optional) : Whether to read synapses into memory, or keep them on disk (this keeps file open)
+            verbose (bool, optional) : Print more info during execution
 
         """
 
@@ -38,6 +39,7 @@ class SnuddaLoad(object):
         self.config = None
 
         self.network_file = None
+        self.snudda_data = snudda_data
 
         if network_file:
             alt_file = os.path.join(network_file, "network-synapses.hdf5")
@@ -174,11 +176,11 @@ class SnuddaLoad(object):
 
         # We need to keep f open if load_synapses = False, using "with" would close file
 
-        if "config" in f:
+        if "config" in f["meta"]:
             if self.verbose:
                 print("Loading config data from HDF5")
-            data["config"] = SnuddaLoad.to_str(f["config"][()])
-            self.config = json.loads(f["config"][()], object_pairs_hook=OrderedDict)
+            data["config"] = SnuddaLoad.to_str(f["meta/config"][()])
+            self.config = json.loads(f["meta/config"][()], object_pairs_hook=OrderedDict)
 
         # Added so this code can also load the position file, which
         # does not have the network group yet
@@ -280,6 +282,12 @@ class SnuddaLoad(object):
 
         if "meta/axonStumpIDFlag" in f:
             data["axonStumpIDFlag"] = f["meta/axonStumpIDFlag"][()]
+
+        if "meta/snuddaData" in f:
+            data["SnuddaData"] = SnuddaLoad.to_str(f["meta/snuddaData"][()])
+
+            if self.snudda_data is None:
+                self.snudda_data = data["SnuddaData"]
 
         data["neurons"] = self.extract_neurons(f)
 
@@ -671,7 +679,7 @@ class SnuddaLoad(object):
 
     def get_neuron_population_units(self, neuron_id=None, return_set=False):
 
-        if neuron_id:
+        if neuron_id is not None:
             neuron_population_units = self.data["populationUnit"][neuron_id].flatten().copy()
         else:
             neuron_population_units = self.data["populationUnit"].flatten().copy()
@@ -683,7 +691,7 @@ class SnuddaLoad(object):
 
     def get_neuron_types(self, neuron_id=None, return_set=False):
 
-        if neuron_id:
+        if neuron_id is not None:
             neuron_types = [self.data["neurons"][x]["type"] for x in neuron_id]
         else:
             neuron_types = [x["type"] for x in self.data["neurons"]]
@@ -806,6 +814,7 @@ class SnuddaLoad(object):
         """
 
         neuron_prototype = NeuronPrototype(neuron_path=self.data["neurons"][neuron_id]["neuronPath"],
+                                           snudda_data=self.data["SnuddaData"],
                                            neuron_name=self.data["neurons"][neuron_id]["name"])
         neuron_object = neuron_prototype.clone(parameter_key=self.data["neurons"][neuron_id]["parameterKey"],
                                                morphology_key=self.data["neurons"][neuron_id]["morphologyKey"],
@@ -981,6 +990,7 @@ def snudda_load_cli():
         print(f"List neurons pre-synaptic to neuronID = {args.listPre} "
               f"({nl.data['neurons'][args.listPre]['name']})")
         synapses, synapse_coords = nl.find_synapses(post_id=args.listPre)
+        print(f"The neuron receives {synapses.shape[0]} synapses")
 
         if synapses is None:
             print("No pre synaptic neurons were found.")
@@ -1007,6 +1017,7 @@ def snudda_load_cli():
         print(f"List neurons post-synaptic to neuronID = {args.listPost}"
               f" ({nl.data['neurons'][args.listPost]['name']}):")
         synapses, synapse_coords = nl.find_synapses(pre_id=args.listPost)
+        print(f"The neuron makes {synapses.shape[0]} synapses on other neurons")
 
         if synapses is None:
             print("No post synaptic targets found.")

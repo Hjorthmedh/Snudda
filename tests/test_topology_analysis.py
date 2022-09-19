@@ -1,10 +1,16 @@
 import unittest
+import os
 
 import numpy as np
 from snudda.analyse.analyse_topology_activity import SnuddaAnalyseTopologyActivity
 
 
 class TestTopologyAnalysis(unittest.TestCase):
+
+    def setUp(self) -> None:
+        if os.path.dirname(__file__):
+            os.chdir(os.path.dirname(__file__))
+
     def test_basics(self):
         sa = SnuddaAnalyseTopologyActivity()
 

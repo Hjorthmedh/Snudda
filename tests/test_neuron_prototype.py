@@ -10,7 +10,8 @@ class NeuronPrototypeTestCase(unittest.TestCase):
 
     def setUp(self) -> None:
 
-        pass
+        if os.path.dirname(__file__):
+            os.chdir(os.path.dirname(__file__))
 
     def test_setup(self):
 

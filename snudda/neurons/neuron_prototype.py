@@ -17,6 +17,7 @@ class NeuronPrototype:
                  parameter_path=None,
                  mechanism_path=None,
                  modulation_path=None,
+                 snudda_data=None,
                  meta_path=None,
                  virtual_neuron=False,
                  load_morphology=True,
@@ -24,19 +25,20 @@ class NeuronPrototype:
                  verbose=False):
 
         self.verbose = verbose
+        self.snudda_data = snudda_data
 
         if neuron_path:
-            self.neuron_path = snudda_parse_path(neuron_path)
+            self.neuron_path = snudda_parse_path(neuron_path, self.snudda_data)
         elif parameter_path:
-            self.neuron_path = os.path.dirname(snudda_parse_path(parameter_path))
+            self.neuron_path = os.path.dirname(snudda_parse_path(parameter_path, self.snudda_data))
         elif morphology_path:
             # morphology path usually points to "morphology" directory, but it can also point to a specific morphology
             # which should be in neuron_path then (old format), but it might be in morphology folder...
 
-            if os.path.isdir(snudda_parse_path(morphology_path)):
-                self.neuron_path = os.path.dirname(snudda_parse_path(morphology_path))
-            elif os.path.isfile(snudda_parse_path(morphology_path)):
-                morph_path = os.path.dirname(snudda_parse_path(morphology_path))
+            if os.path.isdir(snudda_parse_path(morphology_path, self.snudda_data)):
+                self.neuron_path = os.path.dirname(snudda_parse_path(morphology_path, self.snudda_data))
+            elif os.path.isfile(snudda_parse_path(morphology_path, self.snudda_data)):
+                morph_path = os.path.dirname(snudda_parse_path(morphology_path, self.snudda_data))
                 if "morphology" in morph_path:
                     self.neuron_path = os.path.dirname(morph_path)
                 else:
@@ -45,37 +47,37 @@ class NeuronPrototype:
             self.neuron_path = None
 
         if morphology_path:
-            self.morphology_path = snudda_parse_path(morphology_path)
+            self.morphology_path = snudda_parse_path(morphology_path, self.snudda_data)
         elif self.neuron_path:
-            self.morphology_path = snudda_parse_path(os.path.join(self.neuron_path, "morphology"))
+            self.morphology_path = snudda_parse_path(os.path.join(self.neuron_path, "morphology"), self.snudda_data)
         else:
             self.morphology_path = None
 
         if mechanism_path:
-            self.mechanism_path = snudda_parse_path(mechanism_path)
+            self.mechanism_path = snudda_parse_path(mechanism_path, self.snudda_data)
         elif self.neuron_path:
-            self.mechanism_path = snudda_parse_path(os.path.join(self.neuron_path, "mechanisms.json"))
+            self.mechanism_path = snudda_parse_path(os.path.join(self.neuron_path, "mechanisms.json"), self.snudda_data)
         else:
             self.mechanism_path = None
 
         if parameter_path:
-            self.parameter_path = snudda_parse_path(parameter_path)
+            self.parameter_path = snudda_parse_path(parameter_path, self.snudda_data)
         elif self.neuron_path:
-            self.parameter_path = snudda_parse_path(os.path.join(self.neuron_path, "parameters.json"))
+            self.parameter_path = snudda_parse_path(os.path.join(self.neuron_path, "parameters.json"), self.snudda_data)
         else:
             self.parameter_path = None
 
         if meta_path:
-            self.meta_path = snudda_parse_path(meta_path)
+            self.meta_path = snudda_parse_path(meta_path, self.snudda_data)
         elif self.neuron_path:
-            self.meta_path = snudda_parse_path(os.path.join(self.neuron_path, "meta.json"))
+            self.meta_path = snudda_parse_path(os.path.join(self.neuron_path, "meta.json"), self.snudda_data)
         else:
             self.meta_path = None
 
         if modulation_path:
-            self.modulation_path = snudda_parse_path(modulation_path)
+            self.modulation_path = snudda_parse_path(modulation_path, self.snudda_data)
         elif self.neuron_path:
-            self.modulation_path = snudda_parse_path(os.path.join(self.neuron_path, "modulation.json"))
+            self.modulation_path = snudda_parse_path(os.path.join(self.neuron_path, "modulation.json"), self.snudda_data)
 
             if not os.path.exists(self.modulation_path):
                 self.modulation_path = None
@@ -104,7 +106,9 @@ class NeuronPrototype:
         par_path = self.parameter_path
 
         if par_path is None or not os.path.exists(par_path):
-            print(f"Missing parameter.json : {par_path}")
+            if self.verbose:
+                print(f"Missing parameters.json : {par_path}")
+    
             self.parameter_info = None
             return
 
@@ -353,6 +357,7 @@ class NeuronPrototype:
                                                                         param_data=self.parameter_path,
                                                                         mech_filename=self.mechanism_path,
                                                                         neuron_path=self.neuron_path,
+                                                                        snudda_data=self.snudda_data,
                                                                         name=self.neuron_name,
                                                                         hoc=None,
                                                                         load_morphology=self.load_morphology,
@@ -411,6 +416,7 @@ class NeuronPrototype:
                                                                 param_data=self.parameter_path,
                                                                 mech_filename=self.mechanism_path,
                                                                 neuron_path=self.neuron_path,
+                                                                snudda_data=self.snudda_data,
                                                                 name=self.neuron_name,
                                                                 hoc=None,
                                                                 load_morphology=self.load_morphology,

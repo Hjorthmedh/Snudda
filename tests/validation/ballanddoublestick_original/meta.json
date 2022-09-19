@@ -1,0 +1,40 @@
+{
+    "p0" : {
+	"m0" : {
+	    "morphology" : "double_0.swc"
+	},
+	"m1" : {
+	    "morphology" : "double_1.swc"
+	}
+    },
+	
+    "p1" : {
+	"m1" : {
+	    "morphology" : "double_1.swc"
+	},
+	"m2" : {
+	    "morphology" : "double_2.swc"
+	}
+    },
+
+    "p2" : {
+	"m0" : {
+	    "morphology" : "double_0.swc"
+	},
+	"m2" : {
+	    "morphology" : "double_2.swc"
+	}
+    },
+
+    "p3" : {
+	"m0" : {
+	    "morphology" : "double_0.swc"
+	},
+	"m1" : {
+	    "morphology" : "double_1.swc"
+	},
+	"m2" : {
+	    "morphology" : "double_2.swc"
+	}
+    }
+}

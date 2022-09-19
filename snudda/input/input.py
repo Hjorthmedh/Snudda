@@ -24,6 +24,8 @@ import h5py
 import numexpr
 import numpy as np
 
+from snudda.utils.snudda_path import get_snudda_data
+from snudda.input.time_varying_input import TimeVaryingInput
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.load import SnuddaLoad
 from snudda.utils.snudda_path import snudda_parse_path
@@ -40,6 +42,7 @@ class SnuddaInput(object):
 
     def __init__(self,
                  network_path=None,
+                 snudda_data=None,
                  input_config_file=None,
                  spike_data_filename=None,
                  hdf5_network_file=None,
@@ -58,6 +61,7 @@ class SnuddaInput(object):
 
         Args:
             network_path (str): Path to network directory
+            snudda_data (str): Path to Snudda Data
             input_config_file (str): Path to input config file, default input.json in network_path
             spike_data_filename (str): Path to output file, default input-spikes.hdf5
             hdf5_network_file (str): Path to network file, default network-synapses.hdf5
@@ -87,6 +91,9 @@ class SnuddaInput(object):
             self.network_path = os.path.dirname(input_config_file)
         else:
             self.network_path = None
+
+        self.snudda_data = get_snudda_data(snudda_data=snudda_data,
+                                           network_path=self.network_path)
 
         if input_config_file:
             self.input_config_file = input_config_file
@@ -357,14 +364,15 @@ class SnuddaInput(object):
 
         self.write_log(f"Loading input configuration from {self.input_config_file}")
 
-        with open(snudda_parse_path(self.input_config_file), 'rt') as f:
+        with open(snudda_parse_path(self.input_config_file, self.snudda_data), 'rt') as f:
             self.input_info = json.load(f, object_pairs_hook=OrderedDict)
 
         for neuron_type in self.input_info:
             for input_type in self.input_info[neuron_type]:
                 if "parameterFile" in self.input_info[neuron_type][input_type]:
                     # Allow user to use $DATA to refer to snudda data directory
-                    par_file = snudda_parse_path(self.input_info[neuron_type][input_type]["parameterFile"])
+                    par_file = snudda_parse_path(self.input_info[neuron_type][input_type]["parameterFile"],
+                                                 self.snudda_data)
 
                     with open(par_file, 'r') as f:
                         par_data_dict = json.load(f, object_pairs_hook=OrderedDict)
@@ -434,7 +442,7 @@ class SnuddaInput(object):
                 # Handle frequency function
                 elif self.input_info[cell_type][input_type]["generator"] == "frequency_function":
 
-                    frequency_function = self.input_info[cell_type][input_type]["frequencyFunction"]
+                    frequency_function = self.input_info[cell_type][input_type]["frequency"]
                     self.population_unit_spikes[cell_type][input_type] = dict([])
 
                     for idx_pop_unit in pop_unit_list:
@@ -597,7 +605,7 @@ class SnuddaInput(object):
                 self.neuron_input[neuron_id][input_type] = dict([])
 
                 if input_inf["generator"] == "csv":
-                    csv_file = snudda_parse_path(input_inf["csvFile"] % neuron_id)
+                    csv_file = snudda_parse_path(input_inf["csvFile"] % neuron_id, self.snudda_data)
 
                     self.neuron_input[neuron_id][input_type]["spikes"] \
                         = np.genfromtxt(csv_file, delimiter=',')
@@ -752,7 +760,7 @@ class SnuddaInput(object):
                     generator_list.append("poisson")
 
                 elif input_inf["generator"] == "frequency_function":
-                    freq_list.append(input_inf["frequencyFunction"])
+                    freq_list.append(input_inf["frequency"])
                     generator_list.append("frequency_function")
 
                 else:
@@ -984,10 +992,20 @@ class SnuddaInput(object):
         for freq, t_start, t_end, p_k in zip(frequency_list, time_ranges[0], time_ranges[1], p_keep_list):
             t_spikes.append(self.generate_spikes_function(freq, (t_start, t_end), rng=rng, dt=dt, p_keep=p_k))
 
+        try:
+            spikes = np.sort(np.concatenate(t_spikes))
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
+
         # Double check correct dimension
-        return np.sort(np.concatenate(t_spikes))
+        return spikes
 
     def generate_spikes_function(self, frequency_function, time_range, rng, dt=1e-4, p_keep=1):
+
+        # TODO: Replace this with the code in time_varying_input.py
 
         """
         Generates frequency based on frequency_function.
@@ -1011,31 +1029,24 @@ class SnuddaInput(object):
             f"Error: p_keep = {p_keep}, valid range 0-1. If p_keep is a list, " \
             f"then time_ranges must be two lists, ie. (start_times, end_times)"
 
-        t = np.arange(0, time_range[1] - time_range[0], dt)
-
         if callable(frequency_function):
-            p_input = frequency_function(t) * dt * p_keep
+            func = lambda t: frequency_function(t) * p_keep
         else:
-            # print(f"Evaluating {frequency_function} (type: {type(frequency_function)})")
-
-            ddt = dt  # evaluate seems to overwrite dt...?
             try:
-                p_input = numexpr.evaluate(frequency_function)
-                p_input = p_input * dt * p_keep
-                # p_input = p_input * p_keep
+                func_str = f"{frequency_function}*{p_keep}"
+                func = lambda t: numexpr.evaluate(func_str)
             except:
                 import traceback
                 print(traceback.format_exc())
                 import pdb
                 pdb.set_trace()
 
-        assert (p_input >= 0).all(), f"Probability to spike within dt={dt} should be non-negative: " \
-                                     f"frequency_function {frequency_function}"
-        assert (p_input <= 1).all(), f"Too high frequency, P > 1 for dt={dt} : frequency_function {frequency_function}"
+        # TODO: Utilise the n_spike trains better
+        spikes = TimeVaryingInput.generate_spikes(frequency_function=func,
+                                                  start_time=time_range[0], end_time=time_range[1],
+                                                  n_spike_trains=1, rng=rng)[0].T
 
-        spike_mask = rng.uniform(size=t.shape) < p_input
-        t_idx = np.where(spike_mask)[0]
-        return t[t_idx] + time_range[0]
+        return spikes
 
     ############################################################################
 
@@ -1227,6 +1238,10 @@ class SnuddaInput(object):
             pop_freq = freq
         else:
             assert False, f"Unknown input_generator {input_generator}"
+
+
+        # TODO: For frequency_functions we can skip parts of the loop and directly request n_spike_trains
+        #       That would speed up the frequency_function generation call
 
         for i in range(0, num_spike_trains):
             t_unique = self.generate_spikes_helper(frequency=pop_freq, time_range=time_range, rng=rng,
@@ -1545,6 +1560,7 @@ class SnuddaInput(object):
         else:
             self.write_log(f"Creating prototype {neuron_name}")
             morphology_prototype = NeuronPrototype(neuron_name=neuron_name,
+                                                   snudda_data=self.snudda_data,
                                                    morphology_path=morphology_path,
                                                    parameter_path=parameters_path,
                                                    modulation_path=modulation_path,

@@ -1,5 +1,8 @@
 import os
 import numpy as np
+
+from snudda.utils.snudda_path import get_snudda_data
+from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.load import SnuddaLoad
 import matplotlib.pyplot as plt
 
@@ -8,7 +11,7 @@ from snudda.neurons.neuron_morphology import NeuronMorphology
 
 class PlotNetwork(object):
 
-    def __init__(self, network):
+    def __init__(self, network, snudda_data=None):
 
         if os.path.isdir(network):
             network_file = os.path.join(network, "network-synapses.hdf5")
@@ -19,6 +22,8 @@ class PlotNetwork(object):
         self.network_path = os.path.dirname(self.network_file)
 
         self.sl = SnuddaLoad(self.network_file)
+        self.snudda_data = get_snudda_data(snudda_data=snudda_data,
+                                           network_path=self.network_path)
         self.prototype_neurons = dict()
 
     def close(self):
@@ -158,12 +163,17 @@ class PlotNetwork(object):
         neuron_name = neuron_info["name"]
 
         if neuron_name not in self.prototype_neurons:
-            self.prototype_neurons[neuron_name] = NeuronMorphology(name=neuron_name,
-                                                                   swc_filename=neuron_info["morphology"])
+            self.prototype_neurons[neuron_name] = NeuronPrototype(neuron_name=neuron_info["name"],
+                                                                  neuron_path=neuron_info["neuronPath"],
+                                                                  snudda_data=self.snudda_data,
+                                                                  load_morphology=True,
+                                                                  virtual_neuron=False)
 
-        neuron = self.prototype_neurons[neuron_name].clone()
-        neuron.place(rotation=neuron_info["rotation"],
-                     position=neuron_info["position"])
+        neuron = self.prototype_neurons[neuron_name].clone(position=neuron_info["position"],
+                                                           rotation=neuron_info["rotation"],
+                                                           parameter_key=neuron_info["parameterKey"],
+                                                           morphology_key=neuron_info["morphologyKey"],
+                                                           modulation_key=neuron_info["modulationKey"])
 
         return neuron
 
@@ -251,6 +261,7 @@ def snudda_plot_network_cli():
     pn.plot(fig_name="network-plot.png", neuron_id_list=neuron_id_list,
             plot_axon=args.showAxons, plot_dendrite=args.showDendrites, plot_synapses=args.showSynapses,
             filter_synapses_pre_id_list=pre_id_list)
+
 
 if __name__ == "__main__":
     snudda_plot_network_cli()

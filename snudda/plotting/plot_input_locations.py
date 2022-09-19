@@ -2,6 +2,7 @@ import os
 import h5py
 import numpy as np
 
+from snudda.utils.snudda_path import get_snudda_data
 from snudda.utils import SnuddaLoad
 from snudda.neurons.neuron_morphology import NeuronMorphology
 from snudda.neurons.neuron_prototype import NeuronPrototype
@@ -22,6 +23,8 @@ class SnuddaPlotInputLocations:
                 network_path = "./"
 
         self.network_path = network_path
+
+        self.snudda_data = get_snudda_data(network_path=self.network_path)
 
         if network_file is None:
             self.network_file = os.path.join(network_path, "network-synapses.hdf5")
@@ -51,8 +54,6 @@ class SnuddaPlotInputLocations:
                            save_fig=True,
                            dpi=300,
                            show_figure=True):
-
-        # TODO: Add ability to plot touch detected inputs also (use blue colour for them)
 
         coords = self.get_input_coords(neuron_id=neuron_id, input_type=input_type)
 
@@ -166,7 +167,8 @@ class SnuddaPlotInputLocations:
         if neuron_id not in self.neuron_cache:
             neuron_info = self.snudda_load.data["neurons"][neuron_id]
 
-            np = NeuronPrototype(neuron_path=neuron_info["neuronPath"], neuron_name=neuron_info["name"])
+            np = NeuronPrototype(neuron_path=neuron_info["neuronPath"], neuron_name=neuron_info["name"],
+                                 snudda_data=self.snudda_data)
             nm = np.clone(parameter_key=neuron_info["parameterKey"], morphology_key=neuron_info["morphologyKey"],
                           position=neuron_info["position"], rotation=neuron_info["rotation"])
             self.neuron_cache[neuron_id] = nm
@@ -191,10 +193,10 @@ class SnuddaPlotInputLocations:
 
         dist = np.linalg.norm(coords - synapse_coords, axis=-1)
         max_dist = 10e-6  # np.sqrt(3*(5e-6 ** 2))
-        assert (dist <= max_dist).all(), \
-            (f"Synapse coordinates mismatch {synapse_coords[np.where(dist > max_dist)[0], :]} "
-             f"vs {coords[np.where(dist > max_dist)[0], :]}"
-             f" (distances {dist[np.where(dist > max_dist)[0]]} with allowed max_dist = {max_dist})")
+        if (dist > max_dist).any():
+            print(f"Synapse coordinates mismatch {synapse_coords[np.where(dist > max_dist)[0], :]} "
+                  f"vs {coords[np.where(dist > max_dist)[0], :]}"
+                  f" (distances {dist[np.where(dist > max_dist)[0]]} with allowed max_dist = {max_dist})")
 
         pre_id = synapses[:, 0]
 

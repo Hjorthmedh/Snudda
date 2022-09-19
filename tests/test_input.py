@@ -295,14 +295,17 @@ class InputTestCase(unittest.TestCase):
         input_data = h5py.File(spike_file, 'r')
         config_data = json.loads(input_data["config"][()])
 
-        some_spikes = input_data["input/5/Cortical/spikes"][()].flatten()
+        # OBS, population unit 0 does not get any of the extra mother spikes specified
+        # So we need to check FS neuron that belongs to population unit 1 or 2.
+        some_spikes = input_data["input/1/Cortical/spikes"][()].flatten()
         some_spikes = some_spikes[some_spikes >= 0]
 
         for extra_spike in [0.2, 0.3, 0.45]:
+
             self.assertTrue(np.sum(np.abs(some_spikes - extra_spike) < 1e-4) >= 3977)
             self.assertTrue(np.sum(np.abs(some_spikes - extra_spike + 0.05) < 1e-3) < 50)
 
-        some_spikes2 = input_data["input/5/Thalamic/spikes"][()].flatten()
+        some_spikes2 = input_data["input/1/Thalamic/spikes"][()].flatten()
         some_spikes2 = some_spikes2[some_spikes2 >= 0]
 
         for spike in [0.1, 0.2, 0.3]:

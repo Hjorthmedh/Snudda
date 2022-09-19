@@ -11,7 +11,12 @@ from snudda.neurons.neuron_prototype import NeuronPrototype
 
 
 class NeuronModel(ephys.models.CellModel):
-    """ Extended NeuronModel for simulation. """
+    """ Extended NeuronModel for simulation.
+
+        Note that the paths are here assumed to be absolute, ie SNUDDA_DATA is not replaced, that should be done
+        before calling this class.
+
+    """
 
     def __init__(self,
                  cell_name="Unknown",
