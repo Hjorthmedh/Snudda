@@ -942,6 +942,7 @@ class SnuddaAnalyse(object):
             exp_data_detailed = []
 
         # Add lines for experimental data and matching data for model
+        model_probs = {}
         for (d_limit, p_exp, exp_num) in zip(exp_max_dist, exp_data, exp_data_detailed):
             cnt = 0
             cnt_all = 0
@@ -955,6 +956,7 @@ class SnuddaAnalyse(object):
             cnt_all[cnt_all == 0] = 1
 
             p_model = float(cnt) / float(cnt_all)
+            model_probs[d_limit] = p_model
 
             print(f"P(d<{d_limit}) = {p_model}")
             # ax = fig.get_axes()
@@ -1082,6 +1084,7 @@ class SnuddaAnalyse(object):
             plt.show()
 
         plt.pause(0.001)
+        return model_probs, fig_name
 
     ############################################################################
 
