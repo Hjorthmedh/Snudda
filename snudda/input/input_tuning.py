@@ -18,7 +18,7 @@ from snudda.place.create_cube_mesh import create_cube_mesh
 from snudda.simulate.simulate import SnuddaSimulate
 from snudda.utils import SnuddaLoadNetworkSimulation
 from snudda.utils.load import SnuddaLoad
-from snudda.utils.snudda_path import snudda_isdir, snudda_parse_path, snudda_simplify_path
+from snudda.utils.snudda_path import snudda_isdir, snudda_parse_path, snudda_simplify_path, get_snudda_data
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -34,10 +34,11 @@ class NumpyEncoder(json.JSONEncoder):
 
 class InputTuning(object):
 
-    def __init__(self, network_path):
+    def __init__(self, network_path, snudda_data=None):
 
         self.network_path = network_path
         self.neurons_path = None
+        self.snudda_data = get_snudda_data(snudda_data=snudda_data)
 
         self.neuron_types = None
         self.neuron_id = None
@@ -556,7 +557,7 @@ class InputTuning(object):
 
     def get_neuron_info(self, neuron_path):
 
-        neuron_path = snudda_parse_path(neuron_path)
+        neuron_path = snudda_parse_path(neuron_path, self.snudda_data)
 
         neuron_info = collections.OrderedDict()
 
@@ -572,14 +573,14 @@ class InputTuning(object):
         assert os.path.isfile(parameter_file), f"Missing parameter file {parameter_file}"
         assert os.path.isfile(mechanism_file), f"Missing mechanism file {mechanism_file}"
 
-        neuron_info["morphology"] = snudda_simplify_path(neuron_morph)
-        neuron_info["parameters"] = snudda_simplify_path(parameter_file)
-        neuron_info["mechanisms"] = snudda_simplify_path(mechanism_file)
-        neuron_info["meta"] = snudda_simplify_path(meta_file)
+        neuron_info["morphology"] = snudda_simplify_path(neuron_morph, self.snudda_data)
+        neuron_info["parameters"] = snudda_simplify_path(parameter_file, self.snudda_data)
+        neuron_info["mechanisms"] = snudda_simplify_path(mechanism_file, self.snudda_data)
+        neuron_info["meta"] = snudda_simplify_path(meta_file, self.snudda_data)
 
         # Modulation file is optional
         if os.path.isfile(modulation_file):
-            neuron_info["modulation"] = snudda_simplify_path(modulation_file)
+            neuron_info["modulation"] = snudda_simplify_path(modulation_file, self.snudda_data)
 
         return neuron_info
 
@@ -589,10 +590,12 @@ class InputTuning(object):
     def gather_all_neurons(self, neuron_types=None, all_combinations=True):
         all_neurons = collections.OrderedDict()
 
-        assert snudda_isdir(self.neurons_path), f"Neurons directory {self.neurons_path} does not exist."
+        assert snudda_isdir(self.neurons_path, self.snudda_data), \
+            f"Neurons directory {self.neurons_path} does not exist."
 
-        neuron_type_dir = [d for d in glob.glob(os.path.join(snudda_parse_path(self.neurons_path), '*'))
-                           if snudda_isdir(d)]
+        neuron_type_dir = [d for d in glob.glob(os.path.join(snudda_parse_path(self.neurons_path, self.snudda_data),
+                                                             '*'))
+                           if snudda_isdir(d, self.snudda_data)]
 
         self.neuron_types = []
 
@@ -645,17 +648,16 @@ class InputTuning(object):
 
         return all_neurons
 
-    @staticmethod
-    def get_all_combinations(neuron_info):
+    def get_all_combinations(self, neuron_info):
 
         assert "meta" in neuron_info and neuron_info["meta"]
 
         pm_list = []
 
-        with open(snudda_parse_path(neuron_info["parameters"]), "r") as pf:
+        with open(snudda_parse_path(neuron_info["parameters"], self.snudda_data), "r") as pf:
             param_data = json.load(pf)
 
-        with open(snudda_parse_path(neuron_info["meta"]), "r") as mf:
+        with open(snudda_parse_path(neuron_info["meta"], self.snudda_data), "r") as mf:
             meta_data = json.load(mf)
 
         for p_idx, p_key in enumerate(param_data):

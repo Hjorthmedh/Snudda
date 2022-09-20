@@ -57,6 +57,7 @@ from snudda.simulate.simulate import SnuddaSimulate
 from snudda.utils import SnuddaLoadNetworkSimulation
 from snudda.utils.load import SnuddaLoad
 from snudda.utils import snudda_parse_path
+from snudda.utils.snudda_path import get_snudda_data
 
 # We want to match Taverna 2008 data:
 
@@ -83,7 +84,8 @@ class SnuddaNetworkPairPulseSimulation:
                  hold_voltage=-80e-3,
                  max_dist=50e-6,
                  log_file=None,
-                 random_seed=None):
+                 random_seed=None,
+                 snudda_data=None):
 
         if os.path.isfile(network_path):
             self.network_file = network_path
@@ -91,6 +93,8 @@ class SnuddaNetworkPairPulseSimulation:
         else:
             self.network_file = os.path.join(network_path, "network-synapses.hdf5")
             self.network_path = network_path
+
+        self.snudda_data = get_snudda_data(snudda_data=snudda_data)
 
         self.exp_type = exp_type
 
@@ -497,7 +501,8 @@ class SnuddaNetworkPairPulseSimulation:
         self.exp_data = dict()
 
         if data_file is None:
-            data_file = snudda_parse_path(os.path.join("$DATA", "synapses", "pair_pulse_experiment_data.json"))
+            data_file = snudda_parse_path(os.path.join("$DATA", "synapses", "pair_pulse_experiment_data.json"),
+                                          self.snudda_data)
 
         with open(data_file, "r") as f:
             exp_data = json.load(f)

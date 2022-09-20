@@ -36,6 +36,7 @@ import numpy as np
 import scipy
 from numba import jit
 
+from snudda.utils import SnuddaLoad
 from snudda.utils.numpy_encoder import NumpyEncoder
 
 
@@ -504,6 +505,7 @@ class SnuddaPrune(object):
         self.hyper_voxel_size = self.hist_file["meta/hyperVoxelSize"][()]  # num bins
         self.simulation_origo = self.hist_file["meta/simulationOrigo"][()]
         self.hyper_voxel_width = self.voxel_size * self.hyper_voxel_size
+        self.snudda_data = SnuddaLoad.to_str(self.hist_file["meta/snuddaData"][()])
 
         # We need to make sure that detect finished correctly, that all hyper voxels are done
         all_id = set(self.hist_file["allHyperIDs"])

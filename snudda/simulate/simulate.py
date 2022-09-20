@@ -28,12 +28,12 @@ import numpy as np
 from neuron import h  # , gui
 
 import snudda.utils.memory
+from snudda.utils.snudda_path import snudda_parse_path, get_snudda_data
 from snudda.neurons.neuron_model_extended import NeuronModel
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
 # If simulationConfig is set, those values override other values
 from snudda.utils.load import SnuddaLoad
 from snudda.simulate.save_network_recording import SnuddaSaveNetworkRecordings
-from snudda.utils.snudda_path import snudda_parse_path
 
 
 # !!! Need to gracefully handle the situation where there are more workers than
@@ -47,6 +47,7 @@ class SnuddaSimulate(object):
     def __init__(self,
                  network_path=None,
                  network_file=None,
+                 snudda_data=None,
                  input_file=None,
                  output_file=None,
                  verbose=False,
@@ -61,6 +62,7 @@ class SnuddaSimulate(object):
         Args:
             network_path (str): Path to network directory
             network_file (str, optional): Path to network file, default network-synapses.hdf5 in network_path
+            snudda_data (str, optional): Path to Snudda Data
             input_file (str, optional): Path to input file, default input-spikes.hdf5 in network_path
             output_file (str, optional): Path to output file, default simulation/output.hdf5
             verbose (bool): Extra printouts
@@ -80,6 +82,9 @@ class SnuddaSimulate(object):
             self.network_path = os.path.dirname(network_file)
         else:
             assert False, "You must give network_path or network_file"
+
+        self.snudda_data = get_snudda_data(snudda_data=snudda_data,
+                                           network_path=self.network_path)
 
         if not network_file:
             self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
@@ -293,7 +298,7 @@ class SnuddaSimulate(object):
         self.num_neurons = self.network_info["nNeurons"]
 
         if config_file is None:
-            config_file = snudda_parse_path(self.network_info["configFile"])
+            config_file = snudda_parse_path(self.network_info["configFile"], self.snudda_data)
 
         self.config_file = config_file
         self.write_log(f"Loading config file {config_file}")
@@ -389,7 +394,7 @@ class SnuddaSimulate(object):
 
                 if "parameterFile" in info_dict["channelParameters"] \
                         and info_dict["channelParameters"]["parameterFile"] is not None:
-                    par_file = snudda_parse_path(info_dict["channelParameters"]["parameterFile"])
+                    par_file = snudda_parse_path(info_dict["channelParameters"]["parameterFile"], self.snudda_data)
 
                     with open(par_file, "r") as f:
                         par_data_dict = json.load(f, object_pairs_hook=OrderedDict)
@@ -443,12 +448,12 @@ class SnuddaSimulate(object):
 
             config = self.config["Neurons"][name]
 
-            morph = snudda_parse_path(config["morphology"])
-            param = snudda_parse_path(config["parameters"])
-            mech = snudda_parse_path(config["mechanisms"])
+            morph = snudda_parse_path(config["morphology"], self.snudda_data)
+            param = snudda_parse_path(config["parameters"], self.snudda_data)
+            mech = snudda_parse_path(config["mechanisms"], self.snudda_data)
 
             if "modulation" in config:
-                modulation = snudda_parse_path(config["modulation"])
+                modulation = snudda_parse_path(config["modulation"], self.snudda_data)
             else:
                 modulation = None
 
@@ -457,7 +462,7 @@ class SnuddaSimulate(object):
 
                 if self.input_data is None:
                     self.write_log(f"Using {self.input_file} for virtual neurons")
-                    self.input_data = h5py.File(snudda_parse_path(self.input_file), 'r')
+                    self.input_data = h5py.File(snudda_parse_path(self.input_file, self.snudda_data), 'r')
 
                 name = self.network_info["neurons"][ID]["name"]
                 spikes = self.input_data["input"][ID]["activity"]["spikes"][:, 0]

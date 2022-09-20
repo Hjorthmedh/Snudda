@@ -126,10 +126,10 @@ class SegmentIdTestCase(unittest.TestCase):
 
     def test_all_dir(self):
 
-        neuron_dirs = [snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "dspn")),
-                       snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "ispn")),
-                       snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "fs")),
-                       snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "lts")),
+        neuron_dirs = [snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "dspn"), snudda_data=None),
+                       snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "ispn"), snudda_data=None),
+                       snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "fs"), snudda_data=None),
+                       snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "lts"), snudda_data=None),
                        ]
 
         for neuron_dir in neuron_dirs:

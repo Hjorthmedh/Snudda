@@ -11,7 +11,6 @@
 
 import json
 import os
-#
 import sys
 from collections import OrderedDict
 
@@ -20,6 +19,7 @@ import numexpr
 import numpy as np
 import scipy.cluster
 
+from snudda.utils.snudda_path import get_snudda_data
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.place.region_mesh import RegionMesh
 from snudda.place.rotation import SnuddaRotate
@@ -35,6 +35,7 @@ class SnuddaPlace(object):
     def __init__(self,
                  config_file=None,
                  network_path=None,
+                 snudda_data=None,
                  verbose=False,
                  log_file=None,
                  rc=None,
@@ -50,6 +51,7 @@ class SnuddaPlace(object):
         Args:
             config_file (str) : Path to config file, e.g. network-config.json in network_path
             network_path (str) : Path to network directory
+            snudda_data (str): Path to snudda data
             verbose (bool) : Print extra information on screen
             log_file (str) : Log file for place
             rc : ipyparallel remote client
@@ -60,6 +62,12 @@ class SnuddaPlace(object):
             griddata_interpolation (bool) : Should we interpolate density data (5x slower)
 
         """
+
+        self.rc = rc
+        self.d_view = d_view
+
+        if self.rc and not self.d_view:
+            self.d_view = self.rc.direct_view(targets='all')
 
         if not config_file and network_path:
             config_file = os.path.join(network_path, "network-config.json")
@@ -75,6 +83,10 @@ class SnuddaPlace(object):
         self.network_path = network_path
         self.config_file = config_file
 
+        self.snudda_data = get_snudda_data(snudda_data=snudda_data,
+                                           config_file=self.config_file,
+                                           network_path=self.network_path)
+
         self.verbose = verbose
         self.log_file = log_file
 
@@ -83,12 +95,6 @@ class SnuddaPlace(object):
         else:
             self.write_log("No network_path given, not setting position_file. Remember to pass it to write_data.")
             self.position_file = None
-
-        self.rc = rc
-        self.d_view = d_view
-
-        if self.rc and not self.d_view:
-            self.d_view = self.rc.direct_view(targets='all')
 
         if h5libver is None:
             self.h5libver = "latest"
@@ -194,6 +200,7 @@ class SnuddaPlace(object):
 
         neuron_prototype = NeuronPrototype(neuron_name=name,
                                            neuron_path=None,
+                                           snudda_data=self.snudda_data,
                                            morphology_path=swc_path,
                                            parameter_path=param_filename,
                                            mechanism_path=mech_filename,
@@ -344,8 +351,8 @@ class SnuddaPlace(object):
                 else:
                     d_view = self.d_view
 
-                if snudda_path_exists(vol_def["meshFile"]):
-                    mesh_file = snudda_parse_path(vol_def["meshFile"])
+                if snudda_path_exists(vol_def["meshFile"], self.snudda_data):
+                    mesh_file = snudda_parse_path(vol_def["meshFile"], self.snudda_data)
                 elif os.path.exists(os.path.join(self.network_path, vol_def["meshFile"])):
                     mesh_file = os.path.join(self.network_path, vol_def["meshFile"])
                 else:
@@ -380,7 +387,7 @@ class SnuddaPlace(object):
 
                             # We need to load the data from the file
                             from scipy.interpolate import griddata
-                            with open(snudda_parse_path(density_file), "r") as f:
+                            with open(snudda_parse_path(density_file, self.snudda_data), "r") as f:
                                 density_data = json.load(f, object_pairs_hook=OrderedDict)
 
                                 assert volume_id in density_data and neuron_type in density_data[volume_id], \
@@ -559,7 +566,7 @@ class SnuddaPlace(object):
         # Meta data
         save_meta_data = [(self.config_file, "configFile"),
                           (json.dumps(config), "config"),
-                          (snudda_parse_path("$DATA"), "snuddaData")]
+                          (snudda_parse_path("$DATA", self.snudda_data), "snuddaData")]
 
         meta_group = pos_file.create_group("meta")
 

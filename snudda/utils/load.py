@@ -18,15 +18,16 @@ class SnuddaLoad(object):
 
     ############################################################################
 
-    def __init__(self, network_file, load_synapses=True, verbose=False):
+    def __init__(self, network_file, snudda_data=None, load_synapses=True, verbose=False):
 
         """
         Constructor
 
         Args:
             network_file (str) : Data file to load
-            load_synapses (bool) : Whether to read synapses into memory, or keep them on disk (this keeps file open)
-            verbose (bool) : Print more info during execution
+            snudda_data (str, optional) : Snudda Data path, if you want to override the one specified in the hdf5 file
+            load_synapses (bool, optional) : Whether to read synapses into memory, or keep them on disk (this keeps file open)
+            verbose (bool, optional) : Print more info during execution
 
         """
 
@@ -38,6 +39,7 @@ class SnuddaLoad(object):
         self.config = None
 
         self.network_file = None
+        self.snudda_data = snudda_data
 
         if network_file:
             alt_file = os.path.join(network_file, "network-synapses.hdf5")
@@ -282,7 +284,10 @@ class SnuddaLoad(object):
             data["axonStumpIDFlag"] = f["meta/axonStumpIDFlag"][()]
 
         if "meta/snuddaData" in f:
-            data["snuddaData"] = f["meta/snuddaData"][()]
+            data["SnuddaData"] = SnuddaLoad.to_str(f["meta/snuddaData"][()])
+
+            if self.snudda_data is None:
+                self.snudda_data = data["SnuddaData"]
 
         data["neurons"] = self.extract_neurons(f)
 
@@ -809,6 +814,7 @@ class SnuddaLoad(object):
         """
 
         neuron_prototype = NeuronPrototype(neuron_path=self.data["neurons"][neuron_id]["neuronPath"],
+                                           snudda_data=self.data["SnuddaData"],
                                            neuron_name=self.data["neurons"][neuron_id]["name"])
         neuron_object = neuron_prototype.clone(parameter_key=self.data["neurons"][neuron_id]["parameterKey"],
                                                morphology_key=self.data["neurons"][neuron_id]["morphologyKey"],

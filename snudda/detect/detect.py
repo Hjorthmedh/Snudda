@@ -25,6 +25,7 @@ import numpy as np
 from numba import jit
 
 import snudda.utils.memory
+from snudda.utils.snudda_path import get_snudda_data
 from snudda.detect.projection_detection import ProjectionDetection
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.load import SnuddaLoad
@@ -40,6 +41,7 @@ class SnuddaDetect(object):
     def __init__(self,
                  config_file=None,
                  network_path=None,
+                 snudda_data=None,
                  position_file=None,
                  voxel_size=3e-6,  # 2e-6,
                  hyper_voxel_size=100,  # 250, #100,
@@ -63,6 +65,7 @@ class SnuddaDetect(object):
 
         Args:
             network_path (str): Network directory
+            snudda_data (str, optional): Path to SNUDDA_DATA (if not specified will try to read from config file)
             config_file (str, optional): Network config file (default network-config.json in network_path)
             position_file (str, optional): Network position file (default network-neuron-positions in network_path)
             voxel_size (float, optional): Width of voxel (default 3e-6m)
@@ -124,10 +127,6 @@ class SnuddaDetect(object):
             if not logfile and not logfile_name:
                 log_filename = os.path.join(network_path, "log", "touch-detection.txt")
 
-        self.config_file = config_file
-        self.position_file = position_file
-        self.save_file = save_file
-
         self.work_history_file = work_history_file  # Name of work history file
         self.work_history = None  # File pointer for actual file
 
@@ -139,8 +138,15 @@ class SnuddaDetect(object):
             self.logfile_name = os.path.join(self.network_path, "log", "touch-detection.txt")
 
         self.logfile = logfile
-
         self.setup_log()
+
+        self.config_file = config_file
+        self.position_file = position_file
+        self.save_file = save_file
+
+        self.snudda_data = get_snudda_data(snudda_data=snudda_data,
+                                           config_file=self.config_file,
+                                           network_path=self.network_path)
 
         self.write_log(f"Using hdf5 driver version: {self.h5libver}")
 
@@ -537,7 +543,8 @@ class SnuddaDetect(object):
         for keys in self.connectivity_distributions:
             tmp_con_dist["$$".join(keys)] = self.connectivity_distributions[keys]
 
-        save_meta_data = [(self.slurm_id, "SlurmID"),
+        save_meta_data = [(self.snudda_data, "snuddaData"),
+                          (self.slurm_id, "SlurmID"),
                           (self.config_file, "configFile"),
                           (self.position_file, "positionFile"),
                           (self.voxel_size, "voxelSize"),
@@ -1934,6 +1941,7 @@ class SnuddaDetect(object):
 
             self.prototype_neurons[name] = NeuronPrototype(neuron_name=name,
                                                            neuron_path=None,
+                                                           snudda_data=self.snudda_data,
                                                            morphology_path=morph,
                                                            parameter_path=param,
                                                            mechanism_path=mech,
@@ -2100,6 +2108,7 @@ class SnuddaDetect(object):
             meta_data.create_dataset("hyperVoxelOrigo", data=self.hyper_voxel_origo)
             meta_data.create_dataset("simulationOrigo", data=self.simulation_origo)
 
+            meta_data.create_dataset("snuddaData", data=self.snudda_data)
             meta_data.create_dataset("SlurmID", data=self.slurm_id)
             meta_data.create_dataset("voxelSize", data=self.voxel_size)
             meta_data.create_dataset("hyperVoxelSize", data=self.hyper_voxel_size)
@@ -2586,6 +2595,7 @@ class SnuddaDetect(object):
 
         d_view.push({"position_file": self.position_file,
                      "config_file": self.config_file,
+                     "snudda_data": self.snudda_data,
                      "voxel_size": self.voxel_size,
                      "hyper_voxel_size": self.hyper_voxel_size,
                      "verbose": self.verbose,
@@ -2597,6 +2607,7 @@ class SnuddaDetect(object):
         self.write_log("Init values pushed to workers")
 
         cmd_str = ("sd = SnuddaDetect(config_file=config_file, position_file=position_file,voxel_size=voxel_size,"
+                   "snudda_data=snudda_data,"
                    "hyper_voxel_size=hyper_voxel_size,verbose=verbose,logfile_name=logfile_name[0],"
                    "save_file=save_file,slurm_id=slurm_id,role='worker', random_seed=random_seed)")
         d_view.execute(cmd_str, block=True)

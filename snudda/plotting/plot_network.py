@@ -1,6 +1,7 @@
 import os
 import numpy as np
 
+from snudda.utils.snudda_path import get_snudda_data
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.load import SnuddaLoad
 import matplotlib.pyplot as plt
@@ -10,7 +11,7 @@ from snudda.neurons.neuron_morphology import NeuronMorphology
 
 class PlotNetwork(object):
 
-    def __init__(self, network):
+    def __init__(self, network, snudda_data=None):
 
         if os.path.isdir(network):
             network_file = os.path.join(network, "network-synapses.hdf5")
@@ -21,6 +22,8 @@ class PlotNetwork(object):
         self.network_path = os.path.dirname(self.network_file)
 
         self.sl = SnuddaLoad(self.network_file)
+        self.snudda_data = get_snudda_data(snudda_data=snudda_data,
+                                           network_path=self.network_path)
         self.prototype_neurons = dict()
 
     def close(self):
@@ -162,6 +165,7 @@ class PlotNetwork(object):
         if neuron_name not in self.prototype_neurons:
             self.prototype_neurons[neuron_name] = NeuronPrototype(neuron_name=neuron_info["name"],
                                                                   neuron_path=neuron_info["neuronPath"],
+                                                                  snudda_data=self.snudda_data,
                                                                   load_morphology=True,
                                                                   virtual_neuron=False)
 

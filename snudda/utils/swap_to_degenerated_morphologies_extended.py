@@ -177,8 +177,11 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         # Resort the new synapse matrix
         sorted_synapses = self.sort_synapses(new_synapses[:syn_ctr, :])
 
+        old_synapse_iterator = self.synapse_iterator(synapses=self.old_hdf5["network/synapses"][()])
         config = json.loads(self.updated_network_loader.data["config"], object_pairs_hook=OrderedDict)
+
         pruned_synapses = self.post_degeneration_pruning(synapses=sorted_synapses,
+                                                         old_synapse_iterator=old_synapse_iterator,
                                                          network_config=config,
                                                          rng=self.rng)
         sorted_synapses = None
@@ -192,10 +195,11 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
               f"out of {self.old_hdf5['network/nSynapses'][()]} synapses "
               f"({self.new_hdf5['network/nSynapses'][()] / self.old_hdf5['network/nSynapses'][()]*100:.3f} %)")
 
-    def post_degeneration_pruning(self, synapses, network_config, rng):
+    def post_degeneration_pruning(self, synapses, old_synapse_iterator, network_config, rng):
 
         """ Args:
             synapses: Synapse matrix to prune
+            old_synapse_iterator: Iterator over the original synapses
             network_config: The config as a dictionary
             rng: Numpy random generator
         """
@@ -207,6 +211,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
         type_lookup = self.updated_network_loader.get_neuron_types()
         mu2_lookup = dict()
+        n_neurons = self.updated_network_loader.data["nNeurons"]
 
         for conf_key, conf_info in network_config["Connectivity"].items():
             pre_type, post_type = conf_key.split(",")
@@ -227,6 +232,8 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
         synapse_ctr = 0
 
+        old_synapse_set = next(old_synapse_iterator, None)
+
         for synapse_set in self.synapse_iterator(synapses=synapses):
 
             pre_id = synapse_set[0, 0]
@@ -238,14 +245,49 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             assert (synapse_set[:, 6] == channel_model_id).all(), \
                 f"Code is written with assumption that all synapses between a pair of neurons are of the same type"
 
+            old_pre_id = old_synapse_set[0, 0]
+            old_post_id = old_synapse_set[0, 1]
+            old_channel_mod_id = old_synapse_set[0, 6]
+
+            while old_synapse_set is not None and old_post_id * n_neurons + old_pre_id < post_id * n_neurons + pre_id:
+                old_synapse_set = next(old_synapse_iterator, None)
+
+                if old_synapse_set is not None:
+                    old_pre_id = old_synapse_set[0, 0]
+                    old_post_id = old_synapse_set[0, 1]
+                    old_channel_mod_id = old_synapse_set[0, 6]
+                else:
+                    old_pre_id = -1
+                    old_post_id = -1
+                    old_channel_mod_id = None
+
             mu2 = mu2_lookup[type_lookup[pre_id]][type_lookup[post_id]][channel_model_id]
             n_syn = synapse_set.shape[0]
 
-            if mu2 is not None:
-                # TODO: We need to compensate for the old p_mu, i.e. p_real = p_mu_new / p_mu_old
-                p_mu = 1.0 / (1.0 + np.exp(-8.0 / mu2 * (n_syn - mu2)))
-            else:
+            if mu2 is None:
                 p_mu = 1
+
+            else:
+
+                if old_post_id * n_neurons + old_pre_id == post_id * n_neurons + pre_id:
+                    old_n_syn = old_synapse_set.shape[0]
+
+                    old_p_mu = 1.0 / (1.0 + np.exp(-8.0 / mu2 * (old_n_syn - mu2)))
+
+                    assert old_channel_mod_id is None or old_channel_mod_id == channel_model_id, \
+                        (f"post_degeneration_pruning: Internal error, we have assumed only one type of synapses between "
+                         f"pairs of neurons in this degenerated code.\n"
+                         f"channel_mod_id = {channel_model_id}, old_channel_mod_id = {old_channel_mod_id}\n"
+                         f"synapse_set = {synapse_set}\n"
+                         f"old_synapse_set = {old_synapse_set}")
+
+                else:
+                    old_p_mu = 1
+
+                # We need to compensate for the old p_mu, i.e. p_real = p_mu_new / p_mu_old
+                p_mu = 1.0 / (1.0 + np.exp(-8.0 / mu2 * (n_syn - mu2)))
+                # print(f"p_mu = {p_mu} ({p_mu / old_p_mu}) -- {old_p_mu}")
+                p_mu /= old_p_mu  # Correction factor for previous mu2 pruning
 
             keep_synapse_flag[synapse_ctr:synapse_ctr + n_syn] = p_mu >= rng.random()
             synapse_ctr += n_syn
