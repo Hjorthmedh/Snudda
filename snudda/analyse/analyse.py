@@ -17,7 +17,7 @@ import numpy as np
 import scipy.sparse as sps
 
 from snudda.utils.load import SnuddaLoad
-
+from snudda.utils.snudda_path import snudda_parse_path
 
 # !!! We need to parallelise the analysis script also!
 
@@ -75,6 +75,7 @@ class SnuddaAnalyse(object):
         # First load all data but synapses
         self.network_load = SnuddaLoad(hdf5_file, load_synapses=False)
         self.network = self.network_load.data
+        self.snudda_data = self.network["SnuddaData"]
 
         if "config" in self.network:
             self.config = json.loads(self.network["config"], object_pairs_hook=OrderedDict)
@@ -2146,7 +2147,7 @@ class SnuddaAnalyse(object):
         dend_hist = np.zeros((num_bins,))
 
         if type(swc_file) == bytes:
-            swc_file = swc_file.decode()
+            swc_file = snudda_parse_path(swc_file.decode(), self.snudda_data)
 
         n_morph = NeuronMorphology(swc_filename=swc_file)
 

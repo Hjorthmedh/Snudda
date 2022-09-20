@@ -30,8 +30,11 @@ from snudda.detect.projection_detection import ProjectionDetection
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.load import SnuddaLoad
 
+# from memory_profiler import profile
+# Put @profile decorator over function: https://pypi.org/project/memory-profiler/
 
 # TODO: Exclude neurons without synapses or gap junctions from touch detection (ie if no pre/post connections possible)
+
 
 class SnuddaDetect(object):
     """
