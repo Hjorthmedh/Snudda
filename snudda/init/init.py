@@ -1378,7 +1378,7 @@ class SnuddaInit(object):
         # We got an increasing connection distribution with distance, looks fishy
         # !!! Should be ACh, lets try set it to GABA and see if that changes things
         # --- trying same pruning as for ChIN to MSD2
-        if True:
+        if False:
             self.add_neuron_target(neuron_name="ChIN",
                                    target_name="LTS",
                                    connection_type="ACh",

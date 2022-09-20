@@ -2372,6 +2372,10 @@ class SnuddaDetect(object):
             assert ((self.num_bins - self.num_bins[0]) == 0).all(), "Hyper voxels should be cubes"
 
             self.num_hyper_voxels = np.ceil((max_coord - min_coord) / self.hyper_voxel_width).astype(int) + 1
+
+            assert np.prod(self.num_hyper_voxels) < 3e9, \
+                (f"Very large brain structure... Did you use SI units for neuron positions? "
+                 f"Number of hyper voxels: {self.num_hyper_voxels}")
             self.hyper_voxel_id_lookup = np.zeros(self.num_hyper_voxels, dtype=int)
 
             self.hyper_voxel_id_lookup[:] = \
