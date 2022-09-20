@@ -837,7 +837,7 @@ class SnuddaInit(object):
                         mesh_file=None,
                         mesh_bin_width=None,
                         d_min=None,
-                        cluster_FS_synapses=False,
+                        cluster_FS_synapses=False,       # !!! TEMP SET TO TRUE
                         cluster_SPN_synapses=False):
 
         get_val = lambda x: 0 if x is None else x
@@ -1346,7 +1346,9 @@ class SnuddaInit(object):
         # ================================================================
         # commenting gabaergic ChIN -> SPN connections Feb. 25th 2020 (RL)
 
-        if False:
+        # UPDATE: 2022-09-20 JH-IC --- WHY was this done? ChIN synapses restored.
+
+        if True:
             self.add_neuron_target(neuron_name="ChIN",
                                    target_name="dSPN",
                                    connection_type="GABA",
@@ -1376,7 +1378,7 @@ class SnuddaInit(object):
         # We got an increasing connection distribution with distance, looks fishy
         # !!! Should be ACh, lets try set it to GABA and see if that changes things
         # --- trying same pruning as for ChIN to MSD2
-        if False:
+        if True:
             self.add_neuron_target(neuron_name="ChIN",
                                    target_name="LTS",
                                    connection_type="ACh",

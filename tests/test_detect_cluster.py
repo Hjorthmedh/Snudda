@@ -14,6 +14,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 class TestDetectSynapseCluster(unittest.TestCase):
 
+    """ This tests the cluster generation by synapse duplication. """
+
     def setUp(self):
 
         if os.path.dirname(__file__):
@@ -39,7 +41,6 @@ class TestDetectSynapseCluster(unittest.TestCase):
         self.sd = SnuddaDetect(config_file=config_file, position_file=position_file,
                                save_file=save_file, rc=None,
                                hyper_voxel_size=150, verbose=True)
-
 
     def test_clustering(self):
 
