@@ -146,6 +146,7 @@ class PlotNetwork(object):
             if not os.path.exists(os.path.dirname(fig_path)):
                 os.mkdir(os.path.dirname(fig_path))
             plt.savefig(fig_path, dpi=dpi, bbox_inches="tight")
+            print(f"Writing figure: {fig_path}")
 
         plt.ion()
         plt.show()

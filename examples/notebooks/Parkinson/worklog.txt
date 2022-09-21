@@ -26,3 +26,8 @@ get as many spurious 1 synapse connections.
 
 TODO: Check why ChIN suddenly has too low connection to other neurons
 -- problem with axonal cloud? or something else? Is axon used instead?
+FIXED! Synapses were disabled in init.py for some reason, re-enabled.
+
+TODO: Make plot network able to plot subset of network, and all synapses on those neurons. Allow neuronID to be 1,2,3,4 comma separated list of numbers
+
+--> We want to see what effect of clustering is on pruning. Do we see it with our eyeballs
