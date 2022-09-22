@@ -31,3 +31,17 @@ FIXED! Synapses were disabled in init.py for some reason, re-enabled.
 TODO: Make plot network able to plot subset of network, and all synapses on those neurons. Allow neuronID to be 1,2,3,4 comma separated list of numbers
 
 --> We want to see what effect of clustering is on pruning. Do we see it with our eyeballs
+
+
+
+How should we prune to keep clustered synapses?
+
+Old version was, calculate total distance to all other synapses. Remove the ones that have the largest total distance.
+
+New version implemented. Count how many synapses are within a radius of 10 micrometers (arbitrarily picked distance). Higher count, means synapse has higher priority to be kept.
+
+
+This means that in a group, the centre synapse is most protected. However, it can also mean that only the centres are kept, thus giving no clusters.
+
+--> How shall we improve on this?
+

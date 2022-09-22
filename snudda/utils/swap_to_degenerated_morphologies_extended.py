@@ -261,7 +261,14 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
                     old_post_id = -1
                     old_channel_mod_id = None
 
-            mu2 = mu2_lookup[type_lookup[pre_id]][type_lookup[post_id]][channel_model_id]
+            try:
+                mu2 = mu2_lookup[type_lookup[pre_id]][type_lookup[post_id]][channel_model_id]
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
+
             n_syn = synapse_set.shape[0]
 
             if mu2 is None:

@@ -246,7 +246,7 @@ def snudda_plot_network_cli():
     parser.add_argument("--showAxons", help="Show Axons of neurons", action="store_true")
     parser.add_argument("--showDendrites", help="Show dendrites of neurons", action="store_true")
     parser.add_argument("--showSynapses", help="Show synapses of neurons", action="store_true")
-    parser.add_argument("--filterSynapsesPreID", help="Only show synapses from pre ID neurons",
+    parser.add_argument("--preID", help="Only show synapses from pre ID neurons",
                         dest="pre_id_list",
                         nargs="+", type=int, default=None)
     parser.add_argument("--wait", action="store_true")

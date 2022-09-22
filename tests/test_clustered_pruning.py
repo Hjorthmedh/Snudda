@@ -3,6 +3,7 @@ import sys
 import unittest
 
 import numpy as np
+import scipy
 
 from snudda.detect.detect import SnuddaDetect
 from snudda.detect.prune import SnuddaPrune
@@ -73,6 +74,34 @@ class TestClusteredPruning(unittest.TestCase):
 
         sp = SnuddaPrune(network_path=network_path, verbose=True)
         sp.prune()
+
+    def cluster_compare(self):
+
+        clustered_data_loader = SnuddaLoad(network_file=self.network_path_clustered, load_synapses=True)
+        clustered_synapses = clustered_data_loader.data["synapses"]
+        clustered_voxel_size = clustered_data_loader.data["voxelSize"]
+        clustered_simulation_origo = clustered_data_loader.data["simulationOrigo"]
+
+        nonclustered_data_loader = SnuddaLoad(network_file=self.network_path_unclustered, load_synapses=True)
+        nonclustered_synapses = nonclustered_data_loader.data["synapses"]
+        nonclustered_voxel_size = nonclustered_data_loader.data["voxelSize"]
+        nonclustered_simulation_origo = nonclustered_data_loader.data["simulationOrigo"]
+
+        for post_id, pre_id in zip([0, 1, 2, 3], [4, 5, 6, 7]):
+            clustered_idx = np.where(np.logical_and(clustered_synapses[:, 0] == pre_id, clustered_synapses[:, 1] == post_id))[0]
+            nonclustered_idx = np.where(np.logical_and(nonclustered_synapses[:, 0] == pre_id, nonclustered_synapses[:, 1] == post_id))[0]
+
+            clustered_synapse_coords = clustered_synapses[clustered_idx, 2:5] * clustered_voxel_size + clustered_simulation_origo
+            nonclustered_synapse_coords = nonclustered_synapses[nonclustered_idx, 2:5] * nonclustered_voxel_size + nonclustered_simulation_origo
+
+            clustered_synapse_dist = scipy.spatial.distance.cdist(clustered_synapse_coords, clustered_synapse_coords)
+            nonclustered_synapse_dist = scipy.spatial.distance.cdist(nonclustered_synapse_coords, nonclustered_synapse_coords)
+
+            clustered_n_close = np.sum(clustered_synapse_dist < (10e-6 / clustered_voxel_size))
+            nonclustered_n_close = np.sum(nonclustered_synapse_dist < (10e-6 / nonclustered_voxel_size))
+
+            print(f"clustered = {clustered_n_close}, nonclustered: {nonclustered_n_close}")
+            self.assertTrue(clustered_n_close > nonclustered_n_close * 1.5)
 
     def test_clustered(self):
 
