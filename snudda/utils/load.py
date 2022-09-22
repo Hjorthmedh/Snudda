@@ -9,6 +9,7 @@ import numpy as np
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.numpy_encoder import NumpyEncoder
+import scipy.sparse as sparse
 
 
 class SnuddaLoad(object):
@@ -458,7 +459,7 @@ class SnuddaLoad(object):
 
     ############################################################################
 
-    def synapse_iterator(self, chunk_size=1000000, data_type="synapses"):
+    def synapse_iterator(self, chunk_size=1000000, data_type=None):
 
         """
         Iterates through all synapses in chunks (default 1e6 synapses).
@@ -470,6 +471,9 @@ class SnuddaLoad(object):
         Returns:
             Iterator over the synapses
         """
+
+        if data_type is None:
+            data_type = "synapses"
 
         # data_type is "synapses" or "gapJunctions"
         assert data_type in ["synapses", "gapJunctions"]
@@ -927,6 +931,18 @@ class SnuddaLoad(object):
                 return
 
     ############################################################################
+
+    def create_connection_matrix(self, sparse_matrix=True):
+
+        if sparse_matrix:
+            connection_matrix = sparse.lil_matrix((self.data["nNeurons"], self.data["nNeurons"]), dtype=np.ushort)
+        else:
+            connection_matrix = np.zeros((self.data["nNeurons"], self.data["nNeurons"]), dtype=np.ushort)
+
+        for syn_row in self.data["synapses"]:
+            connection_matrix[syn_row[0], syn_row[1]] += 1
+
+        return connection_matrix
 
 
 def snudda_load_cli():
