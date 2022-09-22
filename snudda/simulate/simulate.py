@@ -378,8 +378,12 @@ class SnuddaSimulate(object):
                     mod_file = channel_param_dict["modFile"]
 
                     # TODO: Sanity check on the mod_file string
-                    eval_str = f"self.sim.neuron.h.{mod_file}"
-                    channel_module = eval(eval_str)  # If this fails, check that NEURON modules are compiled
+                    if mod_file:
+                        eval_str = f"self.sim.neuron.h.{mod_file}"
+                        channel_module = eval(eval_str)  # If this fails, check that NEURON modules are compiled
+                    else:
+                        self.write_log(f"Empty modFile field for {preType} -> {postType} synapses. This channel is IGNORED.", force_print=True)
+                        channel_module = None
 
                     # These are not variables to set in the modFile
                     if "modFile" in channel_param_dict:
@@ -896,6 +900,10 @@ class SnuddaSimulate(object):
             section_dist = 0.99
 
         (channel_module, par_data) = self.synapse_parameters[synapse_type_id]
+
+        if channel_module is None:
+            # This channel was not implemented, skipping.
+            return None
 
         syn = self.get_synapse(channel_module, dend_compartment, section_dist)
 

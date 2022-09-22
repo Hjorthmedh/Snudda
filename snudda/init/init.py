@@ -1351,13 +1351,13 @@ class SnuddaInit(object):
         if True:
             self.add_neuron_target(neuron_name="ChIN",
                                    target_name="dSPN",
-                                   connection_type="GABA",
+                                   connection_type="ACh",
                                    dist_pruning=None,
                                    f1=0.5, soft_max=10, mu2=15, a3=0.1,  # SM 15
                                    conductance=ChINgGABA,
                                    cluster_synapses=False,
                                    parameter_file=pfChINdSPN,
-                                   mod_file="tmGabaA",
+                                   mod_file="",                 # mod_file left empty, not implemented yet -- will NOT be simulated
                                    channel_param_dictionary=None)
 
             # TEST SETTING THIS TO ACh (SHOULD BE GABA), will this change?
@@ -1365,13 +1365,13 @@ class SnuddaInit(object):
 
             self.add_neuron_target(neuron_name="ChIN",
                                    target_name="iSPN",
-                                   connection_type="GABA",
+                                   connection_type="ACh",
                                    dist_pruning=None,
                                    f1=0.5, soft_max=10, mu2=10, a3=0.1,  # SM 12
                                    conductance=ChINgGABA,
                                    cluster_synapses=False,
                                    parameter_file=pfChINiSPN,
-                                   mod_file="tmGabaA",
+                                   mod_file="",                 # mod_file left empty, not implemented -- wilt NOT be simulated
                                    channel_param_dictionary=None)
         # ================================================================
 
