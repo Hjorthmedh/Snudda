@@ -81,8 +81,8 @@ class PlotNetwork(object):
                                plot_axon=pa,
                                plot_dendrite=pd,
                                soma_colour=soma_colour,
-                               axon_colour="darksalmon",  #"maroon",
-                               dend_colour="silver")   # Can also write colours as (0, 0, 0) -- rgb
+                               axon_colour=None,  #"darksalmon",  #"maroon",
+                               dend_colour=None)  #"silver")   # Can also write colours as (0, 0, 0) -- rgb
 
         # Plot synapses
         if plot_synapses and "synapseCoords" in self.sl.data:
@@ -116,7 +116,7 @@ class PlotNetwork(object):
                 y = self.sl.data["synapseCoords"][:, 1]
                 z = self.sl.data["synapseCoords"][:, 2]
 
-            ax.scatter(x, y, z, color=(0.1, 0.1, 0.1))
+            ax.scatter(x, y, z, color=(1, 0, 0))
 
             plt.figtext(0.5, 0.20, f"{self.sl.data['nSynapses']} synapses", ha="center", fontsize=18)
             
@@ -241,27 +241,24 @@ def snudda_plot_network_cli():
     from argparse import ArgumentParser
     parser = ArgumentParser(description="Plot snudda network from file (hdf5)")
     parser.add_argument("networkFile", help="Network file (hdf5)", type=str)
-    parser.add_argument("--neuronID", help="List of Neuron ID to show", type=list, default=None)
+    parser.add_argument("--neuronID", help="List of Neuron ID to show", type=int, default=None, nargs="+",
+                        dest="neuron_id_list")
     parser.add_argument("--showAxons", help="Show Axons of neurons", action="store_true")
     parser.add_argument("--showDendrites", help="Show dendrites of neurons", action="store_true")
     parser.add_argument("--showSynapses", help="Show synapses of neurons", action="store_true")
-    parser.add_argument("--filterSynapsesPreID", help="Only show synapses from pre ID neurons", type=list, default=None)
+    parser.add_argument("--filterSynapsesPreID", help="Only show synapses from pre ID neurons",
+                        dest="pre_id_list",
+                        nargs="+", type=int, default=None)
+    parser.add_argument("--wait", action="store_true")
     args = parser.parse_args()
 
-    if args.neuronID:
-        neuron_id_list = [int(x) for x in args.neuronID]
-    else:
-        neuron_id_list = None
-
-    if args.filterSynapsesPreID:
-        pre_id_list = [int(x) for x in args.filterSynapsesPreID]
-    else:
-        pre_id_list = None
-
     pn = PlotNetwork(args.networkFile)
-    pn.plot(fig_name="network-plot.png", neuron_id_list=neuron_id_list,
+    pn.plot(fig_name="network-plot.png", neuron_id_list=args.neuron_id_list,
             plot_axon=args.showAxons, plot_dendrite=args.showDendrites, plot_synapses=args.showSynapses,
-            filter_synapses_pre_id_list=pre_id_list)
+            filter_synapses_pre_id_list=args.pre_id_list)
+
+    if args.wait:
+        input("Press any key to exit")
 
 
 if __name__ == "__main__":
