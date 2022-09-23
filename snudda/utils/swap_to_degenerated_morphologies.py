@@ -100,7 +100,7 @@ class SwapToDegeneratedMorphologies:
             param_key, morph_key, neuron_path, param_id, morph_id = self.find_morpology(neuron_id)
             self.new_hdf5[f"network/neurons/parameterKey"][idx] = param_key
             self.new_hdf5[f"network/neurons/morphologyKey"][idx] = morph_key
-            self.new_hdf5[f"network/neurons/neuronPath"][idx] = neuron_path
+            # self.new_hdf5[f"network/neurons/neuronPath"][idx] = neuron_path   # No longer needed to update, due to SNUDDA_DATA
             self.new_hdf5[f"network/neurons/parameterID"][idx] = param_id
             self.new_hdf5[f"network/neurons/morphologyID"][idx] = morph_id
 
