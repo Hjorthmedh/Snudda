@@ -77,7 +77,8 @@ class SwapToDegeneratedMorphologies:
         network_group = self.new_hdf5.create_group("network")
         self.old_hdf5.copy(source=self.old_hdf5["network/neurons"], dest=self.new_hdf5["network"])
 
-        if len(self.new_snudda_data_dir) > len(self.original_snudda_data_dir):
+        # This if statement is now redundant, since we express neuron paths using SNUDDA_DATA
+        if False and len(self.new_snudda_data_dir) > len(self.original_snudda_data_dir):
             n_elements = self.new_hdf5[f"network/neurons/morphology"].size
             old_size = int(np.ceil(self.new_hdf5[f"network/neurons/morphology"].nbytes / n_elements))
             new_size = old_size + len(self.new_snudda_data_dir) - len(self.original_snudda_data_dir)
