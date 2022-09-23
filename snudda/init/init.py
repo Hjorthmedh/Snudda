@@ -841,6 +841,7 @@ class SnuddaInit(object):
                         cluster_SPN_synapses=False):
 
         get_val = lambda x: 0 if x is None else x
+
         if num_neurons is None:
             self.num_dSPN = get_val(num_dSPN)
             self.num_iSPN = get_val(num_iSPN)
