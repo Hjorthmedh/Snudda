@@ -74,6 +74,12 @@ class SwapToDegeneratedMorphologies:
         print(f"Writing new network to {self.new_network_file}")
         self.new_hdf5 = h5py.File(self.new_network_file, "w")
         self.old_hdf5.copy(source=self.old_hdf5["meta"], dest=self.new_hdf5)
+
+        if len(self.new_snudda_data_dir) > self.original_snudda_data_dir:
+            del self.new_hdf5["meta/SnuddaData"]
+            self.new_hdf5["meta/SnuddaData"].create_dataset("SnuddaData", data=self.new_snudda_data_dir)
+        else:
+            self.new_hdf5["meta/SnuddaData"] = self.new_snudda_data_dir
         network_group = self.new_hdf5.create_group("network")
         self.old_hdf5.copy(source=self.old_hdf5["network/neurons"], dest=self.new_hdf5["network"])
 
