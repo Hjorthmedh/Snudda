@@ -103,9 +103,10 @@ class SwapToDegeneratedMorphologies:
             self.new_hdf5[f"network/neurons/parameterID"][idx] = param_id
             self.new_hdf5[f"network/neurons/morphologyID"][idx] = morph_id
 
-            old_morph = SnuddaLoad.to_str(self.old_hdf5[f"network/neurons/morphology"][idx])
-            new_morph = old_morph.replace(self.original_snudda_data_dir, self.new_snudda_data_dir)
-            self.new_hdf5[f"network/neurons/morphology"][idx] = new_morph
+            # This is no longer needed, the path is expressed using SNUDDA_DATA so will automatically be updated
+            # old_morph = SnuddaLoad.to_str(self.old_hdf5[f"network/neurons/morphology"][idx])
+            # new_morph = old_morph.replace(self.original_snudda_data_dir, self.new_snudda_data_dir)
+            # self.new_hdf5[f"network/neurons/morphology"][idx] = new_morph
 
         self.filter_synapses(filter_axon=self.filter_axon)
         self.filter_gap_junctions()
