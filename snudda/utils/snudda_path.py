@@ -61,7 +61,7 @@ def get_snudda_data(snudda_data=None, config_file=None, network_path=None, verbo
         if os.path.isfile(network_file):
             with h5py.File(network_file, "r") as f:
                 if "meta" in f and "SnuddaData" in f["meta"]:
-                    snudda_data_str = f["meta/SnuddaData"]
+                    snudda_data_str = f["meta/SnuddaData"][()]
                     if type(snudda_data_str) in [bytes, np.bytes_]:
                         snudda_data = snudda_data_str.decode()
                     else:
