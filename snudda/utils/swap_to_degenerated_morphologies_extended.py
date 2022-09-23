@@ -119,7 +119,8 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             post_coords = synapse_matrix[post_idx, 2:5] * voxel_size + updated_sim_origo
 
             morph = self.get_morphology(neuron_id=nid, hdf5=self.old_hdf5,
-                                        neuron_cache_id=self.old_neuron_cache_id)
+                                        neuron_cache_id=self.old_neuron_cache_id,
+                                        snudda_data=self.original_snudda_data_dir)
 
             dend_kd_tree = self.get_kd_tree(morph, "dend", kd_tree_cache=self.old_kd_tree_cache)
             synapse_dend_dist, _ = dend_kd_tree.query(post_coords)
