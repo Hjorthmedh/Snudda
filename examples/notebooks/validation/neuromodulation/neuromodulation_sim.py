@@ -7,7 +7,7 @@ import numpy as np
 def analyse(network_path):
     
     
-    validation = dict(dSPN=dict(mean=6,std=2.8),iSPN=dict(mean=-6,std=3))
+    validation = dict(dSPN=dict(mean=6.44,std=2.8))
     
     sl = SnuddaLoad(os.path.join(network_path, "network-synapses.hdf5"))
     neuron_types = [n["type"] for n in sl.data["neurons"]]
