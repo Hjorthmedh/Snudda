@@ -112,7 +112,7 @@ class PlotNetwork(object):
                 z = self.sl.data["synapseCoords"][:, 2][keep_idx]
 
                 plt.figtext(0.5, 0.20, f"{keep_idx.size} synapses", ha="center", fontsize=18)
-    
+
             else:
                 x = self.sl.data["synapseCoords"][:, 0]
                 y = self.sl.data["synapseCoords"][:, 1]

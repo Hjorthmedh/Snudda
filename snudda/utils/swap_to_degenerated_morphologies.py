@@ -76,8 +76,8 @@ class SwapToDegeneratedMorphologies:
         self.old_hdf5.copy(source=self.old_hdf5["meta"], dest=self.new_hdf5)
 
         if len(self.new_snudda_data_dir) > len(self.original_snudda_data_dir):
-            del self.new_hdf5["meta/SnuddaData"]
-            self.new_hdf5["meta/SnuddaData"].create_dataset("SnuddaData", data=self.new_snudda_data_dir)
+            del self.new_hdf5["meta/snuddaData"]
+            self.new_hdf5["meta"].create_dataset("snuddaData", data=self.new_snudda_data_dir)
         else:
             self.new_hdf5["meta/SnuddaData"] = self.new_snudda_data_dir
         network_group = self.new_hdf5.create_group("network")
