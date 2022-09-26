@@ -111,6 +111,8 @@ class PlotNetwork(object):
                 y = self.sl.data["synapseCoords"][:, 1][keep_idx]
                 z = self.sl.data["synapseCoords"][:, 2][keep_idx]
 
+                plt.figtext(0.5, 0.20, f"{keep_idx.size} synapses", ha="center", fontsize=18)
+    
             else:
                 x = self.sl.data["synapseCoords"][:, 0]
                 y = self.sl.data["synapseCoords"][:, 1]
@@ -118,8 +120,9 @@ class PlotNetwork(object):
 
             ax.scatter(x, y, z, color=(1, 0, 0))
 
-            plt.figtext(0.5, 0.20, f"{self.sl.data['nSynapses']} synapses", ha="center", fontsize=18)
-            
+            if neuron_id_list is None:
+                plt.figtext(0.5, 0.20, f"{self.sl.data['nSynapses']} synapses", ha="center", fontsize=18)
+
         if elev_azim:
             ax.view_init(elev_azim[0], elev_azim[1])
 
