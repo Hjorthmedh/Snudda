@@ -274,6 +274,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
             if mu2 is None:
                 p_mu = 1
+                old_p_mu = 1
 
             else:
 
