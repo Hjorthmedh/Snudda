@@ -837,8 +837,8 @@ class SnuddaInit(object):
                         mesh_file=None,
                         mesh_bin_width=None,
                         d_min=None,
-                        cluster_FS_synapses=True,       # !!! TEMP SET TO TRUE
-                        cluster_SPN_synapses=True):
+                        cluster_FS_synapses=False,       # !!! TEMP SET TO TRUE
+                        cluster_SPN_synapses=False):
 
         get_val = lambda x: 0 if x is None else x
 
