@@ -398,8 +398,8 @@ class SwapToDegeneratedMorphologies:
         orig_param_key = SnuddaLoad.to_str(self.old_data["neurons"][neuron_id]["parameterKey"])
 
         # We assume the new morphology is in the same relative path, but using a different SNUDDA_DATA
-        orig_neuron_path = SnuddaLoad.to_str(self.old_data["neurons"][neuron_id]["neuronPath"])
-        orig_simple_path = snudda_simplify_path(orig_neuron_path, os.path.realpath(self.original_snudda_data_dir))
+        orig_simple_path = SnuddaLoad.to_str(self.old_data["neurons"][neuron_id]["neuronPath"])
+        orig_neuron_path = snudda_parse_path(orig_simple_path, os.path.realpath(self.original_snudda_data_dir))
         new_neuron_path = snudda_parse_path(orig_simple_path, os.path.realpath(self.new_snudda_data_dir))
 
         if orig_morph_key == '':
