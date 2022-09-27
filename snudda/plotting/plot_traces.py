@@ -82,7 +82,7 @@ class PlotTraces:
 
     ############################################################################
 
-    def plot_traces(self, trace_id=None, offset=150e-3, colours=None, skip_time=None,
+    def plot_traces(self, trace_id=None, offset=150e-3, colours=None, skip_time=None, time_range=None,
                     line_width=1, fig_size=None,
                     mark_current=None, mark_current_y=None,
                     title=None, fig_name=None):
@@ -95,6 +95,7 @@ class PlotTraces:
                 offset (float) : Offset between multiple traces, float or None
                 colours : What colour to plot
                 skip_time (float) : Skip portion of the start, modifies time shown
+                time_range (float, float) : Range to plot
                 mark_current (list) : List of tuples of start, end time
                 mark_current_y (float) : Y-coordinate of where to mark the current
                 title (str) : Plot title
@@ -104,6 +105,8 @@ class PlotTraces:
 
         if skip_time is not None:
             print(f"!!! Excluding first {skip_time} s from the plot")
+
+        assert time_range is None or skip_time is None, f"Only specify one of skip_time and time_range"
 
         if not trace_id:
             if self.network_info:
@@ -150,6 +153,9 @@ class PlotTraces:
         else:
             skip_time = 0.0
             time_idx = range(0, len(self.time))
+
+        if time_range is not None:
+            time_idx = np.where(np.logical_and(time_range[0] <= self.time, self.time <= time_range[1]))[0]
 
         plot_count = 0
 
