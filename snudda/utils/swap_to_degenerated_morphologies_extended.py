@@ -70,15 +70,18 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             assert orig_neuron["neuronID"] == updated_neuron["neuronID"], f"Internal error, neuron ID mismatch"
 
             assert orig_neuron["name"] == updated_neuron["name"], \
-                f"Name mismatch for neuron {orig_neuron['neuronID']}: {orig_neuron['name']} {updated_neuron['name']}"
+                (f"Name mismatch for neuron {orig_neuron['neuronID']}: {orig_neuron['name']} {updated_neuron['name']}"
+                 f"\nDid you use the same random seed when calling init to generate the networks?")
 
             assert (orig_neuron["position"] == updated_neuron["position"]).all(), \
-                f"Position mismatch for neuron {orig_neuron['neuronID']}: " \
-                f"{orig_neuron['position']} {updated_neuron['position']}"
+                (f"Position mismatch for neuron {orig_neuron['neuronID']}: "
+                 f"{orig_neuron['position']} {updated_neuron['position']}"
+                 f"\nDid you use the same random seed when calling init to generate the networks?")
 
             assert (orig_neuron["rotation"] == updated_neuron["rotation"]).all(), \
-                f"Position mismatch for neuron {orig_neuron['neuronID']}: " \
-                f"{orig_neuron['rotation']} {updated_neuron['rotation']}"
+                (f"Position mismatch for neuron {orig_neuron['neuronID']}: " 
+                 f"{orig_neuron['rotation']} {updated_neuron['rotation']}"
+                 f"\nDid you use the same random seed when calling init to generate the networks?")
 
     def get_additional_synapses(self, synapse_distance_treshold=2.6e-6):
 

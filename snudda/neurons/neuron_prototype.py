@@ -147,7 +147,8 @@ class NeuronPrototype:
 
     def get_parameter_key(self, parameter_id):
 
-        assert parameter_id is not None
+        assert parameter_id is not None, (f"get_parameter_key: parameter_id is None, for {self.neuron_name}"
+                                          f"\nNeuron path: {self.neuron_path}")
 
         if self.parameter_info:
             par_key_list = list(self.parameter_info.keys())
@@ -177,16 +178,32 @@ class NeuronPrototype:
 
         return morph_key
 
-    def get_modulation_key(self, parameter_id, morphology_id, modulation_id):
+    def get_modulation_key(self, modulation_id,
+                           parameter_id=None, morphology_id=None,
+                           parameter_key=None, morphology_key=None):
+
+        if modulation_id is None:
+            return None
 
         if self.modulation_info:
             if type(self.modulation_info) == list:
                 # Old format without keys
                 return None
 
-            param_key = self.get_parameter_key(parameter_id)
-            morph_key = self.get_morph_key(parameter_id=None, parameter_key=param_key, morphology_id=morphology_id)
-            modulation_key_list = self.meta_info[param_key][morph_key]["neuromodulation"]
+            if parameter_key is None:
+                parameter_key = self.get_parameter_key(parameter_id)
+
+            if morphology_key is None:
+                morphology_key = self.get_morph_key(parameter_id=None, parameter_key=parameter_key,
+                                                    morphology_id=morphology_id)
+
+            modulation_key_list = self.meta_info[parameter_key][morphology_key]["neuromodulation"]
+
+            if len(modulation_key_list) == 0:
+                print("Modulation key list empty")
+                print(f"Path: {self.neuron_path}, param: {parameter_key}, morph: {morphology_key}")
+                import pdb
+                pdb.set_trace()
 
             # modulation_key_list = list(self.modulation_info.keys())
             modulation_key = modulation_key_list[modulation_id % len(modulation_key_list)]
@@ -436,8 +453,8 @@ class NeuronPrototype:
                 morphology_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id)
 
             if modulation_key is None:
-                modulation_key = self.get_modulation_key(parameter_id=parameter_id,
-                                                         morphology_id=morphology_id,
+                modulation_key = self.get_modulation_key(parameter_key=parameter_key,
+                                                         morphology_key=morphology_key,
                                                          modulation_id=modulation_id)
 
             morph = self.morphology_cache[morph_tag].clone(position=position,
