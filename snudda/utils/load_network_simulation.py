@@ -206,8 +206,10 @@ class SnuddaLoadNetworkSimulation:
             for neuron_id, t_start, t_end in depolarisation_block:
                 print(f"Neuron {neuron_id} has depolarisation block from {t_start:.3f} s to {t_end:.3f} s")
 
-        bad_cells = set([str(x) for x, ts, te in depolarisation_block])
-        print(f"WARNING. Depolarisation block in neuron: {', '.join(bad_cells)}")
+        bad_cells = set([x for x, ts, te in depolarisation_block])
+        bad_cell_str = [f"{x} ({self.network_simulation_file['metaData/name'][x].decode()})" for x in bad_cells]
+
+        print(f"WARNING. Depolarisation block in neuron: {', '.join(bad_cell_str)}")
 
         return depolarisation_block
 
