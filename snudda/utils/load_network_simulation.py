@@ -32,6 +32,7 @@ class SnuddaLoadNetworkSimulation:
 
         if self.network_simulation_output_file_name:
             self.load()
+            self.check_depolarisation_block()
 
     def load(self, network_simulation_output_file=None):
 
@@ -161,51 +162,54 @@ class SnuddaLoadNetworkSimulation:
         else:
             return voltage
 
-    """
-    def check_depolarisation_block(self, threshold=0, max_duration=100e-3):
+    def check_depolarisation_block(self, threshold=-40e-3, max_duration=50e-3, verbose=False):
 
-        neuron_id = np.array(sorted(self.network_simulation_file["neurons"].keys()))
-        assert (np.diff(neuron_id) == 1).all() and neuron_id[0] == 0, f"Failed sanity check on neuron ID"
+        if verbose:
+            print("Checking neurons for depolarisation block")
 
-        block_flag = np.zeros((len(neuron_id),), dtype=bool)
+        neuron_id_list = np.array(sorted([int(x) for x in self.network_simulation_file["neurons"].keys()]))
+
+        assert (np.diff(neuron_id_list) == 1).all() and neuron_id_list[0] == 0, f"Failed sanity check on neuron ID"
+
+        block_flag = np.zeros((len(neuron_id_list),), dtype=bool)
 
         time = self.get_time()
         dt = time[1] - time[0]
         csum_threshold = max_duration / dt
 
         voltage, sec_id_x, _ = self.get_data("voltage", neuron_id=None)
+        depolarisation_block = []
 
-        for neuron_id, (volt, sidx) in enumerate(zip(voltage, sec_id_x)):
-            v_thresh = volt > threshold
+        n_limit = int(np.ceil(max_duration / dt))
 
-            v_idx = np.where(v_thresh)[0]
-            np.diff(v_idx) 
+        for neuron_id in neuron_id_list:
 
+            volt = voltage[neuron_id]
 
-        for idx, (volt, sidx) in enumerate(zip(voltage, sec_id_x)):
-            v_idx = np.where(sidx[0] == 0)
-            csum = 0
-            max_csum = 0
-            block_times = []
-            t_start_block = 0
+            ctr = 0
+            t_start = 0
 
-            for t_idx, vt in enumerate(voltage[:, v_idx]):
-
-                if vt > threshold:
-                    csum += 1
-                    if csum > max_csum:
-                        max_csum = csum
+            for idx in range(0, len(time)):
+                if volt[idx] > threshold:
+                    ctr += 1
                 else:
-                    csum = 0
-                    t_start_block = t_idx
+                    if ctr > n_limit:
+                        depolarisation_block.append((neuron_id, t_start, time[idx]))
 
-            if max_csum > csum_threshold:
-                block_flag[idx] = True
+                    t_start = time[idx]
+                    ctr = 0
 
-        blocked_neurons = np.where(block_flag)
-        return blocked_neurons
+            if ctr > n_limit:
+                depolarisation_block.append((neuron_id, t_start, time[-1]))
 
-    """
+        if verbose and len(depolarisation_block) > 0:
+            for neuron_id, t_start, t_end in depolarisation_block:
+                print(f"Neuron {neuron_id} has depolarisation block from {t_start:.3f} s to {t_end:.3f} s")
+
+        bad_cells = set([str(x) for x, ts, te in depolarisation_block])
+        print(f"WARNING. Depolarisation block in neuron: {', '.join(bad_cells)}")
+
+        return depolarisation_block
 
     def get_time(self):
 

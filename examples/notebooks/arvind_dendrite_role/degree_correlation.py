@@ -138,3 +138,6 @@ if __name__ == "__main__":
 
     if args.plot:
         dd.plot_all_degree_histogram()
+
+    if not args.plot and not args.process:
+        print("Use --plot or --process to do something.")

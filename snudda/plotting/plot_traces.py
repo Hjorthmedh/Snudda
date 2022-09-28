@@ -208,7 +208,7 @@ class PlotTraces:
         if title is not None:
             plt.title(title)
 
-        if offset != 0 and offset is not None:
+        if offset != 0 and offset is not None and len(trace_id) > 1:
             ax = fig.axes[0]
             ax.set_yticklabels([])
 
