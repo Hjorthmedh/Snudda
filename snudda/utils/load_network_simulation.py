@@ -29,10 +29,10 @@ class SnuddaLoadNetworkSimulation:
             self.network_path = None
 
         self.network_simulation_file = None
+        self.depolarisation_block = None
 
         if self.network_simulation_output_file_name:
             self.load()
-            self.check_depolarisation_block()
 
     def load(self, network_simulation_output_file=None):
 
@@ -41,6 +41,8 @@ class SnuddaLoadNetworkSimulation:
 
         print(f"Loading {network_simulation_output_file}")
         self.network_simulation_file = h5py.File(network_simulation_output_file, "r")
+
+        self.depolarisation_block = self.check_depolarisation_block()
 
     def close(self):
         if self.network_simulation_file:
@@ -206,10 +208,12 @@ class SnuddaLoadNetworkSimulation:
             for neuron_id, t_start, t_end in depolarisation_block:
                 print(f"Neuron {neuron_id} has depolarisation block from {t_start:.3f} s to {t_end:.3f} s")
 
-        bad_cells = set([x for x, ts, te in depolarisation_block])
-        bad_cell_str = [f"{x} ({self.network_simulation_file['metaData/name'][x].decode()})" for x in bad_cells]
+        bad_cells = sorted(list(set([x for x, ts, te in depolarisation_block])))
+        bad_cell_str = [f"{x}: ({self.network_simulation_file['metaData/name'][x].decode()}, {self.network_simulation_file['metaData/parameterKey'][x].decode()}, {self.network_simulation_file['metaData/morphologyKey'][x].decode()})"
+                        for x in bad_cells]
+        bad_str = '\n'.join(bad_cell_str)
 
-        print(f"WARNING. Depolarisation block in neuron: {', '.join(bad_cell_str)}")
+        print(f"WARNING. Depolarisation block in neuron - neuron_id: (name, parameter_key, morphology_key):\n{bad_str}")
 
         return depolarisation_block
 
@@ -340,7 +344,6 @@ def load_network_simulation_cli():
     args = parser.parse_args()
 
     slna = SnuddaLoadNetworkSimulation(network_simulation_output_file=args.dataFile)
-    slna.load()
 
     if args.export_spike_file is not None:
         slna.export_to_txt(txt_file=args.export_spike_file, time_scale=args.time_scale)
