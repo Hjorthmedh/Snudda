@@ -215,7 +215,8 @@ class SnuddaLoadNetworkSimulation:
                         for x in bad_cells]
         bad_str = '\n'.join(bad_cell_str)
 
-        print(f"WARNING. Depolarisation block in neuron - neuron_id: (name, parameter_key, morphology_key):\n{bad_str}")
+        if len(depolarisation_block) > 0:
+            print(f"WARNING. Depolarisation block in neuron - neuron_id: (name, parameter_key, morphology_key):\n{bad_str}")
 
         return depolarisation_block
 

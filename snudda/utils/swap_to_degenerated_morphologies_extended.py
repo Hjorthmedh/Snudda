@@ -91,7 +91,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         assert voxel_size == self.original_network_loader.data["voxelSize"], f"Voxel size mismatch between networks"
 
         if synapse_distance_treshold is None:
-            synapse_distance_treshold = (3 * voxel_size ** 2) ** 0.5  # 5.2e-6, maximal mismatch due to moving origos
+            synapse_distance_treshold = 1.2*(3 * voxel_size ** 2) ** 0.5  # 5.2e-6, maximal mismatch due to moving origos
 
         orig_sim_origo = self.original_network_loader.data["simulationOrigo"]
         updated_sim_origo = self.updated_network_loader.data["simulationOrigo"]
@@ -133,7 +133,23 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
             dend_kd_tree = self.get_kd_tree(morph, "dend", kd_tree_cache=self.old_kd_tree_cache)
             synapse_dend_dist, _ = dend_kd_tree.query(post_coords)
-            keep_idx[post_idx[np.where(synapse_dend_dist > synapse_distance_treshold)[0]]] = True
+            syn_mask = np.logical_and(synapse_dend_dist > synapse_distance_treshold, np.linalg.norm(post_coords - morph.soma[0, :3], axis=1) > morph.soma[0, 3] + synapse_distance_treshold)
+            keep_idx[post_idx[np.where(syn_mask)[0]]] = True
+
+            # if nid == 501:
+            #     print("Tell me why .. dend")
+            #     import pdb
+            #     pdb.set_trace()
+
+            # if nid == 501:
+            #    print("Tell me why?")
+            #    import pdb
+            #    pdb.set_trace()
+
+            #if (synapse_dend_dist > synapse_distance_treshold).any():
+            #    print("Tell me why...")
+            #    import pdb
+            #    pdb.set_trace()
 
             # Print how far away synapses were?
 
@@ -142,6 +158,11 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
                     axon_kd_tree = self.get_kd_tree(morph, "axon", kd_tree_cache=self.old_kd_tree_cache)
                     synapse_axon_dist, _ = axon_kd_tree.query(pre_coords)
                     keep_idx[pre_idx[np.where(synapse_axon_dist > synapse_distance_treshold)[0]]] = True
+
+                    # if nid == 100:
+                    #     print("Tell me why .. axon")
+                    #     import pdb
+                    #     pdb.set_trace()
 
                 except:
                     import traceback
@@ -194,6 +215,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
                                                          old_synapse_iterator=old_synapse_iterator,
                                                          network_config=config,
                                                          rng=self.rng)
+
         sorted_synapses = None
 
         self.new_hdf5["network"].create_dataset("synapses", data=pruned_synapses, compression="lzf")

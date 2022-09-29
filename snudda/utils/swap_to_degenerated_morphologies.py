@@ -295,6 +295,11 @@ class SwapToDegeneratedMorphologies:
         old_sec_id = synapses[:, 9]
         old_sec_x = synapses[:, 10]
 
+        # if pre_id == 100 and post_id == 501:
+        #     print("Tell me why 10 501")
+        #     import pdb
+        #     pdb.set_trace()
+
         keep_idx, new_sec_id, new_sec_x \
             = self.remap_sections_helper(neuron_id=post_id, old_sec_id=old_sec_id, old_sec_x=old_sec_x/1000.0)
 
@@ -310,7 +315,7 @@ class SwapToDegeneratedMorphologies:
 
         return filtered_synapses
 
-    def filter_axonal_synapses_helper(self, synapses, max_dist=2.6e-6):
+    def filter_axonal_synapses_helper(self, synapses, max_dist=5.2e-6):
 
         """ Filter the synapses that have the axon degeneration, presynaptic neurons without axons are ignored. """
 
@@ -444,7 +449,7 @@ class SwapToDegeneratedMorphologies:
         return new_param_key, new_morph_key, new_neuron_path, parameter_id, morphology_id
 
     def get_sec_location(self, coords, neuron_path, snudda_data,
-                         parameter_key, morphology_key, max_dist=5e-6):
+                         parameter_key, morphology_key, max_dist=5.2e-6):
 
         morph = self.get_morphology(neuron_path=neuron_path,
                                     parameter_key=parameter_key,
@@ -464,7 +469,7 @@ class SwapToDegeneratedMorphologies:
         for idx, coord in enumerate(coords):
             closest_dist, closest_point = dend.query(coord)
 
-            if closest_dist < max_dist:
+            if closest_dist <= max_dist:
                 syn_sec_id, syn_sec_x = coord_to_sec_id_x[morph.dend[closest_point, :3]]
                 sec_id[idx] = syn_sec_id
                 sec_x[idx] = syn_sec_x
@@ -614,8 +619,8 @@ class SwapToDegeneratedMorphologies:
                old_to_new_sec_id[old_sec_id] = new_sec_id
 
             if old_sec_id not in old_sec_x_list:
-                old_sec_x_list[old_sec_id] = [old_sec_x]
-                new_sec_x_list[old_sec_id] = [new_sec_x[1]]
+                old_sec_x_list[old_sec_id] = [0, old_sec_x]
+                new_sec_x_list[old_sec_id] = [0, new_sec_x[1]]
             else:
                 old_sec_x_list[old_sec_id].append(old_sec_x)
                 new_sec_x_list[old_sec_id].append(new_sec_x[1])
@@ -659,14 +664,15 @@ class SwapToDegeneratedMorphologies:
         """
 
         keep_idx = np.zeros(old_sec_id.shape, dtype=bool)
-        new_sec_id = np.zeros(old_sec_id.shape, dtype=int) * np.nan
-        new_sec_x = np.zeros(old_sec_id.shape) * np.nan
+        new_sec_id = np.full(old_sec_id.shape, -9999999, dtype=int)
+        new_sec_x = np.full(old_sec_id.shape, np.nan)
 
         old_param_key, old_morph_key, old_path = self.find_old_morphology(neuron_id=neuron_id)
 
         lookup = self.section_lookup[old_param_key, old_morph_key, old_path]
 
         for idx, (old_id, old_x) in enumerate(zip(old_sec_id, old_sec_x)):
+
             if old_id in lookup:
                 new_id = lookup[old_id][0]
 
@@ -685,6 +691,11 @@ class SwapToDegeneratedMorphologies:
                     keep_idx[idx] = True
                     new_sec_id[idx] = new_id
                     new_sec_x[idx] = new_x
+
+                # if neuron_id == 501:
+                #     print("Check why synapses to neuron 10 is removed. Tell me why?")
+                #    import pdb
+                #    pdb.set_trace()
 
         return np.where(keep_idx)[0], new_sec_id, new_sec_x
 
