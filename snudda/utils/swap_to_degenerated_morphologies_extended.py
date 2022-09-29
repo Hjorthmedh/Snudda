@@ -33,14 +33,14 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
         """
 
-        super().__init__(original_network_file=original_network_file,
-                         new_network_file=output_network_file,
+        super().__init__(original_network_file=original_network_file,  # PD0
+                         new_network_file=output_network_file,         # degenerated PD2 without FS axon
                          original_snudda_data_dir=original_snudda_data_dir,
                          new_snudda_data_dir=updated_snudda_data_dir,
                          original_input_file=original_input_file,
                          new_input_file=output_input_file, filter_axon=filter_axon)
 
-        self.updated_network_file = updated_network_file
+        self.updated_network_file = updated_network_file  # PD2 fresh touch detection, generated before
         self.updated_network_loader = SnuddaLoad(self.updated_network_file, load_synapses=False)
         self.updated_hdf5 = self.updated_network_loader.hdf5_file
         self.updated_data = self.updated_network_loader.data
@@ -83,12 +83,15 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
                  f"{orig_neuron['rotation']} {updated_neuron['rotation']}"
                  f"\nDid you use the same random seed when calling init to generate the networks?")
 
-    def get_additional_synapses(self, synapse_distance_treshold=2.6e-6):
+    def get_additional_synapses(self, synapse_distance_treshold=None):
 
         # Calculate coordinate remapping for updated synapses
 
         voxel_size = self.updated_network_loader.data["voxelSize"]
         assert voxel_size == self.original_network_loader.data["voxelSize"], f"Voxel size mismatch between networks"
+
+        if synapse_distance_treshold is None:
+            synapse_distance_treshold = (3 * voxel_size ** 2) ** 0.5  # 5.2e-6, maximal mismatch due to moving origos
 
         orig_sim_origo = self.original_network_loader.data["simulationOrigo"]
         updated_sim_origo = self.updated_network_loader.data["simulationOrigo"]
@@ -96,6 +99,8 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         origo_diff = updated_sim_origo - orig_sim_origo
         voxel_transform = np.round(origo_diff / voxel_size)
 
+        # Will hold indexes into synapse matrix, so we can do all synapses belonging to
+        # one morphology all at once
         pre_neuron_synapses = dict()
         post_neuron_synapses = dict()
 
@@ -103,6 +108,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             pre_neuron_synapses[nid] = []
             post_neuron_synapses[nid] = []
 
+        # All the synapses from the fresh PD2 touch detection
         synapse_matrix = self.updated_network_loader.data["synapses"][()].copy()
 
         keep_idx = np.zeros((synapse_matrix.shape[0],), dtype=bool)

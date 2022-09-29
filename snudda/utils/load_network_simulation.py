@@ -10,7 +10,9 @@ from snudda.utils.load import SnuddaLoad
 
 class SnuddaLoadNetworkSimulation:
 
-    def __init__(self, network_simulation_output_file=None, network_path=None):
+    def __init__(self, network_simulation_output_file=None, network_path=None, verbose=False):
+
+        self.verbose = verbose
 
         if network_simulation_output_file:
             self.network_simulation_output_file_name = network_simulation_output_file
@@ -42,7 +44,7 @@ class SnuddaLoadNetworkSimulation:
         print(f"Loading {network_simulation_output_file}")
         self.network_simulation_file = h5py.File(network_simulation_output_file, "r")
 
-        self.depolarisation_block = self.check_depolarisation_block()
+        self.depolarisation_block = self.check_depolarisation_block(verbose=self.verbose)
 
     def close(self):
         if self.network_simulation_file:
@@ -341,9 +343,10 @@ def load_network_simulation_cli():
     parser.add_argument("--export_spike_file", help="Name of csv file to export spikes to",
                         default=None)
     parser.add_argument("--time_scale", default=1.0, type=float)
+    parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
 
-    slna = SnuddaLoadNetworkSimulation(network_simulation_output_file=args.dataFile)
+    slna = SnuddaLoadNetworkSimulation(network_simulation_output_file=args.dataFile, verbose=args.verbose)
 
     if args.export_spike_file is not None:
         slna.export_to_txt(txt_file=args.export_spike_file, time_scale=args.time_scale)
