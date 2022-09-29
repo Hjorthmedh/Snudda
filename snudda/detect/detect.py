@@ -2363,7 +2363,8 @@ class SnuddaDetect(object):
 
             # Simulation origo is in meters
             if self.simulation_origo is None:
-                self.simulation_origo = min_coord
+                # We align the simulation origo to the closest voxel (that is smaller)
+                self.simulation_origo = np.floor(min_coord / self.voxel_size) * self.voxel_size
             else:
                 assert (self.simulation_origo <= min_coord).all(), \
                     ( f"Simulation origo ({self.simulation_origo}) must be smaller than {min_coord}. "
