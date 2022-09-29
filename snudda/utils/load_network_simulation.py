@@ -262,7 +262,6 @@ class SnuddaLoadNetworkSimulation:
 
         if neuron_id is None:
             pos_data = self.network_simulation_file["metaData/position"][()].copy()
-
         else:
             pos_data = self.network_simulation_file["metaData/position"][neuron_id, :].copy()
 
@@ -281,9 +280,7 @@ class SnuddaLoadNetworkSimulation:
 
     def get_neuron_name(self, neuron_id=None):
         if neuron_id is not None:
-            neuron_name = [SnuddaLoad.to_str(x) for x, y in zip(self.network_simulation_file["metaData/name"][()],
-                                                                self.network_simulation_file["metaData/ID"][()])
-                           if y in neuron_id]
+            neuron_name = [SnuddaLoad.to_str(self.network_simulation_file["metaData/name"][x]) for x in neuron_id]
         else:
             neuron_name = [SnuddaLoad.to_str(x) for x in self.network_simulation_file["metaData/name"][()]]
 
@@ -291,9 +288,7 @@ class SnuddaLoadNetworkSimulation:
 
     def get_neuron_type(self, neuron_id=None):
         if neuron_id is not None:
-            neuron_type = [SnuddaLoad.to_str(x) for x, y in zip(self.network_simulation_file["metaData/type"][()],
-                                                                self.network_simulation_file["metaData/ID"][()])
-                           if y in neuron_id]
+            neuron_type = [SnuddaLoad.to_str(self.network_simulation_file["metaData/type"][x]) for x in neuron_id]
         else:
             neuron_type = [SnuddaLoad.to_str(x) for x in self.network_simulation_file["metaData/type"][()]]
 
