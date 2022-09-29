@@ -219,6 +219,18 @@ class SnuddaLoadNetworkSimulation:
 
         return depolarisation_block
 
+    def get_depolarisation_dictionary(self):
+
+        depol_dict = dict()
+
+        for neuron_id, start_time, end_time in  self.depolarisation_block:
+            if neuron_id not in depol_dict:
+                depol_dict[neuron_id] = []
+
+            depol_dict[neuron_id].append((start_time, end_time))
+
+        return depol_dict
+
     def get_time(self):
 
         t = self.network_simulation_file["time"][()].copy()

@@ -85,7 +85,7 @@ class PlotTraces:
     def plot_traces(self, trace_id=None, offset=150e-3, colours=None, skip_time=None, time_range=None,
                     line_width=1, fig_size=None,
                     mark_current=None, mark_current_y=None,
-                    title=None, fig_name=None):
+                    title=None, fig_name=None, mark_depolarisation_block=True):
 
         """
             Plot the traces of neuron trace_id
@@ -102,6 +102,8 @@ class PlotTraces:
                 fig_name (str) : Figure file to save to
 
         """
+
+        depol_dict = self.output_load.get_depolarisation_dictionary()
 
         if skip_time is not None:
             print(f"!!! Excluding first {skip_time} s from the plot")
@@ -166,7 +168,7 @@ class PlotTraces:
                 continue
 
             plot_count += 1
-            types_in_plot.add(self.network_info.data["neurons"][r]["type"])
+            types_in_plot.add(self.output_load.network_simulation_file["metaData"]["type"][r].decode())
 
             if colours is None or self.network_info is None:
                 colour = "black"
@@ -183,6 +185,11 @@ class PlotTraces:
             plt.plot(self.time[time_idx] - skip_time,
                      self.voltage[r][time_idx] + ofs,
                      color=colour, linewidth=line_width)
+
+            if mark_depolarisation_block and r in depol_dict:
+                for depol_start_t, depol_end_t in depol_dict[r]:
+                    plt.plot([depol_start_t-skip_time, depol_end_t-skip_time],
+                             [ofs, ofs], color="red", linewidth=line_width)
 
             if offset:
                 ofs += offset
@@ -238,7 +245,11 @@ class PlotTraces:
 
     def get_figure_path(self):
 
-        fig_path = os.path.join(os.path.dirname(os.path.realpath(self.network_file)), "figures")
+        if self.network_file:
+            fig_path = os.path.join(os.path.dirname(os.path.realpath(self.network_file)), "figures")
+        else:
+            fig_path = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(self.output_file))), "figures")
+
         if not os.path.exists(fig_path):
             os.makedirs(fig_path)
 
@@ -354,7 +365,8 @@ class PlotTraces:
 
     ############################################################################
 
-    def plot_trace_neuron_type(self, neuron_type, num_traces=10, offset=0, skip_time=0.0, fig_size=None):
+    def plot_trace_neuron_type(self, neuron_type, num_traces=10, offset=0, skip_time=0.0, fig_size=None,
+                               mark_depolarisation_block=True):
 
         assert self.network_info is not None, "You need to specify networkInfo file"
 
@@ -374,7 +386,8 @@ class PlotTraces:
             return
 
         fig = self.plot_traces(offset=offset, trace_id=trace_id[:num_traces], skip_time=skip_time,
-                               title=self.neuron_name(neuron_type), fig_size=fig_size)
+                               title=self.neuron_name(neuron_type), fig_size=fig_size,
+                               mark_depolarisation_block=mark_depolarisation_block)
 
         time.sleep(1)
         return fig
