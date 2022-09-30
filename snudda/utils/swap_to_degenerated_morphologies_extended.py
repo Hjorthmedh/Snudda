@@ -211,10 +211,13 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         old_synapse_iterator = self.synapse_iterator(synapses=self.old_hdf5["network/synapses"][()])
         config = json.loads(self.updated_network_loader.data["config"], object_pairs_hook=OrderedDict)
 
-        pruned_synapses = self.post_degeneration_pruning(synapses=sorted_synapses,
-                                                         old_synapse_iterator=old_synapse_iterator,
-                                                         network_config=config,
-                                                         rng=self.rng)
+        if True:
+            pruned_synapses = self.post_degeneration_pruning(synapses=sorted_synapses,
+                                                             old_synapse_iterator=old_synapse_iterator,
+                                                             network_config=config,
+                                                             rng=self.rng)
+        else:
+            pruned_synapses = sorted_synapses
 
         sorted_synapses = None
 
@@ -265,6 +268,8 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         synapse_ctr = 0
 
         old_synapse_set = next(old_synapse_iterator, None)
+
+        p_mu_overflow = []
 
         for synapse_set in self.synapse_iterator(synapses=synapses):
 
@@ -331,8 +336,15 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             keep_synapse_flag[synapse_ctr:synapse_ctr + n_syn] = p_mu >= rng.random()
             synapse_ctr += n_syn
 
-            #import pdb
-            #pdb.set_trace()
+            if p_mu > 1:
+                p_mu_overflow.append((p_mu, n_syn))
+
+        # Check how many synapses we are expected to be short...
+        n_short = 0
+        for pm, ns in p_mu_overflow:
+            n_short += (pm - 1) * ns
+
+        print(f"Unable to compensate for {n_short:.1f} degenerated synapses.")
 
         print(f"Post pruning. Keeping {np.sum(keep_synapse_flag)}/{len(keep_synapse_flag)} "
               f"({np.sum(keep_synapse_flag)/len(keep_synapse_flag)*100:.3f}%)")
