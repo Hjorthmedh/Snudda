@@ -10,7 +10,7 @@ import numpy as np
 # TODO: Add SNUDDA_PATH to network_config file
 
 
-def snudda_parse_path(path, snudda_data):
+def snudda_parse_path(path, snudda_data=None):
     """ Parses a data path, replacing $DATA with the path to SNUDDA_DATA set by environment variable.
 
     Args:
