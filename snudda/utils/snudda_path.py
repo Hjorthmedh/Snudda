@@ -122,7 +122,7 @@ def snudda_simplify_path(path, snudda_data):
     """
 
     if snudda_data:
-        data_path = snudda_data
+        data_path = os.path.realpath(snudda_data)
     else:
         data_path = snudda_parse_path("$SNUDDA_DATA", snudda_data=None)
 
