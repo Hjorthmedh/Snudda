@@ -324,10 +324,10 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
                 else:
                     old_p_mu = 1
 
-                # We need to compensate for the old p_mu, i.e. p_real = p_mu_new / p_mu_old
-                p_mu = 1.0 / (1.0 + np.exp(-8.0 / mu2 * (n_syn - mu2)))
-                # print(f"p_mu = {p_mu} ({p_mu / old_p_mu}) -- {old_p_mu}")
-                p_mu /= old_p_mu  # Correction factor for previous mu2 pruning
+            # We need to compensate for the old p_mu, i.e. p_real = p_mu_new / p_mu_old
+            p_mu = 1.0 / (1.0 + np.exp(-8.0 / mu2 * (n_syn - mu2)))
+            # print(f"p_mu = {p_mu} ({p_mu / old_p_mu}) -- {old_p_mu}")
+            p_mu /= old_p_mu  # Correction factor for previous mu2 pruning
 
             keep_synapse_flag[synapse_ctr:synapse_ctr + n_syn] = p_mu >= rng.random()
             synapse_ctr += n_syn

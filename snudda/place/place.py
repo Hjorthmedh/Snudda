@@ -1015,6 +1015,10 @@ class SnuddaPlace(object):
         n_clusters = np.maximum(n_workers * 5, 100)
         n_clusters = np.minimum(n_clusters, len(self.neurons))
 
+        if n_workers > 1:
+            self.write_log(f"Neurons order is optimised for {n_workers} workers. "
+                           f"For reproducibility always use the same number of workers.")
+
         xyz = self.all_neuron_positions()
         centroids, labels = scipy.cluster.vq.kmeans2(xyz, n_clusters, minit="points", seed=self.random_generator)
 
