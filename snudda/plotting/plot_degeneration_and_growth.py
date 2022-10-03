@@ -94,7 +94,14 @@ class PlotDegenerationAndGrowth:
 #        return removed_synapses, added_synapses, kept_synapses_A, kept_synapses_B, \
 #                removed_synapse_coords, added_synapse_coords, kept_synapse_coords_A, kept_synapse_coords_B
 
+
     def get_synapse_locations(self, coords_1, coords_2):
+
+        if coords_1 is None:
+            coords_1 = np.zeros((3, 0))
+
+        if coords_2 is None:
+            coords_2 = np.zeros((3, 0))
 
         voxel_size = self.original_file.data["voxelSize"]
 
