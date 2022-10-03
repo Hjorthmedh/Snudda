@@ -83,7 +83,23 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
                  f"{orig_neuron['rotation']} {updated_neuron['rotation']}"
                  f"\nDid you use the same random seed when calling init to generate the networks?")
 
-    def get_additional_synapses(self, synapse_distance_treshold=None):
+    def get_degeneration_recovery_lookups(self, network_config):
+
+        type_lookup = self.updated_network_loader.get_neuron_types()
+        degeneration_recovery = dict()
+
+        for conf_key, conf_info in network_config["Connectivity"].items():
+            pre_type, post_type = conf_key.split(",")
+
+            for con_type, con_info in conf_info.items():
+                channel_model_id = con_info["channelModelID"]
+
+                if "degenerationRecovery" in con_info["pruning"]:
+                    degeneration_recovery[pre_type, post_type, channel_model_id] = con_info["pruning"]["degenerationRecovery"]
+
+        return degeneration_recovery, type_lookup
+
+    def get_additional_synapses(self, network_config, rng, synapse_distance_treshold=None):
 
         # Calculate coordinate remapping for updated synapses
 
@@ -111,7 +127,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         # All the synapses from the fresh PD2 touch detection
         synapse_matrix = self.updated_network_loader.data["synapses"][()].copy()
 
-        keep_idx = np.zeros((synapse_matrix.shape[0],), dtype=bool)
+        keep_mask = np.zeros((synapse_matrix.shape[0],), dtype=bool)
 
         for idx, synapse_row in enumerate(synapse_matrix):
             pre_neuron_synapses[synapse_row[0]].append(idx)
@@ -134,30 +150,13 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             dend_kd_tree = self.get_kd_tree(morph, "dend", kd_tree_cache=self.old_kd_tree_cache)
             synapse_dend_dist, _ = dend_kd_tree.query(post_coords)
             syn_mask = np.logical_and(synapse_dend_dist > synapse_distance_treshold, np.linalg.norm(post_coords - morph.soma[0, :3], axis=1) > morph.soma[0, 3] + synapse_distance_treshold)
-            keep_idx[post_idx[np.where(syn_mask)[0]]] = True
-
-            # if nid == 501:
-            #     print("Tell me why .. dend")
-            #     import pdb
-            #     pdb.set_trace()
-
-            # if nid == 501:
-            #    print("Tell me why?")
-            #    import pdb
-            #    pdb.set_trace()
-
-            #if (synapse_dend_dist > synapse_distance_treshold).any():
-            #    print("Tell me why...")
-            #    import pdb
-            #    pdb.set_trace()
-
-            # Print how far away synapses were?
+            keep_mask[post_idx[np.where(syn_mask)[0]]] = True
 
             if self.updated_network_loader.data["neurons"][nid]["axonDensity"] is None:
                 try:
                     axon_kd_tree = self.get_kd_tree(morph, "axon", kd_tree_cache=self.old_kd_tree_cache)
                     synapse_axon_dist, _ = axon_kd_tree.query(pre_coords)
-                    keep_idx[pre_idx[np.where(synapse_axon_dist > synapse_distance_treshold)[0]]] = True
+                    keep_mask[pre_idx[np.where(synapse_axon_dist > synapse_distance_treshold)[0]]] = True
 
                     # if nid == 100:
                     #     print("Tell me why .. axon")
@@ -172,7 +171,31 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             else:
                 print(f"No axon for neuron {morph.name} ({nid})")
 
-        added_synapses = synapse_matrix[keep_idx, :].copy()
+        print("Synapse degeneration recovery...")
+        # If degenerationRecovery is set in the pruning rules, we will add that fraction of the synapses on the
+        # overlapping morphology part back to the network synapses -- and take care not to place synapses
+        # exactly where old synapses are already placed
+
+        # Get information about synapse degeneration recovery (ie how large a fraction of the synapses
+        # that are in the overlaping part of the dendrites should be kept to recover a little...
+        degeneration_recovery, type_lookup = self.get_degeneration_recovery_lookups(network_config=network_config)
+
+        if len(degeneration_recovery) > 0:
+            p_recovery = np.zeros((synapse_matrix.shape[0],), dtype=float)
+
+            for idx, syn_row in enumerate(synapse_matrix):
+                pre_type = type_lookup[syn_row[0]]
+                post_type = type_lookup[syn_row[1]]
+                channel_model_id = syn_row[6]
+
+                if (pre_type, post_type, channel_model_id) in degeneration_recovery:
+                    p_recovery[idx] = degeneration_recovery[pre_type, post_type, channel_model_id]
+
+            recovery_mask = p_recovery < rng.random.random(p_recovery.shape)
+            keep_mask = np.logical_or(keep_mask, recovery_mask)
+
+        # Transform coordinates to new simulation origo
+        added_synapses = synapse_matrix[keep_mask, :].copy()
         added_synapses[:, 2:5] = added_synapses[:, 2:5] + voxel_transform
 
         return added_synapses
@@ -188,6 +211,8 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         # This replaces the original filter_synapses, so that we can also add in the
         # new synapses due to growing axons or dendrites
 
+        config = json.loads(self.updated_network_loader.data["config"], object_pairs_hook=OrderedDict)
+
         # This needs to be made bigger!
         num_rows = self.old_hdf5["network/synapses"].shape[0] + self.updated_hdf5["network/synapses"].shape[0]
         num_cols = self.old_hdf5["network/synapses"].shape[1]
@@ -196,12 +221,13 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
         # Keep synapses in original network that are still within the new morphologies
         for synapses in self.synapse_iterator():
+
             new_syn = self.filter_synapses_helper(synapses, filter_axon=filter_axon)                    
             new_synapses[syn_ctr:syn_ctr + new_syn.shape[0]] = new_syn
             syn_ctr += new_syn.shape[0]
 
         # Here add the new synapses from growing axons and dendrites
-        additional_synapses = self.get_additional_synapses()
+        additional_synapses = self.get_additional_synapses(network_config=config, rng=self.rng)
         new_synapses[syn_ctr:syn_ctr+additional_synapses.shape[0], :] = additional_synapses
         syn_ctr += additional_synapses.shape[0]
 
@@ -209,7 +235,6 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         sorted_synapses = self.sort_synapses(new_synapses[:syn_ctr, :])
 
         old_synapse_iterator = self.synapse_iterator(synapses=self.old_hdf5["network/synapses"][()])
-        config = json.loads(self.updated_network_loader.data["config"], object_pairs_hook=OrderedDict)
 
         if True:
             pruned_synapses = self.post_degeneration_pruning(synapses=sorted_synapses,
@@ -220,6 +245,9 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             pruned_synapses = sorted_synapses
 
         sorted_synapses = None
+
+        # TODO: We should check that the addition of "degeneratio recovery synapses" are not duplicates
+        #       of the PD degeneration synapses (this might happen in 8% of the cases...)
 
         self.new_hdf5["network"].create_dataset("synapses", data=pruned_synapses, compression="lzf")
 

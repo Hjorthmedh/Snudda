@@ -317,6 +317,11 @@ class SwapToDegeneratedMorphologies:
 
     def filter_axonal_synapses_helper(self, synapses, max_dist=5.2e-6):
 
+        # if synapses.size > 0 and synapses[0, 0] == 289 and synapses[0, 1] == 477:
+        #     print("Tell me WHY!")
+        #     import pdb
+        #     pdb.set_trace()
+
         """ Filter the synapses that have the axon degeneration, presynaptic neurons without axons are ignored. """
 
         pre_id = synapses[:, 0]
@@ -341,6 +346,12 @@ class SwapToDegeneratedMorphologies:
 
                 if len(morph.axon) > 0:
                     axon_tree = self.get_kd_tree(morph, "axon")
+
+                    if "axonDensity" in self.original_network_loader.data["neurons"][pid] \
+                            and self.original_network_loader.data["neurons"][pid]["axonDensity"] is not None:
+                        # print(f"Warning: Axon and axonal density specified for neuron {pid}")
+                        # print(f"Ignoring morphology --- for now, will change behaviour in future.")
+                        axon_tree = None
                 else:
                     axon_tree = None
 
