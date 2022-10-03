@@ -191,7 +191,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
                 if (pre_type, post_type, channel_model_id) in degeneration_recovery:
                     p_recovery[idx] = degeneration_recovery[pre_type, post_type, channel_model_id]
 
-            recovery_mask = p_recovery < rng.random.random(p_recovery.shape)
+            recovery_mask = p_recovery > rng.random(p_recovery.shape)
             keep_mask = np.logical_or(keep_mask, recovery_mask)
 
         # Transform coordinates to new simulation origo

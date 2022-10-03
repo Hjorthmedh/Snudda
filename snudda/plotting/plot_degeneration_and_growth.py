@@ -30,20 +30,23 @@ class PlotDegenerationAndGrowth:
         fig = plt.figure()
         ax = fig.add_subplot(projection='3d')
 
-        ax.scatter(removed_synapse_coords[:, 0],
-                   removed_synapse_coords[:, 1],
-                   removed_synapse_coords[:, 2],
-                   marker='.', color="grey")
+        if removed_synapse_coords.size > 0:
+            ax.scatter(removed_synapse_coords[:, 0],
+                       removed_synapse_coords[:, 1],
+                       removed_synapse_coords[:, 2],
+                       marker='.', color="grey")
 
-        ax.scatter(kept_synapse_coords[:, 0],
-                   kept_synapse_coords[:, 1],
-                   kept_synapse_coords[:, 2],
-                   marker=".", color="black", s=50)
+        if kept_synapse_coords.size > 0:
+            ax.scatter(kept_synapse_coords[:, 0],
+                       kept_synapse_coords[:, 1],
+                       kept_synapse_coords[:, 2],
+                       marker=".", color="black", s=50)
 
-        ax.scatter(added_synapse_coords[:, 0],
-                   added_synapse_coords[:, 1],
-                   added_synapse_coords[:, 2],
-                   marker=".", color="red")
+        if added_synapse_coords.size > 0:
+            ax.scatter(added_synapse_coords[:, 0],
+                       added_synapse_coords[:, 1],
+                       added_synapse_coords[:, 2],
+                       marker=".", color="red")
 
         plt.ion()
         plt.show()
