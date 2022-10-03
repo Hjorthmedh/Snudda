@@ -944,6 +944,56 @@ class SnuddaLoad(object):
 
         return connection_matrix
 
+    def print_all_synapse_counts_per_type(self):
+
+        synapse_types = sorted(list(self.get_neuron_types(return_set=True)))
+        connection_matrix = self.create_connection_matrix()
+
+        for pre_type in synapse_types:
+            for post_type in synapse_types:
+                count = self.count_synapses_per_type(pre_neuron_type=pre_type,
+                                                     post_neuron_type=post_type,
+                                                     connection_matrix=connection_matrix)
+                if count > 0:
+                    print(f"{pre_type} -> {post_type}: {count} synapses")
+
+    def count_synapses_per_type(self, pre_neuron_type=None, post_neuron_type=None, connection_matrix=None):
+
+        """
+            Args:
+                pre_neuron_type (list): List of neuron types
+                post_neuron_type (list): List of neuron types, e.g. ["dSPN", "iSPN"]
+                connection_matrix
+
+        """
+
+        if connection_matrix is None:
+            connection_matrix = self.create_connection_matrix()
+
+        pre_mask = np.zeros((connection_matrix.shape[0]), dtype=bool)
+        post_mask = np.zeros((connection_matrix.shape[1]), dtype=bool)
+
+        if pre_neuron_type is None:
+            pre_neuron_type = self.get_neuron_types(return_set=True)
+        elif type(pre_neuron_type) != list:
+            pre_neuron_type = [pre_neuron_type]
+
+        if post_neuron_type is None:
+            post_neuron_type = self.get_neuron_types(return_set=True)
+        elif type(post_neuron_type) != list:
+            post_neuron_type = [post_neuron_type]
+
+        for neuron_type in pre_neuron_type:
+            pre_id = self.get_neuron_id_of_type(neuron_type)
+            pre_mask[pre_id] = True
+
+        for neuron_type in post_neuron_type:
+            post_id = self.get_neuron_id_of_type(neuron_type)
+            post_mask[post_id] = True
+
+        synapse_count = np.sum(connection_matrix[pre_id, :][:, post_id])
+
+        return synapse_count
 
 def snudda_load_cli():
     """ Command line parser for SnuddaLoad script """
@@ -962,6 +1012,7 @@ def snudda_load_cli():
     parser.add_argument("--detailed", help="More information", action="store_true")
     parser.add_argument("--centre", help="List n neurons in centre (-1 = all)", type=int)
     parser.add_argument("--listParam", help="List parameters for neuron_id", type=int)
+    parser.add_argument("--countSyn", help="Count synapses per type", action="store_true")
 
     args = parser.parse_args()
 
@@ -1104,6 +1155,9 @@ def snudda_load_cli():
             pos = nl.data["neurons"][neuron_id]["position"] * 1e6
             name = nl.data["neurons"][neuron_id]["name"]
             print(f"{neuron_id} {name}: ({pos[0]:.1f}, {pos[1]:.1f}, {pos[2]:.1f}) μm, distance to centre {centre_dist*1e6:.1f} μm")
+
+    if args.countSyn:
+        nl.print_all_synapse_counts_per_type()
 
 
 if __name__ == "__main__":
