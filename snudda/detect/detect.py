@@ -1127,13 +1127,16 @@ class SnuddaDetect(object):
                             cluster_size = con_dict[con_type]["clusterSize"]
 
                             if isinstance(cluster_size, (np.ndarray, list)):
-                                cluster_size = round(self.hyper_voxel_rng.normal(loc = cluster_size[0], scale = cluster_size[1]))
+                                cluster_size = round(self.hyper_voxel_rng.normal(loc=cluster_size[0],
+                                                                                 scale=cluster_size[1]))
                                 
                             if cluster_size > 1:
                                 cluster_spread = con_dict[con_type]["clusterSpread"]
                                 
                                 if isinstance(cluster_spread, (np.ndarray, list)):
-                                    cluster_spread = np.maximum(np.abs(self.hyper_voxel_rng.normal(loc = cluster_spread[0], scale = cluster_spread[1])),5e-6)
+                                    cluster_spread = np.maximum(np.abs(self.hyper_voxel_rng.normal(loc=cluster_spread[0],
+                                                                                                   scale=cluster_spread[1])),
+                                                                5e-6)
 
                                 # This uses clone in neuron_prototype which should be cached
                                 neuron = self.load_neuron(self.neurons[d_id])
@@ -2856,7 +2859,7 @@ class SnuddaDetect(object):
 
         self_voxel_overflow_counter = 0
 
-        for line, segmentID, segmentX in zip(links, seg_id, seg_x):
+        for line, segment_id, segment_x in zip(links, seg_id, seg_x):
             p1 = coords[line[0], :3]
             p2 = coords[line[1], :3]
             p1_dist = coords[line[0], 4] * 1e6  # Dist to soma
@@ -2888,8 +2891,8 @@ class SnuddaDetect(object):
 
                 if v_ctr < self_max_dend:
                     voxel_space[vp1[0], vp1[1], vp1[2], v_ctr] = neuron_id
-                    voxel_sec_id[vp1[0], vp1[1], vp1[2], v_ctr] = segmentID
-                    voxel_sec_x[vp1[0], vp1[1], vp1[2], v_ctr] = segmentX[0]
+                    voxel_sec_id[vp1[0], vp1[1], vp1[2], v_ctr] = segment_id
+                    voxel_sec_x[vp1[0], vp1[1], vp1[2], v_ctr] = segment_x[0]
                     voxel_soma_dist[vp1[0], vp1[1], vp1[2], v_ctr] = p1_dist
 
                     voxel_space_ctr[vp1[0], vp1[1], vp1[2]] += 1
@@ -2910,13 +2913,13 @@ class SnuddaDetect(object):
                     # Start with vp2 continue until outside cube
                     steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
                     dv = (vp1 - vp2) / steps
-                    ds = (segmentX[0] - segmentX[1]) / steps
+                    ds = (segment_x[0] - segment_x[1]) / steps
                     dd = (p1_dist - p2_dist) / steps
 
                     # We want the end element "steps" also, hence +1
                     for i in range(0, steps + 1):
                         vp = (vp2 + dv * i).astype(np.int64)
-                        s_x = segmentX[1] + ds * i  # float
+                        s_x = segment_x[1] + ds * i  # float
                         soma_dist = int(p2_dist + dd * i)
 
                         if (vp < 0).any() or (vp >= self_num_bins).any():
@@ -2930,7 +2933,7 @@ class SnuddaDetect(object):
 
                         if v_ctr < self_max_dend:
                             voxel_space[vp[0], vp[1], vp[2], v_ctr] = neuron_id
-                            voxel_sec_id[vp[0], vp[1], vp[2], v_ctr] = segmentID
+                            voxel_sec_id[vp[0], vp[1], vp[2], v_ctr] = segment_id
                             voxel_sec_x[vp[0], vp[1], vp[2], v_ctr] = s_x
                             voxel_soma_dist[vp[0], vp[1], vp[2], v_ctr] = soma_dist
 
@@ -2946,13 +2949,13 @@ class SnuddaDetect(object):
                 # Start with vp1 continue until outside cube
                 steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
                 dv = (vp2 - vp1) / steps
-                ds = (segmentX[1] - segmentX[0]) / steps
+                ds = (segment_x[1] - segment_x[0]) / steps
                 dd = (p2_dist - p1_dist) / steps
 
                 # We want the end element "steps" also, hence +1
                 for i in range(0, steps + 1):
                     vp = (vp1 + dv * i).astype(np.int64)
-                    s_x = segmentX[0] + ds * i  # float
+                    s_x = segment_x[0] + ds * i  # float
                     soma_dist = int(p1_dist + dd * i)
 
                     if (vp < 0).any() or (vp >= self_num_bins).any():
@@ -2968,7 +2971,7 @@ class SnuddaDetect(object):
                     if v_ctr < self_max_dend:
 
                         voxel_space[vp[0], vp[1], vp[2], v_ctr] = neuron_id
-                        voxel_sec_id[vp[0], vp[1], vp[2], v_ctr] = segmentID
+                        voxel_sec_id[vp[0], vp[1], vp[2], v_ctr] = segment_id
                         voxel_sec_x[vp[0], vp[1], vp[2], v_ctr] = s_x
                         voxel_soma_dist[vp[0], vp[1], vp[2], v_ctr] = soma_dist
 
@@ -2984,12 +2987,12 @@ class SnuddaDetect(object):
                 # Entire line inside
                 steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
                 dv = (vp2 - vp1) / steps
-                ds = (segmentX[1] - segmentX[0]) / steps
+                ds = (segment_x[1] - segment_x[0]) / steps
                 dd = (p2_dist - p1_dist) / steps
 
                 for i in range(0, steps + 1):
                     vp = (vp1 + dv * i).astype(np.int64)
-                    s_x = segmentX[0] + ds * i  # float
+                    s_x = segment_x[0] + ds * i  # float
                     soma_dist = int(p1_dist + dd * i)
 
                     v_ctr = voxel_space_ctr[vp[0], vp[1], vp[2]]
@@ -3001,7 +3004,7 @@ class SnuddaDetect(object):
                     if v_ctr < self_max_dend:
 
                         voxel_space[vp[0], vp[1], vp[2], v_ctr] = neuron_id
-                        voxel_sec_id[vp[0], vp[1], vp[2], v_ctr] = segmentID
+                        voxel_sec_id[vp[0], vp[1], vp[2], v_ctr] = segment_id
                         voxel_sec_x[vp[0], vp[1], vp[2], v_ctr] = s_x
                         voxel_soma_dist[vp[0], vp[1], vp[2], v_ctr] = soma_dist
 

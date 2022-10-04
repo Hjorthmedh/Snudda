@@ -107,7 +107,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         assert voxel_size == self.original_network_loader.data["voxelSize"], f"Voxel size mismatch between networks"
 
         if synapse_distance_treshold is None:
-            synapse_distance_treshold = 1.2*(3 * voxel_size ** 2) ** 0.5  # 5.2e-6, maximal mismatch due to moving origos
+            synapse_distance_treshold = 1.2*(3 * voxel_size ** 2) ** 0.5  # 5.2e-6, maximal mismatch due to moving origos, actually 5.4 micrometers
 
         orig_sim_origo = self.original_network_loader.data["simulationOrigo"]
         updated_sim_origo = self.updated_network_loader.data["simulationOrigo"]
@@ -221,6 +221,11 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
         # Keep synapses in original network that are still within the new morphologies
         for synapses in self.synapse_iterator():
+
+            # if synapses[0, 0] == 4 and synapses[0, 1] == 100:
+            #     print("tell me why...")
+            #     import pdb
+            #     pdb.set_trace()
 
             new_syn = self.filter_synapses_helper(synapses, filter_axon=filter_axon)                    
             new_synapses[syn_ctr:syn_ctr + new_syn.shape[0]] = new_syn

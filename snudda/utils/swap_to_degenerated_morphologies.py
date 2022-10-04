@@ -186,6 +186,7 @@ class SwapToDegeneratedMorphologies:
         syn_ctr = 0
 
         for synapses in self.synapse_iterator():
+
             new_syn = self.filter_synapses_helper(synapses, filter_axon=filter_axon)
             new_synapses[syn_ctr:syn_ctr + new_syn.shape[0]] = new_syn
             syn_ctr += new_syn.shape[0]
@@ -295,7 +296,7 @@ class SwapToDegeneratedMorphologies:
         old_sec_id = synapses[:, 9]
         old_sec_x = synapses[:, 10]
 
-        # if pre_id == 100 and post_id == 501:
+        # if pre_id == 4 and post_id == 100:
         #     print("Tell me why 10 501")
         #     import pdb
         #     pdb.set_trace()
@@ -315,7 +316,7 @@ class SwapToDegeneratedMorphologies:
 
         return filtered_synapses
 
-    def filter_axonal_synapses_helper(self, synapses, max_dist=5.2e-6):
+    def filter_axonal_synapses_helper(self, synapses, max_dist=5.41e-6):
 
         # if synapses.size > 0 and synapses[0, 0] == 289 and synapses[0, 1] == 477:
         #     print("Tell me WHY!")
@@ -460,7 +461,7 @@ class SwapToDegeneratedMorphologies:
         return new_param_key, new_morph_key, new_neuron_path, parameter_id, morphology_id
 
     def get_sec_location(self, coords, neuron_path, snudda_data,
-                         parameter_key, morphology_key, max_dist=5.2e-6):
+                         parameter_key, morphology_key, max_dist=5.41e-6):
 
         morph = self.get_morphology(neuron_path=neuron_path,
                                     parameter_key=parameter_key,
