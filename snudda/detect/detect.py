@@ -163,7 +163,7 @@ class SnuddaDetect(object):
         self.hyper_voxel_size = hyper_voxel_size  # = N,  N x N x N voxels in a hyper voxel
         self.hyper_voxel_origo = np.zeros((3,))
         self.voxel_overflow_counter = 0
-        self.step_multiplier = 2
+        self.step_multiplier = 2.0
 
         self.hyper_voxel_offset = None
         self.hyper_voxel_id = 0
