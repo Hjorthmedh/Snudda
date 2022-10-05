@@ -618,7 +618,7 @@ class SnuddaInit(object):
         else:
             swc_file = glob.glob(os.path.join(snudda_parse_path(neuron_dir, self.snudda_data), "*swc"))
             assert len(swc_file) == 1, \
-                (f"If no morphology is given in parameter.json then "
+                (f"If no morphology is given in meta.json then "
                  f"{snudda_parse_path(neuron_dir, self.snudda_data)} should contain exactly one swc file")
 
             swc_file = snudda_simplify_path(swc_file[0], self.snudda_data)

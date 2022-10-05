@@ -76,6 +76,7 @@ class InputTuning(object):
         # TODO: num_replicas should be set by a parameter, it affects how many duplicates of each neuron
         # and thus how many steps we have between n_min and n_max number of inputs specified.
         config_def = self.create_network_config(neurons_path=neurons_path,
+                                                snudda_data=self.snudda_data,
                                                 num_replicas=num_replicas,
                                                 neuron_types=neuron_types,
                                                 single_neuron_path=single_neuron_path,
@@ -675,11 +676,11 @@ class InputTuning(object):
 
         return pm_list
 
-    @staticmethod
-    def has_axon(neuron_info):
+    def has_axon(self, neuron_info):
 
         nm = NeuronPrototype(neuron_name="JJJ",
                              neuron_path=None,
+                             snudda_data=self.snudda_data,
                              morphology_path=neuron_info["morphology"],
                              parameter_path=neuron_info["parameters"],
                              mechanism_path=neuron_info["mechanisms"],
@@ -690,6 +691,7 @@ class InputTuning(object):
 
     def create_network_config(self,
                               neurons_path=None,
+                              snudda_data=None,
                               num_replicas=10,
                               random_seed=None,
                               neuron_types=None,
@@ -707,7 +709,11 @@ class InputTuning(object):
 
         self.neurons_path = neurons_path
 
+        if snudda_data is None:
+            snudda_data = self.snudda_data
+
         config_def = collections.OrderedDict()
+        config_def["SnuddaData"] = snudda_data
         config_def["RandomSeed"], self.init_rng = SnuddaInit.setup_random_seeds(random_seed)
 
         volume_def = collections.OrderedDict()
