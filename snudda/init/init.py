@@ -79,9 +79,8 @@ class SnuddaInit(object):
         else:
             self.network_path = ""
 
-
         if self.config_file and self.network_path:
-            assert self.network_path == os.path.dirname(self.config_file), \
+            assert os.path.realpath(self.network_path) == os.path.realpath(os.path.dirname(self.config_file)), \
                 f"network_path {self.network_path} and config_file path {self.config_file} must match"
 
         self.network_data["Connectivity"] = dict([])
