@@ -60,6 +60,7 @@ class InputTuning(object):
         self.input_spikes_file = os.path.join(self.network_path, 'input.hdf5')
 
         self.core = Snudda(self.network_path)
+        self.init_helper = SnuddaInit(network_path=self.network_path, snudda_data=self.snudda_data)
 
     # Writes config files
 
@@ -562,7 +563,7 @@ class InputTuning(object):
         neuron_info = collections.OrderedDict()
 
         # Find neuron morphology swc file, obs currently assume lowercase(!)
-        neuron_morph = SnuddaInit.get_morphologies(neuron_path)
+        neuron_morph = self.init_helper.get_morphologies(neuron_path)
 
         parameter_file = os.path.join(neuron_path, "parameters.json")
         mechanism_file = os.path.join(neuron_path, "mechanisms.json")
