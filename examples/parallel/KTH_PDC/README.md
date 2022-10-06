@@ -1,6 +1,6 @@
 # Setting up Snudda on Dardel / PDC
 
-First clone Snudda to your home directory:
+First clone Snudda to your home directory. You might also need to get BasalGangliaData repository (private link):
 ```
 git clone https://github.com/Hjorthmedh/Snudda.git
 ```
