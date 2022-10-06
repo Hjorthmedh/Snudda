@@ -67,8 +67,8 @@
             "synapseDensity": "0.05*exp(-d/200e-6)",
             "type": "AMPA_NMDA"
         },
-	"cortical": { "generator": "poisson", "frequency" : 2 },
-	"thalamic": { "generator": "poisson", "frequency" : 2 }
+	"cortical_background": { "generator": "poisson", "frequency" : 2 },
+	"thalamic_background": { "generator": "poisson", "frequency" : 2 }
     }
     
 }

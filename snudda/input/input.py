@@ -544,7 +544,7 @@ class SnuddaInput(object):
 
             parameter_key = self.network_data["neurons"][neuron_id]["parameterKey"]
             morphology_key = self.network_data["neurons"][neuron_id]["morphologyKey"]
-            neuron_path = self.network_data["neurons"][neuron_id]["neuronPath"]
+            neuron_path = snudda_parse_path(self.network_data["neurons"][neuron_id]["neuronPath"], self.snudda_data)
             meta_path = os.path.join(neuron_path, "meta.json")
 
             if self.use_meta_input and os.path.exists(meta_path):
@@ -645,13 +645,15 @@ class SnuddaInput(object):
                 else:
                     assert "location" not in input_inf, \
                         "Location in input config has been replaced with synapseDensity"
+
+                    # If your code fails here, it might be that you are trying to override the background input
+                    # frequency, but have the incorrect name of that input (check the meta.json file)
                     cond = input_inf["conductance"]
 
                     if "nInputs" in input_inf:
 
                         # TODO: We need to read this from meta.json
-
-                        dir_name = os.path.basename(neuron_path)
+                        dir_name = snudda_parse_path(os.path.basename(neuron_path), self.snudda_data)
 
                         # If a dictionary, then extract the info for the relevant neuron
                         # Priority order is:

@@ -10,7 +10,9 @@ from snudda.utils.load import SnuddaLoad
 
 class SnuddaLoadNetworkSimulation:
 
-    def __init__(self, network_simulation_output_file=None, network_path=None):
+    def __init__(self, network_simulation_output_file=None, network_path=None, verbose=False):
+
+        self.verbose = verbose
 
         if network_simulation_output_file:
             self.network_simulation_output_file_name = network_simulation_output_file
@@ -29,6 +31,7 @@ class SnuddaLoadNetworkSimulation:
             self.network_path = None
 
         self.network_simulation_file = None
+        self.depolarisation_block = None
 
         if self.network_simulation_output_file_name:
             self.load()
@@ -40,6 +43,8 @@ class SnuddaLoadNetworkSimulation:
 
         print(f"Loading {network_simulation_output_file}")
         self.network_simulation_file = h5py.File(network_simulation_output_file, "r")
+
+        self.depolarisation_block = self.check_depolarisation_block(verbose=self.verbose)
 
     def close(self):
         if self.network_simulation_file:
@@ -161,51 +166,71 @@ class SnuddaLoadNetworkSimulation:
         else:
             return voltage
 
-    """
-    def check_depolarisation_block(self, threshold=0, max_duration=100e-3):
+    def check_depolarisation_block(self, threshold=-40e-3, max_duration=50e-3, verbose=False):
 
-        neuron_id = np.array(sorted(self.network_simulation_file["neurons"].keys()))
-        assert (np.diff(neuron_id) == 1).all() and neuron_id[0] == 0, f"Failed sanity check on neuron ID"
+        if verbose:
+            print("Checking neurons for depolarisation block")
 
-        block_flag = np.zeros((len(neuron_id),), dtype=bool)
+        neuron_id_list = np.array(sorted([int(x) for x in self.network_simulation_file["neurons"].keys()]))
+
+        assert (np.diff(neuron_id_list) == 1).all() and neuron_id_list[0] == 0, f"Failed sanity check on neuron ID"
+
+        block_flag = np.zeros((len(neuron_id_list),), dtype=bool)
 
         time = self.get_time()
         dt = time[1] - time[0]
         csum_threshold = max_duration / dt
 
         voltage, sec_id_x, _ = self.get_data("voltage", neuron_id=None)
+        depolarisation_block = []
 
-        for neuron_id, (volt, sidx) in enumerate(zip(voltage, sec_id_x)):
-            v_thresh = volt > threshold
+        n_limit = int(np.ceil(max_duration / dt))
 
-            v_idx = np.where(v_thresh)[0]
-            np.diff(v_idx) 
+        for neuron_id in neuron_id_list:
 
+            volt = voltage[neuron_id]
 
-        for idx, (volt, sidx) in enumerate(zip(voltage, sec_id_x)):
-            v_idx = np.where(sidx[0] == 0)
-            csum = 0
-            max_csum = 0
-            block_times = []
-            t_start_block = 0
+            ctr = 0
+            t_start = 0
 
-            for t_idx, vt in enumerate(voltage[:, v_idx]):
-
-                if vt > threshold:
-                    csum += 1
-                    if csum > max_csum:
-                        max_csum = csum
+            for idx in range(0, len(time)):
+                if volt[idx] > threshold:
+                    ctr += 1
                 else:
-                    csum = 0
-                    t_start_block = t_idx
+                    if ctr > n_limit:
+                        depolarisation_block.append((neuron_id, t_start, time[idx]))
 
-            if max_csum > csum_threshold:
-                block_flag[idx] = True
+                    t_start = time[idx]
+                    ctr = 0
 
-        blocked_neurons = np.where(block_flag)
-        return blocked_neurons
+            if ctr > n_limit:
+                depolarisation_block.append((neuron_id, t_start, time[-1]))
 
-    """
+        if verbose and len(depolarisation_block) > 0:
+            for neuron_id, t_start, t_end in depolarisation_block:
+                print(f"Neuron {neuron_id} has depolarisation block from {t_start:.3f} s to {t_end:.3f} s")
+
+        bad_cells = sorted(list(set([x for x, ts, te in depolarisation_block])))
+        bad_cell_str = [f"{x}: ({self.network_simulation_file['metaData/name'][x].decode()}, {self.network_simulation_file['metaData/parameterKey'][x].decode()}, {self.network_simulation_file['metaData/morphologyKey'][x].decode()})"
+                        for x in bad_cells]
+        bad_str = '\n'.join(bad_cell_str)
+
+        if len(depolarisation_block) > 0:
+            print(f"WARNING. Depolarisation block in neuron - neuron_id: (name, parameter_key, morphology_key):\n{bad_str}")
+
+        return depolarisation_block
+
+    def get_depolarisation_dictionary(self):
+
+        depol_dict = dict()
+
+        for neuron_id, start_time, end_time in  self.depolarisation_block:
+            if neuron_id not in depol_dict:
+                depol_dict[neuron_id] = []
+
+            depol_dict[neuron_id].append((start_time, end_time))
+
+        return depol_dict
 
     def get_time(self):
 
@@ -238,7 +263,6 @@ class SnuddaLoadNetworkSimulation:
 
         if neuron_id is None:
             pos_data = self.network_simulation_file["metaData/position"][()].copy()
-
         else:
             pos_data = self.network_simulation_file["metaData/position"][neuron_id, :].copy()
 
@@ -257,9 +281,7 @@ class SnuddaLoadNetworkSimulation:
 
     def get_neuron_name(self, neuron_id=None):
         if neuron_id is not None:
-            neuron_name = [SnuddaLoad.to_str(x) for x, y in zip(self.network_simulation_file["metaData/name"][()],
-                                                                self.network_simulation_file["metaData/ID"][()])
-                           if y in neuron_id]
+            neuron_name = [SnuddaLoad.to_str(self.network_simulation_file["metaData/name"][x]) for x in neuron_id]
         else:
             neuron_name = [SnuddaLoad.to_str(x) for x in self.network_simulation_file["metaData/name"][()]]
 
@@ -267,9 +289,7 @@ class SnuddaLoadNetworkSimulation:
 
     def get_neuron_type(self, neuron_id=None):
         if neuron_id is not None:
-            neuron_type = [SnuddaLoad.to_str(x) for x, y in zip(self.network_simulation_file["metaData/type"][()],
-                                                                self.network_simulation_file["metaData/ID"][()])
-                           if y in neuron_id]
+            neuron_type = [SnuddaLoad.to_str(self.network_simulation_file["metaData/type"][x]) for x in neuron_id]
         else:
             neuron_type = [SnuddaLoad.to_str(x) for x in self.network_simulation_file["metaData/type"][()]]
 
@@ -331,10 +351,10 @@ def load_network_simulation_cli():
     parser.add_argument("--export_spike_file", help="Name of csv file to export spikes to",
                         default=None)
     parser.add_argument("--time_scale", default=1.0, type=float)
+    parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
 
-    slna = SnuddaLoadNetworkSimulation(network_simulation_output_file=args.dataFile)
-    slna.load()
+    slna = SnuddaLoadNetworkSimulation(network_simulation_output_file=args.dataFile, verbose=args.verbose)
 
     if args.export_spike_file is not None:
         slna.export_to_txt(txt_file=args.export_spike_file, time_scale=args.time_scale)

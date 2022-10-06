@@ -220,6 +220,9 @@ class SnuddaPrune(object):
                                           "nHypervoxelGapJunctions",
                                           "nGapJunctions",
                                           "network/gapJunctionLookup")}  # range(6,9))}
+        # How close does a synapse need to other synapses to be part of a cluster for
+        # "protection" against pruning.
+        self.cluster_distance = 10e-6
 
     ############################################################################
 
@@ -1940,6 +1943,8 @@ class SnuddaPrune(object):
 
         old_pos = -1
 
+        cluster_voxel_distance = self.cluster_distance / self.voxel_size
+
         while next_read_pos < read_end_of_range:
 
             assert old_pos != next_read_pos, "prune_synapses_helper: Stuck in a loop."
@@ -2105,8 +2110,10 @@ class SnuddaPrune(object):
 
                 # pdist faster, but does not give full distance matrix
                 synapse_dist = scipy.spatial.distance.cdist(synapse_coords, synapse_coords)
-                synapse_tot_dist = np.sum(synapse_dist, axis=0)
-                synapse_priority = np.argsort(synapse_tot_dist)
+                # synapse_tot_dist = np.sum(synapse_dist, axis=0)
+                # synapse_priority = np.argsort(synapse_tot_dist)
+                synapse_cluster_size = np.sum(synapse_dist < cluster_voxel_distance, axis=0)
+                synapse_priority = np.argsort(-synapse_cluster_size)
 
                 keep_idx = synapse_priority[:n_keep]
                 if dist_flag is not None:

@@ -30,26 +30,29 @@ class PlotDegenerationAndGrowth:
         fig = plt.figure()
         ax = fig.add_subplot(projection='3d')
 
-        ax.scatter(removed_synapse_coords[:, 0],
-                   removed_synapse_coords[:, 1],
-                   removed_synapse_coords[:, 2],
-                   marker='.', color="grey")
+        if removed_synapse_coords.size > 0:
+            ax.scatter(removed_synapse_coords[:, 0],
+                       removed_synapse_coords[:, 1],
+                       removed_synapse_coords[:, 2],
+                       marker='.', color="grey")
 
-        ax.scatter(kept_synapse_coords[:, 0],
-                   kept_synapse_coords[:, 1],
-                   kept_synapse_coords[:, 2],
-                   marker=".", color="black", s=50)
+        if kept_synapse_coords.size > 0:
+            ax.scatter(kept_synapse_coords[:, 0],
+                       kept_synapse_coords[:, 1],
+                       kept_synapse_coords[:, 2],
+                       marker=".", color="black", s=50)
 
-        ax.scatter(added_synapse_coords[:, 0],
-                   added_synapse_coords[:, 1],
-                   added_synapse_coords[:, 2],
-                   marker=".", color="red")
+        if added_synapse_coords.size > 0:
+            ax.scatter(added_synapse_coords[:, 0],
+                       added_synapse_coords[:, 1],
+                       added_synapse_coords[:, 2],
+                       marker=".", color="red")
 
         plt.ion()
         plt.show()
 
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
 
         return fig, ax
 
@@ -91,7 +94,14 @@ class PlotDegenerationAndGrowth:
 #        return removed_synapses, added_synapses, kept_synapses_A, kept_synapses_B, \
 #                removed_synapse_coords, added_synapse_coords, kept_synapse_coords_A, kept_synapse_coords_B
 
+
     def get_synapse_locations(self, coords_1, coords_2):
+
+        if coords_1 is None:
+            coords_1 = np.zeros((3, 0))
+
+        if coords_2 is None:
+            coords_2 = np.zeros((3, 0))
 
         voxel_size = self.original_file.data["voxelSize"]
 

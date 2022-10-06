@@ -857,7 +857,8 @@ class NeuronMorphology:
 
         assert len(link_idx) == 1, \
             (f"Unable to find a compartment matching section_id={section_id}, section_x={section_x}."
-             f" Found {len(link_idx)}: {link_idx}")
+             f" Found {len(link_idx)}: {link_idx}."
+             f"\nMorphology file: {self.swc_filename}")
 
         assert self.dend_sec_id[link_idx[0]] == section_id
 
