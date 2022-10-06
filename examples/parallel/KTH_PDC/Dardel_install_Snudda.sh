@@ -8,6 +8,9 @@ else
     # git clone -b master git@github.com:Hjorthmedh/Snudda.git    
 fi
 
+# If you are low on disk space on $HOME, then you could try
+# using $SNIC_TMP/Snudda as location instead
+
 pushd $HOME/Snudda
 git pull
 

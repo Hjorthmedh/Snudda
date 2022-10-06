@@ -28,6 +28,10 @@ echo ""
 echo "https://github.com/Hjorthmedh/Snudda/wiki/D.-Setting-up-Tegner-@%C2%A0KTH"
 echo ""
 
+# If you are low on disk space in your home folder you can instead use
+# $SNIC_TMP/$SNIC_RESOURCE in the export L line below.
+# e.g: export L=$SNIC_TMP/$SNIC_RESOURCE
+
 export L=/cfs/klemming/home/${USER:0:1}/$USER/local/$SNIC_RESOURCE
 export LM=$L/miniconda3
 export LN=$L/neuron

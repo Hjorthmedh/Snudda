@@ -7,6 +7,9 @@ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 chmod u+x Miniconda3-latest-Linux-x86_64.sh
 
 module load snic-env
+
+# If you are low on disk space in HOME folder you could
+# use  L=$SNIC_TMP/$SNIC_RESOURCE  instead.
 L=/cfs/klemming/home/${USER:0:1}/$USER/local/$SNIC_RESOURCE
 
 # This is needed to compile mpi4py -- is it really?
