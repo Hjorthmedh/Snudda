@@ -836,7 +836,7 @@ class SnuddaInit(object):
                         mesh_file=None,
                         mesh_bin_width=None,
                         d_min=None,
-                        cluster_FS_synapses=False,       # !!! TEMP SET TO TRUE
+                        cluster_FS_synapses=False,
                         cluster_SPN_synapses=False):
 
         get_val = lambda x: 0 if x is None else x
@@ -1326,7 +1326,7 @@ class SnuddaInit(object):
         # Mamaligas, Ford 2016 -- connectivity, 2-5ChIN per MS (in slice)
 
         ChINgGABA = 1e-9  # If just one value given, then gSTD = 0
-        ChINgACh = 1e-9  # FIXME
+        ChINgACh = 1e-9  # FIXME, what is a good value? Currently channel is not implemented, so this is DUMMY value
 
         # Run 1142 -- No mu2
         # Run 1150 -- Mu2 2.4
@@ -1341,34 +1341,24 @@ class SnuddaInit(object):
         pfChINiSPN = None
         pfChINLTS = None
 
-        # !!! SET RELEASE TO GABA FOR NOW
-
-        # ================================================================
-        # commenting gabaergic ChIN -> SPN connections Feb. 25th 2020 (RL)
-
-        # UPDATE: 2022-09-20 JH-IC --- WHY was this done? ChIN synapses restored.
-
         if True:
             self.add_neuron_target(neuron_name="ChIN",
                                    target_name="dSPN",
                                    connection_type="ACh",
                                    dist_pruning=None,
                                    f1=0.5, soft_max=10, mu2=15, a3=0.1,  # SM 15
-                                   conductance=ChINgGABA,
+                                   conductance=ChINgACh,
                                    cluster_synapses=False,
                                    parameter_file=pfChINdSPN,
                                    mod_file="",                 # mod_file left empty, not implemented yet -- will NOT be simulated
                                    channel_param_dictionary=None)
-
-            # TEST SETTING THIS TO ACh (SHOULD BE GABA), will this change?
-            # !!!
 
             self.add_neuron_target(neuron_name="ChIN",
                                    target_name="iSPN",
                                    connection_type="ACh",
                                    dist_pruning=None,
                                    f1=0.5, soft_max=10, mu2=10, a3=0.1,  # SM 12
-                                   conductance=ChINgGABA,
+                                   conductance=ChINgACh,
                                    cluster_synapses=False,
                                    parameter_file=pfChINiSPN,
                                    mod_file="",                 # mod_file left empty, not implemented -- wilt NOT be simulated
