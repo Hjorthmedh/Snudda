@@ -206,7 +206,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         sort_idx = np.lexsort(synapses[:, [6, 0, 1]].transpose())
         return synapses[sort_idx, :].copy()
 
-    def filter_synapses(self, filter_axon=False):
+    def filter_synapses(self, filter_axon=False, post_degen_pruning=True):
 
         # This replaces the original filter_synapses, so that we can also add in the
         # new synapses due to growing axons or dendrites
@@ -241,7 +241,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
         old_synapse_iterator = self.synapse_iterator(synapses=self.old_hdf5["network/synapses"][()])
 
-        if True:
+        if post_degen_pruning:
             pruned_synapses = self.post_degeneration_pruning(synapses=sorted_synapses,
                                                              old_synapse_iterator=old_synapse_iterator,
                                                              network_config=config,
