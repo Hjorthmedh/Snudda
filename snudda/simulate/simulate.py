@@ -126,6 +126,8 @@ class SnuddaSimulate(object):
 
         self.pc = h.ParallelContext()
 
+        self.print_error_once = dict()
+
         if simulation_config:
         
             with open(simulation_config, "r") as f:
@@ -902,6 +904,16 @@ class SnuddaSimulate(object):
         (channel_module, par_data) = self.synapse_parameters[synapse_type_id]
 
         if channel_module is None:
+            error_tag = ("channel_model_error", synapse_type_id)
+
+            if error_tag not in self.print_error_once:
+                error_message = (f"Warning: No channel module for {synapse_type_id} "
+                                 f"between neuron {cell_id_source} and {cell_id_dest}, "
+                                 f"did you miss specifying a mod file?")
+
+                self.print_error_once[error_tag] = error_message
+                self.write_log(error_message, is_error=True)
+
             # This channel was not implemented, skipping.
             return None
 

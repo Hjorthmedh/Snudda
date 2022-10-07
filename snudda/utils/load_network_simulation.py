@@ -166,7 +166,7 @@ class SnuddaLoadNetworkSimulation:
         else:
             return voltage
 
-    def check_depolarisation_block(self, threshold=-40e-3, max_duration=50e-3, verbose=False):
+    def check_depolarisation_block(self, threshold=-40e-3, max_duration=20e-3, verbose=False):
 
         if verbose:
             print("Checking neurons for depolarisation block")

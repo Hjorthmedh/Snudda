@@ -83,37 +83,14 @@ class SwapToDegeneratedMorphologies:
         network_group = self.new_hdf5.create_group("network")
         self.old_hdf5.copy(source=self.old_hdf5["network/neurons"], dest=self.new_hdf5["network"])
 
-        # This if statement is now redundant, since we express neuron paths using SNUDDA_DATA
-        if False and len(self.new_snudda_data_dir) > len(self.original_snudda_data_dir):
-            n_elements = self.new_hdf5[f"network/neurons/morphology"].size
-            old_size = int(np.ceil(self.new_hdf5[f"network/neurons/morphology"].nbytes / n_elements))
-            new_size = old_size + len(self.new_snudda_data_dir) - len(self.original_snudda_data_dir)
-
-            del self.new_hdf5[f"network/neurons/morphology"]
-            self.new_hdf5["network/neurons"].create_dataset("morphology",
-                                                            (n_elements,), f"S{new_size}", compression="gzip")
-
-            n_elements = self.new_hdf5[f"network/neurons/neuronPath"].size
-            old_size = int(np.ceil(self.new_hdf5[f"network/neurons/neuronPath"].nbytes / n_elements))
-            new_size = old_size + 100
-            del self.new_hdf5[f"network/neurons/neuronPath"]
-            self.new_hdf5["network/neurons"].create_dataset("neuronPath",
-                                                            (n_elements,), f"S{new_size}", compression="gzip")
-
         # Update parameter keys and morphology keys
         for idx, neuron_id in enumerate(self.new_hdf5["network/neurons/neuronID"]):
             assert idx == neuron_id, "There should be no gaps in numbering."
             param_key, morph_key, neuron_path, param_id, morph_id = self.find_morpology(neuron_id)
             self.new_hdf5[f"network/neurons/parameterKey"][idx] = param_key
             self.new_hdf5[f"network/neurons/morphologyKey"][idx] = morph_key
-            # self.new_hdf5[f"network/neurons/neuronPath"][idx] = neuron_path   # No longer needed to update, due to SNUDDA_DATA
             self.new_hdf5[f"network/neurons/parameterID"][idx] = param_id
             self.new_hdf5[f"network/neurons/morphologyID"][idx] = morph_id
-
-            # This is no longer needed, the path is expressed using SNUDDA_DATA so will automatically be updated
-            # old_morph = SnuddaLoad.to_str(self.old_hdf5[f"network/neurons/morphology"][idx])
-            # new_morph = old_morph.replace(self.original_snudda_data_dir, self.new_snudda_data_dir)
-            # self.new_hdf5[f"network/neurons/morphology"][idx] = new_morph
 
         self.filter_synapses(filter_axon=self.filter_axon)
         self.filter_gap_junctions()

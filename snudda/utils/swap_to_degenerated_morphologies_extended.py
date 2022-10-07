@@ -272,6 +272,9 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             rng: Numpy random generator
         """
 
+        # TODO: We here assume that mu2 is the same for WT and degenerate network, if it is NOT the same
+        #       this code needs to be modified such that mu2_original and mu2_degenerate are used
+
         # This prunes the network synapses after the generation/growth phase
         print("Running post degeneration pruning of synapses", flush=True)
 
@@ -349,6 +352,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
                 if old_post_id * n_neurons + old_pre_id == post_id * n_neurons + pre_id:
                     old_n_syn = old_synapse_set.shape[0]
 
+                    # This should be mu2 original
                     old_p_mu = 1.0 / (1.0 + np.exp(-8.0 / mu2 * (old_n_syn - mu2)))
 
                     assert old_channel_mod_id is None or old_channel_mod_id == channel_model_id, \
@@ -360,6 +364,11 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
                 else:
                     old_p_mu = 1
+
+                # This should use mu2_degenerated (which is does, but mu2_old above
+                # should use mu2_original which id does not)
+                # TODO: Fix it or add assert that they are the same, right now it will
+                #  silently do it wrong if different...
 
                 # We need to compensate for the old p_mu, i.e. p_real = p_mu_new / p_mu_old
                 p_mu = 1.0 / (1.0 + np.exp(-8.0 / mu2 * (n_syn - mu2)))
