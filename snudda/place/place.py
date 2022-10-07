@@ -23,7 +23,7 @@ from snudda.utils.snudda_path import get_snudda_data
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.place.region_mesh import RegionMesh
 from snudda.place.rotation import SnuddaRotate
-from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists
+from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists, snudda_simplify_path
 
 ''' This code places all neurons in space, but does not setup their
     connectivity. That is done by detect.py and prune.py '''
@@ -596,13 +596,13 @@ class SnuddaPlace(object):
                                     (len(volume_id_list),), str_type_vid, volume_id_list,
                                     compression="gzip")
 
-        hoc_list = [n.hoc.encode("ascii", "ignore") for n in self.neurons]
+        hoc_list = [snudda_simplify_path(n.hoc, self.snudda_data).encode("ascii", "ignore") for n in self.neurons]
         max_hoc_len = max([len(x) for x in hoc_list])
         max_hoc_len = max(max_hoc_len, 10)  # In case there are none
         neuron_group.create_dataset("hoc", (len(hoc_list),), f"S{max_hoc_len}", hoc_list,
                                     compression="gzip")
 
-        swc_list = [n.swc_filename.encode("ascii", "ignore") for n in self.neurons]
+        swc_list = [snudda_simplify_path(n.swc_filename, self.snudda_data).encode("ascii", "ignore") for n in self.neurons]
         max_swc_len = max([len(x) for x in swc_list])
         #neuron_group.create_dataset("morphology", (len(swc_list),), f"S{max_swc_len}", swc_list,
         #                            compression="gzip")
@@ -611,7 +611,7 @@ class SnuddaPlace(object):
                                     dtype=h5py.special_dtype(vlen=bytes),
                                     compression="gzip")
 
-        neuron_path = [n.neuron_path.encode("ascii", "ignore") for n in self.neurons]
+        neuron_path = [snudda_simplify_path(n.neuron_path, self.snudda_data).encode("ascii", "ignore") for n in self.neurons]
         max_np_len = max([len(x) for x in neuron_path])
         neuron_group.create_dataset("neuronPath", (len(neuron_path),), f"S{max_np_len}", neuron_path)
 
@@ -1014,6 +1014,10 @@ class SnuddaPlace(object):
         n_workers = len(self.d_view) if self.d_view is not None else 1
         n_clusters = np.maximum(n_workers * 5, 100)
         n_clusters = np.minimum(n_clusters, len(self.neurons))
+
+        if n_workers > 1:
+            self.write_log(f"Neurons order is optimised for {n_workers} workers. "
+                           f"For reproducibility always use the same number of workers.")
 
         xyz = self.all_neuron_positions()
         centroids, labels = scipy.cluster.vq.kmeans2(xyz, n_clusters, minit="points", seed=self.random_generator)

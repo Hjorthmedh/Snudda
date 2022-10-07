@@ -1,0 +1,47 @@
+2022-09-20
+
+We have a problem. When creating PD0 and PD2 networks from scratch we
+get a set of synapses S0 and S2. However, when we first create PD0
+then swap to degenerated morphologies and remove (and add) synapses to
+retrieve a PD2 network, we get a different set of synapses S2'.
+
+Lets say there is a pair of neurons that have 15 putative synapses
+between them. The pruning reduces it down to 6 synapses. Swapping to
+degenerated morphologies removes an additional 2 synapses, leaving 4
+synapses.
+
+If we instead had done network creation on the degenerated
+morphologies out of those 15 putative synapses 5 might have been
+outside the degenerated morphologies, but from the remaining 10
+synapses we could pick 6 synapses.
+
+Thus the network creation processes generates different networks
+depending on how we do it.
+
+IDEA: Activate cluster=True, does this alleviate some of the problem?
+Because if the synapses are closer together, then we are not going to
+get as many spurious 1 synapse connections.
+
+
+
+TODO: Check why ChIN suddenly has too low connection to other neurons
+-- problem with axonal cloud? or something else? Is axon used instead?
+FIXED! Synapses were disabled in init.py for some reason, re-enabled.
+
+TODO: Make plot network able to plot subset of network, and all synapses on those neurons. Allow neuronID to be 1,2,3,4 comma separated list of numbers
+
+--> We want to see what effect of clustering is on pruning. Do we see it with our eyeballs
+
+
+
+How should we prune to keep clustered synapses?
+
+Old version was, calculate total distance to all other synapses. Remove the ones that have the largest total distance.
+
+New version implemented. Count how many synapses are within a radius of 10 micrometers (arbitrarily picked distance). Higher count, means synapse has higher priority to be kept.
+
+
+This means that in a group, the centre synapse is most protected. However, it can also mean that only the centres are kept, thus giving no clusters.
+
+--> How shall we improve on this?
+

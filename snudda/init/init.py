@@ -79,9 +79,8 @@ class SnuddaInit(object):
         else:
             self.network_path = ""
 
-
         if self.config_file and self.network_path:
-            assert self.network_path == os.path.dirname(self.config_file), \
+            assert os.path.realpath(self.network_path) == os.path.realpath(os.path.dirname(self.config_file)), \
                 f"network_path {self.network_path} and config_file path {self.config_file} must match"
 
         self.network_data["Connectivity"] = dict([])
@@ -619,7 +618,7 @@ class SnuddaInit(object):
         else:
             swc_file = glob.glob(os.path.join(snudda_parse_path(neuron_dir, self.snudda_data), "*swc"))
             assert len(swc_file) == 1, \
-                (f"If no morphology is given in parameter.json then "
+                (f"If no morphology is given in meta.json then "
                  f"{snudda_parse_path(neuron_dir, self.snudda_data)} should contain exactly one swc file")
 
             swc_file = snudda_simplify_path(swc_file[0], self.snudda_data)
@@ -841,6 +840,7 @@ class SnuddaInit(object):
                         cluster_SPN_synapses=False):
 
         get_val = lambda x: 0 if x is None else x
+
         if num_neurons is None:
             self.num_dSPN = get_val(num_dSPN)
             self.num_iSPN = get_val(num_iSPN)
@@ -1326,7 +1326,7 @@ class SnuddaInit(object):
         # Mamaligas, Ford 2016 -- connectivity, 2-5ChIN per MS (in slice)
 
         ChINgGABA = 1e-9  # If just one value given, then gSTD = 0
-        ChINgACh = 1e-9  # FIXME
+        ChINgACh = 1e-9  # FIXME, what is a good value? Currently channel is not implemented, so this is DUMMY value
 
         # Run 1142 -- No mu2
         # Run 1150 -- Mu2 2.4
@@ -1341,35 +1341,27 @@ class SnuddaInit(object):
         pfChINiSPN = None
         pfChINLTS = None
 
-        # !!! SET RELEASE TO GABA FOR NOW
-
-        # ================================================================
-        # commenting gabaergic ChIN -> SPN connections Feb. 25th 2020 (RL)
-
-        if False:
+        if True:
             self.add_neuron_target(neuron_name="ChIN",
                                    target_name="dSPN",
-                                   connection_type="GABA",
+                                   connection_type="ACh",
                                    dist_pruning=None,
                                    f1=0.5, soft_max=10, mu2=15, a3=0.1,  # SM 15
-                                   conductance=ChINgGABA,
+                                   conductance=ChINgACh,
                                    cluster_synapses=False,
                                    parameter_file=pfChINdSPN,
-                                   mod_file="tmGabaA",
+                                   mod_file="",                 # mod_file left empty, not implemented yet -- will NOT be simulated
                                    channel_param_dictionary=None)
-
-            # TEST SETTING THIS TO ACh (SHOULD BE GABA), will this change?
-            # !!!
 
             self.add_neuron_target(neuron_name="ChIN",
                                    target_name="iSPN",
-                                   connection_type="GABA",
+                                   connection_type="ACh",
                                    dist_pruning=None,
                                    f1=0.5, soft_max=10, mu2=10, a3=0.1,  # SM 12
-                                   conductance=ChINgGABA,
+                                   conductance=ChINgACh,
                                    cluster_synapses=False,
                                    parameter_file=pfChINiSPN,
-                                   mod_file="tmGabaA",
+                                   mod_file="",                 # mod_file left empty, not implemented -- wilt NOT be simulated
                                    channel_param_dictionary=None)
         # ================================================================
 

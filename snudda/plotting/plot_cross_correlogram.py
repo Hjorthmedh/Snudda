@@ -35,12 +35,11 @@ class PlotCrossCorrelogram:
                 bin_count, edges = self.calculate_cross_correlogram(spike_data[na],
                                                                     spike_data[nb],
                                                                     time_range=time_range)
-
                 
-                shuffle_count, shuffle_edges = self.calculate_cross_correlogram(self.shuffle_spikes(spike_data[na], time_range=time_range),
-                                                                                self.shuffle_spikes(spike_data[nb], time_range=time_range),
-                                                                                time_range=time_range)
-
+                shuffle_count, shuffle_edges = \
+                    self.calculate_cross_correlogram(self.shuffle_spikes(spike_data[na], time_range=time_range),
+                                                     self.shuffle_spikes(spike_data[nb], time_range=time_range),
+                                                     time_range=time_range)
                 
                 assert (edges == shuffle_edges).all()
                 
@@ -56,7 +55,6 @@ class PlotCrossCorrelogram:
                 else:
                     shuffle_count_total += shuffle_count
 
-                    
         if shuffle_correct:
             bin_count_total -= shuffle_count_total
 
@@ -100,7 +98,6 @@ class PlotCrossCorrelogram:
                                       spike_times.flatten() <= time_range[1]))[0]
 
         return spike_times[:, idx]
-        
     
     def shuffle_spikes(self, spike_times, time_range):
 

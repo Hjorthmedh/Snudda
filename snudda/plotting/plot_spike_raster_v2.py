@@ -88,10 +88,10 @@ class SnuddaPlotSpikeRaster2:
         if end_time is None:
             end_time = 1.02 * max(self.time)
         if type_order is None:
-            unique_neuron_types = np.unique(neuron_type_list)
+            unique_neuron_types = sorted(list(set(neuron_type_list)))
             type_order = unique_neuron_types
         else:
-            unique_neuron_types = type_order + list(set(neuron_type_list) - set(type_order))
+            unique_neuron_types = type_order + sorted(list(set(neuron_type_list) - set(type_order)))
 
         if type_division is None:
             type_division = [unique_neuron_types, []]
@@ -321,9 +321,9 @@ class SnuddaPlotSpikeRaster2:
         neuron_type_map = dict()
 
         if type_order is None:
-            unique_neuron_types = set(neuron_type_list)
+            unique_neuron_types = sorted(list(set(neuron_type_list)))
         else:
-            unique_neuron_types = type_order + list(set(neuron_type_list) - set(type_order))
+            unique_neuron_types = type_order + sorted(list(set(neuron_type_list) - set(type_order)))
 
         for nt_idx, nt in enumerate(unique_neuron_types):
             neuron_type_map[nt] = nt_idx

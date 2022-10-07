@@ -84,8 +84,10 @@ class SnuddaPlotInputLocations:
 
         if show_internal_synapses:
             syn_coords = self.get_synapse_coords(neuron_id=neuron_id)
-            ax.scatter(xs=syn_coords[:, 0], ys=syn_coords[:, 1], zs=syn_coords[:, 2],
-                       c=internal_colour, marker=".", s=size)
+
+            if syn_coords is not None:
+                ax.scatter(xs=syn_coords[:, 0], ys=syn_coords[:, 1], zs=syn_coords[:, 2],
+                           c=internal_colour, marker=".", s=size)
 
         neuron_name = self.snudda_load.data["neurons"][neuron_id]["name"]
 
@@ -167,10 +169,10 @@ class SnuddaPlotInputLocations:
         if neuron_id not in self.neuron_cache:
             neuron_info = self.snudda_load.data["neurons"][neuron_id]
 
-            np = NeuronPrototype(neuron_path=neuron_info["neuronPath"], neuron_name=neuron_info["name"],
+            prot = NeuronPrototype(neuron_path=neuron_info["neuronPath"], neuron_name=neuron_info["name"],
                                  snudda_data=self.snudda_data)
-            nm = np.clone(parameter_key=neuron_info["parameterKey"], morphology_key=neuron_info["morphologyKey"],
-                          position=neuron_info["position"], rotation=neuron_info["rotation"])
+            nm = prot.clone(parameter_key=neuron_info["parameterKey"], morphology_key=neuron_info["morphologyKey"],
+                            position=neuron_info["position"], rotation=neuron_info["rotation"])
             self.neuron_cache[neuron_id] = nm
 
         return self.neuron_cache[neuron_id]
@@ -179,7 +181,11 @@ class SnuddaPlotInputLocations:
 
         synapses, synapse_coords = self.snudda_load.find_synapses(post_id=neuron_id)
 
-        assert (neuron_id == synapses[:, 1]).all(), f"Internal error, post_id should be {neuron_id} for all"
+        if synapses is None:
+            return None
+
+        assert (neuron_id == synapses[:, 1]).all(), \
+            f"Internal error, post_id should be {neuron_id} for all"
 
         # Also get synapse coords from section id and section x
         section_id = synapses[:, 9]
