@@ -65,6 +65,9 @@ class FilterFlagserData:
 
         start_time = timeit.default_timer()
 
+        keep_count = 0
+        total_count = 0
+
         for row in self.data_file:
 
             neuron_id = np.array([int(x) for x in row.strip().split(" ")])
@@ -72,10 +75,14 @@ class FilterFlagserData:
             keep_flag = np.sum(np.take(lookup_table, neuron_id)) > 0
             if keep_flag:
                 self.filtered_data_file.write(",".join([f"{x}" for x in neuron_id]) + "\n")
+                keep_count += 1
+
+            total_count += 1
 
         self.close()
 
         print(f"Total time used {(timeit.default_timer() - start_time):0.1f} seconds.")
+        print(f"Kept {keep_count} out of {total_count} rows")
 
     @staticmethod
     def get_dim_from_name(dim_name):
