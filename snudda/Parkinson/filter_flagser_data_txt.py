@@ -36,7 +36,7 @@ class FilterFlagserData:
         self.data_file = open(self.data_file_name, "r")
         # self.meta_data = np.genfromtxt(self.network_meta_file_name, delimiter=",")
         self.meta_data = pandas.read_csv(self.network_meta_file_name,
-                                         names=["neuron_id", "neuron_type", "neuron_name", "x", "y", "z", "morphology"])
+                                         names=["neuron_id", "neuron_type", "neuron_name", "x", "y", "z", "morphology", "population_id"])
 
     def find_core_neurons(self, population_fraction=None, distance_to_centre=None):
 
@@ -67,7 +67,7 @@ class FilterFlagserData:
 
         for row in self.data_file:
 
-            neuron_id = row.split(" ")
+            neuron_id = np.array([int(x) for x in row.strip().split(" ")])
 
             keep_flag = np.sum(np.take(lookup_table, neuron_id)) > 0
             if keep_flag:
