@@ -68,6 +68,8 @@ class FilterFlagserData:
         keep_count = 0
         total_count = 0
 
+        self.filtered_data_file.write("# Centre IDs:" + ", ".join(neuron_id[centre_idx]) + "\n")
+
         for row in self.data_file:
 
             neuron_id = np.array([int(x) for x in row.strip().split(" ")])
