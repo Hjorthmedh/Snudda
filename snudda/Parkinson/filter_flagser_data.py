@@ -145,8 +145,8 @@ def filter_flagser_cli():
     parser.add_argument("flagser_file", help="Flagser file")
     parser.add_argument("meta_data_file", help="Meta data file")
     parser.add_argument("output_file", help="Output file name")
-    parser.add_argument("percentile", help="Percentile of population kept (0-100)", type=int, default=None)
-    parser.add_argument("distance", help="Maximum distance to centre for core neurons (micrometers)", type=float, default=None)
+    parser.add_argument("--percentile", help="Percentile of population kept (0-100)", type=int, default=None)
+    parser.add_argument("--distance", help="Maximum distance to centre for core neurons (micrometers)", type=float, default=None)
 
     args = parser.parse_args()
 
@@ -155,7 +155,7 @@ def filter_flagser_cli():
                            filtered_file_name=args.output_file)
     ff.load_data()
     ff.find_core_neurons(distance_to_centre=args.distance, population_fraction=args.percentile)
-    
+
 
 if __name__ == "__main__":
     filter_flagser_cli()
