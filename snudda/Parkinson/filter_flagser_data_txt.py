@@ -68,7 +68,7 @@ class FilterFlagserData:
         keep_count = 0
         total_count = 0
 
-        self.filtered_data_file.write("# Centre IDs:" + ", ".join(neuron_id[centre_idx]) + "\n")
+        self.filtered_data_file.write("# Centre IDs:" + ", ".join([str(x) for x in neuron_id[centre_idx]]) + "\n")
 
         for row in self.data_file:
 
