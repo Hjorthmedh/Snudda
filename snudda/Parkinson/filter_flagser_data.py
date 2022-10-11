@@ -34,10 +34,7 @@ class FilterFlagserData:
         self.meta_data = pandas.read_csv(self.network_meta_file_name,
                                          names=["neuron_id", "neuron_type", "neuron_name", "x", "y", "z", "morphology"])
 
-    def find_core_neurons(self, population_fraction=2):
-
-        print(f"Filtering simplices with at least one member in core "
-              f"(core fraction {population_fraction} of all neurons)")
+    def find_core_neurons(self, population_fraction=None, distance_to_centre=None):
 
         neuron_id = self.meta_data["neuron_id"].to_numpy()
         positions = self.meta_data[["x", "y", "z"]].to_numpy()
@@ -45,7 +42,16 @@ class FilterFlagserData:
         centre_point = np.mean(positions, axis=0)
         dist_to_centre = np.linalg.norm(positions - centre_point, axis=1)
 
-        distance_threshold = np.percentile(dist_to_centre, population_fraction)
+        if distance_to_centre:
+            print(f"Core filtering, maximal distance to centre {distance_to_centre} meters")
+            distance_threshold = distance_to_centre
+        else:
+            assert population_fraction is not None, f"Either distance_to_centre or population_fraction must be set"
+
+            print(f"Filtering simplices with at least one member in core "
+                  f"(core fraction {population_fraction} of all neurons)")
+            distance_threshold = np.percentile(dist_to_centre, population_fraction)
+
         centre_idx = np.where(dist_to_centre <= distance_threshold)[0]
 
         lookup_table = np.zeros((len(neuron_id),), dtype=bool)
@@ -139,14 +145,17 @@ def filter_flagser_cli():
     parser.add_argument("flagser_file", help="Flagser file")
     parser.add_argument("meta_data_file", help="Meta data file")
     parser.add_argument("output_file", help="Output file name")
+    parser.add_argument("percentile", help="Percentile of population kept (0-100)", type=int, default=None)
+    parser.add_argument("distance", help="Maximum distance to centre for core neurons (micrometers)", type=float, default=None)
+
     args = parser.parse_args()
 
     ff = FilterFlagserData(flagser_data_file_name=args.flagser_file,
                            network_meta_file_name=args.meta_data_file,
                            filtered_file_name=args.output_file)
     ff.load_data()
-    ff.find_core_neurons()
-
+    ff.find_core_neurons(distance_to_centre=args.distance, population_fraction=args.percentile)
+    
 
 if __name__ == "__main__":
     filter_flagser_cli()
