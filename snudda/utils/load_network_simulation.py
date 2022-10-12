@@ -12,7 +12,7 @@ class SnuddaLoadNetworkSimulation:
 
     def __init__(self, network_simulation_output_file=None,
                  network_path=None,
-                 skip_test=False,
+                 do_test=False,
                  verbose=False):
 
         self.verbose = verbose
@@ -35,7 +35,7 @@ class SnuddaLoadNetworkSimulation:
 
         self.network_simulation_file = None
         self.depolarisation_block = None
-        self.test_data = not skip_test
+        self.test_data = do_test
 
         if self.network_simulation_output_file_name:
             self.load()
@@ -357,11 +357,11 @@ def load_network_simulation_cli():
                         default=None)
     parser.add_argument("--time_scale", default=1.0, type=float)
     parser.add_argument("--verbose", action="store_true")
-    parser.add_argument("--skip_test", help="Skip tests on simulation data", action="store_true")
+    parser.add_argument("--do_test", help="Do tests on simulation data", action="store_true")
     args = parser.parse_args()
 
     slna = SnuddaLoadNetworkSimulation(network_simulation_output_file=args.dataFile, verbose=args.verbose,
-                                       skip_test=args.skip_test)
+                                       skip_test=args.do_test)
 
     if args.export_spike_file is not None:
         slna.export_to_txt(txt_file=args.export_spike_file, time_scale=args.time_scale)
