@@ -229,7 +229,10 @@ class SnuddaLoadNetworkSimulation:
 
         depol_dict = dict()
 
-        for neuron_id, start_time, end_time in  self.depolarisation_block:
+        if self.depolarisation_block is None:
+            self.depolarisation_block = self.check_depolarisation_block()
+
+        for neuron_id, start_time, end_time in self.depolarisation_block:
             if neuron_id not in depol_dict:
                 depol_dict[neuron_id] = []
 
