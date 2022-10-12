@@ -399,3 +399,4 @@ if __name__ == "__main__":
 
     type_order = ["FS", "dSPN", "LTS", "iSPN", "ChIN"]
     ps.plot_spike_raster(type_order)
+    ps.plot_spike_histogram(type_order)
