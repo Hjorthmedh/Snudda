@@ -405,11 +405,10 @@ class SnuddaSimulate(object):
                     with open(par_file, "r") as f:
                         par_data_dict = json.load(f, object_pairs_hook=OrderedDict)
 
-                    # Save data as a list, we dont need the keys
+                    # Save data as a list, we don't need the keys
                     par_data = []
                     for pd in par_data_dict:
                         if "synapse" in par_data_dict[pd]:
-
                             # Add channel parameters specified in network file, however
                             # any values in the synapse parameter file will overwrite them
                             p_dict = channel_param_dict.copy()
