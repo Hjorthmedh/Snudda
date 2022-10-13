@@ -243,7 +243,7 @@ class SnuddaPlotSpikeRaster2:
 
         return ax
 
-    def plot_period_histogram_mod(self, neuron_id, period, time_range=None, fig_file=None, ax=None, fig_size=None, label=None):
+    def plot_period_histogram_mod(self, neuron_id, period, time_range=None, fig_file=None, ax=None, fig_size=None, label=None, color=None):
 
         self.make_figures_directory()
 
@@ -260,17 +260,21 @@ class SnuddaPlotSpikeRaster2:
         all_spikes = []
 
         for s in spikes.values():
-            if time_range is not None:
-                idx = np.where(np.logical_and(time_range[0] <= s, s <= time_range[1]))
-                all_spikes = all_spikes + list(s[idx] % period)
-            else:
-                all_spikes = all_spikes + list(s % period)
 
+            sf = s.flatten()
+            
+            if time_range is not None:
+                idx = np.where(np.logical_and(time_range[0] <= sf, sf <= time_range[1]))[0]
+                all_spikes = all_spikes + list(sf[idx] % period)
+            else:
+                all_spikes = all_spikes + list(sf % period)
+                
         counts, bins = np.histogram(all_spikes)
-        plt.stairs(bins, counts, label=label)
+        ax.stairs(counts, bins, label=label, color=color)
 
         ax.set_xlabel("Time (s)")
         ax.set_ylabel("Count")
+        ax.legend()
 
         if fig_file is None:
             fig_file = os.path.join(self.figure_path, "spike-period-histogram.pdf")
@@ -284,7 +288,8 @@ class SnuddaPlotSpikeRaster2:
         plt.ion()
         plt.show()
 
-        return ax
+        # ax
+        return counts, bins
 
     def plot_spike_histogram(self, population_id=None, skip_time=0, end_time=None, fig_size=None, bin_size=50e-3,
                              fig_file=None, ax=None, label_text=None, show_figure=True, save_figure=True, colour=None):
