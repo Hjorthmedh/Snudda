@@ -4,7 +4,7 @@
 #SBATCH -e log/runSnudda-%j-error.txt
 #SBATCH -t 0:19:00
 #SBATCH -J Snudda
-#SBATCH -A snic2021-5-492
+#SBATCH -A snic2022-5-245
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=64
 
@@ -18,4 +18,4 @@ source $HOME/Snudda/snudda_env/bin/activate
 export NETWORK_PATH=/cfs/klemming/projects/snic/snic2021-5-492/hjorth/forKadri-FS1050-1
 
 python3 FS_network_make_config_1.py $NETWORK_PATH
-srun ./Dardel_create_FS_network.sh $NETWORK_PATH
+srun ./Dardel_SfN2022_forKadri-1.sh $NETWORK_PATH
