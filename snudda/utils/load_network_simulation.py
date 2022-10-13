@@ -21,9 +21,7 @@ class SnuddaLoadNetworkSimulation:
         if network_simulation_output_file:
             self.network_simulation_output_file_name = network_simulation_output_file
         elif network_path:
-            self.network_simulation_output_file_name = os.path.join(network_path,
-                                                                    "simulation",
-                                                                    "output.hdf5")
+            self.network_simulation_output_file_name = os.path.join(network_path, "simulation", "output.hdf5")
         else:
             self.network_simulation_output_file_name = None
 

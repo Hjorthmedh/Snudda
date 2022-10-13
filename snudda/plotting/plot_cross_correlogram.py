@@ -1,6 +1,8 @@
 import os
 
 import numpy as np
+from numba import jit
+
 import matplotlib.pyplot as plt
 from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
 
@@ -61,6 +63,7 @@ class PlotCrossCorrelogram:
         return bin_count_total, bin_edges
 
     @staticmethod
+    @jit(nopython=True, fastmath=True, cache=True)
     def calculate_cross_correlogram(spike_times_a, spike_times_b, n_bins=101, width=50e-3, time_range=None):
 
         if time_range is not None:
@@ -73,21 +76,15 @@ class PlotCrossCorrelogram:
             if len(idx_a) == 0 or len(idx_b) == 0:
                 t_diff = np.array([])
             else:
-                try:
-                    t_diff = (np.kron(spike_times_a[:, idx_a], np.ones(spike_times_b[:, idx_b].shape).T)
-                              - np.kron(np.ones(spike_times_a[:, idx_a].shape), spike_times_b[:, idx_b].T)).flatten()
-                except:
-                    import traceback
-                    print(traceback.format_exc())
-                    import pdb
-                    pdb.set_trace()
-                
+                t_diff = (np.kron(spike_times_a[:, idx_a], np.ones(spike_times_b[:, idx_b].shape).T)
+                          - np.kron(np.ones(spike_times_a[:, idx_a].shape), spike_times_b[:, idx_b].T)).flatten()
+
         else:
 
             t_diff = (np.kron(spike_times_a, np.ones(spike_times_b.shape).T)
                       - np.kron(np.ones(spike_times_a.shape), spike_times_b.T)).flatten()
 
-        t_diff = t_diff[np.where(abs(t_diff) <= width)[0]]
+        t_diff = t_diff[np.where(np.abs(t_diff) <= width)[0]]
 
         bin_count, bin_edges = np.histogram(t_diff, bins=n_bins, range=[-width, width])
         return bin_count, bin_edges

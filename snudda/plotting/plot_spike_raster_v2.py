@@ -241,6 +241,45 @@ class SnuddaPlotSpikeRaster2:
         plt.ion()
         plt.show()
 
+    def plot_period_histogram_mod(self, neuron_id, period, time_range=None, fig_file=None, ax=None, fig_size=None, label=None):
+
+        self.make_figures_directory()
+
+        plt.rcParams.update({'font.size': 24,
+                             'xtick.labelsize': 20,
+                             'ytick.labelsize': 20,
+                             'legend.loc': 'best'})
+
+        if ax is None:
+            fig = plt.figure(figsize=fig_size)
+            ax = fig.add_subplot()
+
+        spikes = self.snudda_simulation_load.get_spikes(neuron_id=neuron_id)
+        all_spikes = []
+
+        for s in spikes.values():
+            if time_range is not None:
+                idx = np.where(np.logical_and(time_range[0] <= s, s <= time_range[1]))
+                all_spikes = all_spikes + list(s[idx] % period)
+            else:
+                all_spikes = all_spikes + list(s % period)
+
+        plt.hist(all_spikes, label=label)
+        ax.set_xlabel("Time (s)")
+        ax.set_ylabel("Count")
+
+        if fig_file is None:
+            fig_file = os.path.join(self.figure_path, "spike-period-histogram.pdf")
+        else:
+            fig_file = os.path.join(self.figure_path, fig_file)
+
+        print(f"Writing figure to {fig_file}")
+        plt.tight_layout()
+        plt.savefig(fig_file, dpi=300)
+
+        plt.ion()
+        plt.show()
+
     def plot_spike_histogram(self, population_id=None, skip_time=0, end_time=None, fig_size=None, bin_size=50e-3,
                              fig_file=None, ax=None, label_text=None, show_figure=True, save_figure=True, colour=None):
 
