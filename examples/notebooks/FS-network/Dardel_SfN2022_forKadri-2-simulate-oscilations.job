@@ -7,12 +7,12 @@
 #SBATCH -J Simulate
 #SBATCH -A snic2022-5-245
 #SBATCH --nodes=2-3
-#SBATCH --tasks-per-node=64
+#SBATCH --tasks-per-node=128
 #SBATCH --mail-type=ALL
 
 # 16 workers were too few, got section stack overflow (there is a hidden
 # push to the stack somewhere in the neuron code)
-let N_WORKERS="$SLURM_NNODES * 32"
+let N_WORKERS="$SLURM_NNODES * 128"
 
 HOME=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda
 
@@ -35,8 +35,9 @@ SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/snudda
 NETWORK_DIR=/cfs/klemming/projects/snic/snic2021-5-492/hjorth/forKadri-FS1050-1
 
 NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
-NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
-NETWORK_OUTPUT_FILE=$NETWORK_DIR/simulation/output-noGJ.hdf5
+NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes-oscillating-5-5-Hz.hdf5
+NETWORK_OUTPUT_FILE=$NETWORK_DIR/simulation/output-GJ-oscillating-5-5-Hz.hdf5
+NETWORK_OUTPUT_FILE_NOGJ=$NETWORK_DIR/simulation/output-noGJ-oscillating-5-5-Hz.hdf5
 
 echo "Network dir: "$NETWORK_DIR
 
@@ -52,8 +53,6 @@ module swap PrgEnv-cray PrgEnv-gnu
 module unload cray-libsci atp
 export CRAYPE_LINK_TYPE=dynamic
 export CRAY_ROOTFS=DSL
-
-
 
 
 # Snudda bin gets installed here, when we use the user flag above
@@ -97,11 +96,11 @@ which nrnivmodl
 srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/libreadline.so.7 -lncurses=/lib64/libncurses.so.6.1" -loadflags "-DLTDL_LIBRARY=/usr/lib64/libltdl.so.7 -DREADLINE_LIBRARY=/lib64/libreadline.so.7 -DNCURSES_LIBRARY=/lib64/libncurses.so.6.1" mechanisms/
 
 
-# GJ disabled
-srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 15 --outputFile $NETWORK_OUTPUT_FILE
-
 # GJ active
-# srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 15
+# srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 10 --outputFile $NETWORK_OUTPUT_FILE
+
+# GJ disabled
+srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 10 --outputFile $NETWORK_OUTPUT_FILE_NOGJ --disableGJ
 
 
 # Original version, start neuron from python, does not work on beskow

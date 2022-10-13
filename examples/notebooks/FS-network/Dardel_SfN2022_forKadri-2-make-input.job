@@ -1,0 +1,20 @@
+#!/bin/bash -l
+#SBATCH --partition=main
+#SBATCH -o log/runSnudda-%j-output.txt
+#SBATCH -e log/runSnudda-%j-error.txt
+#SBATCH -t 0:19:00
+#SBATCH -J Snudda
+#SBATCH -A snic2022-5-245
+#SBATCH --nodes=1
+#SBATCH --tasks-per-node=64
+
+module load snic-env
+
+export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/.ipython"
+rm -r $IPYTHONDIR
+export IPYTHON_PROFILE=default
+source $HOME/Snudda/snudda_env/bin/activate
+
+export NETWORK_PATH=/cfs/klemming/projects/snic/snic2021-5-492/hjorth/forKadri-FS1050-1
+
+srun ./Dardel_SfN2022_forKadri-2-make-input.sh $NETWORK_PATH
