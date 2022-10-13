@@ -1737,22 +1737,7 @@ class SnuddaSimulate(object):
 
         self.i_stim.append((i_clamp, t_vec, noise_current_vector))
 
-############################################################################
-
-    def get_spike_file_name(self):
-        """ Returns filename for spike data file. """
-
-        spike_file = os.path.join(os.path.dirname(self.network_file), "simulation", "spike-data.txt")
-        return spike_file
-
     ############################################################################
-
-    def get_volt_file_name(self):
-        """ Returns filename for voltage data file. """
-
-        volt_file = os.path.join(os.path.dirname(self.network_file), "simulation", "simulation-volt.txt")
-
-        return volt_file
 
     def convert_to_natural_units(self, param_name, param_value):
 

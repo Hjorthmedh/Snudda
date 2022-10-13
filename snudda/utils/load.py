@@ -33,7 +33,7 @@ class SnuddaLoad(object):
         """
 
         # This variable will only be set if the synapses are not kept in
-        # memory so we can access them later, otherwise the hdf5 file is
+        # memory so that we can access them later, otherwise the hdf5 file is
         # automatically closed
         self.hdf5_file = None
         self.verbose = verbose
