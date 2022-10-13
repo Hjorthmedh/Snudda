@@ -266,7 +266,9 @@ class SnuddaPlotSpikeRaster2:
             else:
                 all_spikes = all_spikes + list(s % period)
 
-        plt.hist(all_spikes, label=label)
+        counts, bins = np.histogram(all_spikes)
+        plt.stairs(bins, counts, label=label)
+
         ax.set_xlabel("Time (s)")
         ax.set_ylabel("Count")
 
