@@ -1,0 +1,16 @@
+{
+    "FS": {
+        "CtxSignal" : {
+            "generator" : "frequency_function",
+            "start" : [5],
+            "end" : [10],
+            "synapseDensity" : "0.45*0.05/(1+exp(-(d-30e-6)/5e-6))",
+            "frequency" : "5*(1+sin(2*3.14159*5*t))",
+            "nInputs" : 20,
+            "conductance" : 0.5e-9,
+            "populationUnitCorrelation" : 0,
+            "jitter" : 0,        
+            "modFile": "tmGlut"
+        }
+   }
+}

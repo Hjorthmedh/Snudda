@@ -1,0 +1,106 @@
+#!/bin/bash -l
+#SBATCH --partition=main
+#SBATCH -o log/Simulate-%j-output.txt
+#SBATCH -e log/Simulate-%j-error.txt
+#SBATCH -t 0:59:00
+#SBATCH --time-min=0:59:00
+#SBATCH -J Simulate
+#SBATCH -A snic2022-5-245
+#SBATCH --nodes=2-3
+#SBATCH --tasks-per-node=64
+#SBATCH --mail-type=ALL
+
+# 16 workers were too few, got section stack overflow (there is a hidden
+# push to the stack somewhere in the neuron code)
+let N_WORKERS="$SLURM_NNODES * 32"
+
+HOME=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda
+
+# If the BasalGangliaData directory exists, then use that for our data
+if [[ -d "/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data" ]]; then
+    export SNUDDA_DATA="/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data"
+    echo "Setting SNUDDA_DATA to $SNUDDA_DATA"
+    rm mechanisms
+    ln -s $SNUDDA_DATA/neurons/mechanisms/ mechanisms
+else
+    echo "SNUDDA_DATA environment variable not changed (may be empty): $SNUDDA_DATA"
+    rm mechanisms
+    ln -s ../../../snudda/data/neurons/mechanisms/
+fi
+
+# Synapse file
+SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/snudda
+
+# You need to point this as the directory where you created the network in
+NETWORK_DIR=/cfs/klemming/projects/snic/snic2021-5-492/hjorth/forKadri-FS1050-1
+
+NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
+NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes-oscillating-5-5-Hz.hdf5
+NETWORK_OUTPUT_FILE=$NETWORK_DIR/simulation/output-GJ-oscillating-5-5-Hz.hdf5
+
+echo "Network dir: "$NETWORK_DIR
+
+##############
+
+source activate_miniconda.sh
+conda activate
+
+module load snic-env
+
+# --- I have tried with the gnu compiler, and also with the cray compiler
+module swap PrgEnv-cray PrgEnv-gnu
+module unload cray-libsci atp
+export CRAYPE_LINK_TYPE=dynamic
+export CRAY_ROOTFS=DSL
+
+
+# Snudda bin gets installed here, when we use the user flag above
+# export PATH=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/beskow/miniconda3/bin:$PATH
+# export PYTHONPATH=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/beskow/miniconda3/lib/python3.8/site-packages:$PYTHONPATH
+
+# export LD_LIBRARY_PATH=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/local/beskow/miniconda3/lib:$LD_LIBRARY_PATH
+# export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/lib64
+
+L=/cfs/klemming/home/${USER:0:1}/$USER/local/$SNIC_RESOURCE
+LM=$L/miniconda3
+LN=$L/neuron
+
+export PATH=$LM/bin:$LN/bin:$PATH
+export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
+export PYTHONPATH=$LN/lib/python:$LM/lib/python3.8/
+
+
+# Remove "special" old directory
+# This is now done by core.py automatically.
+
+# echo "Compiling mechanisms"
+# rm mechanisms
+# ln -s ../../snudda/data/neurons/mechanisms
+
+rm -r x86_64
+
+export CXX=CC
+export CC=cc
+export FC=ftn
+export MPICC=cc
+export MPICXX=CC
+
+CC --version
+
+echo "About to run nrnivmodl"
+which nrnivmodl
+
+srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/libreadline.so.7 -lncurses=/lib64/libncurses.so.6.1" -loadflags "-DLTDL_LIBRARY=/usr/lib64/libltdl.so.7 -DREADLINE_LIBRARY=/lib64/libreadline.so.7 -DNCURSES_LIBRARY=/lib64/libncurses.so.6.1" mechanisms/
+
+
+# GJ disabled
+# srun -n $N_WORKERS $SNUDDA_DIR/../examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
+
+# GJ active
+srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 10 --outputFile $NETWORK_OUTPUT_FILE
+
+
+# Original version, start neuron from python, does not work on beskow
+#aprun -n  $N_WORKERS /cfs/klemming/nobackup/h/hjorth/ChINopt/model/x86_64/special -mpi -python snudda_simulate.py /cfs/klemming/nobackup/h/hjorth/ChINopt/model/save/save/network-connect-synapse-file-1749867.pickle
