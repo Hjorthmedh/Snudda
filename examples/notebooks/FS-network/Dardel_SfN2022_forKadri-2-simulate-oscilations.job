@@ -7,12 +7,12 @@
 #SBATCH -J Simulate
 #SBATCH -A snic2022-5-245
 #SBATCH --nodes=2-3
-#SBATCH --tasks-per-node=64
+#SBATCH --tasks-per-node=128
 #SBATCH --mail-type=ALL
 
 # 16 workers were too few, got section stack overflow (there is a hidden
 # push to the stack somewhere in the neuron code)
-let N_WORKERS="$SLURM_NNODES * 32"
+let N_WORKERS="$SLURM_NNODES * 128"
 
 HOME=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda
 
@@ -97,10 +97,10 @@ srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/
 
 
 # GJ active
-srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 10 --outputFile $NETWORK_OUTPUT_FILE
+# srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 10 --outputFile $NETWORK_OUTPUT_FILE
 
 # GJ disabled
-srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 10 --outputFile $NETWORK_OUTPUT_FILE_NO_GJ --disableGJ
+srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 10 --outputFile $NETWORK_OUTPUT_FILE_NOGJ --disableGJ
 
 
 # Original version, start neuron from python, does not work on beskow
