@@ -18,6 +18,7 @@ import json
 import os
 import re
 import timeit
+import time
 # Plot all sections
 # [neuron.h.psection(x) for x in neuron.h.allsec()]
 from collections import OrderedDict
@@ -150,9 +151,7 @@ class SnuddaSimulate(object):
 
         if type(self.log_file) == str:
             log_dir_name = os.path.dirname(self.log_file)
-            if not os.path.exists(log_dir_name):
-                print(f"Creating {log_dir_name}")
-                os.makedirs(log_dir_name)
+            self.create_dir(log_dir_name)
 
             self.log_file += f'-{int(self.pc.id())}'
             self.log_file = open(self.log_file, "w")
@@ -1605,16 +1604,17 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    @staticmethod
-    def create_dir(dir_name):
+    def create_dir(self, dir_name):
 
         """ Creates dir_name if needed. """
-        if not os.path.isdir(dir_name):
-            print("Creating " + str(dir_name))
-            try:
+        if int(self.pc.id()) == 0:
+            if not os.path.isdir(dir_name):
+                print(f"Creating {dir_name} (on master node 0)")
                 os.makedirs(dir_name)
-            except:
-                print("Failed to create dir. Already exists?")
+        else:
+            while not os.path.isdir(dir_name):
+                print(f"Waiting 1 second for master node to create {dir_name}")
+                time.sleep(1)
 
     ############################################################################
 
