@@ -16,8 +16,8 @@ export IPYTHON_PROFILE=default
 source $HOME/Snudda/snudda_env/bin/activate
 
 export NETWORK_PATH=/cfs/klemming/projects/snic/snic2021-5-492/hjorth/forKadri-FS1050-1
-export $INPUT_NAME=SfN2022-forKadri-oscillating-20Hz-ramp-up-background
-export $DURATION=22
+export INPUT_NAME=SfN2022-forKadri-oscillating-20Hz-ramp-up-background
+export DURATION=22
 
 srun ./Dardel_SfN2022_forKadri-2-make-input.sh $NETWORK_PATH $INPUT_NAME $DURATION
 
