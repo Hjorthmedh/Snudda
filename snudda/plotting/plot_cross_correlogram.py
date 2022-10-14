@@ -45,7 +45,7 @@ class PlotCrossCorrelogram:
                     self.calculate_cross_correlogram(self.shuffle_spikes(spike_data[na], time_range=time_range),
                                                      self.shuffle_spikes(spike_data[nb], time_range=time_range),
                                                      time_range=time_range)
-                
+
                 assert (edges == shuffle_edges).all()
                 
                 if bin_edges is None:
@@ -72,25 +72,28 @@ class PlotCrossCorrelogram:
 
         """ This code assumes spikes are ordered. """
 
+        assert spike_times_a.shape[0] == 1 and spike_times_b.shape[0] == 1
+        
         if time_range is not None:
             idx_a_start = 0
             len_a = spike_times_a.size
-            while idx_a_start < len_a and spike_times_a[idx_a_start] < time_range[0]:
+            
+            while idx_a_start < len_a and spike_times_a[0][idx_a_start] < time_range[0]:
                 idx_a_start += 1
 
             idx_a_end = idx_a_start
-            while idx_a_end < len_a and spike_times_a[idx_a_end] < time_range[1]:
+            while idx_a_end < len_a and spike_times_a[0][idx_a_end] < time_range[1]:
                 idx_a_end += 1
 
             idx_a = np.arange(idx_a_start, idx_a_end)
 
             idx_b_start = 0
             len_b = spike_times_b.size
-            while idx_b_start < len_b and spike_times_b[idx_b_start] < time_range[0]:
+            while idx_b_start < len_b and spike_times_b[0][idx_b_start] < time_range[0]:
                 idx_b_start += 1
 
             idx_b_end = idx_b_start
-            while idx_b_end < len_b and spike_times_b[idx_b_end] < time_range[1]:
+            while idx_b_end < len_b and spike_times_b[0][idx_b_end] < time_range[1]:
                 idx_b_end += 1
 
             idx_b = np.arange(idx_b_start, idx_b_end)
@@ -112,10 +115,11 @@ class PlotCrossCorrelogram:
             t_diff = (np.kron(spike_times_a, np.ones(spike_times_b.shape).T)
                       - np.kron(np.ones(spike_times_a.shape), spike_times_b.T)).flatten()
 
-        t_diff = t_diff[np.where(np.abs(t_diff) <= width)[0]]
+        # t_diff = t_diff[np.where(np.abs(t_diff) <= width)[0]]
 
         bin_count, bin_edges = np.histogram(t_diff, bins=n_bins, range=[-width, width])
-        return bin_count, bin_edges
+        return bin_count, bin_edges    
+        
 
     def get_range(self, spike_times, time_range):
 
