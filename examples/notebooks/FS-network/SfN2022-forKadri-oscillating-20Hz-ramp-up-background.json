@@ -2,8 +2,8 @@
     "FS": {
         "CtxSignal" : {
             "generator" : "frequency_function",
-            "start" : [2],
-            "end" : [9],
+            "start" : 0,
+            "end" : 22,
             "synapseDensity" : "0.45*0.05/(1+exp(-(d-30e-6)/5e-6))",
             "frequency" : "5*(1+sin(2*3.14159*20*t))",
             "nInputs" : 20,
