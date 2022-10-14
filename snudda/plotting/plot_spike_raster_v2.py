@@ -41,7 +41,7 @@ class SnuddaPlotSpikeRaster2:
             self.snudda_load = SnuddaLoad(network_file=self.network_file)
 
         if snudda_simulation_load:
-            self.snudda_simulation_load
+            self.snudda_simulation_load = snudda_simulation_load
         else:
             self.snudda_simulation_load = SnuddaLoadNetworkSimulation(network_simulation_output_file=self.simulation_file)
 
