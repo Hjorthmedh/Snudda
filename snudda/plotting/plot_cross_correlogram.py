@@ -70,12 +70,36 @@ class PlotCrossCorrelogram:
     def calculate_cross_correlogram(spike_times_a, spike_times_b, n_bins=101, width=50e-3, time_range=None,
                                     empty_array=np.array([], dtype=np.float64)):
 
-        if time_range is not None:
-            idx_a = np.where(np.logical_and(time_range[0] <= spike_times_a,
-                                            spike_times_a <= time_range[1]))[1]
+        """ This code assumes spikes are ordered. """
 
-            idx_b = np.where(np.logical_and(time_range[0] <= spike_times_b,
-                                            spike_times_b <= time_range[1]))[1]
+        if time_range is not None:
+            idx_a_start = 0
+            len_a = spike_times_a.size
+            while idx_a_start < len_a and spike_times_a[idx_a_start] < time_range[0]:
+                idx_a_start += 1
+
+            idx_a_end = idx_a_start
+            while idx_a_end < len_a and spike_times_a[idx_a_end] < time_range[1]:
+                idx_a_end += 1
+
+            idx_a = np.arange(idx_a_start, idx_a_end)
+
+            idx_b_start = 0
+            len_b = spike_times_b.size
+            while idx_b_start < len_b and spike_times_b[idx_b_start] < time_range[0]:
+                idx_b_start += 1
+
+            idx_b_end = idx_b_start
+            while idx_b_end < len_b and spike_times_b[idx_b_end] < time_range[1]:
+                idx_b_end += 1
+
+            idx_b = np.arange(idx_b_start, idx_b_end)
+
+            # idx_a2 = np.where(np.logical_and(time_range[0] <= spike_times_a,
+            #                                  spike_times_a <= time_range[1]))[1]
+
+            # idx_b2 = np.where(np.logical_and(time_range[0] <= spike_times_b,
+            #                                  spike_times_b <= time_range[1]))[1]
 
             if len(idx_a) == 0 or len(idx_b) == 0:
                 t_diff = empty_array
