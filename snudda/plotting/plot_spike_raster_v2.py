@@ -254,7 +254,7 @@ class SnuddaPlotSpikeRaster2:
 
         return ax
 
-    def plot_period_histogram_mod(self, neuron_id, period, time_range=None, fig_file=None, ax=None, fig_size=None, label=None, color=None):
+    def plot_period_histogram_mod(self, period, neuron_id=None, time_range=None, fig_file=None, ax=None, fig_size=None, label=None, color=None):
 
         self.make_figures_directory()
 
