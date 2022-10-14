@@ -34,10 +34,11 @@ SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/snudda
 # You need to point this as the directory where you created the network in
 NETWORK_DIR=/cfs/klemming/projects/snic/snic2021-5-492/hjorth/forKadri-FS1050-1
 
+INPUT_NAME=$NETWORK_DIR/SfN2022-forKadri-oscillating-20Hz-ramp-up-background
 NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/SfN2022-forKadri-oscillating-5Hz.hdf5
-NETWORK_OUTPUT_FILE=$NETWORK_DIR/simulation/output-GJ-oscillating-5-5-Hz.hdf5
-NETWORK_OUTPUT_FILE_NOGJ=$NETWORK_DIR/simulation/output-noGJ-oscillating-5-5-Hz.hdf5
+NETWORK_OUTPUT_FILE=$NETWORK_DIR/simulation/output-GJ-{$INPUT_NAME}.hdf5
+NETWORK_OUTPUT_FILE_NOGJ=$NETWORK_DIR/simulation/output-noGJ-{$INPUT_NAME}.hdf5
 
 echo "Network dir: "$NETWORK_DIR
 

@@ -2,6 +2,8 @@
 
 SNUDDA_DIR=$HOME/Snudda/snudda
 JOBDIR=$1
+INPUT_NAME=$2
+DURATION=$3
 
 echo "Using JOBDIR = $JOBDIR"
 
@@ -58,7 +60,7 @@ else
     # cp -a $SNUDDA_DIR/data/input_config/input-v10-scaled.json ${JOBDIR}/input.json
     cp -a SfN2022-forKadri-background.json ${JOBDIR}/input.json
 
-    snudda input ${JOBDIR} --parallel --time 10 --input SfN2022-forKadri-oscillating-5Hz.json --inputFile ${JOBDIR}/input-spikes-oscillating-5-5-Hz.hdf5
+    snudda input ${JOBDIR} --parallel --time $DURATION --input {$INPUT_NAME}.json --inputFile ${JOBDIR}/{$INPUT_NAME}.hdf5
     
     #.. Shut down cluster
     ipcluster stop	
