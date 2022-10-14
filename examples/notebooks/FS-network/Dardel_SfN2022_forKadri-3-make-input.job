@@ -1,7 +1,7 @@
 #!/bin/bash -l
 #SBATCH --partition=main
-#SBATCH -o log/runSnudda-%j-output.txt
-#SBATCH -e log/runSnudda-%j-error.txt
+#SBATCH -o log/makeInput-%j-output.txt
+#SBATCH -e log/makeInput-%j-error.txt
 #SBATCH -t 0:19:00
 #SBATCH -J Snudda
 #SBATCH -A snic2022-5-245

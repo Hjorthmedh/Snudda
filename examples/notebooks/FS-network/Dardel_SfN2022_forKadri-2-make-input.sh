@@ -60,7 +60,7 @@ else
     # cp -a $SNUDDA_DIR/data/input_config/input-v10-scaled.json ${JOBDIR}/input.json
     cp -a SfN2022-forKadri-background.json ${JOBDIR}/input.json
 
-    snudda input ${JOBDIR} --parallel --time $DURATION --input {$INPUT_NAME}.json --inputFile ${JOBDIR}/{$INPUT_NAME}.hdf5
+    snudda input ${JOBDIR} --parallel --time $DURATION --input ${INPUT_NAME}.json --inputFile ${JOBDIR}/${INPUT_NAME}.hdf5
     
     #.. Shut down cluster
     ipcluster stop	
