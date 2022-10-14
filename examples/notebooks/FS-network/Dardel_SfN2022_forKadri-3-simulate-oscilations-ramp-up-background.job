@@ -35,6 +35,8 @@ SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/snudda
 NETWORK_DIR=/cfs/klemming/projects/snic/snic2021-5-492/hjorth/forKadri-FS1050-1
 
 INPUT_NAME=$NETWORK_DIR/SfN2022-forKadri-oscillating-20Hz-ramp-up-background
+DURATION=22
+
 NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/SfN2022-forKadri-oscillating-5Hz.hdf5
 NETWORK_OUTPUT_FILE=$NETWORK_DIR/simulation/output-GJ-{$INPUT_NAME}.hdf5
@@ -98,10 +100,10 @@ srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/
 
 
 # GJ active
-# srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 10 --outputFile $NETWORK_OUTPUT_FILE
+srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time $DURATION --outputFile $NETWORK_OUTPUT_FILE
 
 # GJ disabled
-srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 10 --outputFile $NETWORK_OUTPUT_FILE_NOGJ --disableGJ
+srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time $DURATION --outputFile $NETWORK_OUTPUT_FILE_NOGJ --disableGJ
 
 
 # Original version, start neuron from python, does not work on beskow

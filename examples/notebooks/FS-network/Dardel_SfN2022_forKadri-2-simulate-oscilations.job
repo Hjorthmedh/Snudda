@@ -34,6 +34,9 @@ SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/snudda
 # You need to point this as the directory where you created the network in
 NETWORK_DIR=/cfs/klemming/projects/snic/snic2021-5-492/hjorth/forKadri-FS1050-1
 
+# See the other simulation job files, where more configuration options have
+# been added, like duration. Here it is fixed at 10s.
+
 NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/SfN2022-forKadri-oscillating-5Hz.hdf5
 NETWORK_OUTPUT_FILE=$NETWORK_DIR/simulation/output-GJ-oscillating-5-5-Hz.hdf5
@@ -97,7 +100,7 @@ srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/
 
 
 # GJ active
-# srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 10 --outputFile $NETWORK_OUTPUT_FILE
+srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 10 --outputFile $NETWORK_OUTPUT_FILE
 
 # GJ disabled
 srun -n $N_WORKERS /cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/examples/notebooks/FS-network/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 10 --outputFile $NETWORK_OUTPUT_FILE_NOGJ --disableGJ
