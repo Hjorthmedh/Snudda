@@ -12,7 +12,11 @@ from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
 
 class SnuddaPlotSpikeRaster2:
 
-    def __init__(self, network_path, network_file=None, simulation_file=None, figure_path=None):
+    def __init__(self, network_path, network_file=None, simulation_file=None, figure_path=None,
+                 snudda_load=None, snudda_simulation_load=None):
+
+        """ If you pass snudda_load and snudda_simulation_load those will be used, so you do not
+            have to reload the data if you do multiple types of plots. """
 
         self.network_path = network_path
 
@@ -31,9 +35,16 @@ class SnuddaPlotSpikeRaster2:
         else:
             self.figure_path = os.path.join(self.network_path, "figures")
 
-        self.snudda_load = SnuddaLoad(network_file=self.network_file)
+        if snudda_load:
+            self.snudda_load = snudda_load
+        else:
+            self.snudda_load = SnuddaLoad(network_file=self.network_file)
 
-        self.snudda_simulation_load = SnuddaLoadNetworkSimulation(network_simulation_output_file=self.simulation_file)
+        if snudda_simulation_load:
+            self.snudda_simulation_load
+        else:
+            self.snudda_simulation_load = SnuddaLoadNetworkSimulation(network_simulation_output_file=self.simulation_file)
+
         spike_data = self.snudda_simulation_load.merge_spikes()
 
         self.spike_time = spike_data[:, 0]

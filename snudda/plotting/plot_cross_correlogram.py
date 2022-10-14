@@ -9,9 +9,12 @@ from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
 
 class PlotCrossCorrelogram:
 
-    def __init__(self, simulation_file):
+    def __init__(self, simulation_file=None, snudda_simulation_load=None):
 
-        self.sim_data = SnuddaLoadNetworkSimulation(network_simulation_output_file=simulation_file)
+        if snudda_simulation_load:
+            self.sim_data = snudda_simulation_load
+        else:
+            self.sim_data = SnuddaLoadNetworkSimulation(network_simulation_output_file=simulation_file)
 
     def calculate_all_pair_cross_correlogram(self, neuron_id, time_range=None, shuffle_correct=True):
 
@@ -64,7 +67,8 @@ class PlotCrossCorrelogram:
 
     @staticmethod
     @jit(nopython=True, fastmath=True, cache=True)
-    def calculate_cross_correlogram(spike_times_a, spike_times_b, n_bins=101, width=50e-3, time_range=None):
+    def calculate_cross_correlogram(spike_times_a, spike_times_b, n_bins=101, width=50e-3, time_range=None,
+                                    empty_array=np.array([], dtype=np.float64)):
 
         if time_range is not None:
             idx_a = np.where(np.logical_and(time_range[0] <= spike_times_a,
@@ -74,7 +78,7 @@ class PlotCrossCorrelogram:
                                             spike_times_b <= time_range[1]))[1]
 
             if len(idx_a) == 0 or len(idx_b) == 0:
-                t_diff = np.array([])
+                t_diff = empty_array
             else:
                 t_diff = (np.kron(spike_times_a[:, idx_a], np.ones(spike_times_b[:, idx_b].shape).T)
                           - np.kron(np.ones(spike_times_a[:, idx_a].shape), spike_times_b[:, idx_b].T)).flatten()
