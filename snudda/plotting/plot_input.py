@@ -1,6 +1,7 @@
 import numpy as np
 import h5py
 import os
+import json
 from collections import OrderedDict
 import matplotlib.pyplot as plt
 from matplotlib import cm
@@ -13,6 +14,7 @@ class PlotInput(object):
     def __init__(self, input_file, network_path=None):
 
         self.input_data = None
+        self.config = None
 
         if input_file:
             self.load_input(input_file)
@@ -34,6 +36,7 @@ class PlotInput(object):
 
     def load_input(self, input_file):
         self.input_data = h5py.File(input_file, "r")
+        self.config = json.loads(self.input_data["config"][()])
 
     def extract_input(self, input_target):
 
