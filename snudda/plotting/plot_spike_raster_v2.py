@@ -254,6 +254,42 @@ class SnuddaPlotSpikeRaster2:
 
         return ax
 
+    def calculate_period_synchrony(self, period, neuron_id=None, time_range=None, fig_file=None,
+                                   ax=None, fig_size=None, label=None, color=None):
+
+        self.make_figures_directory()
+
+        plt.rcParams.update({'font.size': 24,
+                             'xtick.labelsize': 20,
+                             'ytick.labelsize': 20,
+                             'legend.loc': 'best'})
+
+        if ax is None:
+            fig = plt.figure(figsize=fig_size)
+            ax = fig.add_subplot()
+
+        spikes = self.snudda_simulation_load.get_spikes(neuron_id=neuron_id)
+        all_spikes = []
+
+        for s in spikes.values():
+
+            sf = s.flatten()
+
+            if time_range is not None:
+                idx = np.where(np.logical_and(time_range[0] <= sf, sf <= time_range[1]))[0]
+                all_spikes = all_spikes + list(sf[idx] % period)
+            else:
+                all_spikes = all_spikes + list(sf % period)
+
+        phases = 2*np.pi/period * np.array(all_spikes)
+        x = np.sum(np.cos(phases))
+        y = np.sum(np.sin(phases))
+        vs = np.sqrt(x**2 + y**2) / phases.size
+
+        # Verify this is correct
+
+        return vs
+
     def plot_period_histogram_mod(self, period, neuron_id=None, time_range=None, fig_file=None, ax=None, fig_size=None, label=None, color=None):
 
         self.make_figures_directory()
@@ -279,7 +315,7 @@ class SnuddaPlotSpikeRaster2:
                 all_spikes = all_spikes + list(sf[idx] % period)
             else:
                 all_spikes = all_spikes + list(sf % period)
-                
+
         counts, bins = np.histogram(all_spikes)
         ax.stairs(counts, bins, label=label, color=color)
 
