@@ -309,6 +309,8 @@ class SnuddaPlotSpikeRaster2:
         spikes = self.snudda_simulation_load.get_spikes(neuron_id=neuron_id)
         all_spikes = []
 
+        n_spike_trains = len(spikes)
+
         for s in spikes.values():
 
             sf = s.flatten()
@@ -320,10 +322,10 @@ class SnuddaPlotSpikeRaster2:
                 all_spikes = all_spikes + list(sf % period)
 
         counts, bins = np.histogram(all_spikes)
-        ax.stairs(counts, bins, label=label, color=color)
+        ax.stairs(counts/(n_spike_trains * period), bins, label=label, color=color)
 
         ax.set_xlabel("Time (s)")
-        ax.set_ylabel("Count")
+        ax.set_ylabel("Frequency (Hz)")
         ax.legend()
 
         if fig_file is None:
