@@ -18,12 +18,21 @@ class SnuddaPlotSpikeRaster2:
         """ If you pass snudda_load and snudda_simulation_load those will be used, so you do not
             have to reload the data if you do multiple types of plots. """
 
-        self.network_path = network_path
+        if network_path is not None:
+            self.network_path = network_path
+        elif snudda_load is not None:
+            self.network_path = os.path.dirname(snudda_load.network_file)
+        else:
+            self.network_path = None
 
         if network_file:
             self.network_file = network_file
-        else:
+        elif network_path is not None:
             self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
+        elif snudda_load:
+            self.network_file = snudda_load.network_file
+        else:
+            self.network_file = None
 
         if simulation_file:
             self.simulation_file = simulation_file
@@ -37,11 +46,17 @@ class SnuddaPlotSpikeRaster2:
 
         if snudda_load:
             self.snudda_load = snudda_load
+            assert network_file is None or snudda_load.network_file == self.network_file, \
+                f"snudda_load refers to {snudda_load.network_file}, but user passed network_file={self.network_file}"
         else:
             self.snudda_load = SnuddaLoad(network_file=self.network_file)
 
         if snudda_simulation_load:
             self.snudda_simulation_load = snudda_simulation_load
+            assert simulation_file is None \
+                   or snudda_simulation_load.network_simulation_output_file_name == simulation_file, \
+                f"snudda_simulation_load refers to {snudda_simulation_load.self.network_simulation_output_file_name}," \
+                f" but user passed simulation_file={simulation_file}"
         else:
             self.snudda_simulation_load = SnuddaLoadNetworkSimulation(network_simulation_output_file=self.simulation_file)
 
@@ -254,6 +269,30 @@ class SnuddaPlotSpikeRaster2:
 
         return ax
 
+    def calculate_period_synchrony(self, period, neuron_id=None, time_range=None):
+
+        spikes = self.snudda_simulation_load.get_spikes(neuron_id=neuron_id)
+        all_spikes = []
+
+        for s in spikes.values():
+
+            sf = s.flatten()
+
+            if time_range is not None:
+                idx = np.where(np.logical_and(time_range[0] <= sf, sf <= time_range[1]))[0]
+                all_spikes = all_spikes + list(sf[idx] % period)
+            else:
+                all_spikes = all_spikes + list(sf % period)
+
+        phases = 2*np.pi/period * np.array(all_spikes)
+        x = np.sum(np.cos(phases))
+        y = np.sum(np.sin(phases))
+        vs = np.sqrt(x**2 + y**2) / phases.size
+
+        # Verify this is correct
+
+        return vs
+
     def plot_period_histogram_mod(self, period, neuron_id=None, time_range=None, fig_file=None, ax=None, fig_size=None, label=None, color=None):
 
         self.make_figures_directory()
@@ -270,6 +309,8 @@ class SnuddaPlotSpikeRaster2:
         spikes = self.snudda_simulation_load.get_spikes(neuron_id=neuron_id)
         all_spikes = []
 
+        n_spike_trains = len(spikes)
+
         for s in spikes.values():
 
             sf = s.flatten()
@@ -279,12 +320,12 @@ class SnuddaPlotSpikeRaster2:
                 all_spikes = all_spikes + list(sf[idx] % period)
             else:
                 all_spikes = all_spikes + list(sf % period)
-                
+
         counts, bins = np.histogram(all_spikes)
-        ax.stairs(counts, bins, label=label, color=color)
+        ax.stairs(counts/(n_spike_trains * period), bins, label=label, color=color)
 
         ax.set_xlabel("Time (s)")
-        ax.set_ylabel("Count")
+        ax.set_ylabel("Frequency (Hz)")
         ax.legend()
 
         if fig_file is None:
