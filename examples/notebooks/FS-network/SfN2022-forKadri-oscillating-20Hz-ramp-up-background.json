@@ -10,7 +10,8 @@
             "conductance" : 0.5e-9,
             "populationUnitCorrelation" : 0,
             "jitter" : 0,        
-            "modFile": "tmGlut"
+            "modFile": "tmGlut",
+	    "parameterList": { "nmda_ratio" : 0}
         },
 	"cortical_background" : {
             "generator" : "poisson",
