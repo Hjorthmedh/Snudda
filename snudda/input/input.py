@@ -380,7 +380,16 @@ class SnuddaInput(object):
                     # Read in parameters into a list
                     par_data = []
                     for pd in par_data_dict:
+
+                        if "parameterList" in self.input_info[neuron_type][input_type]:
+                            for par_key, par_d in self.input_info[neuron_type][input_type]["parameterList"].items():
+                                print(f"Overriding {par_key} with value {par_d} for {neuron_type}:{input_type}")
+                                par_data_dict[pd]["synapse"][par_key] = par_d
+
                         par_data.append(par_data_dict[pd])
+                elif "parameterList" in self.input_info[neuron_type][input_type]:
+
+                    par_data = [{"synapse": self.input_info[neuron_type][input_type]["parameterList"]}]
                 else:
                     par_data = None
 

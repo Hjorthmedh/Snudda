@@ -15,7 +15,8 @@
             "synapseDensity": "0.092*(1-exp(-d/200e-6))",           
             "jitter" : 0.001,
             "modFile": "tmGlut",
-            "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json"
+            "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json",
+            "parameterList": { "nmda_ratio" : 0}
         },
     
 	"thalamic_signal_1": {
@@ -33,7 +34,8 @@
             "modFile": "tmGlut",
             "parameterFile": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-FS.json",
             "synapseDensity": "0.05*exp(-d/200e-6)",
-            "type": "AMPA_NMDA"
+            "type": "AMPA_NMDA",
+	    "parameterList": { "nmda_ratio" : 0}
         },
 
         "cortical_nosignal_2" : {
@@ -49,7 +51,8 @@
             "synapseDensity": "0.092*(1-exp(-d/200e-6))",           
             "jitter" : 0.001,
             "modFile": "tmGlut",
-            "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json"
+            "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json",
+	    "parameterList": { "nmda_ratio" : 0}
         },
     
 	"thalamic_nosignal_2": {
@@ -65,10 +68,11 @@
             "modFile": "tmGlut",
             "parameterFile": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-FS.json",
             "synapseDensity": "0.05*exp(-d/200e-6)",
-            "type": "AMPA_NMDA"
+            "type": "AMPA_NMDA",
+	    "parameterList": { "nmda_ratio" : 0}
         },
-	"cortical_background": { "generator": "poisson", "frequency" : 2 },
-	"thalamic_background": { "generator": "poisson", "frequency" : 2 }
+	"cortical_background": { "generator": "poisson", "frequency" : 2, "parameterList": { "nmda_ratio" : 0 } },
+	"thalamic_background": { "generator": "poisson", "frequency" : 2, "parameterList": { "nmda_ratio" : 0 } }
     }
     
 }
