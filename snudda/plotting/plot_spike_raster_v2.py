@@ -293,7 +293,31 @@ class SnuddaPlotSpikeRaster2:
 
         return vs
 
-    def plot_period_histogram_mod(self, period, neuron_id=None, time_range=None, fig_file=None, ax=None, fig_size=None, label=None, color=None):
+    def calculate_period_histogram_mod(self, period, neuron_id, time_range):
+
+        spikes = self.snudda_simulation_load.get_spikes(neuron_id=neuron_id)
+        all_spikes = []
+
+        n_spike_trains = len(spikes)
+
+        for s in spikes.values():
+
+            sf = s.flatten()
+
+            if time_range is not None:
+                idx = np.where(np.logical_and(time_range[0] <= sf, sf <= time_range[1]))[0]
+                all_spikes = all_spikes + list(sf[idx] % period)
+            else:
+                all_spikes = all_spikes + list(sf % period)
+
+        counts, bins = np.histogram(all_spikes)
+
+        freq = counts/(n_spike_trains * period)
+
+        return freq, bins
+
+    def plot_period_histogram_mod(self, period, neuron_id=None, time_range=None,
+                                  fig_file=None, ax=None, fig_size=None, label=None, color=None):
 
         self.make_figures_directory()
 
@@ -306,24 +330,12 @@ class SnuddaPlotSpikeRaster2:
             fig = plt.figure(figsize=fig_size)
             ax = fig.add_subplot()
 
-        spikes = self.snudda_simulation_load.get_spikes(neuron_id=neuron_id)
-        all_spikes = []
+        freq, bins = self.calculate_period_histogram_mod(period=period, neuron_id=neuron_id, time_range=time_range)
 
-        for s in spikes.values():
-
-            sf = s.flatten()
-            
-            if time_range is not None:
-                idx = np.where(np.logical_and(time_range[0] <= sf, sf <= time_range[1]))[0]
-                all_spikes = all_spikes + list(sf[idx] % period)
-            else:
-                all_spikes = all_spikes + list(sf % period)
-
-        counts, bins = np.histogram(all_spikes)
-        ax.stairs(counts, bins, label=label, color=color)
+        ax.stairs(freq, bins, label=label, color=color)
 
         ax.set_xlabel("Time (s)")
-        ax.set_ylabel("Count")
+        ax.set_ylabel("Frequency (Hz)")
         ax.legend()
 
         if fig_file is None:
