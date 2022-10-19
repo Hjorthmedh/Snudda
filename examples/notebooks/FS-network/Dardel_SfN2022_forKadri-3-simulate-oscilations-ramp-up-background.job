@@ -2,7 +2,7 @@
 #SBATCH --partition=main
 #SBATCH -o log/Simulate-%j-output.txt
 #SBATCH -e log/Simulate-%j-error.txt
-#SBATCH -t 1:59:00
+#SBATCH -t 1:29:00
 #SBATCH --time-min=0:59:00
 #SBATCH -J Simulate
 #SBATCH -A snic2022-5-245
@@ -35,7 +35,7 @@ SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda/snudda
 NETWORK_DIR=/cfs/klemming/projects/snic/snic2021-5-492/hjorth/forKadri-FS1050-1
 
 INPUT_NAME=SfN2022-forKadri-oscillating-20Hz-ramp-up-background
-DURATION=34
+DURATION=22
 
 NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/${INPUT_NAME}.hdf5
