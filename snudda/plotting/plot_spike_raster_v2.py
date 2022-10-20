@@ -351,7 +351,7 @@ class SnuddaPlotSpikeRaster2:
         plt.show()
 
         # ax
-        return counts, bins
+        return freq, bins
 
     def plot_spike_histogram(self, population_id=None, skip_time=0, end_time=None, fig_size=None, bin_size=50e-3,
                              fig_file=None, ax=None, label_text=None, show_figure=True, save_figure=True, colour=None):
