@@ -357,8 +357,8 @@ class SnuddaPlotSpikeRaster2:
         # ax
         return freq, bins
 
-    def plot_spike_histogram(self, neuron_type, time_range=None, bin_size=50e-3, fig_size=None,
-                             fig_file=None, label_text=None, show_figure=True):
+    def plot_spike_histogram_type(self, neuron_type, time_range=None, bin_size=50e-3, fig_size=None,
+                                  fig_file=None, label_text=None, show_figure=True):
 
         self.make_figures_directory()
 
