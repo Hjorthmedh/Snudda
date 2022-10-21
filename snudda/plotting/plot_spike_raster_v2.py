@@ -377,7 +377,7 @@ class SnuddaPlotSpikeRaster2:
         for nt in neuron_type:
             neuron_id = self.snudda_load.get_neuron_id_of_type(nt)
             spikes = self.snudda_simulation_load.get_spikes(neuron_id=neuron_id)
-            all_spikes[nt] = self.snudda_simulation_load.merge_spikes(spikes)
+            all_spikes[nt] = self.snudda_simulation_load.merge_spikes(spikes)[:, 0]
 
         bins = np.arange(time_range[0], time_range[1]+bin_size/2, bin_size)
         weights = [np.full(y.shape, 1/(len(x)*bin_size)) for x, y in zip(all_spikes.keys(), all_spikes.values())]
