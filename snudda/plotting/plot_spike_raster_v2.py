@@ -380,7 +380,7 @@ class SnuddaPlotSpikeRaster2:
             all_spikes[nt] = self.snudda_simulation_load.merge_spikes(spikes)
 
         bins = np.arange(time_range[0], time_range[1]+bin_size/2, bin_size)
-        weights = [np.full(y.shape, 1/(len(x)*bin_size)) for x, y in zip(neuron_type.values(), all_spikes.values())]
+        weights = [np.full(y.shape, 1/(len(x)*bin_size)) for x, y in zip(all_spikes.keys(), all_spikes.values())]
 
         if label_text is None:
             label_text = ""
