@@ -312,7 +312,11 @@ class SnuddaPlotSpikeRaster2:
 
         counts, bins = np.histogram(all_spikes)
 
-        freq = counts/(n_spike_trains * period)
+        if time_range:
+            t = time_range[1] - time_range[0]
+        else:
+            t = self.time[-1] - self.time[0]
+        freq = counts/(n_spike_trains * (bins[1] - bins[0]) * t/period)
 
         return freq, bins
 
