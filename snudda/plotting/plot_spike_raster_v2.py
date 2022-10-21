@@ -370,6 +370,7 @@ class SnuddaPlotSpikeRaster2:
         assert type(neuron_type) == list, "neuron_type should be a list of neuron types"
 
         all_spikes = OrderedDict()
+        neurons_of_type = OrderedDict()
 
         if time_range is None:
             time_range = (0, self.snudda_simulation_load.get_time()[-1])
@@ -377,10 +378,11 @@ class SnuddaPlotSpikeRaster2:
         for nt in neuron_type:
             neuron_id = self.snudda_load.get_neuron_id_of_type(nt)
             spikes = self.snudda_simulation_load.get_spikes(neuron_id=neuron_id)
+            neurons_of_type[nt] = neuron_id
             all_spikes[nt] = self.snudda_simulation_load.merge_spikes(spikes)[:, 0]
 
         bins = np.arange(time_range[0], time_range[1]+bin_size/2, bin_size)
-        weights = [np.full(y.shape, 1/(len(x)*bin_size)) for x, y in zip(all_spikes.keys(), all_spikes.values())]
+        weights = [np.full(y.shape, 1/(len(x)*bin_size)) for x, y in zip(neurons_of_type.values(), all_spikes.values())]
 
         if label_text is None:
             label_text = ""
