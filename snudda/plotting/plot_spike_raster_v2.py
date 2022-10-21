@@ -357,7 +357,53 @@ class SnuddaPlotSpikeRaster2:
         # ax
         return freq, bins
 
-    def plot_spike_histogram(self, population_id=None, skip_time=0, end_time=None, fig_size=None, bin_size=50e-3,
+    def plot_spike_histogram(self, neuron_type, time_range=None, bin_size=50e-3, fig_size=None,
+                             fig_file=None, label_text=None, show_figure=True):
+
+        self.make_figures_directory()
+
+        plt.rcParams.update({'font.size': 24,
+                             'xtick.labelsize': 20,
+                             'ytick.labelsize': 20,
+                             'legend.loc': 'best'})
+
+        assert type(neuron_type) == list, "neuron_type should be a list of neuron types"
+
+        all_spikes = OrderedDict()
+
+        if time_range is None:
+            time_range = (0, self.snudda_simulation_load.get_time()[-1])
+
+        for nt in neuron_type:
+            neuron_id = self.snudda_load.get_neuron_id_of_type(nt)
+            spikes = self.snudda_simulation_load.get_spikes(neuron_id=neuron_id)
+            all_spikes[nt] = self.snudda_simulation_load.merge_spikes(spikes)
+
+        bins = np.arange(time_range[0], time_range[1]+bin_size/2, bin_size)
+        weights = [np.full(y.shape, 1/(len(x)*bin_size)) for x, y in zip(neuron_type.values(), all_spikes.values())]
+
+        if label_text is None:
+            label_text = ""
+
+        fig = plt.figure(figsize=fig_size)
+        ax = fig.add_subplot()
+
+        ax.hist(x=all_spikes.values(), bins=bins, weights=weights, linewidth=3,
+                histtype="step", color=[self.get_colours(x) for x in all_spikes.keys()],
+                label=[f"{label_text}{x}" for x in all_spikes.keys()])
+        plt.xlabel("Time (s)", fontsize=20)
+        plt.ylabel("Frequency (Hz)", fontsize=20)
+        ax.legend()
+
+        if fig_file:
+            plt.savefig(fig_file)
+
+        if show_figure:
+            plt.ion()
+            plt.show()
+
+    def plot_spike_histogram(self, population_id=None,
+                             skip_time=0, end_time=None, fig_size=None, bin_size=50e-3,
                              fig_file=None, ax=None, label_text=None, show_figure=True, save_figure=True, colour=None):
 
         if population_id is None:
