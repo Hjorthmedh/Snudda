@@ -293,7 +293,18 @@ class SnuddaPlotSpikeRaster2:
 
         return vs
 
-    def calculate_period_histogram_mod(self, period, neuron_id, time_range):
+    def calculate_period_histogram_mod(self, period, neuron_id, time_range,
+                                       exclude_depolarisation_blocked_neurons=False):
+
+        if exclude_depolarisation_blocked_neurons:
+            if neuron_id is None:
+                neuron_id = list(self.snudda_simulation_load.network_simulation_file["neurons"].keys())
+
+            if self.snudda_simulation_load.depolarisation_block is None:
+                self.snudda_simulation_load.depolarisation_block = self.snudda_simulation_load.check_depolarisation_block()
+
+            bad_cells = sorted(list(set([x for x, ts, te in self.snudda_simulation_load.depolarisation_block])))
+            neuron_id = np.array([x for x in neuron_id if x not in bad_cells])
 
         spikes = self.snudda_simulation_load.get_spikes(neuron_id=neuron_id)
         all_spikes = []
@@ -321,7 +332,8 @@ class SnuddaPlotSpikeRaster2:
         return freq, bins
 
     def plot_period_histogram_mod(self, period, neuron_id=None, time_range=None,
-                                  fig_file=None, ax=None, fig_size=None, label=None, color=None):
+                                  fig_file=None, ax=None, fig_size=None, label=None, color=None,
+                                  show_figure=True, exclude_depolarisation_blocked_neurons=False):
 
         self.make_figures_directory()
 
@@ -334,7 +346,8 @@ class SnuddaPlotSpikeRaster2:
             fig = plt.figure(figsize=fig_size)
             ax = fig.add_subplot()
 
-        freq, bins = self.calculate_period_histogram_mod(period=period, neuron_id=neuron_id, time_range=time_range)
+        freq, bins = self.calculate_period_histogram_mod(period=period, neuron_id=neuron_id, time_range=time_range,
+                                                         exclude_depolarisation_blocked_neurons=exclude_depolarisation_blocked_neurons)
 
         ax.stairs(freq, bins, label=label, color=color)
 
@@ -351,11 +364,12 @@ class SnuddaPlotSpikeRaster2:
         plt.tight_layout()
         plt.savefig(fig_file, dpi=300)
 
-        plt.ion()
-        plt.show()
+        if show_figure:
+            plt.ion()
+            plt.show()
 
         # ax
-        return freq, bins
+        return ax, freq, bins
 
     def plot_spike_histogram_type(self, neuron_type, time_range=None, bin_size=50e-3, fig_size=None,
                                   fig_file=None, label_text=None, show_figure=True):

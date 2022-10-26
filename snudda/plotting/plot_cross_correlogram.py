@@ -119,7 +119,6 @@ class PlotCrossCorrelogram:
 
         bin_count, bin_edges = np.histogram(t_diff, bins=n_bins, range=[-width, width])
         return bin_count, bin_edges    
-        
 
     def get_range(self, spike_times, time_range):
 

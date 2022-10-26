@@ -763,7 +763,7 @@ class SnuddaInit(object):
     def add_population_unit_random(self, structure_name, neuron_types, fraction_of_neurons, unit_id=None):
 
         if type(neuron_types) != list:
-            neuron_types = list(neuron_types)
+            neuron_types = [neuron_types]
 
         unit_id = self.setup_population_unit(unit_id)
 
