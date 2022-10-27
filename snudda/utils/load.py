@@ -921,7 +921,7 @@ class SnuddaLoad(object):
         neuron_ctr = 0
 
         for neuron_id in idx:
-            if neuron_type is not None and self.data["neurons"]["type"] != neuron_type:
+            if neuron_type is not None and self.data["neurons"][neuron_id]["type"] != neuron_type:
                 continue
 
             yield neuron_id, dist_to_centre[neuron_id]
@@ -994,6 +994,7 @@ class SnuddaLoad(object):
         synapse_count = np.sum(connection_matrix[pre_id, :][:, post_id])
 
         return synapse_count
+
 
 def snudda_load_cli():
     """ Command line parser for SnuddaLoad script """

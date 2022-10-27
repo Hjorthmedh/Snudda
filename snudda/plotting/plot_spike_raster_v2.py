@@ -372,7 +372,7 @@ class SnuddaPlotSpikeRaster2:
         return ax, freq, bins
 
     def plot_spike_histogram_type(self, neuron_type, time_range=None, bin_size=50e-3, fig_size=None,
-                                  fig_file=None, label_text=None, show_figure=True):
+                                  fig_file=None, label_text=None, show_figure=True, n_core=None):
 
         self.make_figures_directory()
 
@@ -390,7 +390,12 @@ class SnuddaPlotSpikeRaster2:
             time_range = (0, self.snudda_simulation_load.get_time()[-1])
 
         for nt in neuron_type:
-            neuron_id = self.snudda_load.get_neuron_id_of_type(nt)
+            if n_core:
+                neuron_id = [x for x, y
+                             in self.snudda_load.get_centre_neurons_iterator(neuron_type=nt, n_neurons=n_core)]
+            else:
+                neuron_id = self.snudda_load.get_neuron_id_of_type(nt)
+
             spikes = self.snudda_simulation_load.get_spikes(neuron_id=neuron_id)
             neurons_of_type[nt] = neuron_id
             all_spikes[nt] = self.snudda_simulation_load.merge_spikes(spikes)[:, 0]

@@ -1,6 +1,7 @@
 import os
 import numpy as np
 
+from snudda.plotting.plot_spike_raster_v2 import SnuddaPlotSpikeRaster2
 from snudda.utils.snudda_path import get_snudda_data
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.load import SnuddaLoad
@@ -33,7 +34,8 @@ class PlotNetwork(object):
              neuron_id_list=None, filter_synapses_pre_id_list=None,
              title=None, title_pad=None, show_axis=True,
              elev_azim=None, fig_name=None, dpi=600,
-             colour_population_unit=False):
+             colour_population_unit=False,
+             colour_neuron_type=True):
 
         if type(plot_axon) == bool:
             plot_axon = np.ones((self.sl.data["nNeurons"],), dtype=bool) * plot_axon
@@ -66,6 +68,14 @@ class PlotNetwork(object):
             colour_lookup = lambda x: colour_lookup_helper[x]
         else:
             colour_lookup = lambda x: 'black'
+
+        if colour_neuron_type:
+            colour_lookup_helper = dict()
+
+            for nid in self.sl.get_neuron_id():
+                colour_lookup_helper[nid] = SnuddaPlotSpikeRaster2.get_colours(self.sl.data["neurons"][nid]["type"])
+
+            colour_lookup = lambda x: colour_lookup_helper[x]
 
         # Plot neurons
         for neuron_info, pa, pd in zip(self.sl.data["neurons"], plot_axon, plot_dendrite):

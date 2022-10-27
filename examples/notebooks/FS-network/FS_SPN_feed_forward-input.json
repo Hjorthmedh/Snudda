@@ -17,8 +17,6 @@
 	"cortical_background" : {
             "generator" : "poisson",
             "frequency" : 5, 
-	    "start" : 0,
-	    "end" : 3,
 	    "parameterList": { "nmda_ratio" : 0}
         }	
     },

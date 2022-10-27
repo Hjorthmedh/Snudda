@@ -342,9 +342,6 @@ class SnuddaLoadNetworkSimulation:
 
         meta_file = f"{txt_file}-meta"
 
-        network_loader = SnuddaLoad(network_file=self.network_path)
-        network_data = network_loader.data
-
         print(f"Writing spikes to csv file {txt_file}")
         print(f"Writing metadata to {meta_file}")
         print("OBS, only neurons that have spikes are written to file.")
@@ -358,9 +355,9 @@ class SnuddaLoadNetworkSimulation:
                 # Skip empty spike trains
                 if spike_train.size > 0:
                     f.write(f"{' '.join([f'{time_scale*x:.5f}' for x in spike_train.flatten()])}\n")
-                    fm.write(f"{nid}, {network_data['neurons'][nid]['name']}, "
-                             f"{network_data['populationUnit'][nid]}, "
-                             f"{','.join([str(x) for x in network_data['neurons'][nid]['position']])}\n")
+                    fm.write(f"{nid}, {SnuddaLoad.to_str(self.network_simulation_file['metaData/name'][nid])}, "
+                             f"{self.network_simulation_file['metaData/populationUnit'][nid]}, "
+                             f"{','.join([str(x) for x in self.network_simulation_file['metaData/position'][nid,: ]])}\n")
 
 
 def load_network_simulation_cli():
