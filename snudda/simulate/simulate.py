@@ -254,20 +254,24 @@ class SnuddaSimulate(object):
 
         """ Load the mechanisms. """
 
-        if os.path.exists("nrnmech.dll"):
-            self.write_log(f"Loading nrnmech.dll")
-            h.nrn_load_dll("nrnmech.dll")
-        elif os.path.exists("x86_64"):
-            self.write_log(f"Loading x86_64/.libs/libnrnmech.so")
-            h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
-        elif os.path.exists("aarch64"):
-            self.write_log(f"Loading aarch64/.libs/libnrnmech.so")
-            h.nrn_load_dll("aarch64/.libs/libnrnmech.so")
-        elif os.path.exists("arm64"):
-            self.write_log(f"Loading arm64/.libs/libnrnmech.so")
-            h.nrn_load_dll("arm64/.libs/libnrnmech.so")
-        else:
-            self.write_log("No compiled mechanisms found. If you use custom mechanisms you need to run nrnivmodl")
+        try:
+            if os.path.exists("nrnmech.dll"):
+                self.write_log(f"Loading nrnmech.dll")
+                h.nrn_load_dll("nrnmech.dll")
+            elif os.path.exists("x86_64"):
+                self.write_log(f"Loading x86_64/.libs/libnrnmech.so")
+                h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
+            elif os.path.exists("aarch64"):
+                self.write_log(f"Loading aarch64/.libs/libnrnmech.so")
+                h.nrn_load_dll("aarch64/.libs/libnrnmech.so")
+            elif os.path.exists("arm64"):
+                self.write_log(f"Loading arm64/.libs/libnrnmech.so")
+                h.nrn_load_dll("arm64/.libs/libnrnmech.so")
+            else:
+                self.write_log("No compiled mechanisms found. If you use custom mechanisms you need to run nrnivmodl")
+        except:
+            import traceback
+            self.write_log(f"Error while loading mechanisms:\n{traceback.format_exc()}")
 
     ############################################################################
 
