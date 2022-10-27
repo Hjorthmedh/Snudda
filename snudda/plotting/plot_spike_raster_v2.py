@@ -86,7 +86,10 @@ class SnuddaPlotSpikeRaster2:
                    "ChIN".lower(): (252. / 255, 102. / 255, 0.0),
                    "LTS".lower(): (150. / 255, 63. / 255, 212. / 255)}
 
-        return colours[neuron_type.lower()]
+        if neuron_type.lower() in colours:
+            return colours[neuron_type.lower()]
+        else:
+            return (0, 0, 0)
 
     def get_all_colours(self):
 

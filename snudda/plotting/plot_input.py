@@ -22,12 +22,10 @@ class PlotInput(object):
         if not network_path:
             network_path = os.path.dirname(input_file)
 
-        if os.path.isdir(network_path):
-            network_file = os.path.join(network_path, "network-synapses.hdf5")
-        elif os.path.isfile(network_path):
+        if os.path.isfile(network_path):
             network_file = network_path
         else:
-            network_path is None
+            network_file = os.path.join(network_path, "network-synapses.hdf5")
 
         if os.path.exists(network_file):
             self.network_info = SnuddaLoad(network_file)
