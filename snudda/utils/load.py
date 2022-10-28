@@ -1058,11 +1058,11 @@ def snudda_load_cli():
         print(f"List neurons pre-synaptic to neuronID = {args.listPre} "
               f"({nl.data['neurons'][args.listPre]['name']})")
         synapses, synapse_coords = nl.find_synapses(post_id=args.listPre)
-        print(f"The neuron receives {synapses.shape[0]} synapses")
 
         if synapses is None:
             print("No pre synaptic neurons were found.")
         else:
+            print(f"The neuron receives {synapses.shape[0]} synapses")
             pre_id = np.unique(synapses[:, 0])
 
             for nid, name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"] if x["neuronID"] in pre_id]:
