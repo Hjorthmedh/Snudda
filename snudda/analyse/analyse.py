@@ -1068,7 +1068,11 @@ class SnuddaAnalyse(object):
 
         plt.yticks(locs, new_labels)
 
-        plt.title(f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)}")
+        if connection_type == "synapses":
+            plt.title(f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)}")
+        else:
+            plt.title(f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)} ({connection_type})")
+
         plt.tight_layout()
         plt.ion()
         plt.draw()
