@@ -5,10 +5,10 @@
             "start" : 2,
             "end" : 10,
             "synapseDensity" : "0.45*0.05/(1+exp(-(d-30e-6)/5e-6))",
-            "frequency" : "10 * (((t -0.01) % (1/20)) < (0.3 * 1/20))",
-            "nInputs" : 50,
+            "frequency" : "5 * (((t -0.01) % (1/20)) < (0.3 * 1/20))",
+            "nInputs" : 100,
             "conductance" : 0.5e-9,
-            "populationUnitCorrelation" : 0.7,
+            "populationUnitCorrelation" : 0.8,
 	    "populationUnitID" : 1,
             "jitter" : 0,        
             "modFile": "tmGlut",
@@ -16,7 +16,7 @@
         },
 	"cortical_background" : {
             "generator" : "poisson",
-            "frequency" : 5, 
+            "frequency" : 2, 
 	    "parameterList": { "nmda_ratio" : 0}
         }	
     },
@@ -33,11 +33,11 @@
     "iSPN": {
 	"cortical_background" : {
 	    "generator" : "poisson",
-	    "frequency" : 2.9
+	    "frequency" : 3
 	},
 	"thalamic_background" : {
 	    "generator" : "poisson",
-	    "frequency" : 2.9
+	    "frequency" : 3
 	}
    }
 }
