@@ -1,8 +1,14 @@
+#!/bin/bash
+
 export IPYTHONDIR="`pwd`/.ipython"
 export IPYTHON_PROFILE=default
 
-ipcluster start --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
-sleep 20
+if [ -z "$1" ]
+then ipcluster start --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
+else ipcluster start -n $1 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
+fi
 
+echo "Sleeping 20 seconds to wait for workers to start"
+sleep 20
 
 echo "To stop ipcluster use:   ipcluster stop"

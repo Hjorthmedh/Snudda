@@ -297,7 +297,8 @@ class SnuddaPlotSpikeRaster2:
         return vs
 
     def calculate_period_histogram_mod(self, period, neuron_id, time_range,
-                                       exclude_depolarisation_blocked_neurons=False):
+                                       exclude_depolarisation_blocked_neurons=False,
+                                       n_bins=10):
 
         if exclude_depolarisation_blocked_neurons:
             if neuron_id is None:
@@ -324,17 +325,18 @@ class SnuddaPlotSpikeRaster2:
             else:
                 all_spikes = all_spikes + list(sf % period)
 
-        counts, bins = np.histogram(all_spikes)
+        counts, bins = np.histogram(all_spikes, bins=n_bins)
 
         if time_range:
             t = time_range[1] - time_range[0]
         else:
             t = self.time[-1] - self.time[0]
+
         freq = counts/(n_spike_trains * (bins[1] - bins[0]) * t/period)
 
         return freq, bins
 
-    def plot_period_histogram_mod(self, period, neuron_id=None, time_range=None,
+    def plot_period_histogram_mod(self, period, neuron_id=None, time_range=None, n_bins=20,
                                   fig_file=None, ax=None, fig_size=None, label=None, color=None,
                                   show_figure=True, exclude_depolarisation_blocked_neurons=False,
                                   save_figure=True, linestyle="-", legend_loc="best"):
@@ -351,6 +353,7 @@ class SnuddaPlotSpikeRaster2:
             ax = fig.add_subplot()
 
         freq, bins = self.calculate_period_histogram_mod(period=period, neuron_id=neuron_id, time_range=time_range,
+                                                         n_bins=n_bins,
                                                          exclude_depolarisation_blocked_neurons=exclude_depolarisation_blocked_neurons)
 
         ax.stairs(freq, bins, label=label, color=color, linewidth=3, linestyle=linestyle)
