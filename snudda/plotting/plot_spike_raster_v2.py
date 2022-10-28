@@ -336,14 +336,15 @@ class SnuddaPlotSpikeRaster2:
 
     def plot_period_histogram_mod(self, period, neuron_id=None, time_range=None,
                                   fig_file=None, ax=None, fig_size=None, label=None, color=None,
-                                  show_figure=True, exclude_depolarisation_blocked_neurons=False):
+                                  show_figure=True, exclude_depolarisation_blocked_neurons=False,
+                                  save_figure=True, linestyle="-", legend_loc="best"):
 
         self.make_figures_directory()
 
         plt.rcParams.update({'font.size': 24,
                              'xtick.labelsize': 20,
                              'ytick.labelsize': 20,
-                             'legend.loc': 'best'})
+                             'legend.loc': legend_loc})
 
         if ax is None:
             fig = plt.figure(figsize=fig_size)
@@ -352,7 +353,7 @@ class SnuddaPlotSpikeRaster2:
         freq, bins = self.calculate_period_histogram_mod(period=period, neuron_id=neuron_id, time_range=time_range,
                                                          exclude_depolarisation_blocked_neurons=exclude_depolarisation_blocked_neurons)
 
-        ax.stairs(freq, bins, label=label, color=color)
+        ax.stairs(freq, bins, label=label, color=color, linewidth=3, linestyle=linestyle)
 
         ax.set_xlabel("Time (s)")
         ax.set_ylabel("Frequency (Hz)")
@@ -363,9 +364,11 @@ class SnuddaPlotSpikeRaster2:
         else:
             fig_file = os.path.join(self.figure_path, fig_file)
 
-        print(f"Writing figure to {fig_file}")
         plt.tight_layout()
-        plt.savefig(fig_file, dpi=300)
+
+        if save_figure:
+            print(f"Writing figure to {fig_file}")
+            plt.savefig(fig_file, dpi=300)
 
         if show_figure:
             plt.ion()
@@ -375,14 +378,15 @@ class SnuddaPlotSpikeRaster2:
         return ax, freq, bins
 
     def plot_spike_histogram_type(self, neuron_type, time_range=None, bin_size=50e-3, fig_size=None,
-                                  fig_file=None, label_text=None, show_figure=True, n_core=None):
+                                  fig_file=None, label_text=None, show_figure=True, n_core=None, linestyle="-",
+                                  legend_loc="best"):
 
         self.make_figures_directory()
 
         plt.rcParams.update({'font.size': 24,
                              'xtick.labelsize': 20,
                              'ytick.labelsize': 20,
-                             'legend.loc': 'best'})
+                             'legend.loc': legend_loc})
 
         assert type(neuron_type) == list, "neuron_type should be a list of neuron types"
 
@@ -412,7 +416,7 @@ class SnuddaPlotSpikeRaster2:
         fig = plt.figure(figsize=fig_size)
         ax = fig.add_subplot()
 
-        ax.hist(x=all_spikes.values(), bins=bins, weights=weights, linewidth=3,
+        ax.hist(x=all_spikes.values(), bins=bins, weights=weights, linewidth=3, linestyle=linestyle,
                 histtype="step", color=[self.get_colours(x) for x in all_spikes.keys()],
                 label=[f"{label_text}{x}" for x in all_spikes.keys()])
         plt.xlabel("Time (s)", fontsize=20)
@@ -428,7 +432,8 @@ class SnuddaPlotSpikeRaster2:
 
     def plot_spike_histogram(self, population_id=None,
                              skip_time=0, end_time=None, fig_size=None, bin_size=50e-3,
-                             fig_file=None, ax=None, label_text=None, show_figure=True, save_figure=True, colour=None):
+                             fig_file=None, ax=None, label_text=None, show_figure=True, save_figure=True, colour=None,
+                             linestyle="-", legend_loc="best"):
 
         if population_id is None:
             population_id = self.snudda_load.get_neuron_population_units(return_set=True)
@@ -438,7 +443,7 @@ class SnuddaPlotSpikeRaster2:
         plt.rcParams.update({'font.size': 24,
                              'xtick.labelsize': 20,
                              'ytick.labelsize': 20,
-                             'legend.loc': 'best'})
+                             'legend.loc': legend_loc})
 
         if ax is None:
             fig = plt.figure(figsize=fig_size)
@@ -465,7 +470,7 @@ class SnuddaPlotSpikeRaster2:
         if label_text is None:
             label_text = ""
             
-        ax.hist(x=pop_spikes.values(), bins=bins, weights=weights, linewidth=3,
+        ax.hist(x=pop_spikes.values(), bins=bins, weights=weights, linewidth=3, linestyle=linestyle,
                 histtype="step", color=colour,
                 label=[f"{label_text}{x}" for x in pop_spikes.keys()])
         plt.xlabel("Time (s)", fontsize=20)
@@ -479,6 +484,7 @@ class SnuddaPlotSpikeRaster2:
             fig_file = os.path.join(self.figure_path, fig_file)
 
         if save_figure:
+            print(f"Saving figure {fig_file}")
             plt.tight_layout()
             plt.savefig(fig_file, dpi=300)
 
@@ -488,7 +494,8 @@ class SnuddaPlotSpikeRaster2:
 
         return ax
 
-    def plot_spike_raster(self, type_order=None, skip_time=0, end_time=None, fig_size=None, fig_file=None):
+    def plot_spike_raster(self, type_order=None, skip_time=0, end_time=None, fig_size=None, fig_file=None,
+                          time_range=None):
 
         self.make_figures_directory()
 
@@ -557,6 +564,12 @@ class SnuddaPlotSpikeRaster2:
             x_lim = ax.get_xlim()
             x_lim = (self.time[0], self.time[-1])
             ax.set_xlim(x_lim)
+
+        assert not ((skip_time or end_time) and time_range), \
+            f"time_range can not be specified with skip_time and end_time"
+
+        if time_range:
+            ax.set_xlim(time_range)
 
         if not os.path.isdir(os.path.dirname(self.figure_path)):
             os.makedirs(os.path.dirname(self.figure_path))
