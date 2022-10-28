@@ -2,7 +2,7 @@
     "FS": {
         "CtxSignal" : {
             "generator" : "frequency_function",
-            "start" : 1.5,
+            "start" : 2,
             "end" : 10,
             "synapseDensity" : "0.45*0.05/(1+exp(-(d-30e-6)/5e-6))",
             "frequency" : "10 * ((t % (1/20)) < (0.3 * 1/20))",
@@ -23,21 +23,21 @@
     "dSPN": {
 	"cortical_background" : {
 	    "generator" : "poisson",
-	    "frequency" : 2.8
+	    "frequency" : 2.6
 	},
 	"thalamic_background" : {
 	    "generator" : "poisson",
-	    "frequency" : 2.8
+	    "frequency" : 2.6
 	}
     },
     "iSPN": {
 	"cortical_background" : {
 	    "generator" : "poisson",
-	    "frequency" : 3
+	    "frequency" : 2.9
 	},
 	"thalamic_background" : {
 	    "generator" : "poisson",
-	    "frequency" : 3
+	    "frequency" : 2.9
 	}
    }
 }
