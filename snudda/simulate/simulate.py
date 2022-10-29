@@ -565,15 +565,34 @@ class SnuddaSimulate(object):
         else:
             self.write_log("Adding gap junctions.")
 
-            self.connect_network_gap_junctions_local()
+            gap_junction_count = self.connect_network_gap_junctions_local()
             self.pc.setup_transfer()
+
+            # Divide by two, since each gap junction is added twice (source and dest side)
+            total_gap_junction_count = np.sum(self.pc.py_allgather(gap_junction_count)) / 2
+
+            if total_gap_junction_count != self.gap_junctions.shape[0]:
+                self.write_log(f"ERROR: Added only {total_gap_junction_count} out of {self.gap_junctions.shape[0]} gap junctions",
+                               is_error=True)
+            elif self.pc.id() == 0:
+                self.write_log(f"Added {total_gap_junction_count} synapses to simulation ({self.gap_junctions.shape[0]} total)",
+                               force_print=True)
 
         # Add synapses
         if self.disable_synapses:
             self.write_log("!!! Synapses disabled.", force_print=True)
         else:
             self.write_log("Adding synapses.")
-            self.connect_network_synapses()
+            synapse_count = self.connect_network_synapses()
+            self.write_log(f"Added {synapse_count} on worker {self.pc.id()}")
+            total_synapse_count = np.sum(self.pc.py_allgather(synapse_count))
+
+            if total_synapse_count != self.synapses.shape[0]:
+                self.write_log(f"ERROR: Added only {total_synapse_count} out of {self.synapses.shape[0]} synapses!",
+                               is_error=True)
+            elif self.pc.id() == 0:
+                self.write_log(f"Added {total_synapse_count} synapses to simulation ({self.synapses.shape[0]} total)",
+                               force_print=True)
 
         self.pc.barrier()
 
@@ -616,13 +635,17 @@ class SnuddaSimulate(object):
         next_row = 0
         next_row_set = self.find_next_synapse_group(next_row)
 
+        synapse_count = 0
+
         while next_row_set is not None:
             # Add the synapses to the neuron
-            self.connect_neuron_synapses(start_row=next_row_set[0], end_row=next_row_set[1])
+            synapse_count += self.connect_neuron_synapses(start_row=next_row_set[0], end_row=next_row_set[1])
 
             # Find the next group of synapses
             next_row = next_row_set[1]  # 2nd number was not included in range
             next_row_set = self.find_next_synapse_group(next_row)
+
+        return synapse_count
 
     ############################################################################
 
@@ -751,6 +774,8 @@ class SnuddaSimulate(object):
 
         """ Connects the synapses present in the synapse matrix between start_row and end_row-1. """
 
+        synapse_count = 0
+
         source_id_list, dest_id, dend_sections, sec_id, sec_x, synapse_type_id, \
         axon_distance, conductance, parameter_id = self.get_synapse_info(start_row=start_row, end_row=end_row)
 
@@ -768,12 +793,16 @@ class SnuddaSimulate(object):
                                  axon_dist=axon_dist,
                                  conductance=cond,
                                  parameter_id=p_id)
+
+                synapse_count += 1
             except:
                 import traceback
                 tstr = traceback.format_exc()
                 self.write_log(tstr, is_error=True)
                 import pdb
                 pdb.set_trace()
+
+        return synapse_count
 
     ############################################################################
 
@@ -861,6 +890,8 @@ class SnuddaSimulate(object):
 
         (neuron_id, compartment, seg_x, gj_gid_src, gj_gid_dest, cond) = self.find_local_gap_junctions()
 
+        gap_junction_count = 0
+
         try:
             for nid, comp, s_x, gid_src, gid_dest, g \
                     in zip(neuron_id, compartment, seg_x, gj_gid_src, gj_gid_dest, cond):
@@ -870,12 +901,16 @@ class SnuddaSimulate(object):
                                       gid_dest_gj=gid_dest,
                                       g_gap_junction=g)
 
+                gap_junction_count += 1
+
         except:
             import traceback
             tstr = traceback.format_exc()
             print(tstr)
             import pdb
             pdb.set_trace()
+
+        return gap_junction_count
 
     ############################################################################
 
