@@ -632,6 +632,7 @@ class SnuddaSimulate(object):
     # we need to connect the gap junctions from both sides
 
     # --- perhaps rewrite this as an iterator
+    # --- also, see comment in loop below, to use boolean array to be faster
 
     def find_next_synapse_group(self, next_row=0):
 
@@ -672,6 +673,8 @@ class SnuddaSimulate(object):
             next_id = synapses[next_row, 1]
 
             # Is the next ID ours?
+            # TODO: This can be speed up by instead having a bool array with 1 if neuron is in self.neuron_id and 0
+            #       otherwise. That would prevent us from having to search in self.neuron_id
             if next_id in self.neuron_id:
                 start_row = next_row
                 our_id = next_id

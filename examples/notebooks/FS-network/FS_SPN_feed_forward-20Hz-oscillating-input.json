@@ -16,18 +16,18 @@
         },
 	"cortical_background" : {
             "generator" : "poisson",
-            "frequency" : 2, 
+            "frequency" : 4, 
 	    "parameterList": { "nmda_ratio" : 0}
         }	
     },
     "dSPN": {
 	"cortical_background" : {
 	    "generator" : "poisson",
-	    "frequency" : 2.6
+	    "frequency" : 2.8
 	},
 	"thalamic_background" : {
 	    "generator" : "poisson",
-	    "frequency" : 2.6
+	    "frequency" : 2.8
 	}
     },
     "iSPN": {
