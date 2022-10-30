@@ -427,7 +427,9 @@ class SnuddaPlotSpikeRaster2:
         ax.legend()
 
         if fig_file:
-            plt.savefig(fig_file)
+            fig_path = os.path.join(self.figure_path, fig_file)
+            print(f"Writing figure {fig_path}")
+            plt.savefig(fig_path)
 
         if show_figure:
             plt.ion()
