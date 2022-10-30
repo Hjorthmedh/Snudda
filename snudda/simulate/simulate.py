@@ -118,6 +118,7 @@ class SnuddaSimulate(object):
         self.config = None
         self.is_virtual_neuron = None
         self.neuron_id = None
+        self.neuron_id_on_node = None
         self.synapse_parameters = None
 
         self.sim_start_time = 0
@@ -180,7 +181,7 @@ class SnuddaSimulate(object):
 
         self.neurons = {}
         self.sim = None
-        self.neuron_nodes = []
+        self.neuron_nodes = []  # Is this used?
 
         self.virtual_neurons = {}
 
@@ -341,6 +342,9 @@ class SnuddaSimulate(object):
             f"Do not allocate more workers ({int(self.pc.nhost())}) than there are neurons ({self.num_neurons})."
 
         self.neuron_id = range(int(self.pc.id()), self.num_neurons, int(self.pc.nhost()))
+
+        self.neuron_id_on_node = np.zeros((self.num_neurons,), dtype=bool)
+        self.neuron_id_on_node[self.neuron_id] = True
 
         # TODO: Change to these ranges: range_borders = np.linspace(0, num_neurons, n_workers + 1).astype(int)
         #       will be faster, because of new numbering of neurons.
@@ -698,13 +702,15 @@ class SnuddaSimulate(object):
             # Is the next ID ours?
             # TODO: This can be speed up by instead having a bool array with 1 if neuron is in self.neuron_id and 0
             #       otherwise. That would prevent us from having to search in self.neuron_id
-            if next_id in self.neuron_id:
+            # if next_id in self.neuron_id: -- OLD if statement, replaced with bool lookup below
+            if self.neuron_id_on_node[next_id]:
                 start_row = next_row
                 our_id = next_id
                 continue
             else:
                 not_our_id = next_id
 
+            # This loop just skips all synapses targeting not_our_id so we then can check next id
             while (next_row < num_syn_rows and
                    synapses[next_row, 1] == not_our_id):
                 next_row += 1
@@ -1912,8 +1918,8 @@ if __name__ == "__main__":
 
     start = timeit.default_timer()
 
-    disableGJ = args.disableGJ
-    if disableGJ:
+    disable_gj = args.disableGJ
+    if disable_gj:
         print("!!! WE HAVE DISABLED GAP JUNCTIONS !!!")
 
     pc = h.ParallelContext()
@@ -1926,7 +1932,7 @@ if __name__ == "__main__":
     sim = SnuddaSimulate(network_file=network_data_file,
                          input_file=input_file,
                          output_file=output_file,
-                         disable_gap_junctions=disableGJ,
+                         disable_gap_junctions=disable_gj,
                          log_file=log_file,
                          verbose=args.verbose)
     sim.setup()
