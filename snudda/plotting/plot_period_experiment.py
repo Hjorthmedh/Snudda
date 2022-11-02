@@ -92,7 +92,7 @@ class PlotPeriodExperiment(SnuddaPlotSpikeRaster2):
         return ax, freq, bins
 
     def plot_period_voltage(self, period, neuron_type, ax=None, fig_size=None, figure_name=None, show_plot=True,
-                            time_range=None):
+                            time_range=None, show_pre_histogram=True):
 
         """ This plots the average voltage for the neurons during the spikes, split into two groups. Those that
             had a presynaptic neuron spike before, and those that did not. """
@@ -194,5 +194,8 @@ class PlotPeriodExperiment(SnuddaPlotSpikeRaster2):
         if show_plot:
             plt.ion()
             plt.show()
+
+        # if show_pre_histogram:
+        #     plt.figure(figsize=fig_size)
 
         return ax
