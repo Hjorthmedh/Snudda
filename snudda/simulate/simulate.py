@@ -842,8 +842,11 @@ class SnuddaSimulate(object):
         if self.gap_junctions.shape[0] == 0:
             return np.array([]), np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
 
-        gj_idx_a = np.where([x in self.neuron_id for x in self.gap_junctions[:, 0]])[0]
-        gj_idx_b = np.where([x in self.neuron_id for x in self.gap_junctions[:, 1]])[0]
+        # gj_idx_a = np.where([x in self.neuron_id for x in self.gap_junctions[:, 0]])[0]
+        # gj_idx_b = np.where([x in self.neuron_id for x in self.gap_junctions[:, 1]])[0]
+
+        gj_idx_a = np.where([self.neuron_id_on_node[x] for x in self.gap_junctions[:, 0]])[0]
+        gj_idx_b = np.where([self.neuron_id_on_node[x] for x in self.gap_junctions[:, 1]])[0]
 
         gj_id_offset = 100 * self.num_neurons
         gj_gid_src_a = gj_id_offset + 2 * gj_idx_a

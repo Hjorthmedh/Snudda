@@ -633,6 +633,7 @@ class Snudda(object):
                                  input_file=input_file,
                                  output_file=output_file,
                                  disable_gap_junctions=disable_gj,
+                                 disable_synapses=disable_synapses,
                                  log_file=log_file,
                                  verbose=args.verbose)
             sim.setup()
