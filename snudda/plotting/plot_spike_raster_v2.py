@@ -298,7 +298,7 @@ class SnuddaPlotSpikeRaster2:
 
     def plot_spike_histogram_type(self, neuron_type, time_range=None, bin_size=50e-3, fig_size=None,
                                   fig_file=None, label_text=None, show_figure=True, n_core=None, linestyle="-",
-                                  legend_loc="best"):
+                                  legend_loc="best", ax=None):
 
         self.make_figures_directory()
 
@@ -332,8 +332,9 @@ class SnuddaPlotSpikeRaster2:
         if label_text is None:
             label_text = ""
 
-        fig = plt.figure(figsize=fig_size)
-        ax = fig.add_subplot()
+        if ax is None:
+            fig = plt.figure(figsize=fig_size)
+            ax = fig.add_subplot()
 
         ax.hist(x=all_spikes.values(), bins=bins, weights=weights, linewidth=3, linestyle=linestyle,
                 histtype="step", color=[self.get_colours(x) for x in all_spikes.keys()],
