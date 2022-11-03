@@ -510,6 +510,40 @@ class SnuddaPlotSpikeRaster2:
         plt.ion()
         plt.show()
 
+    def plot_firing_frequency_distribution(self, time_range=None, figure_name=None, bins=20):
+
+        neuron_types = self.snudda_load.get_neuron_types(return_set=True)
+
+        plt.figure()
+
+        time = self.snudda_simulation_load.get_time()
+
+        for nt in neuron_types:
+
+            neuron_id = self.snudda_load.get_neuron_id_of_type(neuron_type=nt)
+            spikes = self.snudda_simulation_load.get_spikes(neuron_id=neuron_id)
+
+            if time_range is None:
+                freq = [s.size/(time[-1] - time[0]) for s in spikes.values()]
+            else:
+                freq = [len(np.where(np.logical_and(time_range[0] <= s, s <= time_range[1]))[0])
+                        / (time_range[1] - time_range[0])
+                        for s in spikes.values()]
+
+            colour = SnuddaPlotSpikeRaster2.get_colours(nt)
+            count, bin = np.histogram(freq, bins=bins)
+            plt.stairs(count, bin, label=nt, color=colour, linewidth=3)
+
+        plt.legend()
+        plt.xlabel("Frequency (Hz)")
+        plt.ylabel("Count")
+
+        plt.ion()
+        plt.show()
+
+        if figure_name is not None:
+            plt.savefig(os.path.join(self.figure_path, figure_name))
+
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
