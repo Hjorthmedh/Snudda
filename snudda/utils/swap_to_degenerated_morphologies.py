@@ -51,11 +51,20 @@ class SwapToDegeneratedMorphologies:
         self.section_lookup = dict()
         self.neuron_cache_key = dict()
         self.neuron_cache_id = dict()
+        self.key_lookup = dict()
 
         self.create_section_lookup()
         self.kd_tree_cache = dict()
 
         self.filter_axon = filter_axon
+        self.old_simulation_origo = self.old_hdf5["meta/simulationOrigo"][()]
+        self.old_voxel_size = self.old_hdf5["meta/voxelSize"][()]
+
+        self.has_axon_density = np.zeros((self.original_network_loader.data["nNeurons"],), dtype=bool)
+        for neuron_id, _ in enumerate(self.original_network_loader.data["neurons"]):
+            if "axonDensity" in self.original_network_loader.data["neurons"][neuron_id] \
+                    and self.original_network_loader.data["neurons"][neuron_id]["axonDensity"] is not None:
+                self.has_axon_density[neuron_id] = True
 
     def close(self):
 
@@ -118,8 +127,10 @@ class SwapToDegeneratedMorphologies:
 
             # Load synapses into memory
             if load_synapses:
+                print("Loading synapses into memory.")
                 synapses = self.old_hdf5[data_loc][()].copy()
             else:
+                print("Reading synapses from disk (slower)")
                 synapses = self.old_hdf5[data_loc]
 
             assert num_synapses == synapses.shape[0]
@@ -304,10 +315,8 @@ class SwapToDegeneratedMorphologies:
 
         pre_id = synapses[:, 0]
         synapse_voxels = synapses[:, 2:5]
-        simulation_origo = self.old_hdf5["meta/simulationOrigo"][()]
-        voxel_size = self.old_hdf5["meta/voxelSize"][()]
 
-        synapse_coordinates = simulation_origo + voxel_size*synapse_voxels
+        synapse_coordinates = self.old_simulation_origo + self.old_voxel_size*synapse_voxels
 
         keep_idx = np.ones((synapses.shape[0],), dtype=bool)
 
@@ -325,11 +334,10 @@ class SwapToDegeneratedMorphologies:
                 if len(morph.axon) > 0:
                     axon_tree = self.get_kd_tree(morph, "axon")
 
-                    if "axonDensity" in self.original_network_loader.data["neurons"][pid] \
-                            and self.original_network_loader.data["neurons"][pid]["axonDensity"] is not None:
+                    if self.has_axon_density[pid]:
+                        axon_tree = None
                         # print(f"Warning: Axon and axonal density specified for neuron {pid}")
                         # print(f"Ignoring morphology --- for now, will change behaviour in future.")
-                        axon_tree = None
                 else:
                     axon_tree = None
 
@@ -377,9 +385,14 @@ class SwapToDegeneratedMorphologies:
 
     def find_old_morphology(self, neuron_id):
 
-        orig_morph_key = SnuddaLoad.to_str(self.old_data["neurons"][neuron_id]["morphologyKey"])
-        orig_param_key = SnuddaLoad.to_str(self.old_data["neurons"][neuron_id]["parameterKey"])
-        orig_neuron_path = SnuddaLoad.to_str(self.old_data["neurons"][neuron_id]["neuronPath"])
+        if neuron_id not in self.key_lookup:
+            orig_morph_key = SnuddaLoad.to_str(self.old_data["neurons"][neuron_id]["morphologyKey"])
+            orig_param_key = SnuddaLoad.to_str(self.old_data["neurons"][neuron_id]["parameterKey"])
+            orig_neuron_path = SnuddaLoad.to_str(self.old_data["neurons"][neuron_id]["neuronPath"])
+
+            self.key_lookup[neuron_id] = orig_param_key, orig_morph_key, orig_neuron_path
+        else:
+            orig_param_key, orig_morph_key, orig_neuron_path = self.key_lookup[neuron_id]
 
         return orig_param_key, orig_morph_key, orig_neuron_path
 
