@@ -110,7 +110,7 @@ class PlotTraces:
 
         assert time_range is None or skip_time is None, f"Only specify one of skip_time and time_range"
 
-        if not trace_id:
+        if trace_id is None:
             if self.network_info:
                 trace_id = [x["neuronID"] for x in self.network_info.data["neurons"]]
             else:
