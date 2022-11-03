@@ -7,12 +7,12 @@
 #SBATCH -J Simulate
 #SBATCH -A snic2022-5-245
 #SBATCH --nodes=5-10
-#SBATCH --tasks-per-node=64
+#SBATCH --tasks-per-node=128
 #SBATCH --mail-type=ALL
 
 # 16 workers were too few, got section stack overflow (there is a hidden
 # push to the stack somewhere in the neuron code)
-let N_WORKERS="$SLURM_NNODES * 32"
+let N_WORKERS="$SLURM_NNODES * 128"
 
 HOME=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda
 

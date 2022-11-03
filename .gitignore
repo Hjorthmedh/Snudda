@@ -125,6 +125,7 @@ venv.bak/
 # Neuron
 x86_64
 aarch64
+arm64
 
 # Snudda
 /mechanisms

@@ -18,6 +18,7 @@ import json
 import os
 import re
 import timeit
+import time
 # Plot all sections
 # [neuron.h.psection(x) for x in neuron.h.allsec()]
 from collections import OrderedDict
@@ -117,6 +118,7 @@ class SnuddaSimulate(object):
         self.config = None
         self.is_virtual_neuron = None
         self.neuron_id = None
+        self.neuron_id_on_node = None
         self.synapse_parameters = None
 
         self.sim_start_time = 0
@@ -150,9 +152,7 @@ class SnuddaSimulate(object):
 
         if type(self.log_file) == str:
             log_dir_name = os.path.dirname(self.log_file)
-            if not os.path.exists(log_dir_name):
-                print(f"Creating {log_dir_name}")
-                os.makedirs(log_dir_name)
+            self.create_dir(log_dir_name)
 
             self.log_file += f'-{int(self.pc.id())}'
             self.log_file = open(self.log_file, "w")
@@ -181,7 +181,7 @@ class SnuddaSimulate(object):
 
         self.neurons = {}
         self.sim = None
-        self.neuron_nodes = []
+        self.neuron_nodes = []  # Is this used?
 
         self.virtual_neurons = {}
 
@@ -255,17 +255,24 @@ class SnuddaSimulate(object):
 
         """ Load the mechanisms. """
 
-        if os.path.exists("nrnmech.dll"):
-            self.write_log(f"Loading nrnmech.dll")
-            h.nrn_load_dll("nrnmech.dll")
-        elif os.path.exists("x86_64"):
-            self.write_log(f"Loading x86_64/.libs/libnrnmech.so")
-            h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
-        elif os.path.exists("aarch64"):
-            self.write_log(f"Loading aarch64/.libs/libnrnmech.so")
-            h.nrn_load_dll("aarch64/.libs/libnrnmech.so")
-        else:
-            self.write_log("No compiled mechanisms found. If you use custom mechanisms you need to run nrnivmodl")
+        try:
+            if os.path.exists("nrnmech.dll"):
+                self.write_log(f"Loading nrnmech.dll")
+                h.nrn_load_dll("nrnmech.dll")
+            elif os.path.exists("x86_64"):
+                self.write_log(f"Loading x86_64/.libs/libnrnmech.so")
+                h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
+            elif os.path.exists("aarch64"):
+                self.write_log(f"Loading aarch64/.libs/libnrnmech.so")
+                h.nrn_load_dll("aarch64/.libs/libnrnmech.so")
+            elif os.path.exists("arm64"):
+                self.write_log(f"Loading arm64/.libs/libnrnmech.so")
+                h.nrn_load_dll("arm64/.libs/libnrnmech.so")
+            else:
+                self.write_log("No compiled mechanisms found. If you use custom mechanisms you need to run nrnivmodl")
+        except:
+            import traceback
+            self.write_log(f"Error while loading mechanisms:\n{traceback.format_exc()}")
 
     ############################################################################
 
@@ -336,6 +343,9 @@ class SnuddaSimulate(object):
 
         self.neuron_id = range(int(self.pc.id()), self.num_neurons, int(self.pc.nhost()))
 
+        self.neuron_id_on_node = np.zeros((self.num_neurons,), dtype=bool)
+        self.neuron_id_on_node[self.neuron_id] = True
+
         # TODO: Change to these ranges: range_borders = np.linspace(0, num_neurons, n_workers + 1).astype(int)
         #       will be faster, because of new numbering of neurons.
 
@@ -405,11 +415,10 @@ class SnuddaSimulate(object):
                     with open(par_file, "r") as f:
                         par_data_dict = json.load(f, object_pairs_hook=OrderedDict)
 
-                    # Save data as a list, we dont need the keys
+                    # Save data as a list, we don't need the keys
                     par_data = []
                     for pd in par_data_dict:
                         if "synapse" in par_data_dict[pd]:
-
                             # Add channel parameters specified in network file, however
                             # any values in the synapse parameter file will overwrite them
                             p_dict = channel_param_dict.copy()
@@ -560,15 +569,34 @@ class SnuddaSimulate(object):
         else:
             self.write_log("Adding gap junctions.")
 
-            self.connect_network_gap_junctions_local()
+            gap_junction_count = self.connect_network_gap_junctions_local()
             self.pc.setup_transfer()
+
+            # Divide by two, since each gap junction is added twice (source and dest side)
+            total_gap_junction_count = np.sum(self.pc.py_allgather(gap_junction_count)) / 2
+
+            if total_gap_junction_count != self.gap_junctions.shape[0]:
+                self.write_log(f"ERROR: Added only {total_gap_junction_count} out of {self.gap_junctions.shape[0]} gap junctions",
+                               is_error=True)
+            elif self.pc.id() == 0:
+                self.write_log(f"Added {total_gap_junction_count} synapses to simulation ({self.gap_junctions.shape[0]} total)",
+                               force_print=True)
 
         # Add synapses
         if self.disable_synapses:
             self.write_log("!!! Synapses disabled.", force_print=True)
         else:
             self.write_log("Adding synapses.")
-            self.connect_network_synapses()
+            synapse_count = self.connect_network_synapses()
+            self.write_log(f"Added {synapse_count} on worker {self.pc.id()}")
+            total_synapse_count = np.sum(self.pc.py_allgather(synapse_count))
+
+            if total_synapse_count != self.synapses.shape[0]:
+                self.write_log(f"ERROR: Added only {total_synapse_count} out of {self.synapses.shape[0]} synapses!",
+                               is_error=True)
+            elif self.pc.id() == 0:
+                self.write_log(f"Added {total_synapse_count} synapses to simulation ({self.synapses.shape[0]} total)",
+                               force_print=True)
 
         self.pc.barrier()
 
@@ -611,13 +639,17 @@ class SnuddaSimulate(object):
         next_row = 0
         next_row_set = self.find_next_synapse_group(next_row)
 
+        synapse_count = 0
+
         while next_row_set is not None:
             # Add the synapses to the neuron
-            self.connect_neuron_synapses(start_row=next_row_set[0], end_row=next_row_set[1])
+            synapse_count += self.connect_neuron_synapses(start_row=next_row_set[0], end_row=next_row_set[1])
 
             # Find the next group of synapses
             next_row = next_row_set[1]  # 2nd number was not included in range
             next_row_set = self.find_next_synapse_group(next_row)
+
+        return synapse_count
 
     ############################################################################
 
@@ -627,6 +659,7 @@ class SnuddaSimulate(object):
     # we need to connect the gap junctions from both sides
 
     # --- perhaps rewrite this as an iterator
+    # --- also, see comment in loop below, to use boolean array to be faster
 
     def find_next_synapse_group(self, next_row=0):
 
@@ -667,13 +700,17 @@ class SnuddaSimulate(object):
             next_id = synapses[next_row, 1]
 
             # Is the next ID ours?
-            if next_id in self.neuron_id:
+            # TODO: This can be speed up by instead having a bool array with 1 if neuron is in self.neuron_id and 0
+            #       otherwise. That would prevent us from having to search in self.neuron_id
+            # if next_id in self.neuron_id: -- OLD if statement, replaced with bool lookup below
+            if self.neuron_id_on_node[next_id]:
                 start_row = next_row
                 our_id = next_id
                 continue
             else:
                 not_our_id = next_id
 
+            # This loop just skips all synapses targeting not_our_id so we then can check next id
             while (next_row < num_syn_rows and
                    synapses[next_row, 1] == not_our_id):
                 next_row += 1
@@ -743,6 +780,8 @@ class SnuddaSimulate(object):
 
         """ Connects the synapses present in the synapse matrix between start_row and end_row-1. """
 
+        synapse_count = 0
+
         source_id_list, dest_id, dend_sections, sec_id, sec_x, synapse_type_id, \
         axon_distance, conductance, parameter_id = self.get_synapse_info(start_row=start_row, end_row=end_row)
 
@@ -760,12 +799,16 @@ class SnuddaSimulate(object):
                                  axon_dist=axon_dist,
                                  conductance=cond,
                                  parameter_id=p_id)
+
+                synapse_count += 1
             except:
                 import traceback
                 tstr = traceback.format_exc()
                 self.write_log(tstr, is_error=True)
                 import pdb
                 pdb.set_trace()
+
+        return synapse_count
 
     ############################################################################
 
@@ -799,8 +842,11 @@ class SnuddaSimulate(object):
         if self.gap_junctions.shape[0] == 0:
             return np.array([]), np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
 
-        gj_idx_a = np.where([x in self.neuron_id for x in self.gap_junctions[:, 0]])[0]
-        gj_idx_b = np.where([x in self.neuron_id for x in self.gap_junctions[:, 1]])[0]
+        # gj_idx_a = np.where([x in self.neuron_id for x in self.gap_junctions[:, 0]])[0]
+        # gj_idx_b = np.where([x in self.neuron_id for x in self.gap_junctions[:, 1]])[0]
+
+        gj_idx_a = np.where([self.neuron_id_on_node[x] for x in self.gap_junctions[:, 0]])[0]
+        gj_idx_b = np.where([self.neuron_id_on_node[x] for x in self.gap_junctions[:, 1]])[0]
 
         gj_id_offset = 100 * self.num_neurons
         gj_gid_src_a = gj_id_offset + 2 * gj_idx_a
@@ -853,6 +899,8 @@ class SnuddaSimulate(object):
 
         (neuron_id, compartment, seg_x, gj_gid_src, gj_gid_dest, cond) = self.find_local_gap_junctions()
 
+        gap_junction_count = 0
+
         try:
             for nid, comp, s_x, gid_src, gid_dest, g \
                     in zip(neuron_id, compartment, seg_x, gj_gid_src, gj_gid_dest, cond):
@@ -862,12 +910,16 @@ class SnuddaSimulate(object):
                                       gid_dest_gj=gid_dest,
                                       g_gap_junction=g)
 
+                gap_junction_count += 1
+
         except:
             import traceback
             tstr = traceback.format_exc()
             print(tstr)
             import pdb
             pdb.set_trace()
+
+        return gap_junction_count
 
     ############################################################################
 
@@ -1606,16 +1658,17 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    @staticmethod
-    def create_dir(dir_name):
+    def create_dir(self, dir_name):
 
         """ Creates dir_name if needed. """
-        if not os.path.isdir(dir_name):
-            print("Creating " + str(dir_name))
-            try:
+        if int(self.pc.id()) == 0:
+            if not os.path.isdir(dir_name):
+                print(f"Creating {dir_name} (on master node 0)")
                 os.makedirs(dir_name)
-            except:
-                print("Failed to create dir. Already exists?")
+        else:
+            while not os.path.isdir(dir_name):
+                print(f"Waiting 1 second for master node to create {dir_name}")
+                time.sleep(1)
 
     ############################################################################
 
@@ -1738,22 +1791,7 @@ class SnuddaSimulate(object):
 
         self.i_stim.append((i_clamp, t_vec, noise_current_vector))
 
-############################################################################
-
-    def get_spike_file_name(self):
-        """ Returns filename for spike data file. """
-
-        spike_file = os.path.join(os.path.dirname(self.network_file), "simulation", "spike-data.txt")
-        return spike_file
-
     ############################################################################
-
-    def get_volt_file_name(self):
-        """ Returns filename for voltage data file. """
-
-        volt_file = os.path.join(os.path.dirname(self.network_file), "simulation", "simulation-volt.txt")
-
-        return volt_file
 
     def convert_to_natural_units(self, param_name, param_value):
 
@@ -1883,8 +1921,8 @@ if __name__ == "__main__":
 
     start = timeit.default_timer()
 
-    disableGJ = args.disableGJ
-    if disableGJ:
+    disable_gj = args.disableGJ
+    if disable_gj:
         print("!!! WE HAVE DISABLED GAP JUNCTIONS !!!")
 
     pc = h.ParallelContext()
@@ -1897,7 +1935,7 @@ if __name__ == "__main__":
     sim = SnuddaSimulate(network_file=network_data_file,
                          input_file=input_file,
                          output_file=output_file,
-                         disable_gap_junctions=disableGJ,
+                         disable_gap_junctions=disable_gj,
                          log_file=log_file,
                          verbose=args.verbose)
     sim.setup()

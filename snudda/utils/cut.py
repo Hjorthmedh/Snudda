@@ -174,36 +174,32 @@ class SnuddaCut(object):
             network_group.create_dataset("nGapJunctions", data=num_gap_junctions,
                                          dtype=np.uint64)
 
-            # TODO: !!!! might need to handle chunk size differently based on size...
-
-            syn_mat = self.in_file["network/synapses"]
-            gj_mat = self.in_file["network/gapJunctions"]
+            syn_mat = self.in_file["network/synapses"][()].copy()
+            gj_mat = self.in_file["network/gapJunctions"][()].copy()
 
             print("Copying synapses and gap junctions")
 
-            network_group.create_dataset("synapses", dtype=np.int32, shape=(num_syn, syn_mat.shape[1]),
-                                         chunks=syn_mat.chunks, maxshape=(None, syn_mat.shape[1]),
-                                         compression=syn_mat.compression)
-
-            network_group.create_dataset("gapJunctions", dtype=np.int32, shape=(num_gj, gj_mat.shape[1]),
-                                         chunks=gj_mat.chunks, maxshape=(None, gj_mat.shape[1]),
-                                         compression=gj_mat.compression)
-
             for idx, row_idx in enumerate(np.where(keep_syn_flag)[0]):
                 # We need to remap the neuronID if some neurons have been removed!!
-                row = syn_mat[row_idx, :]
-                row[0] = remap_id[row[0]]
-                row[1] = remap_id[row[1]]
-                network_group["synapses"][idx, :] = row
+                syn_mat[row_idx, 0] = remap_id[syn_mat[row_idx, 0]]
+                syn_mat[row_idx, 1] = remap_id[syn_mat[row_idx, 1]]
+
+            network_group.create_dataset("synapses", 
+                                         data=syn_mat,
+                                         dtype=np.int32, 
+                                         compression="gzip")
 
             print(f"Keeping {num_syn} synapses (out of {syn_mat.shape[0]})")
 
             for idx, row_idx in enumerate(np.where(keep_gj_flag)[0]):
                 # We need to remap the neuronID if some neurons have been removed!!
-                row = gj_mat[row_idx, :]
-                row[0] = remap_id[row[0]]
-                row[1] = remap_id[row[1]]
-                network_group["gapJunctions"][idx, :] = row
+                gj_mat[row_idx, 0] = remap_id[gj_mat[row_idx, 0]]
+                gj_mat[row_idx, 1] = remap_id[gj_mat[row_idx, 1]]
+                
+            network_group.create_dataset("gapJunctions", 
+                                         data = gj_mat,
+                                         dtype=np.int32, 
+                                         compression="gzip")
 
             print(f"Keeping {num_gj}  gap junctions (out of {gj_mat.shape[0]})")
 
@@ -261,13 +257,18 @@ class SnuddaCut(object):
         """ Filter synapse matrix, to only keep those synapses that belong to neuronID.
 
         Args:
-            neuron_id : Neuron ID to keep
+            neuron_id : Neuron ID to remove
             keep_flag : Which synapses are available to pick from
             data_type : "synapses" or "gapJunctions"
 
         Returns:
             keep_flag : bool array with which synapses to keep
         """
+        print(f"filtering {data_type}")
+        num_neurons = self.in_file["network/neurons/neuronID"].shape[0]
+        neuron_keep_flag = np.ones((num_neurons,),dtype=bool)
+        for nid in neuron_id:
+            neuron_keep_flag[nid] = False
 
         if data_type == "synapses":
             data_str = "network/synapses"
@@ -280,14 +281,13 @@ class SnuddaCut(object):
         if keep_flag is None:
             keep_flag = np.ones((self.in_file[data_str].shape[0],), dtype=bool)
 
-        src_id = self.in_file[data_str][:, 0]
-        dest_id = self.in_file[data_str][:, 1]
+        source_id = self.in_file[data_str][:, 0]
+        destination_id = self.in_file[data_str][:, 1]
 
-        # This will be very slow for large networks, should be done smarter if a bottleneck
-        for n_id in neuron_id:
-            keep_flag = np.logical_and(keep_flag,
-                                       np.logical_and(src_id != n_id, dest_id != n_id))
+        for idx, (src_id, dest_id) in enumerate(zip(source_id, destination_id)):
+            keep_flag[idx] = neuron_keep_flag[src_id] and neuron_keep_flag[dest_id]
 
+        print(f"filtering of {data_type} done")
         return keep_flag
 
     ############################################################################
@@ -315,6 +315,7 @@ class SnuddaCut(object):
         if "config" in self.out_file:
             self.in_file.copy("config", self.out_file)
 
+        self.in_file.copy("config", self.out_file)
         self.in_file.copy("meta", self.out_file)
 
         if "morphologies" in self.in_file:
@@ -389,6 +390,7 @@ class SnuddaCut(object):
 
         if show_plot:
             plt.show()
+            print("close figure to exit program!")
 
     ############################################################################
 

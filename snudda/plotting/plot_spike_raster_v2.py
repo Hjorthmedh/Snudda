@@ -12,14 +12,27 @@ from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
 
 class SnuddaPlotSpikeRaster2:
 
-    def __init__(self, network_path, network_file=None, simulation_file=None, figure_path=None):
+    def __init__(self, network_path, network_file=None, simulation_file=None, figure_path=None,
+                 snudda_load=None, snudda_simulation_load=None):
 
-        self.network_path = network_path
+        """ If you pass snudda_load and snudda_simulation_load those will be used, so you do not
+            have to reload the data if you do multiple types of plots. """
+
+        if network_path is not None:
+            self.network_path = network_path
+        elif snudda_load is not None:
+            self.network_path = os.path.dirname(snudda_load.network_file)
+        else:
+            self.network_path = None
 
         if network_file:
             self.network_file = network_file
-        else:
+        elif network_path is not None:
             self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
+        elif snudda_load:
+            self.network_file = snudda_load.network_file
+        else:
+            self.network_file = None
 
         if simulation_file:
             self.simulation_file = simulation_file
@@ -31,9 +44,22 @@ class SnuddaPlotSpikeRaster2:
         else:
             self.figure_path = os.path.join(self.network_path, "figures")
 
-        self.snudda_load = SnuddaLoad(network_file=self.network_file)
+        if snudda_load:
+            self.snudda_load = snudda_load
+            assert network_file is None or snudda_load.network_file == self.network_file, \
+                f"snudda_load refers to {snudda_load.network_file}, but user passed network_file={self.network_file}"
+        else:
+            self.snudda_load = SnuddaLoad(network_file=self.network_file)
 
-        self.snudda_simulation_load = SnuddaLoadNetworkSimulation(network_simulation_output_file=self.simulation_file)
+        if snudda_simulation_load:
+            self.snudda_simulation_load = snudda_simulation_load
+            assert simulation_file is None \
+                   or snudda_simulation_load.network_simulation_output_file_name == simulation_file, \
+                f"snudda_simulation_load refers to {snudda_simulation_load.self.network_simulation_output_file_name}," \
+                f" but user passed simulation_file={simulation_file}"
+        else:
+            self.snudda_simulation_load = SnuddaLoadNetworkSimulation(network_simulation_output_file=self.simulation_file)
+
         spike_data = self.snudda_simulation_load.merge_spikes()
 
         self.spike_time = spike_data[:, 0]
@@ -60,7 +86,10 @@ class SnuddaPlotSpikeRaster2:
                    "ChIN".lower(): (252. / 255, 102. / 255, 0.0),
                    "LTS".lower(): (150. / 255, 63. / 255, 212. / 255)}
 
-        return colours[neuron_type.lower()]
+        if neuron_type.lower() in colours:
+            return colours[neuron_type.lower()]
+        else:
+            return (0, 0, 0)
 
     def get_all_colours(self):
 
@@ -241,8 +270,94 @@ class SnuddaPlotSpikeRaster2:
         plt.ion()
         plt.show()
 
-    def plot_spike_histogram(self, population_id=None, skip_time=0, end_time=None, fig_size=None, bin_size=50e-3,
-                             fig_file=None, ax=None, label_text=None, show_figure=True, save_figure=True, colour=None):
+        return ax
+
+    def calculate_period_synchrony(self, period, neuron_id=None, time_range=None):
+
+        spikes = self.snudda_simulation_load.get_spikes(neuron_id=neuron_id)
+        all_spikes = []
+
+        for s in spikes.values():
+
+            sf = s.flatten()
+
+            if time_range is not None:
+                idx = np.where(np.logical_and(time_range[0] <= sf, sf <= time_range[1]))[0]
+                all_spikes = all_spikes + list(sf[idx] % period)
+            else:
+                all_spikes = all_spikes + list(sf % period)
+
+        phases = 2*np.pi/period * np.array(all_spikes)
+        x = np.sum(np.cos(phases))
+        y = np.sum(np.sin(phases))
+        vs = np.sqrt(x**2 + y**2) / phases.size
+
+        # Verify this is correct
+
+        return vs
+
+    def plot_spike_histogram_type(self, neuron_type, time_range=None, bin_size=50e-3, fig_size=None,
+                                  fig_file=None, label_text=None, show_figure=True, n_core=None, linestyle="-",
+                                  legend_loc="best", ax=None):
+
+        self.make_figures_directory()
+
+        plt.rcParams.update({'font.size': 24,
+                             'xtick.labelsize': 20,
+                             'ytick.labelsize': 20,
+                             'legend.loc': legend_loc})
+
+        assert type(neuron_type) == list, "neuron_type should be a list of neuron types"
+
+        all_spikes = OrderedDict()
+        neurons_of_type = OrderedDict()
+
+        if time_range is None:
+            time_range = (0, self.snudda_simulation_load.get_time()[-1])
+
+        for nt in neuron_type:
+            if n_core:
+                neuron_id = [x for x, y
+                             in self.snudda_load.get_centre_neurons_iterator(neuron_type=nt, n_neurons=n_core)]
+            else:
+                neuron_id = self.snudda_load.get_neuron_id_of_type(nt)
+
+            spikes = self.snudda_simulation_load.get_spikes(neuron_id=neuron_id)
+            neurons_of_type[nt] = neuron_id
+            all_spikes[nt] = self.snudda_simulation_load.merge_spikes(spikes)[:, 0]
+
+        bins = np.arange(time_range[0], time_range[1]+bin_size/2, bin_size)
+        weights = [np.full(y.shape, 1/(len(x)*bin_size)) for x, y in zip(neurons_of_type.values(), all_spikes.values())]
+
+        if label_text is None:
+            label_text = ""
+
+        if ax is None:
+            fig = plt.figure(figsize=fig_size)
+            ax = fig.add_subplot()
+
+        ax.hist(x=all_spikes.values(), bins=bins, weights=weights, linewidth=3, linestyle=linestyle,
+                histtype="step", color=[self.get_colours(x) for x in all_spikes.keys()],
+                label=[f"{label_text}{x}" for x in all_spikes.keys()])
+        plt.xlabel("Time (s)", fontsize=20)
+        plt.ylabel("Frequency (Hz)", fontsize=20)
+        ax.legend()
+
+        if fig_file:
+            fig_path = os.path.join(self.figure_path, fig_file)
+            print(f"Writing figure {fig_path}")
+            plt.savefig(fig_path)
+
+        if show_figure:
+            plt.ion()
+            plt.show()
+
+        return ax
+
+    def plot_spike_histogram(self, population_id=None,
+                             skip_time=0, end_time=None, fig_size=None, bin_size=50e-3,
+                             fig_file=None, ax=None, label_text=None, show_figure=True, save_figure=True, colour=None,
+                             linestyle="-", legend_loc="best"):
 
         if population_id is None:
             population_id = self.snudda_load.get_neuron_population_units(return_set=True)
@@ -252,7 +367,7 @@ class SnuddaPlotSpikeRaster2:
         plt.rcParams.update({'font.size': 24,
                              'xtick.labelsize': 20,
                              'ytick.labelsize': 20,
-                             'legend.loc': 'best'})
+                             'legend.loc': legend_loc})
 
         if ax is None:
             fig = plt.figure(figsize=fig_size)
@@ -279,7 +394,7 @@ class SnuddaPlotSpikeRaster2:
         if label_text is None:
             label_text = ""
             
-        ax.hist(x=pop_spikes.values(), bins=bins, weights=weights, linewidth=3,
+        ax.hist(x=pop_spikes.values(), bins=bins, weights=weights, linewidth=3, linestyle=linestyle,
                 histtype="step", color=colour,
                 label=[f"{label_text}{x}" for x in pop_spikes.keys()])
         plt.xlabel("Time (s)", fontsize=20)
@@ -293,6 +408,7 @@ class SnuddaPlotSpikeRaster2:
             fig_file = os.path.join(self.figure_path, fig_file)
 
         if save_figure:
+            print(f"Saving figure {fig_file}")
             plt.tight_layout()
             plt.savefig(fig_file, dpi=300)
 
@@ -302,7 +418,8 @@ class SnuddaPlotSpikeRaster2:
 
         return ax
 
-    def plot_spike_raster(self, type_order=None, skip_time=0, end_time=None, fig_size=None, fig_file=None):
+    def plot_spike_raster(self, type_order=None, skip_time=0, end_time=None, fig_size=None, fig_file=None,
+                          time_range=None):
 
         self.make_figures_directory()
 
@@ -372,6 +489,12 @@ class SnuddaPlotSpikeRaster2:
             x_lim = (self.time[0], self.time[-1])
             ax.set_xlim(x_lim)
 
+        assert not ((skip_time or end_time) and time_range), \
+            f"time_range can not be specified with skip_time and end_time"
+
+        if time_range:
+            ax.set_xlim(time_range)
+
         if not os.path.isdir(os.path.dirname(self.figure_path)):
             os.makedirs(os.path.dirname(self.figure_path))
 
@@ -387,6 +510,40 @@ class SnuddaPlotSpikeRaster2:
         plt.ion()
         plt.show()
 
+    def plot_firing_frequency_distribution(self, time_range=None, figure_name=None, bins=20):
+
+        neuron_types = self.snudda_load.get_neuron_types(return_set=True)
+
+        plt.figure()
+
+        time = self.snudda_simulation_load.get_time()
+
+        for nt in neuron_types:
+
+            neuron_id = self.snudda_load.get_neuron_id_of_type(neuron_type=nt)
+            spikes = self.snudda_simulation_load.get_spikes(neuron_id=neuron_id)
+
+            if time_range is None:
+                freq = [s.size/(time[-1] - time[0]) for s in spikes.values()]
+            else:
+                freq = [len(np.where(np.logical_and(time_range[0] <= s, s <= time_range[1]))[0])
+                        / (time_range[1] - time_range[0])
+                        for s in spikes.values()]
+
+            colour = SnuddaPlotSpikeRaster2.get_colours(nt)
+            count, bin = np.histogram(freq, bins=bins)
+            plt.stairs(count, bin, label=nt, color=colour, linewidth=3)
+
+        plt.legend()
+        plt.xlabel("Frequency (Hz)")
+        plt.ylabel("Count")
+
+        plt.ion()
+        plt.show()
+
+        if figure_name is not None:
+            plt.savefig(os.path.join(self.figure_path, figure_name))
+
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
@@ -399,3 +556,4 @@ if __name__ == "__main__":
 
     type_order = ["FS", "dSPN", "LTS", "iSPN", "ChIN"]
     ps.plot_spike_raster(type_order)
+    ps.plot_spike_histogram(type_order)

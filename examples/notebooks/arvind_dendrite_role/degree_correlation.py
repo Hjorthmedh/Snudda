@@ -59,8 +59,6 @@ class DegreeDistribution:
 
         file_name = os.path.join(os.path.dirname(self.network_file), f"degree-correlation.hdf5")
 
-        neuron_types = self.network_loader.get_neuron_types(return_set=True)
-
         print(f"Writing degree correlation to {file_name}")
         output = h5py.File(file_name, "w")
 
@@ -89,6 +87,42 @@ class DegreeDistribution:
                         pdb.set_trace()
 
         output.close()
+
+    def write_in_out_degree(self):
+
+        file_name = os.path.join(os.path.dirname(self.network_file), f"in-out-degree.hdf5")
+        print(f"Write in/out degrees to {file_name}")
+        output = h5py.File(file_name, "w")
+
+        neuron_types = self.network_loader.get_neuron_types(return_set=True)
+
+        for pre_neuron in neuron_types:
+            for post_neuron in neuron_types:
+                print(f"Counting connections {pre_neuron} -> {post_neuron}")
+
+                in_deg = self.get_n_in(pre_type=pre_neuron, post_type=post_neuron)
+                out_deg = self.get_n_out(pre_type=pre_neuron, post_type=post_neuron)
+
+                output.create_dataset(f"in_degree_{pre_neuron}_to_{post_neuron}", data=in_deg)
+                output.create_dataset(f"out_degree_{pre_neuron}_to_{post_neuron}", data=out_deg)
+
+        output.close()
+
+    def get_n_out(self, pre_type, post_type):
+
+        pre_neuron_id = self.network_loader.get_neuron_id_of_type(neuron_type=pre_type)
+        post_neuron_id = self.network_loader.get_neuron_id_of_type(neuron_type=post_type)
+
+        n = np.sum(self.connection_matrix[pre_neuron_id, :][:, post_neuron_id] > 0, axis=1)
+        return n
+
+    def get_n_in(self, pre_type, post_type):
+
+        pre_neuron_id = self.network_loader.get_neuron_id_of_type(neuron_type=pre_type)
+        post_neuron_id = self.network_loader.get_neuron_id_of_type(neuron_type=post_type)
+
+        n = np.sum(self.connection_matrix[pre_neuron_id, :][:, post_neuron_id] > 0, axis=0)
+        return n
 
     def plot_all_degree_histogram(self):
         neuron_types = self.network_loader.get_neuron_types(return_set=True)
@@ -135,6 +169,7 @@ if __name__ == "__main__":
 
     if args.process:
         dd.write_all_degree_correlations()
+        dd.write_in_out_degree()
 
     if args.plot:
         dd.plot_all_degree_histogram()

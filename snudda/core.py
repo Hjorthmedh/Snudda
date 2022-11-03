@@ -445,7 +445,8 @@ class Snudda(object):
             mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons", "mechanisms"),
                                                                       snudda_data=snudda_data))
 
-        if not os.path.exists("x86_64") and not os.path.exists("nrnmech.dll"):
+        if not os.path.exists("x86_64") and not os.path.exists("nrnmech.dll")\
+                and not os.path.exists("aarch64") and not os.path.exists("arm64"):
 
             from mpi4py import MPI  # This must be imported before neuron, to run parallel
             from neuron import h
@@ -460,16 +461,23 @@ class Snudda(object):
 
             pc.barrier()
 
-            if os.path.exists("nrnmech.dll"):
-                h.nrn_load_dll("nrnmech.dll")
-            elif os.path.exists("x86_64"):
-                h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
-            elif os.path.exists("aarch64"):
-                h.nrn_load_dll("test-project/aarch64/.libs/libnrnmech.so")
-            else:
-                print(f"Could not find compiled mechanisms. Compile using 'nrnivmodl {mech_dir}' "
-                      f"and retry simulation.")
-                sys.exit(-1)
+            try:
+                if os.path.exists("nrnmech.dll"):
+                    h.nrn_load_dll("nrnmech.dll")
+                elif os.path.exists("x86_64"):
+                    h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
+                elif os.path.exists("aarch64"):
+                    h.nrn_load_dll("aarch64/.libs/libnrnmech.so")
+                elif os.path.exists("arm64"):
+                    h.nrn_load_dll("arm64/.libs/libnrnmech.so")
+                else:
+                    print(f"Could not find compiled mechanisms. Compile using 'nrnivmodl {mech_dir}' "
+                          f"and retry simulation.")
+                    sys.exit(-1)
+            except:
+                import traceback
+                print(f"Error while loading mechanisms:\n{traceback.format_exc()}")
+
 
         else:
             print("NEURON mechanisms already compiled, make sure you have the correct version of NEURON modules."
@@ -625,6 +633,7 @@ class Snudda(object):
                                  input_file=input_file,
                                  output_file=output_file,
                                  disable_gap_junctions=disable_gj,
+                                 disable_synapses=disable_synapses,
                                  log_file=log_file,
                                  verbose=args.verbose)
             sim.setup()

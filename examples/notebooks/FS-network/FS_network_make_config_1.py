@@ -1,16 +1,22 @@
 # This writes the JSON config for the network
-
+import sys
 import os
+
+from snudda.place import create_cube_mesh
+from snudda import SnuddaInit
+
 os.environ["SNUDDA_DATA"] = "../../../../BasalGangliaData/data/"
 assert os.path.isdir(os.getenv("SNUDDA_DATA")), f"You need to have BasalGangliaData installed for this example. You can run this example without it, but then do not execute this cell."
 
-network_path = os.path.join("FS_network_1")
+if len(sys.argv) > 1:
+    network_path = sys.argv[1]
+else:
+    network_path = os.path.join("FS_network_1")
 
-from snudda.place import create_cube_mesh
+print(f"Using network_path = {network_path}")
+
 mesh_file = os.path.join(network_path, "mesh", "volume.obj")
-create_cube_mesh(mesh_file, [0,0,0], 1e-3, "FS network volume")
-
-from snudda import SnuddaInit
+create_cube_mesh(mesh_file, [0, 0, 0], 1e-3, "FS network volume")
 
 si = SnuddaInit(network_path=network_path, random_seed=123)
 
@@ -18,7 +24,7 @@ si.define_structure(struct_name="StriatalVolume", struct_mesh=mesh_file, d_min=1
 
 # Should be 1050 neurons, temp reducing it to 50 neurons for runtime of simulation while developing
 si.add_neurons(name="FS", num_neurons=1050, volume_id="StriatalVolume",
-               neuron_dir=os.path.join("$DATA","neurons","striatum","fs"))
+               neuron_dir=os.path.join("$DATA", "neurons", "striatum", "fs"))
 
 cluster_FS_synapses = True
 FS_gGABA = [1.1e-9, 1.5e-9]

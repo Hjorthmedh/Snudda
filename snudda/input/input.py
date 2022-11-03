@@ -380,7 +380,16 @@ class SnuddaInput(object):
                     # Read in parameters into a list
                     par_data = []
                     for pd in par_data_dict:
+
+                        if "parameterList" in self.input_info[neuron_type][input_type]:
+                            for par_key, par_d in self.input_info[neuron_type][input_type]["parameterList"].items():
+                                print(f"Overriding {par_key} with value {par_d} for {neuron_type}:{input_type}")
+                                par_data_dict[pd]["synapse"][par_key] = par_d
+
                         par_data.append(par_data_dict[pd])
+                elif "parameterList" in self.input_info[neuron_type][input_type]:
+
+                    par_data = [{"synapse": self.input_info[neuron_type][input_type]["parameterList"]}]
                 else:
                     par_data = None
 
@@ -1626,31 +1635,43 @@ class SnuddaInput(object):
                           "input_config_file": self.input_config_file,
                           "spike_data_filename": self.spike_data_filename,
                           "hdf5_network_file": self.hdf5_network_file,
+                          "snudda_data": self.snudda_data,
                           "is_master": False,
                           "time": self.time,
                           "h5libver": self.h5libver,
-                          "random_seed": self.random_seed})
+                          "random_seed": self.random_seed,
+                          "use_meta_input": self.use_meta_input,
+                          "verbose": self.verbose,
+                          "time_interval_overlap_warning": self.time_interval_overlap_warning})
 
         self.write_log(f"Scattering engineLogFile = {engine_logfile}")
 
         self.d_view.scatter('log_filename', engine_logfile, block=True)
 
         self.write_log(f"nl = SnuddaInput(network_path={self.network_path}"
-                       f"input_config_file='{self.input_config_file}'"
+                       f", snudda_data='{self.snudda_data}'"
+                       f", input_config_file='{self.input_config_file}'"
                        f", spike_data_filename='{self.spike_data_filename}'"
                        f", hdf5_nework_file={self.hdf5_network_file}"
                        f", h5libver={self.h5libver}"
                        f", is_master=False "
                        f", random_seed={self.random_seed}"
-                       f", time={self.time}, logfile={log_filename[0]})")
+                       f", use_meta_input={self.use_meta_input}"
+                       f", verbose={self.verbose}"
+                       f", time_interval_overlap_warning={self.time_interval_overlap_warning}"
+                       f", time={self.time}, logfile='{log_filename[0]}')")
 
         cmd_str = ("global nl; nl = SnuddaInput(network_path=network_path, "
+                   "snudda_data=snudda_data, "
                    "input_config_file=input_config_file, "
                    "spike_data_filename=spike_data_filename, "
-                   "hdf5_network_file=hdf5_network_file,"
-                   "is_master=is_master,time=time, "
+                   "hdf5_network_file=hdf5_network_file, "
+                   "use_meta_input=use_meta_input, "
+                   "is_master=is_master, time=time, "
                    "h5libver=h5libver, "
-                   " random_seed=random_seed, logfile=log_filename[0])")
+                   "verbose=verbose, "
+                   "time_interval_overlap_warning=time_interval_overlap_warning, "
+                   "random_seed=random_seed, logfile=log_filename[0])")
 
         self.d_view.execute(cmd_str, block=True)
 
