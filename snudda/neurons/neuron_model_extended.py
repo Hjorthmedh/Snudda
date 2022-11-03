@@ -310,7 +310,7 @@ class NeuronModel(ephys.models.CellModel):
 
             # Dendrites are consequtive numbers starting from 1
             # Ie neurons dend(0) is in pos 1, dend(99) is in pos 100
-            # This so we dont need to special treat soma (pos 0)
+            # This so we don't need to special treat soma (pos 0)
 
             for ic, c in enumerate(self.icell.dend):
                 self.section_lookup[ic + 1] = c

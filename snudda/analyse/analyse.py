@@ -1068,7 +1068,11 @@ class SnuddaAnalyse(object):
 
         plt.yticks(locs, new_labels)
 
-        plt.title(f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)}")
+        if connection_type == "synapses":
+            plt.title(f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)}")
+        else:
+            plt.title(f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)} ({connection_type})")
+
         plt.tight_layout()
         plt.ion()
         plt.draw()
@@ -2091,6 +2095,8 @@ class SnuddaAnalyse(object):
     # that
 
     def dendrite_density(self, num_bins, bin_width, side_len=None, volume_id=None):
+
+        assert False, "This code is not neuron prototype aware. It needs to update how it gets the location of morphologies"
 
         if volume_id is None:
             volume_id = self.volume_id

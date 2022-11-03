@@ -4,22 +4,24 @@ import os
 import h5py
 import numpy as np
 from collections import OrderedDict
+from numba import jit
 
 from snudda.utils.load import SnuddaLoad
 
 
 class SnuddaLoadNetworkSimulation:
 
-    def __init__(self, network_simulation_output_file=None, network_path=None, verbose=False):
+    def __init__(self, network_simulation_output_file=None,
+                 network_path=None,
+                 do_test=True,
+                 verbose=False):
 
         self.verbose = verbose
 
         if network_simulation_output_file:
             self.network_simulation_output_file_name = network_simulation_output_file
         elif network_path:
-            self.network_simulation_output_file_name = os.path.join(network_path,
-                                                                    "simulation",
-                                                                    "output.hdf5")
+            self.network_simulation_output_file_name = os.path.join(network_path, "simulation", "output.hdf5")
         else:
             self.network_simulation_output_file_name = None
 
@@ -32,6 +34,7 @@ class SnuddaLoadNetworkSimulation:
 
         self.network_simulation_file = None
         self.depolarisation_block = None
+        self.test_data = do_test
 
         if self.network_simulation_output_file_name:
             self.load()
@@ -44,7 +47,8 @@ class SnuddaLoadNetworkSimulation:
         print(f"Loading {network_simulation_output_file}")
         self.network_simulation_file = h5py.File(network_simulation_output_file, "r")
 
-        self.depolarisation_block = self.check_depolarisation_block(verbose=self.verbose)
+        if self.test_data:
+            self.depolarisation_block = self.check_depolarisation_block()
 
     def close(self):
         if self.network_simulation_file:
@@ -166,20 +170,43 @@ class SnuddaLoadNetworkSimulation:
         else:
             return voltage
 
-    def check_depolarisation_block(self, threshold=-40e-3, max_duration=20e-3, verbose=False):
+    @staticmethod
+    @jit(nopython=True, fastmath=True, cache=True)
+    def check_trace_depolarisation_block(neuron_id, time, voltage, threshold, max_duration):
 
-        if verbose:
+        depolarisation_block = []
+
+        ctr = 0
+        t_start = 0
+        dt = time[1] - time[0]
+        n_limit = int(np.ceil(max_duration / dt))
+
+        for idx in range(0, len(time)):
+            if voltage[idx] > threshold:
+                ctr += 1
+            else:
+                if ctr > n_limit:
+                    depolarisation_block.append((neuron_id, t_start, time[idx]))
+
+                t_start = time[idx]
+                ctr = 0
+
+        if ctr > n_limit:
+            depolarisation_block.append((neuron_id, t_start, time[-1]))
+
+        return depolarisation_block
+
+    def check_depolarisation_block(self, threshold=-40e-3, max_duration=20e-3):
+
+        if self.verbose:
             print("Checking neurons for depolarisation block")
 
         neuron_id_list = np.array(sorted([int(x) for x in self.network_simulation_file["neurons"].keys()]))
 
         assert (np.diff(neuron_id_list) == 1).all() and neuron_id_list[0] == 0, f"Failed sanity check on neuron ID"
 
-        block_flag = np.zeros((len(neuron_id_list),), dtype=bool)
-
         time = self.get_time()
         dt = time[1] - time[0]
-        csum_threshold = max_duration / dt
 
         voltage, sec_id_x, _ = self.get_data("voltage", neuron_id=None)
         depolarisation_block = []
@@ -188,25 +215,15 @@ class SnuddaLoadNetworkSimulation:
 
         for neuron_id in neuron_id_list:
 
-            volt = voltage[neuron_id]
+            depol_block = SnuddaLoadNetworkSimulation.check_trace_depolarisation_block(neuron_id=neuron_id,
+                                                                                       time=time,
+                                                                                       voltage=voltage[neuron_id],
+                                                                                       threshold=threshold,
+                                                                                       max_duration=max_duration)
 
-            ctr = 0
-            t_start = 0
+            depolarisation_block = depolarisation_block + depol_block
 
-            for idx in range(0, len(time)):
-                if volt[idx] > threshold:
-                    ctr += 1
-                else:
-                    if ctr > n_limit:
-                        depolarisation_block.append((neuron_id, t_start, time[idx]))
-
-                    t_start = time[idx]
-                    ctr = 0
-
-            if ctr > n_limit:
-                depolarisation_block.append((neuron_id, t_start, time[-1]))
-
-        if verbose and len(depolarisation_block) > 0:
+        if self.verbose and len(depolarisation_block) > 0:
             for neuron_id, t_start, t_end in depolarisation_block:
                 print(f"Neuron {neuron_id} has depolarisation block from {t_start:.3f} s to {t_end:.3f} s")
 
@@ -224,7 +241,10 @@ class SnuddaLoadNetworkSimulation:
 
         depol_dict = dict()
 
-        for neuron_id, start_time, end_time in  self.depolarisation_block:
+        if self.depolarisation_block is None:
+            self.depolarisation_block = self.check_depolarisation_block()
+
+        for neuron_id, start_time, end_time in self.depolarisation_block:
             if neuron_id not in depol_dict:
                 depol_dict[neuron_id] = []
 
@@ -322,9 +342,6 @@ class SnuddaLoadNetworkSimulation:
 
         meta_file = f"{txt_file}-meta"
 
-        network_loader = SnuddaLoad(network_file=self.network_path)
-        network_data = network_loader.data
-
         print(f"Writing spikes to csv file {txt_file}")
         print(f"Writing metadata to {meta_file}")
         print("OBS, only neurons that have spikes are written to file.")
@@ -338,9 +355,9 @@ class SnuddaLoadNetworkSimulation:
                 # Skip empty spike trains
                 if spike_train.size > 0:
                     f.write(f"{' '.join([f'{time_scale*x:.5f}' for x in spike_train.flatten()])}\n")
-                    fm.write(f"{nid}, {network_data['neurons'][nid]['name']}, "
-                             f"{network_data['populationUnit'][nid]}, "
-                             f"{','.join([str(x) for x in network_data['neurons'][nid]['position']])}\n")
+                    fm.write(f"{nid}, {SnuddaLoad.to_str(self.network_simulation_file['metaData/name'][nid])}, "
+                             f"{self.network_simulation_file['metaData/populationUnit'][nid]}, "
+                             f"{','.join([str(x) for x in self.network_simulation_file['metaData/position'][nid,: ]])}\n")
 
 
 def load_network_simulation_cli():
@@ -352,9 +369,11 @@ def load_network_simulation_cli():
                         default=None)
     parser.add_argument("--time_scale", default=1.0, type=float)
     parser.add_argument("--verbose", action="store_true")
+    parser.add_argument("--skip_test", help="Do tests on simulation data", action="store_true")
     args = parser.parse_args()
 
-    slna = SnuddaLoadNetworkSimulation(network_simulation_output_file=args.dataFile, verbose=args.verbose)
+    slna = SnuddaLoadNetworkSimulation(network_simulation_output_file=args.dataFile, verbose=args.verbose,
+                                       do_test=not args.skip_test)
 
     if args.export_spike_file is not None:
         slna.export_to_txt(txt_file=args.export_spike_file, time_scale=args.time_scale)

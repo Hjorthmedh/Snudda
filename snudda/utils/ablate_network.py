@@ -71,7 +71,7 @@ class SnuddaAblateNetwork:
         self.keep_neuron_id = self.keep_neuron_id - set(neuron_id)
 
     def only_keep_neuron_id(self, neuron_id):
-        self.keep_neuron_id = list(neuron_id)       # Changed from "set" to "list", to preserve order
+        self.keep_neuron_id = set(neuron_id)
 
     def remove_neuron_type(self, neuron_type, p_remove=1):
 
@@ -184,7 +184,7 @@ class SnuddaAblateNetwork:
                     # _, _, synapse_idx = self.snudda_load.find_gap_junctions(pre_id=pre_id, post_id=post_id, return_index=True)
                     synapse_idx = None
                 else:
-                    assert f"Unkown data type: {data_type}, should be 'synapses' or 'gapJunctions'"
+                    assert f"Unknown data type: {data_type}, should be 'synapses' or 'gapJunctions'"
 
                 if synapse_idx is not None:
                     for syn_idx in synapse_idx:
@@ -197,7 +197,7 @@ class SnuddaAblateNetwork:
     def write_remapping_file(self, remap_file_name):
 
         with open(remap_file_name, "w") as f:
-            for new_id, old_id in enumerate(self.keep_neuron_id):
+            for new_id, old_id in enumerate(sorted(list(self.keep_neuron_id))):
                 f.write(f"{old_id}, {new_id}\n")
 
     def write_network(self, out_file_name=None, print_remapping=False):
@@ -221,7 +221,7 @@ class SnuddaAblateNetwork:
             print("Copying morphologies")
             self.in_file.copy("morphologies", out_file)
 
-        soma_keep_id = list(self.keep_neuron_id)
+        soma_keep_id = sorted(list(self.keep_neuron_id))
         num_soma_keep = len(soma_keep_id)
 
         print(f"Keeping {num_soma_keep} neurons.")

@@ -110,7 +110,7 @@ class PlotTraces:
 
         assert time_range is None or skip_time is None, f"Only specify one of skip_time and time_range"
 
-        if not trace_id:
+        if trace_id is None:
             if self.network_info:
                 trace_id = [x["neuronID"] for x in self.network_info.data["neurons"]]
             else:
@@ -188,6 +188,23 @@ class PlotTraces:
 
             if mark_depolarisation_block and r in depol_dict:
                 for depol_start_t, depol_end_t in depol_dict[r]:
+                    if time_range:
+                        if depol_end_t < time_range[0] or time_range[1] < depol_start_t:
+                            # Both outside, skip it in plot
+                            continue
+
+                        start_in_range = time_range[0] <= depol_start_t and depol_start_t <= time_range[1]
+                        end_in_range = time_range[0] <= depol_end_t and depol_end_t <= time_range[1]
+
+                        if start_in_range and not end_in_range:
+                            depol_end_t = time_range[1]
+                        elif end_in_range and not start_in_range:
+                            depol_start_t = time_range[0]
+
+                        if depol_start_t < time_range[0] and time_range[1] < depol_end_t:
+                            depol_start_t = time_range[0]
+                            depol_end_t = time_range[1]
+
                     plt.plot([depol_start_t-skip_time, depol_end_t-skip_time],
                              [ofs, ofs], color="red", linewidth=line_width)
 

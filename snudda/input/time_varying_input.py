@@ -8,7 +8,7 @@ class TimeVaryingInput:
         pass
 
     @staticmethod
-    def get_stretch_time(frequency_function, end_time, start_time=0, dt=0.01, check_positive=True, start_at_zero=True):
+    def get_stretch_time(frequency_function, end_time, start_time=0, dt=0.001, check_positive=True, start_at_zero=True):
 
         """ We want to stretch the time, so that a Poisson process with frequency 1Hz will result in a time varying
             Poisson process with the instantaneous frequency_function from 0 to end_time, with time resolution dt.

@@ -33,7 +33,7 @@ class SnuddaLoad(object):
         """
 
         # This variable will only be set if the synapses are not kept in
-        # memory so we can access them later, otherwise the hdf5 file is
+        # memory so that we can access them later, otherwise the hdf5 file is
         # automatically closed
         self.hdf5_file = None
         self.verbose = verbose
@@ -921,7 +921,7 @@ class SnuddaLoad(object):
         neuron_ctr = 0
 
         for neuron_id in idx:
-            if neuron_type is not None and self.data["neurons"]["type"] != neuron_type:
+            if neuron_type is not None and self.data["neurons"][neuron_id]["type"] != neuron_type:
                 continue
 
             yield neuron_id, dist_to_centre[neuron_id]
@@ -995,6 +995,26 @@ class SnuddaLoad(object):
 
         return synapse_count
 
+    def count_incoming_connections(self, neuron_type):
+
+        neuron_id = self.get_neuron_id_of_type(neuron_type)
+        neuron_id_mask = np.zeros((self.data["nNeurons"],), dtype=bool)
+        neuron_id_mask[neuron_id] = True
+
+        synapse_count = 0
+        gap_junction_count = 0
+
+        for synapses in self.synapse_iterator():
+            synapse_count += np.sum(neuron_id_mask[synapses[:, 1]])
+
+        for gap_junctions in self.gap_junction_iterator():
+            gap_junction_count += np.sum(neuron_id_mask[gap_junctions[:, 0]])
+            gap_junction_count += np.sum(neuron_id_mask[gap_junctions[:, 1]])
+
+        gap_junction_count /= 2
+
+        return synapse_count, gap_junction_count
+
 def snudda_load_cli():
     """ Command line parser for SnuddaLoad script """
 
@@ -1007,6 +1027,8 @@ def snudda_load_cli():
     parser.add_argument("--listPre", help="List pre synaptic neurons", type=int)
     parser.add_argument("--listPost", help="List post synaptic neurons (slow)", type=int)
     parser.add_argument("--listGJ", help="List gap junctions (slow)", type=int)
+    parser.add_argument("--listTotalIncoming", help="List number of total incoming connections to neuron type",
+                        type=str, default=None)
     parser.add_argument("--keepOpen", help="This prevents loading of synapses to memory, and keeps HDF5 file open",
                         action="store_true")
     parser.add_argument("--detailed", help="More information", action="store_true")
@@ -1027,12 +1049,12 @@ def snudda_load_cli():
         print("Neurons in network: ")
 
         if args.detailed:
-            for nid, name, pos, par_key, morph_key, mod_key, neuron_path \
+            for nid, name, pos, par_key, morph_key, mod_key, neuron_path, pop_id \
                     in [(x["neuronID"], x["name"], x["position"],
-                         x["parameterKey"], x["morphologyKey"], x["modulationKey"], x["neuronPath"])
+                         x["parameterKey"], x["morphologyKey"], x["modulationKey"], x["neuronPath"], x["populationUnit"])
                         for x in nl.data["neurons"]]:
-                print("%d : %s  (x: %f, y: %f, z: %f), par_key: %s, morph_key: %s, mod_key: %s, neuron_path: %s"
-                      % (nid, name, pos[0], pos[1], pos[2], par_key, morph_key, mod_key, neuron_path))
+                print("%d : %s  (x: %f, y: %f, z: %f) pop id %d, par_key: %s, morph_key: %s, mod_key: %s, neuron_path: %s"
+                      % (nid, name, pos[0], pos[1], pos[2], pop_id, par_key, morph_key, mod_key, neuron_path))
         else:
             for nid, name, pos, pid in [(x["neuronID"], x["name"], x["position"], x["populationUnit"]) for x in nl.data["neurons"]]:
                 print("%d : %s [%d] (x: %f, y: %f, z: %f)" % (nid, name, pid, pos[0], pos[1], pos[2]))
@@ -1057,11 +1079,11 @@ def snudda_load_cli():
         print(f"List neurons pre-synaptic to neuronID = {args.listPre} "
               f"({nl.data['neurons'][args.listPre]['name']})")
         synapses, synapse_coords = nl.find_synapses(post_id=args.listPre)
-        print(f"The neuron receives {synapses.shape[0]} synapses")
 
         if synapses is None:
             print("No pre synaptic neurons were found.")
         else:
+            print(f"The neuron receives {synapses.shape[0]} synapses")
             pre_id = np.unique(synapses[:, 0])
 
             for nid, name in [(x["neuronID"], x["name"]) for x in nl.data["neurons"] if x["neuronID"] in pre_id]:
@@ -1158,6 +1180,13 @@ def snudda_load_cli():
 
     if args.countSyn:
         nl.print_all_synapse_counts_per_type()
+
+    if args.listTotalIncoming:
+        incoming_to_type = args.listTotalIncoming
+
+        synapse_count, gap_junction_count = nl.count_incoming_connections(neuron_type=incoming_to_type)
+        print(f"All neurons of type {incoming_to_type} receive in total {synapse_count:.0f} synapses, "
+              f"and have {gap_junction_count:.0f} gap junctions in total.")
 
 
 if __name__ == "__main__":

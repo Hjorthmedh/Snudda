@@ -1,0 +1,24 @@
+{
+    "FS": {
+        "CtxSignal" : {
+            "generator" : "frequency_function",
+            "start" : 0,
+            "end" : 34,
+            "synapseDensity" : "0.45*0.05/(1+exp(-(d-30e-6)/5e-6))",
+            "frequency" : "10*(1+sin(2*3.14159*50*t))",
+            "nInputs" : 20,
+            "conductance" : 0.5e-9,
+            "populationUnitCorrelation" : 0,
+            "jitter" : 0,        
+            "modFile": "tmGlut",
+	    "parameterList": { "nmda_ratio" : 0}	    
+        },
+	"cortical_background" : {
+            "generator" : "poisson",
+            "frequency" : [1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6], 
+	    "start" : [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32],
+	    "end" : [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34],
+	    "parameterList": { "nmda_ratio" : 0}
+        }
+   }
+}

@@ -420,4 +420,4 @@ if __name__ == "__main__":
         nas.plot_incoming_connections(neuron_type="ChIN", pre_type="dSPN")
         nas.plot_incoming_connections(neuron_type="ChIN", pre_type="iSPN")
 
-    nas.plot_synapse_dist(density_flag=True)
+    # nas.plot_synapse_dist(density_flag=True)
