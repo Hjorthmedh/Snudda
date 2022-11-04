@@ -39,7 +39,6 @@ class SnuddaCut(object):
         """
 
         self.cut_equation = cut_equation
-
         self.h5libver = "latest"
         self.h5driver = "sec2"
         self.in_file = None
@@ -62,7 +61,7 @@ class SnuddaCut(object):
             sys.exit(0)
 
         self.setup_output_file(self.out_file_name)
-        self.write_cut_slice(self.cut_equation_lambda)
+        self.write_cut_slice(self.cut_equation_lambda, self.out_file_name, print_remapping=False)
 
         self.plot_cut(include_synapses=True, include_gap_junctions=True,
                       show_plot=show_plot)
@@ -76,13 +75,15 @@ class SnuddaCut(object):
     # TODO: Split this function, so that one writes slice, but requires info about what to write
     #       while other function determines what we should keep/remove
 
-    def write_cut_slice(self, cut_equation_lambda):
+    def write_cut_slice(self, cut_equation_lambda, out_file_name=None, print_remapping=False):
 
         """ Write cut slice to file.
 
         Args:
             cut_equation_lambda : lamba function with cut equation
         """
+
+        """ Write network to hdf5 file: output_file_name """
 
         # Remove the neurons from the data
         soma_keep_flag = self.soma_inside(cut_equation_lambda)
@@ -95,12 +96,27 @@ class SnuddaCut(object):
             sys.exit(-1)
 
         print(f"Keeping {num_soma_keep} out of {len(soma_keep_flag)}"
-              "neurons (the others have soma outside of cut plane)")
+              " neurons (the others have soma outside of cut plane)")
 
         # We need to remap neuronID in the synapses and gap junction matrix
+        remapping_file = f"{out_file_name}-remapping.txt"
         remap_id = dict([])
-        for new_id, old_id in enumerate(soma_keep_id):
-            remap_id[old_id] = new_id
+        with open(remapping_file, "w") as f:
+            for new_id, old_id in enumerate(soma_keep_id):
+                remap_id[old_id] = new_id
+                f.write(f"{old_id}, {new_id}\n")
+            
+        if print_remapping:
+            print("\nRemapping neurons:")
+            for new_id, old_id in enumerate(soma_keep_id):
+                assert remap_id[old_id] == new_id, f"Internal error with remap_id"
+                if old_id == new_id:
+                    print(f"{old_id} the same")
+                else:
+                    print(f"{old_id} -> {new_id}")
+            print("")
+
+
 
         # TODO: Write unit test, that takes a connection matrix, notes how some of the cells are connected
         #       then does cut / ablation, and then verifies that those cells are still connected the same way, if left
@@ -421,3 +437,4 @@ if __name__ == "__main__":
                    cut_equation=args.cutEquation,
                    plot_only=args.plotOnly,
                    show_plot=showPlot)
+

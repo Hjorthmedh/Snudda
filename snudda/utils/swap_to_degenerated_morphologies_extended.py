@@ -125,6 +125,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             post_neuron_synapses[nid] = []
 
         # All the synapses from the fresh PD2 touch detection
+        # -- This copy should be conditional on whether it is hdf5 read data, or in memory
         synapse_matrix = self.updated_network_loader.data["synapses"][()].copy()
 
         keep_mask = np.zeros((synapse_matrix.shape[0],), dtype=bool)
@@ -239,7 +240,8 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         # Resort the new synapse matrix
         sorted_synapses = self.sort_synapses(new_synapses[:syn_ctr, :])
 
-        old_synapse_iterator = self.synapse_iterator(synapses=self.old_hdf5["network/synapses"][()])
+        # Copy the synapses into memory
+        old_synapse_iterator = self.synapse_iterator(synapses=self.old_hdf5["network/synapses"][()].copy())
 
         if post_degen_pruning:
             pruned_synapses = self.post_degeneration_pruning(synapses=sorted_synapses,

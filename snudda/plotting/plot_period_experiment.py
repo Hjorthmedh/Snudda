@@ -67,9 +67,9 @@ class PlotPeriodExperiment(SnuddaPlotSpikeRaster2):
                                                          n_bins=n_bins,
                                                          exclude_depolarisation_blocked_neurons=exclude_depolarisation_blocked_neurons)
 
-        ax.stairs(freq, bins, label=label, color=color, linewidth=3, linestyle=linestyle)
+        ax.stairs(freq, bins * 1e3, label=label, color=color, linewidth=3, linestyle=linestyle)
 
-        ax.set_xlabel("Time (s)")
+        ax.set_xlabel("Time (ms)")
         ax.set_ylabel("Frequency (Hz)")
         ax.legend()
 
@@ -161,7 +161,7 @@ class PlotPeriodExperiment(SnuddaPlotSpikeRaster2):
                     else:
                         no_spike_no_pre_spike.append(voltage[t_idx])
 
-        t_idx = np.where(np.logical_and(period_start[0] <= time, time < period_end[0]))
+        t_idx = np.where(np.logical_and(period_start[0] <= time, time < period_end[0]))[0]
         t = time[t_idx] - time[t_idx[0]]
 
         if len(spike_with_pre_spike) > 0:
