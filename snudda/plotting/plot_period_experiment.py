@@ -67,9 +67,9 @@ class PlotPeriodExperiment(SnuddaPlotSpikeRaster2):
                                                          n_bins=n_bins,
                                                          exclude_depolarisation_blocked_neurons=exclude_depolarisation_blocked_neurons)
 
-        ax.stairs(freq, bins, label=label, color=color, linewidth=3, linestyle=linestyle)
+        ax.stairs(freq, bins * 1e3, label=label, color=color, linewidth=3, linestyle=linestyle)
 
-        ax.set_xlabel("Time (s)")
+        ax.set_xlabel("Time (ms)")
         ax.set_ylabel("Frequency (Hz)")
         ax.legend()
 
