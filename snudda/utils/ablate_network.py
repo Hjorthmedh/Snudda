@@ -123,7 +123,7 @@ class SnuddaAblateNetwork:
 
         """ Filters synapses, data_type is either 'synapses' or 'gapJunctions' """
 
-        synapse_data = self.in_file[f"network/{data_type}"]
+        synapse_data = self.in_file[f"network/{data_type}"][()].copy()
 
         keep_flag = np.zeros((synapse_data.shape[0],), dtype=bool)
 
@@ -227,8 +227,6 @@ class SnuddaAblateNetwork:
         print(f"Keeping {num_soma_keep} neurons.")
 
         # We need to remap neuronID in the synapses and gap junction matrix
-        # remap_id = dict([])
-        # Try using a np array for lookup instead of dict, faster?
         remap_id = np.full((len(self.snudda_load.data["neurons"]),), np.nan, dtype=int)
         for new_id, old_id in enumerate(soma_keep_id):
             remap_id[old_id] = new_id
@@ -305,8 +303,8 @@ class SnuddaAblateNetwork:
 
             # TODO: !!!! might need to handle chunk size differently based on size...
 
-            syn_mat = self.in_file["network/synapses"]
-            gj_mat = self.in_file["network/gapJunctions"]
+            syn_mat = self.in_file["network/synapses"][()].copy()
+            gj_mat = self.in_file["network/gapJunctions"][()].copy()
 
             print("Copying synapses and gap junctions")
 
@@ -329,9 +327,10 @@ class SnuddaAblateNetwork:
 
             network_group.create_dataset("synapses",
                                          data=temp_syn_mat,
-                                         dtype=np.int32, shape=(num_syn, syn_mat.shape[1]),
-                                         chunks=syn_mat.chunks, maxshape=(None, syn_mat.shape[1]),
-                                         compression=syn_mat.compression)
+                                         dtype=np.int32, shape=(num_syn, self.in_file["network/synapses"].shape[1]),
+                                         chunks=self.in_file["network/synapses"].chunks,
+                                         maxshape=(None, self.in_file["network/synapses"].shape[1]),
+                                         compression=self.in_file["network/synapses"].compression)
 
             print(f"{num_syn} / {num_syn} synapse rows parsed")
             print("Synapse matrix written.")
@@ -353,9 +352,10 @@ class SnuddaAblateNetwork:
 
             network_group.create_dataset("gapJunctions",
                                          data=temp_gj_mat,
-                                         dtype=np.int32, shape=(num_gj, gj_mat.shape[1]),
-                                         chunks=gj_mat.chunks, maxshape=(None, gj_mat.shape[1]),
-                                         compression=gj_mat.compression)
+                                         dtype=np.int32, shape=(num_gj, self.in_file["network/gapJunctions"].shape[1]),
+                                         chunks=self.in_file["network/gapJunctions"].chunks,
+                                         maxshape=(None, self.in_file["network/gapJunctions"].shape[1]),
+                                         compression=self.in_file["network/gapJunctions"].compression)
 
             print(f"{num_gj} / {num_gj} gap junction rows parsed")
             print("Gap junction matrix written.")
