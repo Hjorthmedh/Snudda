@@ -53,7 +53,8 @@ class SnuddaPlotInputLocations:
                            size=10,
                            save_fig=True,
                            dpi=300,
-                           show_figure=True):
+                           show_figure=True,
+                           figure_size=None):
 
         coords = self.get_input_coords(neuron_id=neuron_id, input_type=input_type)
 
@@ -66,7 +67,7 @@ class SnuddaPlotInputLocations:
         nm = self.load_neuron(neuron_id=neuron_id)
 
         if ax is None:
-            fig = plt.figure(visible=show_figure)
+            fig = plt.figure(visible=show_figure, figsize=figure_size)
             ax = fig.add_subplot(111, projection='3d')
 
         if neuron_colour is None:

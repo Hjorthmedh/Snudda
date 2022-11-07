@@ -96,7 +96,7 @@ class SnuddaInit(object):
 
         if struct_def:
             for sn in struct_def:
-                print("Adding " + sn + " with " + str(struct_def[sn]) + " neurons")
+                print(f"Adding {sn} with {struct_def[sn]} neurons")
                 struct_func[sn](num_neurons=struct_def[sn], neurons_dir=neurons_dir)
 
             if connection_override_file:
@@ -170,24 +170,24 @@ class SnuddaInit(object):
             if slice_depth is None:
                 slice_depth = 150e-6
 
-            print("Using slice depth: " + str(slice_depth))
+            print(f"Using slice depth: {slice_depth}")
 
             if mesh_bin_width is None:
                 mesh_bin_width = np.minimum(side_len, slice_depth) / 3.0
-                print("Setting meshBinWidth to " + str(mesh_bin_width))
+                print(f"Setting meshBinWidth to {mesh_bin_width}")
 
             create_slice_mesh(file_name=struct_mesh,
                               centre_point=np.array([0, 0, 0]),
                               x_len=side_len,
                               y_len=side_len,
                               z_len=slice_depth,
-                              description=struct_name + " slice mesh")
+                              description=f"{struct_name} slice mesh")
 
         if not snudda_path_exists(struct_mesh, self.snudda_data):
             print(f"Warning struct mesh {struct_mesh} is missing!")
 
         assert struct_name not in self.network_data["Volume"], \
-            "defineStruct: Volume " + struct_name + " is already defined."
+            f"defineStruct: Volume {struct_name} is already defined."
 
         self.network_data["Volume"][struct_name] = \
             self.define_volume(d_min=d_min,
@@ -404,7 +404,7 @@ class SnuddaInit(object):
                 try:
                     numexpr.evaluate(axon_density[1])
                 except:
-                    print("!!! Axon density failed test: " + str(axon_density))
+                    print(f"!!! Axon density failed test: {axon_density}")
                     print("Inparameter: r = 1-D array of radius in meter")
                     import traceback
                     tstr = traceback.format_exc()
@@ -417,7 +417,7 @@ class SnuddaInit(object):
                 try:
                     numexpr.evaluate(axon_density[1])
                 except:
-                    print("!!! Axon density failed test: " + str(axon_density))
+                    print(f"!!! Axon density failed test: {axon_density}")
                     print("Inparameters: x,y,z three 1-D arrays (units in meter)")
                     import traceback
                     tstr = traceback.format_exc()

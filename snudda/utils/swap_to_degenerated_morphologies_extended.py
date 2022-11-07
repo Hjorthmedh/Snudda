@@ -320,9 +320,14 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             assert (synapse_set[:, 6] == channel_model_id).all(), \
                 f"Code is written with assumption that all synapses between a pair of neurons are of the same type"
 
-            old_pre_id = old_synapse_set[0, 0]
-            old_post_id = old_synapse_set[0, 1]
-            old_channel_mod_id = old_synapse_set[0, 6]
+            if old_synapse_set is not None:
+                old_pre_id = old_synapse_set[0, 0]
+                old_post_id = old_synapse_set[0, 1]
+                old_channel_mod_id = old_synapse_set[0, 6]
+            else:
+                old_pre_id = -1
+                old_post_id = -1
+                old_channel_mod_id = None
 
             while old_synapse_set is not None and old_post_id * n_neurons + old_pre_id < post_id * n_neurons + pre_id:
                 old_synapse_set = next(old_synapse_iterator, None)
