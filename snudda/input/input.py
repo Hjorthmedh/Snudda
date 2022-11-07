@@ -307,11 +307,14 @@ class SnuddaInput(object):
                     if "populationUnitID" in neuron_in:
                         population_unit_id = int(neuron_in["populationUnitID"])
                         it_group.create_dataset("populationUnitID", data=population_unit_id)
+                    else:
+                        population_unit_id = None
 
                     # TODO: What to do with population_unit_spikes, should we have mandatory jittering for them?
 
                     # population_unit_id = 0 means not population unit membership, so no population spikes available
-                    if neuron_type in self.population_unit_spikes and population_unit_id > 0 \
+                    if neuron_type in self.population_unit_spikes \
+                            and population_unit_id is not None and population_unit_id > 0 \
                             and input_type in self.population_unit_spikes[neuron_type]:
                         chan_spikes = self.population_unit_spikes[neuron_type][input_type][population_unit_id]
                     else:
