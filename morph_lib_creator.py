@@ -76,15 +76,21 @@ def get_midpoint(sec, morphology, return_half_len=False):
  
 
 def get_branching_points(swc_file):
-    ''' check if branching points (parent to more than one point) '''
+    ''' check if branching points (parent to more than one point) 
+    
+    - loop over all points in morphology and add parents to dict ('all'). 
+        if parent already in 'all' dict: add to branching point
+    '''
     
     bp  = {'all':{}, 'branching':{}}
     
     with open(swc_file) as f:
         
         for line in f.readlines(): # for line in file...  
+            
             if line[0] in ['#', ' ', '\n', '\t']: continue
             l = line.split() 
+            if l[1] == '2': break   # don't read axon
             if l[6] in bp['all']:
                 bp['branching'][l[6]] = True
             else:
@@ -112,7 +118,7 @@ def read_morph_swc(swc_file, bp):
                 
             l = line.split()
             
-            if l[1] == '2': 
+            if l[1] == '2': # this only works if the axon comes after the dendrites
                 sec_coordinates[sec] = get_midpoint(sec, morphology)
                 break
             
@@ -127,7 +133,7 @@ def read_morph_swc(swc_file, bp):
                                             
             morphology['sortlist'].append(l[0])
             
-            if l[6] == '-1':
+            if l[6] == '-1':    # soma
                 sec =0
                 stem=0
                 morphology['sec'][ sec ] = []
@@ -138,7 +144,7 @@ def read_morph_swc(swc_file, bp):
                 sec_coordinates[sec] = get_midpoint(sec, morphology)
                 # update sec
                 sec += 1
-                if l[6] == '1':
+                if l[6] == '1': # first point on new stem
                     stem += 1
                     morphology['stem'][ stem ] = [sec]
                     stem2plot[stem]  = {'x':[], 'y':[], 'z':[], 'r':[], 'sec':[]}
@@ -154,6 +160,23 @@ def read_morph_swc(swc_file, bp):
                     stem2plot[stem][xx].append( morphology['points'][l[6]][xx] )
                 stem2plot[stem]['sec'].append( 'none' )
                 stem2plot[stem]['sec'].append( 'branching' )
+                
+                if l[0] in bp['branching']:
+                    # both new sec and branching point
+                    # TODO: check this new condition to see that I do the right thing
+                    sec_coordinates[sec] = get_midpoint(sec, morphology)
+                    # update sec
+                    sec += 1
+                    morphology['sec'][ sec ] = [ l[0] ]
+                    # add None to not connect end point with next start point 
+                    # and add parent as start of next
+                    for xx in ['x', 'y', 'z', 'r']:
+                        morph_with_none[xx].append( None )
+                        morph_with_none[xx].append( morphology['points'][l[6]][xx] )
+                        stem2plot[stem][xx].append( None )
+                        stem2plot[stem][xx].append( morphology['points'][l[6]][xx] )
+                    stem2plot[stem]['sec'].append( 'none' )
+                    stem2plot[stem]['sec'].append( 'branching' )
                     
             else:
                 morphology['sec'][ sec ].append( l[0] )
