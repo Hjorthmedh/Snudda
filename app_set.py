@@ -39,16 +39,21 @@ class Preprocess():
         self.ncells             = self.xx['metaData/ID'].shape[0]
         self.depol_threshold    = -40e-3
         self.max_dur_depol      = 20e-3
+        
+        self.set_id2meta()
 	    
         self.check_for_depolBlock() # TODO: get using snudda?
         
         if self.hdf5_input_config_file:
             self.gap_junctions = GJ.Preprocess(hdf5_input_config_file=hdf5_input_config_file)
+            self.gap_junctions.load_morphologies()
             self.count_number_of_gj_per_cell()
         else:
             self.gap_junctions = None
 	    
         self.get_params()
+        
+        self.get_voltage()
         
         
     def load_output_config_file(self):
@@ -65,11 +70,17 @@ class Preprocess():
         n_limit 	= int(np.ceil(self.max_dur_depol / dt))
         count       = 0
         data        = {}
+        id2meta     = {}
         for cellid in range(self.ncells):
 
             volt        = self.xx['neurons'][str(cellid)]['voltage/data'][0]
             ctr         = 0
             id_start    = 0
+            
+            id2meta[cellid] = { 'family':  str(self.xx['metaData/name'][cellid],'utf8'),
+		                        'pkey':     str(self.xx['metaData/parameterKey'][cellid],'utf8'),
+		                        'mkey':     str(self.xx['metaData/morphologyKey'][cellid],'utf8')
+		                        }
 
             for idx in range(0, len(self.time)):
                 if volt[idx*2] > self.depol_threshold:
@@ -94,6 +105,18 @@ class Preprocess():
         self.cells_with_db = data
         self.n_cells_with_DB = count
         self.has_db = [1 if i in self.cells_with_db else 0 for i in range(self.ncells)]
+    
+    def set_id2meta(self):
+    
+        id2meta = {}
+        for cellid in range(self.ncells):
+                
+                id2meta[cellid] = { 'family':   str(self.xx['metaData/name'][cellid],'utf8'),
+		                            'pkey':     str(self.xx['metaData/parameterKey'][cellid],'utf8'),
+		                            'mkey':     str(self.xx['metaData/morphologyKey'][cellid],'utf8')
+		                            }
+        
+        self.id2meta = id2meta
     
     def set_mkey2morph(self):
         self.mkey2morph = {}
@@ -130,6 +153,10 @@ class Preprocess():
         keys        = []
         
         meta        = {}
+        
+        if self.hdf5_input_config_file:
+            len_morph = np.zeros(self.ncells)
+            name_id = np.zeros(self.ncells)
 
         for cellid in range(self.ncells):
             # get meta data.
@@ -144,12 +171,15 @@ class Preprocess():
                                         self.name2directory[name],
                                         self.mkey2morph[name][mkey]
                                 )}
+            # length of morphology
+            if self.hdf5_input_config_file:
+                len_morph[cellid] = self.gap_junctions.morph_data[name][mkey]['Ltot']
+                name_id[cellid] = int(name.split('_')[1])
             # extract channel parameters
             params  = self.load_json('{}/{}/parameters.json'.format(	
                                         self.bgdata_path, 
                                         self.name2directory[meta[cellid]['name']]
                                         ))
-            
             keys.append(meta[cellid]['pkey'])
             pp		= params[meta[cellid]['pkey']]
             if len(pp)<20:
@@ -188,12 +218,9 @@ class Preprocess():
             if max(v) > threshold:
                 is_spiking[cellid] = 1
 
-        # normalize ranges to 0-1 # TODO don't normalize. Jitter based on parameter range
+        # jitter params (max 2% of range)
         rmax = np.nanmax(res, axis=0)
         rmin = np.nanmin(res, axis=0)
-        r_01 = (res-rmin)/(rmax-rmin)
-
-        #r_jitter = r_01 + np.random.uniform(0,0.02, size=r_01.shape)
         r_jitter = res + np.random.uniform(0,0.02*(rmax-rmin), size=res.shape)
 
         # initiate dataframe
@@ -207,7 +234,9 @@ class Preprocess():
         # number of GJ/cell
         if self.hdf5_input_config_file:
             df['num_gj'] = self.gj_count
-            labels = self.labels+['num_gj', 'is_spiking', 'has_db']
+            df['mLtot'] = len_morph
+            df['family'] = name_id
+            labels = self.labels+['num_gj', 'mLtot', 'family', 'is_spiking', 'has_db']
         else:
             labels = self.labels+['is_spiking', 'has_db']
         
@@ -226,12 +255,33 @@ class Preprocess():
                         ticktext=u
                         )]
         for i,l in enumerate(labels):
-            dim.append( dict(   range=[df[l].min(),df[l].max()], 
+            if l=='family':
+                dim.append( dict(    range=[df[l].min(), df[l].max()], 
+                                label=l, 
+                                values=df.loc[:,l],
+                                tickvals=[i for i in range(len(self.gap_junctions.morph_data.keys()))],
+                                ticktext=list(self.gap_junctions.morph_data.keys())
+                                ))   
+            else:
+                dim.append( dict(   range=[df[l].min(),df[l].max()], 
                                 label=l, 
                                 values=df.loc[:,l]
                                 ))
-        
+        dim.append( dict(   range=[0,self.ncells-1], 
+                                label='cellid', 
+                                values=[i for i in range(self.ncells)]
+                                ))
         self.df = df
         self.dim = dim
         self.meta = meta
+    
+    def get_voltage(self):
+        volt = {}
+        for cellid in range(self.ncells):
+            volt[cellid] = self.xx['neurons'][str(cellid)]['voltage/data'][0]
+        self.voltage = volt
+            
+    
+    def dump_hfpy(self):
+        self.xx = None
         

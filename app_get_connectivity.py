@@ -100,5 +100,6 @@ class Preprocess():
                 self.morph_data[cell][mkey]['Ltot'] = morph_lib_creator.calc_total_length(p)
     
     
-    
+    def dump_hfpy(self):
+        self.xx = None
     
