@@ -6,7 +6,7 @@
             "generator": "poisson",
             "jitter": 0.0,
             "modFile": "tmGlut",
-            "nInputs": 200,
+            "nInputs": 100,
             "populationUnitCorrelation": 0.0,
             "synapseDensity": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
             "type": "AMPA_NMDA"
@@ -17,7 +17,7 @@
             "generator": "poisson",
             "jitter": 0.0,
             "modFile": "tmGlut",
-            "nInputs": 69,
+            "nInputs": 100,
             "populationUnitCorrelation": 0.0,
             "synapseDensity": "0.05*exp(-d/200e-6)",
             "type": "AMPA_NMDA"
@@ -31,7 +31,7 @@
             "generator": "poisson",
             "jitter": 0.0,
             "modFile": "tmGlut",
-            "nInputs": 200,
+            "nInputs": 100,
             "populationUnitCorrelation": 0.0,
             "synapseDensity": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
             "type": "AMPA_NMDA"
@@ -42,7 +42,7 @@
             "generator": "poisson",
             "jitter": 0.0,
             "modFile": "tmGlut",
-            "nInputs": 200,
+            "nInputs": 100,
             "populationUnitCorrelation": 0.0,
             "synapseDensity": "0.05*exp(-d/200e-6)",
             "type": "AMPA_NMDA"
@@ -56,7 +56,7 @@
             "generator": "poisson",
             "jitter": 0.0,
             "modFile": "tmGlut",
-            "nInputs": 200,
+            "nInputs": 100,
             "populationUnitCorrelation": 0.0,
             "synapseDensity": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
             "type": "AMPA_NMDA"
@@ -67,7 +67,7 @@
             "generator": "poisson",
             "jitter": 0.0,
             "modFile": "tmGlut",
-            "nInputs": 200,
+            "nInputs": 100,
             "populationUnitCorrelation": 0.0,
             "synapseDensity": "0.05*exp(-d/200e-6)",
             "type": "AMPA_NMDA"
