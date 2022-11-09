@@ -15,10 +15,8 @@ __pycache__/
 *~
 *.prof
 
-*.txt
 *.csv
 *.csv-meta
-*.swc
 *.bz2
 *.gz
 
