@@ -18,11 +18,11 @@
 	    "morphologyKey": "m3a845add",
 	    "dendriteLocation": [[0, 0.5], [3, 0.6], [10, 0.1]]
 	},
-        "cortical_background" : {
+        "!cortical_background" : {
             "generator" : "poisson",
             "frequency" : 0
         },
-        "thalamic_background" : {
+        "!thalamic_background" : {
             "generator" : "poisson",
             "frequency" : 0
         }

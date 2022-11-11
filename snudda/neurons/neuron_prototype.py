@@ -245,7 +245,7 @@ class NeuronPrototype:
             if parameter_key:
                 assert par_key == parameter_key, \
                     f"Mismatch. Parameter ID {parameter_id} has parameter_key {par_key}, " \
-                    f"not {parameter_key} (Is snudda_data set correctly?"
+                    f"not {parameter_key} (Is snudda_data set correctly?)"
         elif parameter_key:
             par_key = parameter_key
         else:

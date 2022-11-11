@@ -539,7 +539,7 @@ class SwapToDegeneratedMorphologies:
 
             print(f"Processed input to {self.old_data['neurons'][int(neuron)]['name']} ({neuron}), "
                   f"keeping {new_n} out of {old_n} inputs "
-                  f"({new_n / old_n * 100 :.2f} %)")
+                  f"({new_n / max(old_n,1) * 100 :.2f} %)")
 
         self.close()
 
