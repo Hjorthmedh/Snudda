@@ -14,17 +14,19 @@ class PlotDegeneration:
         if not os.path.exists(self.fig_path):
             os.mkdir(self.fig_path)
 
-    def plot_neuron(self, neuron_id):
+    def plot_neuron(self, neuron_id, figure_size=None, show_internal_synapses=True):
 
         ax = self.original_plot.plot_neuron_inputs(neuron_id=neuron_id,
                                                    neuron_colour=np.array([0.6, 0.6, 0.6]),
                                                    external_colour=np.array([1, 0.5, 0]),
-                                                   internal_colour=np.array([1, 0.5, 0]),
-                                                   size=1,
-                                                   save_fig=False, show_figure=False)
+                                                   internal_colour=np.array([0, 0.5, 1]),
+                                                   show_internal_synapses=show_internal_synapses,
+                                                   size=2,
+                                                   save_fig=False, show_figure=False, figure_size=figure_size)
         # ax = None
         self.degenerated_plot.plot_neuron_inputs(neuron_id=neuron_id,
                                                  neuron_colour=np.array([0, 0, 0]),
+                                                 show_internal_synapses=show_internal_synapses,
                                                  ax=ax,
                                                  size=50,
                                                  save_fig=True, show_figure=True)
