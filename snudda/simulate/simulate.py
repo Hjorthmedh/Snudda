@@ -1446,6 +1446,8 @@ class SnuddaSimulate(object):
 
     def add_synapse_current_recording(self, source_id, dest_id):
 
+        assert (source_id, dest_id) in self.synapse_dict, f"No synapse between {source_id} and {dest_id}"
+
         synapse_info_list = self.synapse_dict[source_id, dest_id]
         syn_ctr = 0
 

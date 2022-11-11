@@ -402,7 +402,10 @@ class PairRecording(SnuddaSimulate):
                  f"are neurons included ({len(self.simulate_neuron_ids)}).")
 
             idx = np.arange(int(self.pc.id()), len(self.simulate_neuron_ids), int(self.pc.nhost()))
-            self.neuron_id = np.array([self.simulate_neuron_ids[x] for x in idx])
+            self.neuron_id = np.array(sorted([self.simulate_neuron_ids[x] for x in idx]))
+
+            self.neuron_id_on_node = np.zeros((self.num_neurons,), dtype=bool)
+            self.neuron_id_on_node[self.neuron_id] = True
 
             self.write_log(f"Node {self.pc.id()} processing neurons {self.neuron_id}")
 
