@@ -1951,6 +1951,9 @@ class SnuddaInput(object):
             num_inputs = input_loc[0].shape[0]
 
             if num_inputs > 0:
+                # Rudolph, Michael, and Alain Destexhe. Do neocortical pyramidal neurons display stochastic resonance?.
+                # Journal of computational neuroscience 11.1(2001): 19 - 42.
+                # doi: https://doi.org/10.1023/A:1011200713411
                 p_keep = np.divide(1, (num_inputs - np.sqrt(correlation) * (num_inputs - 1)))
             else:
                 p_keep = 0
