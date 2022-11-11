@@ -454,8 +454,6 @@ class NeuronMorphology:
             with open(cache_file, 'wb') as cache_file:
                 pickle.dump(morph, cache_file, self.pickle_version)
         except:
-            import traceback
-            self.write_log(traceback.format_exc())
             self.write_log(f"Unable to save cache file {cache_file} -- do you have permission to write?")
 
     ############################################################################
