@@ -63,7 +63,7 @@ class Neuromodulation:
 
             self.network_wide[self.name_to_key[neurotransmitter]]['presynaptic'].update({cell_type:{receptor: modulation}})
 
-    def plot_transient(self, neurotransmitter):
+    def plot_transient(self, neurotransmitter, save=False, filename=None):
 
         import snudda.neuromodulation.modulation as modulation
         import matplotlib.pyplot as plt
@@ -79,7 +79,11 @@ class Neuromodulation:
         plt.plot(duration, modulation_vector)
         plt.ylabel("Modulation")
         plt.xlabel("Time (ms)")
-        plt.show()
+
+        if save:
+            plt.savefig(filename)
+        else:
+            plt.show()
 
     def save(self, dir_path, name):
 
