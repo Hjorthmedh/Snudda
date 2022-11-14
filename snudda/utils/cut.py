@@ -201,7 +201,7 @@ class SnuddaCut(object):
                 syn_mat[row_idx, 1] = remap_id[syn_mat[row_idx, 1]]
 
             network_group.create_dataset("synapses", 
-                                         data=syn_mat,
+                                         data=syn_mat[np.where(keep_syn_flag)[0], :],
                                          dtype=np.int32, 
                                          compression="gzip")
 
@@ -213,7 +213,7 @@ class SnuddaCut(object):
                 gj_mat[row_idx, 1] = remap_id[gj_mat[row_idx, 1]]
                 
             network_group.create_dataset("gapJunctions", 
-                                         data = gj_mat,
+                                         data=gj_mat[np.where(keep_gj_flag)[0], :],
                                          dtype=np.int32, 
                                          compression="gzip")
 
