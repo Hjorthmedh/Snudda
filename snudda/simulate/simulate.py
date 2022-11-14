@@ -1860,6 +1860,9 @@ class SnuddaSimulate(object):
         return memory_ratio < threshold
 
     def __del__(self):
+        self.clear_neuron()
+
+    def clear_neuron(self):
 
         self.neurons = {}
         self.sim = None
