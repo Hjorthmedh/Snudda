@@ -1861,10 +1861,6 @@ class SnuddaSimulate(object):
 
     def __del__(self):
 
-        # We also need to clear everything setup by NEURON
-        for sec in h.allsec():
-            h.delete_section(sec=sec)
-
         self.neurons = {}
         self.sim = None
         self.neuron_nodes = []  # Is this used?
@@ -1878,7 +1874,11 @@ class SnuddaSimulate(object):
         self.gap_junction_list = []
         self.external_stim = dict([])
         self.check_id_recordings = []
-    
+
+        # We also need to clear everything setup by NEURON
+        for sec in h.allsec():
+            h.delete_section(sec=sec)
+
         import gc
         gc.collect()
 
