@@ -1864,6 +1864,7 @@ class SnuddaSimulate(object):
 
     def clear_neuron(self):
 
+        self.pc.gid_clear()
         self.neurons = {}
         self.sim = None
         self.neuron_nodes = []  # Is this used?
@@ -1877,6 +1878,13 @@ class SnuddaSimulate(object):
         self.gap_junction_list = []
         self.external_stim = dict([])
         self.check_id_recordings = []
+        self.pc = None
+
+        self.t_save = []
+        self.i_save = []
+        self.i_key = []
+
+        self.record = None
 
         # We also need to clear everything setup by NEURON
         for sec in h.allsec():
