@@ -1859,6 +1859,14 @@ class SnuddaSimulate(object):
 
         return memory_ratio < threshold
 
+    def __del__(self):
+
+        # We also need to clear everything setup by NEURON
+        for sec in h.allsec():
+            h.delete_section(sec=sec)
+
+        import gc
+        gc.collect()
 
 ############################################################################
 
