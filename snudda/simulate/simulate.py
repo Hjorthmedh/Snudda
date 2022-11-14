@@ -1865,6 +1865,20 @@ class SnuddaSimulate(object):
         for sec in h.allsec():
             h.delete_section(sec=sec)
 
+        self.neurons = {}
+        self.sim = None
+        self.neuron_nodes = []  # Is this used?
+        self.virtual_neurons = {}
+
+        self.net_con_list = []
+        self.synapse_list = []
+        self.synapse_dict = dict()
+        self.i_stim = []
+        self.v_clamp_list = []
+        self.gap_junction_list = []
+        self.external_stim = dict([])
+        self.check_id_recordings = []
+    
         import gc
         gc.collect()
 
@@ -1872,6 +1886,7 @@ class SnuddaSimulate(object):
 
 #
 # Test code to run a simulation
+
 
 if __name__ == "__main__":
 
