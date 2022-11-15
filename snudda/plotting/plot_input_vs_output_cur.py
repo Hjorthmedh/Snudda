@@ -99,7 +99,7 @@ class PlotInputVsOutput:
 
         return cur_steps, spike_rate_lists
 
-    def plot_cur_input_vs_output(self,experiment_config_file=None):
+    def plot_cur_input_vs_output(self,experiment_config_file=None, morphology_key= None, parameter_key=None):
         print("Entered plot_cur_input_vs_output")
         self.make_figures_directory()
         #experiment_config_file = os.path.join("..", "..", "..", "snudda", "data", "experiment_config","experiment-config-6-bobek.json")
@@ -144,9 +144,14 @@ class PlotInputVsOutput:
             ax.plot(cur_steps, avg_spike_rate_list, marker='.',color='black')
             ax.set_ylabel('Spikes/s')
             ax.set_xlabel('Current injection (A)')
-            figure_path = os.path.join(self.network_path, "figures", unique_neuron_subtype + '_' +
-                                       "spike_rate_vs_current_input.png")
-            fig.savefig(figure_path, dpi=300)
+            if morphology_key is not None and parameter_key is not None:
+                ax.set_title(f'{unique_neuron_subtype} : {morphology_key}, {parameter_key}')
+                figure_path = os.path.join(self.network_path, "figures", unique_neuron_subtype + '_' + morphology_key + '_' + parameter_key + '_' + "spike_rate_vs_current_input.png")
+            else:
+                figure_path = os.path.join(self.network_path, "figures", unique_neuron_subtype + '_' + "spike_rate_vs_current_input.png")
+            fig.savefig(figure_path, dpi=300)            
+            
+            
             plt.close(fig)
 
 
