@@ -502,6 +502,10 @@ class RegionMesh(object):
         if self.role == "master":
             # This should only be done by master
 
+            if np.prod(self.num_bins) > 1e6:
+                self.write_log(f"Calculating {np.prod(self.num_bins)} voxels. Size warning, check mesh size.",
+                               force_print=True)
+
             if self.d_view is None:
 
                 # No workers, do all work ourselves
@@ -1392,7 +1396,7 @@ class RegionMesh(object):
 
     ############################################################################
 
-    def write_log(self, text, flush=True, is_error=False):  # Change flush to False in future, debug
+    def write_log(self, text, flush=True, is_error=False, force_print=False):  # Change flush to False in future, debug
 
         """
         Writes to log file. Use setup_log first. Text is only written to screen if self.verbose=True,
@@ -1409,7 +1413,7 @@ class RegionMesh(object):
             if flush:
                 self.logfile.flush()
 
-        if self.verbose or is_error:
+        if self.verbose or is_error or force_print:
             print(text)
 
     ############################################################################

@@ -1859,11 +1859,45 @@ class SnuddaSimulate(object):
 
         return memory_ratio < threshold
 
+    def __del__(self):
+        self.clear_neuron()
+
+    def clear_neuron(self):
+
+        self.pc.gid_clear()
+        self.neurons = {}
+        self.sim = None
+        self.neuron_nodes = []  # Is this used?
+        self.virtual_neurons = {}
+
+        self.net_con_list = []
+        self.synapse_list = []
+        self.synapse_dict = dict()
+        self.i_stim = []
+        self.v_clamp_list = []
+        self.gap_junction_list = []
+        self.external_stim = dict([])
+        self.check_id_recordings = []
+        self.pc = None
+
+        self.t_save = []
+        self.i_save = []
+        self.i_key = []
+
+        self.record = None
+
+        # We also need to clear everything setup by NEURON
+        for sec in h.allsec():
+            h.delete_section(sec=sec)
+
+        import gc
+        gc.collect()
 
 ############################################################################
 
 #
 # Test code to run a simulation
+
 
 if __name__ == "__main__":
 
