@@ -1126,7 +1126,10 @@ class SnuddaAnalyse(object):
             exp_max_dist = []
 
         if not exp_data:
-            exp_data = []
+            if exp_data_detailed:
+                exp_data = [x/y for x, y in exp_data_detailed]
+            else:
+                exp_data = []
 
         if not exp_data_detailed:
             exp_data_detailed = None
