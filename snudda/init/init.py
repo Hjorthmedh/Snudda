@@ -1070,8 +1070,6 @@ class SnuddaInit(object):
                                mod_file="tmGabaA",
                                channel_param_dictionary={"tau1": (1.33e-3, 1e3),
                                                          "tau2": (5.7e-3, 1e3)})
-        # !!! Double check that channelParamDictionary works, and SI units gets
-        # converted to natural units
 
         self.add_neuron_target(neuron_name="FS",
                                target_name="dSPN",
@@ -1115,7 +1113,7 @@ class SnuddaInit(object):
                                    target_name="FS",
                                    connection_type="GapJunction",
                                    dist_pruning=None,
-                                   f1=0.7, soft_max=8, mu2=2, a3=0.5,  # Changed a1 from 1 to 0.5
+                                   f1=0.7, soft_max=8, mu2=2, a3=0.5,  # Changed a1 from 1 to 0.5 to match McKeon
                                    conductance=FS_gGapJunction,
                                    cluster_synapses=False,
                                    channel_param_dictionary=None)
