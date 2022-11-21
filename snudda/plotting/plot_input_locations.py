@@ -1,6 +1,7 @@
 import os
 import h5py
 import numpy as np
+import json
 
 from snudda.utils.snudda_path import get_snudda_data
 from snudda.utils import SnuddaLoad
@@ -44,6 +45,13 @@ class SnuddaPlotInputLocations:
             self.input_data = h5py.File(self.input_file, "r")
         else:
             self.input_data = None
+
+        self.input_config = None
+
+        if self.input_data is not None:
+            self.load_input_config()
+
+
 
     def plot_neuron_inputs(self, neuron_id,
                            input_type=None,
@@ -138,6 +146,58 @@ class SnuddaPlotInputLocations:
             section_x = section_x + list(self.input_data["input"][str(neuron_id)][input_name]["sectionX"])
 
         return np.array(section_id), np.array(section_x)
+
+    def get_input_soma_distance(self, neuron_id, input_name=None):
+
+        distance_to_soma = []
+
+        if input_name in self.input_data["input"][str(neuron_id)]:
+            distance_to_soma += list(self.input_data["input"][str(neuron_id)][input_name]["distanceToSoma"])
+
+        return np.array(distance_to_soma)
+
+    def get_input_soma_distance_summary(self, neuron_type, input_name):
+        distance_to_soma = []
+
+        neuron_id = self.snudda_load.get_neuron_id_of_type(neuron_type=neuron_type)
+
+        for nid in neuron_id:
+            distance_to_soma.append(self.get_input_soma_distance(neuron_id=nid, input_name=input_name))
+
+        distance_to_soma_all = np.concatenate(distance_to_soma)
+
+        return distance_to_soma_all
+
+    def load_input_config(self):
+
+        self.input_config = json.loads(SnuddaLoad.to_str(self.input_data["config"][()]))
+
+    def plot_input_location(self, neuron_type, input_name):
+
+        import numexpr
+
+        distance_to_soma = self.get_input_soma_distance_summary(neuron_type=neuron_type, input_name=input_name)
+        max_dist = np.max(distance_to_soma)
+
+        plt.figure()
+        n_bins = 20
+        plt.hist(distance_to_soma*1e6, weights=np.full(distance_to_soma.shape, 1/distance_to_soma.size/(max_dist*1e6/n_bins)),
+                 histtype="step", color="black", bins=n_bins)
+        plt.xlabel("Distance ($\mu$m)")
+        plt.ylabel("Density")
+
+        if "synapseDensity" in self.input_config[neuron_type][input_name]:
+
+            synapse_density = self.input_config[neuron_type][input_name]["synapseDensity"]
+            d = np.arange(0, max_dist, max_dist/100)
+
+            density = numexpr.evaluate(synapse_density)
+            norm_density = density / np.sum(density) / (1e6 * (d[1] - d[0]))
+
+            plt.plot(d*1e6, norm_density, 'r')
+
+        plt.ion()
+        plt.show()
 
     def get_input_coords(self, neuron_id, input_type=None):
 
