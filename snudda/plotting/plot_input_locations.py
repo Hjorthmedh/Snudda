@@ -4,6 +4,7 @@ import numpy as np
 import json
 
 from snudda.utils.snudda_path import get_snudda_data
+from snudda.utils.snudda_path import snudda_parse_path
 from snudda.utils import SnuddaLoad
 from snudda.neurons.neuron_morphology import NeuronMorphology
 from snudda.neurons.neuron_prototype import NeuronPrototype
@@ -51,7 +52,7 @@ class SnuddaPlotInputLocations:
         if self.input_data is not None:
             self.load_input_config()
 
-
+        self.dend_hist_cache = dict()
 
     def plot_neuron_inputs(self, neuron_id,
                            input_type=None,
@@ -172,32 +173,113 @@ class SnuddaPlotInputLocations:
 
         self.input_config = json.loads(SnuddaLoad.to_str(self.input_data["config"][()]))
 
-    def plot_input_location(self, neuron_type, input_name):
+    def get_max_dendrite_distance(self, neuron_type):
+
+        neuron_id = self.snudda_load.get_neuron_id_of_type(neuron_type=neuron_type)
+
+        max_dist = 0
+
+        for nid in neuron_id:
+
+            swc_file = snudda_parse_path(self.snudda_load.data["neurons"][nid]["morphology"], self.snudda_data)
+            morph = NeuronMorphology(swc_filename=swc_file)
+            dist_to_soma = morph.dend[:, 4]
+            max_dist = max(np.max(dist_to_soma), max_dist)
+
+        return max_dist
+
+    def plot_input_location(self, neuron_type, input_name, n_bins=20):
 
         import numexpr
 
         distance_to_soma = self.get_input_soma_distance_summary(neuron_type=neuron_type, input_name=input_name)
-        max_dist = np.max(distance_to_soma)
+        max_dist = self.get_max_dendrite_distance(neuron_type=neuron_type) + 1e-6
+
+        dendrite_density = self.dendrite_density_for_type(neuron_type=neuron_type, max_dist=max_dist, num_bins=n_bins)
+
+        count, edges = np.histogram(distance_to_soma, range=(0, max_dist), bins=n_bins)
+
+        # divide by bin_width (scaled to micrometers) and divide by dendrite_density
+        norm_count = count/np.sum(count)/(max_dist*1e6/n_bins)
+
+        # import pdb
+        # pdb.set_trace()
 
         plt.figure()
-        n_bins = 20
-        plt.hist(distance_to_soma*1e6, weights=np.full(distance_to_soma.shape, 1/distance_to_soma.size/(max_dist*1e6/n_bins)),
-                 histtype="step", color="black", bins=n_bins)
+        plt.stairs(norm_count, edges * 1e6, color="black")
+
         plt.xlabel("Distance ($\mu$m)")
         plt.ylabel("Density")
 
         if "synapseDensity" in self.input_config[neuron_type][input_name]:
 
             synapse_density = self.input_config[neuron_type][input_name]["synapseDensity"]
-            d = np.arange(0, max_dist, max_dist/100)
+            d = np.linspace(0, max_dist, n_bins)
 
-            density = numexpr.evaluate(synapse_density)
+            synapse_density = numexpr.evaluate(synapse_density)
+            density = np.multiply(synapse_density, dendrite_density)
             norm_density = density / np.sum(density) / (1e6 * (d[1] - d[0]))
 
             plt.plot(d*1e6, norm_density, 'r')
 
         plt.ion()
         plt.show()
+
+    def dendrite_density_for_type(self, neuron_type, max_dist, num_bins):
+
+        neuron_id = self.snudda_load.get_neuron_id_of_type(neuron_type=neuron_type)
+        dend_hist = np.zeros((num_bins,))
+
+        for nid in neuron_id:
+            dend_hist += self.dendrite_density(neuron_id=nid, max_dist=max_dist, num_bins=num_bins)
+
+        return dend_hist
+
+    def dendrite_density(self, neuron_id, max_dist, num_bins):
+
+        morph = snudda_parse_path(self.snudda_load.data["neurons"][neuron_id]["morphology"], self.snudda_data)
+        return self.dendrite_density_helper(swc_file=morph, max_dist=max_dist, num_bins=num_bins)
+
+    def dendrite_density_helper(self, swc_file, max_dist, num_bins):
+
+        if swc_file in self.dend_hist_cache:
+            return self.dend_hist_cache[swc_file]
+
+        bin_width = max_dist / num_bins
+
+        dend_hist = np.zeros((num_bins,))
+        morph = NeuronMorphology(swc_filename=swc_file)
+
+        # 0,1,2: x,y,z  3: radie, 4: dist to soma
+        dist_to_soma = morph.dend[:, 4]
+
+        for idx, link in enumerate(morph.dend_links):
+            comp_length = np.linalg.norm(morph.dend[link[0], :3] - morph.dend[link[1], :3])
+            bin_a = int(morph.dend[link[0], 4] / bin_width)
+            bin_b = int(morph.dend[link[1], 4] / bin_width)
+
+            assert comp_length < bin_width, f"Compartment length {comp_length} > bin width {bin_width}"
+            assert bin_a <= bin_b, f"Internal error, assume first element in link closer to soma"
+
+            if bin_a == bin_b:
+                dend_hist[bin_a] += comp_length
+            else:
+                frac_a = bin_width - (morph.dend[link[0], 4] % bin_width)
+                frac_b = (morph.dend[link[1], 4] % bin_width)
+
+                assert np.abs(frac_a + frac_b - comp_length) < 1e-9, f"Internal error!"
+
+                if bin_b == 20:
+                    print("Tell me why!")
+                    import pdb
+                    pdb.set_trace()
+
+                dend_hist[bin_a] += frac_a
+                dend_hist[bin_b] += frac_b
+
+        self.dend_hist_cache[swc_file] = dend_hist
+
+        return dend_hist
 
     def get_input_coords(self, neuron_id, input_type=None):
 
