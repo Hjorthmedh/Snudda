@@ -16,20 +16,26 @@ from collections import OrderedDict
 #neuron_folder= 'str-dspn-e150917_c9_D1-mWT-1215MSN03'
 #neuron_folder= 'str-dspn-e150917_c10_D1-mWT-P270-20'
 ###
+
 meta_pd0 = os.path.join('..', '..', '20220930_3', 'PD0', 'neurons', 'striatum', neuron_folder[4:8], neuron_folder,'meta.json')
-meta_pd2 = os.path.join('..', '..', '20220930_3', 'PD2', 'neurons', 'striatum', neuron_folder[4:8], neuron_folder,'meta.json')
-meta_path=os.path.join('..', '..', '20220930_3','meta_json_files')
+meta_pd = os.path.join('..', '..', '20220930_3', 'PD1', 'neurons', 'striatum', neuron_folder[4:8], neuron_folder,'meta.json')
+#meta_pd = os.path.join('..', '..', '20220930_3', 'PD2', 'neurons', 'striatum', neuron_folder[4:8], neuron_folder,'meta.json')
+#meta_pd = os.path.join('..', '..', '20220930_3', 'PD3', 'neurons', 'striatum', neuron_folder[4:8], neuron_folder,'meta.json')
+
+meta_path=os.path.join('..', '..', '20220930_3','meta_json_files_pd1')
+#meta_path=os.path.join('..', '..', '20220930_3','meta_json_files_pd2')
+#meta_path=os.path.join('..', '..', '20220930_3','meta_json_files_pd3')
 
 with open(meta_pd0, "r") as f:
     data_pd0 = json.load(f, object_pairs_hook=OrderedDict)
 
-with open(meta_pd2, "r") as f:
-    data_pd2 = json.load(f, object_pairs_hook=OrderedDict)
+with open(meta_pd, "r") as f:
+    data_pd = json.load(f, object_pairs_hook=OrderedDict)
     
 merge_data=OrderedDict()
 
 # check that the parameters keys are the same
-assert data_pd0.keys()==data_pd2.keys()
+assert data_pd0.keys()==data_pd.keys()
 print('data.keys() checked')
 
 for par in data_pd0.keys():
@@ -39,10 +45,10 @@ for par in data_pd0.keys():
     for mor_pd0 in data_pd0[par].keys():
         var=data_pd0[par][mor_pd0]['morphology'][-5:-4]
         merge_data[par]['var'+str(var)]=[mor_pd0]
-    for mor_pd2 in data_pd2[par].keys():
+    for mor_pd in data_pd[par].keys():
 
-        var=data_pd2[par][mor_pd2]['morphology'][-5:-4]
-        merge_data[par]['var'+str(var)].append(mor_pd2) 
+        var=data_pd[par][mor_pd]['morphology'][-5:-4]
+        merge_data[par]['var'+str(var)].append(mor_pd) 
         
 print('merged_data created, writing to file')
 
