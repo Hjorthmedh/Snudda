@@ -18,7 +18,5 @@ plot_curinj.py
 
 for spike input frequency vs output frequency run:
 input_spikes_vs_output.py
-run_spk_inp_out_sim.sh
-plot_inpspk_outp.py
 
 

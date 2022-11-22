@@ -56,15 +56,14 @@ class PlotInputVsOutput:
 
         if not os.path.isdir(fig_dir):
             os.mkdir(fig_dir)
-    def get_input_vs_output(self, experiment_config_file=None):
+    def get_input_vs_output(self, experiment_config_file=None,subtype_cap='iSPN'):
         self.make_figures_directory()
         with open(experiment_config_file, "r") as f:
             exp_proto = json.load(f, object_pairs_hook=OrderedDict)
-        start_times = exp_proto["iSPN"]["CorticalSignal"]["start"]
-        end_times = exp_proto["iSPN"]["CorticalSignal"]["end"]
-        in_freqs = exp_proto["iSPN"]["CorticalSignal"]["frequency"]
+        start_times = exp_proto[subtype_cap]["CorticalSignal"]["start"]
+        end_times = exp_proto[subtype_cap]["CorticalSignal"]["end"]
+        in_freqs = exp_proto[subtype_cap]["CorticalSignal"]["frequency"]
         num_neurons = len(self.spike_time.keys())
-
 
         out_freqs_all = []
         for start_time, end_time in zip(start_times, end_times):
