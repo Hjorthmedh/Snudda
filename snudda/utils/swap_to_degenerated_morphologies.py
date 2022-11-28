@@ -528,7 +528,13 @@ class SwapToDegeneratedMorphologies:
                     n_remap = len(old_input_data["sectionID"]) - len(keep_idx)
                     idx_remap = sorted(list(set(np.arange(0, len(old_input_data["sectionID"]))) - set(keep_idx)))
 
-                    synapse_density = SnuddaLoad.to_str(old_input_data["synapseDensity"])
+                    try:
+                        synapse_density = SnuddaLoad.to_str(old_input_data["synapseDensity"][()])
+                    except:
+                        import traceback
+                        print(traceback.format_exc())
+                        import pdb
+                        pdb.set_trace()
 
                     xyz, sec_id, sec_x, dist_to_soma = morph.dendrite_input_locations(synapse_density=synapse_density,
                                                                                       num_locations=n_remap,
@@ -536,14 +542,12 @@ class SwapToDegeneratedMorphologies:
                                                                                       cluster_size=1,
                                                                                       cluster_spread=None)
 
-                    updated_sec_id = old_input_data["sectionID"][()].copy()
-                    updated_sec_id[idx_remap] = sec_id
-                    input_group.create_dataset("sectionID", data=updated_sec_id, compression="gzip",
+                    new_sec_id[idx_remap] = sec_id
+                    input_group.create_dataset("sectionID", data=new_sec_id, compression="gzip",
                                                dtype=np.int16)
 
-                    updated_sec_x = old_input_data["sectionX"][()].copy()
-                    updated_sec_x[idx_remap] = sec_x
-                    input_group.create_dataset("sectionX", data=updated_sec_x, compression="gzip",
+                    new_sec_x[idx_remap] = sec_x
+                    input_group.create_dataset("sectionX", data=new_sec_x, compression="gzip",
                                                dtype=np.float16)
 
                     updated_dist = old_input_data["distanceToSoma"][()].copy()
@@ -565,9 +569,8 @@ class SwapToDegeneratedMorphologies:
                     input_group.create_dataset("nSpikes", data=old_input_data["nSpikes"][keep_idx], dtype=np.int32)
                     input_group.create_dataset("sectionID", data=new_sec_id[keep_idx], compression="gzip", dtype=np.int16)
                     input_group.create_dataset("sectionX", data=new_sec_x[keep_idx], compression="gzip", dtype=np.float16)
-                    input_group.create_dataset("parameterID", data=old_input_data["parmeterID"][keep_idx],
+                    input_group.create_dataset("parameterID", data=old_input_data["parameterID"][keep_idx],
                                                compression="gzip", dtype=np.int)
-
                     input_group.create_dataset("distanceToSoma", data=old_input_data["distanceToSoma"][keep_idx],
                                                compression="gzip", dtype=np.float16)
 
@@ -582,7 +585,7 @@ class SwapToDegeneratedMorphologies:
 
             print(f"Processed input to {self.old_data['neurons'][int(neuron)]['name']} ({neuron}), "
                   f"keeping {new_n} out of {old_n} inputs (plus remapping {remap_n} inputs)"
-                  f"({new_n / max(old_n,1) * 100 :.2f} %) ({remap_n / max(old_n,1)*100 :.2f} % remapped")
+                  f"({new_n / max(old_n,1) * 100 :.2f} %) ({remap_n / max(old_n,1)*100 :.2f} % remapped)")
 
         self.close()
 
