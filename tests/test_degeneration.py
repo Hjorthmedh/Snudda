@@ -52,7 +52,6 @@ class MyTestCase(unittest.TestCase):
         spr2 = SnuddaPrune(network_path=network_B, random_seed=9)
         spr2.prune()
 
-
         network_A_file = os.path.join(network_A, "network-synapses.hdf5")
         network_B_file = os.path.join(network_B, "network-synapses.hdf5")
         network_C_file = os.path.join(network_C, "network-synapses.hdf5")
