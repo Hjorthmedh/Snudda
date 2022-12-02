@@ -1195,7 +1195,7 @@ class NeuronMorphology:
         # if type(i_density) in (int, float): -- this worked for eval, but not for numexpr.evaluate
         if i_density.ndim == 0:
             # If iDensity is a constant, we need to set it for all points
-            i_density = float(i_density) * np.ones(d.shape)
+            i_density = float(i_density) * np.ones(d.shape)    # TODO: Change to np.full(d.shape, i_density, dtype=float)
 
         comp_density = (i_density[self.dend_links[:, 0]] + i_density[self.dend_links[:, 1]]) / 2
         comp_len = self.compartment_length(comp_type="dend")
@@ -1277,9 +1277,6 @@ class NeuronMorphology:
         """
 
         expected_synapses = self.get_expected_synapses_per_compartment(synapse_density=synapse_density)
-
-        p_cum = np.cumsum(expected_synapses)
-        rand_vals = rng.uniform(0, p_cum[-1], num_locations)
 
         if cluster_size is None:
             cluster_size = 1
