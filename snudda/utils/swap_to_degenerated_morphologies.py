@@ -530,7 +530,7 @@ class SwapToDegeneratedMorphologies:
 
                     if remapped_fraction < 1.0:
                         n_remap = int(np.round(len(idx_remap) * remapped_fraction))
-                        idx_remap = sorted(list(np.random.permutation(idx_remap)[:]))
+                        idx_remap = sorted(list(np.random.permutation(idx_remap)[:n_remap]))
 
                     try:
                         synapse_density = SnuddaLoad.to_str(old_input_data["synapseDensity"][()])
@@ -550,7 +550,7 @@ class SwapToDegeneratedMorphologies:
                     new_n += len(keep_idx)
                     remap_n += len(idx_remap)
 
-                    keep_idx2 = sorted(list(set(keep_idx) + set(idx_remap)))
+                    keep_idx2 = sorted(list(set(keep_idx).union(set(idx_remap))))
 
                     # Same spikes as before
                     input_group.create_dataset("spikes", data=old_input_data["spikes"][keep_idx2, :],
