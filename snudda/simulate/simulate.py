@@ -1103,7 +1103,6 @@ class SnuddaSimulate(object):
 
         for neuron_id, neuron in self.neurons.items():
 
-            self.external_stim[neuron_id] = []
             name = neuron.name
 
             if str(neuron_id) not in self.input_data["input"]:
@@ -1111,6 +1110,8 @@ class SnuddaSimulate(object):
                 continue
 
             for input_type in self.input_data["input"][str(neuron_id)]:
+
+                self.external_stim[neuron_id, input_type] = []
 
                 neuron_input = self.input_data["input"][str(neuron_id)][input_type]
                 sections = self.neurons[neuron_id].map_id_to_compartment(neuron_input["sectionID"])
@@ -1185,7 +1186,7 @@ class SnuddaSimulate(object):
                             setattr(syn, par, par_value)
 
                     # Need to save references, otherwise they will be freed
-                    self.external_stim[neuron_id].append((v, vs, nc, syn, spikes))
+                    self.external_stim[neuron_id, input_type].append((v, vs, nc, syn, spikes))
 
     ############################################################################
 
