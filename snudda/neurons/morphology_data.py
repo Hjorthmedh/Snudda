@@ -39,11 +39,11 @@ class MorphologyData:
 
         self.swc_file = swc_file
 
-        self.geometry = None  # x, y, z, r, soma_dist (float)
-        self.section_data = None  # section_id, section_x (*1000), section_type (int)
-        self.sections = None  # dictionary section_id --> SectionMetaData
+        self.geometry = None      # x, y, z, r, soma_dist (float)
+        self.point_data = None    # section_id, section_x (*1000), section_type (int), parent_id (int)
+        self.sections = None      # dictionary section_id --> SectionMetaData
 
-        self.point_lookup = dict()  # "dend" --> np.array of point_id for dend points
+        self.point_lookup = dict()    # "dend" --> np.array of point_id for dend points
         self.section_lookup = dict()  # 'dend' --> np.array of section_id for dend sections
 
         self.rotation = None
@@ -84,21 +84,42 @@ class MorphologyData:
         self.geometry = np.zeros((data.shape[0], 5), dtype=float)
         self.geometry[:, :4] = data[:, 2:6] * 1e-6  # x, y, z, r -- converted to meter
 
+        # Calculate distance to soma and store in self.geometry
         parent_row_id = data[:, 6] - 1
         comp_length = np.linalg.norm(self.geometry[parent_row_id, :3] - self.geometry[1:, :3], axis=1)
 
         for comp_id, parent_id, c_len in enumerate(zip(parent_row_id, comp_length)):
             self.geometry[comp_id, 5] = self.geometry[parent_id, 5] + comp_length
 
-        self.section_data = np.full((data.shape[0], 3), -1, dtype=int)
-        self.section_data[:, 2] = data[:, 1]
+        # Store metadata for points
+        self.point_data = np.full((data.shape[0], 4), -1, dtype=int)
+        self.point_data[:, 2] = data[:, 1]
+        self.point_data[:, 3] = parent_row_id
 
-        if (np.abs(self.section_data[:, 2] - data[:, 1]) > 1e-12).any():
+        if (np.abs(self.point_data[:, 2] - data[:, 1]) > 1e-12).any():
             raise ValueError(f"Internal error, non integer ID numbers detected ({swc_file})")
 
         self.build_tree()
 
     def build_tree(self):
+
+        # Find branch and leaves
+        child_count = np.array((self.geometry.shape[0],), dtype=int)
+
+        parent_id, counts = np.unique(self.point_data[:, 3], return_counts=True)
+
+        branch_id = parent_id[counts > 1]
+        leaf_id = parent_id[counts == 0]
+
+        edge_mask = np.zeros((self.geometry.shape[0],), dtype=bool)
+        edge_mask[branch_id] = True
+        edge_mask[leaf_id] = True
+
+        # TO BE CONTINUED HERE
+        assert False
+
+
+        for parent in self.point_data[:, 3]:
 
         pass
 
