@@ -205,7 +205,7 @@ class SnuddaPlotInputLocations:
         # import pdb
         # pdb.set_trace()
 
-        plt.figure()
+        fig=plt.figure()
         plt.stairs(norm_count, edges * 1e6, color="black")
 
         plt.xlabel("Distance ($\mu$m)")
@@ -224,6 +224,8 @@ class SnuddaPlotInputLocations:
 
         plt.ion()
         plt.show()
+        
+        return fig
 
     def dendrite_density_for_type(self, neuron_type, max_dist, num_bins):
 

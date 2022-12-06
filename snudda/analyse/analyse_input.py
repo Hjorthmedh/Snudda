@@ -88,9 +88,11 @@ class AnalyseInput:
         ax.set_xticklabels(label_list)
         ax.set_ylabel("Number of input synapses")
 
-        plt.ion()
-        plt.show()
 
         if fig_name is not None:
             fig_path = os.path.join(self.figure_path, fig_name)
             plt.savefig(fig_path)
+            
+        plt.ion()
+        plt.show()
+        
