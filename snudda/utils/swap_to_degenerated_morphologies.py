@@ -481,7 +481,7 @@ class SwapToDegeneratedMorphologies:
 
         return sec_id, sec_x
 
-    def write_new_input_file(self, remap_removed_input=False):
+    def write_new_input_file(self, remap_removed_input=False, remapped_fraction=1.0):
 
         if self.original_input_file is None:
             print("No input file supplied, no new input file created")
@@ -515,7 +515,7 @@ class SwapToDegeneratedMorphologies:
                                                  old_sec_id=old_input_data["sectionID"],
                                                  old_sec_x=old_input_data["sectionX"])
 
-                if len(keep_idx) == 0 and not remap_removed_input:
+                if len(keep_idx) == 0 and not (remap_removed_input and remapped_fraction > 0):
                     continue
 
                 input_group = neuron_group.create_group(input_type)
@@ -527,6 +527,10 @@ class SwapToDegeneratedMorphologies:
 
                     n_remap = len(old_input_data["sectionID"]) - len(keep_idx)
                     idx_remap = sorted(list(set(np.arange(0, len(old_input_data["sectionID"]))) - set(keep_idx)))
+
+                    if remapped_fraction < 1.0:
+                        n_remap = int(np.round(len(idx_remap) * remapped_fraction))
+                        idx_remap = sorted(list(np.random.permutation(idx_remap)[:n_remap]))
 
                     try:
                         synapse_density = SnuddaLoad.to_str(old_input_data["synapseDensity"][()])
@@ -542,26 +546,39 @@ class SwapToDegeneratedMorphologies:
                                                                                       cluster_size=1,
                                                                                       cluster_spread=None)
 
-                    new_sec_id[idx_remap] = sec_id
-                    input_group.create_dataset("sectionID", data=new_sec_id, compression="gzip",
-                                               dtype=np.int16)
-
-                    new_sec_x[idx_remap] = sec_x
-                    input_group.create_dataset("sectionX", data=new_sec_x, compression="gzip",
-                                               dtype=np.float16)
-
-                    updated_dist = old_input_data["distanceToSoma"][()].copy()
-                    updated_dist[idx_remap] = dist_to_soma
-                    input_group.create_dataset("distanceToSoma", data=updated_dist, compression="gzip",
-                                               dtype=np.float16)
-
-                    for data_name in old_input_data.keys():
-                        if data_name not in ["sectionID", "sectionX", "distanceToSoma"]:
-                            old_input_data.copy(source=old_input_data[data_name], dest=input_group)
-
                     old_n += old_input_data['spikes'].shape[0]
                     new_n += len(keep_idx)
                     remap_n += len(idx_remap)
+
+                    keep_idx2 = sorted(list(set(keep_idx).union(set(idx_remap))))
+
+                    # Same spikes as before
+                    input_group.create_dataset("spikes", data=old_input_data["spikes"][keep_idx2, :],
+                                               compression="gzip", dtype=np.float32)
+                    input_group.create_dataset("nSpikes", data=old_input_data["nSpikes"][keep_idx2], dtype=np.int32)
+
+                    # New locations for the remapped synapses
+                    new_sec_id[idx_remap] = sec_id
+                    input_group.create_dataset("sectionID", data=new_sec_id[keep_idx2], compression="gzip",
+                                               dtype=np.int16)
+
+                    new_sec_x[idx_remap] = sec_x
+                    input_group.create_dataset("sectionX", data=new_sec_x[keep_idx2], compression="gzip",
+                                               dtype=np.float16)
+
+                    input_group.create_dataset("parameterID", data=old_input_data["parameterID"][keep_idx2],
+                                               compression="gzip", dtype=np.int)
+
+                    updated_dist = old_input_data["distanceToSoma"][()].copy()
+                    updated_dist[idx_remap] = dist_to_soma
+                    input_group.create_dataset("distanceToSoma", data=updated_dist[keep_idx2], compression="gzip",
+                                               dtype=np.float16)
+
+                    for data_name in ["freq", "correlation", "jitter", "synapseDensity", "start", "end", "conductance",
+                                      "populationUnitID", "populationUnitSpikes", "generator",
+                                      "modFile", "parameterFile", "parameterList"]:
+                        if data_name in old_input_data:
+                            old_input_data.copy(source=old_input_data[data_name], dest=input_group)
 
                 else:
                     input_group.create_dataset("spikes", data=old_input_data["spikes"][keep_idx, :],

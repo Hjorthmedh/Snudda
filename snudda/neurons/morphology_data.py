@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 
@@ -34,7 +35,9 @@ class MorphologyData:
 
     """
 
-    def __init__(self, swc_fil):
+    def __init__(self, swc_file=None):
+
+        self.swc_file = swc_file
 
         self.geometry = None  # x, y, z, r, soma_dist (float)
         self.section_data = None  # section_id, section_x (*1000), section_type (int)
@@ -46,11 +49,59 @@ class MorphologyData:
         self.rotation = None
         self.position = None
 
+        if swc_file is not None:
+            self.load_swc_file(swc_file=swc_file)
+
     def section_iterator(self, section_type):
         section_id = self.section_lookup[section_type]
 
         for sid in section_id:
             yield self.sections[sid]
+
+    def load_swc_file(self, swc_file):
+        # This function is not SNUDDA_DATA aware, the file must exist
+
+        if not os.path.isfile(swc_file):
+            raise FileNotFoundError(f"Missing SWC file '{swc_file}'")
+
+        data = np.loadtxt(swc_file)
+
+        if any(np.diff(data[:, 0]) != 1):
+            raise IndexError(f"SWC file has gaps in ID numbering ({swc_file})")
+
+        if data[0, 0] != 1:
+            raise IndexError(f"ID does not start from 1 ({swc_file})")
+
+        if not data[0, 2:5] == [0, 0, 0]:
+            raise ValueError(f"Does not have root centered at origo ({swc_file})")
+
+        if data[0, 6] != -1:
+            raise ValueError(f"First element must be root, and have parent ID -1 ({swc_file})")
+
+        if not (data[:, 0] > data[:, 6]).all():
+            raise ValueError(f"Parent ID must be lower than row ID ({swc_file})")
+
+        self.geometry = np.zeros((data.shape[0], 5), dtype=float)
+        self.geometry[:, :4] = data[:, 2:6] * 1e-6  # x, y, z, r -- converted to meter
+
+        parent_row_id = data[:, 6] - 1
+        comp_length = np.linalg.norm(self.geometry[parent_row_id, :3] - self.geometry[1:, :3], axis=1)
+
+        for comp_id, parent_id, c_len in enumerate(zip(parent_row_id, comp_length)):
+            self.geometry[comp_id, 5] = self.geometry[parent_id, 5] + comp_length
+
+        self.section_data = np.full((data.shape[0], 3), -1, dtype=int)
+        self.section_data[:, 2] = data[:, 1]
+
+        if (np.abs(self.section_data[:, 2] - data[:, 1]) > 1e-12).any():
+            raise ValueError(f"Internal error, non integer ID numbers detected ({swc_file})")
+
+        self.build_tree()
+
+    def build_tree(self):
+
+        pass
+
 
     def clone(self):
         # Implement

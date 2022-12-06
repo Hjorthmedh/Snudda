@@ -119,7 +119,7 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
     def modulate_synapses(self, modulation, synapses, intrinsic=None, extrinsic=None):
 
         if extrinsic:
-            for neuronID, synlist in self.external_stim.items():
+            for (neuronID, input_type), synlist in self.external_stim.items():
                 for syntuple in synlist:
 
                     cell_type_name = self.neurons[neuronID].type
