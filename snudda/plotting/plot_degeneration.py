@@ -15,25 +15,25 @@ class PlotDegeneration:
             os.mkdir(self.fig_path)
 
     def plot_neuron(self, neuron_id, figure_size=None, show_internal_synapses=True):
-
+        import matplotlib.pyplot as plt
+        fig = plt.figure(figsize=figure_size)
+        ax = fig.add_subplot(111, projection='3d')
         ax = self.original_plot.plot_neuron_inputs(neuron_id=neuron_id,
                                                    neuron_colour=np.array([0.6, 0.6, 0.6]),
                                                    external_colour=np.array([1, 0.5, 0]),
                                                    internal_colour=np.array([0, 0.5, 1]),
                                                    show_internal_synapses=show_internal_synapses,
+                                                   ax=ax,
                                                    size=2,
                                                    save_fig=False, show_figure=False, figure_size=figure_size)
-        # ax = None
-        self.degenerated_plot.plot_neuron_inputs(neuron_id=neuron_id,
+        
+                                                                                                
+        ax = self.degenerated_plot.plot_neuron_inputs(neuron_id=neuron_id,
                                                  neuron_colour=np.array([0, 0, 0]),
                                                  show_internal_synapses=show_internal_synapses,
                                                  ax=ax,
                                                  size=50,
                                                  save_fig=True, show_figure=True)
-
-        import matplotlib.pyplot as plt
-        plt.show()
-        plt.pause(10)
 
 
 def cli():
