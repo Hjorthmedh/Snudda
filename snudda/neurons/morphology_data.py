@@ -14,11 +14,11 @@ class SectionMetaData:
     point_id: np.ndarray[int]
     section_type: str
 
-    def __init__(self, section_id, parent_id, point_id, children_id=None):
+    def __init__(self, section_id, parent_id, point_range, children_id=None):
 
         self.section_id = section_id
-        self.parent_id = parent_id
-        self.point_id = point_id
+        self.parent_id = parent_id      # id of parent point
+        self.point_range = point_range  # slice(start, end)
 
         if children_id is not None:
             self.children_id = children_id
@@ -81,6 +81,10 @@ class MorphologyData:
         if not (data[:, 0] > data[:, 6]).all():
             raise ValueError(f"Parent ID must be lower than row ID ({swc_file})")
 
+        item, count = np.unique(data[:, 0], return_counts=True)
+        if (count > 1).any():
+            raise ValueError(f"Duplicate index: {item[count > 1]} ({swc_file})")
+
         self.geometry = np.zeros((data.shape[0], 5), dtype=float)
         self.geometry[:, :4] = data[:, 2:6] * 1e-6  # x, y, z, r -- converted to meter
 
@@ -111,9 +115,60 @@ class MorphologyData:
         branch_id = parent_id[counts > 1]
         leaf_id = parent_id[counts == 0]
 
+        type_switch_id = np.argwhere(self.point_data[self.point_data[:, 3], 2] - self.point_data[:,2] != 0)[0]
+
+        edge_id = np.sort(np.union1d(np.union1d(branch_id, leaf_id), type_switch_id))
+
+        edge_flag = np.zeros((self.point_data.shape[0],), dtype=bool)
+        edge_flag[edge_id] = True
+
+        last_row = None
+        section_counter = dict()
+
+        for idx, row in enumerate(self.point_data):
+
+            section_type = row[2]
+            parent_id = row[3]
+
+            if edge_flag[parent_id]:
+                # Parent point is edge, create new section
+                if section_type not in section_counter:
+                    section_counter[section_type] = 0
+                else:
+                    section_counter[section_type] += 1
+
+                section_id = section_counter.get(section_type)
+                self.point_data[idx, 0] = section_id
+            else:
+                # Parent was not an edge, inherit section id
+                self.point_data[idx, 0] = self.point_data[parent_id, 0]
+
+        # TODO:
+        # Now section_id is populated, from there we need to calculate section_x
+        # and also create SectionMetaData
+
+
+
+
+        for start_edge, end_edge in zip(edge_id[:-2]+1, edge_id[1:]):
+
+
+
+            section_type = self.point_data[end_edge, 2]
+
+            # THINK THINK THIKNINg
+            s = slice(start_edge, end_edge+1)
+
+
         edge_mask = np.zeros((self.geometry.shape[0],), dtype=bool)
         edge_mask[branch_id] = True
         edge_mask[leaf_id] = True
+
+        for
+
+        for idx in range(0, self.geometry.shape[0]):
+
+
 
         # TO BE CONTINUED HERE
         assert False
