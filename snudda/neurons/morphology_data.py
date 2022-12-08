@@ -116,7 +116,6 @@ class MorphologyData:
 
         type_switch_id = np.argwhere(self.point_data[self.point_data[:, 3], 2] - self.point_data[:, 2] != 0)[0]
 
-        # Edge id måste vara fel, varför?
         # edge_id = np.sort(np.union1d(np.union1d(branch_id, leaf_id), type_switch_id))
         edge_id = np.union1d(branch_id, type_switch_id)
 
@@ -124,9 +123,6 @@ class MorphologyData:
         edge_flag[edge_id] = True
 
         section_counter = dict()
-
-        # import pdb
-        # pdb.set_trace()
 
         for idx, row in enumerate(self.point_data):
 
