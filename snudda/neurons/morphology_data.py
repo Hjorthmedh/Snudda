@@ -11,7 +11,7 @@ class SectionMetaData:
     section_id: int
     parent_id: int
     children_id: list[int]
-    point_id: np.ndarray[int]
+    point_id: np.ndarray
     section_type: str
 
     def __init__(self, section_id, parent_id, point_range, children_id=None):
@@ -72,7 +72,7 @@ class MorphologyData:
         if data[0, 0] != 1:
             raise IndexError(f"ID does not start from 1 ({swc_file})")
 
-        if not data[0, 2:5] == [0, 0, 0]:
+        if not (data[0, 2:5] == [0, 0, 0]).all():
             raise ValueError(f"Does not have root centered at origo ({swc_file})")
 
         if data[0, 6] != -1:
@@ -89,16 +89,17 @@ class MorphologyData:
         self.geometry[:, :4] = data[:, 2:6] * 1e-6  # x, y, z, r -- converted to meter
 
         # Calculate distance to soma and store in self.geometry
-        parent_row_id = data[:, 6] - 1
+        parent_row_id = data[1:, 6].astype(int) - 1
         comp_length = np.linalg.norm(self.geometry[parent_row_id, :3] - self.geometry[1:, :3], axis=1)
 
-        for comp_id, parent_id, c_len in enumerate(zip(parent_row_id, comp_length)):
-            self.geometry[comp_id, 5] = self.geometry[parent_id, 5] + comp_length
+        for comp_id, (parent_id, c_len) in enumerate(zip(parent_row_id, comp_length)):
+            self.geometry[comp_id, 4] = self.geometry[parent_id, 4] + c_len
 
         # Store metadata for points
         self.point_data = np.full((data.shape[0], 4), -1, dtype=int)
         self.point_data[:, 2] = data[:, 1]
-        self.point_data[:, 3] = parent_row_id
+        self.point_data[0, 3] = -1
+        self.point_data[1:, 3] = parent_row_id
 
         if (np.abs(self.point_data[:, 2] - data[:, 1]) > 1e-12).any():
             raise ValueError(f"Internal error, non integer ID numbers detected ({swc_file})")
@@ -108,29 +109,31 @@ class MorphologyData:
     def build_tree(self):
 
         # Find branch and leaves
-        child_count = np.array((self.geometry.shape[0],), dtype=int)
-
         parent_id, counts = np.unique(self.point_data[:, 3], return_counts=True)
+        leaf_id = np.setdiff1d(np.arange(0, self.point_data.shape[0]), self.point_data[:, 3])
 
         branch_id = parent_id[counts > 1]
-        leaf_id = parent_id[counts == 0]
 
-        type_switch_id = np.argwhere(self.point_data[self.point_data[:, 3], 2] - self.point_data[:,2] != 0)[0]
+        type_switch_id = np.argwhere(self.point_data[self.point_data[:, 3], 2] - self.point_data[:, 2] != 0)[0]
 
-        edge_id = np.sort(np.union1d(np.union1d(branch_id, leaf_id), type_switch_id))
+        # Edge id måste vara fel, varför?
+        # edge_id = np.sort(np.union1d(np.union1d(branch_id, leaf_id), type_switch_id))
+        edge_id = np.union1d(branch_id, type_switch_id)
 
         edge_flag = np.zeros((self.point_data.shape[0],), dtype=bool)
         edge_flag[edge_id] = True
 
-        last_row = None
         section_counter = dict()
+
+        # import pdb
+        # pdb.set_trace()
 
         for idx, row in enumerate(self.point_data):
 
             section_type = row[2]
             parent_id = row[3]
 
-            if edge_flag[parent_id]:
+            if parent_id == -1 or edge_flag[parent_id]:
                 # Parent point is edge, create new section
                 if section_type not in section_counter:
                     section_counter[section_type] = 0
@@ -147,9 +150,10 @@ class MorphologyData:
         # Now section_id is populated, from there we need to calculate section_x
         # and also create SectionMetaData
 
+        import pdb
+        pdb.set_trace()
 
-
-
+    """
         for start_edge, end_edge in zip(edge_id[:-2]+1, edge_id[1:]):
 
 
@@ -163,20 +167,8 @@ class MorphologyData:
         edge_mask = np.zeros((self.geometry.shape[0],), dtype=bool)
         edge_mask[branch_id] = True
         edge_mask[leaf_id] = True
+    """
 
-        for
-
-        for idx in range(0, self.geometry.shape[0]):
-
-
-
-        # TO BE CONTINUED HERE
-        assert False
-
-
-        for parent in self.point_data[:, 3]:
-
-        pass
 
 
     def clone(self):
@@ -201,3 +193,11 @@ class MorphologyData:
 
 
 
+if __name__ == "__main__":
+
+    file_name = "/home/hjorth/HBP/BasalGangliaData/data/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20211026/morphology/WT-0728MSN01-cor-rep-ax-res3.swc"
+
+    md = MorphologyData(swc_file=file_name)
+
+    import pdb
+    pdb.set_trace()
