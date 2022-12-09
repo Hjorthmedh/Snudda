@@ -1,29 +1,53 @@
 import os
 import numpy as np
 
+# TODO: Move constants like 1000 * sec_x to separate file
+
 
 class SectionMetaData:
 
     """ Holds parent_id, children_id, points_id"""
 
-    __slots__ = ["parent_id", "children_id", "points_id"]
+    __slots__ = ["section_id", "parent_section_id", "parent_point_id",
+                 "child_section_id", "point_range", "section_type", "morphology_data"]
 
     section_id: int
-    parent_id: int
-    children_id: list[int]
-    point_id: np.ndarray
-    section_type: str
+    parent_section_id: int
+    parent_point_id: int
+    child_section_id: np.ndarray
+    point_range: np.ndarray
+    section_type: int
+    morphology_data: object
 
-    def __init__(self, section_id, parent_id, point_range, children_id=None):
+    def __init__(self, section_id, section_type, morphology_data):
 
+        self.morphology_data = morphology_data
         self.section_id = section_id
-        self.parent_id = parent_id      # id of parent point
-        self.point_range = point_range  # slice(start, end)
+        self.section_type = section_type
 
-        if children_id is not None:
-            self.children_id = children_id
-        else:
-            self.children_id = []
+        idx = np.where((self.morphology_data.point_data[:, 0] == section_id)
+                       & (self.morphology_data.point_data[:, 2] == section_type))[0]
+
+        if len(idx) == 0:
+            raise ValueError(f"Section id {section_id} has no points in morphology_data")
+
+        if not (np.diff(idx) == 1).all():
+            raise ValueError(f"Points on section must be consecutive")
+
+        self.point_range = slice(idx[0], idx[-1])
+        self.parent_point_id = self.morphology_data.point_data[idx[0], 3]
+        self.parent_section_id = self.morphology_data.point_data[self.parent_point_id, 2]
+
+        # By definition only the last point in a section can be a parent to other sections
+        child_idx = np.where(self.morphology_data.point_data[:, 3] == idx[-1])[0]
+        self.child_section_id = self.morphology_data.point_data[child_idx, 0]
+
+        # Also check it above
+        bastard_idx = np.where((idx[0] <= self.morphology_data.point_data[:, 3])
+                               & (self.morphology_data.point_data[:, 3] < idx[-1]))[0]
+
+        if not (bastard_idx == idx[1:]).all():
+            raise ValueError(f"Only last point in section may have children outside section.")
 
 
 class MorphologyData:
@@ -108,24 +132,21 @@ class MorphologyData:
 
     def build_tree(self):
 
-        # Find branch and leaves
+        # New sections are triggered when:
+        # -- At branch points
+        # -- Change of section type
         parent_id, counts = np.unique(self.point_data[:, 3], return_counts=True)
-        leaf_id = np.setdiff1d(np.arange(0, self.point_data.shape[0]), self.point_data[:, 3])
-
         branch_id = parent_id[counts > 1]
+        type_switch_id = np.where(self.point_data[self.point_data[:, 3], 2] - self.point_data[:, 2] != 0)[0]
 
-        type_switch_id = np.argwhere(self.point_data[self.point_data[:, 3], 2] - self.point_data[:, 2] != 0)[0]
-
-        # edge_id = np.sort(np.union1d(np.union1d(branch_id, leaf_id), type_switch_id))
         edge_id = np.union1d(branch_id, type_switch_id)
-
         edge_flag = np.zeros((self.point_data.shape[0],), dtype=bool)
         edge_flag[edge_id] = True
 
         section_counter = dict()
 
+        # Assign section id to all points in point_data
         for idx, row in enumerate(self.point_data):
-
             section_type = row[2]
             parent_id = row[3]
 
@@ -142,30 +163,38 @@ class MorphologyData:
                 # Parent was not an edge, inherit section id
                 self.point_data[idx, 0] = self.point_data[parent_id, 0]
 
-        # TODO:
-        # Now section_id is populated, from there we need to calculate section_x
-        # and also create SectionMetaData
+        # Calculate section_x for all points in point_data
+        for section_type in section_counter:
+            for section_id in range(0, section_counter[section_type]):
+                idx = np.where((self.point_data[:, 0] == section_id) & (self.point_data[:, 2] == section_type))[0]
 
-        import pdb
-        pdb.set_trace()
+                if len(idx) == 1:
+                    self.point_data[idx, 1] = 1000 * 0.5
+                    continue
 
-    """
-        for start_edge, end_edge in zip(edge_id[:-2]+1, edge_id[1:]):
+                if not (np.diff(idx) == 1).all():
+                    raise ValueError(f"Points on a {section_type} section must be consecutive")
 
+                parent_idx = self.point_data[idx, 3]
+                comp_length = np.linalg.norm(self.geometry[idx, :3] - self.geometry[parent_idx, :3], axis=1)
 
+                # If parent compartment is soma, then we need to remove soma radius from the distance
+                # because no part of the dendrite is inside the soma.
+                if self.point_data[parent_idx[0], 3] == 1:
+                    comp_length[0] -= self.geometry[parent_idx[0], 3]
 
-            section_type = self.point_data[end_edge, 2]
+                self.point_data[idx, 1] = 1000 * np.cumsum(comp_length) / np.sum(comp_length)
 
-            # THINK THINK THIKNINg
-            s = slice(start_edge, end_edge+1)
+        # Build the actual tree
+        self.sections = dict()
+        for section_type in section_counter:
+            if section_type not in self.sections:
+                self.sections[section_type] = dict()
 
-
-        edge_mask = np.zeros((self.geometry.shape[0],), dtype=bool)
-        edge_mask[branch_id] = True
-        edge_mask[leaf_id] = True
-    """
-
-
+            for section_id in range(0, section_counter[section_type]):
+                self.sections[section_type][section_id] = SectionMetaData(section_id=section_id,
+                                                                          section_type=section_type,
+                                                                          morphology_data=self)
 
     def clone(self):
         # Implement
