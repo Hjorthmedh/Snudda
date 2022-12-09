@@ -14,12 +14,14 @@ class SectionMetaData:
     section_id: int
     parent_section_id: int
     parent_point_id: int
-    child_section_id: np.ndarray
+    child_section_id: dict
     point_range: np.ndarray
     section_type: int
     morphology_data: object
 
     def __init__(self, section_id, section_type, morphology_data):
+
+        print(f"section_id = {section_id}, section_type = {section_type}")
 
         self.morphology_data = morphology_data
         self.section_id = section_id
@@ -34,12 +36,24 @@ class SectionMetaData:
         if not (np.diff(idx) == 1).all():
             raise ValueError(f"Points on section must be consecutive")
 
-        self.point_range = slice(idx[0], idx[-1])
+        self.point_range = slice(idx[0], idx[-1] + 1)  # need + 1 at end for python slice to get inclusive
         self.parent_point_id = self.morphology_data.point_data[idx[0], 3]
         self.parent_section_id = self.morphology_data.point_data[self.parent_point_id, 2]
 
         # By definition only the last point in a section can be a parent to other sections
         child_idx = np.where(self.morphology_data.point_data[:, 3] == idx[-1])[0]
+
+        self.child_section_id = dict()
+        for child_id, child_type in zip(self.morphology_data.point_data[child_idx, 0],
+                                        self.morphology_data.point_data[child_idx, 2]):
+            if child_type not in self.child_section_id:
+                self.child_section_id[child_type] = []
+
+            self.child_section_id[child_type].append(child_id)
+
+        for child_type in self.child_section_id.keys():
+            self.child_section_id[child_type] = np.array(self.child_section_id[child_type])
+
         self.child_section_id = self.morphology_data.point_data[child_idx, 0]
 
         # Also check it above
@@ -138,8 +152,8 @@ class MorphologyData:
         parent_id, counts = np.unique(self.point_data[:, 3], return_counts=True)
         branch_id = parent_id[counts > 1]
         type_switch_id = np.where(self.point_data[self.point_data[:, 3], 2] - self.point_data[:, 2] != 0)[0]
-
-        edge_id = np.union1d(branch_id, type_switch_id)
+        type_switch_id = type_switch_id[type_switch_id != 0]
+        edge_id = np.union1d(branch_id, self.point_data[type_switch_id, 3])
         edge_flag = np.zeros((self.point_data.shape[0],), dtype=bool)
         edge_flag[edge_id] = True
 
@@ -191,7 +205,7 @@ class MorphologyData:
             if section_type not in self.sections:
                 self.sections[section_type] = dict()
 
-            for section_id in range(0, section_counter[section_type]):
+            for section_id in range(0, section_counter[section_type] + 1):
                 self.sections[section_type][section_id] = SectionMetaData(section_id=section_id,
                                                                           section_type=section_type,
                                                                           morphology_data=self)
@@ -215,7 +229,6 @@ class MorphologyData:
 
         if rotation is not None:
             self.geometry[:, :3] = np.matmul(self.rotation, self.geometry[:, :3].T).T + self.position
-
 
 
 if __name__ == "__main__":
