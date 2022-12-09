@@ -54,8 +54,6 @@ class SectionMetaData:
         for child_type in self.child_section_id.keys():
             self.child_section_id[child_type] = np.array(self.child_section_id[child_type])
 
-        self.child_section_id = self.morphology_data.point_data[child_idx, 0]
-
         # Also check it above
         bastard_idx = np.where((idx[0] <= self.morphology_data.point_data[:, 3])
                                & (self.morphology_data.point_data[:, 3] < idx[-1]))[0]
