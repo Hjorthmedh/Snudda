@@ -27,8 +27,8 @@ class SectionMetaData:
         self.section_id = section_id
         self.section_type = section_type
 
-        idx = np.where((self.morphology_data.point_data[:, 0] == section_id)
-                       & (self.morphology_data.point_data[:, 2] == section_type))[0]
+        idx = np.where((self.morphology_data.section_data[:, 0] == section_id)
+                       & (self.morphology_data.section_data[:, 2] == section_type))[0]
 
         if len(idx) == 0:
             raise ValueError(f"Section id {section_id} has no points in morphology_data")
@@ -37,26 +37,33 @@ class SectionMetaData:
             raise ValueError(f"Points on section must be consecutive")
 
         self.point_range = slice(idx[0], idx[-1] + 1)  # need + 1 at end for python slice to get inclusive
-        self.parent_point_id = self.morphology_data.point_data[idx[0], 3]
-        self.parent_section_id = self.morphology_data.point_data[self.parent_point_id, 2]
+        self.parent_point_id = self.morphology_data.section_data[idx[0], 3]
+
+        if self.parent_point_id < 0:
+            # Special case, root node
+            self.parent_section_id = -1
+        else:
+            self.parent_section_id = self.morphology_data.section_data[self.parent_point_id, 0]
 
         # By definition only the last point in a section can be a parent to other sections
-        child_idx = np.where(self.morphology_data.point_data[:, 3] == idx[-1])[0]
+        child_idx = np.where(self.morphology_data.section_data[:, 3] == idx[-1])[0]
 
         self.child_section_id = dict()
-        for child_id, child_type in zip(self.morphology_data.point_data[child_idx, 0],
-                                        self.morphology_data.point_data[child_idx, 2]):
+        for child_section_id, child_type in zip(self.morphology_data.section_data[child_idx, 0],
+                                        self.morphology_data.section_data[child_idx, 2]):
+            # self.child_section_id is a dict, which holds the child_section_id for different
+            # types (e.g. 1=soma, 2=axon, 3=dend, 4=apical)
             if child_type not in self.child_section_id:
                 self.child_section_id[child_type] = []
 
-            self.child_section_id[child_type].append(child_id)
+            self.child_section_id[child_type].append(child_section_id)
 
         for child_type in self.child_section_id.keys():
             self.child_section_id[child_type] = np.array(self.child_section_id[child_type])
 
         # Also check it above
-        bastard_idx = np.where((idx[0] <= self.morphology_data.point_data[:, 3])
-                               & (self.morphology_data.point_data[:, 3] < idx[-1]))[0]
+        bastard_idx = np.where((idx[0] <= self.morphology_data.section_data[:, 3])
+                               & (self.morphology_data.section_data[:, 3] < idx[-1]))[0]
 
         if not (bastard_idx == idx[1:]).all():
             raise ValueError(f"Only last point in section may have children outside section.")
@@ -71,12 +78,12 @@ class MorphologyData:
 
     """
 
-    def __init__(self, swc_file=None):
+    def __init__(self, swc_file=None, parent=None):
 
         self.swc_file = swc_file
 
         self.geometry = None      # x, y, z, r, soma_dist (float)
-        self.point_data = None    # section_id, section_x (*1000), section_type (int), parent_id (int)
+        self.section_data = None  # section_id, section_x (*1000), section_type (int), parent_point_id (int)
         self.sections = None      # dictionary section_id --> SectionMetaData
 
         self.point_lookup = dict()    # "dend" --> np.array of point_id for dend points
@@ -84,6 +91,8 @@ class MorphologyData:
 
         self.rotation = None
         self.position = None
+
+        self.parent = parent     # parent tree, if subtree
 
         if swc_file is not None:
             self.load_swc_file(swc_file=swc_file)
@@ -132,12 +141,12 @@ class MorphologyData:
             self.geometry[comp_id, 4] = self.geometry[parent_id, 4] + c_len
 
         # Store metadata for points
-        self.point_data = np.full((data.shape[0], 4), -1, dtype=int)
-        self.point_data[:, 2] = data[:, 1]
-        self.point_data[0, 3] = -1
-        self.point_data[1:, 3] = parent_row_id
+        self.section_data = np.full((data.shape[0], 4), -1, dtype=int)
+        self.section_data[:, 2] = data[:, 1]
+        self.section_data[0, 3] = -1
+        self.section_data[1:, 3] = parent_row_id
 
-        if (np.abs(self.point_data[:, 2] - data[:, 1]) > 1e-12).any():
+        if (np.abs(self.section_data[:, 2] - data[:, 1]) > 1e-12).any():
             raise ValueError(f"Internal error, non integer ID numbers detected ({swc_file})")
 
         self.build_tree()
@@ -147,18 +156,18 @@ class MorphologyData:
         # New sections are triggered when:
         # -- At branch points
         # -- Change of section type
-        parent_id, counts = np.unique(self.point_data[:, 3], return_counts=True)
+        parent_id, counts = np.unique(self.section_data[:, 3], return_counts=True)
         branch_id = parent_id[counts > 1]
-        type_switch_id = np.where(self.point_data[self.point_data[:, 3], 2] - self.point_data[:, 2] != 0)[0]
+        type_switch_id = np.where(self.section_data[self.section_data[:, 3], 2] - self.section_data[:, 2] != 0)[0]
         type_switch_id = type_switch_id[type_switch_id != 0]
-        edge_id = np.union1d(branch_id, self.point_data[type_switch_id, 3])
-        edge_flag = np.zeros((self.point_data.shape[0],), dtype=bool)
+        edge_id = np.union1d(branch_id, self.section_data[type_switch_id, 3])
+        edge_flag = np.zeros((self.section_data.shape[0],), dtype=bool)
         edge_flag[edge_id] = True
 
         section_counter = dict()
 
-        # Assign section id to all points in point_data
-        for idx, row in enumerate(self.point_data):
+        # Assign section id to all points in section_data
+        for idx, row in enumerate(self.section_data):
             section_type = row[2]
             parent_id = row[3]
 
@@ -170,32 +179,32 @@ class MorphologyData:
                     section_counter[section_type] += 1
 
                 section_id = section_counter.get(section_type)
-                self.point_data[idx, 0] = section_id
+                self.section_data[idx, 0] = section_id
             else:
                 # Parent was not an edge, inherit section id
-                self.point_data[idx, 0] = self.point_data[parent_id, 0]
+                self.section_data[idx, 0] = self.section_data[parent_id, 0]
 
-        # Calculate section_x for all points in point_data
+        # Calculate section_x for all points in section_data
         for section_type in section_counter:
             for section_id in range(0, section_counter[section_type]):
-                idx = np.where((self.point_data[:, 0] == section_id) & (self.point_data[:, 2] == section_type))[0]
+                idx = np.where((self.section_data[:, 0] == section_id) & (self.section_data[:, 2] == section_type))[0]
 
                 if len(idx) == 1:
-                    self.point_data[idx, 1] = 1000 * 0.5
+                    self.section_data[idx, 1] = 1000 * 0.5
                     continue
 
                 if not (np.diff(idx) == 1).all():
                     raise ValueError(f"Points on a {section_type} section must be consecutive")
 
-                parent_idx = self.point_data[idx, 3]
+                parent_idx = self.section_data[idx, 3]
                 comp_length = np.linalg.norm(self.geometry[idx, :3] - self.geometry[parent_idx, :3], axis=1)
 
                 # If parent compartment is soma, then we need to remove soma radius from the distance
                 # because no part of the dendrite is inside the soma.
-                if self.point_data[parent_idx[0], 3] == 1:
+                if self.section_data[parent_idx[0], 3] == 1:
                     comp_length[0] -= self.geometry[parent_idx[0], 3]
 
-                self.point_data[idx, 1] = 1000 * np.cumsum(comp_length) / np.sum(comp_length)
+                self.section_data[idx, 1] = 1000 * np.cumsum(comp_length) / np.sum(comp_length)
 
         # Build the actual tree
         self.sections = dict()
@@ -212,14 +221,14 @@ class MorphologyData:
         # Implement
         pass
 
-    def place(self, position, rotation=None):
+    def place(self, position=None, rotation=None):
 
         # Here we assume soma is only a point
         soma_position = self.geometry[self.section_lookup["soma"], :3]
         if not (soma_position == 0).all():
             raise ValueError("Soma must be centered at origo before placement.")
 
-        if self.position is not None and self.rotation is not None:
+        if self.position is not None or self.rotation is not None:
             raise ValueError("Not allowed to rotate or position a neuron that has already been rotated or positioned")
 
         self.rotation = rotation
@@ -227,6 +236,27 @@ class MorphologyData:
 
         if rotation is not None:
             self.geometry[:, :3] = np.matmul(self.rotation, self.geometry[:, :3].T).T + self.position
+
+        if self.parent is not None:
+            # We need to update soma distance for subtree based on distance to parent
+            # self.parent = (MorphologyData, point_idx, arc_factor) -- attachment point
+            # arc_factor is optional, default = 1 (straight line to parent point)
+            parent_object, parent_point_idx = self.parent
+            parent_position = self.parent_object.geometry[parent_point_idx, :3]
+            parent_soma_distance = self.parent_object.geometry[parent_point_idx, 4]
+
+            if len(self.parent) > 2:
+                arc_factor = self.parent[2]
+            else:
+                arc_factor = 1
+
+            dist_to_parent = np.linalg.norm(self.position - parent_position)
+            self.geometry[:, 4] += parent_soma_distance + dist_to_parent * arc_factor
+
+    def section_iterator(self, section_type=None):
+        for section in self.sections:
+            if section_type is None or section.section_type == section_type:
+                yield section
 
 
 if __name__ == "__main__":

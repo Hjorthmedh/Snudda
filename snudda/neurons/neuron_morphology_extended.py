@@ -18,8 +18,14 @@ class NeuronMorphologyExtended:
         self.morphology_key = morphology_key
         self.modulation_key = modulation_key
 
-        pass
+        self.morphology_data = dict()
 
-    def load_swc(self, swc_file, append_flag=False):
+    def add_morphology(self, swc_file, name="neuron", position=None, rotation=None, parent=None):
 
-        with open(swc_file, "r") as f:
+        self.morphology_data[name] = MorphologyData(swc_file=swc_file, parent=parent)
+        self.morphology_data[name].place(position=position, rotation=rotation)
+
+    def section_iterator(self, section_type=None):
+        for subtree in self.morphology_data.values():
+            for section in subtree.section_iterator(section_type=section_type):
+                yield section
