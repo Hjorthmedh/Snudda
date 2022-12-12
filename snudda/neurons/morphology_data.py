@@ -76,9 +76,13 @@ class MorphologyData:
 
         This can hold an entire neuron, or a part of a neuron.
 
+        Args:
+            swc_file (str): Path to SWC file
+            parent_tree_info (tuple, optional): Specify subtree attachment point (MorphologyData, point_idx, arc_factor)
+
     """
 
-    def __init__(self, swc_file=None, parent=None):
+    def __init__(self, swc_file=None, parent_tree_info=None):
 
         self.swc_file = swc_file
 
@@ -92,7 +96,7 @@ class MorphologyData:
         self.rotation = None
         self.position = None
 
-        self.parent = parent     # parent tree, if subtree
+        self.parent_tree_info = parent_tree_info     # parent tree, if subtree
 
         if swc_file is not None:
             self.load_swc_file(swc_file=swc_file)
@@ -217,11 +221,20 @@ class MorphologyData:
                                                                           section_type=section_type,
                                                                           morphology_data=self)
 
-    def clone(self):
-        # Implement
-        pass
+    def clone(self, position, rotation):
 
-    def place(self, position=None, rotation=None):
+        if self.position is not None or self.rotation is not None:
+            raise ValueError("Not allowed to rotate or position a neuron that has already been rotated or positioned")
+
+        from copy import deepcopy
+
+        new_md = deepcopy(self)
+        new_md.place(position=position, rotation=rotation)
+
+    def place(self, position=None, rotation=None, parent_tree_info=None):
+
+        if parent_tree_info is not None:
+            self.parent_tree_info = parent_tree_info  # (MorphologyData, point_idx, arc_factor)
 
         # Here we assume soma is only a point
         soma_position = self.geometry[self.section_lookup["soma"], :3]
@@ -237,18 +250,13 @@ class MorphologyData:
         if rotation is not None:
             self.geometry[:, :3] = np.matmul(self.rotation, self.geometry[:, :3].T).T + self.position
 
-        if self.parent is not None:
+        if self.parent_tree_info is not None:
             # We need to update soma distance for subtree based on distance to parent
-            # self.parent = (MorphologyData, point_idx, arc_factor) -- attachment point
-            # arc_factor is optional, default = 1 (straight line to parent point)
-            parent_object, parent_point_idx = self.parent
+            # self.parent_tree = (MorphologyData, point_idx, arc_factor) -- attachment point
+
+            parent_object, parent_point_idx, arc_factor = self.parent_tree
             parent_position = self.parent_object.geometry[parent_point_idx, :3]
             parent_soma_distance = self.parent_object.geometry[parent_point_idx, 4]
-
-            if len(self.parent) > 2:
-                arc_factor = self.parent[2]
-            else:
-                arc_factor = 1
 
             dist_to_parent = np.linalg.norm(self.position - parent_position)
             self.geometry[:, 4] += parent_soma_distance + dist_to_parent * arc_factor
@@ -257,6 +265,46 @@ class MorphologyData:
         for section in self.sections:
             if section_type is None or section.section_type == section_type:
                 yield section
+
+
+# Separate method to create a random rotation matrix that distributes rotations evenly (this is non-trivial)
+def rand_rotation_matrix(deflection=1.0, rand_nums=None):
+    """
+    Creates a random rotation matrix.
+
+    deflection: the magnitude of the rotation. For 0, no rotation; for 1, competely random
+    rotation. Small deflection => small perturbation.
+    rand_nums: 3 random numbers in the range [0, 1]. If `None`, they will be auto-generated.
+    """
+
+    # from http://www.realtimerendering.com/resources/GraphicsGems/gemsiii/rand_rotation.c
+
+    if rand_nums is None:
+        rand_nums = np.random.uniform(size=(3,))
+
+    theta, phi, z = rand_nums
+
+    theta = theta * 2.0 * deflection * np.pi  # Rotation about the pole (Z).
+    phi = phi * 2.0 * np.pi  # For direction of pole deflection.
+    z = z * 2.0 * deflection  # For magnitude of pole deflection.
+
+    # Compute a vector V used for distributing points over the sphere
+    # via the reflection I - V Transpose(V).  This formulation of V
+    # will guarantee that if x[1] and x[2] are uniformly distributed,
+    # the reflected points will be uniform on the sphere.  Note that V
+    # has length sqrt(2) to eliminate the 2 in the Householder matrix.
+
+    r = np.sqrt(z)
+    vv = (np.sin(phi) * r, np.cos(phi) * r, np.sqrt(2.0 - z))
+
+    st = np.sin(theta)
+    ct = np.cos(theta)
+
+    rr = np.array(((ct, st, 0), (-st, ct, 0), (0, 0, 1)))
+
+    # Construct the rotation matrix  ( V Transpose(V) - I ) R.
+    mm = (np.outer(vv, vv) - np.eye(3)).dot(rr)
+    return mm
 
 
 if __name__ == "__main__":
