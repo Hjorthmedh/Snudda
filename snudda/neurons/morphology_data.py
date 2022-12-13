@@ -1,5 +1,7 @@
 import os
 import numpy as np
+from copy import deepcopy
+
 
 # TODO: Move constants like 1000 * sec_x to separate file
 
@@ -107,7 +109,15 @@ class MorphologyData:
         for sid in section_id:
             yield self.sections[sid]
 
-    def load_swc_file(self, swc_file):
+    def load_swc_file(self, swc_file, remapping_types={4: 3}):
+
+        """ Loads SWC morphology, not SNUDDA_DATA aware (file must exist).
+
+            Args:
+                swc_file (str): Path to swc file
+                remapping_types (dict): Remapping of compartment types (default: 4 (apical) -> 3 (normal dendrites))
+        """
+
         # This function is not SNUDDA_DATA aware, the file must exist
 
         if not os.path.isfile(swc_file):
@@ -134,6 +144,9 @@ class MorphologyData:
         if (count > 1).any():
             raise ValueError(f"Duplicate index: {item[count > 1]} ({swc_file})")
 
+        if self.parent_tree_info is not None and (data[:, 1] != 2).any():
+            raise ValueError(f"Only axonal compartments allowed when subtree of neuron")
+
         self.geometry = np.zeros((data.shape[0], 5), dtype=float)
         self.geometry[:, :4] = data[:, 2:6] * 1e-6  # x, y, z, r -- converted to meter
 
@@ -149,6 +162,11 @@ class MorphologyData:
         self.section_data[:, 2] = data[:, 1]
         self.section_data[0, 3] = -1
         self.section_data[1:, 3] = parent_row_id
+
+        # This remaps apical dendrites to normal dendrites 4 --> 3 (by default)
+        for old_key, new_key in remapping_types.items():
+            key_idx = self.section_data[:, 2] == old_key
+            self.section_data[key_idx] = new_key
 
         if (np.abs(self.section_data[:, 2] - data[:, 1]) > 1e-12).any():
             raise ValueError(f"Internal error, non integer ID numbers detected ({swc_file})")
@@ -226,8 +244,6 @@ class MorphologyData:
         if self.position is not None or self.rotation is not None:
             raise ValueError("Not allowed to rotate or position a neuron that has already been rotated or positioned")
 
-        from copy import deepcopy
-
         new_md = deepcopy(self)
         new_md.place(position=position, rotation=rotation)
 
@@ -272,7 +288,7 @@ def rand_rotation_matrix(deflection=1.0, rand_nums=None):
     """
     Creates a random rotation matrix.
 
-    deflection: the magnitude of the rotation. For 0, no rotation; for 1, competely random
+    deflection: the magnitude of the rotation. For 0, no rotation; for 1, completely random
     rotation. Small deflection => small perturbation.
     rand_nums: 3 random numbers in the range [0, 1]. If `None`, they will be auto-generated.
     """
