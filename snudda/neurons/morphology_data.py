@@ -10,14 +10,13 @@ class SectionMetaData:
 
     """ Holds parent_id, children_id, points_id"""
 
-    __slots__ = ["section_id", "parent_section_id", "parent_point_id",
-                 "child_section_id", "point_range", "section_type", "morphology_data"]
+    __slots__ = ["section_id", "parent_section_id",
+                 "child_section_id", "point_idx", "section_type", "morphology_data"]
 
     section_id: int
     parent_section_id: int
-    parent_point_id: int
     child_section_id: dict
-    point_range: np.ndarray
+    point_idx: np.ndarray
     section_type: int
     morphology_data: object
 
@@ -38,14 +37,13 @@ class SectionMetaData:
         if not (np.diff(idx) == 1).all():
             raise ValueError(f"Points on section must be consecutive")
 
-        self.point_range = slice(idx[0], idx[-1] + 1)  # need + 1 at end for python slice to get inclusive
-        self.parent_point_id = self.morphology_data.section_data[idx[0], 3]
+        self.point_idx = np.concatenate(([idx], self.morphology_data.section_data[idx[0], 3]))
 
-        if self.parent_point_id < 0:
+        if self.point_idx[0] < 0:
             # Special case, root node
             self.parent_section_id = -1
         else:
-            self.parent_section_id = self.morphology_data.section_data[self.parent_point_id, 0]
+            self.parent_section_id = self.morphology_data.section_data[self.point_idx[0], 0]
 
         # By definition only the last point in a section can be a parent to other sections
         child_idx = np.where(self.morphology_data.section_data[:, 3] == idx[-1])[0]

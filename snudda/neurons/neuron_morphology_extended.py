@@ -99,5 +99,41 @@ class NeuronMorphologyExtended:
             synapse_density = np.full((geometry_data.shape[0],), synapse_density)
 
         return synapse_density, dend_idx
-    def dendrite_input_locations(self, synapse_density, rng, num_locations=None,
+
+    def dendrite_input_locations(self, synapse_density_str, rng, num_locations,
                                  cluster_size=None, cluster_spread=20e-6):
+
+        synapse_density, dend_idx = self.get_weighted_synapse_density(synapse_density_str=synapse_density_str)
+
+        # Iterate over all dendrites.
+        geometry = self.morphology_data["neuron"].geometry
+        section_data = self.morphology_data["neuron"].section_data
+        soma_dist = geometry[:, 4]
+        parent_idx = section_data[:, 4]
+        comp_len = soma_dist - soma_dist[parent_idx]
+        comp_synapse_density = (synapse_density - synapse_density[parent_idx]) / 2
+        expected_synapses = np.multiply(comp_len, comp_synapse_density)
+        expected_sum = np.sum(expected_synapses[dend_idx])
+
+        if (expected_synapses[dend_idx] < 0).any():
+            raise ValueError(f"Found negative synapse densities using {synapse_density_str}")
+
+        if expected_sum <= 0:
+            raise ValueError(f"All compartments have zero synapse density: {synapse_density_str}")
+
+        syn_idx = dend_idx[rng.choice(dend_idx, size=num_locations, replace=True,
+                                      p=expected_synapses[dend_idx] / expected_sum)]
+
+        if cluster_size is None or cluster_size == 1:
+            comp_x = rng.random(num_locations)
+            xyz = comp_x * geometry[syn_idx, :3] + (1-comp_x) * geometry[parent_idx[syn_idx], :3]
+            sec_id = section_data[syn_idx, 0]
+            sec_x = comp_x * section_data[syn_idx, 1] + (1-comp_x) * section_data[parent_idx[syn_idx], 1]
+            dist_to_soma = comp_x * geometry[syn_idx, 4] + (1-comp_x) * geometry[parent_idx[syn_idx], 4]
+
+        else:
+            # We got to deal with clusters...
+            raise NotImplementedError  # TO BE CONTINUED
+
+
+        return xyz, sec_id, sec_x, dist_to_soma
