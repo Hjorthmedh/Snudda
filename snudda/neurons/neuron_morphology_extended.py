@@ -132,8 +132,26 @@ class NeuronMorphologyExtended:
             dist_to_soma = comp_x * geometry[syn_idx, 4] + (1-comp_x) * geometry[parent_idx[syn_idx], 4]
 
         else:
-            # We got to deal with clusters...
-            raise NotImplementedError  # TO BE CONTINUED
+            # If either end point of the section is within cluster_spread/2 then we need to
+            # include that section as well (and in case of parent, potentially its children).
 
+            kd_tree = self.morphology_data["neuron"].get_kd_tree(compartment_type=3)
+            lust_of_closest_point_idx = kd_tree.query_ball_point(x=geometry[syn_idx, :3], r=cluster_spread)
+
+            list_cluster_syn_idx = []
+
+            for closest_point_idx in lust_of_closest_point_idx:
+                list_cluster_syn_idx.append(rng.choice(closest_point_idx, size=cluster_size, replace=True))
+
+            cluster_syn_idx = np.concatenate(list_cluster_syn_idx)
+
+            num_locations = len(cluster_syn_idx)
+            comp_x = rng.random(num_locations)
+            xyz = comp_x * geometry[cluster_syn_idx, :3] + (1 - comp_x) * geometry[parent_idx[cluster_syn_idx], :3]
+            sec_id = section_data[cluster_syn_idx, 0]
+            sec_x = comp_x * section_data[cluster_syn_idx, 1] + (1 - comp_x) * section_data[parent_idx[cluster_syn_idx], 1]
+            dist_to_soma = comp_x * geometry[cluster_syn_idx, 4] + (1 - comp_x) * geometry[parent_idx[cluster_syn_idx], 4]
+
+            # TODO: Check that this is correct!!
 
         return xyz, sec_id, sec_x, dist_to_soma

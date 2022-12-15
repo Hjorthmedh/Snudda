@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from copy import deepcopy
-
+from scipy.spatial import cKDTree
 
 # TODO: Move constants like 1000 * sec_x to separate file
 
@@ -100,6 +100,8 @@ class MorphologyData:
 
         if swc_file is not None:
             self.load_swc_file(swc_file=swc_file)
+
+        self.kd_tree_lookup = dict()
 
     def section_iterator(self, section_type):
         section_id = self.section_lookup[section_type]
@@ -279,6 +281,22 @@ class MorphologyData:
         for section in self.sections:
             if section_type is None or section.section_type == section_type:
                 yield section
+
+    def get_kd_tree(self, compartment_type):
+
+        if compartment_type not in self.kd_tree_lookup:
+            coords = np.where(self.section_data[:, 2] == compartment_type)
+            self.kd_tree_lookup = cKDTree(coords)
+
+        return self.kd_tree_lookup[compartment_type]
+
+    def get_closest_point(self, coords, compartment_type):
+
+        """ """
+
+        kd_tree = self.get_kd_tree(compartment_type=compartment_type)
+        closest_dist, closest_point_idx = kd_tree.query(coords)
+        return closest_dist, closest_point_idx
 
 
 # Separate method to create a random rotation matrix that distributes rotations evenly (this is non-trivial)
