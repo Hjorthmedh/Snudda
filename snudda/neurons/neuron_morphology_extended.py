@@ -7,26 +7,98 @@ from snudda.utils.snudda_path import snudda_parse_path
 
 class NeuronMorphologyExtended:
 
-    def __init__(self, name, position, rotation, swc_filename, snudda_data,
-                 parameter_key, morphology_key, modulation_key, logfile=None):
+    def __init__(self,
+                 name=None,
+                 position=None,
+                 rotation=None,
+                 swc_filename=None,
+                 snudda_data=None,
+                 param_data=None,
+                 mech_filename=None,
+                 neuron_path=None,
+                 parameter_key=None,
+                 morphology_key=None,
+                 modulation_key=None,
+                 load_morphology=True,
+                 virtual_neuron=False,
+                 axon_stump_id_flag=True,
+                 colour=None,
+                 logfile=None,
+                 verbose=False):
 
         self.log_file = logfile
+        self.verbose = verbose
 
         self.name = name
-        self.position = position
-        self.rotation = rotation
+        self.position = np.array(position)
+
+        if rotation is not None:
+            self.rotation = np.array(rotation)
+        else:
+            self.rotation = None
+
         self.swc_filename = swc_filename
         self.snudda_data = snudda_data
+
+        self.param_data = param_data
+        self.mech_filename = mech_filename
+        self.neuron_path = neuron_path
 
         self.parameter_key = parameter_key
         self.morphology_key = morphology_key
         self.modulation_key = modulation_key
 
+        self.load_morphology = load_morphology
+        self.virtual_neuron = virtual_neuron
+        self.axon_stump_id_flag = axon_stump_id_flag
+        self.colour = colour
+
         self.morphology_data = dict()
 
-    def add_morphology(self, swc_file, name="neuron", position=None, rotation=None, parent=None):
+        # Can we remove these:
+        self.axon_density_type = None
+        self.dend_density = None
+        self.axon_density = None
+        self.axon_density_bounds_xyz = None
+        self.voxel_size = 5e6
+        self.density_bin_size = 10e-6
+        # Or are they required for axon densities?
 
-        self.morphology_data[name] = MorphologyData(swc_file=swc_file, parent=parent)
+        if self.load_morphology:
+            self.add_morphology(swc_file=swc_filename, position=position, rotation=rotation)
+
+    @property
+    def position(self):
+        if "neuron" not in self.morphology_data:
+            raise KeyError("Position is not yet set, as 'neuron' morphology_data is not defined.")
+
+        return self.morphology_data["neuron"].position
+
+    @property
+    def rotation(self):
+        if "neuron" not in self.morphology_data:
+            raise KeyError("rotation is not yet set, as 'neuron' morphology_data is not defined.")
+
+        return self.morphology_data["neuron"].rotation
+
+    def add_morphology(self, swc_file, name="neuron", position=None, rotation=None, parent_tree_info=None):
+
+        """
+            MorphologyData
+
+            This can hold an entire neuron, or a part of a neuron.
+
+            Args:
+                swc_file (str): Path to SWC file
+                name (str): Label of subtree, default "neuron" = main neuron tree
+                position (np.ndarray): x,y,z coordinates
+                rotation (np.ndarray): 3x3 rotation matrix
+                parent_tree_info (tuple, optional): Specify subtree attachment point
+                                                    (MorphologyData, parent_label, parent_point_idx, arc_factor)
+
+        """
+
+        self.morphology_data[name] = MorphologyData(swc_file=swc_file, parent_tree_info=parent_tree_info)
         self.morphology_data[name].place(position=position, rotation=rotation)
 
     def section_iterator(self, section_type=None):
@@ -36,6 +108,7 @@ class NeuronMorphologyExtended:
 
     def place(self, rotation=None, position=None, name="neuron"):
         self.morphology_data[name].place(position=position, rotation=rotation)
+
         return self
 
     def get_section_coordinates(self, section_id, section_x):
@@ -155,3 +228,13 @@ class NeuronMorphologyExtended:
             # TODO: Check that this is correct!!
 
         return xyz, sec_id, sec_x, dist_to_soma
+
+
+if __name__ == "__main__":
+
+    swc_file = "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc"
+    nme = NeuronMorphologyExtended(swc_filename=swc_file)
+    nme.place(position=[1,2,3], rotation=np.array([[1,0,0],[0,1,0],[0,0,1]]))
+
+    import pdb
+    pdb.set_trace()

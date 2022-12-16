@@ -3,7 +3,7 @@ import json
 import os
 from collections import OrderedDict
 
-from snudda.neurons import NeuronMorphology
+from snudda.neurons import NeuronMorphologyExtended
 from snudda.utils.snudda_path import snudda_parse_path
 
 
@@ -371,16 +371,16 @@ class NeuronPrototype:
                     if self.verbose:
                         print(f"morph_tag = {morph_tag}")
 
-                    self.morphology_cache[morph_tag] = NeuronMorphology(swc_filename=morph_path,
-                                                                        param_data=self.parameter_path,
-                                                                        mech_filename=self.mechanism_path,
-                                                                        neuron_path=self.neuron_path,
-                                                                        snudda_data=self.snudda_data,
-                                                                        name=self.neuron_name,
-                                                                        hoc=None,
-                                                                        load_morphology=self.load_morphology,
-                                                                        virtual_neuron=self.virtual_neuron,
-                                                                        axon_stump_id_flag=self.axon_stump_id_flag)
+                    self.morphology_cache[morph_tag] = NeuronMorphologyExtended(swc_filename=morph_path,
+                                                                                param_data=self.parameter_path,
+                                                                                mech_filename=self.mechanism_path,
+                                                                                neuron_path=self.neuron_path,
+                                                                                snudda_data=self.snudda_data,
+                                                                                name=self.neuron_name,
+                                                                                hoc=None,
+                                                                                load_morphology=self.load_morphology,
+                                                                                virtual_neuron=self.virtual_neuron,
+                                                                                axon_stump_id_flag=self.axon_stump_id_flag)
 
     def apply(self, function_name, arguments):
         """

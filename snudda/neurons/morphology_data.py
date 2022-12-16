@@ -22,8 +22,6 @@ class SectionMetaData:
 
     def __init__(self, section_id, section_type, morphology_data):
 
-        print(f"section_id = {section_id}, section_type = {section_type}")
-
         self.morphology_data = morphology_data
         self.section_id = section_id
         self.section_type = section_type
@@ -37,12 +35,12 @@ class SectionMetaData:
         if not (np.diff(idx) == 1).all():
             raise ValueError(f"Points on section must be consecutive")
 
-        self.point_idx = np.concatenate(([idx], self.morphology_data.section_data[idx[0], 3]))
-
-        if self.point_idx[0] < 0:
+        if self.morphology_data.section_data[idx[0], 3] < 0:
             # Special case, root node
+            self.point_idx = idx
             self.parent_section_id = -1
         else:
+            self.point_idx = np.concatenate(([self.morphology_data.section_data[idx[0], 3]], idx))
             self.parent_section_id = self.morphology_data.section_data[self.point_idx[0], 0]
 
         # By definition only the last point in a section can be a parent to other sections
@@ -78,7 +76,8 @@ class MorphologyData:
 
         Args:
             swc_file (str): Path to SWC file
-            parent_tree_info (tuple, optional): Specify subtree attachment point (MorphologyData, point_idx, arc_factor)
+            parent_tree_info (tuple, optional): Specify subtree attachment point
+                                                (MorphologyData, parent_label, parent_point_idx, arc_factor)
 
     """
 
@@ -91,7 +90,6 @@ class MorphologyData:
         self.sections = None      # dictionary section_id --> SectionMetaData
 
         self.point_lookup = dict()    # "dend" --> np.array of point_id for dend points
-        self.section_lookup = dict()  # 'dend' --> np.array of section_id for dend sections
 
         self.rotation = None
         self.position = None
@@ -104,10 +102,9 @@ class MorphologyData:
         self.kd_tree_lookup = dict()
 
     def section_iterator(self, section_type):
-        section_id = self.section_lookup[section_type]
 
-        for sid in section_id:
-            yield self.sections[sid]
+        for section in self.sections[section_type].values():
+            yield section
 
     def load_swc_file(self, swc_file, remapping_types={4: 3}):
 
@@ -238,6 +235,10 @@ class MorphologyData:
                 self.sections[section_type][section_id] = SectionMetaData(section_id=section_id,
                                                                           section_type=section_type,
                                                                           morphology_data=self)
+        # Create point lookup
+        for section_type in self.sections:
+            idx = np.where(self.section_data[:, 2] == section_type)[0]
+            self.point_lookup[section_type] = idx
 
     def clone(self, position, rotation):
 
@@ -253,17 +254,31 @@ class MorphologyData:
             self.parent_tree_info = parent_tree_info  # (MorphologyData, point_idx, arc_factor)
 
         # Here we assume soma is only a point
-        soma_position = self.geometry[self.section_lookup["soma"], :3]
-        if not (soma_position == 0).all():
-            raise ValueError("Soma must be centered at origo before placement.")
+        if 1 in self.point_lookup:
+            soma_position = self.geometry[self.point_lookup[1], :3]
+            if not (soma_position == 0).all():
+                raise ValueError("Soma must be centered at origo before placement.")
+        elif 2 in self.point_lookup:
+            # We have no soma, so it is probably an axonal tree, check that it is centered
+            axon_root_position = self.geometry[self.point_lookup[2][0], :3]
+            if not (axon_root_position == 0).all():
+                raise ValueError("Axon root must be centered at origo before placement.")
 
         if self.position is not None or self.rotation is not None:
             raise ValueError("Not allowed to rotate or position a neuron that has already been rotated or positioned")
 
+        if isinstance(rotation, (list, tuple)):
+            rotation = np.array(rotation)
         self.rotation = rotation
+
+        if isinstance(position, (list, tuple)):
+            position = np.array(position)
         self.position = position
 
         if rotation is not None:
+            if np.linalg.det(rotation) != 1 or not (np.matmul(rotation, rotation.T) == np.eye(3)).all():
+                raise ValueError(f"Not a valid rotation matrix {rotation}")
+
             self.geometry[:, :3] = np.matmul(self.rotation, self.geometry[:, :3].T).T + self.position
 
         if self.parent_tree_info is not None:

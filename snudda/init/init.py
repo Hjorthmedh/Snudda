@@ -58,7 +58,7 @@ class SnuddaInit(object):
             self.snudda_data = None
 
         if self.snudda_data is not None:
-            self.network_data["SnuddaData"] =  self.snudda_data
+            self.network_data["SnuddaData"] = self.snudda_data
 
         self.network_data["RandomSeed"], self.init_rng = SnuddaInit.setup_random_seeds(random_seed)
 
