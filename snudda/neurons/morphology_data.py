@@ -151,8 +151,13 @@ class MorphologyData:
         parent_row_id = data[1:, 6].astype(int) - 1
         comp_length = np.linalg.norm(self.geometry[parent_row_id, :3] - self.geometry[1:, :3], axis=1)
 
-        for comp_id, (parent_id, c_len) in enumerate(zip(parent_row_id, comp_length)):
-            self.geometry[comp_id, 4] = self.geometry[parent_id, 4] + c_len
+        for comp_id, parent_id, c_len in zip(range(1, len(parent_row_id)+1), parent_row_id, comp_length):
+            if data[0, 1] == 1 and parent_id == 0:
+                # We need to subtract soma radius from first compartment connecting to soma
+                self.geometry[comp_id, 4] = c_len - self.geometry[0, 3]
+            else:
+                # distance to soma = parents distance to soma + compartment length
+                self.geometry[comp_id, 4] = self.geometry[parent_id, 4] + c_len
 
         # Store metadata for points
         self.section_data = np.full((data.shape[0], 4), -1, dtype=int)
@@ -167,6 +172,9 @@ class MorphologyData:
 
         if (np.abs(self.section_data[:, 2] - data[:, 1]) > 1e-12).any():
             raise ValueError(f"Internal error, non integer ID numbers detected ({swc_file})")
+
+        # TODO: We need to remove all points within the soma. Move first point to soma boundary.
+        #       Be careful, there might be multiple points inside the soma
 
         self.build_tree()
 

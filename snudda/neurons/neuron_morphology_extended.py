@@ -30,12 +30,14 @@ class NeuronMorphologyExtended:
         self.verbose = verbose
 
         self.name = name
-        self.position = np.array(position)
 
-        if rotation is not None:
-            self.rotation = np.array(rotation)
-        else:
-            self.rotation = None
+        if isinstance(rotation, (list, tuple)):
+            rotation = np.array(rotation)
+        self._rotation = rotation
+
+        if isinstance(position, (list, tuple)):
+            position = np.array(position)
+        self._position = position
 
         self.swc_filename = swc_filename
         self.snudda_data = snudda_data
@@ -69,17 +71,26 @@ class NeuronMorphologyExtended:
 
     @property
     def position(self):
-        if "neuron" not in self.morphology_data:
-            raise KeyError("Position is not yet set, as 'neuron' morphology_data is not defined.")
+        if "neuron" in self.morphology_data and not (self.morphology_data["neuron"].position == self._position).all():
+            raise ValueError(f"Internal inconsistency, position {self._position} differs "
+                             f"from morphology_data position {self.morphology_data['neuron'].position}")
 
-        return self.morphology_data["neuron"].position
+        return self._position
 
     @property
     def rotation(self):
-        if "neuron" not in self.morphology_data:
-            raise KeyError("rotation is not yet set, as 'neuron' morphology_data is not defined.")
+        if "neuron" in self.morphology_data and not (self.morphology_data["neuron"].rotation == self._rotation).all():
+            raise ValueError(f"Internal inconsistency, rotation {self._rotation} differs "
+                             f"from morphology_data rotation {self.morphology_data['neuron'].rotation}")
 
-        return self.morphology_data["neuron"].rotation
+        return self._rotation
+
+    @position.setter
+    def position(self, position):
+        self._position = position
+
+    def rotation(self, rotation):
+        self._rotation = rotation
 
     def add_morphology(self, swc_file, name="neuron", position=None, rotation=None, parent_tree_info=None):
 
@@ -154,7 +165,7 @@ class NeuronMorphologyExtended:
         """ Given synapse_density it returns expected number of synapses in all dendrite compartments """
         section_data = self.morphology_data["neuron"].section_data
         geometry_data = self.morphology_data["neuron"].geometry
-        dend_idx = section_data[:, 2] == 3
+        dend_idx = np.where(section_data[:, 2] == 3)[0]
         d = geometry_data[dend_idx, 4]
         synapse_density = np.full((geometry_data.shape[0],), np.nan)
 
@@ -167,10 +178,6 @@ class NeuronMorphologyExtended:
             self.write_log(t_str)
             raise ValueError(f"Bad synapse density {synapse_density_str}")
 
-        if synapse_density.ndim == 0:
-            # If synapse_density is a constant, create a np.array of correct size
-            synapse_density = np.full((geometry_data.shape[0],), synapse_density)
-
         return synapse_density, dend_idx
 
     def dendrite_input_locations(self, synapse_density_str, rng, num_locations,
@@ -182,8 +189,16 @@ class NeuronMorphologyExtended:
         geometry = self.morphology_data["neuron"].geometry
         section_data = self.morphology_data["neuron"].section_data
         soma_dist = geometry[:, 4]
-        parent_idx = section_data[:, 4]
-        comp_len = soma_dist - soma_dist[parent_idx]
+        parent_idx = section_data[:, 3]
+
+        comp_len = soma_dist
+        comp_len[1:] -= soma_dist[parent_idx[1:]]
+
+        import pdb
+        pdb.set_trace()
+
+        assert (comp_len[1:] > 0).all(), "Internal error. Zero or negative compartment lengths."
+
         comp_synapse_density = (synapse_density - synapse_density[parent_idx]) / 2
         expected_synapses = np.multiply(comp_len, comp_synapse_density)
         expected_sum = np.sum(expected_synapses[dend_idx])
@@ -194,7 +209,10 @@ class NeuronMorphologyExtended:
         if expected_sum <= 0:
             raise ValueError(f"All compartments have zero synapse density: {synapse_density_str}")
 
-        syn_idx = dend_idx[rng.choice(dend_idx, size=num_locations, replace=True,
+        import pdb
+        pdb.set_trace()
+
+        syn_idx = dend_idx[rng.choice(a=dend_idx, size=num_locations, replace=True,
                                       p=expected_synapses[dend_idx] / expected_sum)]
 
         if cluster_size is None or cluster_size == 1:
@@ -234,7 +252,8 @@ if __name__ == "__main__":
 
     swc_file = "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc"
     nme = NeuronMorphologyExtended(swc_filename=swc_file)
-    nme.place(position=[1,2,3], rotation=np.array([[1,0,0],[0,1,0],[0,0,1]]))
+    nme.place(position=[0,0,0], rotation=np.array([[1,0,0],[0,1,0],[0,0,1]]))
+    nme.dendrite_input_locations("1*d", rng=np.random.default_rng(1), num_locations=20)
 
     import pdb
     pdb.set_trace()
