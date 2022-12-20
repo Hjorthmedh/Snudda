@@ -596,7 +596,7 @@ class SnuddaPlace(object):
                                     (len(volume_id_list),), str_type_vid, volume_id_list,
                                     compression="gzip")
 
-        hoc_list = [snudda_simplify_path(n.hoc, self.snudda_data).encode("ascii", "ignore") for n in self.neurons]
+        hoc_list = [snudda_simplify_path(n.hoc, self.snudda_data).encode("ascii", "ignore") if hasattr(n, "hoc") else "" for n in self.neurons]
         max_hoc_len = max([len(x) for x in hoc_list])
         max_hoc_len = max(max_hoc_len, 10)  # In case there are none
         neuron_group.create_dataset("hoc", (len(hoc_list),), f"S{max_hoc_len}", hoc_list,
@@ -629,30 +629,34 @@ class SnuddaPlace(object):
                                                       "float",
                                                       compression="gzip")
 
-        neuron_dend_radius = neuron_group.create_dataset("maxDendRadius",
-                                                         (len(self.neurons),),
-                                                         "float",
-                                                         compression="gzip")
+        # Should not be used anymore, try removing...
+        #
+        # neuron_dend_radius = neuron_group.create_dataset("maxDendRadius",
+        #                                                  (len(self.neurons),),
+        #                                                  "float",
+        #                                                  compression="gzip")
+        #
+        # neuron_axon_radius = neuron_group.create_dataset("maxAxonRadius",
+        #                                                  (len(self.neurons),),
+        #                                                  "float",
+        #                                                  compression="gzip")
 
-        neuron_axon_radius = neuron_group.create_dataset("maxAxonRadius",
-                                                         (len(self.neurons),),
-                                                         "float",
-                                                         compression="gzip")
+        # Obsolete, we now use morphology_key, parameter_key and modulation_key exclusively
+        #
+        # neuron_param_id = neuron_group.create_dataset("parameterID",
+        #                                               (len(self.neurons),),
+        #                                               "int",
+        #                                               compression="gzip")
+        #
+        # neuron_morph_id = neuron_group.create_dataset("morphologyID",
+        #                                               (len(self.neurons),),
+        #                                               "int",
+        #                                               compression="gzip")
 
-        neuron_param_id = neuron_group.create_dataset("parameterID",
-                                                      (len(self.neurons),),
-                                                      "int",
-                                                      compression="gzip")
-
-        neuron_morph_id = neuron_group.create_dataset("morphologyID",
-                                                      (len(self.neurons),),
-                                                      "int",
-                                                      compression="gzip")
-
-        neuron_modulation_id = neuron_group.create_dataset("modulationID",
-                                                           (len(self.neurons),),
-                                                           "int",
-                                                           compression="gzip")
+        # neuron_modulation_id = neuron_group.create_dataset("modulationID",
+        #                                                    (len(self.neurons),),
+        #                                                    "int",
+        #                                                    compression="gzip")
 
         pk_list = [n.parameter_key.encode("ascii", "ignore")
                    if n.parameter_key is not None else ""
@@ -687,11 +691,11 @@ class SnuddaPlace(object):
         for (i, n) in enumerate(self.neurons):
             neuron_position[i] = n.position
             neuron_rotation[i] = n.rotation.reshape(1, 9)
-            neuron_dend_radius[i] = n.max_dend_radius
-            neuron_axon_radius[i] = n.max_axon_radius
-            neuron_param_id[i] = -1 if n.parameter_id is None else n.parameter_id
-            neuron_morph_id[i] = -1 if n.morphology_id is None else n.morphology_id
-            neuron_modulation_id[i] = -1 if n.modulation_id is None else n.modulation_id
+            # neuron_dend_radius[i] = n.max_dend_radius
+            # neuron_axon_radius[i] = n.max_axon_radius
+            # neuron_param_id[i] = -1 if n.parameter_id is None else n.parameter_id
+            # neuron_morph_id[i] = -1 if n.morphology_id is None else n.morphology_id
+            # neuron_modulation_id[i] = -1 if n.modulation_id is None else n.modulation_id
 
             if n.parameter_key:
                 neuron_param_key[i] = n.parameter_key

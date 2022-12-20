@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import numexpr
 import numpy as np
 
@@ -66,7 +68,7 @@ class NeuronMorphologyExtended:
         self.density_bin_size = 10e-6
         # Or are they required for axon densities?
 
-        if self.load_morphology:
+        if self.load_morphology and swc_filename is not None:
             self.add_morphology(swc_file=swc_filename, position=position, rotation=rotation)
 
     @property
@@ -89,10 +91,12 @@ class NeuronMorphologyExtended:
     def position(self, position):
         self._position = position
 
+    @rotation.setter
     def rotation(self, rotation):
         self._rotation = rotation
 
-    def add_morphology(self, swc_file, name="neuron", position=None, rotation=None, parent_tree_info=None):
+    def add_morphology(self, swc_file, name="neuron", position=None, rotation=None, parent_tree_info=None,
+                       overwrite=False):
 
         """
             MorphologyData
@@ -109,6 +113,9 @@ class NeuronMorphologyExtended:
 
         """
 
+        if not overwrite and name in self.morphology_data:
+            raise KeyError(f"Error when loading {swc_file}, key {name} already exists in morphology_data")
+
         self.morphology_data[name] = MorphologyData(swc_file=swc_file, parent_tree_info=parent_tree_info)
         self.morphology_data[name].place(position=position, rotation=rotation)
 
@@ -118,9 +125,50 @@ class NeuronMorphologyExtended:
                 yield section
 
     def place(self, rotation=None, position=None, name="neuron"):
-        self.morphology_data[name].place(position=position, rotation=rotation)
+
+        if name in self.morphology_data:
+            self.morphology_data[name].place(position=position, rotation=rotation)
+
+        # If load_morphology is False, we allow "neuron" not to be defined yet.
+        if name not in self.morphology_data and (name != "neuron" and not self.load_morphology):
+            raise ValueError(f"Neuron morphology data '{name}' not loaded.")
+
+        self.position = position
+        self.rotation = rotation
 
         return self
+
+    def clone(self,
+              position=None,
+              rotation=None,
+              parameter_key=None,
+              morphology_key=None,
+              modulation_key=None):
+
+        """
+        Creates a clone copy of a neuron.
+
+        Args:
+            position (float,float,float) : x,y,z coordinate of clone
+            rotation (rotation matrix) : Rotation matrix for clone
+
+            parameter_key (str): Parameter Key for clone
+            morphology_key (str): Morphology Key for clone
+            modulation_key (str): Modulation Key for clone
+
+        """
+
+        new_neuron = deepcopy(self)
+        new_neuron.parameter_key = parameter_key
+        new_neuron.modulation_key = modulation_key
+
+        if morphology_key != self.morphology_key:
+            raise ValueError(f"Not allowed to change morphology_key when cloning: {self.morphology_key} -> {morphology_key}")
+
+        if position is not None or rotation is not None:
+            new_neuron.place(position=position, rotation=rotation)
+
+        return new_neuron
 
     def get_section_coordinates(self, section_id, section_x):
         raise NotImplementedError("Apologies.")
@@ -194,9 +242,6 @@ class NeuronMorphologyExtended:
         comp_len = soma_dist
         comp_len[1:] -= soma_dist[parent_idx[1:]]
 
-        import pdb
-        pdb.set_trace()
-
         assert (comp_len[1:] > 0).all(), "Internal error. Zero or negative compartment lengths."
 
         comp_synapse_density = (synapse_density - synapse_density[parent_idx]) / 2
@@ -208,9 +253,6 @@ class NeuronMorphologyExtended:
 
         if expected_sum <= 0:
             raise ValueError(f"All compartments have zero synapse density: {synapse_density_str}")
-
-        import pdb
-        pdb.set_trace()
 
         syn_idx = dend_idx[rng.choice(a=dend_idx, size=num_locations, replace=True,
                                       p=expected_synapses[dend_idx] / expected_sum)]

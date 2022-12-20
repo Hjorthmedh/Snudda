@@ -377,7 +377,6 @@ class NeuronPrototype:
                                                                                 neuron_path=self.neuron_path,
                                                                                 snudda_data=self.snudda_data,
                                                                                 name=self.neuron_name,
-                                                                                hoc=None,
                                                                                 load_morphology=self.load_morphology,
                                                                                 virtual_neuron=self.virtual_neuron,
                                                                                 axon_stump_id_flag=self.axon_stump_id_flag)
@@ -430,16 +429,16 @@ class NeuronPrototype:
 
         if morph_tag not in self.morphology_cache:
             # TODO: hoc file will depend on both morphology_id and parameter_id, we ignore it for now
-            self.morphology_cache[morph_tag] = NeuronMorphology(swc_filename=morph_path,
-                                                                param_data=self.parameter_path,
-                                                                mech_filename=self.mechanism_path,
-                                                                neuron_path=self.neuron_path,
-                                                                snudda_data=self.snudda_data,
-                                                                name=self.neuron_name,
-                                                                hoc=None,
-                                                                load_morphology=self.load_morphology,
-                                                                virtual_neuron=self.virtual_neuron,
-                                                                axon_stump_id_flag=self.axon_stump_id_flag)
+            self.morphology_cache[morph_tag] = NeuronMorphologyExtended(swc_filename=morph_path,
+                                                                        param_data=self.parameter_path,
+                                                                        mech_filename=self.mechanism_path,
+                                                                        neuron_path=self.neuron_path,
+                                                                        snudda_data=self.snudda_data,
+                                                                        name=self.neuron_name,
+                                                                        morphology_key=morphology_key,
+                                                                        load_morphology=self.load_morphology,
+                                                                        virtual_neuron=self.virtual_neuron,
+                                                                        axon_stump_id_flag=self.axon_stump_id_flag)
 
         if get_cache_original:
             assert position is None and rotation is None and modulation_id is None, \
@@ -460,9 +459,6 @@ class NeuronPrototype:
 
             morph = self.morphology_cache[morph_tag].clone(position=position,
                                                            rotation=rotation,
-                                                           parameter_id=parameter_id,
-                                                           morphology_id=morphology_id,
-                                                           modulation_id=modulation_id,
                                                            parameter_key=parameter_key,
                                                            morphology_key=morphology_key,
                                                            modulation_key=modulation_key)
