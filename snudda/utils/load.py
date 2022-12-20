@@ -364,19 +364,16 @@ class SnuddaLoad(object):
 
         neurons = []
 
-        for name, neuron_id, hoc, pos, rot, dend_radius, axon_radius, virtual, vID, \
+        for name, neuron_id, hoc, pos, rot, virtual, vID, \
             axon_density_type, axon_density, axon_density_radius, \
             axon_density_bounds_xyz, \
             morph, neuron_path, \
-            parameter_id, morphology_id, modulation_id, \
             parameter_key, morphology_key, modulation_key, population_unit_id \
                 in zip(hdf5_file["network/neurons/name"][:],
                        hdf5_file["network/neurons/neuronID"][:],
                        hdf5_file["network/neurons/hoc"][:],
                        hdf5_file["network/neurons/position"][()],
                        hdf5_file["network/neurons/rotation"][()],
-                       hdf5_file["network/neurons/maxDendRadius"][:],
-                       hdf5_file["network/neurons/maxAxonRadius"][:],
                        hdf5_file["network/neurons/virtualNeuron"][:],
                        hdf5_file["network/neurons/volumeID"][:],
                        hdf5_file["network/neurons/axonDensityType"][:],
@@ -385,9 +382,6 @@ class SnuddaLoad(object):
                        hdf5_file["network/neurons/axonDensityBoundsXYZ"][:],
                        hdf5_file["network/neurons/morphology"][:],
                        hdf5_file["network/neurons/neuronPath"][:],
-                       hdf5_file["network/neurons/parameterID"][:],
-                       hdf5_file["network/neurons/morphologyID"][:],
-                       hdf5_file["network/neurons/modulationID"][:],
                        hdf5_file["network/neurons/parameterKey"][:],
                        hdf5_file["network/neurons/morphologyKey"][:],
                        hdf5_file["network/neurons/modulationKey"][:],
@@ -411,8 +405,6 @@ class SnuddaLoad(object):
 
             n["position"] = pos
             n["rotation"] = rot.reshape(3, 3)
-            n["maxDendRadius"] = dend_radius
-            n["maxAxonRadius"] = axon_radius
             n["virtualNeuron"] = virtual
 
             if len(axon_density_type) > 0:
@@ -431,10 +423,6 @@ class SnuddaLoad(object):
                 n["axonDensityBoundsXYZ"] = None
 
             n["axonDensityRadius"] = axon_density_radius
-
-            n["parameterID"] = None if parameter_id < 0 else parameter_id
-            n["morphologyID"] = None if morphology_id < 0 else morphology_id
-            n["modulationID"] = None if modulation_id < 0 else modulation_id
 
             # If the code fails here, use snudda/utils/upgrade_old_network_file.py to upgrade your old data files
             n["parameterKey"] = SnuddaLoad.to_str(parameter_key)

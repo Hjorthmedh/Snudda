@@ -284,7 +284,8 @@ class MorphologyData:
         self.position = position
 
         if rotation is not None:
-            if np.linalg.det(rotation) != 1 or not (np.matmul(rotation, rotation.T) == np.eye(3)).all():
+            if not np.abs(np.linalg.det(rotation) - 1) < 1e-10 \
+                    or not np.abs(np.matmul(rotation, rotation.T) - np.eye(3) < 1e-10).all():
                 raise ValueError(f"Not a valid rotation matrix {rotation}")
 
             self.geometry[:, :3] = np.matmul(self.rotation, self.geometry[:, :3].T).T + self.position

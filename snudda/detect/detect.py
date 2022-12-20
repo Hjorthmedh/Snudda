@@ -636,31 +636,6 @@ class SnuddaDetect(object):
                                                       "float",
                                                       compression=self.h5compression)
 
-        neuron_dend_radius = neuron_group.create_dataset("maxDendRadius",
-                                                         (len(self.neurons),),
-                                                         "float",
-                                                         compression=self.h5compression)
-
-        neuron_axon_radius = neuron_group.create_dataset("maxAxonRadius",
-                                                         (len(self.neurons),),
-                                                         "float",
-                                                         compression=self.h5compression)
-
-        neuron_param_id = neuron_group.create_dataset("parameterID",
-                                                      (len(self.neurons),),
-                                                      "int",
-                                                      compression=self.h5compression)
-
-        neuron_morphology_id = neuron_group.create_dataset("morphologyID",
-                                                           (len(self.neurons),),
-                                                           "int",
-                                                           compression=self.h5compression)
-
-        neuron_modulation_id = neuron_group.create_dataset("modulationID",
-                                                           (len(self.neurons),),
-                                                           "int",
-                                                           compression=self.h5compression)
-
         pk_list = [n["parameterKey"].encode("ascii", "ignore")
                    if "parameterKey" in n and n["parameterKey"] is not None else ""
                    for n in self.neurons]
@@ -695,12 +670,6 @@ class SnuddaDetect(object):
 
             neuron_position[i] = n["position"]
             neuron_rotation[i] = n["rotation"].reshape(1, 9)
-            neuron_dend_radius[i] = n["maxDendRadius"]
-            neuron_axon_radius[i] = n["maxAxonRadius"]
-
-            neuron_param_id[i] = -1 if n["parameterID"] is None else n["parameterID"]
-            neuron_morphology_id[i] = -1 if n["morphologyID"] is None else n["morphologyID"]
-            neuron_modulation_id[i] = -1 if n["modulationID"] is None else n["modulationID"]
 
             if "parameterKey" in n:
                 neuron_param_key[i] = n["parameterKey"]
@@ -2191,10 +2160,7 @@ class SnuddaDetect(object):
         """
 
         # Clone prototype neuron (it is centred, and not rotated)
-        neuron = self.prototype_neurons[neuron_info["name"]].clone(parameter_id=neuron_info["parameterID"],
-                                                                   morphology_id=neuron_info["morphologyID"],
-                                                                   modulation_id=neuron_info["modulationID"],
-                                                                   parameter_key=neuron_info["parameterKey"],
+        neuron = self.prototype_neurons[neuron_info["name"]].clone(parameter_key=neuron_info["parameterKey"],
                                                                    morphology_key=neuron_info["morphologyKey"],
                                                                    modulation_key=neuron_info["modulationKey"],
                                                                    rotation=neuron_info["rotation"],
@@ -2422,17 +2388,17 @@ class SnuddaDetect(object):
 
                 neuron = self.load_neuron(n)
                 neuron_id = n["neuronID"]
+                neurite_loc = []
 
-                if neuron.dend.shape[0] > 0:
-                    dend_loc = np.floor((neuron.dend[:, :3] - self.simulation_origo)/self.hyper_voxel_width).astype(int)
+                for subtree in neuron.morphology_data.values():
+                    neurite_loc.append(np.floor((subtree.geometry[:, :3] - self.simulation_origo)/self.hyper_voxel_width).astype(int))
+
+                if len(neurite_loc) > 0:
+                    neurite_loc = np.concatenate(neurite_loc)
                 else:
-                    dend_loc = np.zeros((0, 3))
+                    neurite_loc = np.array((0, 3), dtype=int)
 
-                if neuron.axon.shape[0] > 0:
-                    # We have an axon, use it
-                    axon_loc = np.floor((neuron.axon[:, :3] - self.simulation_origo)/self.hyper_voxel_width).astype(int)
-
-                elif neuron.axon_density_type == "r":
+                if neuron.axon_density_type == "r":
 
                     rng = np.random.default_rng(d_seed)
 
@@ -2483,7 +2449,7 @@ class SnuddaDetect(object):
                     # Estimate how many points we need to randomly place
                     num_points = 100 * np.prod(neuron.axon_density_bounds_xyz[1:6:2]
                                                - neuron.axon_density_bounds_xyz[0:6:2]) \
-                                 / ((self.hyper_voxel_size * self.voxel_size) ** 3)
+                        / ((self.hyper_voxel_size * self.voxel_size) ** 3)
                     num_points = int(np.ceil(num_points))
 
                     if num_points > 1e4:
@@ -2516,15 +2482,16 @@ class SnuddaDetect(object):
                     axon_loc = axon_loc[axon_inside_flag, :]
 
                 else:
-                    self.write_log(f"{neuron.name}: No axon and unknown axon density type: "
-                                   f"{neuron.axon_density_type}", is_error=True)
-                    assert False, f"No axon for {neuron.name}"
+                    axon_loc = None
 
                 # TODO: We need to add the neurons that have touch detection projection also here
                 #       to the list of hyper voxels the neuron belongs to
 
                 # Find unique hyper voxel coordinates
-                h_loc = np.unique(np.concatenate([axon_loc, dend_loc]), axis=0).astype(int)
+                if axon_loc is None:
+                    h_loc = np.unique(neurite_loc, axis=0).astype(int)
+                else:
+                    h_loc = np.unique(np.concatenate([axon_loc, neurite_loc]), axis=0).astype(int)
 
                 if n["virtualNeuron"]:
                     # Range check since we have neurons coming in from outside the volume
@@ -2707,17 +2674,9 @@ class SnuddaDetect(object):
                     continue
 
                 neuron = self.load_neuron(n)
-
-                if len(neuron.dend) > 0:
-                    max_coord = np.maximum(max_coord, np.max(neuron.dend[:, :3], axis=0))
-                    min_coord = np.minimum(min_coord, np.min(neuron.dend[:, :3], axis=0))
-
-                if len(neuron.axon) > 0:
-                    max_coord = np.maximum(max_coord, np.max(neuron.axon[:, :3], axis=0))
-                    min_coord = np.minimum(min_coord, np.min(neuron.axon[:, :3], axis=0))
-
-                max_coord = np.maximum(max_coord, np.max(neuron.soma[:, :3], axis=0))
-                min_coord = np.minimum(min_coord, np.min(neuron.soma[:, :3], axis=0))
+                for subtree in neuron.morphology_data.values():
+                    max_coord = np.maximum(max_coord, np.max(subtree.geometry[:, :3], axis=0))
+                    min_coord = np.minimum(min_coord, np.min(subtree.geometry[:, :3], axis=0))
 
         except Exception as e:
             # Write error to log file to help trace it.
@@ -3119,6 +3078,8 @@ class SnuddaDetect(object):
         neuron_id : ID of the neurons
 
         """
+
+        # TODO: Can numba handle iterators?
 
         voxel_overflow_ctr = SnuddaDetect.fill_voxels_axon_helper(voxel_space=voxel_space,
                                                                   voxel_space_ctr=voxel_space_ctr,
