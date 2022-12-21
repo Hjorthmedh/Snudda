@@ -2690,9 +2690,10 @@ class SnuddaDetect(object):
 
     ############################################################################
 
+    #TODO: We should probably NUMBA this method
     def fill_voxels_soma(self, voxel_space, voxel_space_ctr,
                          voxel_sec_id, voxel_sec_x,
-                         soma_coord, neuron_id, verbose=False):
+                         neuron, neuron_id, verbose=False):
 
         """
         Marks all the dendrite voxels that all the somas in the hyper voxel occupy.
@@ -2706,6 +2707,13 @@ class SnuddaDetect(object):
         verbose (bool) : how much to print out
 
         """
+
+        if "neuron" not in  neuron.morphology_data:
+            return  # No soma defined
+        soma_coord = neuron.morphology_data["neuron"].geometry[0, :]
+
+        if neuron.morphology_data["neuron"].section_data[0, 2] != 1:
+            raise ValueError(f"First compartment should be soma. Neuron ID {neuron_id}")
 
         v_coords = np.floor((soma_coord[0, :3] - self.hyper_voxel_origo) / self.voxel_size).astype(int)
         radius2 = soma_coord[0, 3] ** 2
@@ -2758,6 +2766,41 @@ class SnuddaDetect(object):
     ############################################################################
 
     def fill_voxels_dend(self, voxel_space, voxel_space_ctr,
+                         voxel_sec_id, voxel_sec_x, voxel_soma_dist,
+                         neuron, neuron_id):
+
+        """
+        Mark all voxels containing dendrites.
+
+        voxel_space : n x n x n x k matrix holding the voxel content, normally self.dend_voxels (neuron IDs)
+        voxel_space_ctr : n x n x n matrix holding count of how many items each voxel holds
+        voxel_sec_id : n x n x n x k matrix, holding section ID of each item
+        voxel_sec_x : n x n x n x k matrix, holding section X of each item
+        voxel_soma_dist : n x n x n x k matrix, holding distance to soma along dendrite
+        neuron : NeuronMorphologyExtended object
+        neuron_id : ID of the neurons
+
+        """
+
+        # Can we move the iterator into numba?
+        for section in neuron.section_iterator(section_type=3):
+            voxel_overflow_ctr = SnuddaDetect.fill_voxels_dend_helper(voxel_space=voxel_space,
+                                                                      voxel_space_ctr=voxel_space_ctr,
+                                                                      voxel_sec_id=voxel_sec_id,
+                                                                      voxel_sec_x=voxel_sec_x,
+                                                                      voxel_soma_dist=voxel_soma_dist,
+                                                                      point_idx=section.point_idx,
+                                                                      geometry=section.morphology_data.geometry,
+                                                                      section_data=section.morphology_data.section_data,
+                                                                      neuron_id=neuron_id,
+                                                                      self_hyper_voxel_origo=self.hyper_voxel_origo,
+                                                                      self_voxel_size=self.voxel_size,
+                                                                      self_num_bins=self.num_bins,
+                                                                      self_max_dend=self.max_dend,
+                                                                      self_step_multiplier=self.step_multiplier)
+            self.voxel_overflow_counter += voxel_overflow_ctr
+
+    def fill_voxels_dend_OLD2(self, voxel_space, voxel_space_ctr,
                          voxel_sec_id, voxel_sec_x,
                          voxel_soma_dist,
                          coords, links,
@@ -2798,10 +2841,82 @@ class SnuddaDetect(object):
         self.voxel_overflow_counter += voxel_overflow_ctr
 
 
-
     @staticmethod
     @jit(nopython=True, fastmath=True, cache=True)
     def fill_voxels_dend_helper(voxel_space, voxel_space_ctr,
+                                voxel_sec_id, voxel_sec_x,
+                                voxel_soma_dist,
+                                point_idx, geometry, section_data, neuron_id,
+                                self_hyper_voxel_origo, self_voxel_size,
+                                self_num_bins, self_max_dend,
+                                self_step_multiplier):
+
+        """ Helper function for fill_voxels_dend, static method needed for NUMBA. """
+
+        self_voxel_overflow_counter = 0
+
+        # We use padding to include line segments where both points are outside, but their
+        # line intersect the hypervoxel.
+        padding = 1
+        lower_padding_bound = 0 - padding
+        upper_padding_bound = self_num_bins + padding
+
+        section_id = section_data[point_idx, 0]
+        section_x = section_data[point_idx, 1]
+        coords = geometry[point_idx, :3]
+        voxel_coords = np.floor((coords - self_hyper_voxel_origo) / self_voxel_size).astype(np.int64)
+        point_inside = np.sum(np.logical_and(lower_padding_bound <= voxel_coords,
+                                             voxel_coords < upper_padding_bound),
+                              axis=1) == 3
+        scaled_soma_dist = geometry[point_idx, 4] * 1e6  # Dist to soma
+
+        num_steps = np.amax(np.abs(np.diff(voxel_coords)) * self_step_multiplier, axis=1)
+        dv_step = np.divide(np.diff(voxel_coords), num_steps)
+        ds_step = np.divide(np.diff(section_x), num_steps)
+        dd_step = np.divide(np.diff(scaled_soma_dist), num_steps)
+
+        # Remove this check later... should be done in morphology_data
+        assert (num_steps > 0).all(), f"Found zero length dendrite segment in neuron_id {neuron_id}"
+
+        # Loop through all point-pairs of the section
+        for idx in range(0, len(section_x)-1):
+
+            if point_inside[idx] or point_inside[idx+1]:
+                # Either of the points are within the cube + padding zone
+
+                steps = np.arange(0, num_steps[idx] + 1)
+                steps2 = steps.reshape(num_steps[idx]+1, 1)  # other dim, for kron
+                vp = (voxel_coords[idx, :] + dv_step[idx, :] * steps2).astype(np.int64)
+                s_x = section_x[idx] + ds_step[idx] * steps
+                soma_dist = int(scaled_soma_dist[idx] + dd_step*steps)
+
+                p_inside = np.sum(np.logical_and(0 <= vp, vp < self_num_bins), axis=1) == 3
+
+                # For each point pair in a section, find the intermediate points and mark voxels
+                for i in range(0, num_steps[idx] + 1):
+                    if p_inside[i]:
+                        v_idx = tuple(vp[idx, :])
+                        v_ctr = voxel_space_ctr[v_idx]
+
+                        if v_ctr > 0 and voxel_space[v_idx] == neuron_id:
+                            # Voxel already contains neuron_id, skip
+                            continue
+
+                        if v_ctr < self_max_dend:
+                            voxel_space[v_idx] = neuron_id
+                            voxel_sec_id[v_idx] = section_id[idx]
+                            voxel_sec_x[v_idx] = s_x[i]
+                            voxel_soma_dist[v_idx] = soma_dist[i]
+                            voxel_space_ctr[v_idx] += 1
+                        else:
+                            # Overflow, not enough space to store info
+                            self_voxel_overflow_counter += 1
+
+        return self_voxel_overflow_counter
+
+    @staticmethod
+    @jit(nopython=True, fastmath=True, cache=True)
+    def fill_voxels_dend_helper_OLD(voxel_space, voxel_space_ctr,
                                 voxel_sec_id, voxel_sec_x,
                                 voxel_soma_dist,
                                 coords, links,
@@ -2876,194 +2991,38 @@ class SnuddaDetect(object):
 
         return self_voxel_overflow_counter
 
-    # This uses self.hyperVoxelOrigo, self.voxelSize, self.nBins
-
-    # !!! OBS segX must be an integer here, so to get true segX divide by 10000
-
-    @staticmethod
-    @jit(nopython=True, fastmath=True, cache=True)
-    def fill_voxels_dend_helper_OLD(voxel_space, voxel_space_ctr,
-                                voxel_sec_id, voxel_sec_x,
-                                voxel_soma_dist,
-                                coords, links,
-                                seg_id, seg_x, neuron_id,
-                                self_hyper_voxel_origo, self_voxel_size, self_num_bins, self_max_dend,
-                                self_step_multiplier):
-
-        """ Helper function for fill_voxels_dend, static method needed for NUMBA. """
-
-        # segID gives segment ID for each link
-        # segX gives segmentX for each link
-
-        self_voxel_overflow_counter = 0
-
-        # TODO: We need to "draw" the axon segments that are right at the edge of the hypervoxel also, just so we do
-        #       not miss the edge lines that have both points outside... Around 4000 SPN-SPN synapses for a 500 neuron network.
-
-        for line, segment_id, segment_x in zip(links, seg_id, seg_x):
-            p1 = coords[line[0], :3]
-            p2 = coords[line[1], :3]
-            p1_dist = coords[line[0], 4] * 1e6  # Dist to soma
-            p2_dist = coords[line[1], 4] * 1e6
-
-            vp1 = np.floor((p1 - self_hyper_voxel_origo) / self_voxel_size).astype(np.int64)
-            vp2 = np.floor((p2 - self_hyper_voxel_origo) / self_voxel_size).astype(np.int64)
-
-            vp1_inside = ((vp1 >= 0).all() and (vp1 < self_num_bins).all())
-            vp2_inside = ((vp2 >= 0).all() and (vp2 < self_num_bins).all())
-
-            # Four cases, if neither inside, skip line
-            # If one inside but not the other, start at inside point and
-            # continue until outside
-            # If both inside, add all points without checking if they are inside
-
-            if not vp1_inside and not vp2_inside:
-                # No points inside, skip
-                continue
-
-            if (vp1 == vp2).all():
-                # Line is only one voxel, steps will be 0, so treat it separately
-                # We know it is inside, since they are same and both not outside
-
-                v_ctr = voxel_space_ctr[vp1[0], vp1[1], vp1[2]]
-                if v_ctr > 0 and voxel_space[vp1[0], vp1[1], vp1[2], v_ctr - 1] == neuron_id:
-                    # Voxel already has neuronID, skip
-                    continue
-
-                if v_ctr < self_max_dend:
-                    voxel_space[vp1[0], vp1[1], vp1[2], v_ctr] = neuron_id
-                    voxel_sec_id[vp1[0], vp1[1], vp1[2], v_ctr] = segment_id
-                    voxel_sec_x[vp1[0], vp1[1], vp1[2], v_ctr] = segment_x[0]
-                    voxel_soma_dist[vp1[0], vp1[1], vp1[2], v_ctr] = p1_dist
-
-                    voxel_space_ctr[vp1[0], vp1[1], vp1[2]] += 1
-                else:
-                    self_voxel_overflow_counter += 1
-                    # self.write_log("!!! If you see this you need to increase max_dend above "
-                    #                + f"{voxel_space_ctr[vp1[0], vp1[1], vp1[2]]}", is_error=True)
-                    continue
-
-                # Done, next voxel
-                continue
-
-            if not vp1_inside:
-                if not vp2_inside:
-                    # No point inside, skip
-                    continue
-                else:
-                    # Start with vp2 continue until outside cube
-                    steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
-                    dv = (vp1 - vp2) / steps
-                    ds = (segment_x[0] - segment_x[1]) / steps
-                    dd = (p1_dist - p2_dist) / steps
-
-                    # We want the end element "steps" also, hence +1
-                    for i in range(0, steps + 1):
-                        vp = (vp2 + dv * i).astype(np.int64)
-                        s_x = segment_x[1] + ds * i  # float
-                        soma_dist = int(p2_dist + dd * i)
-
-                        if (vp < 0).any() or (vp >= self_num_bins).any():
-                            # Rest of line outside
-                            break
-
-                        v_ctr = voxel_space_ctr[vp[0], vp[1], vp[2]]
-                        if v_ctr > 0 and voxel_space[vp[0], vp[1], vp[2], v_ctr - 1] == neuron_id:
-                            # Voxel already contains neuronID, skip
-                            continue
-
-                        if v_ctr < self_max_dend:
-                            voxel_space[vp[0], vp[1], vp[2], v_ctr] = neuron_id
-                            voxel_sec_id[vp[0], vp[1], vp[2], v_ctr] = segment_id
-                            voxel_sec_x[vp[0], vp[1], vp[2], v_ctr] = s_x
-                            voxel_soma_dist[vp[0], vp[1], vp[2], v_ctr] = soma_dist
-
-                            voxel_space_ctr[vp[0], vp[1], vp[2]] += 1
-                        else:
-                            # Increase maxAxon and maxDend
-                            # self.write_log(f"!!! If you see this you need to increase max_dend above "
-                            #                + f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}", is_error=True)
-                            self_voxel_overflow_counter += 1
-                            continue
-
-            elif not vp2_inside:
-                # Start with vp1 continue until outside cube
-                steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
-                dv = (vp2 - vp1) / steps
-                ds = (segment_x[1] - segment_x[0]) / steps
-                dd = (p2_dist - p1_dist) / steps
-
-                # We want the end element "steps" also, hence +1
-                for i in range(0, steps + 1):
-                    vp = (vp1 + dv * i).astype(np.int64)
-                    s_x = segment_x[0] + ds * i  # float
-                    soma_dist = int(p1_dist + dd * i)
-
-                    if (vp < 0).any() or (vp >= self_num_bins).any():
-                        # Rest of line outside
-                        break
-
-                    v_ctr = voxel_space_ctr[vp[0], vp[1], vp[2]]
-
-                    if v_ctr > 0 and voxel_space[vp[0], vp[1], vp[2], v_ctr - 1] == neuron_id:
-                        # Voxel already contains neuronID, skip
-                        continue
-
-                    if v_ctr < self_max_dend:
-
-                        voxel_space[vp[0], vp[1], vp[2], v_ctr] = neuron_id
-                        voxel_sec_id[vp[0], vp[1], vp[2], v_ctr] = segment_id
-                        voxel_sec_x[vp[0], vp[1], vp[2], v_ctr] = s_x
-                        voxel_soma_dist[vp[0], vp[1], vp[2], v_ctr] = soma_dist
-
-                        voxel_space_ctr[vp[0], vp[1], vp[2]] += 1
-
-                    else:
-                        # self.write_log("!!! If you see this you need to increase max_dend above "
-                        #                f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}", is_error=True)
-                        self_voxel_overflow_counter += 1
-                        continue
-
-            else:
-                # Entire line inside
-                steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
-                dv = (vp2 - vp1) / steps
-                ds = (segment_x[1] - segment_x[0]) / steps
-                dd = (p2_dist - p1_dist) / steps
-
-                for i in range(0, steps + 1):
-                    vp = (vp1 + dv * i).astype(np.int64)
-                    s_x = segment_x[0] + ds * i  # float
-                    soma_dist = int(p1_dist + dd * i)
-
-                    v_ctr = voxel_space_ctr[vp[0], vp[1], vp[2]]
-
-                    if v_ctr > 0 and voxel_space[vp[0], vp[1], vp[2], v_ctr - 1] == neuron_id:
-                        # Voxel already has neuronID, skip
-                        continue
-
-                    if v_ctr < self_max_dend:
-
-                        voxel_space[vp[0], vp[1], vp[2], v_ctr] = neuron_id
-                        voxel_sec_id[vp[0], vp[1], vp[2], v_ctr] = segment_id
-                        voxel_sec_x[vp[0], vp[1], vp[2], v_ctr] = s_x
-                        voxel_soma_dist[vp[0], vp[1], vp[2], v_ctr] = soma_dist
-
-                        voxel_space_ctr[vp[0], vp[1], vp[2]] += 1
-                    else:
-                        # self.write_log("!!! If you see this you need to increase max_dend above "
-                        #                f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}", is_error=True)
-                        self_voxel_overflow_counter += 1
-                        continue
-
-            # Potentially faster?
-            # http://code.activestate.com/recipes/578112-bresenhams-line-algorithm-in-n-dimensions/
-
-        return self_voxel_overflow_counter
-
     ############################################################################
 
     def fill_voxels_axon(self, voxel_space, voxel_space_ctr,
+                         voxel_axon_dist,
+                         neuron, neuron_id):
+
+        """
+        Mark all voxels containing axons.
+
+        voxel_space : n x n x n x k matrix holding the voxel content, normally self.axon_voxels (neuron IDs)
+        voxel_space_ctr : n x n x n matrix holding count of how many items each voxel holds
+        neuron : NeuronMorphologyExtended object
+        neuron_id : ID of the neurons
+
+        """
+
+        for section in neuron.section_iterator(section_type=2):
+            voxel_overflow_ctr = SnuddaDetect.fill_voxels_axon_helper(voxel_space=voxel_space,
+                                                                      voxel_space_ctr=voxel_space_ctr,
+                                                                      voxel_axon_dist=voxel_axon_dist,
+                                                                      point_idx=section.point_idx,
+                                                                      geometry=section.morphology_data.geometry,
+                                                                      section_data=section.morphology_data.section_data,
+                                                                      neuron_id=neuron_id,
+                                                                      self_hyper_voxel_origo=self.hyper_voxel_origo,
+                                                                      self_voxel_size=self.voxel_size,
+                                                                      self_num_bins=self.num_bins,
+                                                                      self_max_axon=self.max_axon,
+                                                                      self_step_multiplier=self.step_multiplier)
+            self.voxel_overflow_counter += voxel_overflow_ctr
+
+    def fill_voxels_axon_OLD2(self, voxel_space, voxel_space_ctr,
                          voxel_axon_dist,
                          coords, links,
                          neuron_id):
@@ -3098,6 +3057,79 @@ class SnuddaDetect(object):
     @staticmethod
     @jit(nopython=True, fastmath=True, cache=True)
     def fill_voxels_axon_helper(voxel_space,
+                                voxel_space_ctr,
+                                voxel_axon_dist,
+                                point_idx,
+                                geometry,
+                                section_data,
+                                neuron_id,
+                                self_hyper_voxel_origo,
+                                self_voxel_size,
+                                self_num_bins,
+                                self_max_axon,
+                                self_step_multiplier):
+
+        self_voxel_overflow_counter = 0
+
+        # We use padding to include line segments where both points are outside, but their
+        # line intersect the hypervoxel.
+        padding = 1
+        lower_padding_bound = 0 - padding
+        upper_padding_bound = self_num_bins + padding
+
+        section_id = section_data[point_idx, 0]
+        coords = geometry[point_idx, :3]
+        voxel_coords = np.floor((coords - self_hyper_voxel_origo) / self_voxel_size).astype(np.int64)
+        point_inside = np.sum(np.logical_and(lower_padding_bound <= voxel_coords,
+                                             voxel_coords < upper_padding_bound),
+                              axis=1) == 3
+
+        scaled_soma_dist = geometry[point_idx, 4] * 1e6  # Dist to soma
+
+        num_steps = np.amax(np.abs(np.diff(voxel_coords)) * self_step_multiplier, axis=1)
+        dv_step = np.divide(np.diff(voxel_coords), num_steps)
+        dd_step = np.divide(np.diff(scaled_soma_dist), num_steps)
+
+        # Remove this check later... should be done in morphology_data
+        assert (num_steps > 0).all(), f"Found zero length axon segment in neuron_id {neuron_id}"
+
+        # Loop through all point-pairs of the section
+        for idx in range(0, len(scaled_soma_dist)-1):
+
+            if point_inside[idx] or point_inside[idx+1]:
+                # Either of the points are within the cube or padding zone
+
+                steps = np.arange(0, num_steps[idx] + 1)
+                steps2 = steps.reshape(num_steps[idx]+1, 1)  # other dim, for kron
+                vp = (voxel_coords[idx, :] + dv_step[idx, :] * steps2).astype(np.int64)
+                soma_dist = int(scaled_soma_dist[idx] + dd_step*steps)
+
+                p_inside = np.sum(np.logical_and(0 <= vp, vp < self_num_bins), axis=1) == 3
+
+                # For each point pair in a section, find the intermediate points and mark voxels
+                for i in range(0, num_steps[idx] + 1):
+                    if p_inside[i]:
+                        v_idx = tuple(vp[idx, :])
+                        v_ctr = voxel_space_ctr[v_idx]
+
+                        if v_ctr > 0 and voxel_space[v_idx] == neuron_id:
+                            # Voxel already contains neuron_id, skip
+                            continue
+
+                        if v_ctr < self_max_axon:
+                            voxel_space[v_idx] = neuron_id
+                            voxel_axon_dist[v_idx] = soma_dist[i]
+                            voxel_space_ctr[v_idx] += 1
+                        else:
+                            # Overflow, not enough space to store info
+                            self_voxel_overflow_counter += 1
+
+        return self_voxel_overflow_counter
+
+
+    @staticmethod
+    @jit(nopython=True, fastmath=True, cache=True)
+    def fill_voxels_axon_helper_OLD2(voxel_space,
                                 voxel_space_ctr,
                                 voxel_axon_dist,
                                 coords,
@@ -3164,171 +3196,6 @@ class SnuddaDetect(object):
 
         return self_voxel_overflow_counter
 
-
-    @staticmethod
-    @jit(nopython=True, fastmath=True, cache=True)
-    def fill_voxels_axon_helper_OLD(voxel_space,
-                                voxel_space_ctr,
-                                voxel_axon_dist,
-                                coords,
-                                links,
-                                neuron_id,
-                                self_hyper_voxel_origo,
-                                self_voxel_size,
-                                self_num_bins,
-                                self_max_axon,
-                                self_step_multiplier):
-
-        """ Helper function to mark axon voxels, needed for NUMBA. See fill_voxels_axon."""
-
-        # segID gives segment ID for each link
-        # segX gives segmentX for each link
-
-        self_voxel_overflow_counter = 0
-
-        for line in links:
-            p1 = coords[line[0], :3]
-            p2 = coords[line[1], :3]
-            p1_dist = coords[line[0], 4] * 1e6  # Dist to soma
-            p2_dist = coords[line[1], 4] * 1e6
-
-            vp1 = np.floor((p1 - self_hyper_voxel_origo) / self_voxel_size).astype(np.int64)
-            vp2 = np.floor((p2 - self_hyper_voxel_origo) / self_voxel_size).astype(np.int64)
-
-            vp1_inside = ((vp1 >= 0).all() and (vp1 < self_num_bins).all())
-            vp2_inside = ((vp2 >= 0).all() and (vp2 < self_num_bins).all())
-
-            # Four cases, if neither inside, skip line
-            # If one inside but not the other, start at inside point and
-            # continue until outside
-            # If both inside, add all points without checking if they are inside
-
-            if not vp1_inside and not vp2_inside:
-                # No points inside, skip
-                continue
-
-            if (vp1 == vp2).all():
-                # Line is only one voxel, steps will be 0, so treat it separately
-                # We know it is inside, since they are same and both not outside
-
-                v_ctr = voxel_space_ctr[vp1[0], vp1[1], vp1[2]]
-                if v_ctr > 0 and voxel_space[vp1[0], vp1[1], vp1[2], v_ctr - 1] == neuron_id:
-                    # Voxel already has neuronID, skip
-                    continue
-
-                if v_ctr < self_max_axon:
-                    voxel_space[vp1[0], vp1[1], vp1[2], v_ctr] = neuron_id
-                    voxel_axon_dist[vp1[0], vp1[1], vp1[2], v_ctr] = p1_dist
-
-                    voxel_space_ctr[vp1[0], vp1[1], vp1[2]] += 1
-
-                else:
-                    self_voxel_overflow_counter += 1
-                    # self.write_log("!!! If you see this you need to increase max_axon above "
-                    #                f"{voxel_space_ctr[vp1[0], vp1[1], vp1[2]]}", is_error=True)
-                    continue
-
-                # Done, next voxel
-                continue
-
-            if not vp1_inside:
-                if not vp2_inside:
-                    # No point inside, skip
-                    continue
-                else:
-                    # Start with vp2 continue until outside cube
-                    steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
-                    dv = (vp1 - vp2) / steps
-                    dd = (p1_dist - p2_dist) / steps
-
-                    # We want the end element "steps" also, hence +1
-                    for i in range(0, steps + 1):
-                        vp = (vp2 + dv * i).astype(np.int64)
-                        ax_dist = int(p2_dist + dd * i)
-
-                        if (vp < 0).any() or (vp >= self_num_bins).any():
-                            # Rest of line outside
-                            break
-
-                        v_ctr = voxel_space_ctr[vp[0], vp[1], vp[2]]
-                        if v_ctr > 0 and voxel_space[vp[0], vp[1], vp[2], v_ctr - 1] == neuron_id:
-                            # Voxel already has neuronID, skip
-                            continue
-
-                        if v_ctr < self_max_axon:
-                            voxel_space[vp[0], vp[1], vp[2], v_ctr] = neuron_id
-                            voxel_axon_dist[vp[0], vp[1], vp[2], v_ctr] = ax_dist
-
-                            voxel_space_ctr[vp[0], vp[1], vp[2]] += 1
-                        else:
-                            # Increase maxAxon and maxDend
-                            # self.write_log("!!! If you see this you need to increase max_axon above "
-                            #                f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}", is_error=True)
-                            self_voxel_overflow_counter += 1
-                            continue
-
-            elif not vp2_inside:
-                # Start with vp1 continue until outside cube
-                steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
-                dv = (vp2 - vp1) / steps
-                dd = (p2_dist - p1_dist) / steps
-
-                # We want the end element "steps" also, hence +1
-                for i in range(0, steps + 1):
-                    vp = (vp1 + dv * i).astype(np.int64)
-                    ax_dist = int(p1_dist + dd * i)
-
-                    if (vp < 0).any() or (vp >= self_num_bins).any():
-                        # Rest of line outside
-                        break
-
-                    v_ctr = voxel_space_ctr[vp[0], vp[1], vp[2]]
-                    if v_ctr > 0 and voxel_space[vp[0], vp[1], vp[2], v_ctr - 1] == neuron_id:
-                        # Voxel already has neuronID, skip
-                        continue
-
-                    if v_ctr < self_max_axon:
-                        voxel_space[vp[0], vp[1], vp[2], v_ctr] = neuron_id
-                        voxel_axon_dist[vp[0], vp[1], vp[2], v_ctr] = ax_dist
-
-                        voxel_space_ctr[vp[0], vp[1], vp[2]] += 1
-                    else:
-                        # self.write_log("!!! If you see this you need to increase max_axon above "
-                        #                f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}", is_error=True)
-                        self_voxel_overflow_counter += 1
-                        continue
-
-            else:
-                # Entire line inside
-                steps = max(np.abs(vp2 - vp1)) * self_step_multiplier
-                dv = (vp2 - vp1) / steps
-                dd = (p2_dist - p1_dist) / steps
-
-                for i in range(0, steps + 1):
-                    vp = (vp1 + dv * i).astype(np.int64)
-                    ax_dist = int(p1_dist + dd * i)
-
-                    v_ctr = voxel_space_ctr[vp[0], vp[1], vp[2]]
-                    if v_ctr > 0 and voxel_space[vp[0], vp[1], vp[2], v_ctr - 1] == neuron_id:
-                        # Voxel already has neuronID, skip
-                        continue
-
-                    if v_ctr < self_max_axon:
-                        voxel_space[vp[0], vp[1], vp[2], v_ctr] = neuron_id
-                        voxel_axon_dist[vp[0], vp[1], vp[2], v_ctr] = ax_dist
-
-                        voxel_space_ctr[vp[0], vp[1], vp[2]] += 1
-                    else:
-                        # self.write_log("!!! If you see this you need to increase max_axon above "
-                        #                f"{voxel_space_ctr[vp[0], vp[1], vp[2]]}", is_error=True)
-                        self_voxel_overflow_counter += 1
-                        continue
-
-            # Potentially faster?
-            # http://code.activestate.com/recipes/578112-bresenhams-line-algorithm-in-n-dimensions/
-
-        return self_voxel_overflow_counter
-
     ############################################################################
 
     # TODO: Add a filter, neurons that are not included in connectivity definition as either
@@ -3369,30 +3236,26 @@ class SnuddaDetect(object):
             for neuron_id in self.hyper_voxels[hyper_id]["neurons"][:num_neurons]:
                 neuron = self.load_neuron(self.neurons[neuron_id])
 
-                self.fill_voxels_axon(self.axon_voxels,
-                                      self.axon_voxel_ctr,
-                                      self.axon_soma_dist,
-                                      neuron.axon,
-                                      neuron.axon_links,
-                                      neuron_id)
+                self.fill_voxels_axon(voxel_space=self.axon_voxels,
+                                      voxel_space_ctr=self.axon_voxel_ctr,
+                                      voxel_axon_dist=self.axon_soma_dist,
+                                      neuron=neuron,
+                                      neuron_id=neuron_id)
 
                 self.fill_voxels_soma(self.dend_voxels,
                                       self.dend_voxel_ctr,
                                       self.dend_sec_id,
                                       self.dend_sec_x,
-                                      neuron.soma,
+                                      neuron,
                                       neuron_id)
 
-                self.fill_voxels_dend(self.dend_voxels,
-                                      self.dend_voxel_ctr,
-                                      self.dend_sec_id,
-                                      self.dend_sec_x,
-                                      self.dend_soma_dist,
-                                      neuron.dend,
-                                      neuron.dend_links,
-                                      neuron.dend_sec_id,
-                                      neuron.dend_sec_x,
-                                      neuron_id)
+                self.fill_voxels_dend(voxel_space=self.dend_voxels,
+                                      voxel_space_ctr=self.dend_voxel_ctr,
+                                      voxel_sec_id=self.dend_sec_id,
+                                      voxel_sec_x=self.dend_sec_x,
+                                      voxel_soma_dist=self.dend_soma_dist,
+                                      neuron=neuron,
+                                      neuron_id=neuron_id)
 
             # This should be outside the neuron loop
             # This places axon voxels for neurons without axon morphologies
@@ -3714,61 +3577,6 @@ class SnuddaDetect(object):
             plt.ion()
             plt.show()
             plt.pause(0.001)
-
-    ############################################################################
-
-    def test_voxel_draw(self):
-
-        print("This changes internal state of the object, restart after test run.")
-
-        self.hyper_voxel_id = -1
-        self.hyper_voxel_origo = np.zeros((3,))
-        self.voxel_size = 2
-        self.num_bins = np.ones((3, 1)) * 10
-
-        voxels = np.zeros((10, 10, 10, 10), dtype=int)
-        voxel_ctr = np.zeros((10, 10, 10), dtype=int)
-        voxel_sec_id = np.zeros((10, 10, 10, 10), dtype=int)
-        voxel_sec_x = np.zeros((10, 10, 10, 10), dtype=float)
-        voxel_soma_dist = np.zeros((10, 10, 10, 10), dtype=int)
-
-        coords = np.array([[2, 2, 2, 1.1, 40], [8, 10, 8, 1.2, 50], [0, 23, 22, 1.3, 60]])
-        links = np.array([[0, 1], [0, 2], [2, 1]], dtype=int)
-        seg_id = np.array([1, 2, 3], dtype=int)
-        seg_x = np.array([[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]], dtype=float)
-
-        if True:
-            self.fill_voxels_dend(voxel_space=voxels,
-                                  voxel_space_ctr=voxel_ctr,
-                                  voxel_sec_id=voxel_sec_id,
-                                  voxel_sec_x=voxel_sec_x,
-                                  voxel_soma_dist=voxel_soma_dist,
-                                  coords=coords,
-                                  links=links,
-                                  seg_id=seg_id,
-                                  seg_x=seg_x,
-                                  neuron_id=13)
-
-        if True:
-            self.fill_voxels_soma(voxel_space=voxels,
-                                  voxel_space_ctr=voxel_ctr,
-                                  voxel_sec_id=voxel_sec_id,
-                                  voxel_sec_x=voxel_sec_x,
-                                  soma_coord=np.array([[10, 10, 10, 8]]),
-                                  neuron_id=14)
-
-        # We also need to check axon filling
-
-        voxels[:] = 0
-        voxel_ctr[:] = 0
-        voxel_soma_dist[:] = 0
-
-        self.fill_voxels_axon(voxel_space=voxels,
-                              voxel_space_ctr=voxel_ctr,
-                              voxel_axon_dist=voxel_soma_dist,
-                              coords=coords,
-                              links=links,
-                              neuron_id=13)
 
     ############################################################################
 

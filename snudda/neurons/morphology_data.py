@@ -302,9 +302,17 @@ class MorphologyData:
             self.geometry[:, 4] += parent_soma_distance + dist_to_parent * arc_factor
 
     def section_iterator(self, section_type=None):
-        for section in self.sections:
-            if section_type is None or section.section_type == section_type:
+
+        if section_type is None:
+            for section_dict in self.sections.values():
+                for section in section_dict:
+                    yield section
+
+        elif section_type in self.sections:
+            for section in self.sections[section_type].values():
                 yield section
+
+        return
 
     def get_kd_tree(self, compartment_type):
 
