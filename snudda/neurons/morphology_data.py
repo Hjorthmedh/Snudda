@@ -36,7 +36,7 @@ class SectionMetaData:
             raise ValueError(f"Points on section must be consecutive")
 
         if self.morphology_data.section_data[idx[0], 3] < 0:
-            # Special case, root node
+            # Special case, root node -- do not include soma point in section
             self.point_idx = idx
             self.parent_section_id = -1
         else:
