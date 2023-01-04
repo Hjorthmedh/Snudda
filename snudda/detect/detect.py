@@ -644,6 +644,7 @@ class SnuddaDetect(object):
         mk_list = [n["morphologyKey"].encode("ascii", "ignore")
                    if "morphologyKey" in n and n["morphologyKey"] is not None else ""
                    for n in self.neurons]
+
         mk_str_type = 'S' + str(max(1, max([len(x) for x in mk_list])))
 
         mok_list = [n["modulationKey"].encode("ascii", "ignore")
@@ -674,10 +675,10 @@ class SnuddaDetect(object):
             if "parameterKey" in n:
                 neuron_param_key[i] = n["parameterKey"]
 
-            if "morphologyKey" in n:
+            if "morphologyKey" in n and n["morphologyKey"] is not None:
                 neuron_morph_key[i] = n["morphologyKey"]
 
-            if "modulationKey" in n:
+            if "modulationKey" in n and n["modulationKey"] is not None:
                 neuron_modulation_key[i] = n["modulationKey"]
 
         # Store input information
@@ -2427,9 +2428,9 @@ class SnuddaDetect(object):
                     z = np.multiply(r, np.cos(phi))
 
                     axon_cloud = np.zeros((len(x), 3))
-                    axon_cloud[:, 0] = x + neuron.soma[0, 0]
-                    axon_cloud[:, 1] = y + neuron.soma[0, 1]
-                    axon_cloud[:, 2] = z + neuron.soma[0, 2]
+                    axon_cloud[:, 0] = x + neuron.position[0]
+                    axon_cloud[:, 1] = y + neuron.position[1]
+                    axon_cloud[:, 2] = z + neuron.position[2]
 
                     axon_loc = np.floor((axon_cloud[:, :3] - self.simulation_origo)/self.hyper_voxel_width).astype(int)
 
@@ -2847,8 +2848,9 @@ class SnuddaDetect(object):
         self.voxel_overflow_counter += voxel_overflow_ctr
 
 
+    # Temporarily disabling NUMBA, since amax does not support axis in NUMBA
     @staticmethod
-    @jit(nopython=True, fastmath=True, cache=True)
+    # @jit(nopython=True, fastmath=True, cache=True)
     def fill_voxels_dend_helper(voxel_space, voxel_space_ctr,
                                 voxel_sec_id, voxel_sec_x,
                                 voxel_soma_dist,
@@ -2876,17 +2878,22 @@ class SnuddaDetect(object):
                               axis=1) == 3
         scaled_soma_dist = geometry[point_idx, 4] * 1e6  # Dist to soma
 
-        num_steps = np.ceil(np.amax(np.abs(np.diff(voxel_coords, axis=0)) * self_step_multiplier, axis=1)).astype(int)
+        # Numba does not support third argument axis of np.diff, so transpose it instead
+        # num_steps = np.ceil(np.amax(np.abs(np.diff(voxel_coords, axis=0)) * self_step_multiplier, axis=1)).astype(int)
+        # dv_step = np.diff(voxel_coords, axis=0) / num_steps[:, None]
+
+        num_steps = np.ceil(np.amax(np.abs(np.diff(voxel_coords.T).T) * self_step_multiplier, axis=1)).astype(int)
         # [:, None] is here used to divide first row by first element in num_step
         # second row divide by second element in num_step etc. Pretty clever.
         # https://stackoverflow.com/questions/19602187/numpy-divide-each-row-by-a-vector-element
-        dv_step = np.diff(voxel_coords, axis=0) / num_steps[:, None]
+        dv_step = np.diff(voxel_coords.T).T / num_steps[:, None]
         ds_step = np.divide(np.diff(section_x),  num_steps)
         dd_step = np.divide(np.diff(scaled_soma_dist), num_steps)
 
         # Remove this check later... should be done in morphology_data
         if (num_steps <= 0).any():
-            raise ValueError(f"Found zero length dendrite segment in neuron_id {neuron_id}")
+            print(f"Found zero length dendrite segment in neuron_id {neuron_id}")
+            raise ValueError(f"Found zero length dendrite segment (please check morphologies).")
 
         # Loop through all point-pairs of the section
         for idx in range(0, len(section_x)-1):
@@ -3063,15 +3070,16 @@ class SnuddaDetect(object):
 
         self.voxel_overflow_counter += voxel_overflow_ctr
 
+    # Temporarily disabling NUMBA, since amax does not support axis in NUMBA
     @staticmethod
-    @jit(nopython=True, fastmath=True, cache=True)
+    # @jit(nopython=True, fastmath=True, cache=True)
     def fill_voxels_axon_helper(voxel_space,
                                 voxel_space_ctr,
                                 voxel_axon_dist,
                                 point_idx,
                                 geometry,
                                 section_data,
-                                neuron_id : int,
+                                neuron_id: int,
                                 self_hyper_voxel_origo,
                                 self_voxel_size,
                                 self_num_bins,
@@ -3096,13 +3104,20 @@ class SnuddaDetect(object):
 
         scaled_soma_dist = geometry[point_idx, 4] * 1e6  # Dist to soma
 
-        num_steps = np.ceil(np.amax(np.abs(np.diff(voxel_coords, axis=0)) * self_step_multiplier, axis=1)).astype(int)
-        dv_step = np.diff(voxel_coords, axis=0) / num_steps[:, None]
+        # Numba does not support third argument axis of np.diff, so transpose it instead
+        # num_steps = np.ceil(np.amax(np.abs(np.diff(voxel_coords, axis=0)) * self_step_multiplier, axis=1)).astype(int)
+        # dv_step = np.diff(voxel_coords, axis=0) / num_steps[:, None]
+
+        num_steps = np.ceil(np.amax(np.abs(np.diff(voxel_coords.T)).T * self_step_multiplier, axis=1)).astype(int)
+        dv_step = np.diff(voxel_coords.T).T / num_steps[:, None]
         dd_step = np.divide(np.diff(scaled_soma_dist), num_steps)
 
         # Remove this check later... should be done in morphology_data
         if (num_steps <= 0).any():
-            raise ValueError(f"Found zero length axon segment in neuron_id {neuron_id}")
+            print(f"Found zero length axon segment in neuron_id {neuron_id}")
+            # Numba does not allow variables in exceptions...
+            # raise ValueError(f"Found zero length axon segment in neuron_id {neuron_id}")
+            raise ValueError(f"Found zero length axon segment (please check morphologies")
 
         # Loop through all point-pairs of the section
         for idx in range(0, len(scaled_soma_dist)-1):

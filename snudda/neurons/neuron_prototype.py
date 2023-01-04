@@ -398,7 +398,15 @@ class NeuronPrototype:
         return all([len(m.axon) > 0 for m in self.morphology_cache.values()])
 
     def all_have_dend(self):
-        return all([len(m.dend) > 0 for m in self.morphology_cache.values()])
+
+        all_dend = True
+
+        for m in self.morphology_cache.values():
+            if 3 not in m.morphology_data["neuron"].sections \
+              or len(m.morphology_data["neuron"].sections[3]) == 0:
+                all_dend = False
+
+        return all_dend
 
     def clone(self, parameter_id=None, morphology_id=None, modulation_id=None,
               parameter_key=None, morphology_key=None, modulation_key=None,

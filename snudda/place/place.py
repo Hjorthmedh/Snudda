@@ -255,8 +255,8 @@ class SnuddaPlace(object):
             n.neuron_id = len(self.neurons)
             n.volume_id = volume_id
 
-            assert axon_density is None or len(n.axon) == 0, \
-                "!!! ERROR: Neuron: " + str(n.name) + " has both axon and axon density."
+            # assert axon_density is None or len(n.axon) == 0, \
+            #     "!!! ERROR: Neuron: " + str(n.name) + " has both axon and axon density."
 
             n.axon_density = axon_density
             self.neurons.append(n)

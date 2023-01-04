@@ -425,9 +425,12 @@ class SnuddaLoad(object):
             n["axonDensityRadius"] = axon_density_radius
 
             # If the code fails here, use snudda/utils/upgrade_old_network_file.py to upgrade your old data files
-            n["parameterKey"] = SnuddaLoad.to_str(parameter_key)
-            n["morphologyKey"] = SnuddaLoad.to_str(morphology_key)
-            n["modulationKey"] = SnuddaLoad.to_str(modulation_key)
+            par_key = SnuddaLoad.to_str(parameter_key)
+            morph_key = SnuddaLoad.to_str(morphology_key)
+            mod_key = SnuddaLoad.to_str(modulation_key)
+            n["parameterKey"] = par_key if len(par_key) > 0 else None
+            n["morphologyKey"] = morph_key if len(morph_key) > 0 else None
+            n["modulationKey"] = mod_key if len(mod_key) > 0 else None
 
             n["populationUnit"] = population_unit_id
 

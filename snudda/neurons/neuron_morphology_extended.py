@@ -28,7 +28,7 @@ class NeuronMorphologyExtended:
                  logfile=None,
                  verbose=False):
 
-        self.log_file = logfile
+        self.logfile = logfile
         self.verbose = verbose
 
         self.name = name
@@ -63,6 +63,7 @@ class NeuronMorphologyExtended:
         self.axon_density_type = None
         self.dend_density = None
         self.axon_density = None
+        self.max_axon_radius = None
         self.axon_density_bounds_xyz = None
         self.voxel_size = 5e6
         self.density_bin_size = 10e-6
@@ -288,6 +289,41 @@ class NeuronMorphologyExtended:
             # TODO: Check that this is correct!!
 
         return xyz, sec_id, sec_x, dist_to_soma
+
+    def set_axon_voxel_radial_density(self, density, max_axon_radius):
+
+        """
+        Sets axon radial density
+
+        Args:
+            density: Axon density f(r), r = radius from soma
+            max_axon_radius: Axon density is calculated within a sphere of radius max_axon_radius
+
+        """
+
+        self.write_log("Only saving equation now")
+
+        self.axon_density_type = "r"
+        self.axon_density = density
+        self.max_axon_radius = max_axon_radius
+
+    def set_axon_voxel_xyz_density(self,
+                                   density,
+                                   axon_density_bounds_xyz):
+
+        """
+        Sets axon density
+
+        Args:
+            density: Axon density f(x,y,z), x,y,z = SWC coordinates in relative to soma
+            axon_density_bounds_xyz: Bounding box for the axon density in x,y,z
+        """
+
+        self.write_log("Only saving equation now")
+
+        self.axon_density_type = "xyz"
+        self.axon_density = density
+        self.axon_density_bounds_xyz = axon_density_bounds_xyz
 
 
 if __name__ == "__main__":

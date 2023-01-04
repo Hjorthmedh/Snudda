@@ -103,6 +103,11 @@ class MorphologyData:
 
     def section_iterator(self, section_type):
 
+        """ Iterates over all sections of a specific type.
+
+        Args:
+            section_type: 1 = soma, 2 = axon, 3 = dend """
+
         for section in self.sections[section_type].values():
             yield section
 
