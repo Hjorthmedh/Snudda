@@ -2851,7 +2851,7 @@ class SnuddaDetect(object):
 
     # Temporarily disabling NUMBA, since amax does not support axis in NUMBA
     @staticmethod
-    # @jit(nopython=True, fastmath=True, cache=True)
+    @jit(nopython=True, fastmath=True, cache=True)
     def fill_voxels_dend_helper(voxel_space, voxel_space_ctr,
                                 voxel_sec_id, voxel_sec_x,
                                 voxel_soma_dist,
@@ -2883,11 +2883,25 @@ class SnuddaDetect(object):
         # num_steps = np.ceil(np.amax(np.abs(np.diff(voxel_coords, axis=0)) * self_step_multiplier, axis=1)).astype(int)
         # dv_step = np.diff(voxel_coords, axis=0) / num_steps[:, None]
 
-        num_steps = np.ceil(np.amax(np.abs(np.diff(voxel_coords.T).T) * self_step_multiplier, axis=1)).astype(int)
+        step_diff = np.abs(np.diff(voxel_coords.T).T)
+        # This is just does same as numpy.amax for axis=1, but inlined for NUMBA
+        max_val = step_diff[:, 0].copy()
+        for j in range(1, step_diff.shape[1]):
+            for i in range(0, step_diff.shape[0]):
+                if max_val[i] < step_diff[i, j]:
+                    max_val[i] = step_diff[i, j]
+
+        num_steps = np.ceil(max_val * self_step_multiplier).astype(np.int64)
         # [:, None] is here used to divide first row by first element in num_step
         # second row divide by second element in num_step etc. Pretty clever.
         # https://stackoverflow.com/questions/19602187/numpy-divide-each-row-by-a-vector-element
-        dv_step = np.diff(voxel_coords.T).T / num_steps[:, None]
+        # Looks like NUMBA cant handle this though,
+        # dv_step = np.diff(voxel_coords.T).T / num_steps[:, None]
+
+        dv_step = np.diff(voxel_coords.T).T
+        for i in range(0, dv_step.shape[0]):
+            dv_step[i, :] /= num_steps[i]
+
         ds_step = np.divide(np.diff(section_x),  num_steps)
         dd_step = np.divide(np.diff(scaled_soma_dist), num_steps)
 
@@ -2903,17 +2917,26 @@ class SnuddaDetect(object):
                 # Either of the points are within the cube + padding zone
 
                 steps = np.arange(0, num_steps[idx] + 1)
-                vp = (voxel_coords[idx, :] + dv_step[idx, :] * steps[:, None]).astype(np.int64)
+                # vp = (voxel_coords[idx, :] + dv_step[idx, :] * steps[:, None]).astype(np.int64)
+                vp_x = (voxel_coords[idx, 0] + dv_step[idx, 0] * steps).astype(np.int64)
+                vp_y = (voxel_coords[idx, 1] + dv_step[idx, 1] * steps).astype(np.int64)
+                vp_z = (voxel_coords[idx, 2] + dv_step[idx, 2] * steps).astype(np.int64)
+
                 s_x = section_x[idx] + ds_step[idx] * steps
 
-                soma_dist = (scaled_soma_dist[idx] + dd_step[idx]*steps).astype(int)
+                soma_dist = (scaled_soma_dist[idx] + dd_step[idx]*steps).astype(np.int64)
 
-                p_inside = np.sum(np.logical_and(0 <= vp, vp < self_num_bins), axis=1) == 3
+                # p_inside = np.sum(np.logical_and(0 <= vp, vp < self_num_bins), axis=1) == 3
+                p_inside = np.logical_and(np.logical_and(0 <= vp_x, vp_x < self_num_bins[0]),
+                                          np.logical_and(np.logical_and(0 <= vp_y, vp_y < self_num_bins[1]),
+                                                         np.logical_and(0 <= vp_z, vp_z < self_num_bins[2])))
 
                 # For each point pair in a section, find the intermediate points and mark voxels
                 for i in range(0, num_steps[idx] + 1):
                     if p_inside[i]:
-                        v_idx = tuple(vp[i, :])
+                        # v_idx = tuple(vp[i, :])
+                        v_idx = (vp_x[i], vp_y[i], vp_z[i])
+
                         v_ctr = voxel_space_ctr[v_idx]
 
                         if v_ctr > 0 and voxel_space[v_idx][v_ctr-1] == neuron_id:
@@ -3074,7 +3097,7 @@ class SnuddaDetect(object):
 
     # Temporarily disabling NUMBA, since amax does not support axis in NUMBA
     @staticmethod
-    # @jit(nopython=True, fastmath=True, cache=True)
+    @jit(nopython=True, fastmath=True, cache=True)
     def fill_voxels_axon_helper(voxel_space,
                                 voxel_space_ctr,
                                 voxel_axon_dist,
@@ -3110,8 +3133,25 @@ class SnuddaDetect(object):
         # num_steps = np.ceil(np.amax(np.abs(np.diff(voxel_coords, axis=0)) * self_step_multiplier, axis=1)).astype(int)
         # dv_step = np.diff(voxel_coords, axis=0) / num_steps[:, None]
 
-        num_steps = np.ceil(np.amax(np.abs(np.diff(voxel_coords.T)).T * self_step_multiplier, axis=1)).astype(int)
-        dv_step = np.diff(voxel_coords.T).T / num_steps[:, None]
+        step_diff = np.abs(np.diff(voxel_coords.T)).T
+        # This is just does same as numpy.amax for axis=1, but inlined for NUMBA
+        max_val = step_diff[:, 0].copy()
+        for j in range(1, step_diff.shape[1]):
+            for i in range(0, step_diff.shape[0]):
+                if max_val[i] < step_diff[i, j]:
+                    max_val[i] = step_diff[i, j]
+
+        num_steps = np.ceil(max_val * self_step_multiplier).astype(np.int64)
+
+        # [:, None] is here used to divide first row by first element in num_step
+        # second row divide by second element in num_step etc. Pretty clever.
+        # https://stackoverflow.com/questions/19602187/numpy-divide-each-row-by-a-vector-element
+        # Looks like NUMBA cant handle this though,
+        # dv_step = np.diff(voxel_coords.T).T / num_steps[:, None]
+        dv_step = np.diff(voxel_coords.T).T
+        for i in range(0, dv_step.shape[0]):
+            dv_step[i, :] /= num_steps[i]
+
         dd_step = np.divide(np.diff(scaled_soma_dist), num_steps)
 
         # Remove this check later... should be done in morphology_data
@@ -3128,15 +3168,23 @@ class SnuddaDetect(object):
                 # Either of the points are within the cube or padding zone
 
                 steps = np.arange(0, num_steps[idx] + 1)
-                vp = (voxel_coords[idx, :] + dv_step[idx, :] * steps[:, None]).astype(np.int64)
-                soma_dist = (scaled_soma_dist[idx] + dd_step[idx]*steps).astype(int)
+                # vp = (voxel_coords[idx, :] + dv_step[idx, :] * steps[:, None]).astype(np.int64)
+                vp_x = (voxel_coords[idx, 0] + dv_step[idx, 0] * steps).astype(np.int64)
+                vp_y = (voxel_coords[idx, 1] + dv_step[idx, 1] * steps).astype(np.int64)
+                vp_z = (voxel_coords[idx, 2] + dv_step[idx, 2] * steps).astype(np.int64)
 
-                p_inside = np.sum(np.logical_and(0 <= vp, vp < self_num_bins), axis=1) == 3
+                soma_dist = (scaled_soma_dist[idx] + dd_step[idx]*steps).astype(np.int64)
+
+                # p_inside = np.sum(np.logical_and(0 <= vp, vp < self_num_bins), axis=1) == 3
+                p_inside = np.logical_and(np.logical_and(0 <= vp_x, vp_x < self_num_bins[0]),
+                                          np.logical_and(np.logical_and(0 <= vp_y, vp_y < self_num_bins[1]),
+                                                         np.logical_and(0 <= vp_z, vp_z < self_num_bins[2])))
 
                 # For each point pair in a section, find the intermediate points and mark voxels
                 for i in range(0, num_steps[idx] + 1):
                     if p_inside[i]:
-                        v_idx = tuple(vp[i, :])
+                        # v_idx = tuple(vp[i, :])
+                        v_idx = (vp_x[i], vp_y[i], vp_z[i])
                         v_ctr = voxel_space_ctr[v_idx]
 
                         if v_ctr > 0 and voxel_space[v_idx][v_ctr-1] == neuron_id:
@@ -3619,6 +3667,17 @@ class SnuddaDetect(object):
 
         return res
 
+@staticmethod
+def amax_helper(matrix) -> np.array:
+    # Same as numpy.amax with axis=1
+
+    max_val = matrix[:, 0].copy()
+    for j in range(1, matrix.shape[1]):
+        for i in range(0, matrix.shape[0]):
+            if max_val[i] < matrix[i, j]:
+                max_val[i] = matrix[i, j]
+
+    return max_val
 
 ############################################################################
 
