@@ -218,7 +218,7 @@ class MorphologyData:
 
         # Calculate section_x for all points in section_data
         for section_type in section_counter:
-            for section_id in range(0, section_counter[section_type]):
+            for section_id in range(0, section_counter[section_type]+1):
                 idx = np.where((self.section_data[:, 0] == section_id) & (self.section_data[:, 2] == section_type))[0]
 
                 if len(idx) == 1:
@@ -235,6 +235,9 @@ class MorphologyData:
                 # because no part of the dendrite is inside the soma.
                 if self.section_data[parent_idx[0], 3] == 1:
                     comp_length[0] -= self.geometry[parent_idx[0], 3]
+
+                    if comp_length[0] <= 0:
+                        raise ValueError(f"Internal error, compartment length {comp_length[0]} invalid.")
 
                 self.section_data[idx, 1] = 1000 * np.cumsum(comp_length) / np.sum(comp_length)
 

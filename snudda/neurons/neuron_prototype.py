@@ -147,8 +147,11 @@ class NeuronPrototype:
 
     def get_parameter_key(self, parameter_id):
 
-        assert parameter_id is not None, (f"get_parameter_key: parameter_id is None, for {self.neuron_name}"
-                                          f"\nNeuron path: {self.neuron_path}")
+        if parameter_id is None:
+            return None
+
+        # assert parameter_id is not None, (f"get_parameter_key: parameter_id is None, for {self.neuron_name}"
+        #                                   f"\nNeuron path: {self.neuron_path}")
 
         if self.parameter_info:
             par_key_list = list(self.parameter_info.keys())
@@ -158,7 +161,7 @@ class NeuronPrototype:
 
         return par_key
 
-    def get_morph_key(self, parameter_id, morphology_id, parameter_key=None):
+    def get_morph_key(self,  morphology_id, parameter_id=None, parameter_key=None):
 
         if parameter_id is None:
             par_key = parameter_key
@@ -458,7 +461,7 @@ class NeuronPrototype:
                 parameter_key = self.get_parameter_key(parameter_id=parameter_id)
 
             if morphology_key is None:
-                morphology_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id)
+                morphology_key = self.get_morph_key(parameter_key=parameter_key, morphology_id=morphology_id)
 
             if modulation_key is None:
                 modulation_key = self.get_modulation_key(parameter_key=parameter_key,
