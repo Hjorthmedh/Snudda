@@ -276,7 +276,7 @@ class ProjectionDetection:
                         self.snudda_detect.axon_voxel_ctr[x, y, z] += 1
                         self.snudda_detect.axon_soma_dist[x, y, z] = axon_dist  # This is an underestimation
                     else:
-                        self.snudda_detect.voxel_overflow_ctr += 1
+                        self.snudda_detect.voxel_overflow_counter += 1
 
     def get_neurons_of_type(self, neuron_type):
         neuron_id = np.array([x["neuronID"] for x in self.snudda_detect.neurons if x["type"] == neuron_type])
