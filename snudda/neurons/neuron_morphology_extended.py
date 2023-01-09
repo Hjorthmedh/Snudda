@@ -159,15 +159,39 @@ class NeuronMorphologyExtended:
 
         """
 
-        new_neuron = deepcopy(self)
-        new_neuron.parameter_key = parameter_key
-        new_neuron.modulation_key = modulation_key
+        new_neuron = NeuronMorphologyExtended(name=self.name,
+                                              position=None,
+                                              rotation=None,
+                                              swc_filename=self.swc_filename,
+                                              snudda_data=self.snudda_data,
+                                              param_data=self.param_data,
+                                              mech_filename=self.mech_filename,
+                                              neuron_path=self.neuron_path,
+                                              parameter_key=self.parameter_key,
+                                              morphology_key=self.morphology_key,
+                                              modulation_key=self.modulation_key,
+                                              load_morphology=False,
+                                              virtual_neuron=self.virtual_neuron,
+                                              axon_stump_id_flag=self.axon_stump_id_flag,
+                                              colour=self.colour,
+                                              logfile=self.logfile,
+                                              verbose=self.verbose)
+
+        # Copy over old morphology data
+        for md_key, md_value in self.morphology_data.items():
+            if md_key == "neuron":
+                new_neuron.morphology_data[md_key] = md_value.clone(position=position, rotation=rotation)
+            else:
+                new_neuron.morphology_data[md_key] = md_value.clone()
+
+        if parameter_key is not None:
+            new_neuron.parameter_key = parameter_key
+
+        if modulation_key is not None:
+            new_neuron.modulation_key = modulation_key
 
         if morphology_key != self.morphology_key:
             raise ValueError(f"Not allowed to change morphology_key when cloning: {self.morphology_key} -> {morphology_key}")
-
-        if position is not None or rotation is not None:
-            new_neuron.place(position=position, rotation=rotation)
 
         return new_neuron
 

@@ -9,6 +9,10 @@
 # Grant Agreements No. 720270 and No. 785907, No 945539
 # (Human Brain Project SGA1, SGA2, SGA3).
 
+# TODO: Let place also decide where separate axonal morphologies should be located, save swc morph, and position + rotation
+#       Then detect can just load that info directly. Simplifies load_neuron
+#       HDF5 filen, ha en matrix med info för axon morph, axon pos, axon rotation, axon parent
+
 import json
 import os
 import sys
@@ -18,6 +22,7 @@ import h5py
 import numexpr
 import numpy as np
 import scipy.cluster
+from scipy.interpolate import griddata
 
 from snudda.utils.snudda_path import get_snudda_data
 from snudda.neurons.neuron_prototype import NeuronPrototype
@@ -82,6 +87,8 @@ class SnuddaPlace(object):
 
         self.network_path = network_path
         self.config_file = config_file
+        self.config_connection_cache = None
+        self.config_projection_cache = None
 
         self.snudda_data = get_snudda_data(snudda_data=snudda_data,
                                            config_file=self.config_file,
@@ -217,6 +224,9 @@ class SnuddaPlace(object):
                                                             neuron_positions=neuron_positions,
                                                             rng=self.random_generator)
 
+        # Are there any projections from this neuron type in the config file?
+
+
         for coords, rotation in zip(neuron_positions, neuron_rotations):
             # We set loadMorphology = False, to preserve memory
             # Only morphology loaded for nm then, to get axon and dend
@@ -265,6 +275,8 @@ class SnuddaPlace(object):
             if first_added:
                 first_added = False
                 self.neuron_prototypes[n.name] = n
+
+
 
     ############################################################################
 
@@ -508,6 +520,60 @@ class SnuddaPlace(object):
             self.define_population_units(config["PopulationUnits"])
 
         mesh_logfile.close()
+
+    ############################################################################
+
+    def get_projection_info(self, source_neuron, position, config):
+
+        if "Connectivity" not in config:
+            return None
+
+        if self.config_connection_cache is None:
+
+            self.config_connection_cache = dict()
+            self.config_projection_cache = dict()
+
+            for con_key, con_value in config["Connectivity"].items():
+                source_key, dest_key = con_key.split(",")
+                self.config_connection_cache[source_key, dest_key] = con_value
+
+                if "projectionConfigFile" in con_value:
+                    proj_file = con_value["projectionConfigFile"]
+
+                    if proj_file not in self.config_projection_cache:
+                        with open(snudda_parse_path(proj_file, self.snudda_data)) as f:
+                            self.config_projection_cache[proj_file] = json.load(f)
+
+        for dest_key, con_info in self.config_connection_cache[source_neuron].items():
+            if "projectionConfigFile" in con_info:
+                proj_file = con_info["projectionConfigFile"]
+                self.config_projection_cache[proj_file]
+
+        # TODO: The idea is that add_neuron should be aware of the projections it has
+        #       that have axons in other structures (etc).
+        #       Use get_projection_axon_location below to extract the position and rotation
+        #       of the axon. Then we need to save this (for all axon bits) to the neuron
+        #       then the HDF5 file writer needs to be updated, to also include this information
+        #       (axon position, rotation, swc morph)
+        #       (and detect has to become aware of it also!)
+        #       -- we also need to handle the case when it is a probability axon cloud... ooops
+
+    def get_projection_axon_location(self, source_position, proj_info, rng):
+
+        target_centres = griddata(points=proj_info["source"], values=proj_info["destination"],
+                                  xi=source_position, method="linear")
+
+        if "rotation" in proj_info:
+            target_rotation = griddata(points=proj_info["destination"], values=proj_info["rotation"],
+                                       xi=target_centres, method="linear")
+        else:
+            target_rotation = [None for x in range(source_position.shape[0])]
+
+        num_axons = len(proj_info["axonMorphology"])
+        axon_id = rng.choice(num_axons, source_position.shape[0])
+        axon_swc = [proj_info["axonMorphology"][x] for x in axon_id]
+
+        return target_centres, target_rotation, axon_swc
 
     ############################################################################
 

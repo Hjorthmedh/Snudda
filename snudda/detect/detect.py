@@ -2848,7 +2848,6 @@ class SnuddaDetect(object):
 
         self.voxel_overflow_counter += voxel_overflow_ctr
 
-
     # Temporarily disabling NUMBA, since amax does not support axis in NUMBA
     @staticmethod
     @jit(nopython=True, fastmath=True, cache=True)

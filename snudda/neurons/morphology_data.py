@@ -256,12 +256,24 @@ class MorphologyData:
             idx = np.where(self.section_data[:, 2] == section_type)[0]
             self.point_lookup[section_type] = idx
 
-    def clone(self, position, rotation):
+    def clone(self, position, rotation, parent_tree_info=None):
 
         if self.position is not None or self.rotation is not None:
             raise ValueError("Not allowed to rotate or position a neuron that has already been rotated or positioned")
 
-        new_md = deepcopy(self)
+        new_md = MorphologyData()
+        new_md.swc_file = self.swc_file
+        new_md.section_data = self.section_data.copy()
+
+        for sec_key, sec_value in self.sections.items():
+            new_md.sections[sec_key] = sec_value.clone()
+
+        for p_key, p_value in self.point_lookup.items:
+            new_md.point_lookup[p_key] = p_value.copy()
+
+        new_md.kd_tree_lookup = dict()
+        new_md.parent_tree_info = parent_tree_info
+
         new_md.place(position=position, rotation=rotation)
 
     def place(self, position=None, rotation=None, parent_tree_info=None):
@@ -296,7 +308,9 @@ class MorphologyData:
                     or not np.abs(np.matmul(rotation, rotation.T) - np.eye(3) < 1e-10).all():
                 raise ValueError(f"Not a valid rotation matrix {rotation}")
 
-            self.geometry[:, :3] = np.matmul(self.rotation, self.geometry[:, :3].T).T + self.position
+            self.geometry[:, :3] = np.matmul(self.rotation, self.geometry[:, :3].T).T
+
+        self.geometry[:, :3] += self.position
 
         if self.parent_tree_info is not None:
             # We need to update soma distance for subtree based on distance to parent
