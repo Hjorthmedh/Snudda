@@ -440,16 +440,21 @@ class NeuronPrototype:
 
         if morph_tag not in self.morphology_cache:
             # TODO: hoc file will depend on both morphology_id and parameter_id, we ignore it for now
-            self.morphology_cache[morph_tag] = NeuronMorphologyExtended(swc_filename=morph_path,
+            self.morphology_cache[morph_tag] = NeuronMorphologyExtended(name=self.neuron_name,
+                                                                        position=None,  # This is set further down when using clone
+                                                                        rotation=None,
+                                                                        swc_filename=morph_path,
+                                                                        snudda_data=self.snudda_data,
                                                                         param_data=self.parameter_path,
                                                                         mech_filename=self.mechanism_path,
                                                                         neuron_path=self.neuron_path,
-                                                                        snudda_data=self.snudda_data,
-                                                                        name=self.neuron_name,
+                                                                        parameter_key=parameter_key,
                                                                         morphology_key=morphology_key,
+                                                                        modulation_key=modulation_key,
                                                                         load_morphology=self.load_morphology,
                                                                         virtual_neuron=self.virtual_neuron,
-                                                                        axon_stump_id_flag=self.axon_stump_id_flag)
+                                                                        axon_stump_id_flag=self.axon_stump_id_flag,
+                                                                        verbose=self.verbose)
 
         if get_cache_original:
             assert position is None and rotation is None and modulation_id is None, \

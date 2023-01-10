@@ -177,6 +177,9 @@ class NeuronMorphologyExtended:
                                               logfile=self.logfile,
                                               verbose=self.verbose)
 
+        new_neuron.position = position
+        new_neuron.rotation = rotation
+
         # Copy over old morphology data
         for md_key, md_value in self.morphology_data.items():
             if md_key == "neuron":

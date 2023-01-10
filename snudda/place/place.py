@@ -180,7 +180,8 @@ class SnuddaPlace(object):
                     axon_density=None,
                     parameter_key=None,
                     morphology_key=None,
-                    modulation_key=None):
+                    modulation_key=None,
+                    config=None):
 
         """
         Add neurons to volume specified.
@@ -200,6 +201,7 @@ class SnuddaPlace(object):
             parameter_key (str, optional): Parameter Key to use, default=None (Randomise between all available)
             morphology_key (str, optional): Morphology Key to use, default=None (Randomise between all available)
             modulation_key (str, optional): Key for neuromodulation, default=None (Randomise between all available)
+            config (dict): dict representation of network-config.json
         """
 
         assert volume_id is not None, f"You must specify a volume for neuron {name}"
@@ -225,9 +227,15 @@ class SnuddaPlace(object):
                                                             rng=self.random_generator)
 
         # Are there any projections from this neuron type in the config file?
+        axon_info = self.get_projection_info(source_neuron=neuron_type,
+                                             position=neuron_positions,
+                                             config=config,
+                                             rng=self.random_generator)
 
+        # TODO: Use axon_info to add axonal (projecton) branches to neurons
 
-        for coords, rotation in zip(neuron_positions, neuron_rotations):
+        for idx, (coords, rotation) in enumerate(zip(neuron_positions, neuron_rotations)):
+
             # We set loadMorphology = False, to preserve memory
             # Only morphology loaded for nm then, to get axon and dend
             # radius needed for connectivity
@@ -269,14 +277,20 @@ class SnuddaPlace(object):
             #     "!!! ERROR: Neuron: " + str(n.name) + " has both axon and axon density."
 
             n.axon_density = axon_density
+
+            if axon_info is not None and len(axon_info) > 0:
+                for axon_name, axon_position, axon_rotation, axon_swc in axon_info:
+                    n.add_morphology(swc_file=axon_swc[idx],
+                                     name=axon_name,
+                                     position=axon_position[idx, :],
+                                     rotation=axon_rotation[idx, :].reshape((3, 3)))
+
             self.neurons.append(n)
 
             # This info is used by workers to speed things up
             if first_added:
                 first_added = False
                 self.neuron_prototypes[n.name] = n
-
-
 
     ############################################################################
 
@@ -504,7 +518,8 @@ class SnuddaPlace(object):
                              axon_density=axon_density,
                              parameter_key=parameter_key,
                              morphology_key=morphology_key,
-                             modulation_key=modulation_key)
+                             modulation_key=modulation_key,
+                             config=config)
 
         self.config_file = config_file
 
@@ -523,19 +538,38 @@ class SnuddaPlace(object):
 
     ############################################################################
 
-    def get_projection_info(self, source_neuron, position, config):
+    def get_projection_info(self, source_neuron, position, config, rng):
 
         if "Connectivity" not in config:
             return None
+
+        axon_info = []
+
+        if source_neuron == "dSPN":
+            print(f"axon_info = {axon_info}")
+            import pdb
+            pdb.set_trace()
 
         if self.config_connection_cache is None:
 
             self.config_connection_cache = dict()
             self.config_projection_cache = dict()
 
-            for con_key, con_value in config["Connectivity"].items():
+            for con_key, con_specification in config["Connectivity"].items():
                 source_key, dest_key = con_key.split(",")
-                self.config_connection_cache[source_key, dest_key] = con_value
+
+                print("This code needs to be reworked...")
+                import pdb
+                pdb.set_trace()
+
+                if source_key not in self.config_projection_cache:
+                    self.config_connection_cache[source_key] = dict()
+
+                if dest_key not in self.config_connection_cache[source_key]:
+                    self.config_connection_cache[source_key][dest_key] = dict()
+
+                for con_type, con_value in con_specification:
+                    self.config_connection_cache[source_key][dest_key][con_type] = con_value
 
                 if "projectionConfigFile" in con_value:
                     proj_file = con_value["projectionConfigFile"]
@@ -544,10 +578,18 @@ class SnuddaPlace(object):
                         with open(snudda_parse_path(proj_file, self.snudda_data)) as f:
                             self.config_projection_cache[proj_file] = json.load(f)
 
-        for dest_key, con_info in self.config_connection_cache[source_neuron].items():
+        for dest_key, con_info in self.config_connection_cache.get(source_neuron, dict()).items():
             if "projectionConfigFile" in con_info:
                 proj_file = con_info["projectionConfigFile"]
-                self.config_projection_cache[proj_file]
+                proj_info = self.config_projection_cache[proj_file]
+
+                # TODO: Try to group multiple calls together, griddata is slow per call.
+                axon_name, axon_position, axon_rotation, axon_swc = self.get_projection_axon_location(source_position=position,
+                                                                                                      proj_info=proj_info,
+                                                                                                      rng=rng)
+                axon_info.append([axon_name, axon_position, axon_rotation, axon_swc])
+
+        return axon_info
 
         # TODO: The idea is that add_neuron should be aware of the projections it has
         #       that have axons in other structures (etc).
@@ -572,8 +614,9 @@ class SnuddaPlace(object):
         num_axons = len(proj_info["axonMorphology"])
         axon_id = rng.choice(num_axons, source_position.shape[0])
         axon_swc = [proj_info["axonMorphology"][x] for x in axon_id]
+        proj_name = proj_info["projectionName"]
 
-        return target_centres, target_rotation, axon_swc
+        return proj_name, target_centres, target_rotation, axon_swc
 
     ############################################################################
 
@@ -610,6 +653,35 @@ class SnuddaPlace(object):
         """ Returns all neuron names as a list. """
 
         return map(lambda x: x.name, self.neurons)
+
+    ############################################################################
+
+    def gather_extra_axons(self):
+
+        ax_neuron = []
+        ax_name = []
+        ax_swc = []
+        ax_position = []
+        ax_rotation = []
+
+        for n_idx, n in enumerate(self.neurons):
+            for md_key, md in n.morphology_data.items():
+                if md_key != "neuron":
+                    ax_neuron.append(n_idx)  # which neuron does axon belong to
+                    ax_name.append(md_key)
+                    ax_swc.append(md.swc_file)
+                    ax_position.append(md.position)
+                    ax_rotation.append(md.rotation.reshape((1, 9)))
+
+        if len(ax_neuron) > 0:
+            ax_neuron = np.array(ax_neuron)
+            ax_position = np.hstack(ax_position)
+            ax_rotation = np.hstack(ax_rotation)
+
+        import pdb
+        pdb.set_trace()
+
+        return ax_neuron, ax_name, ax_position, ax_rotation, ax_swc
 
     ############################################################################
 
@@ -694,6 +766,20 @@ class SnuddaPlace(object):
                                                       (len(self.neurons), 9),
                                                       "float",
                                                       compression="gzip")
+
+        # Write axons to hdf5 file
+        ax_neuron, ax_name, ax_position, ax_rotation, ax_swc = self.gather_extra_axons()
+
+        axon_group = neuron_group.create_group("extraAxons")
+        axon_group.create_dataset("parentNeuron", data=ax_neuron)
+        axon_group.create_dataset("name", (len(ax_name), ), data=ax_name,
+                                  dtype=h5py.special_dtype(vlen=bytes), compression="gzip")
+        axon_group.create_dataset("position", data=ax_position)
+        axon_group.create_dataset("rotation", data=ax_rotation)
+        axon_group.create_dataset("morphology", (len(ax_swc), ), data=ax_swc,
+                                  dtype=h5py.special_dtype(vlen=bytes), compression="gzip")
+
+        # TODO: Parent tree info, eller motsvarande, måste sparas också!
 
         # Should not be used anymore, try removing...
         #
@@ -1090,6 +1176,7 @@ class SnuddaPlace(object):
                            f"For reproducibility always use the same number of workers.")
 
         xyz = self.all_neuron_positions()
+
         centroids, labels = scipy.cluster.vq.kmeans2(xyz, n_clusters, minit="points", seed=self.random_generator)
 
         n_centroids = centroids.shape[0]
