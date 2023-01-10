@@ -119,7 +119,8 @@ class NeuronMorphologyExtended:
 
         self.morphology_data[name] = MorphologyData(swc_file=swc_file, parent_tree_info=parent_tree_info,
                                                     snudda_data=self.snudda_data)
-        self.morphology_data[name].place(position=position, rotation=rotation)
+        if position is not None:
+            self.morphology_data[name].place(position=position, rotation=rotation)
 
     def section_iterator(self, section_type=None):
         for subtree in self.morphology_data.values():

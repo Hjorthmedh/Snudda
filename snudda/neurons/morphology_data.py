@@ -69,6 +69,10 @@ class SectionMetaData:
         if not (bastard_idx == idx[1:]).all():
             raise ValueError(f"Only last point in section may have children outside section.")
 
+    def clone(self, new_morphology_data):
+        new_smd = SectionMetaData(section_id=self.section_id, section_type=self.section_type,
+                                  morphology_data=new_morphology_data)
+
 
 class MorphologyData:
 
@@ -267,12 +271,22 @@ class MorphologyData:
 
         new_md = MorphologyData()
         new_md.swc_file = self.swc_file
+        new_md.geometry = self.geometry.copy()
         new_md.section_data = self.section_data.copy()
+        new_md.sections = dict()
 
-        for sec_key, sec_value in self.sections.items():
-            new_md.sections[sec_key] = sec_value.clone()
+        for sec_type, sec_type_data in self.sections.items():
+            for sec_key, sec_value in sec_type_data.items():
+                try:
+                    new_md.sections[sec_type] = dict()
+                    new_md.sections[sec_type][sec_key] = sec_value.clone(new_morphology_data=new_md)
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
 
-        for p_key, p_value in self.point_lookup.items:
+        for p_key, p_value in self.point_lookup.items():
             new_md.point_lookup[p_key] = p_value.copy()
 
         new_md.kd_tree_lookup = dict()
@@ -314,13 +328,7 @@ class MorphologyData:
 
             self.geometry[:, :3] = np.matmul(self.rotation, self.geometry[:, :3].T).T
 
-        try:
-            self.geometry[:, :3] += self.position
-        except:
-            import traceback
-            print(traceback.format_exc())
-            import pdb
-            pdb.set_trace()
+        self.geometry[:, :3] += self.position
 
         if self.parent_tree_info is not None:
             # We need to update soma distance for subtree based on distance to parent

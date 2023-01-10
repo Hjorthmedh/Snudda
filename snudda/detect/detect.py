@@ -2685,8 +2685,14 @@ class SnuddaDetect(object):
 
                 neuron = self.load_neuron(n)
                 for subtree in neuron.morphology_data.values():
-                    max_coord = np.maximum(max_coord, np.max(subtree.geometry[:, :3], axis=0))
-                    min_coord = np.minimum(min_coord, np.min(subtree.geometry[:, :3], axis=0))
+                    try:
+                        max_coord = np.maximum(max_coord, np.max(subtree.geometry[:, :3], axis=0))
+                        min_coord = np.minimum(min_coord, np.min(subtree.geometry[:, :3], axis=0))
+                    except:
+                        import traceback
+                        print(traceback.format_exc())
+                        import pdb
+                        pdb.set_trace()
 
         except Exception as e:
             # Write error to log file to help trace it.
