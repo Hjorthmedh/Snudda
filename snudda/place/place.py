@@ -87,8 +87,7 @@ class SnuddaPlace(object):
 
         self.network_path = network_path
         self.config_file = config_file
-        self.config_connection_cache = None
-        self.config_projection_cache = None
+        self.axon_config_cache = None
 
         self.snudda_data = get_snudda_data(snudda_data=snudda_data,
                                            config_file=self.config_file,
@@ -227,12 +226,10 @@ class SnuddaPlace(object):
                                                             rng=self.random_generator)
 
         # Are there any projections from this neuron type in the config file?
-        axon_info = self.get_projection_info(source_neuron=neuron_type,
-                                             position=neuron_positions,
-                                             config=config,
-                                             rng=self.random_generator)
-
-        # TODO: Use axon_info to add axonal (projecton) branches to neurons
+        axon_info = self.generate_extra_axon_info(source_neuron=name,
+                                                  position=neuron_positions,
+                                                  config=config,
+                                                  rng=self.random_generator)
 
         for idx, (coords, rotation) in enumerate(zip(neuron_positions, neuron_rotations)):
 
@@ -538,75 +535,49 @@ class SnuddaPlace(object):
 
     ############################################################################
 
-    def get_projection_info(self, source_neuron, position, config, rng):
-
-        if "Connectivity" not in config:
-            return None
+    def generate_extra_axon_info(self, source_neuron, position, config, rng):
 
         axon_info = []
 
-        if source_neuron == "dSPN":
-            print(f"axon_info = {axon_info}")
-            import pdb
-            pdb.set_trace()
+        if self.axon_config_cache is None:
 
-        if self.config_connection_cache is None:
+            self.axon_config_cache = dict()
 
-            self.config_connection_cache = dict()
-            self.config_projection_cache = dict()
+            for neuron_key, neuron_info in config["Neurons"].items():
+                if "axonConfig" in neuron_info:
+                    axon_config = snudda_parse_path(neuron_info["axonConfig"], self.snudda_data)
+                    with open(axon_config, "r") as f:
+                        self.axon_config_cache[neuron_key] = json.load(f)
 
-            for con_key, con_specification in config["Connectivity"].items():
-                source_key, dest_key = con_key.split(",")
+        if source_neuron in self.axon_config_cache:
+            axon_config = self.axon_config_cache[source_neuron]
 
-                print("This code needs to be reworked...")
-                import pdb
-                pdb.set_trace()
+            for axon_name, axon_data in axon_config.items():
 
-                if source_key not in self.config_projection_cache:
-                    self.config_connection_cache[source_key] = dict()
-
-                if dest_key not in self.config_connection_cache[source_key]:
-                    self.config_connection_cache[source_key][dest_key] = dict()
-
-                for con_type, con_value in con_specification:
-                    self.config_connection_cache[source_key][dest_key][con_type] = con_value
-
-                if "projectionConfigFile" in con_value:
-                    proj_file = con_value["projectionConfigFile"]
-
-                    if proj_file not in self.config_projection_cache:
-                        with open(snudda_parse_path(proj_file, self.snudda_data)) as f:
-                            self.config_projection_cache[proj_file] = json.load(f)
-
-        for dest_key, con_info in self.config_connection_cache.get(source_neuron, dict()).items():
-            if "projectionConfigFile" in con_info:
-                proj_file = con_info["projectionConfigFile"]
-                proj_info = self.config_projection_cache[proj_file]
-
-                # TODO: Try to group multiple calls together, griddata is slow per call.
-                axon_name, axon_position, axon_rotation, axon_swc = self.get_projection_axon_location(source_position=position,
-                                                                                                      proj_info=proj_info,
-                                                                                                      rng=rng)
+                axon_position, axon_rotation, axon_swc \
+                    = self.get_projection_axon_location(source_position=position,
+                                                        proj_info=axon_data,
+                                                        rng=rng)
                 axon_info.append([axon_name, axon_position, axon_rotation, axon_swc])
 
-        return axon_info
+            return axon_info
 
-        # TODO: The idea is that add_neuron should be aware of the projections it has
-        #       that have axons in other structures (etc).
-        #       Use get_projection_axon_location below to extract the position and rotation
-        #       of the axon. Then we need to save this (for all axon bits) to the neuron
-        #       then the HDF5 file writer needs to be updated, to also include this information
-        #       (axon position, rotation, swc morph)
-        #       (and detect has to become aware of it also!)
-        #       -- we also need to handle the case when it is a probability axon cloud... ooops
+        else:
+            # No extra axons for neuron
+            return []
 
     def get_projection_axon_location(self, source_position, proj_info, rng):
 
-        target_centres = griddata(points=proj_info["source"], values=proj_info["destination"],
+        # Obs we convert from micrometers to meters
+        target_centres = griddata(points=np.array(proj_info["source"])*1e-6,
+                                  values=np.array(proj_info["destination"])*1e-6,
                                   xi=source_position, method="linear")
 
         if "rotation" in proj_info:
-            target_rotation = griddata(points=proj_info["destination"], values=proj_info["rotation"],
+            # TODO: This is probably wrong, we have to handle interpolation between
+            #       rotation matrices in a better way!
+            target_rotation = griddata(points=np.array(proj_info["destination"])*1e-6,
+                                       values=proj_info["rotation"],
                                        xi=target_centres, method="linear")
         else:
             target_rotation = [None for x in range(source_position.shape[0])]
@@ -614,9 +585,8 @@ class SnuddaPlace(object):
         num_axons = len(proj_info["axonMorphology"])
         axon_id = rng.choice(num_axons, source_position.shape[0])
         axon_swc = [proj_info["axonMorphology"][x] for x in axon_id]
-        proj_name = proj_info["projectionName"]
 
-        return proj_name, target_centres, target_rotation, axon_swc
+        return target_centres, target_rotation, axon_swc
 
     ############################################################################
 
@@ -675,11 +645,8 @@ class SnuddaPlace(object):
 
         if len(ax_neuron) > 0:
             ax_neuron = np.array(ax_neuron)
-            ax_position = np.hstack(ax_position)
-            ax_rotation = np.hstack(ax_rotation)
-
-        import pdb
-        pdb.set_trace()
+            ax_position = np.vstack(ax_position)
+            ax_rotation = np.vstack(ax_rotation)
 
         return ax_neuron, ax_name, ax_position, ax_rotation, ax_swc
 

@@ -390,6 +390,7 @@ class SnuddaInit(object):
                     neuron_dir,
                     num_neurons,
                     axon_density=None,
+                    axon_config=None,
                     model_type="neuron",
                     volume_id=None,
                     rotation_mode="random"):
@@ -542,6 +543,9 @@ class SnuddaInit(object):
 
             if axon_density is not None:
                 cell_data["axonDensity"] = axon_density
+
+            if axon_config is not None:
+                cell_data["axonConfig"] = axon_config
 
             self.network_data["Neurons"][unique_name] = cell_data
 

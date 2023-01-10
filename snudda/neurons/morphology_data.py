@@ -3,6 +3,9 @@ import numpy as np
 from copy import deepcopy
 from scipy.spatial import cKDTree
 
+import snudda.utils
+
+
 # TODO: Move constants like 1000 * sec_x to separate file
 
 
@@ -81,9 +84,10 @@ class MorphologyData:
 
     """
 
-    def __init__(self, swc_file=None, parent_tree_info=None):
+    def __init__(self, swc_file=None, parent_tree_info=None, snudda_data=None):
 
         self.swc_file = swc_file
+        self.snudda_data = snudda_data
 
         self.geometry = None      # x, y, z, r, soma_dist (float)
         self.section_data = None  # section_id, section_x (*1000), section_type (int), parent_point_id (int)
@@ -120,7 +124,7 @@ class MorphologyData:
                 remapping_types (dict): Remapping of compartment types (default: 4 (apical) -> 3 (normal dendrites))
         """
 
-        # This function is not SNUDDA_DATA aware, the file must exist
+        swc_file = snudda.utils.snudda_parse_path(swc_file, self.snudda_data)
 
         if not os.path.isfile(swc_file):
             raise FileNotFoundError(f"Missing SWC file '{swc_file}'")
@@ -310,7 +314,13 @@ class MorphologyData:
 
             self.geometry[:, :3] = np.matmul(self.rotation, self.geometry[:, :3].T).T
 
-        self.geometry[:, :3] += self.position
+        try:
+            self.geometry[:, :3] += self.position
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
 
         if self.parent_tree_info is not None:
             # We need to update soma distance for subtree based on distance to parent

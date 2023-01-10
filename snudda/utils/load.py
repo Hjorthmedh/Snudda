@@ -349,6 +349,30 @@ class SnuddaLoad(object):
     ############################################################################
 
     @staticmethod
+    def gather_extra_axons(hdf5_file):
+
+        extra_axons = dict()
+
+        for neuron_id, axon_name, position, rotation, swc_file \
+                in zip(hdf5_file["network/neurons/extraAxons/parentNeuron"],
+                       hdf5_file["network/neurons/extraAxons/name"],
+                       hdf5_file["network/neurons/extraAxons/position"],
+                       hdf5_file["network/neurons/extraAxons/rotation"],
+                       hdf5_file["network/neurons/extraAxons/morphology"]):
+
+            if neuron_id not in extra_axons:
+                extra_axons[neuron_id] = dict()
+
+            extra_axons[neuron_id][axon_name] = dict()
+            extra_axons[neuron_id][axon_name]["position"] = position
+            extra_axons[neuron_id][axon_name]["rotation"] = rotation.reshape(3, 3)
+            extra_axons[neuron_id][axon_name]["morphology"] = SnuddaLoad.to_str(swc_file)
+
+        return extra_axons
+
+    ############################################################################
+
+    @staticmethod
     def extract_neurons(hdf5_file):
 
         """
@@ -363,6 +387,7 @@ class SnuddaLoad(object):
         """
 
         neurons = []
+        extra_axons = SnuddaLoad.gather_extra_axons(hdf5_file=hdf5_file)
 
         for name, neuron_id, hoc, pos, rot, virtual, vID, \
             axon_density_type, axon_density, axon_density_radius, \
@@ -433,6 +458,9 @@ class SnuddaLoad(object):
             n["modulationKey"] = mod_key if len(mod_key) > 0 else None
 
             n["populationUnit"] = population_unit_id
+
+            if neuron_id in extra_axons:
+                n["extraAxons"] = extra_axons[neuron_id].copy()
 
             neurons.append(n)
 
