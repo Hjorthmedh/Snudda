@@ -270,11 +270,6 @@ class NeuronMorphologyExtended:
 
         synapse_density, dend_idx = self.get_weighted_synapse_density(synapse_density_str=synapse_density_str)
 
-        if (self.morphology_data["neuron"].geometry[1:, 4] <= 0).any():
-            print("ARAGSDF")
-            import pdb
-            pdb.set_trace()
-
         # Iterate over all dendrites.
         geometry = self.morphology_data["neuron"].geometry
         section_data = self.morphology_data["neuron"].section_data
@@ -303,7 +298,8 @@ class NeuronMorphologyExtended:
             if not (cluster_size is None or cluster_size == 1):
                 raise ValueError(f"If cluster_size is set, then num_locations must be set.")
 
-            syn_idx = dend_idx[np.where(rng.uniform(size=dend_idx.shape) < expected_synapses[dend_idx])[0]]
+            # Expected synapses is synapses per micrometers, multiply by 1e6 to get per meter (SI)
+            syn_idx = dend_idx[np.where(rng.uniform(size=dend_idx.shape) < 1e6*expected_synapses[dend_idx])[0]]
             num_locations = len(syn_idx)
 
         if cluster_size is None or cluster_size == 1:

@@ -345,6 +345,48 @@
                 }
             }
         },
+        "ChIN,dSPN": {
+            "ACh": {
+                "conductance": [
+                    1e-09,
+                    0
+                ],
+                "channelParameters": {
+                    "modFile": ""
+                },
+                "clusterSize": 1,
+                "clusterSpread": null,
+                "pruning": {
+                    "f1": 0.5,
+                    "softMax": 10,
+                    "mu2": 15,
+                    "a3": 0.1,
+                    "distPruning": null,
+                    "cluster": false
+                }
+            }
+        },
+        "ChIN,iSPN": {
+            "ACh": {
+                "conductance": [
+                    1e-09,
+                    0
+                ],
+                "channelParameters": {
+                    "modFile": ""
+                },
+                "clusterSize": 1,
+                "clusterSpread": null,
+                "pruning": {
+                    "f1": 0.5,
+                    "softMax": 10,
+                    "mu2": 10,
+                    "a3": 0.1,
+                    "distPruning": null,
+                    "cluster": false
+                }
+            }
+        },
         "LTS,dSPN": {
             "GABA": {
                 "conductance": [

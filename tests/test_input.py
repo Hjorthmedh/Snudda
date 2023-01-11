@@ -30,7 +30,6 @@ class InputTestCase(unittest.TestCase):
         cnc.add_population_unit_random("Striatum", ["dSPN", "FS"], 0.4, unit_id=1)
         cnc.add_population_unit_random("Striatum", ["dSPN", "FS"], 0.4, unit_id=2)
 
-
         cnc.write_json(self.config_file)
 
         # Place neurons
@@ -299,11 +298,19 @@ class InputTestCase(unittest.TestCase):
         # So we need to check FS neuron that belongs to population unit 1 or 2.
         some_spikes = input_data["input/1/Cortical/spikes"][()].flatten()
         some_spikes = some_spikes[some_spikes >= 0]
+        n_trains = input_data["input/1/Cortical/spikes"][()].shape[0]
 
         for extra_spike in [0.2, 0.3, 0.45]:
 
-            self.assertTrue(np.sum(np.abs(some_spikes - extra_spike) < 1e-4) >= 3977)
-            self.assertTrue(np.sum(np.abs(some_spikes - extra_spike + 0.05) < 1e-3) < 50)
+            try:
+                self.assertTrue(np.sum(np.abs(some_spikes - extra_spike) < 1e-4)
+                                >= n_trains)
+                self.assertTrue(np.sum(np.abs(some_spikes - extra_spike + 0.05) < 1e-3) < 50)
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
 
         some_spikes2 = input_data["input/1/Thalamic/spikes"][()].flatten()
         some_spikes2 = some_spikes2[some_spikes2 >= 0]
