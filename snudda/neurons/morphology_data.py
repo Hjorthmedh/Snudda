@@ -168,10 +168,21 @@ class MorphologyData:
         for comp_id, parent_id, c_len in zip(range(1, len(parent_row_id)+1), parent_row_id, comp_length):
             if data[0, 1] == 1 and parent_id == 0:
                 # We need to subtract soma radius from first compartment connecting to soma
-                self.geometry[comp_id, 4] = c_len - self.geometry[0, 3]
+                # If the first point is inside the soma, set its compartment length to 0
+                if c_len < self.geometry[0, 3]:
+                    print(f"Warning: Branch starts inside soma: {swc_file}, line id {comp_id+1}"
+                          f" -- will truncate length to 1 micrometer")
+
+                self.geometry[comp_id, 4] = max(1e-6, c_len - self.geometry[0, 3])
+
             else:
                 # distance to soma = parents distance to soma + compartment length
                 self.geometry[comp_id, 4] = self.geometry[parent_id, 4] + c_len
+
+        if (self.geometry[1:, 4] <= 0).any():
+            import pdb
+            pdb.set_trace()
+            raise ValueError("Found compartments with 0 or negative length.")
 
         # Store metadata for points
         self.section_data = np.full((data.shape[0], 4), -1, dtype=int)
@@ -360,8 +371,10 @@ class MorphologyData:
     def get_kd_tree(self, compartment_type):
 
         if compartment_type not in self.kd_tree_lookup:
-            coords = np.where(self.section_data[:, 2] == compartment_type)
-            self.kd_tree_lookup = cKDTree(coords)
+            comp_idx = np.where(self.section_data[:, 2] == compartment_type)[0]
+            coords = self.geometry[comp_idx, :3]
+
+            self.kd_tree_lookup[compartment_type] = cKDTree(coords)
 
         return self.kd_tree_lookup[compartment_type]
 

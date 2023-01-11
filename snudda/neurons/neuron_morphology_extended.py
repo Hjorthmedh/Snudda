@@ -270,18 +270,23 @@ class NeuronMorphologyExtended:
 
         synapse_density, dend_idx = self.get_weighted_synapse_density(synapse_density_str=synapse_density_str)
 
+        if (self.morphology_data["neuron"].geometry[1:, 4] <= 0).any():
+            print("ARAGSDF")
+            import pdb
+            pdb.set_trace()
+
         # Iterate over all dendrites.
         geometry = self.morphology_data["neuron"].geometry
         section_data = self.morphology_data["neuron"].section_data
         soma_dist = geometry[:, 4]
         parent_idx = section_data[:, 3]
 
-        comp_len = soma_dist
+        comp_len = soma_dist.copy()
         comp_len[1:] -= soma_dist[parent_idx[1:]]
 
         assert (comp_len[1:] > 0).all(), "Internal error. Zero or negative compartment lengths."
 
-        comp_synapse_density = (synapse_density - synapse_density[parent_idx]) / 2
+        comp_synapse_density = (synapse_density + synapse_density[parent_idx]) / 2
         expected_synapses = np.multiply(comp_len, comp_synapse_density)
         expected_sum = np.sum(expected_synapses[dend_idx])
 
@@ -292,8 +297,8 @@ class NeuronMorphologyExtended:
             raise ValueError(f"All compartments have zero synapse density: {synapse_density_str}")
 
         try:
-            syn_idx = dend_idx[rng.choice(a=dend_idx, size=num_locations, replace=True,
-                                          p=expected_synapses[dend_idx] / expected_sum)]
+            syn_idx = rng.choice(a=dend_idx, size=num_locations, replace=True,
+                                 p=expected_synapses[dend_idx] / expected_sum)
         except:
             import traceback
             self.write_log(traceback.format_exc(), is_error=True, flush=True)
@@ -302,7 +307,7 @@ class NeuronMorphologyExtended:
 
         if cluster_size is None or cluster_size == 1:
             comp_x = rng.random(num_locations)
-            xyz = comp_x * geometry[syn_idx, :3] + (1-comp_x) * geometry[parent_idx[syn_idx], :3]
+            xyz = comp_x[:, None] * geometry[syn_idx, :3] + (1-comp_x[:, None]) * geometry[parent_idx[syn_idx], :3]
             sec_id = section_data[syn_idx, 0]
             sec_x = comp_x * section_data[syn_idx, 1] + (1-comp_x) * section_data[parent_idx[syn_idx], 1]
             dist_to_soma = comp_x * geometry[syn_idx, 4] + (1-comp_x) * geometry[parent_idx[syn_idx], 4]
@@ -323,7 +328,7 @@ class NeuronMorphologyExtended:
 
             num_locations = len(cluster_syn_idx)
             comp_x = rng.random(num_locations)
-            xyz = comp_x * geometry[cluster_syn_idx, :3] + (1 - comp_x) * geometry[parent_idx[cluster_syn_idx], :3]
+            xyz = comp_x[:, None] * geometry[cluster_syn_idx, :3] + (1 - comp_x[:, None]) * geometry[parent_idx[cluster_syn_idx], :3]
             sec_id = section_data[cluster_syn_idx, 0]
             sec_x = comp_x * section_data[cluster_syn_idx, 1] + (1 - comp_x) * section_data[parent_idx[cluster_syn_idx], 1]
             dist_to_soma = comp_x * geometry[cluster_syn_idx, 4] + (1 - comp_x) * geometry[parent_idx[cluster_syn_idx], 4]
