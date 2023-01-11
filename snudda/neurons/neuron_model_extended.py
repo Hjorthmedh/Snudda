@@ -93,11 +93,9 @@ class NeuronModel(ephys.models.CellModel):
             if modulation_key:
                 mod_params = self.define_parameters(parameter_config=modulation_file,
                                                     parameter_key=modulation_key)
-            elif modulation_id:
-                mod_params = self.define_parameters(parameter_config=modulation_file,
-                                                    parameter_id=modulation_id)
-
-            params = params + mod_params
+                params = params + mod_params
+            else:
+                print(f"Warning! No modulation key specified, ignoring {modulation_file}")
 
         super(NeuronModel, self).__init__(name=cell_name, morph=morph,
                                           mechs=mechs, params=params)
@@ -187,7 +185,10 @@ class NeuronModel(ephys.models.CellModel):
                 p_config = param_configs[par_key]
 
         elif type(param_configs) == list and type(param_configs[0]) == list:
+            # Parameter ID no longer exists, we default to parameter_id = 0
             # This is old fallback code, for old version format of parameters.json, remove in the future.
+            print("Warning: Old format of parameter config, using parameter_id = 0.")
+            parameter_id = 0
             num_params = len(param_configs)
             p_config = param_configs[parameter_id % num_params]
         else:

@@ -268,7 +268,7 @@ class SnuddaSaveNetworkRecordings:
     # 4. write_compartment_voltage -- alla noder skriver segment voltage
 
     def write_string_meta_data(self, group, name):
-        string_data = [x[name] for x in self.network_data["neurons"]]
+        string_data = [x[name] if x[name] is not None else "" for x in self.network_data["neurons"]]
         max_len = max(1, max([len(x) for x in string_data]))
         str_type = f"S{max_len}"
         group.create_dataset(name, (len(string_data),), str_type, string_data, compression="gzip")

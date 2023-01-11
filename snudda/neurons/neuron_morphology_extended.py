@@ -296,21 +296,28 @@ class NeuronMorphologyExtended:
         if expected_sum <= 0:
             raise ValueError(f"All compartments have zero synapse density: {synapse_density_str}")
 
-        try:
+        if num_locations is not None:
             syn_idx = rng.choice(a=dend_idx, size=num_locations, replace=True,
                                  p=expected_synapses[dend_idx] / expected_sum)
-        except:
-            import traceback
-            self.write_log(traceback.format_exc(), is_error=True, flush=True)
-            import pdb
-            pdb.set_trace()
+        else:
+            if not (cluster_size is None or cluster_size == 1):
+                raise ValueError(f"If cluster_size is set, then num_locations must be set.")
+
+            syn_idx = dend_idx[np.where(rng.uniform(size=dend_idx.shape) < expected_synapses[dend_idx])[0]]
+            num_locations = len(syn_idx)
 
         if cluster_size is None or cluster_size == 1:
-            comp_x = rng.random(num_locations)
-            xyz = comp_x[:, None] * geometry[syn_idx, :3] + (1-comp_x[:, None]) * geometry[parent_idx[syn_idx], :3]
-            sec_id = section_data[syn_idx, 0]
-            sec_x = comp_x * section_data[syn_idx, 1] + (1-comp_x) * section_data[parent_idx[syn_idx], 1]
-            dist_to_soma = comp_x * geometry[syn_idx, 4] + (1-comp_x) * geometry[parent_idx[syn_idx], 4]
+            try:
+                comp_x = rng.random(num_locations)
+                xyz = comp_x[:, None] * geometry[syn_idx, :3] + (1-comp_x[:, None]) * geometry[parent_idx[syn_idx], :3]
+                sec_id = section_data[syn_idx, 0]
+                sec_x = comp_x * section_data[syn_idx, 1] + (1-comp_x) * section_data[parent_idx[syn_idx], 1]
+                dist_to_soma = comp_x * geometry[syn_idx, 4] + (1-comp_x) * geometry[parent_idx[syn_idx], 4]
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
 
         else:
             # If either end point of the section is within cluster_spread/2 then we need to
@@ -335,7 +342,7 @@ class NeuronMorphologyExtended:
 
             # TODO: Check that this is correct!!
 
-        return xyz, sec_id, sec_x, dist_to_soma
+        return xyz, sec_id, sec_x / 1e3, dist_to_soma
 
     def set_axon_voxel_radial_density(self, density, max_axon_radius):
 

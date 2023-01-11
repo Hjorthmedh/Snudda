@@ -500,9 +500,9 @@ class SnuddaSimulate(object):
 
             else:
                 # A real neuron (not a virtual neuron that just provides input)
-                parameter_id = self.network_info["neurons"][ID]["parameterID"]
-                morphology_id = self.network_info["neurons"][ID]["morphologyID"]
-                modulation_id = self.network_info["neurons"][ID]["modulationID"]
+                # parameter_id = self.network_info["neurons"][ID]["parameterID"]
+                # morphology_id = self.network_info["neurons"][ID]["morphologyID"]
+                # modulation_id = self.network_info["neurons"][ID]["modulationID"]
 
                 parameter_key = self.network_info["neurons"][ID]["parameterKey"]
                 morphology_key = self.network_info["neurons"][ID]["morphologyKey"]
@@ -513,9 +513,9 @@ class SnuddaSimulate(object):
                                                mech_file=mech,
                                                cell_name=name,
                                                modulation_file=modulation,
-                                               morphology_id=morphology_id,
-                                               parameter_id=parameter_id,
-                                               modulation_id=modulation_id,
+                                               # morphology_id=morphology_id,
+                                               # parameter_id=parameter_id,
+                                               # modulation_id=modulation_id,
                                                parameter_key=parameter_key,
                                                morphology_key=morphology_key,
                                                modulation_key=modulation_key)
@@ -1127,6 +1127,7 @@ class SnuddaSimulate(object):
                                          neuron_input["sectionX"],
                                          neuron_input["parameterID"],
                                          neuron_input["nSpikes"])):
+
                     # We need to find cellID (int) from neuronID (string, eg. MSD1_3)
 
                     idx = input_id
