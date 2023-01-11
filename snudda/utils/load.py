@@ -353,20 +353,21 @@ class SnuddaLoad(object):
 
         extra_axons = dict()
 
-        for neuron_id, axon_name, position, rotation, swc_file \
-                in zip(hdf5_file["network/neurons/extraAxons/parentNeuron"],
-                       hdf5_file["network/neurons/extraAxons/name"],
-                       hdf5_file["network/neurons/extraAxons/position"],
-                       hdf5_file["network/neurons/extraAxons/rotation"],
-                       hdf5_file["network/neurons/extraAxons/morphology"]):
+        if "extraAxons" in hdf5_file["network/neurons"]:
+            for neuron_id, axon_name, position, rotation, swc_file \
+                    in zip(hdf5_file["network/neurons/extraAxons/parentNeuron"],
+                           hdf5_file["network/neurons/extraAxons/name"],
+                           hdf5_file["network/neurons/extraAxons/position"],
+                           hdf5_file["network/neurons/extraAxons/rotation"],
+                           hdf5_file["network/neurons/extraAxons/morphology"]):
 
-            if neuron_id not in extra_axons:
-                extra_axons[neuron_id] = dict()
+                if neuron_id not in extra_axons:
+                    extra_axons[neuron_id] = dict()
 
-            extra_axons[neuron_id][axon_name] = dict()
-            extra_axons[neuron_id][axon_name]["position"] = position
-            extra_axons[neuron_id][axon_name]["rotation"] = rotation.reshape(3, 3)
-            extra_axons[neuron_id][axon_name]["morphology"] = SnuddaLoad.to_str(swc_file)
+                extra_axons[neuron_id][axon_name] = dict()
+                extra_axons[neuron_id][axon_name]["position"] = position
+                extra_axons[neuron_id][axon_name]["rotation"] = rotation.reshape(3, 3)
+                extra_axons[neuron_id][axon_name]["morphology"] = SnuddaLoad.to_str(swc_file)
 
         return extra_axons
 

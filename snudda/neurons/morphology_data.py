@@ -72,6 +72,7 @@ class SectionMetaData:
     def clone(self, new_morphology_data):
         new_smd = SectionMetaData(section_id=self.section_id, section_type=self.section_type,
                                   morphology_data=new_morphology_data)
+        return new_smd
 
 
 class MorphologyData:
@@ -293,6 +294,8 @@ class MorphologyData:
         new_md.parent_tree_info = parent_tree_info
 
         new_md.place(position=position, rotation=rotation)
+
+        return new_md
 
     def place(self, position=None, rotation=None, parent_tree_info=None):
 
