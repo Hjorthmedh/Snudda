@@ -1629,9 +1629,9 @@ class SnuddaInput(object):
 
         mechanisms_path = self.network_config["Neurons"][neuron_name]["mechanisms"]
 
-        parameter_id = self.neuron_info[neuron_id]["parameterID"]
-        morphology_id = self.neuron_info[neuron_id]["morphologyID"]
-        modulation_id = self.neuron_info[neuron_id]["modulationID"]
+        # parameter_id = self.neuron_info[neuron_id]["parameterID"]
+        # morphology_id = self.neuron_info[neuron_id]["morphologyID"]
+        # modulation_id = self.neuron_info[neuron_id]["modulationID"]
 
         parameter_key = self.neuron_info[neuron_id]["parameterKey"]
         morphology_key = self.neuron_info[neuron_id]["morphologyKey"]
@@ -1640,11 +1640,12 @@ class SnuddaInput(object):
         if neuron_name in self.neuron_cache:
             self.write_log(f"About to clone cache of {neuron_name}.")
             # Since we do not care about location of neuron in space, we can use get_cache_original
-            morphology = self.neuron_cache[neuron_name].clone(parameter_id=parameter_id,
-                                                              morphology_id=morphology_id,
+            morphology = self.neuron_cache[neuron_name].clone(# parameter_id=parameter_id,
+                                                              # morphology_id=morphology_id,
                                                               parameter_key=parameter_key,
                                                               morphology_key=morphology_key,
-                                                              modulation_id=None, position=None, rotation=None,
+                                                              # modulation_id=None,
+                                                              position=None, rotation=None,
                                                               get_cache_original=True)
         else:
             self.write_log(f"Creating prototype {neuron_name}")
@@ -1657,11 +1658,12 @@ class SnuddaInput(object):
                                                    neuron_path=None,
                                                    axon_stump_id_flag=self.axon_stump_id_flag)
             self.neuron_cache[neuron_name] = morphology_prototype
-            morphology = morphology_prototype.clone(parameter_id=parameter_id,
-                                                    morphology_id=morphology_id,
+            morphology = morphology_prototype.clone(# parameter_id=parameter_id,
+                                                    # morphology_id=morphology_id,
                                                     parameter_key=parameter_key,
                                                     morphology_key=morphology_key,
-                                                    modulation_id=None, position=None, rotation=None,
+                                                    # modulation_id=None,
+                                                    position=None, rotation=None,
                                                     get_cache_original=True)
 
         self.write_log(f"morphology = {morphology}")
@@ -1671,7 +1673,7 @@ class SnuddaInput(object):
         #                                                                  parameter_key=parameter_key,
         #                                                                  morphology_key=morphology_key)
 
-        return morphology.dendrite_input_locations(synapse_density=synapse_density,
+        return morphology.dendrite_input_locations(synapse_density_str=synapse_density,
                                                    num_locations=num_spike_trains,
                                                    rng=rng,
                                                    cluster_size=cluster_size,

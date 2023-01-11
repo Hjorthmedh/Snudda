@@ -243,12 +243,19 @@ class NeuronMorphologyExtended:
         """ Given synapse_density it returns expected number of synapses in all dendrite compartments """
         section_data = self.morphology_data["neuron"].section_data
         geometry_data = self.morphology_data["neuron"].geometry
-        dend_idx = np.where(section_data[:, 2] == 3)[0]
-        d = geometry_data[dend_idx, 4]
+
+        # We need to evaluate the synapse density at all dendrites and at soma (since we need all dendrite parents)
+        keep_mask = section_data[:, 2] == 3
+        dend_idx = np.where(keep_mask)[0]
+        soma_idx = np.where(section_data[:, 2] == 1)[0]
+        keep_mask[soma_idx] = True
+        d_idx = np.where(keep_mask)[0]
+
+        d = geometry_data[d_idx, 4]
         synapse_density = np.full((geometry_data.shape[0],), np.nan)
 
         try:
-            synapse_density[dend_idx] = numexpr.evaluate(synapse_density_str)
+            synapse_density[d_idx] = numexpr.evaluate(synapse_density_str)
         except:
             self.write_log(f"Bad synapse density string: {synapse_density_str}")
             import traceback
@@ -284,8 +291,14 @@ class NeuronMorphologyExtended:
         if expected_sum <= 0:
             raise ValueError(f"All compartments have zero synapse density: {synapse_density_str}")
 
-        syn_idx = dend_idx[rng.choice(a=dend_idx, size=num_locations, replace=True,
-                                      p=expected_synapses[dend_idx] / expected_sum)]
+        try:
+            syn_idx = dend_idx[rng.choice(a=dend_idx, size=num_locations, replace=True,
+                                          p=expected_synapses[dend_idx] / expected_sum)]
+        except:
+            import traceback
+            self.write_log(traceback.format_exc(), is_error=True, flush=True)
+            import pdb
+            pdb.set_trace()
 
         if cluster_size is None or cluster_size == 1:
             comp_x = rng.random(num_locations)
