@@ -1,3 +1,4 @@
+import os.path
 from copy import deepcopy
 
 import numexpr
@@ -161,6 +162,9 @@ class NeuronMorphologyExtended:
 
         """
 
+        # np.set_printoptions(precision=2)
+        # print(f"rot {rotation.flatten()}, place pos {position}")
+
         new_neuron = NeuronMorphologyExtended(name=self.name,
                                               position=None,
                                               rotation=None,
@@ -179,8 +183,8 @@ class NeuronMorphologyExtended:
                                               logfile=self.logfile,
                                               verbose=self.verbose)
 
-        new_neuron.position = position
-        new_neuron.rotation = rotation
+        new_neuron.position = position.copy()
+        new_neuron.rotation = rotation.copy()
 
         # Copy over old morphology data
         for md_key, md_value in self.morphology_data.items():
@@ -236,7 +240,76 @@ class NeuronMorphologyExtended:
                     soma_colour=None,
                     show_plot=True):
 
-        raise NotImplementedError("This function will move to separate plot class.")
+        if plot_origo is None:
+            plot_origo = np.array([0, 0, 0])
+
+        self.write_log(f"Plotting neuron {self.swc_filename}")
+
+        if axon_colour is None:
+            axon_colour = self.colour if self.colour is not None else 'orange'
+        if dend_colour is None:
+            dend_colour = self.colour if self.colour is not None else 'black'
+        if soma_colour is None:
+            soma_colour = self.colour if self.colour is not None else 'black'
+
+        import matplotlib.pyplot as plt
+
+        if axis is None:
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+        else:
+            ax = axis
+
+        section_colour = {2: axon_colour, 3: dend_colour}
+
+        skip_section_types = []
+        if not plot_axon:
+            skip_section_types.append(2)
+        if not plot_dendrite:
+            skip_section_types.append(3)
+
+        for morph_key, morphology in self.morphology_data.items():
+            for section_type in morphology.sections.keys():
+
+                if section_type in skip_section_types:
+                    continue
+
+                for section in morphology.section_iterator(section_type=section_type):
+                    if section_type == 1:
+                        # Draw soma
+                        xyz = section.position[0]
+                        radie = section.radie[0]
+
+                        u, v = np.mgrid[0:2 * np.pi:20j, 0:np.pi:10j]
+                        x = (radie * np.cos(u) * np.sin(v) + xyz[0] - plot_origo[0]) * plot_scale
+                        y = (radie * np.sin(u) * np.sin(v) + xyz[1] - plot_origo[1]) * plot_scale
+                        z = (radie * np.cos(v) + xyz[2] - plot_origo[2]) * plot_scale
+
+                        ax.plot_wireframe(x, y, z, color=soma_colour, alpha=alpha)
+                    else:
+                        xyz = (section.position - plot_origo) * plot_scale
+                        ax.plot(xyz[:, 0], xyz[:, 1], xyz[:, 2], linestyle=line_style,
+                                alpha=alpha, c=section_colour[section_type])
+
+        if axis is None:
+            plt.title(f"Neuron: {os.path.basename(self.swc_filename)}")
+
+            if show_plot:
+                plt.ion()
+                plt.show()
+                plt.draw()
+                plt.pause(0.001)
+
+        return ax
+
+
+
+
+
+
+
+
+        # raise NotImplementedError("This function will move to separate plot class.")
 
     def get_weighted_synapse_density(self, synapse_density_str):
 
@@ -339,6 +412,57 @@ class NeuronMorphologyExtended:
             # TODO: Check that this is correct!!
 
         return xyz, sec_id, sec_x / 1e3, dist_to_soma
+
+    def cluster_synapses(self, sec_id, sec_x, count, distance, rng):
+
+        """
+             Randomize sec_x for cluster of 'count' synapses with centre placed at 'sec_id', 'sec_x'
+             spread over 'distance' (but constrained to current section extent).
+
+             Args:
+                 sec_id : Section id of cluster centre
+                 sec_x : Section x of cluster centre
+                 count : Number of synapses in cluster
+                 distance : Maximal spread of cluster along dendrite
+                 rng : Numpy random stream
+
+             Returns:
+                 cluster_sec_x : Section x for cluster synapse
+                 coords : Coordinates for synapse (in meters)
+                 soma_dist : Distance to soma (in meters)
+         """
+
+        section = self.morphology_data["neuron"].sections[3][sec_id]  # 3 is dendrite
+        geometry = self.morphology_data["neuron"].geometry[section.point_idx, :]
+        section_data = self.morphology_data["neuron"].section_data[section.point_idx, :]
+        sec_len = section.section_length()
+
+        min_sec_x = np.maximum(1e-3, sec_x - 0.5 * distance / sec_len)
+        max_sec_x = np.minimum(1 - 1e-3, sec_x + 0.5 * distance / sec_len)
+
+        cluster_sec_x = rng.uniform(low=min_sec_x, high=max_sec_x, size=count)
+
+        syn_coords = np.zeros((count, 3))
+        soma_dist = np.zeros((count,))
+
+        if section.section_type == 1:
+            # We are at soma
+            syn_coords[:, :] = geometry[0, :3]
+            soma_dist[:] = 0
+        else:
+            # geometry stores section_x * 1e3 (as int), so we need to scale up before comparing
+            for i, cx in enumerate(cluster_sec_x*1e3):
+                idx = np.sum(cx > section_data[:, 1])
+                if idx == 0:
+                    syn_coords[i, :] = geometry[idx, :3]
+                    soma_dist[i] = geometry[idx, 4]
+                else:
+                    f = (cx - section_data[idx-1, 1]) / (section_data[idx, 1] - section_data[idx-1, 1])
+                    syn_coords[i, :] = (1-f)*geometry[idx-1, :3] + f*geometry[idx, :3]
+                    soma_dist[i] = (1-f)*geometry[idx-1, 4] + f*geometry[idx, 4]
+
+        # OBS, syn_coords in meters, and soma dist in meters also
+        return cluster_sec_x, syn_coords, soma_dist
 
     def set_axon_voxel_radial_density(self, density, max_axon_radius):
 

@@ -121,9 +121,6 @@ class NeuronModel(ephys.models.CellModel):
         else:
             mod_path = None
 
-        # import pdb
-        # pdb.set_trace()
-
         mechanisms = []
         for section_list in mech_definitions:
             channels = mech_definitions[section_list]

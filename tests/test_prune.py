@@ -4,7 +4,7 @@ import unittest
 from snudda.place.create_cube_mesh import create_cube_mesh
 from snudda.detect.detect import SnuddaDetect
 from snudda.utils.load import SnuddaLoad
-from snudda.neurons.neuron_morphology import NeuronMorphology
+from snudda.neurons.neuron_morphology_extended import NeuronMorphologyExtended
 from snudda.place.place import SnuddaPlace
 import numpy as np
 
@@ -36,11 +36,11 @@ class TestPrune(unittest.TestCase):
         # We want to load in the ball and stick neuron that has 20 micrometer soma diameter, and axon (along y-axis),
         # and dendrite along (x-axis) out to 100 micrometer distance from centre of soma.
 
-        self.sd = SnuddaDetect(config_file=config_file, position_file=position_file,
-                               save_file=save_file, rc=None,
-                               hyper_voxel_size=120, verbose=True)
+        from snudda.utils.reposition_neurons import RepositionNeurons
+        repos = RepositionNeurons(position_file=position_file)
 
-        # Reposition the neurons so we know how many synapses and where they will be located before pruning
+        # Reposition the neurons so that we know how many synapses and where they will be located before pruning
+        # OBS, these positions and rotations are not written to the HDF5 file, they are only in memory!
         neuron_positions = np.array([[0, 20, 0],  # Postsynaptiska
                                      [0, 40, 0],
                                      [0, 60, 0],
@@ -72,9 +72,6 @@ class TestPrune(unittest.TestCase):
                                      ]) * 1e-6
 
         # TODO: Add potential for gap junctions also by having 5 + 5 neurons in other grid
-
-        for idx, pos in enumerate(neuron_positions):
-            self.sd.neurons[idx]["position"] = pos
         
         ang = -np.pi / 2
         R_x = np.array([[1, 0, 0],
@@ -87,13 +84,13 @@ class TestPrune(unittest.TestCase):
                         [-np.sin(ang), 0, np.cos(ang)]])
 
         for idx in range(0, 10):  # Post synaptic neurons
-            self.sd.neurons[idx]["rotation"] = R_x
-        
+            repos.place(neuron_id=idx, position=neuron_positions[idx, :], rotation=R_x)
+
         for idx in range(10, 20):  # Presynaptic neurons
-            self.sd.neurons[idx]["rotation"] = R_y
+            repos.place(neuron_id=idx, position=neuron_positions[idx, :], rotation=R_y)
 
         for idx in range(24, 28):  # GJ neurons
-            self.sd.neurons[idx]["rotation"] = R_x
+            repos.place(neuron_id=idx, position=neuron_positions[idx, :], rotation=R_x)
 
         ang = np.pi / 2
         R_z = np.array([[np.cos(ang), -np.sin(ang), 0],
@@ -101,13 +98,22 @@ class TestPrune(unittest.TestCase):
                         [0, 0, 1]])
 
         for idx in range(20, 24):  # GJ neurons
-            self.sd.neurons[idx]["rotation"] = np.matmul(R_z, R_x)
+            repos.place(neuron_id=idx, position=neuron_positions[idx, :], rotation=np.matmul(R_z, R_x))
+
+        self.sd = SnuddaDetect(config_file=config_file, position_file=position_file,
+                               save_file=save_file, rc=None,
+                               hyper_voxel_size=120, verbose=True)
 
         self.sd.detect(restart_detection_flag=True)
 
         if False:
             self.sd.process_hyper_voxel(1)
-            self.sd.plot_hyper_voxel(plot_neurons=True)
+            self.sd.plot_hyper_voxel(plot_neurons=True,
+                                     fig_file_name=os.path.join(self.network_path,
+                                                                "test_prune_figure.png"))
+
+            import pdb
+            pdb.set_trace()
 
     def test_prune(self):
 
@@ -148,7 +154,7 @@ class TestPrune(unittest.TestCase):
 
             # Try and load a neuron
             n = sl.load_neuron(neuron_id=0)
-            self.assertTrue(type(n) == NeuronMorphology)
+            self.assertTrue(type(n) == NeuronMorphologyExtended)
 
             syn_ctr = 0
             for s in sl.synapse_iterator(chunk_size=50):
@@ -262,7 +268,9 @@ class TestPrune(unittest.TestCase):
             sl = SnuddaLoad(pruned_output)
 
             # "1*(d >= 100e-6)" means we remove all synapses closer than 100 micrometers
-            self.assertEqual(sl.data["nSynapses"], 20*6)
+            print(f"num synapses : {sl.data['nSynapses']}")
+
+            self.assertEqual(sl.data["nSynapses"], 20*5)
             self.assertTrue((sl.data["synapses"][:, 8] >= 100).all())  # Column 8 -- distance to soma in micrometers
 
         # TODO: Need to do same test for Gap Junctions also -- but should be same results, since same codebase

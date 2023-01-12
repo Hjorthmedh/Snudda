@@ -365,8 +365,8 @@ class SnuddaLoad(object):
                     extra_axons[neuron_id] = dict()
 
                 extra_axons[neuron_id][axon_name] = dict()
-                extra_axons[neuron_id][axon_name]["position"] = position
-                extra_axons[neuron_id][axon_name]["rotation"] = rotation.reshape(3, 3)
+                extra_axons[neuron_id][axon_name]["position"] = position.copy()
+                extra_axons[neuron_id][axon_name]["rotation"] = rotation.copy().reshape(3, 3)
                 extra_axons[neuron_id][axon_name]["morphology"] = SnuddaLoad.to_str(swc_file)
 
         return extra_axons
@@ -429,8 +429,8 @@ class SnuddaLoad(object):
             n["hoc"] = SnuddaLoad.to_str(hoc)
             n["neuronPath"] = SnuddaLoad.to_str(neuron_path)
 
-            n["position"] = pos
-            n["rotation"] = rot.reshape(3, 3)
+            n["position"] = pos.copy()
+            n["rotation"] = rot.copy().reshape(3, 3)
             n["virtualNeuron"] = virtual
 
             if len(axon_density_type) > 0:

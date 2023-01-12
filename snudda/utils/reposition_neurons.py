@@ -54,6 +54,8 @@ class RepositionNeurons(object):
 
     def set_morphology_id(self, neuron_id, morphology_id):
 
+        raise DeprecationWarning("morpology_id is replaced by morphology_key ")
+
         """ Set morphologyID for neuron with neuron_id (neuron_id = None means all neurons) """
         if neuron_id is not None:
             self.hdf5_file["network/neurons/morphologyID"][neuron_id] = morphology_id
@@ -79,6 +81,8 @@ class RepositionNeurons(object):
 
     def set_parameter_id(self, neuron_id, parameter_id):
 
+        raise DeprecationWarning("parameter_id is replaced by parameter_key")
+
         """ Set parameterID for neuron with neuron_id (neuron_id = None means all neurons) """
 
         if neuron_id is not None:
@@ -87,6 +91,8 @@ class RepositionNeurons(object):
             self.hdf5_file["network/neurons/parameterID"][:] = parameter_id
 
     def set_modulation_id(self, neuron_id, modulation_id):
+
+        raise DeprecationWarning("modulation_id is replaced by modulation_key")
 
         """ Set modulationID for neuron with neuron_id (neuron_id = None means all neurons) """
 

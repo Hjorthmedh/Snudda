@@ -69,10 +69,32 @@ class SectionMetaData:
         if not (bastard_idx == idx[1:]).all():
             raise ValueError(f"Only last point in section may have children outside section.")
 
+    def section_length(self):
+
+        comp_len = self.morphology_data.geometry[self.point_idx[-1], 4] \
+                   - self.morphology_data.geometry[self.point_idx[0], 4]
+
+        if self.morphology_data.section_data[self.point_idx[0], 2] == 1:
+            # If first point (parent point) is soma then we have to be careful and subtract soma radie if inside.
+            comp_len -= self.morphology_data.geometry[self.point_idx[0], 3]
+
+        if comp_len <= 0:
+            raise ValueError(f"Negative section length detected: {self.morphology_data.swc_file}")
+
+        return comp_len
+
     def clone(self, new_morphology_data):
         new_smd = SectionMetaData(section_id=self.section_id, section_type=self.section_type,
                                   morphology_data=new_morphology_data)
         return new_smd
+
+    @property
+    def position(self):
+        return self.morphology_data.geometry[self.point_idx, :3]
+
+    @property
+    def radie(self):
+        return self.morphology_data.geometry[self.point_idx, 3]
 
 
 class MorphologyData:
@@ -242,7 +264,7 @@ class MorphologyData:
                 idx = np.where((self.section_data[:, 0] == section_id) & (self.section_data[:, 2] == section_type))[0]
 
                 if len(idx) == 1:
-                    self.section_data[idx, 1] = 1000 * 0.5
+                    self.section_data[idx, 1] = 0  # 1000 * 0.5 -- since soma parent to dendrites, set to 0
                     continue
 
                 if not (np.diff(idx) == 1).all():
@@ -253,10 +275,11 @@ class MorphologyData:
 
                 # If parent compartment is soma, then we need to remove soma radius from the distance
                 # because no part of the dendrite is inside the soma.
-                if self.section_data[parent_idx[0], 3] == 1:
+                if self.section_data[parent_idx[0], 2] == 1:
+
                     comp_length[0] -= self.geometry[parent_idx[0], 3]
 
-                    if comp_length[0] <= 0:
+                    if comp_length[0] < 0:
                         raise ValueError(f"Internal error, compartment length {comp_length[0]} invalid.")
 
                 self.section_data[idx, 1] = 1000 * np.cumsum(comp_length) / np.sum(comp_length)
@@ -288,15 +311,10 @@ class MorphologyData:
         new_md.sections = dict()
 
         for sec_type, sec_type_data in self.sections.items():
+            new_md.sections[sec_type] = dict()
+
             for sec_key, sec_value in sec_type_data.items():
-                try:
-                    new_md.sections[sec_type] = dict()
-                    new_md.sections[sec_type][sec_key] = sec_value.clone(new_morphology_data=new_md)
-                except:
-                    import traceback
-                    print(traceback.format_exc())
-                    import pdb
-                    pdb.set_trace()
+                new_md.sections[sec_type][sec_key] = sec_value.clone(new_morphology_data=new_md)
 
         for p_key, p_value in self.point_lookup.items():
             new_md.point_lookup[p_key] = p_value.copy()
@@ -329,10 +347,16 @@ class MorphologyData:
 
         if isinstance(rotation, (list, tuple)):
             rotation = np.array(rotation)
+        else:
+            rotation = rotation.copy()
+
         self.rotation = rotation
 
         if isinstance(position, (list, tuple)):
             position = np.array(position)
+        else:
+            position = position.copy()
+
         self.position = position
 
         if rotation is not None:

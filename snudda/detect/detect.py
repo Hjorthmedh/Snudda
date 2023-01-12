@@ -2746,7 +2746,7 @@ class SnuddaDetect(object):
         upper_padding_bound = self_num_bins + 1 + padding # +1 since we skipped floor in voxel_coords
 
         section_id = section_data[point_idx, 0]
-        section_x = section_data[point_idx, 1]
+        section_x = section_data[point_idx, 1] * 1e-3  # Stored as section_x*1000 (since int)
         coords = geometry[point_idx, :3]
         voxel_coords = (coords - self_hyper_voxel_origo) / self_voxel_size
         point_inside = np.sum(np.logical_and(lower_padding_bound <= voxel_coords,
