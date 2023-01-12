@@ -280,7 +280,8 @@ class MorphologyData:
                     comp_length[0] -= self.geometry[parent_idx[0], 3]
 
                     if comp_length[0] < 0:
-                        raise ValueError(f"Internal error, compartment length {comp_length[0]} invalid.")
+                        comp_length[0] = 1e-6  # set compartments inside soma to length 1
+                        # raise ValueError(f"Internal error, compartment length {comp_length[0]} invalid.")
 
                 self.section_data[idx, 1] = 1000 * np.cumsum(comp_length) / np.sum(comp_length)
 

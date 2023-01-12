@@ -83,7 +83,7 @@ class TestDetectSynapseCluster(unittest.TestCase):
         if not os.path.exists(fig_path):
             os.mkdir(fig_path)
 
-        if True:   # Set to True to include plot
+        if False:   # Set to True to include plot
             self.sd.plot_hyper_voxel(plot_neurons=True, fig_file_name="touch-detection-clusters-validation")
 
         # Check that each neuron pair
@@ -139,9 +139,6 @@ class TestDetectSynapseCluster(unittest.TestCase):
         for synapse_row in self.sd.hyper_voxel_synapses[0:self.sd.hyper_voxel_synapse_ctr, :]:
             if synapse_row[0] == pre_neuron and synapse_row[1] == post_neuron:
                 coord_list.append(self.convert_to_coordinates(synapse_row[2:5]))
-
-        import pdb
-        pdb.set_trace()
 
         return np.vstack(coord_list)
 
