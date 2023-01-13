@@ -264,7 +264,7 @@ class MorphologyData:
                 idx = np.where((self.section_data[:, 0] == section_id) & (self.section_data[:, 2] == section_type))[0]
 
                 if len(idx) == 1:
-                    self.section_data[idx, 1] = 0  # 1000 * 0.5 -- since soma parent to dendrites, set to 0
+                    self.section_data[idx, 1] = 1000 * 0.5
                     continue
 
                 if not (np.diff(idx) == 1).all():
@@ -349,14 +349,14 @@ class MorphologyData:
         if isinstance(rotation, (list, tuple)):
             rotation = np.array(rotation)
         else:
-            rotation = rotation.copy()
+            rotation = rotation.copy() if rotation is not None else None
 
         self.rotation = rotation
 
         if isinstance(position, (list, tuple)):
             position = np.array(position)
         else:
-            position = position.copy()
+            position = position.copy() if position is not None else None
 
         self.position = position
 
@@ -367,7 +367,8 @@ class MorphologyData:
 
             self.geometry[:, :3] = np.matmul(self.rotation, self.geometry[:, :3].T).T
 
-        self.geometry[:, :3] += self.position
+        if self.position is not None:
+            self.geometry[:, :3] += self.position
 
         if self.parent_tree_info is not None:
             # We need to update soma distance for subtree based on distance to parent

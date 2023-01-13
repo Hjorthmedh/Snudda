@@ -1581,6 +1581,9 @@ class SnuddaSimulate(object):
         num_bad = np.sum(syn_mismatch > bad_threshold)
 
         if num_bad > 0:
+            bad_idx = np.where(syn_mismatch > bad_threshold)[0]
+            bad_sec_len = [sec_list[bi].L for bi in bad_idx]
+
             # If this happens, check that Neuron does not warn for removing sections
             # due to having only one point
             self.write_log(f"!!! Found {num_bad} synapses on "
@@ -1593,41 +1596,58 @@ class SnuddaSimulate(object):
                            f" compartment of each dendrite is not too far away from the soma, then NEURON "
                            f" adds an extra connecting compartment which messes up section IDs.",
                            is_error=True)
+            self.write_log(f"Length of sections with bad synapses: {bad_sec_len}", is_error=True)
+
+            # import pdb
+            # pdb.set_trace()
 
             ### DEBUG PLOT!!!
 
-            if False:
+            if True:
                 import matplotlib.pyplot as plt
-                plt.figure()
-
-                soma_dist = np.sqrt(np.sum(synapse_pos ** 2, axis=1))
-                plt.scatter(soma_dist * 1e6, syn_mismatch)
-                # plt.ion()
-                plt.show()
-                plt.title(self.network_info["neurons"][dest_id]["name"])
+                # plt.figure()
+                #
+                # soma_dist = np.sqrt(np.sum(synapse_pos ** 2, axis=1))
+                # plt.scatter(soma_dist * 1e6, syn_mismatch)
+                # # plt.ion()
+                # plt.show()
+                # plt.title(self.network_info["neurons"][dest_id]["name"])
 
                 fig = plt.figure()
                 ax = fig.add_subplot(projection='3d')
 
+                syn_size = np.full((synapse_pos.shape[0],), 10)
+                syn_size[bad_idx] = 50
+
+                col_list = ['orange' for x in range(synapse_pos.shape[0])]
+                for b in bad_idx:
+                    col_list[b] = 'red'
+
                 ax.scatter(synapse_pos[:, 0],
                            synapse_pos[:, 1],
-                           synapse_pos[:, 2], color="red")
+                           synapse_pos[:, 2], color=col_list, s=syn_size)
                 ax.scatter(syn_pos_nrn_rot[:, 0],
                            syn_pos_nrn_rot[:, 1],
-                           syn_pos_nrn_rot[:, 2], color="black", s=50)
+                           syn_pos_nrn_rot[:, 2], color="black", s=syn_size*2)
 
                 if True:
                     # Draw neuron
-                    all_sec = [x for x in neuron.h.allsec() if "axon" not in str(x)]
-                    for x in np.linspace(0, 1, 10):
-                        sec_pos = np.array([[h.x3d(x, sec=sec),
-                                             h.y3d(x, sec=sec),
-                                             h.z3d(x, sec=sec)]
-                                            for sec in all_sec])
+                    # all_sec = [x for x in neuron.h.allsec() if "axon" not in str(x)]
+                    all_sec = [s for s in self.neurons[dest_id].icell.dend]
+                    for sec in all_sec:
+                        x = np.array([h.x3d(i, sec=sec) for i in range(sec.n3d())])
+                        y = np.array([h.y3d(i, sec=sec) for i in range(sec.n3d())])
+                        z = np.array([h.z3d(i, sec=sec) for i in range(sec.n3d())])
 
-                        ax.scatter(sec_pos[:, 0], sec_pos[:, 1], sec_pos[:, 2], color="blue")
+                        xyz = np.matmul(neuron_rotation, np.array([x, y, z]))
 
-                plt.savefig("DEBUG-plot-bad-synapse-placement.pdf", dpi=600)
+                        ax.plot(xyz[0, :].T, xyz[1, :].T, xyz[2, :].T, 'b-')
+
+                plt.pause(0.001)
+                plt.savefig("DEBUG-plot-bad-synapse-placement.png", dpi=600)
+                plt.ion()
+                plt.show()
+                plt.pause(0.001)
 
                 import pdb
                 pdb.set_trace()

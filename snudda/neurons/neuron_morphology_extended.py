@@ -183,8 +183,8 @@ class NeuronMorphologyExtended:
                                               logfile=self.logfile,
                                               verbose=self.verbose)
 
-        new_neuron.position = position.copy()
-        new_neuron.rotation = rotation.copy()
+        new_neuron.position = position.copy() if position is not None else None
+        new_neuron.rotation = rotation.copy() if rotation is not None else None
 
         # Copy over old morphology data
         for md_key, md_value in self.morphology_data.items():
@@ -301,13 +301,6 @@ class NeuronMorphologyExtended:
                 plt.pause(0.001)
 
         return ax
-
-
-
-
-
-
-
 
         # raise NotImplementedError("This function will move to separate plot class.")
 

@@ -2636,7 +2636,7 @@ class SnuddaDetect(object):
                                 continue
 
                             voxel_space[vx, vy, vz, v_ctr] = neuron_id
-                            voxel_sec_id[vx, vy, vz, v_ctr] = 0  # Soma is 0
+                            voxel_sec_id[vx, vy, vz, v_ctr] = -1  # Soma is section_id -1
                             voxel_sec_x[vx, vy, vz, v_ctr] = 0.5
 
                             voxel_space_ctr[vx, vy, vz] += 1
@@ -2730,7 +2730,7 @@ class SnuddaDetect(object):
     def fill_voxels_dend_helper(voxel_space, voxel_space_ctr,
                                 voxel_sec_id, voxel_sec_x,
                                 voxel_soma_dist,
-                                point_idx, geometry, section_data, neuron_id : int,
+                                point_idx, geometry, section_data, neuron_id: int,
                                 self_hyper_voxel_origo, self_voxel_size,
                                 self_num_bins, self_max_dend,
                                 self_step_multiplier):
@@ -2743,7 +2743,7 @@ class SnuddaDetect(object):
         # line intersect the hypervoxel.
         padding = 1
         lower_padding_bound = 0 - padding
-        upper_padding_bound = self_num_bins + 1 + padding # +1 since we skipped floor in voxel_coords
+        upper_padding_bound = self_num_bins + 1 + padding  # +1 since we skipped floor in voxel_coords
 
         section_id = section_data[point_idx, 0]
         section_x = section_data[point_idx, 1] * 1e-3  # Stored as section_x*1000 (since int)
@@ -2777,7 +2777,7 @@ class SnuddaDetect(object):
         for i in range(0, dv_step.shape[0]):
             dv_step[i, :] /= num_steps[i]
 
-        ds_step = np.divide(np.diff(section_x),  num_steps)
+        ds_step = np.divide(np.diff(section_x), num_steps)
         dd_step = np.divide(np.diff(scaled_soma_dist), num_steps)
 
         # Remove this check later... should be done in morphology_data

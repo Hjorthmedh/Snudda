@@ -284,6 +284,24 @@ class NeuronModel(ephys.models.CellModel):
     # dendrites are 1,2,3,4,5... ie one higher than what Neuron internally
     # uses to index the dendrites (due to us wanting to include soma)
 
+    def build_section_lookup(self):
+
+        self.section_lookup = dict([])
+
+        # Soma is -1
+        self.section_lookup[-1] = self.icell.soma[0]
+
+        # Dendrites are consequtive numbers starting from 1
+        # Ie neurons dend(0) is in pos 1, dend(99) is in pos 100
+        # This so we don't need to special treat soma (pos 0)
+
+        for ic, c in enumerate(self.icell.dend):
+            self.section_lookup[ic] = c
+
+        # Negative numbers for axon
+        for ic, c in enumerate(self.icell.axon):
+            self.section_lookup[-ic - 2] = c
+
     def map_id_to_compartment(self, section_id):
 
         """
@@ -292,30 +310,14 @@ class NeuronModel(ephys.models.CellModel):
         Neuron_morphology defines sectionID, these must match what this returns
         so that they point to the same compartment.
 
-        Soma is 0
-        axons are negative values (currently all set to -1) in Neuron_morphology
-        dendrites are 1,2,3,4,5... ie one higher than what Neuron internally
-        uses to index the dendrites (due to us wanting to include soma)
+        Soma is -1
+        axons are negative values (currently all set to -2) in Neuron_morphology
+        dendrites are 0, 1,2,3,4,5...
 
         """
 
         if self.section_lookup is None:
-
-            self.section_lookup = dict([])
-
-            # Soma is zero
-            self.section_lookup[0] = self.icell.soma[0]
-
-            # Dendrites are consequtive numbers starting from 1
-            # Ie neurons dend(0) is in pos 1, dend(99) is in pos 100
-            # This so we don't need to special treat soma (pos 0)
-
-            for ic, c in enumerate(self.icell.dend):
-                self.section_lookup[ic + 1] = c
-
-            # Negative numbers for axon
-            for ic, c in enumerate(self.icell.axon):
-                self.section_lookup[-ic - 1] = c
+            self.build_section_lookup()
 
         sec = [self.section_lookup[x] for x in section_id]
 
