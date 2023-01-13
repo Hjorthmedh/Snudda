@@ -157,10 +157,13 @@ class InputTestCase(unittest.TestCase):
                     print(f"Checking number of inputs is {config_n_inputs} * {cluster_size}")
                     self.assertEqual(config_n_inputs * cluster_size, n_traces)
 
-                    if cluster_size > 1:
-                        # Verify that all the clusters have the right size
-                        for ctr in range(0, cluster_size-1):
-                            self.assertTrue(np.all(np.diff(input_info["sectionID"])[ctr::cluster_size] == 0))
+                    # TODO: We can no longer assume that sectionID is the same for all inputs in a cluster
+                    #       the new code also works at branch points, so cluster can be spread over different sections.
+                    # if cluster_size > 1:
+                    #     # Verify that all the clusters have the right size
+                    #     for ctr in range(0, cluster_size-1):
+                    #         self.assertTrue(np.all(np.diff(input_info["sectionID"])[ctr::cluster_size] == 0))
+
 
                 max_len = 1
                 if type(start_time) is np.ndarray:
