@@ -61,7 +61,7 @@ class Neuromodulation:
 
         if cell_type not in self.network_wide[self.name_to_key[neurotransmitter]]['presynaptic'].keys():
 
-            self.network_wide[self.name_to_key[neurotransmitter]]['presynaptic'][cell_type].update({receptor: modulation})
+            self.network_wide[self.name_to_key[neurotransmitter]]['presynaptic'].update({cell_type: {receptor: modulation}})
 
     def plot_transient(self, neurotransmitter):
 

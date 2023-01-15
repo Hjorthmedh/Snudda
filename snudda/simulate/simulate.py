@@ -217,6 +217,7 @@ class SnuddaSimulate(object):
                                                   sample_dt=self.sample_dt)
         self.record.add_unit(data_type="voltage", target_unit="V", conversion_factor=1e-3)
         self.record.add_unit(data_type="synaptic_current", target_unit="A", conversion_factor=1e-9)
+        self.record.add_unit(data_type="NMDA_current", target_unit="A", conversion_factor=1e-9)
         self.record.add_unit(data_type="spikes", target_unit="s", conversion_factor=1e-3)
         self.record.add_unit(data_type="time", target_unit="s", conversion_factor=1e-3)
         # TODO: Add more units as needed https://www.neuron.yale.edu/neuron/static/docs/units/unitchart.html
@@ -1122,8 +1123,9 @@ class SnuddaSimulate(object):
                 eval_str = f"self.sim.neuron.h.{mod_file}"
                 channel_module = eval(eval_str)
 
-                for input_id, (section, section_x, param_id, n_spikes) \
+                for input_id, (section, section_id, section_x, param_id, n_spikes) \
                         in enumerate(zip(sections,
+                                         neuron_input["sectionID"],
                                          neuron_input["sectionX"],
                                          neuron_input["parameterID"],
                                          neuron_input["nSpikes"])):
@@ -1186,7 +1188,7 @@ class SnuddaSimulate(object):
                             setattr(syn, par, par_value)
 
                     # Need to save references, otherwise they will be freed
-                    self.external_stim[neuron_id, input_type].append((v, vs, nc, syn, spikes))
+                    self.external_stim[neuron_id, input_type].append((v, vs, nc, syn, section, section_id, section_x, spikes))
 
     ############################################################################
 
@@ -1444,6 +1446,19 @@ class SnuddaSimulate(object):
         if syn_ctr > max_synapses:
             self.write_log(f"Warning: Not recording all synapse currents requested, capped at max_synapses={max_synapses}",
                            force_print=True)
+
+    def add_external_input_synapse_recording(self, source, dest_id, source_id=-1, synapse_type=0, stype=None, data_type=None):
+
+        for _, _, nc, syn, _, sec_id, seg_x, _ in (self.external_stim[dest_id, source]):
+            data = self.sim.neuron.h.Vector()
+            data.record(getattr(syn, f"_ref_{stype}"))
+                
+            self.record.register_synapse_data(neuron_id=dest_id, data_type=data_type, data=data,
+                                              synapse_type=synapse_type,
+                                              presynaptic_id=source_id,
+                                              sec_id=sec_id,
+                                              sec_x=seg_x,
+                                              cond=nc.weight[0])
 
     def add_synapse_current_recording(self, source_id, dest_id):
 
