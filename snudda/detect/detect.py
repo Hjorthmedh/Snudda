@@ -2797,7 +2797,12 @@ class SnuddaDetect(object):
                 vp_y = (voxel_coords[idx, 1] + dv_step[idx, 1] * steps).astype(np.int64)
                 vp_z = (voxel_coords[idx, 2] + dv_step[idx, 2] * steps).astype(np.int64)
 
-                s_x = section_x[idx] + ds_step[idx] * steps
+                if idx == 0:
+                    # Dirty fix to handle that parent point has section_x = 1, but
+                    # child's first point should have section_x = 0
+                    s_x = (section_x[1] / num_steps[0]) * steps
+                else:
+                    s_x = section_x[idx] + ds_step[idx] * steps
 
                 soma_dist = (scaled_soma_dist[idx] + dd_step[idx]*steps).astype(np.int64)
 
@@ -2820,7 +2825,8 @@ class SnuddaDetect(object):
 
                         if v_ctr < self_max_dend:
                             voxel_space[v_idx][v_ctr] = neuron_id
-                            voxel_sec_id[v_idx][v_ctr] = section_id[idx]
+                            # Use section id from last point for section as first point has parent's section id
+                            voxel_sec_id[v_idx][v_ctr] = section_id[-1]
                             voxel_sec_x[v_idx][v_ctr] = s_x[i]
                             voxel_soma_dist[v_idx][v_ctr] = soma_dist[i]
                             voxel_space_ctr[v_idx] += 1

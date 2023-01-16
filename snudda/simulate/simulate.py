@@ -752,6 +752,7 @@ class SnuddaSimulate(object):
         """
 
         source_id_list = self.synapses[start_row:end_row, 0]
+        source_id =self.synapses[start_row, 0]
         dest_id = self.synapses[start_row, 1]
         assert (self.synapses[start_row:end_row, 1] == dest_id).all()
 
@@ -771,7 +772,7 @@ class SnuddaSimulate(object):
         parameter_id = self.synapses[start_row:end_row, 12]
         voxel_coords = self.synapses[start_row:end_row, 2:5]
 
-        self.verify_synapse_placement(dend_sections, sec_x, dest_id, voxel_coords)
+        self.verify_synapse_placement(dend_sections, sec_x, dest_id, voxel_coords, source_id_list)
 
         return source_id_list, dest_id, dend_sections, sec_id, sec_x, synapse_type_id, \
                axon_distance, conductance, parameter_id
@@ -1526,7 +1527,7 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def verify_synapse_placement(self, sec_list, sec_x_list, dest_id, voxel_coords):
+    def verify_synapse_placement(self, sec_list, sec_x_list, dest_id, voxel_coords, source_id_list=None):
 
         """ Verifies synapse placement.
 
@@ -1539,6 +1540,7 @@ class SnuddaSimulate(object):
                 sec_x_list (list) : list of X values 0 to 1.0
                 dest_id (int) : ID of the neuron receiving synapse (one value!)
                 voxel_coords : voxel that the synapse is in
+                source_id_list (np.array) : ID of sending neurons, not used, for debug
 
         """
 
@@ -1563,7 +1565,7 @@ class SnuddaSimulate(object):
                 norm_arc_dist = arc_dist / arc_dist[-1]
                 old_sec = sec
 
-            # Find closest point
+            # Find the closest point
             closest_idx = np.argmin(np.abs(norm_arc_dist - sec_x))
 
             syn_pos_nrn[i, 0] = h.x3d(closest_idx, sec=sec)
@@ -1598,8 +1600,15 @@ class SnuddaSimulate(object):
                            is_error=True)
             self.write_log(f"Length of sections with bad synapses: {bad_sec_len}", is_error=True)
 
-            # import pdb
-            # pdb.set_trace()
+            for bi in bad_idx:
+                closest_sec, closest_sec_x, min_dist = self.find_closest_point_on_neuron(neuron_id=dest_id,
+                                                                                         synapse_xyz=synapse_pos[bi, :])
+
+                print(f"Neuron id: {dest_id} Bad synapse {bi} on {sec_list[bi]} {sec_x_list[bi]}, "
+                      f"closer match at {closest_sec} {closest_sec_x}, dist: {min_dist} (source: {source_id_list[bi]})")
+
+            import pdb
+            pdb.set_trace()
 
             ### DEBUG PLOT!!!
 
@@ -1651,6 +1660,36 @@ class SnuddaSimulate(object):
 
                 import pdb
                 pdb.set_trace()
+
+    ############################################################################
+
+    def find_closest_point_on_neuron(self, neuron_id, synapse_xyz):
+
+        min_dist = np.inf
+        closest_sec = None
+        closest_sec_x = None
+
+        neuron_rotation = self.network_info["neurons"][neuron_id]["rotation"]
+
+        for sec in self.neurons[neuron_id].icell.dend:
+            # Extract all coordinates
+            n_points = int(h.n3d(sec=sec))
+            xyz = np.zeros((n_points, 3))
+            for i in range(0, n_points):
+                xyz[i, 0] = h.x3d(i, sec=sec)
+                xyz[i, 1] = h.y3d(i, sec=sec)
+                xyz[i, 2] = h.z3d(i, sec=sec)
+
+            xyz = np.transpose(np.matmul(neuron_rotation, np.transpose(xyz)))
+            d = np.linalg.norm(xyz-synapse_xyz, axis=1)
+            d_min_idx = np.argmin(d)
+
+            if d[d_min_idx] < min_dist:
+                min_dist = d[d_min_idx]
+                closest_sec = sec
+                closest_sec_x = sec.arc3d(d_min_idx) / sec.arc3d(n_points-1)
+
+        return closest_sec, closest_sec_x, min_dist
 
     ############################################################################
 

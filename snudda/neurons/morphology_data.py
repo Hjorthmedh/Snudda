@@ -51,7 +51,7 @@ class SectionMetaData:
 
         self.child_section_id = dict()
         for child_section_id, child_type in zip(self.morphology_data.section_data[child_idx, 0],
-                                        self.morphology_data.section_data[child_idx, 2]):
+                                                self.morphology_data.section_data[child_idx, 2]):
             # self.child_section_id is a dict, which holds the child_section_id for different
             # types (e.g. 1=soma, 2=axon, 3=dend, 4=apical)
             if child_type not in self.child_section_id:
@@ -260,7 +260,7 @@ class MorphologyData:
 
         # Calculate section_x for all points in section_data
         for section_type in section_counter:
-            for section_id in range(0, section_counter[section_type]+1):
+            for section_id in range(section_counter[section_type]+1):
                 idx = np.where((self.section_data[:, 0] == section_id) & (self.section_data[:, 2] == section_type))[0]
 
                 if len(idx) == 1:
