@@ -260,13 +260,13 @@ class SnuddaProject(object):
                     morph_prototype = self.prototype_neurons[t_name]
                     position = self.network_info.data["neurons"][t_id]["position"]
                     rotation = self.network_info.data["neurons"][t_id]["rotation"]
-                    parameter_id = self.network_info.data["neurons"][t_id]["parameterID"]
-                    morphology_id = self.network_info.data["neurons"][t_id]["morphologyID"]
-                    modulation_id = self.network_info.data["neurons"][t_id]["modulationID"]
+                    parameter_key = self.network_info.data["neurons"][t_id]["parameterKey"]
+                    morphology_key = self.network_info.data["neurons"][t_id]["morphologyKey"]
+                    modulation_key = self.network_info.data["neurons"][t_id]["modulationKey"]
 
-                    morph = morph_prototype.clone(parameter_id=parameter_id,
-                                                  morphology_id=morphology_id,
-                                                  modulation_id=modulation_id,
+                    morph = morph_prototype.clone(parameter_key=parameter_key,
+                                                  morphology_key=morphology_key,
+                                                  modulation_key=modulation_key,
                                                   position=position,
                                                   rotation=rotation)
 

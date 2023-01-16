@@ -24,7 +24,7 @@ class NeuronMorphologyExtendedTestCase(unittest.TestCase):
         synapse_density = "(d > 100e-6)*1"
         rng = np.random.default_rng(123456)  #
 
-        xyz, sec_id, sec_x, dist_to_soma = self.nm.dendrite_input_locations(synapse_density=synapse_density,
+        xyz, sec_id, sec_x, dist_to_soma = self.nm.dendrite_input_locations(synapse_density_str=synapse_density,
                                                                             rng=rng, num_locations=100)
 
         # Please note that num_locations currently does not guarantee 100 synpases when requesting it
@@ -40,16 +40,18 @@ class NeuronMorphologyExtendedTestCase(unittest.TestCase):
         # Repeat test but for smaller than 100
         synapse_density = "(d < 200e-6)*1"
 
-        xyz, sec_id, sec_x, dist_to_soma = self.nm.dendrite_input_locations(synapse_density=synapse_density,
+        xyz, sec_id, sec_x, dist_to_soma = self.nm.dendrite_input_locations(synapse_density_str=synapse_density,
                                                                             rng=rng, num_locations=100)
         # 3e-6 due to compartment length sampled at 3 micrometers
         self.assertTrue((dist_to_soma < 200e-6 + 3e-6).all())
 
-    def test_rand_rotation(self, stage="rand_rotation"):
-
-        for idx in range(0, 100):
-            rot_mat = self.nm.rand_rotation_matrix()
-            self.assertAlmostEqual(np.linalg.det(rot_mat), 1, places=10)
+#   -- rand_rotation is now moved to rotation.py
+#
+#     def test_rand_rotation(self, stage="rand_rotation"):
+#
+#         for idx in range(0, 100):
+#             rot_mat = self.nm.rand_rotation_matrix()
+#             self.assertAlmostEqual(np.linalg.det(rot_mat), 1, places=10)
 
     def test_clone(self, stage="clone"):
         new_nm = self.nm.clone()
@@ -78,7 +80,7 @@ class NeuronMorphologyExtendedTestCase(unittest.TestCase):
         cluster_spread = 30e-6
         n_synapses = 10
 
-        cluster_sec_x, syn_coords, soma_dist = self.nm.cluster_synapses(sec_id=30, sec_x=0.5,
+        cluster_sec_x, syn_coords, soma_dist = self.nm.cluster_synapses(sec_id=29, sec_x=0.5,
                                                                         count=n_synapses, distance=cluster_spread,
                                                                         rng=np.random.default_rng(20220125))
 

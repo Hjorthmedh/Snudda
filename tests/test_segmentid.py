@@ -9,7 +9,7 @@ from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
 
 import bluepyopt.ephys as ephys
 from snudda.neurons.neuron_model_extended import NeuronModel
-from snudda.neurons.neuron_morphology import NeuronMorphology
+from snudda.neurons.neuron_morphology_extended import NeuronMorphologyExtended
 
 
 class SegmentIdTestCase(unittest.TestCase):
@@ -39,8 +39,9 @@ class SegmentIdTestCase(unittest.TestCase):
             return
 
         print(f"Loading neuron {morph_file}")
-        snudda_neuron = NeuronMorphology(name="fs", swc_filename=morph_file, use_cache=False)
+        snudda_neuron = NeuronMorphologyExtended(name="fs", swc_filename=morph_file, use_cache=False)
 
+        # FIX THIS... new version does not have .soma
         self.assertTrue((snudda_neuron.soma[0, :3] == 0).all(), f"Soma should be centered for {morph_file}.")
 
         # Load morphology into NEURON

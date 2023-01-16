@@ -22,7 +22,7 @@ class NeuronPrototypeTestCase(unittest.TestCase):
             np1 = NeuronPrototype(neuron_path=neuron_path,
                                   neuron_name="np1")
 
-            nm1 = np1.clone(parameter_id=123, morphology_id=456, modulation_id=789)
+            nm1 = np1.clone(parameter_id=123, morphology_key="m615b0265", modulation_id=789)
 
             # Check if we load the right neuron
             self.assertEqual(os.path.basename(nm1.swc_filename), "WT-1215MSN03-cor-rep-ax-res3-var0.swc")
@@ -63,23 +63,25 @@ class NeuronPrototypeTestCase(unittest.TestCase):
             # Check correct morphology was picked
             self.assertEqual(os.path.basename(nm2.swc_filename), "WT-1215MSN03-cor-rep-ax-res3-var6.swc")
 
-        with self.subTest(msg="instantiate all test"):
-            np3 = NeuronPrototype(neuron_path=neuron_path,
-                                  neuron_name="np3")
-
-            np3.instantiate()
-            res = np3.apply("compartment_length", ["dend"])
-
-            # Verify that correct
-            res2 = []
-            for nm in np3.morphology_cache.values():
-                res2.append(nm.compartment_length("dend"))
-
-            res_sum = np.sort([sum(x) for x in res])
-            res2_sum = np.sort([sum(x) for x in res2])
-            self.assertTrue((res_sum == res2_sum).all())
-
-            print(f"Compartment length sums: {res_sum} vs {res2_sum}")
+# -- compartment_length no longer implemented in NeuronMorphologyExtended (but it was in NeuronMorphology)
+#
+#        with self.subTest(msg="instantiate all test"):
+#            np3 = NeuronPrototype(neuron_path=neuron_path,
+#                                  neuron_name="np3")
+#
+#            np3.instantiate()
+#            res = np3.apply("compartment_length", ["dend"])
+#
+#            # Verify that correct
+#            res2 = []
+#            for nm in np3.morphology_cache.values():
+#                res2.append(nm.compartment_length("dend"))
+#
+#            res_sum = np.sort([sum(x) for x in res])
+#            res2_sum = np.sort([sum(x) for x in res2])
+#            self.assertTrue((res_sum == res2_sum).all())
+#
+#            print(f"Compartment length sums: {res_sum} vs {res2_sum}")
 
 
 if __name__ == '__main__':

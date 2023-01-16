@@ -99,10 +99,11 @@ class TestDetectSynapseCluster(unittest.TestCase):
 
         with self.subTest(stage="cluster-spread"):
 
-            self.assertTrue(0 <= self.get_synapse_spread(4, 0) <= 25e-6)
-            self.assertTrue(0 <= self.get_synapse_spread(4, 1) <= 25e-6)
-            self.assertTrue(0 <= self.get_synapse_spread(4, 2) <= 25e-6)
-            self.assertTrue(0 <= self.get_synapse_spread(4, 3) <= 25e-6)
+            error_margin = np.sqrt(3*3**2)*2*1e-6  # Diagonal of either synapse voxel
+            self.assertTrue(0 <= self.get_synapse_spread(4, 0) <= 25e-6 + error_margin)
+            self.assertTrue(0 <= self.get_synapse_spread(4, 1) <= 25e-6 + error_margin)
+            self.assertTrue(0 <= self.get_synapse_spread(4, 2) <= 25e-6 + error_margin)
+            self.assertTrue(0 <= self.get_synapse_spread(4, 3) <= 25e-6 + error_margin)
 
         # Lägg till tester som kollar positionerna på synapserna
         # import pdb

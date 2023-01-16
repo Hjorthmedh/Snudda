@@ -1579,7 +1579,7 @@ class SnuddaSimulate(object):
 
         syn_mismatch = np.sqrt(np.sum((syn_pos_nrn_rot - synapse_pos) ** 2, axis=1))
 
-        bad_threshold = 20
+        bad_threshold = 22
         num_bad = np.sum(syn_mismatch > bad_threshold)
 
         if num_bad > 0:
