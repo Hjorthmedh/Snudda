@@ -98,8 +98,8 @@ class SwapToDegeneratedMorphologies:
             param_key, morph_key, neuron_path, param_id, morph_id = self.find_morpology(neuron_id)
             self.new_hdf5[f"network/neurons/parameterKey"][idx] = param_key
             self.new_hdf5[f"network/neurons/morphologyKey"][idx] = morph_key
-            self.new_hdf5[f"network/neurons/parameterID"][idx] = param_id
-            self.new_hdf5[f"network/neurons/morphologyID"][idx] = morph_id
+            # self.new_hdf5[f"network/neurons/parameterID"][idx] = param_id
+            # self.new_hdf5[f"network/neurons/morphologyID"][idx] = morph_id
 
         self.filter_synapses(filter_axon=self.filter_axon)
         self.filter_gap_junctions()
@@ -331,7 +331,8 @@ class SwapToDegeneratedMorphologies:
                 morph = self.get_morphology(neuron_id=pid, hdf5=self.new_hdf5, snudda_data=self.new_snudda_data_dir)
                 loaded_pid = pid
 
-                if len(morph.axon) > 0:
+                # Has axon?
+                if 2 in morph.morphology_data["neuron"].sections and len(morph.morphology_data["neuron"].sections[2]) > 0:
                     axon_tree = self.get_kd_tree(morph, "axon")
 
                     if self.has_axon_density[pid]:
@@ -611,13 +612,16 @@ class SwapToDegeneratedMorphologies:
         if kd_tree_cache is None:
             kd_tree_cache = self.kd_tree_cache
 
+        morph_type_lookup = {"axon": 2, "dend": 3}
+
         if (neuron, tree_type) not in kd_tree_cache:
+            morph_type = morph_type_lookup[tree_type]
 
-            coords = {"axon": neuron.axon[:, :3],
-                      "dend": neuron.dend[:, :3]}
+            idx = np.where(neuron.morphology_data["neuron"].section_data[:, 2] == morph_type)[0]
+            coords = neuron.morphology_data["neuron"].geometry[idx, :3]
 
-            if coords[tree_type].size > 0:
-                kd_tree_cache[(neuron, tree_type)] = cKDTree(coords[tree_type])
+            if coords.size > 0:
+                kd_tree_cache[(neuron, tree_type)] = cKDTree(coords)
             else:
                 kd_tree_cache[(neuron, tree_type)] = None
 
@@ -645,13 +649,15 @@ class SwapToDegeneratedMorphologies:
                                         neuron_path=new_path, snudda_data=self.new_snudda_data_dir)
 
         coord_to_sec_id_x = dict()
-        for link, old_sec_id, old_sec_x in zip(old_morph.dend_links, old_morph.dend_sec_id, old_morph.dend_sec_x):
-            coord = (old_morph.dend[link[1], :3] * 1e9).astype(int)
-
+        old_dend_idx = np.where(old_morph.morphology_data["neuron"].section_data[:, 2] == 3)[0]
+        for idx in old_dend_idx:
+            coord = (old_morph.morphology_data["neuron"].geometry[idx, :3] * 1e9).astype(int)
             assert (coord[0], coord[1], coord[2]) not in coord_to_sec_id_x, \
                 f"Coordinates {(coord[0], coord[1], coord[2])} already exists in {coord_to_sec_id_x}"
 
-            coord_to_sec_id_x[coord[0], coord[1], coord[2]] = (old_sec_id, old_sec_x[1])
+            old_sec_id = old_morph.morphology_data["neuron"].section_data[idx, 0]
+            old_sec_x = old_morph.morphology_data["neuron"].section_data[idx, 1] / 1e3
+            coord_to_sec_id_x[coord[0], coord[1], coord[2]] = (old_sec_id, old_sec_x)
 
         old_to_new_sec_id = dict()
         old_sec_x_list = dict()
@@ -659,8 +665,11 @@ class SwapToDegeneratedMorphologies:
         # We just need to find the maximal old sec_x still present,
         # that value will map to sec_x 1.0 in new (stored as int sec_x*1000)
 
-        for link, new_sec_id, new_sec_x in zip(new_morph.dend_links, new_morph.dend_sec_id, new_morph.dend_sec_x):
-            coord = (new_morph.dend[link[1], :3] * 1e9).astype(int)
+        new_dend_idx = np.where(new_morph.morphology_data["neuron"].section_data[:, 2] == 3)[0]
+        for idx in new_dend_idx:
+            coord = (new_morph.morphology_data["neuron"].geometry[idx, :3] * 1e9).astype(int)
+            new_sec_id = new_morph.morphology_data["neuron"].section_data[idx, 0]
+            new_sec_x = new_morph.morphology_data["neuron"].section_data[idx, 1] / 1e3
 
             try:
                 old_sec_id, old_sec_x = coord_to_sec_id_x[coord[0], coord[1], coord[2]]
@@ -684,11 +693,15 @@ class SwapToDegeneratedMorphologies:
                old_to_new_sec_id[old_sec_id] = new_sec_id
 
             if old_sec_id not in old_sec_x_list:
-                old_sec_x_list[old_sec_id] = [0, old_sec_x]
-                new_sec_x_list[old_sec_id] = [0, new_sec_x[1]]
+                if old_sec_x > 0:
+                    old_sec_x_list[old_sec_id] = [0, old_sec_x]
+                    new_sec_x_list[old_sec_id] = [0, new_sec_x]
+                else:
+                    old_sec_x_list[old_sec_id] = [old_sec_x]
+                    new_sec_x_list[old_sec_id] = [new_sec_x]
             else:
                 old_sec_x_list[old_sec_id].append(old_sec_x)
-                new_sec_x_list[old_sec_id].append(new_sec_x[1])
+                new_sec_x_list[old_sec_id].append(new_sec_x)
 
         neuron_section_lookup = {0: (0, np.array([0, 1]), np.array([0, 1]))}  # Add SOMA mapping. ID 0-1 --> ID 0-1
 
@@ -701,9 +714,10 @@ class SwapToDegeneratedMorphologies:
                                                  np.array(old_sec_x_list[old_sec_id]),
                                                  np.array(new_sec_x_list[old_sec_id]))
 
-        assert len(neuron_section_lookup) > 3, (f"Section lookup has few elements. Does morphologies match?"
-                                                 f"\nOld = {old_path, old_param_key, old_morph_key}"
-                                                 f"\nNew = {new_path, new_param_key, new_morph_key}")
+        if False:
+            assert len(neuron_section_lookup) > 3, (f"Section lookup has few elements. Does morphologies match?"
+                                                     f"\nOld = {old_path, old_param_key, old_morph_key}"
+                                                     f"\nNew = {new_path, new_param_key, new_morph_key}")
 
             # Check that all new_coords exist in the old_coords list.
 

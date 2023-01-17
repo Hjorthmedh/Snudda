@@ -96,6 +96,13 @@ class SectionMetaData:
     def radie(self):
         return self.morphology_data.geometry[self.point_idx, 3]
 
+    @property
+    def section_x(self):
+        # Double check that this creates a copy of the data before overwriting first element with 0
+        sec_x = self.morphology_data.section_data[self.point_idx, 1] / 1e3
+        sec_x[0] = 0
+        return sec_x
+
 
 class MorphologyData:
 

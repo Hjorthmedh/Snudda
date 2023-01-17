@@ -78,8 +78,10 @@ class NeuronModel(ephys.models.CellModel):
                                                mechanism_path=mech_file,
                                                modulation_path=modulation_file)
 
-            morph_file = neuron_prototype.get_morphology(parameter_id=parameter_id, morphology_id=morphology_id,
-                                                         parameter_key=parameter_key, morphology_key=morphology_key)
+            morph_file, _ = neuron_prototype.get_morphology(parameter_id=parameter_id,
+                                                            morphology_id=morphology_id,
+                                                            parameter_key=parameter_key,
+                                                            morphology_key=morphology_key)
 
         assert morph_file, (f"Neuron {cell_name} with morph_path = {morph_path} ({morphology_id}, "
                             f"parameter_path = {param_file} ({parameter_id}) "

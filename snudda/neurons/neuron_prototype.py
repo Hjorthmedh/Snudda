@@ -260,13 +260,15 @@ class NeuronPrototype:
                 morph_key = self.get_morph_key(parameter_id=parameter_id, morphology_id=morphology_id,
                                                parameter_key=par_key)
                 if morphology_key:
-                    assert morph_key == morphology_key, \
-                        f"Mismatch: Expected morphology_key {morph_key}, got {morphology_key}"
+                    if morph_key != morphology_key:
+                        raise KeyError(f"Mismatch: Expected morphology_key {morph_key}, got {morphology_key}")
+
             elif morphology_key is not None:
                 morph_key = morphology_key
-                assert morphology_key in self.meta_info[par_key], f"Missing morphology_key {morphology_key}"
+                if morphology_key not in self.meta_info[par_key]:
+                    raise KeyError(f"Missing morphology_key {morphology_key}")
             else:
-                assert False, f"morphology_id or morphology_key must be specified if meta_info is used"
+                raise KeyError(f"morphology_id or morphology_key must be specified if meta_info is used")
 
             morph_path = os.path.join(self.morphology_path, self.meta_info[par_key][morph_key]["morphology"])
             assert os.path.isfile(morph_path), f"Morphology file {morph_path} is missing (listed in {self.meta_path})"
@@ -274,9 +276,11 @@ class NeuronPrototype:
         elif self.morphology_path and os.path.isfile(self.morphology_path):
             # Fallback if morphology file is specified in the path
             morph_path = self.morphology_path
+            morph_key = morphology_key
         else:
             # No morphology
             file_list = glob.glob(os.path.join(self.neuron_path, "*swc"))
+            morph_key = morphology_key
 
             if len(file_list) > 0:
                 morph_path = file_list[0]
@@ -297,7 +301,7 @@ class NeuronPrototype:
             (f"morph_path is None for {self.neuron_name} path: {self.neuron_path}. "
              f"Is SNUDDA_DATA set correctly? ({os.environ['SNUDDA_DATA']})")
 
-        return morph_path
+        return morph_path, morph_key
 
     def get_parameters(self, parameter_key=None, parameter_id=None):
         """
@@ -367,7 +371,7 @@ class NeuronPrototype:
             n_morph = self.get_num_morphologies(parameter_id=par_id)
 
             for morph_id in range(0, n_morph):
-                morph_path = self.get_morphology(parameter_id=par_id, morphology_id=morph_id)
+                morph_path, morph_key = self.get_morphology(parameter_id=par_id, morphology_id=morph_id)
                 morph_tag = os.path.basename(morph_path)
 
                 if morph_tag not in self.morphology_cache:
@@ -434,9 +438,15 @@ class NeuronPrototype:
 
         """
 
-        morph_path = self.get_morphology(parameter_key=parameter_key, morphology_key=morphology_key,
-                                         parameter_id=parameter_id, morphology_id=morphology_id)
+        morph_path, morph_key = self.get_morphology(parameter_key=parameter_key, morphology_key=morphology_key,
+                                                    parameter_id=parameter_id, morphology_id=morphology_id)
         morph_tag = os.path.basename(morph_path)
+
+        if morphology_key is None:
+            morphology_key = morph_key
+        else:
+            assert morphology_key == morph_key, \
+                f"Internal mismatch requested morphology_key {morphology_key}, got {morph_key}"
 
         if morph_tag not in self.morphology_cache:
             # TODO: hoc file will depend on both morphology_id and parameter_id, we ignore it for now
