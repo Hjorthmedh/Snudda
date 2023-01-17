@@ -38,8 +38,6 @@ class SectionMetaData:
 
     def build_section(self):
 
-        # TODO: Should we move this into a separate build function?
-
         idx = np.where((self.morphology_data.section_data[:, 0] == self.section_id)
                        & (self.morphology_data.section_data[:, 2] == self.section_type))[0]
 
@@ -99,13 +97,18 @@ class SectionMetaData:
 
         return comp_len
 
-    def clone(self, new_morphology_data):
+    def clone(self, new_morphology_data, share_memory=True):
         new_smd = SectionMetaData(section_id=self.section_id, section_type=self.section_type,
                                   morphology_data=new_morphology_data, build_section=False)
 
-        new_smd.point_idx = self.point_idx.copy()
-        new_smd.parent_section_id = self.parent_section_id
-        new_smd.child_section_id = self.child_section_id.copy()
+        if share_memory:
+            new_smd.point_idx = self.point_idx
+            new_smd.parent_section_id = self.parent_section_id
+            new_smd.child_section_id = self.child_section_id
+        else:
+            new_smd.point_idx = self.point_idx.copy()
+            new_smd.parent_section_id = self.parent_section_id
+            new_smd.child_section_id = self.child_section_id.copy()
 
         return new_smd
 
@@ -328,25 +331,48 @@ class MorphologyData:
             idx = np.where(self.section_data[:, 2] == section_type)[0]
             self.point_lookup[section_type] = idx
 
-    def clone(self, position, rotation, parent_tree_info=None):
+    def clone(self, position, rotation, parent_tree_info=None, share_memory=True):
+
+        """
+            Clone the neuron, and place it.
+
+            Args:
+                position (np.array): x,y,z coordinate of cloned neuron
+                rotation (np.array): 3x3 rotation matrix
+                parent_tree_info (optional): Parent tree
+                share_memory (bool): If True some numpy arrays are shared with parent neuron
+        
+        """
 
         if self.position is not None or self.rotation is not None:
             raise ValueError("Not allowed to rotate or position a neuron that has already been rotated or positioned")
 
         new_md = MorphologyData()
         new_md.swc_file = self.swc_file
+
+        # We can never share memory for geometry, since repositioning a neuron updates geometry
         new_md.geometry = self.geometry.copy()
-        new_md.section_data = self.section_data.copy()
+
+        if share_memory:
+            # Assuming topology of neuron does not change, these values will be constant
+            new_md.section_data = self.section_data
+
+            for p_key, p_value in self.point_lookup.items():
+                new_md.point_lookup[p_key] = p_value
+        else:
+            new_md.section_data = self.section_data.copy()
+
+            for p_key, p_value in self.point_lookup.items():
+                new_md.point_lookup[p_key] = p_value.copy()
+
         new_md.sections = dict()
 
         for sec_type, sec_type_data in self.sections.items():
             new_md.sections[sec_type] = dict()
 
             for sec_key, sec_value in sec_type_data.items():
-                new_md.sections[sec_type][sec_key] = sec_value.clone(new_morphology_data=new_md)
-
-        for p_key, p_value in self.point_lookup.items():
-            new_md.point_lookup[p_key] = p_value.copy()
+                new_md.sections[sec_type][sec_key] = sec_value.clone(new_morphology_data=new_md,
+                                                                     share_memory=share_memory)
 
         new_md.kd_tree_lookup = dict()
         new_md.parent_tree_info = parent_tree_info
