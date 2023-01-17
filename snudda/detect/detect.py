@@ -2667,7 +2667,6 @@ class SnuddaDetect(object):
 
         # Can we move the iterator into numba?
         for section in neuron.section_iterator(section_type=3):
-
             voxel_overflow_ctr = SnuddaDetect.fill_voxels_dend_helper(voxel_space=voxel_space,
                                                                       voxel_space_ctr=voxel_space_ctr,
                                                                       voxel_sec_id=voxel_sec_id,

@@ -202,6 +202,8 @@ class NeuronMorphologyExtended:
         if morphology_key != self.morphology_key:
             raise ValueError(f"Not allowed to change morphology_key when cloning: {self.morphology_key} -> {morphology_key}")
 
+        new_neuron.load_morphology = self.load_morphology
+
         return new_neuron
 
     def get_section_coordinates(self, section_id, section_x):
