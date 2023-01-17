@@ -23,17 +23,28 @@ class SectionMetaData:
     section_type: int
     morphology_data: object
 
-    def __init__(self, section_id, section_type, morphology_data):
+    def __init__(self, section_id, section_type, morphology_data, build_section=True):
 
         self.morphology_data = morphology_data
         self.section_id = section_id
         self.section_type = section_type
 
-        idx = np.where((self.morphology_data.section_data[:, 0] == section_id)
-                       & (self.morphology_data.section_data[:, 2] == section_type))[0]
+        self.point_idx = None
+        self.parent_section_id = None
+        self.child_section_id = None
+
+        if build_section:
+            self.build_section()
+
+    def build_section(self):
+
+        # TODO: Should we move this into a separate build function?
+
+        idx = np.where((self.morphology_data.section_data[:, 0] == self.section_id)
+                       & (self.morphology_data.section_data[:, 2] == self.section_type))[0]
 
         if len(idx) == 0:
-            raise ValueError(f"Section id {section_id} has no points in morphology_data")
+            raise ValueError(f"Section id {self.section_id} has no points in morphology_data")
 
         if not (np.diff(idx) == 1).all():
             raise ValueError(f"Points on section must be consecutive")
@@ -90,7 +101,12 @@ class SectionMetaData:
 
     def clone(self, new_morphology_data):
         new_smd = SectionMetaData(section_id=self.section_id, section_type=self.section_type,
-                                  morphology_data=new_morphology_data)
+                                  morphology_data=new_morphology_data, build_section=False)
+
+        new_smd.point_idx = self.point_idx.copy()
+        new_smd.parent_section_id = self.parent_section_id
+        new_smd.child_section_id = self.child_section_id.copy()
+
         return new_smd
 
     @property

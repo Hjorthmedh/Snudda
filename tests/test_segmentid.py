@@ -57,7 +57,7 @@ class SegmentIdTestCase(unittest.TestCase):
 
         ax = None
         error_cutoff = 10
-        
+
         for sec in snudda_neuron.morphology_data["neuron"].sections[3].values():
 
             neuron_sec = neuron_model.map_id_to_compartment(section_id=[sec.section_id])[0]
