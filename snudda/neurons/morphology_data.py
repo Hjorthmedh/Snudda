@@ -38,10 +38,15 @@ class SectionMetaData:
         if not (np.diff(idx) == 1).all():
             raise ValueError(f"Points on section must be consecutive")
 
-        if self.morphology_data.section_data[idx[0], 3] < 0:
-            # Special case, root node -- do not include soma point in section
+        parent_idx = self.morphology_data.section_data[idx[0], 3]
+        if parent_idx == -1:
+            # Special case, section is soma
             self.point_idx = idx
             self.parent_section_id = -1
+        elif self.morphology_data.section_data[parent_idx, 2] != self.morphology_data.section_data[idx[0], 2]:
+            # Special case, root node -- parent section is of different type (e.g. soma -- dend)
+            self.point_idx = idx
+            self.parent_section_id = self.morphology_data.section_data[self.point_idx[0], 0]
         else:
             self.point_idx = np.concatenate(([self.morphology_data.section_data[idx[0], 3]], idx))
             self.parent_section_id = self.morphology_data.section_data[self.point_idx[0], 0]
