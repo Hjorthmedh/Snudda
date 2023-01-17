@@ -105,10 +105,18 @@ class SectionMetaData:
             new_smd.point_idx = self.point_idx
             new_smd.parent_section_id = self.parent_section_id
             new_smd.child_section_id = self.child_section_id
+
+            # Prevent the user from changing these now that the memory is shared
+            self.point_idx.setflags(write=False)
+            for cs in self.child_section_id.values():
+                cs.setflags(write=False)
         else:
             new_smd.point_idx = self.point_idx.copy()
             new_smd.parent_section_id = self.parent_section_id
-            new_smd.child_section_id = self.child_section_id.copy()
+
+            new_smd = dict()
+            for key, val in self.child_section_id.items():
+                new_smd.child_section_id[key] = val.copy()
 
         return new_smd
 
@@ -341,7 +349,7 @@ class MorphologyData:
                 rotation (np.array): 3x3 rotation matrix
                 parent_tree_info (optional): Parent tree
                 share_memory (bool): If True some numpy arrays are shared with parent neuron
-        
+
         """
 
         if self.position is not None or self.rotation is not None:
@@ -356,9 +364,11 @@ class MorphologyData:
         if share_memory:
             # Assuming topology of neuron does not change, these values will be constant
             new_md.section_data = self.section_data
+            self.section_data.setflags(write=False)
 
             for p_key, p_value in self.point_lookup.items():
                 new_md.point_lookup[p_key] = p_value
+                p_value.setflags(write=False)
         else:
             new_md.section_data = self.section_data.copy()
 
