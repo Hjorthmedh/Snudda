@@ -79,11 +79,15 @@ class SnuddaLoad(object):
 
         """ Helper function to convert data to string. """
 
+        if data_str is None:
+            return None
+
         if type(data_str) in [bytes, np.bytes_]:
             return data_str.decode()
 
         # Warn the user if they accidentally call to_str on an int or something else
-        assert type(data_str) == str, "to_str is used on strings or bytes (that are converted to str)"
+        assert type(data_str) == str, f"to_str is used on strings or bytes (that are converted to str), " \
+                                      f"received {type(data_str)} -- {data_str}"
 
         return data_str
 

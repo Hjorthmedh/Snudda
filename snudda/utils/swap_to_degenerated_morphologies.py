@@ -247,8 +247,8 @@ class SwapToDegeneratedMorphologies:
         else:
             neuron_name = None
 
-        assert neuron_path is not None and parameter_key is not None and morphology_key is not None, \
-            "Either provide neuron_id, hdf5 or the three neuron_path, parameter_key and morphology_key"
+        # assert neuron_path is not None and parameter_key is not None and morphology_key is not None, \
+        #     "Either provide neuron_id, hdf5 or the three neuron_path, parameter_key and morphology_key"
 
         if neuron_id is not None and hdf5:
             pos = hdf5["network/neurons/position"][neuron_id, :]
@@ -410,11 +410,11 @@ class SwapToDegeneratedMorphologies:
         orig_neuron_path = snudda_parse_path(orig_simple_path, os.path.realpath(self.original_snudda_data_dir))
         new_neuron_path = snudda_parse_path(orig_simple_path, os.path.realpath(self.new_snudda_data_dir))
 
-        if orig_morph_key == '':
+        if orig_morph_key is None or orig_morph_key == '' :
             # Only a single morphology
 
-            original_morphology_id = self.old_data["neurons"][neuron_id]["morphologyID"]
-            original_parameter_id = self.old_data["neurons"][neuron_id]["parameterID"]
+            original_morphology_id = 0  # self.old_data["neurons"][neuron_id]["morphologyID"]
+            original_parameter_id = 0  # self.old_data["neurons"][neuron_id]["parameterID"]
 
             return '', '', new_neuron_path, original_parameter_id, original_morphology_id
 
@@ -541,7 +541,7 @@ class SwapToDegeneratedMorphologies:
                         import pdb
                         pdb.set_trace()
 
-                    xyz, sec_id, sec_x, dist_to_soma = morph.dendrite_input_locations(synapse_density=synapse_density,
+                    xyz, sec_id, sec_x, dist_to_soma = morph.dendrite_input_locations(synapse_density_str=synapse_density,
                                                                                       num_locations=n_remap,
                                                                                       rng=self.rng,
                                                                                       cluster_size=1,
