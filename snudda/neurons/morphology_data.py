@@ -261,8 +261,8 @@ class MorphologyData:
                 # distance to soma = parents distance to soma + compartment length
                 self.geometry[comp_id, 4] = self.geometry[parent_id, 4] + c_len
 
-        if (self.geometry[1:, 4] <= 0).any():
-            raise ValueError("Found compartments with 0 or negative length.")
+        if (self.geometry[1:, 4] < 0).any():
+            raise ValueError("Found compartments with 0 or negative distance to soma.")
 
         self.build_tree()
 
