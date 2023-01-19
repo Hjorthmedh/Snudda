@@ -74,10 +74,17 @@ class SegmentIdTestCase(unittest.TestCase):
 
                 x, y, z = pos
 
-                self.assertTrue(np.linalg.norm([x - x_ref, y - y_ref, z - z_ref]) < error_cutoff,
-                                f"Error parsing {morph_file}. Snudda sec_id {sec.section_id}, sec_x {sec_x} has xyz = {pos}\n"
-                                f"NEURON sec_id {sec.section_id}, sec_x {norm_arc_dist[closest_idx]} has xyz = {x_ref}, {y_ref}, {z_ref}\n"
-                                f"Distance: {np.linalg.norm([x - x_ref, y - y_ref, z - z_ref])} micrometer")
+                try:
+                    self.assertTrue(np.linalg.norm([x - x_ref, y - y_ref, z - z_ref]) < error_cutoff,
+                                    f"Error parsing {morph_file}. Snudda sec_id {sec.section_id}, sec_x {sec_x} has xyz = {pos}\n"
+                                    f"NEURON sec_id {sec.section_id}, sec_x {norm_arc_dist[closest_idx]} has xyz = {x_ref}, {y_ref}, {z_ref}\n"
+                                    f"Distance: {np.linalg.norm([x - x_ref, y - y_ref, z - z_ref])} micrometer"
+                                    f"\nParent section id : {sec.parent_section_id}")
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
 
     def test_neurons_in_folder(self, neuron_dir=None):
 

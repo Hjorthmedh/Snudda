@@ -222,33 +222,11 @@ class MorphologyData:
         self.geometry = np.zeros((data.shape[0], 5), dtype=float)
         self.geometry[:, :4] = data[:, 2:6] * 1e-6  # x, y, z, r -- converted to meter
 
-        # Calculate distance to soma and store in self.geometry
-        parent_row_id = data[1:, 6].astype(int) - 1
-        comp_length = np.linalg.norm(self.geometry[parent_row_id, :3] - self.geometry[1:, :3], axis=1)
-
-        for comp_id, parent_id, c_len in zip(range(1, len(parent_row_id)+1), parent_row_id, comp_length):
-            if data[0, 1] == 1 and parent_id == 0:
-                # We need to subtract soma radius from first compartment connecting to soma
-                # If the first point is inside the soma, set its compartment length to 0
-                if c_len < self.geometry[0, 3]:
-                    print(f"Warning: Branch starts inside soma: {swc_file}, line id {comp_id+1}"
-                          f" -- will truncate length to 1 micrometer")
-
-                self.geometry[comp_id, 4] = max(1e-6, c_len - self.geometry[0, 3])
-
-            else:
-                # distance to soma = parents distance to soma + compartment length
-                self.geometry[comp_id, 4] = self.geometry[parent_id, 4] + c_len
-
-        if (self.geometry[1:, 4] <= 0).any():
-            import pdb
-            pdb.set_trace()
-            raise ValueError("Found compartments with 0 or negative length.")
-
         # Store metadata for points
         self.section_data = np.full((data.shape[0], 4), -1, dtype=int)
         self.section_data[:, 2] = data[:, 1]
         self.section_data[0, 3] = -1
+        parent_row_id = data[1:, 6].astype(int) - 1
         self.section_data[1:, 3] = parent_row_id
 
         # This remaps apical dendrites to normal dendrites 4 --> 3 (by default)
@@ -259,8 +237,26 @@ class MorphologyData:
         if (np.abs(self.section_data[:, 2] - data[:, 1]) > 1e-12).any():
             raise ValueError(f"Internal error, non integer ID numbers detected ({swc_file})")
 
-        # TODO: We need to remove all points within the soma. Move first point to soma boundary.
-        #       Be careful, there might be multiple points inside the soma
+        self.delete_points_inside_soma()
+
+        # OBS, parent_row_id is updated when we delete_points_inside_soma
+        parent_row_id = self.section_data[1:, 3]
+
+        # Calculate distance to soma and store in self.geometry
+        comp_length = np.linalg.norm(self.geometry[parent_row_id, :3] - self.geometry[1:, :3], axis=1)
+
+        for comp_id, parent_id, c_len in zip(range(1, len(parent_row_id)+1), parent_row_id, comp_length):
+            if data[0, 1] == 1 and parent_id == 0:
+                # We need to subtract soma radius from first compartment connecting to soma
+                self.geometry[comp_id, 4] = max(0, c_len - self.geometry[0, 3])
+            else:
+                # distance to soma = parents distance to soma + compartment length
+                self.geometry[comp_id, 4] = self.geometry[parent_id, 4] + c_len
+
+        if (self.geometry[1:, 4] <= 0).any():
+            import pdb
+            pdb.set_trace()
+            raise ValueError("Found compartments with 0 or negative length.")
 
         self.build_tree()
 
@@ -319,8 +315,7 @@ class MorphologyData:
                     comp_length[0] -= self.geometry[parent_idx[0], 3]
 
                     if comp_length[0] < 0:
-                        comp_length[0] = 1e-6  # set compartments inside soma to length 1
-                        # raise ValueError(f"Internal error, compartment length {comp_length[0]} invalid.")
+                        comp_length[0] = 0
 
                 self.section_data[idx, 1] = 1000 * np.cumsum(comp_length) / np.sum(comp_length)
 
@@ -338,6 +333,62 @@ class MorphologyData:
         for section_type in self.sections:
             idx = np.where(self.section_data[:, 2] == section_type)[0]
             self.point_lookup[section_type] = idx
+
+    def delete_points_inside_soma(self):
+
+        # If no soma, do nothing.
+        if self.section_data[0, 2] != 1:
+            return
+
+        # We assume soma is in centre
+        soma_radius = self.geometry[0, 3]
+        dist_to_soma = np.linalg.norm(self.geometry[:, :3], axis=1)
+        remove_idx = np.where(dist_to_soma < soma_radius)[0]
+        remove_idx = remove_idx[remove_idx > 0]  # Do not remove the soma please
+
+        for r_idx in remove_idx:
+            update_parent_idx = np.where(self.section_data[:, 3] == r_idx)[0]
+            self.section_data[update_parent_idx, 3] = 0  # Children with removed parents, have soma as stepparent
+
+        # Reindex the parents
+        for r_idx in remove_idx[::-1]:
+            self.section_data[self.section_data[:, 3] >= r_idx, 3] -= 1
+
+        if len(remove_idx) > 0:
+            self.section_data = np.delete(self.section_data, remove_idx, axis=0)
+            self.geometry = np.delete(self.geometry, remove_idx, axis=0)
+
+    def shifting_dendrites_onto_soma(self):
+
+        raise DeprecationWarning("This was not how NEURON did it.")
+
+        """ Dendrites should start right at the surface of the soma. Here we delete interior points, and add points
+            on surface. Branches which do not touch soma get their innermost point shifted to the soma surface. """
+
+        # If the first point is not a soma, skip this step
+        if self.section_data[0, 2] != 1:
+            return
+
+        soma_radius = self.geometry[0, 3]
+
+        # We assume soma is at origo, there are checks for that in the load_swc
+        dist_to_soma = np.linalg.norm(self.geometry[:, :3], axis=1)
+        inside_soma_idx = np.where(dist_to_soma < soma_radius)[0]
+        parent_inside_idx = self.section_data[inside_soma_idx, 3]
+        remove_idx = np.unique(parent_inside_idx[parent_inside_idx > 0])
+
+        for r_idx in remove_idx[::-1]:
+            self.section_data[self.section_data[:, 3] >= r_idx, 3] -= 1
+
+        if len(remove_idx) > 0:
+            self.section_data = np.delete(self.section_data, remove_idx, axis=0)
+            self.geometry = np.delete(self.geometry, remove_idx, axis=0)
+
+        # New points, with soma as parent, should be shifted to surface of soma
+        shift_idx = np.where(self.section_data[:, 3] == 0)[0]
+
+        dx = (self.geometry[shift_idx, :3].T / np.linalg.norm(self.geometry[shift_idx, :3], axis=1)[None, :]).T
+        self.geometry[shift_idx, :3] = dx * soma_radius
 
     def clone(self, position, rotation, parent_tree_info=None, share_memory=True):
 
