@@ -14,7 +14,8 @@ class SectionMetaData:
     """ Holds parent_id, children_id, points_id"""
 
     __slots__ = ["section_id", "parent_section_id", "parent_section_type",
-                 "child_section_id", "point_idx", "section_type", "morphology_data"]
+                 "child_section_id", "point_idx", "section_type",
+                 "morphology_data", "neuron_id"]
 
     section_id: int
     parent_section_id: int
@@ -23,6 +24,7 @@ class SectionMetaData:
     point_idx: np.ndarray
     section_type: int
     morphology_data: object
+    neuron_id: int
 
     def __init__(self, section_id, section_type, morphology_data, build_section=True):
 
@@ -302,7 +304,7 @@ class MorphologyData:
             for section_id in range(section_counter[section_type]+1):
                 idx = np.where((self.section_data[:, 0] == section_id) & (self.section_data[:, 2] == section_type))[0]
 
-                if len(idx) == 1:
+                if len(idx) == 1 and self.section_data[idx, 2] == 1:
                     self.section_data[idx, 1] = 1000 * 0.5
                     continue
 
@@ -356,6 +358,7 @@ class MorphologyData:
             self.section_data[self.section_data[:, 3] >= r_idx, 3] -= 1
 
         if len(remove_idx) > 0:
+            print(f"Removing {len(remove_idx)} dendrite points inside soma from {self.swc_file}: {remove_idx}")
             self.section_data = np.delete(self.section_data, remove_idx, axis=0)
             self.geometry = np.delete(self.geometry, remove_idx, axis=0)
 

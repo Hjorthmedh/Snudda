@@ -39,7 +39,7 @@ class SegmentIdTestCase(unittest.TestCase):
             return
 
         print(f"Loading neuron {morph_file}")
-        snudda_neuron = NeuronMorphologyExtended(name="fs", swc_filename=morph_file) # -- , use_cache=False) -- not implemented at the moment
+        snudda_neuron = NeuronMorphologyExtended(name="aneuron", swc_filename=morph_file) # -- , use_cache=False) -- not implemented at the moment
 
         soma_position = snudda_neuron.morphology_data["neuron"].sections[1][0].position
         self.assertTrue((soma_position == 0).all(), f"Soma should be centered for {morph_file}.")
@@ -48,7 +48,7 @@ class SegmentIdTestCase(unittest.TestCase):
         neuron_model = NeuronModel(param_file=os.path.join("data", "fake-parameters.json"),
                                    morph_path=morph_file,
                                    mech_file=os.path.join("data", "fake-mechanisms.json"),
-                                   cell_name="fs",
+                                   cell_name="aneuron",
                                    modulation_file=None,
                                    parameter_id=0,
                                    modulation_id=0)
@@ -56,7 +56,7 @@ class SegmentIdTestCase(unittest.TestCase):
         neuron_model.instantiate(sim=self.sim)
 
         ax = None
-        error_cutoff = 10
+        error_cutoff = 4
 
         for sec in snudda_neuron.morphology_data["neuron"].sections[3].values():
 
