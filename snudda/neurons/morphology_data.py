@@ -13,11 +13,12 @@ class SectionMetaData:
 
     """ Holds parent_id, children_id, points_id"""
 
-    __slots__ = ["section_id", "parent_section_id",
+    __slots__ = ["section_id", "parent_section_id", "parent_section_type",
                  "child_section_id", "point_idx", "section_type", "morphology_data"]
 
     section_id: int
     parent_section_id: int
+    parent_section_type: int
     child_section_id: dict
     point_idx: np.ndarray
     section_type: int
@@ -52,13 +53,16 @@ class SectionMetaData:
             # Special case, section is soma
             self.point_idx = idx
             self.parent_section_id = -1
+            self.parent_section_type = -1
         elif self.morphology_data.section_data[parent_idx, 2] != self.morphology_data.section_data[idx[0], 2]:
             # Special case, root node -- parent section is of different type (e.g. soma -- dend)
             self.point_idx = idx
-            self.parent_section_id = self.morphology_data.section_data[self.point_idx[0], 0]
+            self.parent_section_id = self.morphology_data.section_data[self.point_idx[0], 3]
+            self.parent_section_type = self.morphology_data.section_data[parent_idx, 2]
         else:
             self.point_idx = np.concatenate(([self.morphology_data.section_data[idx[0], 3]], idx))
-            self.parent_section_id = self.morphology_data.section_data[self.point_idx[0], 0]
+            self.parent_section_id = self.morphology_data.section_data[self.point_idx[0], 3]
+            self.parent_section_type = self.morphology_data.section_data[parent_idx, 2]
 
         # By definition only the last point in a section can be a parent to other sections
         child_idx = np.where(self.morphology_data.section_data[:, 3] == idx[-1])[0]
@@ -132,7 +136,9 @@ class SectionMetaData:
     def section_x(self):
         # Double check that this creates a copy of the data before overwriting first element with 0
         sec_x = self.morphology_data.section_data[self.point_idx, 1] / 1e3
-        sec_x[0] = 0
+        if self.parent_section_type != 1:
+            # If parent is not soma, set first section_x to 0
+            sec_x[0] = 0
         return sec_x
 
 
@@ -254,8 +260,6 @@ class MorphologyData:
                 self.geometry[comp_id, 4] = self.geometry[parent_id, 4] + c_len
 
         if (self.geometry[1:, 4] <= 0).any():
-            import pdb
-            pdb.set_trace()
             raise ValueError("Found compartments with 0 or negative length.")
 
         self.build_tree()
@@ -306,18 +310,15 @@ class MorphologyData:
                     raise ValueError(f"Points on a {section_type} section must be consecutive")
 
                 parent_idx = self.section_data[idx, 3]
-                comp_length = np.linalg.norm(self.geometry[idx, :3] - self.geometry[parent_idx, :3], axis=1)
 
-                # If parent compartment is soma, then we need to remove soma radius from the distance
-                # because no part of the dendrite is inside the soma.
+                # Use soma distance as a shortcut for calculating length of compartments
+                dx = self.geometry[idx, 4] - self.geometry[parent_idx, 4]
+
+                # Special case, if parent is soma, then distance to soma should be set to 0
                 if self.section_data[parent_idx[0], 2] == 1:
+                    dx[0] = 0
 
-                    comp_length[0] -= self.geometry[parent_idx[0], 3]
-
-                    if comp_length[0] < 0:
-                        comp_length[0] = 0
-
-                self.section_data[idx, 1] = 1000 * np.cumsum(comp_length) / np.sum(comp_length)
+                self.section_data[idx, 1] = 1000 * np.cumsum(dx) / np.sum(dx)
 
         # Build the actual tree
         self.sections = dict()
