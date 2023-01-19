@@ -8,6 +8,7 @@
         "input": 507409703,
         "simulate": 2825158027
     },
+    "SnuddaData" : "validation/ballanddoublestick_degenerated",    
     "Volume": {
 	"TestStriatum": {
 	    "type": "mesh",
@@ -43,7 +44,7 @@
     },
     "Neurons": {
 	"ballanddoublestick_0": {
-            "morphology": "validation/ballanddoublestick_degenerated/morphology",
+            "morphology": "$SNUDDA_DATA/morphology",
             "parameters": "",
             "mechanisms": "",
             "modulation": "",

@@ -34,6 +34,7 @@ class SectionMetaData:
 
         self.point_idx = None
         self.parent_section_id = None
+        self.parent_section_type = None
         self.child_section_id = None
 
         if build_section:
@@ -309,7 +310,13 @@ class MorphologyData:
                     continue
 
                 if not (np.diff(idx) == 1).all():
-                    raise ValueError(f"Points on a {section_type} section must be consecutive")
+                    try:
+                        raise ValueError(f"Points on a {section_type} section must be consecutive")
+                    except:
+                        import traceback
+                        print(traceback.format_exc())
+                        import pdb
+                        pdb.set_trace()
 
                 parent_idx = self.section_data[idx, 3]
 
@@ -348,6 +355,27 @@ class MorphologyData:
         dist_to_soma = np.linalg.norm(self.geometry[:, :3], axis=1)
         remove_idx = np.where(dist_to_soma < soma_radius)[0]
         remove_idx = remove_idx[remove_idx > 0]  # Do not remove the soma please
+
+        dont_remove_idx = []
+        safety_ctr = 0
+
+        for r_idx in remove_idx:
+            a_parent_inside = False
+            p_idx = self.section_data[r_idx, 3]
+            while p_idx >= 0 and safety_ctr < 1000:
+                if dist_to_soma[p_idx] > soma_radius:
+                    dont_remove_idx.append(r_idx)
+                    break
+
+                p_idx = self.section_data[p_idx, 3]
+                safety_ctr += 1
+
+        if safety_ctr >= 1000:
+            raise ValueError("delete_points_inside_soma: Iteration limit hit, bad swc file?")
+
+        if len(dont_remove_idx) > 0:
+            remove_idx = np.array(sorted(list(set(remove_idx) - set(dont_remove_idx))))
+            print(f"Found dendrite in {self.swc_file} that goes out, and in and out of soma. {remove_idx} keep {dont_remove_idx}")
 
         for r_idx in remove_idx:
             update_parent_idx = np.where(self.section_data[:, 3] == r_idx)[0]
@@ -574,8 +602,8 @@ def rand_rotation_matrix(deflection=1.0, rand_nums=None):
 
 if __name__ == "__main__":
 
-    file_name = "/home/hjorth/HBP/BasalGangliaData/data/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20211026/morphology/WT-0728MSN01-cor-rep-ax-res3.swc"
-
+    # file_name = "/home/hjorth/HBP/BasalGangliaData/data/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20211026/morphology/WT-0728MSN01-cor-rep-ax-res3.swc"
+    file_name = "/home/hjorth/HBP/BasalGangliaData/Parkinson/20220225/PD0/neurons/striatum/dspn/26/WT-1215MSN03-cor-rep-ax-res3-var8.swc"
     md = MorphologyData(swc_file=file_name)
 
     import pdb
