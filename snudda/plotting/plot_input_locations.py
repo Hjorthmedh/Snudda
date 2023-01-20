@@ -342,7 +342,7 @@ class SnuddaPlotInputLocations:
             coords[idx, :] = nm.get_section_coordinates(section_id=sec_id, section_x=sec_x)
 
         dist = np.linalg.norm(coords - synapse_coords, axis=-1)
-        max_dist = 20e-6  # np.sqrt(3*(5e-6 ** 2))
+        max_dist = 10e-6  # np.sqrt(3*(5e-6 ** 2))
         if (dist > max_dist).any():
             print(f"Synapse coordinates mismatch {synapse_coords[np.where(dist > max_dist)[0], :]} "
                   f"vs {coords[np.where(dist > max_dist)[0], :]}"
