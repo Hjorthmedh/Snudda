@@ -26,8 +26,7 @@ class PlotDegeneration:
                                                    ax=ax,
                                                    size=2,
                                                    save_fig=False, show_figure=False, figure_size=figure_size)
-        
-                                                                                                
+
         ax = self.degenerated_plot.plot_neuron_inputs(neuron_id=neuron_id,
                                                  neuron_colour=np.array([0, 0, 0]),
                                                  show_internal_synapses=show_internal_synapses,

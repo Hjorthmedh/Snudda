@@ -391,7 +391,8 @@ class MorphologyData:
             if self.verbose:
                 print(f"Found dendrite in {self.swc_file} that goes out, and in and out of soma. "
                       f"Points inside soma {[x+1 for x in remove_idx]}, "
-                      f"but these have grandparents outside soma, so keep {[x+1 for x in dont_remove_idx]} (SWC numbering)")
+                      f"but these have grandparents outside soma, "
+                      f"so keep {[x+1 for x in dont_remove_idx]} (SWC numbering)")
 
         for r_idx in remove_idx:
             update_parent_idx = np.where(self.section_data[:, 3] == r_idx)[0]
@@ -404,7 +405,8 @@ class MorphologyData:
         if len(remove_idx) > 0:
 
             if self.verbose:
-                print(f"Removing {len(remove_idx)} dendrite points inside soma from {self.swc_file}: {remove_idx}")
+                print(f"Removing {len(remove_idx)} dendrite points inside soma from {self.swc_file}: "
+                      f"{[x+1 for x in remove_idx]} (SWC numbering)")
 
             self.section_data = np.delete(self.section_data, remove_idx, axis=0)
             self.geometry = np.delete(self.geometry, remove_idx, axis=0)

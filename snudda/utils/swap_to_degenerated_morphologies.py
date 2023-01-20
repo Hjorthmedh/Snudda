@@ -88,7 +88,7 @@ class SwapToDegeneratedMorphologies:
             del self.new_hdf5["meta/snuddaData"]
             self.new_hdf5["meta"].create_dataset("snuddaData", data=self.new_snudda_data_dir)
         else:
-            self.new_hdf5["meta/SnuddaData"] = self.new_snudda_data_dir
+            self.new_hdf5["meta/snuddaData"][()] = self.new_snudda_data_dir
         network_group = self.new_hdf5.create_group("network")
         self.old_hdf5.copy(source=self.old_hdf5["network/neurons"], dest=self.new_hdf5["network"])
 
@@ -456,6 +456,9 @@ class SwapToDegeneratedMorphologies:
     def get_sec_location(self, coords, neuron_path, snudda_data,
                          parameter_key, morphology_key, max_dist=5.41e-6):
 
+        raise DeprecationWarning("This function is no longer used. It is based on old NeuronMorphology -- REMOVE?")
+        assert False, "Do not run this!"
+
         morph = self.get_morphology(neuron_path=neuron_path,
                                     parameter_key=parameter_key,
                                     morphology_key=morphology_key,
@@ -649,7 +652,6 @@ class SwapToDegeneratedMorphologies:
                                         neuron_path=old_path, snudda_data=self.original_snudda_data_dir)
         new_morph = self.get_morphology(parameter_key=new_param_key, morphology_key=new_morph_key,
                                         neuron_path=new_path, snudda_data=self.new_snudda_data_dir)
-
         coord_to_sec_id_x = dict()
         old_dend_idx = np.where(old_morph.morphology_data["neuron"].section_data[:, 2] == 3)[0]
         for idx in old_dend_idx:
@@ -705,7 +707,8 @@ class SwapToDegeneratedMorphologies:
                 old_sec_x_list[old_sec_id].append(old_sec_x)
                 new_sec_x_list[old_sec_id].append(new_sec_x)
 
-        neuron_section_lookup = {0: (0, np.array([0, 1]), np.array([0, 1]))}  # Add SOMA mapping. ID 0-1 --> ID 0-1
+        # Soma ID now -1, updated mapping
+        neuron_section_lookup = {-1: (-1, np.array([0, 1]), np.array([0, 1]))}  # Add SOMA mapping. SecX 0-1 --> ID 0-1
 
         for old_sec_id in old_to_new_sec_id.keys():
 
@@ -716,12 +719,15 @@ class SwapToDegeneratedMorphologies:
                                                  np.array(old_sec_x_list[old_sec_id]),
                                                  np.array(new_sec_x_list[old_sec_id]))
 
-        if False:
+        if True:
             assert len(neuron_section_lookup) > 3, (f"Section lookup has few elements. Does morphologies match?"
                                                      f"\nOld = {old_path, old_param_key, old_morph_key}"
                                                      f"\nNew = {new_path, new_param_key, new_morph_key}")
 
             # Check that all new_coords exist in the old_coords list.
+
+        # import pdb
+        # pdb.set_trace()
 
         self.section_lookup[old_param_key, old_morph_key, old_path] = neuron_section_lookup
 
@@ -772,11 +778,6 @@ class SwapToDegeneratedMorphologies:
                     keep_idx[idx] = True
                     new_sec_id[idx] = new_id
                     new_sec_x[idx] = new_x
-
-                # if neuron_id == 501:
-                #     print("Check why synapses to neuron 10 is removed. Tell me why?")
-                #    import pdb
-                #    pdb.set_trace()
 
         return np.where(keep_idx)[0], new_sec_id, new_sec_x
 

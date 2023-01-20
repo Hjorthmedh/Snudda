@@ -217,16 +217,22 @@ class NeuronMorphologyExtended:
 
         closest_idx = np.argmin(np.abs(sec_x - section_x))
 
-        if sec_x[closest_idx] == section_x:
-            coords = pos[closest_idx, :]
+        try:
+            if sec_x[closest_idx] == section_x:
+                coords = pos[closest_idx, :]
 
-        elif sec_x[closest_idx] < section_x:
-            x = (section_x - sec_x[closest_idx]) / (sec_x[closest_idx+1] - sec_x[closest_idx])
-            coords = x * pos[closest_idx + 1, :] + (1-x) * pos[closest_idx, :]
+            elif sec_x[closest_idx] < section_x:
+                x = (section_x - sec_x[closest_idx]) / (sec_x[closest_idx+1] - sec_x[closest_idx])
+                coords = x * pos[closest_idx + 1, :] + (1-x) * pos[closest_idx, :]
 
-        else:
-            x = (sec_x[closest_idx] - section_x) / (sec_x[closest_idx] - sec_x[closest_idx - 1])
-            coords = x * pos[closest_idx - 1, :] + (1-x) * pos[closest_idx, :]
+            else:
+                x = (sec_x[closest_idx] - section_x) / (sec_x[closest_idx] - sec_x[closest_idx - 1])
+                coords = x * pos[closest_idx - 1, :] + (1-x) * pos[closest_idx, :]
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
 
         return coords
 
