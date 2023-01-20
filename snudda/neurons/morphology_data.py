@@ -159,10 +159,11 @@ class MorphologyData:
 
     """
 
-    def __init__(self, swc_file=None, parent_tree_info=None, snudda_data=None):
+    def __init__(self, swc_file=None, parent_tree_info=None, snudda_data=None, verbose=False):
 
         self.swc_file = swc_file
         self.snudda_data = snudda_data
+        self.verbose = verbose
 
         self.geometry = None      # x, y, z, r, soma_dist (float)
         self.section_data = None  # section_id, section_x (*1000), section_type (int), parent_point_id (int)
@@ -311,7 +312,7 @@ class MorphologyData:
 
                 if not (np.diff(idx) == 1).all():
                     try:
-                        raise ValueError(f"Points on a {section_type} section must be consecutive")
+                        raise ValueError(f"Points on a {section_type} (1=soma, 2=axon, 3=dend) section must be consecutive")
                     except:
                         import traceback
                         print(traceback.format_exc())
@@ -327,7 +328,10 @@ class MorphologyData:
                 if self.section_data[parent_idx[0], 2] == 1:
                     dx[0] = 0
 
-                self.section_data[idx, 1] = 1000 * np.cumsum(dx) / np.sum(dx)
+                if len(dx) == 1 and dx[0] == 0:
+                    self.section_data[idx, 1] = 0
+                else:
+                    self.section_data[idx, 1] = 1000 * np.cumsum(dx) / np.sum(dx)
 
         # Build the actual tree
         self.sections = dict()
@@ -359,12 +363,20 @@ class MorphologyData:
         dont_remove_idx = []
         safety_ctr = 0
 
-        for r_idx in remove_idx:
-            a_parent_inside = False
+        marked_parents = set()  # Checked nodes
+
+        for r_idx in remove_idx[::-1]:
+            if r_idx in marked_parents:
+                continue
+
+            p_chain = [r_idx]
+
             p_idx = self.section_data[r_idx, 3]
-            while p_idx >= 0 and safety_ctr < 1000:
+            while p_idx > 0 and safety_ctr < 1000:
+                p_chain.append(p_idx)
+                marked_parents.add(p_idx)
                 if dist_to_soma[p_idx] > soma_radius:
-                    dont_remove_idx.append(r_idx)
+                    dont_remove_idx += p_chain
                     break
 
                 p_idx = self.section_data[p_idx, 3]
@@ -375,7 +387,11 @@ class MorphologyData:
 
         if len(dont_remove_idx) > 0:
             remove_idx = np.array(sorted(list(set(remove_idx) - set(dont_remove_idx))))
-            print(f"Found dendrite in {self.swc_file} that goes out, and in and out of soma. {remove_idx} keep {dont_remove_idx}")
+
+            if self.verbose:
+                print(f"Found dendrite in {self.swc_file} that goes out, and in and out of soma. "
+                      f"Points inside soma {[x+1 for x in remove_idx]}, "
+                      f"but these have grandparents outside soma, so keep {[x+1 for x in dont_remove_idx]} (SWC numbering)")
 
         for r_idx in remove_idx:
             update_parent_idx = np.where(self.section_data[:, 3] == r_idx)[0]
@@ -386,7 +402,10 @@ class MorphologyData:
             self.section_data[self.section_data[:, 3] >= r_idx, 3] -= 1
 
         if len(remove_idx) > 0:
-            print(f"Removing {len(remove_idx)} dendrite points inside soma from {self.swc_file}: {remove_idx}")
+
+            if self.verbose:
+                print(f"Removing {len(remove_idx)} dendrite points inside soma from {self.swc_file}: {remove_idx}")
+
             self.section_data = np.delete(self.section_data, remove_idx, axis=0)
             self.geometry = np.delete(self.geometry, remove_idx, axis=0)
 
@@ -438,7 +457,7 @@ class MorphologyData:
         if self.position is not None or self.rotation is not None:
             raise ValueError("Not allowed to rotate or position a neuron that has already been rotated or positioned")
 
-        new_md = MorphologyData()
+        new_md = MorphologyData(verbose=self.verbose)
         new_md.swc_file = self.swc_file
 
         # We can never share memory for geometry, since repositioning a neuron updates geometry
