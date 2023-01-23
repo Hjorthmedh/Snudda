@@ -2,6 +2,8 @@ import os
 import json
 import h5py
 import numpy as np
+import functools
+
 
 # We allow user to use $DATA to specify the Snudda data folder.
 # Default is the Snudda/snudda/data folder, but the user can set the SNUDDA_DATA environment variable
@@ -9,7 +11,8 @@ import numpy as np
 
 # TODO: Add SNUDDA_PATH to network_config file
 
-
+# snudda_parse_path is slow due to os calls, so cache results
+@functools.cache
 def snudda_parse_path(path, snudda_data):
     """ Parses a data path, replacing $DATA with the path to SNUDDA_DATA set by environment variable.
 
