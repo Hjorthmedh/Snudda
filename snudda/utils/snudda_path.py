@@ -12,7 +12,8 @@ import functools
 # TODO: Add SNUDDA_PATH to network_config file
 
 # snudda_parse_path is slow due to os calls, so cache results
-@functools.cache
+# @functools.cache   # TODO: This is valid from python 3.9.2 -- change to this in the future, for now keep lru_cache
+@functools.lru_cache(maxsize=None)
 def snudda_parse_path(path, snudda_data):
     """ Parses a data path, replacing $DATA with the path to SNUDDA_DATA set by environment variable.
 
