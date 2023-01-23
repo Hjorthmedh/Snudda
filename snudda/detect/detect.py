@@ -2718,6 +2718,7 @@ class SnuddaDetect(object):
         # dv_step = np.diff(voxel_coords, axis=0) / num_steps[:, None]
 
         step_diff = np.abs(np.diff(voxel_coords.T).T)
+
         # This is just does same as numpy.amax for axis=1, but inlined for NUMBA
         max_val = step_diff[:, 0].copy()
         for j in range(1, step_diff.shape[1]):
@@ -2726,6 +2727,11 @@ class SnuddaDetect(object):
                     max_val[i] = step_diff[i, j]
 
         num_steps = np.ceil(max_val * self_step_multiplier).astype(np.int64)
+
+        # TODO: num_steps should perhaps instead depend on the total length (with a small oversampling?)
+        #       the reference should be that a line should occupy the same number of voxels regardless
+        #       of what orientation it has.
+
         # [:, None] is here used to divide first row by first element in num_step
         # second row divide by second element in num_step etc. Pretty clever.
         # https://stackoverflow.com/questions/19602187/numpy-divide-each-row-by-a-vector-element
@@ -3045,7 +3051,7 @@ class SnuddaDetect(object):
     def plot_hyper_voxel(self, plot_neurons=False, draw_axons=True, draw_dendrites=True,
                          draw_axon_voxels=True, draw_dendrite_voxels=True,
                          detect_done=True, elev_azim=None, show_axis=True, title=None,
-                         fig_file_name=None, dpi=300):
+                         fig_file_name=None, dpi=300, plot_neuron_id=None):
 
         """
         Plot hyper voxel.
@@ -3086,9 +3092,8 @@ class SnuddaDetect(object):
             voxel_data += self.dend_voxel_ctr
 
         fig = plt.figure(figsize=(6, 6.5))
-        ax = fig.gca(projection='3d')
-        ax.voxels(voxel_data > 0,
-                  facecolors=colors, edgecolor=None)
+        ax = fig.add_subplot(projection='3d')
+        ax.voxels(voxel_data > 0, facecolors=colors, edgecolor=None)
 
         if self.hyper_voxel_synapse_ctr > 0:
             syn_coord = self.hyper_voxel_synapses[:self.hyper_voxel_synapse_ctr, 2:5]
@@ -3128,7 +3133,10 @@ class SnuddaDetect(object):
 
             num_neurons = self.hyper_voxels[self.hyper_voxel_id]["neuronCtr"]
 
-            for neuronID in self.hyper_voxels[self.hyper_voxel_id]["neurons"][:num_neurons]:
+            if plot_neuron_id is None:
+                plot_neuron_id = self.hyper_voxels[self.hyper_voxel_id]["neurons"][:num_neurons]
+
+            for neuronID in plot_neuron_id:
                 neuron = self.load_neuron(self.neurons[neuronID])
 
                 neuron.plot_neuron(axis=ax,
