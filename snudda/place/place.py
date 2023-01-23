@@ -807,23 +807,57 @@ class SnuddaPlace(object):
                                                             mok_str_type,
                                                             compression="gzip")
 
+        neuron_pos_all = np.zeros((len(self.neurons), 3))
+        neuron_rot_all = np.zeros((len(self.neurons), 9))
+
+        neuron_param_key_list = []
+        neuron_param_key_idx = []
+        neuron_morph_key_list = []
+        neuron_morph_key_idx = []
+        neuron_mod_key_list = []
+        neuron_mod_key_idx = []
+
+
         for (i, n) in enumerate(self.neurons):
-            neuron_position[i] = n.position
-            neuron_rotation[i] = n.rotation.reshape(1, 9)
-            # neuron_dend_radius[i] = n.max_dend_radius
-            # neuron_axon_radius[i] = n.max_axon_radius
-            # neuron_param_id[i] = -1 if n.parameter_id is None else n.parameter_id
-            # neuron_morph_id[i] = -1 if n.morphology_id is None else n.morphology_id
-            # neuron_modulation_id[i] = -1 if n.modulation_id is None else n.modulation_id
+            neuron_pos_all[i, :] = n.position
+            neuron_rot_all[i, :] = n.rotation.reshape(1, 9)
 
             if n.parameter_key:
-                neuron_param_key[i] = n.parameter_key
+                neuron_param_key_list.append(n.parameter_key)
+                neuron_param_key_idx.append(i)
 
             if n.morphology_key:
-                neuron_morph_key[i] = n.morphology_key
+                neuron_morph_key_list.append(n.morphology_key)
+                neuron_morph_key_idx.append(i)
 
             if n.modulation_key:
-                neuron_modulation_key[i] = n.modulation_key
+                neuron_mod_key_list.append(n.modulation_key)
+                neuron_mod_key_idx.append(i)
+
+        neuron_position[:, :] = neuron_pos_all
+        neuron_rotation[:, :] = neuron_rot_all
+
+        if len(neuron_param_key_list) > 0:
+            neuron_param_key[neuron_param_key_idx] = neuron_param_key_list
+
+        if len(neuron_morph_key_list) > 0:
+            neuron_morph_key[neuron_morph_key_idx] = neuron_morph_key_list
+
+        if len(neuron_mod_key_list) > 0:
+            neuron_modulation_key[neuron_mod_key_idx] = neuron_mod_key_list
+
+            # neuron_position[i] = n.position
+            # neuron_rotation[i] = n.rotation.reshape(1, 9)
+
+
+            # if n.parameter_key:
+            #    neuron_param_key[i] = n.parameter_key
+
+            # if n.morphology_key:
+            #     neuron_morph_key[i] = n.morphology_key
+
+            # if n.modulation_key:
+            #     neuron_modulation_key[i] = n.modulation_key
 
         # Store input information
         if self.population_unit is None:
