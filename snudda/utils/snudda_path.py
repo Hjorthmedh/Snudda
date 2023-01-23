@@ -116,6 +116,8 @@ def snudda_path_exists(path, snudda_data):
     return os.path.exists(snudda_parse_path(path, snudda_data))
 
 
+# @functools.cache   # TODO: This is valid from python 3.9.2 -- change to this in the future, for now keep lru_cache
+@functools.lru_cache(maxsize=None)
 def snudda_simplify_path(path, snudda_data):
     """ Simplifies path, replacing any occurance of SNUDDA_DATA in the path with $SNUDDA_DATA.
 
