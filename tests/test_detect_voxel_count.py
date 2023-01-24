@@ -1,3 +1,4 @@
+import os.path
 import unittest
 
 import numpy as np
@@ -105,6 +106,9 @@ class TestVoxelCount(unittest.TestCase):
 
             plt.tight_layout()
 
+            if not os.path.isdir("figures"):
+                os.mkdir("figures")
+
             fig_name = f"figures/detect_voxel_count-step-multiplier-{self.sd.step_multiplier}-num-{self.n_iter}.png"
             plt.savefig(fig_name)
 
@@ -120,10 +124,8 @@ class TestVoxelCount(unittest.TestCase):
         self.assertTrue(np.std(dend_count[1:])/np.mean(dend_count[1:]) < 0.05)
         self.assertTrue(np.std(axon_count[1:])/np.mean(axon_count[1:]) < 0.05)
 
-
         # import pdb
         # pdb.set_trace()
-
 
 
 if __name__ == '__main__':
