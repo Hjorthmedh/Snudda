@@ -448,8 +448,6 @@ class NeuronPrototype:
 
         if morph_tag not in self.morphology_cache:
 
-            assert morphology_key is not None
-
             # TODO: hoc file will depend on both morphology_id and parameter_id, we ignore it for now
             self.morphology_cache[morph_tag] = NeuronMorphologyExtended(name=self.neuron_name,
                                                                         position=None,  # This is set further down when using clone
