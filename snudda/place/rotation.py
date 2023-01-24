@@ -145,7 +145,7 @@ class SnuddaRotate:
             return np.array(rotation_field_data["position"]) * 1e-6, np.array(rotation_field_data["rotation"])
 
     @staticmethod
-    def rand_rotation_matrix(deflection=1.0, rand_nums=None):
+    def rand_rotation_matrix(deflection=1.0, rand_nums=None, rng=None):
         """
         Creates a random rotation matrix.
 
@@ -157,7 +157,10 @@ class SnuddaRotate:
         # from http://www.realtimerendering.com/resources/GraphicsGems/gemsiii/rand_rotation.c
 
         if rand_nums is None:
-            rand_nums = np.random.uniform(size=(3,))
+            if rng is not None:
+                rand_nums = rng.uniform(size=(3,))
+            else:
+                rand_nums = np.random.uniform(size=(3,))
 
         theta, phi, z = rand_nums
 

@@ -57,7 +57,7 @@ class SnuddaDetect(object):
                  volume_id=None,
                  role=None,  # Default: "master"
                  rc=None,
-                 simulation_origo = None,  # Auto detect
+                 simulation_origo=None,  # Auto detect
                  h5libver=None,  # Default: "latest"
                  random_seed=None,
                  debug_flag=False):
@@ -165,7 +165,7 @@ class SnuddaDetect(object):
         self.hyper_voxel_size = hyper_voxel_size  # = N,  N x N x N voxels in a hyper voxel
         self.hyper_voxel_origo = np.zeros((3,))
         self.voxel_overflow_counter = 0
-        self.step_multiplier = 1.5  # 2.0
+        self.step_multiplier = 1.1  # 1.12  # 2.0
 
         self.hyper_voxel_offset = None
         self.hyper_voxel_id = 0
@@ -195,7 +195,6 @@ class SnuddaDetect(object):
         self.dend_sec_id = None
         self.dend_sec_x = None
         self.dend_soma_dist = None
-
 
         self.neurons = None
         self.neuron_positions = None
@@ -2707,6 +2706,7 @@ class SnuddaDetect(object):
 
         section_id = section_data[point_idx, 0]
         section_x = section_data[point_idx, 1] * 1e-3  # Stored as section_x*1000 (since int)
+
         coords = geometry[point_idx, :3]
         voxel_coords = (coords - self_hyper_voxel_origo) / self_voxel_size
         point_inside = np.sum(np.logical_and(lower_padding_bound <= voxel_coords,
@@ -2719,15 +2719,21 @@ class SnuddaDetect(object):
         # dv_step = np.diff(voxel_coords, axis=0) / num_steps[:, None]
 
         step_diff = np.abs(np.diff(voxel_coords.T).T)
+        sec_length = np.zeros((step_diff.shape[0], ))
+        for i in range(0, step_diff.shape[0]):
+            sec_length[i] = np.sqrt(step_diff[i, 0] ** 2 + step_diff[i, 1] ** 2 + step_diff[i, 2]**2)
 
+        num_steps = np.ceil(sec_length*self_step_multiplier).astype(np.int64)
+
+        # OLD VERSION
         # This is just does same as numpy.amax for axis=1, but inlined for NUMBA
-        max_val = step_diff[:, 0].copy()
-        for j in range(1, step_diff.shape[1]):
-            for i in range(0, step_diff.shape[0]):
-                if max_val[i] < step_diff[i, j]:
-                    max_val[i] = step_diff[i, j]
-
-        num_steps = np.ceil(max_val * self_step_multiplier).astype(np.int64)
+        # max_val = step_diff[:, 0].copy()
+        # for j in range(1, step_diff.shape[1]):
+        #     for i in range(0, step_diff.shape[0]):
+        #         if max_val[i] < step_diff[i, j]:
+        #             max_val[i] = step_diff[i, j]
+        #
+        # num_steps = np.ceil(max_val * self_step_multiplier).astype(np.int64)
 
         # TODO: num_steps should perhaps instead depend on the total length (with a small oversampling?)
         #       the reference should be that a line should occupy the same number of voxels regardless
@@ -2752,7 +2758,7 @@ class SnuddaDetect(object):
             raise ValueError(f"Found zero length dendrite segment (please check morphologies).")
 
         # Loop through all point-pairs of the section
-        for idx in range(0, len(section_x)-1):
+        for idx in range(0, len(scaled_soma_dist)-1):
 
             if point_inside[idx] or point_inside[idx+1]:
                 # Either of the points are within the cube + padding zone
@@ -2782,7 +2788,6 @@ class SnuddaDetect(object):
                     if p_inside[i]:
                         # v_idx = tuple(vp[i, :])
                         v_idx = (vp_x[i], vp_y[i], vp_z[i])
-
                         v_ctr = voxel_space_ctr[v_idx]
 
                         if v_ctr > 0 and voxel_space[v_idx][v_ctr-1] == neuron_id:
@@ -2824,7 +2829,6 @@ class SnuddaDetect(object):
                                                                       voxel_axon_dist=voxel_axon_dist,
                                                                       point_idx=section.point_idx,
                                                                       geometry=section.morphology_data.geometry,
-                                                                      section_data=section.morphology_data.section_data,
                                                                       neuron_id=neuron_id,
                                                                       self_hyper_voxel_origo=self.hyper_voxel_origo,
                                                                       self_voxel_size=self.voxel_size,
@@ -2841,7 +2845,6 @@ class SnuddaDetect(object):
                                 voxel_axon_dist,
                                 point_idx,
                                 geometry,
-                                section_data,
                                 neuron_id: int,
                                 self_hyper_voxel_origo,
                                 self_voxel_size,
@@ -2858,8 +2861,6 @@ class SnuddaDetect(object):
         upper_padding_bound = self_num_bins + 1 + padding  # +1 since we skipped floor in voxel_coords
 
         coords = geometry[point_idx, :3]
-
-        # Removed np.floor to have more precision
         voxel_coords = (coords - self_hyper_voxel_origo) / self_voxel_size
         point_inside = np.sum(np.logical_and(lower_padding_bound <= voxel_coords,
                                              voxel_coords < upper_padding_bound),
@@ -2870,15 +2871,22 @@ class SnuddaDetect(object):
         # num_steps = np.ceil(np.amax(np.abs(np.diff(voxel_coords, axis=0)) * self_step_multiplier, axis=1)).astype(int)
         # dv_step = np.diff(voxel_coords, axis=0) / num_steps[:, None]
 
-        step_diff = np.abs(np.diff(voxel_coords.T)).T
-        # This is just does same as numpy.amax for axis=1, but inlined for NUMBA
-        max_val = step_diff[:, 0].copy()
-        for j in range(1, step_diff.shape[1]):
-            for i in range(0, step_diff.shape[0]):
-                if max_val[i] < step_diff[i, j]:
-                    max_val[i] = step_diff[i, j]
+        step_diff = np.abs(np.diff(voxel_coords.T).T)
+        sec_length = np.zeros((step_diff.shape[0], ))
+        for i in range(0, step_diff.shape[0]):
+            sec_length[i] = np.sqrt(step_diff[i, 0] ** 2 + step_diff[i, 1] ** 2 + step_diff[i, 2]**2)
 
-        num_steps = np.ceil(max_val * self_step_multiplier).astype(np.int64)
+        num_steps = np.ceil(sec_length*self_step_multiplier).astype(np.int64)
+
+        # OLD VERSION
+        # This is just does same as numpy.amax for axis=1, but inlined for NUMBA
+        # max_val = step_diff[:, 0].copy()
+        # for j in range(1, step_diff.shape[1]):
+        #     for i in range(0, step_diff.shape[0]):
+        #         if max_val[i] < step_diff[i, j]:
+        #             max_val[i] = step_diff[i, j]
+        #
+        # num_steps = np.ceil(max_val * self_step_multiplier).astype(np.int64)
 
         # [:, None] is here used to divide first row by first element in num_step
         # second row divide by second element in num_step etc. Pretty clever.
