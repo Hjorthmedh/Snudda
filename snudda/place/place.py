@@ -817,7 +817,6 @@ class SnuddaPlace(object):
         neuron_mod_key_list = []
         neuron_mod_key_idx = []
 
-
         for (i, n) in enumerate(self.neurons):
             neuron_pos_all[i, :] = n.position
             neuron_rot_all[i, :] = n.rotation.reshape(1, 9)

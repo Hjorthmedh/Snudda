@@ -24,7 +24,6 @@ class NeuronMorphologyExtended:
                  modulation_key=None,
                  load_morphology=True,
                  virtual_neuron=False,
-                 axon_stump_id_flag=True,
                  colour=None,
                  logfile=None,
                  verbose=False):
@@ -55,7 +54,6 @@ class NeuronMorphologyExtended:
 
         self.load_morphology = load_morphology
         self.virtual_neuron = virtual_neuron
-        self.axon_stump_id_flag = axon_stump_id_flag
         self.colour = colour
 
         self.morphology_data = dict()
@@ -178,7 +176,6 @@ class NeuronMorphologyExtended:
                                               modulation_key=self.modulation_key,
                                               load_morphology=False,
                                               virtual_neuron=self.virtual_neuron,
-                                              axon_stump_id_flag=self.axon_stump_id_flag,
                                               colour=self.colour,
                                               logfile=self.logfile,
                                               verbose=self.verbose)
@@ -200,6 +197,9 @@ class NeuronMorphologyExtended:
             new_neuron.modulation_key = modulation_key
 
         if morphology_key != self.morphology_key:
+            print("PROBLEM!!")
+            import pdb
+            pdb.set_trace()
             raise ValueError(f"Not allowed to change morphology_key when cloning: {self.morphology_key} -> {morphology_key}")
 
         new_neuron.load_morphology = self.load_morphology

@@ -57,7 +57,6 @@ class SnuddaDetect(object):
                  volume_id=None,
                  role=None,  # Default: "master"
                  rc=None,
-                 axon_stump_id_flag=False,
                  simulation_origo = None,  # Auto detect
                  h5libver=None,  # Default: "latest"
                  random_seed=None,
@@ -82,7 +81,6 @@ class SnuddaDetect(object):
             volume_id (str, optional): Volume ID to do touch detection on
             role (str, optional): Parallel role, i.e. "master" or "worker"
             rc (ipyparallel.Client, optional): iPyParallel client, if given program will run in parallel
-            axon_stump_id_flag (bool, optional): Recalculate segment IDs to account for axon stump? (default False)
             simulation_origo (np.array, optional): Origo for touch detection hypervoxels and voxels, voxel coordinates must always positive.
             h5libver (string, optional): h5py library version (default "latest")
             random_seed (int, optional): Random seed
@@ -194,7 +192,6 @@ class SnuddaDetect(object):
         self.dend_sec_x = None
         self.dend_soma_dist = None
 
-        self.axon_stump_id_flag = axon_stump_id_flag
 
         self.neurons = None
         self.neuron_positions = None
@@ -265,8 +262,7 @@ class SnuddaDetect(object):
         self.delete_old_merge()
 
         # Rather than load all neuron morphologies, we only load prototypes
-        self.read_prototypes(config_file=config_file,
-                             axon_stump_id_flag=axon_stump_id_flag)
+        self.read_prototypes(config_file=config_file)
 
         # Read positions
         self.read_neuron_positions(position_file)
@@ -553,7 +549,6 @@ class SnuddaDetect(object):
                           (self.voxel_size, "voxelSize"),
                           (self.hyper_voxel_size, "hyperVoxelSize"),
                           (self.hyper_voxel_width, "hyperVoxelWidth"),
-                          (self.axon_stump_id_flag, "axonStumpIDFlag"),
                           (json.dumps(self.config), "config"),
                           (json.dumps(tmp_con_dist),
                            "connectivityDistributions")]
@@ -1709,20 +1704,17 @@ class SnuddaDetect(object):
 
     ############################################################################
 
-    def read_prototypes(self, config_file=None, axon_stump_id_flag=False):
+    def read_prototypes(self, config_file=None):
 
         """
         Read in neuron prototypes. A neuron prototype can have multiple parameters, and morphology variations.
 
         Args:
             config_file (str): path to network config file
-            axon_stump_id_flag (bool): Should segments be renumbered as if axon is replaced by axon stump
         """
 
         if config_file is None:
             config_file = self.config_file
-
-        self.axon_stump_id_flag = axon_stump_id_flag
 
         self.write_log(f"Loading from {config_file}")
 
@@ -1783,8 +1775,7 @@ class SnuddaDetect(object):
                                                            parameter_path=param,
                                                            mechanism_path=mech,
                                                            # hoc=hoc,
-                                                           virtual_neuron=virtual_neuron,
-                                                           axon_stump_id_flag=axon_stump_id_flag)
+                                                           virtual_neuron=virtual_neuron)
 
             if "axonDensity" in definition:
 
@@ -1954,8 +1945,6 @@ class SnuddaDetect(object):
 
             meta_data.create_dataset("configFile", data=self.config_file)
             meta_data.create_dataset("positionFile", data=self.position_file)
-
-            meta_data.create_dataset("axonStumpIDFlag", data=self.axon_stump_id_flag)
 
             # These may or may not exist, if they do, write them to file
             if self.max_axon_voxel_ctr is not None:
