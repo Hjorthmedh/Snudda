@@ -127,6 +127,8 @@ class SnuddaDetect(object):
 
             if not logfile and not logfile_name:
                 log_filename = os.path.join(network_path, "log", "touch-detection.txt")
+        else:
+            self.network_path = None
 
         self.work_history_file = work_history_file  # Name of work history file
         self.work_history = None  # File pointer for actual file
@@ -135,8 +137,10 @@ class SnuddaDetect(object):
             self.logfile_name = logfile_name
         elif logfile is not None:
             self.logfile_name = logfile.name
-        else:
+        elif self.network_path is not None:
             self.logfile_name = os.path.join(self.network_path, "log", "touch-detection.txt")
+        else:
+            self.logfile_name = None
 
         self.logfile = logfile
         self.setup_log()
@@ -161,7 +165,7 @@ class SnuddaDetect(object):
         self.hyper_voxel_size = hyper_voxel_size  # = N,  N x N x N voxels in a hyper voxel
         self.hyper_voxel_origo = np.zeros((3,))
         self.voxel_overflow_counter = 0
-        self.step_multiplier = 2.0
+        self.step_multiplier = 1.5  # 2.0
 
         self.hyper_voxel_offset = None
         self.hyper_voxel_id = 0
@@ -1716,6 +1720,10 @@ class SnuddaDetect(object):
         if config_file is None:
             config_file = self.config_file
 
+        if config_file is None:
+            self.write_log(f"No config file specified. Not reading any neuron prototypes.")
+            return
+
         self.write_log(f"Loading from {config_file}")
 
         cfg_file = open(str(config_file), 'r')
@@ -1860,6 +1868,10 @@ class SnuddaDetect(object):
         if position_file is None:
             position_file = self.position_file
 
+        if position_file is None:
+            self.write_log("No position file specified, not reading neuron positions")
+            return
+
         mem = self.memory()
         self.write_log(f"{mem}")
 
@@ -1902,7 +1914,7 @@ class SnuddaDetect(object):
 
         """ Cleans up data files from previous detection run. """
 
-        if self.role == "master":
+        if self.role == "master" and self.network_path is not None:
             del_files = [os.path.join(self.network_path, "network-putative-synapses-MERGED.hdf5"),
                          os.path.join(self.network_path, "network-putative-synapses-MERGED.hdf5-cache"),
                          os.path.join(self.network_path, "network-synapses.hdf5"),
@@ -2845,14 +2857,13 @@ class SnuddaDetect(object):
         lower_padding_bound = 0 - padding
         upper_padding_bound = self_num_bins + 1 + padding  # +1 since we skipped floor in voxel_coords
 
-        section_id = section_data[point_idx, 0]
         coords = geometry[point_idx, :3]
+
         # Removed np.floor to have more precision
         voxel_coords = (coords - self_hyper_voxel_origo) / self_voxel_size
         point_inside = np.sum(np.logical_and(lower_padding_bound <= voxel_coords,
                                              voxel_coords < upper_padding_bound),
                               axis=1) == 3
-
         scaled_soma_dist = geometry[point_idx, 4] * 1e6  # Dist to soma
 
         # Numba does not support third argument axis of np.diff, so transpose it instead
@@ -3144,11 +3155,15 @@ class SnuddaDetect(object):
         if fig_file_name is None:
             fig_file_name = f"Hypervoxel-{self.slurm_id}-{self.hyper_voxel_id}.png"
 
-        fig_name = os.path.join(self.network_path, "figures", fig_file_name)
+        if self.network_path is not None:
+            fig_name = os.path.join(self.network_path, "figures", fig_file_name)
+        else:
+            fig_name = fig_file_name
 
         if not os.path.exists(os.path.dirname(fig_name)):
-            print(f"plot_hyper_voxel: Creating directory : {os.path.dirname(fig_name)}")
-            os.mkdir(os.path.dirname(fig_name))
+            if len(os.path.dirname(fig_name)) > 0:
+                print(f"plot_hyper_voxel: Creating directory : {os.path.dirname(fig_name)}")
+                os.mkdir(os.path.dirname(fig_name))
 
         plt.savefig(fig_name, dpi=dpi)
 
