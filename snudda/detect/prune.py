@@ -173,7 +173,6 @@ class SnuddaPrune(object):
         self.hyper_voxel_size = None
         self.simulation_origo = None
         self.hyper_voxel_width = None
-        self.axon_stump_id_flag = None
         self.hyper_voxel_offset = None
         self.num_synapses_total = None
         self.num_gap_junctions_total = None
@@ -516,10 +515,6 @@ class SnuddaPrune(object):
         completed_id = set(self.hist_file["completed"][:n_completed])
         remaining = all_id - completed_id
 
-        # Network_simulate.py uses axonStumpIDFlag = True
-        # Neurodamus uses axonStumpIDFlag = False
-        self.axon_stump_id_flag = self.hist_file["meta/axonStumpIDFlag"]
-
         # We need a lookup table for offsets of hypervoxel origos
         self.hyper_voxel_offset = np.zeros((self.hyper_voxel_id_list.size, 3), dtype=int)
         for ix in range(0, self.hyper_voxel_id_list.shape[0]):
@@ -589,7 +584,7 @@ class SnuddaPrune(object):
             self.write_log(f"Checking that {hypervoxel_file_name} matches circuit settings")
 
         check_list = ["voxelSize", "hyperVoxelSize", "simulationOrigo",
-                      "configFile", "positionFile", "SlurmID", "axonStumpIDFlag"]
+                      "configFile", "positionFile", "SlurmID"]
 
         # Just some sanity checks
         for c in check_list:

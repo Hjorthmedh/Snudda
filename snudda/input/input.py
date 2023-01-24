@@ -138,7 +138,6 @@ class SnuddaInput(object):
         self.network_config_file = None
         self.position_file = None
 
-        self.axon_stump_id_flag = None
         self.network_slurm_id = None
         self.population_unit_id = []
 
@@ -181,7 +180,6 @@ class SnuddaInput(object):
         self.network_config_file = self.network_data["configFile"]
         self.position_file = self.network_data["positionFile"]
 
-        self.axon_stump_id_flag = self.network_data["axonStumpIDFlag"]
         self.network_slurm_id = self.network_data["SlurmID"]
         self.population_unit_id = self.network_data["populationUnit"]
 
@@ -1655,8 +1653,7 @@ class SnuddaInput(object):
                                                    parameter_path=parameters_path,
                                                    modulation_path=modulation_path,
                                                    mechanism_path=mechanisms_path,
-                                                   neuron_path=None,
-                                                   axon_stump_id_flag=self.axon_stump_id_flag)
+                                                   neuron_path=None)
             self.neuron_cache[neuron_name] = morphology_prototype
             morphology = morphology_prototype.clone(# parameter_id=parameter_id,
                                                     # morphology_id=morphology_id,
