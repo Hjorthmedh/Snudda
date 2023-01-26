@@ -197,7 +197,10 @@ class MorphologyData:
 
         Args:
             section_type: 1 = soma, 2 = axon, 3 = dend
-            section_id: ID of sections to iteratoe over"""
+            section_id: ID of sections to iterate over"""
+
+        if section_id is None:
+            section_id = self.sections[section_type].keys()
 
         for sid in section_id:
             yield self.sections[section_type][sid]

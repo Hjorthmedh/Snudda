@@ -2689,7 +2689,7 @@ class SnuddaDetect(object):
 
     def fill_voxels_dend(self, voxel_space, voxel_space_ctr,
                          voxel_sec_id, voxel_sec_x, voxel_soma_dist,
-                         neuron, neuron_id, section_id):
+                         neuron, neuron_id, section_id=None):
 
         """
         Mark all voxels containing dendrites.
@@ -2851,7 +2851,7 @@ class SnuddaDetect(object):
 
     def fill_voxels_axon(self, voxel_space, voxel_space_ctr,
                          voxel_axon_dist,
-                         neuron, neuron_id, section_id, subtree="neuron"):
+                         neuron, neuron_id, section_id=None, subtree="neuron"):
 
         """
         Mark all voxels containing axons.
