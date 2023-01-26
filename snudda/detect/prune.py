@@ -1527,8 +1527,10 @@ class SnuddaPrune(object):
         hv_list = []
         neuron_set = set(range(neuron_range[0], neuron_range[1]))
 
-        for hid in self.hist_file["hyperVoxels"]:
-            hv_neurons = self.hist_file["hyperVoxels"][hid]["neurons"]
+        hyper_voxels = json.loads(self.hist_file["hyperVoxels"][()])
+
+        for hid in hyper_voxels:
+            hv_neurons = hyper_voxels[hid]["neurons"]
             if len(neuron_set.intersection(hv_neurons)) > 0:
                 hv_list.append(int(hid))
 
