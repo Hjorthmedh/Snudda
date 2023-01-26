@@ -3,7 +3,7 @@ export IPYTHON_PROFILE=default
 
 # If the BasalGangliaData directory exists, then use that for our data
     
-ipcluster start --n=7 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
+ipcluster start --n=6 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20
 
 simName=networks/test-10k

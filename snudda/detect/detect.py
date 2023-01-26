@@ -496,6 +496,207 @@ class SnuddaDetect(object):
         for hi, s in zip(all_hid, all_seeds):
             self.hyper_voxels[hi]["randomSeed"] = s
 
+    def setup_hyper_voxel_id_lookup(self, max_coord, min_coord):
+
+        self.num_hyper_voxels = np.ceil((max_coord - min_coord) / self.hyper_voxel_width).astype(int) + 1
+
+        assert np.prod(self.num_hyper_voxels) < 3e9, \
+            (f"Very large brain structure... Did you use SI units for neuron positions? "
+             f"Number of hyper voxels: {self.num_hyper_voxels}")
+        self.hyper_voxel_id_lookup = np.zeros(self.num_hyper_voxels, dtype=int)
+
+        self.hyper_voxel_id_lookup[:] = \
+            np.arange(0, self.hyper_voxel_id_lookup.size).reshape(self.hyper_voxel_id_lookup.shape)
+
+        self.write_log(f"{self.hyper_voxel_id_lookup.size} hyper voxels in total")
+
+    def get_hypervoxel_coords_and_section_id(self, neuron=None, neuron_info=None):
+
+        """ Returns a tree info dictionary where each subtree is
+            represented by an array with columns
+            hyper_voxel_id, section_type, section_id"""
+
+        # We do not check that neuron_info and neuron (if both give) are consistent.
+
+        if neuron_info is None and neuron is None:
+            raise KeyError("You must specify neuron_info or neuron")
+
+        if neuron is None:
+            neuron = self.load_neuron(neuron_info)
+
+        tree_info = dict()
+
+        for subtree_name, subtree in neuron.morphology_data.items():
+            hyper_voxel_coords = ((subtree.geometry[:, 3] - self.simulation_origo) / self.hyper_voxel_width).astype(int)
+
+            # We need to do a range check, since virtual neurons and extra axons might be outside simulated region
+            inside_idx = np.logical_and(0 <= hyper_voxel_coords,
+                                        hyper_voxel_coords < self.hyper_voxel_id_lookup.shape[None, :])
+
+            hyper_voxel_id = self.hyper_voxel_id_lookup[tuple(hyper_voxel_coords[inside_idx, :].T)]
+            section_type_id = subtree.section_data[inside_idx, [2, 0]]
+
+            tree_info[subtree_name] = np.unique(np.hstack([hyper_voxel_id, section_type_id]), axis=0)
+
+        if "neuron" in neuron.morphology_data:
+            morph_data = neuron.morphology_data["neuron"]
+            if morph_data.section_data[0, 2] == 1:
+                # First compartment is soma
+                soma_pos = morph_data.geometry[0, :3]
+                soma_radius = morph_data.geometry[0, 3]
+
+                u, v = np.mgrid[0:2 * np.pi:30j, 0:np.pi:20j]
+                x = soma_radius * np.cos(u) * np.sin(v) + soma_pos[0]
+                y = soma_radius * np.sin(u) * np.sin(v) + soma_pos[1]
+                z = soma_radius * np.cos(v)
+
+                vx = ((x - self.simulation_origo[0]) / self.hyper_voxel_width[0]).astype(int)
+                vy = ((y - self.simulation_origo[1]) / self.hyper_voxel_width[1]).astype(int)
+                vz = ((z - self.simulation_origo[2]) / self.hyper_voxel_width[2]).astype(int)
+
+                soma_hyper_voxels = np.unique(self.hyper_voxel_lookup[tuple(vx, vy, vz)])
+                soma_info = np.zeros((len(soma_hyper_voxels), 3))
+                soma_info[:, 0] = soma_hyper_voxels
+                soma_info[:, 1] = 1  # soma
+
+                tree_info["neuron"] = np.unique(np.vstack([tree_info["neuron"], soma_info]), axis=0)
+
+        print("Verify that lookup is correct!!")
+        import pdb
+        pdb.set_trace()
+
+        return tree_info
+
+    def group_section_info(self, tree_info):
+
+        section_info = dict()
+
+        for tree in tree_info:
+
+            for hyper_id, section_type, section_id in tree_info[tree]:
+
+                if hyper_id not in section_info:
+                    section_info[hyper_id] = dict()
+
+                if section_type not in section_info[hyper_id]:
+                    section_info[hyper_id][section_type] = dict()
+
+                if tree not in section_info[hyper_id][section_type]:
+                    section_info[hyper_id][section_type][tree] = [section_id]
+                else:
+                    section_info[hyper_id][section_type][tree].append(section_id)
+
+        # Sort the sections to make it reproducible
+        for hyper_id in section_info:
+            for section_type in section_info[hyper_id]:
+                for tree in section_info[hyper_id][section_type]:
+                    section_info[hyper_id][section_type][tree] = \
+                        np.array(sorted(section_info[hyper_id][section_type][tree]))
+
+        return section_info
+
+    def get_density_location(self, neuron, seed):
+
+        axon_loc = None
+        hyper_voxel_id = []
+
+        if neuron.axon_density_type == "r":
+
+            rng = np.random.default_rng(seed)
+
+            # We create a set of points corresponding approximately to the
+            # extent of the axonal density, and check which hyper voxels
+            # they occupy
+
+            # Radius of sphere in hyper voxels, rounded up
+            rad = np.ceil(neuron.max_axon_radius / (self.hyper_voxel_size * self.voxel_size))
+
+            # Approximately how many hyper voxels will the dendritic tree occupy
+            n_hv = (2 * rad) ** 3
+
+            # Over sample
+            num_points = int(30 * n_hv)
+
+            # Randomly place these many points within a sphere of the given radius
+            # and then check which hyper voxels these points belong to
+
+            theta = 2 * np.pi * rng.random(num_points)
+            phi = np.arccos(2 * rng.random(num_points) - 1)
+            r = neuron.max_axon_radius * (rng.random(num_points) ** (1 / 3))
+
+            x = np.multiply(r, np.multiply(np.sin(phi), np.cos(theta)))
+            y = np.multiply(r, np.multiply(np.sin(phi), np.sin(theta)))
+            z = np.multiply(r, np.cos(phi))
+
+            axon_cloud = np.zeros((len(x), 3))
+            axon_cloud[:, 0] = x + neuron.position[0]
+            axon_cloud[:, 1] = y + neuron.position[1]
+            axon_cloud[:, 2] = z + neuron.position[2]
+
+            axon_loc = ((axon_cloud[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(int)
+
+        elif neuron.axon_density_type == "xyz":
+
+            # TODO: Maybe replace random points by a grid for this test step?
+
+            rng = np.random.default_rng(seed)
+
+            # Estimate how many points we need to randomly place
+            num_points = 100 * np.prod(neuron.axon_density_bounds_xyz[1:6:2]
+                                       - neuron.axon_density_bounds_xyz[0:6:2]) \
+                         / ((self.hyper_voxel_size * self.voxel_size) ** 3)
+            num_points = int(np.ceil(num_points))
+
+            if num_points > 1e4:
+                self.write_log(f"!!! Many many points placed for axon density of {neuron.name} : {num_points}")
+
+            xmin = neuron.axon_density_bounds_xyz[0]
+            xwidth = neuron.axon_density_bounds_xyz[1] - neuron.axon_density_bounds_xyz[0]
+            ymin = neuron.axon_density_bounds_xyz[2]
+            ywidth = neuron.axon_density_bounds_xyz[3] - neuron.axon_density_bounds_xyz[2]
+            zmin = neuron.axon_density_bounds_xyz[4]
+            zwidth = neuron.axon_density_bounds_xyz[5] - neuron.axon_density_bounds_xyz[4]
+
+            # The purpose of this is to find out the range of the axon bounding box
+            axon_cloud = rng.random((num_points, 3))
+            axon_cloud[:, 0] = axon_cloud[:, 0] * xwidth + xmin
+            axon_cloud[:, 1] = axon_cloud[:, 1] * ywidth + ymin
+            axon_cloud[:, 2] = axon_cloud[:, 2] * zwidth + zmin
+
+            # Don't forget to rotate
+            axon_cloud = np.matmul(neuron.rotation,
+                                   axon_cloud.transpose()).transpose() + neuron.position
+
+            axon_loc = ((axon_cloud[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(int)
+
+        if axon_loc is not None:
+            inside_idx = np.logical_and(0 <= axon_loc, axon_loc < self.hyper_voxel_id_lookup.shape[None, :])
+            hyper_voxel_id = np.unique(self.hyper_voxel_id_lookup[tuple(axon_loc[inside_idx, :].T)])
+
+        return hyper_voxel_id
+
+    def preallocate_empty_hyper_voxel_dict(self):
+
+        # First assign hyperVoxelID to the space
+        self.hyper_voxels = dict([])
+
+        for ix in range(0, self.num_hyper_voxels[0]):
+            for iy in range(0, self.num_hyper_voxels[1]):
+                for iz in range(0, self.num_hyper_voxels[2]):
+                    h_id = self.hyper_voxel_id_lookup[ix, iy, iz]
+
+                    self.hyper_voxels[h_id] = dict([])
+                    self.hyper_voxels[h_id]["origo"] = (self.simulation_origo
+                                                        + self.hyper_voxel_width * np.array([ix, iy, iz]))
+
+                    # Changed so we preallocate only empty, to preserve memory
+                    self.hyper_voxels[h_id]["soma"] = []
+                    self.hyper_voxels[h_id]["axon"] = []
+                    self.hyper_voxels[h_id]["dend"] = []
+                    self.hyper_voxels[h_id]["axon_density"] = []
+
+        self.write_log("Pre allocation done.")
+
     ############################################################################
 
     def generate_neuron_distribution_random_seeds(self):
@@ -684,6 +885,8 @@ class SnuddaDetect(object):
 
         """
 
+
+
         num_neurons = np.array([self.hyper_voxels[x]["neuronCtr"] for x in hyper_id])
         keep_idx = np.where(num_neurons > 0)[0]
         remove_idx = np.where(num_neurons == 0)[0]
@@ -752,6 +955,7 @@ class SnuddaDetect(object):
 
         hv = self.work_history.create_group("hyperVoxels")
 
+        # This HDF5 write can be modified, to reduce number of datasets and writes.
         for hID in hyper_voxels:
             h_data = hv.create_group(str(hID))
             neurons = hyper_voxels[hID]["neurons"]
@@ -2090,21 +2294,18 @@ class SnuddaDetect(object):
 
         # The order here should not affect reproducibility, each neuron has its own seed for distribution part
         # but only those with probabilistic axon clouds will use it.
-        neuron_idx = np.random.permutation(np.arange(0, len(self.neurons),
-                                                     dtype=np.int32))
+        neuron_idx = np.random.permutation(np.arange(0, len(self.neurons), dtype=np.int32))
 
         # Split the neuronIdx between the workers
         d_view.scatter("neuron_idx", neuron_idx, block=True)
         d_view.scatter("distribution_seeds", distribution_seeds[neuron_idx], block=True)  # Need to preserve order
-        d_view.push({"min_coord": min_coord,
-                     "max_coord": max_coord}, block=True)
+        d_view.push({"min_coord": min_coord, "max_coord": max_coord}, block=True)
 
         self.write_log("Distributing neurons, parallel.")
 
         # For the master node, run with empty list
         # This sets up internal state of master
-        self.distribute_neurons(neuron_idx=[], min_coord=min_coord, max_coord=max_coord,
-                                distribution_seeds=[])
+        self.distribute_neurons(neuron_idx=[], min_coord=min_coord, max_coord=max_coord, distribution_seeds=[])
 
         cmd_str = ("sd.distribute_neurons(neuron_idx=neuron_idx, distribution_seeds=distribution_seeds, "
                    "min_coord=min_coord, max_coord=max_coord)")
@@ -2120,42 +2321,33 @@ class SnuddaDetect(object):
         self.write_log("Distributions received.")
 
         for hv in hyper_voxel_list:
-            for hID in hv:
+            for hid in hv:
 
-                assert (hv[hID]["origo"] == self.hyper_voxels[hID]["origo"]).all(), \
+                assert (hv[hid]["origo"] == self.hyper_voxels[hid]["origo"]).all(), \
                     "Origo for hyper voxels do not match --- should never happen"
 
-                num_neurons = int(hv[hID]["neuronCtr"])
-                start_idx = int(self.hyper_voxels[hID]["neuronCtr"])
-                end_idx = start_idx + num_neurons
-
-                if end_idx >= len(self.hyper_voxels[hID]["neurons"]):
-                    # Not enough space, reallocating
-
-                    old = self.hyper_voxels[hID]["neurons"]
-                    new_max = end_idx + self.max_neurons
-
-                    self.hyper_voxels[hID]["neurons"] = np.zeros((new_max,), dtype=np.int32)
-
-                    # Copying back the old data to new vector
-                    if len(old) > 0:
-                        self.hyper_voxels[hID]["neurons"][:len(old)] = old
-
-                    del old
-
-                # Adding the new neurons
-                self.hyper_voxels[hID]["neurons"][start_idx:end_idx] = \
-                    hv[hID]["neurons"][:num_neurons]
-
-                # Increment counter
-                self.hyper_voxels[hID]["neuronCtr"] += num_neurons
+                self.hyper_voxels[hid]["soma"] += hv[hid]["soma"]
+                self.hyper_voxels[hid]["axon"] += hv[hid]["axon"]
+                self.hyper_voxels[hid]["dend"] += hv[hid]["dend"]
+                self.hyper_voxels["axon_density"] += hv[hid]["axon_density"]
 
         # Sorting the list of neurons (needed for reproducibility when axon is probability cloud and we sample them)
-        for hID in self.hyper_voxels:
-            n_ctr = self.hyper_voxels[hID]["neuronCtr"]
+        # and converting to numpy arrays
+        for hid in self.hyper_voxels:
+            self.hyper_voxels[hid]["soma"] = np.array(sorted(self.hyper_voxels[hid]["soma"]))
+            self.hyper_voxels[hid]["axon_density"] = np.array(sorted(self.hyper_voxels[hid]["axon_density"]))
 
-            self.hyper_voxels[hID]["neurons"] = \
-                np.sort(self.hyper_voxels[hID]["neurons"][:n_ctr])
+            axon_id = [x[0] for x in self.hyper_voxels[hid]["axon"]]
+            dend_id = [x[0] for x in self.hyper_voxels[hid]["dend"]]
+            axon_order = np.argsort(axon_id)
+            dend_order = np.argsort(dend_id)
+
+            self.hyper_voxels[hid]["axon"] = np.array([self.hyper_voxels[hid]["axon"][idx] for idx in axon_order])
+            self.hyper_voxels[hid]["dend"] = np.array([self.hyper_voxels[hid]["dend"][idx] for idx in axon_order])
+
+            all_neuron_id = set(self.hyper_voxels[hid]["soma"]).union(axon_id).union(dend_id).union(self.hyper_voxels[hid]["axon_density"])
+            self.hyper_voxels[hid]["neurons"] = np.array(list(all_neuron_id))
+            self.hyper_voxels[hid]["neuronCtr"] = len(self.hyper_voxels[hid]["neurons"])
 
         self.generate_hyper_voxel_random_seeds()
 
@@ -2205,42 +2397,14 @@ class SnuddaDetect(object):
             if self.simulation_origo is None:
                 # We align the simulation origo to the closest voxel (that is smaller)
                 self.simulation_origo = np.floor(min_coord / self.voxel_size) * self.voxel_size
-            else:
-                assert (self.simulation_origo <= min_coord).all(), \
-                    ( f"Simulation origo ({self.simulation_origo}) must be smaller than {min_coord}. "
-                      f"This since all voxel and hyper voxel coordinates must be positive." )
+            elif (self.simulation_origo > min_coord).any():
+                raise ValueError(f"Simulation origo ({self.simulation_origo}) must be smaller than {min_coord}. "
+                                 f"This since all voxel and hyper voxel coordinates must be positive.")
 
             assert ((self.num_bins - self.num_bins[0]) == 0).all(), "Hyper voxels should be cubes"
 
-            self.num_hyper_voxels = np.ceil((max_coord - min_coord) / self.hyper_voxel_width).astype(int) + 1
-
-            assert np.prod(self.num_hyper_voxels) < 3e9, \
-                (f"Very large brain structure... Did you use SI units for neuron positions? "
-                 f"Number of hyper voxels: {self.num_hyper_voxels}")
-            self.hyper_voxel_id_lookup = np.zeros(self.num_hyper_voxels, dtype=int)
-
-            self.hyper_voxel_id_lookup[:] = \
-                np.arange(0, self.hyper_voxel_id_lookup.size).reshape(self.hyper_voxel_id_lookup.shape)
-
-            self.write_log(f"{self.hyper_voxel_id_lookup.size} hyper voxels in total")
-
-            # First assign hyperVoxelID to the space
-            self.hyper_voxels = dict([])
-
-            for ix in range(0, self.num_hyper_voxels[0]):
-                for iy in range(0, self.num_hyper_voxels[1]):
-                    for iz in range(0, self.num_hyper_voxels[2]):
-                        h_id = self.hyper_voxel_id_lookup[ix, iy, iz]
-
-                        self.hyper_voxels[h_id] = dict([])
-                        self.hyper_voxels[h_id]["origo"] = (self.simulation_origo
-                                                            + self.hyper_voxel_width * np.array([ix, iy, iz]))
-
-                        # Changed so we preallocate only empty, to preserve memory
-                        self.hyper_voxels[h_id]["neurons"] = np.zeros((0,), dtype=np.int32)
-                        self.hyper_voxels[h_id]["neuronCtr"] = 0
-
-            self.write_log("Pre allocation done.")
+            self.setup_hyper_voxel_id_lookup(max_coord=max_coord, min_coord=min_coord)
+            self.preallocate_empty_hyper_voxel_dict()
 
             ctr = 0
 
@@ -2259,139 +2423,27 @@ class SnuddaDetect(object):
 
                 neuron = self.load_neuron(n)
                 neuron_id = n["neuronID"]
-                neurite_loc = []
 
-                for subtree in neuron.morphology_data.values():
-                    neurite_loc.append(np.floor((subtree.geometry[:, :3] - self.simulation_origo)/self.hyper_voxel_width).astype(int))
+                tree_info = self.get_hypervoxel_coords_and_section_id(neuron=neuron)
+                section_info = self.group_section_info(tree_info=tree_info)
+                density_hyper_voxel_id = self.get_density_location(neuron=neuron, seed=d_seed)
 
-                if len(neurite_loc) > 0:
-                    neurite_loc = np.concatenate(neurite_loc)
-                else:
-                    neurite_loc = np.array((0, 3), dtype=int)
+                # First loop over section info, add info
+                for h_id in section_info:
+                    if 1 in section_info[h_id]:
+                        self.hyper_voxels[h_id]["soma"].append(neuron_id)
 
-                if neuron.axon_density_type == "r":
+                    if 2 in section_info[h_id]:
+                        sec_id_list = section_info[h_id][2]
+                        self.hyper_voxels[h_id]["axon"].append((neuron_id, sec_id_list))
 
-                    rng = np.random.default_rng(d_seed)
+                    if 3 in section_info[h_id]:
+                        sec_id_list = section_info[h_id][3]
+                        self.hyper_voxels[h_id]["dend"].append((neuron_id, sec_id_list))
 
-                    # We create a set of points corresponding approximately to the
-                    # extent of the axonal density, and check which hyper voxels
-                    # they occupy
-
-                    # Radius of sphere in hyper voxels, rounded up
-                    rad = np.ceil(neuron.max_axon_radius / (self.hyper_voxel_size * self.voxel_size))
-
-                    # Approximately how many hyper voxels will the dendritic tree occupy
-                    n_hv = (2 * rad) ** 3
-
-                    # Over sample
-                    num_points = int(30 * n_hv)
-
-                    # Randomly place these many points within a sphere of the given radius
-                    # and then check which hyper voxels these points belong to
-
-                    theta = 2 * np.pi * rng.random(num_points)
-                    phi = np.arccos(2 * rng.random(num_points) - 1)
-                    r = neuron.max_axon_radius * (rng.random(num_points) ** (1 / 3))
-
-                    x = np.multiply(r, np.multiply(np.sin(phi), np.cos(theta)))
-                    y = np.multiply(r, np.multiply(np.sin(phi), np.sin(theta)))
-                    z = np.multiply(r, np.cos(phi))
-
-                    axon_cloud = np.zeros((len(x), 3))
-                    axon_cloud[:, 0] = x + neuron.position[0]
-                    axon_cloud[:, 1] = y + neuron.position[1]
-                    axon_cloud[:, 2] = z + neuron.position[2]
-
-                    axon_loc = np.floor((axon_cloud[:, :3] - self.simulation_origo)/self.hyper_voxel_width).astype(int)
-
-                    axon_inside_flag = [0 <= xa < self.hyper_voxel_id_lookup.shape[0]
-                                        and 0 <= ya < self.hyper_voxel_id_lookup.shape[1]
-                                        and 0 <= za < self.hyper_voxel_id_lookup.shape[2]
-                                        for xa, ya, za in axon_loc]
-
-                    axon_loc = axon_loc[axon_inside_flag, :]
-
-                elif neuron.axon_density_type == "xyz":
-
-                    # TODO: Maybe replace random points by a grid for this test step?
-
-                    rng = np.random.default_rng(d_seed)
-
-                    # Estimate how many points we need to randomly place
-                    num_points = 100 * np.prod(neuron.axon_density_bounds_xyz[1:6:2]
-                                               - neuron.axon_density_bounds_xyz[0:6:2]) \
-                        / ((self.hyper_voxel_size * self.voxel_size) ** 3)
-                    num_points = int(np.ceil(num_points))
-
-                    if num_points > 1e4:
-                        self.write_log(f"!!! Many many points placed for axon density of {neuron.name} : {num_points}")
-
-                    xmin = neuron.axon_density_bounds_xyz[0]
-                    xwidth = neuron.axon_density_bounds_xyz[1] - neuron.axon_density_bounds_xyz[0]
-                    ymin = neuron.axon_density_bounds_xyz[2]
-                    ywidth = neuron.axon_density_bounds_xyz[3] - neuron.axon_density_bounds_xyz[2]
-                    zmin = neuron.axon_density_bounds_xyz[4]
-                    zwidth = neuron.axon_density_bounds_xyz[5] - neuron.axon_density_bounds_xyz[4]
-
-                    # The purpose of this is to find out the range of the axon bounding box
-                    axon_cloud = rng.random((num_points, 3))
-                    axon_cloud[:, 0] = axon_cloud[:, 0] * xwidth + xmin
-                    axon_cloud[:, 1] = axon_cloud[:, 1] * ywidth + ymin
-                    axon_cloud[:, 2] = axon_cloud[:, 2] * zwidth + zmin
-
-                    # Don't forget to rotate
-                    axon_cloud = np.matmul(neuron.rotation,
-                                           axon_cloud.transpose()).transpose() + neuron.position
-
-                    axon_loc = np.floor((axon_cloud[:, :3] - self.simulation_origo)/self.hyper_voxel_width).astype(int)
-
-                    axon_inside_flag = [0 <= x < self.hyper_voxel_id_lookup.shape[0]
-                                        and 0 <= y < self.hyper_voxel_id_lookup.shape[1]
-                                        and 0 <= z < self.hyper_voxel_id_lookup.shape[2]
-                                        for x, y, z in axon_loc]
-
-                    axon_loc = axon_loc[axon_inside_flag, :]
-
-                else:
-                    axon_loc = None
-
-                # TODO: We need to add the neurons that have touch detection projection also here
-                #       to the list of hyper voxels the neuron belongs to
-
-                # Find unique hyper voxel coordinates
-                if axon_loc is None:
-                    h_loc = np.unique(neurite_loc, axis=0).astype(int)
-                else:
-                    h_loc = np.unique(np.concatenate([axon_loc, neurite_loc]), axis=0).astype(int)
-
-                if n["virtualNeuron"]:
-                    # Range check since we have neurons coming in from outside the volume
-                    # the parts outside should be ignored
-                    hyper_id = [self.hyper_voxel_id_lookup[x, y, z] for x, y, z in h_loc
-                                if 0 <= x < self.hyper_voxel_id_lookup.shape[0]
-                                and 0 <= y < self.hyper_voxel_id_lookup.shape[1]
-                                and 0 <= z < self.hyper_voxel_id_lookup.shape[2]]
-                else:
-                    # Not a virtual neuron, should all be inside volume
-                    hyper_id = [self.hyper_voxel_id_lookup[x, y, z] for x, y, z in h_loc]
-
-                # Add the neuron to the hyper voxel's list over neurons
-                for h_id in hyper_id:
-
-                    next_pos = self.hyper_voxels[h_id]["neuronCtr"]
-
-                    if next_pos >= len(self.hyper_voxels[h_id]["neurons"]):
-                        old = self.hyper_voxels[h_id]["neurons"]
-                        new_max = next_pos + self.max_neurons
-                        self.hyper_voxels[h_id]["neurons"] = np.zeros((new_max,), dtype=np.int32)
-
-                        if next_pos > 0:
-                            self.hyper_voxels[h_id]["neurons"][:len(old)] = old
-
-                        del old
-
-                    self.hyper_voxels[h_id]["neurons"][next_pos] = neuron_id
-                    self.hyper_voxels[h_id]["neuronCtr"] += 1
+                # Then loop over density info, add data
+                for h_id in density_hyper_voxel_id:
+                    self.hyper_voxels[h_id]["axon_density"].append(neuron_id)
 
             end_time = timeit.default_timer()
 
