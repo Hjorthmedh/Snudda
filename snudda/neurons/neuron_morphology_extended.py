@@ -121,10 +121,19 @@ class NeuronMorphologyExtended:
         if position is not None:
             self.morphology_data[name].place(position=position, rotation=rotation)
 
-    def section_iterator(self, section_type=None):
-        for subtree in self.morphology_data.values():
-            for section in subtree.section_iterator(section_type=section_type):
-                yield section
+    def section_iterator(self, section_type=None, subtree=None):
+
+        if subtree is not None:
+            return subtree.section_iterator(section_type=section_type)
+
+        else:
+            for subtree in self.morphology_data.values():
+                for section in subtree.section_iterator(section_type=section_type):
+                    yield section
+
+    def section_iterator_selective(self, section_type, section_id, subtree="neuron"):
+        return self.morphology_data[subtree].section_iterator_selective(section_type=section_type,
+                                                                        section_id=section_id)
 
     def place(self, rotation=None, position=None, name="neuron"):
 

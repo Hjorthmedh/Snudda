@@ -191,6 +191,17 @@ class MorphologyData:
         for section in self.sections[section_type].values():
             yield section
 
+    def section_iterator_selective(self, section_type, section_id):
+
+        """ Iterates over all sections of a specific type.
+
+        Args:
+            section_type: 1 = soma, 2 = axon, 3 = dend
+            section_id: ID of sections to iteratoe over"""
+
+        for sid in section_id:
+            yield self.sections[section_type][sid]
+
     def load_swc_file(self, swc_file, remapping_types={4: 3}):
 
         """ Loads SWC morphology, not SNUDDA_DATA aware (file must exist).
