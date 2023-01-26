@@ -1530,7 +1530,10 @@ class SnuddaPrune(object):
         hyper_voxels = json.loads(self.hist_file["hyperVoxels"][()])
 
         for hid in hyper_voxels:
-            hv_neurons = hyper_voxels[hid]["neurons"]
+            # When loading JSON file, the keys have been converted from int to str,
+            # so need to convert back to int.
+            hv_neurons = [int(x) for x in hyper_voxels[hid]["neurons"].keys()]
+
             if len(neuron_set.intersection(hv_neurons)) > 0:
                 hv_list.append(int(hid))
 

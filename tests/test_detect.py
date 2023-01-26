@@ -286,6 +286,10 @@ class TestDetect(unittest.TestCase):
                 pre_id = post_id + 10
                 self.assertTrue(1 <= self.check_neuron_pair_has_synapse(pre_id, post_id) <= 2)
 
+    # TODO: Gör ett test som distriburerar alla sections till sina respektive hypervoxlar,
+    #       sen tvinga en touch detection som ignorerar den infon och tar med allt
+    #       och se om några section id finns med som inte finns med i listorna...
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -694,13 +694,16 @@ class SnuddaDetect(object):
                     self.hyper_voxels[hid]["origo"] = (self.simulation_origo
                                                        + self.hyper_voxel_width * np.array([ix, iy, iz]))
 
+                    self.hyper_voxels[hid]["neurons"] = dict()
+
                     # Changed so we preallocate only empty, to preserve memory
-                    self.hyper_voxels[hid]["soma"] = []
-                    self.hyper_voxels[hid]["axon"] = []
-                    self.hyper_voxels[hid]["dend"] = []
+                    # self.hyper_voxels[hid]["soma"] = []
+                    # self.hyper_voxels[hid]["axon"] = []
+                    # self.hyper_voxels[hid]["dend"] = []
+
                     self.hyper_voxels[hid]["axon_density"] = []
 
-                    self.hyper_voxels[hid]["neurons"] = []
+                    # self.hyper_voxels[hid]["neurons"] = []
                     self.hyper_voxels[hid]["neuronCtr"] = 0
 
         self.write_log("Pre allocation done.")
@@ -2263,7 +2266,7 @@ class SnuddaDetect(object):
             self.write_log("No d_view specified, running distribute neurons in serial", force_print=True)
             (min_coord, max_coord) = self.distribute_neurons(distribution_seeds=distribution_seeds)
 
-            self.sort_hyper_voxels_data()
+            self.count_and_sort_neurons_in_hypervoxels()
             self.generate_hyper_voxel_random_seeds()
 
             self.save_neuron_distribution_history(hyper_voxels=self.hyper_voxels,
@@ -2309,13 +2312,14 @@ class SnuddaDetect(object):
                 assert (hv[hid]["origo"] == self.hyper_voxels[hid]["origo"]).all(), \
                     "Origo for hyper voxels do not match --- should never happen"
 
-                self.hyper_voxels[hid]["soma"] += hv[hid]["soma"]
-                self.hyper_voxels[hid]["axon"] += hv[hid]["axon"]
-                self.hyper_voxels[hid]["dend"] += hv[hid]["dend"]
-                self.hyper_voxels[hid]["axon_density"] += hv[hid]["axon_density"]
+                for neuron_id in hv[hid]["neurons"]:
+                    assert neuron_id not in self.hyper_voxels[hid]["neurons"], \
+                        f"Internal error, neuron_id {neuron_id } already exists hyper_voxel {hid}"
+
+                    self.hyper_voxels[hid]["neurons"][neuron_id] = hv[hid]["neurons"][neuron_id]
 
         # Sort for reproducibility
-        self.sort_hyper_voxels_data()
+        self.count_and_sort_neurons_in_hypervoxels()
         self.generate_hyper_voxel_random_seeds()
 
         # Distribute the new list to all neurons
@@ -2396,17 +2400,27 @@ class SnuddaDetect(object):
 
                 # First loop over section info, add info
                 for h_id in section_info:
+
+                    neuron_data = dict()
+
                     if 1 in section_info[h_id] and "neuron" in section_info[h_id][1]:
-                        self.hyper_voxels[h_id]["soma"].append(neuron_id)
+                        neuron_data["soma"] = True
 
                     if 2 in section_info[h_id]:
                         for sub_tree_name in section_info[h_id][2]:
                             sec_id_list = section_info[h_id][2][sub_tree_name]
-                            self.hyper_voxels[h_id]["axon"].append((neuron_id, sec_id_list, sub_tree_name))
+
+                            if "axon" not in neuron_data:
+                                neuron_data["axon"] = [(sec_id_list, sub_tree_name)]
+                            else:
+                                neuron_data["axon"].append((sec_id_list, sub_tree_name))
 
                     if 3 in section_info[h_id] and "neuron" in section_info[h_id][3]:
                         sec_id_list = section_info[h_id][3]["neuron"]
-                        self.hyper_voxels[h_id]["dend"].append((neuron_id, sec_id_list))
+                        neuron_data["dend"] = sec_id_list
+
+                    if len(neuron_data) > 0:
+                        self.hyper_voxels[h_id]["neurons"][int(neuron_id)] = neuron_data
 
                 # Then loop over density info, add data
                 for h_id in density_hyper_voxel_id:
@@ -2429,24 +2443,13 @@ class SnuddaDetect(object):
         # can save work history
         return min_coord, max_coord
 
-    def sort_hyper_voxels_data(self):
+    def count_and_sort_neurons_in_hypervoxels(self):
 
         # Sorting the list of neurons (needed for reproducibility when axon is probability cloud and we sample them)
         # and converting to numpy arrays
+
         for hid in self.hyper_voxels:
-            self.hyper_voxels[hid]["soma"] = np.array(sorted(self.hyper_voxels[hid]["soma"]))
             self.hyper_voxels[hid]["axon_density"] = np.array(sorted(self.hyper_voxels[hid]["axon_density"]))
-
-            axon_id = [x[0] for x in self.hyper_voxels[hid]["axon"]]
-            dend_id = [x[0] for x in self.hyper_voxels[hid]["dend"]]
-            axon_order = np.argsort(axon_id)
-            dend_order = np.argsort(dend_id)
-
-            self.hyper_voxels[hid]["axon"] = np.array([self.hyper_voxels[hid]["axon"][idx] for idx in axon_order])
-            self.hyper_voxels[hid]["dend"] = np.array([self.hyper_voxels[hid]["dend"][idx] for idx in dend_order])
-
-            all_neuron_id = set(self.hyper_voxels[hid]["soma"]).union(axon_id).union(dend_id).union(self.hyper_voxels[hid]["axon_density"])
-            self.hyper_voxels[hid]["neurons"] = np.array(list(all_neuron_id))
             self.hyper_voxels[hid]["neuronCtr"] = len(self.hyper_voxels[hid]["neurons"])
 
     ############################################################################
@@ -3026,38 +3029,40 @@ class SnuddaDetect(object):
             # GJ touch detection, after that add rest of neurons (to get complete set)
             # and then do axon-dend synapse touch detection
 
-            for neuron_id in self.hyper_voxels[hyper_id]["soma"]:
+            for neuron_id, neuron_info in self.hyper_voxels[hyper_id]["neurons"].items():
+
                 neuron = self.load_neuron(self.neurons[neuron_id])
 
-                self.fill_voxels_soma(self.dend_voxels,
-                                      self.dend_voxel_ctr,
-                                      self.dend_sec_id,
-                                      self.dend_sec_x,
-                                      neuron,
-                                      neuron_id)
+                if "soma" in neuron_info:
+                    self.fill_voxels_soma(self.dend_voxels,
+                                          self.dend_voxel_ctr,
+                                          self.dend_sec_id,
+                                          self.dend_sec_x,
+                                          neuron,
+                                          neuron_id)
 
-            for neuron_id, section_id in self.hyper_voxels[hyper_id]["dend"]:
-                neuron = self.load_neuron(self.neurons[neuron_id])
+                if "dend" in neuron_info:
+                    section_id = neuron_info["dend"]
 
-                self.fill_voxels_dend(voxel_space=self.dend_voxels,
-                                      voxel_space_ctr=self.dend_voxel_ctr,
-                                      voxel_sec_id=self.dend_sec_id,
-                                      voxel_sec_x=self.dend_sec_x,
-                                      voxel_soma_dist=self.dend_soma_dist,
-                                      neuron=neuron,
-                                      neuron_id=neuron_id,
-                                      section_id=section_id)
+                    self.fill_voxels_dend(voxel_space=self.dend_voxels,
+                                          voxel_space_ctr=self.dend_voxel_ctr,
+                                          voxel_sec_id=self.dend_sec_id,
+                                          voxel_sec_x=self.dend_sec_x,
+                                          voxel_soma_dist=self.dend_soma_dist,
+                                          neuron=neuron,
+                                          neuron_id=neuron_id,
+                                          section_id=section_id)
 
-            for neuron_id, section_id, subtree in self.hyper_voxels[hyper_id]["axon"]:
-                neuron = self.load_neuron(self.neurons[neuron_id])
+                if "axon" in neuron_info:
+                    for section_id, subtree in neuron_info["axon"]:
 
-                self.fill_voxels_axon(voxel_space=self.axon_voxels,
-                                      voxel_space_ctr=self.axon_voxel_ctr,
-                                      voxel_axon_dist=self.axon_soma_dist,
-                                      neuron=neuron,
-                                      neuron_id=neuron_id,
-                                      section_id=section_id,
-                                      subtree=subtree)
+                        self.fill_voxels_axon(voxel_space=self.axon_voxels,
+                                              voxel_space_ctr=self.axon_voxel_ctr,
+                                              voxel_axon_dist=self.axon_soma_dist,
+                                              neuron=neuron,
+                                              neuron_id=neuron_id,
+                                              section_id=section_id,
+                                              subtree=subtree)
 
             # This should be outside the neuron loop
             # This places axon voxels for neurons without axon morphologies
