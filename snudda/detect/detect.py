@@ -916,7 +916,7 @@ class SnuddaDetect(object):
         if "hyperVoxels" in self.work_history:
             self.write_log("Using neuron distribution from work history.")
 
-            hyper_voxels = json.loads(self.work_history["hyperVoxels"])
+            hyper_voxels = json.loads(self.work_history["hyperVoxels"][()])
             hyper_voxel_id_lookup = self.work_history["meta/hyperVoxelIDs"][()]
             n_hyper_voxels = self.work_history["meta/nHyperVoxels"][()]
             simulation_origo = self.work_history["meta/simulationOrigo"][()]
@@ -2312,7 +2312,7 @@ class SnuddaDetect(object):
                 self.hyper_voxels[hid]["soma"] += hv[hid]["soma"]
                 self.hyper_voxels[hid]["axon"] += hv[hid]["axon"]
                 self.hyper_voxels[hid]["dend"] += hv[hid]["dend"]
-                self.hyper_voxels["axon_density"] += hv[hid]["axon_density"]
+                self.hyper_voxels[hid]["axon_density"] += hv[hid]["axon_density"]
 
         # Sort for reproducibility
         self.sort_hyper_voxels_data()
