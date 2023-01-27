@@ -538,8 +538,28 @@ class SnuddaDetect(object):
             hyper_voxel_id = self.hyper_voxel_id_lookup[tuple(hyper_voxel_coords[inside_idx, :].T)]
             section_type_id = subtree.section_data[inside_idx, :][:, [2, 0]]
 
-            tree_info[subtree_name] = np.unique(np.hstack([hyper_voxel_id.reshape([hyper_voxel_id.shape[0], 1]), section_type_id]), axis=0)
+            hid_st_sid = np.hstack([hyper_voxel_id.reshape([hyper_voxel_id.shape[0], 1]), section_type_id])
 
+            # We also need to add parent points with the child branch's section id
+            # This is so we do not miss the first bit between the parent point and the first real point of the branch
+            parent_rows = []
+            if inside_idx.all():
+                # If inside_idx are all True then hyper_voxel_id is same length
+                # as subtree.geometry (should be valid for all but possibly Virtual Axons)
+
+                for tree_type in subtree.sections:
+                    for section in subtree.sections[tree_type].values():
+
+                        if section.section_type == 1:
+                            # Soma has no parent, skip
+                            continue
+
+                        parent_idx = section.point_idx[0]
+                        parent_rows.append([hyper_voxel_id[parent_idx], section.section_type, section.section_id])
+
+            tree_info[subtree_name] = np.unique(np.vstack([hid_st_sid, parent_rows]), axis=0)
+
+        # Check which hyper voxels the soma is in
         if "neuron" in neuron.morphology_data:
             morph_data = neuron.morphology_data["neuron"]
             if morph_data.section_data[0, 2] == 1:
@@ -2826,7 +2846,7 @@ class SnuddaDetect(object):
                 else:
                     s_x = section_x[idx] + ds_step[idx] * steps
 
-                soma_dist = (scaled_soma_dist[idx] + dd_step[idx]*steps).astype(np.int64)
+                soma_dist = np.floor(scaled_soma_dist[idx] + dd_step[idx]*steps).astype(np.int64)
 
                 # p_inside = np.sum(np.logical_and(0 <= vp, vp < self_num_bins), axis=1) == 3
                 p_inside = np.logical_and(np.logical_and(0 <= vp_x, vp_x < self_num_bins[0]),
@@ -2876,6 +2896,12 @@ class SnuddaDetect(object):
         """
 
         for section in neuron.section_iterator_selective(section_type=2, section_id=section_id, subtree=subtree):
+
+            # if section.section_id == 219 and neuron_id == 21:
+            #     print("Explore axon")
+            #     import pdb
+            #     pdb.set_trace()
+
             voxel_overflow_ctr = SnuddaDetect.fill_voxels_axon_helper(voxel_space=voxel_space,
                                                                       voxel_space_ctr=voxel_space_ctr,
                                                                       voxel_axon_dist=voxel_axon_dist,
@@ -2972,7 +2998,7 @@ class SnuddaDetect(object):
                 vp_y = np.floor(voxel_coords[idx, 1] + dv_step[idx, 1] * steps).astype(np.int64)
                 vp_z = np.floor(voxel_coords[idx, 2] + dv_step[idx, 2] * steps).astype(np.int64)
 
-                soma_dist = (scaled_soma_dist[idx] + dd_step[idx]*steps).astype(np.int64)
+                soma_dist = np.floor(scaled_soma_dist[idx] + dd_step[idx]*steps).astype(np.int64)
 
                 # p_inside = np.sum(np.logical_and(0 <= vp, vp < self_num_bins), axis=1) == 3
                 p_inside = np.logical_and(np.logical_and(0 <= vp_x, vp_x < self_num_bins[0]),
@@ -3072,6 +3098,10 @@ class SnuddaDetect(object):
                                               neuron_id=neuron_id,
                                               section_id=section_id,
                                               subtree=subtree)
+
+            # if hyper_id == 813:   #56:
+            #     import pdb
+            #     pdb.set_trace()
 
             # This should be outside the neuron loop
             # This places axon voxels for neurons without axon morphologies
