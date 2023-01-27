@@ -3029,8 +3029,9 @@ class SnuddaDetect(object):
             # GJ touch detection, after that add rest of neurons (to get complete set)
             # and then do axon-dend synapse touch detection
 
-            for neuron_id, neuron_info in self.hyper_voxels[hyper_id]["neurons"].items():
+            for neuron_id in sorted(self.hyper_voxels[hyper_id]["neurons"].keys()):
 
+                neuron_info = self.hyper_voxels[hyper_id]["neurons"][neuron_id]
                 neuron = self.load_neuron(self.neurons[neuron_id])
 
                 if "soma" in neuron_info:

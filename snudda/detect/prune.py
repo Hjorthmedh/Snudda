@@ -1532,7 +1532,7 @@ class SnuddaPrune(object):
         for hid in hyper_voxels:
             # When loading JSON file, the keys have been converted from int to str,
             # so need to convert back to int.
-            hv_neurons = [int(x) for x in hyper_voxels[hid]["neurons"].keys()]
+            hv_neurons = sorted([int(x) for x in hyper_voxels[hid]["neurons"].keys()])
 
             if len(neuron_set.intersection(hv_neurons)) > 0:
                 hv_list.append(int(hid))
