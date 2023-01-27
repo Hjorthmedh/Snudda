@@ -2745,7 +2745,7 @@ class SnuddaDetect(object):
         # line intersect the hypervoxel.
         padding = 1
         lower_padding_bound = 0 - padding
-        upper_padding_bound = self_num_bins + 1 + padding  # +1 since we skipped floor in voxel_coords
+        upper_padding_bound = self_num_bins + padding
 
         section_id = section_data[point_idx, 0]
         section_x = section_data[point_idx, 1] * 1e-3  # Stored as section_x*1000 (since int)
@@ -2827,7 +2827,7 @@ class SnuddaDetect(object):
                                                          np.logical_and(0 <= vp_z, vp_z < self_num_bins[2])))
 
                 # For each point pair in a section, find the intermediate points and mark voxels
-                for i in range(0, num_steps[idx] + 1):
+                for i in steps:
                     if p_inside[i]:
                         # v_idx = tuple(vp[i, :])
                         v_idx = (vp_x[i], vp_y[i], vp_z[i])
@@ -2904,7 +2904,7 @@ class SnuddaDetect(object):
         # line intersect the hypervoxel.
         padding = 1
         lower_padding_bound = 0 - padding
-        upper_padding_bound = self_num_bins + 1 + padding  # +1 since we skipped floor in voxel_coords
+        upper_padding_bound = self_num_bins + padding
 
         coords = geometry[point_idx, :3]
         voxel_coords = (coords - self_hyper_voxel_origo) / self_voxel_size
@@ -2972,7 +2972,7 @@ class SnuddaDetect(object):
                                                          np.logical_and(0 <= vp_z, vp_z < self_num_bins[2])))
 
                 # For each point pair in a section, find the intermediate points and mark voxels
-                for i in range(0, num_steps[idx] + 1):
+                for i in steps:
                     if p_inside[i]:
                         # v_idx = tuple(vp[i, :])
                         v_idx = (vp_x[i], vp_y[i], vp_z[i])
