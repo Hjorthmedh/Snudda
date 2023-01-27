@@ -2728,7 +2728,7 @@ class SnuddaDetect(object):
 
     # Temporarily disabling NUMBA, since amax does not support axis in NUMBA
     @staticmethod
-    @jit(nopython=True, fastmath=True, cache=True)
+    # @jit(nopython=True, fastmath=True, cache=True)
     def fill_voxels_dend_helper(voxel_space, voxel_space_ctr,
                                 voxel_sec_id, voxel_sec_x,
                                 voxel_soma_dist,
@@ -2749,6 +2749,7 @@ class SnuddaDetect(object):
 
         section_id = section_data[point_idx, 0]
         section_x = section_data[point_idx, 1] * 1e-3  # Stored as section_x*1000 (since int)
+        section_x[0] = 0
 
         coords = geometry[point_idx, :3]
         voxel_coords = (coords - self_hyper_voxel_origo) / self_voxel_size
@@ -2800,6 +2801,11 @@ class SnuddaDetect(object):
             print(f"Found zero length dendrite segment in neuron_id {neuron_id}")
             raise ValueError(f"Found zero length dendrite segment (please check morphologies).")
 
+        # if neuron_id == 0 and section_id[-1] == 48:
+        #     print("Check the loop, second iteration...")
+        #     import pdb
+        #     pdb.set_trace()
+
         # Loop through all point-pairs of the section
         for idx in range(0, len(scaled_soma_dist)-1):
 
@@ -2807,10 +2813,11 @@ class SnuddaDetect(object):
                 # Either of the points are within the cube + padding zone
 
                 steps = np.arange(0, num_steps[idx] + 1)
-                # vp = (voxel_coords[idx, :] + dv_step[idx, :] * steps[:, None]).astype(np.int64)
-                vp_x = (voxel_coords[idx, 0] + dv_step[idx, 0] * steps).astype(np.int64)
-                vp_y = (voxel_coords[idx, 1] + dv_step[idx, 1] * steps).astype(np.int64)
-                vp_z = (voxel_coords[idx, 2] + dv_step[idx, 2] * steps).astype(np.int64)
+                # vp = np.floor(voxel_coords[idx, :] + dv_step[idx, :] * steps[:, None]).astype(np.int64)
+                # OBS! np.floor below is crucial -- np.floor(-0.2) = -1, vs int(-0.2) = 0
+                vp_x = np.floor(voxel_coords[idx, 0] + dv_step[idx, 0] * steps).astype(np.int64)
+                vp_y = np.floor(voxel_coords[idx, 1] + dv_step[idx, 1] * steps).astype(np.int64)
+                vp_z = np.floor(voxel_coords[idx, 2] + dv_step[idx, 2] * steps).astype(np.int64)
 
                 if idx == 0:
                     # Dirty fix to handle that parent point has section_x = 1, but
@@ -2885,7 +2892,7 @@ class SnuddaDetect(object):
 
     # Temporarily disabling NUMBA, since amax does not support axis in NUMBA
     @staticmethod
-    @jit(nopython=True, fastmath=True, cache=True)
+    #@jit(nopython=True, fastmath=True, cache=True)
     def fill_voxels_axon_helper(voxel_space,
                                 voxel_space_ctr,
                                 voxel_axon_dist,
@@ -2959,10 +2966,11 @@ class SnuddaDetect(object):
                 # Either of the points are within the cube or padding zone
 
                 steps = np.arange(0, num_steps[idx] + 1)
-                # vp = (voxel_coords[idx, :] + dv_step[idx, :] * steps[:, None]).astype(np.int64)
-                vp_x = (voxel_coords[idx, 0] + dv_step[idx, 0] * steps).astype(np.int64)
-                vp_y = (voxel_coords[idx, 1] + dv_step[idx, 1] * steps).astype(np.int64)
-                vp_z = (voxel_coords[idx, 2] + dv_step[idx, 2] * steps).astype(np.int64)
+                # vp = np.floor(voxel_coords[idx, :] + dv_step[idx, :] * steps[:, None]).astype(np.int64)
+                # OBS, we must have np.floor here, since np.floor(-0.2) = -1, and int(-0.2) = 0... we want the former
+                vp_x = np.floor(voxel_coords[idx, 0] + dv_step[idx, 0] * steps).astype(np.int64)
+                vp_y = np.floor(voxel_coords[idx, 1] + dv_step[idx, 1] * steps).astype(np.int64)
+                vp_z = np.floor(voxel_coords[idx, 2] + dv_step[idx, 2] * steps).astype(np.int64)
 
                 soma_dist = (scaled_soma_dist[idx] + dd_step[idx]*steps).astype(np.int64)
 

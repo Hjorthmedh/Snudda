@@ -1056,6 +1056,7 @@ def snudda_load_cli():
     parser.add_argument("--keepOpen", help="This prevents loading of synapses to memory, and keeps HDF5 file open",
                         action="store_true")
     parser.add_argument("--detailed", help="More information", action="store_true")
+    parser.add_argument("--voxels", help="Voxel information", action="store_true")
     parser.add_argument("--centre", help="List n neurons in centre (-1 = all)", type=int)
     parser.add_argument("--listParam", help="List parameters for neuron_id", type=int)
     parser.add_argument("--countSyn", help="Count synapses per type", action="store_true")
@@ -1124,6 +1125,14 @@ def snudda_load_cli():
                               f"{synapse_coords[i, 2]*1e6:.1f}) μm, "
                               f"Cond: {synapses[i, 11] * 1e-3:.2f} nS")
 
+                    print("")
+
+                if args.voxels:
+                    idx = np.where(synapses[:, 0] == nid)[0]
+                    for i in idx:
+                        print(f" -- voxels: {synapses[i, 2:5]}, hyper id: {synapses[i, 5]}, "
+                              f" sec id {synapses[i, 9]}, sec x {synapses[i, 10] * 1e-3:.2f}, "
+                              f"Soma dist: {synapses[i,8]:.1f} μm, ")
                     print("")
 
     if args.listPost is not None:
