@@ -529,7 +529,7 @@ class SnuddaDetect(object):
         hv_dim = np.array(self.hyper_voxel_id_lookup.shape)
 
         for subtree_name, subtree in neuron.morphology_data.items():
-            hyper_voxel_coords = ((subtree.geometry[:, :3] - self.simulation_origo[None, :]) / self.hyper_voxel_width).astype(int)
+            hyper_voxel_coords = np.floor((subtree.geometry[:, :3] - self.simulation_origo[None, :]) / self.hyper_voxel_width).astype(int)
 
             # We need to do a range check, since virtual neurons and extra axons might be outside simulated region
             inside_idx = np.logical_and(0 <= hyper_voxel_coords,
@@ -552,9 +552,9 @@ class SnuddaDetect(object):
                 y = (soma_radius * np.sin(u) * np.sin(v) + soma_pos[1]).flatten()
                 z = (soma_radius * np.cos(v) + soma_pos[2]).flatten()
 
-                vx = ((x - self.simulation_origo[0]) / self.hyper_voxel_width).astype(int)
-                vy = ((y - self.simulation_origo[1]) / self.hyper_voxel_width).astype(int)
-                vz = ((z - self.simulation_origo[2]) / self.hyper_voxel_width).astype(int)
+                vx = np.floor((x - self.simulation_origo[0]) / self.hyper_voxel_width).astype(int)
+                vy = np.floor((y - self.simulation_origo[1]) / self.hyper_voxel_width).astype(int)
+                vz = np.floor((z - self.simulation_origo[2]) / self.hyper_voxel_width).astype(int)
 
                 v_xyz = np.vstack([vx, vy, vz]).T
 
@@ -638,7 +638,7 @@ class SnuddaDetect(object):
             axon_cloud[:, 1] = y + neuron.position[1]
             axon_cloud[:, 2] = z + neuron.position[2]
 
-            axon_loc = ((axon_cloud[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(int)
+            axon_loc = np.floor((axon_cloud[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(int)
 
         elif neuron.axon_density_type == "xyz":
 
@@ -672,7 +672,7 @@ class SnuddaDetect(object):
             axon_cloud = np.matmul(neuron.rotation,
                                    axon_cloud.transpose()).transpose() + neuron.position
 
-            axon_loc = ((axon_cloud[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(int)
+            axon_loc = np.floor((axon_cloud[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(int)
 
         if axon_loc is not None:
             inside_idx = np.logical_and(0 <= axon_loc, axon_loc < self.hyper_voxel_id_lookup.shape[None, :])
@@ -1188,7 +1188,7 @@ class SnuddaDetect(object):
                                 cluster_param_id = self.hyper_voxel_rng.integers(1000000, size=cluster_size)
 
                                 # We need to convert coords to hyper voxel coords, to fit with other coords
-                                coords_all = np.round((syn_coords - self.hyper_voxel_origo)/self.voxel_size).astype(int)
+                                coords_all = np.floor((syn_coords - self.hyper_voxel_origo)/self.voxel_size).astype(int)
 
                                 for d_sec_x, x, y, z, d_dist, cond, param_id \
                                         in zip(cluster_sec_x, coords_all[:, 0], coords_all[:, 1], coords_all[:, 2],
@@ -1489,9 +1489,9 @@ class SnuddaDetect(object):
         xyz[:, 2] = z_min + z_width * xyz[:, 2]
 
         # Check which of the points are inside hyper voxel (rotate+translate)
-        vox_idx = ((np.matmul(rotation, xyz.transpose()).transpose()
-                    + neuron_position - self.hyper_voxel_origo)
-                   / self.voxel_size).astype(int)
+        vox_idx = np.floor((np.matmul(rotation, xyz.transpose()).transpose()
+                           + neuron_position - self.hyper_voxel_origo)
+                           / self.voxel_size).astype(int)
 
         inside_idx = np.where(np.sum(np.bitwise_and(0 <= vox_idx, vox_idx < self.hyper_voxel_size), axis=1) == 3)[0]
 
@@ -2728,7 +2728,7 @@ class SnuddaDetect(object):
 
     # Temporarily disabling NUMBA, since amax does not support axis in NUMBA
     @staticmethod
-    # @jit(nopython=True, fastmath=True, cache=True)
+    @jit(nopython=True, fastmath=True, cache=True)
     def fill_voxels_dend_helper(voxel_space, voxel_space_ctr,
                                 voxel_sec_id, voxel_sec_x,
                                 voxel_soma_dist,
@@ -2892,7 +2892,7 @@ class SnuddaDetect(object):
 
     # Temporarily disabling NUMBA, since amax does not support axis in NUMBA
     @staticmethod
-    #@jit(nopython=True, fastmath=True, cache=True)
+    @jit(nopython=True, fastmath=True, cache=True)
     def fill_voxels_axon_helper(voxel_space,
                                 voxel_space_ctr,
                                 voxel_axon_dist,
