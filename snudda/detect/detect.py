@@ -559,6 +559,12 @@ class SnuddaDetect(object):
 
             tree_info[subtree_name] = np.unique(np.vstack([hid_st_sid, parent_rows]), axis=0)
 
+            # OBS, there is a rare case when a line segment starts in a hyper voxel, crosses a second hyper voxel
+            # and ends up in a third hyper voxel. In this case the intermediate second hyper voxel will be missed if
+            # there are no additional points from the section in that hyper voxel. This should be on the order of
+            # 100 synapses per half a miljon synapses (if 40x40x40 hyper voxel size, ie very small hyper voxels)
+            # For larger hyper voxels, the fraction of missed synapses should be even lower.
+
         # Check which hyper voxels the soma is in
         if "neuron" in neuron.morphology_data:
             morph_data = neuron.morphology_data["neuron"]
