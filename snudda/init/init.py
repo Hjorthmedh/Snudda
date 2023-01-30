@@ -60,6 +60,9 @@ class SnuddaInit(object):
         if self.snudda_data is not None:
             self.network_data["SnuddaData"] = self.snudda_data
 
+        if self.snudda_data is not None and not os.path.isdir(self.snudda_data):
+            raise ValueError(f"Missing SNUDDA_DATA. No directory: {self.snudda_data}")
+
         self.network_data["RandomSeed"], self.init_rng = SnuddaInit.setup_random_seeds(random_seed)
 
         self.network_data["Volume"] = collections.OrderedDict([])

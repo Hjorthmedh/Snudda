@@ -945,7 +945,13 @@ class SnuddaDetect(object):
         if "hyperVoxels" in self.work_history:
             self.write_log("Using neuron distribution from work history.")
 
-            hyper_voxels = json.loads(self.work_history["hyperVoxels"][()])
+            hyper_voxels_str = json.loads(self.work_history["hyperVoxels"][()])
+            hyper_voxels = dict()
+
+            # When we load from the JSON file the integer keys have become strings, convert keys back to int
+            for k, v in hyper_voxels_str.items():
+                hyper_voxels[int(k)] = v
+
             hyper_voxel_id_lookup = self.work_history["meta/hyperVoxelIDs"][()]
             n_hyper_voxels = self.work_history["meta/nHyperVoxels"][()]
             simulation_origo = self.work_history["meta/simulationOrigo"][()]

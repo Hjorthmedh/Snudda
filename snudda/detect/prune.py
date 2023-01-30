@@ -2175,7 +2175,7 @@ class SnuddaPrune(object):
                 mat_buf[:, :] = h5mat[start_idx:end_idx, :]
             else:
                 # Create a new buffer
-                mat_buf = h5mat[start_idx:end_idx, :]
+                mat_buf = h5mat[start_idx:end_idx, :].copy()
 
             for row in mat_buf:
                 yield row
@@ -2223,7 +2223,7 @@ class SnuddaPrune(object):
                 mat_buf[:, :] = h5mat_lookup[start_idx:end_idx, :]
             else:
                 # Create a new buffer
-                mat_buf = h5mat_lookup[start_idx:end_idx, :]
+                mat_buf = h5mat_lookup[start_idx:end_idx, :].copy()
 
             for row in mat_buf:
                 if min_unique_id <= row[0] < max_unique_id:
@@ -2286,7 +2286,8 @@ class SnuddaPrune(object):
             if end_idx > buffer_end:
                 assert old_synapses is None, "get_next_synapse_set: chunk_size too small"
 
-                # Part of the synapse range requested is outside buffer
+                # Part of the synapse range requested is outside current buffer, store current buffer in old_synapses
+                # then read in rest of synapses into the buffer
                 old_synapses = read_buffer[(start_idx - buffer_start):, :].copy()
 
                 buffer_start = buffer_end
