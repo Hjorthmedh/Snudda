@@ -323,7 +323,13 @@ class NeuronModel(ephys.models.CellModel):
         if self.section_lookup is None:
             self.build_section_lookup()
 
-        sec = [self.section_lookup[x] for x in section_id]
+        try:
+            sec = [self.section_lookup[x] for x in section_id]
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
 
         return sec
 

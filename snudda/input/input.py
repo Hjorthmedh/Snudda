@@ -272,6 +272,106 @@ class SnuddaInput(object):
                     neuron_in = self.neuron_input[neuron_id][input_type]
                     spike_mat, num_spikes = self.create_spike_matrix(neuron_in["spikes"])
 
+                    spike_set = it_group.create_dataset("spikes", data=spike_mat, compression="gzip", dtype=np.float32)
+                    spike_set.attrs["nSpikes"] = num_spikes
+
+                    it_group.attrs["sectionID"] = neuron_in["location"][1].astype(np.int16)
+                    it_group.attrs["sectionX"] = neuron_in["location"][2].astype(np.float16)
+                    it_group.attrs["distanceToSoma"] = neuron_in["location"][3].astype(np.float16)
+
+                    if "freq" in neuron_in:
+                        spike_set.attrs["freq"] = neuron_in["freq"]
+
+                    if "correlation" in neuron_in:
+                        spike_set.attrs["correlation"] = neuron_in["correlation"]
+
+                    if "jitter" in neuron_in and neuron_in["jitter"]:
+                        spike_set.attrs["jitter"] = neuron_in["jitter"]
+
+                    if "synapseDensity" in neuron_in and neuron_in["synapseDensity"]:
+                        it_group.attrs["synapseDensity"] = neuron_in["synapseDensity"]
+
+                    if "start" in neuron_in:
+                        spike_set.attrs["start"] = neuron_in["start"]
+
+                    if "end" in neuron_in:
+                        spike_set.attrs["end"] = neuron_in["end"]
+
+                    it_group.attrs["conductance"] = neuron_in["conductance"]
+
+                    if "populationUnitID" in neuron_in:
+                        population_unit_id = int(neuron_in["populationUnitID"])
+                        it_group.attrs["populationUnitID"] = population_unit_id
+                    else:
+                        population_unit_id = None
+
+                    # TODO: What to do with population_unit_spikes, should we have mandatory jittering for them?
+
+                    # population_unit_id = 0 means not population unit membership, so no population spikes available
+                    if neuron_type in self.population_unit_spikes \
+                            and population_unit_id is not None and population_unit_id > 0 \
+                            and input_type in self.population_unit_spikes[neuron_type]:
+                        chan_spikes = self.population_unit_spikes[neuron_type][input_type][population_unit_id]
+
+                        it_group.create_dataset("populationUnitSpikes", data=chan_spikes, compression="gzip",
+                                                dtype=np.float32)
+
+                    spike_set.attrs["generator"] = neuron_in["generator"]
+
+                    it_group.attrs["modFile"] = neuron_in["modFile"]
+
+                    if "parameterFile" in neuron_in and neuron_in["parameterFile"]:
+                        it_group.attrs["parameterFile"] = neuron_in["parameterFile"]
+
+                    # We need to convert this to string to be able to save it
+                    if "parameterList" in neuron_in:
+                        it_group.attrs["parameterList"] = json.dumps(neuron_in["parameterList"])
+
+                    it_group.attrs["parameterID"] = neuron_in["parameterID"].astype(np.int32)
+
+                else:
+
+                    # Input is activity of a virtual neuron
+                    a_group = nid_group.create_group("activity")
+                    spikes = self.neuron_input[neuron_id][input_type]["spikes"]
+
+                    activity_spikes = a_group.create_dataset("spikes", data=spikes, compression="gzip")
+                    generator = self.neuron_input[neuron_id][input_type]["generator"]
+                    activity_spikes.attrs["generator"] = generator
+
+        out_file.close()
+
+    ############################################################################
+
+    def write_hdf5_OLD(self):
+
+        """ Writes input spikes to HDF5 file. """
+
+        self.write_log(f"Writing spikes to {self.spike_data_filename}", force_print=True)
+
+        out_file = h5py.File(self.spike_data_filename, 'w', libver=self.h5libver)
+        out_file.create_dataset("config", data=json.dumps(self.input_info, indent=4))
+        input_group = out_file.create_group("input")
+
+        for neuron_id in self.neuron_input:
+
+            nid_group = input_group.create_group(str(neuron_id))
+
+            neuron_type = self.neuron_type[neuron_id]
+
+            for input_type in self.neuron_input[neuron_id]:
+
+                if input_type[0] == '!':
+                    self.write_log(f"Disabling input {input_type} for neuron {neuron_id} "
+                                   f" (input_type was commented with ! before name)")
+                    continue
+
+                if input_type.lower() != "VirtualNeuron".lower():
+                    it_group = nid_group.create_group(input_type)
+
+                    neuron_in = self.neuron_input[neuron_id][input_type]
+                    spike_mat, num_spikes = self.create_spike_matrix(neuron_in["spikes"])
+
                     it_group.create_dataset("spikes", data=spike_mat, compression="gzip", dtype=np.float32)
                     it_group.create_dataset("nSpikes", data=num_spikes, dtype=np.int32)
 
@@ -1638,11 +1738,8 @@ class SnuddaInput(object):
         if neuron_name in self.neuron_cache:
             self.write_log(f"About to clone cache of {neuron_name}.")
             # Since we do not care about location of neuron in space, we can use get_cache_original
-            morphology = self.neuron_cache[neuron_name].clone(# parameter_id=parameter_id,
-                                                              # morphology_id=morphology_id,
-                                                              parameter_key=parameter_key,
+            morphology = self.neuron_cache[neuron_name].clone(parameter_key=parameter_key,
                                                               morphology_key=morphology_key,
-                                                              # modulation_id=None,
                                                               position=None, rotation=None,
                                                               get_cache_original=True)
         else:
@@ -1655,11 +1752,8 @@ class SnuddaInput(object):
                                                    mechanism_path=mechanisms_path,
                                                    neuron_path=None)
             self.neuron_cache[neuron_name] = morphology_prototype
-            morphology = morphology_prototype.clone(# parameter_id=parameter_id,
-                                                    # morphology_id=morphology_id,
-                                                    parameter_key=parameter_key,
+            morphology = morphology_prototype.clone(parameter_key=parameter_key,
                                                     morphology_key=morphology_key,
-                                                    # modulation_id=None,
                                                     position=None, rotation=None,
                                                     get_cache_original=True)
 

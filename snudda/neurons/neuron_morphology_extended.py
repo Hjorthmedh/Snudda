@@ -351,7 +351,9 @@ class NeuronMorphologyExtended:
         # We need to evaluate the synapse density at all dendrites and at soma (since we need all dendrite parents)
         keep_mask = section_data[:, 2] == 3
         dend_idx = np.where(keep_mask)[0]
-        soma_idx = np.where(section_data[:, 2] == 1)[0]
+        soma_idx = np.where(section_data[:, 2] <= 1)[0]  # We also evaluate at section_type = 0,
+                                                         # ie removed 1-point sections that might be
+                                                         # parent points potential secton end points
         keep_mask[soma_idx] = True
         d_idx = np.where(keep_mask)[0]
 
@@ -396,8 +398,14 @@ class NeuronMorphologyExtended:
             raise ValueError(f"All compartments have zero synapse density: {synapse_density_str}")
 
         if num_locations is not None:
-            syn_idx = rng.choice(a=dend_idx, size=num_locations, replace=True,
-                                 p=expected_synapses[dend_idx] / expected_sum)
+            try:
+                syn_idx = rng.choice(a=dend_idx, size=num_locations, replace=True,
+                                     p=expected_synapses[dend_idx] / expected_sum)
+            except:
+                import traceback
+                self.write_log(traceback.format_exc(), is_error=True)
+                import pdb
+                pdb.set_trace()
         else:
             if not (cluster_size is None or cluster_size == 1):
                 raise ValueError(f"If cluster_size is set, then num_locations must be set.")

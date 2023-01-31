@@ -1115,9 +1115,9 @@ class SnuddaSimulate(object):
                 self.external_stim[neuron_id, input_type] = []
 
                 neuron_input = self.input_data["input"][str(neuron_id)][input_type]
-                sections = self.neurons[neuron_id].map_id_to_compartment(neuron_input["sectionID"])
-                mod_file = SnuddaLoad.to_str(neuron_input["modFile"][()])
-                param_list = json.loads(neuron_input["parameterList"][()], object_pairs_hook=OrderedDict)
+                sections = self.neurons[neuron_id].map_id_to_compartment(neuron_input.attrs["sectionID"])
+                mod_file = SnuddaLoad.to_str(neuron_input.attrs["modFile"][()])
+                param_list = json.loads(neuron_input.attrs["parameterList"][()], object_pairs_hook=OrderedDict)
 
                 # TODO: Sanity check mod_file string
                 eval_str = f"self.sim.neuron.h.{mod_file}"
@@ -1125,9 +1125,9 @@ class SnuddaSimulate(object):
 
                 for input_id, (section, section_x, param_id, n_spikes) \
                         in enumerate(zip(sections,
-                                         neuron_input["sectionX"],
-                                         neuron_input["parameterID"],
-                                         neuron_input["nSpikes"])):
+                                         neuron_input.attrs["sectionX"],
+                                         neuron_input.attrs["parameterID"],
+                                         neuron_input["spikes"].attrs["nSpikes"])):
 
                     # We need to find cellID (int) from neuronID (string, eg. MSD1_3)
 
@@ -1160,7 +1160,7 @@ class SnuddaSimulate(object):
                     nc = h.NetCon(vs, syn)
 
                     nc.delay = 0.0
-                    nc.weight[0] = neuron_input["conductance"][()] * 1e6  # Neurons needs microsiemens
+                    nc.weight[0] = neuron_input.attrs["conductance"][()] * 1e6  # Neurons needs microsiemens
                     nc.threshold = 0.1
 
                     # Get the modifications of synapse parameters, specific to this synapse
@@ -1246,7 +1246,7 @@ class SnuddaSimulate(object):
 
         self.write_log("Adding inputs from virtual neurons")
 
-        assert False, "addVirtualNeuronInput not implemented"  # Remove?
+        raise NotImplemented("add_virtual_neuron_input not implemented")
 
     ############################################################################
 

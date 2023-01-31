@@ -303,6 +303,14 @@ class MorphologyData:
             parent_id = row[3]
 
             if parent_id == -1 or edge_flag[parent_id]:
+
+                # https://github.com/neuronsimulator/nrn/blob/5038de0b79ddf7da9b536639989da4c10dbae7f7/share/lib/hoc/import3d/read_swc.hoc?fbclid=IwAR2kEJOcWkbze8i6G2t9uUVZn5MfmxdSHtm3yzWdP240guJY9KFCalUMvug#L304
+                # if parent_id == 0 and edge_flag[idx]:
+                #     # Special case, parent is soma, and the point itself is a branch point
+                #     # then mark it as section_type = 0, to not create a one point section
+                #     self.section_data[idx, 2] = 0
+                #     section_type = 0
+
                 # Parent point is edge, create new section
                 if section_type not in section_counter:
                     section_counter[section_type] = 0
