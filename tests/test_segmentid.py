@@ -56,7 +56,6 @@ class SegmentIdTestCase(unittest.TestCase):
         neuron_model.instantiate(sim=self.sim)
 
         ax = None
-        error_cutoff = 4
 
         for sec in snudda_neuron.morphology_data["neuron"].sections[3].values():
 
@@ -64,6 +63,13 @@ class SegmentIdTestCase(unittest.TestCase):
             n_points = int(neuron_sec.n3d())
             arc_dist = np.array([neuron_sec.arc3d(x) for x in range(0, n_points)])
             norm_arc_dist = arc_dist / arc_dist[-1]
+
+            if sec.parent_section_type == 1:
+                # NEURON sometimes keeps the segments inside the soma, we take them away, so allow for a slightly bigger
+                # error on the sections connecting to the soma.
+                error_cutoff = 10
+            else:
+                error_cutoff = 6
 
             for sec_x, pos in zip(sec.section_x, sec.position * 1e6):
                 closest_idx = np.argmin(np.abs(norm_arc_dist - sec_x))
@@ -74,12 +80,21 @@ class SegmentIdTestCase(unittest.TestCase):
 
                 x, y, z = pos
 
+                comp_dist = np.linalg.norm([x - x_ref, y - y_ref, z - z_ref])
+
+                if comp_dist >= error_cutoff:
+                    closest_sec, closest_sec_x, min_dist = self.find_closest_point_on_neuron(neuron_model, synapse_xyz=pos)
+                else:
+                    # We dont need to compute these... so skip, since OK distance, faster
+                    closest_sec, closest_sec_x, min_dist = None, None, None
+
                 try:
-                    self.assertTrue(np.linalg.norm([x - x_ref, y - y_ref, z - z_ref]) < error_cutoff,
+                    self.assertLess(comp_dist, error_cutoff,
                                     f"Error parsing {morph_file}. Snudda sec_id {sec.section_id}, sec_x {sec_x} has xyz = {pos}\n"
                                     f"NEURON sec_id {sec.section_id}, sec_x {norm_arc_dist[closest_idx]} has xyz = {x_ref}, {y_ref}, {z_ref}\n"
                                     f"Distance: {np.linalg.norm([x - x_ref, y - y_ref, z - z_ref])} micrometer"
-                                    f"\nParent section id : {sec.parent_section_id}")
+                                    f"\nParent section id : {sec.parent_section_id}"
+                                    f"\nClosest section instead is {closest_sec} (x: {closest_sec_x} -- distance {min_dist}")
                 except:
                     import traceback
                     print(traceback.format_exc())
@@ -123,6 +138,32 @@ class SegmentIdTestCase(unittest.TestCase):
 
         for neuron_dir in neuron_dirs:
             self.test_neurons_in_folder(neuron_dir=neuron_dir)
+
+    def find_closest_point_on_neuron(self, neuron_model, synapse_xyz):
+
+        min_dist = np.inf
+        closest_sec = None
+        closest_sec_x = None
+
+        for sec in neuron_model.icell.dend:
+            # Extract all coordinates
+            n_points = int(neuron.h.n3d(sec=sec))
+            xyz = np.zeros((n_points, 3))
+            for i in range(0, n_points):
+                xyz[i, 0] = neuron.h.x3d(i, sec=sec)
+                xyz[i, 1] = neuron.h.y3d(i, sec=sec)
+                xyz[i, 2] = neuron.h.z3d(i, sec=sec)
+
+            # xyz = np.transpose(np.matmul(neuron_rotation, np.transpose(xyz)))
+            d = np.linalg.norm(xyz-synapse_xyz, axis=1)
+            d_min_idx = np.argmin(d)
+
+            if d[d_min_idx] < min_dist:
+                min_dist = d[d_min_idx]
+                closest_sec = sec
+                closest_sec_x = sec.arc3d(d_min_idx) / sec.arc3d(n_points-1)
+
+        return closest_sec, closest_sec_x, min_dist
 
 
 if __name__ == '__main__':
