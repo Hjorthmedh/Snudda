@@ -93,7 +93,7 @@ class PlotNetwork(object):
                                dend_colour=None)  #"silver")   # Can also write colours as (0, 0, 0) -- rgb
 
         # Plot synapses
-        if plot_synapses and "synapseCoords" in self.sl.data:
+        if plot_synapses and "synapseCoords" in self.sl.data and self.sl.data["synapseCoords"].size > 0:
 
             if neuron_id_list:
                 post_id = self.sl.data["synapses"][:, 1]

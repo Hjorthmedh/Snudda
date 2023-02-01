@@ -590,7 +590,7 @@ class SwapToDegeneratedMorphologies:
 
                 else:
                     old_input["input"][neuron].copy(source=old_input_data, dest=neuron_group)
-                    
+
                     old_n += old_input_data['spikes'].shape[0]
                     new_n += len(keep_idx)
 

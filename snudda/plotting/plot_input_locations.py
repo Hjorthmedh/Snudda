@@ -143,8 +143,8 @@ class SnuddaPlotInputLocations:
             if input_type and input_name != input_type:
                 continue
 
-            section_id = section_id + list(self.input_data["input"][str(neuron_id)][input_name]["sectionID"])
-            section_x = section_x + list(self.input_data["input"][str(neuron_id)][input_name]["sectionX"])
+            section_id = section_id + list(self.input_data["input"][str(neuron_id)][input_name].attrs["sectionID"])
+            section_x = section_x + list(self.input_data["input"][str(neuron_id)][input_name].attrs["sectionX"])
 
         return np.array(section_id), np.array(section_x)
 
@@ -153,7 +153,7 @@ class SnuddaPlotInputLocations:
         distance_to_soma = []
 
         if input_name in self.input_data["input"][str(neuron_id)]:
-            distance_to_soma += list(self.input_data["input"][str(neuron_id)][input_name]["distanceToSoma"])
+            distance_to_soma += list(self.input_data["input"][str(neuron_id)][input_name].attrs["distanceToSoma"])
 
         return np.array(distance_to_soma)
 
@@ -202,10 +202,7 @@ class SnuddaPlotInputLocations:
         # divide by bin_width (scaled to micrometers) and divide by dendrite_density
         norm_count = count/np.sum(count)/(max_dist*1e6/n_bins)
 
-        # import pdb
-        # pdb.set_trace()
-
-        fig=plt.figure()
+        fig = plt.figure()
         plt.stairs(norm_count, edges * 1e6, color="black")
 
         plt.xlabel("Distance ($\mu$m)")
@@ -314,7 +311,7 @@ class SnuddaPlotInputLocations:
             neuron_info = self.snudda_load.data["neurons"][neuron_id]
 
             prot = NeuronPrototype(neuron_path=neuron_info["neuronPath"], neuron_name=neuron_info["name"],
-                                 snudda_data=self.snudda_data)
+                                   snudda_data=self.snudda_data)
             nm = prot.clone(parameter_key=neuron_info["parameterKey"], morphology_key=neuron_info["morphologyKey"],
                             position=neuron_info["position"], rotation=neuron_info["rotation"])
             self.neuron_cache[neuron_id] = nm

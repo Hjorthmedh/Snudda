@@ -2249,8 +2249,8 @@ class SnuddaDetect(object):
                                                                    rotation=neuron_info["rotation"],
                                                                    position=neuron_info["position"])
 
-        if "extraAxon" in neuron_info:
-            for axon_name, axon_info in neuron_info["extraAxon"]:
+        if "extraAxons" in neuron_info:
+            for axon_name, axon_info in neuron_info["extraAxons"].items():
                 print(f"DEVELOPMENT: Adding extra axon to {neuron_info['name']}: {axon_name} morph {axon_info['morphology']}, pos {axon_info['position']}, rot {axon_info['rotation']}")
 
                 neuron.add_morphology(swc_file=axon_info["morphology"],
