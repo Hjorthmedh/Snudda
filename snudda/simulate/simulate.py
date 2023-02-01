@@ -1116,8 +1116,8 @@ class SnuddaSimulate(object):
 
                 neuron_input = self.input_data["input"][str(neuron_id)][input_type]
                 sections = self.neurons[neuron_id].map_id_to_compartment(neuron_input.attrs["sectionID"])
-                mod_file = SnuddaLoad.to_str(neuron_input.attrs["modFile"][()])
-                param_list = json.loads(neuron_input.attrs["parameterList"][()], object_pairs_hook=OrderedDict)
+                mod_file = SnuddaLoad.to_str(neuron_input.attrs["modFile"])
+                param_list = json.loads(neuron_input.attrs["parameterList"], object_pairs_hook=OrderedDict)
 
                 # TODO: Sanity check mod_file string
                 eval_str = f"self.sim.neuron.h.{mod_file}"
