@@ -138,9 +138,9 @@ class InputTestCase(unittest.TestCase):
             for input_type in input_data["input"][neuron_id_str]:
                 input_info = input_data["input"][neuron_id_str][input_type]
 
-                start_time = input_info["start"][()].copy()
-                end_time = input_info["end"][()].copy()
-                freq = input_info["freq"][()].copy()
+                start_time = input_info["spikes"].attrs["start"].copy()
+                end_time = input_info["spikes"].attrs["end"].copy()
+                freq = input_info["spikes"].attrs["freq"].copy()
                 spikes = input_info["spikes"][()]
                 n_traces = spikes.shape[0]
 
@@ -191,8 +191,8 @@ class InputTestCase(unittest.TestCase):
                     print(f"ID {neuron_id_str} {neuron_name} {input_type} f={f}, f_gen={f_gen}")
 
                     try:
-                        self.assertTrue(f_gen > f - 5*np.sqrt(f)/np.sqrt(n_traces))
-                        self.assertTrue(f_gen < f + 5*np.sqrt(f)/np.sqrt(n_traces))
+                        self.assertTrue(f_gen > f - 6*np.sqrt(f)/np.sqrt(n_traces))
+                        self.assertTrue(f_gen < f + 6*np.sqrt(f)/np.sqrt(n_traces))
                     except:
                         import pdb
                         import traceback

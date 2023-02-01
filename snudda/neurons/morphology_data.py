@@ -95,9 +95,10 @@ class SectionMetaData:
         comp_len = self.morphology_data.geometry[self.point_idx[-1], 4] \
                    - self.morphology_data.geometry[self.point_idx[0], 4]
 
-        if self.morphology_data.section_data[self.point_idx[0], 2] == 1:
-            # If first point (parent point) is soma then we have to be careful and subtract soma radie if inside.
-            comp_len -= self.morphology_data.geometry[self.point_idx[0], 3]
+        # Comment: Soma should not be part of the point_idx, so this is not needed.
+        # if self.morphology_data.section_data[self.point_idx[0], 2] == 1:
+        #     # If first point (parent point) is soma then we have to be careful and subtract soma radie if inside.
+        #     comp_len -= self.morphology_data.geometry[self.point_idx[0], 3]
 
         if comp_len <= 0:
             raise ValueError(f"Negative section length detected: {self.morphology_data.swc_file}")
@@ -272,12 +273,15 @@ class MorphologyData:
         comp_length = np.linalg.norm(self.geometry[parent_row_id, :3] - self.geometry[1:, :3], axis=1)
 
         for comp_id, parent_id, c_len in zip(range(1, len(parent_row_id)+1), parent_row_id, comp_length):
-            if data[0, 1] == 1 and parent_id == 0:
-                # We need to subtract soma radius from first compartment connecting to soma
-                self.geometry[comp_id, 4] = max(0, c_len - self.geometry[0, 3])
-            else:
-                # distance to soma = parents distance to soma + compartment length
-                self.geometry[comp_id, 4] = self.geometry[parent_id, 4] + c_len
+
+            self.geometry[comp_id, 4] = self.geometry[parent_id, 4] + c_len
+
+            # if data[0, 1] == 1 and parent_id == 0:
+            #     # We need to subtract soma radius from first compartment connecting to soma
+            #     self.geometry[comp_id, 4] = max(0, c_len - self.geometry[0, 3])
+            # else:
+            #     # distance to soma = parents distance to soma + compartment length
+            #     self.geometry[comp_id, 4] = self.geometry[parent_id, 4] + c_len
 
         if (self.geometry[1:, 4] < 0).any():
             raise ValueError("Found compartments with 0 or negative distance to soma.")
