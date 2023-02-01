@@ -267,9 +267,14 @@ class SnuddaInput(object):
                     continue
 
                 if input_type.lower() != "VirtualNeuron".lower():
-                    it_group = nid_group.create_group(input_type)
 
                     neuron_in = self.neuron_input[neuron_id][input_type]
+
+                    if len(neuron_in["spikes"]) == 0:
+                        # No spikes to save, do not write input to file
+                        continue
+
+                    it_group = nid_group.create_group(input_type)
                     spike_mat, num_spikes = self.create_spike_matrix(neuron_in["spikes"])
 
                     spike_set = it_group.create_dataset("spikes", data=spike_mat, compression="gzip", dtype=np.float32)
