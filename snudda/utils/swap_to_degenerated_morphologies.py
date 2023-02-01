@@ -524,22 +524,23 @@ class SwapToDegeneratedMorphologies:
                 if len(keep_idx) == 0 and not (remap_removed_input and remapped_fraction > 0):
                     continue
 
-                input_group = neuron_group.create_group(input_type)
-
                 if remap_removed_input:
+
+                    input_group = neuron_group.create_group(input_type)
+
                     # We need to find new positions for input marked as removed
                     morph = self.get_morphology(neuron_id=int(neuron), hdf5=self.new_hdf5,
                                                 snudda_data=self.new_snudda_data_dir)
 
-                    n_remap = len(old_input_data["sectionID"]) - len(keep_idx)
-                    idx_remap = sorted(list(set(np.arange(0, len(old_input_data["sectionID"]))) - set(keep_idx)))
+                    n_remap = len(old_input_data.attrs["sectionID"]) - len(keep_idx)
+                    idx_remap = sorted(list(set(np.arange(0, len(old_input_data.attrs["sectionID"]))) - set(keep_idx)))
 
                     if remapped_fraction < 1.0:
                         n_remap = int(np.round(len(idx_remap) * remapped_fraction))
                         idx_remap = sorted(list(np.random.permutation(idx_remap)[:n_remap]))
 
                     try:
-                        synapse_density = SnuddaLoad.to_str(old_input_data["synapseDensity"][()])
+                        synapse_density = SnuddaLoad.to_str(old_input_data.attrs["synapseDensity"][()])
                     except:
                         import traceback
                         print(traceback.format_exc())
@@ -559,50 +560,37 @@ class SwapToDegeneratedMorphologies:
                     keep_idx2 = sorted(list(set(keep_idx).union(set(idx_remap))))
 
                     # Same spikes as before
-                    input_group.create_dataset("spikes", data=old_input_data["spikes"][keep_idx2, :],
-                                               compression="gzip", dtype=np.float32)
-                    input_group.create_dataset("nSpikes", data=old_input_data["nSpikes"][keep_idx2], dtype=np.int32)
+                    spike_set = input_group.create_dataset("spikes", data=old_input_data["spikes"][keep_idx2, :],
+                                                           compression="gzip", dtype=np.float32)
+                    spike_set.attrs["nSpikes"] = old_input_data["nSpikes"][keep_idx2].astype(np.int32)
 
                     # New locations for the remapped synapses
                     new_sec_id[idx_remap] = sec_id
-                    input_group.create_dataset("sectionID", data=new_sec_id[keep_idx2], compression="gzip",
-                                               dtype=np.int16)
+                    input_group.attrs["sectionID"] = new_sec_id[keep_idx2].astype(np.int16)
 
                     new_sec_x[idx_remap] = sec_x
-                    input_group.create_dataset("sectionX", data=new_sec_x[keep_idx2], compression="gzip",
-                                               dtype=np.float16)
+                    input_group.attrs["sectionX"] = new_sec_x[keep_idx2].astype(np.float16)
 
-                    input_group.create_dataset("parameterID", data=old_input_data["parameterID"][keep_idx2],
-                                               compression="gzip", dtype=np.int)
+                    input_group.attrs["parameterID"] = old_input_data["parameterID"][keep_idx2].astype(np.int)
 
                     updated_dist = old_input_data["distanceToSoma"][()].copy()
                     updated_dist[idx_remap] = dist_to_soma
-                    input_group.create_dataset("distanceToSoma", data=updated_dist[keep_idx2], compression="gzip",
-                                               dtype=np.float16)
+                    input_group.attrs["distanceToSoma"] = updated_dist[keep_idx2].astype(np.float16)
 
                     for data_name in ["freq", "correlation", "jitter", "synapseDensity", "start", "end", "conductance",
                                       "populationUnitID", "populationUnitSpikes", "generator",
                                       "modFile", "parameterFile", "parameterList"]:
-                        if data_name in old_input_data:
+
+                        if data_name in old_input_data.attrs:
+                            input_group.attrs[data_name] = old_input_data.attrs[data_name]
+                        elif data_name in old_input_data["spikes"].attrs:
+                            input_group["spikes"].attrs[data_name] = old_input_data["spikes"].attrs[data_name]
+                        elif data_name in old_input_data:
                             old_input_data.copy(source=old_input_data[data_name], dest=input_group)
 
                 else:
-                    input_group.create_dataset("spikes", data=old_input_data["spikes"][keep_idx, :],
-                                               compression="gzip", dtype=np.float32)
-                    input_group.create_dataset("nSpikes", data=old_input_data["nSpikes"][keep_idx], dtype=np.int32)
-                    input_group.create_dataset("sectionID", data=new_sec_id[keep_idx], compression="gzip", dtype=np.int16)
-                    input_group.create_dataset("sectionX", data=new_sec_x[keep_idx], compression="gzip", dtype=np.float16)
-                    input_group.create_dataset("parameterID", data=old_input_data["parameterID"][keep_idx],
-                                               compression="gzip", dtype=np.int)
-                    input_group.create_dataset("distanceToSoma", data=old_input_data["distanceToSoma"][keep_idx],
-                                               compression="gzip", dtype=np.float16)
-
-                    for data_name in ["freq", "correlation", "jitter", "synapseDensity", "start", "end", "conductance",
-                                      "populationUnitID", "populationUnitSpikes", "generator",
-                                      "modFile", "parameterFile", "parameterList"]:
-                        if data_name in old_input_data:
-                            old_input_data.copy(source=old_input_data[data_name], dest=input_group)
-
+                    old_input["input"][neuron].copy(source=old_input_data, dest=neuron_group)
+                    
                     old_n += old_input_data['spikes'].shape[0]
                     new_n += len(keep_idx)
 
