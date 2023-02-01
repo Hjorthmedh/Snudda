@@ -25,6 +25,7 @@ import numpy as np
 from numba import jit
 
 import snudda.utils.memory
+from snudda.neurons.morphology_data import MorphologyData
 from snudda.utils import NumpyEncoder
 from snudda.utils.snudda_path import get_snudda_data
 from snudda.detect.projection_detection import ProjectionDetection
@@ -260,6 +261,7 @@ class SnuddaDetect(object):
         self.next_channel_model_id = 10
 
         self.prototype_neurons = dict([])
+        self.extra_axon_cache = dict()
 
         self.axon_cum_density_cache = dict([])
 
@@ -2251,12 +2253,25 @@ class SnuddaDetect(object):
 
         if "extraAxons" in neuron_info:
             for axon_name, axon_info in neuron_info["extraAxons"].items():
-                print(f"DEVELOPMENT: Adding extra axon to {neuron_info['name']}: {axon_name} morph {axon_info['morphology']}, pos {axon_info['position']}, rot {axon_info['rotation']}")
+                # print(f"DEVELOPMENT: Adding extra axon to {neuron_info['name']}: {axon_name} morph {axon_info['morphology']}, pos {axon_info['position']}, rot {axon_info['rotation']}")
+
+                if axon_info["morphology"] not in self.extra_axon_cache:
+                    self.extra_axon_cache[axon_info["morphology"]] = MorphologyData(swc_file=axon_info["morphology"],
+                                                                                    parent_tree_info=None,
+                                                                                    snudda_data=self.snudda_data)
 
                 neuron.add_morphology(swc_file=axon_info["morphology"],
                                       name=axon_name,
                                       position=axon_info["position"],
-                                      rotation=axon_info["rotation"])
+                                      rotation=axon_info["rotation"],
+                                      morphology_data=self.extra_axon_cache[axon_info["morphology"]])
+
+                # This is how you add extra axons if you dont use the caching:
+                #
+                # neuron.add_morphology(swc_file=axon_info["morphology"],
+                #                       name=axon_name,
+                #                       position=axon_info["position"],
+                #                       rotation=axon_info["rotation"])
 
         return neuron
 

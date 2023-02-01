@@ -96,7 +96,7 @@ class NeuronMorphologyExtended:
         self._rotation = rotation
 
     def add_morphology(self, swc_file, name="neuron", position=None, rotation=None, parent_tree_info=None,
-                       overwrite=False):
+                       overwrite=False, morphology_data=None):
 
         """
             MorphologyData
@@ -110,16 +110,23 @@ class NeuronMorphologyExtended:
                 rotation (np.ndarray): 3x3 rotation matrix
                 parent_tree_info (tuple, optional): Specify subtree attachment point
                                                     (MorphologyData, parent_label, parent_point_idx, arc_factor)
+                morphology_data (optional): MorphologyData object to use, then swc_file is None
 
         """
 
         if not overwrite and name in self.morphology_data:
             raise KeyError(f"Error when loading {swc_file}, key {name} already exists in morphology_data")
 
-        self.morphology_data[name] = MorphologyData(swc_file=swc_file, parent_tree_info=parent_tree_info,
-                                                    snudda_data=self.snudda_data)
-        if position is not None:
-            self.morphology_data[name].place(position=position, rotation=rotation)
+        if morphology_data is None:
+            # No cached morphology data, load it from file (slow)
+            self.morphology_data[name] = MorphologyData(swc_file=swc_file, parent_tree_info=parent_tree_info,
+                                                        snudda_data=self.snudda_data)
+            if position is not None:
+                self.morphology_data[name].place(position=position, rotation=rotation)
+
+        else:
+            # Use provided morphology data
+            self.morphology_data[name] = morphology_data.clone(position=position, rotation=rotation)
 
     def section_iterator(self, section_type=None, subtree=None):
 

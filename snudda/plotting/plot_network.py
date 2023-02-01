@@ -1,6 +1,7 @@
 import os
 import numpy as np
 
+from snudda.neurons.morphology_data import MorphologyData
 from snudda.plotting.plot_spike_raster_v2 import SnuddaPlotSpikeRaster2
 from snudda.utils.snudda_path import get_snudda_data
 from snudda.neurons.neuron_prototype import NeuronPrototype
@@ -24,6 +25,7 @@ class PlotNetwork(object):
         self.snudda_data = get_snudda_data(snudda_data=snudda_data,
                                            network_path=self.network_path)
         self.prototype_neurons = dict()
+        self.extra_axon_cache = dict()  # TODO: Also read in any extra axons, and plot them
 
     def close(self):
         self.sl.close()
@@ -85,6 +87,7 @@ class PlotNetwork(object):
 
             soma_colour = colour_lookup(neuron_info["neuronID"])
             neuron = self.load_neuron(neuron_info)
+
             neuron.plot_neuron(axis=ax,
                                plot_axon=pa,
                                plot_dendrite=pd,
@@ -186,6 +189,20 @@ class PlotNetwork(object):
                                                            parameter_key=neuron_info["parameterKey"],
                                                            morphology_key=neuron_info["morphologyKey"],
                                                            modulation_key=neuron_info["modulationKey"])
+
+        if "extraAxons" in neuron_info:
+            for axon_name, axon_info in neuron_info["extraAxons"].items():
+
+                if axon_info["morphology"] not in self.extra_axon_cache:
+                    self.extra_axon_cache[axon_info["morphology"]] = MorphologyData(swc_file=axon_info["morphology"],
+                                                                                    parent_tree_info=None,
+                                                                                    snudda_data=self.snudda_data)
+
+                neuron.add_morphology(swc_file=axon_info["morphology"],
+                                      name=axon_name,
+                                      position=axon_info["position"],
+                                      rotation=axon_info["rotation"],
+                                      morphology_data=self.extra_axon_cache[axon_info["morphology"]])
 
         return neuron
 
