@@ -1839,7 +1839,7 @@ class SnuddaSimulate(object):
         if dt is None:
             dt = h.dt
         else:
-            dt *= 1e3 # Convert to ms
+            dt *= 1e3  # Convert to ms
 
         t_vec = h.Vector(np.linspace(start_time*1e3, duration*1e3, int(duration*1e3 / dt)))
 

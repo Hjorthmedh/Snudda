@@ -140,18 +140,25 @@ class SnuddaLoadNetworkSimulation:
         for nid in neuron_id:
             snid = str(nid)
             inid = int(nid)
-            if data_type in self.network_simulation_file["neurons"][snid]:
-                data[inid] = self.network_simulation_file["neurons"][snid][data_type]["data"][()].T.copy()
-                sec_id = self.network_simulation_file["neurons"][snid][data_type]["sec_id"][()].copy()
-                sec_x = self.network_simulation_file["neurons"][snid][data_type]["sec_x"][()].copy()
 
-                sec_id_x[inid] = (sec_id, sec_x)
+            try:
+                if data_type in self.network_simulation_file["neurons"][snid].keys():
+                    data[inid] = self.network_simulation_file["neurons"][snid][data_type][()].T.copy()
+                    sec_id = self.network_simulation_file["neurons"][snid][data_type].attrs["sec_id"].copy()
+                    sec_x = self.network_simulation_file["neurons"][snid][data_type].attrs["sec_x"].copy()
 
-                if "synapse_type" in self.network_simulation_file["neurons"][snid][data_type]:
-                    synapse_type = self.network_simulation_file["neurons"][snid][data_type]["synapse_type"][()].copy()
-                    presynaptic_id = self.network_simulation_file["neurons"][snid][data_type]["presynaptic_id"][()].copy()
-                    cond = self.network_simulation_file["neurons"][snid][data_type]["cond"][()].copy()
-                    syn_info[inid] = (synapse_type, presynaptic_id, cond)
+                    sec_id_x[inid] = (sec_id, sec_x)
+
+                    if "synapse_type" in self.network_simulation_file["neurons"][snid][data_type].attrs:
+                        synapse_type = self.network_simulation_file["neurons"][snid][data_type].attrs["synapse_type"].copy()
+                        presynaptic_id = self.network_simulation_file["neurons"][snid][data_type].attrs["presynaptic_id"].copy()
+                        cond = self.network_simulation_file["neurons"][snid][data_type].attrs["cond"].copy()
+                        syn_info[inid] = (synapse_type, presynaptic_id, cond)
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
 
         return data, sec_id_x, syn_info
 
