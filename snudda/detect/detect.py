@@ -1124,6 +1124,12 @@ class SnuddaDetect(object):
 
         self.voxel_overflow_counter = 0
 
+        if self.role == "worker":
+            # Let's clear the cache between hyper voxels if we are running in parallel
+            # (less chance of cache hits between hyper voxels, and avoid too many copies cached)
+            self.neuron_cache = dict()
+            self.extra_axon_cache = dict()
+
     ############################################################################
 
     # hyperID is only needed if we have neurons without axons, ie we use

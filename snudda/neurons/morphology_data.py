@@ -1,10 +1,11 @@
 import os
+import pickle
+
 import numpy as np
 from copy import deepcopy
 from scipy.spatial import cKDTree
 
 import snudda.utils
-
 
 # TODO: Move constants like 1000 * sec_x to separate file
 
@@ -24,7 +25,7 @@ class SectionMetaData:
     point_idx: np.ndarray
     section_type: int
     morphology_data: object
-    neuron_id: int
+    neuron_id: int  # Is this set, is it used?
 
     def __init__(self, section_id, section_type, morphology_data, build_section=True):
 
@@ -165,6 +166,7 @@ class MorphologyData:
         self.swc_file = swc_file
         self.snudda_data = snudda_data
         self.verbose = verbose
+        self.cache_version = 1.4
 
         self.geometry = None      # x, y, z, r, soma_dist (float)
         self.section_data = None  # section_id, section_x (*1000), section_type (int), parent_point_id (int)
@@ -206,7 +208,7 @@ class MorphologyData:
         for sid in section_id:
             yield self.sections[section_type][sid]
 
-    def load_swc_file(self, swc_file, remapping_types={4: 3}):
+    def load_swc_file(self, swc_file, remapping_types={4: 3}, use_cache=True):
 
         """ Loads SWC morphology, not SNUDDA_DATA aware (file must exist).
 
@@ -219,6 +221,12 @@ class MorphologyData:
 
         if not os.path.isfile(swc_file):
             raise FileNotFoundError(f"Missing SWC file '{swc_file}'")
+
+        if use_cache:
+            cache_file, valid_cache = self.get_cache_file()
+
+            if valid_cache and self.load_cache():
+                return
 
         data = np.loadtxt(swc_file)
 
@@ -288,7 +296,8 @@ class MorphologyData:
 
         self.build_tree()
 
-        # TODO: Spara cache
+        if use_cache:
+            self.save_cache()
 
     def build_tree(self):
 
@@ -380,6 +389,105 @@ class MorphologyData:
         for section_type in self.sections:
             idx = np.where(self.section_data[:, 2] == section_type)[0]
             self.point_lookup[section_type] = idx
+
+    def save_cache(self):
+
+        cache_file, _ = self.get_cache_file()
+
+        if self.rotation is not None or self.position is not None:
+            raise ValueError(f"Position and rotation must be None when calling save_cache: {self.swc_file}")
+
+        if self.parent_tree_info is not None:
+            raise ValueError(f"Parent tree info must be None when calling save_cache: {self.swc_file}")
+
+        data = dict()
+        data["cache_version"] = self.cache_version
+        data["swc_file"] = self.swc_file
+        data["geometry"] = self.geometry
+        data["section_data"] = self.section_data
+
+        data["sections"] = dict()
+        for sect_type in self.sections.keys():
+            data["sections"][sect_type] = dict()
+            for sect_key, sect_value in self.sections[sect_type].items():
+                data["sections"][sect_type][sect_key] = dict()
+                data["sections"][sect_type][sect_key]["section_id"] = sect_value.section_id
+                data["sections"][sect_type][sect_key]["section_type"] = sect_value.section_type
+
+                data["sections"][sect_type][sect_key]["parent_section_id"] = sect_value.parent_section_id
+                data["sections"][sect_type][sect_key]["parent_section_type"] = sect_value.parent_section_type
+                data["sections"][sect_type][sect_key]["point_idx"] = sect_value.point_idx
+
+                data["sections"][sect_type][sect_key]["child_section_id"] = dict()
+                for ch_key, ch_value in sect_value.child_section_id.items():
+                    data["sections"][sect_type][sect_key]["child_section_id"][ch_key] = ch_value
+
+        try:
+            with open(cache_file, "wb") as f:
+                pickle.dump(data, f)
+        except:
+            print(f"Unable to save cache file {cache_file} -- do you have write permission?")
+
+    def load_cache(self):
+
+        cache_file, valid_cache = self.get_cache_file()
+
+        cache_loaded = False
+
+        if valid_cache:
+            try:
+                with open(cache_file, "rb") as f:
+                    data = pickle.load(f)
+
+                if self.cache_version != data["cache_version"]:
+                    raise ValueError(f"Cache version mismatch: {data['cache_version']} (required {self.cache_version})")
+
+                if self.swc_file != data["swc_file"]:
+                    raise ValueError(f"Cache mismatch.")
+
+                self.geometry = data["geometry"]
+                self.section_data = data["section_data"]
+
+                self.sections = dict()
+                for sect_type in data["sections"].keys():
+                    assert np.issubdtype(type(sect_type), np.integer), f"sec_type must be int, found {sect_type} ({type(sect_type)})"
+                    self.sections[sect_type] = dict()
+                    for sect_id, sect_val in data["sections"][sect_type].items():
+                        assert np.issubdtype(type(sect_id), np.integer), f"sec_id key must be int, found sec_id = {sect_id} ({type(sect_id)}"
+                        sec = SectionMetaData(section_id=sect_id, section_type=sect_type,
+                                              morphology_data=self, build_section=False)
+                        sec.point_idx = sect_val["point_idx"]
+                        sec.parent_section_id = sect_val["parent_section_id"]
+                        sec.parent_section_type = sect_val["parent_section_type"]
+
+                        sec.child_section_id = dict()
+                        for ch_key, ch_val in sect_val["child_section_id"].items():
+                            sec.child_section_id[ch_key] = ch_val
+
+                        self.sections[sect_type][sect_id] = sec
+
+                cache_loaded = True
+
+            except:
+                print(f"Failed to load cache from {cache_file}")
+
+        return cache_loaded
+
+    def get_cache_file(self):
+
+        swc_file = snudda.utils.snudda_parse_path(self.swc_file, self.snudda_data)
+        cache_file = f"{swc_file}-cache.pickle"
+
+        if os.path.isfile(cache_file):
+            swc_time = os.path.getmtime(swc_file)
+            cache_time = os.path.getmtime(cache_file)
+
+            if cache_time > swc_time:
+                # Cache file is newer than swc file
+                return cache_file, True
+
+        # No valid cache file found
+        return cache_file, False
 
     def delete_points_inside_soma(self):
 
