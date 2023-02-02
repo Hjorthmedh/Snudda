@@ -288,6 +288,8 @@ class MorphologyData:
 
         self.build_tree()
 
+        # TODO: Spara cache
+
     def build_tree(self):
 
         # New sections are triggered when:

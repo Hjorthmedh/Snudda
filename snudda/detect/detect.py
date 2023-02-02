@@ -11,6 +11,7 @@
 # Grant Agreements No. 720270 and No. 785907 (Human Brain Project SGA1
 # and SGA2).
 #
+import functools
 import itertools
 import json
 import os
@@ -261,6 +262,7 @@ class SnuddaDetect(object):
         self.next_channel_model_id = 10
 
         self.prototype_neurons = dict([])
+        self.neuron_cache = dict()
         self.extra_axon_cache = dict()
 
         self.axon_cum_density_cache = dict([])
@@ -2234,7 +2236,7 @@ class SnuddaDetect(object):
 
     ############################################################################
 
-    def load_neuron(self, neuron_info):
+    def load_neuron(self, neuron_info, use_cache=True):
 
         """
         Load neuron.
@@ -2243,6 +2245,10 @@ class SnuddaDetect(object):
             neuron_info : dictionary with neuron information, i.e. 'name', 'parameterID', 'morphologyID',
                           'modulationID', 'rotation', 'position'
         """
+
+        neuron_id = neuron_info["neuronID"]
+        if use_cache and neuron_id in self.neuron_cache:
+            return self.neuron_cache[neuron_id]
 
         # Clone prototype neuron (it is centred, and not rotated)
         neuron = self.prototype_neurons[neuron_info["name"]].clone(parameter_key=neuron_info["parameterKey"],
@@ -2272,6 +2278,9 @@ class SnuddaDetect(object):
                 #                       name=axon_name,
                 #                       position=axon_info["position"],
                 #                       rotation=axon_info["rotation"])
+
+        if use_cache:
+            self.neuron_cache[neuron_id] = neuron
 
         return neuron
 
