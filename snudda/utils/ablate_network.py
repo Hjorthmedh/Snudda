@@ -45,6 +45,7 @@ class SnuddaAblateNetwork:
         self.remove_pair_connection_list = None
         self.remove_all_synapses = False
         self.remove_all_gap_junctions = False
+        self.make_virtual_neuron_id = None
 
         self.reset_network()
 
@@ -55,6 +56,7 @@ class SnuddaAblateNetwork:
         self.keep_neuron_id = set(self.in_file["network/neurons/neuronID"][:])
         self.removed_connection_type = []
         self.remove_pair_connection_list = []
+        self.make_virtual_neuron_id = []
 
         self.remove_all_synapses = False
         self.remove_all_gap_junctions = False
@@ -72,6 +74,15 @@ class SnuddaAblateNetwork:
 
     def only_keep_neuron_id(self, neuron_id):
         self.keep_neuron_id = set(neuron_id)
+
+    def make_virtual(self, neuron_id):
+
+        if type(neuron_id) == list:
+            self.make_virtual_neuron_id += neuron_id
+        elif isinstance(neuron_id, np.ndarray):
+            self.make_virtual_neuron_id += [x for x in np.ndarray]
+        else:
+            self.make_virtual_neuron_id.append(neuron_id)
 
     def remove_neuron_type(self, neuron_type, p_remove=1):
 
@@ -267,6 +278,15 @@ class SnuddaAblateNetwork:
                                       soma_keep_id=soma_keep_id,
                                       remap_id=remap_id)
 
+                if var_name == "virtualNeuron" and len(self.make_virtual_neuron_id) > 0:
+                    virt_id = [remap_id[x] for x in self.make_virtual_neuron_id]
+                    neuron_group[var_name][virt_id] = True
+
+                    virt_neuron_names = [self.snudda_load.data["neurons"][x]["name"] for x in self.make_virtual_neuron_id]
+
+                    for old_nrn_id, new_virt_id, v_name in zip(self.make_virtual_neuron_id, virt_id, virt_neuron_names):
+                        print(f"Making neuron id {new_virt_id} ({v_name}) virtual (old ID {old_nrn_id})")
+
         if "synapses" in self.in_file["network"]:
 
             # Next deal with synapses
@@ -407,6 +427,7 @@ def snudda_ablate_network_cli():
     parser.add_argument("--remove_neuron_id", type=str, help="Neuron ID to remove (e.g. 4,5,6)", default=None)
     parser.add_argument("--remove_connection", type=str, help="Connection to remove (e.g. 'dSPN','iSPN'", default=None)
     parser.add_argument("--p_remove_connection", type=float, help="Probability to remove connection", default=1.0)
+    parser.add_argument("--make_virtual", type=str, help="Neuron ID to make virtual (e.g. 1,2,3)")
     args = parser.parse_args()
 
     mod_network = SnuddaAblateNetwork(network_file=args.original_network)
@@ -455,6 +476,10 @@ def snudda_ablate_network_cli():
     if args.remove_neuron_id:
         neuron_id = [int(x) for x in args.remove_neuron_id.split(",")]
         mod_network.remove_neuron_id(neuron_id=neuron_id)
+
+    if args.make_virtual:
+        v_id = [int(x) for x in args.make_virtual.split(",")]
+        mod_network.make_virtual(neuron_id=v_id)
 
     if args.remove_connection:
 

@@ -324,7 +324,7 @@ class SnuddaSimulate(object):
         self.gap_junction_next_gid = self.num_neurons + 100000000
 
         # Make a bool array indicating if cells are virtual or not
-        self.is_virtual_neuron = [n["virtualNeuron"] for n in self.network_info["neurons"]]
+        self.is_virtual_neuron = np.array([n["virtualNeuron"] for n in self.network_info["neurons"]], dtype=bool)
 
     ############################################################################
 
@@ -941,6 +941,10 @@ class SnuddaSimulate(object):
 
         """
 
+        if self.is_virtual_neuron[cell_id_dest]:
+            # The target neuron is a virtual neuron, do not add synapse
+            return
+
         # You can not locate a point process at endpoints (position 0.0 or 1.0) if it needs an ion
         if section_dist == 0.0:
             section_dist = 0.01
@@ -1007,10 +1011,6 @@ class SnuddaSimulate(object):
             synapse_delay = (1e3 * 1e-6 * axon_dist) / self.axon_speed + self.synapse_delay
         else:
             synapse_delay = self.synapse_delay
-
-        if self.is_virtual_neuron[cell_id_source]:
-            # Source is a virtual neuron, need to read and connect input
-            src_name = self.network_info["neurons"][cell_id_source]["name"]
 
         # Prevent garbage collection in python
         if (cell_id_source, cell_id_dest) not in self.synapse_dict:
@@ -1232,14 +1232,6 @@ class SnuddaSimulate(object):
             for sec in cell:
                 for seg in sec.allseg():
                     seg.v = rest_volt * 1e3
-
-    ############################################################################
-
-    def add_virtual_neuron_input(self):
-
-        self.write_log("Adding inputs from virtual neurons")
-
-        raise NotImplemented("add_virtual_neuron_input not implemented")
 
     ############################################################################
 
