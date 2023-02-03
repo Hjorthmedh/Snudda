@@ -340,6 +340,8 @@ class SnuddaInput(object):
                     a_group = nid_group.create_group("activity")
                     spikes = self.neuron_input[neuron_id][input_type]["spikes"]
 
+                    # TODO: We need to also handle input files with spikes here, not just hard code spikes in input.json
+
                     activity_spikes = a_group.create_dataset("spikes", data=spikes, compression="gzip")
                     generator = self.neuron_input[neuron_id][input_type]["generator"]
                     activity_spikes.attrs["generator"] = generator

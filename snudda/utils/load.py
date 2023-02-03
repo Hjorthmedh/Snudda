@@ -852,8 +852,11 @@ class SnuddaLoad(object):
         return neuron_object
 
     def iter_neuron_id(self):
-        for x in self.data["neurons"].keys():
-            return x
+
+        for x, v in enumerate(self.data["neurons"]):
+            assert x == v["neuronID"], \
+                f"Neuron at position {x} has neuronID {v['neuronID']} (should be same)"
+            yield x
 
     def get_neuron_keys(self, neuron_id):
         n = self.data["neurons"][neuron_id]

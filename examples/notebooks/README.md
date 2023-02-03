@@ -18,7 +18,7 @@ Here is a collection of Jupyter Notebooks, some of the workflows are split over 
 * [input_generation_example_2_frequency_vectors](input_generation_example_2_frequency_vectors.ipynb) define Poisson input with multiple start/stop times (uses [simple_network_creation](simple_network_creation.ipynb)).
 * [input_generation_example_3_correlation](input_generation_example_3_correlation.ipynb) finer control in input targeting (uses [population_unit_network](population_unit_network.ipynb))
 * [input_tuning_example](input_tuning_example.ipynb) explore what input number and frequency are good neurons, e.g to avoid depolarisation block.
-
+* [input_frequency](InputFrequency/InputFrequency.ipynb) time varying input frequency example
 
 ## Striatum example
 * [striatum_example](striatum_example.ipynb) creates a small striatal network, increase number of neurons for the full version.

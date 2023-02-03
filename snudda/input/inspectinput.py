@@ -19,8 +19,7 @@ class InspectInput(object):
 
     def get_morphologies(self):
 
-        return [os.path.basename(c["morphology"]) \
-                for c in self.network.data["neurons"]]
+        return [os.path.basename(c["morphology"]) for c in self.network.data["neurons"]]
 
     def get_input_types(self, cell_id):
 

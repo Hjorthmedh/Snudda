@@ -331,6 +331,9 @@ class NeuronMorphologyExtended:
                         z = (radie * np.cos(v) + xyz[2] - plot_origo[2]) * plot_scale
 
                         ax.plot_wireframe(x, y, z, color=soma_colour, alpha=alpha)
+                    elif section_type == 0:
+                        # Do not draw section type 0
+                        pass
                     else:
                         xyz = (section.position - plot_origo) * plot_scale
                         ax.plot(xyz[:, 0], xyz[:, 1], xyz[:, 2], linestyle=line_style,
