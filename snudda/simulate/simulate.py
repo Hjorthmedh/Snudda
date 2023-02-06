@@ -480,7 +480,7 @@ class SnuddaSimulate(object):
                     self.input_data = h5py.File(snudda_parse_path(self.input_file, self.snudda_data), 'r')
 
                 name = self.network_info["neurons"][ID]["name"]
-                spikes = self.input_data["input"][ID]["activity"]["spikes"][:, 0]
+                spikes = self.input_data["input"][str(ID)]["activity"]["spikes"][()]
 
                 # Creating NEURON VecStim and vector
                 # https://www.neuron.yale.edu/phpBB/viewtopic.php?t=3125
@@ -569,10 +569,11 @@ class SnuddaSimulate(object):
             total_gap_junction_count = np.sum(self.pc.py_allgather(gap_junction_count)) / 2
 
             if total_gap_junction_count != self.gap_junctions.shape[0]:
-                self.write_log(f"ERROR: Added only {total_gap_junction_count} out of {self.gap_junctions.shape[0]} gap junctions",
+                self.write_log(f"ERROR: Added only {total_gap_junction_count} out of {self.gap_junctions.shape[0]} gap junctions"
+                               f"({np,sum(self.is_virtual_neuron)} virtual neurons)",
                                is_error=True)
             elif self.pc.id() == 0:
-                self.write_log(f"Added {total_gap_junction_count} synapses to simulation ({self.gap_junctions.shape[0]} total)",
+                self.write_log(f"Added {total_gap_junction_count} gap junctions to simulation ({self.gap_junctions.shape[0]} total)",
                                force_print=True)
 
         # Add synapses
@@ -585,7 +586,8 @@ class SnuddaSimulate(object):
             total_synapse_count = np.sum(self.pc.py_allgather(synapse_count))
 
             if total_synapse_count != self.synapses.shape[0]:
-                self.write_log(f"ERROR: Added only {total_synapse_count} out of {self.synapses.shape[0]} synapses!",
+                self.write_log(f"ERROR: Added only {total_synapse_count} out of {self.synapses.shape[0]} synapses! "
+                               f"({np.sum(self.is_virtual_neuron)} virtual neurons)",
                                is_error=True)
             elif self.pc.id() == 0:
                 self.write_log(f"Added {total_synapse_count} synapses to simulation ({self.synapses.shape[0]} total)",
@@ -749,15 +751,14 @@ class SnuddaSimulate(object):
         dest_id = self.synapses[start_row, 1]
         assert (self.synapses[start_row:end_row, 1] == dest_id).all()
 
-        # Double check mapping
-        assert self.pc.gid2cell(dest_id) == self.neurons[dest_id].icell, \
+        # Double check mapping (skip any synapses onto virtual neurons)
+        assert self.is_virtual_neuron[dest_id] or self.pc.gid2cell(dest_id) == self.neurons[dest_id].icell, \
             f"GID mismatch: {self.pc.gid2cell(dest_id)} != {self.neurons[dest_id].icell}"
 
         synapse_type_id = self.synapses[start_row:end_row, 6]
         axon_distance = self.synapses[start_row:end_row, 7]  # Obs in micrometers
 
         sec_id = self.synapses[start_row:end_row, 9]
-        dend_sections = self.neurons[dest_id].map_id_to_compartment(sec_id)
         sec_x = self.synapses[start_row:end_row, 10] / 1000.0  # Convert to number 0-1
 
         # Conductances are stored in pS (because we use INTs), NEURON wants it in microsiemens
@@ -765,7 +766,11 @@ class SnuddaSimulate(object):
         parameter_id = self.synapses[start_row:end_row, 12]
         voxel_coords = self.synapses[start_row:end_row, 2:5]
 
-        self.verify_synapse_placement(dend_sections, sec_x, dest_id, voxel_coords, source_id_list)
+        if not self.is_virtual_neuron[dest_id]:
+            dend_sections = self.neurons[dest_id].map_id_to_compartment(sec_id)
+            self.verify_synapse_placement(dend_sections, sec_x, dest_id, voxel_coords, source_id_list)
+        else:
+            dend_sections = None
 
         return source_id_list, dest_id, dend_sections, sec_id, sec_x, synapse_type_id, \
                axon_distance, conductance, parameter_id
@@ -778,6 +783,10 @@ class SnuddaSimulate(object):
 
         source_id_list, dest_id, dend_sections, sec_id, sec_x, synapse_type_id, \
         axon_distance, conductance, parameter_id = self.get_synapse_info(start_row=start_row, end_row=end_row)
+
+        if dend_sections is None:
+            # Target neuron was a virtual neuron, skip it
+            return 0
 
         for (src_id, section, section_id, section_x, s_type_id, axon_dist, cond, p_id) \
                 in zip(source_id_list, dend_sections, sec_id, sec_x, synapse_type_id,
@@ -1364,17 +1373,18 @@ class SnuddaSimulate(object):
                         sec_id.append(sid + 1)  # NEURON indexes from 0, Snudda has soma as 0, and first dendrite is 1
                         sec_x.append(seg.x)
 
-
             self.add_volt_recording(cell_id=cid, sec_id=sec_id, sec_x=sec_x)
 
     def add_volt_recording_soma(self, cell_id=None):
+
+        # Adds somatic voltage recording to neurons on worker (but not virtual neurons)
 
         if cell_id is None:
             cell_id = self.neuron_id
 
         for cid in cell_id:
 
-            if cid in self.neurons.keys():
+            if cid in self.neurons.keys() and not self.is_virtual_neuron[cid]:
                 self.add_volt_recording(cid, [0], [0.5])
 
     def add_volt_recording(self, cell_id: int, sec_id, sec_x):
@@ -1459,6 +1469,9 @@ class SnuddaSimulate(object):
     def run(self, t=1000.0, hold_v=None):
 
         """ Run simulation. """
+
+        if self.is_virtual_neuron.all():
+            print("ALL YOUR NEURONS IN THE SIMULATION ARE VIRTUAL")
 
         self.setup_print_sim_time(t)
 

@@ -338,13 +338,69 @@ class SnuddaInput(object):
 
                     # Input is activity of a virtual neuron
                     a_group = nid_group.create_group("activity")
-                    spikes = self.neuron_input[neuron_id][input_type]["spikes"]
 
-                    # TODO: We need to also handle input files with spikes here, not just hard code spikes in input.json
+                    try:
+                        if "spikeFile" in self.neuron_input[neuron_id][input_type]:
+                            spike_file = self.neuron_input[neuron_id][input_type]["spikeFile"]
+                    except:
+                        import traceback
+                        print(traceback.format_exc())
+                        import pdb
+                        pdb.set_trace()
+
+                    if "rowID" in self.neuron_input[neuron_id][input_type]:
+                        spike_row = self.neuron_input[neuron_id][input_type]["rowID"]
+                    else:
+                        spike_row = None
+
+                    if spike_row is None:
+
+                        if "rowMappingFile" in self.neuron_input[neuron_id][input_type]\
+                          and "rowMappingData" not in self.neuron_input[neuron_id][input_type]:
+
+                            row_mapping_file = self.neuron_input[neuron_id][input_type]["rowMappingFile"]
+                            row_mapping_data = np.loadtxt(row_mapping_file, dtype=int)
+                            row_mapping = dict()
+                            for nid, rowid in row_mapping_data:
+                                if nid in row_mapping:
+                                    print(f"Warning neuron_id {nid} appears twice in {row_mapping_file}")
+                                row_mapping[nid] = rowid
+
+                            # Save row mapping so we dont have to generate it next iteration
+                            self.neuron_input[neuron_id][input_type]["rowMappingData"] = row_mapping
+
+                        if "rowMappingData" in self.neuron_input[neuron_id][input_type]\
+                            and neuron_id in self.neuron_input[neuron_id][input_type]["rowMappingData"]:
+                            spike_row = self.neuron_input[neuron_id][input_type]["rowMappingData"][neuron_id]
+                        else:
+                            spike_row = neuron_id
+
+                    if "spikeData" not in self.neuron_input[neuron_id][input_type]:
+                        s_data = []
+                        with open(spike_file, "rt") as f:
+                            for row in f:
+                                s_data.append(np.array([float(x) for x in row.split(" ")]))
+
+                        self.neuron_input[neuron_id][input_type]["spikeData"] = s_data
+
+                    try:
+                        spikes = self.neuron_input[neuron_id][input_type]["spikeData"][spike_row]
+                    except:
+                        import traceback
+                        print(traceback.format_exc())
+                        import pdb
+                        pdb.set_trace()
+
+                    # Save spikes, so check sorted can verify them.
+                    # TODO: Should we skip this, if there are MANY virtual neurons -- and we run out of memory?
+                    self.neuron_input[neuron_id][input_type]["spikes"] = spikes
+
+                    if spikes is None and "spikes" in self.neuron_input[neuron_id][input_type]:
+                        spikes = self.neuron_input[neuron_id][input_type]["spikes"]
 
                     activity_spikes = a_group.create_dataset("spikes", data=spikes, compression="gzip")
-                    generator = self.neuron_input[neuron_id][input_type]["generator"]
-                    activity_spikes.attrs["generator"] = generator
+                    # generator = self.neuron_input[neuron_id][input_type]["generator"]
+                    # activity_spikes.attrs["generator"] = generator
 
         out_file.close()
 
@@ -564,8 +620,12 @@ class SnuddaInput(object):
                 else:
                     pop_unit_list = self.all_population_units
 
+                if input_type == "VirtualNeuron":
+                    # No population unit spike trains needed for virtual neurons, reads input from file
+                    pass
+
                 # Handle Poisson input
-                if self.input_info[cell_type][input_type]["generator"] == "poisson":
+                elif self.input_info[cell_type][input_type]["generator"] == "poisson":
 
                     freq = self.input_info[cell_type][input_type]["frequency"]
                     self.population_unit_spikes[cell_type][input_type] = dict([])
@@ -673,6 +733,18 @@ class SnuddaInput(object):
             # if dSPN --> use neuron_type dSPN
             # if dSPN_3 --> use specific neuron morphology corresponding to dSPN_3
 
+            if self.neuron_info[neuron_id]["virtualNeuron"]:
+                # Is a virtual neuron, we will read activity from file, skip neuron
+                if "VirtualNeuron" in input_info:
+                    self.neuron_input[neuron_id]["VirtualNeuron"] = input_info["VirtualNeuron"]
+                else:
+                    print(f"Missing activity for virtual neuron {neuron_id} ({neuron_name})")
+                continue
+
+            elif "VirtualNeuron" in input_info:
+                # Not a virtual neuron, so remove any virtual input specified
+                del input_info["VirtualNeuron"]
+
             # Also see if we have additional input specified in the meta.json file for the neuron?
 
             # Add baseline activity:
@@ -742,7 +814,7 @@ class SnuddaInput(object):
 
                 self.neuron_input[neuron_id][input_type] = dict([])
 
-                if input_inf["generator"] == "csv":
+                if "generator" in input_inf and input_inf["generator"] == "csv":
                     csv_file = snudda_parse_path(input_inf["csvFile"] % neuron_id, self.snudda_data)
 
                     self.neuron_input[neuron_id][input_type]["generator"] = "csv"
