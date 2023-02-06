@@ -480,7 +480,7 @@ class SnuddaSimulate(object):
                     self.input_data = h5py.File(snudda_parse_path(self.input_file, self.snudda_data), 'r')
 
                 name = self.network_info["neurons"][ID]["name"]
-                spikes = self.input_data["input"][str(ID)]["activity"]["spikes"][()]
+                spikes = self.input_data["input"][str(ID)]["activity"]["spikes"][()] * 1e3  # s -> ms for NEURON
 
                 # Creating NEURON VecStim and vector
                 # https://www.neuron.yale.edu/phpBB/viewtopic.php?t=3125
