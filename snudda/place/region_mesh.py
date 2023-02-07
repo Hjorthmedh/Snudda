@@ -1064,11 +1064,12 @@ class RegionMesh(object):
                 # lots of distance comparisons
                 try:
                     self.voxel_neurons[voxel_idx[0], voxel_idx[1], voxel_idx[2],
-                    self.voxel_next_neuron[voxel_idx[0], voxel_idx[1], voxel_idx[2]], :] = putative_loc
+                                       self.voxel_next_neuron[voxel_idx[0], voxel_idx[1], voxel_idx[2]],
+                                       :] = putative_loc
                     self.voxel_next_neuron[voxel_idx[0], voxel_idx[1], voxel_idx[2]] += 1
                 except:
                     self.write_log(f"If you see this error you probably need to increase "
-                                   f"self.max_neurons_voxel={self.max_neurons_per_voxel}")
+                                   f"self.max_neurons_per_voxel={self.max_neurons_per_voxel}", is_error=True)
                     import traceback
                     tstr = traceback.format_exc()
                     print(tstr)

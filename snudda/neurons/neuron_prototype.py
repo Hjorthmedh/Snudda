@@ -400,7 +400,15 @@ class NeuronPrototype:
         return res
 
     def all_have_axon(self):
-        return all([len(m.axon) > 0 for m in self.morphology_cache.values()])
+
+        all_axon = True
+
+        for m in self.morphology_cache.values():
+            if 2 not in m.morphology_data["neuron"].sections \
+              or len(m.morphology_data["neuron"].sections[2]) == 0:
+                all_axon = False
+
+        return all_axon
 
     def all_have_dend(self):
 
