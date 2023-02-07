@@ -101,7 +101,7 @@ class SnuddaLoadNetworkSimulation:
             for nid in self.network_simulation_file["neurons"]:
 
                 if "spikes" in self.network_simulation_file[f"neurons/{nid}"]:
-                    spike_data[int(nid)] = self.network_simulation_file[f"neurons/{nid}/spikes/data"][()].copy()
+                    spike_data[int(nid)] = self.network_simulation_file[f"neurons/{nid}/spikes"][()].copy()
 
             # If all neuronID not represented, add empty
             for nid in self.network_simulation_file["metaData/ID"]:
@@ -111,7 +111,7 @@ class SnuddaLoadNetworkSimulation:
         elif np.issubdtype(type(neuron_id), np.integer):
             if str(neuron_id) in self.network_simulation_file["neurons"] \
                     and "spikes" in self.network_simulation_file[f"neurons/{neuron_id}"]:
-                spike_data = self.network_simulation_file[f"neurons/{neuron_id}/spikes/data"][()].copy()
+                spike_data = self.network_simulation_file[f"neurons/{neuron_id}/spikes"][()].copy()
             else:
                 spike_data = np.array([])
 
@@ -120,7 +120,7 @@ class SnuddaLoadNetworkSimulation:
             for nid in neuron_id:
                 if str(nid) in self.network_simulation_file["neurons"] \
                         and "spikes" in self.network_simulation_file[f"neurons/{nid}"]:
-                    spike_data[nid] = self.network_simulation_file[f"neurons/{nid}/spikes/data"][()].copy()
+                    spike_data[nid] = self.network_simulation_file[f"neurons/{nid}/spikes"][()].copy()
                 else:
                     spike_data[nid] = np.array([])
 
