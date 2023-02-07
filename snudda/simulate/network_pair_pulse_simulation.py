@@ -157,7 +157,8 @@ class SnuddaNetworkPairPulseSimulation:
             volume_type = "slice"
 
         config_name = os.path.join(self.network_path, "network-config.json")
-        cnc = SnuddaInit(struct_def={}, config_file=config_name, random_seed=self.random_seed)
+        cnc = SnuddaInit(struct_def={}, config_file=config_name, random_seed=self.random_seed,
+                         snudda_data=self.snudda_data)
         cnc.define_striatum(num_dSPN=n_dSPN, num_iSPN=n_iSPN, num_FS=n_FS, num_LTS=n_LTS, num_ChIN=n_ChIN,
                             volume_type=volume_type, side_len=side_len, slice_depth=slice_depth,
                             neuron_density=neuron_density)
@@ -192,8 +193,7 @@ class SnuddaNetworkPairPulseSimulation:
 
     def setup_holding_volt(self, hold_v=None, sim_end=None):
 
-        assert sim_end is not None, \
-            "setup_holding_volt: Please set sim_end, for holding current"
+        assert sim_end is not None, "setup_holding_volt: Please set sim_end, for holding current"
 
         if hold_v is None:
             hold_v = self.hold_v

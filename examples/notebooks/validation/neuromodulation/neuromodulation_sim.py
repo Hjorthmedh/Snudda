@@ -2,6 +2,7 @@ import os
 import h5py
 from snudda.neuromodulation.modulation_network import Neuromodulation
 from snudda.utils.load import SnuddaLoad
+from snudda.utils.snudda_path import snudda_parse_path
 import numpy as np
 
 def analyse(network_path):
@@ -17,8 +18,8 @@ def analyse(network_path):
     tmp = dict()
     
     for i, n in enumerate(f["neurons"].keys()):
-        control_spikes = fc["neurons"][n]["spikes"]["data"][()]
-        experiment_spikes = f["neurons"][n]["spikes"]["data"][()]
+        control_spikes = fc["neurons"][n]["spikes"][()]
+        experiment_spikes = f["neurons"][n]["spikes"][()]
         neurontype = neuron_types[i]
         if experiment_spikes.size > 0 or control_spikes.size>0:
             diff = experiment_spikes.size - control_spikes.size
@@ -130,11 +131,12 @@ def simulate_control(network_path):
 def generate_current_injection(network_path):
     
     sl = SnuddaLoad(os.path.join(network_path, "network-synapses.hdf5"))
-
+    snudda_data = sl.data["SnuddaData"]
+    
     tmp = dict()
 
     for n in sl.data["neurons"]:
-        p = os.path.join(n["neuronPath"], "if_info.json")
+        p = snudda_parse_path(os.path.join(n["neuronPath"], "if_info.json"), snudda_data=snudda_data)
         import json
         with open(p, "r") as f:
             pdata = json.load(f)
