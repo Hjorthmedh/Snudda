@@ -11,7 +11,7 @@ Here is a collection of Jupyter Notebooks, some of the workflows are split over 
 * [example_of_density_function](example_of_density_function.ipynb) how to specify density variations using a function of (x,y,z) in a volume.
 * [example_of_neuron_rotations](example_of_neuron_rotations.ipynb) shows how to rotate neurons based on position.
 * [connect_structures_example](connect_structures_example.ipynb) shows how to create neuron projections between volumes when no-axon data is available ([parallel version](connect_structures_example_parallel.ipynb)). There is also an [alternative version](connect_structures_example_projection_detection.ipynb) that places axon voxels randomly within the projection zone and then applies touch detection.
-
+* [virtual_neurons](VirtualNeurons/VirtualNeurons.ipynb) shows how to only simulate the core of a volume of neurons, by turning the outer neurons to virtual neurons that spike at predetermined times. This is useful to avoid edge effects in your simulations.
 
 ## Input creation
 * [input_generation_example_1](input_generation_example_1.ipynb) generate constant Poisson input (uses [simple_network_creation](simple_network_creation.ipynb))
