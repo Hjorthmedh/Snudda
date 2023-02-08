@@ -568,16 +568,37 @@ class SnuddaPlace(object):
 
     def get_projection_axon_location(self, source_position, proj_info, rng):
 
+        if "proj_file" in proj_info:
+            proj_data = json.load(proj_info["proj_file"])
+            source = np.array(proj_data["source"])*1e-6
+            destination = np.array(proj_data["destination"])*1e-6
+        else:
+            source = np.array(proj_info["source"])*1e-6
+            destination = np.array(proj_info["destination"])*1e-6
+
+        if "rotation_file" in proj_info:
+            rot_data = json.load(proj_info["rotation_file"])
+            rotation = np.array(rot_data["rotation"])
+            rot_position = np.array(rot_data["position"])*1e-6
+        elif "rotation" in proj_info:
+            rotation = np.array(proj_info["rotation"])
+            rot_position = np.array(proj_info["destination"])*1e-6
+        else:
+            rotation = None
+            rot_position = None
+
+        # target_based_rotation = True  # -- TODO: restructure projection
+
         # Obs we convert from micrometers to meters
-        target_centres = griddata(points=np.array(proj_info["source"])*1e-6,
-                                  values=np.array(proj_info["destination"])*1e-6,
+        target_centres = griddata(points=source,
+                                  values=destination,
                                   xi=source_position, method="linear")
 
-        if "rotation" in proj_info:
+        if rotation is not None:
             # TODO: This is probably wrong, we have to handle interpolation between
-            #       rotation matrices in a better way!
-            target_rotation = griddata(points=np.array(proj_info["destination"])*1e-6,
-                                       values=proj_info["rotation"],
+            #       rotation matrices in a better way! -- use angles? -- use target_centres, vs
+            target_rotation = griddata(points=rot_position,
+                                       values=rotation,
                                        xi=target_centres, method="linear")
         else:
             target_rotation = [None for x in range(source_position.shape[0])]
