@@ -527,7 +527,7 @@ class SwapToDegeneratedMorphologies:
                         idx_remap = sorted(list(np.random.permutation(idx_remap)[:n_remap]))
 
                     try:
-                        synapse_density = SnuddaLoad.to_str(old_input_data.attrs["synapseDensity"][()])
+                        synapse_density = SnuddaLoad.to_str(old_input_data.attrs["synapseDensity"])
                     except:
                         import traceback
                         print(traceback.format_exc())
@@ -549,7 +549,7 @@ class SwapToDegeneratedMorphologies:
                     # Same spikes as before
                     spike_set = input_group.create_dataset("spikes", data=old_input_data["spikes"][keep_idx2, :],
                                                            compression="gzip", dtype=np.float32)
-                    spike_set.attrs["nSpikes"] = old_input_data["nSpikes"][keep_idx2].astype(np.int32)
+                    spike_set.attrs["nSpikes"] = old_input_data["spikes"].attrs["nSpikes"][keep_idx2].astype(np.int32)
 
                     # New locations for the remapped synapses
                     new_sec_id[idx_remap] = sec_id
@@ -558,9 +558,9 @@ class SwapToDegeneratedMorphologies:
                     new_sec_x[idx_remap] = sec_x
                     input_group.attrs["sectionX"] = new_sec_x[keep_idx2].astype(np.float16)
 
-                    input_group.attrs["parameterID"] = old_input_data["parameterID"][keep_idx2].astype(np.int)
+                    input_group.attrs["parameterID"] = old_input_data.attrs["parameterID"][keep_idx2].astype(np.int)
 
-                    updated_dist = old_input_data["distanceToSoma"][()].copy()
+                    updated_dist = old_input_data.attrs["distanceToSoma"].copy()
                     updated_dist[idx_remap] = dist_to_soma
                     input_group.attrs["distanceToSoma"] = updated_dist[keep_idx2].astype(np.float16)
 
