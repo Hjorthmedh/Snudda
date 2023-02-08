@@ -25,7 +25,7 @@ class PlotNetwork(object):
         self.snudda_data = get_snudda_data(snudda_data=snudda_data,
                                            network_path=self.network_path)
         self.prototype_neurons = dict()
-        self.extra_axon_cache = dict()  # TODO: Also read in any extra axons, and plot them
+        self.extra_axon_cache = dict()
 
     def close(self):
         self.sl.close()

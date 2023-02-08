@@ -261,12 +261,6 @@ class SnuddaSaveNetworkRecordings:
 
         return spikes
 
-    # TODO: save_network_activity
-    # 1. write_header -- node 0 skriver metadata till filen
-    # 2. write_spikes -- alla noder skriver sin spikdata
-    # 3. write_soma_voltage -- alla noder skriver soma voltage data
-    # 4. write_compartment_voltage -- alla noder skriver segment voltage
-
     def write_string_meta_data(self, group, name):
         string_data = [x[name] if x[name] is not None else "" for x in self.network_data["neurons"]]
         max_len = max(1, max([len(x) for x in string_data]))

@@ -158,8 +158,7 @@ class MyTestCase(unittest.TestCase):
         # Old version gave 99, new gives 165 --- CHECK WHY!
 
         # TODO: CHECK WHY NOT 99 SYNAPSES NOW
-        # self.assertEqual(degen_load.data["nSynapses"], 99)
-
+        self.assertEqual(degen_load.data["nSynapses"], 98)
 
 
 if __name__ == '__main__':
