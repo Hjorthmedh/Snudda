@@ -226,8 +226,6 @@ class SwapToDegeneratedMorphologies:
         if neuron_cache_key is None:
             neuron_cache_key = self.neuron_cache_key
 
-        # print(f"Neuron cache size: {len(self.neuron_cache)}")
-
         if neuron_id is not None and neuron_id in neuron_cache_id:
             return neuron_cache_id[neuron_id]
 
@@ -284,11 +282,6 @@ class SwapToDegeneratedMorphologies:
         old_sec_id = synapses[:, 9]
         old_sec_x = synapses[:, 10]
 
-        # if pre_id == 4 and post_id == 100:
-        #     print("Tell me why 10 501")
-        #     import pdb
-        #     pdb.set_trace()
-
         keep_idx, new_sec_id, new_sec_x \
             = self.remap_sections_helper(neuron_id=post_id, old_sec_id=old_sec_id, old_sec_x=old_sec_x/1000.0)
 
@@ -306,11 +299,6 @@ class SwapToDegeneratedMorphologies:
 
     def filter_axonal_synapses_helper(self, synapses, max_dist=5.41e-6):
 
-        # if synapses.size > 0 and synapses[0, 0] == 289 and synapses[0, 1] == 477:
-        #     print("Tell me WHY!")
-        #     import pdb
-        #     pdb.set_trace()
-
         """ Filter the synapses that have the axon degeneration, presynaptic neurons without axons are ignored. """
 
         pre_id = synapses[:, 0]
@@ -327,7 +315,6 @@ class SwapToDegeneratedMorphologies:
         for idx, (pid, coord) in enumerate(zip(pre_id, synapse_coordinates)):
 
             if pid != loaded_pid:
-
                 morph = self.get_morphology(neuron_id=pid, hdf5=self.new_hdf5, snudda_data=self.new_snudda_data_dir)
                 loaded_pid = pid
 
@@ -338,7 +325,7 @@ class SwapToDegeneratedMorphologies:
                     if self.has_axon_density[pid]:
                         axon_tree = None
                         # print(f"Warning: Axon and axonal density specified for neuron {pid}")
-                        # print(f"Ignoring morphology --- for now, will change behaviour in future.")
+                        # print(f"Ignoring morphology --- for now, will change behaviour in the future.")
                 else:
                     axon_tree = None
 
@@ -518,15 +505,15 @@ class SwapToDegeneratedMorphologies:
 
                 keep_idx, new_sec_id, new_sec_x \
                     = self.remap_sections_helper(neuron_id=int(neuron),
-                                                 old_sec_id=old_input_data["sectionID"],
-                                                 old_sec_x=old_input_data["sectionX"])
+                                                 old_sec_id=old_input_data.attrs["sectionID"],
+                                                 old_sec_x=old_input_data.attrs["sectionX"])
 
                 if len(keep_idx) == 0 and not (remap_removed_input and remapped_fraction > 0):
                     continue
 
-                if remap_removed_input:
+                input_group = neuron_group.create_group(input_type)
 
-                    input_group = neuron_group.create_group(input_type)
+                if remap_removed_input:
 
                     # We need to find new positions for input marked as removed
                     morph = self.get_morphology(neuron_id=int(neuron), hdf5=self.new_hdf5,
@@ -589,7 +576,24 @@ class SwapToDegeneratedMorphologies:
                             old_input_data.copy(source=old_input_data[data_name], dest=input_group)
 
                 else:
-                    old_input["input"][neuron].copy(source=old_input_data, dest=neuron_group)
+                    input_group.create_dataset("spikes", data=old_input_data["spikes"][keep_idx, :],
+                                               compression="gzip", dtype=np.float32)
+                    input_group["spikes"].attrs["nSpikes"] = old_input_data["spikes"].attrs["nSpikes"][keep_idx]
+                    input_group.attrs["sectionID"] = new_sec_id[keep_idx]
+                    input_group.attrs["sectionX"] = new_sec_x[keep_idx]
+                    input_group.attrs["parameterID"] = old_input_data.attrs["parameterID"][keep_idx]
+                    input_group.attrs["distanceToSoma"] = old_input_data.attrs["distanceToSoma"][keep_idx]
+
+                    for data_name in ["freq", "correlation", "jitter", "synapseDensity", "start", "end", "conductance",
+                                      "populationUnitID", "populationUnitSpikes", "generator",
+                                      "modFile", "parameterFile", "parameterList"]:
+
+                        if data_name in old_input_data.attrs:
+                            input_group.attrs[data_name] = old_input_data.attrs[data_name]
+                        elif data_name in old_input_data["spikes"].attrs:
+                            input_group["spikes"].attrs[data_name] = old_input_data["spikes"].attrs[data_name]
+                        elif data_name in old_input_data:
+                            old_input_data.copy(source=old_input_data[data_name], dest=input_group)
 
                     old_n += old_input_data['spikes'].shape[0]
                     new_n += len(keep_idx)
