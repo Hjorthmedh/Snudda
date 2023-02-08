@@ -481,7 +481,7 @@ class Snudda(object):
 
         else:
             print("NEURON mechanisms already compiled, make sure you have the correct version of NEURON modules."
-                  "\nIf you delete x86_64 directory (or nrnmech.dll) "
+                  "\nIf you delete x86_64, aarch64, arm64 directories (or nrnmech.dll) "
                   "then you will force a recompilation of the modules.")
 
     ############################################################################

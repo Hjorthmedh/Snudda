@@ -173,7 +173,6 @@ class SnuddaPrune(object):
         self.hyper_voxel_size = None
         self.simulation_origo = None
         self.hyper_voxel_width = None
-        self.axon_stump_id_flag = None
         self.hyper_voxel_offset = None
         self.num_synapses_total = None
         self.num_gap_junctions_total = None
@@ -516,10 +515,6 @@ class SnuddaPrune(object):
         completed_id = set(self.hist_file["completed"][:n_completed])
         remaining = all_id - completed_id
 
-        # Network_simulate.py uses axonStumpIDFlag = True
-        # Neurodamus uses axonStumpIDFlag = False
-        self.axon_stump_id_flag = self.hist_file["meta/axonStumpIDFlag"]
-
         # We need a lookup table for offsets of hypervoxel origos
         self.hyper_voxel_offset = np.zeros((self.hyper_voxel_id_list.size, 3), dtype=int)
         for ix in range(0, self.hyper_voxel_id_list.shape[0]):
@@ -589,7 +584,7 @@ class SnuddaPrune(object):
             self.write_log(f"Checking that {hypervoxel_file_name} matches circuit settings")
 
         check_list = ["voxelSize", "hyperVoxelSize", "simulationOrigo",
-                      "configFile", "positionFile", "SlurmID", "axonStumpIDFlag"]
+                      "configFile", "positionFile", "SlurmID"]
 
         # Just some sanity checks
         for c in check_list:
@@ -1532,8 +1527,13 @@ class SnuddaPrune(object):
         hv_list = []
         neuron_set = set(range(neuron_range[0], neuron_range[1]))
 
-        for hid in self.hist_file["hyperVoxels"]:
-            hv_neurons = self.hist_file["hyperVoxels"][hid]["neurons"]
+        hyper_voxels = json.loads(self.hist_file["hyperVoxels"][()])
+
+        for hid in hyper_voxels:
+            # When loading JSON file, the keys have been converted from int to str,
+            # so need to convert back to int.
+            hv_neurons = sorted([int(x) for x in hyper_voxels[hid]["neurons"].keys()])
+
             if len(neuron_set.intersection(hv_neurons)) > 0:
                 hv_list.append(int(hid))
 
@@ -2175,7 +2175,7 @@ class SnuddaPrune(object):
                 mat_buf[:, :] = h5mat[start_idx:end_idx, :]
             else:
                 # Create a new buffer
-                mat_buf = h5mat[start_idx:end_idx, :]
+                mat_buf = h5mat[start_idx:end_idx, :].copy()
 
             for row in mat_buf:
                 yield row
@@ -2223,7 +2223,7 @@ class SnuddaPrune(object):
                 mat_buf[:, :] = h5mat_lookup[start_idx:end_idx, :]
             else:
                 # Create a new buffer
-                mat_buf = h5mat_lookup[start_idx:end_idx, :]
+                mat_buf = h5mat_lookup[start_idx:end_idx, :].copy()
 
             for row in mat_buf:
                 if min_unique_id <= row[0] < max_unique_id:
@@ -2286,7 +2286,8 @@ class SnuddaPrune(object):
             if end_idx > buffer_end:
                 assert old_synapses is None, "get_next_synapse_set: chunk_size too small"
 
-                # Part of the synapse range requested is outside buffer
+                # Part of the synapse range requested is outside current buffer, store current buffer in old_synapses
+                # then read in rest of synapses into the buffer
                 old_synapses = read_buffer[(start_idx - buffer_start):, :].copy()
 
                 buffer_start = buffer_end

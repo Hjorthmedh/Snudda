@@ -58,7 +58,7 @@
                     "f1": 0.7,
                     "softMax": 8,
                     "mu2": 2,
-                    "a3": 1.0,
+                    "a3": 0.5,
                     "distPruning": null,
                     "cluster": false
                 }
@@ -346,42 +346,42 @@
             }
         },
         "ChIN,dSPN": {
-            "acetylcholine": {
+            "ACh": {
                 "conductance": [
                     1e-09,
                     0
                 ],
                 "channelParameters": {
-                    "modFile": "concACh"
+                    "modFile": ""
                 },
                 "clusterSize": 1,
                 "clusterSpread": null,
                 "pruning": {
-                    "f1": null,
-                    "softMax": null,
-                    "mu2": null,
-                    "a3": null,
+                    "f1": 0.5,
+                    "softMax": 10,
+                    "mu2": 15,
+                    "a3": 0.1,
                     "distPruning": null,
                     "cluster": false
                 }
             }
         },
         "ChIN,iSPN": {
-            "acetylcholine": {
+            "ACh": {
                 "conductance": [
                     1e-09,
                     0
                 ],
                 "channelParameters": {
-                    "modFile": "concACh"
+                    "modFile": ""
                 },
                 "clusterSize": 1,
                 "clusterSpread": null,
                 "pruning": {
-                    "f1": null,
-                    "softMax": null,
-                    "mu2": null,
-                    "a3": null,
+                    "f1": 0.5,
+                    "softMax": 10,
+                    "mu2": 10,
+                    "a3": 0.1,
                     "distPruning": null,
                     "cluster": false
                 }

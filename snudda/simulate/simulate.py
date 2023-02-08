@@ -324,7 +324,7 @@ class SnuddaSimulate(object):
         self.gap_junction_next_gid = self.num_neurons + 100000000
 
         # Make a bool array indicating if cells are virtual or not
-        self.is_virtual_neuron = [n["virtualNeuron"] for n in self.network_info["neurons"]]
+        self.is_virtual_neuron = np.array([n["virtualNeuron"] for n in self.network_info["neurons"]], dtype=bool)
 
     ############################################################################
 
@@ -480,7 +480,7 @@ class SnuddaSimulate(object):
                     self.input_data = h5py.File(snudda_parse_path(self.input_file, self.snudda_data), 'r')
 
                 name = self.network_info["neurons"][ID]["name"]
-                spikes = self.input_data["input"][ID]["activity"]["spikes"][:, 0]
+                spikes = self.input_data["input"][str(ID)]["activity"]["spikes"][()] * 1e3  # s -> ms for NEURON
 
                 # Creating NEURON VecStim and vector
                 # https://www.neuron.yale.edu/phpBB/viewtopic.php?t=3125
@@ -500,10 +500,6 @@ class SnuddaSimulate(object):
 
             else:
                 # A real neuron (not a virtual neuron that just provides input)
-                parameter_id = self.network_info["neurons"][ID]["parameterID"]
-                morphology_id = self.network_info["neurons"][ID]["morphologyID"]
-                modulation_id = self.network_info["neurons"][ID]["modulationID"]
-
                 parameter_key = self.network_info["neurons"][ID]["parameterKey"]
                 morphology_key = self.network_info["neurons"][ID]["morphologyKey"]
                 modulation_key = self.network_info["neurons"][ID]["modulationKey"]
@@ -513,9 +509,6 @@ class SnuddaSimulate(object):
                                                mech_file=mech,
                                                cell_name=name,
                                                modulation_file=modulation,
-                                               morphology_id=morphology_id,
-                                               parameter_id=parameter_id,
-                                               modulation_id=modulation_id,
                                                parameter_key=parameter_key,
                                                morphology_key=morphology_key,
                                                modulation_key=modulation_key)
@@ -576,10 +569,11 @@ class SnuddaSimulate(object):
             total_gap_junction_count = np.sum(self.pc.py_allgather(gap_junction_count)) / 2
 
             if total_gap_junction_count != self.gap_junctions.shape[0]:
-                self.write_log(f"ERROR: Added only {total_gap_junction_count} out of {self.gap_junctions.shape[0]} gap junctions",
+                self.write_log(f"ERROR: Added only {total_gap_junction_count} out of {self.gap_junctions.shape[0]} gap junctions"
+                               f"({np,sum(self.is_virtual_neuron)} virtual neurons)",
                                is_error=True)
             elif self.pc.id() == 0:
-                self.write_log(f"Added {total_gap_junction_count} synapses to simulation ({self.gap_junctions.shape[0]} total)",
+                self.write_log(f"Added {total_gap_junction_count} gap junctions to simulation ({self.gap_junctions.shape[0]} total)",
                                force_print=True)
 
         # Add synapses
@@ -592,7 +586,8 @@ class SnuddaSimulate(object):
             total_synapse_count = np.sum(self.pc.py_allgather(synapse_count))
 
             if total_synapse_count != self.synapses.shape[0]:
-                self.write_log(f"ERROR: Added only {total_synapse_count} out of {self.synapses.shape[0]} synapses!",
+                self.write_log(f"ERROR: Added only {total_synapse_count} out of {self.synapses.shape[0]} synapses! "
+                               f"({np.sum(self.is_virtual_neuron)} virtual neurons)",
                                is_error=True)
             elif self.pc.id() == 0:
                 self.write_log(f"Added {total_synapse_count} synapses to simulation ({self.synapses.shape[0]} total)",
@@ -752,18 +747,18 @@ class SnuddaSimulate(object):
         """
 
         source_id_list = self.synapses[start_row:end_row, 0]
+        source_id =self.synapses[start_row, 0]
         dest_id = self.synapses[start_row, 1]
         assert (self.synapses[start_row:end_row, 1] == dest_id).all()
 
-        # Double check mapping
-        assert self.pc.gid2cell(dest_id) == self.neurons[dest_id].icell, \
+        # Double check mapping (skip any synapses onto virtual neurons)
+        assert self.is_virtual_neuron[dest_id] or self.pc.gid2cell(dest_id) == self.neurons[dest_id].icell, \
             f"GID mismatch: {self.pc.gid2cell(dest_id)} != {self.neurons[dest_id].icell}"
 
         synapse_type_id = self.synapses[start_row:end_row, 6]
         axon_distance = self.synapses[start_row:end_row, 7]  # Obs in micrometers
 
         sec_id = self.synapses[start_row:end_row, 9]
-        dend_sections = self.neurons[dest_id].map_id_to_compartment(sec_id)
         sec_x = self.synapses[start_row:end_row, 10] / 1000.0  # Convert to number 0-1
 
         # Conductances are stored in pS (because we use INTs), NEURON wants it in microsiemens
@@ -771,7 +766,11 @@ class SnuddaSimulate(object):
         parameter_id = self.synapses[start_row:end_row, 12]
         voxel_coords = self.synapses[start_row:end_row, 2:5]
 
-        self.verify_synapse_placement(dend_sections, sec_x, dest_id, voxel_coords)
+        if not self.is_virtual_neuron[dest_id]:
+            dend_sections = self.neurons[dest_id].map_id_to_compartment(sec_id)
+            self.verify_synapse_placement(dend_sections, sec_x, dest_id, voxel_coords, source_id_list)
+        else:
+            dend_sections = None
 
         return source_id_list, dest_id, dend_sections, sec_id, sec_x, synapse_type_id, \
                axon_distance, conductance, parameter_id
@@ -784,6 +783,10 @@ class SnuddaSimulate(object):
 
         source_id_list, dest_id, dend_sections, sec_id, sec_x, synapse_type_id, \
         axon_distance, conductance, parameter_id = self.get_synapse_info(start_row=start_row, end_row=end_row)
+
+        if dend_sections is None:
+            # Target neuron was a virtual neuron, skip it
+            return 0
 
         for (src_id, section, section_id, section_x, s_type_id, axon_dist, cond, p_id) \
                 in zip(source_id_list, dend_sections, sec_id, sec_x, synapse_type_id,
@@ -947,6 +950,10 @@ class SnuddaSimulate(object):
 
         """
 
+        if self.is_virtual_neuron[cell_id_dest]:
+            # The target neuron is a virtual neuron, do not add synapse
+            return
+
         # You can not locate a point process at endpoints (position 0.0 or 1.0) if it needs an ion
         if section_dist == 0.0:
             section_dist = 0.01
@@ -1013,10 +1020,6 @@ class SnuddaSimulate(object):
             synapse_delay = (1e3 * 1e-6 * axon_dist) / self.axon_speed + self.synapse_delay
         else:
             synapse_delay = self.synapse_delay
-
-        if self.is_virtual_neuron[cell_id_source]:
-            # Source is a virtual neuron, need to read and connect input
-            src_name = self.network_info["neurons"][cell_id_source]["name"]
 
         # Prevent garbage collection in python
         if (cell_id_source, cell_id_dest) not in self.synapse_dict:
@@ -1114,9 +1117,9 @@ class SnuddaSimulate(object):
                 self.external_stim[neuron_id, input_type] = []
 
                 neuron_input = self.input_data["input"][str(neuron_id)][input_type]
-                sections = self.neurons[neuron_id].map_id_to_compartment(neuron_input["sectionID"])
-                mod_file = SnuddaLoad.to_str(neuron_input["modFile"][()])
-                param_list = json.loads(neuron_input["parameterList"][()], object_pairs_hook=OrderedDict)
+                sections = self.neurons[neuron_id].map_id_to_compartment(neuron_input.attrs["sectionID"])
+                mod_file = SnuddaLoad.to_str(neuron_input.attrs["modFile"])
+                param_list = json.loads(neuron_input.attrs["parameterList"], object_pairs_hook=OrderedDict)
 
                 # TODO: Sanity check mod_file string
                 eval_str = f"self.sim.neuron.h.{mod_file}"
@@ -1124,9 +1127,10 @@ class SnuddaSimulate(object):
 
                 for input_id, (section, section_x, param_id, n_spikes) \
                         in enumerate(zip(sections,
-                                         neuron_input["sectionX"],
-                                         neuron_input["parameterID"],
-                                         neuron_input["nSpikes"])):
+                                         neuron_input.attrs["sectionX"],
+                                         neuron_input.attrs["parameterID"],
+                                         neuron_input["spikes"].attrs["nSpikes"])):
+
                     # We need to find cellID (int) from neuronID (string, eg. MSD1_3)
 
                     idx = input_id
@@ -1158,7 +1162,7 @@ class SnuddaSimulate(object):
                     nc = h.NetCon(vs, syn)
 
                     nc.delay = 0.0
-                    nc.weight[0] = neuron_input["conductance"][()] * 1e6  # Neurons needs microsiemens
+                    nc.weight[0] = neuron_input.attrs["conductance"][()] * 1e6  # Neurons needs microsiemens
                     nc.threshold = 0.1
 
                     # Get the modifications of synapse parameters, specific to this synapse
@@ -1237,14 +1241,6 @@ class SnuddaSimulate(object):
             for sec in cell:
                 for seg in sec.allseg():
                     seg.v = rest_volt * 1e3
-
-    ############################################################################
-
-    def add_virtual_neuron_input(self):
-
-        self.write_log("Adding inputs from virtual neurons")
-
-        assert False, "addVirtualNeuronInput not implemented"  # Remove?
 
     ############################################################################
 
@@ -1377,17 +1373,18 @@ class SnuddaSimulate(object):
                         sec_id.append(sid + 1)  # NEURON indexes from 0, Snudda has soma as 0, and first dendrite is 1
                         sec_x.append(seg.x)
 
-
             self.add_volt_recording(cell_id=cid, sec_id=sec_id, sec_x=sec_x)
 
     def add_volt_recording_soma(self, cell_id=None):
+
+        # Adds somatic voltage recording to neurons on worker (but not virtual neurons)
 
         if cell_id is None:
             cell_id = self.neuron_id
 
         for cid in cell_id:
 
-            if cid in self.neurons.keys():
+            if cid in self.neurons.keys() and not self.is_virtual_neuron[cid]:
                 self.add_volt_recording(cid, [0], [0.5])
 
     def add_volt_recording(self, cell_id: int, sec_id, sec_x):
@@ -1473,6 +1470,9 @@ class SnuddaSimulate(object):
 
         """ Run simulation. """
 
+        if self.is_virtual_neuron.all():
+            print("ALL YOUR NEURONS IN THE SIMULATION ARE VIRTUAL")
+
         self.setup_print_sim_time(t)
 
         start_time = timeit.default_timer()
@@ -1525,7 +1525,7 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def verify_synapse_placement(self, sec_list, sec_x_list, dest_id, voxel_coords):
+    def verify_synapse_placement(self, sec_list, sec_x_list, dest_id, voxel_coords, source_id_list=None):
 
         """ Verifies synapse placement.
 
@@ -1538,6 +1538,7 @@ class SnuddaSimulate(object):
                 sec_x_list (list) : list of X values 0 to 1.0
                 dest_id (int) : ID of the neuron receiving synapse (one value!)
                 voxel_coords : voxel that the synapse is in
+                source_id_list (np.array) : ID of sending neurons, not used, for debug
 
         """
 
@@ -1562,7 +1563,7 @@ class SnuddaSimulate(object):
                 norm_arc_dist = arc_dist / arc_dist[-1]
                 old_sec = sec
 
-            # Find closest point
+            # Find the closest point
             closest_idx = np.argmin(np.abs(norm_arc_dist - sec_x))
 
             syn_pos_nrn[i, 0] = h.x3d(closest_idx, sec=sec)
@@ -1576,10 +1577,13 @@ class SnuddaSimulate(object):
 
         syn_mismatch = np.sqrt(np.sum((syn_pos_nrn_rot - synapse_pos) ** 2, axis=1))
 
-        bad_threshold = 20
+        bad_threshold = 22
         num_bad = np.sum(syn_mismatch > bad_threshold)
 
         if num_bad > 0:
+            bad_idx = np.where(syn_mismatch > bad_threshold)[0]
+            bad_sec_len = [sec_list[bi].L for bi in bad_idx]
+
             # If this happens, check that Neuron does not warn for removing sections
             # due to having only one point
             self.write_log(f"!!! Found {num_bad} synapses on "
@@ -1592,44 +1596,98 @@ class SnuddaSimulate(object):
                            f" compartment of each dendrite is not too far away from the soma, then NEURON "
                            f" adds an extra connecting compartment which messes up section IDs.",
                            is_error=True)
+            self.write_log(f"Length of sections with bad synapses: {bad_sec_len}", is_error=True)
+
+            for bi in bad_idx:
+                closest_sec, closest_sec_x, min_dist = self.find_closest_point_on_neuron(neuron_id=dest_id,
+                                                                                         synapse_xyz=synapse_pos[bi, :])
+
+                print(f"Neuron id: {dest_id} Bad synapse {bi} on {sec_list[bi]} {sec_x_list[bi]}, "
+                      f"closer match at {closest_sec} {closest_sec_x}, dist: {min_dist} (source: {source_id_list[bi]})")
+
+            import pdb
+            pdb.set_trace()
 
             ### DEBUG PLOT!!!
 
-            if False:
+            if True:
                 import matplotlib.pyplot as plt
-                plt.figure()
-
-                soma_dist = np.sqrt(np.sum(synapse_pos ** 2, axis=1))
-                plt.scatter(soma_dist * 1e6, syn_mismatch)
-                # plt.ion()
-                plt.show()
-                plt.title(self.network_info["neurons"][dest_id]["name"])
+                # plt.figure()
+                #
+                # soma_dist = np.sqrt(np.sum(synapse_pos ** 2, axis=1))
+                # plt.scatter(soma_dist * 1e6, syn_mismatch)
+                # # plt.ion()
+                # plt.show()
+                # plt.title(self.network_info["neurons"][dest_id]["name"])
 
                 fig = plt.figure()
                 ax = fig.add_subplot(projection='3d')
 
+                syn_size = np.full((synapse_pos.shape[0],), 10)
+                syn_size[bad_idx] = 50
+
+                col_list = ['orange' for x in range(synapse_pos.shape[0])]
+                for b in bad_idx:
+                    col_list[b] = 'red'
+
                 ax.scatter(synapse_pos[:, 0],
                            synapse_pos[:, 1],
-                           synapse_pos[:, 2], color="red")
+                           synapse_pos[:, 2], color=col_list, s=syn_size)
                 ax.scatter(syn_pos_nrn_rot[:, 0],
                            syn_pos_nrn_rot[:, 1],
-                           syn_pos_nrn_rot[:, 2], color="black", s=50)
+                           syn_pos_nrn_rot[:, 2], color="black", s=syn_size*2)
 
                 if True:
                     # Draw neuron
-                    all_sec = [x for x in neuron.h.allsec() if "axon" not in str(x)]
-                    for x in np.linspace(0, 1, 10):
-                        sec_pos = np.array([[h.x3d(x, sec=sec),
-                                             h.y3d(x, sec=sec),
-                                             h.z3d(x, sec=sec)]
-                                            for sec in all_sec])
+                    # all_sec = [x for x in neuron.h.allsec() if "axon" not in str(x)]
+                    all_sec = [s for s in self.neurons[dest_id].icell.dend]
+                    for sec in all_sec:
+                        x = np.array([h.x3d(i, sec=sec) for i in range(sec.n3d())])
+                        y = np.array([h.y3d(i, sec=sec) for i in range(sec.n3d())])
+                        z = np.array([h.z3d(i, sec=sec) for i in range(sec.n3d())])
 
-                        ax.scatter(sec_pos[:, 0], sec_pos[:, 1], sec_pos[:, 2], color="blue")
+                        xyz = np.matmul(neuron_rotation, np.array([x, y, z]))
 
-                plt.savefig("DEBUG-plot-bad-synapse-placement.pdf", dpi=600)
+                        ax.plot(xyz[0, :].T, xyz[1, :].T, xyz[2, :].T, 'b-')
+
+                plt.pause(0.001)
+                plt.savefig("DEBUG-plot-bad-synapse-placement.png", dpi=600)
+                plt.ion()
+                plt.show()
+                plt.pause(0.001)
 
                 import pdb
                 pdb.set_trace()
+
+    ############################################################################
+
+    def find_closest_point_on_neuron(self, neuron_id, synapse_xyz):
+
+        min_dist = np.inf
+        closest_sec = None
+        closest_sec_x = None
+
+        neuron_rotation = self.network_info["neurons"][neuron_id]["rotation"]
+
+        for sec in self.neurons[neuron_id].icell.dend:
+            # Extract all coordinates
+            n_points = int(h.n3d(sec=sec))
+            xyz = np.zeros((n_points, 3))
+            for i in range(0, n_points):
+                xyz[i, 0] = h.x3d(i, sec=sec)
+                xyz[i, 1] = h.y3d(i, sec=sec)
+                xyz[i, 2] = h.z3d(i, sec=sec)
+
+            xyz = np.transpose(np.matmul(neuron_rotation, np.transpose(xyz)))
+            d = np.linalg.norm(xyz-synapse_xyz, axis=1)
+            d_min_idx = np.argmin(d)
+
+            if d[d_min_idx] < min_dist:
+                min_dist = d[d_min_idx]
+                closest_sec = sec
+                closest_sec_x = sec.arc3d(d_min_idx) / sec.arc3d(n_points-1)
+
+        return closest_sec, closest_sec_x, min_dist
 
     ############################################################################
 
@@ -1779,7 +1837,7 @@ class SnuddaSimulate(object):
         if dt is None:
             dt = h.dt
         else:
-            dt *= 1e3 # Convert to ms
+            dt *= 1e3  # Convert to ms
 
         t_vec = h.Vector(np.linspace(start_time*1e3, duration*1e3, int(duration*1e3 / dt)))
 

@@ -88,7 +88,7 @@ class SwapToDegeneratedMorphologies:
             del self.new_hdf5["meta/snuddaData"]
             self.new_hdf5["meta"].create_dataset("snuddaData", data=self.new_snudda_data_dir)
         else:
-            self.new_hdf5["meta/SnuddaData"] = self.new_snudda_data_dir
+            self.new_hdf5["meta/snuddaData"][()] = self.new_snudda_data_dir
         network_group = self.new_hdf5.create_group("network")
         self.old_hdf5.copy(source=self.old_hdf5["network/neurons"], dest=self.new_hdf5["network"])
 
@@ -98,8 +98,8 @@ class SwapToDegeneratedMorphologies:
             param_key, morph_key, neuron_path, param_id, morph_id = self.find_morpology(neuron_id)
             self.new_hdf5[f"network/neurons/parameterKey"][idx] = param_key
             self.new_hdf5[f"network/neurons/morphologyKey"][idx] = morph_key
-            self.new_hdf5[f"network/neurons/parameterID"][idx] = param_id
-            self.new_hdf5[f"network/neurons/morphologyID"][idx] = morph_id
+            # self.new_hdf5[f"network/neurons/parameterID"][idx] = param_id
+            # self.new_hdf5[f"network/neurons/morphologyID"][idx] = morph_id
 
         self.filter_synapses(filter_axon=self.filter_axon)
         self.filter_gap_junctions()
@@ -226,8 +226,6 @@ class SwapToDegeneratedMorphologies:
         if neuron_cache_key is None:
             neuron_cache_key = self.neuron_cache_key
 
-        # print(f"Neuron cache size: {len(self.neuron_cache)}")
-
         if neuron_id is not None and neuron_id in neuron_cache_id:
             return neuron_cache_id[neuron_id]
 
@@ -247,8 +245,8 @@ class SwapToDegeneratedMorphologies:
         else:
             neuron_name = None
 
-        assert neuron_path is not None and parameter_key is not None and morphology_key is not None, \
-            "Either provide neuron_id, hdf5 or the three neuron_path, parameter_key and morphology_key"
+        # assert neuron_path is not None and parameter_key is not None and morphology_key is not None, \
+        #     "Either provide neuron_id, hdf5 or the three neuron_path, parameter_key and morphology_key"
 
         if neuron_id is not None and hdf5:
             pos = hdf5["network/neurons/position"][neuron_id, :]
@@ -284,11 +282,6 @@ class SwapToDegeneratedMorphologies:
         old_sec_id = synapses[:, 9]
         old_sec_x = synapses[:, 10]
 
-        # if pre_id == 4 and post_id == 100:
-        #     print("Tell me why 10 501")
-        #     import pdb
-        #     pdb.set_trace()
-
         keep_idx, new_sec_id, new_sec_x \
             = self.remap_sections_helper(neuron_id=post_id, old_sec_id=old_sec_id, old_sec_x=old_sec_x/1000.0)
 
@@ -306,11 +299,6 @@ class SwapToDegeneratedMorphologies:
 
     def filter_axonal_synapses_helper(self, synapses, max_dist=5.41e-6):
 
-        # if synapses.size > 0 and synapses[0, 0] == 289 and synapses[0, 1] == 477:
-        #     print("Tell me WHY!")
-        #     import pdb
-        #     pdb.set_trace()
-
         """ Filter the synapses that have the axon degeneration, presynaptic neurons without axons are ignored. """
 
         pre_id = synapses[:, 0]
@@ -327,17 +315,17 @@ class SwapToDegeneratedMorphologies:
         for idx, (pid, coord) in enumerate(zip(pre_id, synapse_coordinates)):
 
             if pid != loaded_pid:
-
                 morph = self.get_morphology(neuron_id=pid, hdf5=self.new_hdf5, snudda_data=self.new_snudda_data_dir)
                 loaded_pid = pid
 
-                if len(morph.axon) > 0:
+                # Has axon?
+                if 2 in morph.morphology_data["neuron"].sections and len(morph.morphology_data["neuron"].sections[2]) > 0:
                     axon_tree = self.get_kd_tree(morph, "axon")
 
                     if self.has_axon_density[pid]:
                         axon_tree = None
                         # print(f"Warning: Axon and axonal density specified for neuron {pid}")
-                        # print(f"Ignoring morphology --- for now, will change behaviour in future.")
+                        # print(f"Ignoring morphology --- for now, will change behaviour in the future.")
                 else:
                     axon_tree = None
 
@@ -407,13 +395,15 @@ class SwapToDegeneratedMorphologies:
         # We assume the new morphology is in the same relative path, but using a different SNUDDA_DATA
         orig_simple_path = SnuddaLoad.to_str(self.old_data["neurons"][neuron_id]["neuronPath"])
         orig_neuron_path = snudda_parse_path(orig_simple_path, os.path.realpath(self.original_snudda_data_dir))
-        new_neuron_path = snudda_parse_path(orig_simple_path, os.path.realpath(self.new_snudda_data_dir))
+        # new_neuron_path = snudda_parse_path(orig_simple_path, os.path.realpath(self.new_snudda_data_dir))
+        new_neuron_path = orig_neuron_path.replace(os.path.realpath(self.original_snudda_data_dir),
+                                                   os.path.realpath(self.new_snudda_data_dir))
 
-        if orig_morph_key == '':
+        if orig_morph_key is None or orig_morph_key == '':
             # Only a single morphology
 
-            original_morphology_id = self.old_data["neurons"][neuron_id]["morphologyID"]
-            original_parameter_id = self.old_data["neurons"][neuron_id]["parameterID"]
+            original_morphology_id = 0  # self.old_data["neurons"][neuron_id]["morphologyID"]
+            original_parameter_id = 0  # self.old_data["neurons"][neuron_id]["parameterID"]
 
             return '', '', new_neuron_path, original_parameter_id, original_morphology_id
 
@@ -452,6 +442,9 @@ class SwapToDegeneratedMorphologies:
 
     def get_sec_location(self, coords, neuron_path, snudda_data,
                          parameter_key, morphology_key, max_dist=5.41e-6):
+
+        raise DeprecationWarning("This function is no longer used. It is based on old NeuronMorphology -- REMOVE?")
+        assert False, "Do not run this!"
 
         morph = self.get_morphology(neuron_path=neuron_path,
                                     parameter_key=parameter_key,
@@ -512,8 +505,8 @@ class SwapToDegeneratedMorphologies:
 
                 keep_idx, new_sec_id, new_sec_x \
                     = self.remap_sections_helper(neuron_id=int(neuron),
-                                                 old_sec_id=old_input_data["sectionID"],
-                                                 old_sec_x=old_input_data["sectionX"])
+                                                 old_sec_id=old_input_data.attrs["sectionID"],
+                                                 old_sec_x=old_input_data.attrs["sectionX"])
 
                 if len(keep_idx) == 0 and not (remap_removed_input and remapped_fraction > 0):
                     continue
@@ -521,26 +514,27 @@ class SwapToDegeneratedMorphologies:
                 input_group = neuron_group.create_group(input_type)
 
                 if remap_removed_input:
+
                     # We need to find new positions for input marked as removed
                     morph = self.get_morphology(neuron_id=int(neuron), hdf5=self.new_hdf5,
                                                 snudda_data=self.new_snudda_data_dir)
 
-                    n_remap = len(old_input_data["sectionID"]) - len(keep_idx)
-                    idx_remap = sorted(list(set(np.arange(0, len(old_input_data["sectionID"]))) - set(keep_idx)))
+                    n_remap = len(old_input_data.attrs["sectionID"]) - len(keep_idx)
+                    idx_remap = sorted(list(set(np.arange(0, len(old_input_data.attrs["sectionID"]))) - set(keep_idx)))
 
                     if remapped_fraction < 1.0:
                         n_remap = int(np.round(len(idx_remap) * remapped_fraction))
                         idx_remap = sorted(list(np.random.permutation(idx_remap)[:n_remap]))
 
                     try:
-                        synapse_density = SnuddaLoad.to_str(old_input_data["synapseDensity"][()])
+                        synapse_density = SnuddaLoad.to_str(old_input_data.attrs["synapseDensity"])
                     except:
                         import traceback
                         print(traceback.format_exc())
                         import pdb
                         pdb.set_trace()
 
-                    xyz, sec_id, sec_x, dist_to_soma = morph.dendrite_input_locations(synapse_density=synapse_density,
+                    xyz, sec_id, sec_x, dist_to_soma = morph.dendrite_input_locations(synapse_density_str=synapse_density,
                                                                                       num_locations=n_remap,
                                                                                       rng=self.rng,
                                                                                       cluster_size=1,
@@ -553,48 +547,52 @@ class SwapToDegeneratedMorphologies:
                     keep_idx2 = sorted(list(set(keep_idx).union(set(idx_remap))))
 
                     # Same spikes as before
-                    input_group.create_dataset("spikes", data=old_input_data["spikes"][keep_idx2, :],
-                                               compression="gzip", dtype=np.float32)
-                    input_group.create_dataset("nSpikes", data=old_input_data["nSpikes"][keep_idx2], dtype=np.int32)
+                    spike_set = input_group.create_dataset("spikes", data=old_input_data["spikes"][keep_idx2, :],
+                                                           compression="gzip", dtype=np.float32)
+                    spike_set.attrs["nSpikes"] = old_input_data["spikes"].attrs["nSpikes"][keep_idx2].astype(np.int32)
 
                     # New locations for the remapped synapses
                     new_sec_id[idx_remap] = sec_id
-                    input_group.create_dataset("sectionID", data=new_sec_id[keep_idx2], compression="gzip",
-                                               dtype=np.int16)
+                    input_group.attrs["sectionID"] = new_sec_id[keep_idx2].astype(np.int16)
 
                     new_sec_x[idx_remap] = sec_x
-                    input_group.create_dataset("sectionX", data=new_sec_x[keep_idx2], compression="gzip",
-                                               dtype=np.float16)
+                    input_group.attrs["sectionX"] = new_sec_x[keep_idx2].astype(np.float16)
 
-                    input_group.create_dataset("parameterID", data=old_input_data["parameterID"][keep_idx2],
-                                               compression="gzip", dtype=np.int)
+                    input_group.attrs["parameterID"] = old_input_data.attrs["parameterID"][keep_idx2].astype(np.int)
 
-                    updated_dist = old_input_data["distanceToSoma"][()].copy()
+                    updated_dist = old_input_data.attrs["distanceToSoma"].copy()
                     updated_dist[idx_remap] = dist_to_soma
-                    input_group.create_dataset("distanceToSoma", data=updated_dist[keep_idx2], compression="gzip",
-                                               dtype=np.float16)
+                    input_group.attrs["distanceToSoma"] = updated_dist[keep_idx2].astype(np.float16)
 
                     for data_name in ["freq", "correlation", "jitter", "synapseDensity", "start", "end", "conductance",
                                       "populationUnitID", "populationUnitSpikes", "generator",
                                       "modFile", "parameterFile", "parameterList"]:
-                        if data_name in old_input_data:
+
+                        if data_name in old_input_data.attrs:
+                            input_group.attrs[data_name] = old_input_data.attrs[data_name]
+                        elif data_name in old_input_data["spikes"].attrs:
+                            input_group["spikes"].attrs[data_name] = old_input_data["spikes"].attrs[data_name]
+                        elif data_name in old_input_data:
                             old_input_data.copy(source=old_input_data[data_name], dest=input_group)
 
                 else:
                     input_group.create_dataset("spikes", data=old_input_data["spikes"][keep_idx, :],
                                                compression="gzip", dtype=np.float32)
-                    input_group.create_dataset("nSpikes", data=old_input_data["nSpikes"][keep_idx], dtype=np.int32)
-                    input_group.create_dataset("sectionID", data=new_sec_id[keep_idx], compression="gzip", dtype=np.int16)
-                    input_group.create_dataset("sectionX", data=new_sec_x[keep_idx], compression="gzip", dtype=np.float16)
-                    input_group.create_dataset("parameterID", data=old_input_data["parameterID"][keep_idx],
-                                               compression="gzip", dtype=np.int)
-                    input_group.create_dataset("distanceToSoma", data=old_input_data["distanceToSoma"][keep_idx],
-                                               compression="gzip", dtype=np.float16)
+                    input_group["spikes"].attrs["nSpikes"] = old_input_data["spikes"].attrs["nSpikes"][keep_idx]
+                    input_group.attrs["sectionID"] = new_sec_id[keep_idx]
+                    input_group.attrs["sectionX"] = new_sec_x[keep_idx]
+                    input_group.attrs["parameterID"] = old_input_data.attrs["parameterID"][keep_idx]
+                    input_group.attrs["distanceToSoma"] = old_input_data.attrs["distanceToSoma"][keep_idx]
 
                     for data_name in ["freq", "correlation", "jitter", "synapseDensity", "start", "end", "conductance",
                                       "populationUnitID", "populationUnitSpikes", "generator",
                                       "modFile", "parameterFile", "parameterList"]:
-                        if data_name in old_input_data:
+
+                        if data_name in old_input_data.attrs:
+                            input_group.attrs[data_name] = old_input_data.attrs[data_name]
+                        elif data_name in old_input_data["spikes"].attrs:
+                            input_group["spikes"].attrs[data_name] = old_input_data["spikes"].attrs[data_name]
+                        elif data_name in old_input_data:
                             old_input_data.copy(source=old_input_data[data_name], dest=input_group)
 
                     old_n += old_input_data['spikes'].shape[0]
@@ -611,13 +609,16 @@ class SwapToDegeneratedMorphologies:
         if kd_tree_cache is None:
             kd_tree_cache = self.kd_tree_cache
 
+        morph_type_lookup = {"axon": 2, "dend": 3}
+
         if (neuron, tree_type) not in kd_tree_cache:
+            morph_type = morph_type_lookup[tree_type]
 
-            coords = {"axon": neuron.axon[:, :3],
-                      "dend": neuron.dend[:, :3]}
+            idx = np.where(neuron.morphology_data["neuron"].section_data[:, 2] == morph_type)[0]
+            coords = neuron.morphology_data["neuron"].geometry[idx, :3]
 
-            if coords[tree_type].size > 0:
-                kd_tree_cache[(neuron, tree_type)] = cKDTree(coords[tree_type])
+            if coords.size > 0:
+                kd_tree_cache[(neuron, tree_type)] = cKDTree(coords)
             else:
                 kd_tree_cache[(neuron, tree_type)] = None
 
@@ -643,15 +644,16 @@ class SwapToDegeneratedMorphologies:
                                         neuron_path=old_path, snudda_data=self.original_snudda_data_dir)
         new_morph = self.get_morphology(parameter_key=new_param_key, morphology_key=new_morph_key,
                                         neuron_path=new_path, snudda_data=self.new_snudda_data_dir)
-
         coord_to_sec_id_x = dict()
-        for link, old_sec_id, old_sec_x in zip(old_morph.dend_links, old_morph.dend_sec_id, old_morph.dend_sec_x):
-            coord = (old_morph.dend[link[1], :3] * 1e9).astype(int)
-
+        old_dend_idx = np.where(old_morph.morphology_data["neuron"].section_data[:, 2] == 3)[0]
+        for idx in old_dend_idx:
+            coord = (old_morph.morphology_data["neuron"].geometry[idx, :3] * 1e9).astype(int)
             assert (coord[0], coord[1], coord[2]) not in coord_to_sec_id_x, \
                 f"Coordinates {(coord[0], coord[1], coord[2])} already exists in {coord_to_sec_id_x}"
 
-            coord_to_sec_id_x[coord[0], coord[1], coord[2]] = (old_sec_id, old_sec_x[1])
+            old_sec_id = old_morph.morphology_data["neuron"].section_data[idx, 0]
+            old_sec_x = old_morph.morphology_data["neuron"].section_data[idx, 1] / 1e3
+            coord_to_sec_id_x[coord[0], coord[1], coord[2]] = (old_sec_id, old_sec_x)
 
         old_to_new_sec_id = dict()
         old_sec_x_list = dict()
@@ -659,8 +661,11 @@ class SwapToDegeneratedMorphologies:
         # We just need to find the maximal old sec_x still present,
         # that value will map to sec_x 1.0 in new (stored as int sec_x*1000)
 
-        for link, new_sec_id, new_sec_x in zip(new_morph.dend_links, new_morph.dend_sec_id, new_morph.dend_sec_x):
-            coord = (new_morph.dend[link[1], :3] * 1e9).astype(int)
+        new_dend_idx = np.where(new_morph.morphology_data["neuron"].section_data[:, 2] == 3)[0]
+        for idx in new_dend_idx:
+            coord = (new_morph.morphology_data["neuron"].geometry[idx, :3] * 1e9).astype(int)
+            new_sec_id = new_morph.morphology_data["neuron"].section_data[idx, 0]
+            new_sec_x = new_morph.morphology_data["neuron"].section_data[idx, 1] / 1e3
 
             try:
                 old_sec_id, old_sec_x = coord_to_sec_id_x[coord[0], coord[1], coord[2]]
@@ -684,13 +689,18 @@ class SwapToDegeneratedMorphologies:
                old_to_new_sec_id[old_sec_id] = new_sec_id
 
             if old_sec_id not in old_sec_x_list:
-                old_sec_x_list[old_sec_id] = [0, old_sec_x]
-                new_sec_x_list[old_sec_id] = [0, new_sec_x[1]]
+                if old_sec_x > 0:
+                    old_sec_x_list[old_sec_id] = [0, old_sec_x]
+                    new_sec_x_list[old_sec_id] = [0, new_sec_x]
+                else:
+                    old_sec_x_list[old_sec_id] = [old_sec_x]
+                    new_sec_x_list[old_sec_id] = [new_sec_x]
             else:
                 old_sec_x_list[old_sec_id].append(old_sec_x)
-                new_sec_x_list[old_sec_id].append(new_sec_x[1])
+                new_sec_x_list[old_sec_id].append(new_sec_x)
 
-        neuron_section_lookup = {0: (0, np.array([0, 1]), np.array([0, 1]))}  # Add SOMA mapping. ID 0-1 --> ID 0-1
+        # Soma ID now -1, updated mapping
+        neuron_section_lookup = {-1: (-1, np.array([0, 1]), np.array([0, 1]))}  # Add SOMA mapping. SecX 0-1 --> ID 0-1
 
         for old_sec_id in old_to_new_sec_id.keys():
 
@@ -701,11 +711,15 @@ class SwapToDegeneratedMorphologies:
                                                  np.array(old_sec_x_list[old_sec_id]),
                                                  np.array(new_sec_x_list[old_sec_id]))
 
-        assert len(neuron_section_lookup) > 3, (f"Section lookup has few elements. Does morphologies match?"
-                                                 f"\nOld = {old_path, old_param_key, old_morph_key}"
-                                                 f"\nNew = {new_path, new_param_key, new_morph_key}")
+        if True:
+            assert len(neuron_section_lookup) > 3, (f"Section lookup has few elements. Does morphologies match?"
+                                                     f"\nOld = {old_path, old_param_key, old_morph_key}"
+                                                     f"\nNew = {new_path, new_param_key, new_morph_key}")
 
             # Check that all new_coords exist in the old_coords list.
+
+        # import pdb
+        # pdb.set_trace()
 
         self.section_lookup[old_param_key, old_morph_key, old_path] = neuron_section_lookup
 
@@ -756,11 +770,6 @@ class SwapToDegeneratedMorphologies:
                     keep_idx[idx] = True
                     new_sec_id[idx] = new_id
                     new_sec_x[idx] = new_x
-
-                # if neuron_id == 501:
-                #     print("Check why synapses to neuron 10 is removed. Tell me why?")
-                #    import pdb
-                #    pdb.set_trace()
 
         return np.where(keep_idx)[0], new_sec_id, new_sec_x
 

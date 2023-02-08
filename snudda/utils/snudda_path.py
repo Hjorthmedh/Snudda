@@ -2,6 +2,8 @@ import os
 import json
 import h5py
 import numpy as np
+import functools
+
 
 # We allow user to use $DATA to specify the Snudda data folder.
 # Default is the Snudda/snudda/data folder, but the user can set the SNUDDA_DATA environment variable
@@ -9,7 +11,9 @@ import numpy as np
 
 # TODO: Add SNUDDA_PATH to network_config file
 
-
+# snudda_parse_path is slow due to os calls, so cache results
+# @functools.cache   # TODO: This is valid from python 3.9.2 -- change to this in the future, for now keep lru_cache
+@functools.lru_cache(maxsize=None)
 def snudda_parse_path(path, snudda_data):
     """ Parses a data path, replacing $DATA with the path to SNUDDA_DATA set by environment variable.
 
@@ -60,8 +64,8 @@ def get_snudda_data(snudda_data=None, config_file=None, network_path=None, verbo
         network_file = os.path.join(network_path, "network-synapses.hdf5")
         if os.path.isfile(network_file):
             with h5py.File(network_file, "r") as f:
-                if "meta" in f and "SnuddaData" in f["meta"]:
-                    snudda_data_str = f["meta/SnuddaData"][()]
+                if "meta" in f and "snuddaData" in f["meta"]:
+                    snudda_data_str = f["meta/snuddaData"][()]
                     if type(snudda_data_str) in [bytes, np.bytes_]:
                         snudda_data = snudda_data_str.decode()
                     else:
@@ -112,6 +116,8 @@ def snudda_path_exists(path, snudda_data):
     return os.path.exists(snudda_parse_path(path, snudda_data))
 
 
+# @functools.cache   # TODO: This is valid from python 3.9.2 -- change to this in the future, for now keep lru_cache
+@functools.lru_cache(maxsize=None)
 def snudda_simplify_path(path, snudda_data):
     """ Simplifies path, replacing any occurance of SNUDDA_DATA in the path with $SNUDDA_DATA.
 

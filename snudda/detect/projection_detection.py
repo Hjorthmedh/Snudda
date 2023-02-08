@@ -4,6 +4,8 @@ from collections import OrderedDict
 import numpy as np
 from scipy.interpolate import griddata
 
+from snudda.utils import snudda_parse_path
+
 
 class ProjectionDetection:
 
@@ -274,7 +276,7 @@ class ProjectionDetection:
                         self.snudda_detect.axon_voxel_ctr[x, y, z] += 1
                         self.snudda_detect.axon_soma_dist[x, y, z] = axon_dist  # This is an underestimation
                     else:
-                        self.snudda_detect.voxel_overflow_ctr += 1
+                        self.snudda_detect.voxel_overflow_counter += 1
 
     def get_neurons_of_type(self, neuron_type):
         neuron_id = np.array([x["neuronID"] for x in self.snudda_detect.neurons if x["type"] == neuron_type])
@@ -309,7 +311,8 @@ class ProjectionDetection:
                         projection_name = f"{con_name},{con_type}"
 
                     self.add_projection(projection_name=projection_name, pre_neuron_type=pre_neuron_type,
-                                        projection_file=con_config["projectionConfigFile"])
+                                        projection_file=snudda_parse_path(con_config["projectionConfigFile"],
+                                                                          snudda_data=self.snudda_detect.snudda_data))
 
     def add_projection(self, projection_name, pre_neuron_type, projection_file):
 
@@ -331,6 +334,12 @@ class ProjectionDetection:
             proj_file_info = projection_data[projection_name]
         else:
             proj_file_info = projection_data
+
+        if "axonMorphology" in proj_file_info:
+            self.write_log("Axon morphology projections not handled by projection_detection.py")
+            self.write_log("UPDATING THE CODE, MAKE SURE detect.py DOES INCLUDE IT IN NEURON MORPHOLOGIES FOR NORMAL DETECTION")
+            self.write_log("This code might become obsolete...")
+            return
 
         assert "source" in proj_file_info, f"'source' must exist in {projection_file}"
         assert "destination" in proj_file_info, f"'destination' must exist in {projection_file}"
