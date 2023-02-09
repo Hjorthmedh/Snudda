@@ -363,8 +363,8 @@ class SnuddaPlotInputLocations:
                 if s_dist > max_dist:
                     print(f"Synapse at {sec_id_mat} ({sec_x_mat:.3f}) dist {s_dist:.2g} has closer location {sec_id} ({sec_x/1e3:.3f}) dist {syn_dist[c_idx]:.2g} (syn_voxels {syn_voxels})")
 
-            import pdb
-            pdb.set_trace()
+            # import pdb
+            # pdb.set_trace()
             ####
 
         pre_id = synapses[:, 0]

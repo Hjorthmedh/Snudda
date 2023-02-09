@@ -240,7 +240,7 @@ class NeuronMorphologyExtended:
             if sec_x[closest_idx] == section_x:
                 coords = pos[closest_idx, :]
 
-            elif sec_x[closest_idx] < section_x:
+            elif sec_x[closest_idx] < section_x and closest_idx < len(sec_x)-1:
                 x = (section_x - sec_x[closest_idx]) / (sec_x[closest_idx+1] - sec_x[closest_idx])
                 coords = x * pos[closest_idx + 1, :] + (1-x) * pos[closest_idx, :]
 
