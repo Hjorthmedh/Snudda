@@ -227,6 +227,9 @@ class NeuronMorphologyExtended:
         if section_id == -1:
             return self.position
 
+        if "neuron" not in self.morphology_data or 3 not in self.morphology_data["neuron"].sections:
+            raise ValueError(f"No dendrites loaded for neuron {self.swc_filename}")
+
         section = self.morphology_data["neuron"].sections[3][section_id]
         sec_x = section.section_x
         pos = section.position

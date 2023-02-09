@@ -94,6 +94,8 @@ class SegmentIdTestCase(unittest.TestCase):
                                     f"NEURON sec_id {sec.section_id}, sec_x {norm_arc_dist[closest_idx]} has xyz = {x_ref}, {y_ref}, {z_ref}\n"
                                     f"Distance: {np.linalg.norm([x - x_ref, y - y_ref, z - z_ref])} micrometer"
                                     f"\nParent section id : {sec.parent_section_id}"
+                                    f"\nParent point idx : {sec.parent_point_idx}"
+
                                     f"\nClosest section instead is {closest_sec} (x: {closest_sec_x} -- distance {min_dist}")
                 except:
                     import traceback
