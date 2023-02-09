@@ -14,12 +14,13 @@ class SectionMetaData:
 
     """ Holds parent_id, children_id, points_id"""
 
-    __slots__ = ["section_id", "parent_section_id", "parent_section_type",
+    __slots__ = ["section_id", "parent_section_id", "parent_point_idx", "parent_section_type",
                  "child_section_id", "point_idx", "section_type",
                  "morphology_data", "neuron_id"]
 
     section_id: int
-    parent_section_id: int
+    parent_section_idx: int
+    parent_point_idx: int
     parent_section_type: int
     child_section_id: dict
     point_idx: np.ndarray
@@ -35,6 +36,7 @@ class SectionMetaData:
 
         self.point_idx = None
         self.parent_section_id = None
+        self.parent_point_idx = None
         self.parent_section_type = None
         self.child_section_id = None
 
@@ -56,17 +58,20 @@ class SectionMetaData:
         if parent_idx == -1:
             # Special case, section is soma
             self.point_idx = idx
-            self.parent_section_id = -1
+            self.parent_point_idx = -1
             self.parent_section_type = -1
+            self.parent_section_id = -9999
         elif self.morphology_data.section_data[parent_idx, 2] != self.morphology_data.section_data[idx[0], 2]:
             # Special case, root node -- parent section is of different type (e.g. soma -- dend)
             self.point_idx = idx
-            self.parent_section_id = self.morphology_data.section_data[self.point_idx[0], 3]
+            self.parent_point_idx = self.morphology_data.section_data[self.point_idx[0], 3]
             self.parent_section_type = self.morphology_data.section_data[parent_idx, 2]
+            self.parent_section_id = self.morphology_data.section_data[self.parent_point_idx, 0]
         else:
             self.point_idx = np.concatenate(([self.morphology_data.section_data[idx[0], 3]], idx))
-            self.parent_section_id = self.morphology_data.section_data[self.point_idx[0], 3]
+            self.parent_point_idx = self.morphology_data.section_data[self.point_idx[0], 3]
             self.parent_section_type = self.morphology_data.section_data[parent_idx, 2]
+            self.parent_section_id = self.morphology_data.section_data[self.parent_point_idx, 0]
 
         # By definition only the last point in a section can be a parent to other sections
         child_idx = np.where(self.morphology_data.section_data[:, 3] == idx[-1])[0]
@@ -112,8 +117,9 @@ class SectionMetaData:
 
         if share_memory:
             new_smd.point_idx = self.point_idx
-            new_smd.parent_section_id = self.parent_section_id
+            new_smd.parent_point_idx = self.parent_point_idx
             new_smd.child_section_id = self.child_section_id
+            new_smd.parent_section_id = self.parent_section_id
 
             # Prevent the user from changing these now that the memory is shared
             self.point_idx.setflags(write=False)
@@ -121,6 +127,7 @@ class SectionMetaData:
                 cs.setflags(write=False)
         else:
             new_smd.point_idx = self.point_idx.copy()
+            new_smd.parent_point_idx = self.parent_point_idx
             new_smd.parent_section_id = self.parent_section_id
 
             new_smd = dict()
@@ -161,7 +168,7 @@ class MorphologyData:
 
     """
 
-    def __init__(self, swc_file=None, parent_tree_info=None, snudda_data=None, verbose=False):
+    def __init__(self, swc_file=None, parent_tree_info=None, snudda_data=None, verbose=False, use_cache=True):
 
         self.swc_file = swc_file
         self.snudda_data = snudda_data
@@ -180,7 +187,7 @@ class MorphologyData:
         self.parent_tree_info = parent_tree_info     # parent tree, if subtree
 
         if swc_file is not None:
-            self.load_swc_file(swc_file=swc_file)
+            self.load_swc_file(swc_file=swc_file, use_cache=use_cache)
 
         self.kd_tree_lookup = dict()
 
@@ -414,6 +421,7 @@ class MorphologyData:
                 data["sections"][sect_type][sect_key]["section_id"] = sect_value.section_id
                 data["sections"][sect_type][sect_key]["section_type"] = sect_value.section_type
 
+                data["sections"][sect_type][sect_key]["parent_point_idx"] = sect_value.parent_point_idx
                 data["sections"][sect_type][sect_key]["parent_section_id"] = sect_value.parent_section_id
                 data["sections"][sect_type][sect_key]["parent_section_type"] = sect_value.parent_section_type
                 data["sections"][sect_type][sect_key]["point_idx"] = sect_value.point_idx
@@ -457,7 +465,9 @@ class MorphologyData:
                         sec = SectionMetaData(section_id=sect_id, section_type=sect_type,
                                               morphology_data=self, build_section=False)
                         sec.point_idx = sect_val["point_idx"]
+                        sec.parent_point_idx = sect_val["parent_point_idx"]
                         sec.parent_section_id = sect_val["parent_section_id"]
+
                         sec.parent_section_type = sect_val["parent_section_type"]
 
                         sec.child_section_id = dict()

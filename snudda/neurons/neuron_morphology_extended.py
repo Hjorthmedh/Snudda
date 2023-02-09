@@ -227,6 +227,9 @@ class NeuronMorphologyExtended:
         if section_id == -1:
             return self.position
 
+        if "neuron" not in self.morphology_data or 3 not in self.morphology_data["neuron"].sections:
+            raise ValueError(f"No dendrites loaded for neuron {self.swc_filename}")
+
         section = self.morphology_data["neuron"].sections[3][section_id]
         sec_x = section.section_x
         pos = section.position
@@ -237,7 +240,7 @@ class NeuronMorphologyExtended:
             if sec_x[closest_idx] == section_x:
                 coords = pos[closest_idx, :]
 
-            elif sec_x[closest_idx] < section_x:
+            elif sec_x[closest_idx] < section_x and closest_idx < len(sec_x)-1:
                 x = (section_x - sec_x[closest_idx]) / (sec_x[closest_idx+1] - sec_x[closest_idx])
                 coords = x * pos[closest_idx + 1, :] + (1-x) * pos[closest_idx, :]
 

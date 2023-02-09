@@ -341,9 +341,11 @@ class SnuddaPlotInputLocations:
         dist = np.linalg.norm(coords - synapse_coords, axis=-1)
         max_dist = 10e-6  # np.sqrt(3*(5e-6 ** 2))
         if (dist > max_dist).any():
-            print(f"Synapse coordinates mismatch {synapse_coords[np.where(dist > max_dist)[0], :]} "
+            bad_idx = np.where(dist > max_dist)[0]
+            print(f"Synapse coordinates mismatch {synapse_coords[bad_idx, :]} "
                   f"vs {coords[np.where(dist > max_dist)[0], :]}"
-                  f" (distances {dist[np.where(dist > max_dist)[0]]} with allowed max_dist = {max_dist})")
+                  f" (distances {dist[bad_idx]} with allowed max_dist = {max_dist}) "
+                  f" (section id {section_id[bad_idx]}, {section_x[bad_idx]}")
 
             ####
             pos_idx = np.where(np.logical_or(nm.morphology_data["neuron"].section_data[:, 2] == 3,
@@ -361,6 +363,8 @@ class SnuddaPlotInputLocations:
                 if s_dist > max_dist:
                     print(f"Synapse at {sec_id_mat} ({sec_x_mat:.3f}) dist {s_dist:.2g} has closer location {sec_id} ({sec_x/1e3:.3f}) dist {syn_dist[c_idx]:.2g} (syn_voxels {syn_voxels})")
 
+            # import pdb
+            # pdb.set_trace()
             ####
 
         pre_id = synapses[:, 0]
