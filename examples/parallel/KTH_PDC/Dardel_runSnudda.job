@@ -26,4 +26,4 @@ source $HOME/Snudda/snudda_env/bin/activate
 #.. Start the ipcontroller
 bash ipcontroller.sh 
 
-srun -c 1 ./Dardel_runSnudda.sh
+srun -n 1 ./Dardel_runSnudda.sh
