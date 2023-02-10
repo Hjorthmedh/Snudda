@@ -19,10 +19,9 @@ mkdir -p $JOBDIR
 
 echo "Dardel_runSnudda.sh should be started with srun -n 1, to only get one process"
 
-# if [ "$SLURM_PROCID" -gt 0 ]; then
-# 	mock_string="Not main process"
-# 
-# else
+if [ "$SLURM_PROCID" -gt 0 ]; then
+    mock_string="Not main process"
+else
 
     # For debug purposes:                                                         
     echo "PATH: "$PATH
@@ -107,4 +106,4 @@ echo "Dardel_runSnudda.sh should be started with srun -n 1, to only get one proc
     date
     echo "JOB END "`date` start_time_network_connect.txt
 
-# fi
+fi
