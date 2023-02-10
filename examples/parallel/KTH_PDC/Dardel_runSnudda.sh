@@ -19,6 +19,8 @@ mkdir -p $JOBDIR
 
 echo "Dardel_runSnudda.sh should be started with srun -n 1, to only get one process"
 
+echo "SLURM_PROCID = $SLURM_PROCID"
+
 if [ "$SLURM_PROCID" -gt 0 ]; then
     mock_string="Not main process"
 else
