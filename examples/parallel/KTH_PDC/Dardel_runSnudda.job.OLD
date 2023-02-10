@@ -2,7 +2,7 @@
 #SBATCH --partition=main
 #SBATCH -o log/runSnudda-%j-output.txt
 #SBATCH -e log/runSnudda-%j-error.txt
-#SBATCH -t 0:30:00
+#SBATCH -t 1:30:00
 #SBATCH -J Snudda
 #SBATCH -A snic2022-5-245
 #SBATCH --nodes=1
