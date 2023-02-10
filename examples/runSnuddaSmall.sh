@@ -3,7 +3,7 @@ export IPYTHON_PROFILE=default
 
 # If the BasalGangliaData directory exists, then use that for our data
     
-ipcluster start --n=6 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
+ipcluster start --n=4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20
 
 simName=networks/test-10k
@@ -17,7 +17,7 @@ else
 fi
 
 snudda place $simName --parallel
-snudda detect $simName --volumeID Striatum --parallel
+snudda detect $simName --volumeID Striatum --parallel --hvsize 50
 snudda prune $simName --parallel
 
 # Copy over template input, you might need to update the path here if not

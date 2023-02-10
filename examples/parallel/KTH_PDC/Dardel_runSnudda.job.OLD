@@ -2,7 +2,7 @@
 #SBATCH --partition=main
 #SBATCH -o log/runSnudda-%j-output.txt
 #SBATCH -e log/runSnudda-%j-error.txt
-#SBATCH -t 0:30:00
+#SBATCH -t 1:30:00
 #SBATCH -J Snudda
 #SBATCH -A snic2022-5-245
 #SBATCH --nodes=1
@@ -10,20 +10,9 @@
 
 module load snic-env
 
-# Do we need this??
-export OMP_NUM_THREADS=1
-
-let NWORKERS="$SLURM_NTASKS-1"
-export IPNWORKERS=$NWORKERS
-
-
 export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/.ipython"
 rm -r $IPYTHONDIR
 export IPYTHON_PROFILE=default
 source $HOME/Snudda/snudda_env/bin/activate
 
-
-#.. Start the ipcontroller
-bash ipcontroller.sh 
-
-srun -n 1 ./Dardel_runSnudda.sh
+srun ./Dardel_runSnudda.sh.OLD

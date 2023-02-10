@@ -2829,6 +2829,9 @@ class SnuddaDetect(object):
         for i in range(0, step_diff.shape[0]):
             sec_length[i] = np.sqrt(step_diff[i, 0] ** 2 + step_diff[i, 1] ** 2 + step_diff[i, 2]**2)
 
+        # TODO: Should we change the code to do the steps using coords rather than in voxel coords, and then
+        #       convert to voxel coords after? (slower, but would be more accurate)
+
         num_steps = np.ceil(sec_length*self_step_multiplier).astype(np.int64)
 
         # OLD VERSION
@@ -2881,12 +2884,13 @@ class SnuddaDetect(object):
                 vp_y = np.floor(voxel_coords[idx, 1] + dv_step[idx, 1] * steps).astype(np.int64)
                 vp_z = np.floor(voxel_coords[idx, 2] + dv_step[idx, 2] * steps).astype(np.int64)
 
-                if idx == 0:
-                    # Dirty fix to handle that parent point has section_x = 1, but
-                    # child's first point should have section_x = 0
-                    s_x = (section_x[1] / num_steps[0]) * steps
-                else:
-                    s_x = section_x[idx] + ds_step[idx] * steps
+                # Dirty fix no longer needed, section_x for first element set to 0 now
+                # if idx == 0:
+                #     # Dirty fix to handle that parent point has section_x = 1, but
+                #     # child's first point should have section_x = 0
+                #     s_x = (section_x[1] / num_steps[0]) * steps
+                # else:
+                s_x = section_x[idx] + ds_step[idx] * steps
 
                 soma_dist = np.floor(scaled_soma_dist[idx] + dd_step[idx]*steps).astype(np.int64)
 
