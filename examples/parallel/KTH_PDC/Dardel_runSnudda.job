@@ -13,7 +13,7 @@ module load snic-env
 # Do we need this??
 export OMP_NUM_THREADS=1
 
-let NWORKERS="$SLURM_NTASKS"
+let NWORKERS="$SLURM_NTASKS-1"
 export IPNWORKERS=$NWORKERS
 
 
@@ -26,4 +26,4 @@ source $HOME/Snudda/snudda_env/bin/activate
 #.. Start the ipcontroller
 bash ipcontroller.sh 
 
-srun ./Dardel_runSnudda.sh
+srun -n 1 ./Dardel_runSnudda.sh
