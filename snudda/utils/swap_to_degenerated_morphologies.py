@@ -689,15 +689,28 @@ class SwapToDegeneratedMorphologies:
                old_to_new_sec_id[old_sec_id] = new_sec_id
 
             if old_sec_id not in old_sec_x_list:
-                if old_sec_x > 0:
-                    old_sec_x_list[old_sec_id] = [0, old_sec_x]
-                    new_sec_x_list[old_sec_id] = [0, new_sec_x]
-                else:
-                    old_sec_x_list[old_sec_id] = [old_sec_x]
-                    new_sec_x_list[old_sec_id] = [new_sec_x]
+                old_sec_x_list[old_sec_id] = [old_sec_x]
+                new_sec_x_list[old_sec_id] = [new_sec_x]
             else:
                 old_sec_x_list[old_sec_id].append(old_sec_x)
                 new_sec_x_list[old_sec_id].append(new_sec_x)
+
+        new_to_old_sec_id = dict()
+        for old_sec_id, new_sec_id in old_to_new_sec_id.items():
+            if new_sec_id not in new_to_old_sec_id:
+                new_to_old_sec_id[new_sec_id] = [old_sec_id]
+            else:
+                new_to_old_sec_id[new_sec_id].append(old_sec_id)
+
+        for old_sec_id, new_sec_id in old_to_new_sec_id.items():
+            # Is smallest section_x not zero?
+            if old_sec_x_list[old_sec_id][0] > 0:
+                # Are there multiple sections mapping to this new section_id?
+                if len(new_to_old_sec_id[new_sec_id]) == 1 or old_sec_id == min(new_to_old_sec_id[new_sec_id]):
+                    # Either just one section mapping to the new section_id
+                    # or this is the smallest old section_id mapping to the new section_id
+                    old_sec_x_list[old_sec_id].insert(0, 0)
+                    new_sec_x_list[old_sec_id].insert(0, 0)
 
         # Soma ID now -1, updated mapping
         neuron_section_lookup = {-1: (-1, np.array([0, 1]), np.array([0, 1]))}  # Add SOMA mapping. SecX 0-1 --> ID 0-1
