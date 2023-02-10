@@ -166,10 +166,10 @@ class SnuddaPlace(object):
         force_print (bool) : Force printing, even if self.verbose=False.
         """
 
-        if self.logfile is not None:
-            self.logfile.write(f"{text}\n")
+        if self.log_file is not None:
+            self.log_file.write(f"{text}\n")
             if flush:
-                self.logfile.flush()
+                self.log_file.flush()
 
         if self.verbose or is_error or force_print:
             print(text, flush=True)
