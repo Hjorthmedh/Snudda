@@ -154,14 +154,24 @@ class SnuddaPlace(object):
 
     ############################################################################
 
-    def write_log(self, text):
+    def write_log(self, text, flush=True, is_error=False, force_print=False):  # Change flush to False in future, debug
 
-        """ Write text to log file. """
+        """
+        Writes to log file. Use setup_log first. Text is only written to screen if self.verbose=True,
+        or is_error = True, or force_print = True.
 
-        if self.log_file is not None:
-            self.log_file.write(text + "\n")
+        test (str) : Text to write
+        flush (bool) : Should all writes be flushed to disk directly?
+        is_error (bool) : Is this an error, always written.
+        force_print (bool) : Force printing, even if self.verbose=False.
+        """
 
-        if self.verbose:
+        if self.logfile is not None:
+            self.logfile.write(f"{text}\n")
+            if flush:
+                self.logfile.flush()
+
+        if self.verbose or is_error or force_print:
             print(text, flush=True)
 
     ############################################################################

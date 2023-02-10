@@ -66,7 +66,7 @@ echo "Dardel_runSnudda.sh should be started with srun -n 1, to only get one proc
 #    sleep 120 #60
 
     echo ">>> Place: "`date`
-    snudda place ${JOBDIR} --verbose --parallel
+    snudda place ${JOBDIR} --verbose
 
     if [ $? != 0 ]; then
 	echo "Something went wrong during placement, aborting!"
