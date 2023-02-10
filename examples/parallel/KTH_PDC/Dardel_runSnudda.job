@@ -10,9 +10,20 @@
 
 module load snic-env
 
+# Do we need this??
+export OMP_NUM_THREADS=1
+
+let NWORKERS="$SLURM_NTASKS"
+export IPNWORKERS=$NWORKERS
+
+
 export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/.ipython"
 rm -r $IPYTHONDIR
 export IPYTHON_PROFILE=default
 source $HOME/Snudda/snudda_env/bin/activate
+
+
+#.. Start the ipcontroller
+bash ipcontroller.sh 
 
 srun ./Dardel_runSnudda.sh
