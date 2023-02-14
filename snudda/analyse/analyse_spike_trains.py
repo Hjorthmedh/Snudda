@@ -100,7 +100,7 @@ class AnalyseSpikeTrains:
 
         # First gather all input spikes
         for input_type, input_spikes in self.input_data[f"input/{neuron_id}"].items():
-            input_data[input_type] = input_spikes[()].copy(), input_spikes.attrs["nSpikes"].copy()
+            input_data[input_type] = input_spikes["spikes"][()].copy(), input_spikes["spikes"].attrs["nSpikes"].copy()
 
         output_data = self.output_data.get_spikes(neuron_id=neuron_id)
 
