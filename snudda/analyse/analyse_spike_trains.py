@@ -74,12 +74,14 @@ class AnalyseSpikeTrains:
         corr = []
         t_end = self.get_end_time()
 
+        neo_spike_trains = []
+        for i in range(0, n_spike_trains):
+            neo_spike_trains.append(NeoSpikeTrain(spike_trains[i, :n_spikes[i]].flatten(), t_stop=t_end, units="s"))
+
         for i in range(0, n_spike_trains):
             for j in range(1, n_spike_trains):
-                spike_train_a = NeoSpikeTrain(spike_trains[i, :n_spikes[i]].flatten(), t_stop=t_end, units="s")
-                spike_train_b = NeoSpikeTrain(spike_trains[j, :n_spikes[j]].flatten(), t_stop=t_end, units="s")
-                corr.append(spike_time_tiling_coefficient(spiketrain_i=spike_train_a,
-                                                          spiketrain_j=spike_train_b,
+                corr.append(spike_time_tiling_coefficient(spiketrain_i=neo_spike_trains[i],
+                                                          spiketrain_j=neo_spike_trains[j],
                                                           dt=dt))
 
         return np.array(corr)
