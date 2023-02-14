@@ -79,10 +79,13 @@ class AnalyseSpikeTrains:
             neo_spike_trains.append(NeoSpikeTrain(spike_trains[i, :n_spikes[i]].flatten(), t_stop=t_end, units="s"))
 
         for i in range(0, n_spike_trains):
+            if i % 50 == 0
+                print(f'{i} / {n_spike_trains}')
             for j in range(1, n_spike_trains):
                 corr.append(spike_time_tiling_coefficient(spiketrain_i=neo_spike_trains[i],
                                                           spiketrain_j=neo_spike_trains[j],
                                                           dt=dt))
+        print(f'{i} / {n_spike_trains}')
 
         return np.array(corr)
 
@@ -103,8 +106,8 @@ class AnalyseSpikeTrains:
         return np.array(corr)
 
     def input_correlation(self, neuron_id, input_type, dt):
-        input_spikes = self.input_data[f"input/{neuron_id}/{input_type}/spikes"][()]
-        n_spikes = self.input_data[f"input/{neuron_id}/{input_type}/spikes"].attrs["nSpikes"]
+        input_spikes = self.input_data[f"input/{neuron_id}/{input_type}/spikes"][()].copy()
+        n_spikes = self.input_data[f"input/{neuron_id}/{input_type}/spikes"].attrs["nSpikes"].copy()
 
         corr = self.calculate_sttc_all_to_all(spike_trains=input_spikes, n_spikes=n_spikes, dt=dt)
         return corr
