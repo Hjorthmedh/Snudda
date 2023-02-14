@@ -3,6 +3,8 @@ import numpy as np
 
 import h5py
 from elephant.spike_train_correlation import spike_time_tiling_coefficient
+from neo import SpikeTrain as NeoSpikeTrain
+
 from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
 from snudda.utils.load import SnuddaLoad
 
@@ -54,34 +56,45 @@ class AnalyseSpikeTrains:
         if self.input_file is not None:
             self.input_data = h5py.File(self.input_file, "r")
 
-    @staticmethod
-    def calculate_sttc(spike_train_a, spike_train_b, dt):
-        return spike_time_tiling_coefficient(spiketrain_i=spike_train_a, spiketrain_j=spike_train_b, dt=dt)
+    def calculate_sttc(self, spike_train_a, spike_train_b, dt):
+        t_end = self.get_end_time()
+        sa = NeoSpikeTrain(spike_train_a, t_stop=t_end)
+        sb = NeoSpikeTrain(spike_train_b, t_stop=t_end)
 
-    @staticmethod
-    def calculate_sttc_all_to_all(spike_trains, n_spikes, dt):
+        return spike_time_tiling_coefficient(spiketrain_i=sa, spiketrain_j=sb, dt=dt)
+
+    def get_end_time(self):
+        return np.max(self.output_data.get_time())
+
+    def calculate_sttc_all_to_all(self, spike_trains, n_spikes, dt):
         n_spike_trains = len(n_spikes)
         assert spike_trains.shape[0] == n_spike_trains
 
         corr = []
+        t_end = self.get_end_time()
 
         for i in range(0, n_spike_trains):
             for j in range(1, n_spike_trains):
-                corr.append(spike_time_tiling_coefficient(spiketrain_i=spike_trains[i, :n_spikes[i]],
-                                                          spiketrain_j=spike_trains[j, n_spikes[j]],
+                spike_train_a = NeoSpikeTrain(spike_trains[i, :n_spikes[i]], t_stop=t_end)
+                spike_train_b = NeoSpikeTrain(spike_trains[j, n_spikes[j]], t_stop=t_end)
+                corr.append(spike_time_tiling_coefficient(spiketrain_i=spike_train_a,
+                                                          spiketrain_j=spike_train_b,
                                                           dt=dt))
 
         return np.array(corr)
 
-    @staticmethod
-    def calculate_sttc_one_to_all(spike_train, spike_trains, n_spikes, dt):
+    def calculate_sttc_one_to_all(self, spike_train, spike_trains, n_spikes, dt):
         n_spike_trains = len(n_spikes)
         assert spike_trains.shape[0] == n_spike_trains
         corr = []
+        t_end = self.get_end_time()
+
+        spike_train_b = NeoSpikeTrain(spike_train, t_stop=t_end)
 
         for i in range(1, n_spike_trains):
-            corr.append(spike_time_tiling_coefficient(spiketrain_i=spike_trains[i, :n_spikes[i]],
-                                                      spiketrain_j=spike_train,
+            spike_train_a = NeoSpikeTrain(spike_trains[i, :n_spikes[i]], t_stop=t_end)
+            corr.append(spike_time_tiling_coefficient(spiketrain_i=spike_train_a,
+                                                      spiketrain_j=spike_train_b,
                                                       dt=dt))
 
         return np.array(corr)
@@ -110,5 +123,4 @@ class AnalyseSpikeTrains:
                                                               n_spikes=n_spikes,
                                                               dt=dt)
         return corr
-
 
