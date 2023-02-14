@@ -101,8 +101,8 @@ class AnalyseSpikeTrains:
         return np.array(corr)
 
     def input_correlation(self, neuron_id, input_type, dt):
-        input_spikes = self.input_data[f"input/{neuron_id}/{input_type}"][()]
-        n_spikes = self.input_data[f"input/{neuron_id}/{input_type}"].attrs["nSpikes"]
+        input_spikes = self.input_data[f"input/{neuron_id}/{input_type}/spikes"][()]
+        n_spikes = self.input_data[f"input/{neuron_id}/{input_type}/spikes"].attrs["nSpikes"]
 
         corr = self.calculate_sttc_all_to_all(spike_trains=input_spikes, n_spikes=n_spikes, dt=dt)
         return corr
