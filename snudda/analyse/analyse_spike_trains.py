@@ -58,8 +58,8 @@ class AnalyseSpikeTrains:
 
     def calculate_sttc(self, spike_train_a, spike_train_b, dt):
         t_end = self.get_end_time()
-        sa = NeoSpikeTrain(spike_train_a, t_stop=t_end, units="s")
-        sb = NeoSpikeTrain(spike_train_b, t_stop=t_end, units="s")
+        sa = NeoSpikeTrain(spike_train_a.flatten(), t_stop=t_end, units="s")
+        sb = NeoSpikeTrain(spike_train_b.flatten(), t_stop=t_end, units="s")
 
         return spike_time_tiling_coefficient(spiketrain_i=sa, spiketrain_j=sb, dt=dt)
 
@@ -75,8 +75,8 @@ class AnalyseSpikeTrains:
 
         for i in range(0, n_spike_trains):
             for j in range(1, n_spike_trains):
-                spike_train_a = NeoSpikeTrain(spike_trains[i, :n_spikes[i]], t_stop=t_end, units="s")
-                spike_train_b = NeoSpikeTrain(spike_trains[j, n_spikes[j]], t_stop=t_end, units="s")
+                spike_train_a = NeoSpikeTrain(spike_trains[i, :n_spikes[i]].flatten(), t_stop=t_end, units="s")
+                spike_train_b = NeoSpikeTrain(spike_trains[j, n_spikes[j]].flatten(), t_stop=t_end, units="s")
                 corr.append(spike_time_tiling_coefficient(spiketrain_i=spike_train_a,
                                                           spiketrain_j=spike_train_b,
                                                           dt=dt))
@@ -89,10 +89,10 @@ class AnalyseSpikeTrains:
         corr = []
         t_end = self.get_end_time()
 
-        spike_train_b = NeoSpikeTrain(spike_train, t_stop=t_end, units="s")
+        spike_train_b = NeoSpikeTrain(spike_train.flatten(), t_stop=t_end, units="s")
 
         for i in range(1, n_spike_trains):
-            spike_train_a = NeoSpikeTrain(spike_trains[i, :n_spikes[i]], t_stop=t_end, units="s")
+            spike_train_a = NeoSpikeTrain(spike_trains[i, :n_spikes[i]].flatten(), t_stop=t_end, units="s")
             corr.append(spike_time_tiling_coefficient(spiketrain_i=spike_train_a,
                                                       spiketrain_j=spike_train_b,
                                                       dt=dt))
