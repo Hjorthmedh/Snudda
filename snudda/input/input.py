@@ -1505,7 +1505,6 @@ class SnuddaInput(object):
         else:
             assert False, f"Unknown input_generator {input_generator}"
 
-
         # TODO: For frequency_functions we can skip parts of the loop and directly request n_spike_trains
         #       That would speed up the frequency_function generation call
 
@@ -2126,7 +2125,8 @@ class SnuddaInput(object):
                 # Rudolph, Michael, and Alain Destexhe. Do neocortical pyramidal neurons display stochastic resonance?.
                 # Journal of computational neuroscience 11.1(2001): 19 - 42.
                 # doi: https://doi.org/10.1023/A:1011200713411
-                p_keep = np.divide(1, (num_inputs - np.sqrt(correlation) * (num_inputs - 1)))
+                # p_keep = np.divide(1, (num_inputs - np.sqrt(correlation) * (num_inputs - 1)))
+                p_keep = np.sqrt(correlation)
             else:
                 p_keep = 0
 
