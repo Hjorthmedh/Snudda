@@ -79,7 +79,7 @@ class AnalyseSpikeTrains:
             neo_spike_trains.append(NeoSpikeTrain(spike_trains[i, :n_spikes[i]].flatten(), t_stop=t_end, units="s"))
 
         for i in range(0, n_spike_trains):
-            if i % 50 == 0
+            if i % 50 == 0:
                 print(f'{i} / {n_spike_trains}')
             for j in range(1, n_spike_trains):
                 corr.append(spike_time_tiling_coefficient(spiketrain_i=neo_spike_trains[i],
