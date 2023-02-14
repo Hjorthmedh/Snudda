@@ -4,6 +4,7 @@ import numpy as np
 import h5py
 from elephant.spike_train_correlation import spike_time_tiling_coefficient
 from neo import SpikeTrain as NeoSpikeTrain
+import quantities as pq
 
 from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
 from snudda.utils.load import SnuddaLoad
@@ -57,14 +58,14 @@ class AnalyseSpikeTrains:
             self.input_data = h5py.File(self.input_file, "r")
 
     def calculate_sttc(self, spike_train_a, spike_train_b, dt):
-        t_end = self.get_end_time()
+        t_end = self.get_end_time() * pq.s
         sa = NeoSpikeTrain(spike_train_a.flatten(), t_stop=t_end, units="s")
         sb = NeoSpikeTrain(spike_train_b.flatten(), t_stop=t_end, units="s")
 
         return spike_time_tiling_coefficient(spiketrain_i=sa, spiketrain_j=sb, dt=dt)
 
     def get_end_time(self):
-        return np.max(self.output_data.get_time())
+        return np.max(self.output_data.get_time()) * pq.s
 
     def calculate_sttc_all_to_all(self, spike_trains, n_spikes, dt):
         n_spike_trains = len(n_spikes)
