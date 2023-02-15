@@ -1846,7 +1846,7 @@ class SnuddaAnalyse(object):
 
             # Dist to soma on dendrite
             all_dist_idx = np.array(np.floor(self.data["network"]["synapses"][start_idx:end_idx, 8] * bin_scaling),
-                                    dtype=np.int)
+                                    dtype=int)
 
             last_pre = None
             last_post = None

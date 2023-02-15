@@ -17,9 +17,12 @@ fi
 
 mkdir -p $JOBDIR
 
-if [ "$SLURM_PROCID" -gt 0 ]; then
-	mock_string="Not main process"
+echo "Dardel_runSnudda.sh should be started with srun -n 1, to only get one process"
 
+echo "SLURM_PROCID = $SLURM_PROCID"
+
+if [ "$SLURM_PROCID" -gt 0 ]; then
+    mock_string="Not main process"
 else
 
     # For debug purposes:                                                         
@@ -43,26 +46,28 @@ else
 	exit -1
     fi
 
-    echo "SLURM_NODELIST = $SLURM_NODELIST"
-    let NWORKERS="$SLURM_NTASKS - 1"
-
-    echo ">>> NWORKERS " $NWORKERS
-    echo ">>> Starting ipcluster `date`"
-    
-    #.. Start the ipcluster
-    ipcluster start -n ${NWORKERS} \
-	      --ip='*' \
-	      --HeartMonitor.max_heartmonitor_misses=1000 \
-	      --HubFactory.registration_timeout=600 \
-	      --HeartMonitor.period=10000 & 
-
-    
-    #.. Sleep to allow engines to start
-    echo ">>> Wait 120s to allow engines to start"
-    sleep 120 #60
+# WE NOW START IPCLUSTER USING ipcontroller.sh INSTEAD...
+#
+#    echo "SLURM_NODELIST = $SLURM_NODELIST"
+#    let NWORKERS="$SLURM_NTASKS - 1"
+#
+#    echo ">>> NWORKERS " $NWORKERS
+#    echo ">>> Starting ipcluster `date`"
+#    
+#    #.. Start the ipcluster
+#    ipcluster start -n ${NWORKERS} \
+#	      --ip='*' \
+#	      --HeartMonitor.max_heartmonitor_misses=1000 \
+#	      --HubFactory.registration_timeout=600 \
+#	      --HeartMonitor.period=10000 & 
+#
+#    
+#    #.. Sleep to allow engines to start
+#    echo ">>> Wait 120s to allow engines to start"
+#    sleep 120 #60
 
     echo ">>> Place: "`date`
-    snudda place ${JOBDIR} --verbose --parallel
+    snudda place ${JOBDIR} --verbose
 
     if [ $? != 0 ]; then
 	echo "Something went wrong during placement, aborting!"

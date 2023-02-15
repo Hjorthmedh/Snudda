@@ -295,8 +295,10 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
                             nc.delay = self.synapse_delay
                             nc.threshold = self.spike_threshold
 
-                            self.net_con_list.append(nc)
-                    self.synapse_list.append(synapse_gpcr)
+                            #self.net_con_list.append(nc)
+                            self.synapse_dict.update({("neuromodulation_nc", 0): nc})
+                    self.synapse_dict.update({("neuromodulation", 0): synapse_gpcr})
+                    #self.synapse_list.append(syn)
 
                     if sec in added_synapses.keys() and str(seg.x) in added_synapses[sec].keys():
 

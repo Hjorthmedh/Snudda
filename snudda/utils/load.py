@@ -79,11 +79,15 @@ class SnuddaLoad(object):
 
         """ Helper function to convert data to string. """
 
+        if data_str is None:
+            return None
+
         if type(data_str) in [bytes, np.bytes_]:
             return data_str.decode()
 
         # Warn the user if they accidentally call to_str on an int or something else
-        assert type(data_str) == str, "to_str is used on strings or bytes (that are converted to str)"
+        assert type(data_str) == str, f"to_str is used on strings or bytes (that are converted to str), " \
+                                      f"received {type(data_str)} -- {data_str}"
 
         return data_str
 
@@ -349,6 +353,31 @@ class SnuddaLoad(object):
     ############################################################################
 
     @staticmethod
+    def gather_extra_axons(hdf5_file):
+
+        extra_axons = dict()
+
+        if "extraAxons" in hdf5_file["network/neurons"]:
+            for neuron_id, axon_name, position, rotation, swc_file \
+                    in zip(hdf5_file["network/neurons/extraAxons/parentNeuron"],
+                           hdf5_file["network/neurons/extraAxons/name"],
+                           hdf5_file["network/neurons/extraAxons/position"],
+                           hdf5_file["network/neurons/extraAxons/rotation"],
+                           hdf5_file["network/neurons/extraAxons/morphology"]):
+
+                if neuron_id not in extra_axons:
+                    extra_axons[neuron_id] = dict()
+
+                extra_axons[neuron_id][axon_name] = dict()
+                extra_axons[neuron_id][axon_name]["position"] = position.copy()
+                extra_axons[neuron_id][axon_name]["rotation"] = rotation.copy().reshape(3, 3)
+                extra_axons[neuron_id][axon_name]["morphology"] = SnuddaLoad.to_str(swc_file)
+
+        return extra_axons
+
+    ############################################################################
+
+    @staticmethod
     def extract_neurons(hdf5_file):
 
         """
@@ -363,20 +392,18 @@ class SnuddaLoad(object):
         """
 
         neurons = []
+        extra_axons = SnuddaLoad.gather_extra_axons(hdf5_file=hdf5_file)
 
-        for name, neuron_id, hoc, pos, rot, dend_radius, axon_radius, virtual, vID, \
+        for name, neuron_id, hoc, pos, rot, virtual, vID, \
             axon_density_type, axon_density, axon_density_radius, \
             axon_density_bounds_xyz, \
             morph, neuron_path, \
-            parameter_id, morphology_id, modulation_id, \
             parameter_key, morphology_key, modulation_key, population_unit_id \
                 in zip(hdf5_file["network/neurons/name"][:],
                        hdf5_file["network/neurons/neuronID"][:],
                        hdf5_file["network/neurons/hoc"][:],
                        hdf5_file["network/neurons/position"][()],
                        hdf5_file["network/neurons/rotation"][()],
-                       hdf5_file["network/neurons/maxDendRadius"][:],
-                       hdf5_file["network/neurons/maxAxonRadius"][:],
                        hdf5_file["network/neurons/virtualNeuron"][:],
                        hdf5_file["network/neurons/volumeID"][:],
                        hdf5_file["network/neurons/axonDensityType"][:],
@@ -385,9 +412,6 @@ class SnuddaLoad(object):
                        hdf5_file["network/neurons/axonDensityBoundsXYZ"][:],
                        hdf5_file["network/neurons/morphology"][:],
                        hdf5_file["network/neurons/neuronPath"][:],
-                       hdf5_file["network/neurons/parameterID"][:],
-                       hdf5_file["network/neurons/morphologyID"][:],
-                       hdf5_file["network/neurons/modulationID"][:],
                        hdf5_file["network/neurons/parameterKey"][:],
                        hdf5_file["network/neurons/morphologyKey"][:],
                        hdf5_file["network/neurons/modulationKey"][:],
@@ -409,10 +433,8 @@ class SnuddaLoad(object):
             n["hoc"] = SnuddaLoad.to_str(hoc)
             n["neuronPath"] = SnuddaLoad.to_str(neuron_path)
 
-            n["position"] = pos
-            n["rotation"] = rot.reshape(3, 3)
-            n["maxDendRadius"] = dend_radius
-            n["maxAxonRadius"] = axon_radius
+            n["position"] = pos.copy()
+            n["rotation"] = rot.copy().reshape(3, 3)
             n["virtualNeuron"] = virtual
 
             if len(axon_density_type) > 0:
@@ -432,16 +454,18 @@ class SnuddaLoad(object):
 
             n["axonDensityRadius"] = axon_density_radius
 
-            n["parameterID"] = None if parameter_id < 0 else parameter_id
-            n["morphologyID"] = None if morphology_id < 0 else morphology_id
-            n["modulationID"] = None if modulation_id < 0 else modulation_id
-
             # If the code fails here, use snudda/utils/upgrade_old_network_file.py to upgrade your old data files
-            n["parameterKey"] = SnuddaLoad.to_str(parameter_key)
-            n["morphologyKey"] = SnuddaLoad.to_str(morphology_key)
-            n["modulationKey"] = SnuddaLoad.to_str(modulation_key)
+            par_key = SnuddaLoad.to_str(parameter_key)
+            morph_key = SnuddaLoad.to_str(morphology_key)
+            mod_key = SnuddaLoad.to_str(modulation_key)
+            n["parameterKey"] = par_key if len(par_key) > 0 else None
+            n["morphologyKey"] = morph_key if len(morph_key) > 0 else None
+            n["modulationKey"] = mod_key if len(mod_key) > 0 else None
 
             n["populationUnit"] = population_unit_id
+
+            if neuron_id in extra_axons:
+                n["extraAxons"] = extra_axons[neuron_id].copy()
 
             neurons.append(n)
 
@@ -828,8 +852,11 @@ class SnuddaLoad(object):
         return neuron_object
 
     def iter_neuron_id(self):
-        for x in self.data["neurons"].keys():
-            return x
+
+        for x, v in enumerate(self.data["neurons"]):
+            assert x == v["neuronID"], \
+                f"Neuron at position {x} has neuronID {v['neuronID']} (should be same)"
+            yield x
 
     def get_neuron_keys(self, neuron_id):
         n = self.data["neurons"][neuron_id]
@@ -1032,6 +1059,7 @@ def snudda_load_cli():
     parser.add_argument("--keepOpen", help="This prevents loading of synapses to memory, and keeps HDF5 file open",
                         action="store_true")
     parser.add_argument("--detailed", help="More information", action="store_true")
+    parser.add_argument("--voxels", help="Voxel information", action="store_true")
     parser.add_argument("--centre", help="List n neurons in centre (-1 = all)", type=int)
     parser.add_argument("--listParam", help="List parameters for neuron_id", type=int)
     parser.add_argument("--countSyn", help="Count synapses per type", action="store_true")
@@ -1100,6 +1128,14 @@ def snudda_load_cli():
                               f"{synapse_coords[i, 2]*1e6:.1f}) μm, "
                               f"Cond: {synapses[i, 11] * 1e-3:.2f} nS")
 
+                    print("")
+
+                if args.voxels:
+                    idx = np.where(synapses[:, 0] == nid)[0]
+                    for i in idx:
+                        print(f" -- voxels: {synapses[i, 2:5]}, hyper id: {synapses[i, 5]}, "
+                              f" sec id {synapses[i, 9]}, sec x {synapses[i, 10] * 1e-3:.2f}, "
+                              f"Soma dist: {synapses[i,8]:.1f} μm, ")
                     print("")
 
     if args.listPost is not None:

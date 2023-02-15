@@ -104,8 +104,11 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                             if mech.name() in modulate_section:
 
                                 # Check that modulation value is not equal to 1.0 otherwise modulation will not work
-                                assert getattr(mech, f"maxMod{modulation}") != 1.0 and getattr(mech, f"maxMod{modulation}") > 0, "NeuronModel has not loaded modulation.json," \
-                                                                                    "neuromodulation is not turned on within the model"
+                                assert getattr(mech, f"maxMod{modulation}") != 1.0 and getattr(mech, f"maxMod{modulation}") > 0, \
+                                    f"NeuronModel has not loaded modulation.json," \
+                                    f"neuromodulation is not turned on within the model for {modulation} in " \
+                                    f"{mech} and value: {getattr(mech, f'maxMod{modulation}')} for " \
+                                    f"cell type : {cell_type_name} in neuron part : {tpart}"
 
                                 setattr(mech, "mod" + modulation, 1)
                                 self.neuromodulation[modulation]['modulation_vector'].play(
@@ -119,7 +122,7 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
     def modulate_synapses(self, modulation, synapses, intrinsic=None, extrinsic=None):
 
         if extrinsic:
-            for neuronID, synlist in self.external_stim.items():
+            for (neuronID, input_type), synlist in self.external_stim.items():
                 for syntuple in synlist:
 
                     cell_type_name = self.neurons[neuronID].type
@@ -129,8 +132,12 @@ class SnuddaSimulateNeuromodulation(SnuddaSimulate):
                         self.modulate_receptor(syn=syntuple[3], modulation=modulation, modulation_parameter=synapses[cell_type_name][syn_name])
 
         if intrinsic:
-            for syn in self.synapse_list:
 
+            ## The synapse list has been removed and replaced with synapse dictionary
+
+            for key in self.synapse_dict.keys():
+
+                syn = self.synapse_dict[key][0][0]
                 cell_type_name = str(syn.get_segment()).split("_")[0]
                 syn_name = self.get_syn_name(syn)
 

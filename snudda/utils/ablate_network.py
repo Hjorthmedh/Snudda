@@ -45,6 +45,7 @@ class SnuddaAblateNetwork:
         self.remove_pair_connection_list = None
         self.remove_all_synapses = False
         self.remove_all_gap_junctions = False
+        self.make_virtual_neuron_id = None
 
         self.reset_network()
 
@@ -55,6 +56,7 @@ class SnuddaAblateNetwork:
         self.keep_neuron_id = set(self.in_file["network/neurons/neuronID"][:])
         self.removed_connection_type = []
         self.remove_pair_connection_list = []
+        self.make_virtual_neuron_id = []
 
         self.remove_all_synapses = False
         self.remove_all_gap_junctions = False
@@ -72,6 +74,15 @@ class SnuddaAblateNetwork:
 
     def only_keep_neuron_id(self, neuron_id):
         self.keep_neuron_id = set(neuron_id)
+
+    def make_virtual(self, neuron_id):
+
+        if type(neuron_id) == list:
+            self.make_virtual_neuron_id += neuron_id
+        elif isinstance(neuron_id, np.ndarray):
+            self.make_virtual_neuron_id += [x for x in np.ndarray]
+        else:
+            self.make_virtual_neuron_id.append(neuron_id)
 
     def remove_neuron_type(self, neuron_type, p_remove=1):
 
@@ -246,42 +257,35 @@ class SnuddaAblateNetwork:
 
         for var_name in self.in_file["network/neurons"]:
 
-            data = self.in_file[f"network/neurons/{var_name}"]
+            if var_name == "extraAxons":
 
-            if len(data.shape) == 0:
-                # Scalar data, just copy
-                self.in_file.copy(f"network/neurons/{var_name}", neuron_group)
-                continue
+                parent_id = self.in_file["network/neurons/extraAxons/parentNeuron"][()]
 
-            elif len(data.shape) == 1:
-                # 1D data, we only keep nSomaKeep of them
-                data_shape = (num_soma_keep,)
-            elif len(data.shape) == 2:
-                # 2D data, need to make sure to maintain dimensions
-                data_shape = (num_soma_keep, data.shape[1])
+                # Identify which axons belong to neurons that are kept
+                keep_axon_id = np.where([p in soma_keep_id for p in parent_id])[0]
+                axon_dummy_remapping = np.arange(len(keep_axon_id))
+                axon_group = neuron_group.create_group("extraAxons")
+
+                for var_name2 in self.in_file["network/neurons/extraAxons"]:
+                    self.copy_neuron_item(neuron_group=axon_group,
+                                          var_name=var_name2,
+                                          soma_keep_id=keep_axon_id,
+                                          remap_id=axon_dummy_remapping,
+                                          neuron_path="network/neurons/extraAxons")
             else:
-                print("write_network: Only handle 0D, 1D and 2D data, update code!")
-                sys.exit(-1)
+                self.copy_neuron_item(neuron_group=neuron_group,
+                                      var_name=var_name,
+                                      soma_keep_id=soma_keep_id,
+                                      remap_id=remap_id)
 
-            if var_name == "neuronID":
-                # We need to remap
-                neuron_group.create_dataset(var_name, data_shape, data.dtype,
-                                            [remap_id[data[x]] for x in soma_keep_id],
-                                            compression=data.compression)
+                if var_name == "virtualNeuron" and len(self.make_virtual_neuron_id) > 0:
+                    virt_id = [remap_id[x] for x in self.make_virtual_neuron_id]
+                    neuron_group[var_name][virt_id] = True
 
-                # Double check that it is OK, should be in order after
-                assert (np.diff(neuron_group["neuronID"][()]) == 1).all(), "Problem with neuron remapping!"
+                    virt_neuron_names = [self.snudda_load.data["neurons"][x]["name"] for x in self.make_virtual_neuron_id]
 
-            else:
-                try:
-                    neuron_group.create_dataset(var_name, data_shape, data.dtype,
-                                                [data[x] for x in soma_keep_id],
-                                                compression=data.compression)
-                except:
-                    import traceback
-                    tstr = traceback.format_exc()
-                    print(tstr)
-                    sys.exit(-1)
+                    for old_nrn_id, new_virt_id, v_name in zip(self.make_virtual_neuron_id, virt_id, virt_neuron_names):
+                        print(f"Making neuron id {new_virt_id} ({v_name}) virtual (old ID {old_nrn_id})")
 
         if "synapses" in self.in_file["network"]:
 
@@ -369,6 +373,44 @@ class SnuddaAblateNetwork:
         remapping_file = f"{out_file_name}-remapping.txt"
         self.write_remapping_file(remapping_file)
 
+    def copy_neuron_item(self, neuron_group, var_name, soma_keep_id, remap_id, neuron_path="network/neurons"):
+
+        data = self.in_file[f"{neuron_path}/{var_name}"]
+        num_soma_keep = len(soma_keep_id)
+
+        if len(data.shape) == 0:
+            # Scalar data, just copy
+            self.in_file.copy(f"{neuron_path}/{var_name}", neuron_group)
+            return
+
+        elif len(data.shape) == 1:
+            # 1D data, we only keep nSomaKeep of them
+            data_shape = (num_soma_keep,)
+        elif len(data.shape) == 2:
+            # 2D data, need to make sure to maintain dimensions
+            data_shape = (num_soma_keep, data.shape[1])
+        else:
+            raise ValueError("copy_item: Only handle 0D, 1D and 2D data, update code!")
+
+        if var_name == "neuronID":
+            # We need to remap
+            neuron_group.create_dataset(var_name, data_shape, data.dtype,
+                                        [remap_id[data[x]] for x in soma_keep_id],
+                                        compression=data.compression)
+
+            # Double check that it is OK, should be in order after
+            assert (np.diff(neuron_group["neuronID"][()]) == 1).all(), "Problem with neuron remapping!"
+
+        else:
+            try:
+                neuron_group.create_dataset(var_name, data_shape, data.dtype,
+                                            [data[x] for x in soma_keep_id],
+                                            compression=data.compression)
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
 
 def snudda_ablate_network_cli():
     from argparse import ArgumentParser
@@ -385,6 +427,7 @@ def snudda_ablate_network_cli():
     parser.add_argument("--remove_neuron_id", type=str, help="Neuron ID to remove (e.g. 4,5,6)", default=None)
     parser.add_argument("--remove_connection", type=str, help="Connection to remove (e.g. 'dSPN','iSPN'", default=None)
     parser.add_argument("--p_remove_connection", type=float, help="Probability to remove connection", default=1.0)
+    parser.add_argument("--make_virtual", type=str, help="Neuron ID to make virtual (e.g. 1,2,3)")
     args = parser.parse_args()
 
     mod_network = SnuddaAblateNetwork(network_file=args.original_network)
@@ -433,6 +476,10 @@ def snudda_ablate_network_cli():
     if args.remove_neuron_id:
         neuron_id = [int(x) for x in args.remove_neuron_id.split(",")]
         mod_network.remove_neuron_id(neuron_id=neuron_id)
+
+    if args.make_virtual:
+        v_id = [int(x) for x in args.make_virtual.split(",")]
+        mod_network.make_virtual(neuron_id=v_id)
 
     if args.remove_connection:
 

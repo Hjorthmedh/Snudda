@@ -3,11 +3,11 @@ export IPYTHON_PROFILE=default
 
 
 # OBS, currently init is commented out, so numneurons not used
-export numNeurons=10000
-export simNamePart=10k_swap
+export numNeurons=3000
+export simNamePart=3k_swap
 export PD_DATA_DIR="$HOME/HBP/BasalGangliaData/Parkinson/20220225"
 
-ipcluster start --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
+ipcluster start -n 3 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20
 
 ######################

@@ -684,8 +684,7 @@ class InputTuning(object):
                              morphology_path=neuron_info["morphology"],
                              parameter_path=neuron_info["parameters"],
                              mechanism_path=neuron_info["mechanisms"],
-                             virtual_neuron=False,
-                             axon_stump_id_flag=False)
+                             virtual_neuron=False)
         nm.instantiate()
         return nm.all_have_axon()
 

@@ -78,12 +78,16 @@ class NeuronModel(ephys.models.CellModel):
                                                mechanism_path=mech_file,
                                                modulation_path=modulation_file)
 
-            morph_file = neuron_prototype.get_morphology(parameter_id=parameter_id, morphology_id=morphology_id,
-                                                         parameter_key=parameter_key, morphology_key=morphology_key)
+            morph_file, _ = neuron_prototype.get_morphology(parameter_id=parameter_id,
+                                                            morphology_id=morphology_id,
+                                                            parameter_key=parameter_key,
+                                                            morphology_key=morphology_key)
 
         assert morph_file, (f"Neuron {cell_name} with morph_path = {morph_path} ({morphology_id}, "
                             f"parameter_path = {param_file} ({parameter_id}) "
                             f"has morph_file = {morph_file} (Should not be None)")
+
+        self.morph_file = morph_file
 
         morph = self.define_morphology(replace_axon=True, morph_file=morph_file)
         mechs = self.define_mechanisms(mechanism_config=mech_file)
@@ -93,11 +97,9 @@ class NeuronModel(ephys.models.CellModel):
             if modulation_key:
                 mod_params = self.define_parameters(parameter_config=modulation_file,
                                                     parameter_key=modulation_key)
-            elif modulation_id:
-                mod_params = self.define_parameters(parameter_config=modulation_file,
-                                                    parameter_id=modulation_id)
-
-            params = params + mod_params
+                params = params + mod_params
+            else:
+                print(f"Warning! No modulation key specified, ignoring {modulation_file}")
 
         super(NeuronModel, self).__init__(name=cell_name, morph=morph,
                                           mechs=mechs, params=params)
@@ -122,9 +124,6 @@ class NeuronModel(ephys.models.CellModel):
             print(f"mod_path set to {mod_path} (not yet implemented)")
         else:
             mod_path = None
-
-        # import pdb
-        # pdb.set_trace()
 
         mechanisms = []
         for section_list in mech_definitions:
@@ -187,7 +186,10 @@ class NeuronModel(ephys.models.CellModel):
                 p_config = param_configs[par_key]
 
         elif type(param_configs) == list and type(param_configs[0]) == list:
+            # Parameter ID no longer exists, we default to parameter_id = 0
             # This is old fallback code, for old version format of parameters.json, remove in the future.
+            print("Warning: Old format of parameter config, using parameter_id = 0.")
+            parameter_id = 0
             num_params = len(param_configs)
             p_config = param_configs[parameter_id % num_params]
         else:
@@ -286,6 +288,24 @@ class NeuronModel(ephys.models.CellModel):
     # dendrites are 1,2,3,4,5... ie one higher than what Neuron internally
     # uses to index the dendrites (due to us wanting to include soma)
 
+    def build_section_lookup(self):
+
+        self.section_lookup = dict([])
+
+        # Soma is -1
+        self.section_lookup[-1] = self.icell.soma[0]
+
+        # Dendrites are consecutive numbers starting from 1
+        # Ie neurons dend(0) is in pos 1, dend(99) is in pos 100
+        # This so we don't need to special treat soma (pos 0)
+
+        for ic, c in enumerate(self.icell.dend):
+            self.section_lookup[ic] = c
+
+        # Negative numbers for axon
+        for ic, c in enumerate(self.icell.axon):
+            self.section_lookup[-ic - 2] = c
+
     def map_id_to_compartment(self, section_id):
 
         """
@@ -294,32 +314,22 @@ class NeuronModel(ephys.models.CellModel):
         Neuron_morphology defines sectionID, these must match what this returns
         so that they point to the same compartment.
 
-        Soma is 0
-        axons are negative values (currently all set to -1) in Neuron_morphology
-        dendrites are 1,2,3,4,5... ie one higher than what Neuron internally
-        uses to index the dendrites (due to us wanting to include soma)
+        Soma is -1
+        axons are negative values (currently all set to -2) in Neuron_morphology
+        dendrites are 0, 1,2,3,4,5...
 
         """
 
         if self.section_lookup is None:
+            self.build_section_lookup()
 
-            self.section_lookup = dict([])
-
-            # Soma is zero
-            self.section_lookup[0] = self.icell.soma[0]
-
-            # Dendrites are consequtive numbers starting from 1
-            # Ie neurons dend(0) is in pos 1, dend(99) is in pos 100
-            # This so we don't need to special treat soma (pos 0)
-
-            for ic, c in enumerate(self.icell.dend):
-                self.section_lookup[ic + 1] = c
-
-            # Negative numbers for axon
-            for ic, c in enumerate(self.icell.axon):
-                self.section_lookup[-ic - 1] = c
-
-        sec = [self.section_lookup[x] for x in section_id]
+        try:
+            sec = [self.section_lookup[x] for x in section_id]
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
 
         return sec
 

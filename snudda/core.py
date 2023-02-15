@@ -481,7 +481,7 @@ class Snudda(object):
 
         else:
             print("NEURON mechanisms already compiled, make sure you have the correct version of NEURON modules."
-                  "\nIf you delete x86_64 directory (or nrnmech.dll) "
+                  "\nIf you delete x86_64, aarch64, arm64 directories (or nrnmech.dll) "
                   "then you will force a recompilation of the modules.")
 
     ############################################################################
@@ -703,6 +703,7 @@ class Snudda(object):
         from ipyparallel import Client
 
         u_file = os.path.join(ipython_dir, f"profile_{ipython_profile}", "security", "ipcontroller-client.json")
+        self.logfile.write(f"Reading IPYPARALLEL connection info from {u_file}\n")
         self.rc = Client(url_file=u_file, timeout=120, debug=False)
 
         self.logfile.write(f'Client IDs: {self.rc.ids}')

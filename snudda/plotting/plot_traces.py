@@ -164,6 +164,10 @@ class PlotTraces:
         for r in trace_id:
 
             if r not in self.voltage:
+                if self.network_info is not None and self.network_info.data["neurons"][r]["virtualNeuron"]:
+                    # It was a virtual neuron that lacked voltage, skip warning
+                    continue
+
                 print(f"Missing data for trace {r}")
                 continue
 

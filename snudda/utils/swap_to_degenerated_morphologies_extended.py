@@ -150,7 +150,10 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
             dend_kd_tree = self.get_kd_tree(morph, "dend", kd_tree_cache=self.old_kd_tree_cache)
             synapse_dend_dist, _ = dend_kd_tree.query(post_coords)
-            syn_mask = np.logical_and(synapse_dend_dist > synapse_distance_treshold, np.linalg.norm(post_coords - morph.soma[0, :3], axis=1) > morph.soma[0, 3] + synapse_distance_treshold)
+            soma = morph.morphology_data["neuron"].sections[1][0]
+            syn_mask = np.logical_and(synapse_dend_dist > synapse_distance_treshold,
+                                      np.linalg.norm(post_coords - soma.position, axis=1)
+                                      > soma.radie + synapse_distance_treshold)
             keep_mask[post_idx[np.where(syn_mask)[0]]] = True
 
             if self.updated_network_loader.data["neurons"][nid]["axonDensity"] is None:
