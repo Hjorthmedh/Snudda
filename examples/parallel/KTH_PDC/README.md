@@ -23,7 +23,7 @@ chmod u+x Miniconda3-latest-Linux-x86_64.sh
 pushd ~/
 mkdir -p local/dardel
 cd local/dardel
-git clone https://github.com/neuronsimulator/nrn -b 8.0.0
+git clone https://github.com/neuronsimulator/nrn -b 8.2.2
 popd
 ```
 
