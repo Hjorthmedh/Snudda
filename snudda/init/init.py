@@ -923,7 +923,7 @@ class SnuddaInit(object):
             striatum_centre = np.array([4750e-6, 4000e-6, 7750e-6])
 
             if num_neurons < 500:
-                mesh_bin_width = striatum_side_len
+                mesh_bin_width = np.max(striatum_side_len, 5e-5)
             elif num_neurons < 5000:
                 mesh_bin_width = striatum_side_len / 5
             else:
