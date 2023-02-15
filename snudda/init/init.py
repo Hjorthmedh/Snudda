@@ -152,7 +152,7 @@ class SnuddaInit(object):
             struct_mesh = os.path.join(self.network_path, "mesh", f"{struct_name}-cube-mesh-{side_len}.obj")
 
             if mesh_bin_width is None:
-                mesh_bin_width = side_len / 3.0
+                mesh_bin_width = np.max(side_len / 3.0, 5e-5)
                 print(f"Setting mesh_bin_width to {mesh_bin_width}")
 
             create_cube_mesh(file_name=struct_mesh,
