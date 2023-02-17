@@ -681,7 +681,7 @@ class SnuddaPrune(object):
         """
 
         if config_file is None:
-            config_file = self.hist_file["meta/configFile"][()].copy()
+            config_file = self.hist_file["meta/configFile"][()]
 
         self.check_network_config_integrity(config_file=config_file)
         with open(config_file, "r") as f:
