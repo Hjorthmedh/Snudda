@@ -2089,7 +2089,7 @@ class SnuddaInput(object):
             input_loc = None
 
             num_inputs = 1
-            p_keep = np.divide(1, (num_inputs - np.sqrt(correlation) * (num_inputs - 1)))
+            p_keep = np.sqrt(correlation)
 
             # !!! Pass the input_generator
             spikes = self.make_correlated_spikes(freq=freq,
