@@ -631,7 +631,7 @@ class SnuddaInput(object):
                 else:
                     # We do not want to generate "global" mother spikes for population unit 0
                     # For population unit 0, mother spikes are unique to each neuron
-                    pop_unit_list = set(self.all_population_units) - {0}
+                    pop_unit_list = self.all_population_units
 
                 if input_type == "VirtualNeuron":
                     # No population unit spike trains needed for virtual neurons, reads input from file
@@ -1691,10 +1691,10 @@ class SnuddaInput(object):
                 if "unitID" in self.network_config["PopulationUnits"][volume]:
                     all_id += self.network_config["PopulationUnits"][volume]["unitID"]
 
-            all_id = sorted(all_id)
+            all_id = set(all_id) - {0}
 
             if "AllUnitID" in self.network_config["PopulationUnits"]:
-                self.all_population_units = sorted(self.network_config["PopulationUnits"]["AllUnitID"])
+                self.all_population_units = set(self.network_config["PopulationUnits"]["AllUnitID"])
                 assert all_id == self.all_population_units, \
                     (f"Inconsistency: AllUnitID = {self.all_population_units}, "
                      f"but all units in unitID blocks = {all_id}")
@@ -1703,7 +1703,7 @@ class SnuddaInput(object):
                 self.all_population_units = all_id
 
         else:
-            self.all_population_units = [0]
+            self.all_population_units = {}
 
     def generate_seeds(self, num_states):
 
