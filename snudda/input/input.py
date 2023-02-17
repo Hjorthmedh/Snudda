@@ -543,8 +543,14 @@ class SnuddaInput(object):
         with open(snudda_parse_path(self.input_config_file, self.snudda_data), 'rt') as f:
             self.input_info = json.load(f, object_pairs_hook=OrderedDict)
 
+        max_time = self.time
+
         for neuron_type in self.input_info:
             for input_type in self.input_info[neuron_type]:
+
+                if "end" in self.input_info[neuron_type][input_type]:
+                    max_time = max(max_time, np.max(self.input_info[neuron_type][input_type]["end"]))
+
                 if "parameterFile" in self.input_info[neuron_type][input_type]:
                     # Allow user to use $DATA to refer to snudda data directory
                     par_file = snudda_parse_path(self.input_info[neuron_type][input_type]["parameterFile"],
@@ -576,6 +582,11 @@ class SnuddaInput(object):
                     self.write_log(traceback.format_exc(), is_error=True)
                     self.write_log(f"Did you forget to specify the name of the input to {neuron_type}?")
                     sys.exit(-1)
+
+        if max_time > self.time:
+            self.write_log(f"Found input that ends at {max_time}, "
+                           f"increasing input generation from {self.time} to {max_time}", force_print=True)
+            self.time = max_time
 
     ############################################################################
 
@@ -618,7 +629,9 @@ class SnuddaInput(object):
                     if type(pop_unit_list) != list:
                         pop_unit_list = [pop_unit_list]
                 else:
-                    pop_unit_list = self.all_population_units
+                    # We do not want to generate "global" mother spikes for population unit 0
+                    # For population unit 0, mother spikes are unique to each neuron
+                    pop_unit_list = set(self.all_population_units) - {0}
 
                 if input_type == "VirtualNeuron":
                     # No population unit spike trains needed for virtual neurons, reads input from file
