@@ -1,5 +1,8 @@
 import json
 import collections
+import numpy as np
+from scipy.spatial import distance_matrix
+from snudda.utils import SnuddaLoad
 from snudda.detect import SnuddaPrune
 
 
@@ -85,8 +88,64 @@ class OptimisePruning:
                                   close_input_file=True,
                                   merge_data_type="synapses")
 
+    def evaluate_fitness(self, pre_type, post_type, output_file, experiment_data):
 
-    def evaluate_fitness(self, pre_type, post_type, experiment_data):
+        """
+
+            Args:
+                pre_type
+                post_type
+                output_file: path to output file from prune
+                experiment_data: [(bin start, bin end, n_con_pairs, n_tot_pairs, P)]
+
+        """
+
+        snudda_load = SnuddaLoad(network_file=output_file)
+        snudda_data = snudda_load.data
+
+        connection_matrix = np.zeros((snudda_data["nNeurons"], snudda_data["nNeurons"]))
+
+        pre_id = snudda_load.get_neuron_id_of_type(neuron_type=pre_type)
+        post_id = snudda_load.get_neuron_id_of_type(neuron_type=post_type)
+
+        pre_mask = np.zeros((snudda_data["nNeurons"],), dtype=bool)
+        post_mask = np.zeros((snudda_data["nNeurons"],), dtype=bool)
+
+        pre_mask[pre_id] = True
+        post_mask[post_id] = True
+
+        for row in snudda_data["synapses"]:
+            if pre_mask[row[0]] and post_mask[row[1]]:
+                # Only include connections between the right pre and post types
+                connection_matrix[row[0], row[1]] += 1
+
+        pos = snudda_data["neuronPositions"]
+        dist_matrix = distance_matrix(pos, pos)
+
+        # !!! TODO: Calculate the number of connected and non-connected pairs in the experimental bins
+        #           and then calculate how well the model data fits the original experimental data
+
+
+
+    def
+        # For plotting
+        n_bins = 10
+        bin_size = 20
+        connected_pairs = np.zeros((n_bins, ))
+        total_pairs = np.zeros((n_bins, ))
+
+        for connected, d in zip(connection_matrix.flatten(), dist_matrix.flatten()):
+
+            bin = int(d / bin_size)
+
+            if bin < n_bins:
+                if connected:
+                    connected_pairs[bin] += 1
+
+                total_pairs[bin] += 1
+
+
+
 
         """ Evaluate the fitness of the connection between pre_type and post_type """
 
