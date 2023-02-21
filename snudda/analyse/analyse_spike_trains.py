@@ -58,43 +58,63 @@ class AnalyseSpikeTrains:
         if self.input_file is not None:
             self.input_data = h5py.File(self.input_file, "r")
 
-    def calculate_sttc(self, spike_train_a, spike_train_b, dt):
+    def calculate_sttc(self, spike_train_a, spike_train_b, dt, start_time=0, end_time=None):
 
-        end_time = self.get_end_time()
+        if end_time is None:
+            end_time = self.get_end_time()
 
-        return spike_time_tiling_coefficient(spiketrain_i=spike_train_a, spiketrain_j=spike_train_b,
-                                             dt=dt, end_time=end_time)
+        idx_a = np.where(np.logical_and(start_time <= spike_train_a, spike_train_a <= end_time))[0]
+        idx_b = np.where(np.logical_and(start_time <= spike_train_b, spike_train_b <= end_time))[0]
+
+        return spike_time_tiling_coefficient(spiketrain_i=spike_train_a[idx_a], spiketrain_j=spike_train_b[idx_b],
+                                             dt=dt, end_time=end_time, start_time=start_time)
 
     def get_end_time(self):
         return np.max(self.output_data.get_time())
 
-    def calculate_sttc_all_to_all(self, spike_trains, n_spikes, dt):
+    def calculate_sttc_all_to_all(self, spike_trains, n_spikes, dt, start_time=0, end_time=None):
         n_spike_trains = len(n_spikes)
         assert spike_trains.shape[0] == n_spike_trains
 
         corr = []
-        end_time = self.get_end_time()
+
+        if end_time is None:
+            end_time = self.get_end_time()
+
+        pruned_spike_trains = []
+        for st in spike_trains:
+            idx = np.where(np.logical_and(start_time <= st, st <= end_time))[0]
+            pruned_spike_trains.append(st[idx].flatten())
 
         for i in range(0, n_spike_trains):
             if i % 50 == 0:
                 print(f'{i} / {n_spike_trains}')
             for j in range(i+1, n_spike_trains):
-                corr.append(spike_time_tiling_coefficient(spiketrain_a=spike_trains[i, :n_spikes[i]].flatten(),
-                                                          spiketrain_b=spike_trains[j, :n_spikes[j]].flatten(),
-                                                          dt=dt, end_time=end_time))
+                corr.append(spike_time_tiling_coefficient(spiketrain_a=pruned_spike_trains[i],
+                                                          spiketrain_b=pruned_spike_trains[j],
+                                                          dt=dt, start_time=start_time, end_time=end_time))
         print(f'{i} / {n_spike_trains}')
 
         return np.array(corr)
 
-    def calculate_sttc_one_to_all(self, spike_train, spike_trains, n_spikes, dt):
+    def calculate_sttc_one_to_all(self, spike_train, spike_trains, n_spikes, dt, start_time=0, end_time=None):
         n_spike_trains = len(n_spikes)
         assert spike_trains.shape[0] == n_spike_trains
         corr = []
-        end_time = self.get_end_time()
+
+        if end_time is None:
+            end_time = self.get_end_time()
+
+        st = spike_train.flatten()
+        idx = np.where(np.logical_and(start_time <= st, st <= end_time))[0]
+        spike_train_b = st[idx]
 
         for i in range(1, n_spike_trains):
-            corr.append(spike_time_tiling_coefficient(spiketrain_a=spike_trains[i, :n_spikes[i]].flatten(),
-                                                      spiketrain_b=spike_train.flatten(),
+            idx_i = np.where(np.logical_and(start_time <= spike_trains[i, :], spike_trains[i, :] <= end_time))[0]
+            spike_train_i = spike_trains[i, idx_i].flatten()
+
+            corr.append(spike_time_tiling_coefficient(spiketrain_a=spike_train_i,
+                                                      spiketrain_b=spike_train_b,
                                                       dt=dt, end_time=end_time))
 
         return np.array(corr)
@@ -106,7 +126,7 @@ class AnalyseSpikeTrains:
         corr = self.calculate_sttc_all_to_all(spike_trains=input_spikes, n_spikes=n_spikes, dt=dt)
         return corr
 
-    def input_output_correlation(self, neuron_id, dt):
+    def input_output_correlation(self, neuron_id, dt, start_time=0, end_time=None):
 
         input_data = dict()
         corr = dict()
@@ -121,7 +141,7 @@ class AnalyseSpikeTrains:
             corr[input_type] = self.calculate_sttc_one_to_all(spike_train=output_data,
                                                               spike_trains=input_spikes,
                                                               n_spikes=n_spikes,
-                                                              dt=dt)
+                                                              dt=dt, start_time=start_time, end_time=end_time)
         return corr
 
 

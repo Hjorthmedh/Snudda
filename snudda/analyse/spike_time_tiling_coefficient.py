@@ -6,7 +6,7 @@ from numba import jit
 
 
 @jit(nopython=True, fastmath=True, cache=True)
-def spike_time_tiling_coefficient(spiketrain_a, spiketrain_b, end_time, dt=0.005):
+def spike_time_tiling_coefficient(spiketrain_a, spiketrain_b, end_time, start_time=0, dt=0.005):
     """
     Calculates the Spike Time Tiling Coefficient (STTC) as described in
     :cite:`correlation-Cutts2014_14288` following their implementation in C.
@@ -40,8 +40,8 @@ def spike_time_tiling_coefficient(spiketrain_a, spiketrain_b, end_time, dt=0.005
     if N1 == 0 or N2 == 0:
         index = np.nan
     else:
-        TA = run_t(spiketrain_a, end_time=end_time, dt=dt)
-        TB = run_t(spiketrain_b, end_time=end_time, dt=dt)
+        TA = run_t(spiketrain_a, end_time=end_time, start_time=start_time, dt=dt)
+        TB = run_t(spiketrain_b, end_time=end_time, start_time=start_time, dt=dt)
         PA = run_p(spiketrain_a, spiketrain_b, dt=dt)
         PA = PA / N1
         PB = run_p(spiketrain_b, spiketrain_a, dt=dt)
@@ -66,7 +66,7 @@ def spike_time_tiling_coefficient(spiketrain_a, spiketrain_b, end_time, dt=0.005
 
 
 @jit(nopython=True, fastmath=True, cache=True)
-def run_p(spiketrain_a, spiketrain_b, dt):
+def run_p(spiketrain_a, spiketrain_b, dt=0.005):
     """
     Check every spike in train 1 to see if there's a spike in train 2
     within dt
@@ -102,7 +102,7 @@ def run_p(spiketrain_a, spiketrain_b, dt):
 
 
 @jit(nopython=True, fastmath=True, cache=True)
-def run_t(spiketrain, end_time, dt):
+def run_t(spiketrain, end_time, start_time=0, dt=0.005):
     """
     Calculate the proportion of the total recording time 'tiled' by spikes.
     """
@@ -112,8 +112,8 @@ def run_t(spiketrain, end_time, dt):
     if N == 1:  # for only a single spike in the train
 
         # Check difference between start of recording and single spike
-        if spiketrain[0] < dt:
-            time_A += - dt + spiketrain[0]
+        if spiketrain[0] - start_time < dt:
+            time_A += - dt + spiketrain[0] - start_time
 
         # Check difference between single spike and end of recording
         elif spiketrain[0] + dt > end_time:
@@ -131,8 +131,8 @@ def run_t(spiketrain, end_time, dt):
 
         # Check if spikes are within +/-dt of the start and/or end
         # if so, subtract overlap of first and/or last spike
-        if spiketrain[0] < dt:
-            time_A += spiketrain[0] - dt
+        if spiketrain[0] - start_time < dt:
+            time_A += spiketrain[0] - start_time - dt
         if (end_time - spiketrain[N - 1]) < dt:
             time_A += - spiketrain[-1] - dt + end_time
 
