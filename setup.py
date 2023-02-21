@@ -25,7 +25,7 @@ else:
         "ipyparallel>=6.3.0",
         "matplotlib>=3.3.4",
         "mpi4py>=3.0.3",
-        "numpy=1.23.5",  # Numba depends on specific numpy version, so removing this line for now as numba will install its requirements
+        "numpy==1.23.5",  # Numba depends on specific numpy version, so removing this line for now as numba will install its requirements
         "scipy>=1.6.3",
         "sonata>=0.0.2",
         "pyzmq>=22.0.3",
