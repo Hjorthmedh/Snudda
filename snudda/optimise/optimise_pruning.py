@@ -88,7 +88,7 @@ class OptimisePruning:
                                   close_input_file=True,
                                   merge_data_type="synapses")
 
-    def evaluate_fitness(self, pre_type, post_type, output_file, experiment_data):
+    def evaluate_fitness(self, pre_type, post_type, output_file, experimental_data):
 
         """
 
@@ -121,6 +121,9 @@ class OptimisePruning:
 
         pos = snudda_data["neuronPositions"]
         dist_matrix = distance_matrix(pos, pos)
+
+        for dist, con in zip(dist_matrix.flatten(), connection_matrix.flatten()):
+
 
         # !!! TODO: Calculate the number of connected and non-connected pairs in the experimental bins
         #           and then calculate how well the model data fits the original experimental data
