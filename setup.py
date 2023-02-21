@@ -25,7 +25,7 @@ else:
         "ipyparallel>=6.3.0",
         "matplotlib>=3.3.4",
         "mpi4py>=3.0.3",
-        "numpy>=1.20.2",
+        "numpy=1.23.5",  # Due to numba requirement, update later
         "scipy>=1.6.3",
         "sonata>=0.0.2",
         "pyzmq>=22.0.3",
