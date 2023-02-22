@@ -163,7 +163,7 @@ class AnalyseSpikeTrains:
     def calculate_multiplicity_helper(input_spikes, jitter=0):
 
         max_mult = input_spikes.shape[0]
-        multiplicity = np.zeros((max_mult, ), dtype=int)
+        multiplicity = np.zeros((max_mult+1, ), dtype=int)
 
         input_spikes = input_spikes.flatten()
         input_spikes = np.sort(input_spikes[np.where(input_spikes >= 0)[0]])
