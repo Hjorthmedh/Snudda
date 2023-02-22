@@ -47,7 +47,7 @@ class AnalyseSynapseLocation:
             post_text = post_type
 
         if fig_path is None:
-            fig_path = os.path.join(self.figure_path, f"Distance-to-soma-{pre_text}-to-{post_text}.png")
+            fig_path = os.path.join(self.figure_path, f"Distance-to-soma-{pre_text}-to-{post_text}.pdf")
 
         dist = self.synapse_distance_to_soma(pre_type=pre_type, post_type=post_type)
 
