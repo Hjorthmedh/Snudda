@@ -1,5 +1,7 @@
 import os
 import numpy as np
+from numba import jit
+import matplotlib.pyplot as plt
 
 import h5py
 # from elephant.spike_train_correlation import spike_time_tiling_coefficient
@@ -143,5 +145,46 @@ class AnalyseSpikeTrains:
                                                               n_spikes=n_spikes,
                                                               dt=dt, start_time=start_time, end_time=end_time)
         return corr
+
+    def plot_spike_multiplicity(self, neuron_id, input_type, jitter=0):
+
+        mult_list, mult = self.calculate_spike_multiplicity(neuron_id=neuron_id, input_type=input_type, jitter=jitter)
+
+        plt.figure()
+        # plt.stairs(edges=np.arange(0, len(mult)+1), values=mult)
+        plt.hist(mult_list, bins=50)
+        plt.yscale('log')
+
+    def calculate_spike_multiplicity(self, neuron_id, input_type, jitter=0):
+
+        input_spikes = self.input_data[f"input/{neuron_id}/{input_type}/spikes"][()].flatten()
+        return self.calculate_multiplicity_helper(input_spikes=input_spikes, jitter=jitter)
+
+    @staticmethod
+    # @jit(nopython=True, fastmath=True, cache=True)
+    def calculate_multiplicity_helper(input_spikes, jitter=0):
+
+        max_mult = input_spikes.shape[0]
+        multiplicity = np.zeros((max_mult+1, ), dtype=int)
+
+        input_spikes = input_spikes.flatten()
+        input_spikes = np.sort(input_spikes[np.where(input_spikes >= 0)[0]])
+        mul_ctr = 1
+        first_spike = input_spikes[0]
+        max_mult = 1
+
+        mult_list = []
+
+        for idx in range(1, len(input_spikes)):
+            if input_spikes[idx] <= first_spike + jitter:
+                mul_ctr += 1
+            else:
+                mult_list.append(mul_ctr)
+                multiplicity[mul_ctr] += 1
+                max_mult = max(max_mult, mul_ctr)
+                mul_ctr = 1
+                first_spike = input_spikes[idx]
+
+        return mult_list, multiplicity[:max_mult+1]
 
 
