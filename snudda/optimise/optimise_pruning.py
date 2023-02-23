@@ -131,7 +131,7 @@ class OptimisePruning:
                 if bin_start <= dist <= bin_end:
                     n_connected[idx] += 1
 
-            
+
 
         # !!! TODO: Calculate the number of connected and non-connected pairs in the experimental bins
         #           and then calculate how well the model data fits the original experimental data

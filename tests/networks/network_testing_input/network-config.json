@@ -13,8 +13,8 @@
         "Striatum": {
             "type": "mesh",
             "dMin": 1.5e-05,
-            "meshFile": "networks/network_testing_input/mesh/Striatum-cube-mesh-4.989626526218353e-05.obj",
-            "meshBinWidth": 4.989626526218353e-05
+            "meshFile": "networks/network_testing_input/mesh/Striatum-cube-mesh-5e-05.obj",
+            "meshBinWidth": 5e-05
         }
     },
     "Connectivity": {

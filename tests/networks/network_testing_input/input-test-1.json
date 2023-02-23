@@ -88,7 +88,7 @@
 	    "type" : "AMPA_NMDA",
 	    "synapseDensity": "50*0.092*(1-exp(-d/200e-6))",	    
 	    "frequency" : 1,
-	    "populationUnitCorrelation" : 0.2,
+	    "populationUnitCorrelation" : 0,
 	    "jitter" : 0.00,
 	    "conductance" : 1.5e-9,	    
 	    "modFile": "tmGlut",
