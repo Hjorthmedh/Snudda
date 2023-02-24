@@ -633,6 +633,9 @@ class SnuddaInput(object):
                     # For population unit 0, mother spikes are unique to each neuron
                     pop_unit_list = self.all_population_units
 
+                # This makes sure that we do not give population unit wide mother spikes to population unit 0
+                pop_unit_list = set(pop_unit_list) - {0}
+
                 if input_type == "VirtualNeuron":
                     # No population unit spike trains needed for virtual neurons, reads input from file
                     pass
