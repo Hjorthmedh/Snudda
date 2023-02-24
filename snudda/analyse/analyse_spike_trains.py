@@ -185,6 +185,11 @@ class AnalyseSpikeTrains:
                 mul_ctr = 1
                 first_spike = input_spikes[idx]
 
+        # Need to add the last spike also
+        mult_list.append(mul_ctr)
+        multiplicity[mul_ctr] += 1
+        max_mult = max(max_mult, mul_ctr)
+
         return mult_list, multiplicity[:max_mult+1]
 
 
