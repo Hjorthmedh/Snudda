@@ -36,6 +36,8 @@ class OptimisePruning:
 
         self.optimisation_info = dict()
 
+        self.log_file = None
+
     def merge_putative_synapses(self):
 
         merge_info = self.prune.get_merge_info()
@@ -107,7 +109,7 @@ class OptimisePruning:
                 import pdb
                 pdb.set_trace()
 
-    def evaluate_fitness(self, pre_type, post_type, output_file, experimental_data):
+    def evaluate_fitness(self, pre_type, post_type, output_file, experimental_data, avg_num_synapses_per_pair=None):
 
         """
 
@@ -116,6 +118,7 @@ class OptimisePruning:
                 post_type
                 output_file: path to output file from prune
                 experiment_data: [(bin start, bin end, P)]
+                avg_num_synapses_per_pair: (avg_num, error_weight)
 
         """
 
@@ -144,8 +147,15 @@ class OptimisePruning:
 
         n_connected = np.zeros((len(experimental_data),), dtype=int)
         n_total = np.zeros((len(experimental_data),), dtype=int)
+        n_syn = 0
+        n_pairs = 0
 
         for dist, con in zip(dist_matrix.flatten(), connection_matrix.flatten()):
+
+            if con > 0:
+                n_syn += con
+                n_pairs += 1
+
             for idx, (bin_start, bin_end, _) in enumerate(experimental_data):
                 if bin_start <= dist <= bin_end:
                     n_total[idx] += 1
@@ -159,7 +169,13 @@ class OptimisePruning:
             # p_hyp[idx] = test.pvalue  # gave 0 when p values are too far apart, not informative
             p_hyp[idx] = abs(n_con/n_tot - p_exp)
 
-        return np.mean(p_hyp)
+        if avg_num_synapses_per_pair is not None:
+            per_pair_error = abs(avg_num_synapses_per_pair[0] - n_syn/n_pairs)
+            error = np.sum(p_hyp) + per_pair_error * avg_num_synapses_per_pair[1]  # * Weight of error
+        else:
+            error = np.sum(p_hyp)
+
+        return error
 
     def helper_func(self, x):
 
@@ -171,7 +187,7 @@ class OptimisePruning:
         pruning_parameters["mu2"] = x[2]
         pruning_parameters["a3"] = x[3]
 
-        output_file = os.path.join(self.network_path, f"network-synapses-{uuid.uuid4()}.hdf5")
+        output_file = os.path.join(self.network_path, "temp", f"network-synapses-{uuid.uuid4()}.hdf5")
         print(f"Output file {output_file}")
 
         self.prune_synapses(pre_type=self.optimisation_info["pre_type"],
@@ -189,9 +205,15 @@ class OptimisePruning:
 
         print(f"({self.optimisation_info['ctr'] }) Evaluating f1 = {x[0]}, SM = {x[1]}, mu2 = {x[2]}, a3 = {x[3]}, fitness: {fitness}")
 
+        self.log_file.write(f"{self.optimisation_info['ctr']}, {pruning_parameters['f1']}, "
+                            f"{pruning_parameters['softMax']}, {pruning_parameters['mu2']}, "
+                            f"{pruning_parameters['a3']}, {fitness}, {output_file}\n")
+
         return fitness
 
-    def optimize(self, pre_type, post_type, con_type, experimental_data, extra_pruning_parameters):
+    def optimize(self, pre_type, post_type, con_type, experimental_data, extra_pruning_parameters, workers=1):
+
+        self.log_file = open(os.path.join(self.network_path, f"{pre_type}-{post_type}-{con_type}-optimisation-log.txt"), "wt")
 
         self.optimisation_info["pre_type"] = pre_type
         self.optimisation_info["post_type"] = post_type
@@ -202,6 +224,8 @@ class OptimisePruning:
 
         bounds = [(0, 1), (0, 20), (0, 5), (0, 1)]
 
-        res = differential_evolution(func=self.helper_func, bounds=bounds)
+        res = differential_evolution(func=self.helper_func, bounds=bounds, workers=workers)
+
+        self.log_file.close()
 
         return res
