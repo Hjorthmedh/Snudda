@@ -146,29 +146,39 @@ class AnalyseSpikeTrains:
                                                               dt=dt, start_time=start_time, end_time=end_time)
         return corr
 
-    def plot_spike_multiplicity(self, neuron_id, input_type, jitter=0):
+    def plot_spike_multiplicity(self, neuron_id, input_type, jitter=0, start_time=None, end_time=None):
 
-        mult_list, mult = self.calculate_spike_multiplicity(neuron_id=neuron_id, input_type=input_type, jitter=jitter)
+        mult_list, mult = self.calculate_spike_multiplicity(neuron_id=neuron_id, input_type=input_type, jitter=jitter,
+                                                            start_time=None, end_time=None)
 
         plt.figure()
+        plt.title(f"{self.network_path} {neuron_id} {input_type}")
         # plt.stairs(edges=np.arange(0, len(mult)+1), values=mult)
         plt.hist(mult_list, bins=50)
         plt.yscale('log')
 
-    def calculate_spike_multiplicity(self, neuron_id, input_type, jitter=0):
+    def calculate_spike_multiplicity(self, neuron_id, input_type, jitter=0, start_time=None, end_time=None):
 
         input_spikes = self.input_data[f"input/{neuron_id}/{input_type}/spikes"][()].flatten()
-        return self.calculate_multiplicity_helper(input_spikes=input_spikes, jitter=jitter)
+        return self.calculate_multiplicity_helper(input_spikes=input_spikes, jitter=jitter,
+                                                  start_time=start_time, end_time=end_time)
 
     @staticmethod
     # @jit(nopython=True, fastmath=True, cache=True)
-    def calculate_multiplicity_helper(input_spikes, jitter=0):
+    def calculate_multiplicity_helper(input_spikes, jitter=0, start_time=None, end_time=None):
+
+        assert (start_time is None) ^ (end_time is None) == False, "Either both start_time and end_time is set, or None"
 
         max_mult = input_spikes.shape[0]
         multiplicity = np.zeros((max_mult+1, ), dtype=int)
 
         input_spikes = input_spikes.flatten()
-        input_spikes = np.sort(input_spikes[np.where(input_spikes >= 0)[0]])
+        if end_time is None:
+            input_spikes = np.sort(input_spikes[np.where(input_spikes >= 0)[0]])
+        else:
+            input_spikes = np.sort(input_spikes[np.where(np.logical_and(start_time <= input_spikes,
+                                                                        input_spikes <= end_time))[0]])
+
         mul_ctr = 1
         first_spike = input_spikes[0]
         max_mult = 1
