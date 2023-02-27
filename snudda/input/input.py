@@ -543,8 +543,14 @@ class SnuddaInput(object):
         with open(snudda_parse_path(self.input_config_file, self.snudda_data), 'rt') as f:
             self.input_info = json.load(f, object_pairs_hook=OrderedDict)
 
+        max_time = self.time
+
         for neuron_type in self.input_info:
             for input_type in self.input_info[neuron_type]:
+
+                if "end" in self.input_info[neuron_type][input_type]:
+                    max_time = max(max_time, np.max(self.input_info[neuron_type][input_type]["end"]))
+
                 if "parameterFile" in self.input_info[neuron_type][input_type]:
                     # Allow user to use $DATA to refer to snudda data directory
                     par_file = snudda_parse_path(self.input_info[neuron_type][input_type]["parameterFile"],
@@ -576,6 +582,11 @@ class SnuddaInput(object):
                     self.write_log(traceback.format_exc(), is_error=True)
                     self.write_log(f"Did you forget to specify the name of the input to {neuron_type}?")
                     sys.exit(-1)
+
+        if max_time > self.time:
+            self.write_log(f"Found input that ends at {max_time}, "
+                           f"increasing input generation from {self.time} to {max_time}", force_print=True)
+            self.time = max_time
 
     ############################################################################
 
@@ -618,7 +629,12 @@ class SnuddaInput(object):
                     if type(pop_unit_list) != list:
                         pop_unit_list = [pop_unit_list]
                 else:
+                    # We do not want to generate "global" mother spikes for population unit 0
+                    # For population unit 0, mother spikes are unique to each neuron
                     pop_unit_list = self.all_population_units
+
+                # This makes sure that we do not give population unit wide mother spikes to population unit 0
+                pop_unit_list = set(pop_unit_list) - {0}
 
                 if input_type == "VirtualNeuron":
                     # No population unit spike trains needed for virtual neurons, reads input from file
@@ -1678,10 +1694,10 @@ class SnuddaInput(object):
                 if "unitID" in self.network_config["PopulationUnits"][volume]:
                     all_id += self.network_config["PopulationUnits"][volume]["unitID"]
 
-            all_id = sorted(all_id)
+            all_id = set(all_id) - {0}
 
             if "AllUnitID" in self.network_config["PopulationUnits"]:
-                self.all_population_units = sorted(self.network_config["PopulationUnits"]["AllUnitID"])
+                self.all_population_units = set(self.network_config["PopulationUnits"]["AllUnitID"])
                 assert all_id == self.all_population_units, \
                     (f"Inconsistency: AllUnitID = {self.all_population_units}, "
                      f"but all units in unitID blocks = {all_id}")
@@ -1690,7 +1706,7 @@ class SnuddaInput(object):
                 self.all_population_units = all_id
 
         else:
-            self.all_population_units = [0]
+            self.all_population_units = {}
 
     def generate_seeds(self, num_states):
 
@@ -2089,7 +2105,7 @@ class SnuddaInput(object):
             input_loc = None
 
             num_inputs = 1
-            p_keep = np.divide(1, (num_inputs - np.sqrt(correlation) * (num_inputs - 1)))
+            p_keep = np.sqrt(correlation)
 
             # !!! Pass the input_generator
             spikes = self.make_correlated_spikes(freq=freq,

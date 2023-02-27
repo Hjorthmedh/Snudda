@@ -1,10 +1,13 @@
 import os
 import numpy as np
+from numba import jit
+import matplotlib.pyplot as plt
 
 import h5py
-from elephant.spike_train_correlation import spike_time_tiling_coefficient
-from neo import SpikeTrain as NeoSpikeTrain
-import quantities as pq
+# from elephant.spike_train_correlation import spike_time_tiling_coefficient
+from snudda.analyse.spike_time_tiling_coefficient import spike_time_tiling_coefficient
+# from neo import SpikeTrain as NeoSpikeTrain
+# import quantities as pq
 
 from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
 from snudda.utils.load import SnuddaLoad
@@ -57,51 +60,64 @@ class AnalyseSpikeTrains:
         if self.input_file is not None:
             self.input_data = h5py.File(self.input_file, "r")
 
-    def calculate_sttc(self, spike_train_a, spike_train_b, dt):
-        t_end = self.get_end_time() * pq.s
-        sa = NeoSpikeTrain(spike_train_a.flatten(), t_stop=t_end, units="s")
-        sb = NeoSpikeTrain(spike_train_b.flatten(), t_stop=t_end, units="s")
+    def calculate_sttc(self, spike_train_a, spike_train_b, dt, start_time=0, end_time=None):
 
-        return spike_time_tiling_coefficient(spiketrain_i=sa, spiketrain_j=sb, dt=dt)
+        if end_time is None:
+            end_time = self.get_end_time()
+
+        idx_a = np.where(np.logical_and(start_time <= spike_train_a, spike_train_a <= end_time))[0]
+        idx_b = np.where(np.logical_and(start_time <= spike_train_b, spike_train_b <= end_time))[0]
+
+        return spike_time_tiling_coefficient(spiketrain_i=spike_train_a[idx_a], spiketrain_j=spike_train_b[idx_b],
+                                             dt=dt, end_time=end_time, start_time=start_time)
 
     def get_end_time(self):
-        return np.max(self.output_data.get_time()) * pq.s
+        return np.max(self.output_data.get_time())
 
-    def calculate_sttc_all_to_all(self, spike_trains, n_spikes, dt):
+    def calculate_sttc_all_to_all(self, spike_trains, n_spikes, dt, start_time=0, end_time=None):
         n_spike_trains = len(n_spikes)
         assert spike_trains.shape[0] == n_spike_trains
 
         corr = []
-        t_end = self.get_end_time()
 
-        neo_spike_trains = []
-        for i in range(0, n_spike_trains):
-            neo_spike_trains.append(NeoSpikeTrain(spike_trains[i, :n_spikes[i]].flatten(), t_stop=t_end, units="s"))
+        if end_time is None:
+            end_time = self.get_end_time()
+
+        pruned_spike_trains = []
+        for st in spike_trains:
+            idx = np.where(np.logical_and(start_time <= st, st <= end_time))[0]
+            pruned_spike_trains.append(st[idx].flatten())
 
         for i in range(0, n_spike_trains):
             if i % 50 == 0:
                 print(f'{i} / {n_spike_trains}')
             for j in range(i+1, n_spike_trains):
-                corr.append(spike_time_tiling_coefficient(spiketrain_i=neo_spike_trains[i],
-                                                          spiketrain_j=neo_spike_trains[j],
-                                                          dt=dt))
+                corr.append(spike_time_tiling_coefficient(spiketrain_a=pruned_spike_trains[i],
+                                                          spiketrain_b=pruned_spike_trains[j],
+                                                          dt=dt, start_time=start_time, end_time=end_time))
         print(f'{i} / {n_spike_trains}')
 
         return np.array(corr)
 
-    def calculate_sttc_one_to_all(self, spike_train, spike_trains, n_spikes, dt):
+    def calculate_sttc_one_to_all(self, spike_train, spike_trains, n_spikes, dt, start_time=0, end_time=None):
         n_spike_trains = len(n_spikes)
         assert spike_trains.shape[0] == n_spike_trains
         corr = []
-        t_end = self.get_end_time()
 
-        spike_train_b = NeoSpikeTrain(spike_train.flatten(), t_stop=t_end, units="s")
+        if end_time is None:
+            end_time = self.get_end_time()
+
+        st = spike_train.flatten()
+        idx = np.where(np.logical_and(start_time <= st, st <= end_time))[0]
+        spike_train_b = st[idx]
 
         for i in range(1, n_spike_trains):
-            spike_train_a = NeoSpikeTrain(spike_trains[i, :n_spikes[i]].flatten(), t_stop=t_end, units="s")
-            corr.append(spike_time_tiling_coefficient(spiketrain_i=spike_train_a,
-                                                      spiketrain_j=spike_train_b,
-                                                      dt=dt))
+            idx_i = np.where(np.logical_and(start_time <= spike_trains[i, :], spike_trains[i, :] <= end_time))[0]
+            spike_train_i = spike_trains[i, idx_i].flatten()
+
+            corr.append(spike_time_tiling_coefficient(spiketrain_a=spike_train_i,
+                                                      spiketrain_b=spike_train_b,
+                                                      dt=dt, end_time=end_time))
 
         return np.array(corr)
 
@@ -112,7 +128,7 @@ class AnalyseSpikeTrains:
         corr = self.calculate_sttc_all_to_all(spike_trains=input_spikes, n_spikes=n_spikes, dt=dt)
         return corr
 
-    def input_output_correlation(self, neuron_id, dt):
+    def input_output_correlation(self, neuron_id, dt, start_time=0, end_time=None):
 
         input_data = dict()
         corr = dict()
@@ -127,6 +143,63 @@ class AnalyseSpikeTrains:
             corr[input_type] = self.calculate_sttc_one_to_all(spike_train=output_data,
                                                               spike_trains=input_spikes,
                                                               n_spikes=n_spikes,
-                                                              dt=dt)
+                                                              dt=dt, start_time=start_time, end_time=end_time)
         return corr
+
+    def plot_spike_multiplicity(self, neuron_id, input_type, jitter=0, start_time=None, end_time=None):
+
+        mult_list, mult = self.calculate_spike_multiplicity(neuron_id=neuron_id, input_type=input_type, jitter=jitter,
+                                                            start_time=None, end_time=None)
+
+        plt.figure()
+        plt.title(f"{self.network_path} {neuron_id} {input_type}")
+        # plt.stairs(edges=np.arange(0, len(mult)+1), values=mult)
+        plt.hist(mult_list, bins=50)
+        plt.yscale('log')
+
+    def calculate_spike_multiplicity(self, neuron_id, input_type, jitter=0, start_time=None, end_time=None):
+
+        input_spikes = self.input_data[f"input/{neuron_id}/{input_type}/spikes"][()].flatten()
+        return self.calculate_multiplicity_helper(input_spikes=input_spikes, jitter=jitter,
+                                                  start_time=start_time, end_time=end_time)
+
+    @staticmethod
+    # @jit(nopython=True, fastmath=True, cache=True)
+    def calculate_multiplicity_helper(input_spikes, jitter=0, start_time=None, end_time=None):
+
+        assert (start_time is None) ^ (end_time is None) == False, "Either both start_time and end_time is set, or None"
+
+        max_mult = input_spikes.shape[0]
+        multiplicity = np.zeros((max_mult+1, ), dtype=int)
+
+        input_spikes = input_spikes.flatten()
+        if end_time is None:
+            input_spikes = np.sort(input_spikes[np.where(input_spikes >= 0)[0]])
+        else:
+            input_spikes = np.sort(input_spikes[np.where(np.logical_and(start_time <= input_spikes,
+                                                                        input_spikes <= end_time))[0]])
+
+        mul_ctr = 1
+        first_spike = input_spikes[0]
+        max_mult = 1
+
+        mult_list = []
+
+        for idx in range(1, len(input_spikes)):
+            if input_spikes[idx] <= first_spike + jitter:
+                mul_ctr += 1
+            else:
+                mult_list.append(mul_ctr)
+                multiplicity[mul_ctr] += 1
+                max_mult = max(max_mult, mul_ctr)
+                mul_ctr = 1
+                first_spike = input_spikes[idx]
+
+        # Need to add the last spike also
+        mult_list.append(mul_ctr)
+        multiplicity[mul_ctr] += 1
+        max_mult = max(max_mult, mul_ctr)
+
+        return mult_list, multiplicity[:max_mult+1]
+
 

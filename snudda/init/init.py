@@ -919,7 +919,7 @@ class SnuddaInit(object):
             print("Using cube for striatum")
             # 1.73 million neurons, volume of allen striatal mesh is 21.5mm3
             striatum_volume = 1e-9 * num_neurons / neuron_density  # 80.5e3
-            striatum_side_len = striatum_volume ** (1. / 3)
+            striatum_side_len = np.maximum(striatum_volume ** (1. / 3), 50e-6)  # We do a minimum of 10 micrometer cube
             striatum_centre = np.array([4750e-6, 4000e-6, 7750e-6])
 
             if num_neurons < 500:

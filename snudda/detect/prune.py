@@ -687,7 +687,7 @@ class SnuddaPrune(object):
         with open(config_file, "r") as f:
             self.config = json.load(f, object_pairs_hook=collections.OrderedDict)
 
-        self.population_unit_id = self.hist_file["network/neurons/populationUnitID"][()]
+        self.population_unit_id = self.hist_file["network/neurons/populationUnitID"][()].copy()
 
         # Normally we use type names as lookups, but since we will do this
         # many millions of times, we create an temporary typeID number
