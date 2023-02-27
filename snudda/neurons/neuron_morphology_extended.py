@@ -60,7 +60,7 @@ class NeuronMorphologyExtended:
 
         # Can we remove these:
         self.axon_density_type = None
-        self.dend_density = None
+        # self.dend_density = None
         self.axon_density = None
         self.max_axon_radius = None
         self.axon_density_bounds_xyz = None
@@ -219,6 +219,19 @@ class NeuronMorphologyExtended:
             raise ValueError(f"Not allowed to change morphology_key when cloning: {self.morphology_key} -> {morphology_key}")
 
         new_neuron.load_morphology = self.load_morphology
+
+        new_neuron.max_axon_radius = self.max_axon_radius
+
+        if self.axon_density is not None:
+            new_neuron.axon_density = self.axon_density
+
+        new_neuron.voxel_size = self.voxel_size
+
+        if self.axon_density_type is not None:
+            new_neuron.axon_density_type = self.axon_density_type
+
+        if self.axon_density_bounds_xyz is not None:
+            new_neuron.axon_density_bounds_xyz = self.axon_density_bounds_xyz
 
         return new_neuron
 
