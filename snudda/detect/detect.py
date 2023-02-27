@@ -2382,6 +2382,11 @@ class SnuddaDetect(object):
 
                     self.hyper_voxels[hid]["neurons"][neuron_id] = hv[hid]["neurons"][neuron_id]
 
+                for neuron_id in hv[hid]["axon_density"]:
+                    assert neuron_id not in self.hyper_voxels[hid]["axon_density"], \
+                        f"Internal error, neuron_id {neuron_id} already exists hyper_voxel {hid} (axon_density)"
+                    self.hyper_voxels[hid]["axon_density"].append(neuron_id)
+
         # Sort for reproducibility
         self.count_and_sort_neurons_in_hypervoxels()
         self.generate_hyper_voxel_random_seeds()
@@ -3146,10 +3151,6 @@ class SnuddaDetect(object):
                                               neuron_id=neuron_id,
                                               section_id=section_id,
                                               subtree=subtree)
-
-            # if hyper_id == 813:   #56:
-            #     import pdb
-            #     pdb.set_trace()
 
             # This should be outside the neuron loop
             # This places axon voxels for neurons without axon morphologies
