@@ -705,7 +705,7 @@ class SnuddaDetect(object):
             axon_loc = np.floor((axon_cloud[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(int)
 
         if axon_loc is not None:
-            inside_idx = np.logical_and(0 <= axon_loc, axon_loc < self.hyper_voxel_id_lookup.shape[None, :])
+            inside_idx = np.sum(np.logical_and(0 <= axon_loc, axon_loc < self.hyper_voxel_id_lookup.shape), axis=1) == 3
             hyper_voxel_id = np.unique(self.hyper_voxel_id_lookup[tuple(axon_loc[inside_idx, :].T)])
 
         return hyper_voxel_id
@@ -1355,11 +1355,13 @@ class SnuddaDetect(object):
             # No neurons without axons
             return
 
-        for na_neuron in no_axon_neurons:
+        for na_neuron_id in no_axon_neurons:
 
             # There are two types of axon density specified
             # - Spherically symmetric
             # - f(x,y,z) in SWC coordinates
+
+            na_neuron = self.neurons[na_neuron_id]
 
             if na_neuron["axonDensityType"] == "r":
 
