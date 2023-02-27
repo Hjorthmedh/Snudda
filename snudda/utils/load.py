@@ -1042,6 +1042,7 @@ class SnuddaLoad(object):
 
         return synapse_count, gap_junction_count
 
+
 def snudda_load_cli():
     """ Command line parser for SnuddaLoad script """
 
