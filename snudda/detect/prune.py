@@ -356,13 +356,14 @@ class SnuddaPrune(object):
         """
 
         if not os.path.exists(self.merge_info_file):
+            print(f"No file {self.merge_info_file}")
             return None
 
         try:
             merge_files_syn, merge_neuron_range_syn, merge_syn_ctr, \
             merge_files_gj, merge_neuron_range_gj, merge_gj_ctr = self.get_merge_info_helper()
         except:
-            self.write_log(f"Problem readin merge info from {self.merge_info_file}")
+            self.write_log(f"Problem reading merge info from {self.merge_info_file}")
             return None
 
         # Check that the merge info file is more recent than all the files it refer to
