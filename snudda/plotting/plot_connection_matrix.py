@@ -44,7 +44,8 @@ class PlotConnectionMatrix:
         neuron_types = self.snudda_load.get_neuron_types(neuron_id=all_neuron_id)
 
         fig, ax = plt.subplots()
-        im = ax.imshow(sorted_con_mat, cmap="Greys")
+        # cmap: 'Spectral', 'coolwarm', 'jet
+        im = ax.imshow(sorted_con_mat, cmap='Spectral')
 
         cbar = ax.figure.colorbar(im, ax=ax, **cbar_kw)
         cbar.ax.set_ylabel(cbarlabel, rotation=-90, va="bottom")
@@ -52,8 +53,12 @@ class PlotConnectionMatrix:
         ax.set_xticks(label_centers, labels=labels)
         ax.set_yticks(label_centers, labels=labels)
 
-        ax.set_xticks(label_edges, minor=True)
-        ax.set_yticks(label_edges, minor=True)
+        #ax.set_xticks(label_edges, minor=True)
+        #ax.set_yticks(label_edges, minor=True)
+        
+        ax.set_xlabel('Postsynaptic neurons')
+        ax.set_ylabel('Presynaptic neurons')
+
 
         fig.tight_layout()
         print(f"Saving figure to {fig_path}")
