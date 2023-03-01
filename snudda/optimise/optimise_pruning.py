@@ -99,20 +99,60 @@ class OptimisePruning:
 
         assert len(self.merge_files_syn) == 1, f"merge_Files_syn should be a list with one file only"
 
+        # print(f"Writing to {output_file} (*)")
+
+        # Clear the out file
+        self.prune.out_file = None
+
         with h5py.File(self.merge_files_syn[0], "r") as f_syn:
             # print(f"Writing file {output_file}")
             # We need to make sure that we keep the pruned data files separate
-            self.prune.prune_synapses(synapse_file=f_syn,
-                                      output_filename=output_file,
-                                      row_range=None,
-                                      close_out_file=True,
-                                      close_input_file=True,
-                                      merge_data_type="synapses")
 
-            if not os.path.exists(output_file):
-                print(f"Output file missing {output_file}")
-                import pdb
-                pdb.set_trace()
+            num_syn, num_syn_kept = self.prune.prune_synapses(synapse_file=f_syn,
+                                                              output_filename=output_file,
+                                                              row_range=None,
+                                                              close_out_file=False,
+                                                              close_input_file=True,
+                                                              merge_data_type="synapses")
+
+        if self.merge_files_gj[0] is not None:
+            with h5py.File(self.merge_files_gj[0], "r") as f_gj:
+
+                num_gj, num_gj_kept = self.prune.prune_synapses(synapse_file=f_gj,
+                                                                output_filename=output_file,
+                                                                row_range=None,
+                                                                close_out_file=False,
+                                                                close_input_file=True,
+                                                                merge_data_type="gapJunctions")
+        else:
+            num_gj, num_gj_kept = self.prune.prune_synapses(synapse_file=None,
+                                                            output_filename=output_file,
+                                                            row_range=None,
+                                                            close_out_file=False,
+                                                            close_input_file=True,
+                                                            merge_data_type="gapJunctions")
+
+        if not os.path.exists(output_file):
+            print(f"Output file missing {output_file}")
+            import pdb
+            pdb.set_trace()
+
+        try:
+            assert output_file == self.prune.out_file.filename, f"Expected name {output_file}, had name {self.prune.out_file.name}"
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
+
+
+        n_synapses = self.prune.out_file["network/nSynapses"][()]
+        n_gj = self.prune.out_file["network/nGapJunctions"][()]
+
+        self.prune.out_file["network/synapses"].resize((n_synapses, self.prune.out_file["network/synapses"].shape[1]))
+        self.prune.out_file["network/gapJunctions"].resize((n_gj, self.prune.out_file["network/gapJunctions"].shape[1]))
+
+        self.prune.out_file.close()
 
     def evaluate_fitness(self, pre_type, post_type, output_file, experimental_data, avg_num_synapses_per_pair=None):
 
