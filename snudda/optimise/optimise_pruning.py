@@ -310,7 +310,7 @@ class OptimisePruning:
         OptimisePruning.ctr += 1
         OptimisePruning.fitness = min(OptimisePruning.fitness, fitness)
 
-        if OptimisePruning.ctr % 50 == 0:
+        if OptimisePruning.ctr % 100 == 0:
             print(f"Worker iter: {OptimisePruning.ctr}, fitness {OptimisePruning.fitness}")
 
     @staticmethod
