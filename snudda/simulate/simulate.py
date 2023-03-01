@@ -1128,9 +1128,10 @@ class SnuddaSimulate(object):
 
                 for input_id, (section, section_id, section_x, param_id, n_spikes) \
                         in enumerate(zip(sections,
-                                         neuron_input.attrs["sectionX"],
-                                         neuron_input.attrs["parameterID"],
-                                         neuron_input["spikes"].attrs["nSpikes"])):
+                                         neuron_input["sectionID"],
+                                         neuron_input["sectionX"],
+                                         neuron_input["parameterID"],
+                                         neuron_input["nSpikes"])):
 
                     # We need to find cellID (int) from neuronID (string, eg. MSD1_3)
 
