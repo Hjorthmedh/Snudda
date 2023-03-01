@@ -164,7 +164,7 @@ class OptimisePruning:
                 post_type
                 output_file: path to output file from prune
                 experiment_data: [(bin start, bin end, P)]
-                avg_num_synapses_per_pair: (avg_num, error_weight)
+                avg_num_synapses_per_pair: avg_num
 
         """
 
@@ -189,7 +189,7 @@ class OptimisePruning:
                 connection_matrix[row[0], row[1]] += 1
 
         pos = snudda_data["neuronPositions"]
-        dist_matrix = distance_matrix(pos, pos)
+        dist_matrix = distance_matrix(pos[pre_mask, :], pos[post_mask, :])
 
         n_connected = np.zeros((len(experimental_data),), dtype=int)
         n_total = np.zeros((len(experimental_data),), dtype=int)
@@ -208,16 +208,22 @@ class OptimisePruning:
                     if con > 0:
                         n_connected[idx] += 1
 
+        # print(f"P={n_connected/n_total} .. {n_connected} .. {n_total}")
+
         p_hyp = np.zeros((len(experimental_data), ))
 
         for idx, (n_con, n_tot, p_exp) in enumerate(zip(n_connected, n_total, [x[2] for x in experimental_data])):
             # test = binomtest(n_con, n_tot, p_exp)
             # p_hyp[idx] = test.pvalue  # gave 0 when p values are too far apart, not informative
-            p_hyp[idx] = abs(n_con/n_tot - p_exp)
+            p_hyp[idx] = abs(n_con/n_tot - p_exp) * 100
 
         if avg_num_synapses_per_pair is not None:
-            per_pair_error = abs(avg_num_synapses_per_pair[0] - n_syn/n_pairs)
-            error = np.sum(p_hyp) + per_pair_error * avg_num_synapses_per_pair[1]  # * Weight of error
+            if n_pairs > 0:
+                per_pair_error = abs(avg_num_synapses_per_pair - n_syn/n_pairs)
+            else:
+                per_pair_error = abs(avg_num_synapses_per_pair)
+
+            error = np.sum(p_hyp) + per_pair_error
         else:
             error = np.sum(p_hyp)
 
@@ -245,7 +251,8 @@ class OptimisePruning:
         fitness = self.evaluate_fitness(pre_type=self.optimisation_info["pre_type"],
                                         post_type=self.optimisation_info["post_type"],
                                         output_file=output_file,
-                                        experimental_data=self.optimisation_info["exp_data"])
+                                        experimental_data=self.optimisation_info["exp_data"],
+                                        avg_num_synapses_per_pair=self.optimisation_info["avg_num_synapses_per_pair"])
 
         self.optimisation_info["ctr"] += 1
 
@@ -254,45 +261,6 @@ class OptimisePruning:
         self.log_file.write(f"{self.optimisation_info['ctr']}, {pruning_parameters['f1']}, "
                             f"{pruning_parameters['softMax']}, {pruning_parameters['mu2']}, "
                             f"{pruning_parameters['a3']}, {fitness}, {output_file}\n")
-
-        return fitness
-
-    @staticmethod
-    def helper_func2(x, *args):
-
-        optimisation_info = args[0]
-
-        pruning_parameters = dict()
-        pruning_parameters |= optimisation_info["extra_pruning_parameters"]
-
-        pruning_parameters["f1"] = x[0]
-        pruning_parameters["softMax"] = x[1]
-        pruning_parameters["mu2"] = x[2]
-        pruning_parameters["a3"] = x[3]
-
-        output_file = os.path.join(optimisation_info["network_path"], "temp", f"network-synapses-{uuid.uuid4()}.hdf5")
-        # print(f"Output file {output_file}")
-
-        op = OptimisePruning(network_path=optimisation_info["network_path"])
-
-        merge_info = op.prune.get_merge_info()
-
-        op.merge_files_syn, op.merge_neuron_range_syn, op.merge_syn_ctr, \
-        op.merge_files_gj, op.merge_neuron_range_gj, op.merge_gj_ctr = merge_info
-
-        op.prune_synapses(pre_type=optimisation_info["pre_type"],
-                          post_type=optimisation_info["post_type"],
-                          con_type=optimisation_info["con_type"],
-                          pruning_parameters=pruning_parameters,
-                          output_file=output_file)
-
-        fitness = op.evaluate_fitness(pre_type=optimisation_info["pre_type"],
-                                      post_type=optimisation_info["post_type"],
-                                      output_file=output_file,
-                                      experimental_data=optimisation_info["exp_data"])
-
-        # print(f"Evaluating f1 = {x[0]}, SM = {x[1]}, mu2 = {x[2]}, a3 = {x[3]}, fitness: {fitness}\n{output_file}\n")
-        # print(f"fitness: {fitness}")
 
         return fitness
 
@@ -326,7 +294,8 @@ class OptimisePruning:
         fitness = op.evaluate_fitness(pre_type=optimisation_info["pre_type"],
                                       post_type=optimisation_info["post_type"],
                                       output_file=output_file,
-                                      experimental_data=optimisation_info["exp_data"])
+                                      experimental_data=optimisation_info["exp_data"],
+                                      avg_num_synapses_per_pair=optimisation_info["avg_num_synapses_per_pair"])
 
         # print(f"Evaluating f1 = {x[0]}, SM = {x[1]}, mu2 = {x[2]}, a3 = {x[3]}, fitness: {fitness}\n{output_file}\n")
         # print(f"Fitness: {fitness}")
@@ -339,8 +308,10 @@ class OptimisePruning:
     def report_fitness(fitness):
 
         OptimisePruning.ctr += 1
+        OptimisePruning.fitness = min(OptimisePruning.fitness, fitness)
+
         if OptimisePruning.ctr % 50 == 0:
-            print(f"Worker iter: {OptimisePruning.ctr}, fitness {fitness}")
+            print(f"Worker iter: {OptimisePruning.ctr}, fitness {OptimisePruning.fitness}")
 
     @staticmethod
     def get_op(optimisation_info):
@@ -357,10 +328,13 @@ class OptimisePruning:
 
             OptimisePruning.helper_func3.op = op
             OptimisePruning.ctr = 0
+            OptimisePruning.fitness = np.inf
 
         return op
 
-    def optimize(self, pre_type, post_type, con_type, experimental_data, extra_pruning_parameters,
+    def optimize(self, pre_type, post_type, con_type,
+                 experimental_data,
+                 extra_pruning_parameters, avg_num_synapses_per_pair=None,
                  workers=1, maxiter=50):
 
         start = timeit.default_timer()
@@ -371,6 +345,7 @@ class OptimisePruning:
         self.optimisation_info["post_type"] = post_type
         self.optimisation_info["con_type"] = con_type
         self.optimisation_info["exp_data"] = experimental_data
+        self.optimisation_info["avg_num_synapses_per_pair"] = avg_num_synapses_per_pair
         self.optimisation_info["extra_pruning_parameters"] = extra_pruning_parameters
         self.optimisation_info["ctr"] = 0
         self.optimisation_info["network_path"] = self.network_path
