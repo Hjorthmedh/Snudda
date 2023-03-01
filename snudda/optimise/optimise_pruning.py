@@ -335,7 +335,7 @@ class OptimisePruning:
     def optimize(self, pre_type, post_type, con_type,
                  experimental_data,
                  extra_pruning_parameters, avg_num_synapses_per_pair=None,
-                 workers=1, maxiter=50):
+                 workers=1, maxiter=50, tol=0.001):
 
         start = timeit.default_timer()
 
@@ -356,7 +356,7 @@ class OptimisePruning:
 
         # res = differential_evolution(func=self.helper_func, bounds=bounds, workers=workers)
         res = differential_evolution(func=OptimisePruning.helper_func3, args=(optimisation_info, ),
-                                     bounds=bounds, workers=workers, maxiter=maxiter)
+                                     bounds=bounds, workers=workers, maxiter=maxiter, tol=tol)
 
         duration = timeit.default_timer() - start
         self.log_file.write(f"Duration: {duration} s\n")
