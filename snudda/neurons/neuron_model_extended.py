@@ -324,7 +324,7 @@ class NeuronModel(ephys.models.CellModel):
             self.build_section_lookup()
 
         try:
-            sec = [self.section_lookup[x] for x in section_id]
+            sec = [self.section_lookup[x] if x in self.section_lookup[x] else self.section_lookup[1] for x in section_id]
         except:
             import traceback
             print(traceback.format_exc())
