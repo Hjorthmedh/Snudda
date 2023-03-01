@@ -1443,27 +1443,19 @@ class SnuddaSimulate(object):
             self.write_log(f"Warning: Not recording all synapse currents requested, capped at max_synapses={max_synapses}",
                            force_print=True)
 
-    def add_synapse_current_recording(self, source_id, dest_id):
+    def add_external_input_synapse_recording(self, source, dest_id, source_id=-1, synapse_type=0, stype=None,
+                                             data_type=None):
 
-        assert (source_id, dest_id) in self.synapse_dict, f"No synapse between {source_id} and {dest_id}"
-
-        synapse_info_list = self.synapse_dict[source_id, dest_id]
-        syn_ctr = 0
-
-        for syn, nc, synapse_type_id, sec_id in synapse_info_list:
+        for _, _, nc, syn, _, sec_id, seg_x, _ in (self.external_stim[dest_id, source]):
             data = self.sim.neuron.h.Vector()
-            data.record(syn._ref_i)
-            seg = syn.get_segment()
+            data.record(getattr(syn, f"_ref_{stype}"))
 
-            self.record.register_synapse_data(neuron_id=dest_id, data_type="synaptic_current", data=data,
-                                              synapse_type=synapse_type_id,
+            self.record.register_synapse_data(neuron_id=dest_id, data_type=data_type, data=data,
+                                              synapse_type=synapse_type,
                                               presynaptic_id=source_id,
                                               sec_id=sec_id,
-                                              sec_x=seg.x,
+                                              sec_x=seg_x,
                                               cond=nc.weight[0])
-            syn_ctr += 1
-
-        return syn_ctr
 
     def add_synapse_current_recording(self, source_id, dest_id):
 
