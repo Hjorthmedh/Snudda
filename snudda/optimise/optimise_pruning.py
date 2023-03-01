@@ -104,12 +104,14 @@ class OptimisePruning:
         # Clear the out file
         self.prune.out_file = None
 
+        out_file = h5py.File(output_file, "w")
+
         with h5py.File(self.merge_files_syn[0], "r") as f_syn:
             # print(f"Writing file {output_file}")
             # We need to make sure that we keep the pruned data files separate
 
             num_syn, num_syn_kept = self.prune.prune_synapses(synapse_file=f_syn,
-                                                              output_filename=output_file,
+                                                              output_filename=out_file,
                                                               row_range=None,
                                                               close_out_file=False,
                                                               close_input_file=True,
@@ -119,14 +121,14 @@ class OptimisePruning:
             with h5py.File(self.merge_files_gj[0], "r") as f_gj:
 
                 num_gj, num_gj_kept = self.prune.prune_synapses(synapse_file=f_gj,
-                                                                output_filename=output_file,
+                                                                output_filename=out_file,
                                                                 row_range=None,
                                                                 close_out_file=False,
                                                                 close_input_file=True,
                                                                 merge_data_type="gapJunctions")
         else:
             num_gj, num_gj_kept = self.prune.prune_synapses(synapse_file=None,
-                                                            output_filename=output_file,
+                                                            output_filename=out_file,
                                                             row_range=None,
                                                             close_out_file=False,
                                                             close_input_file=True,
@@ -145,14 +147,13 @@ class OptimisePruning:
             import pdb
             pdb.set_trace()
 
+        n_synapses = out_file["network/nSynapses"][()]
+        n_gj = out_file["network/nGapJunctions"][()]
 
-        n_synapses = self.prune.out_file["network/nSynapses"][()]
-        n_gj = self.prune.out_file["network/nGapJunctions"][()]
+        out_file["network/synapses"].resize((n_synapses, out_file["network/synapses"].shape[1]))
+        out_file["network/gapJunctions"].resize((n_gj, out_file["network/gapJunctions"].shape[1]))
 
-        self.prune.out_file["network/synapses"].resize((n_synapses, self.prune.out_file["network/synapses"].shape[1]))
-        self.prune.out_file["network/gapJunctions"].resize((n_gj, self.prune.out_file["network/gapJunctions"].shape[1]))
-
-        self.prune.out_file.close()
+        out_file.close()
 
     def evaluate_fitness(self, pre_type, post_type, output_file, experimental_data, avg_num_synapses_per_pair=None):
 
@@ -290,7 +291,8 @@ class OptimisePruning:
                                       output_file=output_file,
                                       experimental_data=optimisation_info["exp_data"])
 
-        print(f"Evaluating f1 = {x[0]}, SM = {x[1]}, mu2 = {x[2]}, a3 = {x[3]}, fitness: {fitness}\n{output_file}\n")
+        # print(f"Evaluating f1 = {x[0]}, SM = {x[1]}, mu2 = {x[2]}, a3 = {x[3]}, fitness: {fitness}\n{output_file}\n")
+        # print(f"fitness: {fitness}")
 
         return fitness
 
@@ -326,9 +328,19 @@ class OptimisePruning:
                                       output_file=output_file,
                                       experimental_data=optimisation_info["exp_data"])
 
-        print(f"Evaluating f1 = {x[0]}, SM = {x[1]}, mu2 = {x[2]}, a3 = {x[3]}, fitness: {fitness}\n{output_file}\n")
+        # print(f"Evaluating f1 = {x[0]}, SM = {x[1]}, mu2 = {x[2]}, a3 = {x[3]}, fitness: {fitness}\n{output_file}\n")
+        # print(f"Fitness: {fitness}")
+
+        OptimisePruning.report_fitness(fitness)
 
         return fitness
+
+    @staticmethod
+    def report_fitness(fitness):
+
+        OptimisePruning.ctr += 1
+        if OptimisePruning.ctr % 50 == 0:
+            print(f"Worker iter: {OptimisePruning.ctr}, fitness {fitness}")
 
     @staticmethod
     def get_op(optimisation_info):
@@ -344,6 +356,7 @@ class OptimisePruning:
                 op.merge_files_gj, op.merge_neuron_range_gj, op.merge_gj_ctr = merge_info
 
             OptimisePruning.helper_func3.op = op
+            OptimisePruning.ctr = 0
 
         return op
 

@@ -333,7 +333,7 @@ class SnuddaLoad(object):
                 data["connectivityDistributions"][pre_type, post_type] \
                     = orig_connectivity_distributions[keys]
 
-        if "synapses" in data:
+        if "synapses" in data and self.verbose:
             if "gapJunctions" in data:
                 print(f"Loading {len(data['neurons'])} neurons with {data['nSynapses']} synapses"
                       f" and {data['nGapJunctions']} gap junctions")
@@ -1072,7 +1072,7 @@ def snudda_load_cli():
     else:
         load_synapses = True
 
-    nl = SnuddaLoad(args.networkFile, load_synapses=load_synapses)
+    nl = SnuddaLoad(args.networkFile, load_synapses=load_synapses, verbose=True)
 
     if args.listN:
         print("Neurons in network: ")

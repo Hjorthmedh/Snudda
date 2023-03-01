@@ -812,7 +812,17 @@ class SnuddaPrune(object):
             output_file = os.path.join(self.network_path, "network-synapses.hdf5")
 
         self.write_log(f"Writing to {output_file}")
-        out_file = h5py.File(output_file, "w", libver=self.h5libver, driver=self.h5driver)
+
+        # Already hdf5 file, add to it
+        if isinstance(output_file, h5py._hl.files.File):
+            out_file = output_file
+
+            if "config" in out_file:
+                self.write_log(f"Output file already has config, assuming all data present: {out_file.filename}")
+                return
+        else:
+            out_file = h5py.File(output_file, "w", libver=self.h5libver, driver=self.h5driver)
+
         out_file.create_dataset("config", data=json.dumps(self.config))
 
         # Copy over meta data
