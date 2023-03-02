@@ -229,45 +229,127 @@ class OptimisePruning:
 
         return error
 
-    def helper_func(self, x):
+    @staticmethod
+    def helper_func1(x, *args):
+
+        optimisation_info = args[0]
 
         pruning_parameters = dict()
-        pruning_parameters |= self.optimisation_info["extra_pruning_parameters"]
+        pruning_parameters |= optimisation_info["extra_pruning_parameters"]
 
         pruning_parameters["f1"] = x[0]
-        pruning_parameters["softMax"] = x[1]
-        pruning_parameters["mu2"] = x[2]
-        pruning_parameters["a3"] = x[3]
 
-        output_file = os.path.join(self.network_path, "temp", f"network-synapses-{uuid.uuid4()}.hdf5")
+        if "output_file" in optimisation_info:
+            output_file = optimisation_info["output_file"]
+        else:
+            output_file = os.path.join(optimisation_info["network_path"], "temp", f"network-synapses-{uuid.uuid4()}.hdf5")
         # print(f"Output file {output_file}")
 
-        self.prune_synapses(pre_type=self.optimisation_info["pre_type"],
-                            post_type=self.optimisation_info["post_type"],
-                            con_type=self.optimisation_info["con_type"],
-                            pruning_parameters=pruning_parameters,
-                            output_file=output_file)
+        # This trick allows us to reuse the same OptimisePruning object, will be faster
+        op = OptimisePruning.get_op(optimisation_info)
 
-        fitness = self.evaluate_fitness(pre_type=self.optimisation_info["pre_type"],
-                                        post_type=self.optimisation_info["post_type"],
-                                        output_file=output_file,
-                                        experimental_data=self.optimisation_info["exp_data"],
-                                        avg_num_synapses_per_pair=self.optimisation_info["avg_num_synapses_per_pair"])
+        op.prune_synapses(pre_type=optimisation_info["pre_type"],
+                          post_type=optimisation_info["post_type"],
+                          con_type=optimisation_info["con_type"],
+                          pruning_parameters=pruning_parameters,
+                          output_file=output_file)
 
-        self.optimisation_info["ctr"] += 1
+        fitness = op.evaluate_fitness(pre_type=optimisation_info["pre_type"],
+                                      post_type=optimisation_info["post_type"],
+                                      output_file=output_file,
+                                      experimental_data=optimisation_info["exp_data"],
+                                      avg_num_synapses_per_pair=optimisation_info["avg_num_synapses_per_pair"])
 
-        print(f"({self.optimisation_info['ctr'] }) Evaluating f1 = {x[0]}, SM = {x[1]}, mu2 = {x[2]}, a3 = {x[3]}, fitness: {fitness}")
+        # print(f"Evaluating f1 = {x[0]}, mu2 = {x[1]}, fitness: {fitness}\n{output_file}\n")
+        # print(f"Fitness: {fitness}")
 
-        self.log_file.write(f"{self.optimisation_info['ctr']}, {pruning_parameters['f1']}, "
-                            f"{pruning_parameters['softMax']}, {pruning_parameters['mu2']}, "
-                            f"{pruning_parameters['a3']}, {fitness}, {output_file}\n")
+        OptimisePruning.report_fitness(fitness)
+
+        return fitness
+
+    @staticmethod
+    def helper_func2(x, *args):
+
+        optimisation_info = args[0]
+
+        pruning_parameters = dict()
+        pruning_parameters |= optimisation_info["extra_pruning_parameters"]
+
+        pruning_parameters["f1"] = x[0]
+        pruning_parameters["mu2"] = x[1]
+
+        if "output_file" in optimisation_info:
+            output_file = optimisation_info["output_file"]
+        else:
+            output_file = os.path.join(optimisation_info["network_path"], "temp", f"network-synapses-{uuid.uuid4()}.hdf5")
+        # print(f"Output file {output_file}")
+
+        # This trick allows us to reuse the same OptimisePruning object, will be faster
+        op = OptimisePruning.get_op(optimisation_info)
+
+        op.prune_synapses(pre_type=optimisation_info["pre_type"],
+                          post_type=optimisation_info["post_type"],
+                          con_type=optimisation_info["con_type"],
+                          pruning_parameters=pruning_parameters,
+                          output_file=output_file)
+
+        fitness = op.evaluate_fitness(pre_type=optimisation_info["pre_type"],
+                                      post_type=optimisation_info["post_type"],
+                                      output_file=output_file,
+                                      experimental_data=optimisation_info["exp_data"],
+                                      avg_num_synapses_per_pair=optimisation_info["avg_num_synapses_per_pair"])
+
+        # print(f"Evaluating f1 = {x[0]}, mu2 = {x[1]}, fitness: {fitness}\n{output_file}\n")
+        # print(f"Fitness: {fitness}")
+
+        OptimisePruning.report_fitness(fitness)
 
         return fitness
 
     @staticmethod
     def helper_func3(x, *args):
 
-        # This function will only work on one network.
+        optimisation_info = args[0]
+
+        pruning_parameters = dict()
+        pruning_parameters |= optimisation_info["extra_pruning_parameters"]
+
+        pruning_parameters["f1"] = x[0]
+        pruning_parameters["mu2"] = x[1]
+        pruning_parameters["a3"] = x[2]
+
+        if "output_file" in optimisation_info:
+            output_file = optimisation_info["output_file"]
+        else:
+            output_file = os.path.join(optimisation_info["network_path"], "temp", f"network-synapses-{uuid.uuid4()}.hdf5")
+        # print(f"Output file {output_file}")
+
+        # This trick allows us to reuse the same OptimisePruning object, will be faster
+        op = OptimisePruning.get_op(optimisation_info)
+
+        op.prune_synapses(pre_type=optimisation_info["pre_type"],
+                          post_type=optimisation_info["post_type"],
+                          con_type=optimisation_info["con_type"],
+                          pruning_parameters=pruning_parameters,
+                          output_file=output_file)
+
+        fitness = op.evaluate_fitness(pre_type=optimisation_info["pre_type"],
+                                      post_type=optimisation_info["post_type"],
+                                      output_file=output_file,
+                                      experimental_data=optimisation_info["exp_data"],
+                                      avg_num_synapses_per_pair=optimisation_info["avg_num_synapses_per_pair"])
+
+        # print(f"Evaluating f1 = {x[0]}, mu2 = {x[1]}, a3 = {x[2]}, fitness: {fitness}\n{output_file}\n")
+        # print(f"Fitness: {fitness}")
+
+        OptimisePruning.report_fitness(fitness)
+
+        return fitness
+
+    @staticmethod
+    def helper_func4(x, *args):
+
+        # Includes softmax
 
         optimisation_info = args[0]
 
@@ -279,7 +361,10 @@ class OptimisePruning:
         pruning_parameters["mu2"] = x[2]
         pruning_parameters["a3"] = x[3]
 
-        output_file = os.path.join(optimisation_info["network_path"], "temp", f"network-synapses-{uuid.uuid4()}.hdf5")
+        if "output_file" in optimisation_info:
+            output_file = optimisation_info["output_file"]
+        else:
+            output_file = os.path.join(optimisation_info["network_path"], "temp", f"network-synapses-{uuid.uuid4()}.hdf5")
         # print(f"Output file {output_file}")
 
         # This trick allows us to reuse the same OptimisePruning object, will be faster
@@ -302,7 +387,11 @@ class OptimisePruning:
 
         OptimisePruning.report_fitness(fitness)
 
+        if "output_file" not in optimisation_info:
+            os.remove(output_file)
+
         return fitness
+
 
     @staticmethod
     def report_fitness(fitness):
@@ -318,15 +407,15 @@ class OptimisePruning:
 
         # I am sorry, this is ugly... but need to get this pickeable
 
-        if "op" in vars(OptimisePruning.helper_func3):
-            op = OptimisePruning.helper_func3.op
+        if "op" in vars(OptimisePruning):
+            op = OptimisePruning.op
         else:
             op = OptimisePruning(network_path=optimisation_info["network_path"])
             merge_info = op.prune.get_merge_info()
             op.merge_files_syn, op.merge_neuron_range_syn, op.merge_syn_ctr, \
                 op.merge_files_gj, op.merge_neuron_range_gj, op.merge_gj_ctr = merge_info
 
-            OptimisePruning.helper_func3.op = op
+            OptimisePruning.op = op
             OptimisePruning.ctr = 0
             OptimisePruning.fitness = np.inf
 
@@ -335,7 +424,7 @@ class OptimisePruning:
     def optimize(self, pre_type, post_type, con_type,
                  experimental_data,
                  extra_pruning_parameters, avg_num_synapses_per_pair=None,
-                 workers=1, maxiter=50, tol=0.001):
+                 workers=1, maxiter=50, tol=0.001, num_params=4):
 
         start = timeit.default_timer()
 
@@ -350,13 +439,51 @@ class OptimisePruning:
         self.optimisation_info["ctr"] = 0
         self.optimisation_info["network_path"] = self.network_path
 
-        bounds = [(0, 1), (0, 20), (0, 5), (0, 1)]
-
         optimisation_info = self.optimisation_info
 
+        if num_params == 4:
+            # With softmax
+            bounds4 = [(0, 1), (0, 20), (0, 5), (0, 1)]
+            res = differential_evolution(func=OptimisePruning.helper_func4, args=(optimisation_info, ),
+                                         bounds=bounds4, workers=workers, maxiter=maxiter, tol=tol)
+
+            # Rerun the best parameters, and keep data as network-synapses.hdf5
+            optimisation_info["output_file"] = os.path.join(self.network_path, "network-synapses.hdf5")
+            OptimisePruning.helper_func4(res.x, optimisation_info)
+
+        elif num_params == 3:
+            # Without softmax
+            bounds3 = [(0, 1), (0, 5), (0, 1)]
+            res = differential_evolution(func=OptimisePruning.helper_func3, args=(optimisation_info, ),
+                                         bounds=bounds3, workers=workers, maxiter=maxiter, tol=tol)
+
+            optimisation_info["output_file"] = os.path.join(self.network_path, "network-synapses.hdf5")
+            OptimisePruning.helper_func3(res.x, optimisation_info)
+
+        elif num_params == 2:
+
+            # Without softmax
+            bounds3 = [(0, 1), (0, 5)]
+            res = differential_evolution(func=OptimisePruning.helper_func2, args=(optimisation_info, ),
+                                         bounds=bounds3, workers=workers, maxiter=maxiter, tol=tol)
+
+            optimisation_info["output_file"] = os.path.join(self.network_path, "network-synapses.hdf5")
+            OptimisePruning.helper_func2(res.x, optimisation_info)
+
+        elif num_params == 1:
+
+            # Without softmax
+            bounds3 = [(0, 1)]
+            res = differential_evolution(func=OptimisePruning.helper_func1, args=(optimisation_info, ),
+                                         bounds=bounds3, workers=workers, maxiter=maxiter, tol=tol)
+
+            optimisation_info["output_file"] = os.path.join(self.network_path, "network-synapses.hdf5")
+            OptimisePruning.helper_func1(res.x, optimisation_info)
+
+        else:
+            raise ValueError(f"num_params = {num_params} must be 2,3, or 4")
+
         # res = differential_evolution(func=self.helper_func, bounds=bounds, workers=workers)
-        res = differential_evolution(func=OptimisePruning.helper_func3, args=(optimisation_info, ),
-                                     bounds=bounds, workers=workers, maxiter=maxiter, tol=tol)
 
         duration = timeit.default_timer() - start
         self.log_file.write(f"Duration: {duration} s\n")
