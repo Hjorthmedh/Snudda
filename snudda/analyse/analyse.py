@@ -669,7 +669,7 @@ class SnuddaAnalyse(object):
         plt.pause(0.001)
         # plt.savefig(full_fig_name.replace('.pdf', '.eps'))
 
-        print("Wrote " + full_fig_name)
+        print(f"Wrote {full_fig_name}")
 
         if self.close_plots:
             time.sleep(1)
@@ -681,7 +681,8 @@ class SnuddaAnalyse(object):
 
     def plot_num_synapses_per_pair(self, pre_type, post_type, side_len=None,
                                    name_str="", volume_id=None,
-                                   connection_type="synapses"):
+                                   connection_type="synapses",
+                                   sub_title=None):
 
         if volume_id is None:
             volume_id = self.volume_id
@@ -756,7 +757,13 @@ class SnuddaAnalyse(object):
 
         plt.xlabel("Number of " + connection_type)
         plt.ylabel('Probability density')
-        plt.title(f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)}")
+        title_str = f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)}"
+
+        if sub_title is not None:
+            plt.suptitle(f"{title_str}", y=0.9)
+            plt.title(sub_title, fontsize=10)
+        else:
+            plt.title(title_str)
 
         plt.tight_layout()
         plt.draw()
@@ -865,7 +872,8 @@ class SnuddaAnalyse(object):
                                     x_max=250,
                                     y_max=None,
                                     connection_type="synapses",
-                                    draw_step=False):
+                                    draw_step=False,
+                                    sub_title=None):
 
         if volume_id is None:
             volume_id = self.volume_id
@@ -1069,9 +1077,15 @@ class SnuddaAnalyse(object):
         plt.yticks(locs, new_labels)
 
         if connection_type == "synapses":
-            plt.title(f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)}")
+            title_str = f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)}"
         else:
-            plt.title(f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)} ({connection_type})")
+            title_str = f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)} ({connection_type})"
+
+        if sub_title is not None:
+            plt.suptitle(f"{title_str}", y=0.9)
+            plt.title(sub_title, fontsize=10)
+        else:
+            plt.title(title_str)
 
         plt.tight_layout()
         plt.ion()
