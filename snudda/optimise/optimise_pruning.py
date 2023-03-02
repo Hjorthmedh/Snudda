@@ -195,12 +195,14 @@ class OptimisePruning:
         n_total = np.zeros((len(experimental_data),), dtype=int)
         n_syn = 0
         n_pairs = 0
+        n_syn_list = []
 
         for dist, con in zip(dist_matrix.flatten(), connection_matrix.flatten()):
 
             if con > 0:
                 n_syn += con
                 n_pairs += 1
+                n_syn_list.append(con)
 
             for idx, (bin_start, bin_end, _) in enumerate(experimental_data):
                 if bin_start <= dist <= bin_end:
@@ -219,7 +221,7 @@ class OptimisePruning:
 
         if avg_num_synapses_per_pair is not None:
             if n_pairs > 0:
-                per_pair_error = abs(avg_num_synapses_per_pair - n_syn/n_pairs)
+                per_pair_error = abs(avg_num_synapses_per_pair - n_syn/n_pairs) + np.std(n_syn_list)
             else:
                 per_pair_error = abs(avg_num_synapses_per_pair)
 
@@ -407,7 +409,7 @@ class OptimisePruning:
 
         # I am sorry, this is ugly... but need to get this pickeable
 
-        if "op" in vars(OptimisePruning):
+        if "op" in vars(OptimisePruning) and OptimisePruning.op is not None:
             op = OptimisePruning.op
         else:
             op = OptimisePruning(network_path=optimisation_info["network_path"])
