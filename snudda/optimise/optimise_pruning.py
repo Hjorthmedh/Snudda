@@ -267,6 +267,9 @@ class OptimisePruning:
 
         OptimisePruning.report_fitness(fitness)
 
+        if "output_file" not in optimisation_info:
+            os.remove(output_file)
+
         return fitness
 
     @staticmethod
@@ -305,6 +308,9 @@ class OptimisePruning:
         # print(f"Fitness: {fitness}")
 
         OptimisePruning.report_fitness(fitness)
+
+        if "output_file" not in optimisation_info:
+            os.remove(output_file)
 
         return fitness
 
@@ -345,6 +351,9 @@ class OptimisePruning:
         # print(f"Fitness: {fitness}")
 
         OptimisePruning.report_fitness(fitness)
+
+        if "output_file" not in optimisation_info:
+            os.remove(output_file)
 
         return fitness
 

@@ -30,6 +30,8 @@ all_experimental_data["FS", "iSPN"] = [(0, 100e-6, 6 / 9.0), (0, 150e-6, 21 / 54
 all_experimental_data["FS", "dSPN"] = [(0, 100e-6, 8 / 9.0), (0, 150e-6, 29 / 48.0), (0, 250e-6, 48 / 90.0)]
 
 for ct in con_types:
+    OptimisePruning.op = None
+
     for dist_dep in [True, False]:
         for num_params in [1, 2, 3, 4]:
 
@@ -72,18 +74,18 @@ for ct in con_types:
 
             if pre_type == post_type:
                 si.add_neurons(name=pre_type, num_neurons=n_neurons, volume_id="Cube",
-                               neuron_dir=os.path.join("$DATA", "neurons", "striatum", "dspn"))
+                               neuron_dir=os.path.join("$DATA", "neurons", "striatum", pre_type.lower()))
             else:
                 si.add_neurons(name=pre_type, num_neurons=int(n_neurons / 2), volume_id="Cube",
-                               neuron_dir=os.path.join("$DATA", "neurons", "striatum", "dspn"))
+                               neuron_dir=os.path.join("$DATA", "neurons", "striatum", pre_type.lower()))
                 si.add_neurons(name=post_type, num_neurons=int(n_neurons / 2), volume_id="Cube",
-                               neuron_dir=os.path.join("$DATA", "neurons", "striatum", "dspn"))
+                               neuron_dir=os.path.join("$DATA", "neurons", "striatum", post_type.lower()))
 
             # The parameters here does not matter, they will be set during optimisation
             si.add_neuron_target(neuron_name=pre_type,
                                  target_name=post_type,
                                  connection_type=con_type,
-                                 dist_pruning=SPN2SPNdistDepPruning,
+                                 dist_pruning=None,
                                  f1=None, soft_max=None, mu2=None,
                                  a3=None,
                                  conductance=[0.24e-9, 0.1e-9],
@@ -101,8 +103,9 @@ for ct in con_types:
             op = OptimisePruning(network_path=network_path)
             op.merge_putative_synapses(force_merge=True)
 
-            print(op.prune.connectivity_distributions)
-            print(op.prune.hist_file["meta/connectivityDistributions"][()])
+            print(f"connectivity_distributions = {op.prune.connectivity_distributions}")
+            print(f"type_id_lookup = {op.prune.type_id_lookup}")
+            print(f"From hist_file: {op.prune.hist_file['meta/connectivityDistributions'][()]}")
 
             res = op.optimize(pre_type=pre_type, post_type=post_type, con_type=con_type,
                               experimental_data=experimental_data,
