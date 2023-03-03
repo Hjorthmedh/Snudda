@@ -189,6 +189,7 @@ class OptimisePruning:
                 connection_matrix[row[0], row[1]] += 1
 
         pos = snudda_data["neuronPositions"]
+        # We need to extract the parts relevant
         dist_matrix = distance_matrix(pos[pre_mask, :], pos[post_mask, :])
 
         n_connected = np.zeros((len(experimental_data),), dtype=int)
@@ -197,7 +198,12 @@ class OptimisePruning:
         n_pairs = 0
         n_syn_list = []
 
-        for dist, con in zip(dist_matrix.flatten(), connection_matrix.flatten()):
+        # We also need to extract the relevant corresponding parts in connection_matrix
+        con_mat = connection_matrix[pre_mask, :][:, post_mask]
+
+        assert con_mat.shape == dist_matrix.shape, "Mismatch in shape"
+
+        for dist, con in zip(dist_matrix.flatten(), con_mat.flatten()):
 
             if con > 0:
                 n_syn += con
@@ -262,7 +268,7 @@ class OptimisePruning:
                                       experimental_data=optimisation_info["exp_data"],
                                       avg_num_synapses_per_pair=optimisation_info["avg_num_synapses_per_pair"])
 
-        # print(f"Evaluating f1 = {x[0]}, mu2 = {x[1]}, fitness: {fitness}\n{output_file}\n")
+        # print(f"Evaluating f1 = {x[0]}, fitness: {fitness}\n{output_file}\n")
         # print(f"Fitness: {fitness}")
 
         OptimisePruning.report_fitness(fitness)
@@ -435,11 +441,14 @@ class OptimisePruning:
     def optimize(self, pre_type, post_type, con_type,
                  experimental_data,
                  extra_pruning_parameters, avg_num_synapses_per_pair=None,
-                 workers=1, maxiter=50, tol=0.001, num_params=4):
+                 workers=1, maxiter=50, tol=0.001, pop_size=None, num_params=4):
 
         start = timeit.default_timer()
 
         self.log_file = open(os.path.join(self.network_path, f"{pre_type}-{post_type}-{con_type}-optimisation-log.txt"), "wt")
+
+        if pop_size is None:
+            pop_size = self.pop_size
 
         self.optimisation_info["pre_type"] = pre_type
         self.optimisation_info["post_type"] = post_type
@@ -456,7 +465,8 @@ class OptimisePruning:
             # With softmax
             bounds4 = [(0, 1), (0, 20), (0, 5), (0, 1)]
             res = differential_evolution(func=OptimisePruning.helper_func4, args=(optimisation_info, ),
-                                         bounds=bounds4, workers=workers, maxiter=maxiter, tol=tol)
+                                         bounds=bounds4, workers=workers, maxiter=maxiter, tol=tol,
+                                         popsize=pop_size)
 
             # Rerun the best parameters, and keep data as network-synapses.hdf5
             optimisation_info["output_file"] = os.path.join(self.network_path, "network-synapses.hdf5")
@@ -466,7 +476,8 @@ class OptimisePruning:
             # Without softmax
             bounds3 = [(0, 1), (0, 5), (0, 1)]
             res = differential_evolution(func=OptimisePruning.helper_func3, args=(optimisation_info, ),
-                                         bounds=bounds3, workers=workers, maxiter=maxiter, tol=tol)
+                                         bounds=bounds3, workers=workers, maxiter=maxiter, tol=tol,
+                                         popsize=self.pop_size)
 
             optimisation_info["output_file"] = os.path.join(self.network_path, "network-synapses.hdf5")
             OptimisePruning.helper_func3(res.x, optimisation_info)
@@ -476,7 +487,8 @@ class OptimisePruning:
             # Without softmax
             bounds3 = [(0, 1), (0, 5)]
             res = differential_evolution(func=OptimisePruning.helper_func2, args=(optimisation_info, ),
-                                         bounds=bounds3, workers=workers, maxiter=maxiter, tol=tol)
+                                         bounds=bounds3, workers=workers, maxiter=maxiter, tol=tol,
+                                         popsize=self.pop_size)
 
             optimisation_info["output_file"] = os.path.join(self.network_path, "network-synapses.hdf5")
             OptimisePruning.helper_func2(res.x, optimisation_info)
@@ -486,7 +498,8 @@ class OptimisePruning:
             # Without softmax
             bounds3 = [(0, 1)]
             res = differential_evolution(func=OptimisePruning.helper_func1, args=(optimisation_info, ),
-                                         bounds=bounds3, workers=workers, maxiter=maxiter, tol=tol)
+                                         bounds=bounds3, workers=workers, maxiter=maxiter, tol=tol,
+                                         popsize=self.pop_size)
 
             optimisation_info["output_file"] = os.path.join(self.network_path, "network-synapses.hdf5")
             OptimisePruning.helper_func1(res.x, optimisation_info)

@@ -652,7 +652,7 @@ class SnuddaAnalyse(object):
 
     ############################################################################
 
-    def save_figure(self, plt, fig_name, fig_type="pdf"):
+    def save_figure(self, plt, fig_name, fig_type="png"):
 
         if not os.path.isdir(self.fig_dir):
             print(f"save_figures: Creating directory {self.fig_dir}")
