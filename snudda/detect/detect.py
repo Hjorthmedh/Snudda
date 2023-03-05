@@ -327,7 +327,7 @@ class SnuddaDetect(object):
             # For each neuron we need to find which hyper voxel it belongs to
             # (can be more than one)
             self.distribute_neurons_parallel(d_view=d_view)
-
+ 
             # We also need to start the projection code
             self.projection_detection = ProjectionDetection(snudda_detect=self, role=self.role, rc=self.rc)
             self.projection_detection.find_neurons_projections_in_hyper_voxels()
@@ -2267,7 +2267,7 @@ class SnuddaDetect(object):
 
         if "extraAxons" in neuron_info:
             for axon_name, axon_info in neuron_info["extraAxons"].items():
-                # print(f"DEVELOPMENT: Adding extra axon to {neuron_info['name']}: {axon_name} morph {axon_info['morphology']}, pos {axon_info['position']}, rot {axon_info['rotation']}")
+                #print(f"DEVELOPMENT: Adding extra axon to {neuron_info['name']}: {axon_name} morph {axon_info['morphology']}, pos {axon_info['position']}, rot {axon_info['rotation']}") # !!! temp
 
                 if axon_info["morphology"] not in self.extra_axon_cache:
                     self.extra_axon_cache[axon_info["morphology"]] = MorphologyData(swc_file=axon_info["morphology"],

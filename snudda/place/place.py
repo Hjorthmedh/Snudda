@@ -577,7 +577,68 @@ class SnuddaPlace(object):
             return []
 
     def get_projection_axon_location(self, source_position, proj_info, rng):
+        proj_cfg = proj_info["projection"]
+        if "file" in proj_cfg and \
+            ("source" in proj_cfg or \
+           "destination" in proj_cfg):
+           raise NotImplementedError("Projections should specify either a file or a mapping!")
 
+        elif "source" in proj_cfg \
+            and "destination" in proj_cfg:
+            source = np.array(proj_cfg["source"])*1e-6
+            destination = np.array(proj_cfg["destination"])*1e-6
+
+        elif "file" in proj_cfg :
+            proj_file_data = json.load(proj_cfg["file"])
+            source = np.array(proj_file_data["source"])*1e-6
+            destination = np.array(proj_file_data["destination"])*1e-6
+            
+        else: 
+            raise NotImplementedError("Unknown projection configuration!")
+
+        # specify the rotations of the termination zones
+        rotation_cfg = proj_info.get("rotation", {})
+        if "rotation" in rotation_cfg:
+            rotation = np.array(rotation_cfg["rotation"])
+            rot_position = destination
+        
+        elif "file" in rotation_cfg:
+            rotation_data = json.load(rotation_cfg["file"])
+            rotation = np.array(rotation_data["rotation"])
+            rotation = np.array(rotation_data["position"])*1e-6
+        else:
+            rotation = None
+            rot_position = None
+
+        target_centres = griddata(points=source,
+                                  values=destination,
+                                  xi=source_position,
+                                  method="linear")
+
+        # which coordinates to use for selecting rotation
+        mapping = rotation_cfg.get('mapping', 'target')
+        if mapping == "target":
+            xi = target_centres
+        elif mapping == "source":
+            xi = source_position
+        else:
+            raise NotImplentedError()
+
+        if rotation is not None:
+            target_rotation = griddata(points=rot_position,
+                                       values=rotation,
+                                       xi=xi, method="linear")
+        else:
+            target_rotation = [None for x in range(source_position.shape[0])]
+
+        num_axons = len(proj_info["morphologies"])
+        axon_id = rng.choice(num_axons, source_position.shape[0])
+        axon_swc = [proj_info["morphologies"][x] for x in axon_id]
+
+        return target_centres, target_rotation, axon_swc
+
+        # !!! OLD !!! REMOVE
+        """
         if "proj_file" in proj_info:
             proj_data = json.load(proj_info["proj_file"])
             source = np.array(proj_data["source"])*1e-6
@@ -618,7 +679,7 @@ class SnuddaPlace(object):
         axon_swc = [proj_info["axonMorphology"][x] for x in axon_id]
 
         return target_centres, target_rotation, axon_swc
-
+        """
     ############################################################################
 
     def all_neuron_positions(self):

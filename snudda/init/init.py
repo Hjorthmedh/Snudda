@@ -671,6 +671,11 @@ class SnuddaInit(object):
 
     ###########################################################################################################
 
+
+    #
+    # !!! Används verkligen den här? 
+    # con_info i slutet returneras aldrig men kanske ändrar i den klassgemensammma
+
     def neuron_projection(self, neuron_name, target_name,
                           projection_name,
                           projection_file,
