@@ -10,6 +10,7 @@ import numpy as np
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.numpy_encoder import NumpyEncoder
 import scipy.sparse as sparse
+from scipy.spatial import distance_matrix
 
 
 class SnuddaLoad(object):
@@ -970,6 +971,13 @@ class SnuddaLoad(object):
             connection_matrix[syn_row[0], syn_row[1]] += 1
 
         return connection_matrix
+
+    def create_distance_matrix(self):
+
+        pos = self.data["neuronPositions"]
+        dist_matrix = distance_matrix(pos, pos)
+
+        return dist_matrix
 
     def print_all_synapse_counts_per_type(self):
 
