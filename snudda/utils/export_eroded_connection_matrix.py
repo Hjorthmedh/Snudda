@@ -7,13 +7,20 @@ from snudda.utils.export_connection_matrix import SnuddaExportConnectionMatrix
 
 class SnuddaExportErodedConnectionMatrix(SnuddaExportConnectionMatrix):
 
-    def __init__(self, in_file, out_file, fraction_kept=1.0, save_sparse=True, permute=False):
+    def __init__(self, in_file, out_file, fraction_kept=1.0, save_sparse=True, permute=False, permute_type="types"):
         super().__init__(in_file=in_file, out_file=out_file, save_sparse=save_sparse, save_on_init=False)
 
         self.con_mat = self.erode(mat=self.con_mat, fraction_kept=fraction_kept)
 
         if permute:
-            self.con_mat = self.permute_all(self.con_mat)
+            if permute_type == "all":
+                self.con_mat = self.permute_all(self.con_mat)
+            elif permute_type == "types":
+                self.con_mat = self.permute_within_neuron_types(self.con_mat)
+            elif permute_type == "noself":
+                self.con_mat = self.permute_all_no_self_connections(self.con_mat)
+            else:
+                raise ValueError(f"Unknown permutation type {permute_type}, please use 'all', 'types', 'noself'")
 
         self.save()
 
@@ -44,13 +51,24 @@ class SnuddaExportErodedConnectionMatrix(SnuddaExportConnectionMatrix):
 
         return new_mat
 
-    def permute_within_neuron_types(self, mat, list_of_type_idx):
+    def get_id_of_all_types(self):
+
+        idx = []
+        for nt in self.sl.get_neuron_types():
+            idx.append(self.sl.get_neuron_id_of_type(neuron_type=nt))
+
+        return idx
+
+    def permute_within_neuron_types(self, mat, list_of_type_idx=None):
 
         """ Args:
                 mat : Connection matrix
                 list_of_type_idx : [(1,2,3,4), (5,6,7,8), (9,10)] if neurons of 1,2,3,4 are same type, 5,6,7,8 same
                                    and 9, 10 are of same type.
         """
+
+        if list_of_type_idx is None:
+            list_of_type_idx = self.get_id_of_all_types()
 
         all_idx = np.concatenate(list_of_type_idx)
         all_idx_sorted = np.sort(all_idx)
@@ -78,7 +96,12 @@ if __name__ == "__main__":
     parser.add_argument("fraction", help="Fraction of connections kept", type=float)
     parser.add_argument("--full", action="store_false", dest="sparse")
     parser.add_argument("--permute", action="store_true")
+    parser.add_argument("--permutation_type",
+                        help="Permutation type: 'all', 'types' (preserve types), "
+                             "'noself' (dont preserve types, but avoid self connections",
+                        default="types")
     args = parser.parse_args()
 
     s = SnuddaExportErodedConnectionMatrix(args.inFile, args.outFile, save_sparse=args.sparse,
-                                           fraction_kept=args.fraction, permute=args.permute)
+                                           fraction_kept=args.fraction, permute=args.permute,
+                                           permute_type=args.permutation_type)
