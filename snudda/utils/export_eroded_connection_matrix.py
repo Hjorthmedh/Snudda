@@ -93,6 +93,8 @@ class SnuddaExportErodedConnectionMatrix(SnuddaExportConnectionMatrix):
 
         assert np.sum(np.isnan(new_mat)) == 0, f"Internal error, not all indexes are given"
 
+        return new_mat
+    
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
