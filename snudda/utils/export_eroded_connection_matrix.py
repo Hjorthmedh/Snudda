@@ -46,15 +46,17 @@ class SnuddaExportErodedConnectionMatrix(SnuddaExportConnectionMatrix):
         non_diagonal_idx = np.where(np.diag(np.ones((s[0],))).flatten() == 0)
         permuted_idx = np.random.permutation(non_diagonal_idx)
 
-        new_mat = mat.copy()
-        new_mat[non_diagonal_idx] = mat[permuted_idx]
+        new_mat = mat.flatten()
+
+        new_mat[non_diagonal_idx] = mat.flatten()[permuted_idx]
+        new_mat = new_mat.reshape(mat.shape)
 
         return new_mat
 
     def get_id_of_all_types(self):
 
         idx = []
-        for nt in self.sl.get_neuron_types():
+        for nt in set(self.sl.get_neuron_types()):
             idx.append(self.sl.get_neuron_id_of_type(neuron_type=nt))
 
         return idx
@@ -75,14 +77,19 @@ class SnuddaExportErodedConnectionMatrix(SnuddaExportConnectionMatrix):
         assert (np.diff(all_idx_sorted) == 1).all()
         assert all_idx_sorted[0] == 0 and len(all_idx_sorted) == mat.shape[0] == mat.shape[1]
 
-        new_mat = np.full(mat.shape, np.nan)
+        new_mat = np.full(mat.shape, np.nan).flatten()
 
         for type_ctr_pre, pre_idx in enumerate(list_of_type_idx):
             for type_ctr_post, post_idx in enumerate(list_of_type_idx):
+
+                flat_idx = np.ravel_multi_index(np.ix_(pre_idx, post_idx), mat.shape).flatten()
+
                 if type_ctr_pre == type_ctr_post:
-                    new_mat[pre_idx, :][:, post_idx] = self.permute_all_no_self_connections(mat[pre_idx, post_idx])
+                    new_mat[flat_idx] = self.permute_all_no_self_connections(mat[pre_idx, :][:, post_idx]).flatten()
                 else:
-                    new_mat[pre_idx, :][:, post_idx] = self.permute_all(mat[pre_idx, post_idx])
+                    new_mat[flat_idx] = self.permute_all(mat[pre_idx, :][:, post_idx]).flatten()
+
+        new_mat = new_mat.reshape(mat.shape)
 
         assert np.sum(np.isnan(new_mat)) == 0, f"Internal error, not all indexes are given"
 
