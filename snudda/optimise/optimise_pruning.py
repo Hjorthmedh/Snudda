@@ -240,10 +240,15 @@ class OptimisePruning:
     @staticmethod
     def helper_func1(x, *args):
 
-        optimisation_info = args[0]
-
         pruning_parameters = dict()
-        pruning_parameters |= optimisation_info["extra_pruning_parameters"]
+
+        if args is not None:
+            optimisation_info = args[0]
+
+            if "extra_pruning_parameters" in optimisation_info:
+                pruning_parameters |= optimisation_info["extra_pruning_parameters"]
+        else:
+            raise ValueError(f"No optimisation_info passed.")
 
         pruning_parameters["f1"] = x[0]
 
@@ -281,10 +286,15 @@ class OptimisePruning:
     @staticmethod
     def helper_func2(x, *args):
 
-        optimisation_info = args[0]
-
         pruning_parameters = dict()
-        pruning_parameters |= optimisation_info["extra_pruning_parameters"]
+
+        if args is not None:
+            optimisation_info = args[0]
+
+            if "extra_pruning_parameters" in optimisation_info:
+                pruning_parameters |= optimisation_info["extra_pruning_parameters"]
+        else:
+            raise ValueError(f"No optimisation_info passed.")
 
         pruning_parameters["f1"] = x[0]
         pruning_parameters["mu2"] = x[1]
@@ -323,10 +333,15 @@ class OptimisePruning:
     @staticmethod
     def helper_func3(x, *args):
 
-        optimisation_info = args[0]
-
         pruning_parameters = dict()
-        pruning_parameters |= optimisation_info["extra_pruning_parameters"]
+
+        if args is not None:
+            optimisation_info = args[0]
+
+            if "extra_pruning_parameters" in optimisation_info:
+                pruning_parameters |= optimisation_info["extra_pruning_parameters"]
+        else:
+            raise ValueError(f"No optimisation_info passed.")
 
         pruning_parameters["f1"] = x[0]
         pruning_parameters["mu2"] = x[1]
@@ -368,10 +383,16 @@ class OptimisePruning:
 
         # Includes softmax
 
-        optimisation_info = args[0]
-
         pruning_parameters = dict()
-        pruning_parameters |= optimisation_info["extra_pruning_parameters"]
+
+        if args is not None:
+            optimisation_info = args[0]
+
+            if "extra_pruning_parameters" in optimisation_info:
+                pruning_parameters |= optimisation_info["extra_pruning_parameters"]
+        else:
+            raise ValueError(f"No optimisation_info passed.")
+
 
         pruning_parameters["f1"] = x[0]
         pruning_parameters["softMax"] = x[1]
@@ -494,6 +515,14 @@ class OptimisePruning:
             OptimisePruning.helper_func2(res.x, optimisation_info)
 
         elif num_params == 1:
+
+#            try:
+#                OptimisePruning.helper_func1([0.5], optimisation_info)
+#            except:
+#                import traceback
+#                print(traceback.format_exc())
+#                import pdb
+#                pdb.set_trace()
 
             # Without softmax
             bounds3 = [(0, 1)]
