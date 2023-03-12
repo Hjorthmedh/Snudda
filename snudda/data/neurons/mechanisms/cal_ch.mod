@@ -5,6 +5,34 @@ TITLE l-calcium channel
 
 : copy by josh
 
+COMMENT
+
+Neuromodulation is added as functions:
+    
+    modulationDA = 1 + modDA*(maxModDA-1)*levelDA
+
+where:
+    
+    modDA  [0]: is a switch for turning modulation on or off {1/0}
+    maxModDA [1]: is the maximum modulation for this specific channel (read from the param file)
+                    e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+    levelDA  [0]: is an additional parameter for scaling modulation. 
+                Can be used simulate non static modulation by gradually changing the value from 0 to 1 {0-1}
+									
+	  Further neuromodulators can be added by for example:
+          modulationDA = 1 + modDA*(maxModDA-1)
+	  modulationACh = 1 + modACh*(maxModACh-1)
+	  ....
+
+	  etc. for other neuromodulators
+	  
+	   
+								     
+[] == default values
+{} == ranges
+    
+ENDCOMMENT
+
 NEURON {
 	SUFFIX cal_ch
 	USEION ca READ cai,cao WRITE ica
@@ -12,6 +40,8 @@ NEURON {
 	GLOBAL vhm, vcm
 	GLOBAL Ctm, atm, btm, tm0, vhtm
         GLOBAL minf,tau
+        RANGE modACh, maxModACh, levelACh
+
 }
 
 UNITS {
@@ -37,6 +67,10 @@ PARAMETER {
 	btm = 11
 	tm0 = 0
 	vhtm = -2
+        modACh = 0
+        maxModACh = 1
+        levelACh = 0
+
 }
 
 STATE { m }
@@ -50,7 +84,7 @@ ASSIGNED {
 
 BREAKPOINT {
 	SOLVE state METHOD cnexp
-	gcal = gbar*m*m*h2(cai)
+	gcal = gbar*m*m*h2(cai)*modulationACh()
 	ica  = gcal*ghk(v,cai,cao)
 }
 
@@ -108,6 +142,11 @@ PROCEDURE rate(v (mV)) { :callable from hoc
 	minf = 1/(1+exp(-(v-vhm)/vcm))
 }
  
+FUNCTION modulationACh() {
+    : returns modulation factor
+    
+    modulationACh = 1 + modACh*(maxModACh-1)*levelACh 
+}
 
 
 
