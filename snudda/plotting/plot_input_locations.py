@@ -208,7 +208,8 @@ class SnuddaPlotInputLocations:
         plt.xlabel("Distance ($\mu$m)")
         plt.ylabel("Density")
 
-        if "synapseDensity" in self.input_config[neuron_type][input_name]:
+        if neuron_type in self.input_config and input_name in self.input_config[neuron_type] \
+                and "synapseDensity" in self.input_config[neuron_type][input_name]:
 
             synapse_density = self.input_config[neuron_type][input_name]["synapseDensity"]
             d = np.linspace(0, max_dist, n_bins)
