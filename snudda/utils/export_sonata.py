@@ -13,36 +13,34 @@ from collections import OrderedDict
 import h5py
 import numpy as np
 
-from conv_hurt import ConvHurt
-from load import SnuddaLoad
+from snudda.utils import snudda_parse_path
+from snudda.utils.conv_hurt import ConvHurt
+from snudda import SnuddaLoad
 
 
 class ExportSonata(object):
 
-    def __init__(self, network_file, input_file, out_dir):
+    def __init__(self, network_file, input_file, out_dir, debug_flag=True):
 
-        # !!! If inputFile is last, we need to handle that appropriately
-        # and find the corresponding input file
-
-        self.debug = False
+        self.debug = debug_flag
 
         self.out_dir = out_dir
 
         # Read the data
         nl = SnuddaLoad(network_file)
         self.network_file = nl.network_file  # If file was "last", this sets right one
-
-        if input_file == "last":
-            self.input_file = os.path.join("save", f"input-spikes-{nl.data['SlurmID']}.hdf5")
-        else:
-            self.input_file = input_file
+        self.input_file = input_file
 
         print(f"Using input file: {self.input_file}")
 
         # This contains data for converting to Neurodamus secID and secX
         self.morph_cache = dict([])
 
+        self.morph_location_lookup = dict([])
+        self.hoc_location_lookup = dict([])
+
         # Write the data in new format using the ConvHurt module
+        # TODO: We need to read structure names from the network-config.json
         ch = ConvHurt(simulation_structure="Striatum",
                       input_structures=["Cortex", "Thalamus"],
                       base_dir=out_dir)
@@ -66,7 +64,7 @@ class ExportSonata(object):
         structure_name = "Striatum"
 
         # We need to convert the named neuron types to numbers
-        (node_type_id, node_type_i_dlookup) = self.allocate_node_type_id(nl)
+        (node_type_id, node_type_id_lookup) = self.allocate_node_type_id(nl)
         (node_group_id, group_idx, group_lookup) = self.allocate_node_groups(nl)
 
         node_id_list = np.array([x["neuronID"] for x in nl.data["neurons"] if x["volumeID"] == "Striatum"], dtype=int)
@@ -79,13 +77,15 @@ class ExportSonata(object):
                        node_group_id=node_group_id[node_id_list],
                        node_group_index=group_idx[node_id_list])
 
-        striatum_node_names = [n["name"] for n in nl.data["neurons"] \
-                               if n["volumeID"] == structure_name]
+        import pdb
+        pdb.set_trace()
+
+        striatum_node_names = [n["name"] for n in nl.data["neurons"] if n["volumeID"] == structure_name]
 
         # This defines the order
-        csv_node_name = [k for k in node_type_i_dlookup if k in striatum_node_names]
+        csv_node_name = [k for k in node_type_id_lookup if k in striatum_node_names]
 
-        csv_node_type_id = [node_type_i_dlookup[n] for n in csv_node_name]
+        csv_node_type_id = [node_type_id_lookup[n] for n in csv_node_name]
         csv_node_location = ['Striatum' for n in csv_node_name]
 
         (model_template_list, model_type_list, morphology_list) = self.get_node_templates(nl, csv_node_name)
@@ -184,7 +184,7 @@ class ExportSonata(object):
         cortex_name = [x["name"] for x in nl.data["neurons"] if x["type"] == "CortexAxon"]
 
         # !!! Check this correct
-        cortex_node_type_id = [node_type_i_dlookup[x] for x in cortex_name]
+        cortex_node_type_id = [node_type_id_lookup[x] for x in cortex_name]
         try:
             cortex_node_group_id = [group_lookup["CortexAxon"] for x in range(0, len(cortex_gid))]
         except:
@@ -198,7 +198,7 @@ class ExportSonata(object):
         # cortexModelTypeList = [None for x in range(0,len(cortexNodeGroupID))]
         # cortexModelTemplateList = [None for x in range(0,len(cortexNodeGroupID))]
 
-        cortex_input = self.sort_input(nl, node_type_i_dlookup, input_name="CortexAxon")
+        cortex_input = self.sort_input(nl, node_type_id_lookup, input_name="CortexAxon")
 
         ch.write_nodes(node_file="Cortex/Cortex_nodes.hdf5",
                        population_name="Cortex",
@@ -228,7 +228,7 @@ class ExportSonata(object):
         thalamus_name = [x["name"] for x in nl.data["neurons"] if x["type"] == "ThalamusAxon"]
 
         # !!! Check this correct
-        thalamus_node_type_id = [node_type_i_dlookup[x] for x in thalamus_name]
+        thalamus_node_type_id = [node_type_id_lookup[x] for x in thalamus_name]
         thalamus_node_group_id = [group_lookup["ThalamusAxon"] for x in range(0, len(thalamus_gid))]
         thalamus_node_group_index = np.arange(0, len(thalamus_node_group_id), dtype=int)
         # thalamusModelTypeList = [None for x in range(0,len(thalamusNodeGroupID))]
@@ -239,7 +239,7 @@ class ExportSonata(object):
                                           ("y", np.zeros((10,))),
                                           ("z", np.zeros((10,)))])
 
-        thalamus_input = self.sort_input(nl, node_type_i_dlookup, input_name="ThalamusAxon")
+        thalamus_input = self.sort_input(nl, node_type_id_lookup, input_name="ThalamusAxon")
 
         ch.write_nodes(node_file="Thalamus/Thalamus_nodes.hdf5",
                        population_name="Thalamus",
@@ -261,6 +261,14 @@ class ExportSonata(object):
         self.write_simulation_config()
 
         print("SONATA files exported to " + str(out_dir))
+
+    ############################################################################
+
+    def get_edge_type_lookup(self):
+
+        # Read the config file, to find out all possible types of connections
+
+        pass
 
     ############################################################################
 
@@ -330,10 +338,14 @@ class ExportSonata(object):
 
     def allocate_node_type_id(self, nl):
 
+        # Since each neuron directory can have multiple morphology/parameter sets
+        # we need to use the name + morphology_key + parameter_key + modulation_key
+
         node_type_id_lookup = OrderedDict([])
         next_node_type_id = 0
 
-        node_names = [n["name"] for n in nl.data["neurons"]]
+        node_names = [f"{n['name']}_{n['morphologyKey']}_{n['parameterKey']}_{n['modulationKey']}"
+                      for n in nl.data["neurons"]]
 
         for n in node_names:
             if n not in node_type_id_lookup:
@@ -346,50 +358,38 @@ class ExportSonata(object):
 
     ############################################################################
 
-    # RT neuron only supports one group, so put everything int he same group
+    # Comment from 2018, hope they support all now (guess we will find out):
+    #  --> RT neuron only supports one group, so put everything in the same group
+
+    # Snudda neuron type corresponds to SONATA NodeGroup
+    # SONATA NodeType is {Snudda neuron name}_{morphology_key}_{parameter_key}_{modulation_key}
 
     def allocate_node_groups(self, nl):
 
         node_group_id = np.zeros(len(nl.data["neurons"]), dtype=int)
-        group_idx = np.arange(0, len(nl.data["neurons"]))
+        group_idx = np.zeros(len(nl.data["neurons"]), dtype=int)
         group_lookup = dict([])
 
-        neuron_types = [nl.data["neurons"][idx]["type"] for idx in range(0, len(nl.data["neurons"]))]
+        neuron_types = [n["type"] for n in nl.data["neurons"]]
 
-        for g in neuron_types:
-            if g not in group_lookup:
-                group_lookup[g] = 0
-
-        return node_group_id, group_idx, group_lookup
-
-        ############################################################################
-
-    # So there is a bit of a confusion with the namings. For the neurons in the
-    # network "name" corresponds to SONATA NodeType, while "type" corresponds
-    # to NodeGroup.
-
-    def allocate_node_groups_OLD(self, nl):
-        group_lookup = OrderedDict([])
+        next_group_idx = dict()
         next_group = 0
 
-        group_names = [nl.data["neurons"][idx]["type"] for idx in range(0, len(nl.data["neurons"]))]
-
-        for g in group_names:
-            if g not in group_lookup:
-                group_lookup[g] = next_group
+        for nt in neuron_types:
+            if nt not in group_lookup:
+                group_lookup[nt] = next_group
                 next_group += 1
+                next_group_idx[nt] = 0
 
-        node_group_id = [group_lookup[g] for g in group_names]
-
-        next_idx = np.zeros(len(group_lookup.keys()), dtype=int)
-
-        group_idx = np.zeros(len(group_names), dtype=int)
-
-        for ig, g in enumerate(group_names):
-            group_idx[ig] = next_idx[group_lookup[g]]
-            next_idx[group_lookup[g]] += 1
+        for idx, nt in enumerate(neuron_types):
+            node_group_id[idx] = group_lookup[nt]
+            group_idx[idx] = next_group_idx[nt]
+            next_group_idx[nt] += 1
 
         return node_group_id, group_idx, group_lookup
+
+    ############################################################################
+
 
     ############################################################################
 
@@ -411,7 +411,7 @@ class ExportSonata(object):
 
             if hoc_file in self.hoc_location_lookup:
                 # We need to change from old hoc location to the SONATA hoc location
-                hoc_str = "hoc:" + os.path.basename(self.hoc_location_lookup[hoc_file])
+                hoc_str = f"hoc:{os.path.basename(self.hoc_location_lookup[hoc_file])}"
             elif n["virtualNeuron"]:
                 hoc_str = "virtual"
             else:
@@ -424,7 +424,9 @@ class ExportSonata(object):
             if name not in morphology_dict:
                 morphology_dict[name] = morph_file
             else:
-                assert morphology_dict[name] == morph_file, \
+                import pdb
+                pdb.set_trace()
+                assert os.path.basename(morphology_dict[name]) == os.path.basename(morph_file), \
                     f"Morphology mismatch for {name}: {morphology_dict[name]} vs {morph_file}"
 
             if name not in template_dict:
@@ -874,20 +876,18 @@ class ExportSonata(object):
 
         print("Copying morphologies")
 
-        # Loop through all the neurons, and copy the morphologies
-        for neuron_id in nl.config:
-            if neuron_id in ["Volume", "Channels"]:
-                continue  # Not cell, skip
+        morph_set = set([n["morphology"] for n in nl.data["neurons"]])
 
-            morph_file = nl.config[neuron_id]["morphology"]
+        for morph_path in morph_set:
+            morph_file = snudda_parse_path(morph_path, snudda_data=nl.data["SnuddaData"])
             base_name = os.path.basename(morph_file)
-            dest_file = self.out_dir + "components/morphologies/" + base_name
+            dest_file = os.path.join(self.out_dir, "components", "morphologies", base_name)
 
             if self.debug:
-                print("Copying " + morph_file + " to " + dest_file)
+                print(f"Copying {morph_file} to {dest_file}")
 
             copyfile(morph_file, dest_file)
-            self.morph_location_lookup[morph_file] = dest_file
+            self.morph_location_lookup[morph_path] = dest_file
 
     ############################################################################
 
@@ -901,13 +901,10 @@ class ExportSonata(object):
 
         missing_files = []
 
-        # Loop through all the neurons, and copy the hoc
-        for neuron_id in nl.config:
-            if neuron_id in ["Volume", "Channels"]:
-                continue  # Not cell, skip
+        hoc_set = set([n["hoc"] for n in nl.data["neurons"] if n["hoc"]])
 
-            hoc_file = nl.config[neuron_id]["hoc"]
-
+        for hoc_path in hoc_set:
+            hoc_file = snudda_parse_path(hoc_path, snudda_data=nl.data["SnuddaData"])
             if os.path.isfile(hoc_file):
                 base_name = os.path.basename(hoc_file)
                 dest_file = os.path.join(self.out_dir, "components", "hoc_templates", base_name)
@@ -915,17 +912,16 @@ class ExportSonata(object):
                 if self.debug:
                     print(f"Copying {hoc_file} to {dest_file}")
 
-                self.hoc_location_lookup[hoc_file] = dest_file
+                self.hoc_location_lookup[hoc_path] = dest_file
                 copyfile(hoc_file, dest_file)
             else:
-
                 if hoc_file not in missing_files:
                     # Only print same error message ones
-                    print(f"!!! Missing hoc file: {hoc_file}")
+                    print(f"- Missing hoc file: {hoc_file}")
 
                 missing_files.append(hoc_file)
 
-                ############################################################################
+    ############################################################################
 
     def copy_mechanisms(self):
         from shutil import copyfile

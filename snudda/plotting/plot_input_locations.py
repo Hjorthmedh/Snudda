@@ -183,12 +183,12 @@ class SnuddaPlotInputLocations:
 
             swc_file = snudda_parse_path(self.snudda_load.data["neurons"][nid]["morphology"], self.snudda_data)
             morph = NeuronMorphologyExtended(swc_filename=swc_file)
-            dist_to_soma = morph.dend[:, 4]
+            dist_to_soma = morph.morphology_data["neuron"].geometry[:, 4]
             max_dist = max(np.max(dist_to_soma), max_dist)
 
         return max_dist
 
-    def plot_input_location(self, neuron_type, input_name, n_bins=20):
+    def plot_input_location(self, neuron_type, input_name, n_bins=15):
 
         import numexpr
 
@@ -250,18 +250,20 @@ class SnuddaPlotInputLocations:
         morph = NeuronMorphologyExtended(swc_filename=swc_file)
 
         for sec in morph.section_iterator(section_type=3):
-            pos = sec.position
-
-            seg_len = np.linalg.norm(np.diff(sec.position, axis=1), axis=0)
-
-            # 0,1,2: x,y,z  3: radie, 4: dist to soma
-            soma_dist = sec.morphology_data.geometry[sec.point_idx, 4]
+            seg_len = np.linalg.norm(np.diff(sec.position, axis=0), axis=1)
+            soma_dist = sec.soma_distance
 
             for start_dist, end_dist, comp_length in zip(soma_dist[0:-1], soma_dist[1:], seg_len):
                 bin_a = int(start_dist/bin_width)
                 bin_b = int(end_dist/bin_width)
 
-                assert comp_length < bin_width, f"Compartment length {comp_length} > bin width {bin_width}"
+                if comp_length > bin_width:
+                    print("Tell me why")
+                    import pdb
+                    pdb.set_trace()
+
+                assert comp_length < bin_width, f"Compartment length {comp_length} > bin width {bin_width} " \
+                                                f"(try using fewer bins)"
                 assert bin_a <= bin_b, f"Internal error, assume first element in link closer to soma"
 
                 if bin_a == bin_b:
