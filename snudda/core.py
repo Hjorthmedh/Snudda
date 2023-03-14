@@ -415,8 +415,6 @@ class Snudda(object):
             args : command line arguments from argparse
         """
 
-        assert False, "Old export to SONATA borken, fixme!"
-        # TODO: Fix this
         from snudda.utils.export_sonata import ExportSonata
 
         print("Exporting to SONATA format")

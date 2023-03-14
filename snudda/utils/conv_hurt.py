@@ -53,10 +53,10 @@ class ConvHurt(object):
                     'components/synapse_dynamics', 'networks', 'inputs', 'output', f"networks/{simulation_structure}"]
 
         for x in input_structures:
-            dir_list.append(f"networks/{x}")
+            dir_list.append(os.path.join("networks", x))
 
         for x in dir_list:
-            self.create_dir(f"{base_dir}{x}")
+            self.create_dir(os.path.join(base_dir, x))
 
     ############################################################################
     #
@@ -125,10 +125,10 @@ class ConvHurt(object):
 
     # nodeID - vector with IDs for all neurons
     # nodeTypeID - vector with Type ID for each neuron
-    # nodeGroupID - vector with group memebership for each neuron
+    # nodeGroupID - vector with group membership for each neuron
     # nodeGroupIndex - vector with index of each neuron within the given group
 
-    # data = dictionary with "position", "rotaton_angle_zaxis", ...
+    # data = dictionary with "position", "rotation_angle_zaxis", ...
     #        etc that should be stored
     #        names should match what is in the group data
     def write_nodes(self,
@@ -248,7 +248,7 @@ class ConvHurt(object):
             target_population_name = edge_population_name
             print(f"No source population name given, using edgePopulationName: {edge_population_name}")
 
-            # We need to have the targetID vector sorted
+        # We need to have the targetID vector sorted
         # How should we handle cells that do not have any edges at all?
         sort_idx = np.argsort(target_id)
 
