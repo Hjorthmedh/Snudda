@@ -206,7 +206,7 @@ class SnuddaPlotInputLocations:
         plt.stairs(norm_count, edges * 1e6, color="black")
 
         plt.xlabel("Distance ($\mu$m)")
-        plt.ylabel("Density")
+        plt.ylabel("Normalised total density")
 
         if neuron_type in self.input_config and input_name in self.input_config[neuron_type] \
                 and "synapseDensity" in self.input_config[neuron_type][input_name]:
