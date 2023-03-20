@@ -63,6 +63,8 @@ class SnuddaPlotInputLocations:
                            save_fig=True,
                            dpi=300,
                            show_figure=True,
+                           hide_axis=False,
+                           hide_grid=True,
                            figure_size=None):
 
         coords = self.get_input_coords(neuron_id=neuron_id, input_type=input_type)
@@ -118,6 +120,24 @@ class SnuddaPlotInputLocations:
         fig_path = os.path.join(self.network_path, "figures")
         if not os.path.exists(fig_path):
             os.mkdir(fig_path)
+
+        if hide_grid:
+            ax.grid(None)
+
+        if hide_axis:
+            ax.set_axis_off()
+
+        x_labels = [f"{x*1e6:.0f}" for x in ax.get_xticks()]
+        y_labels = [f"{y*1e6:.0f}" for y in ax.get_yticks()]
+        z_labels = [f"{z*1e6:.0f}" for z in ax.get_zticks()]
+
+        ax.set_xticklabels(x_labels)
+        ax.set_yticklabels(y_labels)
+        ax.set_zticklabels(z_labels)
+
+        ax.set_xlabel("μm", fontsize=20)
+        ax.set_ylabel("μm", fontsize=20)
+        ax.set_zlabel("μm", fontsize=20)
 
         if save_fig:
             fig_name = os.path.join(fig_path, f_name)
