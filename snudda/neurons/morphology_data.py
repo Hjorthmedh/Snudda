@@ -145,6 +145,10 @@ class SectionMetaData:
         return self.morphology_data.geometry[self.point_idx, 3]
 
     @property
+    def soma_distance(self):
+        return self.morphology_data.geometry[self.point_idx, 4]
+
+    @property
     def section_x(self):
         # Double check that this creates a copy of the data before overwriting first element with 0
         sec_x = self.morphology_data.section_data[self.point_idx, 1] / 1e3

@@ -10,6 +10,7 @@ import numpy as np
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.numpy_encoder import NumpyEncoder
 import scipy.sparse as sparse
+from scipy.spatial import distance_matrix
 
 
 class SnuddaLoad(object):
@@ -333,7 +334,7 @@ class SnuddaLoad(object):
                 data["connectivityDistributions"][pre_type, post_type] \
                     = orig_connectivity_distributions[keys]
 
-        if "synapses" in data:
+        if "synapses" in data and self.verbose:
             if "gapJunctions" in data:
                 print(f"Loading {len(data['neurons'])} neurons with {data['nSynapses']} synapses"
                       f" and {data['nGapJunctions']} gap junctions")
@@ -971,6 +972,13 @@ class SnuddaLoad(object):
 
         return connection_matrix
 
+    def create_distance_matrix(self):
+
+        pos = self.data["neuronPositions"]
+        dist_matrix = distance_matrix(pos, pos)
+
+        return dist_matrix
+
     def print_all_synapse_counts_per_type(self):
 
         synapse_types = sorted(list(self.get_neuron_types(return_set=True)))
@@ -1042,6 +1050,7 @@ class SnuddaLoad(object):
 
         return synapse_count, gap_junction_count
 
+
 def snudda_load_cli():
     """ Command line parser for SnuddaLoad script """
 
@@ -1071,7 +1080,7 @@ def snudda_load_cli():
     else:
         load_synapses = True
 
-    nl = SnuddaLoad(args.networkFile, load_synapses=load_synapses)
+    nl = SnuddaLoad(args.networkFile, load_synapses=load_synapses, verbose=True)
 
     if args.listN:
         print("Neurons in network: ")
