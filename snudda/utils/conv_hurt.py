@@ -123,6 +123,8 @@ class ConvHurt(object):
 
         with h5py.File(os.path.join(self.network_dir, node_file), 'w', libver=self.h5py_libver) as f:
 
+            self.add_version(f)
+
             n_group = f.create_group("nodes")
 
             nodes_group = n_group.create_group(population_name)
@@ -247,6 +249,8 @@ class ConvHurt(object):
 
         # EVERYTHING we write needs to use sortIdx so it is in the right order
         with h5py.File(os.path.join(self.network_dir, edge_file), 'w', libver=self.h5py_libver) as f:
+            self.add_version(f)
+
             edg_group = f.create_group("edges")
             e_group = edg_group.create_group(edge_population_name)
 
@@ -371,6 +375,8 @@ class ConvHurt(object):
         f_name = os.path.join(self.base_dir, spike_file_name)
 
         with h5py.File(f_name, 'w', libver=self.h5py_libver) as f:
+            self.add_version(f)
+
             print(f"Writing file {f_name}")
 
             s_group = f.create_group("spikes")
@@ -398,6 +404,11 @@ class ConvHurt(object):
                 f.write(f"{time} {gid}")
 
     ############################################################################
+
+    def add_version(self, hdf5_file):
+
+        hdf5_file.attrs["version"] = [0, 1]
+        hdf5_file.attrs["magic"] = 0x0A7A
 
 
 if __name__ == "__main__":
@@ -437,7 +448,7 @@ if __name__ == "__main__":
     source_gid = np.array([1, 2, 3, 3, 4])
     target_gid = np.array([2, 3, 4, 0, 1])  # THESE ARE SORTED ... HAHAHA
 
-    # Delay should be in ms (bad bad people, real scientists use SI units)
+    # Delay needs to be in ms (bad bad people, real scientists use SI units)
     edge_data = OrderedDict([("sec_id", np.array([10, 22, 33, 24, 15])),
                              ("sec_x", np.array([0.1, 0.3, 0.5, 0.2, 0])),
                              ("syn_weight", np.array([0.1e-9, 2e-9, 3e-9,

@@ -18,7 +18,7 @@ from snudda.utils.conv_hurt import ConvHurt
 from snudda import SnuddaLoad
 
 
-class ExportSonata(object):
+class ExportSonata:
 
     def __init__(self, network_file, input_file, out_dir, debug_flag=True):
 
@@ -97,7 +97,7 @@ class ExportSonata(object):
 
             assert (v_idx == node_id_list).all()
 
-            ch.write_nodes(node_file=f"{volume_name}.hdf5",
+            ch.write_nodes(node_file=f"{volume_name}_nodes.hdf5",
                            population_name=volume_name,
                            data=node_data,
                            node_id=node_id_list,
@@ -133,8 +133,8 @@ class ExportSonata(object):
                            target_id=target_gid,
                            data=edgeData)
 
-            edge_type_id = [x[1] for x in edge_type_lookup.values()]
-            edge_data = {"template" : [x[0] for x in edge_type_lookup.values()]}
+            edge_type_id = [x[0] for x in edge_type_lookup.values()]
+            edge_data = {"template": [x[1] for x in edge_type_lookup.values()]}
 
             ch.write_edges_csv(edge_csv_file=f"{volume_name}_edge_types.csv",
                                edge_type_id=edge_type_id,
@@ -288,8 +288,8 @@ class ExportSonata(object):
 
             # It seems that RT neuron requires the filename without .swc at the end
             # Also, they prepend morphology path, but only allows one directory for all morphologies
-
-            morph_file = os.path.splitext(os.path.basename(n["morphology"]))[0]
+            # morph_file = os.path.splitext(os.path.basename(n["morphology"]))[0]
+            morph_file = os.path.basename(n["morphology"])
 
             if hoc_file in self.hoc_location_lookup:
                 # We need to change from old hoc location to the SONATA hoc location
