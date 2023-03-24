@@ -15,26 +15,28 @@ from sonata.circuit import File as SonataFile
 
 class TestSonata(unittest.TestCase):
 
-    def setUp(self):
+    def setUp(self, create_network=True):
 
         # !!! TEMP SKIP setup while developing
         # return
 
         self.network_path = os.path.join("networks", "sonata_example")
-        si = SnuddaInit(network_path=self.network_path, random_seed=12345)
-        # Not the correct proportions, this is a unit test
-        si.define_striatum(num_dSPN=10, num_iSPN=10, num_FS=10, num_LTS=2, num_ChIN=2,
-                           volume_type="cube")
-        si.write_json()
 
-        sp = SnuddaPlace(network_path=self.network_path)
-        sp.place()
+        if create_network:
+            si = SnuddaInit(network_path=self.network_path, random_seed=12345)
+            # Not the correct proportions, this is a unit test
+            si.define_striatum(num_dSPN=10, num_iSPN=10, num_FS=10, num_LTS=2, num_ChIN=2,
+                               volume_type="cube")
+            si.write_json()
 
-        sd = SnuddaDetect(network_path=self.network_path)
-        sd.detect()
+            sp = SnuddaPlace(network_path=self.network_path)
+            sp.place()
 
-        sp = SnuddaPrune(network_path=self.network_path)
-        sp.prune()
+            sd = SnuddaDetect(network_path=self.network_path)
+            sd.detect()
+
+            sp = SnuddaPrune(network_path=self.network_path)
+            sp.prune()
 
     def test_sonata_export(self):
 
@@ -74,13 +76,17 @@ class TestSonata(unittest.TestCase):
                 self.assertEqual(neuron["type"], sonata_node["model_name"].split("_")[0])
 
         with self.subTest("Check edges"):
+
+            for edge_pop_name in sf.edges.population_names:
+                sf.edges.get_population(edge_pop_name)
+
+
             # TODO: Add test
             pass
 
-        #import pdb
-        #pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
 
-        self.assertEqual(True, True)  # add assertion here
 
 
 if __name__ == '__main__':

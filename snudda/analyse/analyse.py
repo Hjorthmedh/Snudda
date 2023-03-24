@@ -873,7 +873,12 @@ class SnuddaAnalyse(object):
                                     y_max=None,
                                     connection_type="synapses",
                                     draw_step=False,
-                                    sub_title=None):
+                                    sub_title=None,
+                                    ax=None,
+                                    return_ax=False,
+                                    colour="black",
+                                    show_plot=None,
+                                    save_figure=True):
 
         if volume_id is None:
             volume_id = self.volume_id
@@ -940,7 +945,8 @@ class SnuddaAnalyse(object):
         # Now let's plot it
 
         # fig = plt.figure()
-        fig, ax = plt.subplots(1)
+        if ax is None:
+            fig, ax = plt.subplots(1)
 
         matplotlib.rcParams.update({'font.size': 24})
 
@@ -991,35 +997,35 @@ class SnuddaAnalyse(object):
                 bar_centre = (ns + (z ** 2) / 2) / (n + z * 2)
                 bar_height = z / (n + z ** 2) * np.sqrt((ns * (n - ns) / n + (z ** 2) / 4))
 
-                plt.errorbar(d_limit * 1e6 / 2, bar_centre, bar_height, color="gray",
-                             elinewidth=1, capsize=5)
+                ax.errorbar(d_limit * 1e6 / 2, bar_centre, bar_height, color="gray",
+                            elinewidth=1, capsize=5)
 
             else:
                 std_exp = 0
 
             if p_exp is not None:
-                plt.plot([0, d_limit * 1e6], [p_exp, p_exp],
-                         color=(0.8, 0.3 * plt_ctr, 0.3 * plt_ctr), linewidth=2)
+                ax.plot([0, d_limit * 1e6], [p_exp, p_exp],
+                        color=(0.8, 0.3 * plt_ctr, 0.3 * plt_ctr), linewidth=2)
 
                 # Add a star also
-                plt.plot(d_limit * 1e6 / 2, p_exp,
-                         color=(0.8, 0.3 * plt_ctr, 0.3 * plt_ctr),
-                         marker="D",
-                         markersize=10)
+                ax.plot(d_limit * 1e6 / 2, p_exp,
+                        color=(0.8, 0.3 * plt_ctr, 0.3 * plt_ctr),
+                        marker="D",
+                        markersize=10)
 
                 plt_ctr += 1
-                plt.ion()
-                plt.draw()
 
-                if self.show_plots:
+                if self.show_plots or show_plot:
+                    plt.ion()
+                    plt.draw()
                     plt.show()
 
         # Draw the curve itself
         if draw_step:
-            plt.step(dist * 1e6, p_con, color='black', linewidth=2, where="post")
+            plt.step(dist * 1e6, p_con, color=colour, linewidth=2, where="post")
         else:
             d_half_step = (dist[1] - dist[0]) / 2
-            plt.plot((dist + d_half_step) * 1e6, p_con, color='black', linewidth=2)
+            plt.plot((dist + d_half_step) * 1e6, p_con, color=colour, linewidth=2)
 
         plt.xticks(fontsize=14, rotation=0)
         plt.yticks(fontsize=14, rotation=0)
@@ -1088,8 +1094,6 @@ class SnuddaAnalyse(object):
             plt.title(title_str)
 
         plt.tight_layout()
-        plt.ion()
-        plt.draw()
 
         if dist_3d:
             proj_text = '-3D-dist'
@@ -1099,12 +1103,20 @@ class SnuddaAnalyse(object):
         fig_name = (f"Network-distance-dependent-connection-probability-{pre_type}"
                     f"-to-{post_type}-{connection_type}{proj_text}")
 
-        full_fig_name = self.save_figure(plt, fig_name)
+        if save_figure:
+            full_fig_name = self.save_figure(plt, fig_name)
+        else:
+            full_fig_name = None
 
-        if self.show_plots:
+        if self.show_plots or show_plot:
+            plt.ion()
+            plt.draw()
             plt.show()
+            plt.pause(0.001)
 
-        plt.pause(0.001)
+        if return_ax:
+            return ax
+
         return model_probs, full_fig_name
 
     ############################################################################
