@@ -60,3 +60,4 @@ python3 ../../../snudda/analyse/analyse_striatum.py $simName/network-synapses.hd
 
 ipcluster stop
 
+
