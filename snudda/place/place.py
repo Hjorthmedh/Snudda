@@ -740,7 +740,7 @@ class SnuddaPlace(object):
 
     def write_data(self, file_name=None):
 
-        """ Writes positition data to HDF5 file file_name. """
+        """ Writes position data to HDF5 file file_name. """
 
         if not file_name:
             file_name = self.position_file

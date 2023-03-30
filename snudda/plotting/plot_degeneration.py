@@ -14,7 +14,7 @@ class PlotDegeneration:
         if not os.path.exists(self.fig_path):
             os.mkdir(self.fig_path)
 
-    def plot_neuron(self, neuron_id, figure_size=None, show_internal_synapses=True):
+    def plot_neuron(self, neuron_id, figure_size=None, show_internal_synapses=True, hide_axis=False):
         import matplotlib.pyplot as plt
         fig = plt.figure(figsize=figure_size)
         ax = fig.add_subplot(111, projection='3d')
@@ -25,14 +25,19 @@ class PlotDegeneration:
                                                    show_internal_synapses=show_internal_synapses,
                                                    ax=ax,
                                                    size=2,
-                                                   save_fig=False, show_figure=False, figure_size=figure_size)
+                                                   save_fig=False,
+                                                   show_figure=False,
+                                                   hide_axis=hide_axis,
+                                                   figure_size=figure_size)
 
         ax = self.degenerated_plot.plot_neuron_inputs(neuron_id=neuron_id,
-                                                 neuron_colour=np.array([0, 0, 0]),
-                                                 show_internal_synapses=show_internal_synapses,
-                                                 ax=ax,
-                                                 size=50,
-                                                 save_fig=True, show_figure=True)
+                                                      neuron_colour=np.array([0, 0, 0]),
+                                                      show_internal_synapses=show_internal_synapses,
+                                                      ax=ax,
+                                                      size=50,
+                                                      save_fig=True,
+                                                      hide_axis=hide_axis,
+                                                      show_figure=True)
 
 
 def cli():

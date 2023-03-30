@@ -13,18 +13,16 @@ import numpy as np
 
 class ConvHurt(object):
 
-    def __init__(self, simulation_structure, input_structures, base_dir="TEST/"):
+    def __init__(self, simulation_structures, base_dir="TEST/"):
 
         self.base_dir = base_dir
         self.network_dir = os.path.join(base_dir, 'networks')
 
         self.h5py_libver = "earliest"  # "latest"
 
-        self.setup_directories(simulation_structure=simulation_structure,
-                               input_structures=input_structures, base_dir=base_dir)
+        self.setup_directories(base_dir=base_dir)
 
-        self.write_main_config(simulation_structure=simulation_structure,
-                               input_structures=input_structures,
+        self.write_main_config(simulation_structures=simulation_structures,
                                base_dir=base_dir)
 
     ############################################################################
@@ -39,8 +37,6 @@ class ConvHurt(object):
     ############################################################################
 
     def setup_directories(self,
-                          simulation_structure,
-                          input_structures,
                           base_dir=None):
 
         if base_dir is None:
@@ -50,13 +46,10 @@ class ConvHurt(object):
 
         dir_list = ['components', 'components/biophysical_neuron_dynamics', 'components/hoc_templates',
                     'components/mechanisms', 'components/morphologies', 'components/point_neuron_dynamics',
-                    'components/synapse_dynamics', 'networks', 'inputs', 'output', f"networks/{simulation_structure}"]
-
-        for x in input_structures:
-            dir_list.append(f"networks/{x}")
+                    'components/synapse_dynamics', 'networks', 'inputs', 'output']
 
         for x in dir_list:
-            self.create_dir(f"{base_dir}{x}")
+            self.create_dir(os.path.join(base_dir, x))
 
     ############################################################################
     #
@@ -65,12 +58,8 @@ class ConvHurt(object):
     def write_main_config(self,
                           base_dir="TEST/",
                           out_file="circuit_config.json",
-                          simulation_structure="striatum",
-                          input_structures=None,
+                          simulation_structures=[],
                           target_simulator="NEURON"):
-
-        if input_structures is None:
-            input_structures = ["thalamus", "cortex"]
 
         config = OrderedDict([])
 
@@ -95,28 +84,18 @@ class ConvHurt(object):
 
         config["components"] = components
 
-        sim_node = os.path.join("$NETWORK_DIR", simulation_structure, f"{simulation_structure}_nodes.hdf5")
-        sim_node_type = os.path.join("$NETWORK_DIR", simulation_structure, f"{simulation_structure}_node_types.csv")
+        nodes = []
+        edges = []
+        for ss in simulation_structures:
+            node_info = {"nodes_file": os.path.join("$NETWORK_DIR", f"{ss}_nodes.hdf5"),
+                         "node_types_file": os.path.join("$NETWORK_DIR", f"{ss}_node_types.csv") }
+            nodes.append(node_info)
 
-        sim_edge = os.path.join("$NETWORK_DIR", simulation_structure, f"{simulation_structure}_edges.hdf5")
-        sim_edge_type = os.path.join("$NETWORK_DIR", simulation_structure, f"{simulation_structure}_edge_types.csv")
+            edge_info = {"edges_file": os.path.join("$NETWORK_DIR", f"{ss}_edges.hdf5"),
+                         "edge_types_file": os.path.join("$NETWORK_DIR", f"{ss}_edge_types.csv") }
+            edges.append(edge_info)
 
-        # We create a list where first element contains the simulated node,
-        # subsequent elements are the inputs (can be more than one)
-
-        node_files = [OrderedDict([("nodes_file", sim_node),
-                                   ("node_types_file", sim_node_type)])]
-        node_files += [OrderedDict([("nodes_file", os.path.join("$NETWORK_DIR", x, f"{x}_nodes.hdf5")),
-                                    ("node_types_file", os.path.join("$NETWORK_DIR", x, f"{x}_node_types.csv"))])
-                       for x in input_structures]
-
-        edge_files = [OrderedDict([("edges_file", sim_edge), ("edge_types_file", sim_edge_type)])]
-        edge_files += [OrderedDict([("edges_file", os.path.join("$NETWORK_DIR", x, f"{x}_edges.hdf5")),
-                                    ("edge_types_file", os.path.join("$NETWORK_DIR", x, f"{x}_edge_types.csv"))])
-                       for x in input_structures]
-
-        config["networks"] = OrderedDict([("nodes", node_files),
-                                          ("edges", edge_files)])
+        config["networks"] = OrderedDict([("nodes", nodes), ("edges", edges)])
 
         with open(os.path.join(base_dir, out_file), 'wt') as f:
             json.dump(config, f, indent=4)
@@ -125,10 +104,10 @@ class ConvHurt(object):
 
     # nodeID - vector with IDs for all neurons
     # nodeTypeID - vector with Type ID for each neuron
-    # nodeGroupID - vector with group memebership for each neuron
+    # nodeGroupID - vector with group membership for each neuron
     # nodeGroupIndex - vector with index of each neuron within the given group
 
-    # data = dictionary with "position", "rotaton_angle_zaxis", ...
+    # data = dictionary with "position", "rotation_angle_zaxis", ...
     #        etc that should be stored
     #        names should match what is in the group data
     def write_nodes(self,
@@ -248,7 +227,7 @@ class ConvHurt(object):
             target_population_name = edge_population_name
             print(f"No source population name given, using edgePopulationName: {edge_population_name}")
 
-            # We need to have the targetID vector sorted
+        # We need to have the targetID vector sorted
         # How should we handle cells that do not have any edges at all?
         sort_idx = np.argsort(target_id)
 
