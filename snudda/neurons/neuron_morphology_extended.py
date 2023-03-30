@@ -96,7 +96,7 @@ class NeuronMorphologyExtended:
         self._rotation = rotation
 
     def add_morphology(self, swc_file, name="neuron", position=None, rotation=None, parent_tree_info=None,
-                       overwrite=False, morphology_data=None):
+                       overwrite=False, morphology_data=None, lazy_loading=False):
 
         """
             MorphologyData
@@ -111,6 +111,7 @@ class NeuronMorphologyExtended:
                 parent_tree_info (tuple, optional): Specify subtree attachment point
                                                     (MorphologyData, parent_label, parent_point_idx, arc_factor)
                 morphology_data (optional): MorphologyData object to use, then swc_file is None
+                lazy_loading (bool) : use lazy loading for morphology data
 
         """
 
@@ -120,9 +121,9 @@ class NeuronMorphologyExtended:
         if morphology_data is None:
             # No cached morphology data, load it from file (slow)
             self.morphology_data[name] = MorphologyData(swc_file=swc_file, parent_tree_info=parent_tree_info,
-                                                        snudda_data=self.snudda_data)
-            if position is not None:
-                self.morphology_data[name].place(position=position, rotation=rotation)
+                                                        snudda_data=self.snudda_data, lazy_loading=lazy_loading)
+            if position is not None: # why????
+                self.morphology_data[name].place(position=position, rotation=rotation, lazy=lazy_loading)
 
         else:
             # Use provided morphology data
@@ -176,9 +177,6 @@ class NeuronMorphologyExtended:
 
         """
 
-        # np.set_printoptions(precision=2)
-        # print(f"rot {rotation.flatten()}, place pos {position}")
-
         new_neuron = NeuronMorphologyExtended(name=self.name,
                                               position=None,
                                               rotation=None,
@@ -213,9 +211,6 @@ class NeuronMorphologyExtended:
             new_neuron.modulation_key = modulation_key
 
         if morphology_key != self.morphology_key:
-            print("PROBLEM!!")
-            import pdb
-            pdb.set_trace()
             raise ValueError(f"Not allowed to change morphology_key when cloning: {self.morphology_key} -> {morphology_key}")
 
         new_neuron.load_morphology = self.load_morphology
@@ -365,8 +360,6 @@ class NeuronMorphologyExtended:
                 plt.pause(0.001)
 
         return ax
-
-        # raise NotImplementedError("This function will move to separate plot class.")
 
     def get_weighted_synapse_density(self, synapse_density_str):
 

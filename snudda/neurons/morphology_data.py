@@ -168,7 +168,7 @@ class MorphologyData:
 
     """
 
-    def __init__(self, swc_file=None, parent_tree_info=None, snudda_data=None, verbose=False, use_cache=True):
+    def __init__(self, swc_file=None, parent_tree_info=None, snudda_data=None, verbose=False, use_cache=True, lazy_loading=False):
 
         self.swc_file = swc_file
         self.snudda_data = snudda_data
@@ -185,9 +185,11 @@ class MorphologyData:
         self.position = None
 
         self.parent_tree_info = parent_tree_info     # parent tree, if subtree
-
-        if swc_file is not None:
-            self.load_swc_file(swc_file=swc_file, use_cache=use_cache)
+        self.is_loaded = False
+        
+        if not lazy_loading and self.swc_file is not None:
+            self.load_swc_file(swc_file=self.swc_file, use_cache=use_cache)
+        
 
         self.kd_tree_lookup = dict()
 
@@ -215,7 +217,7 @@ class MorphologyData:
         for sid in section_id:
             yield self.sections[section_type][sid]
 
-    def load_swc_file(self, swc_file, remapping_types={4: 3}, use_cache=True):
+    def load_swc_file(self, swc_file=None, remapping_types={4: 3}, use_cache=True):
 
         """ Loads SWC morphology, not SNUDDA_DATA aware (file must exist).
 
@@ -223,6 +225,8 @@ class MorphologyData:
                 swc_file (str): Path to swc file
                 remapping_types (dict): Remapping of compartment types (default: 4 (apical) -> 3 (normal dendrites))
         """
+        if swc_file is None:
+            swc_file = self.swc_file
 
         swc_file = snudda.utils.snudda_parse_path(swc_file, self.snudda_data)
 
@@ -231,8 +235,8 @@ class MorphologyData:
 
         if use_cache:
             cache_file, valid_cache = self.get_cache_file()
-
             if valid_cache and self.load_cache():
+                self.is_loaded = True
                 return
 
         data = np.loadtxt(swc_file)
@@ -305,6 +309,7 @@ class MorphologyData:
 
         if use_cache:
             self.save_cache()
+        self.is_loaded = True
 
     def build_tree(self):
 
@@ -439,7 +444,6 @@ class MorphologyData:
     def load_cache(self):
 
         cache_file, valid_cache = self.get_cache_file()
-
         cache_loaded = False
 
         if valid_cache:
@@ -646,22 +650,7 @@ class MorphologyData:
 
         return new_md
 
-    def place(self, position=None, rotation=None, parent_tree_info=None):
-
-        if parent_tree_info is not None:
-            self.parent_tree_info = parent_tree_info  # (MorphologyData, point_idx, arc_factor)
-
-        # Here we assume soma is only a point
-        if 1 in self.point_lookup:
-            soma_position = self.geometry[self.point_lookup[1], :3]
-            if not (soma_position == 0).all():
-                raise ValueError("Soma must be centered at origo before placement.")
-        elif 2 in self.point_lookup:
-            # We have no soma, so it is probably an axonal tree, check that it is centered
-            axon_root_position = self.geometry[self.point_lookup[2][0], :3]
-            if not (axon_root_position == 0).all():
-                raise ValueError("Axon root must be centered at origo before placement.")
-
+    def place(self, position=None, rotation=None, parent_tree_info=None, lazy=False):
         if self.position is not None or self.rotation is not None:
             raise ValueError("Not allowed to rotate or position a neuron that has already been rotated or positioned")
 
@@ -679,6 +668,27 @@ class MorphologyData:
 
         self.position = position
 
+        if lazy:
+            return
+
+        if not self.is_loaded:
+            self.load_swc_file()
+
+        if parent_tree_info is not None:
+            self.parent_tree_info = parent_tree_info  # (MorphologyData, point_idx, arc_factor)
+
+        # Here we assume soma is only a point
+        if 1 in self.point_lookup:
+            soma_position = self.geometry[self.point_lookup[1], :3]
+            if not (soma_position == 0).all():
+                raise ValueError("Soma must be centered at origo before placement.")
+        elif 2 in self.point_lookup:
+            # We have no soma, so it is probably an axonal tree, check that it is centered
+            axon_root_position = self.geometry[self.point_lookup[2][0], :3]
+            if not (axon_root_position == 0).all():
+                raise ValueError("Axon root must be centered at origo before placement.")
+
+        
         if rotation is not None:
             if not np.abs(np.linalg.det(rotation) - 1) < 1e-10 \
                     or not np.abs(np.matmul(rotation, rotation.T) - np.eye(3) < 1e-10).all():
