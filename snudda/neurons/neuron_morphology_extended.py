@@ -122,7 +122,7 @@ class NeuronMorphologyExtended:
             # No cached morphology data, load it from file (slow)
             self.morphology_data[name] = MorphologyData(swc_file=swc_file, parent_tree_info=parent_tree_info,
                                                         snudda_data=self.snudda_data, lazy_loading=lazy_loading)
-            if position is not None: # why????
+            if position is not None:
                 self.morphology_data[name].place(position=position, rotation=rotation, lazy=lazy_loading)
 
         else:

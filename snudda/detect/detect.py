@@ -2794,7 +2794,7 @@ class SnuddaDetect(object):
                                                                       self_num_bins=self.num_bins,
                                                                       self_max_dend=self.max_dend,
                                                                       self_step_multiplier=self.step_multiplier)
-            self.voxel_overflow_counter += voxel_overflow_ctr       
+            self.voxel_overflow_counter += voxel_overflow_ctr
 
     @staticmethod
     @jit(nopython=True, fastmath=True, cache=True)
@@ -2870,12 +2870,8 @@ class SnuddaDetect(object):
 
         # Remove this check later... should be done in morphology_data
         if (num_steps <= 0).any(): 
-            print(f"\033[91mFound zero length dendrite segment in neuron_id {neuron_id}\033[0m")
+            print(f"Found zero length dendrite segment in neuron_id {neuron_id}")
             raise ValueError(f"Found zero length dendrite segment (please check morphologies).")
-        # if neuron_id == 0 and section_id[-1] == 48:
-        #     print("Check the loop, second iteration...")
-        #     import pdb
-        #     pdb.set_trace()
 
         # Loop through all point-pairs of the section
         for idx in range(0, len(scaled_soma_dist)-1):

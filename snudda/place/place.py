@@ -136,11 +136,6 @@ class SnuddaPlace(object):
         # at the edges
         self.volume = dict([])
 
-        # self.read_config()  # -- Now called from core.py
-
-        # !!! temp!
-        self.morphology_data_cache = {}
-
     def __del__(self):
 
         if self.rc:
