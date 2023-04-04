@@ -623,11 +623,7 @@ class SnuddaPlace(object):
                                   method="linear")
 
         # this checks if there are values outside of the convex hull
-        to_patch = np.unique(
-            [np.where(np.isnan(target_centres[:,0]))[0], 
-             np.where(np.isnan(target_centres[:,1]))[0],
-             np.where(np.isnan(target_centres[:,2]))[0]]
-             )
+        to_patch = np.where(np.isnan(np.sum(target_centres, axis=1)))[0]
 
         # and patch missing entries
         if patch_hull and len(to_patch)>0:
