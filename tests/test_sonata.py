@@ -17,10 +17,10 @@ class TestSonata(unittest.TestCase):
 
     def setUp(self, create_network=True):
 
+        self.network_path = os.path.join("networks", "sonata_example")
+
         # !!! TEMP SKIP setup while developing
         # return
-
-        self.network_path = os.path.join("networks", "sonata_example")
 
         if create_network:
             si = SnuddaInit(network_path=self.network_path, random_seed=12345)
@@ -77,16 +77,26 @@ class TestSonata(unittest.TestCase):
 
         with self.subTest("Check edges"):
 
+            edge_count = 0
+
+            con_mat = sl.create_connection_matrix()
+            new_con_mat = np.zeros(shape=con_mat.shape, dtype=int)
+
             for edge_pop_name in sf.edges.population_names:
-                sf.edges.get_population(edge_pop_name)
+                edges_pop = sf.edges[edge_pop_name]
 
+                for edge in edges_pop:
+                    # print(f"{edge}")
+                    src_id = edge.source_node_id
+                    target_id = edge.target_node_id
+                    new_con_mat[src_id, target_id] += 1
 
-            # TODO: Add test
-            pass
+                    edge_count += 1
 
-        # import pdb
-        # pdb.set_trace()
+            # Check that all edges are accounted for
 
+            self.assertEqual(edge_count, sl.data["nSynapses"])
+            self.assertTrue((con_mat == new_con_mat).all())
 
 
 if __name__ == '__main__':

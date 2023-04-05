@@ -415,7 +415,7 @@ class ExportSonata:
 
             sec_id[i_syn] = syn_row[9]
             sec_x[i_syn] = syn_row[10] / 1000.0
-            synapse_type = syn_row[5]
+            synapse_type = syn_row[6]
 
             pre_type = self.snudda_load.data["neurons"][source_gid[i_syn]]["type"]
             post_type = self.snudda_load.data["neurons"][target_gid[i_syn]]["type"]
