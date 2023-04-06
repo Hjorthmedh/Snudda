@@ -867,6 +867,7 @@ class SnuddaAnalyse(object):
                                     exp_max_dist=None,
                                     exp_data=None,
                                     exp_data_detailed=None,
+                                    exp_colour=None,
                                     dist_3d=True,
                                     volume_id=None,
                                     x_max=250,
@@ -1004,12 +1005,16 @@ class SnuddaAnalyse(object):
                 std_exp = 0
 
             if p_exp is not None:
+
+                if exp_colour is None:
+                    exp_colour = (0.8, 0.3 * plt_ctr, 0.3 * plt_ctr)
+
                 ax.plot([0, d_limit * 1e6], [p_exp, p_exp],
-                        color=(0.8, 0.3 * plt_ctr, 0.3 * plt_ctr), linewidth=2)
+                        color=exp_colour, linewidth=2)
 
                 # Add a star also
                 ax.plot(d_limit * 1e6 / 2, p_exp,
-                        color=(0.8, 0.3 * plt_ctr, 0.3 * plt_ctr),
+                        color=exp_colour,
                         marker="D",
                         markersize=10)
 
