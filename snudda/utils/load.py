@@ -972,10 +972,25 @@ class SnuddaLoad(object):
 
         return connection_matrix
 
-    def create_distance_matrix(self):
+    def create_distance_matrix(self, neuron_id=None, pre_id=None, post_id=None):
+
+        if neuron_id is not None and pre_id is not None and post_id is not None:
+            raise ValueError("Specify either neuron_id or the two parameters pre_id and post_id.")
+
+        if (pre_id is None) ^ (post_id is None):
+            raise ValueError("pre_id and post_id must both either be specified, or neither")
 
         pos = self.data["neuronPositions"]
-        dist_matrix = distance_matrix(pos, pos)
+
+        if neuron_id is not None:
+            pos = pos[neuron_id, :]
+            dist_matrix = distance_matrix(pos, pos)
+
+        elif pre_id is not None and post_id is not None:
+            dist_matrix = distance_matrix(pos[pre_id, :], pos[post_id, :])
+
+        else:
+            dist_matrix = distance_matrix(pos, pos)
 
         return dist_matrix
 

@@ -995,7 +995,7 @@ class SnuddaAnalyse(object):
                 ns = exp_num[0]
                 n = exp_num[1]
                 z = 1.96  # This gives us 95% confidence intervall
-                bar_centre = (ns + (z ** 2) / 2) / (n + z * 2)
+                bar_centre = (ns + (z ** 2) / 2) / (n + z ** 2)
                 bar_height = z / (n + z ** 2) * np.sqrt((ns * (n - ns) / n + (z ** 2) / 4))
 
                 ax.errorbar(d_limit * 1e6 / 2, bar_centre, bar_height, color="gray",
@@ -1044,7 +1044,7 @@ class SnuddaAnalyse(object):
         # This gives us 95% confidence intervall
         z = 1.96
 
-        p_centre = np.array([(ns + (z ** 2) / 2) / (n + z * 2)
+        p_centre = np.array([(ns + (z ** 2) / 2) / (n + z ** 2)
                              for (ns, n) in zip(count_con, count_all_b)]).flatten()
         p_height = np.array([z / (n + z ** 2)
                              * np.sqrt((ns * (n - ns) / n + (z ** 2) / 4))
