@@ -123,6 +123,8 @@ class ConvHurt(object):
 
         with h5py.File(os.path.join(self.network_dir, node_file), 'w', libver=self.h5py_libver) as f:
 
+            self.add_version(f)
+
             n_group = f.create_group("nodes")
 
             nodes_group = n_group.create_group(population_name)
@@ -208,80 +210,54 @@ class ConvHurt(object):
 
     # !!! WHAT HAPPENS IF WE CANT KEEP EVERYTHING IN MEMORY
 
-    def write_edges(self, edge_file,
-                    edge_population_name,
-                    edge_group,
-                    edge_group_index,
+    def write_edges(self,
+                    edge_file,
+                    population_rows,
                     edge_type_id,
                     source_id,
                     target_id,
-                    data,
-                    source_population_name=None,
-                    target_population_name=None, ):
-
-        if source_population_name is None:
-            source_population_name = edge_population_name
-            print(f"No source population name given, using edge_population_name: {edge_population_name}")
-
-        if target_population_name is None:
-            target_population_name = edge_population_name
-            print(f"No source population name given, using edgePopulationName: {edge_population_name}")
+                    data):
 
         # We need to have the targetID vector sorted
         # How should we handle cells that do not have any edges at all?
         sort_idx = np.argsort(target_id)
 
-        # This finds the positions where the sorter targetID increases
-        all_diffs = np.diff(target_id[sort_idx])
-        diff_idx = np.where(all_diffs > 0)[0]
-        index_pointer = np.zeros(len(diff_idx) + 1)
-        index_pointer[1:] = diff_idx + 1
-
-        # import pdb
-        # pdb.set_trace()
-
-        # We assume all neurons has at least one synapse, the diff should
-        # never jump by two
-        if not (all_diffs < 2).all():
-            print("!!! Not all neurons have synapses!")
-
-        # EVERYTHING we write needs to use sortIdx so it is in the right order
+        # EVERYTHING we write needs to use sort_idx (idx) so it is in the right order
         with h5py.File(os.path.join(self.network_dir, edge_file), 'w', libver=self.h5py_libver) as f:
+            self.add_version(f)
+
             edg_group = f.create_group("edges")
-            e_group = edg_group.create_group(edge_population_name)
 
-            e_group.create_dataset("edge_group", data=edge_group[sort_idx])
-            e_group.create_dataset("edge_group_index", data=edge_group_index[sort_idx])
-            e_group.create_dataset("edge_type_id", data=edge_type_id[sort_idx])
-            e_group.create_dataset("index_pointer", data=index_pointer)
-            e_group.create_dataset("source_node_id", data=source_id[sort_idx])
-            e_group.create_dataset("target_node_id", data=target_id[sort_idx])
+            for pop_name, pop_rows in population_rows.items():
+                source_population_name, target_population_name = pop_name.split("_")
+                n_rows = len(pop_rows)
 
-            e_group["source_node_id"].attrs["node_population"] = source_population_name
-            e_group["target_node_id"].attrs["node_population"] = target_population_name
-            groups = np.unique(edge_group)
+                e_group = edg_group.create_group(pop_name)
 
-            for g in groups:
-                idx = np.where(edge_group[sort_idx] == g)
+                idx = sort_idx[pop_rows]
 
-                group_group = e_group.create_group(str(g))
+                e_group.create_dataset("edge_group_id", data=np.zeros((n_rows,), dtype=int))
+                e_group.create_dataset("edge_group_index", data=np.arange(n_rows), dtype=int)
+                e_group.create_dataset("edge_type_id", data=edge_type_id[idx])
+                e_group.create_dataset("source_node_id", data=source_id[idx])
+                e_group.create_dataset("target_node_id", data=target_id[idx])
+
+                e_group["source_node_id"].attrs["node_population"] = source_population_name
+                e_group["target_node_id"].attrs["node_population"] = target_population_name
+
+                group_group = e_group.create_group("0")
 
                 for data_type in data.keys():
                     if len(data[data_type].shape) == 1:
-                        group_group.create_dataset(data_type,
-                                                   data=data[data_type][sort_idx][idx])
+                        group_group.create_dataset(data_type, data=data[data_type][idx])
                     elif len(data[data_type].shape) == 2:
-                        group_group.create_dataset(data_type,
-                                                   data=data[data_type][sort_idx, :][idx, :])
+                        group_group.create_dataset(data_type, data=data[data_type][idx, :])
                     else:
                         print("Unsupported width of data column.")
 
-            # We need to create the indices needed by Allen Institute
-            self.create_index(e_group["source_node_id"], e_group, index_source=True)
-            self.create_index(e_group["target_node_id"], e_group, index_source=False)
-            # inGroup = eGroup.create_group("indices")
-            # inGroup.create_group("source_to_target")
-            # inGroup.create_group("target_to_source")
+                # We need to create the indices needed by Allen Institute
+                self.create_index(e_group["source_node_id"], e_group, index_source=True)
+                self.create_index(e_group["target_node_id"], e_group, index_source=False)
 
     ############################################################################
 
@@ -320,9 +296,11 @@ class ConvHurt(object):
                     range_to_edge_id[range_index, :] = r
                     range_index += 1
                 node_id_to_range[node_index, 1] = range_index
+            else:
+                node_id_to_range[node_index, :] = -1
 
         output_grp.create_dataset('range_to_edge_id', data=range_to_edge_id, dtype='uint64')
-        output_grp.create_dataset('node_id_to_ranges', data=node_id_to_range, dtype='uint64')
+        output_grp.create_dataset('node_id_to_range', data=node_id_to_range, dtype='uint64')
 
     ############################################################################
 
@@ -371,6 +349,8 @@ class ConvHurt(object):
         f_name = os.path.join(self.base_dir, spike_file_name)
 
         with h5py.File(f_name, 'w', libver=self.h5py_libver) as f:
+            self.add_version(f)
+
             print(f"Writing file {f_name}")
 
             s_group = f.create_group("spikes")
@@ -398,6 +378,11 @@ class ConvHurt(object):
                 f.write(f"{time} {gid}")
 
     ############################################################################
+
+    def add_version(self, hdf5_file):
+
+        hdf5_file.attrs["version"] = [0, 1]
+        hdf5_file.attrs["magic"] = 0x0A7A
 
 
 if __name__ == "__main__":
@@ -437,7 +422,7 @@ if __name__ == "__main__":
     source_gid = np.array([1, 2, 3, 3, 4])
     target_gid = np.array([2, 3, 4, 0, 1])  # THESE ARE SORTED ... HAHAHA
 
-    # Delay should be in ms (bad bad people, real scientists use SI units)
+    # Delay needs to be in ms (bad bad people, real scientists use SI units)
     edge_data = OrderedDict([("sec_id", np.array([10, 22, 33, 24, 15])),
                              ("sec_x", np.array([0.1, 0.3, 0.5, 0.2, 0])),
                              ("syn_weight", np.array([0.1e-9, 2e-9, 3e-9,

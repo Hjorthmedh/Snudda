@@ -2779,6 +2779,7 @@ class SnuddaDetect(object):
 
         # Can we move the iterator into numba?
         for section in neuron.section_iterator_selective(section_type=3, section_id=section_id):
+
             voxel_overflow_ctr = SnuddaDetect.fill_voxels_dend_helper(voxel_space=voxel_space,
                                                                       voxel_space_ctr=voxel_space_ctr,
                                                                       voxel_sec_id=voxel_sec_id,
@@ -2795,7 +2796,6 @@ class SnuddaDetect(object):
                                                                       self_step_multiplier=self.step_multiplier)
             self.voxel_overflow_counter += voxel_overflow_ctr
 
-    # Temporarily disabling NUMBA, since amax does not support axis in NUMBA
     @staticmethod
     @jit(nopython=True, fastmath=True, cache=True)
     def fill_voxels_dend_helper(voxel_space, voxel_space_ctr,
@@ -2869,14 +2869,9 @@ class SnuddaDetect(object):
         dd_step = np.divide(np.diff(scaled_soma_dist), num_steps)
 
         # Remove this check later... should be done in morphology_data
-        if (num_steps <= 0).any():
+        if (num_steps <= 0).any(): 
             print(f"Found zero length dendrite segment in neuron_id {neuron_id}")
             raise ValueError(f"Found zero length dendrite segment (please check morphologies).")
-
-        # if neuron_id == 0 and section_id[-1] == 48:
-        #     print("Check the loop, second iteration...")
-        #     import pdb
-        #     pdb.set_trace()
 
         # Loop through all point-pairs of the section
         for idx in range(0, len(scaled_soma_dist)-1):
@@ -2949,11 +2944,6 @@ class SnuddaDetect(object):
         """
 
         for section in neuron.section_iterator_selective(section_type=2, section_id=section_id, subtree=subtree):
-
-            # if section.section_id == 219 and neuron_id == 21:
-            #     print("Explore axon")
-            #     import pdb
-            #     pdb.set_trace()
 
             voxel_overflow_ctr = SnuddaDetect.fill_voxels_axon_helper(voxel_space=voxel_space,
                                                                       voxel_space_ctr=voxel_space_ctr,
