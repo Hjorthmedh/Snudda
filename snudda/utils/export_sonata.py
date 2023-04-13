@@ -18,7 +18,7 @@ from snudda.utils.conv_hurt import ConvHurt
 from snudda import SnuddaLoad
 
 
-class ExportSonata(object):
+class ExportSonata:
 
     def __init__(self, network_file, input_file, out_dir, debug_flag=True):
 
@@ -57,7 +57,7 @@ class ExportSonata(object):
 
         # We need to convert the named neuron types to numbers
         (node_type_id, node_type_id_lookup) = self.allocate_node_type_id()
-        (node_group_id, group_idx, group_lookup) = self.allocate_node_groups()
+        (node_group_id, group_idx, node_group_lookup) = self.allocate_node_groups()
 
         volume_id_list = [x["volumeID"] for x in self.snudda_load.data["neurons"]]
         volume_list = set(volume_id_list)
@@ -67,8 +67,6 @@ class ExportSonata(object):
                           for n in self.snudda_load.data["neurons"]]
 
         # Edge data is stored in a HDF5 file and a CSV file
-        edge_group_lookup = self.allocate_edge_groups()
-
         edge_type_lookup = dict()
         for (pre_type, post_type), con_data in self.snudda_load.data["connectivityDistributions"].items():
             for con_type, con_type_data in con_data.items():
@@ -97,7 +95,7 @@ class ExportSonata(object):
 
             assert (v_idx == node_id_list).all()
 
-            ch.write_nodes(node_file=f"{volume_name}.hdf5",
+            ch.write_nodes(node_file=f"{volume_name}_nodes.hdf5",
                            population_name=volume_name,
                            data=node_data,
                            node_id=node_id_list,
@@ -121,20 +119,20 @@ class ExportSonata(object):
                               node_type_id=csv_node_type_id,
                               data=node_data_csv)
 
-            (edge_group, edge_group_index, edge_type_id, source_gid, target_gid, edgeData) \
-                = self.setup_edge_info(edge_group_lookup)
+            edge_population_lookup, edge_population_id_lookup = self.setup_edge_population(node_group_lookup)
+
+            population_rows, edge_type_id, source_gid, target_gid, edge_data = \
+                self.setup_edge_info(edge_population_lookup, node_group_id)
 
             ch.write_edges(edge_file=f"{volume_name}_edges.hdf5",
-                           edge_population_name=volume_name,
-                           edge_group=edge_group,
-                           edge_group_index=edge_group_index,
+                           population_rows=population_rows,
                            edge_type_id=edge_type_id,
                            source_id=source_gid,
                            target_id=target_gid,
-                           data=edgeData)
+                           data=edge_data)
 
-            edge_type_id = [x[1] for x in edge_type_lookup.values()]
-            edge_data = {"template" : [x[0] for x in edge_type_lookup.values()]}
+            edge_type_id = [x[0] for x in edge_type_lookup.values()]
+            edge_data = {"template": [x[1] for x in edge_type_lookup.values()]}
 
             ch.write_edges_csv(edge_csv_file=f"{volume_name}_edge_types.csv",
                                edge_type_id=edge_type_id,
@@ -288,8 +286,8 @@ class ExportSonata(object):
 
             # It seems that RT neuron requires the filename without .swc at the end
             # Also, they prepend morphology path, but only allows one directory for all morphologies
-
-            morph_file = os.path.splitext(os.path.basename(n["morphology"]))[0]
+            # morph_file = os.path.splitext(os.path.basename(n["morphology"]))[0]
+            morph_file = os.path.basename(n["morphology"])
 
             if hoc_file in self.hoc_location_lookup:
                 # We need to change from old hoc location to the SONATA hoc location
@@ -360,67 +358,37 @@ class ExportSonata(object):
 
     ############################################################################
 
-    # !!! A lot of HBP tools only support the first group, so put all in group 0
-    # The old code makes separate groups
+    def setup_edge_population(self, node_group_lookup):
 
-    def allocate_edge_groups_2019(self):
+        edge_population_lookup = dict()
+        edge_population_id_lookup = dict()
+        next_id = 1
 
-        # FS->MSD1, FS->MSD2 etc are example of EdgeGroups
-        edge_group_lookup = OrderedDict([])
+        for pre_node_type, pre_node_group in node_group_lookup.items():
+            for post_node_type, post_node_group in node_group_lookup.items():
+                edge_population_lookup[pre_node_group, post_node_group] = f"{pre_node_type}_{post_node_type}"
+                edge_population_id_lookup[pre_node_group, post_node_group] = next_id
+                next_id += 1
 
-        unique_group_names = set([self.snudda_load.data["neurons"][idx]["name"].split("_")[0]
-                                  for idx in range(0, len(self.snudda_load.data["neurons"]))])
-
-        for g1 in unique_group_names:
-            for g2 in unique_group_names:
-                edge_group_lookup[g1, g2] = 0
-
-        return edge_group_lookup
-
-    ############################################################################
-
-    # !!! This is old version, that makes separate groups for different sets
-    # of synapses, but HBP tools only support first group currently, Jan 2019.
-    # so made another version of allocateEdgeGroups (see above).
-    #
-    # Update: It is 2023, going to see if it works to use again.
-
-    def allocate_edge_groups(self):
-
-        # FS->MSD1, FS->MSD2 etc are example of EdgeGroups
-        edge_group_lookup = OrderedDict([])
-
-        unique_group_names = set([self.snudda_load.data["neurons"][idx]["name"].split("_")[0]
-                                  for idx in range(0, len(self.snudda_load.data["neurons"]))])
-
-        next_group = 0
-
-        for g1 in unique_group_names:
-            for g2 in unique_group_names:
-                edge_group_lookup[g1, g2] = next_group
-                next_group += 1
-
-        return edge_group_lookup
+        return edge_population_lookup, edge_population_id_lookup
 
     ############################################################################
 
     # This code sets up the info about edges
 
-    def setup_edge_info(self, edge_group_lookup):
+    def setup_edge_info(self, edge_population_lookup, node_group_id):
 
         n_synapses = self.snudda_load.data["synapses"].shape[0]
-        edge_group = np.zeros(n_synapses, dtype=int)
-        edge_group_index = np.zeros(n_synapses, dtype=int)
         edge_type_id = np.zeros(n_synapses, dtype=int)
         source_gid = np.zeros(n_synapses, dtype=int)
         target_gid = np.zeros(n_synapses, dtype=int)
+
+        population_rows = dict()  # For each population name, list all the synapse rows
 
         sec_id = np.zeros(n_synapses, dtype=int)
         sec_x = np.zeros(n_synapses)
         syn_weight = np.zeros(n_synapses)
         delay = np.zeros(n_synapses)
-
-        edge_group_count = np.zeros(len(edge_group_lookup.keys()))
 
         # Check if these speeds are reasonable?
         axon_speed = 25.0  # 25m/s
@@ -434,20 +402,25 @@ class ExportSonata(object):
         for i_syn, syn_row in enumerate(self.snudda_load.data["synapses"]):
             source_gid[i_syn] = syn_row[0]
             target_gid[i_syn] = syn_row[1]
+
+            source_node_group = node_group_id[syn_row[0]]
+            target_node_group = node_group_id[syn_row[1]]
+
+            population_group = edge_population_lookup[source_node_group, target_node_group]
+
+            if population_group in population_rows:
+                population_rows[population_group].append(i_syn)
+            else:
+                population_rows[population_group] = [i_syn]
+
             sec_id[i_syn] = syn_row[9]
             sec_x[i_syn] = syn_row[10] / 1000.0
-            synapse_type = syn_row[5]
+            synapse_type = syn_row[6]
 
             pre_type = self.snudda_load.data["neurons"][source_gid[i_syn]]["type"]
             post_type = self.snudda_load.data["neurons"][target_gid[i_syn]]["type"]
 
-            edge_group[i_syn] = edge_group_lookup[pre_type, post_type]
             edge_type_id[i_syn] = synapse_type
-
-            # edge_type_id[i_syn] = edge_type_lookup[pre_type, post_type, synapse_type]
-
-            edge_group_index[i_syn] = edge_group_count[edge_group[i_syn]]
-            edge_group_count[edge_group[i_syn]] += 1
 
             dend_dist = syn_row[6] * 1e-6
             axon_dist = syn_row[7] * 1e-6
@@ -459,10 +432,10 @@ class ExportSonata(object):
                                  ("syn_weight", syn_weight),
                                  ("delay", delay)])
 
-        # Need to set edgeGroup, edgeGroupIndex, edgeType also
+        for pop_name in population_rows.keys():
+            population_rows[pop_name] = np.array(population_rows[pop_name])
 
-        return (edge_group, edge_group_index, edge_type_id,
-                source_gid, target_gid, edge_data)
+        return population_rows, edge_type_id, source_gid, target_gid, edge_data
 
     ############################################################################
 
