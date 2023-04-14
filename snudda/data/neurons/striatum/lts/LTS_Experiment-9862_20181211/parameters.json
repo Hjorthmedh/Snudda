@@ -96,20 +96,20 @@
         "sectionlist": "somatic"
     },
     {
-        "param_name": "gkdrbar_kdr_lts",
+        "param_name": "gbar_kdr_lts",
         "mech": "kdrb",
         "value":  0.09108261547197531,
         "dist_type": "uniform",
-        "mech_param": "gkdrbar",
+        "mech_param": "gbar",
         "type": "range",
         "sectionlist": "somatic"
     },
     {
-        "param_name": "gkdrbar_kdr_lts",
+        "param_name": "gbar_kdr_lts",
         "mech": "kdrb",
         "value": 1.3382408358529078e-05,
         "dist_type": "uniform",
-        "mech_param": "gkdrbar",
+        "mech_param": "gbar",
         "type": "range",
         "sectionlist": "basal"
     },
