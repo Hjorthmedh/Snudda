@@ -121,7 +121,7 @@ class PlotConnectivity:
             if network_name == "default":
                 label = f"{pre_neuron_type} to {post_neuron_type}\n{distance_range[0]*1e6:.0f}-{distance_range[1]*1e6:.0f} $\mu$m"
             else:
-                label = f"{network_name}: {pre_neuron_type} to {post_neuron_type}\n{distance_range[0] * 1e6:.0f}-{distance_range[1] * 1e6:.0f} $\mu$m"
+                label = f"{pre_neuron_type} to {post_neuron_type} ({network_name})\n{distance_range[0] * 1e6:.0f}-{distance_range[1] * 1e6:.0f} $\mu$m"
 
         model_label = fr"{label} (model)"
         exp_label = fr"{label}"
@@ -164,7 +164,6 @@ class PlotConnectivity:
             plt.savefig(figure_path)
 
         plt.show()
-
 
     @staticmethod
     def matrix_to_bins(con_mat, dist_mat, bin_width, num_bins):
