@@ -20,16 +20,27 @@ TITLE Cortical M current
 
 COMMENT
 
-neuromodulation is added as functions:
+Neuromodulation is added as functions:
     
-    modulation = 1 + damod*(maxMod-1)
+    modulationDA = 1 + modDA*(maxModDA-1)*levelDA
 
 where:
     
-    damod  [0]: is a switch for turning modulation on or off {1/0}
-    maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
+    modDA  [0]: is a switch for turning modulation on or off {1/0}
+    maxModDA [1]: is the maximum modulation for this specific channel (read from the param file)
                     e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+    levelDA  [0]: is an additional parameter for scaling modulation. 
+                Can be used simulate non static modulation by gradually changing the value from 0 to 1 {0-1}
+									
+	  Further neuromodulators can be added by for example:
+          modulationDA = 1 + modDA*(maxModDA-1)
+	  modulationACh = 1 + modACh*(maxModACh-1)
+	  ....
 
+	  etc. for other neuromodulators
+	  
+	   
+								     
 [] == default values
 {} == ranges
     
@@ -40,9 +51,10 @@ INDEPENDENT {t FROM 0 TO 1 WITH 1 (ms)}
 NEURON {
 	SUFFIX im_lts
 	USEION k READ ek WRITE ik
-    RANGE gkbar, m_inf, tau_m
+        RANGE gkbar, m_inf, tau_m, ik
 	GLOBAL taumax
-    RANGE damod, maxMod
+        RANGE modDA, maxModDA, levelDA
+	RANGE modACh, maxModACh, levelACh
 	
 
 }
@@ -59,8 +71,12 @@ PARAMETER {
 	ek		(mV)
 	gkbar	= 1e-6	(mho/cm2)
 	taumax	= 1000	(ms)		: peak value of tau
-    damod = 0
-    maxMod = 1
+        modDA = 0
+        maxModDA = 1
+        levelDA = 0
+        modACh = 0
+        maxModACh = 1 
+        levelACh = 0
 }
 
 
@@ -79,7 +95,7 @@ ASSIGNED {
 
 BREAKPOINT {
 	SOLVE states METHOD cnexp
-	ik = gkbar * m * (v - ek)*modulation()
+	ik = gkbar * m * (v - ek)*modulationDA()*modulationACh()
 }
 
 DERIVATIVE states { 
@@ -117,8 +133,14 @@ FUNCTION exptable(x) {
 	}
 }
 
-FUNCTION modulation() {
+FUNCTION modulationDA() {
     : returns modulation factor
     
-    modulation = 1 + damod*(maxMod-1)
+    modulationDA = 1 + modDA*(maxModDA-1)*levelDA 
+}
+
+FUNCTION modulationACh() {
+    : returns modulation factor
+    
+    modulationACh = 1 + modACh*(maxModACh-1)*levelACh 
 }

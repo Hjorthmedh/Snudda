@@ -5,16 +5,27 @@ stp can be turned of by setting use_stp == 0
 
 --------------------------------------------
 
-neuromodulation is added as functions:
+Neuromodulation is added as functions:
     
-    modulation = 1 + damod*(maxMod-1)
+    modulationDA = 1 + modDA*(maxModDA-1)*levelDA
 
 where:
     
-    damod  [0]: is a switch for turning modulation on or off {1/0}
-    maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
-                e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+    modDA  [0]: is a switch for turning modulation on or off {1/0}
+    maxModDA [1]: is the maximum modulation for this specific channel (read from the param file)
+                    e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+    levelDA  [0]: is an additional parameter for scaling modulation. 
+                Can be used simulate non static modulation by gradually changing the value from 0 to 1 {0-1}
+									
+	  Further neuromodulators can be added by for example:
+          modulationDA = 1 + modDA*(maxModDA-1)
+	  modulationACh = 1 + modACh*(maxModACh-1)
+	  ....
 
+	  etc. for other neuromodulators
+	  
+	   
+								     
 [] == default values
 {} == ranges
 
@@ -30,7 +41,9 @@ NEURON {
     RANGE e, g, i, q, mg
     RANGE tau, tauR, tauF, U, u0
     RANGE ca_ratio_ampa, ca_ratio_nmda, mggate, use_stp
-    RANGE failRate, damod, maxModAMPA, maxModNMDA
+    RANGE failRateDA, failRateACh, failRate
+    RANGE modDA, maxMod_AMPADA, levelDA, maxMod_AMPAACh, levelACh
+    RANGE maxMod_NMDADA, modACh, maxMod_NMDAACh			 
     NONSPECIFIC_CURRENT i
     USEION cal WRITE ical VALENCE 2
 }
@@ -53,12 +66,23 @@ PARAMETER {
     ca_ratio_ampa = 0.005
     ca_ratio_nmda = 0.1
     mg = 1 (mM)
-    damod = 0
-    maxModNMDA = 1
-    maxModAMPA = 1
+    modDA = 0
+    maxMod_AMPADA = 1
+    modACh = 0
+    maxMod_AMPAACh = 1 
+    levelACh = 0
+
+    
+    maxMod_NMDADA = 1
+    levelDA = 0
+    
+    maxMod_NMDAACh = 1 
+
+    failRateDA = 0
+    failRateACh = 0
+    failRate = 0
 
     use_stp = 1     : to turn off use_stp -> use 0
-    failRate = 0
 
     tau1_ampa      (ms)     
     tau2_ampa      (ms)  
@@ -127,13 +151,13 @@ BREAKPOINT {
     
     : NMDA
     mggate    = 1 / (1 + exp(-0.062 (/mV) * v) * (mg / 2.62 (mM))) : 3.57 instead of 2.62 if LJP not corrected
-    g_nmda    = (I3_nmda*C_nmda + I2_nmda* B_nmda - (I3_nmda+I2_nmda)* A_nmda) * modNMDA()
+    g_nmda    = (I3_nmda*C_nmda + I2_nmda* B_nmda - (I3_nmda+I2_nmda)* A_nmda) * modulationDA_NMDA()*modulationACh_NMDA()
     itot_nmda = g_nmda * (v - e) * mggate
     ical_nmda = ca_ratio_nmda*itot_nmda
     i_nmda    = itot_nmda - ical_nmda
     
     : AMPA
-    g_ampa    = (I3_ampa*C_ampa + I2_ampa* B_ampa - (I3_ampa+I2_ampa)* A_ampa) * modAMPA()
+    g_ampa    = (I3_ampa*C_ampa + I2_ampa* B_ampa - (I3_ampa+I2_ampa)* A_ampa)  * modulationDA_AMPA() * modulationACh_AMPA()
     itot_ampa = g_ampa*(v - e) 
     ical_ampa = ca_ratio_ampa*itot_ampa
     i_ampa    = itot_ampa - ical_ampa
@@ -174,7 +198,7 @@ VERBATIM
         return;
 ENDVERBATIM
     }    
-    if( urand() > failRate ) { 
+    if( urand() > failRate*(1 + modDA*(failRateDA-1)*levelDA + modACh*(failRateACh-1)*levelACh)) { 
  
       z = z*exp(-(t-tsyn)/tauR)
       z = z + (y*(exp(-(t-tsyn)/tau) - exp(-(t-tsyn)/tauR)) / (tau/tauR - 1) )
@@ -214,19 +238,30 @@ FUNCTION urand() {
     urand = scop_random(1)
 }
 
-
-FUNCTION modAMPA() {
+FUNCTION modulationDA_NMDA() {
     : returns modulation factor
     
-    modAMPA = 1 + damod*(maxModAMPA-1)
+    modulationDA_NMDA = 1 + modDA*(maxMod_NMDADA-1)*levelDA 
 }
 
-
-FUNCTION modNMDA() {
+FUNCTION modulationACh_NMDA() {
     : returns modulation factor
     
-    modNMDA = 1 + damod*(maxModNMDA-1)
+    modulationACh_NMDA = 1 + modACh*(maxMod_NMDAACh-1)*levelACh 
 }
+
+FUNCTION modulationDA_AMPA() {
+    : returns modulation factor
+    
+    modulationDA_AMPA = 1 + modDA*(maxMod_AMPADA-1)*levelDA 
+}
+
+FUNCTION modulationACh_AMPA() {
+    : returns modulation factor
+    
+    modulationACh_AMPA = 1 + modACh*(maxMod_AMPAACh-1)*levelACh 
+}
+
 
 COMMENT
 (2020-09) C_ampa and C_nmda added to take into account a second decay time constant.
