@@ -1,29 +1,26 @@
 COMMENT
 
-Josh Held's adaptation to suit HCN1+2.  12/22/2003
-
-****
-Kinetic model of HCN2 channel gating from Wang et al 2002.
-
-In this model channel opening is coupled to a change in the affinity of the cyclic nucleotide binding domain for cAMP which is manifest as a shift in the activation curve toward more positive potentials.  This model explains the slow activation kinetics of Ih associated with low concentrations of cAMP.
-
-For further details email Matt Nolan at mfnolan@fido.cpmc.columbia.edu.
-
-Reference
-
-Wang J., Chen S., Nolan M.F. and Siegelbaum S.A. (2002). Activity-dependent regulation of HCN pacemaker channels by cyclicAMP: signalling through dynamic allosteric coupling. Neuron 36, 1-20.
-****
-
-neuromodulation is added as functions:
+Neuromodulation is added as functions:
     
-    modulation = 1 + damod*(maxMod-1)
+    modulationDA = 1 + modDA*(maxModDA-1)*levelDA
 
 where:
     
-    damod  [0]: is a switch for turning modulation on or off {1/0}
-    maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
+    modDA  [0]: is a switch for turning modulation on or off {1/0}
+    maxModDA [1]: is the maximum modulation for this specific channel (read from the param file)
                     e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+    levelDA  [0]: is an additional parameter for scaling modulation. 
+                Can be used simulate non static modulation by gradually changing the value from 0 to 1 {0-1}
+									
+	  Further neuromodulators can be added by for example:
+          modulationDA = 1 + modDA*(maxModDA-1)
+	  modulationACh = 1 + modACh*(maxModACh-1)
+	  ....
 
+	  etc. for other neuromodulators
+	  
+	   
+								     
 [] == default values
 {} == ranges
     
@@ -36,7 +33,7 @@ NEURON {
 	GLOBAL a0, b0, ah, bh, ac, bc, aa0, ba0
 	GLOBAL aa0, ba0, aah, bah, aac, bac
 	GLOBAL kon, koff, b, bf, ai, gca, shift
-    RANGE damod, maxMod
+	RANGE modDA, maxModDA, levelDA
 }
 
 UNITS {
@@ -72,8 +69,11 @@ PARAMETER {
 	q10v    = 4                     : q10 value from Magee 1998
 	q10a    = 1.5			: estimated q10 for the cAMP binding reaction
 	celsius			(degC)
-    damod = 0
-    maxMod = 1
+	modDA = 0
+        maxModDA = 1
+        levelDA = 0
+
+	
 }
 
 ASSIGNED {
@@ -99,7 +99,7 @@ INITIAL {
 
 BREAKPOINT {
 	SOLVE kin METHOD sparse
-	g = gbar*(o + cao*gca)*modulation()
+	g = gbar*(o + cao*gca)*modulationDA()
 	i = g*(v-ehcn)
 }
 
@@ -130,8 +130,26 @@ PROCEDURE rates(v(mV)) {
 	}
 }
 
-FUNCTION modulation() {
+FUNCTION modulationDA() {
     : returns modulation factor
     
-    modulation = 1 + damod*(maxMod-1)
+    modulationDA = 1 + modDA*(maxModDA-1)*levelDA 
 }
+
+COMMENT
+
+Josh Held's adaptation to suit HCN1+2.  12/22/2003
+
+****
+Kinetic model of HCN2 channel gating from Wang et al 2002.
+
+In this model channel opening is coupled to a change in the affinity of the cyclic nucleotide binding domain for cAMP which is manifest as a shift in the activation curve toward more positive potentials.  This model explains the slow activation kinetics of Ih associated with low concentrations of cAMP.
+
+For further details email Matt Nolan at mfnolan@fido.cpmc.columbia.edu.
+
+Reference
+
+Wang J., Chen S., Nolan M.F. and Siegelbaum S.A. (2002). Activity-dependent regulation of HCN pacemaker channels by cyclicAMP: signalling through dynamic allosteric coupling. Neuron 36, 1-20.
+****
+
+ENDCOMMENT
