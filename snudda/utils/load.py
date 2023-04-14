@@ -930,7 +930,7 @@ class SnuddaLoad(object):
         else:
             return gap_junctions[:gj_ctr, :], gj_coords
 
-    def get_centre_neurons_iterator(self, n_neurons=None, neuron_type=None, centre_point=None):
+    def get_centre_neurons_iterator(self, n_neurons=None, neuron_type=None, centre_point=None, max_distance=None):
 
         """ Return neuron id:s, starting from the centre most and moving outwards
 
@@ -952,10 +952,15 @@ class SnuddaLoad(object):
             if neuron_type is not None and self.data["neurons"][neuron_id]["type"] != neuron_type:
                 continue
 
+            if max_distance is not None and dist_to_centre[neuron_id] > max_distance:
+                # Stop iterator if max distance is reached
+                return
+
             yield neuron_id, dist_to_centre[neuron_id]
             neuron_ctr += 1
 
             if n_neurons is not None and neuron_ctr >= n_neurons:
+                # Stop iterator if n_neurons are delivered
                 return
 
     ############################################################################
