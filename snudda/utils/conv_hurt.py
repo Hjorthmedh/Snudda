@@ -52,7 +52,6 @@ class ConvHurt(object):
                     os.path.join("components", "morphologies"),
                     os.path.join("components", "point_neuron_dynamics"),
                     os.path.join("components", "synapse_dynamics"),
-                    os.path.join("components", "cell_models"),
                     'networks', 'inputs', 'output']
 
         for x in dir_list:

@@ -353,7 +353,7 @@ class ExportSonata:
 
     def copy_and_rewrite_dynamics_params_files(self, dynamics_params_list):
 
-        dest_path = os.path.join(self.out_dir, "components", "cell_models")
+        dest_path = os.path.join(self.out_dir, "components", "point_neuron_dynamics")
 
         new_dynamics_params_list = []
         copied_files = []
@@ -369,7 +369,7 @@ class ExportSonata:
                 copyfile(file_path, new_file)
                 copied_files.append(new_file)
 
-            new_dynamics_params_list.append(new_file)
+            new_dynamics_params_list.append(os.path.basename(new_file))
 
         return new_dynamics_params_list
 
