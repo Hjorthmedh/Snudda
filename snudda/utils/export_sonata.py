@@ -9,6 +9,8 @@ import json
 import os
 import sys
 from collections import OrderedDict
+from shutil import copyfile
+from glob import glob
 
 import h5py
 import numpy as np
@@ -20,11 +22,12 @@ from snudda import SnuddaLoad
 
 class ExportSonata:
 
-    def __init__(self, network_file, input_file, out_dir, debug_flag=True):
+    def __init__(self, network_file, input_file, out_dir, debug_flag=True, target_simulator="NEST"):
 
         self.debug = debug_flag
 
         self.out_dir = out_dir
+        self.target_simulator = target_simulator
 
         # Read the data
         self.snudda_load = SnuddaLoad(network_file)
@@ -75,7 +78,14 @@ class ExportSonata:
                     continue
                 else:
                     edge_type_id = con_type_data["channelModelID"]
-                    edge_model = con_type_data["channelParameters"]["modFile"]
+
+                    if self.target_simulator == "NEST":
+                        if "nestModelTemplate" in con_type_data["channelParameters"]:
+                            edge_model = con_type_data["channelParameters"]["nestModelTemplate"]
+                        else:
+                            edge_model = "static_synapse"
+                    else:
+                        edge_model = con_type_data["channelParameters"]["modFile"]
 
                 edge_type_lookup[pre_type, post_type, con_type] = (edge_type_id, edge_model)
 
@@ -107,13 +117,20 @@ class ExportSonata:
             csv_node_type_id = [node_type_id_lookup[n] for n in csv_node_names]
             csv_node_location = [volume_name for n in csv_node_names]
 
-            (model_template_list, model_type_list, morphology_list) = self.get_node_templates(csv_node_names)
+            (model_template_list, model_type_list, morphology_list, dynamic_params) \
+                = self.get_node_templates(csv_node_names)
+
+            # Gather all the NEST models
+            dynamic_params = self.copy_and_rewrite_dynamics_params_files(dynamics_params_list=dynamic_params)
 
             node_data_csv = OrderedDict([("model_type", model_type_list),
                                          ("model_template", model_template_list),
                                          ("location", csv_node_location),
                                          ("morphology", morphology_list),
                                          ("model_name", csv_node_names)])
+
+            if dynamic_params is not None and len(dynamic_params) > 0:
+                node_data_csv["dynamics_params"] = dynamic_params
 
             ch.write_node_csv(node_csv_file=f"{volume_name}_node_types.csv",
                               node_type_id=csv_node_type_id,
@@ -132,7 +149,8 @@ class ExportSonata:
                            data=edge_data)
 
             edge_type_id = [x[0] for x in edge_type_lookup.values()]
-            edge_data = {"template": [x[1] for x in edge_type_lookup.values()]}
+
+            edge_data = {"model_template": [x[1] for x in edge_type_lookup.values()]}
 
             ch.write_edges_csv(edge_csv_file=f"{volume_name}_edge_types.csv",
                                edge_type_id=edge_type_id,
@@ -279,6 +297,8 @@ class ExportSonata:
         morphology_dict = dict([])
         missing_list = []
 
+        dynamics_params_list = []  # Used by NEST
+
         # First create a lookup
         for n in self.snudda_load.data["neurons"]:
             hoc_file = n["hoc"]
@@ -308,9 +328,16 @@ class ExportSonata:
                     f"Morphology mismatch for {name}: {morphology_dict[name]} vs {morph_file}"
 
             if name not in template_dict:
-                template_dict[name] = hoc_str
-                model_type_dict[name] = "biophysical"
-            else:
+                if self.target_simulator == "NEST":
+                    model_type_dict[name] = "point_neuron"
+                    dynamics_params_list.append(self.get_dynamics_params(n))
+                    template_dict[name] = "aeif_cond_exp"
+                else:
+                    model_type_dict[name] = "biophysical"
+                    template_dict[name] = hoc_str
+
+            elif self.target_simulator is not "NEST":
+
                 assert template_dict[name] == hoc_str, \
                     f"All files named {name} do not share same hoc file: {template_dict[name]} and {hoc_str}"
 
@@ -320,43 +347,31 @@ class ExportSonata:
         model_type_list = [model_type_dict[x] for x in csv_node_name]
         morph_list = [morphology_dict[x] for x in csv_node_name]
 
-        # import pdb
-        # pdb.set_trace()
-
-        return template_list, model_type_list, morph_list
+        return template_list, model_type_list, morph_list, dynamics_params_list
 
     ############################################################################
 
-    def get_node_templates_for_all(self, nl):
+    def copy_and_rewrite_dynamics_params_files(self, dynamics_params_list):
 
-        print("This should return all the types of neurons, eg. FNS_0,FSN_1, ..., MSD1_0, ...")
-        print("This is fewer than the number of neurons. Check CSV file to make sure it is ok after")
+        dest_path = os.path.join(self.out_dir, "components", "cell_models")
 
-        import pdb
-        pdb.set_trace()
+        new_dynamics_params_list = []
+        copied_files = []
 
-        template_list = []
-        model_type_list = []
-        missing_list = []
-
-        for neuron in nl.data["neurons"]:
-            hoc_file = neuron["hoc"]
-
-            model_type_list.append("biophysical".encode())
-
-            if hoc_file in self.hoc_location_lookup:
-                hoc_str = f"hoc:{self.hoc_location_lookup[hoc_file]}"
-                template_list.append(hoc_str.encode())
+        for file_path in dynamics_params_list:
+            if os.path.basename(file_path) == "dynamics_params.json":
+                dir_name = os.path.basename(os.path.dirname(file_path))
+                new_file = os.path.join(dest_path, f"{dir_name}_dynamics_params.json")
             else:
-                template_list.append("".encode())
-                if hoc_file not in missing_list:
-                    # Only write error ones per file
-                    print(f"Missing hoc template: {hoc_file}")
-                    missing_list.append(hoc_file)
+                new_file = os.path.join(dest_path, os.path.basename(file_path))
 
-        return template_list, model_type_list
+            if new_file not in copied_files:
+                copyfile(file_path, new_file)
+                copied_files.append(new_file)
 
-    ############################################################################
+            new_dynamics_params_list.append(new_file)
+
+        return new_dynamics_params_list
 
     def setup_edge_population(self, node_group_lookup):
 
@@ -491,6 +506,32 @@ class ExportSonata:
         # pdb.set_trace()
 
         return sec_id, sec_x
+
+    ############################################################################
+
+    def get_dynamics_params(self, neuron):
+
+        if self.target_simulator == "NEST":
+            # If the dynamics_params.json file exist in the neuron path, then use that
+            neuron_path = os.path.relpath(snudda_parse_path(neuron["neuronPath"], self.snudda_load.data["SnuddaData"]))
+            dynamics_params_path = os.path.join(neuron_path, "dynamics_params.json")
+
+            if os.path.isfile(dynamics_params_path):
+                return dynamics_params_path
+
+            # Otherwise, if there is a default model in the nest/models directory, use that
+            neuron_type = neuron["type"]
+            alt_dynamics_path = os.path.join(self.snudda_load.data["SnuddaData"],
+                                             "nest", "models", f"{neuron_type}.json")
+            if os.path.isfile(alt_dynamics_path):
+
+                print(f"Missing {dynamics_params_path} file, using {alt_dynamics_path}")
+
+                return alt_dynamics_path
+
+            return None
+        else:
+            return None
 
     ############################################################################
 
@@ -745,13 +786,11 @@ class ExportSonata:
                 print(f"Copying {morph_file} to {dest_file}")
 
             copyfile(morph_file, dest_file)
-            self.morph_location_lookup[morph_path] = dest_file
+            self.morph_location_lookup[morph_path] = os.path.relpath(dest_file)
 
     ############################################################################
 
     def copy_hoc(self):
-        from shutil import copyfile
-        import os
 
         self.hoc_location_lookup = dict([])
 
@@ -782,9 +821,6 @@ class ExportSonata:
     ############################################################################
 
     def copy_mechanisms(self):
-        from shutil import copyfile
-        from glob import glob
-        import os
 
         print("Copying mechanisms")
         mech_path = snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "mechanisms"),
