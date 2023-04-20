@@ -193,7 +193,6 @@ class MorphologyData:
         
         if not lazy_loading and self.swc_file is not None:
             self.load_swc_file(swc_file=self.swc_file, use_cache=use_cache)
-        
 
         self.kd_tree_lookup = dict()
 
@@ -312,7 +311,8 @@ class MorphologyData:
         self.build_tree()
 
         if use_cache:
-            self.save_cache()
+            self.save_cache(skip_check=True)  # skip_check since we have not done any rotations
+
         self.is_loaded = True
 
     def build_tree(self):
@@ -406,11 +406,11 @@ class MorphologyData:
             idx = np.where(self.section_data[:, 2] == section_type)[0]
             self.point_lookup[section_type] = idx
 
-    def save_cache(self):
+    def save_cache(self, skip_check=False):
 
         cache_file, _ = self.get_cache_file()
 
-        if self.rotation is not None or self.position is not None:
+        if not skip_check and (self.rotation is not None or self.position is not None):
             raise ValueError(f"Position and rotation must be None when calling save_cache: {self.swc_file}")
 
         if self.parent_tree_info is not None:
