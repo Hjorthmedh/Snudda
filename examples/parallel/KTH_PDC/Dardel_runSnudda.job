@@ -15,6 +15,7 @@ export OMP_NUM_THREADS=1
 
 let NWORKERS="$SLURM_NTASKS-1"
 export IPNWORKERS=$NWORKERS
+export IPNWORKERS=128
 
 
 export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/.ipython"
@@ -26,4 +27,5 @@ source $HOME/Snudda/snudda_env/bin/activate
 #.. Start the ipcontroller
 bash ipcontroller.sh 
 
-srun -n 1 ./Dardel_runSnudda.sh
+# srun -n 1 ./Dardel_runSnudda.sh
+./Dardel_runSnudda.sh --oversubscribe
