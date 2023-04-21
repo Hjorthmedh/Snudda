@@ -705,7 +705,7 @@ class Snudda(object):
         u_file = os.path.join(ipython_dir, f"profile_{ipython_profile}", "security", "ipcontroller-client.json")
         print(f"Reading IPYPARALLEL connection info from {u_file}\n")
         self.logfile.write(f"Reading IPYPARALLEL connection info from {u_file}\n")
-        self.rc = Client(url_file=u_file, timeout=120, debug=False)
+        self.rc = Client(profile=ipython_profile, url_file=u_file, timeout=120, debug=False)
 
         self.logfile.write(f'Client IDs: {self.rc.ids}')
 
