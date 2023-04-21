@@ -85,10 +85,13 @@ class BenchmarkLogging:
 
         if os.path.isfile(u_file):
             print(f"Benchmark reading ipyparallel config file: {u_file}")
-            rc = ipyparallel.Client(url_file=u_file, timeout=120, debug=False)
-            d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
+            try:
+                rc = ipyparallel.Client(url_file=u_file, timeout=120, debug=False)
+                d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
 
-            return len(d_view) + 1  # We also include the master node
+                return len(d_view) + 1  # We also include the master node
+            except:
+                return -1
         else:
             return 1
 
