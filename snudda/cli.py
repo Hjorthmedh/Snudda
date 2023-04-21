@@ -59,6 +59,7 @@ def snudda_cli():
     place_parser.add_argument("--verbose", action="store_true")
     place_parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
     place_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
+    place_parser.add_argument("-ipython_profile", "--ipython_profile", default=None)
 
     detect_parser = sub_parsers.add_parser("detect")
     detect_parser.add_argument("path", help="Location of network")
@@ -71,6 +72,8 @@ def snudda_cli():
     detect_parser.add_argument("--verbose", action="store_true")
     detect_parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
     detect_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
+    detect_parser.add_argument("-ipython_profile", "--ipython_profile", default=None)
+
 
     prune_parser = sub_parsers.add_parser("prune")
     prune_parser.add_argument("path", help="Location of network")
@@ -85,6 +88,8 @@ def snudda_cli():
     prune_parser.add_argument("--savePutative", action="store_true",
                               help="Also saved network-putative-synapses.hdf5 with unpruned network")
     prune_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
+    prune_parser.add_argument("-ipython_profile", "--ipython_profile", default=None)
+
 
     input_parser = sub_parsers.add_parser("input")
     input_parser.add_argument("path", help="Location of network")
@@ -99,7 +104,8 @@ def snudda_cli():
     input_parser.add_argument("--verbose", action="store_true")
     input_parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
     input_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
-    input_parser.add_argument("-no_meta_input","--no_meta_input", help="Do not use meta.json as stimulation input", action="store_true", default=False)
+    input_parser.add_argument("-ipython_profile", "--ipython_profile", default=None)
+    input_parser.add_argument("-no_meta_input", "--no_meta_input", help="Do not use meta.json as stimulation input", action="store_true", default=False)
 
     simulate_parser = sub_parsers.add_parser("simulate")
     simulate_parser.add_argument("path", help="Location of network")
