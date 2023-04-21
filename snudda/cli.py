@@ -168,6 +168,8 @@ def snudda_cli():
     if not hasattr(args, 'ipython_profile'):
         args.ipython_profile = None
 
+    print(f"args.ipython_profile = {args.ipython_profile}")
+
     if args.profile:
         prof_file = f"profile-{args.action}.prof"
         print(f"Saving profile data to: {prof_file}")

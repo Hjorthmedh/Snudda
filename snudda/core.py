@@ -703,6 +703,7 @@ class Snudda(object):
         from ipyparallel import Client
 
         u_file = os.path.join(ipython_dir, f"profile_{ipython_profile}", "security", "ipcontroller-client.json")
+        print(f"Reading IPYPARALLEL connection info from {u_file}\n")
         self.logfile.write(f"Reading IPYPARALLEL connection info from {u_file}\n")
         self.rc = Client(url_file=u_file, timeout=120, debug=False)
 
