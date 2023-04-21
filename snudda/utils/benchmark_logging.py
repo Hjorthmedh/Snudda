@@ -21,7 +21,8 @@ class BenchmarkLogging:
 
     """
 
-    def __init__(self, network_path, parallel_flag=False, log_file=None, running_neuron=False):
+    def __init__(self, network_path, parallel_flag=False, log_file=None, running_neuron=False,
+                 ipython_profile=None):
 
         """
         Constructor.
@@ -45,11 +46,12 @@ class BenchmarkLogging:
         self.pc = None  # Used if running neuron
 
         if parallel_flag or running_neuron:
-            self.num_workers = self.get_number_of_workers(running_neuron=running_neuron)
+            self.num_workers = self.get_number_of_workers(running_neuron=running_neuron,
+                                                          ipython_profile=ipython_profile)
         else:
             self.num_workers = 1
 
-    def get_number_of_workers(self, running_neuron):
+    def get_number_of_workers(self, running_neuron, ipython_profile=None):
 
         """
         Returns number of workers.
@@ -68,7 +70,9 @@ class BenchmarkLogging:
 
             # Is there a simpler way to get the number of workers?
 
-        ipython_profile = os.getenv('IPYTHON_PROFILE')
+        if ipython_profile is None:
+            ipython_profile = os.getenv('IPYTHON_PROFILE')
+
         if not ipython_profile:
             ipython_profile = "default"
 

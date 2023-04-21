@@ -185,7 +185,8 @@ def snudda_cli():
 
         running_neuron = (args.action == "simulate")
 
-        bl = BenchmarkLogging(args.path, parallel_flag=run_parallel, running_neuron=running_neuron)
+        bl = BenchmarkLogging(args.path, parallel_flag=run_parallel, running_neuron=running_neuron,
+                              ipython_profile=args.ipython_profile)
         bl.start_timer(args.action)
 
         # Perform the requested action
