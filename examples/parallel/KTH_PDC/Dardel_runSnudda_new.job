@@ -7,7 +7,7 @@
 #SBATCH -A snic2022-5-245
 #SBATCH --nodes=2
 #SBATCH --tasks-per-node=128
-#SBATCH --mem-per-cpu=1000
+#SBATCH --mem-per-cpu=937
 
 module load snic-env
 
