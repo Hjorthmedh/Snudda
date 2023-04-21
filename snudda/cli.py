@@ -165,6 +165,9 @@ def snudda_cli():
                "simulate": snudda.simulate,
                "help": snudda.help_info}
 
+    if not hasattr(args, 'ipython_profile'):
+        args.ipython_profile = None
+
     if args.profile:
         prof_file = f"profile-{args.action}.prof"
         print(f"Saving profile data to: {prof_file}")
