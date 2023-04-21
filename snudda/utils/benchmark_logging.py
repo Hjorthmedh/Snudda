@@ -82,10 +82,15 @@ class BenchmarkLogging:
 
         import ipyparallel
         u_file = os.path.join(ipython_dir, f"profile_{ipython_profile}", "security", "ipcontroller-client.json")
-        rc = ipyparallel.Client(url_file=u_file, timeout=120, debug=False)
-        d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
 
-        return len(d_view) + 1  # We also include the master node
+        if os.path.isfile(u_file):
+            print(f"Benchmark reading ipyparallel config file: {u_file}")
+            rc = ipyparallel.Client(url_file=u_file, timeout=120, debug=False)
+            d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
+
+            return len(d_view) + 1  # We also include the master node
+        else:
+            return 1
 
     @staticmethod
     def get_network_name(network_path):
