@@ -22,7 +22,7 @@ class SectionMetaData:
     parent_section_idx: int
     parent_point_idx: int
     parent_section_type: int
-    child_section_id: dict
+    child_section_id: dict   # TODO: Should we change this to a 2D array, where first row is type, 2nd row is section_id ? would use less memory
     point_idx: np.ndarray
     section_type: int
     morphology_data: object
@@ -266,11 +266,11 @@ class MorphologyData:
         if self.parent_tree_info is not None and (data[:, 1] != 2).any():
             raise ValueError(f"Only axonal compartments allowed when subtree of neuron")
 
-        self.geometry = np.zeros((data.shape[0], 5), dtype=float)
+        self.geometry = np.zeros((data.shape[0], 5), dtype=np.single)  # 2023-04-24: float -> single, to save memory
         self.geometry[:, :4] = data[:, 2:6] * 1e-6  # x, y, z, r -- converted to meter
 
         # Store metadata for points
-        self.section_data = np.full((data.shape[0], 4), -1, dtype=int)
+        self.section_data = np.full((data.shape[0], 4), -1, dtype=np.int32)
         self.section_data[:, 2] = data[:, 1]
         self.section_data[0, 3] = -1
         parent_row_id = data[1:, 6].astype(int) - 1
