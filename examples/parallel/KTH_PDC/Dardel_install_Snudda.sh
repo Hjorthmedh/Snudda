@@ -26,6 +26,7 @@ source snudda_env/bin/activate
 pip install --upgrade pip
 MPICC=cc pip install mpi4py
 
+pip install wheel
 pip install -r requirements.txt
 pip install -e .[dev]
 

@@ -32,7 +32,7 @@ class SnuddaCut(object):
 
         Args:
             network_file (str): Path to network file
-            cut_equation (str): Cut equation, e.g. "z>0"
+            cut_equation (str): Cut equation, e.g. "z>0" the neurons fullfilling equation are kept
             out_file_name (str): Path to new network file
             plot_only (bool): Only create a plot of cut
             show_plot (bool): Show plot on screen
@@ -126,9 +126,17 @@ class SnuddaCut(object):
         network_group = self.out_file.create_group("network")
         neuron_group = network_group.create_group("neurons")
 
+        if len(self.in_file["network/neurons/extraAxons/parentNeuron"][()]) > 0:
+            # To implement this we need to only keep the axons that have parent neurons that are still there
+            raise NotImplemented("extraAxons currently not supported by cut.py")
+
         for var_name in self.in_file["network/neurons"]:
 
             data = self.in_file[f"network/neurons/{var_name}"]
+
+            if type(data) == h5py._hl.group.Group:
+                self.in_file.copy(f"network/neurons/{var_name}", neuron_group)
+                continue
 
             if len(data.shape) == 0:
                 # Scalar data, just copy

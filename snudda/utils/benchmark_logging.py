@@ -21,7 +21,8 @@ class BenchmarkLogging:
 
     """
 
-    def __init__(self, network_path, parallel_flag=False, log_file=None, running_neuron=False):
+    def __init__(self, network_path, parallel_flag=False, log_file=None, running_neuron=False,
+                 ipython_profile=None):
 
         """
         Constructor.
@@ -45,11 +46,12 @@ class BenchmarkLogging:
         self.pc = None  # Used if running neuron
 
         if parallel_flag or running_neuron:
-            self.num_workers = self.get_number_of_workers(running_neuron=running_neuron)
+            self.num_workers = self.get_number_of_workers(running_neuron=running_neuron,
+                                                          ipython_profile=ipython_profile)
         else:
             self.num_workers = 1
 
-    def get_number_of_workers(self, running_neuron):
+    def get_number_of_workers(self, running_neuron, ipython_profile=None):
 
         """
         Returns number of workers.
@@ -68,7 +70,9 @@ class BenchmarkLogging:
 
             # Is there a simpler way to get the number of workers?
 
-        ipython_profile = os.getenv('IPYTHON_PROFILE')
+        if ipython_profile is None:
+            ipython_profile = os.getenv('IPYTHON_PROFILE')
+
         if not ipython_profile:
             ipython_profile = "default"
 
@@ -78,10 +82,18 @@ class BenchmarkLogging:
 
         import ipyparallel
         u_file = os.path.join(ipython_dir, f"profile_{ipython_profile}", "security", "ipcontroller-client.json")
-        rc = ipyparallel.Client(url_file=u_file, timeout=120, debug=False)
-        d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
 
-        return len(d_view) + 1  # We also include the master node
+        if os.path.isfile(u_file):
+            print(f"Benchmark reading ipyparallel config file: {u_file}")
+            try:
+                rc = ipyparallel.Client(url_file=u_file, profile=ipython_profile, timeout=120, debug=False)
+                d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
+
+                return len(d_view) + 1  # We also include the master node
+            except:
+                return -1
+        else:
+            return 1
 
     @staticmethod
     def get_network_name(network_path):

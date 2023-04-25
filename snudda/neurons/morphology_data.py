@@ -22,7 +22,7 @@ class SectionMetaData:
     parent_section_idx: int
     parent_point_idx: int
     parent_section_type: int
-    child_section_id: dict
+    child_section_id: dict   # TODO: Should we change this to a 2D array, where first row is type, 2nd row is section_id ? would use less memory
     point_idx: np.ndarray
     section_type: int
     morphology_data: object
@@ -193,7 +193,6 @@ class MorphologyData:
         
         if not lazy_loading and self.swc_file is not None:
             self.load_swc_file(swc_file=self.swc_file, use_cache=use_cache)
-        
 
         self.kd_tree_lookup = dict()
 
@@ -267,11 +266,11 @@ class MorphologyData:
         if self.parent_tree_info is not None and (data[:, 1] != 2).any():
             raise ValueError(f"Only axonal compartments allowed when subtree of neuron")
 
-        self.geometry = np.zeros((data.shape[0], 5), dtype=float)
+        self.geometry = np.zeros((data.shape[0], 5), dtype=np.single)  # 2023-04-24: float -> single, to save memory
         self.geometry[:, :4] = data[:, 2:6] * 1e-6  # x, y, z, r -- converted to meter
 
         # Store metadata for points
-        self.section_data = np.full((data.shape[0], 4), -1, dtype=int)
+        self.section_data = np.full((data.shape[0], 4), -1, dtype=np.int32)
         self.section_data[:, 2] = data[:, 1]
         self.section_data[0, 3] = -1
         parent_row_id = data[1:, 6].astype(int) - 1
@@ -312,7 +311,8 @@ class MorphologyData:
         self.build_tree()
 
         if use_cache:
-            self.save_cache()
+            self.save_cache(skip_check=True)  # skip_check since we have not done any rotations
+
         self.is_loaded = True
 
     def build_tree(self):
@@ -406,11 +406,11 @@ class MorphologyData:
             idx = np.where(self.section_data[:, 2] == section_type)[0]
             self.point_lookup[section_type] = idx
 
-    def save_cache(self):
+    def save_cache(self, skip_check=False):
 
         cache_file, _ = self.get_cache_file()
 
-        if self.rotation is not None or self.position is not None:
+        if not skip_check and (self.rotation is not None or self.position is not None):
             raise ValueError(f"Position and rotation must be None when calling save_cache: {self.swc_file}")
 
         if self.parent_tree_info is not None:

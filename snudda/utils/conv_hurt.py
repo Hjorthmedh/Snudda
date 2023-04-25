@@ -13,17 +13,18 @@ import numpy as np
 
 class ConvHurt(object):
 
-    def __init__(self, simulation_structures, base_dir="TEST/"):
+    def __init__(self, simulation_structures, base_dir="TEST/", target_simulator="NEST"):
 
         self.base_dir = base_dir
         self.network_dir = os.path.join(base_dir, 'networks')
+        self.target_simulator = target_simulator
 
         self.h5py_libver = "earliest"  # "latest"
 
         self.setup_directories(base_dir=base_dir)
 
         self.write_main_config(simulation_structures=simulation_structures,
-                               base_dir=base_dir)
+                               base_dir=base_dir, target_simulator=target_simulator)
 
     ############################################################################
 
@@ -44,9 +45,14 @@ class ConvHurt(object):
 
         self.create_dir(base_dir)
 
-        dir_list = ['components', 'components/biophysical_neuron_dynamics', 'components/hoc_templates',
-                    'components/mechanisms', 'components/morphologies', 'components/point_neuron_dynamics',
-                    'components/synapse_dynamics', 'networks', 'inputs', 'output']
+        dir_list = ['components',
+                    os.path.join("components", "biophysical_neuron_dynamics"),
+                    os.path.join("components", "hoc_templates"),
+                    os.path.join("components", "mechanisms"),
+                    os.path.join("components", "morphologies"),
+                    os.path.join("components", "point_neuron_dynamics"),
+                    os.path.join("components", "synapse_dynamics"),
+                    'networks', 'inputs', 'output']
 
         for x in dir_list:
             self.create_dir(os.path.join(base_dir, x))

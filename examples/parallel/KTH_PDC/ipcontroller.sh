@@ -32,7 +32,7 @@ sleep 60
 
 #.. Start the engines
 echo ">>> starting ${IPNWORKERS} engines "
-srun -c ${IPNWORKERS} ipengine --location=${CONTROLLERIP} --profile=${IPYTHON_PROFILE} --mpi \
+srun -c 1 -n ${IPNWORKERS} ipengine --location=${CONTROLLERIP} --profile=${IPYTHON_PROFILE} --mpi \
 --ipython-dir=${IPYTHONDIR}  --timeout=30.0 --log-level=DEBUG \
 --BaseParallelApplication.verbose_crash=True --IPEngine.verbose_crash=True \
 --Kernel.stop_on_error_timeout=1.0 --IPythonKernel.stop_on_error_timeout=1.0 \
