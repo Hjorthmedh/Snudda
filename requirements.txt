@@ -1,10 +1,10 @@
-bluepyopt >=1.11.7
+bluepyopt >=1.13.196
 h5py >=3.2.1
 ipyparallel>=6.3.0
 matplotlib>=3.3.4
 mpi4py>=3.0.3
 numba>=0.56.4  # Optimisation
-numpy==1.23.5   # -- numpy requirement satisfied through numba's numpy dependence
+# numpy==1.23.5   # -- numpy requirement satisfied through numba's numpy dependence
 scipy>=1.6.3
 sonata>=0.0.2
 pyzmq>=22.0.3
