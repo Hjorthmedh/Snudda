@@ -359,6 +359,11 @@ class ExportSonata:
         copied_files = []
 
         for file_path in dynamics_params_list:
+
+            if file_path is None:
+                new_dynamics_params_list.append(None)
+                continue
+
             if os.path.basename(file_path) == "dynamics_params.json":
                 dir_name = os.path.basename(os.path.dirname(file_path))
                 new_file = os.path.join(dest_path, f"{dir_name}_dynamics_params.json")
