@@ -1,4 +1,4 @@
-bluepyopt >=1.13.196
+bluepyopt
 h5py >=3.2.1
 ipyparallel>=6.3.0
 matplotlib>=3.3.4
