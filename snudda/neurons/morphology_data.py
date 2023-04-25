@@ -2,7 +2,6 @@ import os
 import pickle
 
 import numpy as np
-from copy import deepcopy
 from scipy.spatial import cKDTree
 
 import snudda.utils
@@ -175,8 +174,12 @@ class MorphologyData:
                                                 (MorphologyData, parent_label, parent_point_idx, arc_factor)
 
     """
+    __slots__ = ["swc_file", "snudda_data", "verbose", "cache_version",
+                 "geometry", "section_data", "sections",
+                 "point_lookup", "rotation", "position", "parent_tree_info", "is_loaded", "kd_tree_lookup"]
 
-    def __init__(self, swc_file=None, parent_tree_info=None, snudda_data=None, verbose=False, use_cache=True, lazy_loading=False):
+    def __init__(self, swc_file=None, parent_tree_info=None, snudda_data=None,
+                 verbose=False, use_cache=True, lazy_loading=False):
 
         self.swc_file = swc_file
         self.snudda_data = snudda_data
@@ -200,16 +203,6 @@ class MorphologyData:
 
         self.kd_tree_lookup = dict()
 
-    def section_iterator(self, section_type):
-
-        """ Iterates over all sections of a specific type.
-
-        Args:
-            section_type: 1 = soma, 2 = axon, 3 = dend """
-
-        for section in self.sections[section_type].values():
-            yield section
-
     def section_iterator_selective(self, section_type, section_id):
 
         """ Iterates over all sections of a specific type.
@@ -231,6 +224,7 @@ class MorphologyData:
             Args:
                 swc_file (str): Path to swc file
                 remapping_types (dict): Remapping of compartment types (default: 4 (apical) -> 3 (normal dendrites))
+                use_cache (bool): Save and load neuron morphology to cache
         """
         if swc_file is None:
             swc_file = self.swc_file
@@ -344,8 +338,6 @@ class MorphologyData:
                 # https://github.com/neuronsimulator/nrn/blob/5038de0b79ddf7da9b536639989da4c10dbae7f7/share/lib/hoc/import3d/read_swc.hoc?fbclid=IwAR2kEJOcWkbze8i6G2t9uUVZn5MfmxdSHtm3yzWdP240guJY9KFCalUMvug#L304
                 if parent_id == 0 and idx in branch_id:
 
-                    # import pdb
-                    # pdb.set_trace()
                     # Special case, parent is soma, and the point itself is a branch point
                     # then mark it as section_type = 0, to not create a one point section
                     self.section_data[idx, 2] = 0
@@ -470,10 +462,12 @@ class MorphologyData:
 
                 self.sections = dict()
                 for sect_type in data["sections"].keys():
-                    assert np.issubdtype(type(sect_type), np.integer), f"sec_type must be int, found {sect_type} ({type(sect_type)})"
+                    assert np.issubdtype(type(sect_type), np.integer), \
+                        f"sec_type must be int, found {sect_type} ({type(sect_type)})"
                     self.sections[sect_type] = dict()
                     for sect_id, sect_val in data["sections"][sect_type].items():
-                        assert np.issubdtype(type(sect_id), np.integer), f"sec_id key must be int, found sec_id = {sect_id} ({type(sect_id)}"
+                        assert np.issubdtype(type(sect_id), np.integer), \
+                            f"sec_id key must be int, found sec_id = {sect_id} ({type(sect_id)}"
                         sec = SectionMetaData(section_id=sect_id, section_type=sect_type,
                                               morphology_data=self, build_section=False)
                         sec.point_idx = sect_val["point_idx"]
@@ -696,7 +690,6 @@ class MorphologyData:
             if not (axon_root_position == 0).all():
                 raise ValueError("Axon root must be centered at origo before placement.")
 
-        
         if rotation is not None:
             if not np.abs(np.linalg.det(rotation) - 1) < 1e-10 \
                     or not np.abs(np.matmul(rotation, rotation.T) - np.eye(3) < 1e-10).all():
@@ -709,16 +702,21 @@ class MorphologyData:
 
         if self.parent_tree_info is not None:
             # We need to update soma distance for subtree based on distance to parent
-            # self.parent_tree = (MorphologyData, point_idx, arc_factor) -- attachment point
+            # parent_tree_info = (MorphologyData, point_idx, arc_factor) -- attachment point
 
-            parent_object, parent_point_idx, arc_factor = self.parent_tree
-            parent_position = self.parent_object.geometry[parent_point_idx, :3]
-            parent_soma_distance = self.parent_object.geometry[parent_point_idx, 4]
+            parent_object, parent_point_idx, arc_factor = self.parent_tree_info
+            parent_position = parent_object.geometry[parent_point_idx, :3]
+            parent_soma_distance = parent_object.geometry[parent_point_idx, 4]
 
             dist_to_parent = np.linalg.norm(self.position - parent_position)
             self.geometry[:, 4] += parent_soma_distance + dist_to_parent * arc_factor
 
     def section_iterator(self, section_type=None):
+
+        """ Iterates over all sections of a specific type.
+
+        Args:
+            section_type: 1 = soma, 2 = axon, 3 = dend """
 
         if section_type is None:
             for section_dict in self.sections.values():
