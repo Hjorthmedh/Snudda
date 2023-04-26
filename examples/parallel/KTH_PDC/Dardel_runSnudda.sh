@@ -1,5 +1,7 @@
 #!/bin/bash
 
+
+
 SNUDDA_DIR=$HOME/Snudda/snudda
 JOBDIR=networks/test_10k
 
@@ -104,8 +106,15 @@ else
     
     #.. Shut down cluster
     # ipcluster stop	
+    #.. Shutdown ipcontroller
+    echo "Shutting down ipcontroller"
+
+    python ipcontroller_shutdown.py
+
 
     date
-    echo "JOB END "`date` start_time_network_connect.txt
+    #echo "JOB END "`date` start_time_network_connect.txt
+
+    echo "EXITING Dardel_runjob.sh"
 
 fi
