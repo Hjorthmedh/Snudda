@@ -652,7 +652,7 @@ class SnuddaAnalyse(object):
 
     ############################################################################
 
-    def save_figure(self, plt, fig_name, fig_type="pdf"):
+    def save_figure(self, plt, fig_name, fig_type="png"):
 
         if not os.path.isdir(self.fig_dir):
             print(f"save_figures: Creating directory {self.fig_dir}")
@@ -669,7 +669,7 @@ class SnuddaAnalyse(object):
         plt.pause(0.001)
         # plt.savefig(full_fig_name.replace('.pdf', '.eps'))
 
-        print("Wrote " + full_fig_name)
+        print(f"Wrote {full_fig_name}")
 
         if self.close_plots:
             time.sleep(1)
@@ -681,7 +681,8 @@ class SnuddaAnalyse(object):
 
     def plot_num_synapses_per_pair(self, pre_type, post_type, side_len=None,
                                    name_str="", volume_id=None,
-                                   connection_type="synapses"):
+                                   connection_type="synapses",
+                                   sub_title=None):
 
         if volume_id is None:
             volume_id = self.volume_id
@@ -756,7 +757,13 @@ class SnuddaAnalyse(object):
 
         plt.xlabel("Number of " + connection_type)
         plt.ylabel('Probability density')
-        plt.title(f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)}")
+        title_str = f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)}"
+
+        if sub_title is not None:
+            plt.suptitle(f"{title_str}", y=0.9)
+            plt.title(sub_title, fontsize=10)
+        else:
+            plt.title(title_str)
 
         plt.tight_layout()
         plt.draw()
@@ -860,12 +867,19 @@ class SnuddaAnalyse(object):
                                     exp_max_dist=None,
                                     exp_data=None,
                                     exp_data_detailed=None,
+                                    exp_colour=None,
                                     dist_3d=True,
                                     volume_id=None,
                                     x_max=250,
                                     y_max=None,
                                     connection_type="synapses",
-                                    draw_step=False):
+                                    draw_step=False,
+                                    sub_title=None,
+                                    ax=None,
+                                    return_ax=False,
+                                    colour="black",
+                                    show_plot=None,
+                                    save_figure=True):
 
         if volume_id is None:
             volume_id = self.volume_id
@@ -932,7 +946,8 @@ class SnuddaAnalyse(object):
         # Now let's plot it
 
         # fig = plt.figure()
-        fig, ax = plt.subplots(1)
+        if ax is None:
+            fig, ax = plt.subplots(1)
 
         matplotlib.rcParams.update({'font.size': 24})
 
@@ -980,38 +995,42 @@ class SnuddaAnalyse(object):
                 ns = exp_num[0]
                 n = exp_num[1]
                 z = 1.96  # This gives us 95% confidence intervall
-                bar_centre = (ns + (z ** 2) / 2) / (n + z * 2)
+                bar_centre = (ns + (z ** 2) / 2) / (n + z ** 2)
                 bar_height = z / (n + z ** 2) * np.sqrt((ns * (n - ns) / n + (z ** 2) / 4))
 
-                plt.errorbar(d_limit * 1e6 / 2, bar_centre, bar_height, color="gray",
-                             elinewidth=1, capsize=5)
+                ax.errorbar(d_limit * 1e6 / 2, bar_centre, bar_height, color="gray",
+                            elinewidth=1, capsize=5)
 
             else:
                 std_exp = 0
 
             if p_exp is not None:
-                plt.plot([0, d_limit * 1e6], [p_exp, p_exp],
-                         color=(0.8, 0.3 * plt_ctr, 0.3 * plt_ctr), linewidth=2)
+
+                if exp_colour is None:
+                    exp_colour = (0.8, 0.3 * plt_ctr, 0.3 * plt_ctr)
+
+                ax.plot([0, d_limit * 1e6], [p_exp, p_exp],
+                        color=exp_colour, linewidth=2)
 
                 # Add a star also
-                plt.plot(d_limit * 1e6 / 2, p_exp,
-                         color=(0.8, 0.3 * plt_ctr, 0.3 * plt_ctr),
-                         marker="D",
-                         markersize=10)
+                ax.plot(d_limit * 1e6 / 2, p_exp,
+                        color=exp_colour,
+                        marker="D",
+                        markersize=10)
 
                 plt_ctr += 1
-                plt.ion()
-                plt.draw()
 
-                if self.show_plots:
+                if self.show_plots or show_plot:
+                    plt.ion()
+                    plt.draw()
                     plt.show()
 
         # Draw the curve itself
         if draw_step:
-            plt.step(dist * 1e6, p_con, color='black', linewidth=2, where="post")
+            plt.step(dist * 1e6, p_con, color=colour, linewidth=2, where="post")
         else:
             d_half_step = (dist[1] - dist[0]) / 2
-            plt.plot((dist + d_half_step) * 1e6, p_con, color='black', linewidth=2)
+            plt.plot((dist + d_half_step) * 1e6, p_con, color=colour, linewidth=2)
 
         plt.xticks(fontsize=14, rotation=0)
         plt.yticks(fontsize=14, rotation=0)
@@ -1025,7 +1044,7 @@ class SnuddaAnalyse(object):
         # This gives us 95% confidence intervall
         z = 1.96
 
-        p_centre = np.array([(ns + (z ** 2) / 2) / (n + z * 2)
+        p_centre = np.array([(ns + (z ** 2) / 2) / (n + z ** 2)
                              for (ns, n) in zip(count_con, count_all_b)]).flatten()
         p_height = np.array([z / (n + z ** 2)
                              * np.sqrt((ns * (n - ns) / n + (z ** 2) / 4))
@@ -1069,13 +1088,17 @@ class SnuddaAnalyse(object):
         plt.yticks(locs, new_labels)
 
         if connection_type == "synapses":
-            plt.title(f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)}")
+            title_str = f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)}"
         else:
-            plt.title(f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)} ({connection_type})")
+            title_str = f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)} ({connection_type})"
+
+        if sub_title is not None:
+            plt.suptitle(f"{title_str}", y=0.9)
+            plt.title(sub_title, fontsize=10)
+        else:
+            plt.title(title_str)
 
         plt.tight_layout()
-        plt.ion()
-        plt.draw()
 
         if dist_3d:
             proj_text = '-3D-dist'
@@ -1085,12 +1108,20 @@ class SnuddaAnalyse(object):
         fig_name = (f"Network-distance-dependent-connection-probability-{pre_type}"
                     f"-to-{post_type}-{connection_type}{proj_text}")
 
-        full_fig_name = self.save_figure(plt, fig_name)
+        if save_figure:
+            full_fig_name = self.save_figure(plt, fig_name)
+        else:
+            full_fig_name = None
 
-        if self.show_plots:
+        if self.show_plots or show_plot:
+            plt.ion()
+            plt.draw()
             plt.show()
+            plt.pause(0.001)
 
-        plt.pause(0.001)
+        if return_ax:
+            return ax
+
         return model_probs, full_fig_name
 
     ############################################################################

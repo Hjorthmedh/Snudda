@@ -4,6 +4,8 @@ import collections
 import numpy as np
 import h5py
 
+import timeit
+
 from snudda.utils import SnuddaLoad
 from snudda.detect import SnuddaPrune
 
@@ -38,9 +40,12 @@ class OptimisePruning:
 
         self.log_file = None
 
-    def merge_putative_synapses(self):
+    def merge_putative_synapses(self, force_merge=False):
 
-        merge_info = self.prune.get_merge_info()
+        if force_merge:
+            merge_info = None
+        else:
+            merge_info = self.prune.get_merge_info()
 
         if merge_info:
             merge_files_syn, merge_neuron_range_syn, merge_syn_ctr, \
@@ -94,20 +99,61 @@ class OptimisePruning:
 
         assert len(self.merge_files_syn) == 1, f"merge_Files_syn should be a list with one file only"
 
-        with h5py.File(self.merge_files_syn[0], "r") as f_syn:
-            print(f"Writing file {output_file}")
-            # We need to make sure that we keep the pruned data files separate
-            self.prune.prune_synapses(synapse_file=f_syn,
-                                      output_filename=output_file,
-                                      row_range=None,
-                                      close_out_file=True,
-                                      close_input_file=True,
-                                      merge_data_type="synapses")
+        # print(f"Writing to {output_file} (*)")
 
-            if not os.path.exists(output_file):
-                print(f"Output file missing {output_file}")
-                import pdb
-                pdb.set_trace()
+        # Clear the out file
+        self.prune.out_file = None
+
+        out_file = h5py.File(output_file, "w")
+
+        with h5py.File(self.merge_files_syn[0], "r") as f_syn:
+            # print(f"Writing file {output_file}")
+            # We need to make sure that we keep the pruned data files separate
+
+            num_syn, num_syn_kept = self.prune.prune_synapses(synapse_file=f_syn,
+                                                              output_filename=out_file,
+                                                              row_range=None,
+                                                              close_out_file=False,
+                                                              close_input_file=True,
+                                                              merge_data_type="synapses")
+
+        if self.merge_files_gj[0] is not None:
+            with h5py.File(self.merge_files_gj[0], "r") as f_gj:
+
+                num_gj, num_gj_kept = self.prune.prune_synapses(synapse_file=f_gj,
+                                                                output_filename=out_file,
+                                                                row_range=None,
+                                                                close_out_file=False,
+                                                                close_input_file=True,
+                                                                merge_data_type="gapJunctions")
+        else:
+            num_gj, num_gj_kept = self.prune.prune_synapses(synapse_file=None,
+                                                            output_filename=out_file,
+                                                            row_range=None,
+                                                            close_out_file=False,
+                                                            close_input_file=True,
+                                                            merge_data_type="gapJunctions")
+
+        if not os.path.exists(output_file):
+            print(f"Output file missing {output_file}")
+            import pdb
+            pdb.set_trace()
+
+        try:
+            assert output_file == self.prune.out_file.filename, f"Expected name {output_file}, had name {self.prune.out_file.name}"
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
+
+        n_synapses = out_file["network/nSynapses"][()]
+        n_gj = out_file["network/nGapJunctions"][()]
+
+        out_file["network/synapses"].resize((n_synapses, out_file["network/synapses"].shape[1]))
+        out_file["network/gapJunctions"].resize((n_gj, out_file["network/gapJunctions"].shape[1]))
+
+        out_file.close()
 
     def evaluate_fitness(self, pre_type, post_type, output_file, experimental_data, avg_num_synapses_per_pair=None):
 
@@ -118,11 +164,11 @@ class OptimisePruning:
                 post_type
                 output_file: path to output file from prune
                 experiment_data: [(bin start, bin end, P)]
-                avg_num_synapses_per_pair: (avg_num, error_weight)
+                avg_num_synapses_per_pair: avg_num
 
         """
 
-        print(f"Opening {output_file}")
+        # print(f"Opening {output_file}")
         snudda_load = SnuddaLoad(network_file=output_file)
         snudda_data = snudda_load.data
 
@@ -143,18 +189,26 @@ class OptimisePruning:
                 connection_matrix[row[0], row[1]] += 1
 
         pos = snudda_data["neuronPositions"]
-        dist_matrix = distance_matrix(pos, pos)
+        # We need to extract the parts relevant
+        dist_matrix = distance_matrix(pos[pre_mask, :], pos[post_mask, :])
 
         n_connected = np.zeros((len(experimental_data),), dtype=int)
         n_total = np.zeros((len(experimental_data),), dtype=int)
         n_syn = 0
         n_pairs = 0
+        n_syn_list = []
 
-        for dist, con in zip(dist_matrix.flatten(), connection_matrix.flatten()):
+        # We also need to extract the relevant corresponding parts in connection_matrix
+        con_mat = connection_matrix[pre_mask, :][:, post_mask]
+
+        assert con_mat.shape == dist_matrix.shape, "Mismatch in shape"
+
+        for dist, con in zip(dist_matrix.flatten(), con_mat.flatten()):
 
             if con > 0:
                 n_syn += con
                 n_pairs += 1
+                n_syn_list.append(con)
 
             for idx, (bin_start, bin_end, _) in enumerate(experimental_data):
                 if bin_start <= dist <= bin_end:
@@ -162,69 +216,331 @@ class OptimisePruning:
                     if con > 0:
                         n_connected[idx] += 1
 
+        # print(f"P={n_connected/n_total} .. {n_connected} .. {n_total}")
+
         p_hyp = np.zeros((len(experimental_data), ))
 
         for idx, (n_con, n_tot, p_exp) in enumerate(zip(n_connected, n_total, [x[2] for x in experimental_data])):
             # test = binomtest(n_con, n_tot, p_exp)
             # p_hyp[idx] = test.pvalue  # gave 0 when p values are too far apart, not informative
-            p_hyp[idx] = abs(n_con/n_tot - p_exp)
+            p_hyp[idx] = abs(n_con/n_tot - p_exp) * 100
 
         if avg_num_synapses_per_pair is not None:
-            per_pair_error = abs(avg_num_synapses_per_pair[0] - n_syn/n_pairs)
-            error = np.sum(p_hyp) + per_pair_error * avg_num_synapses_per_pair[1]  # * Weight of error
+            if n_pairs > 0:
+                per_pair_error = abs(avg_num_synapses_per_pair - n_syn/n_pairs) + np.std(n_syn_list)
+            else:
+                per_pair_error = abs(avg_num_synapses_per_pair)
+
+            error = np.sum(p_hyp) + per_pair_error
         else:
             error = np.sum(p_hyp)
 
         return error
 
-    def helper_func(self, x):
+    @staticmethod
+    def helper_func1(x, *args):
 
         pruning_parameters = dict()
-        pruning_parameters |= self.optimisation_info["extra_pruning_parameters"]
+
+        if args is not None:
+            optimisation_info = args[0]
+
+            if "extra_pruning_parameters" in optimisation_info:
+                pruning_parameters |= optimisation_info["extra_pruning_parameters"]
+        else:
+            raise ValueError(f"No optimisation_info passed.")
+
+        pruning_parameters["f1"] = x[0]
+
+        if "output_file" in optimisation_info:
+            output_file = optimisation_info["output_file"]
+        else:
+            output_file = os.path.join(optimisation_info["network_path"], "temp", f"network-synapses-{uuid.uuid4()}.hdf5")
+        # print(f"Output file {output_file}")
+
+        # This trick allows us to reuse the same OptimisePruning object, will be faster
+        op = OptimisePruning.get_op(optimisation_info)
+
+        op.prune_synapses(pre_type=optimisation_info["pre_type"],
+                          post_type=optimisation_info["post_type"],
+                          con_type=optimisation_info["con_type"],
+                          pruning_parameters=pruning_parameters,
+                          output_file=output_file)
+
+        fitness = op.evaluate_fitness(pre_type=optimisation_info["pre_type"],
+                                      post_type=optimisation_info["post_type"],
+                                      output_file=output_file,
+                                      experimental_data=optimisation_info["exp_data"],
+                                      avg_num_synapses_per_pair=optimisation_info["avg_num_synapses_per_pair"])
+
+        # print(f"Evaluating f1 = {x[0]}, fitness: {fitness}\n{output_file}\n")
+        # print(f"Fitness: {fitness}")
+
+        OptimisePruning.report_fitness(fitness)
+
+        if "output_file" not in optimisation_info:
+            os.remove(output_file)
+
+        return fitness
+
+    @staticmethod
+    def helper_func2(x, *args):
+
+        pruning_parameters = dict()
+
+        if args is not None:
+            optimisation_info = args[0]
+
+            if "extra_pruning_parameters" in optimisation_info:
+                pruning_parameters |= optimisation_info["extra_pruning_parameters"]
+        else:
+            raise ValueError(f"No optimisation_info passed.")
+
+        pruning_parameters["f1"] = x[0]
+        pruning_parameters["mu2"] = x[1]
+
+        if "output_file" in optimisation_info:
+            output_file = optimisation_info["output_file"]
+        else:
+            output_file = os.path.join(optimisation_info["network_path"], "temp", f"network-synapses-{uuid.uuid4()}.hdf5")
+        # print(f"Output file {output_file}")
+
+        # This trick allows us to reuse the same OptimisePruning object, will be faster
+        op = OptimisePruning.get_op(optimisation_info)
+
+        op.prune_synapses(pre_type=optimisation_info["pre_type"],
+                          post_type=optimisation_info["post_type"],
+                          con_type=optimisation_info["con_type"],
+                          pruning_parameters=pruning_parameters,
+                          output_file=output_file)
+
+        fitness = op.evaluate_fitness(pre_type=optimisation_info["pre_type"],
+                                      post_type=optimisation_info["post_type"],
+                                      output_file=output_file,
+                                      experimental_data=optimisation_info["exp_data"],
+                                      avg_num_synapses_per_pair=optimisation_info["avg_num_synapses_per_pair"])
+
+        # print(f"Evaluating f1 = {x[0]}, mu2 = {x[1]}, fitness: {fitness}\n{output_file}\n")
+        # print(f"Fitness: {fitness}")
+
+        OptimisePruning.report_fitness(fitness)
+
+        if "output_file" not in optimisation_info:
+            os.remove(output_file)
+
+        return fitness
+
+    @staticmethod
+    def helper_func3(x, *args):
+
+        pruning_parameters = dict()
+
+        if args is not None:
+            optimisation_info = args[0]
+
+            if "extra_pruning_parameters" in optimisation_info:
+                pruning_parameters |= optimisation_info["extra_pruning_parameters"]
+        else:
+            raise ValueError(f"No optimisation_info passed.")
+
+        pruning_parameters["f1"] = x[0]
+        pruning_parameters["mu2"] = x[1]
+        pruning_parameters["a3"] = x[2]
+
+        if "output_file" in optimisation_info:
+            output_file = optimisation_info["output_file"]
+        else:
+            output_file = os.path.join(optimisation_info["network_path"], "temp", f"network-synapses-{uuid.uuid4()}.hdf5")
+        # print(f"Output file {output_file}")
+
+        # This trick allows us to reuse the same OptimisePruning object, will be faster
+        op = OptimisePruning.get_op(optimisation_info)
+
+        op.prune_synapses(pre_type=optimisation_info["pre_type"],
+                          post_type=optimisation_info["post_type"],
+                          con_type=optimisation_info["con_type"],
+                          pruning_parameters=pruning_parameters,
+                          output_file=output_file)
+
+        fitness = op.evaluate_fitness(pre_type=optimisation_info["pre_type"],
+                                      post_type=optimisation_info["post_type"],
+                                      output_file=output_file,
+                                      experimental_data=optimisation_info["exp_data"],
+                                      avg_num_synapses_per_pair=optimisation_info["avg_num_synapses_per_pair"])
+
+        # print(f"Evaluating f1 = {x[0]}, mu2 = {x[1]}, a3 = {x[2]}, fitness: {fitness}\n{output_file}\n")
+        # print(f"Fitness: {fitness}")
+
+        OptimisePruning.report_fitness(fitness)
+
+        if "output_file" not in optimisation_info:
+            os.remove(output_file)
+
+        return fitness
+
+    @staticmethod
+    def helper_func4(x, *args):
+
+        # Includes softmax
+
+        pruning_parameters = dict()
+
+        if args is not None:
+            optimisation_info = args[0]
+
+            if "extra_pruning_parameters" in optimisation_info:
+                pruning_parameters |= optimisation_info["extra_pruning_parameters"]
+        else:
+            raise ValueError(f"No optimisation_info passed.")
+
 
         pruning_parameters["f1"] = x[0]
         pruning_parameters["softMax"] = x[1]
         pruning_parameters["mu2"] = x[2]
         pruning_parameters["a3"] = x[3]
 
-        output_file = os.path.join(self.network_path, "temp", f"network-synapses-{uuid.uuid4()}.hdf5")
-        print(f"Output file {output_file}")
+        if "output_file" in optimisation_info:
+            output_file = optimisation_info["output_file"]
+        else:
+            output_file = os.path.join(optimisation_info["network_path"], "temp", f"network-synapses-{uuid.uuid4()}.hdf5")
+        # print(f"Output file {output_file}")
 
-        self.prune_synapses(pre_type=self.optimisation_info["pre_type"],
-                            post_type=self.optimisation_info["post_type"],
-                            con_type=self.optimisation_info["con_type"],
-                            pruning_parameters=pruning_parameters,
-                            output_file=output_file)
+        # This trick allows us to reuse the same OptimisePruning object, will be faster
+        op = OptimisePruning.get_op(optimisation_info)
 
-        fitness = self.evaluate_fitness(pre_type=self.optimisation_info["pre_type"],
-                                        post_type=self.optimisation_info["post_type"],
-                                        output_file=output_file,
-                                        experimental_data=self.optimisation_info["exp_data"])
+        op.prune_synapses(pre_type=optimisation_info["pre_type"],
+                          post_type=optimisation_info["post_type"],
+                          con_type=optimisation_info["con_type"],
+                          pruning_parameters=pruning_parameters,
+                          output_file=output_file)
 
-        self.optimisation_info["ctr"] += 1
+        fitness = op.evaluate_fitness(pre_type=optimisation_info["pre_type"],
+                                      post_type=optimisation_info["post_type"],
+                                      output_file=output_file,
+                                      experimental_data=optimisation_info["exp_data"],
+                                      avg_num_synapses_per_pair=optimisation_info["avg_num_synapses_per_pair"])
 
-        print(f"({self.optimisation_info['ctr'] }) Evaluating f1 = {x[0]}, SM = {x[1]}, mu2 = {x[2]}, a3 = {x[3]}, fitness: {fitness}")
+        # print(f"Evaluating f1 = {x[0]}, SM = {x[1]}, mu2 = {x[2]}, a3 = {x[3]}, fitness: {fitness}\n{output_file}\n")
+        # print(f"Fitness: {fitness}")
 
-        self.log_file.write(f"{self.optimisation_info['ctr']}, {pruning_parameters['f1']}, "
-                            f"{pruning_parameters['softMax']}, {pruning_parameters['mu2']}, "
-                            f"{pruning_parameters['a3']}, {fitness}, {output_file}\n")
+        OptimisePruning.report_fitness(fitness)
+
+        if "output_file" not in optimisation_info:
+            os.remove(output_file)
 
         return fitness
 
-    def optimize(self, pre_type, post_type, con_type, experimental_data, extra_pruning_parameters, workers=1):
+
+    @staticmethod
+    def report_fitness(fitness):
+
+        OptimisePruning.ctr += 1
+        OptimisePruning.fitness = min(OptimisePruning.fitness, fitness)
+
+        if OptimisePruning.ctr % 100 == 0:
+            print(f"Worker iter: {OptimisePruning.ctr}, fitness {OptimisePruning.fitness}")
+
+    @staticmethod
+    def get_op(optimisation_info):
+
+        # I am sorry, this is ugly... but need to get this pickeable
+
+        if "op" in vars(OptimisePruning) and OptimisePruning.op is not None:
+            op = OptimisePruning.op
+        else:
+            op = OptimisePruning(network_path=optimisation_info["network_path"])
+            merge_info = op.prune.get_merge_info()
+            op.merge_files_syn, op.merge_neuron_range_syn, op.merge_syn_ctr, \
+                op.merge_files_gj, op.merge_neuron_range_gj, op.merge_gj_ctr = merge_info
+
+            OptimisePruning.op = op
+            OptimisePruning.ctr = 0
+            OptimisePruning.fitness = np.inf
+
+        return op
+
+    def optimize(self, pre_type, post_type, con_type,
+                 experimental_data,
+                 extra_pruning_parameters, avg_num_synapses_per_pair=None,
+                 workers=1, maxiter=50, tol=0.001, pop_size=None, num_params=4):
+
+        start = timeit.default_timer()
 
         self.log_file = open(os.path.join(self.network_path, f"{pre_type}-{post_type}-{con_type}-optimisation-log.txt"), "wt")
+
+        if pop_size is None:
+            pop_size = self.pop_size
 
         self.optimisation_info["pre_type"] = pre_type
         self.optimisation_info["post_type"] = post_type
         self.optimisation_info["con_type"] = con_type
         self.optimisation_info["exp_data"] = experimental_data
+        self.optimisation_info["avg_num_synapses_per_pair"] = avg_num_synapses_per_pair
         self.optimisation_info["extra_pruning_parameters"] = extra_pruning_parameters
         self.optimisation_info["ctr"] = 0
+        self.optimisation_info["network_path"] = self.network_path
 
-        bounds = [(0, 1), (0, 20), (0, 5), (0, 1)]
+        optimisation_info = self.optimisation_info
 
-        res = differential_evolution(func=self.helper_func, bounds=bounds, workers=workers)
+        if num_params == 4:
+            # With softmax
+            bounds4 = [(0, 1), (0, 20), (0, 5), (0, 1)]
+            res = differential_evolution(func=OptimisePruning.helper_func4, args=(optimisation_info, ),
+                                         bounds=bounds4, workers=workers, maxiter=maxiter, tol=tol,
+                                         popsize=pop_size)
+
+            # Rerun the best parameters, and keep data as network-synapses.hdf5
+            optimisation_info["output_file"] = os.path.join(self.network_path, "network-synapses.hdf5")
+            OptimisePruning.helper_func4(res.x, optimisation_info)
+
+        elif num_params == 3:
+            # Without softmax
+            bounds3 = [(0, 1), (0, 5), (0, 1)]
+            res = differential_evolution(func=OptimisePruning.helper_func3, args=(optimisation_info, ),
+                                         bounds=bounds3, workers=workers, maxiter=maxiter, tol=tol,
+                                         popsize=self.pop_size)
+
+            optimisation_info["output_file"] = os.path.join(self.network_path, "network-synapses.hdf5")
+            OptimisePruning.helper_func3(res.x, optimisation_info)
+
+        elif num_params == 2:
+
+            # Without softmax
+            bounds3 = [(0, 1), (0, 5)]
+            res = differential_evolution(func=OptimisePruning.helper_func2, args=(optimisation_info, ),
+                                         bounds=bounds3, workers=workers, maxiter=maxiter, tol=tol,
+                                         popsize=self.pop_size)
+
+            optimisation_info["output_file"] = os.path.join(self.network_path, "network-synapses.hdf5")
+            OptimisePruning.helper_func2(res.x, optimisation_info)
+
+        elif num_params == 1:
+
+#            try:
+#                OptimisePruning.helper_func1([0.5], optimisation_info)
+#            except:
+#                import traceback
+#                print(traceback.format_exc())
+#                import pdb
+#                pdb.set_trace()
+
+            # Without softmax
+            bounds3 = [(0, 1)]
+            res = differential_evolution(func=OptimisePruning.helper_func1, args=(optimisation_info, ),
+                                         bounds=bounds3, workers=workers, maxiter=maxiter, tol=tol,
+                                         popsize=self.pop_size)
+
+            optimisation_info["output_file"] = os.path.join(self.network_path, "network-synapses.hdf5")
+            OptimisePruning.helper_func1(res.x, optimisation_info)
+
+        else:
+            raise ValueError(f"num_params = {num_params} must be 2,3, or 4")
+
+        # res = differential_evolution(func=self.helper_func, bounds=bounds, workers=workers)
+
+        duration = timeit.default_timer() - start
+        self.log_file.write(f"Duration: {duration} s\n")
+        print(f"Duration: {duration} s")
 
         self.log_file.close()
 

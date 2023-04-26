@@ -63,4 +63,5 @@ setuptools.setup(
                                       "snudda_plot_trace = snudda.plotting.plot_traces:snudda_plot_traces_cli"]},
     install_requires=install_requires,
     extras_require={"dev": ["sphinx"]},
+    setup_requires=['wheel']
 )

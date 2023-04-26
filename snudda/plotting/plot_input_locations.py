@@ -63,6 +63,8 @@ class SnuddaPlotInputLocations:
                            save_fig=True,
                            dpi=300,
                            show_figure=True,
+                           hide_axis=False,
+                           hide_grid=True,
                            figure_size=None):
 
         coords = self.get_input_coords(neuron_id=neuron_id, input_type=input_type)
@@ -118,6 +120,24 @@ class SnuddaPlotInputLocations:
         fig_path = os.path.join(self.network_path, "figures")
         if not os.path.exists(fig_path):
             os.mkdir(fig_path)
+
+        if hide_grid:
+            ax.grid(None)
+
+        if hide_axis:
+            ax.set_axis_off()
+
+        x_labels = [f"{x*1e6:.0f}" for x in ax.get_xticks()]
+        y_labels = [f"{y*1e6:.0f}" for y in ax.get_yticks()]
+        z_labels = [f"{z*1e6:.0f}" for z in ax.get_zticks()]
+
+        ax.set_xticklabels(x_labels)
+        ax.set_yticklabels(y_labels)
+        ax.set_zticklabels(z_labels)
+
+        ax.set_xlabel("μm", fontsize=20)
+        ax.set_ylabel("μm", fontsize=20)
+        ax.set_zlabel("μm", fontsize=20)
 
         if save_fig:
             fig_name = os.path.join(fig_path, f_name)
@@ -183,12 +203,12 @@ class SnuddaPlotInputLocations:
 
             swc_file = snudda_parse_path(self.snudda_load.data["neurons"][nid]["morphology"], self.snudda_data)
             morph = NeuronMorphologyExtended(swc_filename=swc_file)
-            dist_to_soma = morph.dend[:, 4]
+            dist_to_soma = morph.morphology_data["neuron"].geometry[:, 4]
             max_dist = max(np.max(dist_to_soma), max_dist)
 
         return max_dist
 
-    def plot_input_location(self, neuron_type, input_name, n_bins=20):
+    def plot_input_location(self, neuron_type, input_name, n_bins=15):
 
         import numexpr
 
@@ -206,9 +226,10 @@ class SnuddaPlotInputLocations:
         plt.stairs(norm_count, edges * 1e6, color="black")
 
         plt.xlabel("Distance ($\mu$m)")
-        plt.ylabel("Density")
+        plt.ylabel("Normalised total density")
 
-        if "synapseDensity" in self.input_config[neuron_type][input_name]:
+        if neuron_type in self.input_config and input_name in self.input_config[neuron_type] \
+                and "synapseDensity" in self.input_config[neuron_type][input_name]:
 
             synapse_density = self.input_config[neuron_type][input_name]["synapseDensity"]
             d = np.linspace(0, max_dist, n_bins)
@@ -250,18 +271,20 @@ class SnuddaPlotInputLocations:
         morph = NeuronMorphologyExtended(swc_filename=swc_file)
 
         for sec in morph.section_iterator(section_type=3):
-            pos = sec.position
-
-            seg_len = np.linalg.norm(np.diff(sec.position, axis=1), axis=0)
-
-            # 0,1,2: x,y,z  3: radie, 4: dist to soma
-            soma_dist = sec.morphology_data.geometry[sec.point_idx, 4]
+            seg_len = np.linalg.norm(np.diff(sec.position, axis=0), axis=1)
+            soma_dist = sec.soma_distance
 
             for start_dist, end_dist, comp_length in zip(soma_dist[0:-1], soma_dist[1:], seg_len):
                 bin_a = int(start_dist/bin_width)
                 bin_b = int(end_dist/bin_width)
 
-                assert comp_length < bin_width, f"Compartment length {comp_length} > bin width {bin_width}"
+                if comp_length > bin_width:
+                    print("Tell me why")
+                    import pdb
+                    pdb.set_trace()
+
+                assert comp_length < bin_width, f"Compartment length {comp_length} > bin width {bin_width} " \
+                                                f"(try using fewer bins)"
                 assert bin_a <= bin_b, f"Internal error, assume first element in link closer to soma"
 
                 if bin_a == bin_b:

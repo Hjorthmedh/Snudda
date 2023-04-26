@@ -10,6 +10,7 @@ import numpy as np
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.numpy_encoder import NumpyEncoder
 import scipy.sparse as sparse
+from scipy.spatial import distance_matrix
 
 
 class SnuddaLoad(object):
@@ -333,7 +334,7 @@ class SnuddaLoad(object):
                 data["connectivityDistributions"][pre_type, post_type] \
                     = orig_connectivity_distributions[keys]
 
-        if "synapses" in data:
+        if "synapses" in data and self.verbose:
             if "gapJunctions" in data:
                 print(f"Loading {len(data['neurons'])} neurons with {data['nSynapses']} synapses"
                       f" and {data['nGapJunctions']} gap junctions")
@@ -929,7 +930,7 @@ class SnuddaLoad(object):
         else:
             return gap_junctions[:gj_ctr, :], gj_coords
 
-    def get_centre_neurons_iterator(self, n_neurons=None, neuron_type=None, centre_point=None):
+    def get_centre_neurons_iterator(self, n_neurons=None, neuron_type=None, centre_point=None, max_distance=None):
 
         """ Return neuron id:s, starting from the centre most and moving outwards
 
@@ -951,10 +952,15 @@ class SnuddaLoad(object):
             if neuron_type is not None and self.data["neurons"][neuron_id]["type"] != neuron_type:
                 continue
 
+            if max_distance is not None and dist_to_centre[neuron_id] > max_distance:
+                # Stop iterator if max distance is reached
+                return
+
             yield neuron_id, dist_to_centre[neuron_id]
             neuron_ctr += 1
 
             if n_neurons is not None and neuron_ctr >= n_neurons:
+                # Stop iterator if n_neurons are delivered
                 return
 
     ############################################################################
@@ -970,6 +976,28 @@ class SnuddaLoad(object):
             connection_matrix[syn_row[0], syn_row[1]] += 1
 
         return connection_matrix
+
+    def create_distance_matrix(self, neuron_id=None, pre_id=None, post_id=None):
+
+        if neuron_id is not None and pre_id is not None and post_id is not None:
+            raise ValueError("Specify either neuron_id or the two parameters pre_id and post_id.")
+
+        if (pre_id is None) ^ (post_id is None):
+            raise ValueError("pre_id and post_id must both either be specified, or neither")
+
+        pos = self.data["neuronPositions"]
+
+        if neuron_id is not None:
+            pos = pos[neuron_id, :]
+            dist_matrix = distance_matrix(pos, pos)
+
+        elif pre_id is not None and post_id is not None:
+            dist_matrix = distance_matrix(pos[pre_id, :], pos[post_id, :])
+
+        else:
+            dist_matrix = distance_matrix(pos, pos)
+
+        return dist_matrix
 
     def print_all_synapse_counts_per_type(self):
 
@@ -1042,6 +1070,7 @@ class SnuddaLoad(object):
 
         return synapse_count, gap_junction_count
 
+
 def snudda_load_cli():
     """ Command line parser for SnuddaLoad script """
 
@@ -1071,7 +1100,7 @@ def snudda_load_cli():
     else:
         load_synapses = True
 
-    nl = SnuddaLoad(args.networkFile, load_synapses=load_synapses)
+    nl = SnuddaLoad(args.networkFile, load_synapses=load_synapses, verbose=True)
 
     if args.listN:
         print("Neurons in network: ")

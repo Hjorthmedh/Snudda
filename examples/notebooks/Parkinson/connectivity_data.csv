@@ -1,0 +1,26 @@
+phenotype,data_source,pre_neuron,post_neuron,n_connected,n_total,min_dist,max_dist,mean_dist,std_dist
+WT,Planert 2010,dSPN,dSPN,3,43,0,100e-6,NaN,NaN
+WT,Planert 2010,dSPN,iSPN,3,66,0,100e-6,NaN,NaN
+WT,Planert 2010,iSPN,dSPN,10,18,0,100e-6,NaN,NaN
+WT,Planert 2010,iSPN,iSPN,7,31,0,100e-6,NaN,NaN
+WT,Planert 2010,FS,dSPN,8,9,0,100e-6,NaN,NaN
+WT,Planert 2010,FS,iSPN,6,9,0,100e-6,NaN,NaN
+WT,Taverna 2008,dSPN,dSPN,5,19,0,50e-6,NaN,NaN
+WT,Taverna 2008,dSPN,iSPN,3,47,0,50e-6,NaN,NaN
+WT,Taverna 2008,iSPN,dSPN,13,47,0,50e-6,NaN,NaN
+WT,Taverna 2008,iSPN,iSPN,14,39,0,50e-6,NaN,NaN
+WT,Gittis 2010,FS,dSPN,48,90,0,250e-6,106e-6,25e-6
+WT,Gittis 2010,FS,iSPN,27,77,0,250e-6,106e-6,25e-6
+WT,Gittis 2011,FS,dSPN,29,48,NaN,NaN,113e-6,49e-6
+WT,Gittis 2011,FS,iSPN,21,54,NaN,NaN,116e-6,47e-6
+PD,Gittis 2011,FS,dSPN,21,40,NaN,NaN,105e-6,50e-6
+PD,Gittis 2011,FS,iSPN,33,43,NaN,NaN,101e-6,48e-6
+WT,Ibanez,LTS,dSPN,2,60,0,250e-6,NaN,NaN
+WT,Ibanez,LTS,iSPN,2,60,0,250e-6,NaN,NaN
+WT,Silberberg 2013,FS,LTS,2,12,0,250e-6,NaN,NaN
+WT,Gittis ???,FS,FS,7,12,0,250e-6,NaN,NaN
+WT,Janikova 2017,ChIN,iSPN,0.05,NaN,200e-6,NaN,NaN
+WT,Janikova 2017,ChIN,dSPN,0.05,NaN,200e-6,NaN,NaN
+PD,Taverna 2008,dSPN,dSPN,0,7,0,50e-6,NaN,NaN
+PD,Taverna 2008,iSPN,iSPN,5,17,0,50e-6,NaN,NaN
+PD,Taverna 2008,iSPN,dSPN,3,12,0,50e-6,NaN,NaN

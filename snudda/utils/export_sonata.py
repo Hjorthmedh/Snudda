@@ -9,258 +9,166 @@ import json
 import os
 import sys
 from collections import OrderedDict
+from shutil import copyfile
+from glob import glob
 
 import h5py
 import numpy as np
 
-from conv_hurt import ConvHurt
-from load import SnuddaLoad
+from snudda.utils import snudda_parse_path
+from snudda.utils.conv_hurt import ConvHurt
+from snudda import SnuddaLoad
 
 
-class ExportSonata(object):
+class ExportSonata:
 
-    def __init__(self, network_file, input_file, out_dir):
+    def __init__(self, network_file, input_file, out_dir, debug_flag=True, target_simulator="NEST"):
 
-        # !!! If inputFile is last, we need to handle that appropriately
-        # and find the corresponding input file
-
-        self.debug = False
+        self.debug = debug_flag
 
         self.out_dir = out_dir
+        self.target_simulator = target_simulator
 
         # Read the data
-        nl = SnuddaLoad(network_file)
-        self.network_file = nl.network_file  # If file was "last", this sets right one
+        self.snudda_load = SnuddaLoad(network_file)
+        self.network_file = self.snudda_load.network_file
+        self.input_file = input_file
 
-        if input_file == "last":
-            self.input_file = os.path.join("save", f"input-spikes-{nl.data['SlurmID']}.hdf5")
-        else:
-            self.input_file = input_file
+        self.network_config = json.loads(self.snudda_load.data["config"])
 
         print(f"Using input file: {self.input_file}")
 
         # This contains data for converting to Neurodamus secID and secX
         self.morph_cache = dict([])
 
+        self.morph_location_lookup = dict([])
+        self.hoc_location_lookup = dict([])
+
         # Write the data in new format using the ConvHurt module
-        ch = ConvHurt(simulation_structure="Striatum",
-                      input_structures=["Cortex", "Thalamus"],
+        # TODO: We need to read structure names from the network-config.json
+        structure_names = [x for x in self.network_config["Volume"]]
+        ch = ConvHurt(simulation_structures=structure_names,
                       base_dir=out_dir)
 
-        self.copy_morphologies(nl)
+        self.copy_morphologies()
         self.copy_mechanisms()
-        self.copy_hoc(nl)
+        self.copy_hoc()
 
         # Convert our rotation matrices to vx,vy,vz rotation angles
         # Neurodamus rotation order is first Z then Y and X.
-        (vx, vy, vz) = self.rot_angles_zyx(nl)
-
-        # Node data is stored in a HDF5 file and a CSV file (CONVERT TO micrometers)
-        node_data = OrderedDict([("x", nl.data["neuronPositions"][:, 0] * 1e6),
-                                 ("y", nl.data["neuronPositions"][:, 1] * 1e6),
-                                 ("z", nl.data["neuronPositions"][:, 2] * 1e6),
-                                 ("rotation_angle_zaxis", vz),
-                                 ("rotation_angle_yaxis", vy),
-                                 ("rotation_angle_xaxis", vx)])
-
-        structure_name = "Striatum"
+        (vx, vy, vz) = self.rot_angles_zyx(self.snudda_load)
 
         # We need to convert the named neuron types to numbers
-        (node_type_id, node_type_i_dlookup) = self.allocate_node_type_id(nl)
-        (node_group_id, group_idx, group_lookup) = self.allocate_node_groups(nl)
+        (node_type_id, node_type_id_lookup) = self.allocate_node_type_id()
+        (node_group_id, group_idx, node_group_lookup) = self.allocate_node_groups()
 
-        node_id_list = np.array([x["neuronID"] for x in nl.data["neurons"] if x["volumeID"] == "Striatum"], dtype=int)
+        volume_id_list = [x["volumeID"] for x in self.snudda_load.data["neurons"]]
+        volume_list = set(volume_id_list)
 
-        ch.write_nodes(node_file='Striatum/Striatum_nodes.hdf5',
-                       population_name=structure_name,
-                       data=node_data,
-                       node_id=node_id_list,
-                       node_type_id=node_type_id[node_id_list],
-                       node_group_id=node_group_id[node_id_list],
-                       node_group_index=group_idx[node_id_list])
-
-        striatum_node_names = [n["name"] for n in nl.data["neurons"] \
-                               if n["volumeID"] == structure_name]
-
-        # This defines the order
-        csv_node_name = [k for k in node_type_i_dlookup if k in striatum_node_names]
-
-        csv_node_type_id = [node_type_i_dlookup[n] for n in csv_node_name]
-        csv_node_location = ['Striatum' for n in csv_node_name]
-
-        (model_template_list, model_type_list, morphology_list) = self.get_node_templates(nl, csv_node_name)
-
-        node_data_csv = OrderedDict([("model_type", model_type_list),
-                                     ("model_template", model_template_list),
-                                     ("location", csv_node_location),
-                                     ("morphology", morphology_list),
-                                     ("model_name", csv_node_name)])
-
-        ch.write_node_csv(node_csv_file='Striatum/Striatum_node_types.csv',
-                          node_type_id=csv_node_type_id,
-                          data=node_data_csv)
+        # node_name_list = [x["name"] for x in self.snudda_load.data["neurons"]]
+        node_name_list = [f"{n['name']}_{n['morphologyKey']}_{n['parameterKey']}_{n['modulationKey']}"
+                          for n in self.snudda_load.data["neurons"]]
 
         # Edge data is stored in a HDF5 file and a CSV file
-        edge_group_lookup = self.allocate_edge_groups(nl)
+        edge_type_lookup = dict()
+        for (pre_type, post_type), con_data in self.snudda_load.data["connectivityDistributions"].items():
+            for con_type, con_type_data in con_data.items():
+                if con_type == "GapJunction":
+                    # TODO: How do we write gap junctions to SONATA?
+                    continue
+                else:
+                    edge_type_id = con_type_data["channelModelID"]
 
-        # Here we list all the synapses we might want
-        edge_type_lookup = {("MSD1", "MSD1"): 1,
-                            ("MSD1", "MSD2"): 2,
-                            ("MSD2", "MSD1"): 3,
-                            ("MSD2", "MSD2"): 4,
-                            ("FSN", "MSD1"): 5,
-                            ("FSN", "MSD2"): 6,
-                            ("ChIN", "MSD1"): 7,
-                            ("ChIN", "MSD2"): 8,
-                            ("FSN", "FSN"): 9,
-                            ("MSD1", "FSN"): 10,
-                            ("MSD2", "FSN"): 11,
-                            ("MSD1", "ChIN"): 12,
-                            ("MSD2", "ChIN"): 13,
-                            ("FSN", "ChIN"): 14,
-                            ("ChIN", "FSN"): 15,
-                            ("ThalamusAxon", "MSD1"): 16,
-                            ("ThalamusAxon", "MSD2"): 17,
-                            ("ThalamusAxon", "FSN"): 18,
-                            ("ThalamusAxon", "ChIN"): 19,
-                            ("CortexAxon", "MSD1"): 20,
-                            ("CortexAxon", "MSD2"): 21,
-                            ("CortexAxon", "FSN"): 22,
-                            ("CortexAxon", "ChIN"): 23}
+                    if self.target_simulator == "NEST":
+                        if "nestModelTemplate" in con_type_data["channelParameters"]:
+                            edge_model = con_type_data["channelParameters"]["nestModelTemplate"]
+                        else:
+                            edge_model = "static_synapse"
+                    else:
+                        edge_model = con_type_data["channelParameters"]["modFile"]
 
-        edge_type_id = np.arange(1, 24)
+                edge_type_lookup[pre_type, post_type, con_type] = (edge_type_id, edge_model)
 
-        # These should match edgeTypeLookup
-        edge_csv_data = OrderedDict([('template',
-                                      ['MSGABA',  # 1
-                                       'MSGABA',  # 2
-                                       'MSGABA',  # 3
-                                       'MSGABA',  # 4
-                                       'FSGABA',  # 5
-                                       'FSGABA',  # 6
-                                       'AChSyn',  # 7
-                                       'AChSyn',  # 8
-                                       'FSGABA',  # 9
-                                       'MSGABA',  # 10
-                                       'MSGABA',  # 11
-                                       'MSGABA',  # 12
-                                       'MSGABA',  # 13
-                                       'FSGABA',  # 14
-                                       'AChSyn',  # 15
-                                       'ThalamusGlu',  # 16
-                                       'ThalamusGlu',  # 17
-                                       'ThalamusGlu',  # 18
-                                       'ThalamusGlu',  # 19
-                                       'CortexGlu',  # 20
-                                       'CortexGlu',  # 21
-                                       'CortexGlu',  # 22
-                                       'CortexGlu',  # 23
-                                       ])])
+        for volume_name in volume_list:
+            v_idx = np.where([v == volume_name for v in volume_id_list])[0]
 
-        ch.write_edges_csv(edge_csv_file="Striatum/Striatum_edge_types.csv",
+            # Node data is stored in a HDF5 file and a CSV file (CONVERT TO micrometers)
+            node_data = OrderedDict([("x", self.snudda_load.data["neuronPositions"][v_idx, 0] * 1e6),
+                                     ("y", self.snudda_load.data["neuronPositions"][v_idx, 1] * 1e6),
+                                     ("z", self.snudda_load.data["neuronPositions"][v_idx, 2] * 1e6),
+                                     ("rotation_angle_zaxis", vz[v_idx]),
+                                     ("rotation_angle_yaxis", vy[v_idx]),
+                                     ("rotation_angle_xaxis", vx[v_idx])])
+
+            node_id_list = np.array([x["neuronID"] for x in self.snudda_load.data["neurons"]
+                                     if x["volumeID"] == "Striatum"], dtype=int)
+
+            assert (v_idx == node_id_list).all()
+
+            ch.write_nodes(node_file=f"{volume_name}_nodes.hdf5",
+                           population_name=volume_name,
+                           data=node_data,
+                           node_id=node_id_list,
+                           node_type_id=node_type_id[node_id_list],
+                           node_group_id=node_group_id[node_id_list],
+                           node_group_index=group_idx[node_id_list])
+
+            csv_node_names = sorted(list(set([node_name_list[x] for x in v_idx])))
+            csv_node_type_id = [node_type_id_lookup[n] for n in csv_node_names]
+            csv_node_location = [volume_name for n in csv_node_names]
+
+            (model_template_list, model_type_list, morphology_list, dynamic_params) \
+                = self.get_node_templates(csv_node_names)
+
+            # Gather all the NEST models
+            dynamic_params = self.copy_and_rewrite_dynamics_params_files(dynamics_params_list=dynamic_params)
+
+            node_data_csv = OrderedDict([("model_type", model_type_list),
+                                         ("model_template", model_template_list),
+                                         ("location", csv_node_location),
+                                         ("morphology", morphology_list),
+                                         ("model_name", csv_node_names)])
+
+            if dynamic_params is not None and len(dynamic_params) > 0:
+                node_data_csv["dynamics_params"] = dynamic_params
+
+            ch.write_node_csv(node_csv_file=f"{volume_name}_node_types.csv",
+                              node_type_id=csv_node_type_id,
+                              data=node_data_csv)
+
+            edge_population_lookup, edge_population_id_lookup = self.setup_edge_population(node_group_lookup)
+
+            population_rows, edge_type_id, source_gid, target_gid, edge_data = \
+                self.setup_edge_info(edge_population_lookup, node_group_id)
+
+            ch.write_edges(edge_file=f"{volume_name}_edges.hdf5",
+                           population_rows=population_rows,
                            edge_type_id=edge_type_id,
-                           data=edge_csv_data)
+                           source_id=source_gid,
+                           target_id=target_gid,
+                           data=edge_data)
 
-        (edge_group, edge_group_index, edge_type_id, source_gid, target_gid, edgeData) \
-            = self.setup_edge_info(nl, edge_group_lookup, edge_type_lookup)
+            edge_type_id = [x[0] for x in edge_type_lookup.values()]
 
-        ch.write_edges(edge_file="Striatum/Striatum_edges.hdf5",
-                       edge_population_name="Striatum",
-                       edge_group=edge_group,
-                       edge_group_index=edge_group_index,
-                       edge_type_id=edge_type_id,
-                       source_id=source_gid,
-                       target_id=target_gid,
-                       data=edgeData)
+            edge_data = {"model_template": [x[1] for x in edge_type_lookup.values()]}
 
-        # Next we need to setup virtual nodes for the cortical and thalamic input
-
-        # !!! Change position to real position?!
-        cortex_node_data = OrderedDict([("x", np.zeros((10,))),
-                                        ("y", np.zeros((10,))),
-                                        ("z", np.zeros((10,)))])
-
-        cortex_gid = [x["neuronID"] for x in nl.data["neurons"] if x["type"] == "CortexAxon"]
-        cortex_name = [x["name"] for x in nl.data["neurons"] if x["type"] == "CortexAxon"]
-
-        # !!! Check this correct
-        cortex_node_type_id = [node_type_i_dlookup[x] for x in cortex_name]
-        try:
-            cortex_node_group_id = [group_lookup["CortexAxon"] for x in range(0, len(cortex_gid))]
-        except:
-            import traceback
-            tstr = traceback.format_exc()
-            print(tstr)
-            import pdb
-            pdb.set_trace()
-
-        cortex_node_group_index = np.arange(0, len(cortex_node_group_id), dtype=int)
-        # cortexModelTypeList = [None for x in range(0,len(cortexNodeGroupID))]
-        # cortexModelTemplateList = [None for x in range(0,len(cortexNodeGroupID))]
-
-        cortex_input = self.sort_input(nl, node_type_i_dlookup, input_name="CortexAxon")
-
-        ch.write_nodes(node_file="Cortex/Cortex_nodes.hdf5",
-                       population_name="Cortex",
-                       data=cortex_node_data,
-                       node_id=cortex_gid,
-                       node_type_id=cortex_node_type_id,
-                       node_group_id=cortex_node_group_id,
-                       node_group_index=cortex_node_group_index)
-        # modelType=cortexModelTypeList,
-        # modelTemplate=cortexModelTemplateList)
-
-        # !!! WRITE CORTEX EDGES
-
-        if False:
-            ch.write_edges(edge_file="Cortex/Cortex_edges.hdf5",
-                           edge_population_name="Cortex",
-                           edge_group=edgeGroupCortex,
-                           edge_type_id=edgeTypeIDCortex,
-                           source_id=sourceGIDCortex,
-                           targetIT=targetGIDCortex,
-                           data=edgeDataCortex)
-
-        # Same for Thalamus
-
-        thalamus_gid = [x["neuronID"] for x in nl.data["neurons"] if x["type"] == "ThalamusAxon"]
-
-        thalamus_name = [x["name"] for x in nl.data["neurons"] if x["type"] == "ThalamusAxon"]
-
-        # !!! Check this correct
-        thalamus_node_type_id = [node_type_i_dlookup[x] for x in thalamus_name]
-        thalamus_node_group_id = [group_lookup["ThalamusAxon"] for x in range(0, len(thalamus_gid))]
-        thalamus_node_group_index = np.arange(0, len(thalamus_node_group_id), dtype=int)
-        # thalamusModelTypeList = [None for x in range(0,len(thalamusNodeGroupID))]
-        # thalamusModelTemplateList =[None for x in range(0,len(thalamusNodeGroupID))]
-
-        # !!! Change to real thalamus positions
-        thalamus_node_data = OrderedDict([("x", np.zeros((10,))),
-                                          ("y", np.zeros((10,))),
-                                          ("z", np.zeros((10,)))])
-
-        thalamus_input = self.sort_input(nl, node_type_i_dlookup, input_name="ThalamusAxon")
-
-        ch.write_nodes(node_file="Thalamus/Thalamus_nodes.hdf5",
-                       population_name="Thalamus",
-                       data=thalamus_node_data,
-                       node_id=thalamus_gid,
-                       node_type_id=thalamus_node_type_id,
-                       node_group_id=thalamus_node_group_id,
-                       node_group_index=thalamus_node_group_index)
-        # modelType=thalamusModelTypeList,
-        # modelTemplate=thalamusModelTemplateList)
-
-        # !!! WRITE THALAMUS EDGES
-
-        ch.write_input(spike_file_name="inputs/cortexInput.hdf5", spikes=cortex_input)
-        ch.write_input(spike_file_name="inputs/thalamusInput.hdf5", spikes=thalamus_input)
+            ch.write_edges_csv(edge_csv_file=f"{volume_name}_edge_types.csv",
+                               edge_type_id=edge_type_id,
+                               data=edge_data)
 
         # !!! WE ALSO NEED TO ADD BACKGROUND INPUT TO THE NEURONS IN THE NETWORK
 
         self.write_simulation_config()
 
-        print("SONATA files exported to " + str(out_dir))
+        print(f"SONATA files exported to {out_dir}")
+
+    ############################################################################
+
+    def get_edge_type_lookup(self):
+
+        # Read the config file, to find out all possible types of connections
+
+        pass
 
     ############################################################################
 
@@ -328,12 +236,16 @@ class ExportSonata(object):
 
     ############################################################################
 
-    def allocate_node_type_id(self, nl):
+    def allocate_node_type_id(self):
+
+        # Since each neuron directory can have multiple morphology/parameter sets
+        # we need to use the name + morphology_key + parameter_key + modulation_key
 
         node_type_id_lookup = OrderedDict([])
         next_node_type_id = 0
 
-        node_names = [n["name"] for n in nl.data["neurons"]]
+        node_names = [f"{n['name']}_{n['morphologyKey']}_{n['parameterKey']}_{n['modulationKey']}"
+                      for n in self.snudda_load.data["neurons"]]
 
         for n in node_names:
             if n not in node_type_id_lookup:
@@ -346,72 +258,60 @@ class ExportSonata(object):
 
     ############################################################################
 
-    # RT neuron only supports one group, so put everything int he same group
+    # Comment from 2018, hope they support all now (guess we will find out):
+    #  --> RT neuron only supports one group, so put everything in the same group
 
-    def allocate_node_groups(self, nl):
+    # Snudda neuron type corresponds to SONATA NodeGroup
+    # SONATA NodeType is {Snudda neuron name}_{morphology_key}_{parameter_key}_{modulation_key}
 
-        node_group_id = np.zeros(len(nl.data["neurons"]), dtype=int)
-        group_idx = np.arange(0, len(nl.data["neurons"]))
+    def allocate_node_groups(self):
+
+        node_group_id = np.zeros(len(self.snudda_load.data["neurons"]), dtype=int)
+        group_idx = np.zeros(len(self.snudda_load.data["neurons"]), dtype=int)
         group_lookup = dict([])
 
-        neuron_types = [nl.data["neurons"][idx]["type"] for idx in range(0, len(nl.data["neurons"]))]
+        neuron_types = [n["type"] for n in self.snudda_load.data["neurons"]]
 
-        for g in neuron_types:
-            if g not in group_lookup:
-                group_lookup[g] = 0
-
-        return node_group_id, group_idx, group_lookup
-
-        ############################################################################
-
-    # So there is a bit of a confusion with the namings. For the neurons in the
-    # network "name" corresponds to SONATA NodeType, while "type" corresponds
-    # to NodeGroup.
-
-    def allocate_node_groups_OLD(self, nl):
-        group_lookup = OrderedDict([])
+        next_group_idx = dict()
         next_group = 0
 
-        group_names = [nl.data["neurons"][idx]["type"] for idx in range(0, len(nl.data["neurons"]))]
-
-        for g in group_names:
-            if g not in group_lookup:
-                group_lookup[g] = next_group
+        for nt in neuron_types:
+            if nt not in group_lookup:
+                group_lookup[nt] = next_group
                 next_group += 1
+                next_group_idx[nt] = 0
 
-        node_group_id = [group_lookup[g] for g in group_names]
-
-        next_idx = np.zeros(len(group_lookup.keys()), dtype=int)
-
-        group_idx = np.zeros(len(group_names), dtype=int)
-
-        for ig, g in enumerate(group_names):
-            group_idx[ig] = next_idx[group_lookup[g]]
-            next_idx[group_lookup[g]] += 1
+        for idx, nt in enumerate(neuron_types):
+            node_group_id[idx] = group_lookup[nt]
+            group_idx[idx] = next_group_idx[nt]
+            next_group_idx[nt] += 1
 
         return node_group_id, group_idx, group_lookup
 
     ############################################################################
 
-    def get_node_templates(self, nl, csv_node_name):
+    def get_node_templates(self, csv_node_name):
 
         template_dict = dict([])
         model_type_dict = dict([])
         morphology_dict = dict([])
         missing_list = []
 
+        dynamics_params_list = []  # Used by NEST
+
         # First create a lookup
-        for n in nl.data["neurons"]:
+        for n in self.snudda_load.data["neurons"]:
             hoc_file = n["hoc"]
-            name = n["name"]
+            name = f"{n['name']}_{n['morphologyKey']}_{n['parameterKey']}_{n['modulationKey']}"
+
             # It seems that RT neuron requires the filename without .swc at the end
             # Also, they prepend morphology path, but only allows one directory for all morphologies
-
-            morph_file = os.path.splitext(os.path.basename(n["morphology"]))[0]
+            # morph_file = os.path.splitext(os.path.basename(n["morphology"]))[0]
+            morph_file = os.path.basename(n["morphology"])
 
             if hoc_file in self.hoc_location_lookup:
                 # We need to change from old hoc location to the SONATA hoc location
-                hoc_str = "hoc:" + os.path.basename(self.hoc_location_lookup[hoc_file])
+                hoc_str = f"hoc:{os.path.basename(self.hoc_location_lookup[hoc_file])}"
             elif n["virtualNeuron"]:
                 hoc_str = "virtual"
             else:
@@ -424,13 +324,20 @@ class ExportSonata(object):
             if name not in morphology_dict:
                 morphology_dict[name] = morph_file
             else:
-                assert morphology_dict[name] == morph_file, \
+                assert os.path.basename(morphology_dict[name]) == os.path.basename(morph_file), \
                     f"Morphology mismatch for {name}: {morphology_dict[name]} vs {morph_file}"
 
             if name not in template_dict:
-                template_dict[name] = hoc_str
-                model_type_dict[name] = "biophysical"
-            else:
+                if self.target_simulator == "NEST":
+                    model_type_dict[name] = "point_neuron"
+                    dynamics_params_list.append(self.get_dynamics_params(n))
+                    template_dict[name] = "aeif_cond_exp"
+                else:
+                    model_type_dict[name] = "biophysical"
+                    template_dict[name] = hoc_str
+
+            elif self.target_simulator is not "NEST":
+
                 assert template_dict[name] == hoc_str, \
                     f"All files named {name} do not share same hoc file: {template_dict[name]} and {hoc_str}"
 
@@ -440,103 +347,68 @@ class ExportSonata(object):
         model_type_list = [model_type_dict[x] for x in csv_node_name]
         morph_list = [morphology_dict[x] for x in csv_node_name]
 
-        # import pdb
-        # pdb.set_trace()
-
-        return template_list, model_type_list, morph_list
+        return template_list, model_type_list, morph_list, dynamics_params_list
 
     ############################################################################
 
-    def get_node_templates_for_all(self, nl):
+    def copy_and_rewrite_dynamics_params_files(self, dynamics_params_list):
 
-        print("This should return all the types of neurons, eg. FNS_0,FSN_1, ..., MSD1_0, ...")
-        print("This is fewer than the number of neurons. Check CSV file to make sure it is ok after")
+        dest_path = os.path.join(self.out_dir, "components", "point_neuron_dynamics")
 
-        import pdb
-        pdb.set_trace()
+        new_dynamics_params_list = []
+        copied_files = []
 
-        template_list = []
-        model_type_list = []
-        missing_list = []
+        for file_path in dynamics_params_list:
 
-        for neuron in nl.data["neurons"]:
-            hoc_file = neuron["hoc"]
+            if file_path is None:
+                new_dynamics_params_list.append(None)
+                continue
 
-            model_type_list.append("biophysical".encode())
-
-            if hoc_file in self.hoc_location_lookup:
-                hoc_str = f"hoc:{self.hoc_location_lookup[hoc_file]}"
-                template_list.append(hoc_str.encode())
+            if os.path.basename(file_path) == "dynamics_params.json":
+                dir_name = os.path.basename(os.path.dirname(file_path))
+                new_file = os.path.join(dest_path, f"{dir_name}_dynamics_params.json")
             else:
-                template_list.append("".encode())
-                if hoc_file not in missing_list:
-                    # Only write error ones per file
-                    print(f"Missing hoc template: {hoc_file}")
-                    missing_list.append(hoc_file)
+                new_file = os.path.join(dest_path, os.path.basename(file_path))
 
-        return template_list, model_type_list
+            if new_file not in copied_files:
+                copyfile(file_path, new_file)
+                copied_files.append(new_file)
 
-    ############################################################################
+            new_dynamics_params_list.append(os.path.basename(new_file))
 
-    # !!! A lot of HBP tools only support the first group, so put all in group 0
-    # The old code makes separate groups
+        return new_dynamics_params_list
 
-    def allocate_edge_groups(self, nl):
+    def setup_edge_population(self, node_group_lookup):
 
-        # FS->MSD1, FS->MSD2 etc are example of EdgeGroups
-        edge_group_lookup = OrderedDict([])
+        edge_population_lookup = dict()
+        edge_population_id_lookup = dict()
+        next_id = 1
 
-        unique_group_names = set([nl.data["neurons"][idx]["name"].split("_")[0]
-                                  for idx in range(0, len(nl.data["neurons"]))])
+        for pre_node_type, pre_node_group in node_group_lookup.items():
+            for post_node_type, post_node_group in node_group_lookup.items():
+                edge_population_lookup[pre_node_group, post_node_group] = f"{pre_node_type}_{post_node_type}"
+                edge_population_id_lookup[pre_node_group, post_node_group] = next_id
+                next_id += 1
 
-        for g1 in unique_group_names:
-            for g2 in unique_group_names:
-                edge_group_lookup[g1, g2] = 0
-
-        return edge_group_lookup
-
-    ############################################################################
-
-    # !!! This is old version, that makes separate groups for different sets
-    # of synapses, but HBP tools only support first group currently, Jan 2019.
-    # so made another version of allocateEdgeGroups (see above).
-
-    def allocate_edge_groups_OLD(self, nl):
-
-        # FS->MSD1, FS->MSD2 etc are example of EdgeGroups
-        edge_group_lookup = OrderedDict([])
-
-        unique_group_names = set([nl.data["neurons"][idx]["name"].split("_")[0]
-                                  for idx in range(0, len(nl.data["neurons"]))])
-
-        next_group = 0
-
-        for g1 in unique_group_names:
-            for g2 in unique_group_names:
-                edge_group_lookup[g1, g2] = next_group
-                next_group += 1
-
-        return edge_group_lookup
+        return edge_population_lookup, edge_population_id_lookup
 
     ############################################################################
 
     # This code sets up the info about edges
 
-    def setup_edge_info(self, nl, edge_group_lookup, edge_type_lookup):
+    def setup_edge_info(self, edge_population_lookup, node_group_id):
 
-        n_synapses = nl.data["synapses"].shape[0]
-        edge_group = np.zeros(n_synapses, dtype=int)
-        edge_group_index = np.zeros(n_synapses, dtype=int)
+        n_synapses = self.snudda_load.data["synapses"].shape[0]
         edge_type_id = np.zeros(n_synapses, dtype=int)
         source_gid = np.zeros(n_synapses, dtype=int)
         target_gid = np.zeros(n_synapses, dtype=int)
+
+        population_rows = dict()  # For each population name, list all the synapse rows
 
         sec_id = np.zeros(n_synapses, dtype=int)
         sec_x = np.zeros(n_synapses)
         syn_weight = np.zeros(n_synapses)
         delay = np.zeros(n_synapses)
-
-        edge_group_count = np.zeros(len(edge_group_lookup.keys()))
 
         # Check if these speeds are reasonable?
         axon_speed = 25.0  # 25m/s
@@ -547,20 +419,28 @@ class ExportSonata(object):
         # 4: locType, 5: synapseType, 6: somaDistDend 7:somaDistAxon
         # somaDist is an int, representing micrometers
 
-        for i_syn, syn_row in enumerate(nl.data["synapses"]):
+        for i_syn, syn_row in enumerate(self.snudda_load.data["synapses"]):
             source_gid[i_syn] = syn_row[0]
             target_gid[i_syn] = syn_row[1]
+
+            source_node_group = node_group_id[syn_row[0]]
+            target_node_group = node_group_id[syn_row[1]]
+
+            population_group = edge_population_lookup[source_node_group, target_node_group]
+
+            if population_group in population_rows:
+                population_rows[population_group].append(i_syn)
+            else:
+                population_rows[population_group] = [i_syn]
+
             sec_id[i_syn] = syn_row[9]
             sec_x[i_syn] = syn_row[10] / 1000.0
+            synapse_type = syn_row[6]
 
-            pre_type = nl.data["neurons"][source_gid[i_syn]]["type"]
-            post_type = nl.data["neurons"][target_gid[i_syn]]["type"]
+            pre_type = self.snudda_load.data["neurons"][source_gid[i_syn]]["type"]
+            post_type = self.snudda_load.data["neurons"][target_gid[i_syn]]["type"]
 
-            edge_group[i_syn] = edge_group_lookup[pre_type, post_type]
-            edge_type_id[i_syn] = edge_type_lookup[pre_type, post_type]
-
-            edge_group_index[i_syn] = edge_group_count[edge_group[i_syn]]
-            edge_group_count[edge_group[i_syn]] += 1
+            edge_type_id[i_syn] = synapse_type
 
             dend_dist = syn_row[6] * 1e-6
             axon_dist = syn_row[7] * 1e-6
@@ -572,10 +452,10 @@ class ExportSonata(object):
                                  ("syn_weight", syn_weight),
                                  ("delay", delay)])
 
-        # Need to set edgeGroup, edgeGroupIndex, edgeType also
+        for pop_name in population_rows.keys():
+            population_rows[pop_name] = np.array(population_rows[pop_name])
 
-        return (edge_group, edge_group_index, edge_type_id,
-                source_gid, target_gid, edge_data)
+        return population_rows, edge_type_id, source_gid, target_gid, edge_data
 
     ############################################################################
 
@@ -631,6 +511,32 @@ class ExportSonata(object):
         # pdb.set_trace()
 
         return sec_id, sec_x
+
+    ############################################################################
+
+    def get_dynamics_params(self, neuron):
+
+        if self.target_simulator == "NEST":
+            # If the dynamics_params.json file exist in the neuron path, then use that
+            neuron_path = os.path.relpath(snudda_parse_path(neuron["neuronPath"], self.snudda_load.data["SnuddaData"]))
+            dynamics_params_path = os.path.join(neuron_path, "dynamics_params.json")
+
+            if os.path.isfile(dynamics_params_path):
+                return dynamics_params_path
+
+            # Otherwise, if there is a default model in the nest/models directory, use that
+            neuron_type = neuron["type"]
+            alt_dynamics_path = os.path.join(self.snudda_load.data["SnuddaData"],
+                                             "nest", "models", f"{neuron_type}.json")
+            if os.path.isfile(alt_dynamics_path):
+
+                print(f"Missing {dynamics_params_path} file, using {alt_dynamics_path}")
+
+                return alt_dynamics_path
+
+            return None
+        else:
+            return None
 
     ############################################################################
 
@@ -866,7 +772,7 @@ class ExportSonata(object):
 
     ############################################################################
 
-    def copy_morphologies(self, nl):
+    def copy_morphologies(self):
         from shutil import copyfile
         import os
 
@@ -874,26 +780,22 @@ class ExportSonata(object):
 
         print("Copying morphologies")
 
-        # Loop through all the neurons, and copy the morphologies
-        for neuron_id in nl.config:
-            if neuron_id in ["Volume", "Channels"]:
-                continue  # Not cell, skip
+        morph_set = set([n["morphology"] for n in self.snudda_load.data["neurons"]])
 
-            morph_file = nl.config[neuron_id]["morphology"]
+        for morph_path in morph_set:
+            morph_file = snudda_parse_path(morph_path, snudda_data=self.snudda_load.data["SnuddaData"])
             base_name = os.path.basename(morph_file)
-            dest_file = self.out_dir + "components/morphologies/" + base_name
+            dest_file = os.path.join(self.out_dir, "components", "morphologies", base_name)
 
             if self.debug:
-                print("Copying " + morph_file + " to " + dest_file)
+                print(f"Copying {morph_file} to {dest_file}")
 
             copyfile(morph_file, dest_file)
-            self.morph_location_lookup[morph_file] = dest_file
+            self.morph_location_lookup[morph_path] = os.path.relpath(dest_file)
 
     ############################################################################
 
-    def copy_hoc(self, nl):
-        from shutil import copyfile
-        import os
+    def copy_hoc(self):
 
         self.hoc_location_lookup = dict([])
 
@@ -901,13 +803,10 @@ class ExportSonata(object):
 
         missing_files = []
 
-        # Loop through all the neurons, and copy the hoc
-        for neuron_id in nl.config:
-            if neuron_id in ["Volume", "Channels"]:
-                continue  # Not cell, skip
+        hoc_set = set([n["hoc"] for n in self.snudda_load.data["neurons"] if n["hoc"]])
 
-            hoc_file = nl.config[neuron_id]["hoc"]
-
+        for hoc_path in hoc_set:
+            hoc_file = snudda_parse_path(hoc_path, snudda_data=self.snudda_load.data["SnuddaData"])
             if os.path.isfile(hoc_file):
                 base_name = os.path.basename(hoc_file)
                 dest_file = os.path.join(self.out_dir, "components", "hoc_templates", base_name)
@@ -915,30 +814,29 @@ class ExportSonata(object):
                 if self.debug:
                     print(f"Copying {hoc_file} to {dest_file}")
 
-                self.hoc_location_lookup[hoc_file] = dest_file
+                self.hoc_location_lookup[hoc_path] = dest_file
                 copyfile(hoc_file, dest_file)
             else:
-
                 if hoc_file not in missing_files:
                     # Only print same error message ones
-                    print(f"!!! Missing hoc file: {hoc_file}")
+                    print(f"- Missing hoc file: {hoc_file}")
 
                 missing_files.append(hoc_file)
 
-                ############################################################################
+    ############################################################################
 
     def copy_mechanisms(self):
-        from shutil import copyfile
-        from glob import glob
-        import os
 
         print("Copying mechanisms")
+        mech_path = snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "mechanisms"),
+                                      snudda_data=self.snudda_load.data["SnuddaData"])
 
-        for mech in glob("*.mod"):
+        for mech in glob(os.path.join(mech_path, "*.mod")):
             if self.debug:
                 print(f"Copying {mech}")
 
-            copyfile(mech, os.path.join(self.out_dir, "components", "mechanisms", mech))
+            mech_file = os.path.basename(mech)
+            copyfile(mech, os.path.join(self.out_dir, "components", "mechanisms", mech_file))
 
     ############################################################################
 

@@ -30,6 +30,8 @@ from snudda.place.region_mesh import RegionMesh
 from snudda.place.rotation import SnuddaRotate
 from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists, snudda_simplify_path
 
+from snudda.neurons.morphology_data import MorphologyData
+
 ''' This code places all neurons in space, but does not setup their
     connectivity. That is done by detect.py and prune.py '''
 
@@ -133,8 +135,6 @@ class SnuddaPlace(object):
         # avoid boundary effects, without padding we would get too high density
         # at the edges
         self.volume = dict([])
-
-        # self.read_config()  # -- Now called from core.py
 
     def __del__(self):
 
@@ -290,7 +290,9 @@ class SnuddaPlace(object):
                     n.add_morphology(swc_file=axon_swc[idx],
                                      name=axon_name,
                                      position=axon_position[idx, :],
-                                     rotation=axon_rotation[idx, :].reshape((3, 3)))
+                                     rotation=axon_rotation[idx, :].reshape((3, 3)),
+                                     lazy_loading=True
+                                     )
 
             self.neurons.append(n)
 
@@ -576,48 +578,92 @@ class SnuddaPlace(object):
             # No extra axons for neuron
             return []
 
-    def get_projection_axon_location(self, source_position, proj_info, rng):
+    def get_projection_axon_location(self, source_position, proj_info, rng, patch_hull=True):
+        if 'projection' not in proj_info:
+            raise KeyError("No 'projection' entry in the projection config!")
+        
+        proj_cfg = proj_info["projection"]
+        if "file" in proj_cfg and \
+            ("source" in proj_cfg or \
+           "destination" in proj_cfg):
+           raise NotImplementedError("Projections should specify either a file or a mapping!")
 
-        if "proj_file" in proj_info:
-            proj_data = json.load(proj_info["proj_file"])
-            source = np.array(proj_data["source"])*1e-6
-            destination = np.array(proj_data["destination"])*1e-6
-        else:
-            source = np.array(proj_info["source"])*1e-6
-            destination = np.array(proj_info["destination"])*1e-6
+        elif "source" in proj_cfg \
+            and "destination" in proj_cfg:
+            source = np.array(proj_cfg["source"])*1e-6
+            destination = np.array(proj_cfg["destination"])*1e-6
 
-        if "rotation_file" in proj_info:
-            rot_data = json.load(proj_info["rotation_file"])
-            rotation = np.array(rot_data["rotation"])
-            rot_position = np.array(rot_data["position"])*1e-6
-        elif "rotation" in proj_info:
-            rotation = np.array(proj_info["rotation"])
-            rot_position = np.array(proj_info["destination"])*1e-6
+        elif "file" in proj_cfg :
+            with open(proj_cfg["file"], 'r') as f:
+                proj_file_data = json.load(f)
+            source = np.array(proj_file_data["source"])*1e-6
+            destination = np.array(proj_file_data["destination"])*1e-6
+            
+        else: 
+            raise NotImplementedError("Unknown projection configuration!")
+
+        # specify the rotations of the termination zones
+        rotation_cfg = proj_info.get("rotation", {})
+        if "rotation" in rotation_cfg:
+            rotation = np.array(rotation_cfg["rotation"])
+            rot_position = destination
+        
+        elif "file" in rotation_cfg:
+            with open(rotation_cfg["file"], 'r') as f:
+                rotation_data = json.load(f)
+            rotation = np.array(rotation_data["rotation"])
+            rot_position = np.array(rotation_data["position"])*1e-6
         else:
             rotation = None
             rot_position = None
 
-        # target_based_rotation = True  # -- TODO: restructure projection
-
-        # Obs we convert from micrometers to meters
         target_centres = griddata(points=source,
                                   values=destination,
-                                  xi=source_position, method="linear")
+                                  xi=source_position,
+                                  method="linear")
+
+        # this checks if there are values outside of the convex hull
+        to_patch = np.where(np.isnan(np.sum(target_centres, axis=1)))[0]
+
+        # and patch missing entries
+        if patch_hull and len(to_patch)>0:
+            self.write_log(f"Patched {len(to_patch)}/{len(target_centres)}")
+            target_centres_patched = griddata(points=source,
+                                              values=destination,
+                                              xi=source_position,
+                                              method="nearest")
+            target_centres[to_patch] = target_centres_patched[to_patch]
+
+        # which coordinates to use for selecting rotation
+        mapping = rotation_cfg.get('mapping', 'target')
+        if mapping == "target":
+            xi = target_centres
+        elif mapping == "source":
+            xi = source_position
+        else:
+            raise NotImplentedError(f"Unknown mapping '{mapping}'!")
 
         if rotation is not None:
-            # TODO: This is probably wrong, we have to handle interpolation between
-            #       rotation matrices in a better way! -- use angles? -- use target_centres, vs
             target_rotation = griddata(points=rot_position,
                                        values=rotation,
-                                       xi=target_centres, method="linear")
+                                       xi=xi, method="linear")
+            # if the rotation is specified as a field of rotation vectors, 
+            # then these need to be converted to matrices.
+            if target_rotation[0].shape == (3,):
+                rotation_matrices = \
+                [SnuddaRotate.rotation_matrix_from_vectors(np.array([0, 0, 1]), rv).flatten()\
+                 for rv in target_rotation] 
+                target_rotation = np.array(rotation_matrices)
+                
         else:
             target_rotation = [None for x in range(source_position.shape[0])]
 
-        num_axons = len(proj_info["axonMorphology"])
+        num_axons = len(proj_info["morphologies"])
         axon_id = rng.choice(num_axons, source_position.shape[0])
-        axon_swc = [proj_info["axonMorphology"][x] for x in axon_id]
+        axon_swc = [proj_info["morphologies"][x] for x in axon_id]
 
         return target_centres, target_rotation, axon_swc
+
 
     ############################################################################
 
@@ -685,7 +731,7 @@ class SnuddaPlace(object):
 
     def write_data(self, file_name=None):
 
-        """ Writes positition data to HDF5 file file_name. """
+        """ Writes position data to HDF5 file file_name. """
 
         if not file_name:
             file_name = self.position_file
@@ -778,35 +824,6 @@ class SnuddaPlace(object):
                                   dtype=h5py.special_dtype(vlen=bytes), compression="gzip")
 
         # TODO: Parent tree info, eller motsvarande, måste sparas också!
-
-        # Should not be used anymore, try removing...
-        #
-        # neuron_dend_radius = neuron_group.create_dataset("maxDendRadius",
-        #                                                  (len(self.neurons),),
-        #                                                  "float",
-        #                                                  compression="gzip")
-        #
-        # neuron_axon_radius = neuron_group.create_dataset("maxAxonRadius",
-        #                                                  (len(self.neurons),),
-        #                                                  "float",
-        #                                                  compression="gzip")
-
-        # Obsolete, we now use morphology_key, parameter_key and modulation_key exclusively
-        #
-        # neuron_param_id = neuron_group.create_dataset("parameterID",
-        #                                               (len(self.neurons),),
-        #                                               "int",
-        #                                               compression="gzip")
-        #
-        # neuron_morph_id = neuron_group.create_dataset("morphologyID",
-        #                                               (len(self.neurons),),
-        #                                               "int",
-        #                                               compression="gzip")
-
-        # neuron_modulation_id = neuron_group.create_dataset("modulationID",
-        #                                                    (len(self.neurons),),
-        #                                                    "int",
-        #                                                    compression="gzip")
 
         pk_list = [n.parameter_key.encode("ascii", "ignore")
                    if n.parameter_key is not None else ""

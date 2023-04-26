@@ -161,7 +161,7 @@ class Snudda(object):
         self.setup_log_file(log_file_name)  # sets self.logFile
 
         if args.parallel:
-            self.setup_parallel()  # sets self.d_view
+            self.setup_parallel(ipython_profile=args.ipython_profile)  # sets self.d_view
 
         from snudda.place.place import SnuddaPlace
 
@@ -232,7 +232,7 @@ class Snudda(object):
         self.setup_log_file(log_filename)  # sets self.logfile
 
         if args.parallel:
-            self.setup_parallel()  # sets self.d_view
+            self.setup_parallel(ipython_profile=args.ipython_profile)  # sets self.d_view
 
         if args.h5legacy:
             h5libver = "earliest"
@@ -300,7 +300,7 @@ class Snudda(object):
         self.setup_log_file(log_filename)  # sets self.logfile
 
         if args.parallel:
-            self.setup_parallel()  # sets self.d_view
+            self.setup_parallel(ipython_profile=args.ipython_profile)  # sets self.d_view
 
         # Optionally set this
         scratch_path = None
@@ -348,7 +348,7 @@ class Snudda(object):
         self.setup_log_file(log_filename)  # sets self.logfile
 
         if args.parallel:
-            self.setup_parallel()  # sets self.d_view
+            self.setup_parallel(ipython_profile=args.ipython_profile)  # sets self.d_view
 
         from snudda.input.input import SnuddaInput
 
@@ -415,8 +415,6 @@ class Snudda(object):
             args : command line arguments from argparse
         """
 
-        assert False, "Old export to SONATA borken, fixme!"
-        # TODO: Fix this
         from snudda.utils.export_sonata import ExportSonata
 
         print("Exporting to SONATA format")
@@ -678,7 +676,7 @@ class Snudda(object):
 
     ############################################################################
 
-    def setup_parallel(self):
+    def setup_parallel(self, ipython_profile=None):
         """Setup ipyparallel workers."""
 
         self.slurm_id = os.getenv('SLURM_JOBID')
@@ -690,7 +688,9 @@ class Snudda(object):
 
         self.logfile.write(f"Using slurm_id: {self.slurm_id}")
 
-        ipython_profile = os.getenv('IPYTHON_PROFILE')
+        if ipython_profile is None:
+            ipython_profile = os.getenv('IPYTHON_PROFILE')
+
         if not ipython_profile:
             ipython_profile = "default"
 
@@ -703,8 +703,9 @@ class Snudda(object):
         from ipyparallel import Client
 
         u_file = os.path.join(ipython_dir, f"profile_{ipython_profile}", "security", "ipcontroller-client.json")
+        print(f"Reading IPYPARALLEL connection info from {u_file}\n")
         self.logfile.write(f"Reading IPYPARALLEL connection info from {u_file}\n")
-        self.rc = Client(url_file=u_file, timeout=120, debug=False)
+        self.rc = Client(profile=ipython_profile, url_file=u_file, timeout=120, debug=False)
 
         self.logfile.write(f'Client IDs: {self.rc.ids}')
 

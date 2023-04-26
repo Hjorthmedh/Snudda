@@ -17,7 +17,7 @@ class SwapToDegeneratedMorphologies:
     def __init__(self, original_network_file, new_network_file,
                  original_snudda_data_dir, new_snudda_data_dir,
                  original_input_file=None, new_input_file=None,
-                 filter_axon=False):
+                 filter_axon=False, forced_param_key=None):
 
         """ This code replaces the neuron morphologies in the original network with user provided degenerated copies
             of the neurons. The synapses that are on removed dendritic will also be removed.
@@ -42,6 +42,7 @@ class SwapToDegeneratedMorphologies:
 
         self.original_input_file = original_input_file
         self.new_input_file = new_input_file
+        self.forced_param_key = forced_param_key
 
         self.original_network_loader = SnuddaLoad(self.original_network_file, load_synapses=False)
         self.old_hdf5 = self.original_network_loader.hdf5_file
@@ -96,6 +97,9 @@ class SwapToDegeneratedMorphologies:
         for idx, neuron_id in enumerate(self.new_hdf5["network/neurons/neuronID"]):
             assert idx == neuron_id, "There should be no gaps in numbering."
             param_key, morph_key, neuron_path, param_id, morph_id = self.find_morpology(neuron_id)
+
+            if self.forced_param_key:
+                param_key=self.forced_param_key
             self.new_hdf5[f"network/neurons/parameterKey"][idx] = param_key
             self.new_hdf5[f"network/neurons/morphologyKey"][idx] = morph_key
             # self.new_hdf5[f"network/neurons/parameterID"][idx] = param_id

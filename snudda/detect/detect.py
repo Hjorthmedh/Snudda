@@ -19,6 +19,7 @@ import sys
 import time
 import timeit
 from collections import OrderedDict
+import gc
 
 import h5py
 import numexpr
@@ -293,7 +294,7 @@ class SnuddaDetect(object):
         if rc is not None:
             self.rc = rc
 
-        # We need to setup the workers
+        # We need to set up the workers
         if self.rc is not None:
             d_view = self.rc.direct_view(targets='all')
         else:
@@ -443,7 +444,7 @@ class SnuddaDetect(object):
                         self.voxel_overflow_counter += voxel_overflow_ctr
                     else:
                         if exec_time > 100 or self.verbose:
-                            # Only print the long running hyper voxels
+                            # Only print the hyper voxels taking a long time to complete
                             self.write_log(f"HyperID {hyper_id} completed "
                                            f"- {num_syn} synapses found ({np.around(exec_time, 1)} s)",
                                            force_print=True)
@@ -451,6 +452,12 @@ class SnuddaDetect(object):
                             self.write_log(f"Suppressing printouts for hyper voxels that complete in < 100 seconds.",
                                            force_print=True)
                             info_msg_written = True
+
+                    if len(remaining) == 0:
+                        # If there are no more hypervoxels to process, free the memory
+                        # so that any workers still running can have more memory available
+                        cmd_free_str = "sd.free_memory()"
+                        rc["worker_idx"].execute(cmd_free_str, block=False)
 
             # Check that there are neurons in the hyper voxel, otherwise skip it.
             if worker_status[worker_idx] is None and job_idx < len(remaining):
@@ -1043,6 +1050,20 @@ class SnuddaDetect(object):
         self.hyper_voxel_origo = hyper_voxel_origo
         self.hyper_voxel_id = hyper_voxel_id
 
+        # Clear lookup tables, just to be safe
+        self.hyper_voxel_synapse_lookup = None
+        self.hyper_voxel_gap_junction_lookup = None
+
+        if SnuddaDetect.memory_fraction_free() < 0.2:
+            # Clear some variables to free memory, reset max values to default, and perform garbage collection
+            self.hyper_voxel_synapses = None
+            self.hyper_voxel_gap_junctions = None
+            self.max_synapses = 2000000
+            self.max_gap_junctions = 100000
+            self.neuron_cache = dict([])
+            self.extra_axon_cache = dict([])
+            gc.collect()
+
         if self.hyper_voxel_synapses is None:
             self.hyper_voxel_synapses = np.zeros((self.max_synapses, 13), dtype=np.int32)
             self.hyper_voxel_synapse_ctr = 0
@@ -1057,10 +1078,6 @@ class SnuddaDetect(object):
         else:
             self.hyper_voxel_gap_junctions[:] = 0
             self.hyper_voxel_gap_junction_ctr = 0
-
-        # Clear lookup tables, just to be safe
-        self.hyper_voxel_synapse_lookup = None
-        self.hyper_voxel_gap_junction_lookup = None
 
         # Used by plotHyperVoxel to make sure synapses are displayed correctly
         self.hyper_voxel_offset = None
@@ -1129,6 +1146,34 @@ class SnuddaDetect(object):
             # (less chance of cache hits between hyper voxels, and avoid too many copies cached)
             self.neuron_cache = dict()
             self.extra_axon_cache = dict()
+
+    def free_memory(self):
+        # Clear some variables to free memory, reset max values to default, and perform garbage collection
+        self.hyper_voxel_synapses = None
+        self.hyper_voxel_gap_junctions = None
+        self.max_synapses = 2000000
+        self.max_gap_junctions = 100000
+
+        self.neuron_cache = dict([])
+        self.extra_axon_cache = dict([])
+
+        self.axon_voxels = None
+        self.axon_voxel_ctr = None
+        self.axon_soma_dist = None
+
+        self.dend_voxels = None
+        self.dend_voxel_ctr = None
+        self.dend_sec_id = None
+        self.dend_sec_x = None
+        self.dend_soma_dist = None
+
+        mem_available_before = self.memory_fraction_free()
+
+        gc.collect()
+
+        mem_available_after = self.memory_fraction_free()
+
+        self.writelog(f"Hyper voxel memory freed. Free before {mem_available_before}%, free after {mem_available_after}%")
 
     ############################################################################
 
@@ -1207,7 +1252,7 @@ class SnuddaDetect(object):
                                                                                                    scale=cluster_spread[1])),
                                                                 5e-6)
 
-                                # This uses clone in neuron_prototype which should be cached
+                                # This uses clone in neuron_prototype which should be cached (not anymore, but will be cached for 2nd hit)
                                 neuron = self.load_neuron(self.neurons[d_id])
                                 
                                 try:
@@ -2460,7 +2505,7 @@ class SnuddaDetect(object):
                 if ctr % 10000 == 0:
                     self.write_log(f"Assignment counter: {ctr}")
 
-                neuron = self.load_neuron(n)
+                neuron = self.load_neuron(n, use_cache=False)
                 neuron_id = n["neuronID"]
 
                 tree_info = self.get_hypervoxel_coords_and_section_id(neuron=neuron)
@@ -2655,7 +2700,7 @@ class SnuddaDetect(object):
                     # we are looking at now
                     continue
 
-                neuron = self.load_neuron(n)
+                neuron = self.load_neuron(n, use_cache=False)
                 for subtree in neuron.morphology_data.values():
                     try:
                         max_coord = np.maximum(max_coord, np.max(subtree.geometry[:, :3], axis=0))
@@ -2779,6 +2824,7 @@ class SnuddaDetect(object):
 
         # Can we move the iterator into numba?
         for section in neuron.section_iterator_selective(section_type=3, section_id=section_id):
+
             voxel_overflow_ctr = SnuddaDetect.fill_voxels_dend_helper(voxel_space=voxel_space,
                                                                       voxel_space_ctr=voxel_space_ctr,
                                                                       voxel_sec_id=voxel_sec_id,
@@ -2795,7 +2841,6 @@ class SnuddaDetect(object):
                                                                       self_step_multiplier=self.step_multiplier)
             self.voxel_overflow_counter += voxel_overflow_ctr
 
-    # Temporarily disabling NUMBA, since amax does not support axis in NUMBA
     @staticmethod
     @jit(nopython=True, fastmath=True, cache=True)
     def fill_voxels_dend_helper(voxel_space, voxel_space_ctr,
@@ -2869,14 +2914,9 @@ class SnuddaDetect(object):
         dd_step = np.divide(np.diff(scaled_soma_dist), num_steps)
 
         # Remove this check later... should be done in morphology_data
-        if (num_steps <= 0).any():
+        if (num_steps <= 0).any(): 
             print(f"Found zero length dendrite segment in neuron_id {neuron_id}")
             raise ValueError(f"Found zero length dendrite segment (please check morphologies).")
-
-        # if neuron_id == 0 and section_id[-1] == 48:
-        #     print("Check the loop, second iteration...")
-        #     import pdb
-        #     pdb.set_trace()
 
         # Loop through all point-pairs of the section
         for idx in range(0, len(scaled_soma_dist)-1):
@@ -2949,11 +2989,6 @@ class SnuddaDetect(object):
         """
 
         for section in neuron.section_iterator_selective(section_type=2, section_id=section_id, subtree=subtree):
-
-            # if section.section_id == 219 and neuron_id == 21:
-            #     print("Explore axon")
-            #     import pdb
-            #     pdb.set_trace()
 
             voxel_overflow_ctr = SnuddaDetect.fill_voxels_axon_helper(voxel_space=voxel_space,
                                                                       voxel_space_ctr=voxel_space_ctr,
@@ -3119,7 +3154,7 @@ class SnuddaDetect(object):
             for neuron_id in sorted(self.hyper_voxels[hyper_id]["neurons"].keys()):
 
                 neuron_info = self.hyper_voxels[hyper_id]["neurons"][neuron_id]
-                neuron = self.load_neuron(self.neurons[neuron_id])
+                neuron = self.load_neuron(self.neurons[neuron_id], use_cache=False)  # !!! Cached objects get huge
 
                 if "soma" in neuron_info:
                     self.fill_voxels_soma(self.dend_voxels,
@@ -3287,7 +3322,7 @@ class SnuddaDetect(object):
                 plot_neuron_id = self.hyper_voxels[self.hyper_voxel_id]["neurons"][:num_neurons]
 
             for neuronID in plot_neuron_id:
-                neuron = self.load_neuron(self.neurons[neuronID])
+                neuron = self.load_neuron(self.neurons[neuronID], use_cache=False)
 
                 neuron.plot_neuron(axis=ax,
                                    plot_axon=draw_axons,
@@ -3489,6 +3524,12 @@ class SnuddaDetect(object):
         res = f"Memory: {memory_available} free, {memory_total} total"
 
         return res
+
+    @staticmethod
+    def memory_fraction_free():
+        memory_available, memory_total = snudda.utils.memory.memory_status()
+
+        return memory_available / memory_total
 
 @staticmethod
 def amax_helper(matrix) -> np.array:

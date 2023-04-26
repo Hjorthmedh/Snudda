@@ -13,19 +13,18 @@ import numpy as np
 
 class ConvHurt(object):
 
-    def __init__(self, simulation_structure, input_structures, base_dir="TEST/"):
+    def __init__(self, simulation_structures, base_dir="TEST/", target_simulator="NEST"):
 
         self.base_dir = base_dir
         self.network_dir = os.path.join(base_dir, 'networks')
+        self.target_simulator = target_simulator
 
         self.h5py_libver = "earliest"  # "latest"
 
-        self.setup_directories(simulation_structure=simulation_structure,
-                               input_structures=input_structures, base_dir=base_dir)
+        self.setup_directories(base_dir=base_dir)
 
-        self.write_main_config(simulation_structure=simulation_structure,
-                               input_structures=input_structures,
-                               base_dir=base_dir)
+        self.write_main_config(simulation_structures=simulation_structures,
+                               base_dir=base_dir, target_simulator=target_simulator)
 
     ############################################################################
 
@@ -39,8 +38,6 @@ class ConvHurt(object):
     ############################################################################
 
     def setup_directories(self,
-                          simulation_structure,
-                          input_structures,
                           base_dir=None):
 
         if base_dir is None:
@@ -48,15 +45,17 @@ class ConvHurt(object):
 
         self.create_dir(base_dir)
 
-        dir_list = ['components', 'components/biophysical_neuron_dynamics', 'components/hoc_templates',
-                    'components/mechanisms', 'components/morphologies', 'components/point_neuron_dynamics',
-                    'components/synapse_dynamics', 'networks', 'inputs', 'output', f"networks/{simulation_structure}"]
-
-        for x in input_structures:
-            dir_list.append(f"networks/{x}")
+        dir_list = ['components',
+                    os.path.join("components", "biophysical_neuron_dynamics"),
+                    os.path.join("components", "hoc_templates"),
+                    os.path.join("components", "mechanisms"),
+                    os.path.join("components", "morphologies"),
+                    os.path.join("components", "point_neuron_dynamics"),
+                    os.path.join("components", "synapse_dynamics"),
+                    'networks', 'inputs', 'output']
 
         for x in dir_list:
-            self.create_dir(f"{base_dir}{x}")
+            self.create_dir(os.path.join(base_dir, x))
 
     ############################################################################
     #
@@ -65,12 +64,8 @@ class ConvHurt(object):
     def write_main_config(self,
                           base_dir="TEST/",
                           out_file="circuit_config.json",
-                          simulation_structure="striatum",
-                          input_structures=None,
+                          simulation_structures=[],
                           target_simulator="NEURON"):
-
-        if input_structures is None:
-            input_structures = ["thalamus", "cortex"]
 
         config = OrderedDict([])
 
@@ -95,28 +90,18 @@ class ConvHurt(object):
 
         config["components"] = components
 
-        sim_node = os.path.join("$NETWORK_DIR", simulation_structure, f"{simulation_structure}_nodes.hdf5")
-        sim_node_type = os.path.join("$NETWORK_DIR", simulation_structure, f"{simulation_structure}_node_types.csv")
+        nodes = []
+        edges = []
+        for ss in simulation_structures:
+            node_info = {"nodes_file": os.path.join("$NETWORK_DIR", f"{ss}_nodes.hdf5"),
+                         "node_types_file": os.path.join("$NETWORK_DIR", f"{ss}_node_types.csv") }
+            nodes.append(node_info)
 
-        sim_edge = os.path.join("$NETWORK_DIR", simulation_structure, f"{simulation_structure}_edges.hdf5")
-        sim_edge_type = os.path.join("$NETWORK_DIR", simulation_structure, f"{simulation_structure}_edge_types.csv")
+            edge_info = {"edges_file": os.path.join("$NETWORK_DIR", f"{ss}_edges.hdf5"),
+                         "edge_types_file": os.path.join("$NETWORK_DIR", f"{ss}_edge_types.csv") }
+            edges.append(edge_info)
 
-        # We create a list where first element contains the simulated node,
-        # subsequent elements are the inputs (can be more than one)
-
-        node_files = [OrderedDict([("nodes_file", sim_node),
-                                   ("node_types_file", sim_node_type)])]
-        node_files += [OrderedDict([("nodes_file", os.path.join("$NETWORK_DIR", x, f"{x}_nodes.hdf5")),
-                                    ("node_types_file", os.path.join("$NETWORK_DIR", x, f"{x}_node_types.csv"))])
-                       for x in input_structures]
-
-        edge_files = [OrderedDict([("edges_file", sim_edge), ("edge_types_file", sim_edge_type)])]
-        edge_files += [OrderedDict([("edges_file", os.path.join("$NETWORK_DIR", x, f"{x}_edges.hdf5")),
-                                    ("edge_types_file", os.path.join("$NETWORK_DIR", x, f"{x}_edge_types.csv"))])
-                       for x in input_structures]
-
-        config["networks"] = OrderedDict([("nodes", node_files),
-                                          ("edges", edge_files)])
+        config["networks"] = OrderedDict([("nodes", nodes), ("edges", edges)])
 
         with open(os.path.join(base_dir, out_file), 'wt') as f:
             json.dump(config, f, indent=4)
@@ -125,10 +110,10 @@ class ConvHurt(object):
 
     # nodeID - vector with IDs for all neurons
     # nodeTypeID - vector with Type ID for each neuron
-    # nodeGroupID - vector with group memebership for each neuron
+    # nodeGroupID - vector with group membership for each neuron
     # nodeGroupIndex - vector with index of each neuron within the given group
 
-    # data = dictionary with "position", "rotaton_angle_zaxis", ...
+    # data = dictionary with "position", "rotation_angle_zaxis", ...
     #        etc that should be stored
     #        names should match what is in the group data
     def write_nodes(self,
@@ -143,6 +128,8 @@ class ConvHurt(object):
                     model_template=None):
 
         with h5py.File(os.path.join(self.network_dir, node_file), 'w', libver=self.h5py_libver) as f:
+
+            self.add_version(f)
 
             n_group = f.create_group("nodes")
 
@@ -229,80 +216,54 @@ class ConvHurt(object):
 
     # !!! WHAT HAPPENS IF WE CANT KEEP EVERYTHING IN MEMORY
 
-    def write_edges(self, edge_file,
-                    edge_population_name,
-                    edge_group,
-                    edge_group_index,
+    def write_edges(self,
+                    edge_file,
+                    population_rows,
                     edge_type_id,
                     source_id,
                     target_id,
-                    data,
-                    source_population_name=None,
-                    target_population_name=None, ):
+                    data):
 
-        if source_population_name is None:
-            source_population_name = edge_population_name
-            print(f"No source population name given, using edge_population_name: {edge_population_name}")
-
-        if target_population_name is None:
-            target_population_name = edge_population_name
-            print(f"No source population name given, using edgePopulationName: {edge_population_name}")
-
-            # We need to have the targetID vector sorted
+        # We need to have the targetID vector sorted
         # How should we handle cells that do not have any edges at all?
         sort_idx = np.argsort(target_id)
 
-        # This finds the positions where the sorter targetID increases
-        all_diffs = np.diff(target_id[sort_idx])
-        diff_idx = np.where(all_diffs > 0)[0]
-        index_pointer = np.zeros(len(diff_idx) + 1)
-        index_pointer[1:] = diff_idx + 1
-
-        # import pdb
-        # pdb.set_trace()
-
-        # We assume all neurons has at least one synapse, the diff should
-        # never jump by two
-        if not (all_diffs < 2).all():
-            print("!!! Not all neurons have synapses!")
-
-        # EVERYTHING we write needs to use sortIdx so it is in the right order
+        # EVERYTHING we write needs to use sort_idx (idx) so it is in the right order
         with h5py.File(os.path.join(self.network_dir, edge_file), 'w', libver=self.h5py_libver) as f:
+            self.add_version(f)
+
             edg_group = f.create_group("edges")
-            e_group = edg_group.create_group(edge_population_name)
 
-            e_group.create_dataset("edge_group", data=edge_group[sort_idx])
-            e_group.create_dataset("edge_group_index", data=edge_group_index[sort_idx])
-            e_group.create_dataset("edge_type_id", data=edge_type_id[sort_idx])
-            e_group.create_dataset("index_pointer", data=index_pointer)
-            e_group.create_dataset("source_node_id", data=source_id[sort_idx])
-            e_group.create_dataset("target_node_id", data=target_id[sort_idx])
+            for pop_name, pop_rows in population_rows.items():
+                source_population_name, target_population_name = pop_name.split("_")
+                n_rows = len(pop_rows)
 
-            e_group["source_node_id"].attrs["node_population"] = source_population_name
-            e_group["target_node_id"].attrs["node_population"] = target_population_name
-            groups = np.unique(edge_group)
+                e_group = edg_group.create_group(pop_name)
 
-            for g in groups:
-                idx = np.where(edge_group[sort_idx] == g)
+                idx = sort_idx[pop_rows]
 
-                group_group = e_group.create_group(str(g))
+                e_group.create_dataset("edge_group_id", data=np.zeros((n_rows,), dtype=int))
+                e_group.create_dataset("edge_group_index", data=np.arange(n_rows), dtype=int)
+                e_group.create_dataset("edge_type_id", data=edge_type_id[idx])
+                e_group.create_dataset("source_node_id", data=source_id[idx])
+                e_group.create_dataset("target_node_id", data=target_id[idx])
+
+                e_group["source_node_id"].attrs["node_population"] = source_population_name
+                e_group["target_node_id"].attrs["node_population"] = target_population_name
+
+                group_group = e_group.create_group("0")
 
                 for data_type in data.keys():
                     if len(data[data_type].shape) == 1:
-                        group_group.create_dataset(data_type,
-                                                   data=data[data_type][sort_idx][idx])
+                        group_group.create_dataset(data_type, data=data[data_type][idx])
                     elif len(data[data_type].shape) == 2:
-                        group_group.create_dataset(data_type,
-                                                   data=data[data_type][sort_idx, :][idx, :])
+                        group_group.create_dataset(data_type, data=data[data_type][idx, :])
                     else:
                         print("Unsupported width of data column.")
 
-            # We need to create the indices needed by Allen Institute
-            self.create_index(e_group["source_node_id"], e_group, index_source=True)
-            self.create_index(e_group["target_node_id"], e_group, index_source=False)
-            # inGroup = eGroup.create_group("indices")
-            # inGroup.create_group("source_to_target")
-            # inGroup.create_group("target_to_source")
+                # We need to create the indices needed by Allen Institute
+                self.create_index(e_group["source_node_id"], e_group, index_source=True)
+                self.create_index(e_group["target_node_id"], e_group, index_source=False)
 
     ############################################################################
 
@@ -341,9 +302,11 @@ class ConvHurt(object):
                     range_to_edge_id[range_index, :] = r
                     range_index += 1
                 node_id_to_range[node_index, 1] = range_index
+            else:
+                node_id_to_range[node_index, :] = -1
 
         output_grp.create_dataset('range_to_edge_id', data=range_to_edge_id, dtype='uint64')
-        output_grp.create_dataset('node_id_to_ranges', data=node_id_to_range, dtype='uint64')
+        output_grp.create_dataset('node_id_to_range', data=node_id_to_range, dtype='uint64')
 
     ############################################################################
 
@@ -392,6 +355,8 @@ class ConvHurt(object):
         f_name = os.path.join(self.base_dir, spike_file_name)
 
         with h5py.File(f_name, 'w', libver=self.h5py_libver) as f:
+            self.add_version(f)
+
             print(f"Writing file {f_name}")
 
             s_group = f.create_group("spikes")
@@ -419,6 +384,11 @@ class ConvHurt(object):
                 f.write(f"{time} {gid}")
 
     ############################################################################
+
+    def add_version(self, hdf5_file):
+
+        hdf5_file.attrs["version"] = [0, 1]
+        hdf5_file.attrs["magic"] = 0x0A7A
 
 
 if __name__ == "__main__":
@@ -458,7 +428,7 @@ if __name__ == "__main__":
     source_gid = np.array([1, 2, 3, 3, 4])
     target_gid = np.array([2, 3, 4, 0, 1])  # THESE ARE SORTED ... HAHAHA
 
-    # Delay should be in ms (bad bad people, real scientists use SI units)
+    # Delay needs to be in ms (bad bad people, real scientists use SI units)
     edge_data = OrderedDict([("sec_id", np.array([10, 22, 33, 24, 15])),
                              ("sec_x", np.array([0.1, 0.3, 0.5, 0.2, 0])),
                              ("syn_weight", np.array([0.1e-9, 2e-9, 3e-9,

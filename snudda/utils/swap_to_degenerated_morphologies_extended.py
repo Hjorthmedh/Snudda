@@ -181,7 +181,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         # exactly where old synapses are already placed
 
         # Get information about synapse degeneration recovery (ie how large a fraction of the synapses
-        # that are in the overlaping part of the dendrites should be kept to recover a little...
+        # that are in the overlaping part of the dendrites should be kept to recover a little...)
         degeneration_recovery, type_lookup = self.get_degeneration_recovery_lookups(network_config=network_config)
 
         if len(degeneration_recovery) > 0:
