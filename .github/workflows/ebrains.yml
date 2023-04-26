@@ -22,7 +22,7 @@ jobs:
           source_repo: "https://github.com/Hjorthmedh/Snudda"
           source_branch: "master"
           destination_repo: "https://ghpusher:${{ secrets.EBRAINS_GITLAB_ACCESS_TOKEN }}@gitlab.ebrains.eu/hjorth/snudda.git"
-          destination_branch: "master"
+          destination_branch: "main"
       # this task will push all tags from the source_repo to the destination_repo
       - name: synctags
         uses: wei/git-sync@v3
