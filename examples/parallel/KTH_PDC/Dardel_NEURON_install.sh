@@ -3,10 +3,20 @@
 # !!! OBS you need to make sure you git clone manually, it seems that command
 # stalls when running on Beskow compute nodes?
 
+if [ $# -eq 0 ]
+  then
+    export L=/cfs/klemming/projects/snic/snic2021-5-492/$USER/local/$SNIC_RESOURCE
+    echo "No argument. Using path: $L"
+else
+    export L="$1"
+    echo "Using path: $L"
+fi
+
+
 # THIS LINE SHOULD BE UNCOMMENTED... DONT FORGET 2021-05-27
 ./Miniconda_install.sh
 
-source activate_miniconda.sh
+source activate_miniconda.sh $L
 conda activate
 
 module load snic-env
@@ -32,7 +42,9 @@ echo ""
 # $SNIC_TMP/$SNIC_RESOURCE in the export L line below.
 # e.g: export L=$SNIC_TMP/$SNIC_RESOURCE
 
-export L=/cfs/klemming/home/${USER:0:1}/$USER/local/$SNIC_RESOURCE
+# export L=/cfs/klemming/home/${USER:0:1}/$USER/local/$SNIC_RESOURCE
+# export L=/cfs/klemming/projects/snic/snic2021-5-492/$USER/local/$SNIC_RESOURCE
+
 export LM=$L/miniconda3
 export LN=$L/neuron
 
@@ -46,7 +58,7 @@ pushd $TMP0_DIR
 ln -s /lib64/libncurses.so.6 libncurses.so
 ln -s /lib64/libtinfo.so.6 libtinfo.so
 ln -s /lib64/libreadline.so.7 libreadline.so
-ln -s $LM/lib/libpython3.9.so.1.0 .
+ln -s $LM/lib/libpython3.10.so .
 popd
 
 # export CXX=CC
@@ -77,7 +89,8 @@ export FC=ftn
 export MPICC=cc
 export MPICXX=CC
 
-module load CMake/3.21.2
+# This version number might need to update in the future
+module load cmake/3.22.3
 
 
 # We need to recompile mpi4py to use mpich libraries of beskow
@@ -99,7 +112,7 @@ pushd $L
   # OLD: git clone -q https://github.com/nrnhines/nrn
 
   # You have to do git clone manually!!
-  # git clone https://github.com/neuronsimulator/nrn -b 8.0.0
+  git clone https://github.com/neuronsimulator/nrn -b 8.2.2
   
   cd nrn
   rm -r build
