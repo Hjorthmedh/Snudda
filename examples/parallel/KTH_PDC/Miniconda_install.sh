@@ -10,7 +10,19 @@ module load snic-env
 
 # If you are low on disk space in HOME folder you could
 # use  L=$SNIC_TMP/$SNIC_RESOURCE  instead.
-L=/cfs/klemming/home/${USER:0:1}/$USER/local/$SNIC_RESOURCE
+# L=/cfs/klemming/home/${USER:0:1}/$USER/local/$SNIC_RESOURCE
+# L=/cfs/klemming/projects/snic/snic2021-5-492/$USER/local/$SNIC_RESOURCE
+
+if [ $# -eq 0 ]
+  then
+    L=/cfs/klemming/projects/snic/snic2021-5-492/$USER/local/$SNIC_RESOURCE
+    echo "No argument. Using path: $L"
+else
+    L=$1
+    echo "Using path: $L"
+fi
+
+
 
 # This is needed to compile mpi4py -- is it really?
 if [ $SNIC_RESOURCE == "tegner" ]; then
@@ -48,7 +60,7 @@ CC --version
 
 ./Miniconda3-latest-Linux-x86_64.sh -b -p $L/miniconda3
 
-source activate_miniconda.sh
+source activate_miniconda.sh $L
 conda activate
 
 conda update -n base conda -y

@@ -17,10 +17,6 @@ class SectionMetaData:
                  "child_section_id", "point_idx", "section_type",
                  "morphology_data", "neuron_id"]
 
-    # Använd numpy structured arrays? https://numpy.org/doc/stable/user/basics.rec.html
-    # Ta bort slots??
-    # Dataclass: https://stackoverflow.com/questions/35988/c-like-structures-in-python/45426493#45426493
-
     section_id: int
     parent_section_idx: int
     parent_point_idx: int

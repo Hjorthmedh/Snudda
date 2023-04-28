@@ -723,6 +723,7 @@ class SnuddaInput(object):
 
         generator_list = []
         population_unit_fraction_list = []
+        num_soma_synapses_list = []
 
         dendrite_location_override_list = []
         if self.use_meta_input:
@@ -877,13 +878,27 @@ class SnuddaInput(object):
                         cluster_size = None
                         cluster_spread = None
 
+                        if "nSomaSynapses" in input_inf:
+                            n_soma_synapses = input_inf["nSomaSynapses"]
+                        else:
+                            n_soma_synapses = 0
+
+                        if n_soma_synapses > num_spike_trains:
+                            raise ValueError(f"nSomaSynapses can not be greater than the number of input trains read from CSV file")
+
                         # We need a random seed generator for the dendrite_input_location on the master TODO: Cleanup
                         input_loc = self.dendrite_input_locations(neuron_id=neuron_id,
                                                                   synapse_density=synapse_density,
-                                                                  num_spike_trains=num_spike_trains,
+                                                                  num_spike_trains=num_spike_trains - n_soma_synapses,
                                                                   rng=rng_master,
                                                                   cluster_size=cluster_size,
                                                                   cluster_spread=cluster_spread)
+
+                        # If there are synapses on the soma then we need to add those also
+                        if n_soma_synapses > 0:
+                            input_loc = self.add_soma_synapses(input_loc,
+                                                               n_soma_synapses=n_soma_synapses,
+                                                               neuron_id=neuron_id)
 
                     self.neuron_input[neuron_id][input_type]["location"] = input_loc
                     self.neuron_input[neuron_id][input_type]["synapseDensity"] = synapse_density
@@ -1049,6 +1064,13 @@ class SnuddaInput(object):
                     self.write_log(f"Unknown input generator: {input_inf['generator']} for {neuron_id}", is_error=True)
                     assert False, f"Unknown input generator {input_inf['generator']}"
 
+                if "nSomaSynapses" in input_inf:
+                    n_soma_synapses = input_inf["nSomaSynapses"]
+                else:
+                    n_soma_synapses = 0
+
+                num_soma_synapses_list.append(n_soma_synapses)
+
         seed_list = self.generate_seeds(num_states=len(neuron_id_list))
 
         amr = None
@@ -1059,7 +1081,8 @@ class SnuddaInput(object):
             == len(population_unit_id_list) == len(conductance_list) == len(correlation_list)\
             == len(mod_file_list) == len(parameter_file_list) == len(parameter_list_list)\
             == len(seed_list) == len(cluster_size_list) == len(cluster_spread_list)\
-            == len(dendrite_location_override_list) == len(generator_list) == len(population_unit_fraction_list),\
+            == len(dendrite_location_override_list) == len(generator_list) == len(population_unit_fraction_list)\
+            == len(num_soma_synapses_list),\
             "Internal error, input lists length missmatch"
 
         # Lets try and swap self.lbView for self.dView
@@ -1091,7 +1114,8 @@ class SnuddaInput(object):
                                   cluster_spread_list,
                                   dendrite_location_override_list,
                                   generator_list,
-                                  population_unit_fraction_list))
+                                  population_unit_fraction_list,
+                                  num_soma_synapses_list))
 
             self.d_view.scatter("input_list", input_list, block=True)
             cmd_str = "inpt = list(map(nl.make_input_helper_parallel,input_list))"
@@ -1131,7 +1155,8 @@ class SnuddaInput(object):
                       cluster_spread_list,
                       dendrite_location_override_list,
                       generator_list,
-                      population_unit_fraction_list)
+                      population_unit_fraction_list,
+                      num_soma_synapses_list)
 
         # Gather the spikes that were generated in parallel
         for neuron_id, input_type, spikes, loc, synapse_density, frq, \
@@ -1866,6 +1891,31 @@ class SnuddaInput(object):
 
     ############################################################################
 
+    def add_soma_synapses(self, input_loc, n_soma_synapses, neuron_id):
+
+        if n_soma_synapses is None or n_soma_synapses == 0:
+            return input_loc
+
+        soma_pos = self.neuron_info[neuron_id]["position"]
+
+        xyz, sec_id, sec_x, dist_to_soma = input_loc
+
+        soma_xyz = np.atleast_2d(soma_pos).repeat(repeats=n_soma_synapses, axis=0)
+        soma_sec_id = np.full((n_soma_synapses, ), -1)
+        soma_sec_x = np.full((n_soma_synapses, ), 0.5)
+        soma_dist_to_soma = np.zeros((n_soma_synapses, ))
+
+        new_xyz = np.vstack((xyz, soma_xyz))
+        new_sec_id = np.concatenate((sec_id, soma_sec_id))
+        new_sec_x = np.concatenate((sec_x, soma_sec_x))
+        new_soma_dist = np.concatenate((dist_to_soma, soma_dist_to_soma))
+
+        new_input_loc = (new_xyz, new_sec_id, new_sec_x, new_soma_dist)
+
+        return new_input_loc
+
+    ############################################################################
+
     def setup_parallel(self):
 
         """ Setup worker nodes for parallel execution. """
@@ -1997,7 +2047,7 @@ class SnuddaInput(object):
             neuron_id, input_type, freq, start, end, synapse_density, num_spike_trains, \
             population_unit_spikes, jitter_dt, population_unit_id, conductance, correlation, mod_file, \
             parameter_file, parameter_list, random_seed, cluster_size, cluster_spread, \
-            dendrite_location_override, input_generator, population_unit_fraction = args
+            dendrite_location_override, input_generator, population_unit_fraction, num_soma_synapses = args
 
             return self.make_input_helper_serial(neuron_id=neuron_id,
                                                  input_type=input_type,
@@ -2019,7 +2069,8 @@ class SnuddaInput(object):
                                                  cluster_spread=cluster_spread,
                                                  dendrite_location=dendrite_location_override,
                                                  input_generator=input_generator,
-                                                 population_unit_fraction=population_unit_fraction)
+                                                 population_unit_fraction=population_unit_fraction,
+                                                 num_soma_synapses=num_soma_synapses)
 
         except:
             import traceback
@@ -2057,7 +2108,8 @@ class SnuddaInput(object):
                                  cluster_spread=None,
                                  dendrite_location=None,
                                  input_generator=None,
-                                 population_unit_fraction=1):
+                                 population_unit_fraction=1,
+                                 num_soma_synapses=0):
 
         """
         Generate poisson input.
@@ -2084,6 +2136,8 @@ class SnuddaInput(object):
             dendrite_location: Override location of dendrites, list of (sec_id, sec_x) tuples.
             input_generator: "poisson" or "frequency_function"
             population_unit_fraction: Fraction of population unit spikes used, 1.0=all correlation within population unit, 0.0 = only correlation within the particular neuron
+            num_soma_synapses: How many additional synapses are placed on the soma
+
         """
 
     # First, find out how many inputs and where, based on morphology and
@@ -2127,6 +2181,7 @@ class SnuddaInput(object):
                 input_loc = [(x, y, z), np.array(sec_id), np.array(sec_x), dist_to_soma]
 
             else:
+
                 # (x,y,z), secID, secX, dist_to_soma
                 input_loc = self.dendrite_input_locations(neuron_id=neuron_id,
                                                           synapse_density=synapse_density,
@@ -2134,6 +2189,12 @@ class SnuddaInput(object):
                                                           rng=rng,
                                                           cluster_size=cluster_size,
                                                           cluster_spread=cluster_spread)
+
+                # If there are any soma synapses, update input_info with them
+                if num_soma_synapses > 0:
+                    input_loc = self.add_soma_synapses(input_loc,
+                                                       n_soma_synapses=num_soma_synapses,
+                                                       neuron_id=neuron_id)
 
             num_inputs = input_loc[0].shape[0]
 
