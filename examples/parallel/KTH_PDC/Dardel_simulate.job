@@ -16,7 +16,7 @@ let N_WORKERS="$SLURM_NNODES * 128"
 
 HOME=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda
 
-INSTALL_DIR=/cfs/klemming/projects/snic/snic2021-5-492/$USER/local/$SNIC_RESOURCE
+# INSTALL_DIR=/cfs/klemming/projects/snic/snic2021-5-492/$USER/local/$SNIC_RESOURCE
 
 # If the BasalGangliaData directory exists, then use that for our data
 if [[ -d "/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data" ]]; then
@@ -46,8 +46,11 @@ echo "Network dir: "$NETWORK_DIR
 
 ##############
 
-source activate_miniconda.sh $INSTALL_DIR
-conda activate
+# source activate_miniconda.sh $INSTALL_DIR
+# conda activate
+
+source ${SNUDDA_DIR}_env/bin/activate
+
 
 module load snic-env
 
@@ -68,16 +71,18 @@ export CRAY_ROOTFS=DSL
 # export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
 # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/lib64
 
-#L=/cfs/klemming/home/${USER:0:1}/$USER/local/$SNIC_RESOURCE
-L=$INSTALL_DIR
-LM=$L/miniconda3
-LN=$L/nrn
+# L=/cfs/klemming/home/${USER:0:1}/$USER/local/$SNIC_RESOURCE
+# L=$INSTALL_DIR
+# LM=$L/miniconda3
+# LN=$L/nrn
 
-export PATH=$LM/bin:$LN/bin:$PATH
+# export PATH=$LM/bin:$LN/bin:$PATH
+export PATH=$SNUDDA_DIR/snudda_env/bin/:$PATH
 # export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CRAY_LD_LIBRARY_PATH
-export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
-export PYTHONPATH=$LN/lib/python:$LM/lib/python3.8/
+# export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
+# export PYTHONPATH=$LN/lib/python:$LM/lib/python3.8/
+export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.9/
 
 
 # Remove "special" old directory
