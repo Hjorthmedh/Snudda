@@ -136,10 +136,3 @@ When the job starts, Snudda log files will appear after a few minutes here:
 ```ls -lrt ../../networks/TegnerNetwork/log```
 
 You can also find slurm log files in the ```Snudda/examples/parallel/save/``` folder
-
-
-If you for some reason want to start the conda environment on the local login node:
-```
-source activate_miniconda.sh
-conda activate
-```
