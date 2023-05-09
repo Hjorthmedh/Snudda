@@ -18,6 +18,7 @@
 	    "type" : "AMPA_NMDA",
 	    "synapseDensity" : "0.45*0.05/(1+exp(-(d-30e-6)/5e-6))",
 	    "nInputs": 2000,
+	    "nSomaSynapses": 10,
 	    "clusterSize" : 3,
 	    "clusterSpread" : 30e-6,
 	    "frequency" : ["1", "20*t", "3"],

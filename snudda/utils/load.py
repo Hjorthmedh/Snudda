@@ -940,6 +940,7 @@ class SnuddaLoad(object):
             centre_point (np.array) : x,y,z of centre position, None = auto detect centre
         """
 
+
         if centre_point is None:
             centre_point = np.mean(self.data["neuronPositions"], axis=0)
 
@@ -947,6 +948,7 @@ class SnuddaLoad(object):
         idx = np.argsort(dist_to_centre)
 
         neuron_ctr = 0
+
 
         for neuron_id in idx:
             if neuron_type is not None and self.data["neurons"][neuron_id]["type"] != neuron_type:
@@ -963,14 +965,15 @@ class SnuddaLoad(object):
                 # Stop iterator if n_neurons are delivered
                 return
 
+
     ############################################################################
 
     def create_connection_matrix(self, sparse_matrix=True):
 
         if sparse_matrix:
-            connection_matrix = sparse.lil_matrix((self.data["nNeurons"], self.data["nNeurons"]), dtype=np.ushort)
+            connection_matrix = sparse.lil_matrix((self.data["nNeurons"], self.data["nNeurons"]), dtype=np.int16)
         else:
-            connection_matrix = np.zeros((self.data["nNeurons"], self.data["nNeurons"]), dtype=np.ushort)
+            connection_matrix = np.zeros((self.data["nNeurons"], self.data["nNeurons"]), dtype=np.int16)
 
         for syn_row in self.data["synapses"]:
             connection_matrix[syn_row[0], syn_row[1]] += 1
