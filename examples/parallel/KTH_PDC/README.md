@@ -11,22 +11,6 @@ Run the ```Dardel_install_Snudda.sh``` script in ```Snudda/examples/parallel/KTH
 ./Dardel_install_Snudda.sh
 ```
 
-To install ```NEURON``` you need to download Miniconda and the NEURON source code.
-
-In the ```Snudda/examples/parallel/KTH_PDC``` folder run:
-```
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-chmod u+x Miniconda3-latest-Linux-x86_64.sh
-```
-
-```
-pushd ~/
-mkdir -p local/dardel
-cd local/dardel
-git clone https://github.com/neuronsimulator/nrn -b 8.2.2
-popd
-```
-
 Finally to test that it worked, you can run:
 
 ```
