@@ -26,8 +26,3 @@ sbatch Dardel_simulate.job
 You can find the generated network files and simulation in ```Snudda/examples/parallel/KTH_PDC/networks/test_10k```.
 
 
-If you for some reason want to start the conda environment on the local login node:
-```
-source activate_miniconda.sh
-conda activate
-```
