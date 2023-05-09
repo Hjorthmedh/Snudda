@@ -6,7 +6,7 @@
 #SBATCH --time-min=1:59:00
 #SBATCH -J Simulate
 #SBATCH -A snic2022-5-245
-#SBATCH --nodes=1-10
+#SBATCH --nodes=1
 #SBATCH --tasks-per-node=128
 #SBATCH --mail-type=ALL
 
@@ -71,10 +71,11 @@ export CRAY_ROOTFS=DSL
 #L=/cfs/klemming/home/${USER:0:1}/$USER/local/$SNIC_RESOURCE
 L=$INSTALL_DIR
 LM=$L/miniconda3
-LN=$L/neuron
+LN=$L/nrn
 
 export PATH=$LM/bin:$LN/bin:$PATH
-export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+# export LD_LIBRARY_PATH=$MPICH_DIR/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CRAY_LD_LIBRARY_PATH
 export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
 export PYTHONPATH=$LN/lib/python:$LM/lib/python3.8/
 
