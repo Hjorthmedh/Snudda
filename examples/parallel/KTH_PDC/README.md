@@ -24,5 +24,3 @@ sbatch Dardel_simulate.job
 ```
 
 You can find the generated network files and simulation in ```Snudda/examples/parallel/KTH_PDC/networks/test_10k```.
-
-
