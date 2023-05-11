@@ -59,8 +59,8 @@ class ExportSonata:
         (vx, vy, vz) = self.rot_angles_zyx(self.snudda_load)
 
         # We need to convert the named neuron types to numbers
-        (node_type_id, node_type_id_lookup) = self.allocate_node_type_id()
-        (node_group_id, group_idx, node_group_lookup) = self.allocate_node_groups()
+        node_type_id, node_type_id_lookup = self.allocate_node_type_id()
+        node_group_id, group_idx, node_group_lookup = self.allocate_node_groups()
 
         volume_id_list = [x["volumeID"] for x in self.snudda_load.data["neurons"]]
         volume_list = set(volume_id_list)
@@ -90,29 +90,43 @@ class ExportSonata:
                 edge_type_lookup[pre_type, post_type, con_type] = (edge_type_id, edge_model)
 
         for volume_name in volume_list:
+
+            node_file=f"{volume_name}_nodes.hdf5"
+
+            for nt in node_group_lookup.keys():  # these are the neuron types
+                nt_idx = np.where([x["volumeID"] == volume_name and x["type"] == nt
+                                   for x in self.snudda_load.data["neurons"]])
+
+                # Node data is stored in a HDF5 file and a CSV file (CONVERT TO micrometers)
+                node_data = OrderedDict([("x", self.snudda_load.data["neuronPositions"][nt_idx, 0].flatten() * 1e6),
+                                         ("y", self.snudda_load.data["neuronPositions"][nt_idx, 1].flatten() * 1e6),
+                                         ("z", self.snudda_load.data["neuronPositions"][nt_idx, 2].flatten() * 1e6),
+                                         ("rotation_angle_zaxis", vz[nt_idx].flatten()),
+                                         ("rotation_angle_yaxis", vy[nt_idx].flatten()),
+                                         ("rotation_angle_xaxis", vx[nt_idx].flatten())])
+
+                node_id_list = np.array([x["neuronID"] for x in self.snudda_load.data["neurons"]
+                                         if x["volumeID"] == volume_name and x["type"] == nt], dtype=int)
+
+                assert (nt_idx == node_id_list).all()
+
+                #import pdb
+                #pdb.set_trace()
+
+                # Population name should be name of neuron type
+                node_file = ch.write_nodes(node_file=node_file,
+                                           population_name=nt,
+                                           data=node_data,
+                                           node_id=node_id_list,
+                                           node_type_id=node_type_id[nt_idx],
+                                           node_group_id=node_group_id[nt_idx],
+                                           node_group_index=group_idx[nt_idx],
+                                           close_file=False)
+
+            node_file.close()
+            # Done writing hdf5 file, time to create csv file
+
             v_idx = np.where([v == volume_name for v in volume_id_list])[0]
-
-            # Node data is stored in a HDF5 file and a CSV file (CONVERT TO micrometers)
-            node_data = OrderedDict([("x", self.snudda_load.data["neuronPositions"][v_idx, 0] * 1e6),
-                                     ("y", self.snudda_load.data["neuronPositions"][v_idx, 1] * 1e6),
-                                     ("z", self.snudda_load.data["neuronPositions"][v_idx, 2] * 1e6),
-                                     ("rotation_angle_zaxis", vz[v_idx]),
-                                     ("rotation_angle_yaxis", vy[v_idx]),
-                                     ("rotation_angle_xaxis", vx[v_idx])])
-
-            node_id_list = np.array([x["neuronID"] for x in self.snudda_load.data["neurons"]
-                                     if x["volumeID"] == "Striatum"], dtype=int)
-
-            assert (v_idx == node_id_list).all()
-
-            ch.write_nodes(node_file=f"{volume_name}_nodes.hdf5",
-                           population_name=volume_name,
-                           data=node_data,
-                           node_id=node_id_list,
-                           node_type_id=node_type_id[node_id_list],
-                           node_group_id=node_group_id[node_id_list],
-                           node_group_index=group_idx[node_id_list])
-
             csv_node_names = sorted(list(set([node_name_list[x] for x in v_idx])))
             csv_node_type_id = [node_type_id_lookup[n] for n in csv_node_names]
             csv_node_location = [volume_name for n in csv_node_names]
