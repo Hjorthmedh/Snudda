@@ -185,7 +185,6 @@ class ConvHurt(object):
 
         return f
 
-
     ############################################################################
 
     # node_csv_file is the name of the file that will be stored in the networks dir

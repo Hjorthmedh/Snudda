@@ -378,7 +378,7 @@ class ExportSonata:
         for file_path in dynamics_params_list:
 
             if file_path is None:
-                new_dynamics_params_list.append(None)
+                new_dynamics_params_list.append("MISSING-FILE-HERE.json")
                 continue
 
             if os.path.basename(file_path) == "dynamics_params.json":
