@@ -20,8 +20,8 @@ class TestSonata(unittest.TestCase):
         self.network_path = os.path.join("networks", "sonata_example")
 
         # !!! TEMP SKIP setup while developing
-        print("SKIPPING NETWORK CREATIONG DURING DEVELOPMENT")
-        return
+        # print("SKIPPING NETWORK CREATIONG DURING DEVELOPMENT")
+        # return
 
         if create_network:
             si = SnuddaInit(network_path=self.network_path, random_seed=12345)
@@ -110,16 +110,29 @@ class TestSonata(unittest.TestCase):
             con_mat = sl.create_connection_matrix()
             new_con_mat = np.zeros(shape=con_mat.shape, dtype=int)
 
+            neuron_types = np.array([x["type"] for x in sl.data["neurons"]])
+            neuron_idx = dict()
+            for nt in set(neuron_types):
+                neuron_idx[nt] = np.where(neuron_types == nt)[0]
+
             for edge_pop_name in sf.edges.population_names:
                 edges_pop = sf.edges[edge_pop_name]
 
+                pre_pop, post_pop = edge_pop_name.split("_")
+
                 for edge in edges_pop:
                     # print(f"{edge}")
-                    src_id = edge.source_node_id
-                    target_id = edge.target_node_id
-                    new_con_mat[src_id, target_id] += 1
+                    try:
+                        src_id = neuron_idx[pre_pop][edge.source_node_id]
+                        target_id = neuron_idx[post_pop][edge.target_node_id]
+                        new_con_mat[src_id, target_id] += 1
 
-                    edge_count += 1
+                        edge_count += 1
+                    except:
+                        import traceback
+                        print(traceback.format_exc())
+                        import pdb
+                        pdb.set_trace()
 
             # Check that all edges are accounted for
 

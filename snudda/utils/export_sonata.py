@@ -153,7 +153,7 @@ class ExportSonata:
             edge_population_lookup, edge_population_id_lookup = self.setup_edge_population(node_group_lookup)
 
             population_rows, edge_type_id, source_gid, target_gid, edge_data = \
-                self.setup_edge_info(edge_population_lookup, node_group_id)
+                self.setup_edge_info(edge_population_lookup, node_group_id, group_idx)
 
             ch.write_edges(edge_file=f"{volume_name}_edges.hdf5",
                            population_rows=population_rows,
@@ -279,6 +279,9 @@ class ExportSonata:
     # SONATA NodeType is {Snudda neuron name}_{morphology_key}_{parameter_key}_{modulation_key}
 
     def allocate_node_groups(self):
+
+        # node_group_id -- tells which group_id each neuron belongs to
+        # group_idx -- tells the index with the group that the neuron has
 
         node_group_id = np.zeros(len(self.snudda_load.data["neurons"]), dtype=int)
         group_idx = np.zeros(len(self.snudda_load.data["neurons"]), dtype=int)
@@ -410,7 +413,7 @@ class ExportSonata:
 
     # This code sets up the info about edges
 
-    def setup_edge_info(self, edge_population_lookup, node_group_id):
+    def setup_edge_info(self, edge_population_lookup, node_group_id, group_idx):
 
         n_synapses = self.snudda_load.data["synapses"].shape[0]
         edge_type_id = np.zeros(n_synapses, dtype=int)
@@ -434,8 +437,8 @@ class ExportSonata:
         # somaDist is an int, representing micrometers
 
         for i_syn, syn_row in enumerate(self.snudda_load.data["synapses"]):
-            source_gid[i_syn] = syn_row[0]
-            target_gid[i_syn] = syn_row[1]
+            source_gid[i_syn] = group_idx[syn_row[0]]
+            target_gid[i_syn] = group_idx[syn_row[1]]
 
             source_node_group = node_group_id[syn_row[0]]
             target_node_group = node_group_id[syn_row[1]]

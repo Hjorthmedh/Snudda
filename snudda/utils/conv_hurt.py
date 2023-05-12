@@ -251,7 +251,8 @@ class ConvHurt(object):
 
                 e_group = edg_group.create_group(pop_name)
 
-                idx = sort_idx[pop_rows]
+                sort_idx = np.argsort(target_id[pop_rows])
+                idx = pop_rows[sort_idx]
 
                 e_group.create_dataset("edge_group_id", data=np.zeros((n_rows,), dtype=int))
                 e_group.create_dataset("edge_group_index", data=np.arange(n_rows), dtype=int)
