@@ -91,7 +91,7 @@ class ExportSonata:
 
         for volume_name in volume_list:
 
-            node_file=f"{volume_name}_nodes.hdf5"
+            node_file = f"{volume_name}_nodes.hdf5"
 
             for nt in node_group_lookup.keys():  # these are the neuron types
                 nt_idx = np.where([x["volumeID"] == volume_name and x["type"] == nt

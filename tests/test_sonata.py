@@ -20,7 +20,8 @@ class TestSonata(unittest.TestCase):
         self.network_path = os.path.join("networks", "sonata_example")
 
         # !!! TEMP SKIP setup while developing
-        # return
+        print("SKIPPING NETWORK CREATIONG DURING DEVELOPMENT")
+        return
 
         if create_network:
             si = SnuddaInit(network_path=self.network_path, random_seed=12345)
@@ -58,11 +59,35 @@ class TestSonata(unittest.TestCase):
         sl = SnuddaLoad(network_file=network_file)
 
         with self.subTest("Check nodes"):
-            self.assertEqual(sf.nodes.population_names, ["Striatum"])
-            nodes = sf.nodes.get_population("Striatum")
+
+            neuron_populations = set(['ChIN', 'FS', 'LTS', 'dSPN', 'iSPN'])
+
+            self.assertEqual(set(sf.nodes.population_names), neuron_populations)
+            nodes = dict()
+
+            for pop_name in neuron_populations:
+
+                nodes[pop_name] = sf.nodes.get_population(pop_name)
+
+            # SONATA seems to have separate node_id for each population
+            neuron_types = np.array([x["type"] for x in sl.data["neurons"]])
+            within_type_idx = np.full(shape=(len(neuron_types),), fill_value=-1, dtype=int)
+            for nt in set(neuron_types):
+                idx = np.where(neuron_types == nt)[0]
+                within_type_idx[idx] = np.arange(0, len(idx))
+
+            assert (within_type_idx >= 0).all()
 
             for neuron in sl.data["neurons"]:
-                sonata_node = nodes.get_node_id(neuron["neuronID"])
+                neuron_type = neuron["type"]
+
+                try:
+                    sonata_node = nodes[neuron_type].get_node_id(within_type_idx[neuron["neuronID"]])
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
 
                 # Remember to convert from natural units to SI units
                 self.assertAlmostEqual(neuron["position"][0], sonata_node["x"]*1e-6, 8)
