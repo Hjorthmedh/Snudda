@@ -538,10 +538,15 @@ class SnuddaInput(object):
 
         """ Read input configuration from JSON file. """
 
-        self.write_log(f"Loading input configuration from {self.input_config_file}")
+        if isinstance(self.input_config_file, dict):
+            self.write_log(f"Input was specified directly by a dictionary")
+            self.input_info = self.input_config_file.copy()
 
-        with open(snudda_parse_path(self.input_config_file, self.snudda_data), 'rt') as f:
-            self.input_info = json.load(f, object_pairs_hook=OrderedDict)
+        else:
+            self.write_log(f"Loading input configuration from {self.input_config_file}")
+
+            with open(snudda_parse_path(self.input_config_file, self.snudda_data), 'rt') as f:
+                self.input_info = json.load(f, object_pairs_hook=OrderedDict)
 
         max_time = self.time
 

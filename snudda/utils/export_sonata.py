@@ -22,17 +22,40 @@ from snudda import SnuddaLoad
 
 class ExportSonata:
 
-    def __init__(self, network_file, input_file, out_dir, debug_flag=True, target_simulator="NEST"):
+    def __init__(self, network_path=None, network_file=None, input_file=None, out_dir=None, debug_flag=True, target_simulator="NEST"):
 
         self.debug = debug_flag
 
-        self.out_dir = out_dir
+        if network_path is not None:
+            self.network_path = network_path
+        elif network_file is not None:
+            self.network_path = os.path.dirname(network_file)
+        else:
+            raise ValueError("You must specify network_path or network_file")
+
+        if network_file is None:
+            network_file = os.path.join(network_path, "network-synapses.hdf5")
+
+        if out_dir is not None:
+            self.out_dir = out_dir
+        else:
+            self.out_dir = os.path.join(network_path, "SONATA")
+
         self.target_simulator = target_simulator
 
         # Read the data
         self.snudda_load = SnuddaLoad(network_file)
         self.network_file = self.snudda_load.network_file
-        self.input_file = input_file
+
+        if input_file is not None:
+            self.input_file = input_file
+        else:
+            input_file_candidate = os.path.join(self.network_path, "input-spikes.hdf5")
+
+            if os.path.isfile(input_file_candidate):
+                self.input_file = input_file_candidate
+            else:
+                self.input_file = None
 
         self.network_config = json.loads(self.snudda_load.data["config"])
 
@@ -48,7 +71,7 @@ class ExportSonata:
         # TODO: We need to read structure names from the network-config.json
         structure_names = [x for x in self.network_config["Volume"]]
         ch = ConvHurt(simulation_structures=structure_names,
-                      base_dir=out_dir)
+                      base_dir=self.out_dir)
 
         self.copy_morphologies()
         self.copy_mechanisms()
@@ -174,7 +197,7 @@ class ExportSonata:
 
         self.write_simulation_config()
 
-        print(f"SONATA files exported to {out_dir}")
+        print(f"SONATA files exported to {self.out_dir}")
 
     ############################################################################
 
@@ -353,7 +376,7 @@ class ExportSonata:
                     model_type_dict[name] = "biophysical"
                     template_dict[name] = hoc_str
 
-            elif self.target_simulator is not "NEST":
+            elif self.target_simulator != "NEST":
 
                 assert template_dict[name] == hoc_str, \
                     f"All files named {name} do not share same hoc file: {template_dict[name]} and {hoc_str}"

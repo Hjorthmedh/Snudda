@@ -17,6 +17,7 @@ class ConvHurt(object):
 
         self.base_dir = base_dir
         self.network_dir = os.path.join(base_dir, 'networks')
+
         self.target_simulator = target_simulator
 
         self.h5py_libver = "earliest"  # "latest"
