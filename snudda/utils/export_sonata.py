@@ -484,7 +484,7 @@ class ExportSonata:
 
             dend_dist = syn_row[6] * 1e-6
             axon_dist = syn_row[7] * 1e-6
-            delay[i_syn] = axon_dist / axon_speed + dend_dist / dend_speed
+            delay[i_syn] = axon_dist / axon_speed * 1e3 + 1  # Delay in ms and not SI units :-(
             syn_weight[i_syn] = 1.0  # !!! THIS NEEDS TO BE SET DEPENDING ON CONNECTION TYPE
 
         edge_data = OrderedDict([("sec_id", sec_id),
