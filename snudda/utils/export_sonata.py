@@ -110,7 +110,7 @@ class ExportSonata:
                     else:
                         edge_model = con_type_data["channelParameters"]["modFile"]
 
-                edge_type_lookup[pre_type, post_type, con_type] = (edge_type_id, edge_model)
+                edge_type_lookup[pre_type, post_type, con_type] = (edge_type_id, edge_model, f"{pre_type}_{post_type}")
 
         for volume_name in volume_list:
 
@@ -187,7 +187,8 @@ class ExportSonata:
 
             edge_type_id = [x[0] for x in edge_type_lookup.values()]
 
-            edge_data = {"model_template": [x[1] for x in edge_type_lookup.values()]}
+            edge_data = {"model_template": [x[1] for x in edge_type_lookup.values()],
+                         "population": [x[2] for x in edge_type_lookup.values()]}
 
             ch.write_edges_csv(edge_csv_file=f"{volume_name}_edge_types.csv",
                                edge_type_id=edge_type_id,
