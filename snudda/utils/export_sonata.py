@@ -348,7 +348,7 @@ class ExportSonata:
             # It seems that RT neuron requires the filename without .swc at the end
             # Also, they prepend morphology path, but only allows one directory for all morphologies
             # morph_file = os.path.splitext(os.path.basename(n["morphology"]))[0]
-            morph_file = os.path.basename(n["morphology"])
+            morph_file = os.path.basename(n["morphology"]).replace(".swc", "")
 
             if hoc_file in self.hoc_location_lookup:
                 # We need to change from old hoc location to the SONATA hoc location
@@ -488,8 +488,8 @@ class ExportSonata:
             delay[i_syn] = axon_dist / axon_speed * 1e3 + 1  # Delay in ms and not SI units :-(
             syn_weight[i_syn] = 1.0  # !!! THIS NEEDS TO BE SET DEPENDING ON CONNECTION TYPE
 
-        edge_data = OrderedDict([("sec_id", sec_id),
-                                 ("sec_x", sec_x),
+        edge_data = OrderedDict([("afferent_section_id", sec_id),
+                                 ("afferent_section_pos", sec_x),
                                  ("syn_weight", syn_weight),
                                  ("delay", delay)])
 

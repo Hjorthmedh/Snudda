@@ -233,7 +233,8 @@ class ConvHurt(object):
                     edge_type_id,
                     source_id,
                     target_id,
-                    data):
+                    data,
+                    include_index=False):
 
         # We need to have the targetID vector sorted
         # How should we handle cells that do not have any edges at all?
@@ -273,15 +274,18 @@ class ConvHurt(object):
                     else:
                         print("Unsupported width of data column.")
 
-                # We need to create the indices needed by Allen Institute
-                self.create_index(e_group["source_node_id"], e_group, index_source=True)
-                self.create_index(e_group["target_node_id"], e_group, index_source=False)
+                if include_index:
+                    # We need to create the indices needed by Allen Institute
+                    self.create_index(e_group["source_node_id"], e_group, index_source=True)
+                    self.create_index(e_group["target_node_id"], e_group, index_source=False)
 
     ############################################################################
 
     # createIndex provided by Kael Dai from Allen Institute, 2018-11-27
 
     def create_index(self, node_ids_ds, output_grp, index_source=0):
+
+        # TODO: Verify that this is correct! -- I am not sure it is...
 
         if not index_source:
             edge_nodes = np.array(node_ids_ds, dtype=np.int64)
