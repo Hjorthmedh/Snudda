@@ -96,7 +96,7 @@ class TestSonata(unittest.TestCase):
 
                 # TODO: We need to also check the rotation
 
-                self.assertEqual(os.path.basename(neuron["morphology"]), sonata_node["morphology"])
+                self.assertEqual(os.path.basename(neuron["morphology"]).replace(".swc", ""), sonata_node["morphology"])
 
                 if se.target_simulator != "NEST":
                     self.assertEqual(sonata_node["model_type"], "biophysical")
