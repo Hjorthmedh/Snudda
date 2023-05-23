@@ -83,7 +83,8 @@ class ExportSonata:
 
         # We need to convert the named neuron types to numbers
         node_type_id, node_type_id_lookup = self.allocate_node_type_id()
-        node_group_id, group_idx, node_group_lookup = self.allocate_node_groups()
+        # node_group_id, group_idx, node_group_lookup = self.allocate_node_groups()
+        node_group_id, group_idx, node_group_lookup, neuron_id_remap = self.allocate_groups_and_remap_nodeid()
 
         volume_id_list = [x["volumeID"] for x in self.snudda_load.data["neurons"]]
         volume_list = set(volume_id_list)
@@ -112,11 +113,13 @@ class ExportSonata:
 
                 edge_type_lookup[pre_type, post_type, con_type] = (edge_type_id, edge_model, f"{pre_type}_{post_type}")
 
+        node_id_remap = np.full(shape=(self.snudda_load.data["nNeurons"],), fill_value=-1, dtype=int)
+
         for volume_name in volume_list:
 
             node_file = f"{volume_name}_nodes.hdf5"
 
-            for nt in node_group_lookup.keys():  # these are the neuron types
+            for nt in self.snudda_load.get_neuron_types(return_set=True):
                 nt_idx = np.where([x["volumeID"] == volume_name and x["type"] == nt
                                    for x in self.snudda_load.data["neurons"]])
 
@@ -133,14 +136,16 @@ class ExportSonata:
 
                 assert (nt_idx == node_id_list).all()
 
-                #import pdb
-                #pdb.set_trace()
+                new_node_id = np.arange(0, len(node_id_list))
+
+                assert (node_id_remap[node_id_list] == -1).all(), f"Node id already remapped!"
+                node_id_remap[node_id_list] = new_node_id
 
                 # Population name should be name of neuron type
                 node_file = ch.write_nodes(node_file=node_file,
                                            population_name=nt,
                                            data=node_data,
-                                           node_id=node_id_list,
+                                           node_id=node_id_remap[node_id_list],
                                            node_type_id=node_type_id[nt_idx],
                                            node_group_id=node_group_id[nt_idx],
                                            node_group_index=group_idx[nt_idx],
@@ -148,6 +153,8 @@ class ExportSonata:
 
             node_file.close()
             # Done writing hdf5 file, time to create csv file
+
+            assert (node_id_remap >= 0).all(), f"Not all node id remapped."
 
             v_idx = np.where([v == volume_name for v in volume_id_list])[0]
             csv_node_names = sorted(list(set([node_name_list[x] for x in v_idx])))
@@ -283,9 +290,11 @@ class ExportSonata:
         next_node_type_id = 0
 
         node_names = [f"{n['name']}_{n['morphologyKey']}_{n['parameterKey']}_{n['modulationKey']}"
-                      for n in self.snudda_load.data["neurons"]]
+                             for n in self.snudda_load.data["neurons"]]
 
-        for n in node_names:
+        node_names_sorted = sorted(node_names)
+
+        for n in node_names_sorted:
             if n not in node_type_id_lookup:
                 node_type_id_lookup[n] = next_node_type_id
                 next_node_type_id += 1
@@ -302,7 +311,7 @@ class ExportSonata:
     # Snudda neuron type corresponds to SONATA NodeGroup
     # SONATA NodeType is {Snudda neuron name}_{morphology_key}_{parameter_key}_{modulation_key}
 
-    def allocate_node_groups(self):
+    def allocate_node_groups_OLD(self):
 
         # node_group_id -- tells which group_id each neuron belongs to
         # group_idx -- tells the index with the group that the neuron has
@@ -328,6 +337,56 @@ class ExportSonata:
             next_group_idx[nt] += 1
 
         return node_group_id, group_idx, group_lookup
+
+    def allocate_groups_and_remap_nodeid(self):
+
+        n_neurons = self.snudda_load.data["nNeurons"]
+        volume_list = set([x["volumeID"] for x in self.snudda_load.data["neurons"]])
+        neuron_types = self.snudda_load.get_neuron_types(return_set=True)
+
+        node_group_id = np.zeros(shape=(n_neurons, ), dtype=int)
+        group_idx = np.full(shape=(n_neurons, ), fill_value=-1, dtype=int)
+        neuron_id_remap = np.full(shape=(n_neurons, ), fill_value=-1, dtype=int)
+
+        next_group = 0
+        group_lookup = dict()
+
+        for vol in volume_list:
+            for nt in neuron_types:
+                idx = self.snudda_load.get_neuron_id_of_type(neuron_type=nt, volume=vol)
+
+                group_lookup[vol, nt] = next_group
+                node_group_id[idx] = next_group
+                next_group += 1
+
+                assert (neuron_id_remap[idx] == -1).all(), f"Neuron id already remapped!"
+                neuron_id_remap[idx] = np.arange(0, len(idx))
+                group_idx[idx] = np.arange(0, len(idx))
+
+                # Originally we did not remap neuron id, but it seems that SONATA and NEST requires
+                # renumbering of the neuron_id to be consequent and starting from 0 for each group
+
+        assert (neuron_id_remap >= 0).all(), f"Not all neuron_id remapped!"
+
+        return node_group_id, group_idx, group_lookup, neuron_id_remap
+
+
+    def remap_nodes(self):
+
+        n_neurons = self.snudda_load.data["nNeurons"]
+        neuron_id_remap = np.full(shape=(n_neurons,), fill_value=-1)
+
+        neuron_types = self.snudda_load.get_neuron_types()
+        for nt in neuron_types:
+            old_id = self.snudda_load.get_neuron_id_of_type(neuron_type=nt)
+            new_id = np.arange(0, len(old_id))
+
+            assert (neuron_id_remap[old_id] == -1).all(), f"old_id already allocated!"
+            neuron_id_remap[old_id] = new_id
+
+        assert (neuron_id_remap >= 0).all(), f"Not all neuron_id remapped"
+
+        return neuron_id_remap
 
     ############################################################################
 
@@ -425,8 +484,13 @@ class ExportSonata:
         edge_population_id_lookup = dict()
         next_id = 1
 
-        for pre_node_type, pre_node_group in node_group_lookup.items():
-            for post_node_type, post_node_group in node_group_lookup.items():
+        for (pre_volume, pre_node_type), pre_node_group in node_group_lookup.items():
+            for (post_volume, post_node_type), post_node_group in node_group_lookup.items():
+
+                if (pre_node_group, post_node_group) in edge_population_lookup:
+                    raise KeyError(f"{pre_node_group} to {post_node_group} connections occur in multiple volumes, "
+                                   f"please rename so neuron with specific name only occur in one volume")
+
                 edge_population_lookup[pre_node_group, post_node_group] = f"{pre_node_type}_{post_node_type}"
                 edge_population_id_lookup[pre_node_group, post_node_group] = next_id
                 next_id += 1

@@ -735,7 +735,7 @@ class SnuddaLoad(object):
     # Returns neuron_id of all neurons of neuron_type
     # OBS, random_permute is not using a controled rng, so not affected by random seed set
 
-    def get_neuron_id_of_type(self, neuron_type, num_neurons=None, random_permute=False):
+    def get_neuron_id_of_type(self, neuron_type, num_neurons=None, random_permute=False, volume=None):
 
         """
         Find all neuron ID of a specific neuron type.
@@ -744,13 +744,15 @@ class SnuddaLoad(object):
             neuron_type (string) : Neuron type (e.g. "FS")
             num_neurons (int) : Maximum number of neurons to return
             random_permute (bool) : Shuffle the resulting neuron IDs?
+            volume (string) : VolumeID containing neurons (default None -- all neurons of type)
 
         Returns:
             List of neuron ID of specified neuron type
 
         """
 
-        neuron_id = np.array([x["neuronID"] for x in self.data["neurons"] if x["type"] == neuron_type])
+        neuron_id = np.array([x["neuronID"] for x in self.data["neurons"]
+                              if x["type"] == neuron_type and (volume is None or x["volumeID"] == volume)])
 
         assert not random_permute or num_neurons is not None, "random_permute is only valid when num_neurons is given"
 
