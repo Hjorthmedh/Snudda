@@ -91,10 +91,10 @@ class VisualiseNetwork(object):
             self.blender_output_image = blender_output_image
 
         if camera_location is None:
-            camera_location = (2.98, 2.68, 4.96)
+            camera_location = (3.228, 4.3433, 7.6695)  # (2.98, 2.68, 4.96)
 
         if camera_rotation is None:
-            camera_rotation = (1.59, 0, -0.26)
+            camera_rotation = (94.1*(np.pi/180), 0, -103*(np.pi/180))  # (1.59, 0, -0.26)
 
         if camera_scale is None:
             camera_scale = (1, 1, 1)
