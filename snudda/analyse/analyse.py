@@ -21,7 +21,8 @@ from snudda.utils.snudda_path import snudda_parse_path
 
 # !!! We need to parallelise the analysis script also!
 
-class SnuddaAnalyse(object):
+
+class SnuddaAnalyse:
 
     # saveCache = should we save a pickled file with connection matrix?
     # loadCache = should we load cache file if available
