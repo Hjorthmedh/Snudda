@@ -22,17 +22,40 @@ from snudda import SnuddaLoad
 
 class ExportSonata:
 
-    def __init__(self, network_file, input_file, out_dir, debug_flag=True, target_simulator="NEST"):
+    def __init__(self, network_path=None, network_file=None, input_file=None, out_dir=None, debug_flag=True, target_simulator="NEST"):
 
         self.debug = debug_flag
 
-        self.out_dir = out_dir
+        if network_path is not None:
+            self.network_path = network_path
+        elif network_file is not None:
+            self.network_path = os.path.dirname(network_file)
+        else:
+            raise ValueError("You must specify network_path or network_file")
+
+        if network_file is None:
+            network_file = os.path.join(network_path, "network-synapses.hdf5")
+
+        if out_dir is not None:
+            self.out_dir = out_dir
+        else:
+            self.out_dir = os.path.join(network_path, "SONATA")
+
         self.target_simulator = target_simulator
 
         # Read the data
         self.snudda_load = SnuddaLoad(network_file)
         self.network_file = self.snudda_load.network_file
-        self.input_file = input_file
+
+        if input_file is not None:
+            self.input_file = input_file
+        else:
+            input_file_candidate = os.path.join(self.network_path, "input-spikes.hdf5")
+
+            if os.path.isfile(input_file_candidate):
+                self.input_file = input_file_candidate
+            else:
+                self.input_file = None
 
         self.network_config = json.loads(self.snudda_load.data["config"])
 
@@ -48,7 +71,7 @@ class ExportSonata:
         # TODO: We need to read structure names from the network-config.json
         structure_names = [x for x in self.network_config["Volume"]]
         ch = ConvHurt(simulation_structures=structure_names,
-                      base_dir=out_dir)
+                      base_dir=self.out_dir)
 
         self.copy_morphologies()
         self.copy_mechanisms()
@@ -59,8 +82,9 @@ class ExportSonata:
         (vx, vy, vz) = self.rot_angles_zyx(self.snudda_load)
 
         # We need to convert the named neuron types to numbers
-        (node_type_id, node_type_id_lookup) = self.allocate_node_type_id()
-        (node_group_id, group_idx, node_group_lookup) = self.allocate_node_groups()
+        node_type_id, node_type_id_lookup = self.allocate_node_type_id()
+        # node_group_id, group_idx, node_group_lookup = self.allocate_node_groups()
+        node_group_id, group_idx, node_group_lookup, neuron_id_remap = self.allocate_groups_and_remap_nodeid()
 
         volume_id_list = [x["volumeID"] for x in self.snudda_load.data["neurons"]]
         volume_list = set(volume_id_list)
@@ -87,32 +111,52 @@ class ExportSonata:
                     else:
                         edge_model = con_type_data["channelParameters"]["modFile"]
 
-                edge_type_lookup[pre_type, post_type, con_type] = (edge_type_id, edge_model)
+                edge_type_lookup[pre_type, post_type, con_type] = (edge_type_id, edge_model, f"{pre_type}_{post_type}")
+
+        node_id_remap = np.full(shape=(self.snudda_load.data["nNeurons"],), fill_value=-1, dtype=int)
 
         for volume_name in volume_list:
+
+            node_file = f"{volume_name}_nodes.hdf5"
+
+            for nt in self.snudda_load.get_neuron_types(return_set=True):
+                nt_idx = np.where([x["volumeID"] == volume_name and x["type"] == nt
+                                   for x in self.snudda_load.data["neurons"]])
+
+                # Node data is stored in a HDF5 file and a CSV file (CONVERT TO micrometers)
+                node_data = OrderedDict([("x", self.snudda_load.data["neuronPositions"][nt_idx, 0].flatten() * 1e6),
+                                         ("y", self.snudda_load.data["neuronPositions"][nt_idx, 1].flatten() * 1e6),
+                                         ("z", self.snudda_load.data["neuronPositions"][nt_idx, 2].flatten() * 1e6),
+                                         ("rotation_angle_zaxis", vz[nt_idx].flatten()),
+                                         ("rotation_angle_yaxis", vy[nt_idx].flatten()),
+                                         ("rotation_angle_xaxis", vx[nt_idx].flatten())])
+
+                node_id_list = np.array([x["neuronID"] for x in self.snudda_load.data["neurons"]
+                                         if x["volumeID"] == volume_name and x["type"] == nt], dtype=int)
+
+                assert (nt_idx == node_id_list).all()
+
+                new_node_id = np.arange(0, len(node_id_list))
+
+                assert (node_id_remap[node_id_list] == -1).all(), f"Node id already remapped!"
+                node_id_remap[node_id_list] = new_node_id
+
+                # Population name should be name of neuron type
+                node_file = ch.write_nodes(node_file=node_file,
+                                           population_name=nt,
+                                           data=node_data,
+                                           node_id=node_id_remap[node_id_list],
+                                           node_type_id=node_type_id[nt_idx],
+                                           node_group_id=node_group_id[nt_idx],
+                                           node_group_index=group_idx[nt_idx],
+                                           close_file=False)
+
+            node_file.close()
+            # Done writing hdf5 file, time to create csv file
+
+            assert (node_id_remap >= 0).all(), f"Not all node id remapped."
+
             v_idx = np.where([v == volume_name for v in volume_id_list])[0]
-
-            # Node data is stored in a HDF5 file and a CSV file (CONVERT TO micrometers)
-            node_data = OrderedDict([("x", self.snudda_load.data["neuronPositions"][v_idx, 0] * 1e6),
-                                     ("y", self.snudda_load.data["neuronPositions"][v_idx, 1] * 1e6),
-                                     ("z", self.snudda_load.data["neuronPositions"][v_idx, 2] * 1e6),
-                                     ("rotation_angle_zaxis", vz[v_idx]),
-                                     ("rotation_angle_yaxis", vy[v_idx]),
-                                     ("rotation_angle_xaxis", vx[v_idx])])
-
-            node_id_list = np.array([x["neuronID"] for x in self.snudda_load.data["neurons"]
-                                     if x["volumeID"] == "Striatum"], dtype=int)
-
-            assert (v_idx == node_id_list).all()
-
-            ch.write_nodes(node_file=f"{volume_name}_nodes.hdf5",
-                           population_name=volume_name,
-                           data=node_data,
-                           node_id=node_id_list,
-                           node_type_id=node_type_id[node_id_list],
-                           node_group_id=node_group_id[node_id_list],
-                           node_group_index=group_idx[node_id_list])
-
             csv_node_names = sorted(list(set([node_name_list[x] for x in v_idx])))
             csv_node_type_id = [node_type_id_lookup[n] for n in csv_node_names]
             csv_node_location = [volume_name for n in csv_node_names]
@@ -139,7 +183,7 @@ class ExportSonata:
             edge_population_lookup, edge_population_id_lookup = self.setup_edge_population(node_group_lookup)
 
             population_rows, edge_type_id, source_gid, target_gid, edge_data = \
-                self.setup_edge_info(edge_population_lookup, node_group_id)
+                self.setup_edge_info(edge_population_lookup, node_group_id, group_idx)
 
             ch.write_edges(edge_file=f"{volume_name}_edges.hdf5",
                            population_rows=population_rows,
@@ -150,7 +194,8 @@ class ExportSonata:
 
             edge_type_id = [x[0] for x in edge_type_lookup.values()]
 
-            edge_data = {"model_template": [x[1] for x in edge_type_lookup.values()]}
+            edge_data = {"model_template": [x[1] for x in edge_type_lookup.values()],
+                         "population": [x[2] for x in edge_type_lookup.values()]}
 
             ch.write_edges_csv(edge_csv_file=f"{volume_name}_edge_types.csv",
                                edge_type_id=edge_type_id,
@@ -160,7 +205,7 @@ class ExportSonata:
 
         self.write_simulation_config()
 
-        print(f"SONATA files exported to {out_dir}")
+        print(f"SONATA files exported to {self.out_dir}")
 
     ############################################################################
 
@@ -245,9 +290,11 @@ class ExportSonata:
         next_node_type_id = 0
 
         node_names = [f"{n['name']}_{n['morphologyKey']}_{n['parameterKey']}_{n['modulationKey']}"
-                      for n in self.snudda_load.data["neurons"]]
+                             for n in self.snudda_load.data["neurons"]]
 
-        for n in node_names:
+        node_names_sorted = sorted(node_names)
+
+        for n in node_names_sorted:
             if n not in node_type_id_lookup:
                 node_type_id_lookup[n] = next_node_type_id
                 next_node_type_id += 1
@@ -264,7 +311,10 @@ class ExportSonata:
     # Snudda neuron type corresponds to SONATA NodeGroup
     # SONATA NodeType is {Snudda neuron name}_{morphology_key}_{parameter_key}_{modulation_key}
 
-    def allocate_node_groups(self):
+    def allocate_node_groups_OLD(self):
+
+        # node_group_id -- tells which group_id each neuron belongs to
+        # group_idx -- tells the index with the group that the neuron has
 
         node_group_id = np.zeros(len(self.snudda_load.data["neurons"]), dtype=int)
         group_idx = np.zeros(len(self.snudda_load.data["neurons"]), dtype=int)
@@ -288,6 +338,56 @@ class ExportSonata:
 
         return node_group_id, group_idx, group_lookup
 
+    def allocate_groups_and_remap_nodeid(self):
+
+        n_neurons = self.snudda_load.data["nNeurons"]
+        volume_list = set([x["volumeID"] for x in self.snudda_load.data["neurons"]])
+        neuron_types = self.snudda_load.get_neuron_types(return_set=True)
+
+        node_group_id = np.zeros(shape=(n_neurons, ), dtype=int)
+        group_idx = np.full(shape=(n_neurons, ), fill_value=-1, dtype=int)
+        neuron_id_remap = np.full(shape=(n_neurons, ), fill_value=-1, dtype=int)
+
+        next_group = 0
+        group_lookup = dict()
+
+        for vol in volume_list:
+            for nt in neuron_types:
+                idx = self.snudda_load.get_neuron_id_of_type(neuron_type=nt, volume=vol)
+
+                group_lookup[vol, nt] = next_group
+                node_group_id[idx] = next_group
+                next_group += 1
+
+                assert (neuron_id_remap[idx] == -1).all(), f"Neuron id already remapped!"
+                neuron_id_remap[idx] = np.arange(0, len(idx))
+                group_idx[idx] = np.arange(0, len(idx))
+
+                # Originally we did not remap neuron id, but it seems that SONATA and NEST requires
+                # renumbering of the neuron_id to be consequent and starting from 0 for each group
+
+        assert (neuron_id_remap >= 0).all(), f"Not all neuron_id remapped!"
+
+        return node_group_id, group_idx, group_lookup, neuron_id_remap
+
+
+    def remap_nodes(self):
+
+        n_neurons = self.snudda_load.data["nNeurons"]
+        neuron_id_remap = np.full(shape=(n_neurons,), fill_value=-1)
+
+        neuron_types = self.snudda_load.get_neuron_types()
+        for nt in neuron_types:
+            old_id = self.snudda_load.get_neuron_id_of_type(neuron_type=nt)
+            new_id = np.arange(0, len(old_id))
+
+            assert (neuron_id_remap[old_id] == -1).all(), f"old_id already allocated!"
+            neuron_id_remap[old_id] = new_id
+
+        assert (neuron_id_remap >= 0).all(), f"Not all neuron_id remapped"
+
+        return neuron_id_remap
+
     ############################################################################
 
     def get_node_templates(self, csv_node_name):
@@ -307,7 +407,7 @@ class ExportSonata:
             # It seems that RT neuron requires the filename without .swc at the end
             # Also, they prepend morphology path, but only allows one directory for all morphologies
             # morph_file = os.path.splitext(os.path.basename(n["morphology"]))[0]
-            morph_file = os.path.basename(n["morphology"])
+            morph_file = os.path.basename(n["morphology"]).replace(".swc", "")
 
             if hoc_file in self.hoc_location_lookup:
                 # We need to change from old hoc location to the SONATA hoc location
@@ -336,7 +436,7 @@ class ExportSonata:
                     model_type_dict[name] = "biophysical"
                     template_dict[name] = hoc_str
 
-            elif self.target_simulator is not "NEST":
+            elif self.target_simulator != "NEST":
 
                 assert template_dict[name] == hoc_str, \
                     f"All files named {name} do not share same hoc file: {template_dict[name]} and {hoc_str}"
@@ -361,7 +461,7 @@ class ExportSonata:
         for file_path in dynamics_params_list:
 
             if file_path is None:
-                new_dynamics_params_list.append(None)
+                new_dynamics_params_list.append("MISSING-FILE-HERE.json")
                 continue
 
             if os.path.basename(file_path) == "dynamics_params.json":
@@ -384,8 +484,13 @@ class ExportSonata:
         edge_population_id_lookup = dict()
         next_id = 1
 
-        for pre_node_type, pre_node_group in node_group_lookup.items():
-            for post_node_type, post_node_group in node_group_lookup.items():
+        for (pre_volume, pre_node_type), pre_node_group in node_group_lookup.items():
+            for (post_volume, post_node_type), post_node_group in node_group_lookup.items():
+
+                if (pre_node_group, post_node_group) in edge_population_lookup:
+                    raise KeyError(f"{pre_node_group} to {post_node_group} connections occur in multiple volumes, "
+                                   f"please rename so neuron with specific name only occur in one volume")
+
                 edge_population_lookup[pre_node_group, post_node_group] = f"{pre_node_type}_{post_node_type}"
                 edge_population_id_lookup[pre_node_group, post_node_group] = next_id
                 next_id += 1
@@ -396,7 +501,7 @@ class ExportSonata:
 
     # This code sets up the info about edges
 
-    def setup_edge_info(self, edge_population_lookup, node_group_id):
+    def setup_edge_info(self, edge_population_lookup, node_group_id, group_idx):
 
         n_synapses = self.snudda_load.data["synapses"].shape[0]
         edge_type_id = np.zeros(n_synapses, dtype=int)
@@ -420,8 +525,8 @@ class ExportSonata:
         # somaDist is an int, representing micrometers
 
         for i_syn, syn_row in enumerate(self.snudda_load.data["synapses"]):
-            source_gid[i_syn] = syn_row[0]
-            target_gid[i_syn] = syn_row[1]
+            source_gid[i_syn] = group_idx[syn_row[0]]
+            target_gid[i_syn] = group_idx[syn_row[1]]
 
             source_node_group = node_group_id[syn_row[0]]
             target_node_group = node_group_id[syn_row[1]]
@@ -444,11 +549,11 @@ class ExportSonata:
 
             dend_dist = syn_row[6] * 1e-6
             axon_dist = syn_row[7] * 1e-6
-            delay[i_syn] = axon_dist / axon_speed + dend_dist / dend_speed
+            delay[i_syn] = axon_dist / axon_speed * 1e3 + 1  # Delay in ms and not SI units :-(
             syn_weight[i_syn] = 1.0  # !!! THIS NEEDS TO BE SET DEPENDING ON CONNECTION TYPE
 
-        edge_data = OrderedDict([("sec_id", sec_id),
-                                 ("sec_x", sec_x),
+        edge_data = OrderedDict([("afferent_section_id", sec_id),
+                                 ("afferent_section_pos", sec_x),
                                  ("syn_weight", syn_weight),
                                  ("delay", delay)])
 

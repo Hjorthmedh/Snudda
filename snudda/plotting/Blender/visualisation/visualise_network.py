@@ -59,6 +59,7 @@ class VisualiseNetwork(object):
                   blender_output_image=None,
                   white_background=True,
                   show_synapses=True,
+                  synapse_pair_filter=None,
                   draw_meshes=True,
                   full_meshes=None,
                   camera_location=None,
@@ -74,6 +75,7 @@ class VisualiseNetwork(object):
                 blender_output_image
                 white_background
                 show_synapses
+                synapse_pair_filter (list): List of pairs of neurons (tuples) to show synapses for, default None = no filtering
                 camera_location
                 camera_rotation
                 camera_scale
@@ -91,13 +93,16 @@ class VisualiseNetwork(object):
             self.blender_output_image = blender_output_image
 
         if camera_location is None:
-            camera_location = (2.98, 2.68, 4.96)
+            camera_location = (3.228, 4.3433, 7.6695)  # (2.98, 2.68, 4.96)
 
         if camera_rotation is None:
-            camera_rotation = (1.59, 0, -0.26)
+            camera_rotation = (94.1*(np.pi/180), 0, -103*(np.pi/180))  # (1.59, 0, -0.26)
 
         if camera_scale is None:
             camera_scale = (1, 1, 1)
+
+        if synapse_pair_filter is not None:
+            synapse_pair_filter = set(synapse_pair_filter)
 
         origo = self.data["simulationOrigo"]
         voxel_size = self.data["voxelSize"]
@@ -286,6 +291,10 @@ class VisualiseNetwork(object):
                     for syn in synapses:
                         pre_id = syn[0]
                         post_id = syn[1]
+
+                        if synapse_pair_filter is not None:
+                            if (pre_id, post_id) not in synapse_pair_filter:
+                                continue
 
                         assert pre_id == vis_pre_id and post_id == vis_post_id  # Just sanity check, should be true
 

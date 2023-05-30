@@ -20,6 +20,7 @@ class TestSonata(unittest.TestCase):
         self.network_path = os.path.join("networks", "sonata_example")
 
         # !!! TEMP SKIP setup while developing
+        # print("SKIPPING NETWORK CREATIONG DURING DEVELOPMENT")
         # return
 
         if create_network:
@@ -58,11 +59,35 @@ class TestSonata(unittest.TestCase):
         sl = SnuddaLoad(network_file=network_file)
 
         with self.subTest("Check nodes"):
-            self.assertEqual(sf.nodes.population_names, ["Striatum"])
-            nodes = sf.nodes.get_population("Striatum")
+
+            neuron_populations = set(['ChIN', 'FS', 'LTS', 'dSPN', 'iSPN'])
+
+            self.assertEqual(set(sf.nodes.population_names), neuron_populations)
+            nodes = dict()
+
+            for pop_name in neuron_populations:
+
+                nodes[pop_name] = sf.nodes.get_population(pop_name)
+
+            # SONATA seems to have separate node_id for each population
+            neuron_types = np.array([x["type"] for x in sl.data["neurons"]])
+            within_type_idx = np.full(shape=(len(neuron_types),), fill_value=-1, dtype=int)
+            for nt in set(neuron_types):
+                idx = np.where(neuron_types == nt)[0]
+                within_type_idx[idx] = np.arange(0, len(idx))
+
+            assert (within_type_idx >= 0).all()
 
             for neuron in sl.data["neurons"]:
-                sonata_node = nodes.get_node_id(neuron["neuronID"])
+                neuron_type = neuron["type"]
+
+                try:
+                    sonata_node = nodes[neuron_type].get_node_id(within_type_idx[neuron["neuronID"]])
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
 
                 # Remember to convert from natural units to SI units
                 self.assertAlmostEqual(neuron["position"][0], sonata_node["x"]*1e-6, 8)
@@ -71,7 +96,7 @@ class TestSonata(unittest.TestCase):
 
                 # TODO: We need to also check the rotation
 
-                self.assertEqual(os.path.basename(neuron["morphology"]), sonata_node["morphology"])
+                self.assertEqual(os.path.basename(neuron["morphology"]).replace(".swc", ""), sonata_node["morphology"])
 
                 if se.target_simulator != "NEST":
                     self.assertEqual(sonata_node["model_type"], "biophysical")
@@ -85,16 +110,29 @@ class TestSonata(unittest.TestCase):
             con_mat = sl.create_connection_matrix()
             new_con_mat = np.zeros(shape=con_mat.shape, dtype=int)
 
+            neuron_types = np.array([x["type"] for x in sl.data["neurons"]])
+            neuron_idx = dict()
+            for nt in set(neuron_types):
+                neuron_idx[nt] = np.where(neuron_types == nt)[0]
+
             for edge_pop_name in sf.edges.population_names:
                 edges_pop = sf.edges[edge_pop_name]
 
+                pre_pop, post_pop = edge_pop_name.split("_")
+
                 for edge in edges_pop:
                     # print(f"{edge}")
-                    src_id = edge.source_node_id
-                    target_id = edge.target_node_id
-                    new_con_mat[src_id, target_id] += 1
+                    try:
+                        src_id = neuron_idx[pre_pop][edge.source_node_id]
+                        target_id = neuron_idx[post_pop][edge.target_node_id]
+                        new_con_mat[src_id, target_id] += 1
 
-                    edge_count += 1
+                        edge_count += 1
+                    except:
+                        import traceback
+                        print(traceback.format_exc())
+                        import pdb
+                        pdb.set_trace()
 
             # Check that all edges are accounted for
 

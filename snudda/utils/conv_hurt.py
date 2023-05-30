@@ -17,6 +17,7 @@ class ConvHurt(object):
 
         self.base_dir = base_dir
         self.network_dir = os.path.join(base_dir, 'networks')
+
         self.target_simulator = target_simulator
 
         self.h5py_libver = "earliest"  # "latest"
@@ -125,55 +126,65 @@ class ConvHurt(object):
                     node_group_index,
                     data,
                     model_type=None,
-                    model_template=None):
+                    model_template=None,
+                    close_file=True):
 
-        with h5py.File(os.path.join(self.network_dir, node_file), 'w', libver=self.h5py_libver) as f:
-
+        if isinstance(node_file, h5py._hl.files.File):
+            f = node_file
+            n_group = f["nodes"]
+        else:
+            f = h5py.File(os.path.join(self.network_dir, node_file), 'w', libver=self.h5py_libver)
             self.add_version(f)
-
             n_group = f.create_group("nodes")
 
-            nodes_group = n_group.create_group(population_name)
+        print(f"Creating nodes/{population_name}")
+        nodes_group = n_group.create_group(population_name)
 
-            nodes_group.create_dataset("node_id", data=node_id)
-            nodes_group.create_dataset("node_type_id", data=node_type_id)
-            nodes_group.create_dataset("node_group_id", data=node_group_id)
-            nodes_group.create_dataset("node_group_index", data=node_group_index)
+        nodes_group.create_dataset("node_id", data=node_id)
+        nodes_group.create_dataset("node_type_id", data=node_type_id)
+        nodes_group.create_dataset("node_group_id", data=node_group_id)
+        nodes_group.create_dataset("node_group_index", data=node_group_index)
 
-            groups = np.unique(node_group_id)
+        groups = np.unique(node_group_id)
 
-            for g in groups:
-                idx = np.where(node_group_id == g)
+        for g in groups:
+            idx = np.where(node_group_id == g)
 
-                group_group = nodes_group.create_group(str(g))
-                # dynGroup = groupGroup.create_group("dynamics_params")
+            group_group = nodes_group.create_group(str(g))
+            # dynGroup = groupGroup.create_group("dynamics_params")
 
-                for data_type in data.keys():
-                    # This assumes all our data is matrices
-                    # if there are string data, we need to handle that separately
-                    if len(data[data_type].shape) == 1:
-                        group_group.create_dataset(data_type, data=data[data_type][idx])
-                    elif len(data[data_type].shape) == 2:
-                        group_group.create_dataset(data_type, data=data[data_type][idx, :])
-                    else:
-                        print("Data has too many columns, require 1 or 2 columns max.")
+            for data_type in data.keys():
+                # This assumes all our data is matrices
+                # if there are string data, we need to handle that separately
+                if len(data[data_type].shape) == 1:
+                    group_group.create_dataset(data_type, data=data[data_type][idx])
+                elif len(data[data_type].shape) == 2:
+                    group_group.create_dataset(data_type, data=data[data_type][idx, :])
+                else:
+                    print("Data has too many columns, require 1 or 2 columns max.")
 
-                # These are optional, would overwrite the defaults in the CSV file
-                if model_type is not None and model_type != [None]:
-                    # If this line fails, try to use .encode() on each element in the list
-                    str_type = f"S{max([len(x) if x is not None else 1 for x in model_type[idx]])}"
+            # These are optional, would overwrite the defaults in the CSV file
+            if model_type is not None and model_type != [None]:
+                # If this line fails, try to use .encode() on each element in the list
+                str_type = f"S{max([len(x) if x is not None else 1 for x in model_type[idx]])}"
 
-                    nodes_group.create_dataset("model_type", (len(idx),), str_type,
-                                               data=model_type[idx],
-                                               compression="gzip")
+                nodes_group.create_dataset("model_type", (len(idx),), str_type,
+                                           data=model_type[idx],
+                                           compression="gzip")
 
-                if model_template is not None and model_template != [None]:
-                    assert model_type is not None, "model_type must be set if model_template set"
+            if model_template is not None and model_template != [None]:
+                assert model_type is not None, "model_type must be set if model_template set"
 
-                    str_type2 = f"S{max([len(x) for x in model_template[idx]])}"
-                    nodes_group.create_dataset("model_template", (len(idx),), str_type2, data=model_template[idx])
+                str_type2 = f"S{max([len(x) for x in model_template[idx]])}"
+                nodes_group.create_dataset("model_template", (len(idx),), str_type2, data=model_template[idx])
 
-                # model_type_id should be added here also
+            # model_type_id should be added here also
+
+        if close_file:
+            f.close()
+            f = None
+
+        return f
 
     ############################################################################
 
@@ -222,7 +233,8 @@ class ConvHurt(object):
                     edge_type_id,
                     source_id,
                     target_id,
-                    data):
+                    data,
+                    include_index=False):
 
         # We need to have the targetID vector sorted
         # How should we handle cells that do not have any edges at all?
@@ -240,7 +252,8 @@ class ConvHurt(object):
 
                 e_group = edg_group.create_group(pop_name)
 
-                idx = sort_idx[pop_rows]
+                sort_idx = np.argsort(target_id[pop_rows])
+                idx = pop_rows[sort_idx]
 
                 e_group.create_dataset("edge_group_id", data=np.zeros((n_rows,), dtype=int))
                 e_group.create_dataset("edge_group_index", data=np.arange(n_rows), dtype=int)
@@ -261,15 +274,18 @@ class ConvHurt(object):
                     else:
                         print("Unsupported width of data column.")
 
-                # We need to create the indices needed by Allen Institute
-                self.create_index(e_group["source_node_id"], e_group, index_source=True)
-                self.create_index(e_group["target_node_id"], e_group, index_source=False)
+                if include_index:
+                    # We need to create the indices needed by Allen Institute
+                    self.create_index(e_group["source_node_id"], e_group, index_source=True)
+                    self.create_index(e_group["target_node_id"], e_group, index_source=False)
 
     ############################################################################
 
     # createIndex provided by Kael Dai from Allen Institute, 2018-11-27
 
     def create_index(self, node_ids_ds, output_grp, index_source=0):
+
+        # TODO: Verify that this is correct! -- I am not sure it is...
 
         if not index_source:
             edge_nodes = np.array(node_ids_ds, dtype=np.int64)
