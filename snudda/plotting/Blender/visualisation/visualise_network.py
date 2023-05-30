@@ -194,6 +194,11 @@ class VisualiseNetwork(object):
             mat_synapse.diffuse_color = (1.0, 1.0, 0.9, 1.0)
 
         # matSynapse.use_transparency = True
+
+        """
+        # We comment out these lines, to get the synapse colour to be set correctly (otherwise they are white)
+        # Thanks Scott for finding this fix.
+        
         mat_synapse.use_nodes = True
 
         if not white_background:
@@ -205,6 +210,7 @@ class VisualiseNetwork(object):
 
             material_output = mat_synapse.node_tree.nodes.get('Material Output')
             mat_synapse.node_tree.links.new(material_output.inputs[0], emission.outputs[0])
+        """
 
         for neuron in neurons:
 
