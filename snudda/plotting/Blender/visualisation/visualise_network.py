@@ -59,6 +59,7 @@ class VisualiseNetwork(object):
                   blender_output_image=None,
                   white_background=True,
                   show_synapses=True,
+                  synapse_colour=None,
                   synapse_pair_filter=None,
                   draw_meshes=True,
                   full_meshes=None,
@@ -75,6 +76,7 @@ class VisualiseNetwork(object):
                 blender_output_image
                 white_background
                 show_synapses
+                synapse_colour: R,G,B,alpha (For values, range 0-1). Default None.
                 synapse_pair_filter (list): List of pairs of neurons (tuples) to show synapses for, default None = no filtering
                 camera_location
                 camera_rotation
@@ -184,7 +186,9 @@ class VisualiseNetwork(object):
                            "synapse": mat_synapse,
                            "other": mat_other}
 
-        if white_background:
+        if synapse_colour is not None:
+            mat_synapse.diffuse_color = synapse_colour
+        elif white_background:
             mat_synapse.diffuse_color = (0.8, 0.0, 0.0, 1.0)
         else:
             mat_synapse.diffuse_color = (1.0, 1.0, 0.9, 1.0)
