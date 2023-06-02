@@ -8,6 +8,7 @@ from snudda import SnuddaPlace
 from snudda import SnuddaDetect
 from snudda import SnuddaPrune
 from snudda import SnuddaLoad
+from snudda.input import SnuddaInput
 from snudda.utils.export_sonata import ExportSonata
 
 from sonata.circuit import File as SonataFile
@@ -38,6 +39,10 @@ class TestSonata(unittest.TestCase):
 
             sp = SnuddaPrune(network_path=self.network_path)
             sp.prune()
+
+            input_config_file = os.path.join("networks", "network_testing_input","input-test-1.json")
+            si = SnuddaInput(network_path=self.network_path, input_config_file=input_config_file)
+            si.generate()
 
     def test_sonata_export(self):
 
@@ -139,6 +144,7 @@ class TestSonata(unittest.TestCase):
             self.assertEqual(edge_count, sl.data["nSynapses"])
             self.assertTrue((con_mat == new_con_mat).all())
 
+        # !!! TODO: Add test for input, also write dedicated input.json file for this test
 
 if __name__ == '__main__':
     unittest.main()
