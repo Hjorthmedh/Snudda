@@ -59,7 +59,10 @@ class ExportSonata:
 
         self.network_config = json.loads(self.snudda_load.data["config"])
 
-        print(f"Using input file: {self.input_file}")
+        if self.input_file:
+            print(f"Using input file: {self.input_file}")
+        else:
+            print("No input file specified, and default file not found.")
 
         # This contains data for converting to Neurodamus secID and secX
         self.morph_cache = dict([])
@@ -201,19 +204,87 @@ class ExportSonata:
                                edge_type_id=edge_type_id,
                                data=edge_data)
 
-        # !!! WE ALSO NEED TO ADD BACKGROUND INPUT TO THE NEURONS IN THE NETWORK
+            input_list = []
 
-        self.write_simulation_config()
+            if self.input_file:
+                # We also need to add external input to the neurons
+                for nt in self.snudda_load.get_neuron_types(return_set=True):
+                    n_spikes = self.write_input(neuron_type=nt, node_id_remap=node_id_remap,
+                                                input_hdf5=self.input_file,
+                                                sonata_input_hdf5=f"inputs/input_{nt}_{volume_name}.hdf5",
+                                                conv_hurt=ch, volume_name=volume_name)
+
+                    if n_spikes > 0:
+                        # This currently assumes each neuron type only occur in one volume
+                        input_list.append((nt, f"input_{nt}_{volume_name}.hdf5"))
+
+        self.write_simulation_config(input_list=input_list)
 
         print(f"SONATA files exported to {self.out_dir}")
 
     ############################################################################
 
-    def get_edge_type_lookup(self):
+    def write_input(self, neuron_type, node_id_remap,
+                    input_hdf5, sonata_input_hdf5,
+                    conv_hurt,
+                    volume_name=None,
+                    input_type=None):
 
-        # Read the config file, to find out all possible types of connections
+        """
+            Args:
+                neuron_type (str) : Neuron type to create SONATA input file for
+                volume_name (str) : Name of volume (default: None, assumes neuron type only in one volume)
+                input_type (str) : Input type to inlcude (default: None, all inputs to neuron)
+                node_id_remap : Numpy array mapping neuron_id to gid (which is population specific)
+                input_hdf5 : File to read data from
+                sonata_input_hdf5 : File to write data to
 
-        pass
+        """
+
+        if type(input_hdf5) != h5py._hl.files.File:
+            input_hdf5 = h5py.File(input_hdf5, "r")
+
+        neuron_id_list = self.snudda_load.get_neuron_id_of_type(neuron_type=neuron_type, volume=volume_name)
+
+        spike_list = []
+        gid_list = []
+
+        for neuron_id in neuron_id_list:
+            neuron_spikes = []
+            if input_type is not None:
+                input_types = [input_type]
+            else:
+                input_types = input_hdf5[f"input/{neuron_id}"].keys()
+
+            for it in input_types:
+                spike_group = input_hdf5[f"input/{neuron_id}/{it}/spikes"]
+                n_spikes = spike_group.attrs["nSpikes"]
+
+                for idx, ns in enumerate(n_spikes):
+                    neuron_spikes.append(spike_group[idx, :ns])
+
+            nrn_spikes = np.concatenate(neuron_spikes)
+            gid = np.full(shape=nrn_spikes.shape, fill_value=node_id_remap[neuron_id], dtype=int)
+
+            spike_list.append(nrn_spikes)
+            gid_list.append(gid)
+
+        input_hdf5.close()
+
+        spikes = np.concatenate(spike_list)
+        gids = np.concatenate(gid_list)
+
+        if len(spikes) == 0:
+            return None
+
+        # We need to make sure the spikes are sorted by gid, then by time
+        idx = np.lexsort((spikes, gids))
+
+        f_name = conv_hurt.write_input(spike_file_name=sonata_input_hdf5,
+                                       spike_times=spikes[idx],
+                                       gids=gids[idx])
+
+        return len(spikes)
 
     ############################################################################
 
@@ -369,7 +440,6 @@ class ExportSonata:
         assert (neuron_id_remap >= 0).all(), f"Not all neuron_id remapped!"
 
         return node_group_id, group_idx, group_lookup, neuron_id_remap
-
 
     def remap_nodes(self):
 
@@ -830,7 +900,7 @@ class ExportSonata:
 
     ############################################################################
 
-    def write_simulation_config(self):
+    def write_simulation_config(self, input_list):
 
         sim_conf = dict([])
 
@@ -859,15 +929,17 @@ class ExportSonata:
         # node_sets_file contains the reports we want written from the simulation
         # simConf["node_sets_file"] = None # !!! THIS NEEDS TO BE WRITTEN
 
-        cortex_input = {"input_type": "spikes",
-                        "module": "h5",
-                        "input_file": "$INPUT_DIR/cortexInput.hdf5"}
+        if input_list:
+            sim_conf["inputs"] = dict()
 
-        thalamus_input = {"input_type": "spikes",
-                          "module": "h5",
-                          "input_file": "$INPUT_DIR/thalamusInput.hdf5"}
-        sim_conf["inputs"] = {"cortexInput": cortex_input,
-                              "thalamusInput": thalamus_input}
+            for neuron_type, input_file in input_list:
+                input_info = dict()
+                input_info["input_type"] = "spikes"
+                input_info["module"] = "h5"
+                input_info["input_file"] = f"$INPUT_DIR/{input_file}"
+                input_info["node_set"] = neuron_type
+
+                sim_conf["inputs"][f"{neuron_type}_spikes"] = input_info
 
         out_conf_file = os.path.join(self.out_dir, "simulation_config.json")
         print(f"Writing {out_conf_file}")
@@ -946,6 +1018,8 @@ class ExportSonata:
     ############################################################################
 
     def sort_input(self, nl, node_type_id_lookup, input_name=None):
+
+        raise DeprecationWarning("Code is deprecated")
 
         if self.input_file is None or not os.path.isfile(self.input_file):
             print("No input file has been specified!")

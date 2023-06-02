@@ -361,14 +361,11 @@ class ConvHurt(object):
 
     ############################################################################
 
-    def write_input(self, spike_file_name, spikes):
-
-        if spikes is None:
-            print(f"No spikes specified, not writing {spike_file_name}")
-            print("Use python3 Network_input.py yourinput.json yournetwork.hdf5 input-spikes.hdf5")
-            return
+    def write_input(self, spike_file_name, spike_times, gids):
 
         f_name = os.path.join(self.base_dir, spike_file_name)
+
+        print(f"Writing spikes to {f_name}")
 
         with h5py.File(f_name, 'w', libver=self.h5py_libver) as f:
             self.add_version(f)
@@ -376,8 +373,11 @@ class ConvHurt(object):
             print(f"Writing file {f_name}")
 
             s_group = f.create_group("spikes")
-            s_group.create_dataset("gids", data=spikes[:, 1])
-            s_group.create_dataset("timestamps", data=spikes[:, 0])
+            s_group.attrs["sorting"] = "gid"
+            s_group.create_dataset("gids", data=gids)
+            s_group.create_dataset("timestamps", data=spike_times*1e3)  # Convert to ms
+
+        return f_name
 
     ############################################################################
 
