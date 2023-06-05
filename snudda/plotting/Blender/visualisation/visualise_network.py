@@ -21,6 +21,7 @@ class VisualiseNetwork(object):
         self.network_path = network_path
         self.snudda_data = get_snudda_data(network_path=network_path)
         self.scale_f = 1000  # factor to downscale the data
+        self.neuron_colour_lookup = dict()  # Allow the user to override the neuron colours
 
         if network_json:
             self.network_json = network_json
@@ -53,6 +54,16 @@ class VisualiseNetwork(object):
             self.sl = FakeLoad()
             self.sl.import_json(self.network_json)
             self.data = self.sl.data
+
+    def set_neuron_colour(self, neuron_id, colour):
+
+        if len(colour) != 4:
+            raise ValueError(f"Colour should be R,G,B,alpha (4 values)")
+        self.neuron_colour_lookup[neuron_id] = colour
+
+    def clear_neuron_colours(self):
+
+        self.neuron_colour_lookup = dict()
 
     def visualise(self,
                   neuron_id=None,
@@ -186,6 +197,11 @@ class VisualiseNetwork(object):
                            "synapse": mat_synapse,
                            "other": mat_other}
 
+        # Add the user requested custom colours
+        for nid in self.neuron_colour_lookup.keys():
+            material_lookup[nid] = bpy.data.materials.new("PKHG")
+            material_lookup[nid].diffuse_color = self.neuron_colour_lookup[nid]
+
         if synapse_colour is not None:
             mat_synapse.diffuse_color = synapse_colour
         elif white_background:
@@ -243,7 +259,11 @@ class VisualiseNetwork(object):
 
             n_type = neuron["type"].lower()
 
-            if n_type in material_lookup:
+            if neuron['neuronID'] in material_lookup:
+                # Custom colour for neuron (priority)
+                mat = material_lookup[neuron['neuronID']]
+            elif n_type in material_lookup:
+                # Each neuron type has its own colour
                 mat = material_lookup[n_type]
             else:
                 mat = material_lookup["other"]
