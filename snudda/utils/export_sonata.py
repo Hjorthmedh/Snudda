@@ -109,12 +109,19 @@ class ExportSonata:
                     if self.target_simulator == "NEST":
                         if "nestModelTemplate" in con_type_data["channelParameters"]:
                             edge_model = con_type_data["channelParameters"]["nestModelTemplate"]
+                            if "nestDynamicParams" not in con_type_data["channelParameters"]:
+                                raise KeyError("If nestModelTemplate is specified, nestDynamicParams must be specified also")
+                            dynamic_params = con_type_data["channelParameters"]["nestDynamicParams"]
                         else:
                             edge_model = "static_synapse"
+                            if con_type == "GABA":
+                                dynamic_params = "inhibitory.json"
+                            else:
+                                dynamic_params = "excitatory.json"
                     else:
                         edge_model = con_type_data["channelParameters"]["modFile"]
 
-                edge_type_lookup[pre_type, post_type, con_type] = (edge_type_id, edge_model, f"{pre_type}_{post_type}")
+                edge_type_lookup[pre_type, post_type, con_type] = (edge_type_id, edge_model, f"{pre_type}_{post_type}", dynamic_params)
 
         node_id_remap = np.full(shape=(self.snudda_load.data["nNeurons"],), fill_value=-1, dtype=int)
 
@@ -198,7 +205,8 @@ class ExportSonata:
             edge_type_id = [x[0] for x in edge_type_lookup.values()]
 
             edge_data = {"model_template": [x[1] for x in edge_type_lookup.values()],
-                         "population": [x[2] for x in edge_type_lookup.values()]}
+                         "population": [x[2] for x in edge_type_lookup.values()],
+                         "dynamic_params": [x[3] for x in edge_type_lookup.values()]}
 
             ch.write_edges_csv(edge_csv_file=f"{volume_name}_edge_types.csv",
                                edge_type_id=edge_type_id,
@@ -569,6 +577,30 @@ class ExportSonata:
 
     ############################################################################
 
+    def get_nest_synapse_models(self):
+
+        synapse_model_lookup = dict()
+
+        for synapse_models in self.snudda_load.data["connectivityDistributions"].values():
+            for synapse_type, synapse_model in synapse_models.items():
+                synapse_type_id = synapse_model["channelModelID"]
+
+                if synapse_type == "GABA":
+                    synapse_model_lookup[synapse_type_id] = dict()
+                    synapse_model_lookup[synapse_type_id]["soma"] = "inhibitory_soma.json"
+                    synapse_model_lookup[synapse_type_id]["proximal"] = "inhibitory_proximal.json"
+                    synapse_model_lookup[synapse_type_id]["distal"] = "inhibitory_distal.json"
+                else:
+                    # Assume excitatory
+                    synapse_model_lookup[synapse_type_id] = dict()
+                    synapse_model_lookup[synapse_type_id]["soma"] = "excitatory_soma.json"
+                    synapse_model_lookup[synapse_type_id]["proximal"] = "excitatory_proximal.json"
+                    synapse_model_lookup[synapse_type_id]["distal"] = "excitatory_distal.json"
+
+        return synapse_model_lookup
+
+    ############################################################################
+
     # This code sets up the info about edges
 
     def setup_edge_info(self, edge_population_lookup, node_group_id, group_idx):
@@ -611,6 +643,8 @@ class ExportSonata:
             sec_id[i_syn] = syn_row[9]
             sec_x[i_syn] = syn_row[10] / 1000.0
             synapse_type = syn_row[6]
+            synapse_conductance = syn_row[11] * 1e-3  # pS --> micro simens
+            syn_weight[i_syn] = synapse_conductance
 
             pre_type = self.snudda_load.data["neurons"][source_gid[i_syn]]["type"]
             post_type = self.snudda_load.data["neurons"][target_gid[i_syn]]["type"]
@@ -620,7 +654,6 @@ class ExportSonata:
             dend_dist = syn_row[6] * 1e-6
             axon_dist = syn_row[7] * 1e-6
             delay[i_syn] = axon_dist / axon_speed * 1e3 + 1  # Delay in ms and not SI units :-(
-            syn_weight[i_syn] = 1.0  # !!! THIS NEEDS TO BE SET DEPENDING ON CONNECTION TYPE
 
         edge_data = OrderedDict([("afferent_section_id", sec_id),
                                  ("afferent_section_pos", sec_x),
@@ -1014,6 +1047,19 @@ class ExportSonata:
 
             mech_file = os.path.basename(mech)
             copyfile(mech, os.path.join(self.out_dir, "components", "mechanisms", mech_file))
+
+    def copy_nest_synapses(self):
+        print("Copying NEST synapses")
+
+        mech_path = snudda_parse_path(os.path.join("$SNUDDA_DATA", "nest", "synapses"),
+                                      snudda_data=self.snudda_load.data["SnuddaData"])
+
+        for mech in glob(os.path.join(mech_path, "*.json")):
+            if self.debug:
+                print(f"Copying {mech}")
+
+            mech_file = os.path.basename(mech)
+            copyfile(mech, os.path.join(self.out_dir, "components", "synapse_dynamics", mech_file))
 
     ############################################################################
 

@@ -96,7 +96,7 @@ class VisualiseNetwork(object):
 
         """
 
-        if neuron_id:
+        if neuron_id is not None:
             neurons = [self.data["neurons"][x] for x in neuron_id]
         else:
             neurons = self.data["neurons"]
