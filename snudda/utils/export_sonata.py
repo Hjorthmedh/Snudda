@@ -599,6 +599,21 @@ class ExportSonata:
 
         return synapse_model_lookup
 
+    def get_nest_synapse_sign_lookup(self):
+
+        synapse_sign_lookup = dict()
+
+        for synapse_models in self.snudda_load.data["connectivityDistributions"].values():
+            for synapse_type, synapse_model in synapse_models.items():
+                synapse_type_id = synapse_model["channelModelID"]
+
+                if synapse_type.upper() == "GABA":
+                    synapse_sign_lookup[synapse_type_id] = -1.0
+                else:
+                    synapse_sign_lookup[synapse_type_id] = 1.0
+
+        return synapse_sign_lookup
+
     ############################################################################
 
     # This code sets up the info about edges
@@ -626,6 +641,8 @@ class ExportSonata:
         # 4: locType, 5: synapseType, 6: somaDistDend 7:somaDistAxon
         # somaDist is an int, representing micrometers
 
+        synapse_sign_lookup = self.get_nest_synapse_sign_lookup()
+
         for i_syn, syn_row in enumerate(self.snudda_load.data["synapses"]):
             source_gid[i_syn] = group_idx[syn_row[0]]
             target_gid[i_syn] = group_idx[syn_row[1]]
@@ -644,7 +661,10 @@ class ExportSonata:
             sec_x[i_syn] = syn_row[10] / 1000.0
             synapse_type = syn_row[6]
             synapse_conductance = syn_row[11] * 1e-3  # pS --> micro simens
-            syn_weight[i_syn] = synapse_conductance
+
+            # We need to set the weight to negative for inhibitory synapses it seems
+            # hence the synapse_sign_lookup (returns +1 or -1)
+            syn_weight[i_syn] = synapse_conductance * synapse_sign_lookup[synapse_type]
 
             pre_type = self.snudda_load.data["neurons"][source_gid[i_syn]]["type"]
             post_type = self.snudda_load.data["neurons"][target_gid[i_syn]]["type"]
