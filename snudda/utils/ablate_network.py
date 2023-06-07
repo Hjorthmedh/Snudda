@@ -136,6 +136,9 @@ class SnuddaAblateNetwork:
 
         synapse_data = self.in_file[f"network/{data_type}"][()].copy()
 
+        if synapse_data.size == 0:
+            return np.array([], dtype=int)
+
         keep_flag = np.zeros((synapse_data.shape[0],), dtype=bool)
 
         # Shortcut, if user wants to remove all, skip the processing part
@@ -354,10 +357,15 @@ class SnuddaAblateNetwork:
                 row[1] = remap_id[row[1]]
                 temp_gj_mat[idx, :] = row
 
+            if temp_gj_mat.size > 0:
+                gj_chunk_size = self.in_file["network/gapJunctions"].chunks
+            else:
+                gj_chunk_size = None
+
             network_group.create_dataset("gapJunctions",
                                          data=temp_gj_mat,
                                          dtype=np.int32, shape=(num_gj, self.in_file["network/gapJunctions"].shape[1]),
-                                         chunks=self.in_file["network/gapJunctions"].chunks,
+                                         chunks=gj_chunk_size,
                                          maxshape=(None, self.in_file["network/gapJunctions"].shape[1]),
                                          compression=self.in_file["network/gapJunctions"].compression)
 
