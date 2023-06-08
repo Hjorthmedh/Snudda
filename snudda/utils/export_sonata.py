@@ -2,6 +2,7 @@
 
 #
 # TODO:
+# - Add support for gap junctions
 # - Check what axon and dendrite propagation speeds should be
 #
 
@@ -61,8 +62,10 @@ class ExportSonata:
 
         if self.input_file:
             print(f"Using input file: {self.input_file}")
+            has_input = True
         else:
             print("No input file specified, and default file not found.")
+            has_input = False
 
         # This contains data for converting to Neurodamus secID and secX
         self.morph_cache = dict([])
@@ -74,7 +77,7 @@ class ExportSonata:
         # TODO: We need to read structure names from the network-config.json
         structure_names = [x for x in self.network_config["Volume"]]
         ch = ConvHurt(simulation_structures=structure_names,
-                      base_dir=self.out_dir)
+                      base_dir=self.out_dir, has_input=has_input)
 
         self.copy_morphologies()
         self.copy_mechanisms()
@@ -124,6 +127,7 @@ class ExportSonata:
                 edge_type_lookup[pre_type, post_type, con_type] = (edge_type_id, edge_model, f"{pre_type}_{post_type}", dynamic_params)
 
         node_id_remap = np.full(shape=(self.snudda_load.data["nNeurons"],), fill_value=-1, dtype=int)
+        input_list = []
 
         for volume_name in volume_list:
 
@@ -204,83 +208,115 @@ class ExportSonata:
 
             edge_type_id = [x[0] for x in edge_type_lookup.values()]
 
-            edge_data = {"model_template": [x[1] for x in edge_type_lookup.values()],
-                         "population": [x[2] for x in edge_type_lookup.values()],
-                         "dynamic_params": [x[3] for x in edge_type_lookup.values()]}
+            edge_data_csv = {"model_template": [x[1] for x in edge_type_lookup.values()],
+                             "population": [x[2] for x in edge_type_lookup.values()],
+                             "dynamic_params": [x[3] for x in edge_type_lookup.values()]}
 
             ch.write_edges_csv(edge_csv_file=f"{volume_name}_edge_types.csv",
                                edge_type_id=edge_type_id,
-                               data=edge_data)
-
-            input_list = []
+                               data=edge_data_csv)
 
             if self.input_file:
-                # We also need to add external input to the neurons
-                for nt in self.snudda_load.get_neuron_types(return_set=True):
-                    n_spikes = self.write_input(neuron_type=nt, node_id_remap=node_id_remap,
-                                                input_hdf5=self.input_file,
-                                                sonata_input_hdf5=f"inputs/input_{nt}_{volume_name}.hdf5",
-                                                conv_hurt=ch, volume_name=volume_name)
 
-                    if n_spikes > 0:
-                        # This currently assumes each neuron type only occur in one volume
-                        input_list.append((nt, f"input_{nt}_{volume_name}.hdf5"))
+                (sonata_input_hdf5,
+                 sonata_virtual_node_hdf5, sonata_virtual_node_csv,
+                 sonata_virtual_edges_hdf5, sonata_virtual_edges_csv) = \
+                    self.write_input(node_id_remap=node_id_remap,
+                                     input_hdf5=self.input_file,
+                                     conv_hurt=ch, volume_name=volume_name)
 
+                input_list.append((volume_name, sonata_input_hdf5,
+                                   sonata_virtual_node_hdf5, sonata_virtual_node_csv,
+                                   sonata_virtual_edges_hdf5, sonata_virtual_edges_csv))
+
+        # !!! TODO: We need to pass the new input files, node and edge files to the config
         self.write_simulation_config(input_list=input_list)
 
         print(f"SONATA files exported to {self.out_dir}")
 
     ############################################################################
 
-    def write_input(self, neuron_type, node_id_remap,
-                    input_hdf5, sonata_input_hdf5,
-                    conv_hurt,
-                    volume_name=None,
-                    input_type=None):
+    def get_all_input_types(self, input_hdf5, neuron_type=None, volume_name=None):
 
-        """
-            Args:
-                neuron_type (str) : Neuron type to create SONATA input file for
-                volume_name (str) : Name of volume (default: None, assumes neuron type only in one volume)
-                input_type (str) : Input type to inlcude (default: None, all inputs to neuron)
-                node_id_remap : Numpy array mapping neuron_id to gid (which is population specific)
-                input_hdf5 : File to read data from
-                sonata_input_hdf5 : File to write data to
-
-        """
+        input_types = set()
 
         if type(input_hdf5) != h5py._hl.files.File:
             input_hdf5 = h5py.File(input_hdf5, "r")
 
         neuron_id_list = self.snudda_load.get_neuron_id_of_type(neuron_type=neuron_type, volume=volume_name)
 
-        spike_list = []
-        gid_list = []
+        for neuron_id in neuron_id_list:
+            neuron_input_types = set(input_hdf5[f"input/{neuron_id}"].keys())
+
+            input_types += neuron_input_types
+
+        return input_types
+
+    def write_input(self,
+                    input_hdf5,
+                    conv_hurt,
+                    node_id_remap,
+                    volume_name=None):
+
+        """
+            Args:
+                input_hdf5 : File to read data from
+                sonata_input_hdf5 : File to write data to
+                conv_hurt :
+                node_id_remap : Numpy array mapping neuron_id to gid (which is population specific)
+                volume_name (str) : Name of volume (default: None, assumes neuron type only in one volume)
+        """
+
+        # If there are N neurons in the volume, and they receive cortical and thalamic input
+        #
+        # Then...
+        # Virtual neuron 0-(N-1) provide cortical input to neurons 0-(N-1)
+        # Virtual neuron N-(2*N-1) provide thalamic input to neurons 0-(N-1)
+        #
+
+        if type(input_hdf5) != h5py._hl.files.File:
+            input_hdf5 = h5py.File(input_hdf5, "r")
+
+        sonata_input_hdf5 = f"inputs/input_{volume_name}.hdf5"
+
+        neuron_id_list = self.snudda_load.get_neuron_id_of_type(volume=volume_name, neuron_type=None)
+        input_data = []  # [(neuron_type, neuron_node_id, input_type, spikes, weight, virtual_node_id), (np, nid, it, s, w, vid), ...]
+
+        virtual_node_ctr = 0
 
         for neuron_id in neuron_id_list:
-            neuron_spikes = []
-            if input_type is not None:
-                input_types = [input_type]
-            else:
-                input_types = input_hdf5[f"input/{neuron_id}"].keys()
 
-            for it in input_types:
-                spike_group = input_hdf5[f"input/{neuron_id}/{it}/spikes"]
+            for input_type in input_hdf5[f"input/{neuron_id}"].keys():
+                neuron_spikes = []
+
+                spike_group = input_hdf5[f"input/{neuron_id}/{input_type}/spikes"]
                 n_spikes = spike_group.attrs["nSpikes"]
 
                 for idx, ns in enumerate(n_spikes):
                     neuron_spikes.append(spike_group[idx, :ns])
 
-            nrn_spikes = np.concatenate(neuron_spikes)
-            gid = np.full(shape=nrn_spikes.shape, fill_value=node_id_remap[neuron_id], dtype=int)
+                input_spikes = np.array(sorted(np.concatenate(neuron_spikes)))
 
-            spike_list.append(nrn_spikes)
-            gid_list.append(gid)
+                neuron_type = self.snudda_load.data["neurons"][0]["type"]
 
-        input_hdf5.close()
+                weight = input_hdf5[f"input/{neuron_id}/{input_type}"].attrs["conductance"] * 1e6  # microsiemens for NEST
+                if "GABA" in input_hdf5[f"input/{neuron_id}/{input_type}"].attrs["modFile"].upper():
+                    weight *= -1
 
-        spikes = np.concatenate(spike_list)
-        gids = np.concatenate(gid_list)
+                # [(neuron_type, neuron_node_id, input_type, spikes, weight, virtual_node_id), (np, nid, it, s, w, vid), ...]
+                input_data.append((neuron_type, node_id_remap[neuron_id], input_type, input_spikes, weight, virtual_node_ctr))
+                virtual_node_ctr += 1
+
+        # Next we need to write the input spikes to file
+        all_spikes = []
+        all_gid = []
+
+        for _, _, _, spikes, _, gid in input_data:
+            all_spikes.append(spikes)
+            all_gid.append(np.full(shape=spikes.shape, fill_value=gid, dtype=int))
+
+        spikes = np.concatenate(all_spikes)
+        gids = np.concatenate(all_gid)
 
         if len(spikes) == 0:
             return None
@@ -292,7 +328,22 @@ class ExportSonata:
                                        spike_times=spikes[idx],
                                        gids=gids[idx])
 
-        return len(spikes)
+        input_hdf5.close()
+
+        # We also need to create the virtual nodes, and edges to connect them
+
+        virtual_node_id = np.array([x[5] for x in input_data], dtype=int)
+        neuron_type = [x[0] for x in input_data]
+        node_id = np.array([x[1] for x in input_data], dtype=int)
+        weight = np.array([x[4] for x in input_data])
+
+        sonata_virtual_node_hdf5, sonata_virtual_node_csv, sonata_virtual_edges_hdf5, sonata_virtual_edges_csv = \
+            self.add_virtual_input(volume_name=volume_name, virtual_node_id=virtual_node_id,
+                                   neuron_type=neuron_type, node_id=node_id, weight=weight, conv_hurt=conv_hurt)
+
+        return (sonata_input_hdf5,
+                sonata_virtual_node_hdf5, sonata_virtual_node_csv,
+                sonata_virtual_edges_hdf5, sonata_virtual_edges_csv)
 
     ############################################################################
 
@@ -985,14 +1036,17 @@ class ExportSonata:
         if input_list:
             sim_conf["inputs"] = dict()
 
-            for neuron_type, input_file in input_list:
+            for volume_name, sonata_input_hdf5, \
+                sonata_virtual_node_hdf5, sonata_virtual_node_csv, \
+                    sonata_virtual_edges_hdf5, sonata_virtual_edges_csv in input_list:
+
                 input_info = dict()
                 input_info["input_type"] = "spikes"
                 input_info["module"] = "h5"
-                input_info["input_file"] = f"$INPUT_DIR/{input_file}"
-                input_info["node_set"] = neuron_type
+                input_info["input_file"] = f"$INPUT_DIR/{sonata_input_hdf5}"
+                input_info["node_set"] = f"{volume_name}-input"
 
-                sim_conf["inputs"][f"{neuron_type}_spikes"] = input_info
+                sim_conf["inputs"][f"{volume_name}_spikes"] = input_info
 
         out_conf_file = os.path.join(self.out_dir, "simulation_config.json")
         print(f"Writing {out_conf_file}")
@@ -1139,6 +1193,79 @@ class ExportSonata:
         return input_matrix
 
         ############################################################################
+
+    def add_virtual_input(self, volume_name, virtual_node_id, neuron_type, node_id, weight, conv_hurt):
+
+        """ Creates one virtual neurons, to provide external input to that the neuron population
+
+            To know the target neuron, we need to know both neuron population, and node id within that population
+
+            Args:
+                volume_name (str): Name of volume
+                virtual_node_id (np.array): ID of all virtual nodes
+                neuron_type (list of str): Which population does each input target
+                node_id (np.array): ID of nodes that are connected
+                conv_hurt : ConvHurt object
+        """
+
+        virtual_neuron_population = f"{volume_name}-input"
+        virtual_node_file = f"{virtual_neuron_population}_nodes.h5"
+
+        n_virtual_nodes = len(virtual_node_id)
+        node_data = dict()  # Let's see if we get away without specifying coordinates
+        virtual_node_type_id = np.zeros(shape=(n_virtual_nodes, ))
+        virtual_node_group_id = np.zeros(shape=(n_virtual_nodes, ))
+        virtual_node_group_index = np.arange(0, n_virtual_nodes)
+
+        conv_hurt.write_nodes(node_file=virtual_node_file,
+                              population_name=virtual_neuron_population,
+                              data=node_data,
+                              node_id=virtual_node_id,
+                              node_type_id=virtual_node_type_id,
+                              node_group_id=virtual_node_group_id,
+                              node_group_index=virtual_node_group_index,
+                              close_file=True)
+
+        csv_virtual_node_types_file = f"{virtual_neuron_population}_node_types.csv"
+
+        virtual_node_data_csv = OrderedDict([("model_type", ["virtual"])])
+        conv_hurt.write_node_csv(node_csv_file=csv_virtual_node_types_file,
+                                 node_type_id=[0],
+                                 data=virtual_node_data_csv)
+
+        edge_file = f"{virtual_neuron_population}_edges.h5"
+
+        population_rows = dict()
+
+        # We need to write separate sets of edges for each targeted population
+        for nrn_type in set(neuron_type):
+            population_rows[f"{volume_name}-input_{nrn_type}"] = \
+                np.array([i for (i, val) in enumerate(neuron_type) if val == nrn_type], dtype=int)
+            # population_rows[nrn_type] = np.where(np.array(neuron_type) == nrn_type)[0]
+
+        edge_data = {"syn_weight": weight}
+
+        conv_hurt.write_edges(edge_file=edge_file,
+                              population_rows=population_rows,
+                              edge_type_id=np.zeros(len(virtual_node_id), dtype=int),
+                              source_id=virtual_node_id,
+                              target_id=node_id,
+                              data=edge_data)
+
+        edge_types_file_csv = f"{virtual_neuron_population}_edge_types.csv"
+        edge_type_id = np.array([0])
+        edge_data_csv = {"model_template": ["static_synapse"]}
+
+        conv_hurt.write_edges_csv(edge_csv_file=edge_types_file_csv,
+                                  edge_type_id=edge_type_id,
+                                  data=edge_data_csv)
+
+        return virtual_node_file, csv_virtual_node_types_file, edge_file, edge_types_file_csv
+
+    def add_edges_for_virtual_neurons_input(self):
+
+        pass
+
 
     ############################################################################
 

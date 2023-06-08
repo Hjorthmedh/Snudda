@@ -13,7 +13,7 @@ import numpy as np
 
 class ConvHurt(object):
 
-    def __init__(self, simulation_structures, base_dir="TEST/", target_simulator="NEST"):
+    def __init__(self, simulation_structures, base_dir="TEST/", target_simulator="NEST", has_input=False):
 
         self.base_dir = base_dir
         self.network_dir = os.path.join(base_dir, 'networks')
@@ -25,7 +25,7 @@ class ConvHurt(object):
         self.setup_directories(base_dir=base_dir)
 
         self.write_main_config(simulation_structures=simulation_structures,
-                               base_dir=base_dir, target_simulator=target_simulator)
+                               base_dir=base_dir, target_simulator=target_simulator, has_input=has_input)
 
     ############################################################################
 
@@ -66,7 +66,8 @@ class ConvHurt(object):
                           base_dir="TEST/",
                           out_file="circuit_config.json",
                           simulation_structures=[],
-                          target_simulator="NEURON"):
+                          target_simulator="NEURON",
+                          has_input=False):
 
         config = OrderedDict([])
 
@@ -101,6 +102,15 @@ class ConvHurt(object):
             edge_info = {"edges_file": os.path.join("$NETWORK_DIR", f"{ss}_edges.hdf5"),
                          "edge_types_file": os.path.join("$NETWORK_DIR", f"{ss}_edge_types.csv") }
             edges.append(edge_info)
+
+            if has_input:
+                node_info = {"nodes_file": os.path.join("$NETWORK_DIR", f"{ss}_input_nodes.hdf5"),
+                             "node_types_file": os.path.join("$NETWORK_DIR", f"{ss}_input_node_types.csv")}
+                nodes.append(node_info)
+
+                edge_info = {"edges_file": os.path.join("$NETWORK_DIR", f"{ss}_input_edges.hdf5"),
+                             "edge_types_file": os.path.join("$NETWORK_DIR", f"{ss}_input_edge_types.csv")}
+                edges.append(edge_info)
 
         config["networks"] = OrderedDict([("nodes", nodes), ("edges", edges)])
 
