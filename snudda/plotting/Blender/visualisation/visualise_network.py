@@ -242,7 +242,7 @@ class VisualiseNetwork(object):
             mat_synapse.node_tree.links.new(material_output.inputs[0], emission.outputs[0])
         """
 
-        for neuron in neurons:
+        for idx, neuron in enumerate(neurons):
 
             e_rot = mathutils.Matrix(neuron["rotation"].reshape(3, 3)).to_euler()
 
@@ -260,7 +260,15 @@ class VisualiseNetwork(object):
                 obj.name = f"{neuron['name']}-{neuron['neuronID']}"
                 VisualiseNetwork.link_object(obj)
             else:
-                self.read_swc_data(filepath=snudda_parse_path(neuron["morphology"], self.snudda_data), detail_level=detail_level)
+                if type(detail_level) == np.ndarray:
+                    if len(detail_level) != len(neurons):
+                        raise ValueError(f"detail_level is either 1,2 or 3, "
+                                         f"if given as a array must be same length as number of neurons (ie {len(idx)}).")
+                    dl = detail_level[idx]
+                else:
+                    dl = detail_level
+
+                self.read_swc_data(filepath=snudda_parse_path(neuron["morphology"], self.snudda_data), detail_level=dl)
                 obj = bpy.context.selected_objects[0]
                 obj.name = f"{neuron['name']}-{neuron['neuronID']}"
 
