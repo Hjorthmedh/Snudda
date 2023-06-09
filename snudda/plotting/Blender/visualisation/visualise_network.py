@@ -16,12 +16,13 @@ class VisualiseNetwork(object):
 
     # You need to provide neuron
     def __init__(self, network_path, blender_save_file=None, blender_output_image=None,
-                 network_json=None, simulation_output_file_name=None):
+                 network_json=None, simulation_output_file_name=None, use_neuron_cache=True):
 
         self.network_path = network_path
         self.snudda_data = get_snudda_data(network_path=network_path)
         self.scale_f = 1000  # factor to downscale the data
         self.neuron_colour_lookup = dict()  # Allow the user to override the neuron colours
+        self.use_neuron_cache = use_neuron_cache
 
         if network_json:
             self.network_json = network_json
@@ -153,6 +154,14 @@ class VisualiseNetwork(object):
             bg.inputs[0].default_value[:3] = (0.0, 0.0, 0.0)
             bg.inputs[1].default_value = 0.0
 
+        #Scott's magic
+        '''
+        mat_dspn = bpy.data.materials.new("DSPN")
+        mat_dspn.use_nodes = True
+        mat_dspn.node_tree.nodes["Principled BSDF"].inputs[0].default_value = (0, 1, 0, 1)
+        mat_dspn.node_tree.nodes["Principled BSDF"].inputs['Alpha'].default_value = 1
+        '''
+        
         # Define materials
         mat_dspn = bpy.data.materials.new("PKHG")
         mat_dspn.diffuse_color = (77. / 255, 151. / 255, 1.0, 0.5)
@@ -199,9 +208,14 @@ class VisualiseNetwork(object):
 
         # Add the user requested custom colours
         for nid in self.neuron_colour_lookup.keys():
-            material_lookup[nid] = bpy.data.materials.new("PKHG")
-            material_lookup[nid].diffuse_color = self.neuron_colour_lookup[nid]
-
+            material_lookup[nid] = bpy.data.materials.new(str(nid))
+            material_lookup[nid].use_nodes = True
+            material_lookup[nid].node_tree.nodes["Principled BSDF"].inputs[0].default_value = self.neuron_colour_lookup[nid]
+            material_lookup[nid].node_tree.nodes["Principled BSDF"].inputs['Alpha'].default_value = self.neuron_colour_lookup[nid][-1]
+                
+            #material_lookup[nid] = bpy.data.materials.new("PKHG")
+            #material_lookup[nid].diffuse_color = self.neuron_colour_lookup[nid]
+        
         if synapse_colour is not None:
             mat_synapse.diffuse_color = synapse_colour
         elif white_background:
@@ -232,7 +246,7 @@ class VisualiseNetwork(object):
 
             e_rot = mathutils.Matrix(neuron["rotation"].reshape(3, 3)).to_euler()
 
-            if neuron["name"] in self.neuron_cache:
+            if self.use_neuron_cache and neuron["name"] in self.neuron_cache:
                 # If we already have the object in memory, copy it.
                 obj = self.neuron_cache[neuron["name"]].copy()
 
