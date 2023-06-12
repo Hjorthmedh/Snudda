@@ -16,11 +16,13 @@ class VisualiseNetwork(object):
 
     # You need to provide neuron
     def __init__(self, network_path, blender_save_file=None, blender_output_image=None,
-                 network_json=None, simulation_output_file_name=None):
+                 network_json=None, simulation_output_file_name=None, use_neuron_cache=True):
 
         self.network_path = network_path
         self.snudda_data = get_snudda_data(network_path=network_path)
         self.scale_f = 1000  # factor to downscale the data
+        self.neuron_colour_lookup = dict()  # Allow the user to override the neuron colours
+        self.use_neuron_cache = use_neuron_cache
 
         if network_json:
             self.network_json = network_json
@@ -54,11 +56,22 @@ class VisualiseNetwork(object):
             self.sl.import_json(self.network_json)
             self.data = self.sl.data
 
+    def set_neuron_colour(self, neuron_id, colour):
+
+        if len(colour) != 4:
+            raise ValueError(f"Colour should be R,G,B,alpha (4 values)")
+        self.neuron_colour_lookup[neuron_id] = colour
+
+    def clear_neuron_colours(self):
+
+        self.neuron_colour_lookup = dict()
+
     def visualise(self,
                   neuron_id=None,
                   blender_output_image=None,
                   white_background=True,
                   show_synapses=True,
+                  synapse_colour=None,
                   synapse_pair_filter=None,
                   draw_meshes=True,
                   full_meshes=None,
@@ -75,6 +88,7 @@ class VisualiseNetwork(object):
                 blender_output_image
                 white_background
                 show_synapses
+                synapse_colour: R,G,B,alpha (For values, range 0-1). Default None.
                 synapse_pair_filter (list): List of pairs of neurons (tuples) to show synapses for, default None = no filtering
                 camera_location
                 camera_rotation
@@ -83,7 +97,7 @@ class VisualiseNetwork(object):
 
         """
 
-        if neuron_id:
+        if neuron_id is not None:
             neurons = [self.data["neurons"][x] for x in neuron_id]
         else:
             neurons = self.data["neurons"]
@@ -140,6 +154,14 @@ class VisualiseNetwork(object):
             bg.inputs[0].default_value[:3] = (0.0, 0.0, 0.0)
             bg.inputs[1].default_value = 0.0
 
+        #Scott's magic
+        '''
+        mat_dspn = bpy.data.materials.new("DSPN")
+        mat_dspn.use_nodes = True
+        mat_dspn.node_tree.nodes["Principled BSDF"].inputs[0].default_value = (0, 1, 0, 1)
+        mat_dspn.node_tree.nodes["Principled BSDF"].inputs['Alpha'].default_value = 1
+        '''
+        
         # Define materials
         mat_dspn = bpy.data.materials.new("PKHG")
         mat_dspn.diffuse_color = (77. / 255, 151. / 255, 1.0, 0.5)
@@ -184,12 +206,29 @@ class VisualiseNetwork(object):
                            "synapse": mat_synapse,
                            "other": mat_other}
 
-        if white_background:
+        # Add the user requested custom colours
+        for nid in self.neuron_colour_lookup.keys():
+            material_lookup[nid] = bpy.data.materials.new(str(nid))
+            material_lookup[nid].use_nodes = True
+            material_lookup[nid].node_tree.nodes["Principled BSDF"].inputs[0].default_value = self.neuron_colour_lookup[nid]
+            material_lookup[nid].node_tree.nodes["Principled BSDF"].inputs['Alpha'].default_value = self.neuron_colour_lookup[nid][-1]
+                
+            #material_lookup[nid] = bpy.data.materials.new("PKHG")
+            #material_lookup[nid].diffuse_color = self.neuron_colour_lookup[nid]
+        
+        if synapse_colour is not None:
+            mat_synapse.diffuse_color = synapse_colour
+        elif white_background:
             mat_synapse.diffuse_color = (0.8, 0.0, 0.0, 1.0)
         else:
             mat_synapse.diffuse_color = (1.0, 1.0, 0.9, 1.0)
 
         # matSynapse.use_transparency = True
+
+        """
+        # We comment out these lines, to get the synapse colour to be set correctly (otherwise they are white)
+        # Thanks Scott for finding this fix.
+        
         mat_synapse.use_nodes = True
 
         if not white_background:
@@ -201,12 +240,13 @@ class VisualiseNetwork(object):
 
             material_output = mat_synapse.node_tree.nodes.get('Material Output')
             mat_synapse.node_tree.links.new(material_output.inputs[0], emission.outputs[0])
+        """
 
-        for neuron in neurons:
+        for idx, neuron in enumerate(neurons):
 
             e_rot = mathutils.Matrix(neuron["rotation"].reshape(3, 3)).to_euler()
 
-            if neuron["name"] in self.neuron_cache:
+            if self.use_neuron_cache and neuron["name"] in self.neuron_cache:
                 # If we already have the object in memory, copy it.
                 obj = self.neuron_cache[neuron["name"]].copy()
 
@@ -220,7 +260,15 @@ class VisualiseNetwork(object):
                 obj.name = f"{neuron['name']}-{neuron['neuronID']}"
                 VisualiseNetwork.link_object(obj)
             else:
-                self.read_swc_data(filepath=snudda_parse_path(neuron["morphology"], self.snudda_data), detail_level=detail_level)
+                if type(detail_level) == np.ndarray:
+                    if len(detail_level) != len(neurons):
+                        raise ValueError(f"detail_level is either 1,2 or 3, "
+                                         f"if given as a array must be same length as number of neurons (ie {len(idx)}).")
+                    dl = detail_level[idx]
+                else:
+                    dl = detail_level
+
+                self.read_swc_data(filepath=snudda_parse_path(neuron["morphology"], self.snudda_data), detail_level=dl)
                 obj = bpy.context.selected_objects[0]
                 obj.name = f"{neuron['name']}-{neuron['neuronID']}"
 
@@ -233,7 +281,11 @@ class VisualiseNetwork(object):
 
             n_type = neuron["type"].lower()
 
-            if n_type in material_lookup:
+            if neuron['neuronID'] in material_lookup:
+                # Custom colour for neuron (priority)
+                mat = material_lookup[neuron['neuronID']]
+            elif n_type in material_lookup:
+                # Each neuron type has its own colour
                 mat = material_lookup[n_type]
             else:
                 mat = material_lookup["other"]

@@ -13,7 +13,7 @@ import numpy as np
 
 class ConvHurt(object):
 
-    def __init__(self, simulation_structures, base_dir="TEST/", target_simulator="NEST"):
+    def __init__(self, simulation_structures, base_dir="TEST/", target_simulator="NEST", has_input=False):
 
         self.base_dir = base_dir
         self.network_dir = os.path.join(base_dir, 'networks')
@@ -25,7 +25,7 @@ class ConvHurt(object):
         self.setup_directories(base_dir=base_dir)
 
         self.write_main_config(simulation_structures=simulation_structures,
-                               base_dir=base_dir, target_simulator=target_simulator)
+                               base_dir=base_dir, target_simulator=target_simulator, has_input=has_input)
 
     ############################################################################
 
@@ -66,7 +66,8 @@ class ConvHurt(object):
                           base_dir="TEST/",
                           out_file="circuit_config.json",
                           simulation_structures=[],
-                          target_simulator="NEURON"):
+                          target_simulator="NEURON",
+                          has_input=False):
 
         config = OrderedDict([])
 
@@ -101,6 +102,15 @@ class ConvHurt(object):
             edge_info = {"edges_file": os.path.join("$NETWORK_DIR", f"{ss}_edges.hdf5"),
                          "edge_types_file": os.path.join("$NETWORK_DIR", f"{ss}_edge_types.csv") }
             edges.append(edge_info)
+
+            if has_input:
+                node_info = {"nodes_file": os.path.join("$NETWORK_DIR", f"{ss}-input_nodes.hdf5"),
+                             "node_types_file": os.path.join("$NETWORK_DIR", f"{ss}-input_node_types.csv")}
+                nodes.append(node_info)
+
+                edge_info = {"edges_file": os.path.join("$NETWORK_DIR", f"{ss}-input_edges.hdf5"),
+                             "edge_types_file": os.path.join("$NETWORK_DIR", f"{ss}-input_edge_types.csv")}
+                edges.append(edge_info)
 
         config["networks"] = OrderedDict([("nodes", nodes), ("edges", edges)])
 
@@ -361,14 +371,11 @@ class ConvHurt(object):
 
     ############################################################################
 
-    def write_input(self, spike_file_name, spikes):
-
-        if spikes is None:
-            print(f"No spikes specified, not writing {spike_file_name}")
-            print("Use python3 Network_input.py yourinput.json yournetwork.hdf5 input-spikes.hdf5")
-            return
+    def write_input(self, spike_file_name, spike_times, gids):
 
         f_name = os.path.join(self.base_dir, spike_file_name)
+
+        print(f"Writing spikes to {f_name}")
 
         with h5py.File(f_name, 'w', libver=self.h5py_libver) as f:
             self.add_version(f)
@@ -376,8 +383,11 @@ class ConvHurt(object):
             print(f"Writing file {f_name}")
 
             s_group = f.create_group("spikes")
-            s_group.create_dataset("gids", data=spikes[:, 1])
-            s_group.create_dataset("timestamps", data=spikes[:, 0])
+            s_group.attrs["sorting"] = "gid"
+            s_group.create_dataset("gids", data=gids)
+            s_group.create_dataset("timestamps", data=spike_times*1e3)  # Convert to ms
+
+        return f_name
 
     ############################################################################
 
@@ -405,65 +415,3 @@ class ConvHurt(object):
 
         hdf5_file.attrs["version"] = [0, 1]
         hdf5_file.attrs["magic"] = 0x0A7A
-
-
-if __name__ == "__main__":
-    # ch = ConvHurt()
-    # ch = ConvHurt(simulationStructure="cerebellum",
-    #              inputStructures=["pons","cortex"])
-
-    ch = ConvHurt(simulation_structure="striatum",
-                  input_structures=["cortex", "thalamus"])
-
-    # Test example, we have 5 neurons, big network
-    # two groups
-
-    node_data = {"positions": np.array([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.],
-                                        [1., 8., 9.], [2., 3., 2.]]),
-                 "rotation_angle_zaxis": np.array([0.1, 0.2, 0.3, 0.4, 0.5])}
-
-    ch.write_nodes(node_file='striatum_nodes.hdf5',
-                   data=node_data,
-                   node_id=np.array([0, 1, 2, 3, 4]),
-                   population_name="striatum_nodes",
-                   node_type_id=np.array([0, 1, 0, 1, 0]),
-                   node_group_id=np.array([0, 0, 1, 1, 1]),
-                   node_group_index=np.array([0, 1, 0, 1, 2]))
-
-    node_type_id = np.array([0, 1])
-    node_data_csv = OrderedDict([('name', ['A', 'B']),
-                                 ('location', ['structA', 'structB'])])
-
-    ch.write_node_csv(node_csv_file='striatum_node_types.csv',
-                      node_type_id=node_type_id,
-                      data=node_data_csv)
-
-    edge_group = np.array([5, 5, 11, 11, 11])
-    edge_group_index = np.array([0, 1, 0, 1, 2])
-    edge_type_id = np.array([0, 1, 0, 1, 0])
-    source_gid = np.array([1, 2, 3, 3, 4])
-    target_gid = np.array([2, 3, 4, 0, 1])  # THESE ARE SORTED ... HAHAHA
-
-    # Delay needs to be in ms (bad bad people, real scientists use SI units)
-    edge_data = OrderedDict([("sec_id", np.array([10, 22, 33, 24, 15])),
-                             ("sec_x", np.array([0.1, 0.3, 0.5, 0.2, 0])),
-                             ("syn_weight", np.array([0.1e-9, 2e-9, 3e-9,
-                                                      0.3e-9, 0.1e-9])),
-                             ("delay", 1e3 * np.array([1e-3, 4e-3, 2e-3, 5e-3, 1e-3]))])
-
-    ch.write_edges(edge_file="striatum_edges.hdf5",
-                   edge_group=edge_group,
-                   edge_group_index=edge_group_index,
-                   edge_type_id=edge_type_id,
-                   edge_population_name="striatum_edges",
-                   source_id=source_gid,
-                   target_id=target_gid,
-                   data=edge_data)
-
-    edge_type_id = np.array([0, 1])
-    edge_csv_data = OrderedDict([('template', ['Exp2Syn', 'NULL']),
-                                 ('dynamics_params', ["mysyn.json", 'yoursyn.json'])])
-
-    ch.write_edges_csv(edge_csv_file="striatum_edge_types.csv",
-                       edge_type_id=edge_type_id,
-                       data=edge_csv_data)

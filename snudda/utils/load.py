@@ -752,7 +752,7 @@ class SnuddaLoad(object):
         """
 
         neuron_id = np.array([x["neuronID"] for x in self.data["neurons"]
-                              if x["type"] == neuron_type and (volume is None or x["volumeID"] == volume)])
+                              if (neuron_type is None or x["type"] == neuron_type) and (volume is None or x["volumeID"] == volume)])
 
         assert not random_permute or num_neurons is not None, "random_permute is only valid when num_neurons is given"
 
@@ -775,8 +775,9 @@ class SnuddaLoad(object):
                     print(f"get_neuron_id_of_type: wanted {num_neurons} only got {len(neuron_id)} "
                           f"neurons of type {neuron_type}")
 
-        # Double check that all of the same type
-        assert np.array([self.data["neurons"][x]["type"] == neuron_type for x in neuron_id]).all()
+        # Double check that all of the same type (or neuron_type is None)
+        assert neuron_type is None or np.array([self.data["neurons"][x]["type"] == neuron_type for x in neuron_id]).all()
+        assert volume is None or np.array([self.data["neurons"][x]["volumeID"] == volume for x in neuron_id]).all()
 
         return neuron_id
 
