@@ -104,12 +104,12 @@ class ConvHurt(object):
             edges.append(edge_info)
 
             if has_input:
-                node_info = {"nodes_file": os.path.join("$NETWORK_DIR", f"{ss}_input_nodes.hdf5"),
-                             "node_types_file": os.path.join("$NETWORK_DIR", f"{ss}_input_node_types.csv")}
+                node_info = {"nodes_file": os.path.join("$NETWORK_DIR", f"{ss}-input_nodes.hdf5"),
+                             "node_types_file": os.path.join("$NETWORK_DIR", f"{ss}-input_node_types.csv")}
                 nodes.append(node_info)
 
-                edge_info = {"edges_file": os.path.join("$NETWORK_DIR", f"{ss}_input_edges.hdf5"),
-                             "edge_types_file": os.path.join("$NETWORK_DIR", f"{ss}_input_edge_types.csv")}
+                edge_info = {"edges_file": os.path.join("$NETWORK_DIR", f"{ss}-input_edges.hdf5"),
+                             "edge_types_file": os.path.join("$NETWORK_DIR", f"{ss}-input_edge_types.csv")}
                 edges.append(edge_info)
 
         config["networks"] = OrderedDict([("nodes", nodes), ("edges", edges)])

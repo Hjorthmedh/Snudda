@@ -297,7 +297,7 @@ class ExportSonata:
 
                 input_spikes = np.array(sorted(np.concatenate(neuron_spikes)))
 
-                neuron_type = self.snudda_load.data["neurons"][0]["type"]
+                neuron_type = self.snudda_load.data["neurons"][neuron_id]["type"]
 
                 weight = input_hdf5[f"input/{neuron_id}/{input_type}"].attrs["conductance"] * 1e6  # microsiemens for NEST
                 if "GABA" in input_hdf5[f"input/{neuron_id}/{input_type}"].attrs["modFile"].upper():
@@ -1043,7 +1043,7 @@ class ExportSonata:
                 input_info = dict()
                 input_info["input_type"] = "spikes"
                 input_info["module"] = "h5"
-                input_info["input_file"] = f"$INPUT_DIR/{sonata_input_hdf5}"
+                input_info["input_file"] = f"$INPUT_DIR/{os.path.basename(sonata_input_hdf5)}"
                 input_info["node_set"] = f"{volume_name}-input"
 
                 sim_conf["inputs"][f"{volume_name}_spikes"] = input_info
@@ -1209,13 +1209,13 @@ class ExportSonata:
         """
 
         virtual_neuron_population = f"{volume_name}-input"
-        virtual_node_file = f"{virtual_neuron_population}_nodes.h5"
+        virtual_node_file = f"{virtual_neuron_population}_nodes.hdf5"
 
         n_virtual_nodes = len(virtual_node_id)
         node_data = dict()  # Let's see if we get away without specifying coordinates
-        virtual_node_type_id = np.zeros(shape=(n_virtual_nodes, ))
-        virtual_node_group_id = np.zeros(shape=(n_virtual_nodes, ))
-        virtual_node_group_index = np.arange(0, n_virtual_nodes)
+        virtual_node_type_id = np.zeros(shape=(n_virtual_nodes, ), dtype=int)
+        virtual_node_group_id = np.zeros(shape=(n_virtual_nodes, ), dtype=int)
+        virtual_node_group_index = np.arange(0, n_virtual_nodes, dtype=int)
 
         conv_hurt.write_nodes(node_file=virtual_node_file,
                               population_name=virtual_neuron_population,
@@ -1233,7 +1233,7 @@ class ExportSonata:
                                  node_type_id=[0],
                                  data=virtual_node_data_csv)
 
-        edge_file = f"{virtual_neuron_population}_edges.h5"
+        edge_file = f"{virtual_neuron_population}_edges.hdf5"
 
         population_rows = dict()
 
@@ -1265,7 +1265,6 @@ class ExportSonata:
     def add_edges_for_virtual_neurons_input(self):
 
         pass
-
 
     ############################################################################
 
