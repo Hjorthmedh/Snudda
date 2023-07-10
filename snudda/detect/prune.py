@@ -924,10 +924,18 @@ class SnuddaPrune(object):
             # (0, 521, 5242880, 0.75)
 
             # Low level opening hdf5 file, to have greater cache size
-            fid = h5py.h5f.create(outfile_name.encode(),
-                                  flags=h5py.h5f.ACC_TRUNC,
-                                  fapl=propfaid)
-            out_file = h5py.File(fid, libver=self.h5libver, driver=self.h5driver)
+            try:
+                fid = h5py.h5f.create(outfile_name.encode(),
+                                      flags=h5py.h5f.ACC_TRUNC,
+                                      fapl=propfaid)
+                out_file = h5py.File(fid, libver=self.h5libver, driver=self.h5driver)
+            except:
+                self.write_log(f"Error while trying to create file {outfile_name.encode()}")
+                import traceback
+                error_msg = traceback.format_exc()
+                self.write_log(error_msg, is_error=True)
+                import pdb
+                pdb.set_trace()
         else:
             out_file = h5py.File(outfile_name, "w", libver=self.h5libver, driver=self.h5driver)
 
