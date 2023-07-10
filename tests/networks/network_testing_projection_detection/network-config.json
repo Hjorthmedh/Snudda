@@ -41,7 +41,7 @@
                     "mu2": null,
                     "a3": null,
                     "distPruning": null,
-                    "cluster": false
+                    "clusterPruning": false
                 },
                 "projectionConfigFile": "data/ExampleProjectionDetection.json"
             }
@@ -73,7 +73,7 @@
                     "mu2": 2.4,
                     "a3": 1.0,
                     "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
-                    "cluster": false
+                    "clusterPruning": false
                 }
             }
         },
@@ -104,7 +104,7 @@
                     "mu2": 2.4,
                     "a3": 1.0,
                     "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
-                    "cluster": false
+                    "clusterPruning": false
                 }
             }
         }

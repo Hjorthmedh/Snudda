@@ -12,6 +12,7 @@ from snudda.detect import SnuddaPrune
 from scipy.stats import binomtest
 from scipy.spatial import distance_matrix
 from scipy.optimize import differential_evolution
+from snudda.utils.numpy_encoder import NumpyEncoder
 
 import uuid
 
@@ -393,7 +394,6 @@ class OptimisePruning:
         else:
             raise ValueError(f"No optimisation_info passed.")
 
-
         pruning_parameters["f1"] = x[0]
         pruning_parameters["softMax"] = x[1]
         pruning_parameters["mu2"] = x[2]
@@ -429,7 +429,6 @@ class OptimisePruning:
             os.remove(output_file)
 
         return fitness
-
 
     @staticmethod
     def report_fitness(fitness):
@@ -545,3 +544,70 @@ class OptimisePruning:
         self.log_file.close()
 
         return res
+
+    def get_parameters(self, res):
+
+        n_params = len(res.x)
+
+        params = dict()
+
+        if "extra_pruning_parameters" in self.optimisation_info:
+            params |= self.optimisation_info["extra_pruning_parameters"]
+
+        params["f1"] = res.x[0]
+
+        if n_params > 1:
+            params["mu2"] = res.x[1]
+        else:
+            params["mu2"] = None
+
+        if n_params > 2:
+            params["a3"] = res.x[2]
+        else:
+            params["a3"] = None
+
+        if n_params > 3:
+            params["softMax"] = res.x[3]
+        else:
+            params["softMax"] = None
+
+        if n_params > 4:
+            raise ValueError("Too many parameters encountered")
+
+        return params
+
+    def export_json(self, file_name, res, append=False):
+
+        pre_type = self.optimisation_info["pre_type"]
+        post_type = self.optimisation_info["post_type"]
+        connection_type = self.optimisation_info["con_type"]
+
+        if append and os.path.isfile(file_name):
+            with open(file_name, "r") as f:
+                config_data = json.load(f)
+        else:
+            config_data = {"Connectivity": {}}
+
+        n_params = len(res.x)
+
+        if f"{pre_type},{post_type}" in config_data["Connectivity"]:
+            con_data = config_data["Connectivity"][f"{pre_type},{post_type}"]
+        else:
+            con_data = dict()
+
+        if connection_type not in con_data:
+            con_data[connection_type] = dict()
+
+        if "pruning" not in con_data[connection_type]:
+            con_data[connection_type]["pruning"] = dict()
+
+        con_data[connection_type]["pruning"] = self.get_parameters(res)
+        if "pruningOther" in con_data[connection_type]:
+            del con_data[connection_type]["pruningOther"]
+
+        config_data["Connectivity"][f"{pre_type},{post_type}"] = con_data
+
+        with open(file_name, "w") as f:
+            json.dump(config_data, f, cls=NumpyEncoder, indent=4)
+
+        # WORKING ON WRITING CONNECTION DATA TO JSON FILE AUTOMATICALLY, for easier import into SNUDDA

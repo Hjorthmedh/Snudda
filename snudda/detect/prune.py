@@ -761,8 +761,8 @@ class SnuddaPrune(object):
         if "a3" not in prune_info:
             prune_info["a3"] = None
 
-        if "cluster" not in prune_info:
-            prune_info["cluster"] = False
+        if "clusterPruning" not in prune_info:
+            prune_info["clusterPruning"] = False
 
         return prune_info
 
@@ -2033,7 +2033,7 @@ class SnuddaPrune(object):
                 a3 = c_info["a3"]
 
                 # If cluster_flag is set, then the synapses furthest from their companion synapses are removed first
-                cluster_flag = c_info["cluster"]
+                cluster_flag = c_info["clusterPruning"]
 
             else:
                 # Not listed in connectivityDistribution, skip neuron pair
