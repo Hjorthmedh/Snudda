@@ -143,3 +143,6 @@ docs/utils
 
 example/notebooks/*/networks
 
+# Slurm files
+*.err
+*.out
