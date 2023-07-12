@@ -386,7 +386,7 @@ class Snudda(object):
 
         print(f"Writing input spikes to {spike_file}")
         
-        use_meta_input=not args.no_meta_input
+        use_meta_input = not args.no_meta_input
 
         si = SnuddaInput(input_config_file=input_config,
                          hdf5_network_file=network_file,
@@ -795,6 +795,24 @@ class Snudda(object):
                 print("Created directory " + dir_path)
             except:
                 print("Failed to create dir " + dir_path)
+
+    ############################################################################
+
+    @staticmethod
+    def cleanup_workers_rc(rc):
+
+        if rc is None:
+            return
+
+        d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
+
+        clean_cmd = ("sm = None\nsd = None\nsp = None\nspd = None\nnl = None\nsim = None"
+                     "\ninner_mask = None\nmin_max = None\nneuron_hv_list = None"
+                     "\nsyn_before = None\nsyn_after = None\ninpt = None"
+                     "\nmerge_result_syn = None\nmerge_result_gj = None"
+                     "\nimport gc\ngc.collect()")
+
+        d_view.execute(clean_cmd, block=True)
 
 
 ##############################################################################
