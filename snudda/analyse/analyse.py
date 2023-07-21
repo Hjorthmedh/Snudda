@@ -75,6 +75,7 @@ class SnuddaAnalyse:
 
         # First load all data but synapses
         self.network_load = SnuddaLoad(hdf5_file, load_synapses=False)
+
         self.network = self.network_load.data
         self.snudda_data = self.network["SnuddaData"]
 
@@ -683,7 +684,7 @@ class SnuddaAnalyse:
     def plot_num_synapses_per_pair(self, pre_type, post_type, side_len=None,
                                    name_str="", volume_id=None,
                                    connection_type="synapses",
-                                   sub_title=None):
+                                   sub_title=None, figure=None, colour=None):
 
         if volume_id is None:
             volume_id = self.volume_id
@@ -747,16 +748,23 @@ class SnuddaAnalyse:
 
         print(f"Plotting {existing_con.shape[0]} connections")
 
-        plt.figure()
+        if figure is None:
+            plt.figure()
+        else:
+            plt.figure(figure.number)
+
         matplotlib.rcParams.update({'font.size': 22})
+
+        if colour is None:
+            colour = self.get_neuron_color(pre_type)
 
         plt.hist(existing_con,
                  range(0, 1 + max_synapses),
                  density=True,
                  align="left",
-                 color=self.get_neuron_color(pre_type))
+                 color=colour)
 
-        plt.xlabel("Number of " + connection_type)
+        plt.xlabel(f"Number of {connection_type}")
         plt.ylabel('Probability density')
         title_str = f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)}"
 
