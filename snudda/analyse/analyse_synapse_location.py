@@ -46,7 +46,7 @@ class AnalyseSynapseLocation:
 
         sub_mat = self.connection_matrix[pre_id, :][:, post_id]
 
-        return sub_mat[sub_mat > 0].todense().T.flatten()
+        return sub_mat[sub_mat > 0].todense().flatten().T
 
     def plot_synapses_per_pair(self, pre_type=None, post_type=None, fig_path=None,
                                figure=None, fig_size=None,
