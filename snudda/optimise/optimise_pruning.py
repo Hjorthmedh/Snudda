@@ -219,6 +219,8 @@ class OptimisePruning:
                     if con > 0:
                         n_connected[idx] += 1
 
+        n_syn_list = np.array(n_syn_list)
+
         # print(f"P={n_connected/n_total} .. {n_connected} .. {n_total}")
 
         p_hyp = np.zeros((len(experimental_data), ))
@@ -230,9 +232,11 @@ class OptimisePruning:
 
         if avg_num_synapses_per_pair is not None:
             if n_pairs > 0:
-                per_pair_error = abs(avg_num_synapses_per_pair - n_syn/n_pairs) + np.std(n_syn_list)
+                #per_pair_error = np.sum(abs(avg_num_synapses_per_pair - n_syn_list))/n_pairs
+                per_pair_error = 5*np.sum(np.square(avg_num_synapses_per_pair - n_syn_list))/n_pairs
+
             else:
-                per_pair_error = abs(avg_num_synapses_per_pair)
+                per_pair_error = 5*abs(avg_num_synapses_per_pair)
 
             error = np.sum(p_hyp) + per_pair_error
         else:
