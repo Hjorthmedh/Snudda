@@ -761,8 +761,8 @@ class SnuddaPrune(object):
         if "a3" not in prune_info:
             prune_info["a3"] = None
 
-        if "cluster" not in prune_info:
-            prune_info["cluster"] = False
+        if "clusterPruning" not in prune_info:
+            prune_info["clusterPruning"] = False
 
         return prune_info
 
@@ -924,10 +924,18 @@ class SnuddaPrune(object):
             # (0, 521, 5242880, 0.75)
 
             # Low level opening hdf5 file, to have greater cache size
-            fid = h5py.h5f.create(outfile_name.encode(),
-                                  flags=h5py.h5f.ACC_TRUNC,
-                                  fapl=propfaid)
-            out_file = h5py.File(fid, libver=self.h5libver, driver=self.h5driver)
+            try:
+                fid = h5py.h5f.create(outfile_name.encode(),
+                                      flags=h5py.h5f.ACC_TRUNC,
+                                      fapl=propfaid)
+                out_file = h5py.File(fid, libver=self.h5libver, driver=self.h5driver)
+            except:
+                self.write_log(f"Error while trying to create file {outfile_name.encode()}")
+                import traceback
+                error_msg = traceback.format_exc()
+                self.write_log(error_msg, is_error=True)
+                import pdb
+                pdb.set_trace()
         else:
             out_file = h5py.File(outfile_name, "w", libver=self.h5libver, driver=self.h5driver)
 
@@ -2033,7 +2041,7 @@ class SnuddaPrune(object):
                 a3 = c_info["a3"]
 
                 # If cluster_flag is set, then the synapses furthest from their companion synapses are removed first
-                cluster_flag = c_info["cluster"]
+                cluster_flag = c_info["clusterPruning"]
 
             else:
                 # Not listed in connectivityDistribution, skip neuron pair

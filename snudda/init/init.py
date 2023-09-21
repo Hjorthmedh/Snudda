@@ -289,6 +289,9 @@ class SnuddaInit(object):
         con_info = dict([])
         con_info["conductance"] = [cond, cond_std]  # Mean, Std
         con_info["channelParameters"] = channel_param_dictionary
+
+        # clusterSize and clusterSpread tell detect.py to add multiple synapses in a cluster
+        # within the given spread radius.
         con_info["clusterSize"] = cluster_size
         con_info["clusterSpread"] = cluster_spread
         pruning_info = dict([])
@@ -297,7 +300,9 @@ class SnuddaInit(object):
         pruning_info["mu2"] = mu2
         pruning_info["a3"] = a3
         pruning_info["distPruning"] = dist_pruning
-        pruning_info["cluster"] = cluster_synapses
+
+        # cluster tells the that the pruning should remove synapses far from each other first
+        pruning_info["clusterPruning"] = cluster_synapses
         con_info["pruning"] = pruning_info
 
         # pruneInfo = (distPruning,f1,softMax,mu2,a3)
@@ -333,7 +338,7 @@ class SnuddaInit(object):
             pruning_info_other["mu2"] = mu2_other
             pruning_info_other["a3"] = a3_other
             pruning_info_other["distPruning"] = dist_pruning_other
-            pruning_info_other["cluster"] = cluster_synapses
+            pruning_info_other["clusterPruning"] = cluster_synapses
 
             # Different pruning rules for within and between neuron units
             con_info["pruningOther"] = pruning_info_other

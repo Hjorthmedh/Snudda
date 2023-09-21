@@ -944,7 +944,6 @@ class SnuddaLoad(object):
             centre_point (np.array) : x,y,z of centre position, None = auto detect centre
         """
 
-
         if centre_point is None:
             centre_point = np.mean(self.data["neuronPositions"], axis=0)
 

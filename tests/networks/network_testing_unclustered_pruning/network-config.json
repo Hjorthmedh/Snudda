@@ -26,7 +26,7 @@
                     "mu2": null,
                     "a3": 1,
                     "distPruning": null,
-		    "cluster": false
+		    "clusterPruning": false
                 }
 	    }
 	}

@@ -1,0 +1,74 @@
+{
+    "Connectivity": {
+        "FS,FS": {
+            "GABA": {
+                "pruning": {
+                    "f1": 0.659477083526799,
+                    "mu2": null,
+                    "a3": null,
+                    "softMax": null
+                }
+            }
+        },
+        "FS,dSPN": {
+            "GABA": {
+                "pruning": {
+                    "f1": 0.3005530673011193,
+                    "mu2": null,
+                    "a3": null,
+                    "softMax": null
+                }
+            }
+        },
+        "FS,iSPN": {
+            "GABA": {
+                "pruning": {
+                    "f1": 0.09310689286593543,
+                    "mu2": null,
+                    "a3": null,
+                    "softMax": null
+                }
+            }
+        },
+        "dSPN,dSPN": {
+            "GABA": {
+                "pruning": {
+                    "f1": 0.015414798565437593,
+                    "mu2": null,
+                    "a3": null,
+                    "softMax": null
+                }
+            }
+        },
+        "dSPN,iSPN": {
+            "GABA": {
+                "pruning": {
+                    "f1": 0.0031765177245918763,
+                    "mu2": null,
+                    "a3": null,
+                    "softMax": null
+                }
+            }
+        },
+        "iSPN,iSPN": {
+            "GABA": {
+                "pruning": {
+                    "f1": 0.021780216984650103,
+                    "mu2": null,
+                    "a3": null,
+                    "softMax": null
+                }
+            }
+        },
+        "iSPN,dSPN": {
+            "GABA": {
+                "pruning": {
+                    "f1": 0.014907749841387596,
+                    "mu2": null,
+                    "a3": null,
+                    "softMax": null
+                }
+            }
+        }
+    }
+}
