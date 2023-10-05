@@ -1,17 +1,163 @@
 
 import numpy as np
 from scipy.spatial import cKDTree
+from numba import jit
 
 
 class RegionMeshRedux:
 
     def __init__(self):
 
-        pass
+        # Set by load_mesh
+        self.mesh_vertices = None
+        self.mesh_faces = None
+        self.mesh_normals = None
+        self.min_coord = None
+        self.max_coord = None
+        self.point_outside = None
 
-    def load_mesh(self):
+        # Set by pre_compute
+        self.mesh_u = None
+        self.mesh_v = None
+        self.mesh_v0 = None
+        self.mesh_uv = None
+        self.mesh_vv = None
+        self.mesh_uu = None
+        self.mesh_denom = None
+        self.mesh_nrm = None
 
-        pass
+    def load_mesh(self, file_path):
+
+        """ Reads wavefront obj files. Updates mesh_vertices, mesh_faces, mesh_normals,
+            min_coord, max_coord, point_outside """
+
+        vertices = []
+        normals = []
+        faces = []
+
+        with open(file_path, 'r') as obj_file:
+            for line in obj_file:
+                parts = line.strip().split()
+                if not parts:
+                    continue  # Skip empty lines
+
+                if parts[0][0] == 'v':
+                    if len(parts[0]) > 1 and parts[0][1] == 'n':
+                        # Parse normal vectors
+                        nx, ny, nz = map(float, parts[1:4])
+                        normals.append((nx, ny, nz))
+                    else:
+                        # Parse vertex coordinates in micrometers and convert to meters
+                        x, y, z = [float(coord) * 1e-6 for coord in parts[1:4]]
+                        vertices.append((x, y, z))
+                elif parts[0] == 'f':
+                    # Parse face definitions with vertex and normal indices
+                    face_indices = []
+                    for vertex in parts[1:]:
+                        indices = [int(idx) if idx else 0 for idx in vertex.split('/')]
+                        face_indices.append(tuple(indices))
+                    faces.append(face_indices)
+
+        self.mesh_vertices = np.array(vertices)
+        self.mesh_faces = np.array(normals)
+        self.mesh_normals = np.array(faces)
+
+        self.min_coord = np.min(self.mesh_vertices, axis=0)
+        self.max_coord = np.max(self.mesh_vertices, axis=0)
+
+        # Used by ray casting when checking if another point is interior
+        self.point_outside = self.max_coord + np.array([1e-1, 1e-2, 1e-3])
+
+    def pre_compute(self):
+
+        """ Helper function, precomputes values for raytracing. """
+
+        i0 = self.mesh_faces[:, 0]
+        i1 = self.mesh_faces[:, 1]
+        i2 = self.mesh_faces[:, 2]
+
+        self.mesh_u = self.mesh_vec[i1, :] - self.mesh_vec[i0, :]
+        self.mesh_v = self.mesh_vec[i2, :] - self.mesh_vec[i0, :]
+
+        self.mesh_v0 = self.mesh_vec[i0, :]
+
+        self.mesh_uv = np.sum(np.multiply(self.mesh_u, self.mesh_v), axis=1)
+        self.mesh_vv = np.sum(np.multiply(self.mesh_v, self.mesh_v), axis=1)
+        self.mesh_uu = np.sum(np.multiply(self.mesh_u, self.mesh_u), axis=1)
+
+        self.mesh_denom = np.multiply(self.mesh_uv, self.mesh_uv) - np.multiply(self.mesh_uu, self.mesh_vv)
+
+        # Normal of triangle
+        self.mesh_nrm = np.cross(self.mesh_u, self.mesh_v)
+
+        # We need to normalise it
+        nl = np.repeat(np.reshape(self.mesh_uv, [self.mesh_uv.shape[0], 1]), 3, axis=1)
+        self.mesh_nrm = np.divide(self.mesh_nrm, nl)
+
+    def ray_casting(self, point):
+
+        """ Ray-casting, to determine if a point is inside or outside of mesh. """
+
+        return RegionMeshRedux.ray_casting_helper(point=point,
+                                                  self_mesh_faces=self.mesh_faces,
+                                                  self_mesh_nrm=self.mesh_nrm,
+                                                  self_mesh_v0=self.mesh_v0,
+                                                  self_point_out=self.point_out,
+                                                  self_mesh_denom=self.mesh_denom,
+                                                  self_mesh_uv=self.mesh_uv,
+                                                  self_mesh_uu=self.mesh_uu,
+                                                  self_mesh_vv=self.mesh_vv,
+                                                  self_mesh_u=self.mesh_u,
+                                                  self_mesh_v=self.mesh_v)
+
+    @staticmethod
+    @jit(nopython=True)
+    def ray_casting_helper(point,
+                           self_mesh_faces, self_mesh_nrm, self_point_out,
+                           self_mesh_v0, self_mesh_denom,
+                           self_mesh_uv, self_mesh_vv, self_mesh_uu, self_mesh_u, self_mesh_v):
+
+        """
+        Helper function for ray-casting, to determine if a point is inside the 3D-mesh.
+        It draws a line from the point given, and a second point defined as outside.
+        If that line intersects the surface of the 3D mesh an odd number of times, then the first point is inside.
+
+        Uses values pre-computed by pre_compute function.
+        """
+
+        # print(f"Processing {point}")
+
+        n_tri = self_mesh_faces.shape[0]
+
+        p = self_point_out - point
+        # rn = nominator, rd = denominator
+        rn = np.sum(np.multiply(self_mesh_nrm, self_mesh_v0 - point), axis=1)
+        rd = np.dot(self_mesh_nrm, p)
+
+        # If rd == 0 and rn != 0 --> r = -1, parallel to plane, but outside, mark -1 to avoid counting
+        # If rd == 0 and rn == 0 --> r = 0, parallel and lies in plane
+        idx0 = (rd == 0)
+        idx1 = np.logical_and(idx0, rn != 0)
+
+        rn[idx1] = -1
+        rd[idx0] = 1
+        r = np.divide(rn, rd)
+
+        w = point + r.reshape(len(r), 1) * p.reshape(1, 3) - self_mesh_v0
+        n_points = len(r)
+
+        s = np.divide(np.multiply(self_mesh_uv, np.sum(np.multiply(w, self_mesh_v), axis=1).reshape(n_points, ))
+                      - np.multiply(self_mesh_vv, np.sum(np.multiply(w, self_mesh_u), axis=1).reshape(n_points, )),
+                      self_mesh_denom)
+
+        t = np.divide(np.multiply(self_mesh_uv, np.sum(np.multiply(w, self_mesh_u), axis=1).reshape(n_points, ))
+                      - np.multiply(self_mesh_uu, np.sum(np.multiply(w, self_mesh_v), axis=1).reshape(n_points, )),
+                      self_mesh_denom)
+
+        intersect_count = np.sum((0 <= r) * (r <= 1) * (0 <= s) * (s <= 1) * (0 <= t) * (s + t <= 1))
+
+        return np.mod(intersect_count, 2) == 1
+
 
     def point_inside(self, point):
 
@@ -56,7 +202,7 @@ class NeuronPlacer:
 
         return points
 
-    def _remove_close_neurons_helper(self, points):
+    def _remove_close_neurons_helper(self, points, remove_fraction=0.05):
 
         close_pairs = cKDTree(data=points).query_pairs(r=self.d_min)
 
@@ -80,13 +226,13 @@ class NeuronPlacer:
             sorted_counts = counts[sort_idx]
 
             first_pair = np.argmax(sorted_counts == 1)
-            ten_percent = int(np.ceil(0.05*len(sorted_offenders)))
+            remove_fraction_idx = int(np.ceil(remove_fraction*len(sorted_offenders)))
 
-            remove_idx = sorted_offenders[:min(first_pair, ten_percent)]
+            remove_idx = sorted_offenders[:min(first_pair, remove_fraction_idx)]
 
         points = np.delete(points, remove_idx, axis=0)
 
-        print(f"n_points = {points.shape[0]}, prev_close_pairs = {len(close_pairs)}")
+        print(f"n_points = {points.shape[0]}, previous close_pairs = {len(close_pairs)}")
 
         return points, False
 
