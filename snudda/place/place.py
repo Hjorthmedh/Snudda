@@ -641,7 +641,7 @@ class SnuddaPlace(object):
         elif mapping == "source":
             xi = source_position
         else:
-            raise NotImplentedError(f"Unknown mapping '{mapping}'!")
+            raise NotImplementedError(f"Unknown mapping '{mapping}'!")
 
         if rotation is not None:
             target_rotation = griddata(points=rot_position,
