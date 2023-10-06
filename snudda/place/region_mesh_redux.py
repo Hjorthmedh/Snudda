@@ -6,7 +6,9 @@ from numba import jit
 
 class RegionMeshRedux:
 
-    def __init__(self):
+    def __init__(self, mesh_path):
+
+        self.mesh_path = mesh_path
 
         # Set by load_mesh
         self.mesh_vertices = None
@@ -26,6 +28,10 @@ class RegionMeshRedux:
         self.mesh_denom = None
         self.mesh_nrm = None
 
+        if self.mesh_path is not None:
+            self.load_mesh(file_path=self.mesh_path)
+            self.pre_compute()
+
     def load_mesh(self, file_path):
 
         """ Reads wavefront obj files. Updates mesh_vertices, mesh_faces, mesh_normals,
@@ -42,10 +48,14 @@ class RegionMeshRedux:
                     continue  # Skip empty lines
 
                 if parts[0][0] == 'v':
-                    if len(parts[0]) > 1 and parts[0][1] == 'n':
-                        # Parse normal vectors
-                        nx, ny, nz = map(float, parts[1:4])
-                        normals.append((nx, ny, nz))
+                    if len(parts[0]) > 1:
+                        if parts[0][1] == 'n':
+                            # Parse normal vectors
+                            nx, ny, nz = map(float, parts[1:4])
+                            normals.append((nx, ny, nz))
+                        else:
+                            # Skip "vt" lines and others
+                            continue
                     else:
                         # Parse vertex coordinates in micrometers and convert to meters
                         x, y, z = [float(coord) * 1e-6 for coord in parts[1:4]]
@@ -54,13 +64,21 @@ class RegionMeshRedux:
                     # Parse face definitions with vertex and normal indices
                     face_indices = []
                     for vertex in parts[1:]:
-                        indices = [int(idx) if idx else 0 for idx in vertex.split('/')]
-                        face_indices.append(tuple(indices))
+                        try:
+                            # Only take first value of each triplet 1/?/? 2/?/? 3/?/?
+                            indices = int(vertex.split('/')[0]) - 1
+                        except:
+                            import traceback
+                            print(traceback.format_exc())
+                            import pdb
+                            pdb.set_trace()
+                        # indices = [int(idx) - 1 if idx else 0 for idx in vertex.split('/')]
+                        face_indices.append(indices)
                     faces.append(face_indices)
 
         self.mesh_vertices = np.array(vertices)
-        self.mesh_faces = np.array(normals)
-        self.mesh_normals = np.array(faces)
+        self.mesh_faces = np.array(faces)
+        self.mesh_normals = np.array(normals)
 
         self.min_coord = np.min(self.mesh_vertices, axis=0)
         self.max_coord = np.max(self.mesh_vertices, axis=0)
@@ -76,10 +94,10 @@ class RegionMeshRedux:
         i1 = self.mesh_faces[:, 1]
         i2 = self.mesh_faces[:, 2]
 
-        self.mesh_u = self.mesh_vec[i1, :] - self.mesh_vec[i0, :]
-        self.mesh_v = self.mesh_vec[i2, :] - self.mesh_vec[i0, :]
+        self.mesh_u = self.mesh_vertices[i1, :] - self.mesh_vertices[i0, :]
+        self.mesh_v = self.mesh_vertices[i2, :] - self.mesh_vertices[i0, :]
 
-        self.mesh_v0 = self.mesh_vec[i0, :]
+        self.mesh_v0 = self.mesh_vertices[i0, :]
 
         self.mesh_uv = np.sum(np.multiply(self.mesh_u, self.mesh_v), axis=1)
         self.mesh_vv = np.sum(np.multiply(self.mesh_v, self.mesh_v), axis=1)
@@ -98,24 +116,24 @@ class RegionMeshRedux:
 
         """ Ray-casting, to determine if a point is inside or outside of mesh. """
 
-        return RegionMeshRedux.ray_casting_helper(point=point,
-                                                  self_mesh_faces=self.mesh_faces,
-                                                  self_mesh_nrm=self.mesh_nrm,
-                                                  self_mesh_v0=self.mesh_v0,
-                                                  self_point_out=self.point_out,
-                                                  self_mesh_denom=self.mesh_denom,
-                                                  self_mesh_uv=self.mesh_uv,
-                                                  self_mesh_uu=self.mesh_uu,
-                                                  self_mesh_vv=self.mesh_vv,
-                                                  self_mesh_u=self.mesh_u,
-                                                  self_mesh_v=self.mesh_v)
+        return RegionMeshRedux._ray_casting_helper(point=point,
+                                                   self_mesh_faces=self.mesh_faces,
+                                                   self_mesh_nrm=self.mesh_nrm,
+                                                   self_mesh_v0=self.mesh_v0,
+                                                   self_point_out=self.point_outside,
+                                                   self_mesh_denom=self.mesh_denom,
+                                                   self_mesh_uv=self.mesh_uv,
+                                                   self_mesh_uu=self.mesh_uu,
+                                                   self_mesh_vv=self.mesh_vv,
+                                                   self_mesh_u=self.mesh_u,
+                                                   self_mesh_v=self.mesh_v)
 
     @staticmethod
     @jit(nopython=True)
-    def ray_casting_helper(point,
-                           self_mesh_faces, self_mesh_nrm, self_point_out,
-                           self_mesh_v0, self_mesh_denom,
-                           self_mesh_uv, self_mesh_vv, self_mesh_uu, self_mesh_u, self_mesh_v):
+    def _ray_casting_helper(point,
+                            self_mesh_faces, self_mesh_nrm, self_point_out,
+                            self_mesh_v0, self_mesh_denom,
+                            self_mesh_uv, self_mesh_vv, self_mesh_uu, self_mesh_u, self_mesh_v):
 
         """
         Helper function for ray-casting, to determine if a point is inside the 3D-mesh.
@@ -158,10 +176,15 @@ class RegionMeshRedux:
 
         return np.mod(intersect_count, 2) == 1
 
+    def point_inside(self, points):
+        # Let's see how fast it is if we do ray casting directly
 
-    def point_inside(self, point):
+        inside_flag = np.zeros(shape=(points.shape[0],), dtype=bool)
 
-        pass
+        for ctr, p in enumerate(points):
+            inside_flag[ctr] = self.ray_casting(p)
+
+        return inside_flag
 
     def distance_to_border(self, point):
 
@@ -180,13 +203,10 @@ class NeuronPlacer:
 
         self.rng = np.random.default_rng(seed)
 
-        # Temp values, should be read from the 3d mesh + padding
-        self.cube_side = 1000e-6
-        self.cube_offset = np.array([1, 2, 5000])
-
-        # Use kdtree to avoid d_min overlaps
-
-        pass
+        # We generate a cube of points, obs that we pad it with d_min on all sides to avoid
+        # edge effects (which would give higher densities at borders)
+        self.cube_side = self.region_mesh.max_coord-self.region_mesh.min_coord + self.d_min*2
+        self.cube_offset = self.region_mesh.min_coord - self.d_min
 
     def get_point_cloud(self, n):
         points = self.rng.uniform(size=(n, 3), low=0, high=self.cube_side) + self.cube_offset
@@ -236,6 +256,14 @@ class NeuronPlacer:
 
         return points, False
 
+    def remove_outside(self, points):
+
+        print(f"Filtering {points.shape[0]} points..")
+        keep_flag = self.region_mesh.point_inside(points=points)
+
+        print(f"Filtering, keeping inside points: {np.sum(keep_flag)} / {len(keep_flag)}")
+
+        return points[keep_flag, :]
 
     def set_neuron_density(self, neuron_type, neuron_density):
 
@@ -267,9 +295,20 @@ class NeuronBender:
 
 if __name__ == "__main__":
 
-    nep = NeuronPlacer(region_mesh=None, d_min=10e-6)
-    points = nep.get_point_cloud(n=1000000)
+    rmr = RegionMeshRedux(mesh_path="/home/hjorth/HBP/Snudda/snudda/data/mesh/Striatum-dorsal-right-hemisphere.obj")
+
+    nep = NeuronPlacer(region_mesh=rmr, d_min=10e-6)
+    points = nep.get_point_cloud(n=100000)
     new_points = nep.remove_close_neurons(points)
+    new_inside_points = nep.remove_outside(new_points)
+
+    import matplotlib.pyplot as plt
+
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    x,y,z = new_inside_points.T
+    ax.scatter(x, y, z, marker='.')
+    plt.show()
 
     import pdb
     pdb.set_trace()
