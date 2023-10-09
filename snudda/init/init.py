@@ -127,7 +127,8 @@ class SnuddaInit(object):
                          struct_centre=None,
                          side_len=None,
                          slice_depth=None,
-                         mesh_bin_width=None):
+                         mesh_bin_width=None,
+                         n_putative_points=None):
         """
         Sets up definition for a brain structure (e.g. Cortex, Striatum, ...).
 
@@ -139,6 +140,8 @@ class SnuddaInit(object):
             side_len (float, optional): side of cube, or slice
             slice_depth (float, optional): depth of slice
             mesh_bin_width (float): discretisation of 3D mesh during cell placement
+            n_putative_points (int): Number of putative locations (Before d_min filtering),
+                                     upper limit on number of neuron positions in volume (real number will be lower)
         """
 
         if d_min is None:
@@ -195,18 +198,23 @@ class SnuddaInit(object):
         self.network_data["Volume"][struct_name] = \
             self.define_volume(d_min=d_min,
                                mesh_file=struct_mesh,
-                               mesh_bin_width=mesh_bin_width)
+                               mesh_bin_width=mesh_bin_width,
+                               n_putative_points=n_putative_points)
 
     ############################################################################
 
     @staticmethod
-    def define_volume(mesh_file=None, d_min=15e-6, mesh_bin_width=1e-4):
+    def define_volume(mesh_file=None, d_min=15e-6, mesh_bin_width=1e-4, n_putative_points=None):
 
         vol = dict([])
         vol["type"] = "mesh"
         vol["dMin"] = d_min
         vol["meshFile"] = mesh_file
         vol["meshBinWidth"] = mesh_bin_width
+
+        if n_putative_points:
+            # This is used for neuron placement, putative points are points picked before d_min filtering
+            vol["n_putative_points"] = n_putative_points
 
         return vol
 
@@ -879,8 +887,9 @@ class SnuddaInit(object):
             self.num_ChIN = np.round(f_ChIN * num_neurons / f_tot)
             self.num_LTS = np.round(f_LTS * num_neurons / f_tot)
 
-            self.num_neurons_total += self.num_FS + self.num_dSPN + self.num_iSPN + self.num_ChIN + self.num_LTS
+            n_neurons = int(self.num_FS + self.num_dSPN + self.num_iSPN + self.num_ChIN + self.num_LTS)
 
+            self.num_neurons_total += n_neurons
             if abs(num_neurons - self.num_neurons_total) > 5:
                 print("Striatum should have " + str(num_neurons) + " but " + str(self.num_neurons_total) \
                       + " are being requested, check fractions set for defineStriatum.")
@@ -894,7 +903,8 @@ class SnuddaInit(object):
             self.define_structure(struct_name="Striatum",
                                   struct_mesh=mesh_file,
                                   mesh_bin_width=mesh_bin_width,
-                                  d_min=d_min)
+                                  d_min=d_min,
+                                  n_putative_points=num_neurons*3)
 
         elif volume_type == "mouseStriatum":
             if mesh_bin_width is None:
@@ -903,7 +913,8 @@ class SnuddaInit(object):
             self.define_structure(struct_name="Striatum",
                                   struct_mesh=os.path.join("$SNUDDA_DATA", "mesh", "Striatum-d.obj"),
                                   mesh_bin_width=mesh_bin_width,
-                                  d_min=d_min)
+                                  d_min=d_min,
+                                  n_putative_points=num_neurons*3)
 
             density_file = os.path.join("$SNUDDA_DATA", "density", "dorsal_striatum_density.json")
 
@@ -918,7 +929,8 @@ class SnuddaInit(object):
                                   struct_mesh="slice",
                                   side_len=side_len,
                                   slice_depth=slice_depth,
-                                  d_min=d_min)
+                                  d_min=d_min,
+                                  n_putative_points=num_neurons*3)
 
         elif num_neurons <= 1e6:  # 1e6
             print("Using cube for striatum")
@@ -942,14 +954,16 @@ class SnuddaInit(object):
                                   struct_centre=striatum_centre,
                                   side_len=striatum_side_len,
                                   mesh_bin_width=mesh_bin_width,
-                                  d_min=d_min)
+                                  d_min=d_min,
+                                  n_putative_points=num_neurons*3)
 
         else:
             # Default, full size striatum
             self.define_structure(struct_name="Striatum",
                                   struct_mesh=os.path.join("$SNUDDA_DATA", "mesh", "Striatum-d.obj"),
                                   mesh_bin_width=1e-4,
-                                  d_min=d_min)
+                                  d_min=d_min,
+                                  nn_putative_points=num_neurons*3)
 
             density_file = os.path.join("$SNUDDA_DATA", "density", "dorsal_striatum_density.json")
 
@@ -1459,7 +1473,8 @@ class SnuddaInit(object):
 
         self.define_structure(struct_name="GPe",
                               struct_mesh="mesh/GPe-mesh.obj",
-                              d_min=d_min)
+                              d_min=d_min,
+                              n_putative_points=num_neurons*3)
 
         # !!! Need to add targets for neurons in GPe
 
@@ -1476,7 +1491,8 @@ class SnuddaInit(object):
 
         self.define_structure(struct_name="GPi",
                               struct_mesh="mesh/GPi-mesh.obj",
-                              d_min=d_min)
+                              d_min=d_min,
+                              n_putative_points=num_neurons*3)
 
         # !!! Need to add targets for neurons in GPi
 
@@ -1493,7 +1509,8 @@ class SnuddaInit(object):
 
         self.define_structure(struct_name="STN",
                               struct_mesh="mesh/STN-mesh.obj",
-                              d_min=d_min)
+                              d_min=d_min,
+                              n_putative_points=num_neurons*3)
 
         # !!! Need to add targets for neurons in STN
 
@@ -1511,7 +1528,8 @@ class SnuddaInit(object):
         self.define_structure(struct_name="SNr",
                               struct_mesh="mesh/SNr-mesh.obj",
                               mesh_bin_width=1e-4,
-                              d_min=d_min)
+                              d_min=d_min,
+                              n_putative_points=num_neurons*3)
 
         # !!! Need to add targets for neurons in SNr
 
@@ -1537,7 +1555,8 @@ class SnuddaInit(object):
                               struct_centre=np.array([7067e-6, 3007e-6, 2570e-6]),
                               side_len=200e-6,
                               mesh_bin_width=5e-5,
-                              d_min=d_min)
+                              d_min=d_min,
+                              n_putative_points=num_neurons*3)
 
         cortex_dir = os.path.join("$SNUDDA_DATA", "InputAxons", "Cortex", "Reg10")
 
@@ -1614,7 +1633,8 @@ class SnuddaInit(object):
                               struct_centre=np.array([4997e-6, 4260e-6, 7019e-6]),
                               side_len=200e-6,
                               mesh_bin_width=5e-5,
-                              d_min=d_min)
+                              d_min=d_min,
+                              n_putative_points=num_neurons*3)
 
         # Define neurons
 

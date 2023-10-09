@@ -25,8 +25,11 @@ class RegionMeshRedux:
         legacy_mesh = o3d.t.geometry.TriangleMesh.from_legacy(self.mesh)
 
         # SHALL WE PICk NUMBER OF PUTATIVE POINTS BASED ON VOLUME???
+        self.volume = self.mesh.compute_convex_hull()[0].get_volume()
 
         self.scene.add_triangles(legacy_mesh)
+        # filled_mesh = legacy_mesh.fill_holes()
+        # self.scene.add_triangles(filled_mesh)
 
     def check_inside(self, points):
         """ Check if points are inside, returns bool array."""
@@ -49,22 +52,45 @@ class RegionMeshRedux:
 
 class NeuronPlacer:
 
-    def __init__(self, mesh_path: str, d_min: float, seed=None, rng=None, n_putative_points=1000000):
+    def __init__(self, mesh_path: str, d_min: float, random_seed=None, rng=None,
+                 n_putative_points=None, putative_density=None):
+
+        """ Args:
+            mesh_path (str): Path to wavefront obj file
+            d_min (float): Minimum distance between neurons
+            random_seed (int): Random seed
+            rng: Numpy rng object, either rng or random_seed is given
+            n_putative_points (int): Number of putative positions to place within volume (before d_min filtering)"""
 
         self.region_mesh = RegionMeshRedux(mesh_path=mesh_path)
         self.d_min = d_min
+        self.density_functions = dict()
 
         if rng:
-            if seed:
+            if random_seed:
                 raise ValueError("If rng is set, then seed should not be set.")
             self.rng = rng
         else:
-            self.rng = np.random.default_rng(seed)
+            self.rng = np.random.default_rng(random_seed)
 
         # We generate a cube of points, obs that we pad it with d_min on all sides to avoid
         # edge effects (which would give higher densities at borders)
         self.cube_side = self.region_mesh.max_coord-self.region_mesh.min_coord + self.d_min*2
         self.cube_offset = self.region_mesh.min_coord - self.d_min
+
+        if n_putative_points is None:
+            # The volume of the cube multiplied by a density estimated by d_min
+
+            if putative_density:
+                n_putative_points = int(np.ceil(np.prod(self.cube_side)*putative_density*1e9))
+            else:
+                n_putative_points = int(np.ceil(np.prod(self.cube_side) * (1/self.d_min) ** 3))
+        else:
+            # We need to compenate n_putative_points for fact that we sample points outside volume also
+            n_putative_points *= np.prod(self.cube_side) / self.region_mesh.volume
+            n_putative_points = int(np.ceil(n_putative_points))
+
+        print(f"Generating {n_putative_points} points for {mesh_path}")
 
         putative_points = self.get_point_cloud(n=n_putative_points)
         putative_points = self.remove_close_neurons(putative_points)
@@ -73,9 +99,25 @@ class NeuronPlacer:
         self.putative_points = putative_points
         self.allocated_points = np.zeros(shape=(putative_points.shape[0],), dtype=bool)
 
+    def define_density(self, neuron_type, density_function):
+        self.density_functions[neuron_type] = density_function
+
+    def place_neurons(self, num_neurons, neuron_type=None):
+
+        if neuron_type is None or neuron_type not in self.density_functions:
+            density_function = None
+        else:
+            density_function = self.density_functions[neuron_type]
+
+        return self.get_neuron_positions(n_positions=num_neurons, neuron_density=density_function)
+
     def plot_putative_points(self):
 
         self.plot_points(points=self.putative_points)
+
+    def plot_placed_points(self):
+
+        self.plot_points(points=self.putative_points[self.allocated_points, :])
 
     def plot_points(self, points, colour=None):
         import matplotlib.pyplot as plt
@@ -169,22 +211,32 @@ class NeuronPlacer:
 
         if neuron_density:
             # TODO: Temp disabled volume... still does not seem to work
-            P_neuron = np.multiply(numexpr.evaluate(neuron_density), free_volume)
+            if type(neuron_density) == str:
+                P_neuron = np.multiply(numexpr.evaluate(neuron_density), free_volume)
+            else:
+                P_neuron = np.multiply(neuron_density(x=x, y=y, z=z), free_volume)
             # P_neuron = numexpr.evaluate(neuron_density)
         else:
             P_neuron = free_volume
 
         P_neuron /= np.sum(P_neuron)
 
-        idx = self.rng.choice(len(free_positions), n_positions, p=P_neuron, replace=False)
+        try:
+            idx = self.rng.choice(len(free_positions), n_positions, p=P_neuron, replace=False)
+        except ValueError as ve:
+            print("Error: Increase n_putative_points or putative_density, too few putative points set.")
+            print(f"      Mesh: {self.region_mesh.mesh_path}")
+
+            import pdb
+            pdb.set_trace()
+
+            raise ve
 
         neuron_positions = free_positions[idx, :]
         used_idx = np.where(~self.allocated_points)[0][idx]
         self.allocated_points[used_idx] = True
 
         return neuron_positions
-
-
 
 class NeuronBender:
 
@@ -209,7 +261,8 @@ if __name__ == "__main__":
 
     mesh_path="/home/hjorth/HBP/Snudda/snudda/data/mesh/Striatum-dorsal-right-hemisphere.obj"
 
-    nep = NeuronPlacer(mesh_path=mesh_path, d_min=10e-6, n_putative_points=10000000)
+    # nep = NeuronPlacer(mesh_path=mesh_path, d_min=10e-6, n_putative_points=10000000)
+    nep = NeuronPlacer(mesh_path=mesh_path, d_min=10e-6, n_putative_points=None, putative_density=100e3)
     # nep.plot_putative_points()
 
     points_flat = nep.get_neuron_positions(5000)

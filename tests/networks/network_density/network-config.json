@@ -15,6 +15,7 @@
             "dMin": 1.5e-05,
             "meshFile": "networks/network_density/mesh/slice.obj",
             "meshBinWidth": 0.0005,
+            "n_putative_points": 6000,
             "density": {
                 "FS": {
                     "densityFunction": "abs(x)"

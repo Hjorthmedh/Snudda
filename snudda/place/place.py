@@ -26,7 +26,9 @@ from scipy.interpolate import griddata
 
 from snudda.utils.snudda_path import get_snudda_data
 from snudda.neurons.neuron_prototype import NeuronPrototype
-from snudda.place.region_mesh import RegionMesh
+# from snudda.place.region_mesh import RegionMesh
+from snudda.place.region_mesh_redux import NeuronPlacer
+
 from snudda.place.rotation import SnuddaRotate
 from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists, snudda_simplify_path
 
@@ -394,14 +396,25 @@ class SnuddaPlace(object):
                     self.write_log(f"Unable to find mesh file {vol_def['meshFile']}")
                     sys.exit(-1)
 
+                # self.volume[volume_id]["mesh"] \
+                #     = RegionMesh(mesh_file,
+                #                  d_view=d_view,
+                #                  raytrace_borders=self.raytrace_borders,
+                #                  d_min=vol_def["dMin"],
+                #                  bin_width=mesh_bin_width,
+                #                  log_file=mesh_logfile,
+                #                  random_seed=vol_seed[volume_id])
+
+                if "n_putative_points" in self.volume[volume_id]:
+                    n_putative_points = int(self.volume[volume_id]["n_putative_points"])
+                else:
+                    n_putative_points = None  # Autodetect
+
                 self.volume[volume_id]["mesh"] \
-                    = RegionMesh(mesh_file,
-                                 d_view=d_view,
-                                 raytrace_borders=self.raytrace_borders,
-                                 d_min=vol_def["dMin"],
-                                 bin_width=mesh_bin_width,
-                                 log_file=mesh_logfile,
-                                 random_seed=vol_seed[volume_id])
+                    = NeuronPlacer(mesh_path=mesh_file,
+                                   d_min=vol_def["dMin"],
+                                   random_seed=vol_seed[volume_id],
+                                   n_putative_points=n_putative_points)
 
                 if "density" in self.volume[volume_id]:
                     # We need to set up the neuron density functions also
