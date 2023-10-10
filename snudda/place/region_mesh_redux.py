@@ -259,7 +259,7 @@ class NeuronBender:
 
 if __name__ == "__main__":
 
-    mesh_path="/home/hjorth/HBP/Snudda/snudda/data/mesh/Striatum-dorsal-right-hemisphere.obj"
+    mesh_path="../data/mesh/Striatum-d-right.obj"
 
     # nep = NeuronPlacer(mesh_path=mesh_path, d_min=10e-6, n_putative_points=10000000)
     nep = NeuronPlacer(mesh_path=mesh_path, d_min=10e-6, n_putative_points=None, putative_density=100e3)
