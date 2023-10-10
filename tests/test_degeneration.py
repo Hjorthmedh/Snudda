@@ -152,6 +152,12 @@ class MyTestCase(unittest.TestCase):
         orig_load = SnuddaLoad(self.network_A)
         degen_load = SnuddaLoad(self.network_C)
 
+        tmp = [(x["neuronID"], x["morphologyKey"]) for x in orig_load.data["neurons"]]
+        print(f"Morphologies: {tmp}")
+
+        #import pdb
+        #pdb.set_trace()
+
         self.assertEqual(orig_load.data["nSynapses"], 165)
 
         # Verify that it should be 99 synapses -- now it is just a regression test
