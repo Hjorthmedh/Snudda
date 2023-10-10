@@ -152,7 +152,7 @@ class MyTestCase(unittest.TestCase):
         orig_load = SnuddaLoad(self.network_A)
         degen_load = SnuddaLoad(self.network_C)
 
-        self.assertEqual(orig_load.data["nSynapses"], 159)
+        self.assertEqual(orig_load.data["nSynapses"], 156)
 
         # Verify that it should be 99 synapses -- now it is just a regression test
         # Old version gave 99, new gives 165 --- CHECK WHY!

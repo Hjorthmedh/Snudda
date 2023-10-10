@@ -963,7 +963,7 @@ class SnuddaInit(object):
                                   struct_mesh=os.path.join("$SNUDDA_DATA", "mesh", "Striatum-d.obj"),
                                   mesh_bin_width=1e-4,
                                   d_min=d_min,
-                                  nn_putative_points=num_neurons*3)
+                                  n_putative_points=num_neurons*3)
 
             density_file = os.path.join("$SNUDDA_DATA", "density", "dorsal_striatum_density.json")
 

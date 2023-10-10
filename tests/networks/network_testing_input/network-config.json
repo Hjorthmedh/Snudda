@@ -14,7 +14,8 @@
             "type": "mesh",
             "dMin": 1.5e-05,
             "meshFile": "networks/network_testing_input/mesh/Striatum-cube-mesh-5e-05.obj",
-            "meshBinWidth": 5e-05
+            "meshBinWidth": 5e-05,
+            "n_putative_points": 30
         }
     },
     "Connectivity": {
