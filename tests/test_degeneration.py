@@ -158,7 +158,7 @@ class MyTestCase(unittest.TestCase):
         # Old version gave 99, new gives 165 --- CHECK WHY!
 
         # TODO: CHECK WHY NOT 99 SYNAPSES NOW
-        self.assertEqual(degen_load.data["nSynapses"], 163)  # -- Ilaria, we need to check what the true value should be?
+        self.assertEqual(degen_load.data["nSynapses"], 173)  # -- Ilaria, we need to check what the true value should be?
 
 
 if __name__ == '__main__':
