@@ -19,12 +19,24 @@ class BendMorphologies:
 
         return inside_flag
 
-    def bend_morphology(self, morphology: NeuronMorphologyExtended, inside_flag=None):
-
-        if inside_flag is None:
-            inside_flag = self.check_if_inside(morphology=morphology)
+    def bend_morphology(self, morphology: NeuronMorphologyExtended):
 
         # Iterate over all parts of neuron
         for section in morphology.section_iterator():
-            # We can use the inside_flag to determine if we need to rotate the branch anything
+            # We need to track the rotation of each point, in particular save rotations
+            # for each branch point, so that all children can start with that rotation
+
+            # Loop over all points in section
+
+            # Gradient is calculated based on distance to mesh
+            # Calculate delta_gradient = gradient_self - gradient_parent
+            # Amount of angle to bend f(delta_gradient)
+            # Randomize the rotation matrix
+
+            # After section is done, store the last rotation matrix, so its children can get their parent rotation
+            # store in dictionary?
+
+
+
+
             pass
