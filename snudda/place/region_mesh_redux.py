@@ -67,9 +67,10 @@ class NeuronPlacer:
         self.density_functions = dict()
 
         if rng:
+            self.rng = rng
+
             if random_seed:
                 raise ValueError("If rng is set, then seed should not be set.")
-            self.rng = rng
         else:
             self.rng = np.random.default_rng(random_seed)
 
