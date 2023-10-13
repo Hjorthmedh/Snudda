@@ -2,6 +2,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 
 from snudda.neurons import NeuronMorphologyExtended
+from snudda.neurons.morphology_data import MorphologyData, SectionMetaData
 from snudda.place.region_mesh_redux import RegionMeshRedux
 
 
@@ -20,6 +21,9 @@ class BendMorphologies:
         return inside_flag
 
     def bend_morphology(self, morphology: NeuronMorphologyExtended, k=50e-6):
+
+        # TODO: Parent point idx is included if parent section is of same type as section!
+        #       So we should not rotate the first point!
 
         # k -- decay constant
         n_random = 10
@@ -88,8 +92,115 @@ class BendMorphologies:
 
             parent_rotation_matrices[point_idx] = rotation_matrix
 
+    def get_full_rotation_representation(self, morphology: MorphologyData):
+
+        rotation_representation = dict()
+        parent_direction = dict()
+
+        for section in morphology.section_iterator():
+
+            if (section.section_id, section.section_type) in parent_direction:
+                parent_dir = parent_direction[section.section_id, section.section_type]
+            else:
+                parent_dir = np.array([[1, 0, 0]])
+
+            rot_and_len, last_direction = self.rotation_representation(section=section, parent_direction=parent_dir)
+
+            rotation_representation[section.section_id, section.section_type] = rot_and_len
+
+            for child_id, child_type in section.child_section_id:
+                parent_direction[child_id, child_type] = last_direction
+
+        return rotation_representation
+
+    def apply_rotation(self, morphology: MorphologyData, rotation_representation):
+
+        parent_direction = dict()
+
+        new_coords = np.array(morphology.geometry.shape)
+
+        for section in morphology.section_iterator():
+            if (section.section_id, section.section_type) in parent_direction:
+                parent_dir, parent_pos = parent_direction[section.section_id, section.section_type]
+            else:
+                parent_dir = np.matmul(morphology.rotation, np.array([[1, 0, 0]]))
+                parent_pos = morphology.position
+
+            rot_rep, last_dir = rotation_representation[section.section_id, section.section_type]
+            coords = self.coordinate_representation(rotation_representation=rot_rep,
+                                                    parent_direction=parent_dir,
+                                                    parent_point=parent_pos)
+
+            new_coords[section.point_idx, :3] = coords
+
+            for child_id, child_type in section.child_section_id:
+                parent_direction[child_id, child_type] = (last_dir, coords[-1, :3])
+
+        # TODO: This just returns the coords for now, add option to update coords in morphology?
+        #       OBS! Then rotation should also be reset, since it is now included in the coordinates
+
+        return new_coords
 
 
-    def rotate_subtree(self, section, from_idx, rotation, rotation_point):
-        
-        pass
+    def rotation_representation(self, section: SectionMetaData, parent_direction=None):
+
+        """ Represent each section as a series of length of segment, and rotations relative the parent segment."""
+
+        if parent_direction is None:
+            parent_direction = np.array([[1, 0, 0]])
+
+        rotations_and_length = []
+        parent_direction = parent_direction / np.linalg.norm(parent_direction)
+
+        coords = section.morphology_data.geometry[section.point_idx, :3]
+        delta = np.diff(coords, axis=0)
+        delta_length = np.linalg.norm(delta, axis=1)
+        delta_direction = delta / delta_length.reshape((delta.shape[0], 1))
+
+        for segment_direction, segment_length in zip(delta_direction, delta_length):
+            segment_direction = segment_direction.reshape((1, 3))
+            rotation, _ = Rotation.align_vectors(segment_direction, parent_direction)
+
+            import pdb
+            pdb.set_trace()
+
+            rotations_and_length.append((rotation, segment_length))
+            parent_direction = segment_direction
+
+        return rotations_and_length, segment_direction
+
+    def coordinate_representation(self, rotation_representation,
+                                  parent_direction=None,
+                                  parent_point=None):
+
+        if parent_direction is None:
+            parent_direction = np.array([1, 0, 0])
+
+        if parent_point is None:
+            parent_point = np.zeros(3)
+
+        parent_direction = parent_direction / np.linalg.norm(parent_direction)
+
+        coords = np.zeros((len(rotation_representation), 3))
+
+        for idx, (rotation, length) in enumerate(rotation_representation):
+            segment_direction = rotation.apply(parent_direction)
+            parent_point = coords[idx, :] = segment_direction * length + parent_point
+            parent_direction = segment_direction
+
+        return coords
+
+
+if __name__ == "__main__":
+
+    file_path = "../data/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc"
+
+    md = MorphologyData(swc_file=file_path)
+
+    bm = BendMorphologies(None, rng=np.random.default_rng())
+    sec = md.sections[3][0]
+    rot, _ = bm.rotation_representation(sec)
+    coords = bm.coordinate_representation(rotation_representation=rot, parent_point=sec.position[0, :])
+
+    import pdb
+    pdb.set_trace()
