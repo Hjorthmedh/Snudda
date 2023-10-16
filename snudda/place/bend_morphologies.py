@@ -108,7 +108,7 @@ class BendMorphologies:
 
             rotation_representation[section.section_id, section.section_type] = rot_and_len
 
-            for child_id, child_type in section.child_section_id:
+            for child_id, child_type in section.child_section_id.T:
                 parent_direction[child_id, child_type] = last_direction
 
         return rotation_representation
@@ -117,30 +117,37 @@ class BendMorphologies:
 
         parent_direction = dict()
 
-        new_coords = np.array(morphology.geometry.shape)
+        # new_coords = np.zeros((morphology.geometry.shape[0], 3))
+        new_coords = np.full((morphology.geometry.shape[0], 3), np.nan)  # Use nan as fill value, to see problems
 
         for section in morphology.section_iterator():
             if (section.section_id, section.section_type) in parent_direction:
                 parent_dir, parent_pos = parent_direction[section.section_id, section.section_type]
             else:
-                parent_dir = np.matmul(morphology.rotation, np.array([[1, 0, 0]]))
-                parent_pos = morphology.position
+                if morphology.rotation:
+                    parent_dir = np.matmul(morphology.rotation, np.array([[1, 0, 0]]))
+                else:
+                    parent_dir = np.array([[1, 0, 0]])
 
-            rot_rep, last_dir = rotation_representation[section.section_id, section.section_type]
-            coords = self.coordinate_representation(rotation_representation=rot_rep,
-                                                    parent_direction=parent_dir,
-                                                    parent_point=parent_pos)
+                if morphology.position:
+                    parent_pos = morphology.position
+                else:
+                    parent_pos = np.zeros((3, ))
 
+            rot_rep = rotation_representation[section.section_id, section.section_type]
+            coords, last_dir = self.coordinate_representation(rotation_representation=rot_rep,
+                                                              parent_direction=parent_dir,
+                                                              parent_point=parent_pos,
+                                                              return_last_direction=True)
             new_coords[section.point_idx, :3] = coords
 
-            for child_id, child_type in section.child_section_id:
+            for child_id, child_type in section.child_section_id.T:
                 parent_direction[child_id, child_type] = (last_dir, coords[-1, :3])
 
         # TODO: This just returns the coords for now, add option to update coords in morphology?
         #       OBS! Then rotation should also be reset, since it is now included in the coordinates
 
         return new_coords
-
 
     def rotation_representation(self, section: SectionMetaData, parent_direction=None):
 
@@ -151,6 +158,7 @@ class BendMorphologies:
 
         rotations_and_length = []
         parent_direction = parent_direction / np.linalg.norm(parent_direction)
+        segment_direction = parent_direction  # To handle soma...
 
         coords = section.morphology_data.geometry[section.point_idx, :3]
         delta = np.diff(coords, axis=0)
@@ -161,9 +169,6 @@ class BendMorphologies:
             segment_direction = segment_direction.reshape((1, 3))
             rotation, _ = Rotation.align_vectors(segment_direction, parent_direction)
 
-            import pdb
-            pdb.set_trace()
-
             rotations_and_length.append((rotation, segment_length))
             parent_direction = segment_direction
 
@@ -171,7 +176,8 @@ class BendMorphologies:
 
     def coordinate_representation(self, rotation_representation,
                                   parent_direction=None,
-                                  parent_point=None):
+                                  parent_point=None,
+                                  return_last_direction=False):
 
         if parent_direction is None:
             parent_direction = np.array([1, 0, 0])
@@ -181,12 +187,16 @@ class BendMorphologies:
 
         parent_direction = parent_direction / np.linalg.norm(parent_direction)
 
-        coords = np.zeros((len(rotation_representation), 3))
+        coords = np.zeros((len(rotation_representation)+1, 3))
+        coords[0, :] = parent_point
 
         for idx, (rotation, length) in enumerate(rotation_representation):
             segment_direction = rotation.apply(parent_direction)
-            parent_point = coords[idx, :] = segment_direction * length + parent_point
+            parent_point = coords[idx+1, :] = segment_direction * length + parent_point
             parent_direction = segment_direction
+
+        if return_last_direction:
+            return coords, parent_direction
 
         return coords
 
@@ -198,9 +208,12 @@ if __name__ == "__main__":
     md = MorphologyData(swc_file=file_path)
 
     bm = BendMorphologies(None, rng=np.random.default_rng())
-    sec = md.sections[3][0]
-    rot, _ = bm.rotation_representation(sec)
-    coords = bm.coordinate_representation(rotation_representation=rot, parent_point=sec.position[0, :])
+    # sec = md.sections[3][0]
+    # rot, _ = bm.rotation_representation(sec)
+    # coords = bm.coordinate_representation(rotation_representation=rot, parent_point=sec.position[0, :])
+
+    rot_rep = bm.get_full_rotation_representation(morphology=md)
+    coords = bm.apply_rotation(morphology=md, rotation_representation=rot_rep)
 
     import pdb
     pdb.set_trace()

@@ -738,7 +738,7 @@ class MorphologyData:
 
         if section_type is None:
             for section_dict in self.sections.values():
-                for section in section_dict:
+                for section in section_dict.values():
                     yield section
 
         elif section_type in self.sections:
