@@ -154,19 +154,7 @@ class BendMorphologies:
                                                               return_last_direction=True,
                                                               include_parent_point=include_parent_point)
 
-            #if include_parent_point:
-            try:
-                new_coords[section.point_idx, :3] = coords
-            except:
-                import traceback
-                print(traceback.format_exc())
-                import pdb
-                pdb.set_trace()
-            #else:
-            #    new_coords
-
-            #import pdb
-            #pdb.set_trace()
+            new_coords[section.point_idx, :3] = coords
 
             for child_id, child_type in section.child_section_id.T:
                 parent_direction[child_id, child_type] = (last_dir, coords[-1, :3])
@@ -247,7 +235,7 @@ class BendMorphologies:
         return coords
 
 
-if __name__ == "__main__":
+def test_rotation_representation():
 
     file_path = "../data/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc"
 
@@ -260,6 +248,18 @@ if __name__ == "__main__":
 
     rot_rep = bm.get_full_rotation_representation(morphology=md)
     coords = bm.apply_rotation(morphology=md, rotation_representation=rot_rep)
+
+    if not (np.abs(md.geometry[:, :3] - coords) < 1e-10).all():
+        print(f"Geometry mismatch, problem with representation.")
+        import pdb
+        pdb.set_trace()
+    else:
+        print(f"Geometry matches")
+
+
+if __name__ == "__main__":
+
+    test_rotation_representation()
 
     import pdb
     pdb.set_trace()
