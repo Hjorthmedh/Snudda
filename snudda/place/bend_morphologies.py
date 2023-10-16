@@ -104,7 +104,13 @@ class BendMorphologies:
             else:
                 parent_dir = np.array([[1, 0, 0]])
 
-            rot_and_len, last_direction = self.rotation_representation(section=section, parent_direction=parent_dir)
+            try:
+                rot_and_len, last_direction = self.rotation_representation(section=section, parent_direction=parent_dir)
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
 
             rotation_representation[section.section_id, section.section_type] = rot_and_len
 
@@ -134,12 +140,33 @@ class BendMorphologies:
                 else:
                     parent_pos = np.zeros((3, ))
 
+            if section.section_type == section.parent_section_type or section.section_type == 1:
+                # The section includes the parent point, if both sections are of the same type
+                # or if the section is the soma (since then it has no rotations, so position gets passed as parent point)
+                include_parent_point = True
+            else:
+                include_parent_point = False
+
             rot_rep = rotation_representation[section.section_id, section.section_type]
             coords, last_dir = self.coordinate_representation(rotation_representation=rot_rep,
                                                               parent_direction=parent_dir,
                                                               parent_point=parent_pos,
-                                                              return_last_direction=True)
-            new_coords[section.point_idx, :3] = coords
+                                                              return_last_direction=True,
+                                                              include_parent_point=include_parent_point)
+
+            #if include_parent_point:
+            try:
+                new_coords[section.point_idx, :3] = coords
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
+            #else:
+            #    new_coords
+
+            #import pdb
+            #pdb.set_trace()
 
             for child_id, child_type in section.child_section_id.T:
                 parent_direction[child_id, child_type] = (last_dir, coords[-1, :3])
@@ -160,14 +187,30 @@ class BendMorphologies:
         parent_direction = parent_direction / np.linalg.norm(parent_direction)
         segment_direction = parent_direction  # To handle soma...
 
-        coords = section.morphology_data.geometry[section.point_idx, :3]
+        # If parent compartment is of a different type (e.g. soma parent, for the dendrite) then we need
+        # to make sure that the first point is also included. So we need to artificially add the soma.
+
+        if section.section_type != section.parent_section_type and section.parent_section_type != -1:
+            coords = np.zeros((len(section.point_idx) + 1, 3))
+            coords[0, :3] = section.morphology_data.geometry[section.parent_point_idx, :3]
+            coords[1:, :3] = section.morphology_data.geometry[section.point_idx, :3]
+        else:
+            coords = section.morphology_data.geometry[section.point_idx, :3]
+
         delta = np.diff(coords, axis=0)
         delta_length = np.linalg.norm(delta, axis=1)
         delta_direction = delta / delta_length.reshape((delta.shape[0], 1))
 
         for segment_direction, segment_length in zip(delta_direction, delta_length):
             segment_direction = segment_direction.reshape((1, 3))
-            rotation, _ = Rotation.align_vectors(segment_direction, parent_direction)
+            try:
+                rotation, _ = Rotation.align_vectors(segment_direction, parent_direction)
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
+
 
             rotations_and_length.append((rotation, segment_length))
             parent_direction = segment_direction
@@ -177,7 +220,8 @@ class BendMorphologies:
     def coordinate_representation(self, rotation_representation,
                                   parent_direction=None,
                                   parent_point=None,
-                                  return_last_direction=False):
+                                  return_last_direction=False,
+                                  include_parent_point=True):
 
         if parent_direction is None:
             parent_direction = np.array([1, 0, 0])
@@ -187,12 +231,14 @@ class BendMorphologies:
 
         parent_direction = parent_direction / np.linalg.norm(parent_direction)
 
-        coords = np.zeros((len(rotation_representation)+1, 3))
-        coords[0, :] = parent_point
+        coords = np.zeros((len(rotation_representation)+include_parent_point, 3))
+
+        if include_parent_point:
+            coords[0, :] = parent_point
 
         for idx, (rotation, length) in enumerate(rotation_representation):
             segment_direction = rotation.apply(parent_direction)
-            parent_point = coords[idx+1, :] = segment_direction * length + parent_point
+            parent_point = coords[idx+include_parent_point, :] = segment_direction * length + parent_point
             parent_direction = segment_direction
 
         if return_last_direction:
