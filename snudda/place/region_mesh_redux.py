@@ -49,6 +49,56 @@ class RegionMeshRedux:
 
         return signed_distance
 
+    def plot(self, line_set=None, neurons=None, show_axis=False, show_faces=True):
+
+        # Press w to see wireframe...
+
+        if show_faces:
+            plot_list = [self.mesh]
+        else:
+            # Just plot wireframe
+            plot_list = [o3d.geometry.LineSet.create_from_triangle_mesh(self.mesh)]
+
+        if line_set:
+            plot_list += line_set
+
+        if neurons:
+            plot_list += self.get_line_set(neurons)
+
+        if show_axis:
+            # The x, y, z axis will be rendered as red, green, and blue arrows respectively.
+            axis = o3d.geometry.TriangleMesh.create_coordinate_frame(size=1000e-6, origin=[0, 0, 0])
+            plot_list += [axis]
+
+        o3d.visualization.draw_geometries(plot_list)
+
+    def get_line_set(self, neurons):
+
+        if type(neurons) != list:
+            return self.get_line_set(neurons=[neurons])
+
+        line_sets = []
+
+        for neuron in neurons:
+
+            morph_data = neuron.morphology_data["neuron"]
+
+            lines = []
+            for section in morph_data.section_iterator():
+                if len(section.point_idx) > 1:
+                    for start_point, end_point in zip(section.point_idx[:-1], section.point_idx[1:]):
+                        lines.append([start_point, end_point])
+
+            if len(lines) > 0:
+                #import pdb
+                #pdb.set_trace()
+                line_set = o3d.geometry.LineSet()
+                line_set.points = o3d.utility.Vector3dVector(morph_data.geometry[:, :3])
+                line_set.lines = o3d.utility.Vector2iVector(lines)
+
+                line_sets.append(line_set)
+
+        return line_sets
 
 class NeuronPlacer:
 
@@ -255,7 +305,6 @@ class NeuronBender:
 # Build a cKDTree
 # Find too close neighbours query_pairs(d_min)
 # Remove the worst offenders -- how?
-
 
 
 if __name__ == "__main__":

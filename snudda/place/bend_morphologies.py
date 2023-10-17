@@ -340,18 +340,27 @@ def test_bending():
     file_path = "../data/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc"
     mesh_path = "../data/mesh/Striatum-d-right.obj"
 
-    md = MorphologyData(swc_file=file_path)
+    nm = NeuronMorphologyExtended(swc_filename=file_path)
+
+    # md = MorphologyData(swc_file=file_path)
     bm = BendMorphologies(mesh_path, rng=np.random.default_rng())
 
-    before = md.clone(position=np.array([7300, 4000, -0.8])*1e-6, rotation=np.eye(3))
-    after = md.clone(position=np.array([7300, 4000, -0.8])*1e-6, rotation=np.eye(3))
+    pos = np.array([7300, 4000, -0.8])*1e-6
+    pos = np.array([0.006, 0.004, 0.0021])
+    before = nm.clone(position=pos, rotation=np.eye(3))
+    after = nm.clone(position=pos, rotation=np.eye(3))
 
-    new_rot_rep = bm.bend_morphology(after)
-    new_coord = bm.apply_rotation(after, new_rot_rep)
-    after.geometry[:, :3] = new_coord
+    new_rot_rep = bm.bend_morphology(after.get_morphology())
+    new_coord = bm.apply_rotation(after.get_morphology(), new_rot_rep)
+    after.get_morphology().geometry[:, :3] = new_coord
 
-    before.plot()
-    after.plot()
+    before.plot_neuron()
+    after.plot_neuron()
+
+    bm.region_mesh.plot(neurons=[after], show_axis=True, show_faces=False)
+
+    import pdb
+    pdb.set_trace()
 
 
 if __name__ == "__main__":

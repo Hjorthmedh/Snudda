@@ -139,6 +139,9 @@ class NeuronMorphologyExtended:
                 for section in subtree.section_iterator(section_type=section_type):
                     yield section
 
+    def get_morphology(self):
+        return self.morphology_data["neuron"]
+
     def section_iterator_selective(self, section_type, section_id, subtree="neuron"):
         return self.morphology_data[subtree].section_iterator_selective(section_type=section_type,
                                                                         section_id=section_id)
