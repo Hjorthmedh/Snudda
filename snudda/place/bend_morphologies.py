@@ -143,7 +143,7 @@ class BendMorphologies:
 
                     # We need to randomize new rotation matrix
                     # https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.html
-                    angles = self.rng.uniform(size=(n_random, 3), low=-0.2, high=0.2)  # Angles in radians
+                    angles = self.rng.uniform(size=(n_random, 3), low=-0.1, high=0.1)  # Angles in radians
                     avoidance_rotation = Rotation.from_euler(seq="XYZ", angles=angles)
 
                     for idx, av_rot in enumerate(avoidance_rotation):
@@ -319,6 +319,38 @@ class BendMorphologies:
 
         return coords
 
+    def write_neuron(self, neuron: NeuronMorphologyExtended, output_file):
+
+        morphology = neuron.morphology_data["neuron"]
+        comment = f"{neuron.name} located at {neuron.position}"
+
+        self.write_swc(morphology=morphology, output_file=output_file, comment=comment)
+
+    def write_swc(self, morphology: MorphologyData, output_file, comment=None):
+        # We need to write file with micrometer units
+        # 0: compartment number (start from 1)
+        # 1: compartment type (1-soma, 2-axon, 3-dendrite)
+        # 2,3,4: x,y,z
+        # 5: r
+        # 6: parent compartment
+
+        swc_data = np.zeros((morphology.section_data.shape[0], 7))
+        swc_data[:, 0] = np.arange(1, swc_data.shape[0]+1)   # id, start from 1
+        swc_data[:, 1] = morphology.section_data[:, 2]       # type
+        swc_data[:, 2:5] = (morphology.geometry[:, :3] - morphology.geometry[0, :3]) * 1e6  # x,y,z,
+        swc_data[:, 5] = morphology.geometry[:, 3] * 1e6     # radie in micrometer
+        swc_data[:, 6] = morphology.section_data[:, 3] + 1   # parent compartment
+        swc_data[0, 6] = -1
+
+        with open(output_file, "wt") as f:
+            if comment:
+                f.write(f"#{comment}\n")
+
+            for row in swc_data:
+                f.write(f"{row[0]:.0f} {row[1]:.0f} {row[2]:.5f} {row[3]:.5f} {row[4]:.5f} {row[5]:.5f} {row[6]:.0f}\n")
+
+        print(f"Wrote {output_file}")
+
 
 def test_rotation_representation():
 
@@ -340,6 +372,16 @@ def test_rotation_representation():
         pdb.set_trace()
     else:
         print(f"Geometry matches")
+
+def test_write():
+
+    file_path = "../data/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc"
+    md = MorphologyData(swc_file=file_path)
+    bm = BendMorphologies(None, rng=np.random.default_rng())
+    bm.write_swc(morphology=md, output_file="test-write.swc")
+
+    import pdb
+    pdb.set_trace()
 
 
 def test_bending():
@@ -364,6 +406,9 @@ def test_bending():
     change = np.sum(np.abs(before.get_morphology().geometry[:, :3] - after.get_morphology().geometry[:, :3]))
     print(f"Change = {change}")
 
+    bm.write_neuron(neuron=before, output_file="before-neuron.swc")
+    bm.write_neuron(neuron=after, output_file="after-neuron.swc")
+
     before.plot_neuron()
     after.plot_neuron()
 
@@ -377,6 +422,7 @@ def test_bending():
 
 if __name__ == "__main__":
 
+    # test_write()
     # test_rotation_representation()
 
     test_bending()

@@ -179,7 +179,7 @@ class MorphologyData:
 
         Args:
             swc_file (str): Path to SWC file
-            parent_tree_info (tuple, optional): Specify subtree attachment point
+                parent_tree_info (tuple, optional): Specify subtree attachment point
                                                 (MorphologyData, parent_label, parent_point_idx, arc_factor)
 
     """
