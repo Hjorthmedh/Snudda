@@ -409,7 +409,8 @@ class SnuddaInit(object):
                     axon_config=None,
                     model_type="neuron",
                     volume_id=None,
-                    rotation_mode="random"):
+                    rotation_mode="random",
+                    stay_inside=False):
 
         if num_neurons <= 0:
             return
@@ -562,6 +563,9 @@ class SnuddaInit(object):
 
             if axon_config is not None:
                 cell_data["axonConfig"] = axon_config
+
+            if stay_inside:
+                cell_data["stayInsideMesh"] = True
 
             self.network_data["Neurons"][unique_name] = cell_data
 

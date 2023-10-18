@@ -95,7 +95,7 @@ class BendMorphologies:
 
             parent_rotation_matrices[point_idx] = rotation_matrix
 
-    def bend_morphology(self, morphology: NeuronMorphologyExtended, k=10e-6, n_random=5):
+    def bend_morphology(self, morphology: NeuronMorphologyExtended, k=30e-6, n_random=20):
 
         # k -- how early will the neuron start bending when it approaches the border
 
@@ -105,6 +105,7 @@ class BendMorphologies:
 
         old_rotation_representation = self.get_full_rotation_representation(morphology=morphology)
         new_rotation_representation = dict()
+        morphology_changed = False
 
         for section in morphology.section_iterator():
             if (section.section_id, section.section_type) in parent_direction:
@@ -141,24 +142,30 @@ class BendMorphologies:
 
                 if self.rng.uniform() < P_move:
 
+                    morphology_changed = True
+
                     # We need to randomize new rotation matrix
                     # https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.html
                     angles = self.rng.uniform(size=(n_random, 3), low=-0.1, high=0.1)  # Angles in radians
-                    avoidance_rotation = Rotation.from_euler(seq="XYZ", angles=angles)
+                    avoidance_rotations = Rotation.from_euler(seq="XYZ", angles=angles)
 
-                    for idx, av_rot in enumerate(avoidance_rotation):
+                    for idx, av_rot in enumerate(avoidance_rotations):
                         candidate_pos[idx, :] = parent_point + length * (av_rot*rotation).apply(vectors=parent_dir)
 
                     candidate_dist = self.region_mesh.distance_to_border(points=candidate_pos)
+
+                    #import pdb
+                    #pdb.set_trace()
 
                     if False:
                         P_candidate = np.divide(1, 1 + np.exp(-candidate_dist/k))
                         P_candidate = P_candidate / np.sum(P_candidate)
                         picked_idx = self.rng.choice(n_random, p=P_candidate)
                     else:
+                        # We want the smallest (or most negative) distance
                         picked_idx = np.argsort(candidate_dist)[0]
 
-                    new_rot = avoidance_rotation[picked_idx] * rotation
+                    new_rot = avoidance_rotations[picked_idx] * rotation
                     new_rot_rep.append((new_rot, length))
                     segment_direction = new_rot.apply(parent_dir)
 
@@ -175,7 +182,7 @@ class BendMorphologies:
 
             new_rotation_representation[section.section_id, section.section_type] = new_rot_rep
 
-        return new_rotation_representation
+        return new_rotation_representation, morphology_changed
 
     def get_full_rotation_representation(self, morphology: MorphologyData):
 
@@ -351,6 +358,19 @@ class BendMorphologies:
 
         print(f"Wrote {output_file}")
 
+    def edge_avoiding_morphology(self, swc_file, new_file):
+
+        md = MorphologyData(swc_file=swc_file)
+        rot_rep, morphology_changed = self.bend_morphology(md)
+
+        if morphology_changed:
+            new_coord = self.apply_rotation(md, rot_rep)
+            md.geometry[:, :3] = new_coord
+            self.write_swc(morphology=md, swc_file=new_file)
+            return new_file
+
+        # Returns None if morphology was not changed
+        return None
 
 def test_rotation_representation():
 
@@ -399,7 +419,7 @@ def test_bending():
     before = nm.clone(position=pos, rotation=np.eye(3))
     after = nm.clone(position=pos, rotation=np.eye(3))
 
-    new_rot_rep = bm.bend_morphology(after.get_morphology())
+    new_rot_rep, _ = bm.bend_morphology(after.get_morphology())
     new_coord = bm.apply_rotation(after.get_morphology(), new_rot_rep)
     after.get_morphology().geometry[:, :3] = new_coord
 

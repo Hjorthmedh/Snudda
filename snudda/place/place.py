@@ -91,6 +91,8 @@ class SnuddaPlace(object):
 
         self.network_path = network_path
         self.config_file = config_file
+        self.config = None
+
         self.axon_config_cache = None
 
         self.snudda_data = get_snudda_data(snudda_data=snudda_data,
@@ -152,6 +154,7 @@ class SnuddaPlace(object):
         """ Place neurons in 3D space. """
 
         self.parse_config()
+        self.avoid_edges()
         self.write_data()
 
     ############################################################################
@@ -544,6 +547,7 @@ class SnuddaPlace(object):
                              config=config)
 
         self.config_file = config_file
+        self.config = config
 
         # We reorder neurons, sorting their IDs after position
         # -- UPDATE: Now we spatial cluster neurons depending on number of workers
@@ -557,6 +561,38 @@ class SnuddaPlace(object):
             self.define_population_units(config["PopulationUnits"])
 
         mesh_logfile.close()
+
+    ############################################################################
+
+    def avoid_edges(self):
+
+        from snudda.place.bend_morphologies import BendMorphologies
+
+        bend_morph = dict()
+        bend_morph_path = os.path.join(self.network_path, "modified_morphologies")
+
+        if not os.path.isdir(bend_morph_path):
+            os.mkdir(bend_morph_path)
+
+        for neuron in self.neurons:
+            config = self.config["Neurons"][neuron.name]
+
+            if "stayInsideMesh" in config and config["stayInsideMesh"]:
+                volume_id = config["volumeID"]
+
+                if volume_id not in bend_morph:
+                    mesh_file = self.config["Volume"][volume_id]["meshFile"]
+                    bend_morph[volume_id] = BendMorphologies(region_mesh=mesh_file)
+
+                # Returns None if unchanged
+                new_morph_name = os.path.join(bend_morph_path, f"{neuron.name}-{neuron.neuron_id}")
+                new_morphology = bend_morph[volume_id].edge_avoiding_morphology(swc_file=neuron.swc_filename,
+                                                                                new_file=new_morph_name)
+
+                if new_morphology:
+                    # Replace the original morphology with the warped morphology, morphology includes rotation
+                    neuron.swc_filename = new_morphology
+                    neuron.rotation = np.eye(3)
 
     ############################################################################
 
