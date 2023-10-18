@@ -95,7 +95,7 @@ class BendMorphologies:
 
             parent_rotation_matrices[point_idx] = rotation_matrix
 
-    def bend_morphology(self, morphology: NeuronMorphologyExtended, k=20e-6, n_random=10):
+    def bend_morphology(self, morphology: NeuronMorphologyExtended, k=10e-6, n_random=5):
 
         # k -- how early will the neuron start bending when it approaches the border
 
@@ -136,27 +136,34 @@ class BendMorphologies:
                     pdb.set_trace()
 
                 # Check if point is too close to edge
-                dist = self.region_mesh.distance_to_border(points=putative_point)
-                P_keep = 1 / (1 + np.exp(-dist/k))
+                dist = self.region_mesh.distance_to_border(points=putative_point)[0]
+                P_move = 1 / (1 + np.exp(-dist/k))
 
-                if self.rng.uniform(1) < P_keep:
+                if self.rng.uniform() < P_move:
+
                     # We need to randomize new rotation matrix
                     # https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.html
                     angles = self.rng.uniform(size=(n_random, 3), low=-0.2, high=0.2)  # Angles in radians
                     avoidance_rotation = Rotation.from_euler(seq="XYZ", angles=angles)
 
                     for idx, av_rot in enumerate(avoidance_rotation):
-
-                        candidate_pos[idx, :] = parent_point + length * (av_rot*rotation).apply(vectors=parent_direction)
+                        candidate_pos[idx, :] = parent_point + length * (av_rot*rotation).apply(vectors=parent_dir)
 
                     candidate_dist = self.region_mesh.distance_to_border(points=candidate_pos)
 
-                    P_candidate = np.divide(1, 1 + np.exp(-candidate_dist/k))
-                    picked_idx = self.rng.choice(n_random, p=P_candidate)
+                    if False:
+                        P_candidate = np.divide(1, 1 + np.exp(-candidate_dist/k))
+                        P_candidate = P_candidate / np.sum(P_candidate)
+                        picked_idx = self.rng.choice(n_random, p=P_candidate)
+                    else:
+                        picked_idx = np.argsort(candidate_dist)[0]
 
                     new_rot = avoidance_rotation[picked_idx] * rotation
                     new_rot_rep.append((new_rot, length))
-                    segment_direction = new_rot.apply(parent_direction)
+                    segment_direction = new_rot.apply(parent_dir)
+
+                    #import pdb
+                    #pdb.set_trace()
                 else:
                     new_rot_rep.append((rotation, length))
 
@@ -346,7 +353,7 @@ def test_bending():
     bm = BendMorphologies(mesh_path, rng=np.random.default_rng())
 
     pos = np.array([7300, 4000, -0.8])*1e-6
-    pos = np.array([0.006, 0.004, 0.0021])
+    pos = np.array([0.006, 0.004, 0.00205])
     before = nm.clone(position=pos, rotation=np.eye(3))
     after = nm.clone(position=pos, rotation=np.eye(3))
 
@@ -354,8 +361,13 @@ def test_bending():
     new_coord = bm.apply_rotation(after.get_morphology(), new_rot_rep)
     after.get_morphology().geometry[:, :3] = new_coord
 
+    change = np.sum(np.abs(before.get_morphology().geometry[:, :3] - after.get_morphology().geometry[:, :3]))
+    print(f"Change = {change}")
+
     before.plot_neuron()
     after.plot_neuron()
+
+    bm.region_mesh.plot(neurons=[before], show_axis=True, show_faces=False)
 
     bm.region_mesh.plot(neurons=[after], show_axis=True, show_faces=False)
 
