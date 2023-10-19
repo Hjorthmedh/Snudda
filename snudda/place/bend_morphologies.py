@@ -95,7 +95,7 @@ class BendMorphologies:
 
             parent_rotation_matrices[point_idx] = rotation_matrix
 
-    def bend_morphology(self, morphology: NeuronMorphologyExtended, k=30e-6, n_random=20):
+    def bend_morphology(self, morphology: NeuronMorphologyExtended, k=30e-6, n_random=5):
 
         # k -- how early will the neuron start bending when it approaches the border
 
@@ -136,10 +136,13 @@ class BendMorphologies:
                     import pdb
                     pdb.set_trace()
 
+                # TODO: This check can be cached (assuming no parent segment have been rotated, track that)
+
                 # Check if point is too close to edge
                 dist = self.region_mesh.distance_to_border(points=putative_point)[0]
                 P_move = 1 / (1 + np.exp(-dist/k))
 
+                # Cache the random numbers for segments in the section...
                 if self.rng.uniform() < P_move:
 
                     morphology_changed = True
@@ -149,13 +152,10 @@ class BendMorphologies:
                     angles = self.rng.uniform(size=(n_random, 3), low=-0.1, high=0.1)  # Angles in radians
                     avoidance_rotations = Rotation.from_euler(seq="XYZ", angles=angles)
 
-                    for idx, av_rot in enumerate(avoidance_rotations):
-                        candidate_pos[idx, :] = parent_point + length * (av_rot*rotation).apply(vectors=parent_dir)
+                    for idx2, av_rot in enumerate(avoidance_rotations):
+                        candidate_pos[idx2, :] = parent_point + length * (av_rot*rotation).apply(vectors=parent_dir)
 
                     candidate_dist = self.region_mesh.distance_to_border(points=candidate_pos)
-
-                    #import pdb
-                    #pdb.set_trace()
 
                     if False:
                         P_candidate = np.divide(1, 1 + np.exp(-candidate_dist/k))
@@ -165,9 +165,22 @@ class BendMorphologies:
                         # We want the smallest (or most negative) distance
                         picked_idx = np.argsort(candidate_dist)[0]
 
-                    new_rot = avoidance_rotations[picked_idx] * rotation
+                    #if avoidance_rotations[picked_idx].magnitude() > 0.3:
+                    #    print(f"Magnitude of rotation is: {avoidance_rotations[picked_idx].magnitude()}")
+                    #    import pdb
+                    #    pdb.set_trace()
+
+                    new_rot = avoidance_rotations[picked_idx]*rotation
                     new_rot_rep.append((new_rot, length))
                     segment_direction = new_rot.apply(parent_dir)
+
+                    print(f"Avoidance rotation, magnitude {avoidance_rotations[picked_idx].magnitude()*180/np.pi} -- orig {rotation.magnitude()*180/np.pi}  -- total {new_rot.magnitude()*180/np.pi} ID: {section.section_id} ({idx})")
+
+
+                    if False and new_rot.magnitude() > 0.5 and not (parent_dir[0,0] == 1 and parent_dir[0,1] == 0 and parent_dir[0,2] == 0):
+                        print(f"Magnitude of final rotation is: {new_rot.magnitude()}")
+                        import pdb
+                        pdb.set_trace()
 
                     #import pdb
                     #pdb.set_trace()
@@ -191,7 +204,7 @@ class BendMorphologies:
 
         for section in morphology.section_iterator():
 
-            if (section.section_id, section.section_type) in parent_direction:
+            if (section.section_id, section.section_type) in parent_direction.keys():
                 parent_dir = parent_direction[section.section_id, section.section_type]
             else:
                 parent_dir = np.array([[1, 0, 0]])
@@ -261,7 +274,8 @@ class BendMorphologies:
         """ Represent each section as a series of length of segment, and rotations relative the parent segment."""
 
         if parent_direction is None:
-            parent_direction = np.array([[1, 0, 0]])
+            # parent_direction = np.array([[1, 0, 0]])
+            parent_direction = np.array([1, 0, 0])
 
         rotations_and_length = []
         parent_direction = parent_direction / np.linalg.norm(parent_direction)
@@ -282,15 +296,23 @@ class BendMorphologies:
         delta_direction = delta / delta_length.reshape((delta.shape[0], 1))
 
         for segment_direction, segment_length in zip(delta_direction, delta_length):
-            segment_direction = segment_direction.reshape((1, 3))
+            # segment_direction = segment_direction.reshape((1, 3))
             try:
-                rotation, _ = Rotation.align_vectors(segment_direction, parent_direction)
+                # Calculate axis and angle of rotation
+                axis = np.cross(parent_direction, segment_direction)
+                angle = np.arccos(np.dot(parent_direction, segment_direction))
+                rotation = Rotation.from_rotvec(angle * axis)
+                # rotation, _ = Rotation.align_vectors(segment_direction, parent_direction)
+
+                # if rotation.magnitude() > np.pi/2 and (parent_direction != np.array([1,0,0])).all():
+                #     print(f"Strange rotation, magnitude: {rotation.magnitude()}")
+                #     import pdb
+                #     pdb.set_trace()
             except:
                 import traceback
                 print(traceback.format_exc())
                 import pdb
                 pdb.set_trace()
-
 
             rotations_and_length.append((rotation, segment_length))
             parent_direction = segment_direction
@@ -372,6 +394,7 @@ class BendMorphologies:
         # Returns None if morphology was not changed
         return None
 
+
 def test_rotation_representation():
 
     file_path = "../data/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc"
@@ -407,15 +430,16 @@ def test_write():
 def test_bending():
 
     file_path = "../data/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc"
+    # file_path = "delme3.swc"
     mesh_path = "../data/mesh/Striatum-d-right.obj"
 
     nm = NeuronMorphologyExtended(swc_filename=file_path)
 
     # md = MorphologyData(swc_file=file_path)
-    bm = BendMorphologies(mesh_path, rng=np.random.default_rng())
+    bm = BendMorphologies(mesh_path, rng=np.random.default_rng(1))
 
-    pos = np.array([7300, 4000, -0.8])*1e-6
     pos = np.array([0.006, 0.004, 0.00205])
+
     before = nm.clone(position=pos, rotation=np.eye(3))
     after = nm.clone(position=pos, rotation=np.eye(3))
 
