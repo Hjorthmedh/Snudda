@@ -109,7 +109,7 @@ class BendMorphologies:
 
         for section in morphology.section_iterator():
             if (section.section_id, section.section_type) in parent_direction:
-                parent_dir, parent_point = parent_direction[section.section_id, section.section_type]
+                parent_dir, parent_point, parent_dist, parent_moved = parent_direction[section.section_id, section.section_type]
             else:
                 if morphology.rotation is not None:
                     parent_dir = np.matmul(morphology.rotation, np.array([[1], [0], [0]])).T
@@ -120,6 +120,9 @@ class BendMorphologies:
                     parent_point = morphology.position
                 else:
                     parent_point = np.zeros((3, ))
+
+                parent_dist = self.region_mesh.distance_to_border(points=parent_point.reshape((1,3)))[0]
+                parent_moved = False
 
             rot_rep = old_rotation_representation[section.section_id, section.section_type]
             new_rot_rep = []
@@ -143,9 +146,10 @@ class BendMorphologies:
                 P_move = 1 / (1 + np.exp(-dist/k))
 
                 # Cache the random numbers for segments in the section...
-                if self.rng.uniform() < P_move:
+                if dist > parent_dist and self.rng.uniform() < P_move:
 
                     morphology_changed = True
+                    parent_moved = True
 
                     # We need to randomize new rotation matrix
                     # https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.html
@@ -164,6 +168,7 @@ class BendMorphologies:
                     else:
                         # We want the smallest (or most negative) distance
                         picked_idx = np.argsort(candidate_dist)[0]
+                        dist = candidate_dist[picked_idx]
 
                     #if avoidance_rotations[picked_idx].magnitude() > 0.3:
                     #    print(f"Magnitude of rotation is: {avoidance_rotations[picked_idx].magnitude()}")
@@ -175,7 +180,6 @@ class BendMorphologies:
                     segment_direction = new_rot.apply(parent_dir)
 
                     print(f"Avoidance rotation, magnitude {avoidance_rotations[picked_idx].magnitude()*180/np.pi} -- orig {rotation.magnitude()*180/np.pi}  -- total {new_rot.magnitude()*180/np.pi} ID: {section.section_id} ({idx})")
-
 
                     if False and new_rot.magnitude() > 0.5 and not (parent_dir[0,0] == 1 and parent_dir[0,1] == 0 and parent_dir[0,2] == 0):
                         print(f"Magnitude of final rotation is: {new_rot.magnitude()}")
@@ -189,9 +193,10 @@ class BendMorphologies:
 
                 parent_point = segment_direction * length + parent_point
                 parent_dir = segment_direction
+                parent_dist = dist
 
             for child_id, child_type in section.child_section_id.T:
-                parent_direction[child_id, child_type] = (parent_dir, parent_point)
+                parent_direction[child_id, child_type] = (parent_dir, parent_point, parent_dist, parent_moved)
 
             new_rotation_representation[section.section_id, section.section_type] = new_rot_rep
 
@@ -453,23 +458,30 @@ def test_bending():
     bm.write_neuron(neuron=before, output_file="before-neuron.swc")
     bm.write_neuron(neuron=after, output_file="after-neuron.swc")
 
-    before.plot_neuron()
-    after.plot_neuron()
+    # before.plot_neuron()
+    # after.plot_neuron()
 
-    bm.region_mesh.plot(neurons=[before], show_axis=True, show_faces=False)
+    # bm.region_mesh.plot(neurons=[before], show_axis=True, show_faces=False)
+    # bm.region_mesh.plot(neurons=[after], show_axis=True, show_faces=False)
 
-    bm.region_mesh.plot(neurons=[after], show_axis=True, show_faces=False)
-
-    import pdb
-    pdb.set_trace()
+    # import pdb
+    # pdb.set_trace()
 
 
 if __name__ == "__main__":
 
+    import cProfile
+
     # test_write()
     # test_rotation_representation()
 
+    profiler = cProfile.Profile()
+    profiler.enable()
+
     test_bending()
 
-    import pdb
-    pdb.set_trace()
+    profiler.disable()
+    profiler.print_stats(sort='cumulative')
+
+    # import pdb
+    # pdb.set_trace()
