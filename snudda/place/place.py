@@ -52,7 +52,7 @@ class SnuddaPlace(object):
                  h5libver=None,
                  raytrace_borders=False,
                  random_seed=None,
-                 griddata_interpolation=False):  # Setting this to true is 5x slower
+                 griddata_interpolation=False):  # Setting this to true is 5x slower -- obsolete?
 
         """
         Constructor.
@@ -154,7 +154,8 @@ class SnuddaPlace(object):
         """ Place neurons in 3D space. """
 
         self.parse_config()
-        self.avoid_edges()
+        self.avoid_edges_parallel()
+        # self.avoid_edges()
         self.write_data()
 
     ############################################################################
@@ -564,7 +565,36 @@ class SnuddaPlace(object):
 
     ############################################################################
 
-    def avoid_edges(self):
+    def avoid_edges_parallel(self):
+
+        if self.d_view is None:
+            return self.avoid_edges()
+
+        # Make random permutation of neurons, to spread out the edge neurons
+        unsorted_neuron_id = self.random_generator.permutation(len(self.neurons))
+        ss = self.random_generator.SeedSequence()
+
+        worker_random_seed = ss.generate_state(len(self.d_view))
+
+        self.d_view.scatter("worker_neuron_id", unsorted_neuron_id, block=True)
+        self.d_view.scatter("worker_random_seed", worker_random_seed, block=True)
+        self.dview.push({"config": self.config,
+                         "neurons": self.neurons})
+
+        cmd_str = f"sp = SnuddaPlace(config_file={self.config_file},network_path={self.network_path},snudda_data={self.snudda_data}, random_seed=worker_random_seed[0])"
+        self.d_view.execute(cmd_str)
+        cmd_str2 = f"sp.config = config; sp.neurons = neurons"
+        self.d_view.execute(cmd_str2)
+        cmd_str3 = f"modified_neurons = sp.avoid_edges(neuron_id=unsorted_neuron_id)"
+        self.d_view.execute(cmd_str3)
+        modified_neurons = self.d_view.gather("modified_neurons", block=True)
+
+        for neuron_id, new_morphology in modified_neurons:
+            # Replace the original morphology with the warped morphology, morphology includes rotation
+            self.neurons[neuron_id].swc_filename = new_morphology
+            self.neurons[neuron_id].rotation = np.eye(3)
+
+    def avoid_edges(self, neuron_id=None):
 
         from snudda.place.bend_morphologies import BendMorphologies
 
@@ -574,7 +604,14 @@ class SnuddaPlace(object):
         if not os.path.isdir(bend_morph_path):
             os.mkdir(bend_morph_path)
 
-        for neuron in self.neurons:
+        if neuron_id is None:
+            neurons = self.neurons
+        else:
+            neurons = self.neurons[neuron_id]
+
+        modified_morphologies = []
+
+        for neuron in neurons:
             config = self.config["Neurons"][neuron.name]
 
             if "stayInsideMesh" in config and config["stayInsideMesh"]:
@@ -582,10 +619,10 @@ class SnuddaPlace(object):
 
                 if volume_id not in bend_morph:
                     mesh_file = self.config["Volume"][volume_id]["meshFile"]
-                    bend_morph[volume_id] = BendMorphologies(region_mesh=mesh_file)
+                    bend_morph[volume_id] = BendMorphologies(region_mesh=mesh_file, rng=self.random_generator)
 
                 # Returns None if unchanged
-                new_morph_name = os.path.join(bend_morph_path, f"{neuron.name}-{neuron.neuron_id}")
+                new_morph_name = os.path.join(bend_morph_path, f"{neuron.name}-{neuron.neuron_id}.swc")
                 new_morphology = bend_morph[volume_id].edge_avoiding_morphology(swc_file=neuron.swc_filename,
                                                                                 new_file=new_morph_name)
 
@@ -593,6 +630,10 @@ class SnuddaPlace(object):
                     # Replace the original morphology with the warped morphology, morphology includes rotation
                     neuron.swc_filename = new_morphology
                     neuron.rotation = np.eye(3)
+
+                    modified_morphologies.append((neuron.neuron_id, new_morphology))
+
+        return modified_morphologies
 
     ############################################################################
 

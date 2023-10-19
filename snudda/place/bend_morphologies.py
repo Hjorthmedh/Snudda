@@ -112,24 +112,10 @@ class BendMorphologies:
                         picked_idx = np.argsort(candidate_dist)[0]
                         dist = candidate_dist[picked_idx]
 
-                    #if avoidance_rotations[picked_idx].magnitude() > 0.3:
-                    #    print(f"Magnitude of rotation is: {avoidance_rotations[picked_idx].magnitude()}")
-                    #    import pdb
-                    #    pdb.set_trace()
-
                     new_rot = avoidance_rotations[picked_idx]*rotation
                     new_rot_rep.append((new_rot, length))
                     segment_direction = new_rot.apply(parent_dir)
 
-                    print(f"Avoidance rotation, magnitude {avoidance_rotations[picked_idx].magnitude()*180/np.pi} -- orig {rotation.magnitude()*180/np.pi}  -- total {new_rot.magnitude()*180/np.pi} ID: {section.section_id} ({idx})")
-
-                    if False and new_rot.magnitude() > 0.5 and not (parent_dir[0,0] == 1 and parent_dir[0,1] == 0 and parent_dir[0,2] == 0):
-                        print(f"Magnitude of final rotation is: {new_rot.magnitude()}")
-                        import pdb
-                        pdb.set_trace()
-
-                    #import pdb
-                    #pdb.set_trace()
                 else:
                     new_rot_rep.append((rotation, length))
 
@@ -335,7 +321,7 @@ class BendMorphologies:
         if morphology_changed:
             new_coord = self.apply_rotation(md, rot_rep)
             md.geometry[:, :3] = new_coord
-            self.write_swc(morphology=md, swc_file=new_file)
+            self.write_swc(morphology=md, output_file=new_file)
             return new_file
 
         # Returns None if morphology was not changed
