@@ -578,9 +578,12 @@ class SnuddaPlace(object):
         unsorted_neuron_id = self.random_generator.permutation(len(self.neurons))
 
         self.d_view.scatter("worker_neuron_id", unsorted_neuron_id, block=True)
-        self.dview.push({"config": self.config,
+        # TODO: We cant pickle self.neurons it seems
+        import pdb
+        pdb.set_trace()
+        self.d_view.push({"config": self.config,
                          "neurons": self.neurons,
-                         "neuron_random_seeds": neuron_random_seed})
+                         "neuron_random_seeds": neuron_random_seed}, block=True)
 
         cmd_str = f"sp = SnuddaPlace(config_file={self.config_file},network_path={self.network_path},snudda_data={self.snudda_data}, random_seed=worker_random_seed[0])"
         self.d_view.execute(cmd_str)
@@ -596,6 +599,9 @@ class SnuddaPlace(object):
             self.neurons[neuron_id].rotation = np.eye(3)
 
     def avoid_edges(self, neuron_id=None, neuron_random_seeds=None):
+
+        # TODO: We need name, swc_file, position, rotation
+        # This needs to be passed, since self.neurons is not pickleable...
 
         from snudda.place.bend_morphologies import BendMorphologies
 
