@@ -624,7 +624,9 @@ class SnuddaPlace(object):
                 # Returns None if unchanged
                 new_morph_name = os.path.join(bend_morph_path, f"{neuron.name}-{neuron.neuron_id}.swc")
                 new_morphology = bend_morph[volume_id].edge_avoiding_morphology(swc_file=neuron.swc_filename,
-                                                                                new_file=new_morph_name)
+                                                                                new_file=new_morph_name,
+                                                                                original_position=neuron.position,
+                                                                                original_rotation=neuron.rotation)
 
                 if new_morphology:
                     # Replace the original morphology with the warped morphology, morphology includes rotation

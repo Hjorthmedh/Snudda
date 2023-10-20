@@ -90,6 +90,7 @@ class BendMorphologies:
 
                 # Cache the random numbers for segments in the section...
                 if dist > parent_dist and self.rng.uniform() < P_move:
+                #  if self.rng.uniform() < P_move:
 
                     morphology_changed = True
                     parent_moved = True
@@ -340,9 +341,10 @@ class BendMorphologies:
 
         print(f"Wrote {output_file}")
 
-    def edge_avoiding_morphology(self, swc_file, new_file):
+    def edge_avoiding_morphology(self, swc_file, new_file, original_position, original_rotation):
 
         md = MorphologyData(swc_file=swc_file)
+        md.place(rotation=original_rotation, position=original_position)
         rot_rep, morphology_changed = self.bend_morphology(md)
 
         if morphology_changed:
