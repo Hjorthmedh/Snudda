@@ -423,7 +423,8 @@ class NeuronPrototype:
 
     def clone(self, parameter_id=None, morphology_id=None, modulation_id=None,
               parameter_key=None, morphology_key=None, modulation_key=None,
-              position=None, rotation=None, get_cache_original=False):
+              position=None, rotation=None, get_cache_original=False,
+              morphology_path=None):
         """
         Creates a clone of the neuron prototype, with given position and rotation.
 
@@ -442,17 +443,22 @@ class NeuronPrototype:
             rotation : rotation (3x3 numpy matrix)
             get_cache_original (bool) : return the original rather than a clone
 
+            morphology_path : If morphology path is given it can override morphology key
         """
 
-        morph_path, morph_key = self.get_morphology(parameter_key=parameter_key, morphology_key=morphology_key,
-                                                    parameter_id=parameter_id, morphology_id=morphology_id)
-        morph_tag = os.path.basename(morph_path)
-
-        if morphology_key is None:
-            morphology_key = morph_key
+        if morphology_path is not None:
+            morph_path = morphology_path
         else:
-            assert morphology_key == morph_key, \
-                f"Internal mismatch requested morphology_key {morphology_key}, got {morph_key}"
+            morph_path, morph_key = self.get_morphology(parameter_key=parameter_key, morphology_key=morphology_key,
+                                                        parameter_id=parameter_id, morphology_id=morphology_id)
+
+            if morphology_key is None:
+                morphology_key = morph_key
+            else:
+                assert morphology_key == morph_key, \
+                    f"Internal mismatch requested morphology_key {morphology_key}, got {morph_key}"
+
+        morph_tag = os.path.basename(morph_path)
 
         if morph_tag not in self.morphology_cache:
 

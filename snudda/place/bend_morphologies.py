@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 from scipy.spatial.transform import Rotation
 
 from snudda.neurons import NeuronMorphologyExtended
@@ -194,11 +195,21 @@ class BendMorphologies:
 
             new_coords[section.point_idx, :3] = coords
 
+            if np.isnan(coords).any():
+                raise ValueError(f"NaN coordinates calculated.")
+
             for child_id, child_type in section.child_section_id.T:
                 parent_direction[child_id, child_type] = (last_dir, coords[-1, :3])
 
         # TODO: This just returns the coords for now, add option to update coords in morphology?
         #       OBS! Then rotation should also be reset, since it is now included in the coordinates
+
+        if np.isnan(new_coords).any():
+            print(f"Some coordinates were not assigned!")
+            bad_idx = np.where(np.sum(np.isnan(new_coords), axis=1))[0]
+            print(f"missing_idx = {bad_idx}")
+            import pdb
+            pdb.set_trace()
 
         return new_coords
 
@@ -231,16 +242,24 @@ class BendMorphologies:
         for segment_direction, segment_length in zip(delta_direction, delta_length):
             # segment_direction = segment_direction.reshape((1, 3))
             try:
-                # Calculate axis and angle of rotation
-                axis = np.cross(parent_direction, segment_direction)
-                angle = np.arccos(np.dot(parent_direction, segment_direction))
-                rotation = Rotation.from_rotvec(angle * axis)
-                # rotation, _ = Rotation.align_vectors(segment_direction, parent_direction)
+                if 1.00001 > np.dot(parent_direction, segment_direction) > 1:
+                    # Sometimes numerical precision gives us values larger than 1
+                    rotation = Rotation.from_euler("xyz", [0, 0, 0])
+                else:
 
-                # if rotation.magnitude() > np.pi/2 and (parent_direction != np.array([1,0,0])).all():
-                #     print(f"Strange rotation, magnitude: {rotation.magnitude()}")
-                #     import pdb
-                #     pdb.set_trace()
+                    with warnings.catch_warnings(record=True) as w:
+
+                        # Calculate axis and angle of rotation
+                        axis = np.cross(parent_direction, segment_direction)
+                        angle = np.arccos(np.dot(parent_direction, segment_direction))
+                        rotation = Rotation.from_rotvec(angle * axis)
+
+                    if w:
+                        for wm in w:
+                            print(wm.message)
+                        import pdb
+                        pdb.set_trace()
+
             except:
                 import traceback
                 print(traceback.format_exc())
