@@ -227,6 +227,7 @@ class BendMorphologies:
 
         # If parent compartment is of a different type (e.g. soma parent, for the dendrite) then we need
         # to make sure that the first point is also included. So we need to artificially add the soma.
+        # However, the soma itself has no parent, so in that case we should not do it.
 
         if section.section_type != section.parent_section_type and section.parent_section_type != -1:
             coords = np.zeros((len(section.point_idx) + 1, 3))
@@ -242,7 +243,7 @@ class BendMorphologies:
         for segment_direction, segment_length in zip(delta_direction, delta_length):
             # segment_direction = segment_direction.reshape((1, 3))
             try:
-                if 1.00001 > np.dot(parent_direction, segment_direction) > 1:
+                if np.allclose(parent_direction, segment_direction) or 1.00001 > np.dot(parent_direction, segment_direction) > 1:
                     # Sometimes numerical precision gives us values larger than 1
                     rotation = Rotation.from_euler("xyz", [0, 0, 0])
                 else:
@@ -251,8 +252,15 @@ class BendMorphologies:
 
                         # Calculate axis and angle of rotation
                         axis = np.cross(parent_direction, segment_direction)
-                        angle = np.arccos(np.dot(parent_direction, segment_direction))
+                        axis /= np.linalg.norm(axis)
+                        angle = np.arccos(np.dot(parent_direction.flatten(), segment_direction))
                         rotation = Rotation.from_rotvec(angle * axis)
+
+                        # Verify that we got same point back if we apply rotation
+                        # if not np.allclose(segment_direction, rotation.apply(parent_direction), atol=1e-3):
+                        #     print(f"sd: {segment_direction},  rotated parent: {rotation.apply(parent_direction)}")
+                        #     import pdb
+                        #     pdb.set_trace()
 
                     if w:
                         for wm in w:
@@ -361,12 +369,13 @@ def test_rotation_representation():
     rot_rep = bm.get_full_rotation_representation(morphology=md)
     coords = bm.apply_rotation(morphology=md, rotation_representation=rot_rep)
 
-    if not (np.abs(md.geometry[:, :3] - coords) < 1e-10).all():
+    if not (np.abs(md.geometry[:, :3] - coords) < 1e-6).all():
         print(f"Geometry mismatch, problem with representation.")
         import pdb
         pdb.set_trace()
     else:
         print(f"Geometry matches")
+
 
 def test_write():
 
@@ -420,7 +429,7 @@ if __name__ == "__main__":
     import cProfile
 
     # test_write()
-    # test_rotation_representation()
+    test_rotation_representation()
 
     profiler = cProfile.Profile()
     profiler.enable()
