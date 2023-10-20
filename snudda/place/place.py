@@ -567,25 +567,26 @@ class SnuddaPlace(object):
 
     def avoid_edges_parallel(self):
 
+        ss = np.random.SeedSequence(self.random_seed + 100)
+        neuron_random_seed = ss.generate_state(len(self.neurons))
+
         if self.d_view is None:
-            return self.avoid_edges()
+            # Make sure we use the same random seeds if we run in serial, as would have been used in parallel
+            return self.avoid_edges(neuron_random_seeds=neuron_random_seed)
 
         # Make random permutation of neurons, to spread out the edge neurons
         unsorted_neuron_id = self.random_generator.permutation(len(self.neurons))
-        ss = self.random_generator.SeedSequence()
-
-        worker_random_seed = ss.generate_state(len(self.d_view))
 
         self.d_view.scatter("worker_neuron_id", unsorted_neuron_id, block=True)
-        self.d_view.scatter("worker_random_seed", worker_random_seed, block=True)
         self.dview.push({"config": self.config,
-                         "neurons": self.neurons})
+                         "neurons": self.neurons,
+                         "neuron_random_seeds": neuron_random_seed})
 
         cmd_str = f"sp = SnuddaPlace(config_file={self.config_file},network_path={self.network_path},snudda_data={self.snudda_data}, random_seed=worker_random_seed[0])"
         self.d_view.execute(cmd_str)
         cmd_str2 = f"sp.config = config; sp.neurons = neurons"
         self.d_view.execute(cmd_str2)
-        cmd_str3 = f"modified_neurons = sp.avoid_edges(neuron_id=unsorted_neuron_id)"
+        cmd_str3 = f"modified_neurons = sp.avoid_edges(neuron_id=unsorted_neuron_id, random_seed=neuron_random_seeds[unsorted_neuron_id])"
         self.d_view.execute(cmd_str3)
         modified_neurons = self.d_view.gather("modified_neurons", block=True)
 
@@ -594,7 +595,7 @@ class SnuddaPlace(object):
             self.neurons[neuron_id].swc_filename = new_morphology
             self.neurons[neuron_id].rotation = np.eye(3)
 
-    def avoid_edges(self, neuron_id=None):
+    def avoid_edges(self, neuron_id=None, neuron_random_seeds=None):
 
         from snudda.place.bend_morphologies import BendMorphologies
 
@@ -609,9 +610,16 @@ class SnuddaPlace(object):
         else:
             neurons = self.neurons[neuron_id]
 
+        if neuron_random_seeds is None:
+            neuron_random_seeds = [None for n in neurons]
+        else:
+            neuron_random_seeds = neuron_random_seeds[neuron_id]
+
         modified_morphologies = []
 
-        for neuron in neurons:
+        for neuron, random_seed in zip(neurons, neuron_random_seeds.flatten()):
+
+            # print(f"neuron.name = {neuron.name}, random_seed = {random_seed}")
             config = self.config["Neurons"][neuron.name]
 
             if "stayInsideMesh" in config and config["stayInsideMesh"]:
@@ -626,7 +634,8 @@ class SnuddaPlace(object):
                 new_morphology = bend_morph[volume_id].edge_avoiding_morphology(swc_file=neuron.swc_filename,
                                                                                 new_file=new_morph_name,
                                                                                 original_position=neuron.position,
-                                                                                original_rotation=neuron.rotation)
+                                                                                original_rotation=neuron.rotation,
+                                                                                random_seed=random_seed)
 
                 if new_morphology:
                     # Replace the original morphology with the warped morphology, morphology includes rotation

@@ -24,9 +24,16 @@ class BendMorphologies:
 
         return inside_flag
 
-    def bend_morphology(self, morphology: NeuronMorphologyExtended, k=30e-6, n_random=5):
+    def bend_morphology(self, morphology: NeuronMorphologyExtended, k=30e-6, n_random=5, random_seed=None):
 
         # k -- how early will the neuron start bending when it approaches the border
+
+        # print(f"random_seed = {random_seed}")
+
+        if random_seed is not None:
+            rng = np.random.default_rng(random_seed)
+        else:
+            rng = self.rng
 
         # Check distance to border for all points, negative distance means inside
         all_original_dist = self.region_mesh.distance_to_border(morphology.geometry[:, :3])
@@ -89,15 +96,14 @@ class BendMorphologies:
                 P_move = 1 / (1 + np.exp(-dist/k))
 
                 # Cache the random numbers for segments in the section...
-                if dist > parent_dist and self.rng.uniform() < P_move:
-                #  if self.rng.uniform() < P_move:
+                if dist > parent_dist and rng.uniform() < P_move:
 
                     morphology_changed = True
                     parent_moved = True
 
                     # We need to randomize new rotation matrix
                     # https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.html
-                    angles = self.rng.uniform(size=(n_random, 3), low=-0.1, high=0.1)  # Angles in radians
+                    angles = rng.uniform(size=(n_random, 3), low=-0.1, high=0.1)  # Angles in radians
                     avoidance_rotations = Rotation.from_euler(seq="XYZ", angles=angles)
 
                     for idx2, av_rot in enumerate(avoidance_rotations):
@@ -105,14 +111,9 @@ class BendMorphologies:
 
                     candidate_dist = self.region_mesh.distance_to_border(points=candidate_pos)
 
-                    if False:
-                        P_candidate = np.divide(1, 1 + np.exp(-candidate_dist/k))
-                        P_candidate = P_candidate / np.sum(P_candidate)
-                        picked_idx = self.rng.choice(n_random, p=P_candidate)
-                    else:
-                        # We want the smallest (or most negative) distance
-                        picked_idx = np.argsort(candidate_dist)[0]
-                        dist = candidate_dist[picked_idx]
+                    # We want the smallest (or most negative) distance
+                    picked_idx = np.argsort(candidate_dist)[0]
+                    dist = candidate_dist[picked_idx]
 
                     new_rot = avoidance_rotations[picked_idx]*rotation
                     new_rot_rep.append((new_rot, length))
@@ -341,11 +342,11 @@ class BendMorphologies:
 
         print(f"Wrote {output_file}")
 
-    def edge_avoiding_morphology(self, swc_file, new_file, original_position, original_rotation):
+    def edge_avoiding_morphology(self, swc_file, new_file, original_position, original_rotation, random_seed=None):
 
         md = MorphologyData(swc_file=swc_file)
         md.place(rotation=original_rotation, position=original_position)
-        rot_rep, morphology_changed = self.bend_morphology(md)
+        rot_rep, morphology_changed = self.bend_morphology(md, random_seed=random_seed)
 
         if morphology_changed:
             new_coord = self.apply_rotation(md, rot_rep)
