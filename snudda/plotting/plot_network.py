@@ -184,8 +184,9 @@ class PlotNetwork(object):
                                                                   load_morphology=True,
                                                                   virtual_neuron=False)
 
-        if os.path.isfile(snudda_parse_path(neuron_info["morphology"], self.snudda_data)):
-            morphology_path = neuron_info["morphology"]
+        morph_path = snudda_parse_path(neuron_info["morphology"], self.snudda_data)
+        if os.path.isfile(morph_path):
+            morphology_path = morph_path
         else:
             morphology_path = None  # Get morpholog automatically from morphology_key
 

@@ -2304,10 +2304,13 @@ class SnuddaDetect(object):
         if use_cache and neuron_id in self.neuron_cache:
             return self.neuron_cache[neuron_id]
 
-        if os.path.isfile(snudda_parse_path(neuron_info["morphology"], self.snudda_data)):
-            morphology_path = neuron_info["morphology"]
+        morph_path = snudda_parse_path(neuron_info["morphology"], self.snudda_data)
+        if os.path.isfile(morph_path):
+            morphology_path = morph_path
         else:
             morphology_path = None  # Get morpholog automatically from morphology_key
+
+        print(f"morphology_path = {morphology_path}")
 
         # Clone prototype neuron (it is centred, and not rotated)
         neuron = self.prototype_neurons[neuron_info["name"]].clone(parameter_key=neuron_info["parameterKey"],
