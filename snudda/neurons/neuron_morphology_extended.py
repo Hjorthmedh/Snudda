@@ -424,6 +424,9 @@ class NeuronMorphologyExtended:
                 syn_idx = rng.choice(a=dend_idx, size=num_locations, replace=True,
                                      p=expected_synapses[dend_idx] / expected_sum)
             except:
+                print(f"dend_idx={dend_idx}\n"
+                      f"num_locations={num_locations}\n"
+                      f"p={expected_synapses[dend_idx] / expected_sum}")
                 import traceback
                 self.write_log(traceback.format_exc(), is_error=True)
                 import pdb
