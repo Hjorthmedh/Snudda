@@ -594,12 +594,23 @@ class SnuddaPlace(object):
             unsorted_neuron_id = self.random_generator.permutation(len(bend_neuron_info))
             bend_neuron_info = [bend_neuron_info[idx] for idx in unsorted_neuron_id]
 
-            self.d_view.scatter("bend_neuron_info", bend_neuron_info, block=True)
+            with self.d_view.sync_imports():
+                from snudda.place import SnuddaPlace
 
-            cmd_str = f"sp = SnuddaPlace(config_file={self.config_file},network_path={self.network_path},snudda_data={self.snudda_data})"
-            self.d_view.execute(cmd_str)
-            cmd_str3 = f"modified_neurons = sp.avoid_edges_helper(bend_neuron_info=bend_neuron_info)"
-            self.d_view.execute(cmd_str3)
+            self.d_view.scatter("bend_neuron_info", bend_neuron_info, block=True)
+            self.d_view.push({"config_file": self.config_file,
+                              "network_path": self.network_path,
+                              "snudda_data": self.snudda_data},
+                             block=True)
+
+            cmd_str = f"sp = SnuddaPlace(config_file=config_file,network_path=network_path,snudda_data=snudda_data)"
+            self.d_view.execute(cmd_str, block=True)
+
+            #import pdb
+            #pdb.set_trace()
+
+            cmd_str3 = f"modified_neurons = SnuddaPlace.avoid_edges_helper(bend_neuron_info=bend_neuron_info, network_path=network_path)"
+            self.d_view.execute(cmd_str3, block=True)
 
             modified_neurons = self.d_view.gather("modified_neurons", block=True)
 
@@ -608,12 +619,7 @@ class SnuddaPlace(object):
             self.neurons[neuron_id].swc_filename = new_morphology
             self.neurons[neuron_id].rotation = np.eye(3)
 
-    def avoid_edges(self, neuron_id=None, neuron_random_seeds=None):
-
-        neuron_name = [n.name for n in self.neurons]
-
-        SnuddaPlace.avoid_edges_helper(neuron_id, )
-
+    @staticmethod
     def avoid_edges_helper(bend_neuron_info, network_path):
 
         # TODO: We need name, swc_file, position, rotation
