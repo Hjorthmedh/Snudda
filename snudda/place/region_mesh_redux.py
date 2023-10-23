@@ -100,6 +100,7 @@ class RegionMeshRedux:
 
         return line_sets
 
+
 class NeuronPlacer:
 
     def __init__(self, mesh_path: str, d_min: float, random_seed=None, rng=None,

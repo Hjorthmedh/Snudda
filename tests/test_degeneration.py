@@ -159,13 +159,13 @@ class MyTestCase(unittest.TestCase):
         #import pdb
         #pdb.set_trace()
 
-        # self.assertEqual(orig_load.data["nSynapses"], 165)
+        self.assertEqual(orig_load.data["nSynapses"], 165)
 
         # Verify that it should be 99 synapses -- now it is just a regression test
         # Old version gave 99, new gives 165 --- CHECK WHY!
 
         # TODO: CHECK WHY NOT 99 SYNAPSES NOW
-        # self.assertEqual(degen_load.data["nSynapses"], 155)  # -- Ilaria, we need to check what the true value should be?
+        self.assertEqual(degen_load.data["nSynapses"], 155)  # -- Ilaria, we need to check what the true value should be?
 
 
 if __name__ == '__main__':

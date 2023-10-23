@@ -152,7 +152,7 @@ class NeuronPrototype:
         #                                   f"\nNeuron path: {self.neuron_path}")
 
         if self.parameter_info:
-            par_key_list = list(self.parameter_info.keys())
+            par_key_list = sorted(list(self.parameter_info.keys()))
             par_key = par_key_list[parameter_id % len(par_key_list)]
         else:
             par_key = None
@@ -171,7 +171,7 @@ class NeuronPrototype:
 
         if self.meta_info:
             assert par_key in self.meta_info, f"Parameter key {par_key} missing in {self.meta_path}"
-            morph_key_list = list(self.meta_info[par_key].keys())
+            morph_key_list = sorted(list(self.meta_info[par_key].keys()))
             assert len(morph_key_list) > 0, f"No morphologies available for parameter key {par_key} in {self.meta_path}"
             morph_key = morph_key_list[morphology_id % len(morph_key_list)]
         else:
