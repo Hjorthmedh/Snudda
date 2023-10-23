@@ -586,7 +586,7 @@ class SnuddaPlace(object):
         if self.d_view is None:
             # Make sure we use the same random seeds if we run in serial, as would have been used in parallel
 
-            modified_neurons = SnuddaPlace.avoid_edges_helper(bend_neuron_info=bend_neuron_info, network_path=self.network_path)
+            modified_neurons = self.avoid_edges_helper(bend_neuron_info=bend_neuron_info, network_path=self.network_path)
 
         else:
 
@@ -605,9 +605,6 @@ class SnuddaPlace(object):
 
             cmd_str = f"sp = SnuddaPlace(config_file=config_file,network_path=network_path,snudda_data=snudda_data)"
             self.d_view.execute(cmd_str, block=True)
-
-            #import pdb
-            #pdb.set_trace()
 
             cmd_str3 = f"modified_neurons = SnuddaPlace.avoid_edges_helper(bend_neuron_info=bend_neuron_info, network_path=network_path)"
             self.d_view.execute(cmd_str3, block=True)
