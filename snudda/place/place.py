@@ -583,6 +583,11 @@ class SnuddaPlace(object):
                                          neuron_random_seed[neuron.neuron_id],
                                          volume_id, mesh_file))
 
+        bend_morph_path = os.path.join(self.network_path, "modified_morphologies")
+
+        if not os.path.isdir(bend_morph_path):
+            os.mkdir(bend_morph_path)
+
         if self.d_view is None:
             # Make sure we use the same random seeds if we run in serial, as would have been used in parallel
 
@@ -626,9 +631,6 @@ class SnuddaPlace(object):
 
         bend_morph = dict()
         bend_morph_path = os.path.join(network_path, "modified_morphologies")
-
-        if not os.path.isdir(bend_morph_path):
-            os.mkdir(bend_morph_path)
 
         modified_morphologies = []
 
