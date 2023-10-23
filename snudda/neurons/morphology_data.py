@@ -179,7 +179,7 @@ class MorphologyData:
 
         Args:
             swc_file (str): Path to SWC file
-            parent_tree_info (tuple, optional): Specify subtree attachment point
+                parent_tree_info (tuple, optional): Specify subtree attachment point
                                                 (MorphologyData, parent_label, parent_point_idx, arc_factor)
 
     """
@@ -738,7 +738,7 @@ class MorphologyData:
 
         if section_type is None:
             for section_dict in self.sections.values():
-                for section in section_dict:
+                for section in section_dict.values():
                     yield section
 
         elif section_type in self.sections:

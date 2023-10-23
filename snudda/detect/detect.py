@@ -27,9 +27,10 @@ import numpy as np
 from numba import jit
 
 import snudda.utils.memory
+from snudda.neurons import NeuronMorphologyExtended
 from snudda.neurons.morphology_data import MorphologyData
 from snudda.utils import NumpyEncoder
-from snudda.utils.snudda_path import get_snudda_data
+from snudda.utils.snudda_path import get_snudda_data, snudda_parse_path
 from snudda.detect.projection_detection import ProjectionDetection
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.load import SnuddaLoad
@@ -2303,12 +2304,21 @@ class SnuddaDetect(object):
         if use_cache and neuron_id in self.neuron_cache:
             return self.neuron_cache[neuron_id]
 
+        morph_path = snudda_parse_path(neuron_info["morphology"], self.snudda_data)
+        if os.path.isfile(morph_path):
+            morphology_path = morph_path
+        else:
+            morphology_path = None  # Get morpholog automatically from morphology_key
+
+        print(f"morphology_path = {morphology_path}")
+
         # Clone prototype neuron (it is centred, and not rotated)
         neuron = self.prototype_neurons[neuron_info["name"]].clone(parameter_key=neuron_info["parameterKey"],
                                                                    morphology_key=neuron_info["morphologyKey"],
                                                                    modulation_key=neuron_info["modulationKey"],
                                                                    rotation=neuron_info["rotation"],
-                                                                   position=neuron_info["position"])
+                                                                   position=neuron_info["position"],
+                                                                   morphology_path=morphology_path)
 
         if "extraAxons" in neuron_info:
             for axon_name, axon_info in neuron_info["extraAxons"].items():
@@ -2705,6 +2715,11 @@ class SnuddaDetect(object):
                     try:
                         max_coord = np.maximum(max_coord, np.max(subtree.geometry[:, :3], axis=0))
                         min_coord = np.minimum(min_coord, np.min(subtree.geometry[:, :3], axis=0))
+
+                        if np.isnan(min_coord).any() or np.isnan(max_coord).any():
+                            print(f"Problem with morphology: {neuron}")
+                            import pdb
+                            pdb.set_trace()
                     except:
                         import traceback
                         print(traceback.format_exc())
@@ -2916,7 +2931,11 @@ class SnuddaDetect(object):
         # Remove this check later... should be done in morphology_data
         if (num_steps <= 0).any(): 
             print(f"Found zero length dendrite segment in neuron_id {neuron_id}")
+            # import pdb
+            # pdb.set_trace()
+
             raise ValueError(f"Found zero length dendrite segment (please check morphologies).")
+
 
         # Loop through all point-pairs of the section
         for idx in range(0, len(scaled_soma_dist)-1):

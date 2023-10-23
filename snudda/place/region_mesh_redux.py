@@ -1,192 +1,188 @@
-
+import numexpr
 import numpy as np
 from scipy.spatial import cKDTree
+import open3d as o3d
 from numba import jit
 
 
 class RegionMeshRedux:
 
-    def __init__(self):
+    def __init__(self, mesh_path):
 
-        # Set by load_mesh
-        self.mesh_vertices = None
-        self.mesh_faces = None
-        self.mesh_normals = None
-        self.min_coord = None
-        self.max_coord = None
-        self.point_outside = None
+        self.mesh_path = mesh_path
+        self.mesh = o3d.io.read_triangle_mesh(mesh_path)
 
-        # Set by pre_compute
-        self.mesh_u = None
-        self.mesh_v = None
-        self.mesh_v0 = None
-        self.mesh_uv = None
-        self.mesh_vv = None
-        self.mesh_uu = None
-        self.mesh_denom = None
-        self.mesh_nrm = None
+        # Convert from micrometers to meters to get SI units
+        scale_factor = 1e-6
+        self.mesh.scale(scale_factor, center=(0, 0, 0))
 
-    def load_mesh(self, file_path):
+        self.mesh.remove_non_manifold_edges()
 
-        """ Reads wavefront obj files. Updates mesh_vertices, mesh_faces, mesh_normals,
-            min_coord, max_coord, point_outside """
+        self.min_coord = self.mesh.get_min_bound()
+        self.max_coord = self.mesh.get_max_bound()
 
-        vertices = []
-        normals = []
-        faces = []
+        self.scene = o3d.t.geometry.RaycastingScene()
+        legacy_mesh = o3d.t.geometry.TriangleMesh.from_legacy(self.mesh)
 
-        with open(file_path, 'r') as obj_file:
-            for line in obj_file:
-                parts = line.strip().split()
-                if not parts:
-                    continue  # Skip empty lines
+        # SHALL WE PICk NUMBER OF PUTATIVE POINTS BASED ON VOLUME???
+        self.volume = self.mesh.compute_convex_hull()[0].get_volume()
 
-                if parts[0][0] == 'v':
-                    if len(parts[0]) > 1 and parts[0][1] == 'n':
-                        # Parse normal vectors
-                        nx, ny, nz = map(float, parts[1:4])
-                        normals.append((nx, ny, nz))
-                    else:
-                        # Parse vertex coordinates in micrometers and convert to meters
-                        x, y, z = [float(coord) * 1e-6 for coord in parts[1:4]]
-                        vertices.append((x, y, z))
-                elif parts[0] == 'f':
-                    # Parse face definitions with vertex and normal indices
-                    face_indices = []
-                    for vertex in parts[1:]:
-                        indices = [int(idx) if idx else 0 for idx in vertex.split('/')]
-                        face_indices.append(tuple(indices))
-                    faces.append(face_indices)
+        self.scene.add_triangles(legacy_mesh)
+        # filled_mesh = legacy_mesh.fill_holes()
+        # self.scene.add_triangles(filled_mesh)
 
-        self.mesh_vertices = np.array(vertices)
-        self.mesh_faces = np.array(normals)
-        self.mesh_normals = np.array(faces)
+    def check_inside(self, points):
+        """ Check if points are inside, returns bool array."""
 
-        self.min_coord = np.min(self.mesh_vertices, axis=0)
-        self.max_coord = np.max(self.mesh_vertices, axis=0)
+        # http://www.open3d.org/docs/latest/tutorial/geometry/distance_queries.html
+        query_point = o3d.core.Tensor(points, dtype=o3d.core.Dtype.Float32)
+        is_inside = self.scene.compute_occupancy(query_point)
+        return is_inside.numpy().astype(bool)
 
-        # Used by ray casting when checking if another point is interior
-        self.point_outside = self.max_coord + np.array([1e-1, 1e-2, 1e-3])
+    def distance_to_border(self, points):
 
-    def pre_compute(self):
+        """ Positive values are distance to mesh (outside), and negative (inside)"""
 
-        """ Helper function, precomputes values for raytracing. """
+        # http://www.open3d.org/docs/latest/tutorial/geometry/distance_queries.html
+        query_point = o3d.core.Tensor(points, dtype=o3d.core.Dtype.Float32)
+        signed_distance = self.scene.compute_signed_distance(query_point).numpy()
 
-        i0 = self.mesh_faces[:, 0]
-        i1 = self.mesh_faces[:, 1]
-        i2 = self.mesh_faces[:, 2]
+        return signed_distance
 
-        self.mesh_u = self.mesh_vec[i1, :] - self.mesh_vec[i0, :]
-        self.mesh_v = self.mesh_vec[i2, :] - self.mesh_vec[i0, :]
+    def plot(self, line_set=None, neurons=None, show_axis=False, show_faces=True):
 
-        self.mesh_v0 = self.mesh_vec[i0, :]
+        # Press w to see wireframe...
 
-        self.mesh_uv = np.sum(np.multiply(self.mesh_u, self.mesh_v), axis=1)
-        self.mesh_vv = np.sum(np.multiply(self.mesh_v, self.mesh_v), axis=1)
-        self.mesh_uu = np.sum(np.multiply(self.mesh_u, self.mesh_u), axis=1)
+        if show_faces:
+            plot_list = [self.mesh]
+        else:
+            # Just plot wireframe
+            plot_list = [o3d.geometry.LineSet.create_from_triangle_mesh(self.mesh)]
 
-        self.mesh_denom = np.multiply(self.mesh_uv, self.mesh_uv) - np.multiply(self.mesh_uu, self.mesh_vv)
+        if line_set:
+            plot_list += line_set
 
-        # Normal of triangle
-        self.mesh_nrm = np.cross(self.mesh_u, self.mesh_v)
+        if neurons:
+            plot_list += self.get_line_set(neurons)
 
-        # We need to normalise it
-        nl = np.repeat(np.reshape(self.mesh_uv, [self.mesh_uv.shape[0], 1]), 3, axis=1)
-        self.mesh_nrm = np.divide(self.mesh_nrm, nl)
+        if show_axis:
+            # The x, y, z axis will be rendered as red, green, and blue arrows respectively.
+            axis = o3d.geometry.TriangleMesh.create_coordinate_frame(size=1000e-6, origin=[0, 0, 0])
+            plot_list += [axis]
 
-    def ray_casting(self, point):
+        o3d.visualization.draw_geometries(plot_list)
 
-        """ Ray-casting, to determine if a point is inside or outside of mesh. """
+    def get_line_set(self, neurons):
 
-        return RegionMeshRedux.ray_casting_helper(point=point,
-                                                  self_mesh_faces=self.mesh_faces,
-                                                  self_mesh_nrm=self.mesh_nrm,
-                                                  self_mesh_v0=self.mesh_v0,
-                                                  self_point_out=self.point_out,
-                                                  self_mesh_denom=self.mesh_denom,
-                                                  self_mesh_uv=self.mesh_uv,
-                                                  self_mesh_uu=self.mesh_uu,
-                                                  self_mesh_vv=self.mesh_vv,
-                                                  self_mesh_u=self.mesh_u,
-                                                  self_mesh_v=self.mesh_v)
+        if type(neurons) != list:
+            return self.get_line_set(neurons=[neurons])
 
-    @staticmethod
-    @jit(nopython=True)
-    def ray_casting_helper(point,
-                           self_mesh_faces, self_mesh_nrm, self_point_out,
-                           self_mesh_v0, self_mesh_denom,
-                           self_mesh_uv, self_mesh_vv, self_mesh_uu, self_mesh_u, self_mesh_v):
+        line_sets = []
 
-        """
-        Helper function for ray-casting, to determine if a point is inside the 3D-mesh.
-        It draws a line from the point given, and a second point defined as outside.
-        If that line intersects the surface of the 3D mesh an odd number of times, then the first point is inside.
+        for neuron in neurons:
 
-        Uses values pre-computed by pre_compute function.
-        """
+            morph_data = neuron.morphology_data["neuron"]
 
-        # print(f"Processing {point}")
+            lines = []
+            for section in morph_data.section_iterator():
+                if len(section.point_idx) > 1:
+                    for start_point, end_point in zip(section.point_idx[:-1], section.point_idx[1:]):
+                        lines.append([start_point, end_point])
 
-        n_tri = self_mesh_faces.shape[0]
+            if len(lines) > 0:
+                #import pdb
+                #pdb.set_trace()
+                line_set = o3d.geometry.LineSet()
+                line_set.points = o3d.utility.Vector3dVector(morph_data.geometry[:, :3])
+                line_set.lines = o3d.utility.Vector2iVector(lines)
 
-        p = self_point_out - point
-        # rn = nominator, rd = denominator
-        rn = np.sum(np.multiply(self_mesh_nrm, self_mesh_v0 - point), axis=1)
-        rd = np.dot(self_mesh_nrm, p)
+                line_sets.append(line_set)
 
-        # If rd == 0 and rn != 0 --> r = -1, parallel to plane, but outside, mark -1 to avoid counting
-        # If rd == 0 and rn == 0 --> r = 0, parallel and lies in plane
-        idx0 = (rd == 0)
-        idx1 = np.logical_and(idx0, rn != 0)
-
-        rn[idx1] = -1
-        rd[idx0] = 1
-        r = np.divide(rn, rd)
-
-        w = point + r.reshape(len(r), 1) * p.reshape(1, 3) - self_mesh_v0
-        n_points = len(r)
-
-        s = np.divide(np.multiply(self_mesh_uv, np.sum(np.multiply(w, self_mesh_v), axis=1).reshape(n_points, ))
-                      - np.multiply(self_mesh_vv, np.sum(np.multiply(w, self_mesh_u), axis=1).reshape(n_points, )),
-                      self_mesh_denom)
-
-        t = np.divide(np.multiply(self_mesh_uv, np.sum(np.multiply(w, self_mesh_u), axis=1).reshape(n_points, ))
-                      - np.multiply(self_mesh_uu, np.sum(np.multiply(w, self_mesh_v), axis=1).reshape(n_points, )),
-                      self_mesh_denom)
-
-        intersect_count = np.sum((0 <= r) * (r <= 1) * (0 <= s) * (s <= 1) * (0 <= t) * (s + t <= 1))
-
-        return np.mod(intersect_count, 2) == 1
-
-
-    def point_inside(self, point):
-
-        pass
-
-    def distance_to_border(self, point):
-
-        pass
+        return line_sets
 
 
 class NeuronPlacer:
 
-    # Improvement suggestion. Randomize only points within a mesh-voxel, then randomise
-    # within which of the mesh voxels the points should be placed.
+    def __init__(self, mesh_path: str, d_min: float, random_seed=None, rng=None,
+                 n_putative_points=None, putative_density=None):
 
-    def __init__(self, region_mesh: RegionMeshRedux, d_min: float, seed=None):
+        """ Args:
+            mesh_path (str): Path to wavefront obj file
+            d_min (float): Minimum distance between neurons
+            random_seed (int): Random seed
+            rng: Numpy rng object, either rng or random_seed is given
+            n_putative_points (int): Number of putative positions to place within volume (before d_min filtering)"""
 
-        self.region_mesh = region_mesh
+        self.region_mesh = RegionMeshRedux(mesh_path=mesh_path)
         self.d_min = d_min
+        self.density_functions = dict()
 
-        self.rng = np.random.default_rng(seed)
+        if rng:
+            self.rng = rng
 
-        # Temp values, should be read from the 3d mesh + padding
-        self.cube_side = 1000e-6
-        self.cube_offset = np.array([1, 2, 5000])
+            if random_seed:
+                raise ValueError("If rng is set, then seed should not be set.")
+        else:
+            self.rng = np.random.default_rng(random_seed)
 
-        # Use kdtree to avoid d_min overlaps
+        # We generate a cube of points, obs that we pad it with d_min on all sides to avoid
+        # edge effects (which would give higher densities at borders)
+        self.cube_side = self.region_mesh.max_coord-self.region_mesh.min_coord + self.d_min*2
+        self.cube_offset = self.region_mesh.min_coord - self.d_min
 
-        pass
+        if n_putative_points is None:
+            # The volume of the cube multiplied by a density estimated by d_min
+
+            if putative_density:
+                n_putative_points = int(np.ceil(np.prod(self.cube_side)*putative_density*1e9))
+            else:
+                n_putative_points = int(np.ceil(np.prod(self.cube_side) * (1/self.d_min) ** 3))
+        else:
+            # We need to compenate n_putative_points for fact that we sample points outside volume also
+            n_putative_points *= np.prod(self.cube_side) / self.region_mesh.volume
+            n_putative_points = int(np.ceil(n_putative_points))
+
+        print(f"Generating {n_putative_points} points for {mesh_path}")
+
+        putative_points = self.get_point_cloud(n=n_putative_points)
+        putative_points = self.remove_close_neurons(putative_points)
+        putative_points = self.remove_outside(putative_points)
+
+        self.putative_points = putative_points
+        self.allocated_points = np.zeros(shape=(putative_points.shape[0],), dtype=bool)
+
+    def define_density(self, neuron_type, density_function):
+        self.density_functions[neuron_type] = density_function
+
+    def place_neurons(self, num_neurons, neuron_type=None):
+
+        if neuron_type is None or neuron_type not in self.density_functions:
+            density_function = None
+        else:
+            density_function = self.density_functions[neuron_type]
+
+        return self.get_neuron_positions(n_positions=num_neurons, neuron_density=density_function)
+
+    def plot_putative_points(self):
+
+        self.plot_points(points=self.putative_points)
+
+    def plot_placed_points(self):
+
+        self.plot_points(points=self.putative_points[self.allocated_points, :])
+
+    def plot_points(self, points, colour=None):
+        import matplotlib.pyplot as plt
+
+        fig = plt.figure()
+        ax = fig.add_subplot(projection='3d')
+        x, y, z = points.T
+        ax.scatter(x, y, z, marker='.', color=colour)
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        plt.ion()
+        plt.show()
 
     def get_point_cloud(self, n):
         points = self.rng.uniform(size=(n, 3), low=0, high=self.cube_side) + self.cube_offset
@@ -218,8 +214,7 @@ class NeuronPlacer:
                                        self.rng.integers(low=0, high=2, size=close_neurons.shape[0])]
 
         else:
-
-            # First remove worst offenders, with the most neighbours
+            # First remove the worst offenders, with the most neighbours
             # (but none with count 1, we do those separately
             sort_idx = np.argsort(-counts)
             sorted_offenders = unique[sort_idx]
@@ -227,7 +222,6 @@ class NeuronPlacer:
 
             first_pair = np.argmax(sorted_counts == 1)
             remove_fraction_idx = int(np.ceil(remove_fraction*len(sorted_offenders)))
-
             remove_idx = sorted_offenders[:min(first_pair, remove_fraction_idx)]
 
         points = np.delete(points, remove_idx, axis=0)
@@ -236,15 +230,65 @@ class NeuronPlacer:
 
         return points, False
 
+    def remove_outside(self, points):
 
-    def set_neuron_density(self, neuron_type, neuron_density):
+        print(f"Filtering {points.shape[0]} points..")
+        # keep_flag = self.region_mesh.point_inside(points=points)
+        keep_flag = self.region_mesh.check_inside(points=points)
 
-        pass
+        print(f"Filtering, keeping inside points: {np.sum(keep_flag)} / {len(keep_flag)}")
 
-    def place_neurons(self, neuron_type, number_of_neurons):
+        return points[keep_flag, :]
 
-        pass
+    def get_neuron_positions(self, n_positions, neuron_density=None):
 
+        """ neuron_density either None (even), or a str representing a function f(x,y,z)
+            where x,y,z are the coordinates in meters """
+
+        # We have the putative_points, pick positions from them, based on neuron density
+        # then update the allocated points
+
+        # 1. Calculate the distance to the closest free (non-allocated) neighbour for all points
+        # This is so that if we allocated neurons, we can correct for that, and get flat gradients
+
+        free_positions = self.putative_points[~self.allocated_points]
+
+        # k=2, since we don't want distance to point itself, but closest neighbour
+        # closest_distance, _ = cKDTree(data=free_positions).query(x=free_positions, k=2)
+        closest_distance, _ = cKDTree(data=free_positions).query(x=free_positions, k=2)
+
+        # Volume is proportional to distance**3, so scale probabilities to pick position by that
+        free_volume = np.power(np.mean(closest_distance[:, 1:2], axis=1), 3)
+        x, y, z = free_positions.T
+
+        if neuron_density:
+            # TODO: Temp disabled volume... still does not seem to work
+            if type(neuron_density) == str:
+                P_neuron = np.multiply(numexpr.evaluate(neuron_density), free_volume)
+            else:
+                P_neuron = np.multiply(neuron_density(x=x, y=y, z=z), free_volume)
+            # P_neuron = numexpr.evaluate(neuron_density)
+        else:
+            P_neuron = free_volume
+
+        P_neuron /= np.sum(P_neuron)
+
+        try:
+            idx = self.rng.choice(len(free_positions), n_positions, p=P_neuron, replace=False)
+        except ValueError as ve:
+            print("Error: Increase n_putative_points or putative_density, too few putative points set.")
+            print(f"      Mesh: {self.region_mesh.mesh_path}")
+
+            import pdb
+            pdb.set_trace()
+
+            raise ve
+
+        neuron_positions = free_positions[idx, :]
+        used_idx = np.where(~self.allocated_points)[0][idx]
+        self.allocated_points[used_idx] = True
+
+        return neuron_positions
 
 class NeuronBender:
 
@@ -264,12 +308,34 @@ class NeuronBender:
 # Remove the worst offenders -- how?
 
 
-
 if __name__ == "__main__":
 
-    nep = NeuronPlacer(region_mesh=None, d_min=10e-6)
-    points = nep.get_point_cloud(n=1000000)
-    new_points = nep.remove_close_neurons(points)
+    mesh_path="../data/mesh/Striatum-d-right.obj"
+
+    # nep = NeuronPlacer(mesh_path=mesh_path, d_min=10e-6, n_putative_points=10000000)
+    nep = NeuronPlacer(mesh_path=mesh_path, d_min=10e-6, n_putative_points=None, putative_density=100e3)
+    # nep.plot_putative_points()
+
+    points_flat = nep.get_neuron_positions(5000)
+    nep.plot_points(points_flat, colour="black")
+
+    points = nep.get_neuron_positions(200000, neuron_density="exp((y-0.0025)*2000)")
+    nep.plot_points(points, colour="red")
+
+    points_flat2 = nep.get_neuron_positions(5000)
+    nep.plot_points(points_flat, colour="blue")
+
+    import matplotlib.pyplot as plt
+    plt.figure()
+    plt.hist(points_flat[:,1], color="black")
+    plt.hist(points[:,1], color="red", alpha=0.5)
+    plt.show()
+
+    plt.figure()
+    plt.hist(points_flat[:,1], color="black")
+    plt.hist(points_flat2[:,1], color="blue", alpha=0.5)
+    plt.show()
+
 
     import pdb
     pdb.set_trace()

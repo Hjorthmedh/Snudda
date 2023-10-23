@@ -26,7 +26,9 @@ from scipy.interpolate import griddata
 
 from snudda.utils.snudda_path import get_snudda_data
 from snudda.neurons.neuron_prototype import NeuronPrototype
-from snudda.place.region_mesh import RegionMesh
+# from snudda.place.region_mesh import RegionMesh
+from snudda.place.region_mesh_redux import NeuronPlacer
+
 from snudda.place.rotation import SnuddaRotate
 from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists, snudda_simplify_path
 
@@ -50,7 +52,7 @@ class SnuddaPlace(object):
                  h5libver=None,
                  raytrace_borders=False,
                  random_seed=None,
-                 griddata_interpolation=False):  # Setting this to true is 5x slower
+                 griddata_interpolation=False):  # Setting this to true is 5x slower -- obsolete?
 
         """
         Constructor.
@@ -89,6 +91,8 @@ class SnuddaPlace(object):
 
         self.network_path = network_path
         self.config_file = config_file
+        self.config = None
+
         self.axon_config_cache = None
 
         self.snudda_data = get_snudda_data(snudda_data=snudda_data,
@@ -150,6 +154,8 @@ class SnuddaPlace(object):
         """ Place neurons in 3D space. """
 
         self.parse_config()
+        self.avoid_edges_parallel()
+        # self.avoid_edges()
         self.write_data()
 
     ############################################################################
@@ -394,14 +400,25 @@ class SnuddaPlace(object):
                     self.write_log(f"Unable to find mesh file {vol_def['meshFile']}")
                     sys.exit(-1)
 
+                # self.volume[volume_id]["mesh"] \
+                #     = RegionMesh(mesh_file,
+                #                  d_view=d_view,
+                #                  raytrace_borders=self.raytrace_borders,
+                #                  d_min=vol_def["dMin"],
+                #                  bin_width=mesh_bin_width,
+                #                  log_file=mesh_logfile,
+                #                  random_seed=vol_seed[volume_id])
+
+                if "n_putative_points" in self.volume[volume_id]:
+                    n_putative_points = int(self.volume[volume_id]["n_putative_points"])
+                else:
+                    n_putative_points = None  # Autodetect
+
                 self.volume[volume_id]["mesh"] \
-                    = RegionMesh(mesh_file,
-                                 d_view=d_view,
-                                 raytrace_borders=self.raytrace_borders,
-                                 d_min=vol_def["dMin"],
-                                 bin_width=mesh_bin_width,
-                                 log_file=mesh_logfile,
-                                 random_seed=vol_seed[volume_id])
+                    = NeuronPlacer(mesh_path=mesh_file,
+                                   d_min=vol_def["dMin"],
+                                   random_seed=vol_seed[volume_id],
+                                   n_putative_points=n_putative_points)
 
                 if "density" in self.volume[volume_id]:
                     # We need to set up the neuron density functions also
@@ -531,6 +548,7 @@ class SnuddaPlace(object):
                              config=config)
 
         self.config_file = config_file
+        self.config = config
 
         # We reorder neurons, sorting their IDs after position
         # -- UPDATE: Now we spatial cluster neurons depending on number of workers
@@ -544,6 +562,96 @@ class SnuddaPlace(object):
             self.define_population_units(config["PopulationUnits"])
 
         mesh_logfile.close()
+
+    ############################################################################
+
+    def avoid_edges_parallel(self):
+
+        ss = np.random.SeedSequence(self.random_seed + 100)
+        neuron_random_seed = ss.generate_state(len(self.neurons))
+
+        bend_neuron_info = []
+
+        for neuron in self.neurons:
+            config = self.config["Neurons"][neuron.name]
+
+            if "stayInsideMesh" in config and config["stayInsideMesh"]:
+                volume_id = config["volumeID"]
+                mesh_file = self.config["Volume"][volume_id]["meshFile"]
+                bend_neuron_info.append((neuron.neuron_id, neuron.name, neuron.swc_filename,
+                                         neuron.position, neuron.rotation,
+                                         neuron_random_seed[neuron.neuron_id],
+                                         volume_id, mesh_file))
+
+        bend_morph_path = os.path.join(self.network_path, "modified_morphologies")
+
+        if not os.path.isdir(bend_morph_path):
+            os.mkdir(bend_morph_path)
+
+        if self.d_view is None:
+            # Make sure we use the same random seeds if we run in serial, as would have been used in parallel
+
+            modified_neurons = self.avoid_edges_helper(bend_neuron_info=bend_neuron_info, network_path=self.network_path)
+
+        else:
+
+            # Make random permutation of neurons, to spread out the edge neurons
+            unsorted_neuron_id = self.random_generator.permutation(len(bend_neuron_info))
+            bend_neuron_info = [bend_neuron_info[idx] for idx in unsorted_neuron_id]
+
+            with self.d_view.sync_imports():
+                from snudda.place import SnuddaPlace
+
+            self.d_view.scatter("bend_neuron_info", bend_neuron_info, block=True)
+            self.d_view.push({"config_file": self.config_file,
+                              "network_path": self.network_path,
+                              "snudda_data": self.snudda_data},
+                             block=True)
+
+            cmd_str = f"sp = SnuddaPlace(config_file=config_file,network_path=network_path,snudda_data=snudda_data)"
+            self.d_view.execute(cmd_str, block=True)
+
+            cmd_str3 = f"modified_neurons = SnuddaPlace.avoid_edges_helper(bend_neuron_info=bend_neuron_info, network_path=network_path)"
+            self.d_view.execute(cmd_str3, block=True)
+
+            modified_neurons = self.d_view.gather("modified_neurons", block=True)
+
+        for neuron_id, new_morphology in modified_neurons:
+            # Replace the original morphology with the warped morphology, morphology includes rotation
+            self.neurons[neuron_id].swc_filename = new_morphology
+            self.neurons[neuron_id].rotation = np.eye(3)
+
+    @staticmethod
+    def avoid_edges_helper(bend_neuron_info, network_path):
+
+        # TODO: We need name, swc_file, position, rotation
+        # This needs to be passed, since self.neurons is not pickleable...
+
+        from snudda.place.bend_morphologies import BendMorphologies
+
+        bend_morph = dict()
+        bend_morph_path = os.path.join(network_path, "modified_morphologies")
+
+        modified_morphologies = []
+
+        for neuron_id, neuron_name, swc_filename, position, rotation, random_seed, volume_id, mesh_file \
+                in bend_neuron_info:
+
+            if volume_id not in bend_morph:
+                bend_morph[volume_id] = BendMorphologies(region_mesh=mesh_file, rng=None)
+
+            # Returns None if unchanged
+            new_morph_name = os.path.join(bend_morph_path, f"{neuron_name}-{neuron_id}.swc")
+            new_morphology = bend_morph[volume_id].edge_avoiding_morphology(swc_file=swc_filename,
+                                                                            new_file=new_morph_name,
+                                                                            original_position=position,
+                                                                            original_rotation=rotation,
+                                                                            random_seed=random_seed)
+
+            if new_morphology:
+                modified_morphologies.append((neuron_id, new_morphology))
+
+        return modified_morphologies
 
     ############################################################################
 

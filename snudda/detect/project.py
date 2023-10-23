@@ -249,9 +249,10 @@ class SnuddaProject(object):
                 target_name = [post_name_list[x] for x in d_idx]
                 axon_dist = d[d_idx]
 
-                n_synapses = self.rng.normal(number_of_synapses[0],
-                                             number_of_synapses[1],
-                                             len(target_id)).astype(int)
+                n_synapses = np.maximum(0, self.rng.normal(number_of_synapses[0],
+                                                           number_of_synapses[1],
+                                                           len(target_id))).astype(int)
+
 
                 for t_id, t_name, n_syn, ax_dist in zip(target_id, target_name, n_synapses, axon_dist):
 
@@ -272,8 +273,8 @@ class SnuddaProject(object):
 
                     # We are not guaranteed to get n_syn positions, so use len(sec_x) to get how many after
                     # TODO: Fix so dendrite_input_locations always returns  n_syn synapses
-                    xyz, sec_id, sec_x, dist_to_soma = morph.dendrite_input_locations(dendrite_synapse_density,
-                                                                                      self.rng,
+                    xyz, sec_id, sec_x, dist_to_soma = morph.dendrite_input_locations(synapse_density_str=dendrite_synapse_density,
+                                                                                      rng=self.rng,
                                                                                       num_locations=n_syn)
 
                     # We need to convert xyz into voxel coordinates to match data format of synapse matrix

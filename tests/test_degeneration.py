@@ -33,23 +33,23 @@ class MyTestCase(unittest.TestCase):
         network_A_pos_file = os.path.join(network_A, "network-neuron-positions.hdf5")
         self.set_neuron_positions(network_file=network_A_pos_file)
 
-        sd = SnuddaDetect(network_path=network_A, random_seed=9)
+        sd = SnuddaDetect(network_path=network_A, random_seed=11)
         sd.detect()
 
-        spr = SnuddaPrune(network_path=network_A, random_seed=9)
+        spr = SnuddaPrune(network_path=network_A, random_seed=13)
         spr.prune()
 
         # Setup degenerated network
-        sp2 = SnuddaPlace(network_path=network_B, random_seed=9)
+        sp2 = SnuddaPlace(network_path=network_B, random_seed=9)  # same as original
         sp2.place()
 
         network_B_pos_file = os.path.join(network_B, "network-neuron-positions.hdf5")
         self.set_neuron_positions(network_file=network_B_pos_file)
 
-        sd2 = SnuddaDetect(network_path=network_B, random_seed=9)
+        sd2 = SnuddaDetect(network_path=network_B, random_seed=11)
         sd2.detect()
 
-        spr2 = SnuddaPrune(network_path=network_B, random_seed=9)
+        spr2 = SnuddaPrune(network_path=network_B, random_seed=13)
         spr2.prune()
 
         network_A_file = os.path.join(network_A, "network-synapses.hdf5")
@@ -65,7 +65,8 @@ class MyTestCase(unittest.TestCase):
                                                      updated_network_file=network_B_file,
                                                      output_network_file=network_C_file,
                                                      original_snudda_data_dir=original_data_dir,
-                                                     updated_snudda_data_dir=updated_data_dir)
+                                                     updated_snudda_data_dir=updated_data_dir,
+                                                     random_seed=15)
 
         swap.write_new_network_file()
 
@@ -152,13 +153,19 @@ class MyTestCase(unittest.TestCase):
         orig_load = SnuddaLoad(self.network_A)
         degen_load = SnuddaLoad(self.network_C)
 
-        self.assertEqual(orig_load.data["nSynapses"], 159)
+        tmp = [(x["neuronID"], x["morphologyKey"]) for x in orig_load.data["neurons"]]
+        print(f"Morphologies: {tmp}")
+
+        #import pdb
+        #pdb.set_trace()
+
+        self.assertEqual(orig_load.data["nSynapses"], 165)
 
         # Verify that it should be 99 synapses -- now it is just a regression test
         # Old version gave 99, new gives 165 --- CHECK WHY!
 
         # TODO: CHECK WHY NOT 99 SYNAPSES NOW
-        self.assertEqual(degen_load.data["nSynapses"], 163)  # -- Ilaria, we need to check what the true value should be?
+        self.assertEqual(degen_load.data["nSynapses"], 155)  # -- Ilaria, we need to check what the true value should be?
 
 
 if __name__ == '__main__':

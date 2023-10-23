@@ -3,7 +3,7 @@ import numpy as np
 
 from snudda.neurons.morphology_data import MorphologyData
 from snudda.plotting.plot_spike_raster_v2 import SnuddaPlotSpikeRaster2
-from snudda.utils.snudda_path import get_snudda_data
+from snudda.utils.snudda_path import get_snudda_data, snudda_parse_path
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.load import SnuddaLoad
 import matplotlib.pyplot as plt
@@ -184,11 +184,18 @@ class PlotNetwork(object):
                                                                   load_morphology=True,
                                                                   virtual_neuron=False)
 
+        morph_path = snudda_parse_path(neuron_info["morphology"], self.snudda_data)
+        if os.path.isfile(morph_path):
+            morphology_path = morph_path
+        else:
+            morphology_path = None  # Get morpholog automatically from morphology_key
+
         neuron = self.prototype_neurons[neuron_name].clone(position=neuron_info["position"],
                                                            rotation=neuron_info["rotation"],
                                                            parameter_key=neuron_info["parameterKey"],
                                                            morphology_key=neuron_info["morphologyKey"],
-                                                           modulation_key=neuron_info["modulationKey"])
+                                                           modulation_key=neuron_info["modulationKey"],
+                                                           morphology_path=morphology_path)
 
         if "extraAxons" in neuron_info:
             for axon_name, axon_info in neuron_info["extraAxons"].items():
@@ -269,7 +276,7 @@ def snudda_plot_network_cli():
     from argparse import ArgumentParser
     parser = ArgumentParser(description="Plot snudda network from file (hdf5)")
     parser.add_argument("networkFile", help="Network file (hdf5)", type=str)
-    parser.add_argument("--neuronID", help="List of Neuron ID to show", type=int, default=None, nargs="+",
+    parser.add_argument("--neuronID", "--nid", help="List of Neuron ID to show", type=int, default=None, nargs="+",
                         dest="neuron_id_list")
     parser.add_argument("--showAxons", help="Show Axons of neurons", action="store_true")
     parser.add_argument("--showDendrites", help="Show dendrites of neurons", action="store_true")
