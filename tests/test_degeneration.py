@@ -65,7 +65,8 @@ class MyTestCase(unittest.TestCase):
                                                      updated_network_file=network_B_file,
                                                      output_network_file=network_C_file,
                                                      original_snudda_data_dir=original_data_dir,
-                                                     updated_snudda_data_dir=updated_data_dir)
+                                                     updated_snudda_data_dir=updated_data_dir,
+                                                     random_seed=11)
 
         swap.write_new_network_file()
 
