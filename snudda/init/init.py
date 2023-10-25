@@ -861,7 +861,8 @@ class SnuddaInit(object):
                         mesh_bin_width=None,
                         d_min=None,
                         cluster_FS_synapses=False,
-                        cluster_SPN_synapses=False):
+                        cluster_SPN_synapses=False,
+                        stay_inside=False):
 
         get_val = lambda x: 0 if x is None else x
 
@@ -996,11 +997,13 @@ class SnuddaInit(object):
 
         self.add_neurons(name="dSPN", neuron_dir=dSPN_dir,
                          num_neurons=self.num_dSPN,
-                         volume_id="Striatum")
+                         volume_id="Striatum",
+                         stay_inside=stay_inside)
 
         self.add_neurons(name="iSPN", neuron_dir=iSPN_dir,
                          num_neurons=self.num_iSPN,
-                         volume_id="Striatum")
+                         volume_id="Striatum",
+                         stay_inside=stay_inside)
 
         # ChIN axon density,
         # We start with the axon length per unit volume, then we scale it

@@ -52,7 +52,8 @@ class SnuddaPlace(object):
                  h5libver=None,
                  raytrace_borders=False,
                  random_seed=None,
-                 griddata_interpolation=False):  # Setting this to true is 5x slower -- obsolete?
+                 griddata_interpolation=False,
+                 morphologies_stay_inside=True):  # Setting this to true is 5x slower -- obsolete?
 
         """
         Constructor.
@@ -92,6 +93,7 @@ class SnuddaPlace(object):
         self.network_path = network_path
         self.config_file = config_file
         self.config = None
+        self.morphologies_stay_inside = morphologies_stay_inside
 
         self.axon_config_cache = None
 
@@ -154,8 +156,10 @@ class SnuddaPlace(object):
         """ Place neurons in 3D space. """
 
         self.parse_config()
-        self.avoid_edges_parallel()
-        # self.avoid_edges()
+
+        if self.morphologies_stay_inside:
+            self.avoid_edges_parallel()
+
         self.write_data()
 
     ############################################################################
