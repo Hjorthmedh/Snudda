@@ -68,11 +68,11 @@ class TestCLI(unittest.TestCase):
             config_name = os.path.join("tiny_parallel", "network-config.json")
             cnc = SnuddaInit(struct_def={}, config_file=config_name, random_seed=123456)
             cnc.define_striatum(num_dSPN=4, num_iSPN=4, num_FS=2, num_LTS=2, num_ChIN=2,
-                                volume_type="cube")
+                                volume_type="cube", stay_inside=True)
             cnc.write_json(config_name)
 
         with self.subTest(stage="place-parallel"):
-            run_cli_command("place tiny_parallel --parallel --raytraceBorders")
+            run_cli_command("place tiny_parallel --parallel --stayInside")
 
         with self.subTest(stage="detect-parallel"):
             run_cli_command("detect tiny_parallel --parallel")

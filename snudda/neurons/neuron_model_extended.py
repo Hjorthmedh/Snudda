@@ -59,33 +59,39 @@ class NeuronModel(ephys.models.CellModel):
         self.script_dir = os.path.dirname(__file__)
         self.config_dir = os.path.join(self.script_dir, 'config')
 
-        morph_file = None
-        if parameter_key is not None and morphology_key is not None and param_file is not None:
-            meta_file = os.path.join(os.path.dirname(param_file), "meta.json")
-            if os.path.isfile(meta_file):
-                with open(meta_file, "r") as f:
-                    meta_data = json.load(f, object_pairs_hook=OrderedDict)
-                    morph_file = os.path.join(morph_path, meta_data[parameter_key][morphology_key]["morphology"])
+        if os.path.isfile(morph_path):
+            # If morph_path is a swc file, use it directly
+            morph_file = morph_path
+        else:
+            # Figure out what file in the morphology path we should use
 
-        if not morph_file:
-            # We now allow multiple variations of morphologies for a given neuron name, so here NeuronPrototype
-            # is used to acquire the actual morphology file we will use for this particular neuron
-            # based on parameter_id and morphology_id.
-            neuron_prototype = NeuronPrototype(neuron_name=cell_name,
-                                               neuron_path=None,
-                                               morphology_path=morph_path,
-                                               parameter_path=param_file,
-                                               mechanism_path=mech_file,
-                                               modulation_path=modulation_file)
+            morph_file = None
+            if parameter_key is not None and morphology_key is not None and param_file is not None:
+                meta_file = os.path.join(os.path.dirname(param_file), "meta.json")
+                if os.path.isfile(meta_file):
+                    with open(meta_file, "r") as f:
+                        meta_data = json.load(f, object_pairs_hook=OrderedDict)
+                        morph_file = os.path.join(morph_path, meta_data[parameter_key][morphology_key]["morphology"])
 
-            morph_file, _ = neuron_prototype.get_morphology(parameter_id=parameter_id,
-                                                            morphology_id=morphology_id,
-                                                            parameter_key=parameter_key,
-                                                            morphology_key=morphology_key)
+            if not morph_file:
+                # We now allow multiple variations of morphologies for a given neuron name, so here NeuronPrototype
+                # is used to acquire the actual morphology file we will use for this particular neuron
+                # based on parameter_id and morphology_id.
+                neuron_prototype = NeuronPrototype(neuron_name=cell_name,
+                                                   neuron_path=None,
+                                                   morphology_path=morph_path,
+                                                   parameter_path=param_file,
+                                                   mechanism_path=mech_file,
+                                                   modulation_path=modulation_file)
 
-        assert morph_file, (f"Neuron {cell_name} with morph_path = {morph_path} ({morphology_id}, "
-                            f"parameter_path = {param_file} ({parameter_id}) "
-                            f"has morph_file = {morph_file} (Should not be None)")
+                morph_file, _ = neuron_prototype.get_morphology(parameter_id=parameter_id,
+                                                                morphology_id=morphology_id,
+                                                                parameter_key=parameter_key,
+                                                                morphology_key=morphology_key)
+
+            assert morph_file, (f"Neuron {cell_name} with morph_path = {morph_path} ({morphology_id}, "
+                                f"parameter_path = {param_file} ({parameter_id}) "
+                                f"has morph_file = {morph_file} (Should not be None)")
 
         self.morph_file = morph_file
 

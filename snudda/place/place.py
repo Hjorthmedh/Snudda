@@ -50,10 +50,9 @@ class SnuddaPlace(object):
                  rc=None,
                  d_view=None,
                  h5libver=None,
-                 raytrace_borders=False,
                  random_seed=None,
                  griddata_interpolation=False,
-                 morphologies_stay_inside=True):  # Setting this to true is 5x slower -- obsolete?
+                 morphologies_stay_inside=True):
 
         """
         Constructor.
@@ -67,7 +66,6 @@ class SnuddaPlace(object):
             rc : ipyparallel remote client
             d_view : ipyparallel direct view object
             h5libver : Version of h5py library
-            raytrace_borders (bool) : Should positions in border voxels be raytraces, slower but more accurate
             random_seed (int) : Numpy random seed
             griddata_interpolation (bool) : Should we interpolate density data (5x slower)
 
@@ -125,8 +123,6 @@ class SnuddaPlace(object):
         self.random_seed = random_seed
         self.random_generator = None
         self.rotate_helper = None
-
-        self.raytrace_borders = raytrace_borders
 
         # This defines the neuron units/channels. The dictionary lists all the
         # members of each unit, the neuronChannel gives the individual neurons
@@ -403,15 +399,6 @@ class SnuddaPlace(object):
                 else:
                     self.write_log(f"Unable to find mesh file {vol_def['meshFile']}")
                     sys.exit(-1)
-
-                # self.volume[volume_id]["mesh"] \
-                #     = RegionMesh(mesh_file,
-                #                  d_view=d_view,
-                #                  raytrace_borders=self.raytrace_borders,
-                #                  d_min=vol_def["dMin"],
-                #                  bin_width=mesh_bin_width,
-                #                  log_file=mesh_logfile,
-                #                  random_seed=vol_seed[volume_id])
 
                 if "n_putative_points" in self.volume[volume_id]:
                     n_putative_points = int(self.volume[volume_id]["n_putative_points"])

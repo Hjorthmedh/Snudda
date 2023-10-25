@@ -109,12 +109,14 @@ class Snudda(object):
                          neurons_dir=args.neurons_dir,
                          connection_file=args.connection_file,
                          overwrite=args.overwrite,
-                         random_seed=args.randomseed)
+                         random_seed=args.randomseed,
+                         honor_stay_inside=args.stay_inside)
 
     def init_config(self, network_size,
                     snudda_data=None,
                     neurons_dir=None,
                     connection_file=None,
+                    honor_stay_inside=True,   # currently the cli.py defaults to sending False
                     overwrite=False,
                     random_seed=None):
 
@@ -144,6 +146,7 @@ class Snudda(object):
                    neurons_dir=neurons_dir,
                    snudda_data=snudda_data,
                    config_file=config_file,
+                   honor_stay_inside=honor_stay_inside,
                    random_seed=random_seed,
                    connection_override_file=connection_file)
 
@@ -161,7 +164,7 @@ class Snudda(object):
             args : command line arguments from argparse
 
         Example:
-            snudda place [--raytraceBorders] [--profile] [--verbose] [--h5legacy] [-parallel] path
+            snudda place [--profile] [--verbose] [--h5legacy] [-parallel] path
 
         """
 
@@ -173,17 +176,17 @@ class Snudda(object):
         self.place_neurons(random_seed=args.randomseed,
                            parallel=args.parallel,
                            ipython_profile=args.ipython_profile,
-                           raytrace_borders=args.raytrace_borders,
                            h5libver=h5libver,
-                           verbose=args.verbose)
+                           verbose=args.verbose,
+                           honor_stay_inside=args.stay_inside)
 
     def place_neurons(self,
                       random_seed=None,
                       parallel=False,
                       ipython_profile=None,
-                      raytrace_borders=False,
                       h5libver="latest",
-                      verbose=False):
+                      verbose=False,
+                      honor_stay_inside=False):
 
         # self.networkPath = args.path
         print("Placing neurons")
@@ -203,8 +206,8 @@ class Snudda(object):
                          verbose=verbose,
                          d_view=self.d_view,
                          h5libver=h5libver,
-                         raytrace_borders=raytrace_borders,
-                         random_seed=random_seed)
+                         random_seed=random_seed,
+                         morphologies_stay_inside=honor_stay_inside)
 
         sp.place()
 
@@ -567,7 +570,8 @@ class Snudda(object):
         self.simulate(network_file=args.network_file, input_file=args.input_file,
                       output_file=args.output_file, snudda_data=args.snudda_data,
                       time=args.time,
-                      mech_dir=args.mech_dir, neuromodulation=args.neuromodulation,
+                      mech_dir=args.mech_dir,
+                      neuromodulation=args.neuromodulation,
                       disable_synapses=args.disable_synapses,
                       disable_gj=args.disable_gj,
                       record_volt=args.record_volt,
@@ -575,10 +579,14 @@ class Snudda(object):
                       export_core_neuron=args.exportCoreNeuron,
                       verbose=args.verbose)
 
-    def simulate(self, network_file=None, input_file=None, output_file=None,
+    def simulate(self,
+                 network_file=None,
+                 input_file=None,
+                 output_file=None,
                  snudda_data=None,
                  time=None,
-                 mech_dir=None, neuromodulation=None,
+                 mech_dir=None,
+                 neuromodulation=None,
                  disable_synapses=False,
                  disable_gj=False,
                  record_volt=False,

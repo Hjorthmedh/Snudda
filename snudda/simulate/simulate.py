@@ -463,7 +463,9 @@ class SnuddaSimulate(object):
 
             config = self.config["Neurons"][name]
 
-            morph = snudda_parse_path(config["morphology"], self.snudda_data)
+            # We need to get morphology from network_info, since it can now be redefined for bent morphologies
+            morph = snudda_parse_path(self.network_info["neurons"][ID]["morphology"], self.snudda_data)
+            # morph = snudda_parse_path(config["morphology"], self.snudda_data)
             param = snudda_parse_path(config["parameters"], self.snudda_data)
             mech = snudda_parse_path(config["mechanisms"], self.snudda_data)
 
