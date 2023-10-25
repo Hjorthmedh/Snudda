@@ -276,8 +276,6 @@ class SnuddaPlace(object):
             else:
                 morphology_id = None
 
-            print(f"Debugging: morphology_id = {morphology_id}")
-
             n = neuron_prototype.clone(position=coords,
                                        rotation=rotation,
                                        morphology_id=morphology_id,
