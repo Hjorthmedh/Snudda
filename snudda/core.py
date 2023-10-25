@@ -164,7 +164,7 @@ class Snudda(object):
             args : command line arguments from argparse
 
         Example:
-            snudda place [--raytraceBorders] [--profile] [--verbose] [--h5legacy] [-parallel] path
+            snudda place [--profile] [--verbose] [--h5legacy] [-parallel] path
 
         """
 
@@ -176,7 +176,6 @@ class Snudda(object):
         self.place_neurons(random_seed=args.randomseed,
                            parallel=args.parallel,
                            ipython_profile=args.ipython_profile,
-                           raytrace_borders=args.raytrace_borders,
                            h5libver=h5libver,
                            verbose=args.verbose,
                            honor_stay_inside=args.stay_inside)
@@ -185,7 +184,6 @@ class Snudda(object):
                       random_seed=None,
                       parallel=False,
                       ipython_profile=None,
-                      raytrace_borders=False,
                       h5libver="latest",
                       verbose=False,
                       honor_stay_inside=False):
@@ -208,7 +206,6 @@ class Snudda(object):
                          verbose=verbose,
                          d_view=self.d_view,
                          h5libver=h5libver,
-                         raytrace_borders=raytrace_borders,
                          random_seed=random_seed,
                          morphologies_stay_inside=honor_stay_inside)
 
