@@ -8,6 +8,7 @@ import glob
 import json
 import os.path
 import sys
+import inspect
 
 import numexpr
 #
@@ -34,7 +35,8 @@ class SnuddaInit(object):
                  neurons_dir=None,
                  config_file=None,
                  random_seed=None,
-                 connection_override_file=None):
+                 connection_override_file=None,
+                 honor_stay_inside=False):
 
         """Constructor
 
@@ -99,8 +101,12 @@ class SnuddaInit(object):
 
         if struct_def:
             for sn in struct_def:
-                print(f"Adding {sn} with {struct_def[sn]} neurons")
-                struct_func[sn](num_neurons=struct_def[sn], neurons_dir=neurons_dir)
+                if "stay_inside" in inspect.getargspec(struct_func[sn]).args:
+                    print(f"Adding {sn} with {struct_def[sn]} neurons (stay_inside={honor_stay_inside})")
+                    struct_func[sn](num_neurons=struct_def[sn], neurons_dir=neurons_dir, stay_inside=honor_stay_inside)
+                else:
+                    print(f"Adding {sn} with {struct_def[sn]} neurons")
+                    struct_func[sn](num_neurons=struct_def[sn], neurons_dir=neurons_dir)
 
             if connection_override_file:
                 self.replace_connectivity(connection_file=connection_override_file)

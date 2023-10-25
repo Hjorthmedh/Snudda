@@ -109,12 +109,14 @@ class Snudda(object):
                          neurons_dir=args.neurons_dir,
                          connection_file=args.connection_file,
                          overwrite=args.overwrite,
-                         random_seed=args.randomseed)
+                         random_seed=args.randomseed,
+                         honor_stay_inside=args.stay_inside)
 
     def init_config(self, network_size,
                     snudda_data=None,
                     neurons_dir=None,
                     connection_file=None,
+                    honor_stay_inside=True,   # currently the cli.py defaults to sending False
                     overwrite=False,
                     random_seed=None):
 
@@ -144,6 +146,7 @@ class Snudda(object):
                    neurons_dir=neurons_dir,
                    snudda_data=snudda_data,
                    config_file=config_file,
+                   honor_stay_inside=honor_stay_inside,
                    random_seed=random_seed,
                    connection_override_file=connection_file)
 
@@ -175,7 +178,8 @@ class Snudda(object):
                            ipython_profile=args.ipython_profile,
                            raytrace_borders=args.raytrace_borders,
                            h5libver=h5libver,
-                           verbose=args.verbose)
+                           verbose=args.verbose,
+                           honor_stay_inside=args.stay_inside)
 
     def place_neurons(self,
                       random_seed=None,
@@ -183,7 +187,8 @@ class Snudda(object):
                       ipython_profile=None,
                       raytrace_borders=False,
                       h5libver="latest",
-                      verbose=False):
+                      verbose=False,
+                      honor_stay_inside=False):
 
         # self.networkPath = args.path
         print("Placing neurons")
@@ -204,7 +209,8 @@ class Snudda(object):
                          d_view=self.d_view,
                          h5libver=h5libver,
                          raytrace_borders=raytrace_borders,
-                         random_seed=random_seed)
+                         random_seed=random_seed,
+                         morphologies_stay_inside=honor_stay_inside)
 
         sp.place()
 
