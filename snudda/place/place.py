@@ -569,10 +569,31 @@ class SnuddaPlace(object):
             if "stayInsideMesh" in config and config["stayInsideMesh"]:
                 volume_id = config["volumeID"]
                 mesh_file = self.config["Volume"][volume_id]["meshFile"]
+
+                if type(config["stayInsideMesh"]) in (dict, OrderedDict):
+                    if "k_dist" in config["stayInsideMesh"]:
+                        k_dist = config["stayInsideMesh"]["k_dist"]
+                    else:
+                        k_dist = 30e-6
+
+                    if "n_random" in config["stayInsideMesh"]:
+                        n_random = config["stayInsideMesh"]["n_random"]
+                    else:
+                        n_random = 5
+
+                    if "max_angle" in config["stayInsideMesh"]:
+                        max_angle = config["stayInsideMesh"]["max_angle"]
+                    else:
+                        max_angle = 0.1  # radians
+                else:
+                    k_dist = 30e-6
+                    n_random = 5
+                    max_angle = 0.1  # radians
+
                 bend_neuron_info.append((neuron.neuron_id, neuron.name, neuron.swc_filename,
                                          neuron.position, neuron.rotation,
                                          neuron_random_seed[neuron.neuron_id],
-                                         volume_id, mesh_file))
+                                         volume_id, mesh_file, k_dist, n_random, max_angle))
 
         bend_morph_path = os.path.join(self.network_path, "modified_morphologies")
 
@@ -625,8 +646,8 @@ class SnuddaPlace(object):
 
         modified_morphologies = []
 
-        for neuron_id, neuron_name, swc_filename, position, rotation, random_seed, volume_id, mesh_file \
-                in bend_neuron_info:
+        for neuron_id, neuron_name, swc_filename, position, rotation, random_seed, volume_id, mesh_file,\
+            k_dist, n_random, max_angle in bend_neuron_info:
 
             if volume_id not in bend_morph:
                 bend_morph[volume_id] = BendMorphologies(region_mesh=mesh_file, rng=None)
@@ -637,7 +658,10 @@ class SnuddaPlace(object):
                                                                             new_file=new_morph_name,
                                                                             original_position=position,
                                                                             original_rotation=rotation,
-                                                                            random_seed=random_seed)
+                                                                            random_seed=random_seed,
+                                                                            k_dist=k_dist,
+                                                                            n_random=n_random,
+                                                                            max_angle=max_angle)
 
             if new_morphology:
                 modified_morphologies.append((neuron_id, new_morphology))

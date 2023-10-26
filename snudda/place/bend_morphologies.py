@@ -24,7 +24,9 @@ class BendMorphologies:
 
         return inside_flag
 
-    def bend_morphology(self, morphology: NeuronMorphologyExtended, k=30e-6, n_random=5, random_seed=None):
+    def bend_morphology(self, morphology: NeuronMorphologyExtended,
+                        k_dist=30e-6, max_angle=0.1,  # angle in radians
+                        n_random=5, random_seed=None):
 
         # k -- how early will the neuron start bending when it approaches the border
 
@@ -93,7 +95,7 @@ class BendMorphologies:
                     # Parent has not moved, so use stored original distance
                     dist = section_dist[idx]
 
-                P_move = 1 / (1 + np.exp(-dist/k))
+                P_move = 1 / (1 + np.exp(-dist/k_dist))
 
                 # Cache the random numbers for segments in the section...
                 if dist > parent_dist and rng.uniform() < P_move:
@@ -103,7 +105,7 @@ class BendMorphologies:
 
                     # We need to randomize new rotation matrix
                     # https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.html
-                    angles = rng.uniform(size=(n_random, 3), low=-0.1, high=0.1)  # Angles in radians
+                    angles = rng.uniform(size=(n_random, 3), low=-max_angle, high=max_angle)  # Angles in radians
                     avoidance_rotations = Rotation.from_euler(seq="XYZ", angles=angles)
 
                     for idx2, av_rot in enumerate(avoidance_rotations):
@@ -342,11 +344,16 @@ class BendMorphologies:
 
         print(f"Wrote {output_file}")
 
-    def edge_avoiding_morphology(self, swc_file, new_file, original_position, original_rotation, random_seed=None):
+    def edge_avoiding_morphology(self, swc_file, new_file, original_position, original_rotation,
+                                 k_dist=30e-6, max_angle=0.1, n_random=5,
+                                 random_seed=None):
 
         md = MorphologyData(swc_file=swc_file)
         md.place(rotation=original_rotation, position=original_position)
-        rot_rep, morphology_changed = self.bend_morphology(md, random_seed=random_seed)
+        rot_rep, morphology_changed = self.bend_morphology(md,
+                                                           k_dist=k_dist, max_angle=max_angle,
+                                                           n_random=n_random,
+                                                           random_seed=random_seed)
 
         if morphology_changed:
             new_coord = self.apply_rotation(md, rot_rep)
