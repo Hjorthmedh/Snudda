@@ -277,8 +277,6 @@ class NeuronModel(ephys.models.CellModel):
 
         assert (morph_file is not None)
 
-        # print("Using morphology: " + morph_file)
-
         return ephys.morphologies.NrnFileMorphology(morph_file, do_replace_axon=replace_axon)
 
     # OLD BUGFIX FOR segment pop

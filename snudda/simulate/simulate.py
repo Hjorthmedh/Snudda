@@ -1234,6 +1234,9 @@ class SnuddaSimulate(object):
 
             self.write_log(f"Neuron {self.neurons[neuron_id].name} ({neuron_id}) resting voltage = {rest_volt * 1e3}")
 
+            # import pdb
+            # pdb.set_trace()
+
             soma = [x for x in self.neurons[neuron_id].icell.soma]
             axon = [x for x in self.neurons[neuron_id].icell.axon]
             dend = [x for x in self.neurons[neuron_id].icell.dend]

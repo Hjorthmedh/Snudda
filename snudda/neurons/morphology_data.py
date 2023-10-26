@@ -252,6 +252,10 @@ class MorphologyData:
 
         data = np.loadtxt(swc_file)
 
+        if len(data.shape) == 1:
+            # This is to handle case when we only have a soma
+            data = data.reshape([1, 7])
+
         if any(np.diff(data[:, 0]) != 1):
             raise IndexError(f"SWC file has gaps in ID numbering ({swc_file})")
 
