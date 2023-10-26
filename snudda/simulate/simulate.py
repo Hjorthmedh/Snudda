@@ -1390,7 +1390,7 @@ class SnuddaSimulate(object):
         for cid in cell_id:
 
             if cid in self.neurons.keys() and not self.is_virtual_neuron[cid]:
-                self.add_volt_recording(cid, [0], [0.5])
+                self.add_volt_recording(cid, [-1], [0.5])  # Soma is sec_id=-1
 
     def add_volt_recording(self, cell_id: int, sec_id, sec_x):
 
