@@ -190,18 +190,12 @@ class InputTestCase(unittest.TestCase):
                     f_gen = len(t_idx) / (n_traces * (et - st))
                     print(f"ID {neuron_id_str} {neuron_name} {input_type} f={f}, f_gen={f_gen}")
 
-                    try:
-                        if np.max(input_info["spikes"].attrs["correlation"]) == 0:
-                            self.assertTrue(f_gen > f - 5*np.sqrt(f)/np.sqrt(n_traces))
-                            self.assertTrue(f_gen < f + 5*np.sqrt(f)/np.sqrt(n_traces))
-                        else:
-                            # For high correlations and short durations we have huge fluctuations, so skip those
-                            pass
-                    except:
-                        import pdb
-                        import traceback
-                        print(traceback.format_exc())
-                        pdb.set_trace()
+                    if np.max(input_info["spikes"].attrs["correlation"]) == 0:
+                        self.assertTrue(f_gen > f - 5*np.sqrt(f)/np.sqrt(n_traces))
+                        self.assertTrue(f_gen < f + 5*np.sqrt(f)/np.sqrt(n_traces))
+                    else:
+                        # For high correlations and short durations we have huge fluctuations, so skip those
+                        pass
 
                 if "populationUnitCorrelation" in config_data[neuron_type][input_type]:
                     correlation = config_data[neuron_type][input_type]["populationUnitCorrelation"]
@@ -227,16 +221,9 @@ class InputTestCase(unittest.TestCase):
                     readout = np.zeros((spikes.size, ))
                     ctr = 0
                     for t_idx in (spikes.flatten() / bin_size).astype(int):
-                        try:
-                            if t_idx > 0:
-                                readout[ctr] = binned_data[t_idx]
-                                ctr += 1
-                        except:
-                            import traceback
-                            t_str = traceback.format_exc()
-                            print(t_str)
-                            import pdb
-                            pdb.set_trace()
+                        if t_idx > 0:
+                            readout[ctr] = binned_data[t_idx]
+                            ctr += 1
 
                     readout = readout[:ctr]
 
@@ -272,19 +259,9 @@ class InputTestCase(unittest.TestCase):
 
                     print(f"Simultaneous spikes: {np.mean(readout):.2f} (expected {expected_mean:.2f}) "
                           f"- correlation {correlation}")
-                    try:
-                        if jitter <= 0.001:
-                            # Only do check for non-jittered input
-                            self.assertTrue(expected_mean * 0.75 < np.mean(readout) < expected_mean * 1.25)
-
-                    except:
-                        import traceback
-
-                        t_str = traceback.format_exc()
-                        print(t_str)
-                        import pdb
-
-                        pdb.set_trace()
+                    if jitter <= 0.001:
+                        # Only do check for non-jittered input
+                        self.assertTrue(expected_mean * 0.75 < np.mean(readout) < expected_mean * 1.25)
 
     def test_input_2(self):
 
@@ -305,23 +282,17 @@ class InputTestCase(unittest.TestCase):
 
         # OBS, population unit 0 does not get any of the extra mother spikes specified
         # So we need to check FS neuron that belongs to population unit 1 or 2.
-        some_spikes = input_data["input/1/Cortical/spikes"][()].flatten()
+        some_spikes = input_data["input/3/Cortical/spikes"][()].flatten()
         some_spikes = some_spikes[some_spikes >= 0]
-        n_trains = input_data["input/1/Cortical/spikes"][()].shape[0]
+        n_trains = input_data["input/3/Cortical/spikes"][()].shape[0]
 
         for extra_spike in [0.2, 0.3, 0.45]:
 
-            try:
-                self.assertTrue(np.sum(np.abs(some_spikes - extra_spike) < 1e-4)
-                                >= n_trains)
-                self.assertTrue(np.sum(np.abs(some_spikes - extra_spike + 0.05) < 1e-3) < 50)
-            except:
-                import traceback
-                print(traceback.format_exc())
-                import pdb
-                pdb.set_trace()
+            self.assertTrue(np.sum(np.abs(some_spikes - extra_spike) < 1e-4)
+                            >= n_trains)
+            self.assertTrue(np.sum(np.abs(some_spikes - extra_spike + 0.05) < 1e-3) < 50)
 
-        some_spikes2 = input_data["input/1/Thalamic/spikes"][()].flatten()
+        some_spikes2 = input_data["input/3/Thalamic/spikes"][()].flatten()
         some_spikes2 = some_spikes2[some_spikes2 >= 0]
 
         for spike in [0.1, 0.2, 0.3]:
@@ -332,6 +303,7 @@ class InputTestCase(unittest.TestCase):
         # Check input generated, this focuses on the frequency function generation
         # and also checks input correlation
 
+        # TODO: New cell numbering, so need to pick other cell numbers
         some_spikes_c3 = input_data["input/3/CorticalSignal/spikes"][()]
         some_spikes_c8 = input_data["input/8/CorticalSignal/spikes"][()]
 

@@ -30,7 +30,7 @@ class RegionMesh(object):
             pickle_version (int) : Which version of pickle to use? (-1 latest)
             raytrace_borders (bool) : Raytrace positions in border regions? Slower, but more accurate.
             d_min (float) : Closest distance between soma
-            bin_width (float) : Mesh size
+            bin_width (float) : Mesh size in meters
             logfile_name (str) : Path to logfile
             log_file : File pointer to log file
             random_seed (int) : Random seed value
@@ -418,7 +418,7 @@ class RegionMesh(object):
                 self.mesh_vec[ir, :] = row
 
             for ir, row in enumerate(all_faces):
-                self.mesh_faces[ir,] = row
+                self.mesh_faces[ir, ] = row
 
             for ir, row in enumerate(all_norm):
                 self.mesh_norm[ir, :] = row
@@ -562,7 +562,7 @@ class RegionMesh(object):
 
     def _voxel_mask_helper(self, x_range):
 
-        """ Helper function. """
+        """ Helper function. Determine if voxels are inner our outer."""
 
         try:
 
@@ -825,20 +825,17 @@ class RegionMesh(object):
 
         if np.sum(self.voxel_mask_border):
             # If we do raytracing then the border exists
-            self.voxel_mask_padding = np.copy(self.voxel_mask_border)
-
-            self.voxel_mask_padding = \
-                scipy.ndimage.binary_dilation(self.voxel_mask_padding,
-                                              structure=s,
-                                              iterations=n_dist)
+            dilated_mask = scipy.ndimage.binary_dilation(self.voxel_mask_border,
+                                                         structure=s,
+                                                         iterations=n_dist)
         else:
             # No ray tracing, we need to create a padding region
 
             dilated_mask = scipy.ndimage.binary_dilation(self.voxel_mask_inner,
                                                          structure=s,
                                                          iterations=n_dist)
-            self.voxel_mask_padding = \
-                np.logical_xor(dilated_mask, self.voxel_mask_inner)
+
+        self.voxel_mask_padding = np.logical_and(dilated_mask, ~self.voxel_mask_inner)
 
     ############################################################################
 
@@ -976,6 +973,10 @@ class RegionMesh(object):
                 self.density_total_n_sample[neuron_type] += 1
 
                 try:
+                    # We are sampling the densities, to see how much of the density mass is in
+                    # the current voxel compared to the total density mass in all voxels together
+                    # That should tell us what fraction of all the neurons placed of that type
+                    # should be in this particular voxel
                     n_expected = (self.density_voxel_sum[neuron_type][vx, vy, vz]
                                   / self.density_total_sum[neuron_type]
                                   * (self.placed_total[neuron_type] + 1))

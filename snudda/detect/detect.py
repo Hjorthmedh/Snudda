@@ -27,9 +27,10 @@ import numpy as np
 from numba import jit
 
 import snudda.utils.memory
+from snudda.neurons import NeuronMorphologyExtended
 from snudda.neurons.morphology_data import MorphologyData
 from snudda.utils import NumpyEncoder
-from snudda.utils.snudda_path import get_snudda_data
+from snudda.utils.snudda_path import get_snudda_data, snudda_parse_path
 from snudda.detect.projection_detection import ProjectionDetection
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.load import SnuddaLoad
@@ -549,26 +550,33 @@ class SnuddaDetect(object):
             hyper_voxel_id = self.hyper_voxel_id_lookup[tuple(hyper_voxel_coords[inside_idx, :].T)]
             section_type_id = subtree.section_data[inside_idx, :][:, [2, 0]]
 
-            hid_st_sid = np.hstack([hyper_voxel_id.reshape([hyper_voxel_id.shape[0], 1]), section_type_id])
+            tree_info[subtree_name] = np.hstack([hyper_voxel_id.reshape([hyper_voxel_id.shape[0], 1]), section_type_id])
 
-            # We also need to add parent points with the child branch's section id
-            # This is so we do not miss the first bit between the parent point and the first real point of the branch
-            parent_rows = []
-            if inside_idx.all():
-                # If inside_idx are all True then hyper_voxel_id is same length
-                # as subtree.geometry (should be valid for all but possibly Virtual Axons)
-
-                for tree_type in subtree.sections:
-                    for section in subtree.sections[tree_type].values():
-
-                        if section.section_type == 1:
-                            # Soma has no parent, skip
-                            continue
-
-                        parent_idx = section.point_idx[0]
-                        parent_rows.append([hyper_voxel_id[parent_idx], section.section_type, section.section_id])
-
-            tree_info[subtree_name] = np.unique(np.vstack([hid_st_sid, parent_rows]), axis=0)
+            # TODO: This should no longer be necessary! PARENT POINT should be included if
+            #       parent section type is the same
+            #
+            # # We also need to add parent points with the child branch's section id
+            # # This is to not miss the first bit between the parent point and the first real point of the branch
+            # parent_rows = []
+            # if inside_idx.all():
+            #     # If inside_idx are all True then hyper_voxel_id is same length
+            #     # as subtree.geometry (should be valid for all but possibly Virtual Axons)
+            #
+            #     for tree_type in subtree.sections:
+            #         for section in subtree.sections[tree_type].values():
+            #
+            #             if section.section_type == 1:
+            #                 # Soma has no parent, skip
+            #                 continue
+            #
+            #             parent_idx = section.point_idx[0]
+            #             parent_rows.append([hyper_voxel_id[parent_idx], section.section_type, section.section_id])
+            #
+            # if len(parent_rows) > 0:
+            #     tree_info[subtree_name] = np.unique(np.vstack([hid_st_sid, parent_rows]), axis=0)
+            # else:
+            #     # This is the case if we only have a soma
+            #     tree_info[subtree_name] = hid_st_sid
 
             # OBS, there is a rare case when a line segment starts in a hyper voxel, crosses a second hyper voxel
             # and ends up in a third hyper voxel. In this case the intermediate second hyper voxel will be missed if
@@ -2300,15 +2308,25 @@ class SnuddaDetect(object):
         """
 
         neuron_id = neuron_info["neuronID"]
+
         if use_cache and neuron_id in self.neuron_cache:
             return self.neuron_cache[neuron_id]
+
+        morph_path = snudda_parse_path(neuron_info["morphology"], self.snudda_data)
+        if os.path.isfile(morph_path):
+            morphology_path = morph_path
+        else:
+            morphology_path = None  # Get morpholog automatically from morphology_key
+
+        # print(f"morphology_path = {morphology_path}")
 
         # Clone prototype neuron (it is centred, and not rotated)
         neuron = self.prototype_neurons[neuron_info["name"]].clone(parameter_key=neuron_info["parameterKey"],
                                                                    morphology_key=neuron_info["morphologyKey"],
                                                                    modulation_key=neuron_info["modulationKey"],
                                                                    rotation=neuron_info["rotation"],
-                                                                   position=neuron_info["position"])
+                                                                   position=neuron_info["position"],
+                                                                   morphology_path=morphology_path)
 
         if "extraAxons" in neuron_info:
             for axon_name, axon_info in neuron_info["extraAxons"].items():
@@ -2705,6 +2723,11 @@ class SnuddaDetect(object):
                     try:
                         max_coord = np.maximum(max_coord, np.max(subtree.geometry[:, :3], axis=0))
                         min_coord = np.minimum(min_coord, np.min(subtree.geometry[:, :3], axis=0))
+
+                        if np.isnan(min_coord).any() or np.isnan(max_coord).any():
+                            print(f"Problem with morphology: {neuron}")
+                            import pdb
+                            pdb.set_trace()
                     except:
                         import traceback
                         print(traceback.format_exc())
@@ -2916,7 +2939,11 @@ class SnuddaDetect(object):
         # Remove this check later... should be done in morphology_data
         if (num_steps <= 0).any(): 
             print(f"Found zero length dendrite segment in neuron_id {neuron_id}")
+            # import pdb
+            # pdb.set_trace()
+
             raise ValueError(f"Found zero length dendrite segment (please check morphologies).")
+
 
         # Loop through all point-pairs of the section
         for idx in range(0, len(scaled_soma_dist)-1):

@@ -18,6 +18,7 @@ import scipy.sparse as sps
 
 from snudda.utils.load import SnuddaLoad
 from snudda.utils.snudda_path import snudda_parse_path
+from snudda.utils.numpy_encoder import NumpyEncoder
 
 # !!! We need to parallelise the analysis script also!
 
@@ -888,7 +889,8 @@ class SnuddaAnalyse:
                                     return_ax=False,
                                     colour="black",
                                     show_plot=None,
-                                    save_figure=True):
+                                    save_figure=True,
+                                    dump_data_to_file=None):
 
         if volume_id is None:
             volume_id = self.volume_id
@@ -951,6 +953,22 @@ class SnuddaAnalyse:
         (dist, p_con, count_con, count_all) = \
             self.connection_probability(pre_id, post_id, num_bins, dist_3d=dist_3d,
                                         connection_type=connection_type)
+
+        if dump_data_to_file is not None:
+            print(f"Updating connection probability data stored in {dump_data_to_file}")
+
+            if os.path.isfile(dump_data_to_file):
+                print(f"Appending connection data to {dump_data_to_file}")
+                with open(dump_data_to_file, "r") as f:
+                    file_data = json.load(f)
+            else:
+                print(f"Creating {dump_data_to_file}")
+                file_data = dict()
+
+            file_data[f"{pre_type},{post_type}"] = (dist.flatten(), p_con.flatten(), count_con.flatten(), count_all.flatten())
+
+            with open(dump_data_to_file, "w") as f:
+                json.dump(file_data, f, indent=4, cls=NumpyEncoder)
 
         # Now let's plot it
 

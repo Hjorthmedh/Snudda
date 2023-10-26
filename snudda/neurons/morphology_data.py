@@ -179,7 +179,7 @@ class MorphologyData:
 
         Args:
             swc_file (str): Path to SWC file
-            parent_tree_info (tuple, optional): Specify subtree attachment point
+                parent_tree_info (tuple, optional): Specify subtree attachment point
                                                 (MorphologyData, parent_label, parent_point_idx, arc_factor)
 
     """
@@ -227,6 +227,12 @@ class MorphologyData:
         for sid in section_id:
             yield self.sections[section_type][sid]
 
+    def has_axon(self):
+        return len(self.sections[2]) > 0
+
+    def has_dendrite(self):
+        return len(self.sections[3]) > 0
+
     def load_swc_file(self, swc_file=None, remapping_types={4: 3}, use_cache=True):
 
         """ Loads SWC morphology, not SNUDDA_DATA aware (file must exist).
@@ -251,6 +257,10 @@ class MorphologyData:
                 return
 
         data = np.loadtxt(swc_file)
+
+        if len(data.shape) == 1:
+            # This is to handle case when we only have a soma
+            data = data.reshape([1, 7])
 
         if any(np.diff(data[:, 0]) != 1):
             raise IndexError(f"SWC file has gaps in ID numbering ({swc_file})")
@@ -738,7 +748,7 @@ class MorphologyData:
 
         if section_type is None:
             for section_dict in self.sections.values():
-                for section in section_dict:
+                for section in section_dict.values():
                     yield section
 
         elif section_type in self.sections:

@@ -16,6 +16,7 @@ setuptools
 psutil >= 5.8.0
 cython  # Needed for compiling NEURON
 wheel  # setup.py seems to need this now
+open3d
 
 # igraph
 # snudda

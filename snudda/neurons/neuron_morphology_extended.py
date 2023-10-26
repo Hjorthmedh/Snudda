@@ -139,6 +139,9 @@ class NeuronMorphologyExtended:
                 for section in subtree.section_iterator(section_type=section_type):
                     yield section
 
+    def get_morphology(self):
+        return self.morphology_data["neuron"]
+
     def section_iterator_selective(self, section_type, section_id, subtree="neuron"):
         return self.morphology_data[subtree].section_iterator_selective(section_type=section_type,
                                                                         section_id=section_id)
@@ -421,6 +424,9 @@ class NeuronMorphologyExtended:
                 syn_idx = rng.choice(a=dend_idx, size=num_locations, replace=True,
                                      p=expected_synapses[dend_idx] / expected_sum)
             except:
+                print(f"dend_idx={dend_idx}\n"
+                      f"num_locations={num_locations}\n"
+                      f"p={expected_synapses[dend_idx] / expected_sum}")
                 import traceback
                 self.write_log(traceback.format_exc(), is_error=True)
                 import pdb

@@ -44,8 +44,9 @@ def snudda_cli():
                              help="Path to neurons_dir, default is $DATA/neurons (DEPRECATED, use --snudda_data instead")
     init_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory",
                              action="store_true")
-    init_parser.add_argument("-connectionFile", "--connectionFile", default=None,
+    init_parser.add_argument("-connectionFile", "--connectionFile", default=None, dest="connection_file",
                              help="Use connectivity from user specified JSON file")
+    init_parser.add_argument("--honorStayInside", "--stayInside", default=False, dest="stay_inside", action="store_true")
     init_parser.add_argument("-randomseed", "--randomseed", "--seed", default=None, help="Random seed", type=int)
     init_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     init_parser.add_argument("--verbose", action="store_true")
@@ -53,8 +54,7 @@ def snudda_cli():
     place_parser = sub_parsers.add_parser("place")
     place_parser.add_argument("path", help="Location of network")
     place_parser.add_argument("-randomseed", "--randomseed", "--seed", default=None, help="Random seed", type=int)
-    place_parser.add_argument("--raytraceBorders", help="Ray traces for more precise mesh edge detection",
-                              action="store_true", dest="raytrace_borders", default=False)
+    place_parser.add_argument("--honorStayInside", "--stayInside", dest="stay_inside", default=False, action="store_true")
     place_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     place_parser.add_argument("--verbose", action="store_true")
     place_parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
@@ -74,7 +74,6 @@ def snudda_cli():
     detect_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
     detect_parser.add_argument("-ipython_profile", "--ipython_profile", default=None)
 
-
     prune_parser = sub_parsers.add_parser("prune")
     prune_parser.add_argument("path", help="Location of network")
     prune_parser.add_argument("-randomseed", "--randomseed", "--seed", default=None, help="Random seed", type=int)
@@ -89,7 +88,6 @@ def snudda_cli():
                               help="Also saved network-putative-synapses.hdf5 with unpruned network")
     prune_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
     prune_parser.add_argument("-ipython_profile", "--ipython_profile", default=None)
-
 
     input_parser = sub_parsers.add_parser("input")
     input_parser.add_argument("path", help="Location of network")
@@ -154,15 +152,15 @@ def snudda_cli():
 
     snudda = Snudda(args.path)
 
-    actions = {"init": snudda.init_config,
-               "place": snudda.place_neurons,
-               "detect": snudda.touch_detection,
-               "prune": snudda.prune_synapses,
-               "input": snudda.setup_input,
-               "export": snudda.export_to_SONATA,
-               "convert": snudda.export_to_SONATA,
+    actions = {"init": snudda.init_config_wrapper,
+               "place": snudda.place_neurons_wrapper,
+               "detect": snudda.touch_detection_wrapper,
+               "prune": snudda.prune_synapses_wrapper,
+               "input": snudda.setup_input_wrapper,
+               "export": snudda.export_to_SONATA_wrapper,
+               "convert": snudda.export_to_SONATA_wrapper,
                "analyse": snudda.analyse,
-               "simulate": snudda.simulate,
+               "simulate": snudda.simulate_wrapper,
                "help": snudda.help_info}
 
     if not hasattr(args, 'ipython_profile'):
