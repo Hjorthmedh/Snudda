@@ -216,6 +216,8 @@ class Snudda(object):
         self.stop_parallel()
         self.close_log_file()
 
+        return sp
+
     ############################################################################
 
     def touch_detection_wrapper(self, args):
@@ -318,6 +320,8 @@ class Snudda(object):
         self.stop_parallel()
         self.close_log_file()
 
+        return sd, sp
+
     ############################################################################
 
     def prune_synapses_wrapper(self, args):
@@ -389,6 +393,8 @@ class Snudda(object):
 
         self.stop_parallel()
         self.close_log_file()
+
+        return sp
 
     ############################################################################
 
@@ -471,6 +477,8 @@ class Snudda(object):
 
         self.stop_parallel()
         self.close_log_file()
+
+        return si
 
     ############################################################################
 
@@ -752,6 +760,7 @@ class Snudda(object):
             print(f"Program run time: {stop - start:.1f}s")
 
         # sim.plot()
+        return sim
 
     ############################################################################
 

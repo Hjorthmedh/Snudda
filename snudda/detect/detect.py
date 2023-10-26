@@ -550,26 +550,33 @@ class SnuddaDetect(object):
             hyper_voxel_id = self.hyper_voxel_id_lookup[tuple(hyper_voxel_coords[inside_idx, :].T)]
             section_type_id = subtree.section_data[inside_idx, :][:, [2, 0]]
 
-            hid_st_sid = np.hstack([hyper_voxel_id.reshape([hyper_voxel_id.shape[0], 1]), section_type_id])
+            tree_info[subtree_name] = np.hstack([hyper_voxel_id.reshape([hyper_voxel_id.shape[0], 1]), section_type_id])
 
-            # We also need to add parent points with the child branch's section id
-            # This is so we do not miss the first bit between the parent point and the first real point of the branch
-            parent_rows = []
-            if inside_idx.all():
-                # If inside_idx are all True then hyper_voxel_id is same length
-                # as subtree.geometry (should be valid for all but possibly Virtual Axons)
-
-                for tree_type in subtree.sections:
-                    for section in subtree.sections[tree_type].values():
-
-                        if section.section_type == 1:
-                            # Soma has no parent, skip
-                            continue
-
-                        parent_idx = section.point_idx[0]
-                        parent_rows.append([hyper_voxel_id[parent_idx], section.section_type, section.section_id])
-
-            tree_info[subtree_name] = np.unique(np.vstack([hid_st_sid, parent_rows]), axis=0)
+            # TODO: This should no longer be necessary! PARENT POINT should be included if
+            #       parent section type is the same
+            #
+            # # We also need to add parent points with the child branch's section id
+            # # This is to not miss the first bit between the parent point and the first real point of the branch
+            # parent_rows = []
+            # if inside_idx.all():
+            #     # If inside_idx are all True then hyper_voxel_id is same length
+            #     # as subtree.geometry (should be valid for all but possibly Virtual Axons)
+            #
+            #     for tree_type in subtree.sections:
+            #         for section in subtree.sections[tree_type].values():
+            #
+            #             if section.section_type == 1:
+            #                 # Soma has no parent, skip
+            #                 continue
+            #
+            #             parent_idx = section.point_idx[0]
+            #             parent_rows.append([hyper_voxel_id[parent_idx], section.section_type, section.section_id])
+            #
+            # if len(parent_rows) > 0:
+            #     tree_info[subtree_name] = np.unique(np.vstack([hid_st_sid, parent_rows]), axis=0)
+            # else:
+            #     # This is the case if we only have a soma
+            #     tree_info[subtree_name] = hid_st_sid
 
             # OBS, there is a rare case when a line segment starts in a hyper voxel, crosses a second hyper voxel
             # and ends up in a third hyper voxel. In this case the intermediate second hyper voxel will be missed if
