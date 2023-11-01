@@ -1239,6 +1239,7 @@ class SnuddaSimulate(object):
 
             soma = [x for x in self.neurons[neuron_id].icell.soma]
             axon = [x for x in self.neurons[neuron_id].icell.axon]
+            # If there are no dendrites this will crash NEURON icell.dend has length == 1, but that is WRONG
             dend = [x for x in self.neurons[neuron_id].icell.dend]
 
             cell = soma + axon + dend
@@ -1365,17 +1366,17 @@ class SnuddaSimulate(object):
         local_cell_id = np.intersect1d(cell_id, list(self.neurons.keys()))
 
         for cid in local_cell_id:
-            sec_id = [0]
+            sec_id = [-1]  # Soma is sec_id = -1
             sec_x = [0.5]
 
             for sid, sec in enumerate(self.neurons[cid].icell.dend):
 
                 if centre_only_flag:
-                    sec_id.append(sid+1)
+                    sec_id.append(sid)
                     sec_x.append(0.5)
                 else:
                     for seg in sec.allseg():
-                        sec_id.append(sid + 1)  # NEURON indexes from 0, Snudda has soma as 0, and first dendrite is 1
+                        sec_id.append(sid)
                         sec_x.append(seg.x)
 
             self.add_volt_recording(cell_id=cid, sec_id=sec_id, sec_x=sec_x)
@@ -1390,7 +1391,7 @@ class SnuddaSimulate(object):
         for cid in cell_id:
 
             if cid in self.neurons.keys() and not self.is_virtual_neuron[cid]:
-                self.add_volt_recording(cid, [0], [0.5])
+                self.add_volt_recording(cid, [-1], [0.5])  # Soma is sec_id = -1
 
     def add_volt_recording(self, cell_id: int, sec_id, sec_x):
 
@@ -1403,8 +1404,9 @@ class SnuddaSimulate(object):
             v = self.sim.neuron.h.Vector()
             v.record(getattr(s(sx), '_ref_v'))
 
-            # From the Snudda synapse matrix. sec_id 0 is soma, sec_id >= 1 is dendrite, sec_id <= -1 is axon
-            self.record.register_compartment_data(neuron_id=cell_id, data_type="voltage", data=v,
+            # From the Snudda synapse matrix. sec_id -1 is soma, sec_id >= 0 is dendrite, sec_id <= -2 is axon
+            self.record.register_compartment_data(neuron_id=cell_id,
+                                                  data_type="voltage", data=v,
                                                   sec_id=sid, sec_x=sx)
 
         if self.record.time is None:

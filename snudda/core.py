@@ -112,8 +112,9 @@ class Snudda(object):
                          random_seed=args.randomseed,
                          honor_stay_inside=args.stay_inside)
 
-    def init_config(self, network_size,
+    def init_config(self, network_size=None,
                     snudda_data=None,
+                    struct_def=None,
                     neurons_dir=None,
                     connection_file=None,
                     honor_stay_inside=True,   # currently the cli.py defaults to sending False
@@ -125,14 +126,15 @@ class Snudda(object):
         print(f"Network path: {self.network_path}")
 
         from snudda.init.init import SnuddaInit
-        struct_def = {"Striatum": network_size,
-                      "GPe": 0,
-                      "GPi": 0,
-                      "SNr": 0,
-                      "STN": 0,
-                      "Cortex": 0,
-                      "Thalamus": 0}
-        # Cortex and thalamus axons disabled right now, set to 1 to include one
+
+        if struct_def is None:
+            struct_def = {"Striatum": network_size,
+                          "GPe": 0,
+                          "GPi": 0,
+                          "SNr": 0,
+                          "STN": 0,
+                          "Cortex": 0,  # Cortex and thalamus axons disabled right now, set to N > 0 to include a few
+                          "Thalamus": 0}
 
         if not overwrite:
             assert not os.path.exists(self.network_path), \
@@ -150,7 +152,7 @@ class Snudda(object):
                    random_seed=random_seed,
                    connection_override_file=connection_file)
 
-        if network_size > 1e5:
+        if network_size is not None and network_size > 1e5:
             print(f"Make sure there is enough disk space in {self.network_path}")
             print("Large networks take up ALOT of space")
 
@@ -799,7 +801,9 @@ class Snudda(object):
         u_file = os.path.join(ipython_dir, f"profile_{ipython_profile}", "security", "ipcontroller-client.json")
         print(f"Reading IPYPARALLEL connection info from {u_file}\n")
         self.logfile.write(f"Reading IPYPARALLEL connection info from {u_file}\n")
-        self.rc = Client(profile=ipython_profile, url_file=u_file, timeout=120, debug=False)
+        # self.rc = Client(profile=ipython_profile, url_file=u_file, timeout=120, debug=False)
+        self.rc = Client(profile=ipython_profile, connection_info=u_file, timeout=120, debug=False)
+
 
         self.logfile.write(f'Client IDs: {self.rc.ids}')
 

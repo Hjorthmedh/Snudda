@@ -227,6 +227,12 @@ class MorphologyData:
         for sid in section_id:
             yield self.sections[section_type][sid]
 
+    def has_axon(self):
+        return len(self.sections[2]) > 0
+
+    def has_dendrite(self):
+        return len(self.sections[3]) > 0
+
     def load_swc_file(self, swc_file=None, remapping_types={4: 3}, use_cache=True):
 
         """ Loads SWC morphology, not SNUDDA_DATA aware (file must exist).
