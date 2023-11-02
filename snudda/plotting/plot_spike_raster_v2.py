@@ -475,8 +475,8 @@ class SnuddaPlotSpikeRaster2:
 
         ax.invert_yaxis()
         ax.set_xlabel('Time (s)', fontsize=20)
-        ax.set_yticks(y_tick, fontsize=20)
-        ax.set_yticklabels(y_tick_label)
+        ax.set_yticks(y_tick)
+        ax.set_yticklabels(y_tick_label, fontsize=20)
 
         if skip_time or end_time:
             x_lim = ax.get_xlim()

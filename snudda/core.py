@@ -352,7 +352,7 @@ class Snudda(object):
                             save_putative_synapses = args.savePutative)
 
     def prune_synapses(self,
-                       config_file,
+                       config_file=None,
                        random_seed=None, parallel=False, ipython_profile=None,
                        h5libver="latest",
                        verbose=False,

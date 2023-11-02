@@ -222,7 +222,7 @@ class PlotNetwork(object):
 
         population_unit = self.sl.data["populationUnit"]
         pop_units = sorted(list(set(population_unit)))
-        cmap = plt.get_cmap('tab20', len(pop_units))
+        cmap = plt.get_cmap('tab20', len(pop_units)+1)
         neuron_colours = []
 
         for idx, pu in enumerate(population_unit):

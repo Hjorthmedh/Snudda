@@ -24,6 +24,7 @@ class PlotInput(object):
 
         if os.path.isfile(network_path):
             network_file = network_path
+            network_path = os.path.dirname(network_path)
         else:
             network_file = os.path.join(network_path, "network-synapses.hdf5")
 
