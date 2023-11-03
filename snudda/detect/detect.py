@@ -994,6 +994,8 @@ class SnuddaDetect(object):
 
         """
 
+        # TODO: min_coord, max_coord not saved, no longer used? remove from input parameters?
+
         self.write_log("Writing neuron distribution history to file")
 
         assert "hyper_voxels" not in self.work_history, "saveNeuronDistributionHistory should only be called once"
@@ -1002,15 +1004,21 @@ class SnuddaDetect(object):
         self.work_history.create_dataset("meta/nHyperVoxels", data=self.num_hyper_voxels)
         self.work_history.create_dataset("meta/simulationOrigo", data=self.simulation_origo)
 
+        self.write_log("Generating JSON hyper voxel data")
+
         try:
             hyper_voxels = json.dumps(self.hyper_voxels, cls=NumpyEncoder)
         except:
             import traceback
-            print(traceback.format_exc())
+            self.write_log(traceback.format_exc(), is_error=True)
             import pdb
             pdb.set_trace()
 
+        self.write_log("Writing JSON hyper voxel data to file")
+
         self.work_history.create_dataset("hyperVoxels", data=hyper_voxels)
+
+        self.write_log("Save neuron distribution history done.")
 
     ############################################################################
 
