@@ -3,7 +3,7 @@
 #SBATCH -o log/runSnudda-%j-output.txt
 #SBATCH -e log/runSnudda-%j-error.txt
 #SBATCH -t 00:59:00
-#SBATCH -J Snudda
+#SBATCH -J Snudda_input
 #SBATCH -A naiss2023-5-231
 #SBATCH --nodes=2
 #SBATCH -n 256
@@ -19,7 +19,8 @@ ulimit -s unlimited
 
 
 #let NWORKERS="$SLURM_NTASKS-2"
-let NWORKERS="100"
+# let NWORKERS="100"
+let NWORKERS="50"
 
 export IPNWORKERS=$NWORKERS
 
@@ -32,7 +33,7 @@ source $HOME/Snudda/snudda_env/bin/activate
 
 #.. Start the ipcontroller
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
-srun -n 1 -N 1 -c 2 --exact --overlap --mem=0 ./ipcontroller_new.sh &
+srun -n 1 -N 1 -c 2 --exact --overlap --mem=0 ./../ipcontroller_new.sh &
 
 
 echo ">>> waiting 60s for controller to start"
@@ -68,7 +69,7 @@ echo ">>> waiting 60s for engines to start"
 sleep 30
 
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
-srun -n 1 -N 1 --exact --overlap --mem=0 ./Dardel_runSnudda_inside.sh
+srun -n 1 -N 1 --exact --overlap --mem=0 ./Dardel_runSnudda_lateral_input.sh
 
 
 echo " "
