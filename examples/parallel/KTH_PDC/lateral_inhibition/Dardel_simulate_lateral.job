@@ -6,7 +6,7 @@
 #SBATCH --time-min=1:59:00
 #SBATCH -J Simulate
 #SBATCH -A naiss2023-5-231
-#SBATCH --nodes=20
+#SBATCH --nodes=2
 #SBATCH --tasks-per-node=128
 #SBATCH --mail-type=ALL
 
@@ -33,7 +33,8 @@ else
 fi
 
 
-NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
+# NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
+NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses-minimal.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 # NETWORK_VOLTAGE_FILE=$NETWORK_DIR/simulation/voltage-trace-${SLURM_JOBID}.txt
 
@@ -66,4 +67,4 @@ srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/
 # srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
 
 # GJ active
-srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 5 
+srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 5 --noVolt

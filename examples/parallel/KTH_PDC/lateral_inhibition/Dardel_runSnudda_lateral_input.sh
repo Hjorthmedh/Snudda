@@ -52,7 +52,10 @@ else
 
     echo ">>> Input: "`date`
 
-    snudda input ${JOBDIR} --parallel --time 5 --input input.json
+    # snudda input ${JOBDIR} --parallel --time 5 --input input.json
+    # Generate input for the reduced network...
+    
+    snudda input ${JOBDIR} --parallel --time 5 --input input.json --networkFile ${JOBDIR}/network-synapses-minimal.hdf5
 
     
     #.. Shut down cluster
