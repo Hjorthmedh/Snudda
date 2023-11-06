@@ -1921,7 +1921,7 @@ class SnuddaSimulate(object):
 
         memory_ratio = mem_available / mem_total
 
-        self.write_log(f"{self.pc.id()} : Memory status: {int(memory_ratio * 100)}% free")
+        self.write_log(f"{self.pc.id()} : Memory status: {int(memory_ratio * 100)}% free", force_print=True)
 
         return memory_ratio < threshold
 

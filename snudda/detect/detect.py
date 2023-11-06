@@ -1006,6 +1006,9 @@ class SnuddaDetect(object):
 
         self.write_log("Generating JSON hyper voxel data")
 
+        mem = self.memory()
+        self.write_log(f"{mem}")
+
         try:
             hyper_voxels = json.dumps(self.hyper_voxels, cls=NumpyEncoder)
         except:
