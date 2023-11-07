@@ -23,8 +23,8 @@ duration=5
 # from snudda import SnuddaInit -- this works on local machine, but not on dardel
 import snudda.init
 
-n_DSPN = 50000
-n_ISPN = 50000
+n_DSPN = 30000
+n_ISPN = 30000
 n_FS = 0
 n_LTS = 0
 n_ChIN = 0
