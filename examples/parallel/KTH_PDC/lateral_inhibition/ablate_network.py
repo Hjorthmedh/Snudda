@@ -1,7 +1,15 @@
 import os
+import sys
 
-network_path="networks/lateral_1"
+if len(sys.argv) > 1:
+    network_path = sys.argv[1]
+else:
+    sys.exit("No network path specified!")
+    network_path="networks/lateral_1"
+    
 modified_network_file=os.path.join(network_path, "network-synapses-minimal.hdf5")
+
+print(f"Network_path = {network_path}, modified file = {modified_network_file}")
 
 from snudda.utils.ablate_network import SnuddaAblateNetwork
 
