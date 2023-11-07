@@ -3,7 +3,7 @@
 
 
 SNUDDA_DIR=$HOME/Snudda/snudda
-JOBDIR=networks/lateral_1
+JOBDIR=networks/lateral_2
 
 SIMSIZE=50000
 
@@ -41,7 +41,7 @@ else
 
     echo ">>> Init: "`date`
     # snudda init ${JOBDIR} --size ${SIMSIZE} --overwrite --randomseed 1234
-    python setup_lateral.py
+    python setup_lateral.py ${JOBDIR}
     
     if [ $? != 0 ]; then
 	echo "Something went wrong during init, aborting!"
@@ -98,11 +98,12 @@ else
 
     # Disable input generation at the moment
 
-    #echo ">>> Input: "`date`
-    # cp -a $SNUDDA_DIR/data/input_config/input-v10-scaled.json ${JOBDIR}/input.json
-    # cp -a $SNUDDA_DIR/data/input_config/external-input-dSTR-scaled-v4.json ${JOBDIR}/input.json
-
-    snudda input ${JOBDIR} --parallel --time 5 --input input.json
+    echo ">>> Ablate: "`date`
+    python ablate_network.py ${JOBDIR}
+    
+    echo ">>> Input: "`date`
+    # snudda input ${JOBDIR} --parallel --time 5 --input input.json
+    snudda input ${JOBDIR} --parallel --time 5 --input input.json --networkFile ${JOBDIR}/network-synapses-minimal.hdf5
 
     
     #.. Shut down cluster
