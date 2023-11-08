@@ -1986,8 +1986,9 @@ if __name__ == "__main__":
                         help="Exclude voltage when saving results, saves time and space.")
     parser.add_argument("--recordALLcompartments", dest="record_all_compartments", type=str, default=None)
     parser.add_argument("--recordALLsynapses", dest="record_all_synapses", type=str, default=None)
-
-    parser.add_argument("--disableGJ", action="store_true",
+    parser.add_argument("--disableSyn", action="store_true", dest="disable_synapses",
+                        help="Disable synapses")
+    parser.add_argument("--disableGJ", action="store_true", dest="disable_gapjunctions",
                         help="Disable gap junctions")
     parser.add_argument("--time", type=float, default=1.5,
                         help="Duration of simulation in seconds")
@@ -2023,9 +2024,11 @@ if __name__ == "__main__":
 
     start = timeit.default_timer()
 
-    disable_gj = args.disableGJ
-    if disable_gj:
+    if args.disable_gapjunctions:
         print("!!! WE HAVE DISABLED GAP JUNCTIONS !!!")
+
+    if args.disable_synapses:
+        print("!!! WE HAVE DISABLED SYNAPSES !!!")
 
     pc = h.ParallelContext()
 
@@ -2037,7 +2040,8 @@ if __name__ == "__main__":
     sim = SnuddaSimulate(network_file=network_data_file,
                          input_file=input_file,
                          output_file=output_file,
-                         disable_gap_junctions=disable_gj,
+                         disable_gap_junctions=args.disable_gapjunctions,
+                         disable_synapses=args.disable_synapses,
                          log_file=log_file,
                          verbose=args.verbose)
     sim.setup()
