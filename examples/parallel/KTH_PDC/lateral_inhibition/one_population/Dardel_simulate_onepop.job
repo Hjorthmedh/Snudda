@@ -12,7 +12,7 @@
 
 # You need to point this as the directory where you created the network in
 #NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k
-NETWORK_DIR=networks/lateral_onepop
+NETWORK_DIR=../networks/lateral_onepop
 
 export N_WORKERS=$SLURM_NTASKS
 

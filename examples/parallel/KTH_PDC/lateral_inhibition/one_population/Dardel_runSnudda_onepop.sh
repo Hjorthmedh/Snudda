@@ -111,7 +111,7 @@ else
     #.. Shutdown ipcontroller
     echo "Shutting down ipcontroller"
 
-    python ../ipcontroller_shutdown.py
+    python ../../ipcontroller_shutdown.py
 
 
     date

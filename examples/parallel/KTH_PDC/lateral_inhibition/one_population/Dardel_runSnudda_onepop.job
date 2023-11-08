@@ -2,14 +2,17 @@
 #SBATCH --partition=main
 #SBATCH -o log/runSnudda-%j-output.txt
 #SBATCH -e log/runSnudda-%j-error.txt
-#SBATCH -t 1:59:00
+#SBATCH -t 0:59:00
 #SBATCH -J Snudda
 #SBATCH -A naiss2023-5-231
-#SBATCH --nodes=2
-#SBATCH -n 256
+#SBATCH --nodes=1
+#SBATCH -n 128
 #SBATCH --cpus-per-task=2
 #SBATCH --mem-per-cpu=930M
-#SBATCH --mail-type=ALL                                                         
+#SBATCH --mail-type=ALL
+
+# REMEMBER TO CREATE THE "log" DIRECTORY
+
 module load snic-env
 
 
@@ -19,8 +22,8 @@ ulimit -s unlimited
 
 
 #let NWORKERS="$SLURM_NTASKS-2"
-let NWORKERS="100"
-# let NWORKERS="50"
+#let NWORKERS="100"
+let NWORKERS="50"
 
 export IPNWORKERS=$NWORKERS
 
@@ -33,7 +36,7 @@ source $HOME/Snudda/snudda_env/bin/activate
 
 #.. Start the ipcontroller
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
-srun -n 1 -N 1 -c 2 --exact --overlap --mem=0 ./../ipcontroller_new.sh &
+srun -n 1 -N 1 -c 2 --exact --overlap --mem=0 ./../../ipcontroller_new.sh &
 
 
 echo ">>> waiting 60s for controller to start"
