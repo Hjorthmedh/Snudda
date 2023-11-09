@@ -6,7 +6,7 @@ if len(sys.argv) > 1:
     network_path = sys.argv[1]
 else:
     sys.exit("No network path specified!")
-    network_path="../networks/lateral_one_population"
+    network_path="../networks/lateral_two_population"
 
 # network_path = "networks/lateral_1"
 # snudda_data = "$HOME/BasalGangliaData/data"
