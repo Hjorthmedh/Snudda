@@ -1256,6 +1256,10 @@ class SnuddaInput(object):
 
         assert duration > 0, f"Start time = {start_time} and end time = {end_time} incorrect (duration > 0 required)"
 
+        if type(freq) == list:
+            assert np.size(freq) == 1, f"Frequency must be same length as start and end"
+            freq = freq[0]
+
         if freq > 0:
             t_diff = -np.log(1.0 - rng.random(int(np.ceil(max(1, freq * duration))))) / freq
 
