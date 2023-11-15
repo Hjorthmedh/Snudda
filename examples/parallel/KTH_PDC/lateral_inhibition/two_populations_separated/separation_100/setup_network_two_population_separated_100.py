@@ -10,7 +10,7 @@ else:
 
 # network_path = "networks/lateral_1"
 # snudda_data = "$HOME/BasalGangliaData/data"
-snudda_data = "../../../../../../BasalGangliaData/data/"
+snudda_data = "../../../../../../../BasalGangliaData/data/"
 
 print(f"Network_path = {network_path}, snudda data = {snudda_data}")
 
@@ -42,7 +42,7 @@ si.add_population_unit_density(structure_name="Striatum", neuron_types=["dSPN", 
                                unit_centre=np.array([0.00475, 0.004, 0.00775]) -np.array([0, 0, 50e-6]),
                                probability_function="(d < 200e-6)*1", num_neurons=1000)
 si.add_population_unit_density(structure_name="Striatum", neuron_types=["dSPN", "iSPN"], 
-                               unit_centre=np.array([0.00475, 0.004, 0.00775]) -np.array([0, 0, 0e-6]),
+                               unit_centre=np.array([0.00475, 0.004, 0.00775]) -np.array([0, 0, -50e-6]),
                                probability_function="(d < 200e-6) * 1", num_neurons=1000)
 
 print("Writing json")
