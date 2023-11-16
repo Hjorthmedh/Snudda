@@ -23,7 +23,7 @@ ulimit -s unlimited
 
 #let NWORKERS="$SLURM_NTASKS-2"
 #let NWORKERS="100"
-let NWORKERS="50"
+let NWORKERS="40"
 
 export IPNWORKERS=$NWORKERS
 

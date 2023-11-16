@@ -19,8 +19,8 @@ duration=5
 
 import snudda.init
 
-n_DSPN = 30000
-n_ISPN = 30000
+n_DSPN = 20000
+n_ISPN = 20000
 n_FS = 0
 n_LTS = 0
 n_ChIN = 0

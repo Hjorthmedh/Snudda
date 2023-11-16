@@ -15,9 +15,9 @@
 
         "Ctx_2" : {
             "generator" : "poisson",
-            "start" : [0.5],
-            "end" :   [5.5],
-            "frequency" : [12],
+            "start" : 0.5,
+            "end" :   5.5,
+            "frequency" : 12,
             "conductance" : 0.5e-9,
             "nInputs" : 50,
             "populationUnitCorrelation" : 0,
@@ -43,9 +43,9 @@
 
         "Ctx_2" : {
             "generator" : "poisson",
-            "start" : [0.5],
-            "end" :   [5.5],
-            "frequency" : [12],
+            "start" : 0.5,
+            "end" :   5.5,
+            "frequency" : 12,
             "conductance" : 0.5e-9,
             "nInputs" : 50,
             "populationUnitCorrelation" : 0,
