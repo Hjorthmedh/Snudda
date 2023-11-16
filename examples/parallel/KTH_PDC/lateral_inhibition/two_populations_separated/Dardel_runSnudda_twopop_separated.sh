@@ -88,7 +88,7 @@ else
     fi
     
     echo ">>> Prune: "`date`
-    snudda prune ${JOBDIR} --parallel
+    snudda prune ${JOBDIR} --parallel --verbose
 
     if [ $? != 0 ]; then
 	echo "Something went wrong during pruning, aborting!"
