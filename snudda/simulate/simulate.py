@@ -2052,11 +2052,11 @@ if __name__ == "__main__":
         sim.add_volt_recording_soma()
 
     if args.record_all_compartments:
-        record_cell_id = np.array([int(x) for x in args.record_all.split(",")])
+        record_cell_id = np.array([int(x) for x in args.record_all_compartments.split(",")])
         sim.add_volt_recording_all(cell_id=record_cell_id, centre_only_flag=True)
 
     if args.record_all_synapses:
-        record_cell_id = np.array([int(x) for x in args.record_all.split(",")])
+        record_cell_id = np.array([int(x) for x in args.record_all_synapses.split(",")])
         sim.add_synapse_current_recording_all(record_cell_id)
 
     tSim = args.time * 1000  # Convert from s to ms for Neuron simulator
