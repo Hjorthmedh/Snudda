@@ -45,7 +45,25 @@ class PlotNeuronVoltage:
         morphology = NeuronMorphologyExtended(swc_filename=morphology_file)
         return morphology
 
-    def plot_neuron_voltage(self, neuron_id, time_range=None, section_id=None, axis=None,
+    def get_voltage_sec(self, neuron_id, section_id=None):
+
+        voltage, sec_id_x, _ = self.simulation_data.get_data("voltage", neuron_id=neuron_id)
+
+        volt = voltage[neuron_id]
+        sec_id = sec_id_x[neuron_id][0]
+        sec_x = sec_id_x[neuron_id][1]
+
+        if section_id is None:
+            use_idx = np.arange(len(sec_id))
+        else:
+            use_id = [section_id is None or s in section_id for s in sec_id]
+            use_idx = np.where(use_id)[0]
+
+        time = self.simulation_data.get_time()
+
+        return time, volt[:, use_idx], sec_id[use_idx], sec_x[use_idx]
+
+    def plot_neuron_voltage(self, neuron_id, section_id=None, axis=None,
                             show_plot=True, fig_name=None):
 
         if axis is None:
@@ -54,22 +72,45 @@ class PlotNeuronVoltage:
         else:
             ax = axis
 
+        time, volt, sec_id, sec_x = self.get_voltage_sec(neuron_id=neuron_id, section_id=section_id)
+
+        ax.plot(time, volt)
+
+        if fig_name:
+            plt.savefig(fig_name, dpi=300)
+
+        if show_plot:
+            plt.ion()
+            plt.show()
+
+        return ax
+
+    def extract_mean_values(self, time, volt, time_bins):
+        # This assumes that only the volt traces relevant are passed to the function
+
+        volt_mean = []
+        volt_std = []
+
+        for (t_low, t_high) in time_bins:
+            t_idx = np.where(np.logical_and(t_low <= time, time < t_high))[0]
+            volt_mean.append(np.mean(volt[t_idx, :]))
+            volt_std.append(np.std(volt[t_idx, :]))
+
+        return np.array(volt_mean), np.array(volt_std)
+
+    def plot_binned_neuron_voltage(self, neuron_id, time_bins, section_id=None, dist_bin_size=50e-6,
+                                   title=None, axis=None, show_plot=True, fig_name=None, fig_size=None,
+                                   y_range=None):
+
+        if axis is None:
+            fig = plt.figure(figsize=fig_size)
+            ax = fig.add_subplot()
+        else:
+            ax = axis
+
         morphology = self.load_morphology(neuron_id=neuron_id)
 
-        time = self.simulation_data.get_time()
-        voltage, sec_id_x, _ = self.simulation_data.get_data("voltage", neuron_id=neuron_id)
-
-        volt = voltage[neuron_id]
-        sec_id = sec_id_x[neuron_id][0]
-        sec_x =  sec_id_x[neuron_id][1]
-
-        if section_id is None:
-            use_idx = np.arange(len(sec_id))
-        else:
-            use_mask = [s in section_id for s in sec_id]
-            use_idx = np.where(sec_id)[0]
-
-        ax.plot(time, volt[:, use_idx])
+        time, volt, sec_id, sec_x = self.get_voltage_sec(neuron_id=neuron_id, section_id=section_id)
 
         soma_dist = np.zeros(sec_id.shape)
 
@@ -77,15 +118,60 @@ class PlotNeuronVoltage:
 
             if s_id < 0:
                 sec_type = 1  # soma
+                s_id = 0
             else:
                 sec_type = 3  # dend
 
-            soma_dist[idx] = morphology.morphology_data["neuron"].sections[sec_type][s_id].soma_distanc_at(s_x)
+            soma_dist[idx] = morphology.morphology_data["neuron"].sections[sec_type][s_id].soma_distance_at(s_x)
 
-        # TODO: We need to bin the data somehow...
+        # First bin is soma only, bins after are for dendrites (with binwidth dist_bin_size)
+        bin_idx = np.floor(soma_dist / dist_bin_size).astype(int) + 1
+        bin_idx[np.where(soma_dist == 0)[0]] = 0
 
-        import pdb
-        pdb.set_trace()
+        bin_members = dict()
+        for idx, bin_pos in enumerate(bin_idx):
+            if bin_pos not in bin_members:
+                bin_members[bin_pos] = [idx]
+            else:
+                bin_members[bin_pos].append(idx)
+
+        for bin_pos in bin_members.keys():
+            bin_members[bin_pos] = np.array(bin_members[bin_pos])
+
+        n_bins = np.max(list(bin_members.keys()))+1
+        volt_data = np.zeros((len(time_bins), n_bins))
+        volt_std = np.zeros((len(time_bins), n_bins))
+
+        for bin_pos, bin_idx in bin_members.items():
+            volt_data[:, bin_pos], volt_std[:, bin_pos] = self.extract_mean_values(time=time, volt=volt[:, bin_idx], time_bins=time_bins)
+
+        time_center = np.array([np.mean(t) for t in time_bins])
+
+        for bin_pos, bin_idx in sorted(bin_members.items()):
+            if bin_pos == 0:
+                legend_text = "soma"
+            else:
+                legend_text = f"dist {np.mean(soma_dist[bin_idx])*1e6:.1f} \mum"
+
+            if len(bin_idx) > 0:
+                # t_jitter = 0.1*np.random.uniform(size=time_center.shape)
+                t_jitter = 0.01*bin_pos
+                ax.errorbar(time_center + t_jitter, volt_data[:, bin_pos], volt_std[:, bin_pos],
+                            label=legend_text, marker='o')
+
+        if y_range:
+            ax.set_ylim(y_range)
+
+        plt.legend(loc="upper left")
+
+        title_info = f"{self.network_data['neurons'][neuron_id]['name']} ({neuron_id})"
+
+        if title:
+            plt.title(f"{title} - {title_info}")
+        else:
+            plt.title(title_info)
+
+        fig.tight_layout()
 
         if fig_name:
             plt.savefig(fig_name, dpi=300)
@@ -107,6 +193,7 @@ def cli():
     parser.add_argument("--simulation_file", default=None, type=str)
     parser.add_argument("--snudda_data", default=None, type=str)
     parser.add_argument("--pause", action="store_true", dest="pause")
+    parser.add_argument("--time_bins", type=str, default="0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5")
     args = parser.parse_args()
 
     pnv = PlotNeuronVoltage(network_path=args.network_path,
@@ -115,6 +202,12 @@ def cli():
                             snudda_data=args.snudda_data)
 
     pnv.plot_neuron_voltage(neuron_id=args.neuron_id)
+
+    time_edges = np.array([float(x) for x in args.time_bins.split(",")])
+
+    time_bins = list(zip(time_edges[:-1], time_edges[1:]))
+    print(f"Using time bins {time_bins}")
+    pnv.plot_binned_neuron_voltage(neuron_id=args.neuron_id, time_bins=time_bins)
 
     if args.pause:
         input("Press a key to continue")

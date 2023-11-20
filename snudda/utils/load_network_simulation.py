@@ -225,9 +225,11 @@ class SnuddaLoadNetworkSimulation:
 
         for neuron_id in neuron_id_list:
 
+            # We should only check for depolarisation block in the soma, sec_id = -1
+            v_idx = np.where(sec_id_x[neuron_id][0] == -1)[0][0]
             depol_block = SnuddaLoadNetworkSimulation.check_trace_depolarisation_block(neuron_id=neuron_id,
                                                                                        time=time,
-                                                                                       voltage=voltage[neuron_id],
+                                                                                       voltage=voltage[neuron_id][:, v_idx],
                                                                                        threshold=threshold,
                                                                                        max_duration=max_duration)
 
