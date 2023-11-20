@@ -169,6 +169,9 @@ class SectionMetaData:
             sec_x[0] = 0
         return sec_x
 
+    def soma_distance_at(self, section_x):
+        return np.interp(section_x, self.section_x, self.soma_distance)
+
 
 class MorphologyData:
 

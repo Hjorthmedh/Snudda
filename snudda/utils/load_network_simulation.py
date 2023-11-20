@@ -136,6 +136,8 @@ class SnuddaLoadNetworkSimulation:
 
         if neuron_id is None:
             neuron_id = self.network_simulation_file["neurons"].keys()
+        elif type(neuron_id) == int:
+            neuron_id = [neuron_id]
 
         for nid in neuron_id:
             snid = str(nid)
