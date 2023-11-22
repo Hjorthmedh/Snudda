@@ -77,6 +77,7 @@ class PlotNeuronVoltage:
         ax.plot(time, volt)
 
         if fig_name:
+            self.create_fig_dir(fig_name)
             plt.savefig(fig_name, dpi=300)
 
         if show_plot:
@@ -84,6 +85,12 @@ class PlotNeuronVoltage:
             plt.show()
 
         return ax
+
+    def create_fig_dir(self, fig_path):
+
+        fig_dir = os.path.dirname(fig_path)
+        if not os.path.isdir(fig_dir):
+            os.mkdir(fig_dir)
 
     def extract_mean_values(self, time, volt, time_bins):
         # This assumes that only the volt traces relevant are passed to the function
@@ -174,6 +181,7 @@ class PlotNeuronVoltage:
         fig.tight_layout()
 
         if fig_name:
+            self.create_fig_dir(fig_name)
             plt.savefig(fig_name, dpi=300)
 
         if show_plot:

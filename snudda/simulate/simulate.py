@@ -2059,11 +2059,11 @@ if __name__ == "__main__":
         record_cell_id = np.array([int(x) for x in args.record_all_synapses.split(",")])
         sim.add_synapse_current_recording_all(record_cell_id)
 
-    tSim = args.time * 1000  # Convert from s to ms for Neuron simulator
+    t_sim = args.time * 1000  # Convert from s to ms for Neuron simulator
 
     sim.check_memory_status()
-    print(f"Running simulation for {tSim} ms.")
-    sim.run(tSim)  # In milliseconds
+    print(f"Running simulation for {t_sim} ms.")
+    sim.run(t_sim)  # In milliseconds
 
     print("Simulation done, saving output")
     sim.write_output()
