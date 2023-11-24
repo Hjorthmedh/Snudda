@@ -80,7 +80,7 @@ class SnuddaAblateNetwork:
         if type(neuron_id) == list:
             self.make_virtual_neuron_id += neuron_id
         elif isinstance(neuron_id, np.ndarray):
-            self.make_virtual_neuron_id += [x for x in np.ndarray]
+            self.make_virtual_neuron_id += [x for x in neuron_id]
         else:
             self.make_virtual_neuron_id.append(neuron_id)
 

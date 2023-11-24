@@ -74,7 +74,12 @@ class PlotNeuronVoltage:
 
         time, volt, sec_id, sec_x = self.get_voltage_sec(neuron_id=neuron_id, section_id=section_id)
 
-        ax.plot(time, volt)
+        soma_dist = self.get_soma_dist(neuron_id=neuron_id, section_id=sec_id, section_x=sec_x)
+        label = [f"Neuron {neuron_id}, sec {sid}:{sx}, dist {sd*1e6:.1f} um" for (sid, sx, sd) in zip(sec_id, sec_x, soma_dist)]
+
+        ax.plot(time, volt, label=label)
+
+        plt.legend()
 
         if fig_name:
             self.create_fig_dir(fig_name)
@@ -85,6 +90,13 @@ class PlotNeuronVoltage:
             plt.show()
 
         return ax
+
+    def list_all_section_dist(self, neuron_id):
+
+        morphology = self.load_morphology(neuron_id=neuron_id)
+
+        for section in morphology.morphology_data["neuron"].sections[3].values():
+            print(f"Section {section.section_id}, center dist {section.soma_distance_at(0.5)*1e6:.0f} um, length {section.section_length()*1e6:.0f} um")
 
     def create_fig_dir(self, fig_path):
 
@@ -115,21 +127,8 @@ class PlotNeuronVoltage:
         else:
             ax = axis
 
-        morphology = self.load_morphology(neuron_id=neuron_id)
-
         time, volt, sec_id, sec_x = self.get_voltage_sec(neuron_id=neuron_id, section_id=section_id)
-
-        soma_dist = np.zeros(sec_id.shape)
-
-        for idx, (s_id, s_x) in enumerate(zip(sec_id, sec_x)):
-
-            if s_id < 0:
-                sec_type = 1  # soma
-                s_id = 0
-            else:
-                sec_type = 3  # dend
-
-            soma_dist[idx] = morphology.morphology_data["neuron"].sections[sec_type][s_id].soma_distance_at(s_x)
+        soma_dist = self.get_soma_dist(neuron_id=neuron_id, section_id=sec_id, section_x=sec_x)
 
         # First bin is soma only, bins after are for dendrites (with binwidth dist_bin_size)
         bin_idx = np.floor(soma_dist / dist_bin_size).astype(int) + 1
@@ -189,6 +188,25 @@ class PlotNeuronVoltage:
             plt.show()
 
         return ax
+
+
+    def get_soma_dist(self, neuron_id, section_id, section_x):
+
+        morphology = self.load_morphology(neuron_id=neuron_id)
+
+        soma_dist = np.zeros(section_id.shape)
+
+        for idx, (sec_id, sec_x) in enumerate(zip(section_id, section_x)):
+
+            if sec_id < 0:
+                sec_type = 1  # soma
+                sec_id = 0
+            else:
+                sec_type = 3  # dend
+
+            soma_dist[idx] = morphology.morphology_data["neuron"].sections[sec_type][sec_id].soma_distance_at(sec_x)
+
+        return soma_dist
 
 
 def cli():

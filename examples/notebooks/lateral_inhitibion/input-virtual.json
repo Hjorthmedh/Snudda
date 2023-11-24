@@ -1,0 +1,68 @@
+{
+    "dSPN": {
+        "Ctx_1" : {
+            "generator" : "poisson",
+            "start" : [0.5, 3.5],
+            "end" : [1.5, 4.5],
+            "frequency" : [25, 25],
+            "conductance" : 0.5e-9,
+            "nInputs" : 50,
+            "populationUnitCorrelation" : [0.5, 0.5],
+            "populationUnitID" : 1,
+            "jitter" : 0.01,	    
+            "modFile": "tmGlut"
+        },
+
+	"Ctx_2" : {
+            "generator" : "poisson",
+            "start" : [2, 3.5],
+            "end" : [3, 4.5],
+            "frequency" : [5, 5],
+            "conductance" : 0.5e-9,
+            "nInputs" : 50,
+            "populationUnitCorrelation" : [0.5, 0.5],
+            "populationUnitID" : 2,
+            "jitter" : 0.01,	    
+            "modFile": "tmGlut"
+        },
+
+	"VirtualNeuron" : {
+            "spikeFile": "virtual_input_spikes.txt",
+            "rowMappingFile": "virtual_input_mapping.txt"
+	}		
+    },
+
+    "iSPN": {
+        "Ctx_1" : {
+            "generator" : "poisson",
+            "start" : [0.5, 3.5],
+            "end" : [1.5, 4.5],
+            "frequency" : [25, 25],
+            "conductance" : 0.5e-9,
+            "nInputs" : 50,
+            "populationUnitCorrelation" : [0.5, 0.5],
+            "populationUnitID" : 1,	    
+            "jitter" : 0.01,	    
+            "modFile": "tmGlut"
+        },
+
+        "Ctx_2" : {
+            "generator" : "poisson",
+            "start" : [2, 3.5],
+            "end" : [3, 4.5],
+            "frequency" : [5, 5],
+            "conductance" : 0.5e-9,
+            "nInputs" : 50,
+            "populationUnitCorrelation" : [0.5, 0.5],
+            "populationUnitID" : 2,	    
+            "jitter" : 0.01,	    
+            "modFile": "tmGlut"
+        },
+
+	"VirtualNeuron" : {
+            "spikeFile": "virtual_input_spikes.txt",
+            "rowMappingFile": "virtual_input_mapping.txt"
+	}
+    }
+
+}
