@@ -30,6 +30,8 @@ ab.write_network(out_file_name=modified_network_file)
 
 from snudda.input.virtual_input import VirtualInput
 
+duration = 5.5
+
 spike_file = os.path.join(network_path, "virtual_input_spikes.txt")
 mapping_file = os.path.join(network_path, "virtual_input_mapping.txt")
 
