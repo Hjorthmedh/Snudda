@@ -23,6 +23,7 @@ export N_WORKERS=$SLURM_NTASKS
 module load snic-env
 source $HOME/Snudda/snudda_env/bin/activate
 SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda
+SPECIAL_PATH=$SNUDDA_DIR/examples/parallel/KTH_PDC/lateral_inhibition/two_populations_virtual/x86_64/special
 
 # If the BasalGangliaData directory exists, then use that for our data
 if [[ -d "/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data" ]]; then
@@ -73,8 +74,8 @@ srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/
 # srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
 
 # GJ active
-srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 5 --outputFile $NETWORK_WITH_SYNAPSES_OUTPUT
+srun -n $N_WORKERS $SPECIAL_PATH -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 5 --outputFile $NETWORK_WITH_SYNAPSES_OUTPUT
 
-srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 5 --disableSyn --outputFile $NETWORK_NO_SYNAPSES_OUTPUT
+srun -n $N_WORKERS $SPECIAL_PATH -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 5 --disableSyn --outputFile $NETWORK_NO_SYNAPSES_OUTPUT
 
 # srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 5 --noVolt
