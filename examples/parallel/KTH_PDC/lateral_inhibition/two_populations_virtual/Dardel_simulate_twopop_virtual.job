@@ -6,16 +6,16 @@
 #SBATCH --time-min=1:59:00
 #SBATCH -J Simulate
 #SBATCH -A naiss2023-5-231
-#SBATCH --nodes=2
-#SBATCH --tasks-per-node=128
+#SBATCH --nodes=8
+#SBATCH --tasks-per-node=32
 #SBATCH --mail-type=ALL
 
 # You need to point this as the directory where you created the network in
 #NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k
 NETWORK_DIR=../networks/lateral_twopop_virtual
 
-NETWORK_WITH_SYNAPSES_OUTPUT=$NETWORK_DIR/simulations/output-with-synapses-12Hz-virtual-5Hz.hdf5
-NETWORK_NO_SYNAPSES_OUTPUT=$NETWORK_DIR/simulations/output-no-synapses-12Hz-virtual-5Hz.hdf5
+NETWORK_WITH_SYNAPSES_OUTPUT=$NETWORK_DIR/simulation/output-with-synapses-12Hz-virtual-5Hz.hdf5
+NETWORK_NO_SYNAPSES_OUTPUT=$NETWORK_DIR/simulation/output-no-synapses-12Hz-virtual-5Hz.hdf5
 
 
 export N_WORKERS=$SLURM_NTASKS
