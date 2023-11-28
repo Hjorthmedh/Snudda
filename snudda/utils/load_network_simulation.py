@@ -136,7 +136,7 @@ class SnuddaLoadNetworkSimulation:
 
         if neuron_id is None:
             neuron_id = self.network_simulation_file["neurons"].keys()
-        elif type(neuron_id) == int:
+        elif np.issubdtype(type(neuron_id), np.integer):
             neuron_id = [neuron_id]
 
         for nid in neuron_id:

@@ -735,7 +735,8 @@ class SnuddaLoad(object):
     # Returns neuron_id of all neurons of neuron_type
     # OBS, random_permute is not using a controled rng, so not affected by random seed set
 
-    def get_neuron_id_of_type(self, neuron_type, num_neurons=None, random_permute=False, volume=None):
+    def get_neuron_id_of_type(self, neuron_type, num_neurons=None, random_permute=False, volume=None,
+                              include_virtual=True):
 
         """
         Find all neuron ID of a specific neuron type.
@@ -752,7 +753,9 @@ class SnuddaLoad(object):
         """
 
         neuron_id = np.array([x["neuronID"] for x in self.data["neurons"]
-                              if (neuron_type is None or x["type"] == neuron_type) and (volume is None or x["volumeID"] == volume)])
+                              if (neuron_type is None or x["type"] == neuron_type)
+                              and (volume is None or x["volumeID"] == volume)
+                              and (include_virtual or not x["virtualNeuron"])])
 
         assert not random_permute or num_neurons is not None, "random_permute is only valid when num_neurons is given"
 
@@ -781,25 +784,29 @@ class SnuddaLoad(object):
 
         return neuron_id
 
-    def get_neuron_id(self):
+    def get_neuron_id(self, include_virtual=True):
 
-        neuron_id = np.array([x["neuronID"] for x in self.data["neurons"]])
+        """ Returns all neuron_id, if include_virtual is set (default) virtual neurons are also included."""
+
+        neuron_id = np.array([x["neuronID"] for x in self.data["neurons"] if include_virtual or not x["virtualNeuron"]])
 
         return neuron_id
 
-    def get_neuron_id_with_name(self, neuron_name):
+    def get_neuron_id_with_name(self, neuron_name, include_virtual=True):
 
         """
         Find neuron ID of neurons with a given name.
 
         Args:
             neuron_name (str): Name of neurons (e.g. "dSPN_0")
+            include_virtual (bool): Should virtual neurons also be included?
 
         Returns:
             List of neuron ID
         """
 
-        neuron_id = np.array([x["neuronID"] for x in self.data["neurons"] if x["name"] == neuron_name])
+        neuron_id = np.array([x["neuronID"] for x in self.data["neurons"]
+                              if x["name"] == neuron_name and (include_virtual or not x["virtualNeuron"])])
 
         return neuron_id
 
