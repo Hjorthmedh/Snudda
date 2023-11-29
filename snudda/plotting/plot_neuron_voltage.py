@@ -63,7 +63,9 @@ class PlotNeuronVoltage:
 
         return time, volt[:, use_idx], sec_id[use_idx], sec_x[use_idx]
 
-    def plot_neuron_voltage(self, neuron_id, section_id=None, axis=None,
+    def plot_neuron_voltage(self, neuron_id, section_id=None,
+                            sliding_window_size=False,
+                            title=None, axis=None,
                             show_plot=True, fig_name=None):
 
         if axis is None:
@@ -77,7 +79,33 @@ class PlotNeuronVoltage:
         soma_dist = self.get_soma_dist(neuron_id=neuron_id, section_id=sec_id, section_x=sec_x)
         label = [f"Neuron {neuron_id}, sec {sid}:{sx}, dist {sd*1e6:.1f} um" for (sid, sx, sd) in zip(sec_id, sec_x, soma_dist)]
 
-        ax.plot(time, volt, label=label)
+        if sliding_window_size:
+
+            print(f"Volt size {volt.shape}")
+
+            mean_volt_list = []
+            for i in range(0, volt.shape[1]):
+                mean_volt_list.append(np.convolve(volt[:, i],
+                                                  np.ones(sliding_window_size) / sliding_window_size, mode='valid'))
+
+            mean_volt = np.vstack(mean_volt_list).T
+
+            mean_time = np.convolve(time, np.ones(sliding_window_size) / sliding_window_size, mode='valid')
+
+            # I do the same convolution for time, to make sure edges get correct time
+            ax.plot(mean_time, mean_volt, label=label)
+
+            title_info = f"{self.network_data['neurons'][neuron_id]['name']} ({neuron_id}) - sliding window {sliding_window_size}"
+
+        else:
+            ax.plot(time, volt, label=label)
+
+            title_info = f"{self.network_data['neurons'][neuron_id]['name']} ({neuron_id})"
+
+        if title:
+            plt.title(f"{title} - {title_info}")
+        else:
+            plt.title(title_info)
 
         plt.legend()
 
