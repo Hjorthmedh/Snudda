@@ -37,7 +37,12 @@ mapping_file = os.path.join(network_path, "virtual_input_mapping.txt")
 
 vi = VirtualInput(spike_file=spike_file, mapping_file=mapping_file)
 
-for vidx in pop_unit_0:
-    vi.add_input(neuron_id=vidx, spike_times = vi.poisson_spikes(frequency=5, max_time=duration))
+from snudda.data.input_config.Kim2019.get_experimental_firing_freq import resample_spn_freq
+
+spn_freq = resample_spn_freq(vidx.shape, rng=None)
+
+for vidx, freq in zip(pop_unit_0, spn_freq):
+    # vi.add_input(neuron_id=vidx, spike_times = vi.poisson_spikes(frequency=5, max_time=duration))
+    vi.add_input(neuron_id=vidx, spike_times = vi.poisson_spikes(frequency=freq, max_time=duration))
     
 vi.write_data()
