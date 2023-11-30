@@ -39,7 +39,7 @@ vi = VirtualInput(spike_file=spike_file, mapping_file=mapping_file)
 
 from snudda.data.input_config.Kim2019.get_experimental_firing_freq import resample_spn_freq
 
-spn_freq = resample_spn_freq(vidx.shape, rng=None)
+spn_freq = resample_spn_freq(pop_unit_0.shape, rng=None)
 
 for vidx, freq in zip(pop_unit_0, spn_freq):
     # vi.add_input(neuron_id=vidx, spike_times = vi.poisson_spikes(frequency=5, max_time=duration))
