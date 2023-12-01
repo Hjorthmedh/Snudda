@@ -22,6 +22,7 @@ from collections import OrderedDict
 
 import h5py
 import numexpr
+import re
 import numpy as np
 
 from snudda.utils.snudda_path import get_snudda_data
@@ -376,10 +377,13 @@ class SnuddaInput(object):
                             spike_row = neuron_id
 
                     if "spikeData" not in self.neuron_input[neuron_id][input_type]:
+                        float_pattern = re.compile(r'^[-+]?[0-9]*\.?[0-9]+$')
+
                         s_data = []
                         with open(spike_file, "rt") as f:
                             for row in f:
-                                s_data.append(np.array([float(x) for x in row.split(" ") if len(x) > 0]))
+                                s_data.append(np.array([float(x) for x in row.split(" ")
+                                                        if len(x) > 0 and float_pattern.match(x)]))
 
                         self.neuron_input[neuron_id][input_type]["spikeData"] = s_data
 
