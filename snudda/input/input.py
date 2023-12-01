@@ -379,7 +379,7 @@ class SnuddaInput(object):
                         s_data = []
                         with open(spike_file, "rt") as f:
                             for row in f:
-                                s_data.append(np.array([float(x) for x in row.split(" ")]))
+                                s_data.append(np.array([float(x) for x in row.split(" ") if len(x) > 0]))
 
                         self.neuron_input[neuron_id][input_type]["spikeData"] = s_data
 
