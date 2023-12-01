@@ -1,14 +1,18 @@
+import os
 import numpy as np
+
 
 def get_spn_fs_freq():
 
-    data_file = "Kim et al., 2019 - Henry Yin - Extended2a.csv"
+    data_dir = os.path.dirname(__file__)
+    data_file = os.path.join(data_dir, "Kim et al., 2019 - Henry Yin - Extended2a.csv")
 
     data = np.genfromtxt(data_file, delimiter=",", filling_values=np.nan)
-    spn_freq, fs_freq = data[:,0], data[:, 1]
+    spn_freq, fs_freq = data[:, 0], data[:, 1]
     fs_freq = fs_freq[~np.isnan(fs_freq)]
 
     return spn_freq, fs_freq
+
 
 def resample_spn_freq(size, rng=None):
 
@@ -20,6 +24,7 @@ def resample_spn_freq(size, rng=None):
     resampled_freq = rng.choice(a=spn_freq, size=size, replace=True)
 
     return resampled_freq
+
 
 def resample_fs_freq(size, rng=None):
 
@@ -48,6 +53,7 @@ def plot_freq_hist(data, title=None, bins=None):
     plt.show()
     plt.pause(0.1)
 
+
 if __name__ == "__main__":
 
     spn_freq, _ = get_spn_fs_freq()
@@ -57,6 +63,4 @@ if __name__ == "__main__":
     plot_freq_hist(resampled_spn_freq, "Resampled SPN frequency", bins=100)
 
     input("Press a key to continue")
-    
-#import pdb
-# pdb.set_trace()
+
