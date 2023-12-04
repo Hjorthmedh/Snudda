@@ -217,7 +217,6 @@ class PlotNeuronVoltage:
 
         return ax
 
-
     def get_soma_dist(self, neuron_id, section_id, section_x):
 
         morphology = self.load_morphology(neuron_id=neuron_id)

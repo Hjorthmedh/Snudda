@@ -49,7 +49,7 @@ class SnuddaPlotSpikeRaster2:
             assert network_file is None or snudda_load.network_file == self.network_file, \
                 f"snudda_load refers to {snudda_load.network_file}, but user passed network_file={self.network_file}"
         else:
-            self.snudda_load = SnuddaLoad(network_file=self.network_file)
+            self.snudda_load = SnuddaLoad(network_file=self.network_file, load_synapses=False)
 
         if snudda_simulation_load:
             self.snudda_simulation_load = snudda_simulation_load
@@ -452,8 +452,15 @@ class SnuddaPlotSpikeRaster2:
 
         neuron_order_lookup = np.zeros(neuron_order.shape)
 
-        for idx, no in enumerate(neuron_order):
-            neuron_order_lookup[no] = idx
+        # for idx, no in enumerate(neuron_order):
+        #     neuron_order_lookup[no] = idx
+
+        idx = 0
+        for no in neuron_order:
+            # Skip the virtual neurons
+            if not self.snudda_load.data["neurons"][no]["virtualNeuron"]:
+                neuron_order_lookup[no] = idx
+                idx += 1
 
         spike_y = np.take(neuron_order_lookup, self.spike_neuron_id)
 
@@ -464,6 +471,9 @@ class SnuddaPlotSpikeRaster2:
             sc[:, i] = np.take(colour_lookup[:, i], self.spike_neuron_id)
 
         ax.scatter(self.spike_time - skip_time, spike_y, color=sc, s=5, linewidths=0.1)
+
+        # Optionally we should also show the virtual neuron spikes...
+
 
         # Get position of labels
         unique_neuron_types = set(neuron_type_list)
@@ -520,7 +530,7 @@ class SnuddaPlotSpikeRaster2:
 
         for nt in neuron_types:
 
-            neuron_id = self.snudda_load.get_neuron_id_of_type(neuron_type=nt)
+            neuron_id = self.snudda_load.get_neuron_id_of_type(neuron_type=nt, include_virtual=False)
             spikes = self.snudda_simulation_load.get_spikes(neuron_id=neuron_id)
 
             if time_range is None:
