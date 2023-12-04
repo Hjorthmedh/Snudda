@@ -71,9 +71,9 @@ which nrnivmodl
 srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/libreadline.so.7 -lncurses=/lib64/libncurses.so.6.1" -loadflags "-DLTDL_LIBRARY=/usr/lib64/libltdl.so.7 -DREADLINE_LIBRARY=/lib64/libreadline.so.7 -DNCURSES_LIBRARY=/lib64/libncurses.so.6.1" mechanisms/
 
 
-
-srun -n $N_WORKERS $SPECIAL_PATH -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 5 --outputFile $NETWORK_WITH_SYNAPSES_OUTPUT --recordALLcompartments 2263,2288,3816,3819,3823,3831,3841,3842,3844,3845 --verbose
+# !!! OBS need to pick 10 neurons in centre that are NOT virtual
+srun -n $N_WORKERS $SPECIAL_PATH -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 5 --outputFile $NETWORK_WITH_SYNAPSES_OUTPUT --recordALLcompartments 15563,15784,15801,15687,15881,15704,15777,15732,15845,15643 --verbose
 
 # TEMP disabled
-srun -n $N_WORKERS $SPECIAL_PATH -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 5 --disableSyn --outputFile $NETWORK_NO_SYNAPSES_OUTPUT --recordALLcompartments 2263,2288,3816,3819,3823,3831,3841,3842,3844,3845
+srun -n $N_WORKERS $SPECIAL_PATH -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 5 --disableSyn --outputFile $NETWORK_NO_SYNAPSES_OUTPUT --recordALLcompartments 15563,15784,15801,15687,15881,15704,15777,15732,15845,15643
 
