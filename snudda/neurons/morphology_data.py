@@ -18,7 +18,7 @@ class SectionMetaData:
                  "morphology_data", "neuron_id"]
 
     section_id: int
-    parent_section_idx: int
+    parent_section_id: int
     parent_point_idx: int
     parent_section_type: int
     child_section_id: np.ndarray  # First row is child_section_id, second row is child_section_type

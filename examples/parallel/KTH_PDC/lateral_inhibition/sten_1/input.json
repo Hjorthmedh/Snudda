@@ -1,0 +1,59 @@
+{
+    "dSPN": {
+        "Ctx_1" : {
+            "generator" : "poisson",
+            "start" : [1, 4, 7, 10, 13, 16],
+            "end" :   [3, 6, 9, 12, 15, 18],
+            "frequency" : [6, 6, 8, 8, 11, 11],
+            "conductance" : 0.5e-9,
+            "nInputs" : 50,
+            "populationUnitCorrelation" : 0,
+            "populationUnitID" : 1,
+            "jitter" : 0.01,	    
+            "modFile": "tmGlut"
+        },
+
+        "Ctx_2" : {
+            "generator" : "poisson",
+            "start" : [4, 10, 16],
+            "end" :   [6, 12, 18],
+            "frequency" : [30],
+            "conductance" : 0.5e-9,
+            "nInputs" : 50,
+            "populationUnitCorrelation" : 0,
+            "populationUnitID" : 2,
+            "jitter" : 0.01,	    
+            "modFile": "tmGlut"
+        }	
+    },
+
+    "iSPN": {
+        "Ctx_1" : {
+            "generator" : "poisson",
+            "start" : [1, 4, 7, 10, 13, 16],
+            "end" :   [3, 6, 9, 12, 15, 18],
+            "frequency" : [6, 6, 8, 8, 11, 11],
+            "conductance" : 0.5e-9,
+            "nInputs" : 50,
+            "populationUnitCorrelation" : 0,
+            "populationUnitID" : 1,	    
+            "jitter" : 0.01,	    
+            "modFile": "tmGlut"
+        },
+
+        "Ctx_2" : {
+            "generator" : "poisson",
+            "start" : [4, 10, 16],
+            "end" :   [6, 12, 18],
+            "frequency" : [30],
+            "conductance" : 0.5e-9,
+            "nInputs" : 50,
+            "populationUnitCorrelation" : 0,
+            "populationUnitID" : 2,
+            "jitter" : 0.01,	    
+            "modFile": "tmGlut"
+        }	
+	
+    }
+
+}
