@@ -40,10 +40,10 @@ print("Adding population units")
 # The centre of the cube is [0.00475, 0.004, 0.00775]. num_neurons is optional
 si.add_population_unit_density(structure_name="Striatum", neuron_types=["dSPN", "iSPN"], 
                                unit_centre=np.array([0.00475, 0.004, 0.00775]) -np.array([0, 0, 50e-6]),
-                               probability_function="(d < 200e-6)*1", num_neurons=4000)
+                               probability_function="(d < 300e-6) * 1", num_neurons=4000)
 si.add_population_unit_density(structure_name="Striatum", neuron_types=["dSPN", "iSPN"], 
                                unit_centre=np.array([0.00475, 0.004, 0.00775]) -np.array([0, 0, -50e-6]),
-                               probability_function="(d < 200e-6) * 1", num_neurons=4000)
+                               probability_function="(d < 300e-6) * 1", num_neurons=4000)
 
 print("Writing json")
 

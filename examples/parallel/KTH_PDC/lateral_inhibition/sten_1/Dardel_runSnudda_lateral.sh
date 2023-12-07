@@ -3,7 +3,7 @@
 
 
 SNUDDA_DIR=$HOME/Snudda/snudda
-JOBDIR=networks/lateral_2
+JOBDIR=../networks/sten_1
 
 # SIMSIZE=50000
 
