@@ -1956,8 +1956,10 @@ class SnuddaSimulate(object):
         for sec in h.allsec():
             h.delete_section(sec=sec)
 
-        import gc
-        gc.collect()
+        if sys.meta_path:
+            # If sys.meta_path is None, then python is shutting down and this is redundant
+            import gc
+            gc.collect()
 
 ############################################################################
 
