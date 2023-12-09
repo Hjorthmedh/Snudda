@@ -14,8 +14,12 @@
 #NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k
 NETWORK_DIR=../networks/sten_1
 
-NETWORK_WITH_SYNAPSES_OUTPUT=$NETWORK_DIR/simulation/output-with-synapses-sten_1.hdf5
-NETWORK_NO_SYNAPSES_OUTPUT=$NETWORK_DIR/simulation/output-no-synapses-sten_1.hdf5
+SIMULATION_CONFIG_WITH_SYNAPSES=$NETWORK_DIR/experiment_config_sten_1-with-synapses-A.json
+SIMULATION_CONFIG_NO_SYNAPSES=$NETWORK_DIR/experiment_config_sten_1-no-synapses-A.json
+
+
+# NETWORK_WITH_SYNAPSES_OUTPUT=$NETWORK_DIR/simulation/output-with-synapses-sten_1.hdf5
+# NETWORK_NO_SYNAPSES_OUTPUT=$NETWORK_DIR/simulation/output-no-synapses-sten_1.hdf5
 
 
 export N_WORKERS=$SLURM_NTASKS
@@ -73,8 +77,16 @@ srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/
 # srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
 
 # GJ active
-srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 18 --outputFile $NETWORK_WITH_SYNAPSES_OUTPUT
+# srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 18 --outputFile $NETWORK_WITH_SYNAPSES_OUTPUT
 
-srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 18 --disableSyn --outputFile $NETWORK_NO_SYNAPSES_OUTPUT
+# srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 18 --disableSyn --outputFile $NETWORK_NO_SYNAPSES_OUTPUT
+
+
+# Changed to using the simulation_config
+
+srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py dummy_file dummy_file --simulation_config $SIMULATION_CONFIG_WITH_SYNAPSES
+
+srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py dummy_file dummy_file --simulation_config $SIMULATION_CONFIG_NO_SYNAPSES
+
 
 # srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 5 --noVolt

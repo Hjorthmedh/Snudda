@@ -586,6 +586,7 @@ class Snudda(object):
                       disable_gj=args.disable_gj,
                       record_volt=args.record_volt,
                       record_all=args.record_all,
+                      simulation_config=args.simulation_config,
                       export_core_neuron=args.exportCoreNeuron,
                       verbose=args.verbose)
 
@@ -601,6 +602,7 @@ class Snudda(object):
                  disable_gj=False,
                  record_volt=False,
                  record_all=False,
+                 simulation_config=None,
                  export_core_neuron=False,
                  verbose=False):
 
@@ -728,6 +730,7 @@ class Snudda(object):
                                  disable_gap_junctions=disable_gj,
                                  disable_synapses=disable_synapses,
                                  log_file=log_file,
+                                 simulation_config=simulation_config,
                                  verbose=verbose)
             sim.setup()
             sim.add_external_input()
@@ -736,6 +739,7 @@ class Snudda(object):
 
         if record_volt:
             # sim.add_volt_recording_all()
+            # Either use record_volt or specify "record_all_soma" in simulation_config file
             sim.add_volt_recording_soma()
             # sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
 
@@ -744,7 +748,11 @@ class Snudda(object):
             sim.add_volt_recording_all(cell_id=record_cell_id)
             sim.add_synapse_current_recording_all(record_cell_id)
 
-        t_sim = time * 1000  # Convert from s to ms for Neuron simulator
+        if time is not None:
+            t_sim = time * 1000  # Convert from s to ms for Neuron simulator
+        else:
+            # Will attempt to read "time" from simulation_config
+            t_sim = None
 
         if export_core_neuron:
             sim.export_to_core_neuron()

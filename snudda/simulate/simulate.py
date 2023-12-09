@@ -19,6 +19,7 @@ import os
 import re
 import timeit
 import time
+import gc
 # Plot all sections
 # [neuron.h.psection(x) for x in neuron.h.allsec()]
 from collections import OrderedDict
@@ -131,21 +132,50 @@ class SnuddaSimulate(object):
         self.print_error_once = dict()
 
         if simulation_config:
-        
-            with open(simulation_config, "r") as f:
-                sim_info = json.load(f, object_pairs_hook=OrderedDict)
 
-            if "networkFile" in sim_info:
-                self.network_file = sim_info["networkFile"]
+            if type(simulation_config) == dict:
+                self.sim_info = simulation_config
+            elif os.path.isfile(simulation_config):
+                print(f"Loading simulation_config from {simulation_config}")
+                with open(simulation_config, "r") as f:
+                    self.sim_info = json.load(f, object_pairs_hook=OrderedDict)
+            else:
+                print(f"Unable to find simulation_config file: {simulation_config}")
+                sys.exit(-1)
 
-            if "inputFile" in sim_info:
-                self.input_file = sim_info["inputFile"]
+            if "log_file" in self.sim_info:
+                self.log_file = open(self.sim_info["log_file"], "w")
 
-            if "logFile" in sim_info:
-                self.log_file = open(sim_info["logFile"], "w")
+            if "network_path" in self.sim_info:
+                self.network_path = self.sim_info["network_path"]
 
-            if "sampleDt" in sim_info:
-                self.sample_dt = sim_info["sampleDt"]
+            if "network_file" in self.sim_info:
+                self.network_file = self.sim_info["network_file"]
+
+            if "input_file" in self.sim_info:
+                self.input_file = self.sim_info["input_file"]
+
+            if "output_file" in self.sim_info:
+                self.output_file = self.sim_info["output_file"]
+
+            if "sample_dt" in self.sim_info:
+                self.sample_dt = self.sim_info["sample_dt"]
+
+            if "disable_synapses" in self.sim_info:
+                self.disable_synapses = self.sim_info["disable_synapses"]
+
+            if "disable_gap_junctions" in self.sim_info:
+                self.disable_gap_junctions = self.sim_info["disable_gap_junctions"]
+
+            if "verbose" in self.sim_info:
+                self.verbose = self.sim_info["verbose"]
+
+            if "snudda_data" in self.sim_info:
+                # Do not change this unless you know what you are doing
+                self.snudda_data = self.sim_info["snudda_data"]
+
+        else:
+            self.sim_info = None
 
         if self.log_file is None:
             self.log_file = os.path.join(self.network_path, "log", "simulation-log.txt")
@@ -166,7 +196,7 @@ class SnuddaSimulate(object):
         if self.log_file is not None:
             self.write_log(f"Using logFile: {self.log_file.name}")
 
-        # !!! What value to use for synaptic weight and synapse delay?
+        # !!! What values to use for synaptic weight and synapse delay?
         # !!! different for AMPA and GABA?
         self.synapse_weight = 10.0  # microsiemens
         self.synapse_delay = 1  # ms
@@ -242,12 +272,29 @@ class SnuddaSimulate(object):
         self.check_memory_status()
         self.pc.barrier()
 
+        if self.sim_info:
+
+            if "record_all_soma" in self.sim_info and self.sim_info["record_all_soma"]:
+                self.add_volt_recording_soma()
+
+            if "record_soma" in self.sim_info:
+                record_soma_cell_id = np.array(self.sim_info["record_soma"], dtype=int)
+                self.add_volt_recording_soma(cell_id=record_soma_cell_id)
+
+            if "record_all_compartments" in self.sim_info:
+                record_comp_cell_id = np.array(self.sim_info["record_all_compartments"], dtype=int)
+                self.add_volt_recording_all(cell_id=record_comp_cell_id)
+
+            if "record_all_synapses" in self.sim_info:
+                record_syn_cell_id = np.array(self.sim_info["record_all_synapses"], dtype=int)
+                self.add_synapse_current_recording_all(record_syn_cell_id)
+
         # Do we need blocking call here, to make sure all neurons are setup
         # before we try and connect them
 
         # READ ABOUT PARALLEL NEURON
 
-    # https://www.neuron.yale.edu/neuron/static/new_doc/modelspec/programmatic/network/parcon.html#paralleltransfer
+        # https://www.neuron.yale.edu/neuron/static/new_doc/modelspec/programmatic/network/parcon.html#paralleltransfer
 
     ############################################################################
 
@@ -516,7 +563,13 @@ class SnuddaSimulate(object):
                                                modulation_key=modulation_key)
 
                 # Register ID as belonging to this worker node
-                self.pc.set_gid2node(ID, int(self.pc.id()))
+                try:
+                    self.pc.set_gid2node(ID, int(self.pc.id()))
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
 
                 self.write_log(f"Node {int(self.pc.id())} - cell {ID} {name}")
 
@@ -1473,12 +1526,22 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def run(self, t=1000.0, hold_v=None):
+    def run(self, t=None, hold_v=None):
 
         """ Run simulation. """
 
         if self.is_virtual_neuron.all():
             print("ALL YOUR NEURONS IN THE SIMULATION ARE VIRTUAL")
+
+        if t is None:
+            if self.sim_info is not None and "time" in self.sim_info:
+                t = self.sim_info["time"] * 1e3  # convert to ms for NEURON
+            else:
+                t = 1000.0
+
+        if hold_v is None:
+            if self.sim_info is not None and "hold_voltage" in self.sim_info:
+                hold_v = self.sim_info["hold_voltage"]
 
         self.setup_print_sim_time(t)
 
@@ -1956,10 +2019,7 @@ class SnuddaSimulate(object):
         for sec in h.allsec():
             h.delete_section(sec=sec)
 
-        if sys.meta_path:
-            # If sys.meta_path is None, then python is shutting down and this is redundant
-            import gc
-            gc.collect()
+        gc.collect()
 
 ############################################################################
 
@@ -1997,6 +2057,8 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", action="store_true")
 
     parser.add_argument("--outputFile", help="Output hdf5 file (from simulation)", dest="output_file", default=None)
+    parser.add_argument("--simulation_config", type=str, default=None)
+
 
     # If called through "nrniv -python Network_simulate.py ..." then argparse
     # gets confused by -python flag, and we need to ignore it
@@ -2045,6 +2107,7 @@ if __name__ == "__main__":
                          disable_gap_junctions=args.disable_gapjunctions,
                          disable_synapses=args.disable_synapses,
                          log_file=log_file,
+                         simulation_config=args.simulation_config,
                          verbose=args.verbose)
     sim.setup()
     sim.add_external_input()
