@@ -2056,8 +2056,8 @@ if __name__ == "__main__":
                         help="Disable synapses")
     parser.add_argument("--disableGJ", action="store_true", dest="disable_gapjunctions",
                         help="Disable gap junctions")
-    parser.add_argument("--time", type=float, default=1.5,
-                        help="Duration of simulation in seconds")
+    parser.add_argument("--time", type=float, default=None,
+                        help="Duration of simulation in seconds (must be set, or specified in simulation_config)")
     parser.add_argument("--verbose", action="store_true")
 
     parser.add_argument("--outputFile", help="Output hdf5 file (from simulation)", dest="output_file", default=None)
@@ -2128,10 +2128,13 @@ if __name__ == "__main__":
         record_cell_id = np.array([int(x) for x in args.record_all_synapses.split(",")])
         sim.add_synapse_current_recording_all(record_cell_id)
 
-    t_sim = args.time * 1000  # Convert from s to ms for Neuron simulator
+    if args.time:
+        t_sim = args.time * 1000  # Convert from s to ms for Neuron simulator
+    else:
+        t_sim = None
 
     sim.check_memory_status()
-    print(f"Running simulation for {t_sim} ms.")
+    # print(f"Running simulation for {t_sim} ms.")
     sim.run(t_sim)  # In milliseconds
 
     print("Simulation done, saving output")
