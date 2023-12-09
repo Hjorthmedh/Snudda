@@ -17,7 +17,7 @@
             "generator" : "poisson",
             "start" : [4, 10, 16],
             "end" :   [6, 12, 18],
-            "frequency" : [30],
+            "frequency" : [40],
             "conductance" : 0.5e-9,
             "nInputs" : 50,
             "populationUnitCorrelation" : 0,

@@ -14,8 +14,8 @@
 #NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k
 NETWORK_DIR=../networks/sten_1
 
-SIMULATION_CONFIG_WITH_SYNAPSES=$NETWORK_DIR/experiment_config_sten_1-with-synapses-A.json
-SIMULATION_CONFIG_NO_SYNAPSES=$NETWORK_DIR/experiment_config_sten_1-no-synapses-A.json
+SIMULATION_CONFIG_WITH_SYNAPSES=experiment_config_sten_1-with-synapses-A.json
+SIMULATION_CONFIG_NO_SYNAPSES=experiment_config_sten_1-no-synapses-A.json
 
 
 # NETWORK_WITH_SYNAPSES_OUTPUT=$NETWORK_DIR/simulation/output-with-synapses-sten_1.hdf5
