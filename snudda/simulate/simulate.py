@@ -272,6 +272,10 @@ class SnuddaSimulate(object):
         self.check_memory_status()
         self.pc.barrier()
 
+        self.setup_parse_sim_info()
+
+    def setup_parse_sim_info(self):
+
         if self.sim_info:
 
             if "record_all_soma" in self.sim_info and self.sim_info["record_all_soma"]:

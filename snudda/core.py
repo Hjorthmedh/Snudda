@@ -697,6 +697,7 @@ class Snudda(object):
                                                     disable_gap_junctions=disable_gj,
                                                     disable_synapses=disable_synapses,
                                                     log_file=log_file,
+                                                    simulation_config=simulation_config,
                                                     verbose=verbose)
 
                 sim.setup()
@@ -714,6 +715,7 @@ class Snudda(object):
                                                            disable_synapses=disable_synapses,
                                                            log_file=log_file,
                                                            neuromodulator_description=neuromod_dict,
+                                                           simulation_config=simulation_config,
                                                            verbose=verbose)
 
                 sim.setup()
