@@ -54,8 +54,8 @@ class SnuddaSimulate(object):
                  output_file=None,
                  verbose=False,
                  log_file=None,
-                 disable_synapses=False,
-                 disable_gap_junctions=False,
+                 disable_synapses=None,
+                 disable_gap_junctions=None,
                  simulation_config=None):
 
         """
@@ -204,8 +204,15 @@ class SnuddaSimulate(object):
         self.axon_speed = 0.8  # Tepper and Lee 2007, Wilson 1986, Wilson 1990
         # refs taken from Damodaran et al 2013
 
-        self.disable_synapses = disable_synapses
-        self.disable_gap_junctions = disable_gap_junctions
+        if disable_synapses is None:
+            self.disable_synapses = False
+        else:
+            self.disable_synapses = disable_synapses
+
+        if disable_gap_junctions is None:
+            self.disable_gap_junctions = False
+        else:
+            self.disable_gap_junctions = disable_gap_junctions
 
         self.synapse_type_lookup = {1: "GABA", 2: "AMPA_NMDA", 3: "GapJunction"}
 
