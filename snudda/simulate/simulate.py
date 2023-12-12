@@ -131,6 +131,9 @@ class SnuddaSimulate(object):
 
         self.print_error_once = dict()
 
+        self.disable_synapses = False
+        self.disable_gap_junctions = False
+
         if simulation_config:
 
             if type(simulation_config) == dict:
@@ -204,14 +207,10 @@ class SnuddaSimulate(object):
         self.axon_speed = 0.8  # Tepper and Lee 2007, Wilson 1986, Wilson 1990
         # refs taken from Damodaran et al 2013
 
-        if disable_synapses is None:
-            self.disable_synapses = False
-        else:
+        if disable_synapses is not None:
             self.disable_synapses = disable_synapses
 
-        if disable_gap_junctions is None:
-            self.disable_gap_junctions = False
-        else:
+        if disable_gap_junctions is not None:
             self.disable_gap_junctions = disable_gap_junctions
 
         self.synapse_type_lookup = {1: "GABA", 2: "AMPA_NMDA", 3: "GapJunction"}
@@ -1298,9 +1297,6 @@ class SnuddaSimulate(object):
 
             self.write_log(f"Neuron {self.neurons[neuron_id].name} ({neuron_id}) resting voltage = {rest_volt * 1e3}")
 
-            # import pdb
-            # pdb.set_trace()
-
             soma = [x for x in self.neurons[neuron_id].icell.soma]
             axon = [x for x in self.neurons[neuron_id].icell.axon]
             # If there are no dendrites this will crash NEURON icell.dend has length == 1, but that is WRONG
@@ -2059,9 +2055,9 @@ if __name__ == "__main__":
                         help="Exclude voltage when saving results, saves time and space.")
     parser.add_argument("--recordALLcompartments", dest="record_all_compartments", type=str, default=None)
     parser.add_argument("--recordALLsynapses", dest="record_all_synapses", type=str, default=None)
-    parser.add_argument("--disableSyn", action="store_true", dest="disable_synapses",
+    parser.add_argument("--disableSyn", "--disableSynapses", action="store_true", dest="disable_synapses", default=None,
                         help="Disable synapses")
-    parser.add_argument("--disableGJ", action="store_true", dest="disable_gapjunctions",
+    parser.add_argument("--disableGJ", "--disableGapJunctions", action="store_true", dest="disable_gapjunctions", default=None,
                         help="Disable gap junctions")
     parser.add_argument("--time", type=float, default=None,
                         help="Duration of simulation in seconds (must be set, or specified in simulation_config)")

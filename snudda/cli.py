@@ -127,10 +127,10 @@ def snudda_cli():
                                  help=('replay plays back a vector of modulation level, '
                                        'adaptive sets modulation based on spiking activity'))
 
-    simulate_parser.add_argument("--disableSyn", action="store_true", dest="disable_synapses",
+    simulate_parser.add_argument("--disableSyn", "--disableSynapses", action="store_true", dest="disable_synapses", default=None,
                                  help="Disable synapses")
 
-    simulate_parser.add_argument("--disableGJ", action="store_true", dest="disable_gj",
+    simulate_parser.add_argument("--disableGJ", "--disableGapJunctions", action="store_true", dest="disable_gj", default=None,
                                  help="Disable gap junctions")
 
     simulate_parser.add_argument("-mechdir", "--mechDir", dest="mech_dir",

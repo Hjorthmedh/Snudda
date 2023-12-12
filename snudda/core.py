@@ -598,7 +598,7 @@ class Snudda(object):
                  time=None,
                  mech_dir=None,
                  neuromodulation=None,
-                 disable_synapses=False,
+                 disable_synapses=None,
                  disable_gj=False,
                  record_volt=False,
                  record_all=False,
