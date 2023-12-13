@@ -112,8 +112,9 @@ class Snudda(object):
                          random_seed=args.randomseed,
                          honor_stay_inside=args.stay_inside)
 
-    def init_config(self, network_size,
+    def init_config(self, network_size=None,
                     snudda_data=None,
+                    struct_def=None,
                     neurons_dir=None,
                     connection_file=None,
                     honor_stay_inside=True,   # currently the cli.py defaults to sending False
@@ -125,14 +126,15 @@ class Snudda(object):
         print(f"Network path: {self.network_path}")
 
         from snudda.init.init import SnuddaInit
-        struct_def = {"Striatum": network_size,
-                      "GPe": 0,
-                      "GPi": 0,
-                      "SNr": 0,
-                      "STN": 0,
-                      "Cortex": 0,
-                      "Thalamus": 0}
-        # Cortex and thalamus axons disabled right now, set to 1 to include one
+
+        if struct_def is None:
+            struct_def = {"Striatum": network_size,
+                          "GPe": 0,
+                          "GPi": 0,
+                          "SNr": 0,
+                          "STN": 0,
+                          "Cortex": 0,  # Cortex and thalamus axons disabled right now, set to N > 0 to include a few
+                          "Thalamus": 0}
 
         if not overwrite:
             assert not os.path.exists(self.network_path), \
@@ -150,7 +152,7 @@ class Snudda(object):
                    random_seed=random_seed,
                    connection_override_file=connection_file)
 
-        if network_size > 1e5:
+        if network_size is not None and network_size > 1e5:
             print(f"Make sure there is enough disk space in {self.network_path}")
             print("Large networks take up ALOT of space")
 
@@ -350,7 +352,7 @@ class Snudda(object):
                             save_putative_synapses = args.savePutative)
 
     def prune_synapses(self,
-                       config_file,
+                       config_file=None,
                        random_seed=None, parallel=False, ipython_profile=None,
                        h5libver="latest",
                        verbose=False,
@@ -584,6 +586,7 @@ class Snudda(object):
                       disable_gj=args.disable_gj,
                       record_volt=args.record_volt,
                       record_all=args.record_all,
+                      simulation_config=args.simulation_config,
                       export_core_neuron=args.exportCoreNeuron,
                       verbose=args.verbose)
 
@@ -595,10 +598,11 @@ class Snudda(object):
                  time=None,
                  mech_dir=None,
                  neuromodulation=None,
-                 disable_synapses=False,
+                 disable_synapses=None,
                  disable_gj=False,
                  record_volt=False,
                  record_all=False,
+                 simulation_config=None,
                  export_core_neuron=False,
                  verbose=False):
 
@@ -693,6 +697,7 @@ class Snudda(object):
                                                     disable_gap_junctions=disable_gj,
                                                     disable_synapses=disable_synapses,
                                                     log_file=log_file,
+                                                    simulation_config=simulation_config,
                                                     verbose=verbose)
 
                 sim.setup()
@@ -710,6 +715,7 @@ class Snudda(object):
                                                            disable_synapses=disable_synapses,
                                                            log_file=log_file,
                                                            neuromodulator_description=neuromod_dict,
+                                                           simulation_config=simulation_config,
                                                            verbose=verbose)
 
                 sim.setup()
@@ -726,6 +732,7 @@ class Snudda(object):
                                  disable_gap_junctions=disable_gj,
                                  disable_synapses=disable_synapses,
                                  log_file=log_file,
+                                 simulation_config=simulation_config,
                                  verbose=verbose)
             sim.setup()
             sim.add_external_input()
@@ -734,6 +741,7 @@ class Snudda(object):
 
         if record_volt:
             # sim.add_volt_recording_all()
+            # Either use record_volt or specify "record_all_soma" in simulation_config file
             sim.add_volt_recording_soma()
             # sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
 
@@ -742,7 +750,11 @@ class Snudda(object):
             sim.add_volt_recording_all(cell_id=record_cell_id)
             sim.add_synapse_current_recording_all(record_cell_id)
 
-        t_sim = time * 1000  # Convert from s to ms for Neuron simulator
+        if time is not None:
+            t_sim = time * 1000  # Convert from s to ms for Neuron simulator
+        else:
+            # Will attempt to read "time" from simulation_config
+            t_sim = None
 
         if export_core_neuron:
             sim.export_to_core_neuron()
@@ -799,7 +811,9 @@ class Snudda(object):
         u_file = os.path.join(ipython_dir, f"profile_{ipython_profile}", "security", "ipcontroller-client.json")
         print(f"Reading IPYPARALLEL connection info from {u_file}\n")
         self.logfile.write(f"Reading IPYPARALLEL connection info from {u_file}\n")
-        self.rc = Client(profile=ipython_profile, url_file=u_file, timeout=120, debug=False)
+        # self.rc = Client(profile=ipython_profile, url_file=u_file, timeout=120, debug=False)
+        self.rc = Client(profile=ipython_profile, connection_info=u_file, timeout=120, debug=False)
+
 
         self.logfile.write(f'Client IDs: {self.rc.ids}')
 

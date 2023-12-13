@@ -324,10 +324,17 @@ class SnuddaSaveNetworkRecordings:
         if int(self.pc.id()) == 0:
 
             out_file = h5py.File(self.output_file, "a")
-            if "time" not in out_file:
+            if "time" not in out_file and self.time is not None:
                 print(f"Using sample dt = {self.sample_dt} (sample step size {sample_step})")
-                out_file.create_dataset("time", data=np.array(self.time)[::sample_step] * self.get_conversion("time"))
-                out_file.close()
+                try:
+                    out_file.create_dataset("time", data=np.array(self.time)[::sample_step] * self.get_conversion("time"))
+                    out_file.close()
+                except:
+                    import traceback
+                    print(f"self.time={self.time}")
+                    print(f"{traceback.format_exc()}", flush=True)
+                    import pdb
+                    pdb.set_trace()
 
         for i in range(int(self.pc.nhost())):
 

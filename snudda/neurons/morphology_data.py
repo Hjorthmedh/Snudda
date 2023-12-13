@@ -18,7 +18,7 @@ class SectionMetaData:
                  "morphology_data", "neuron_id"]
 
     section_id: int
-    parent_section_idx: int
+    parent_section_id: int
     parent_point_idx: int
     parent_section_type: int
     child_section_id: np.ndarray  # First row is child_section_id, second row is child_section_type
@@ -168,6 +168,9 @@ class SectionMetaData:
             # If parent is not soma, set first section_x to 0
             sec_x[0] = 0
         return sec_x
+
+    def soma_distance_at(self, section_x):
+        return np.interp(section_x, self.section_x, self.soma_distance)
 
 
 class MorphologyData:

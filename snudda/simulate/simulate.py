@@ -19,6 +19,7 @@ import os
 import re
 import timeit
 import time
+import gc
 # Plot all sections
 # [neuron.h.psection(x) for x in neuron.h.allsec()]
 from collections import OrderedDict
@@ -53,8 +54,8 @@ class SnuddaSimulate(object):
                  output_file=None,
                  verbose=False,
                  log_file=None,
-                 disable_synapses=False,
-                 disable_gap_junctions=False,
+                 disable_synapses=None,
+                 disable_gap_junctions=None,
                  simulation_config=None):
 
         """
@@ -130,22 +131,54 @@ class SnuddaSimulate(object):
 
         self.print_error_once = dict()
 
+        self.disable_synapses = False
+        self.disable_gap_junctions = False
+
         if simulation_config:
-        
-            with open(simulation_config, "r") as f:
-                sim_info = json.load(f, object_pairs_hook=OrderedDict)
 
-            if "networkFile" in sim_info:
-                self.network_file = sim_info["networkFile"]
+            if type(simulation_config) == dict:
+                self.sim_info = simulation_config
+            elif os.path.isfile(simulation_config):
+                print(f"Loading simulation_config from {simulation_config}")
+                with open(simulation_config, "r") as f:
+                    self.sim_info = json.load(f, object_pairs_hook=OrderedDict)
+            else:
+                print(f"Unable to find simulation_config file: {simulation_config}")
+                sys.exit(-1)
 
-            if "inputFile" in sim_info:
-                self.input_file = sim_info["inputFile"]
+            if "log_file" in self.sim_info:
+                self.log_file = open(self.sim_info["log_file"], "w")
 
-            if "logFile" in sim_info:
-                self.log_file = open(sim_info["logFile"], "w")
+            if "network_path" in self.sim_info:
+                self.network_path = self.sim_info["network_path"]
 
-            if "sampleDt" in sim_info:
-                self.sample_dt = sim_info["sampleDt"]
+            if "network_file" in self.sim_info:
+                self.network_file = self.sim_info["network_file"]
+
+            if "input_file" in self.sim_info:
+                self.input_file = self.sim_info["input_file"]
+
+            if "output_file" in self.sim_info:
+                self.output_file = self.sim_info["output_file"]
+
+            if "sample_dt" in self.sim_info:
+                self.sample_dt = self.sim_info["sample_dt"]
+
+            if "disable_synapses" in self.sim_info:
+                self.disable_synapses = self.sim_info["disable_synapses"]
+
+            if "disable_gap_junctions" in self.sim_info:
+                self.disable_gap_junctions = self.sim_info["disable_gap_junctions"]
+
+            if "verbose" in self.sim_info:
+                self.verbose = self.sim_info["verbose"]
+
+            if "snudda_data" in self.sim_info:
+                # Do not change this unless you know what you are doing
+                self.snudda_data = self.sim_info["snudda_data"]
+
+        else:
+            self.sim_info = None
 
         if self.log_file is None:
             self.log_file = os.path.join(self.network_path, "log", "simulation-log.txt")
@@ -166,7 +199,7 @@ class SnuddaSimulate(object):
         if self.log_file is not None:
             self.write_log(f"Using logFile: {self.log_file.name}")
 
-        # !!! What value to use for synaptic weight and synapse delay?
+        # !!! What values to use for synaptic weight and synapse delay?
         # !!! different for AMPA and GABA?
         self.synapse_weight = 10.0  # microsiemens
         self.synapse_delay = 1  # ms
@@ -174,8 +207,11 @@ class SnuddaSimulate(object):
         self.axon_speed = 0.8  # Tepper and Lee 2007, Wilson 1986, Wilson 1990
         # refs taken from Damodaran et al 2013
 
-        self.disable_synapses = disable_synapses
-        self.disable_gap_junctions = disable_gap_junctions
+        if disable_synapses is not None:
+            self.disable_synapses = disable_synapses
+
+        if disable_gap_junctions is not None:
+            self.disable_gap_junctions = disable_gap_junctions
 
         self.synapse_type_lookup = {1: "GABA", 2: "AMPA_NMDA", 3: "GapJunction"}
 
@@ -242,12 +278,33 @@ class SnuddaSimulate(object):
         self.check_memory_status()
         self.pc.barrier()
 
+        self.setup_parse_sim_info()
+
+    def setup_parse_sim_info(self):
+
+        if self.sim_info:
+
+            if "record_all_soma" in self.sim_info and self.sim_info["record_all_soma"]:
+                self.add_volt_recording_soma()
+
+            if "record_soma" in self.sim_info:
+                record_soma_cell_id = np.array(self.sim_info["record_soma"], dtype=int)
+                self.add_volt_recording_soma(cell_id=record_soma_cell_id)
+
+            if "record_all_compartments" in self.sim_info:
+                record_comp_cell_id = np.array(self.sim_info["record_all_compartments"], dtype=int)
+                self.add_volt_recording_all(cell_id=record_comp_cell_id)
+
+            if "record_all_synapses" in self.sim_info:
+                record_syn_cell_id = np.array(self.sim_info["record_all_synapses"], dtype=int)
+                self.add_synapse_current_recording_all(record_syn_cell_id)
+
         # Do we need blocking call here, to make sure all neurons are setup
         # before we try and connect them
 
         # READ ABOUT PARALLEL NEURON
 
-    # https://www.neuron.yale.edu/neuron/static/new_doc/modelspec/programmatic/network/parcon.html#paralleltransfer
+        # https://www.neuron.yale.edu/neuron/static/new_doc/modelspec/programmatic/network/parcon.html#paralleltransfer
 
     ############################################################################
 
@@ -516,7 +573,13 @@ class SnuddaSimulate(object):
                                                modulation_key=modulation_key)
 
                 # Register ID as belonging to this worker node
-                self.pc.set_gid2node(ID, int(self.pc.id()))
+                try:
+                    self.pc.set_gid2node(ID, int(self.pc.id()))
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
 
                 self.write_log(f"Node {int(self.pc.id())} - cell {ID} {name}")
 
@@ -1234,9 +1297,6 @@ class SnuddaSimulate(object):
 
             self.write_log(f"Neuron {self.neurons[neuron_id].name} ({neuron_id}) resting voltage = {rest_volt * 1e3}")
 
-            # import pdb
-            # pdb.set_trace()
-
             soma = [x for x in self.neurons[neuron_id].icell.soma]
             axon = [x for x in self.neurons[neuron_id].icell.axon]
             # If there are no dendrites this will crash NEURON icell.dend has length == 1, but that is WRONG
@@ -1355,7 +1415,9 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def add_volt_recording_all(self, cell_id=None, centre_only_flag=True):
+    def add_volt_recording_all(self, cell_id=None, centre_only_flag=True, section_x=None):
+
+        # centre_only_flag has priority over section_x parameter
 
         if cell_id is None:
             cell_id = self.neuron_id
@@ -1374,6 +1436,9 @@ class SnuddaSimulate(object):
                 if centre_only_flag:
                     sec_id.append(sid)
                     sec_x.append(0.5)
+                elif section_x:
+                    sec_id.append(sid)
+                    sec_x.append(section_x)
                 else:
                     for seg in sec.allseg():
                         sec_id.append(sid)
@@ -1473,12 +1538,22 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def run(self, t=1000.0, hold_v=None):
+    def run(self, t=None, hold_v=None):
 
         """ Run simulation. """
 
         if self.is_virtual_neuron.all():
             print("ALL YOUR NEURONS IN THE SIMULATION ARE VIRTUAL")
+
+        if t is None:
+            if self.sim_info is not None and "time" in self.sim_info:
+                t = self.sim_info["time"] * 1e3  # convert to ms for NEURON
+            else:
+                t = 1000.0
+
+        if hold_v is None:
+            if self.sim_info is not None and "hold_voltage" in self.sim_info:
+                hold_v = self.sim_info["hold_voltage"]
 
         self.setup_print_sim_time(t)
 
@@ -1921,7 +1996,7 @@ class SnuddaSimulate(object):
 
         memory_ratio = mem_available / mem_total
 
-        self.write_log(f"{self.pc.id()} : Memory status: {int(memory_ratio * 100)}% free")
+        self.write_log(f"{self.pc.id()} : Memory status: {int(memory_ratio * 100)}% free", force_print=True)
 
         return memory_ratio < threshold
 
@@ -1956,7 +2031,6 @@ class SnuddaSimulate(object):
         for sec in h.allsec():
             h.delete_section(sec=sec)
 
-        import gc
         gc.collect()
 
 ############################################################################
@@ -1986,14 +2060,17 @@ if __name__ == "__main__":
                         help="Exclude voltage when saving results, saves time and space.")
     parser.add_argument("--recordALLcompartments", dest="record_all_compartments", type=str, default=None)
     parser.add_argument("--recordALLsynapses", dest="record_all_synapses", type=str, default=None)
-
-    parser.add_argument("--disableGJ", action="store_true",
+    parser.add_argument("--disableSyn", "--disableSynapses", action="store_true", dest="disable_synapses", default=None,
+                        help="Disable synapses")
+    parser.add_argument("--disableGJ", "--disableGapJunctions", action="store_true", dest="disable_gapjunctions", default=None,
                         help="Disable gap junctions")
-    parser.add_argument("--time", type=float, default=1.5,
-                        help="Duration of simulation in seconds")
+    parser.add_argument("--time", type=float, default=None,
+                        help="Duration of simulation in seconds (must be set, or specified in simulation_config)")
     parser.add_argument("--verbose", action="store_true")
 
     parser.add_argument("--outputFile", help="Output hdf5 file (from simulation)", dest="output_file", default=None)
+    parser.add_argument("--simulation_config", type=str, default=None)
+
 
     # If called through "nrniv -python Network_simulate.py ..." then argparse
     # gets confused by -python flag, and we need to ignore it
@@ -2023,9 +2100,11 @@ if __name__ == "__main__":
 
     start = timeit.default_timer()
 
-    disable_gj = args.disableGJ
-    if disable_gj:
+    if args.disable_gapjunctions:
         print("!!! WE HAVE DISABLED GAP JUNCTIONS !!!")
+
+    if args.disable_synapses:
+        print("!!! WE HAVE DISABLED SYNAPSES !!!")
 
     pc = h.ParallelContext()
 
@@ -2037,8 +2116,10 @@ if __name__ == "__main__":
     sim = SnuddaSimulate(network_file=network_data_file,
                          input_file=input_file,
                          output_file=output_file,
-                         disable_gap_junctions=disable_gj,
+                         disable_gap_junctions=args.disable_gapjunctions,
+                         disable_synapses=args.disable_synapses,
                          log_file=log_file,
+                         simulation_config=args.simulation_config,
                          verbose=args.verbose)
     sim.setup()
     sim.add_external_input()
@@ -2048,18 +2129,21 @@ if __name__ == "__main__":
         sim.add_volt_recording_soma()
 
     if args.record_all_compartments:
-        record_cell_id = np.array([int(x) for x in args.record_all.split(",")])
+        record_cell_id = np.array([int(x) for x in args.record_all_compartments.split(",")])
         sim.add_volt_recording_all(cell_id=record_cell_id, centre_only_flag=True)
 
     if args.record_all_synapses:
-        record_cell_id = np.array([int(x) for x in args.record_all.split(",")])
+        record_cell_id = np.array([int(x) for x in args.record_all_synapses.split(",")])
         sim.add_synapse_current_recording_all(record_cell_id)
 
-    tSim = args.time * 1000  # Convert from s to ms for Neuron simulator
+    if args.time:
+        t_sim = args.time * 1000  # Convert from s to ms for Neuron simulator
+    else:
+        t_sim = None
 
     sim.check_memory_status()
-    print(f"Running simulation for {tSim} ms.")
-    sim.run(tSim)  # In milliseconds
+    # print(f"Running simulation for {t_sim} ms.")
+    sim.run(t_sim)  # In milliseconds
 
     print("Simulation done, saving output")
     sim.write_output()
