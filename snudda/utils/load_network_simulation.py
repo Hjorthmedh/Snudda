@@ -126,6 +126,27 @@ class SnuddaLoadNetworkSimulation:
 
         return spike_data
 
+    def get_frequency(self, neuron_id, time_ranges=None):
+
+        if np.issubdtype(neuron_id, np.integer):
+            neuron_id = [neuron_id]
+
+        spike_data = self.get_spikes(neuron_id=neuron_id)
+
+        if time_ranges is None:
+            time_ranges = [0, np.max(self.get_time())]
+
+        freq_table = np.zeros((len(spike_data, len(time_ranges))))
+
+        for idx, (n_id, spikes) in enumerate(spike_data.items()):
+
+            assert neuron_id is None or neuron_id[idx] == n_id, f"Order of neuron_id is not maintained"
+
+            for t_idx, tr in enumerate(time_ranges):
+                freq_table[idx, t_idx] = len(spikes) / (tr[1] - tr[0])
+
+        return freq_table
+
     def get_data(self, data_type, neuron_id=None):
 
         """ Returns data for neuron_id """

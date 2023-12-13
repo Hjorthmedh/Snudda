@@ -1415,7 +1415,9 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def add_volt_recording_all(self, cell_id=None, centre_only_flag=True):
+    def add_volt_recording_all(self, cell_id=None, centre_only_flag=True, section_x=None):
+
+        # centre_only_flag has priority over section_x parameter
 
         if cell_id is None:
             cell_id = self.neuron_id
@@ -1434,6 +1436,9 @@ class SnuddaSimulate(object):
                 if centre_only_flag:
                     sec_id.append(sid)
                     sec_x.append(0.5)
+                elif section_x:
+                    sec_id.append(sid)
+                    sec_x.append(section_x)
                 else:
                     for seg in sec.allseg():
                         sec_id.append(sid)

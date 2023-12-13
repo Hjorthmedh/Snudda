@@ -66,10 +66,10 @@ class PlotNeuronVoltage:
     def plot_neuron_voltage(self, neuron_id, section_id=None,
                             sliding_window_size=False,
                             title=None, axis=None,
-                            show_plot=True, fig_name=None):
+                            show_plot=True, fig_name=None, fig_size=None):
 
         if axis is None:
-            fig = plt.figure()
+            fig = plt.figure(figsize=fig_size)
             ax = fig.add_subplot()
         else:
             ax = axis
