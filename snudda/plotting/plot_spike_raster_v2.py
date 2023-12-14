@@ -554,6 +554,65 @@ class SnuddaPlotSpikeRaster2:
         if figure_name is not None:
             plt.savefig(os.path.join(self.figure_path, figure_name))
 
+    def plot_population_frequency(self, population_id, time_ranges=None):
+
+        raise NotImplementedError()
+
+        if population_id is None:
+            population_id = sorted(list(self.snudda_load.get_neuron_population_units(return_set=True)))
+            label = [str(x) for x in population_id]
+
+        if time_ranges is None:
+            time_ranges = [(0, np.max(self.snudda_simulation_load.get_time()))]
+
+        x_labels = [f"{x[0]} -- {x[1]}" for x in time_ranges]
+
+        data = dict()
+
+        for pop_id in population_id:
+            neuron_id = self.snudda_load.get_population_unit_members(population_unit=pop_id)
+            freq_table = self.snudda_simulation_load.get_frequency(neuron_id=neuron_id, time_ranges=time_ranges)
+            avg_freq = np.sum(freq_table, axis=0).flatten()
+
+            data[str(pop_id)] = avg_freq
+
+        self.plot_grouped_bars(legend_labels_and_data=data)
+
+    def plot_grouped_bars(self, legend_labels_and_data, x_labels, y_unit_label, title):
+
+        raise NotImplementedError()
+
+        # Derived from matplotlib example
+
+        # x_labels = ("Adelie", "Chinstrap", "Gentoo")
+        # legend_labels_and_data = {
+        #     'Bill Depth': (18.35, 18.43, 14.98),
+        #     'Bill Length': (38.79, 48.83, 47.50),
+        #     'Flipper Length': (189.95, 195.82, 217.19),
+        # }
+
+        x = np.arange(len(x_labels))  # the label locations
+        width = 0.25  # the width of the bars
+        multiplier = 0
+
+        fig, ax = plt.subplots(layout='constrained')
+
+        for attribute, measurement in legend_labels_and_data.items():
+            offset = width * multiplier
+            rects = ax.bar(x + offset, measurement, width, label=attribute)
+            ax.bar_label(rects, padding=3)
+            multiplier += 1
+
+        # Add some text for labels, title and custom x-axis tick labels, etc.
+        ax.set_ylabel(y_unit_label)
+        ax.set_title(title)
+        ax.set_xticks(x + width, x_labels)
+        ax.legend(loc='upper left', ncols=3)
+        ax.set_ylim(0, 250)
+
+        plt.show()
+
+
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
