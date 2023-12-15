@@ -394,9 +394,14 @@ class SnuddaPlotSpikeRaster2:
         if label_text is None:
             label_text = ""
             
-        ax.hist(x=pop_spikes.values(), bins=bins, weights=weights, linewidth=3, linestyle=linestyle,
-                histtype="step", color=colour,
-                label=[f"{label_text}{x}" for x in pop_spikes.keys()])
+        N, bins, patches = ax.hist(x=pop_spikes.values(), bins=bins, weights=weights, linewidth=3, linestyle=linestyle,
+                                   histtype="step", color=colour,
+                                   label=[f"{label_text}{x}" for x in pop_spikes.keys()])
+
+        if type(colour) == list:
+            for patch, col in zip(patches, colour):
+                patch[0].set_facecolor(col)
+
         plt.xlabel("Time (s)", fontsize=20)
         plt.ylabel("Frequency (Hz)", fontsize=20)
         ax.legend()
