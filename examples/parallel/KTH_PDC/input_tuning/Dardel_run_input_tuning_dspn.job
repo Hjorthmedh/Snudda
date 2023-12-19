@@ -41,7 +41,7 @@ export PATH=$SNUDDA_DIR/snudda_env/bin/:$PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CRAY_LD_LIBRARY_PATH
 export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.9/
 
-python setup_input_tuning.py
+srun -n 1 python setup_input_tuning.py
 
 ##############
 
