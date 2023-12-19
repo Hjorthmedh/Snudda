@@ -4,6 +4,7 @@ from snudda.input.input_tuning import InputTuning
 # Should be set by script calling setup_input_tuning_dspn
 # os.environ["SNUDDA_DATA"] = "../../../../../BasalGangliaData/data/"
 
+
 assert os.path.isdir(os.getenv("SNUDDA_DATA")), f"You need to have BasalGangliaData installed for this example."
 
 if os.getenv("SNUDDA_TUNE_NEURON"):
