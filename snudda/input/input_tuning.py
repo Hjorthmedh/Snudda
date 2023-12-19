@@ -6,6 +6,9 @@ import os
 import sys
 import timeit
 
+# Must be run before NEURON import to run in parallel
+from mpi4py import MPI
+
 import h5py
 import matplotlib.pyplot as plt
 import numpy as np
@@ -50,6 +53,7 @@ class InputTuning(object):
         self.frequency_range = None
         self.input_duration = None
         self.max_time = None  # self.input_duration * len(self.frequency_range)
+        self.num_replicas = None
 
         if not os.path.isdir(self.network_path):
             os.makedirs(self.network_path)
@@ -72,6 +76,8 @@ class InputTuning(object):
             all_combinations = True
         else:
             all_combinations = False
+
+        self.num_replicas = num_replicas
 
         # TODO: num_replicas should be set by a parameter, it affects how many duplicates of each neuron
         # and thus how many steps we have between n_min and n_max number of inputs specified.
@@ -111,12 +117,15 @@ class InputTuning(object):
 
         # TODO: Skip placing neurons that will not receive any inputs or distribute any inputs
 
-    def setup_input(self, input_type=None, num_input_min=100, num_input_max=1000,
+    def setup_input(self, input_type=None, num_input_min=100, num_input_max=1000, num_input_steps=None,
                     input_duration=10,
                     input_frequency_range=None, use_meta_input=True):
 
         if not input_frequency_range:
             input_frequency_range = [1.0]
+
+        if not num_input_steps:
+            num_input_steps = self.num_replicas
 
         self.frequency_range = np.array(input_frequency_range)
         self.input_duration = input_duration
@@ -159,6 +168,7 @@ class InputTuning(object):
                                  input_frequency=list(self.frequency_range),  # [1.0],
                                  n_input_min=num_input_min,
                                  n_input_max=num_input_max,
+                                 num_input_steps=num_input_steps,
                                  synapse_conductance=0.5e-9,
                                  synapse_density=synapse_density,
                                  input_duration=self.input_duration,
@@ -790,7 +800,8 @@ class InputTuning(object):
     def create_input_config(self,
                             input_config_file,
                             input_type,
-                            n_input_min, n_input_max, input_frequency,
+                            n_input_min, n_input_max, num_input_steps,
+                            input_frequency,
                             synapse_density,
                             synapse_conductance,
                             synapse_parameter_file,
@@ -807,7 +818,11 @@ class InputTuning(object):
             # will determine how many steps we have between n_input_min and n_input_max
 
             neuron_id_list = neuron_sets[neuron_type]
-            num_range = np.linspace(n_input_min, n_input_max, num=len(neuron_id_list)).astype(int)
+            n_unique = len(neuron_id_list) / num_input_steps
+
+            assert n_unique % 1 == 0, f"Internal error, every model version should exist {num_input_steps} times"
+
+            num_range = np.linspace(n_input_min, n_input_max, num=num_input_steps).astype(int).reshape((1, num_input_steps)).repeat(int(n_unique), axis=0).flatten()
 
             for neuron_id, num_input in zip(neuron_id_list, num_range):
 
@@ -1054,6 +1069,7 @@ if __name__ == "__main__":
         input_scaling.setup_input(input_type=args.input_type,
                                   num_input_min=args.numInputMin,
                                   num_input_max=args.numInputMax,
+                                  num_replicas=args.numInputSteps,
                                   input_duration=args.inputDuration,
                                   input_frequency_range=input_frequency,
                                   use_meta_input=not args.no_meta_input)
