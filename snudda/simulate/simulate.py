@@ -56,6 +56,7 @@ class SnuddaSimulate(object):
                  log_file=None,
                  disable_synapses=None,
                  disable_gap_junctions=None,
+                 sample_dt=None,
                  simulation_config=None):
 
         """
@@ -125,7 +126,7 @@ class SnuddaSimulate(object):
         self.sim_start_time = 0
         self.fih_time = None
         self.last_sim_report_time = 0
-        self.sample_dt = None  # None means all values, 0.0005 means 0.5ms time resolution in saved files
+        self.sample_dt = sample_dt  # None means all values, 0.0005 means 0.5ms time resolution in saved files
 
         self.pc = h.ParallelContext()
 

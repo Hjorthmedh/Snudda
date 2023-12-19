@@ -937,7 +937,7 @@ class InputTuning(object):
         input_spike_data.close()
         network_data.close()
 
-    def simulate(self, mech_dir=None):
+    def simulate(self, mech_dir=None, sample_dt=0.01):
 
         from snudda.core import Snudda
         Snudda.compile_mechanisms(mech_dir=mech_dir)
@@ -951,7 +951,8 @@ class InputTuning(object):
         pc = h.ParallelContext()
 
         sim = SnuddaSimulate(network_file=self.network_file,
-                             input_file=self.input_spikes_file)
+                             input_file=self.input_spikes_file,
+                             sample_dt=sample_dt)
         sim.setup()
         sim.add_external_input()
         sim.check_memory_status()
