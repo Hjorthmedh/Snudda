@@ -22,6 +22,7 @@ module load snic-env
 source $HOME/Snudda/snudda_env/bin/activate
 SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda
 
+
 # If the BasalGangliaData directory exists, then use that for our data
 if [[ -d "/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data" ]]; then
     export SNUDDA_DATA="/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data"
@@ -41,7 +42,11 @@ export PATH=$SNUDDA_DIR/snudda_env/bin/:$PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CRAY_LD_LIBRARY_PATH
 export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.9/
 
+# Do we need this magic?
+export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
+
 # srun -n 1 setup_input_tuning_dspn.sh
+srun -n 1 python3 setup_input_tuning.py &> log/setup_network_log.txt
 
 ##############
 
@@ -60,6 +65,12 @@ which nrnivmodl
 
 # srun -n nrnivmodl mechanisms/
 
+# Do we need this magic?
+export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
+
 srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/libreadline.so.7 -lncurses=/lib64/libncurses.so.6.1" -loadflags "-DLTDL_LIBRARY=/usr/lib64/libltdl.so.7 -DREADLINE_LIBRARY=/lib64/libreadline.so.7 -DNCURSES_LIBRARY=/lib64/libncurses.so.6.1" mechanisms/
+
+# Do we need this magic?
+export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
 
 srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/input_tuning/x86_64/special -mpi -python $SNUDDA_DIR/snudda/input/input_tuning.py simulate $NETWORK_DIR

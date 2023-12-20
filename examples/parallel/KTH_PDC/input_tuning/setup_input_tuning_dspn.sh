@@ -1,3 +1,5 @@
+#!/bin/bash
+
 export SNUDDA_TUNE_NEURON="dspn"
 
 NETWORK_DIR=networks/input_tuning_$SNUDDA_TUNE_NEURON
