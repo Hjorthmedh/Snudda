@@ -42,11 +42,18 @@ export PATH=$SNUDDA_DIR/snudda_env/bin/:$PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CRAY_LD_LIBRARY_PATH
 export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.9/
 
+# This will stop NEURON from failing with "can't open DISPLAY"
+unset DISPLAY
+
 # Do we need this magic?
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
 
+srun -n 1 python test_script.py &> test_print.txt
+
+export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
+
 # srun -n 1 setup_input_tuning_dspn.sh
-srun -n 1 python3 setup_input_tuning.py &> log/setup_network_log.txt
+srun -n 1 python setup_input_tuning.py &> log/setup_network_log.txt
 
 ##############
 

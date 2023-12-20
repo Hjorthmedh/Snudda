@@ -1,5 +1,10 @@
 import os
+
+print("Starting setup_input_tuning.py")
+
 from snudda.input.input_tuning import InputTuning
+
+print("Import done")
 
 # Should be set by script calling setup_input_tuning_dspn
 # os.environ["SNUDDA_DATA"] = "../../../../../BasalGangliaData/data/"
@@ -17,14 +22,21 @@ print(f"Optimising input for neuron type {neuron_type}")
 network_path = os.path.join("networks", f"input_tuning_{neuron_type}")
 input_tuning = InputTuning(network_path)
 
+print("Constructor done, calling setup_network.")
+
 neurons_path = os.path.join("$DATA", "neurons", "striatum")
 input_tuning.setup_network(neurons_path=neurons_path, 
                            num_replicas=7,
                            neuron_types=neuron_type)
+
+print("Calling setup_input")
+
 input_tuning.setup_input(input_type="cortical",  # eg. "cortical" or "thalamic"
                          num_input_min=50,
                          num_input_max=200,
                          input_duration=3.0,
                          input_frequency_range=[2.0, 4.0, 6.0, 8.0, 10.0])
 
+
+print("All done with setup_input_tuning.py")
 
