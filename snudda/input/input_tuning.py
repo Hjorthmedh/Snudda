@@ -188,9 +188,6 @@ class InputTuning(object):
 
         frequency_data, voltage_data = self.load_data()
 
-        import pdb
-        pdb.set_trace()
-
         self.plot_frequency_data(frequency_data, show_plots=show_plots, input_type_name=input_type)
         self.plot_frequency_data_alt(frequency_data, show_plots=show_plots, input_type_name=input_type)
         self.plot_volt_data(voltage_data, show_plots=show_plots, input_type_name=input_type)
