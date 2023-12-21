@@ -6,7 +6,7 @@
 #SBATCH --time-min=3:59:00
 #SBATCH -J Simulate
 #SBATCH -A naiss2023-5-231
-#SBATCH --nodes=2
+#SBATCH --nodes=3
 #SBATCH --tasks-per-node=128
 #SBATCH --mail-type=ALL
 
@@ -46,9 +46,8 @@ export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.9/
 unset DISPLAY
 
 # Do we need this magic?
-export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
-
-srun -n 1 python test_script.py &> test_print.txt
+# export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
+# srun -n 1 python test_script.py &> test_print.txt
 
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
 
