@@ -34,7 +34,7 @@ print("Calling setup_input")
 input_tuning.setup_input(input_type="cortical",  # eg. "cortical" or "thalamic"
                          num_input_min=50,
                          num_input_max=250,
-                         input_duration=3.0,
+                         input_duration=5.0,
                          input_frequency_range=[1.0, 2.0, 4.0, 6.0, 8.0, 10.0],
                          use_meta_input=False)
 
