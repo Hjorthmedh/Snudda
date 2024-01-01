@@ -197,6 +197,34 @@ class InputTuning(object):
               f"python3 plotting/Network_plot_traces.py {self.network_path}output_volt.txt "
               f"{self.network_path}network-synapses.hdf5 ")
 
+    def find_background_activity(self, input_freq=6.0, input_type="cortical"):
+
+        frequency_data, voltage_data = self.load_data()
+
+        background = dict()
+
+        # We want to find the largest number of synapses, which at input_freq does not give an action potential
+
+        for neuron_key, data in frequency_data.items():
+
+            max_input = 0
+
+            for n_inputs, (in_freq, out_freq, in_type) in data.items():
+
+                if input_type != in_type:
+                    continue
+
+                idx = np.where(in_freq == input_freq)[0]
+
+                if out_freq[idx] == 0 and n_inputs > max_input:
+                    max_input = n_inputs
+
+            background[neuron_key] = max_input
+
+        import pdb
+        pdb.set_trace()
+
+
     def load_data(self, skip_time=0.0):
 
         network_file = os.path.join(self.network_path, "network-synapses.hdf5")
@@ -1051,7 +1079,7 @@ if __name__ == "__main__":
                         help="Optional, if only we want to simulate one neuron type, eg. FS")
     parser.add_argument("--singleNeuronType", default=None, type=str,
                         help="Optional, if only we want to simulate one neuron subtype, eg. FS_1")
-    parser.add_argument("--no_meta_input", action="store_true", default=False)
+    parser.add_argument("--meta_input", action="store_true", default=False)
     args = parser.parse_args()
 
     # TODO: Let the user choose input type, duration for each "run", frequency range, number of input range
@@ -1073,7 +1101,7 @@ if __name__ == "__main__":
                                   num_replicas=args.numInputSteps,
                                   input_duration=args.inputDuration,
                                   input_frequency_range=input_frequency,
-                                  use_meta_input=not args.no_meta_input)
+                                  use_meta_input=args.no_meta_input)
 
         print("Tip, to run in parallel on your local machine use: "
               "mpiexec -n 4 python3 tuning/input_tuning.py simulate <yournetworkhere>")
