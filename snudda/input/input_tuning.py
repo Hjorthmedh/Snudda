@@ -119,7 +119,10 @@ class InputTuning(object):
 
     def setup_input(self, input_type=None, num_input_min=100, num_input_max=1000, num_input_steps=None,
                     input_duration=10,
-                    input_frequency_range=None, use_meta_input=True):
+                    input_frequency_range=None, use_meta_input=True, generate=True, clear_old_input=True):
+
+        if clear_old_input:
+            self.input_info = None
 
         if not input_frequency_range:
             input_frequency_range = [1.0]
@@ -135,6 +138,7 @@ class InputTuning(object):
         synapse_density_thalamic_input = "0.05*exp(-d/200e-6)"
         #  synapse_density_thalamic_input = "(d > 100e-6)*1"  # TEST!!
 
+        # TODO: These should be read from JSON file, so user can add additional neuron and input types
         cortical_SPN_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
         thalamic_SPN_synapse_parameter_file = "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
         cortical_FS_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json"
@@ -143,7 +147,7 @@ class InputTuning(object):
         thalamic_ChIN_synapse_parameter_file = "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-CHAT.json"
         cortical_LTS_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-LTS.json"
 
-        if input_type == 'cortical':
+        if 'cortical' in input_type.lower():
             synapse_density = synapse_density_cortical_input
             synapse_parameter_file = {"dspn": cortical_SPN_synapse_parameter_file,
                                       "ispn": cortical_SPN_synapse_parameter_file,
@@ -151,7 +155,7 @@ class InputTuning(object):
                                       "lts": cortical_LTS_synapse_parameter_file,
                                       "chin": cortical_ChIN_synapse_parameter_file}
             print("Using cortical synapse density for input.")
-        elif input_type == 'thalamic':
+        elif 'thalamic' in input_type.lower():
             synapse_density = synapse_density_thalamic_input
             synapse_parameter_file = {"dspn": thalamic_SPN_synapse_parameter_file,
                                       "ispn": thalamic_SPN_synapse_parameter_file,
@@ -174,15 +178,64 @@ class InputTuning(object):
                                  input_duration=self.input_duration,
                                  synapse_parameter_file=synapse_parameter_file)
 
-        si = SnuddaInput(input_config_file=self.input_config_file,
-                         hdf5_network_file=os.path.join(self.network_path, 'network-synapses.hdf5'),
-                         spike_data_filename=self.input_spikes_file,
-                         time=self.max_time,
-                         logfile=os.path.join(self.network_path, "log", "input.txt"), use_meta_input=use_meta_input)
-        si.generate()
+        if generate:
+            si = SnuddaInput(input_config_file=self.input_config_file,
+                             hdf5_network_file=os.path.join(self.network_path, 'network-synapses.hdf5'),
+                             spike_data_filename=self.input_spikes_file,
+                             time=self.max_time,
+                             logfile=os.path.join(self.network_path, "log", "input.txt"), use_meta_input=use_meta_input)
+            si.generate()
 
         # Info we need to run right duration of simulation
         self.write_tuning_info()
+
+    def setup_background_input(self, input_types=["cortical_background", "thalamic_background"],
+                               input_density=["1.15*0.05/(1+exp(-(d-30e-6)/5e-6))", "0.05*exp(-d/200e-6)"],
+                               input_fraction=[0.5, 0.5],
+                               num_input_min=10, num_input_max=500,
+                               input_frequency=[1, 1], input_duration=10):
+
+        """ Tries to find the maximum number of synapses that will not make the neuron spike. """
+
+        if np.sum(input_fraction) != 1:
+            # If [0.5, 0.5] and 100 inputs, means 50 and 50 synapses for the two inputs
+            input_fraction = np.array(input_fraction) / np.sum(input_fraction)
+            print(f"Adjusting input fraction to make total 1: {input_fraction}")
+
+        num_input_steps = self.num_replicas
+        self.input_duration = input_duration
+        self.max_time = self.input_duration   # Only one frequency for background, we are varying number of inputs
+
+        # TODO: Setup network, run neurons at one frequency.
+
+        # Make sure input is cleared on first iteration, and generated on last iteration
+        generate_flag = np.zeros((len(input_frequency),), dtype=bool)
+        generate_flag[-1] = True
+        clear_flag = np.zeros((len(input_frequency),), dtype=bool)
+        clear_flag[0] = True
+
+        for input_type, density, fraction, frequency, gf, cf \
+            in zip(input_types, input_density, input_fraction, input_frequency,
+                   generate_flag, clear_flag):
+
+            self.setup_input(input_type=input_type,
+                             num_input_min=np.round(fraction*num_input_min),
+                             num_input_max=np.round(fraction*num_input_max),
+                             input_duration=input_duration,
+                             input_frequency_range=[frequency],
+                             use_meta_input=False,
+                             generate=gf,
+                             clear_old_input=cf)
+
+    def update_config(self, config_path, input_tuning_config, input_name):
+
+        """ This code reads """
+
+        with open(config_path) as f:
+            old_config = json.load(f)
+
+        new_config = old_config.copy()
+
 
     def analyse_results(self, input_type='', show_plots=False):
 
@@ -220,9 +273,6 @@ class InputTuning(object):
                     max_input = n_inputs
 
             background[neuron_key] = max_input
-
-        import pdb
-        pdb.set_trace()
 
 
     def load_data(self, skip_time=0.0):
@@ -901,7 +951,10 @@ class InputTuning(object):
         input_start = input_duration * np.arange(0, n_steps)
         input_end = input_duration * np.arange(1, n_steps + 1)
 
-        self.input_info[input_target] = collections.OrderedDict()
+        if input_target not in self.input_info:
+            # By only creating dictionary if it does not exist, we can have multiple inputs
+            self.input_info[input_target] = collections.OrderedDict()
+
         self.input_info[input_target][input_type] = collections.OrderedDict()
 
         self.input_info[input_target][input_type]["generator"] = "poisson"
@@ -1105,6 +1158,30 @@ if __name__ == "__main__":
 
         print("Tip, to run in parallel on your local machine use: "
               "mpiexec -n 4 python3 tuning/input_tuning.py simulate <yournetworkhere>")
+
+    if args.action == "setup_background":
+        input_frequency = ast.literal_eval(args.inputFrequency)
+
+        if type(input_frequency) != list:
+            input_frequency = np.array(list(input_frequency))
+
+        if len(input_frequency) != 1:
+            raise ValueError("input_frequency must only be one value when doing setup_background")
+
+        input_scaling.setup_network(neurons_path=args.neurons,
+                                    num_replicas=args.numInputSteps,
+                                    neuron_types=args.neuronType,
+                                    single_neuron_path=args.singleNeuronType)
+
+        print(f"Setting up background input, will do cortical and thalamic background 50-50 at {input_frequency}")
+
+        input_scaling.setup_background_input(input_types=["cortical_background", "thalamic_background"],
+                                             input_density=["1.15*0.05/(1+exp(-(d-30e-6)/5e-6))", "0.05*exp(-d/200e-6)"],
+                                             input_fraction=[0.5, 0.5],
+                                             num_input_min=args.numInputMin,
+                                             num_input_max=args.numInputMax,
+                                             input_duration=args.inputDuration,
+                                             input_frequency=[input_frequency, input_frequency])
 
     elif args.action == "simulate":
         print("Run simulation...")
