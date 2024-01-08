@@ -19,7 +19,7 @@ else:
 
 print(f"Optimising input for neuron type {neuron_type}")
 
-network_path = os.path.join("networks", f"input_tuning_{neuron_type}")
+network_path = os.path.join("networks", f"input_tuning_{neuron_type}_background")
 input_tuning = InputTuning(network_path)
 
 print("Constructor done, calling setup_network.")
