@@ -10,11 +10,11 @@
 #SBATCH --tasks-per-node=128
 #SBATCH --mail-type=ALL
 
-export SNUDDA_TUNE_NEURON="dspn"
+export SNUDDA_TUNE_NEURON="ispn"
 
 # You need to point this as the directory where you created the network in
 #NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k
-NETWORK_DIR=networks/input_tuning_$SNUDDA_TUNE_NEURON
+NETWORK_DIR=networks/input_tuning_${SNUDDA_TUNE_NEURON}_background
 
 export N_WORKERS=$SLURM_NTASKS
 
@@ -52,7 +52,7 @@ unset DISPLAY
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
 
 # srun -n 1 setup_input_tuning_dspn.sh
-srun -n 1 python setup_input_tuning.py &> log/setup_network_log.txt
+srun -n 1 python setup_input_tuning_background.py &> log/setup_network_log.txt
 
 ##############
 
