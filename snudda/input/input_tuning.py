@@ -250,7 +250,14 @@ class InputTuning(object):
               f"python3 plotting/Network_plot_traces.py {self.network_path}output_volt.txt "
               f"{self.network_path}network-synapses.hdf5 ")
 
-    def find_background_activity(self, input_freq=6.0, input_type="cortical"):
+    def analyse_background_input(self):
+
+        background = self.find_background_activity()
+
+        for neuron_key, num_synapses in background.items():
+            print(f"{neuron_key} has {num_synapses}")
+
+    def find_background_activity(self):
 
         frequency_data, voltage_data = self.load_data()
 
@@ -264,18 +271,163 @@ class InputTuning(object):
 
             for n_inputs, (in_freq, out_freq, in_type) in data.items():
 
-                if input_type != in_type:
-                    continue
-
-                idx = np.where(in_freq == input_freq)[0]
-
-                if out_freq[idx] == 0 and n_inputs > max_input:
+                if out_freq[0] == 0 and n_inputs > max_input:
                     max_input = n_inputs
 
             background[neuron_key] = max_input
 
+        return background
+
+    def find_highest_non_spiking_background_input(self, skip_time=0.0):
+
+        network_info, input_config, input_data, neuron_id_lookup, neuron_name_list, \
+            spike_data, volt, time = self.load_data_helper()
+
+        input_config_info = dict()
+
+        for neuron_name in neuron_id_lookup.keys():
+            neuron_id = neuron_id_lookup[neuron_name]
+            spike_count = self.extract_background_spikes(spike_data=spike_data, neuron_id=neuron_id,
+                                                         skip_time=skip_time)
+
+            # TODO: Need to handle if there are spikes in all traces
+            best_ctr = 0
+            for ctr, sc in enumerate(spike_count):
+                if sc > 0:
+                    break
+                else:
+                    best_ctr = ctr
+                    
+            best_neuron_id = neuron_id[best_ctr]
+
+            neuron_info = network_info.data["neurons"][best_neuron_id]
+            input_config_info[neuron_name] = (input_config[str(best_neuron_id)],
+                                              snudda_parse_path(os.path.join(neuron_info["neuronPath"], "meta.json"),
+                                                                snudda_data=self.snudda_data),
+                                              neuron_info["parameterKey"],
+                                              neuron_info["morphologyKey"])
+
+            # Just an idiot check to make sure all neurons we are comparing are the same
+            for nid in neuron_id:
+                assert network_info.data["neurons"][neuron_id[0]]["name"] == network_info.data["neurons"][nid]["name"]
+
+            self.plot_background_info(neuron_id=neuron_id, neuron_info=neuron_info, best_neuron_id=best_neuron_id,
+                                      spike_count=spike_count, input_config=input_config, max_time=np.max(time))
+
+        return input_config_info
+
+    def plot_background_info(self, neuron_id, neuron_info, best_neuron_id, spike_count, input_config, max_time, skip_time=0):
+
+        n_inputs_total = np.zeros((len(neuron_id),), dtype=int)
+        fig_dir = os.path.join(self.network_path, "figures")
+
+        if not os.path.isdir(fig_dir):
+            os.mkdir(fig_dir)
+
+        fig_name = os.path.join(fig_dir, f"{neuron_info['name']}-background-inputs.png")
+
+        for ctr, nid in enumerate(neuron_id):
+            # Get total input.
+            for input_conf in input_config[str(nid)].values():
+                n_inputs_total[ctr] += input_conf["nInputs"]
+
+        best_idx = np.where(neuron_id == best_neuron_id)[0]
+
+        plt.figure()
+        plt.plot(n_inputs_total, spike_count/(max_time-skip_time))
+        plt.plot(n_inputs_total[best_idx], spike_count[best_idx]/(max_time-skip_time), 'r*')
+        plt.xlabel("Total number of synapses")
+        plt.ylabel("Spike frequency")
+        plt.title(f"Neuron {neuron_info['name']}")
+        plt.savefig(fig_name)
+        plt.ion()
+        plt.show()
+
+    def update_meta(self, input_config_info):
+
+        last_meta_file = None
+        meta_data = None
+
+        for input_config, meta_file, parameter_key, morphology_key in input_config_info.values():
+
+            if meta_file != last_meta_file:
+                # Write old data to file
+                if last_meta_file is not None:
+                    print(f"Writing {last_meta_file}")
+                    with open(last_meta_file, "w") as f:
+                        json.dump(meta_data, f, indent=4)
+
+                # Load new data
+                with open(meta_file, "r") as f:
+                    meta_data = json.load(f)
+                last_meta_file = meta_file
+
+            new_config = input_config.copy()
+            try:
+                for input_name in new_config.keys():
+                    new_config[input_name]["frequency"] = new_config[input_name]["frequency"][0]
+                    del new_config[input_name]["start"]
+                    del new_config[input_name]["end"]
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
+
+            meta_data[parameter_key][morphology_key]["input"] = new_config
+
+        # Write last iteration to file
+        if last_meta_file is not None:
+            print(f"Writing {last_meta_file}")
+            with open(last_meta_file, "w") as f:
+                json.dump(meta_data, f, indent=4)
 
     def load_data(self, skip_time=0.0):
+
+        network_info, input_config, input_data, neuron_id_lookup, neuron_name_list, \
+            spike_data, volt, time = self.load_data_helper()
+
+        n_inputs_lookup = dict()
+
+        for neuron_label in input_data["input"]:
+            neuron_id = int(neuron_label)
+            n_inputs = 0
+
+            for input_type in input_data["input"][neuron_label]:
+                n_inputs += input_data["input"][neuron_label][input_type]["spikes"].shape[0]
+
+            n_inputs_lookup[neuron_id] = n_inputs
+
+        frequency_data = dict()
+        voltage_data = dict()
+
+        for neuron_name in neuron_id_lookup.keys():
+            frequency_data[neuron_name] = dict()
+            voltage_data[neuron_name] = dict()
+
+        for neuron_name in neuron_name_list:
+            for neuron_id in neuron_id_lookup[neuron_name]:
+
+                if neuron_id not in n_inputs_lookup:
+                    print(f"No inputs for neuron_id={neuron_id}, ignoring. Please update your setup.")
+                    continue
+
+                n_inputs = n_inputs_lookup[neuron_id]
+                frequency_data[neuron_name][n_inputs] = self.extract_frequencies(spike_data=spike_data,
+                                                                                 config_data=input_config,
+                                                                                 neuron_id=neuron_id,
+                                                                                 skip_time=skip_time)
+                voltage_data[neuron_name][n_inputs] = self.extract_voltage(volt=volt,
+                                                                           time=time,
+                                                                           config_data=input_config,
+                                                                           neuron_id=neuron_id,
+                                                                           skip_time=skip_time)
+
+        # TODO: Load voltage trace and warn for depolarisation blocking
+
+        return frequency_data, voltage_data
+
+    def load_data_helper(self):
 
         network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         network_info = SnuddaLoad(network_file)
@@ -305,48 +457,10 @@ class InputTuning(object):
         # Next identify number of inputs each run had
         input_config = self.load_input_config()
 
-        n_inputs_lookup = dict()
-
-        for neuron_label in input_data["input"]:
-            neuron_id = int(neuron_label)
-            n_inputs = 0
-
-            for input_type in input_data["input"][neuron_label]:
-                n_inputs += input_data["input"][neuron_label][input_type]["spikes"].shape[0]
-
-            n_inputs_lookup[neuron_id] = n_inputs
-
-        frequency_data = dict()
-        voltage_data = dict()
-
-        for neuron_name in neuron_id_lookup.keys():
-            frequency_data[neuron_name] = dict()
-            voltage_data[neuron_name] = dict()
-
-        for neuron_name in neuron_name_list:
-            for neuron_id in neuron_id_lookup[neuron_name]:
-
-                if neuron_id not in n_inputs_lookup:
-                    print(f"No inputs for neuron_id={neuron_id}, ignoring. Please update your setup.")
-                    continue
-
-                n_inputs = n_inputs_lookup[neuron_id]
-                frequency_data[neuron_name][n_inputs] = self.extract_spikes(spike_data=spike_data,
-                                                                            config_data=input_config,
-                                                                            neuron_id=neuron_id,
-                                                                            skip_time=skip_time)
-                voltage_data[neuron_name][n_inputs] = self.extract_voltage(volt=volt,
-                                                                           time=time,
-                                                                           config_data=input_config,
-                                                                           neuron_id=neuron_id,
-                                                                           skip_time=skip_time)
-
-        # TODO: Load voltage trace and warn for depolarisation blocking
-
-        return frequency_data, voltage_data
+        return network_info, input_config, input_data, neuron_id_lookup, neuron_name_list, spike_data, volt, time
 
     # TODO: We should set skip_time to 1 second, 0 for now while testing
-    def extract_spikes(self, spike_data, config_data, neuron_id, skip_time=0.0):
+    def extract_frequencies(self, spike_data, config_data, neuron_id, skip_time=0.0):
 
         # This function checks the config_data to find out what time ranges to extract
 
@@ -381,6 +495,15 @@ class InputTuning(object):
         output_frequency = np.array(output_frequency)
 
         return input_frequency, output_frequency, input_type
+
+    def extract_background_spikes(self, spike_data, neuron_id, skip_time=0.0):
+
+        spike_count = np.zeros((len(neuron_id), ), dtype=int)
+
+        for ctr, n_id in enumerate(neuron_id):
+            spike_count[ctr] = len(np.where(spike_data[n_id] >= skip_time)[0])
+
+        return spike_count
 
     def load_input_config(self):
 
@@ -1193,6 +1316,8 @@ if __name__ == "__main__":
         # input_scaling.plot_generated_input()
         input_scaling.analyse_results(input_type=args.input_type)
 
+    elif args.action == "analyse_background":
+        input_scaling.analyse_background()
 
     else:
         print(f"Unknown action {args.action}")
