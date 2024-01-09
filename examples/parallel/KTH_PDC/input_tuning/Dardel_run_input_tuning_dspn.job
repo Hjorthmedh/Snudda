@@ -2,7 +2,7 @@
 #SBATCH --partition=main
 #SBATCH -o log/InputTuning-%j-output.txt
 #SBATCH -e log/InputTuning-%j-error.txt
-#SBATCH -t 5:59:00
+#SBATCH -t 7:59:00
 #SBATCH --time-min=3:59:00
 #SBATCH -J Simulate
 #SBATCH -A naiss2023-5-231
