@@ -227,16 +227,6 @@ class InputTuning(object):
                              generate=gf,
                              clear_old_input=cf)
 
-    def update_config(self, config_path, input_tuning_config, input_name):
-
-        """ This code reads """
-
-        with open(config_path) as f:
-            old_config = json.load(f)
-
-        new_config = old_config.copy()
-
-
     def analyse_results(self, input_type='', show_plots=False):
 
         frequency_data, voltage_data = self.load_data()
@@ -249,34 +239,6 @@ class InputTuning(object):
         print(f"To plot traces:\n"
               f"python3 plotting/Network_plot_traces.py {self.network_path}output_volt.txt "
               f"{self.network_path}network-synapses.hdf5 ")
-
-    def analyse_background_input(self):
-
-        background = self.find_background_activity()
-
-        for neuron_key, num_synapses in background.items():
-            print(f"{neuron_key} has {num_synapses}")
-
-    def find_background_activity(self):
-
-        frequency_data, voltage_data = self.load_data()
-
-        background = dict()
-
-        # We want to find the largest number of synapses, which at input_freq does not give an action potential
-
-        for neuron_key, data in frequency_data.items():
-
-            max_input = 0
-
-            for n_inputs, (in_freq, out_freq, in_type) in data.items():
-
-                if out_freq[0] == 0 and n_inputs > max_input:
-                    max_input = n_inputs
-
-            background[neuron_key] = max_input
-
-        return background
 
     def find_highest_non_spiking_background_input(self, skip_time=0.0):
 
@@ -297,7 +259,7 @@ class InputTuning(object):
                     break
                 else:
                     best_ctr = ctr
-                    
+
             best_neuron_id = neuron_id[best_ctr]
 
             neuron_info = network_info.data["neurons"][best_neuron_id]
