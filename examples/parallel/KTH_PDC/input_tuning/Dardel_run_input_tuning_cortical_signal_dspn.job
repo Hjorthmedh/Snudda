@@ -51,7 +51,7 @@ unset DISPLAY
 
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
 
-srun -n 1 setup_input_tuning_cortical_signal.py &> log/setup_network_log.txt
+srun -n 1 python setup_input_tuning_cortical_signal.py &> log/setup_network_log.txt
 
 ##############
 
