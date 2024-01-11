@@ -22,6 +22,7 @@ export N_WORKERS=$SLURM_NTASKS
 # Clear old ipyparallel
 export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/.ipython"
 rm -r $IPYTHONDIR
+export IPYTHON_PROFILE=default
 
 module load snic-env
 source $HOME/Snudda/snudda_env/bin/activate
