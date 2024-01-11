@@ -2,11 +2,11 @@
 #SBATCH --partition=main
 #SBATCH -o log/InputTuning-%j-output.txt
 #SBATCH -e log/InputTuning-%j-error.txt
-#SBATCH -t 5:59:00
-#SBATCH --time-min=3:59:00
+#SBATCH -t 0:59:00
+#SBATCH --time-min=0:59:00
 #SBATCH -J Simulate
 #SBATCH -A naiss2023-5-231
-#SBATCH --nodes=4-8
+#SBATCH --nodes=1
 #SBATCH --tasks-per-node=128
 #SBATCH --mail-type=ALL
 
@@ -82,7 +82,7 @@ echo ">>> waiting 60s for engines to start"
 sleep 30
 
 # srun -n 1 python setup_input_tuning_background.py &> log/setup_network_log.txt
-srun -n 1 -N 1 --exact --overlap --mem=0 setup_input_tuning_background.py &> log/setup_network_log.txt
+srun -n 1 -N 1 --exact --overlap --mem=0 python setup_input_tuning_background.py &> log/setup_network_log.txt
 
 
 # Quit ipyparallel
