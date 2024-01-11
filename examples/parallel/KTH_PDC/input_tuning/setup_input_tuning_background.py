@@ -26,6 +26,11 @@ network_path = os.path.join("networks", f"input_tuning_{neuron_type}_background"
 
 from ipyparallel import Client
 
+ipython_profile = "default"
+ipython_dir = os.getenv('IPYTHONDIR')
+if not ipython_dir:
+    ipython_dir = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
+
 u_file = os.path.join(ipython_dir, f"profile_{ipython_profile}", "security", "ipcontroller-client.json")
 print(f"Reading IPYPARALLEL connection info from {u_file}\n")
 rc = Client(profile=ipython_profile, connection_info=u_file, timeout=120, debug=False)
