@@ -1367,7 +1367,7 @@ if __name__ == "__main__":
                 print(f"Iteration: {ctr+1}/{len(seed_list)} (seed: {seed})")
 
                 input_spikes_file = original_input.replace(".hdf5", f"-{seed}.hdf5")
-                output_file = original_output.replace("hdf5", f"-{seed}.hdf5")
+                output_file = original_output.replace(".hdf5", f"-{seed}.hdf5")
                 input_scaling.simulate(mech_dir=args.mechDir,
                                        input_spikes_file=input_spikes_file,
                                        output_file=output_file)
