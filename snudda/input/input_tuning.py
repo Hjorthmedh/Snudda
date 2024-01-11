@@ -1224,9 +1224,9 @@ class InputTuning(object):
         print("About to clear memory")
         sim.check_memory_status()
         sim.clear_neuron()
-        sim = None
         print("Memory cleared")
-        sim.clear_neuron()
+        sim.check_memory_status()
+        sim = None
 
     def read_tuning_info(self):
         tuning_info_file = os.path.join(self.network_path, "tuning-info.json")
