@@ -23,7 +23,14 @@ else:
 print(f"Optimising input for neuron type {neuron_type}")
 
 network_path = os.path.join("networks", f"input_tuning_{neuron_type}_background")
-input_tuning = InputTuning(network_path)
+
+from ipyparallel import Client
+
+u_file = os.path.join(ipython_dir, f"profile_{ipython_profile}", "security", "ipcontroller-client.json")
+print(f"Reading IPYPARALLEL connection info from {u_file}\n")
+rc = Client(profile=ipython_profile, connection_info=u_file, timeout=120, debug=False)
+
+input_tuning = InputTuning(network_path, rc=rc)
 
 print("Constructor done, calling setup_network.")
 

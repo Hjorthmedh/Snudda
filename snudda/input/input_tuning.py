@@ -37,7 +37,7 @@ class NumpyEncoder(json.JSONEncoder):
 
 class InputTuning(object):
 
-    def __init__(self, network_path, snudda_data=None):
+    def __init__(self, network_path, snudda_data=None, rc=None):
 
         self.network_path = network_path
         self.neurons_path = None
@@ -54,6 +54,8 @@ class InputTuning(object):
         self.input_duration = None
         self.max_time = None  # self.input_duration * len(self.frequency_range)
         self.num_replicas = None
+
+        self.rc = rc
 
         if not os.path.isdir(self.network_path):
             os.makedirs(self.network_path)
@@ -110,17 +112,18 @@ class InputTuning(object):
         sp.parse_config(resort_neurons=False)  # By not resorting neurons, we have original order
         sp.write_data()
 
-        sd = SnuddaDetect(network_path=self.network_path)
+        sd = SnuddaDetect(network_path=self.network_path, rc=self.rc)
         sd.detect()
 
-        sp = SnuddaPrune(network_path=self.network_path)
+        sp = SnuddaPrune(network_path=self.network_path, rc=self.rc)
         sp.prune()
 
         # TODO: Skip placing neurons that will not receive any inputs or distribute any inputs
 
     def setup_input(self, input_type=None, num_input_min=100, num_input_max=1000, num_input_steps=None,
                     input_duration=10,
-                    input_frequency_range=None, use_meta_input=True, generate=True, clear_old_input=True):
+                    input_frequency_range=None,
+                    use_meta_input=True, generate=True, clear_old_input=True):
 
         if clear_old_input:
             self.input_info = None
@@ -184,7 +187,8 @@ class InputTuning(object):
                              hdf5_network_file=os.path.join(self.network_path, 'network-synapses.hdf5'),
                              spike_data_filename=self.input_spikes_file,
                              time=self.max_time,
-                             logfile=os.path.join(self.network_path, "log", "input.txt"), use_meta_input=use_meta_input)
+                             logfile=os.path.join(self.network_path, "log", "input.txt"),
+                             use_meta_input=use_meta_input, rc=self.rc)
             si.generate()
 
         # Info we need to run right duration of simulation
@@ -196,7 +200,8 @@ class InputTuning(object):
                          hdf5_network_file=os.path.join(self.network_path, 'network-synapses.hdf5'),
                          spike_data_filename=new_input_spikes_file,
                          time=self.max_time,
-                         logfile=os.path.join(self.network_path, "log", "input.txt"), use_meta_input=use_meta_input)
+                         logfile=os.path.join(self.network_path, "log", "input.txt"),
+                         use_meta_input=use_meta_input, rc=self.rc)
         si.generate()
 
         return new_input_spikes_file
