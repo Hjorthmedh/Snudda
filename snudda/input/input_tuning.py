@@ -37,7 +37,7 @@ class NumpyEncoder(json.JSONEncoder):
 
 class InputTuning(object):
 
-    def __init__(self, network_path, snudda_data=None, rc=None):
+    def __init__(self, network_path, snudda_data=None, rc=None, input_seed_list=None):
 
         self.network_path = network_path
         self.neurons_path = None
@@ -63,8 +63,15 @@ class InputTuning(object):
         self.network_config_file_name = os.path.join(self.network_path, "network-config.json")
         self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         self.input_config_file = os.path.join(self.network_path, "input_config.json")
-        self.input_spikes_file = os.path.join(self.network_path, 'input.hdf5')
-        self.output_file = os.path.join(self.network_path, "simulations", "output.hdf5")
+
+        self.input_seed_list = input_seed_list
+
+        if self.input_seed_list is None:
+            self.input_spikes_file = os.path.join(self.network_path, 'input.hdf5')
+            self.output_file = os.path.join(self.network_path, "simulations", "output.hdf5")
+        else:
+            self.input_spikes_file = [os.path.join(self.network_path, f"input-{s}.hdf5") for s in self.input_seed_list]
+            self.output_file = [os.path.join(self.network_path, "simulations", f"output-{s}.hdf5") for s in self.input_seed_list]
 
         self.core = Snudda(self.network_path)
         self.init_helper = SnuddaInit(network_path=self.network_path, snudda_data=self.snudda_data)
@@ -120,7 +127,8 @@ class InputTuning(object):
 
         # TODO: Skip placing neurons that will not receive any inputs or distribute any inputs
 
-    def setup_input(self, input_type=None, num_input_min=100, num_input_max=1000, num_input_steps=None,
+    def setup_input(self, input_type=None,
+                    num_input_min=100, num_input_max=1000, num_input_steps=None,
                     input_duration=10,
                     input_frequency_range=None,
                     use_meta_input=True, generate=True, clear_old_input=True):
@@ -183,28 +191,26 @@ class InputTuning(object):
                                  synapse_parameter_file=synapse_parameter_file)
 
         if generate:
-            si = SnuddaInput(input_config_file=self.input_config_file,
-                             hdf5_network_file=os.path.join(self.network_path, 'network-synapses.hdf5'),
-                             spike_data_filename=self.input_spikes_file,
-                             time=self.max_time,
-                             logfile=os.path.join(self.network_path, "log", "input.txt"),
-                             use_meta_input=use_meta_input, rc=self.rc)
-            si.generate()
+            if self.input_seed_list is None:
+                si = SnuddaInput(input_config_file=self.input_config_file,
+                                 hdf5_network_file=os.path.join(self.network_path, 'network-synapses.hdf5'),
+                                 spike_data_filename=self.input_spikes_file,
+                                 time=self.max_time,
+                                 logfile=os.path.join(self.network_path, "log", "input.txt"),
+                                 use_meta_input=use_meta_input, rc=self.rc)
+                si.generate()
+            else:
+                for seed, inp_file in zip(self.input_seed_list, self.input_spikes_file):
+                    si = SnuddaInput(input_config_file=self.input_config_file,
+                                     hdf5_network_file=os.path.join(self.network_path, 'network-synapses.hdf5'),
+                                     spike_data_filename=self.input_spikes_file,
+                                     time=self.max_time,
+                                     logfile=os.path.join(self.network_path, "log", f"input-{seed}.txt"),
+                                     use_meta_input=use_meta_input, rc=self.rc, random_seed=seed)
+                    si.generate()
 
         # Info we need to run right duration of simulation
         self.write_tuning_info()
-
-    def regenerate_input(self, seed, use_meta_input=False):
-        new_input_spikes_file = self.input_spikes_file.replace(".hdf5", f"-{seed}.hdf5")
-        si = SnuddaInput(input_config_file=self.input_config_file,
-                         hdf5_network_file=os.path.join(self.network_path, 'network-synapses.hdf5'),
-                         spike_data_filename=new_input_spikes_file,
-                         time=self.max_time,
-                         logfile=os.path.join(self.network_path, "log", "input.txt"),
-                         use_meta_input=use_meta_input, rc=self.rc)
-        si.generate()
-
-        return new_input_spikes_file
 
     def setup_background_input(self, input_types=["cortical_background", "thalamic_background"],
                                input_density=["1.15*0.05/(1+exp(-(d-30e-6)/5e-6))", "0.05*exp(-d/200e-6)"],
@@ -293,7 +299,7 @@ class InputTuning(object):
 
         return input_config_info
 
-    def find_highest_non_spiking_background_input(self, skip_time=0.0):
+    def find_highest_non_spiking_background_input(self, skip_time=0.0, seed_list=None):
 
         network_info, input_config, input_data, neuron_id_lookup, neuron_name_list, \
             spike_data, volt, time = self.load_data_helper()
@@ -453,7 +459,7 @@ class InputTuning(object):
 
         return frequency_data, voltage_data
 
-    def load_data_helper(self):
+    def load_data_helper(self, seed=None):
 
         network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         network_info = SnuddaLoad(network_file)
@@ -1349,14 +1355,7 @@ if __name__ == "__main__":
                                              num_input_max=args.numInputMax,
                                              input_duration=args.inputDuration,
                                              input_frequency=[input_frequency, input_frequency],
-                                             generate_input=seed_list is None)
-
-        if seed_list is not None:
-            original_input = input_scaling.input_spikes_file
-
-            for ctr, seed in enumerate(seed_list):
-                print(f"Iteration: {ctr + 1}/{len(seed_list)} (seed: {seed})")
-                input_scaling.regenerate_input(seed=seed, use_meta_input=False)
+                                             generate_input=True)
 
     elif args.action == "simulate":
         print("Run simulation...")
