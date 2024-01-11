@@ -200,10 +200,13 @@ class InputTuning(object):
                                  use_meta_input=use_meta_input, rc=self.rc)
                 si.generate()
             else:
-                for seed, inp_file in zip(self.input_seed_list, self.input_spikes_file):
+                for ctr, (seed, input_file) in enumerate(zip(self.input_seed_list, self.input_spikes_file)):
+
+                    print(f"Iteration {ctr}/{len(self.input_seed_list)} (seed: {seed})")
+
                     si = SnuddaInput(input_config_file=self.input_config_file,
                                      hdf5_network_file=os.path.join(self.network_path, 'network-synapses.hdf5'),
-                                     spike_data_filename=self.input_spikes_file,
+                                     spike_data_filename=input_file,
                                      time=self.max_time,
                                      logfile=os.path.join(self.network_path, "log", f"input-{seed}.txt"),
                                      use_meta_input=use_meta_input, rc=self.rc, random_seed=seed)
@@ -1354,8 +1357,7 @@ if __name__ == "__main__":
                                              num_input_min=args.numInputMin,
                                              num_input_max=args.numInputMax,
                                              input_duration=args.inputDuration,
-                                             input_frequency=[input_frequency, input_frequency],
-                                             generate_input=True)
+                                             input_frequency=[input_frequency, input_frequency])
 
     elif args.action == "simulate":
         print("Run simulation...")

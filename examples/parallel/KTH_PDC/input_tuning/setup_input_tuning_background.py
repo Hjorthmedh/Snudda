@@ -35,7 +35,7 @@ u_file = os.path.join(ipython_dir, f"profile_{ipython_profile}", "security", "ip
 print(f"Reading IPYPARALLEL connection info from {u_file}\n")
 rc = Client(profile=ipython_profile, connection_info=u_file, timeout=120, debug=False)
 
-input_tuning = InputTuning(network_path, rc=rc)
+input_tuning = InputTuning(network_path, rc=rc, input_seed_list=seed_list)
 
 print("Constructor done, calling setup_network.")
 
@@ -51,15 +51,7 @@ input_tuning.setup_background_input(input_types=["cortical_background", "thalami
                                     input_density=["1.15*0.05/(1+exp(-(d-30e-6)/5e-6))", "0.05*exp(-d/200e-6)"],
                                     input_fraction=[0.5, 0.5],
                                     num_input_min=10, num_input_max=1000,
-                                    input_frequency=[2, 2], input_duration=10,
-                                    generate_input=seed_list is None)
-
-if seed_list is not None:
-    original_input = input_tuning.input_spikes_file
-
-    for ctr, seed in enumerate(seed_list):
-        print(f"Iteration: {ctr + 1}/{len(seed_list)} (seed: {seed})")
-        input_tuning.regenerate_input(seed=seed, use_meta_input=False)
+                                    input_frequency=[2, 2], input_duration=10)
 
 print("All done with setup_input_tuning.py")
 
