@@ -2002,11 +2002,14 @@ class SnuddaSimulate(object):
         return memory_ratio < threshold
 
     def __del__(self):
-        self.clear_neuron()
+        if self is not None:
+            self.clear_neuron()
 
     def clear_neuron(self):
 
-        self.pc.gid_clear()
+        if self.pc is not None:
+            self.pc.gid_clear()
+
         self.neurons = {}
         self.sim = None
         self.neuron_nodes = []  # Is this used?
