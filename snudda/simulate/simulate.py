@@ -1997,7 +1997,12 @@ class SnuddaSimulate(object):
 
         memory_ratio = mem_available / mem_total
 
-        self.write_log(f"{self.pc.id()} : Memory status: {int(memory_ratio * 100)}% free", force_print=True)
+        if self.pc is not None:
+            pc_id = self.pc.id()
+        else:
+            pc_id = "Unknown node"
+
+        self.write_log(f"{pc_id} : Memory status: {int(memory_ratio * 100)}% free", force_print=True)
 
         return memory_ratio < threshold
 

@@ -1192,7 +1192,18 @@ class InputTuning(object):
         input_spike_data.close()
         network_data.close()
 
-    def simulate(self, mech_dir=None, sample_dt=0.01, input_spikes_file=None, output_file=None):
+    def simulate(self, mech_dir=None, sample_dt=0.01):
+
+        if self.input_seed_list is None:
+            self.simulate_helper(mech_dir=mech_dir, sample_dt=sample_dt)
+        else:
+            for ctr, (input_file, output_file) in enumerate(zip(self.input_spikes_file, self.output_file)):
+                print(f"Iteration: {ctr+1}/{len(self.input_spikes_file)}")
+                print(f"Input file: {input_file}\nOutput file: {output_file}")
+                self.simulate_helper(mech_dir=mech_dir, sample_dt=sample_dt,
+                                     input_spikes_file=input_file, output_file=output_file)
+
+    def simulate_helper(self, mech_dir=None, sample_dt=0.01, input_spikes_file=None, output_file=None):
 
         if input_spikes_file is None:
             input_spikes_file = self.input_spikes_file
@@ -1310,10 +1321,10 @@ if __name__ == "__main__":
 
     # TODO: Let the user choose input type, duration for each "run", frequency range, number of input range
 
-    input_scaling = InputTuning(args.networkPath)
-
     if args.seed_list is not None:
         seed_list = ast.literal_eval(args.seed_list)
+
+    input_scaling = InputTuning(args.networkPath, input_seed_list=seed_list)
 
     if args.action == "setup":
         input_frequency = ast.literal_eval(args.inputFrequency)
@@ -1363,20 +1374,8 @@ if __name__ == "__main__":
         print("Run simulation...")
         print("Tip, to run in parallel on your local machine use: "
               "mpiexec -n 4 python3 tuning/input_tuning.py simulate <yournetworkhere>")
-        if seed_list is None:
-            input_scaling.simulate(mech_dir=args.mechDir)
-        else:
-            original_input = input_scaling.input_spikes_file
-            original_output = input_scaling.output_file
 
-            for ctr, seed in enumerate(seed_list):
-                print(f"Iteration: {ctr+1}/{len(seed_list)} (seed: {seed})")
-
-                input_spikes_file = original_input.replace(".hdf5", f"-{seed}.hdf5")
-                output_file = original_output.replace(".hdf5", f"-{seed}.hdf5")
-                input_scaling.simulate(mech_dir=args.mechDir,
-                                       input_spikes_file=input_spikes_file,
-                                       output_file=output_file)
+        input_scaling.simulate(mech_dir=args.mechDir)
 
     elif args.action == "analyse":
         # input_scaling.plot_generated_input()
