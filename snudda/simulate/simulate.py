@@ -2034,6 +2034,8 @@ class SnuddaSimulate(object):
         self.i_save = []
         self.i_key = []
 
+        self.fih_time  # Event handler to print estimated time left
+
         self.record = None
 
         # We also need to clear everything setup by NEURON
