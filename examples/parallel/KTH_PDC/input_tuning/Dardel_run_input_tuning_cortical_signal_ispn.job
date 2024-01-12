@@ -2,21 +2,35 @@
 #SBATCH --partition=main
 #SBATCH -o log/InputTuning-%j-output.txt
 #SBATCH -e log/InputTuning-%j-error.txt
-#SBATCH -t 7:59:00
-#SBATCH --time-min=3:59:00
-#SBATCH -J Simulate
+#SBATCH -t 8:59:00
+#SBATCH --time-min=7:59:00
+#SBATCH -J InputTuning
 #SBATCH -A naiss2023-5-231
-#SBATCH --nodes=3-8
+#SBATCH --nodes=8-12
 #SBATCH --tasks-per-node=128
+#SBATCH --mem-per-cpu=930M
 #SBATCH --mail-type=ALL
 
 export SNUDDA_TUNE_NEURON="ispn"
+export SEED_LIST="[10,20,30,40,50]"
 
 # You need to point this as the directory where you created the network in
 #NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k
 NETWORK_DIR=networks/input_tuning_${SNUDDA_TUNE_NEURON}_cortical_signal
 
+# This is used for NEURON
 export N_WORKERS=$SLURM_NTASKS
+
+# export N_WORKERS=50
+# export IPNWORKERS=$N_WORKERS
+
+# This is used for ipyparallel and Snudda
+export IPNWORKERS=100
+
+# Clear old ipyparallel
+export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/.ipython"
+rm -r $IPYTHONDIR
+export IPYTHON_PROFILE=default
 
 module load snic-env
 source $HOME/Snudda/snudda_env/bin/activate
@@ -36,6 +50,33 @@ else
 fi
 
 
+# Start ipyparallel
+#.. Start the ipcontroller
+export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
+srun -n 1 -N 1 -c 2 --exact --overlap --mem=0 ./../ipcontroller_new.sh &
+
+
+echo ">>> waiting 60s for controller to start"
+sleep 60 
+
+#.. Read in CONTROLLERIP
+CONTROLLERIP=$(<controller_ip.txt)
+
+##.. Start the engines
+echo ">>> starting ${IPNWORKERS} engines "
+echo "SLURM_JOB_NUM_NODES={SLURM_JOB_NUM_NODES}"
+
+export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
+srun -n ${IPNWORKERS} -c 2 -N ${SLURM_JOB_NUM_NODES} --exact --overlap --mem=0 ipengine \
+--location=${CONTROLLERIP} --profile=${IPYTHON_PROFILE} --mpi \
+--ipython-dir=${IPYTHONDIR}  --timeout=30.0 c.EngineFactory.max_heartbeat_misses=10  c.MPI.use='mpi4py' \
+1> ipe_${SLURM_JOBID}.out 2> ipe_${SLURM_JOBID}.err &
+
+
+echo ">>> waiting 60s for engines to start"
+sleep 30
+
+
 echo "Network dir: "$NETWORK_DIR
 
 export PATH=$SNUDDA_DIR/snudda_env/bin/:$PATH
@@ -51,7 +92,14 @@ unset DISPLAY
 
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
 
-srun -n 1 python setup_input_tuning_cortical_signal.py &> log/setup_network_log.txt
+# srun -n 1 python setup_input_tuning_background.py &> log/setup_network_log.txt
+srun -n 1 -N 1 --exact --overlap --mem=0 python setup_input_tuning_cortical_signal.py &> log/setup_network_log.txt
+
+
+# Quit ipyparallel
+
+python ../ipcontroller_shutdown.py
+
 
 ##############
 
@@ -78,4 +126,6 @@ srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/
 # Do we need this magic?
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
 
-srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/input_tuning/x86_64/special -mpi -python $SNUDDA_DIR/snudda/input/input_tuning.py simulate $NETWORK_DIR
+srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/input_tuning/x86_64/special -mpi -python $SNUDDA_DIR/snudda/input/input_tuning.py simulate $NETWORK_DIR --seed_list $SEED_LIST
+
+
