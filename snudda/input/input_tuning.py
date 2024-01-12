@@ -273,7 +273,7 @@ class InputTuning(object):
 
         for idx in range(len(self.input_seed_list)):
             network_info, input_config, _, neuron_id_lookup, neuron_name_list, \
-                spike_data[idx], _, time = self.load_data_helper()
+                spike_data[idx], _, time = self.load_data_helper(idx=idx)
 
         input_config_info = dict()
 
@@ -317,7 +317,7 @@ class InputTuning(object):
 
         for idx in range(len(self.input_seed_list)):
             network_info, input_config, _, neuron_id_lookup, neuron_name_list, \
-                spike_data[idx], _, time = self.load_data_helper()
+                spike_data[idx], _, time = self.load_data_helper(idx=idx)
 
         input_config_info = dict()
 
@@ -327,7 +327,7 @@ class InputTuning(object):
             spike_count = np.zeros((len(neuron_id), len(self.input_seed_list)), dtype=int)
 
             for idx in range(len(self.input_seed_list)):
-                spike_count[:, idx] = self.extract_background_spikes(spike_data=spike_data, neuron_id=neuron_id,
+                spike_count[:, idx] = self.extract_background_spikes(spike_data=spike_data[idx], neuron_id=neuron_id,
                                                                      skip_time=skip_time)
 
             spike_count_sum = np.sum(spike_count, axis=1)
@@ -368,7 +368,7 @@ class InputTuning(object):
         if not os.path.isdir(fig_dir):
             os.mkdir(fig_dir)
 
-        fig_name = os.path.join(fig_dir, f"{neuron_info['name']}-{label}.png")
+        fig_name = os.path.join(fig_dir, f"{neuron_info['morphologyKey']}-{neuron_info['parameterKey']}-{neuron_info['name']}-{label}.png")
 
         for ctr, nid in enumerate(neuron_id):
             # Get total input.
@@ -496,13 +496,16 @@ class InputTuning(object):
 
         network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         network_info = SnuddaLoad(network_file)
+        input_data = None
 
         if idx is None:
             output_file = self.output_file
-            input_data = h5py.File(self.input_spikes_file, "r")
+            if os.path.isfile(self.input_spikes_file):
+                input_data = h5py.File(self.input_spikes_file, "r")
         else:
             output_file = self.output_file[idx]
-            input_data = h5py.File(self.input_spikes_file[idx], "r")
+            if os.path.isfile(self.input_spikes_file[idx]):
+                input_data = h5py.File(self.input_spikes_file[idx], "r")
 
         output_data_loader = SnuddaLoadNetworkSimulation(network_path=self.network_path,
                                                          network_simulation_output_file=output_file)
