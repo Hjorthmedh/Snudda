@@ -53,5 +53,5 @@ input_tuning.setup_background_input(input_types=["cortical_background", "thalami
                                     num_input_min=10, num_input_max=1000,
                                     input_frequency=[2, 2], input_duration=10)
 
-print("All done with setup_input_tuning.py")
+print("All done with setup_input_tuning_background.py")
 

@@ -1,10 +1,8 @@
 import os
-
-print("Starting setup_input_tuning_cortical_signal.py")
-
+import ast
 from snudda.input.input_tuning import InputTuning
 
-print("Import done")
+print("Starting setup_input_tuning_cortical_signal.py")
 
 # Should be set by script calling setup_input_tuning_dspn
 # os.environ["SNUDDA_DATA"] = "../../../../../BasalGangliaData/data/"
@@ -18,11 +16,29 @@ else:
     neuron_type="dspn"
 
 input_type = "cortical"
+
+if os.getenv("SEED_LIST"):
+    seed_list = ast.literal_eval(os.getenv("SEED_LIST"))
+else:
+    seed_list = None
     
 print(f"Optimising input for neuron type {neuron_type}")
 
 network_path = os.path.join("networks", f"input_tuning_{neuron_type}_{input_type}_signal")
-input_tuning = InputTuning(network_path)
+
+
+from ipyparallel import Client
+
+ipython_profile = "default"
+ipython_dir = os.getenv('IPYTHONDIR')
+if not ipython_dir:
+    ipython_dir = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
+
+u_file = os.path.join(ipython_dir, f"profile_{ipython_profile}", "security", "ipcontroller-client.json")
+print(f"Reading IPYPARALLEL connection info from {u_file}\n")
+rc = Client(profile=ipython_profile, connection_info=u_file, timeout=120, debug=False)
+
+input_tuning = InputTuning(network_path, rc=rc, input_seed_list=seed_list)
 
 print("Constructor done, calling setup_network.")
 
@@ -41,5 +57,5 @@ input_tuning.setup_input(input_type=input_type,  # eg. "cortical" or "thalamic"
                          use_meta_input=True)
 
 
-print("All done with setup_input_tuning.py")
+print("All done with setup_input_tuning_cortical_signal.py")
 
