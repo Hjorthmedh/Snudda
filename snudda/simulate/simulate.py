@@ -2034,7 +2034,7 @@ class SnuddaSimulate(object):
         self.i_save = []
         self.i_key = []
 
-        self.fih_time  # Event handler to print estimated time left
+        self.fih_time = None  # Event handler to print estimated time left
 
         self.record = None
 
