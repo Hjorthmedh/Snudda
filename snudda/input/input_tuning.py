@@ -505,6 +505,10 @@ class InputTuning(object):
 
                     del new_config[input_name]["start"]
                     del new_config[input_name]["end"]
+
+                    # If parameterFile and parameterList both are given, only keep the latter
+                    if "parameterFile" in new_config[input_name] and "parameterList" in new_config[input_name]:
+                        del new_config[input_name]["parameterList"]
             except:
                 import traceback
                 print(traceback.format_exc())

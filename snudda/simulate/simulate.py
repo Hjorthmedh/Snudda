@@ -1233,7 +1233,7 @@ class SnuddaSimulate(object):
 
                     # Get the modifications of synapse parameters, specific to this synapse
                     if param_list is not None and len(param_list) > 0:
-                        syn_params = param_list[param_id % len(param_list)]["synapse"]
+                        syn_params = param_list[param_id % len(param_list)]  # No longer need to take ["synapse"], only that part saved in hdf5
 
                         for par in syn_params:
                             if par == "expdata":
