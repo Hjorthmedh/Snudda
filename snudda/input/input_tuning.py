@@ -289,13 +289,14 @@ class InputTuning(object):
                 spike_count[:, idx] = self.extract_background_spikes(spike_data=spike_data[idx], neuron_id=neuron_id,
                                                                      skip_time=skip_time)
 
-            spike_count = np.mean(spike_count, axis=1)
+            spike_count_mean = np.mean(spike_count, axis=1)
 
-            best_idx = np.argmin(np.abs(spike_count - requested_spikes))
-            best_neuron_id = neuron_id[best_idx]
+            best_config, neuron_info = self.get_best_config(data=spike_count_mean, requested_value=requested_spikes,
+                                                            neuron_id=neuron_id,
+                                                            input_config=input_config,
+                                                            network_info=network_info)
 
-            neuron_info = network_info.data["neurons"][best_neuron_id]
-            input_config_info[neuron_name] = (input_config[str(best_neuron_id)],
+            input_config_info[neuron_name] = (best_config,
                                               snudda_parse_path(os.path.join(neuron_info["neuronPath"], "meta.json"),
                                                                 snudda_data=self.snudda_data),
                                               neuron_info["parameterKey"],
@@ -305,11 +306,58 @@ class InputTuning(object):
             for nid in neuron_id:
                 assert network_info.data["neurons"][neuron_id[0]]["name"] == network_info.data["neurons"][nid]["name"]
 
-            self.plot_background_info(neuron_id=neuron_id, neuron_info=neuron_info, best_neuron_id=best_neuron_id,
-                                      spike_count=spike_count, input_config=input_config, max_time=np.max(time),
-                                      label=f"signal-{requested_frequency}-Hz")
+            self.plot_signal_info(neuron_id=neuron_id, neuron_info=neuron_info, best_config=best_config,
+                                  spike_count=spike_count, input_config=input_config, max_time=np.max(time),
+                                  requested_frequency=requested_frequency,
+                                  label=f"signal-{requested_frequency}-Hz")
 
         return input_config_info
+
+    def get_best_config(self, data, requested_value, neuron_id, input_config, network_info):
+
+        idx_above = np.argmax(data > requested_value)
+        if idx_above == 0:
+            idx_below = 0
+        else:
+            idx_below = idx_above - 1
+
+        config_above = input_config[str(neuron_id[idx_above])]
+        config_below = input_config[str(neuron_id[idx_below])]
+
+        input_type = list(config_above.keys())
+        assert len(input_type) == 1, f"Interpolation can only handle one input type. Found {input_type}"
+        input_type = input_type[0]
+
+        n_syn_above = config_above[input_type]["nInputs"]
+        n_syn_below = config_below[input_type]["nInputs"]
+
+        value_above = data[idx_above]
+        value_below = data[idx_below]
+
+        assert value_below <= value_above
+
+        if n_syn_above == n_syn_below:
+            n_syn = n_syn_above
+        else:
+            n_syn = int(np.round(n_syn_below
+                                 + (n_syn_above - n_syn_below) * (requested_value - value_below)
+                                 / (value_above - value_below)))
+
+        try:
+            assert n_syn_below <= n_syn <= n_syn_above, f"NOT TRUE: n_syn_below {n_syn_below} <= n_syn {n_syn} <= n_syn_above {n_syn_above}"
+        except:
+            import traceback
+            import pdb
+            print(traceback.format_exc())
+            pdb.set_trace()
+
+        best_config = config_above.copy()
+        best_config[input_type]["nInputs"] = n_syn
+
+        neuron_info = network_info.data["neurons"][neuron_id[idx_above]]
+
+        return best_config, neuron_info
+
 
     def find_highest_non_spiking_background_input(self, skip_time=0.0):
 
@@ -378,11 +426,50 @@ class InputTuning(object):
         best_idx = np.where(neuron_id == best_neuron_id)[0]
 
         plt.figure()
-        plt.plot(n_inputs_total, spike_count/(max_time-skip_time))
+        plt.plot(n_inputs_total, spike_count/(max_time-skip_time), 'k.')
         plt.plot(n_inputs_total[best_idx], spike_count[best_idx]/(max_time-skip_time), 'r*')
         plt.xlabel("Total number of synapses")
         plt.ylabel("Spike frequency")
         plt.title(f"Neuron {neuron_info['name']}")
+        plt.savefig(fig_name)
+        plt.ion()
+        plt.show()
+
+    def plot_signal_info(self, neuron_id, neuron_info, best_config, spike_count, input_config,
+                         max_time, requested_frequency, skip_time=0,
+                         label="background-inputs"):
+
+        n_inputs_total = np.zeros((len(neuron_id),), dtype=int)
+        fig_dir = os.path.join(self.network_path, "figures")
+
+        if not os.path.isdir(fig_dir):
+            os.mkdir(fig_dir)
+
+        fig_name = os.path.join(fig_dir, f"{neuron_info['morphologyKey']}-{neuron_info['parameterKey']}-{neuron_info['name']}-{label}.png")
+
+        for ctr, nid in enumerate(neuron_id):
+            # Get total input.
+            for input_conf in input_config[str(nid)].values():
+                n_inputs_total[ctr] += input_conf["nInputs"]
+
+        plt.figure()
+        plt.plot(n_inputs_total, spike_count/(max_time-skip_time), 'k.')
+
+        input_type = list(best_config.keys())
+        assert len(input_type) == 1
+        input_type = input_type[0]
+        best_n_syn = best_config[input_type]["nInputs"]
+
+        y_lim = plt.gca().get_ylim()
+        plt.plot([best_n_syn, best_n_syn], y_lim, 'r-')  # best n_inputs
+
+        x_lim = plt.gca().get_xlim()
+        plt.plot(x_lim, [requested_frequency, requested_frequency], 'k--')
+
+        # plt.plot(n_inputs_total[best_idx], spike_count[best_idx]/(max_time-skip_time), 'r*')
+        plt.xlabel("Total number of synapses")
+        plt.ylabel("Spike frequency")
+        plt.title(f"Neuron {neuron_info['name']} ({best_n_syn} {input_type} synapses)")
         plt.savefig(fig_name)
         plt.ion()
         plt.show()
@@ -1084,7 +1171,7 @@ class InputTuning(object):
                             synapse_parameter_file,
                             input_duration=10.0):
 
-        assert n_input_min > 0, "No point using n_input_min=0, please instead use input_frequency 0."
+        # assert n_input_min > 0, "No point using n_input_min=0, please instead use input_frequency 0."
 
         neuron_sets = self.collect_neurons()
         n_inputs = dict()
