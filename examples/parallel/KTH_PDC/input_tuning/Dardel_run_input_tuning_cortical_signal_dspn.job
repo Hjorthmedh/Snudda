@@ -6,7 +6,7 @@
 #SBATCH --time-min=7:59:00
 #SBATCH -J InputTuning
 #SBATCH -A naiss2023-5-231
-#SBATCH --nodes=6-10
+#SBATCH --nodes=8-12
 #SBATCH --tasks-per-node=128
 #SBATCH --mem-per-cpu=930M
 #SBATCH --mail-type=ALL
@@ -25,7 +25,7 @@ export N_WORKERS=$SLURM_NTASKS
 # export IPNWORKERS=$N_WORKERS
 
 # This is used for ipyparallel and Snudda
-export IPNWORKERS=50
+export IPNWORKERS=100
 
 # Clear old ipyparallel
 export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/.ipython"
