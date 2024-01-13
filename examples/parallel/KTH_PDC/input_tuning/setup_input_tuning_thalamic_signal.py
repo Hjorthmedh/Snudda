@@ -2,7 +2,7 @@ import os
 import ast
 from snudda.input.input_tuning import InputTuning
 
-print("Starting setup_input_tuning_cortical_signal.py")
+print("Starting setup_input_tuning_thalamic_signal.py")
 
 # Should be set by script calling setup_input_tuning_dspn
 # os.environ["SNUDDA_DATA"] = "../../../../../BasalGangliaData/data/"
@@ -15,7 +15,7 @@ if os.getenv("SNUDDA_TUNE_NEURON"):
 else:
     neuron_type="dspn"
 
-input_type = "cortical"
+input_type = "thalamic"
 
 if os.getenv("SEED_LIST"):
     seed_list = ast.literal_eval(os.getenv("SEED_LIST"))

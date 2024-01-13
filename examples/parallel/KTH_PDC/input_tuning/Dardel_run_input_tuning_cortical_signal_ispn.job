@@ -13,10 +13,11 @@
 
 export SNUDDA_TUNE_NEURON="ispn"
 export SEED_LIST="[10,20,30,40,50]"
+export INPUT_TYPE="cortical"
 
 # You need to point this as the directory where you created the network in
 #NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k
-NETWORK_DIR=networks/input_tuning_${SNUDDA_TUNE_NEURON}_cortical_signal
+NETWORK_DIR=networks/input_tuning_${SNUDDA_TUNE_NEURON}_${INPUT_TYPE}_signal
 
 # This is used for NEURON
 export N_WORKERS=$SLURM_NTASKS
@@ -93,7 +94,7 @@ unset DISPLAY
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
 
 # srun -n 1 python setup_input_tuning_background.py &> log/setup_network_log.txt
-srun -n 1 -N 1 --exact --overlap --mem=0 python setup_input_tuning_cortical_signal.py &> log/setup_network_log.txt
+srun -n 1 -N 1 --exact --overlap --mem=0 python setup_input_tuning_signal.py &> log/setup_network_log.txt
 
 
 # Quit ipyparallel

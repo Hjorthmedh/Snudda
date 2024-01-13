@@ -2,7 +2,7 @@ import os
 import ast
 from snudda.input.input_tuning import InputTuning
 
-print("Starting setup_input_tuning_cortical_signal.py")
+print("Starting setup_input_tuning_signal.py")
 
 # Should be set by script calling setup_input_tuning_dspn
 # os.environ["SNUDDA_DATA"] = "../../../../../BasalGangliaData/data/"
@@ -15,7 +15,10 @@ if os.getenv("SNUDDA_TUNE_NEURON"):
 else:
     neuron_type="dspn"
 
-input_type = "cortical"
+if os.getenv("INPUT_TYPE"):
+    input_type = os.getenv("INPUT_TYPE")
+else:
+    input_type = "cortical"
 
 if os.getenv("SEED_LIST"):
     seed_list = ast.literal_eval(os.getenv("SEED_LIST"))
@@ -44,18 +47,18 @@ print("Constructor done, calling setup_network.")
 
 neurons_path = os.path.join("$DATA", "neurons", "striatum")
 input_tuning.setup_network(neurons_path=neurons_path, 
-                           num_replicas=26,
+                           num_replicas=20,
                            neuron_types=neuron_type)
 
 print("Calling setup_input")
 
 input_tuning.setup_input(input_type=input_type,  # eg. "cortical" or "thalamic"
-                         num_input_min=0,
-                         num_input_max=50,
+                         num_input_min=1,
+                         num_input_max=200,
                          input_duration=10.0,
                          input_frequency_range=[10.0],
                          use_meta_input=True)
 
 
-print("All done with setup_input_tuning_cortical_signal.py")
+print("All done with setup_input_tuning_signal.py")
 
