@@ -316,7 +316,12 @@ class InputTuning(object):
     def get_best_config(self, data, requested_value, neuron_id, input_config, network_info):
 
         idx_above = np.argmax(data > requested_value)
-        if idx_above == 0:
+
+        if data[idx_above] < requested_value:
+            # If we did not reach the requested value, pick the closest point.
+            idx_above = idx_below = np.argmin(abs(data - requested_value))
+
+        elif idx_above == 0:
             idx_below = 0
         else:
             idx_below = idx_above - 1
