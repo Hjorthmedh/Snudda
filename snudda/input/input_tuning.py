@@ -267,7 +267,7 @@ class InputTuning(object):
               f"python3 plotting/Network_plot_traces.py {self.network_path}output_volt.txt "
               f"{self.network_path}network-synapses.hdf5 ")
 
-    def find_signal_strength(self, requested_frequency=10.0, skip_time=0.0):
+    def find_signal_strength(self, requested_frequency=10.0, skip_time=0.0, show_plot=True):
 
         spike_data = dict()
 
@@ -309,7 +309,7 @@ class InputTuning(object):
             self.plot_signal_info(neuron_id=neuron_id, neuron_info=neuron_info, best_config=best_config,
                                   spike_count=spike_count, input_config=input_config, max_time=np.max(time),
                                   requested_frequency=requested_frequency,
-                                  label=f"signal-{requested_frequency}-Hz")
+                                  label=f"signal-{requested_frequency}-Hz", show_plot=show_plot)
 
         return input_config_info
 
@@ -363,8 +363,7 @@ class InputTuning(object):
 
         return best_config, neuron_info
 
-
-    def find_highest_non_spiking_background_input(self, skip_time=0.0):
+    def find_highest_non_spiking_background_input(self, skip_time=0.0, show_plot=True):
 
         spike_data = dict()
 
@@ -408,12 +407,12 @@ class InputTuning(object):
 
             self.plot_background_info(neuron_id=neuron_id, neuron_info=neuron_info, best_neuron_id=best_neuron_id,
                                       spike_count=spike_count, input_config=input_config,
-                                      max_time=np.max(time), label="background-inputs")
+                                      max_time=np.max(time), label="background-inputs", show_plot=show_plot)
 
         return input_config_info
 
     def plot_background_info(self, neuron_id, neuron_info, best_neuron_id, spike_count, input_config,
-                             max_time, skip_time=0, label="background-inputs"):
+                             max_time, skip_time=0, label="background-inputs", show_plot=True):
 
         n_inputs_total = np.zeros((len(neuron_id),), dtype=int)
         fig_dir = os.path.join(self.network_path, "figures")
@@ -436,13 +435,17 @@ class InputTuning(object):
         plt.xlabel("Total number of synapses")
         plt.ylabel("Spike frequency")
         plt.title(f"Neuron {neuron_info['name']}")
+
+        print(f"Saving figure to {fig_name}")
         plt.savefig(fig_name)
-        plt.ion()
-        plt.show()
+
+        if show_plot:
+            plt.ion()
+            plt.show()
 
     def plot_signal_info(self, neuron_id, neuron_info, best_config, spike_count, input_config,
                          max_time, requested_frequency, skip_time=0,
-                         label="background-inputs"):
+                         label="background-inputs", show_plot=True):
 
         n_inputs_total = np.zeros((len(neuron_id),), dtype=int)
         fig_dir = os.path.join(self.network_path, "figures")
@@ -475,9 +478,13 @@ class InputTuning(object):
         plt.xlabel("Total number of synapses")
         plt.ylabel("Spike frequency")
         plt.title(f"Neuron {neuron_info['name']} ({best_n_syn} {input_type} synapses)")
+
+        print(f"Saving figure to {fig_name}")
         plt.savefig(fig_name)
-        plt.ion()
-        plt.show()
+
+        if show_plot:
+            plt.ion()
+            plt.show()
 
     def update_meta(self, input_config_info, overwrite=True, set_frequency=None):
 
