@@ -331,7 +331,10 @@ class SnuddaInput(object):
 
                     # We need to convert this to string to be able to save it
                     if "parameterList" in neuron_in:
-                        it_group.attrs["parameterList"] = json.dumps(neuron_in["parameterList"])
+                        # We only need to save the synapse parameters in the file
+                        syn_par_list = [x["synapse"] for x in neuron_in["parameterList"] if "synapse" in x]
+                        if len(syn_par_list) > 0:
+                            it_group.attrs["parameterList"] = json.dumps(syn_par_list)
 
                     it_group.attrs["parameterID"] = neuron_in["parameterID"].astype(np.int32)
 
@@ -405,111 +408,6 @@ class SnuddaInput(object):
                     activity_spikes = a_group.create_dataset("spikes", data=spikes, compression="gzip")
                     # generator = self.neuron_input[neuron_id][input_type]["generator"]
                     # activity_spikes.attrs["generator"] = generator
-
-        out_file.close()
-
-    ############################################################################
-
-    def write_hdf5_OLD(self):
-
-        """ Writes input spikes to HDF5 file. """
-
-        self.write_log(f"Writing spikes to {self.spike_data_filename}", force_print=True)
-
-        out_file = h5py.File(self.spike_data_filename, 'w', libver=self.h5libver)
-        out_file.create_dataset("config", data=json.dumps(self.input_info, indent=4))
-        input_group = out_file.create_group("input")
-
-        for neuron_id in self.neuron_input:
-
-            nid_group = input_group.create_group(str(neuron_id))
-
-            neuron_type = self.neuron_type[neuron_id]
-
-            for input_type in self.neuron_input[neuron_id]:
-
-                if input_type[0] == '!':
-                    self.write_log(f"Disabling input {input_type} for neuron {neuron_id} "
-                                   f" (input_type was commented with ! before name)")
-                    continue
-
-                if input_type.lower() != "VirtualNeuron".lower():
-                    it_group = nid_group.create_group(input_type)
-
-                    neuron_in = self.neuron_input[neuron_id][input_type]
-                    spike_mat, num_spikes = self.create_spike_matrix(neuron_in["spikes"])
-
-                    it_group.create_dataset("spikes", data=spike_mat, compression="gzip", dtype=np.float32)
-                    it_group.create_dataset("nSpikes", data=num_spikes, dtype=np.int32)
-
-                    it_group.create_dataset("sectionID", data=neuron_in["location"][1].astype(int),
-                                            compression="gzip", dtype=np.int16)
-                    it_group.create_dataset("sectionX", data=neuron_in["location"][2],
-                                            compression="gzip", dtype=np.float16)
-                    it_group.create_dataset("distanceToSoma", data=neuron_in["location"][3],
-                                            compression="gzip", dtype=np.float16)
-
-                    if "freq" in neuron_in:
-                        it_group.create_dataset("freq", data=neuron_in["freq"])
-
-                    if "correlation" in neuron_in:
-                        it_group.create_dataset("correlation", data=neuron_in["correlation"])
-
-                    if "jitter" in neuron_in and neuron_in["jitter"]:
-                        it_group.create_dataset("jitter", data=neuron_in["jitter"])
-
-                    if "synapseDensity" in neuron_in and neuron_in["synapseDensity"]:
-                        it_group.create_dataset("synapseDensity", data=neuron_in["synapseDensity"])
-
-                    if "start" in neuron_in:
-                        it_group.create_dataset("start", data=neuron_in["start"])
-
-                    if "end" in neuron_in:
-                        it_group.create_dataset("end", data=neuron_in["end"])
-
-                    it_group.create_dataset("conductance", data=neuron_in["conductance"])
-
-                    if "populationUnitID" in neuron_in:
-                        population_unit_id = int(neuron_in["populationUnitID"])
-                        it_group.create_dataset("populationUnitID", data=population_unit_id)
-                    else:
-                        population_unit_id = None
-
-                    # TODO: What to do with population_unit_spikes, should we have mandatory jittering for them?
-
-                    # population_unit_id = 0 means not population unit membership, so no population spikes available
-                    if neuron_type in self.population_unit_spikes \
-                            and population_unit_id is not None and population_unit_id > 0 \
-                            and input_type in self.population_unit_spikes[neuron_type]:
-                        chan_spikes = self.population_unit_spikes[neuron_type][input_type][population_unit_id]
-                    else:
-                        chan_spikes = np.array([])
-
-                    it_group.create_dataset("populationUnitSpikes", data=chan_spikes, compression="gzip",
-                                            dtype=np.float32)
-
-                    it_group.create_dataset("generator", data=neuron_in["generator"])
-
-                    it_group.create_dataset("modFile", data=neuron_in["modFile"])
-
-                    if "parameterFile" in neuron_in and neuron_in["parameterFile"]:
-                        it_group.create_dataset("parameterFile", data=neuron_in["parameterFile"])
-
-                    # We need to convert this to string to be able to save it
-                    if "parameterList" in neuron_in:
-                        it_group.create_dataset("parameterList", data=json.dumps(neuron_in["parameterList"]))
-
-                    it_group.create_dataset("parameterID", data=neuron_in["parameterID"], dtype=np.int32)
-
-                else:
-
-                    # Input is activity of a virtual neuron
-                    a_group = nid_group.create_group("activity")
-                    spikes = self.neuron_input[neuron_id][input_type]["spikes"]
-
-                    a_group.create_dataset("spikes", data=spikes, compression="gzip")
-                    generator = self.neuron_input[neuron_id][input_type]["generator"]
-                    a_group.create_dataset("generator", data=generator)
 
         out_file.close()
 
@@ -791,6 +689,25 @@ class SnuddaInput(object):
                         and "input" in meta_data[parameter_key][morphology_key]:
 
                     for inp_name, inp_data in meta_data[parameter_key][morphology_key]["input"].items():
+
+                        inp_data_copy = inp_data.copy()
+
+                        if "parameterFile" in inp_data:
+                            # Read parameter file for meta input also
+                            par_file = snudda_parse_path(inp_data["parameterFile"],
+                                                         self.snudda_data)
+
+                            with open(par_file, 'r') as f:
+                                par_data_dict = json.load(f, object_pairs_hook=OrderedDict)
+
+                                if "parameterList" in inp_data:
+                                    for pd in par_data_dict:
+                                        for par_key, par_d in inp_data["parameterList"].items():
+                                            print(f"Overriding {par_key} with value {par_d} for {neuron_id}:{inp_name}")
+                                            par_data_dict[pd]["synapse"][par_key] = par_d
+
+                                inp_data_copy["parameterList"] = list(par_data_dict.values())
+
                         if inp_name in input_info:
 
                             self.write_log(f"!!! Warning, combining definition of {inp_name} input for neuron "
@@ -799,15 +716,12 @@ class SnuddaInput(object):
                                            force_print=True)
 
                             old_info = input_info[inp_name]
-                            new_info = inp_data.copy()
 
+                            # Let input.json info override meta.json input parameters if given
                             for key, data in old_info.items():
-                                new_info[key] = data
+                                inp_data_copy[key] = data
 
-                            input_info[inp_name] = new_info.copy()
-
-                        else:
-                            input_info[inp_name] = inp_data.copy()
+                        input_info[inp_name] = inp_data_copy
 
             if len(input_info) == 0:
                 self.write_log(f"!!! Warning, no synaptic input for neuron ID {neuron_id}, "

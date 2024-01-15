@@ -456,6 +456,7 @@ def snudda_plot_traces_cli():
     parser.add_argument("--skip_time", type=float, default=0)
     parser.add_argument("--max_num_traces", type=int, default=None)
     parser.add_argument("--traceID", type=str, default=None, help="Trace ID to plot, separated by comma: e.g. 1,3,14")
+    parser.add_argument("--wait", action="store_true")
     args = parser.parse_args()
 
     npt = PlotTraces(output_file=args.output_file, network_file=args.network_file, input_file=args.input_file)
@@ -469,6 +470,9 @@ def snudda_plot_traces_cli():
             npt.plot_trace_neuron_type(neuron_type=neuron_type, num_traces=args.max_num_traces,
                                        offset=args.plot_offset, skip_time=args.skip_time,
                                        fig_size=(10, 5))
+
+    if args.wait:
+        input("Press a key to continue.")
 
 
 if __name__ == "__main__":

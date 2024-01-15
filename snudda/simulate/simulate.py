@@ -56,6 +56,7 @@ class SnuddaSimulate(object):
                  log_file=None,
                  disable_synapses=None,
                  disable_gap_junctions=None,
+                 sample_dt=None,
                  simulation_config=None):
 
         """
@@ -125,7 +126,7 @@ class SnuddaSimulate(object):
         self.sim_start_time = 0
         self.fih_time = None
         self.last_sim_report_time = 0
-        self.sample_dt = None  # None means all values, 0.0005 means 0.5ms time resolution in saved files
+        self.sample_dt = sample_dt  # None means all values, 0.0005 means 0.5ms time resolution in saved files
 
         self.pc = h.ParallelContext()
 
@@ -1232,7 +1233,7 @@ class SnuddaSimulate(object):
 
                     # Get the modifications of synapse parameters, specific to this synapse
                     if param_list is not None and len(param_list) > 0:
-                        syn_params = param_list[param_id % len(param_list)]["synapse"]
+                        syn_params = param_list[param_id % len(param_list)]  # No longer need to take ["synapse"], only that part saved in hdf5
 
                         for par in syn_params:
                             if par == "expdata":
@@ -1996,16 +1997,24 @@ class SnuddaSimulate(object):
 
         memory_ratio = mem_available / mem_total
 
-        self.write_log(f"{self.pc.id()} : Memory status: {int(memory_ratio * 100)}% free", force_print=True)
+        if self.pc is not None:
+            pc_id = self.pc.id()
+        else:
+            pc_id = "Unknown node"
+
+        self.write_log(f"{pc_id} : Memory status: {int(memory_ratio * 100)}% free", force_print=True)
 
         return memory_ratio < threshold
 
     def __del__(self):
-        self.clear_neuron()
+        if self is not None:
+            self.clear_neuron()
 
     def clear_neuron(self):
 
-        self.pc.gid_clear()
+        if self.pc is not None:
+            self.pc.gid_clear()
+
         self.neurons = {}
         self.sim = None
         self.neuron_nodes = []  # Is this used?
@@ -2024,6 +2033,8 @@ class SnuddaSimulate(object):
         self.t_save = []
         self.i_save = []
         self.i_key = []
+
+        self.fih_time = None  # Event handler to print estimated time left
 
         self.record = None
 
