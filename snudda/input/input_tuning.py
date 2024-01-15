@@ -276,12 +276,12 @@ class InputTuning(object):
         input_end = input_duration * np.arange(1, n_steps + 1)
 
         input_target = neuron_type
-
-        if input_target not in self.input_type:
-            self.input_info[input_target] = collections.OrderedDict()
+        self.input_info = collections.OrderedDict()
+        self.input_info[input_target] = collections.OrderedDict()
 
         self.input_info[input_target][input_type] = collections.OrderedDict()
 
+        self.input_info[input_target][input_type]["generator"] = "poisson"
         self.input_info[input_target][input_type]["start"] = input_start
         self.input_info[input_target][input_type]["end"] = input_end
         self.input_info[input_target][input_type]["frequency"] = self.frequency_range
@@ -988,6 +988,44 @@ class InputTuning(object):
             if not show_plots:
                 plt.close()
 
+    def plot_verify_frequency_distribution(self, input_type="cortical"):
+
+        network_info, input_config, input_data, neuron_id_lookup, neuron_name_list, \
+            spike_data, volt, time = self.load_data_helper()
+
+        # First find out what time ranges we need to look at, and what the input frequency is for those
+        neuron_type = list(input_config.keys())
+        assert len(neuron_type) == 1, f"Plot only supports one neuron type at a time, neuron_type = {neuron_type}"
+        neuron_type = neuron_type[0]
+
+        assert input_type in input_config[neuron_type], f"{input_type} not in input_config: {input_config}"
+        start_times = np.array(input_config[neuron_type][input_type]["start"])
+        end_times = np.array(input_config[neuron_type][input_type]["end"])
+        input_freq = np.array(input_config[neuron_type][input_type]["frequency"])
+        output_freq_list = []
+
+        for neuron_id in sorted(spike_data.keys()):
+            out_freq = []
+            for start_t, end_t in zip(start_times, end_times):
+                n_spikes = np.sum(np.logical_and(start_t <= spike_data[neuron_id], spike_data[neuron_id] < end_t))
+                out_freq.append(n_spikes / (end_t - start_t))
+
+            output_freq_list.append(out_freq)
+
+        output_freq = np.array(output_freq_list).T
+
+        plt.figure()
+        plt.plot(input_freq, output_freq, 'k')
+        plt.xlabel("Input frequency")
+        plt.ylabel("Output frequency")
+        plt.ion()
+        plt.show()
+
+        import pdb
+        pdb.set_trace()
+
+
+
     def get_neuron_info(self, neuron_path):
 
         neuron_path = snudda_parse_path(neuron_path, self.snudda_data)
@@ -1175,6 +1213,9 @@ class InputTuning(object):
 
         else:
             neuron_def = self.gather_all_neurons(neuron_types=neuron_types, all_combinations=all_combinations)
+
+        # Just generate a set of points
+        volume_def[vol_name]["n_putative_points"] = max(len(neuron_def.keys())*5, 10000)
 
         fake_axon_density = ["r", "1", 10e-6]
 
@@ -1501,12 +1542,16 @@ if __name__ == "__main__":
                         help="Optional, if only we want to simulate one neuron subtype, eg. FS_1")
     parser.add_argument("--meta_input", action="store_true", default=False)
     parser.add_argument("--seed_list", type=str, default=None)
+    parser.add_argument("--no_downsampling", action="store_true")
+
     args = parser.parse_args()
 
     # TODO: Let the user choose input type, duration for each "run", frequency range, number of input range
 
     if args.seed_list is not None:
         seed_list = ast.literal_eval(args.seed_list)
+    else:
+        seed_list = None
 
     input_scaling = InputTuning(args.networkPath, input_seed_list=seed_list)
 
@@ -1559,7 +1604,12 @@ if __name__ == "__main__":
         print("Tip, to run in parallel on your local machine use: "
               "mpiexec -n 4 python3 tuning/input_tuning.py simulate <yournetworkhere>")
 
-        input_scaling.simulate(mech_dir=args.mechDir)
+        if args.no_downsampling:
+            sample_dt = None
+        else:
+            sample_dt = 0.01
+
+        input_scaling.simulate(mech_dir=args.mechDir, sample_dt=sample_dt)
 
     elif args.action == "analyse":
         # input_scaling.plot_generated_input()

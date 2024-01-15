@@ -606,6 +606,9 @@ class SnuddaSimulate(object):
 
                 self.pc.cell(ID, nc, 1)  # The 1 means broadcast spikes to other machines
 
+                # print(f"Spike threshold for neuron {ID} is {self.pc.threshold(ID)}")
+                # self.pc.threshold(ID, new_threshold)  # if we want to update threshold, obs in mV
+
                 # Record all spikes
                 t_spikes = h.Vector()
                 id_spikes = h.Vector()
@@ -1185,7 +1188,10 @@ class SnuddaSimulate(object):
                 neuron_input = self.input_data["input"][str(neuron_id)][input_type]
                 sections = self.neurons[neuron_id].map_id_to_compartment(neuron_input.attrs["sectionID"])
                 mod_file = SnuddaLoad.to_str(neuron_input.attrs["modFile"])
-                param_list = json.loads(neuron_input.attrs["parameterList"], object_pairs_hook=OrderedDict)
+                if "parameterList" in neuron_input.attrs:
+                    param_list = json.loads(neuron_input.attrs["parameterList"], object_pairs_hook=OrderedDict)
+                else:
+                    param_list = None
 
                 # TODO: Sanity check mod_file string
                 eval_str = f"self.sim.neuron.h.{mod_file}"
