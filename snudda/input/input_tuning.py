@@ -1021,10 +1021,36 @@ class InputTuning(object):
         plt.ion()
         plt.show()
 
-        import pdb
-        pdb.set_trace()
+        one_mat = np.ones((2,))
 
+        bad_idx = set()
 
+        fig, ax = plt.subplots(len(input_freq), 1)
+        for idx, (in_freq, out_freq) in enumerate(zip(input_freq, output_freq)):
+            ax[idx].hist(out_freq, bins=50)
+            yl = ax[idx].get_ylim()
+            mean_freq = np.mean(out_freq)
+            std_freq = np.std(out_freq)
+
+            ax[idx].plot(one_mat*mean_freq, yl, 'k-')
+            ax[idx].plot(one_mat*(mean_freq + 2*std_freq), yl, 'k--')
+            ax[idx].plot(one_mat*(mean_freq - 2*std_freq), yl, 'k--')
+            ax[idx].plot([in_freq, in_freq], yl, 'r-')
+
+            bad_idx = bad_idx.union(set(np.where(np.logical_or(out_freq < mean_freq - 2*std_freq,
+                                                               out_freq > mean_freq + 2*std_freq))[0]))
+
+        ax[-1].set_xlabel("Spiking frequency (Hz)")
+
+        plt.ion()
+        plt.show()
+
+        # import pdb
+        # pdb.set_trace()
+
+        for idx in bad_idx:
+            bad_neuron = network_info.data["neurons"][idx]
+            print(f"Frequency outliers: {bad_neuron['name']} ({idx}) -- {output_freq[:, idx]} Hz\n{bad_neuron['neuronPath']}")
 
     def get_neuron_info(self, neuron_path):
 
