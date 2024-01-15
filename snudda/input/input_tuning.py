@@ -191,29 +191,31 @@ class InputTuning(object):
                                  synapse_parameter_file=synapse_parameter_file)
 
         if generate:
-            if self.input_seed_list is None:
-                si = SnuddaInput(input_config_file=self.input_config_file,
-                                 hdf5_network_file=os.path.join(self.network_path, 'network-synapses.hdf5'),
-                                 spike_data_filename=self.input_spikes_file,
-                                 time=self.max_time,
-                                 logfile=os.path.join(self.network_path, "log", "input.txt"),
-                                 use_meta_input=use_meta_input, rc=self.rc)
-                si.generate()
-            else:
-                for ctr, (seed, input_file) in enumerate(zip(self.input_seed_list, self.input_spikes_file)):
-
-                    print(f"Iteration {ctr}/{len(self.input_seed_list)} (seed: {seed})")
-
-                    si = SnuddaInput(input_config_file=self.input_config_file,
-                                     hdf5_network_file=os.path.join(self.network_path, 'network-synapses.hdf5'),
-                                     spike_data_filename=input_file,
-                                     time=self.max_time,
-                                     logfile=os.path.join(self.network_path, "log", f"input-{seed}.txt"),
-                                     use_meta_input=use_meta_input, rc=self.rc, random_seed=seed)
-                    si.generate()
+            self.generate_input_helper(use_meta_input=use_meta_input)
 
         # Info we need to run right duration of simulation
         self.write_tuning_info()
+
+    def generate_input_helper(self, use_meta_input=True):
+        if self.input_seed_list is None:
+            si = SnuddaInput(input_config_file=self.input_config_file,
+                             hdf5_network_file=os.path.join(self.network_path, 'network-synapses.hdf5'),
+                             spike_data_filename=self.input_spikes_file,
+                             time=self.max_time,
+                             logfile=os.path.join(self.network_path, "log", "input.txt"),
+                             use_meta_input=use_meta_input, rc=self.rc)
+            si.generate()
+        else:
+            for ctr, (seed, input_file) in enumerate(zip(self.input_seed_list, self.input_spikes_file)):
+                print(f"Iteration {ctr}/{len(self.input_seed_list)} (seed: {seed})")
+
+                si = SnuddaInput(input_config_file=self.input_config_file,
+                                 hdf5_network_file=os.path.join(self.network_path, 'network-synapses.hdf5'),
+                                 spike_data_filename=input_file,
+                                 time=self.max_time,
+                                 logfile=os.path.join(self.network_path, "log", f"input-{seed}.txt"),
+                                 use_meta_input=use_meta_input, rc=self.rc, random_seed=seed)
+                si.generate()
 
     def setup_background_input(self, input_types=["cortical_background", "thalamic_background"],
                                input_density=["1.15*0.05/(1+exp(-(d-30e-6)/5e-6))", "0.05*exp(-d/200e-6)"],
@@ -253,6 +255,45 @@ class InputTuning(object):
                              use_meta_input=False,
                              generate=gf,
                              clear_old_input=cf)
+
+    def setup_input_verification(self, input_type="cortical", neuron_type="dSPN",
+                                 input_frequency_range=None,
+                                 input_duration=10,
+                                 generate=True, seed_list=None):
+
+        # Here we use the META input, and replace the frequency, start and end variables
+        # input_type can be "cortical", "thalamic", "cortical_background", "thalamic_background"
+
+        if not input_frequency_range:
+            input_frequency_range = [1.0, 5.0, 10.0, 15.0, 20.0, 30.0, 40.0]
+
+        self.frequency_range = np.array(input_frequency_range)
+        self.input_duration = input_duration
+        self.max_time = self.input_duration * len(self.frequency_range)
+
+        n_steps = len(self.frequency_range)
+        input_start = input_duration * np.arange(0, n_steps)
+        input_end = input_duration * np.arange(1, n_steps + 1)
+
+        input_target = neuron_type
+
+        if input_target not in self.input_type:
+            self.input_info[input_target] = collections.OrderedDict()
+
+        self.input_info[input_target][input_type] = collections.OrderedDict()
+
+        self.input_info[input_target][input_type]["start"] = input_start
+        self.input_info[input_target][input_type]["end"] = input_end
+        self.input_info[input_target][input_type]["frequency"] = self.frequency_range
+
+        with open(self.input_config_file, "w") as f:
+            json.dump(self.input_info, f, indent=4, cls=NumpyEncoder)
+
+        if generate:
+            self.generate_input_helper(use_meta_input=True)
+
+        # Info we need to run right duration of simulation
+        self.write_tuning_info()
 
     def analyse_results(self, input_type='', show_plots=False):
 
