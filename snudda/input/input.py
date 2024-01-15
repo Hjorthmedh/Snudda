@@ -330,7 +330,7 @@ class SnuddaInput(object):
                         it_group.attrs["parameterFile"] = neuron_in["parameterFile"]
 
                     # We need to convert this to string to be able to save it
-                    if "parameterList" in neuron_in:
+                    if "parameterList" in neuron_in and neuron_in["parameterList"] is not None:
                         # We only need to save the synapse parameters in the file
                         syn_par_list = [x["synapse"] for x in neuron_in["parameterList"] if "synapse" in x]
                         if len(syn_par_list) > 0:
@@ -719,6 +719,9 @@ class SnuddaInput(object):
 
                             # Let input.json info override meta.json input parameters if given
                             for key, data in old_info.items():
+                                if key == "parameterList" and data is None:
+                                    continue
+
                                 inp_data_copy[key] = data
 
                         input_info[inp_name] = inp_data_copy

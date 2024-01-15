@@ -85,7 +85,9 @@ class PlotTraces:
     def plot_traces(self, trace_id=None, offset=150e-3, colours=None, skip_time=None, time_range=None,
                     line_width=1, fig_size=None,
                     mark_current=None, mark_current_y=None,
-                    title=None, fig_name=None, mark_depolarisation_block=True):
+                    title=None, fig_name=None,
+                    mark_depolarisation_block=True,
+                    mark_spikes=True):
 
         """
             Plot the traces of neuron trace_id
@@ -211,6 +213,10 @@ class PlotTraces:
 
                     plt.plot([depol_start_t-skip_time, depol_end_t-skip_time],
                              [ofs, ofs], color="red", linewidth=line_width)
+
+            if mark_spikes:
+                spike_times = self.output_load.get_spikes(neuron_id=r).flatten()
+                plt.plot(spike_times, np.full(spike_times.shape, fill_value=offset), 'r*')
 
             if offset:
                 ofs += offset
