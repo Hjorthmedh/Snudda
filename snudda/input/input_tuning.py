@@ -1025,7 +1025,8 @@ class InputTuning(object):
 
         bad_idx = set()
 
-        fig, ax = plt.subplots(len(input_freq), 1)
+        fig, ax = plt.subplots(len(input_freq), 1, figsize=(6, 12))
+
         for idx, (in_freq, out_freq) in enumerate(zip(input_freq, output_freq)):
             ax[idx].hist(out_freq, bins=50)
             yl = ax[idx].get_ylim()
@@ -1040,7 +1041,7 @@ class InputTuning(object):
             bad_idx = bad_idx.union(set(np.where(np.logical_or(out_freq < mean_freq - 2*std_freq,
                                                                out_freq > mean_freq + 2*std_freq))[0]))
 
-        ax[-1].set_xlabel("Spiking frequency (Hz)")
+            ax[idx].set_xlabel("Spiking frequency (Hz)")
 
         plt.ion()
         plt.show()
