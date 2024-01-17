@@ -18,7 +18,7 @@ export INPUT_FREQ=40
 
 # You need to point this as the directory where you created the network in
 #NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k
-NETWORK_DIR=networks/input_tuning_${SNUDDA_TUNE_NEURON}_${INPUT_TYPE}_signal_{INPUT_FREQ}Hz
+NETWORK_DIR=networks/input_tuning_${SNUDDA_TUNE_NEURON}_${INPUT_TYPE}_signal_${INPUT_FREQ}Hz
 
 # This is used for NEURON
 export N_WORKERS=$SLURM_NTASKS
