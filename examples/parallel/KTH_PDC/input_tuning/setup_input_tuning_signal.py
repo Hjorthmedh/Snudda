@@ -20,6 +20,12 @@ if os.getenv("INPUT_TYPE"):
 else:
     input_type = "cortical"
 
+if os.getenv("INPUT_FREQ"):
+    input_freq = int(os.getenv("INPUT_FREQ"))
+else:
+    input_freq = 10
+
+    
 if os.getenv("SEED_LIST"):
     seed_list = ast.literal_eval(os.getenv("SEED_LIST"))
 else:
@@ -27,7 +33,7 @@ else:
     
 print(f"Optimising input for neuron type {neuron_type}")
 
-network_path = os.path.join("networks", f"input_tuning_{neuron_type}_{input_type}_signal")
+network_path = os.path.join("networks", f"input_tuning_{neuron_type}_{input_type}_signal_{input_freq}Hz")
 
 
 from ipyparallel import Client
@@ -56,7 +62,7 @@ input_tuning.setup_input(input_type=input_type,  # eg. "cortical" or "thalamic"
                          num_input_min=1,
                          num_input_max=200,
                          input_duration=10.0,
-                         input_frequency_range=[10.0],
+                         input_frequency_range=[input_freq],
                          use_meta_input=True)
 
 
