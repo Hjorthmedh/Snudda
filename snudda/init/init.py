@@ -1552,7 +1552,7 @@ class SnuddaInit(object):
                                    target_name="NGF",
                                    connection_type="GABA",
                                    dist_pruning=None,
-                                   f1=0.9208, soft_max=None, mu2=0.3393, a3=1.0,
+                                   f1=0.9208, soft_max=10, mu2=0.3393, a3=1.0,
                                    conductance=0.5e-9,
                                    mod_file=None)  # This file does not yet exist
 
