@@ -451,7 +451,7 @@ class SnuddaInit(object):
                     print(tstr)
                     sys.exit(-1)
 
-                print("Checking boundaries, to make sure P is not too high")
+                # print("Checking boundaries, to make sure P is not too high")
                 x = np.zeros((8, 1))
                 y = np.zeros((8, 1))
                 z = np.zeros((8, 1))
@@ -468,10 +468,10 @@ class SnuddaInit(object):
                 # axon_density function of x,y,z defined above
                 p_corner = numexpr.evaluate(axon_density[1]) * (3e-6 ** 3)
 
-                for P, xx, yy, zz in zip(p_corner, x, y, z):
-                    print(f"{name} axon density P({xx}, {yy}, {zz}) = {P}")
-
                 if (p_corner > 0.01).any():
+                    for P, xx, yy, zz in zip(p_corner, x, y, z):
+                        print(f"{name} axon density P({xx}, {yy}, {zz}) = {P}")
+
                     print("Axon density too high at boundary!!")
                     print("Please increase bounding box")
                     sys.exit(-1)
@@ -1082,7 +1082,7 @@ class SnuddaInit(object):
                          volume_id="Striatum")
 
         # NGF
-        if os.path.isdir(NGF_dir):
+        if os.path.isdir(snudda_parse_path(NGF_dir, self.snudda_data)):
             self.add_neurons(name="NGF", neuron_dir=NGF_dir,
                              num_neurons=self.num_NGF,
                              volume_id="Striatum")
