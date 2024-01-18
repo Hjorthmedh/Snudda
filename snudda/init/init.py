@@ -1494,7 +1494,7 @@ class SnuddaInit(object):
 
         ####
 
-        if True:
+        if np.array(["NGF" in list(self.network_data["Neurons"].keys())]).any():
             # Connections to and from NGF
             # NGF -> SPN 25/29 connected within 100 micrometers (Ibanez-Sandoval, et al 2011)
             # NGF -> SPN 11/14 connected (English et al, 2012)
