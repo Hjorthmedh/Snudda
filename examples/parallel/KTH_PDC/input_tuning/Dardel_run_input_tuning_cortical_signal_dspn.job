@@ -2,8 +2,8 @@
 #SBATCH --partition=main
 #SBATCH -o log/InputTuning-%j-output.txt
 #SBATCH -e log/InputTuning-%j-error.txt
-#SBATCH -t 8:59:00
-#SBATCH --time-min=7:59:00
+#SBATCH -t 3:59:00
+#SBATCH --time-min=2:59:00
 #SBATCH -J InputTuning
 #SBATCH -A naiss2023-5-231
 #SBATCH --nodes=8-12
@@ -14,10 +14,11 @@
 export SNUDDA_TUNE_NEURON="dspn"
 export SEED_LIST="[10,20,30,40,50]"
 export INPUT_TYPE="cortical"
+export INPUT_FREQ=40
 
 # You need to point this as the directory where you created the network in
 #NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k
-NETWORK_DIR=networks/input_tuning_${SNUDDA_TUNE_NEURON}_${INPUT_TYPE}_signal
+NETWORK_DIR=networks/input_tuning_${SNUDDA_TUNE_NEURON}_${INPUT_TYPE}_signal_${INPUT_FREQ}Hz
 
 # This is used for NEURON
 export N_WORKERS=$SLURM_NTASKS

@@ -451,7 +451,7 @@ class SnuddaInit(object):
                     print(tstr)
                     sys.exit(-1)
 
-                print("Checking boundaries, to make sure P is not too high")
+                # print("Checking boundaries, to make sure P is not too high")
                 x = np.zeros((8, 1))
                 y = np.zeros((8, 1))
                 z = np.zeros((8, 1))
@@ -468,10 +468,10 @@ class SnuddaInit(object):
                 # axon_density function of x,y,z defined above
                 p_corner = numexpr.evaluate(axon_density[1]) * (3e-6 ** 3)
 
-                for P, xx, yy, zz in zip(p_corner, x, y, z):
-                    print(f"{name} axon density P({xx}, {yy}, {zz}) = {P}")
-
                 if (p_corner > 0.01).any():
+                    for P, xx, yy, zz in zip(p_corner, x, y, z):
+                        print(f"{name} axon density P({xx}, {yy}, {zz}) = {P}")
+
                     print("Axon density too high at boundary!!")
                     print("Please increase bounding box")
                     sys.exit(-1)
@@ -854,11 +854,13 @@ class SnuddaInit(object):
                         f_FS=0.013,
                         f_ChIN=0.011,
                         f_LTS=0.007,
+                        f_NGF=0.0019,
                         num_dSPN=None,
                         num_iSPN=None,
                         num_FS=None,
                         num_ChIN=None,
                         num_LTS=None,
+                        num_NGF=None,
                         volume_type=None,
                         side_len=None,
                         slice_depth=None,
@@ -881,8 +883,9 @@ class SnuddaInit(object):
             self.num_FS = get_val(num_FS)
             self.num_ChIN = get_val(num_ChIN)
             self.num_LTS = get_val(num_LTS)
+            self.num_NGF = get_val(num_NGF)
 
-            self.num_neurons_total += self.num_FS + self.num_dSPN + self.num_iSPN + self.num_ChIN + self.num_LTS
+            self.num_neurons_total += self.num_FS + self.num_dSPN + self.num_iSPN + self.num_ChIN + self.num_LTS + self.num_NGF
             num_neurons = self.num_neurons_total
 
             if self.num_neurons_total <= 0:
@@ -893,15 +896,16 @@ class SnuddaInit(object):
                 # No neurons specified, skipping structure
                 return
 
-            f_tot = f_dSPN + f_iSPN + f_FS + f_ChIN + f_LTS
+            f_tot = f_dSPN + f_iSPN + f_FS + f_ChIN + f_LTS + f_NGF
 
             self.num_FS = np.round(f_FS * num_neurons / f_tot)
             self.num_dSPN = np.round(f_dSPN * num_neurons / f_tot)
             self.num_iSPN = np.round(f_iSPN * num_neurons / f_tot)
             self.num_ChIN = np.round(f_ChIN * num_neurons / f_tot)
             self.num_LTS = np.round(f_LTS * num_neurons / f_tot)
+            self.num_NGF = np.round(f_NGF * num_neurons / f_tot)
 
-            n_neurons = int(self.num_FS + self.num_dSPN + self.num_iSPN + self.num_ChIN + self.num_LTS)
+            n_neurons = int(self.num_FS + self.num_dSPN + self.num_iSPN + self.num_ChIN + self.num_LTS + self.num_NGF)
 
             self.num_neurons_total += n_neurons
             if abs(num_neurons - self.num_neurons_total) > 5:
@@ -937,6 +941,7 @@ class SnuddaInit(object):
             self.add_neuron_density(volume_id="Striatum", neuron_type="FS", density_file=density_file)
             self.add_neuron_density(volume_id="Striatum", neuron_type="LTS", density_file=density_file)
             self.add_neuron_density(volume_id="Striatum", neuron_type="ChIN", density_file=density_file)
+            # Todo: Density missing for NGF
 
         elif volume_type == "slice":
             self.define_structure(struct_name="Striatum",
@@ -997,6 +1002,8 @@ class SnuddaInit(object):
         iSPN_dir = os.path.join(neurons_dir, "striatum", "ispn")
         ChIN_dir = os.path.join(neurons_dir, "striatum", "chin")
         LTS_dir = os.path.join(neurons_dir, "striatum", "lts")
+        NGF_dir = os.path.join(neurons_dir, "striatum", "ngf")
+
 
         # Add the neurons
 
@@ -1073,6 +1080,15 @@ class SnuddaInit(object):
                          num_neurons=self.num_LTS,
                          axon_density=LTS_axon_density,
                          volume_id="Striatum")
+
+        # NGF
+        if os.path.isdir(snudda_parse_path(NGF_dir, self.snudda_data)):
+            self.add_neurons(name="NGF", neuron_dir=NGF_dir,
+                             num_neurons=self.num_NGF,
+                             volume_id="Striatum")
+
+        else:
+            print(f"No directory {NGF_dir}, skipping NGF cells.")
 
         # Define FS targets
 
@@ -1475,6 +1491,70 @@ class SnuddaInit(object):
                                parameter_file=pfLTSChIN,
                                mod_file="tmGabaA",
                                channel_param_dictionary=None)
+
+        ####
+
+        if True:
+            # Connections to and from NGF
+            # NGF -> SPN 25/29 connected within 100 micrometers (Ibanez-Sandoval, et al 2011)
+            # NGF -> SPN 11/14 connected (English et al, 2012)
+
+            # TODO: Parameters not tuned yet
+            self.add_neuron_target(neuron_name="NGF",
+                                   target_name="dSPN",
+                                   connection_type="GABA",
+                                   dist_pruning=None,
+                                   f1=0.2308, soft_max=None, mu2=0.5659, a3=1.0,
+                                   conductance=0.5e-9,
+                                   mod_file="ngf_tmGabaA")  # This file does not yet exist
+
+            self.add_neuron_target(neuron_name="NGF",
+                                   target_name="iSPN",
+                                   connection_type="GABA",
+                                   dist_pruning=None,
+                                   f1=0.3527, soft_max=None, mu2=0.2811, a3=0.9997,
+                                   conductance=0.5e-9,
+                                   mod_file="ngf_tmGabaA")  # This file does not yet exist
+
+            # NGF -> ChIN 3/14 (English et al, 2012)
+            self.add_neuron_target(neuron_name="NGF",
+                                   target_name="ChIN",
+                                   connection_type="GABA",
+                                   dist_pruning=None,
+                                   f1=0.088, soft_max=None, mu2=0.17141, a3=1,
+                                   conductance=0.5e-9,
+                                   mod_file="ngf_tmGabaA")  # This file does not yet exist
+
+            # NGF -> FS, Kocaturk et al, 2022 -- 12/20 ???
+
+            # Gap junctions, 1/2 English et al 2012
+            # TODO: Optimise!!
+            self.add_neuron_target(neuron_name="NGF",
+                                   target_name="NGF",
+                                   connection_type="GapJunction",
+                                   dist_pruning=None,
+                                   f1=0.1364, soft_max=None, mu2=0.4625, a3=1.0,
+                                   conductance=0.5e-9)
+
+            # Move these to respective neuron later...
+
+            # FS -> NGF  9/9, Lee et al, 2022
+            self.add_neuron_target(neuron_name="FS",
+                                   target_name="NGF",
+                                   connection_type="GABA",
+                                   dist_pruning=None,
+                                   f1=0.0988, soft_max=None, mu2=0.0624, a3=0.9997,
+                                   conductance=0.5e-9,
+                                   mod_file="tmGabaA")
+
+            # ChIN -> NGF 8/14, English et al, 2012
+            self.add_neuron_target(neuron_name="ChIN",
+                                   target_name="NGF",
+                                   connection_type="GABA",
+                                   dist_pruning=None,
+                                   f1=0.9208, soft_max=10, mu2=0.3393, a3=1.0,
+                                   conductance=0.5e-9,
+                                   mod_file=None)  # This file does not yet exist
 
     ############################################################################
 

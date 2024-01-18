@@ -109,11 +109,19 @@ class OptimisePruning:
 
         out_file = h5py.File(output_file, "w")
 
-        with h5py.File(self.merge_files_syn[0], "r") as f_syn:
-            # print(f"Writing file {output_file}")
-            # We need to make sure that we keep the pruned data files separate
+        if self.merge_files_syn[0] is not None:
+            with h5py.File(self.merge_files_syn[0], "r") as f_syn:
+                # print(f"Writing file {output_file}")
+                # We need to make sure that we keep the pruned data files separate
 
-            num_syn, num_syn_kept = self.prune.prune_synapses(synapse_file=f_syn,
+                num_syn, num_syn_kept = self.prune.prune_synapses(synapse_file=f_syn,
+                                                                  output_filename=out_file,
+                                                                  row_range=None,
+                                                                  close_out_file=False,
+                                                                  close_input_file=True,
+                                                                  merge_data_type="synapses")
+        else:
+            num_syn, num_syn_kept = self.prune.prune_synapses(synapse_file=None,
                                                               output_filename=out_file,
                                                               row_range=None,
                                                               close_out_file=False,
@@ -158,7 +166,8 @@ class OptimisePruning:
 
         out_file.close()
 
-    def evaluate_fitness(self, pre_type, post_type, output_file, experimental_data, avg_num_synapses_per_pair=None):
+    def evaluate_fitness(self, pre_type, post_type, output_file, experimental_data,
+                         avg_num_synapses_per_pair=None, con_type="synapses"):
 
         """
 
@@ -186,7 +195,9 @@ class OptimisePruning:
         pre_mask[pre_id] = True
         post_mask[post_id] = True
 
-        for row in snudda_data["synapses"]:
+        # print(f"snudda_data.keys = {snudda_data.keys()}")
+
+        for row in snudda_data[con_type]:
             if pre_mask[row[0]] and post_mask[row[1]]:
                 # Only include connections between the right pre and post types
                 connection_matrix[row[0], row[1]] += 1
@@ -277,11 +288,17 @@ class OptimisePruning:
                           pruning_parameters=pruning_parameters,
                           output_file=output_file)
 
+        if optimisation_info["con_type"].lower() == "gapjunction":
+            con_type = "gapJunctions"
+        else:
+            con_type = "synapses"
+
         fitness = op.evaluate_fitness(pre_type=optimisation_info["pre_type"],
                                       post_type=optimisation_info["post_type"],
                                       output_file=output_file,
                                       experimental_data=optimisation_info["exp_data"],
-                                      avg_num_synapses_per_pair=optimisation_info["avg_num_synapses_per_pair"])
+                                      avg_num_synapses_per_pair=optimisation_info["avg_num_synapses_per_pair"],
+                                      con_type=con_type)
 
         # print(f"Evaluating f1 = {x[0]}, fitness: {fitness}\n{output_file}\n")
         # print(f"Fitness: {fitness}")
@@ -378,7 +395,7 @@ class OptimisePruning:
         return res
 
     @staticmethod
-    def get_parameters(res, optimisation_info):
+    def get_parameters(res, optimisation_info, truncate_decimals=False):
 
         param_names = optimisation_info["param_names"]
 
@@ -387,11 +404,13 @@ class OptimisePruning:
             pruning_parameters |= optimisation_info["extra_pruning_parameters"]
 
         for p_name, p_value in zip(param_names, res.x):
+            if truncate_decimals:
+                p_value = np.around(p_value, decimals=truncate_decimals)
             pruning_parameters[p_name] = p_value
 
         return pruning_parameters
 
-    def export_json(self, file_name, res, append=False):
+    def export_json(self, file_name, res, append=False, truncate_decimals=4):
 
         pre_type = self.optimisation_info["pre_type"]
         post_type = self.optimisation_info["post_type"]
@@ -415,7 +434,8 @@ class OptimisePruning:
         if connection_type not in con_data:
             con_data[connection_type] = dict()
 
-        con_data[connection_type]["pruning"] = self.get_parameters(res=res, optimisation_info=self.optimisation_info)
+        con_data[connection_type]["pruning"] = self.get_parameters(res=res, optimisation_info=self.optimisation_info,
+                                                                   truncate_decimals=truncate_decimals)
         if "pruningOther" in con_data[connection_type]:
             del con_data[connection_type]["pruningOther"]
 
@@ -423,3 +443,4 @@ class OptimisePruning:
 
         with open(file_name, "w") as f:
             json.dump(config_data, f, cls=NumpyEncoder, indent=4)
+
