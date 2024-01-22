@@ -326,10 +326,14 @@ class InputTuning(object):
             neuron_id = neuron_id_lookup[neuron_name]
 
             spike_count = np.zeros((len(neuron_id), len(self.input_seed_list)), dtype=int)
+            depol_block_flag = np.zeros((len(neuron_id), len(self.input_seed_list)), dtype=bool)
 
             for idx in range(len(self.input_seed_list)):
-                spike_count[:, idx] = self.extract_background_spikes(spike_data=spike_data[idx], neuron_id=neuron_id,
-                                                                     skip_time=skip_time)
+                spike_count[:, idx], depol_block_flag[:, idx] = \
+                    self.extract_background_spikes(spike_data=spike_data[idx],
+                                                   neuron_id=neuron_id,
+                                                   skip_time=skip_time,
+                                                   depolarisation_blocks=depolarisation_blocks[idx])
 
             spike_count_mean = np.mean(spike_count, axis=1)
 
@@ -350,7 +354,7 @@ class InputTuning(object):
 
             self.plot_signal_info(neuron_id=neuron_id, neuron_info=neuron_info, best_config=best_config,
                                   spike_count=spike_count, input_config=input_config, max_time=np.max(time),
-                                  requested_frequency=requested_frequency,
+                                  requested_frequency=requested_frequency, depol_block_flag=depol_block_flag,
                                   label=f"signal-{requested_frequency}-Hz", show_plot=show_plot)
 
         return input_config_info
@@ -420,10 +424,14 @@ class InputTuning(object):
             neuron_id = neuron_id_lookup[neuron_name]
 
             spike_count = np.zeros((len(neuron_id), len(self.input_seed_list)), dtype=int)
+            depol_block_flag = np.zeros((len(neuron_id), len(self.input_seed_list)), dtype=bool)
 
             for idx in range(len(self.input_seed_list)):
-                spike_count[:, idx] = self.extract_background_spikes(spike_data=spike_data[idx], neuron_id=neuron_id,
-                                                                     skip_time=skip_time)
+                spike_count[:, idx], depol_block_flag[:, idx] = \
+                    self.extract_background_spikes(spike_data=spike_data[idx],
+                                                   neuron_id=neuron_id,
+                                                   skip_time=skip_time,
+                                                   depolarisation_blocks=depolarisation_blocks[idx])
 
             spike_count_sum = np.sum(spike_count, axis=1)
 
@@ -449,13 +457,14 @@ class InputTuning(object):
                 assert network_info.data["neurons"][neuron_id[0]]["name"] == network_info.data["neurons"][nid]["name"]
 
             self.plot_background_info(neuron_id=neuron_id, neuron_info=neuron_info, best_neuron_id=best_neuron_id,
-                                      spike_count=spike_count, input_config=input_config,
+                                      spike_count=spike_count, input_config=input_config, depol_block_flag=depol_block_flag,
                                       max_time=np.max(time), label="background-inputs", show_plot=show_plot)
 
         return input_config_info
 
     def plot_background_info(self, neuron_id, neuron_info, best_neuron_id, spike_count, input_config,
-                             max_time, skip_time=0, label="background-inputs", show_plot=True):
+                             max_time, skip_time=0, label="background-inputs", show_plot=True,
+                             depol_block_flag=None):
 
         n_inputs_total = np.zeros((len(neuron_id),), dtype=int)
         fig_dir = os.path.join(self.network_path, "figures")
@@ -474,7 +483,13 @@ class InputTuning(object):
 
         plt.figure()
         plt.plot(n_inputs_total, spike_count/(max_time-skip_time), 'k.')
-        plt.plot(n_inputs_total[best_idx], spike_count[best_idx]/(max_time-skip_time), 'r*')
+
+        if depol_block_flag is not None:
+            # Mark the depolarisation blocks with a red circle.
+            bad_idx = np.where(depol_block_flag)
+            plt.plot(n_inputs_total[bad_idx], spike_count[bad_idx]/(max_time-skip_time), 'ro')
+
+        plt.plot(n_inputs_total[best_idx], spike_count[best_idx]/(max_time-skip_time), 'b*')
         plt.xlabel("Total number of synapses")
         plt.ylabel("Spike frequency")
         plt.title(f"Neuron {neuron_info['name']}")
@@ -488,7 +503,8 @@ class InputTuning(object):
 
     def plot_signal_info(self, neuron_id, neuron_info, best_config, spike_count, input_config,
                          max_time, requested_frequency, skip_time=0,
-                         label="background-inputs", show_plot=True):
+                         label="background-inputs", show_plot=True,
+                         depol_block_flag=None):
 
         n_inputs_total = np.zeros((len(neuron_id),), dtype=int)
         fig_dir = os.path.join(self.network_path, "figures")
@@ -505,6 +521,11 @@ class InputTuning(object):
 
         plt.figure()
         plt.plot(n_inputs_total, spike_count/(max_time-skip_time), 'k.')
+
+        if depol_block_flag is not None:
+            # Mark the depolarisation blocks with a red circle.
+            bad_idx = np.where(depol_block_flag)
+            plt.plot(n_inputs_total[bad_idx], spike_count[bad_idx]/(max_time-skip_time), 'ro')
 
         input_type = list(best_config.keys())
         assert len(input_type) == 1
@@ -738,14 +759,31 @@ class InputTuning(object):
 
         return input_frequency, output_frequency, input_type
 
-    def extract_background_spikes(self, spike_data, neuron_id, skip_time=0.0):
+    def extract_background_spikes(self, spike_data, neuron_id, skip_time=0.0, depolarisation_blocks=None):
 
         spike_count = np.zeros((len(neuron_id), ), dtype=int)
 
         for ctr, n_id in enumerate(neuron_id):
             spike_count[ctr] = len(np.where(spike_data[n_id] >= skip_time)[0])
 
-        return spike_count
+        if depolarisation_blocks is not None:
+            depol_block_flag = np.zeros((len(neuron_id),), dtype=bool)
+            for ctr, n_id in enumerate(neuron_id):
+                if n_id in depolarisation_blocks:
+                    try:
+                        depol_block_flag[ctr] = True
+                    except:
+                        import traceback
+                        print(traceback.format_exc())
+                        import pdb
+                        pdb.set_trace()
+        else:
+            depol_block_flag = None
+
+        if depol_block_flag is None:
+            return spike_count
+        else:
+            return spike_count, depol_block_flag
 
     def load_input_config(self):
 
