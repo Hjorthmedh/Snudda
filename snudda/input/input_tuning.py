@@ -311,10 +311,11 @@ class InputTuning(object):
     def find_signal_strength(self, requested_frequency=10.0, skip_time=0.0, show_plot=True):
 
         spike_data = dict()
+        depolarisation_blocks = dict()
 
         for idx in range(len(self.input_seed_list)):
             network_info, input_config, _, neuron_id_lookup, neuron_name_list, \
-                spike_data[idx], _, time = self.load_data_helper(idx=idx)
+                spike_data[idx], _, time, depolarisation_blocks[idx] = self.load_data_helper(idx=idx)
 
         input_config_info = dict()
 
@@ -407,10 +408,11 @@ class InputTuning(object):
     def find_highest_non_spiking_background_input(self, skip_time=0.0, show_plot=True):
 
         spike_data = dict()
+        depolarisation_blocks = dict()
 
         for idx in range(len(self.input_seed_list)):
             network_info, input_config, _, neuron_id_lookup, neuron_name_list, \
-                spike_data[idx], _, time = self.load_data_helper(idx=idx)
+                spike_data[idx], _, time, depolarisation_blocks[idx] = self.load_data_helper(idx=idx)
 
         input_config_info = dict()
 
@@ -585,10 +587,11 @@ class InputTuning(object):
         spike_data = dict()
         volt = dict()
         time = dict()
+        depolarisation_blocks = dict()
 
         for idx in range(len(self.input_seed_list)):
             network_info, input_config, input_data[idx], neuron_id_lookup, neuron_name_list, \
-                spike_data[idx], volt[idx], time[idx] = self.load_data_helper(idx=idx)
+                spike_data[idx], volt[idx], time[idx], depolarisation_blocks[idx] = self.load_data_helper(idx=idx)
 
         n_inputs_lookup = dict()
 
@@ -652,7 +655,8 @@ class InputTuning(object):
                 input_data = h5py.File(self.input_spikes_file[idx], "r")
 
         output_data_loader = SnuddaLoadNetworkSimulation(network_path=self.network_path,
-                                                         network_simulation_output_file=output_file)
+                                                         network_simulation_output_file=output_file,
+                                                         do_test=True)
         spike_data = output_data_loader.get_spikes()
 
         # cell_id = output_data_loader.get_id_of_neuron_type()
@@ -676,7 +680,26 @@ class InputTuning(object):
         # Next identify number of inputs each run had
         input_config = self.load_input_config()
 
-        return network_info, input_config, input_data, neuron_id_lookup, neuron_name_list, spike_data, volt, time
+        depolarisation_blocks = output_data_loader.get_depolarisation_dictionary()
+
+        return network_info, input_config, input_data, neuron_id_lookup, neuron_name_list, spike_data, volt, time, depolarisation_blocks
+
+    def is_depolarisation_blocked(self, neuron_id, time_range, depolarisation_blocks):
+
+        # Checks if there are any depolarisation blocks for neuron_id within the time_range
+
+        is_blocked = False
+
+        if neuron_id in depolarisation_blocks:
+
+            for start_block, end_block in depolarisation_blocks[neuron_id]:
+
+                if time_range[0] < end_block and time_range[1] > start_block:
+                    is_blocked = True
+
+        return is_blocked
+
+
 
     # TODO: We should set skip_time to 1 second, 0 for now while testing
     def extract_frequencies(self, spike_data, config_data, neuron_id, skip_time=0.0):
@@ -991,7 +1014,7 @@ class InputTuning(object):
     def plot_verify_frequency_distribution(self, input_type="cortical"):
 
         network_info, input_config, input_data, neuron_id_lookup, neuron_name_list, \
-            spike_data, volt, time = self.load_data_helper()
+            spike_data, volt, time, depolarisation_blocks = self.load_data_helper()
 
         # First find out what time ranges we need to look at, and what the input frequency is for those
         neuron_type = list(input_config.keys())
@@ -1004,11 +1027,27 @@ class InputTuning(object):
         input_freq = np.array(input_config[neuron_type][input_type]["frequency"])
         output_freq_list = []
 
+        #import pdb
+        #pdb.set_trace()
+
+        depol_blocked_freqs = []
+        depol_blocked_lookup = dict()
+
         for neuron_id in sorted(spike_data.keys()):
             out_freq = []
-            for start_t, end_t in zip(start_times, end_times):
+            for start_t, end_t, in_freq in zip(start_times, end_times, input_freq):
                 n_spikes = np.sum(np.logical_and(start_t <= spike_data[neuron_id], spike_data[neuron_id] < end_t))
-                out_freq.append(n_spikes / (end_t - start_t))
+                f = n_spikes / (end_t - start_t)
+                out_freq.append(f)
+
+                if self.is_depolarisation_blocked(neuron_id=neuron_id, time_range=(start_t, end_t),
+                                                  depolarisation_blocks=depolarisation_blocks):
+                    depol_blocked_freqs.append((in_freq, f))
+
+                    if in_freq not in depol_blocked_lookup:
+                        depol_blocked_lookup[in_freq] = [f]
+                    else:
+                        depol_blocked_lookup[in_freq].append(f)
 
             output_freq_list.append(out_freq)
 
@@ -1016,6 +1055,10 @@ class InputTuning(object):
 
         plt.figure()
         plt.plot(input_freq, output_freq, 'k')
+
+        depol_in_freq, depol_out_freq = zip(*depol_blocked_freqs)
+        plt.plot(depol_in_freq, depol_out_freq, 'r*')
+
         plt.xlabel("Input frequency")
         plt.ylabel("Output frequency")
         plt.ion()
@@ -1028,7 +1071,15 @@ class InputTuning(object):
         fig, ax = plt.subplots(len(input_freq), 1, figsize=(6, 12))
 
         for idx, (in_freq, out_freq) in enumerate(zip(input_freq, output_freq)):
-            ax[idx].hist(out_freq, bins=50)
+
+            # ax[idx].hist(out_freq, bins=50)
+            counts, bins = np.histogram(out_freq, bins=50)
+            ax[idx].stairs(counts, bins, color="black")
+
+            if in_freq in depol_blocked_lookup:
+                depol_counts, depol_bins = np.histogram(depol_blocked_lookup[in_freq], bins=bins)
+                ax[idx].stairs(depol_counts, depol_bins, color="red")
+
             yl = ax[idx].get_ylim()
             mean_freq = np.mean(out_freq)
             std_freq = np.std(out_freq)
@@ -1036,7 +1087,7 @@ class InputTuning(object):
             ax[idx].plot(one_mat*mean_freq, yl, 'k-')
             ax[idx].plot(one_mat*(mean_freq + 2*std_freq), yl, 'k--')
             ax[idx].plot(one_mat*(mean_freq - 2*std_freq), yl, 'k--')
-            ax[idx].plot([in_freq, in_freq], yl, 'r-')
+            ax[idx].plot([in_freq, in_freq], yl, 'b-')
 
             bad_idx = bad_idx.union(set(np.where(np.logical_or(out_freq < mean_freq - 2*std_freq,
                                                                out_freq > mean_freq + 2*std_freq))[0]))
@@ -1045,9 +1096,6 @@ class InputTuning(object):
 
         plt.ion()
         plt.show()
-
-        # import pdb
-        # pdb.set_trace()
 
         for idx in bad_idx:
             bad_neuron = network_info.data["neurons"][idx]
