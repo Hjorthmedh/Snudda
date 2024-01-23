@@ -487,7 +487,7 @@ class InputTuning(object):
         if depol_block_flag is not None:
             # Mark the depolarisation blocks with a red circle.
             bad_idx = np.where(depol_block_flag)
-            plt.plot(n_inputs_total[bad_idx], spike_count[bad_idx]/(max_time-skip_time), 'ro')
+            plt.plot(n_inputs_total[bad_idx[0]], spike_count[bad_idx]/(max_time-skip_time), 'ro')
 
         plt.plot(n_inputs_total[best_idx], spike_count[best_idx]/(max_time-skip_time), 'b*')
         plt.xlabel("Total number of synapses")
@@ -525,7 +525,7 @@ class InputTuning(object):
         if depol_block_flag is not None:
             # Mark the depolarisation blocks with a red circle.
             bad_idx = np.where(depol_block_flag)
-            plt.plot(n_inputs_total[bad_idx], spike_count[bad_idx]/(max_time-skip_time), 'ro')
+            plt.plot(n_inputs_total[bad_idx[0]], spike_count[bad_idx]/(max_time-skip_time), 'ro')
 
         input_type = list(best_config.keys())
         assert len(input_type) == 1
@@ -770,20 +770,11 @@ class InputTuning(object):
             depol_block_flag = np.zeros((len(neuron_id),), dtype=bool)
             for ctr, n_id in enumerate(neuron_id):
                 if n_id in depolarisation_blocks:
-                    try:
-                        depol_block_flag[ctr] = True
-                    except:
-                        import traceback
-                        print(traceback.format_exc())
-                        import pdb
-                        pdb.set_trace()
-        else:
-            depol_block_flag = None
+                    depol_block_flag[ctr] = True
 
-        if depol_block_flag is None:
-            return spike_count
-        else:
             return spike_count, depol_block_flag
+
+        return spike_count
 
     def load_input_config(self):
 

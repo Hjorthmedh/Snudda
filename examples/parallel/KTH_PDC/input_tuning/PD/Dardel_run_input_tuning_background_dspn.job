@@ -15,7 +15,7 @@ export SNUDDA_TUNE_NEURON="dspn"
 export SEED_LIST="[10,20,30,40,50]"
 
 # You need to point this as the directory where you created the network in
-NETWORK_DIR=../networks/input_tuning_${SNUDDA_TUNE_NEURON}_background
+NETWORK_DIR=../networks/input_tuning_PD0_${SNUDDA_TUNE_NEURON}_background
 
 # This is used for NEURON
 export N_WORKERS=$SLURM_NTASKS
