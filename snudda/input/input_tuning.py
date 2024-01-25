@@ -744,6 +744,81 @@ class InputTuning(object):
 
         return is_blocked
 
+    def plot_depolarisation_blocked_neurons(self, freq_bin=10):
+
+        spike_data = dict()
+        volt = dict()
+        depolarisation_blocks = dict()
+
+        if type(self.input_spikes_file) == list:
+            idx_list = np.arange(0, len(self.input_spikes_file))
+
+            for idx in idx_list:
+                network_info, input_config, _, neuron_id_lookup, neuron_name_list, \
+                    spike_data[idx], volt[idx], time, depolarisation_blocks[idx] = \
+                    self.load_data_helper(idx=idx, load_input=False, quiet_load=True)
+
+        else:
+            network_info, input_config, _, neuron_id_lookup, neuron_name_list, \
+                spike_data[0], volt[0], time, depolarisation_blocks[0] = \
+                self.load_data_helper(load_input=False, quiet_load=True)
+
+        bad_neurons = []
+
+        for idx in depolarisation_blocks:
+            bad_neurons += list(depolarisation_blocks[idx].keys())
+
+        for neuron_id in bad_neurons:
+            plt.figure()
+
+            for ctr, idx in enumerate(volt):
+                plt.plot(time*1e3, volt[idx][neuron_id]*1e3)
+                plt.plot(spike_data[idx][neuron_id]*1e3,
+                         np.full(spike_data[idx][neuron_id].shape, 40+ctr), 'k.')
+                if neuron_id in depolarisation_blocks[idx]:
+                    for bad_start, bad_end in depolarisation_blocks[idx][neuron_id]:
+                        plt.plot([bad_start*1e3, bad_end*1e3], [50, 50], 'r')
+
+            full_morph_key = network_info.data["neurons"][neuron_id]["morphologyKey"]
+            full_param_key = network_info.data["neurons"][neuron_id]["parameterKey"]
+            neuron_type = network_info.data["neurons"][neuron_id]["type"]
+
+            if freq_bin is not None:
+                n_bins = int(np.floor(np.max(time) / freq_bin)) + 1
+                freq_data = np.zeros((n_bins, len(spike_data.keys())))
+
+                for idx in spike_data:
+                    try:
+                        unique, counts = np.unique(np.floor(spike_data[idx][neuron_id].flatten() / freq_bin).astype(int), return_counts=True)
+                    except:
+                        import traceback
+                        print(traceback.format_exc())
+                        import pdb
+                        pdb.set_trace()
+
+                    for val, ctr in zip(unique, counts):
+                        freq_data[val, idx] = ctr
+
+                freq_vals = np.mean(freq_data, axis=1)
+                for idx, fv in enumerate(freq_vals):
+                    plt.text((idx+0.5)*freq_bin*1e3, -10, f"{fv:.1f}Hz",
+                             horizontalalignment="center")
+
+            plt.title(f"{neuron_type}, param: {full_param_key}, morph: {full_morph_key}")
+            plt.xlabel("Time (ms)")
+            plt.ylabel("Voltage (mV)")
+
+            fig_path = os.path.join(self.network_path, "figures",
+                                    f"Bad-trace-{neuron_type}-{full_param_key}-{full_morph_key}.png")
+
+            if not os.path.exists(os.path.dirname(fig_path)):
+                os.mkdir(os.path.dirname(fig_path))
+
+            plt.savefig(fig_path, dpi=300)
+
+            plt.ion()
+            plt.show()
+
     def plot_voltage_trace(self, morphology_key, parameter_key, mp_idx=None, time_range=None):
 
         # Find all neurons with the morphology key, and parameter key
@@ -760,14 +835,13 @@ class InputTuning(object):
 
             for idx in idx_list:
                 network_info, input_config, _, neuron_id_lookup, neuron_name_list, \
-                    spike_data[idx], volt[idx], time, depolarisation_blocks[idx] = self.load_data_helper(idx=idx,
-                                                                                                         load_input=False,
-                                                                                                         quiet_load=True)
+                    spike_data[idx], volt[idx], time, depolarisation_blocks[idx] = \
+                    self.load_data_helper(idx=idx, load_input=False, quiet_load=True)
 
         else:
             network_info, input_config, _, neuron_id_lookup, neuron_name_list, \
-                spike_data[0], volt[0], time, depolarisation_blocks[0] = self.load_data_helper(load_input=False,
-                                                                                               quiet_load=True)
+                spike_data[0], volt[0], time, depolarisation_blocks[0] = \
+                self.load_data_helper(load_input=False, quiet_load=True)
 
         morph_flag = np.array([morphology_key in n["morphologyKey"] for n in network_info.data["neurons"]], dtype=bool)
         param_flag = np.array([parameter_key in n["parameterKey"] for n in network_info.data["neurons"]], dtype=bool)
