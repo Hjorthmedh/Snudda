@@ -14,7 +14,8 @@ class SnuddaLoadNetworkSimulation:
     def __init__(self, network_simulation_output_file=None,
                  network_path=None,
                  do_test=True,
-                 verbose=False):
+                 verbose=False,
+                 quiet_load=False):
 
         self.verbose = verbose
 
@@ -37,9 +38,9 @@ class SnuddaLoadNetworkSimulation:
         self.test_data = do_test
 
         if self.network_simulation_output_file_name:
-            self.load()
+            self.load(quiet=quiet_load)
 
-    def load(self, network_simulation_output_file=None):
+    def load(self, network_simulation_output_file=None, quiet=False):
 
         if not network_simulation_output_file:
             network_simulation_output_file = self.network_simulation_output_file_name
@@ -48,7 +49,7 @@ class SnuddaLoadNetworkSimulation:
         self.network_simulation_file = h5py.File(network_simulation_output_file, "r")
 
         if self.test_data:
-            self.depolarisation_block = self.check_depolarisation_block()
+            self.depolarisation_block = self.check_depolarisation_block(quiet=quiet)
 
     def close(self):
         if self.network_simulation_file:
@@ -226,7 +227,7 @@ class SnuddaLoadNetworkSimulation:
 
         return depolarisation_block
 
-    def check_depolarisation_block(self, threshold=-40e-3, max_duration=100e-3):
+    def check_depolarisation_block(self, threshold=-40e-3, max_duration=100e-3, quiet=False):
 
         if self.verbose:
             print("Checking neurons for depolarisation block")
@@ -265,7 +266,7 @@ class SnuddaLoadNetworkSimulation:
                         for x in bad_cells]
         bad_str = '\n'.join(bad_cell_str)
 
-        if len(depolarisation_block) > 0:
+        if len(depolarisation_block) > 0 and not quiet:
             print(f"WARNING. Depolarisation block in neuron - neuron_id: (name, parameter_key, morphology_key):\n{bad_str}")
 
         return depolarisation_block

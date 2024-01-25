@@ -308,14 +308,15 @@ class InputTuning(object):
               f"python3 plotting/Network_plot_traces.py {self.network_path}output_volt.txt "
               f"{self.network_path}network-synapses.hdf5 ")
 
-    def find_signal_strength(self, requested_frequency=10.0, skip_time=0.0, show_plot=True):
+    def find_signal_strength(self, requested_frequency=10.0, skip_time=0.0, show_plot=True, quiet_load=False):
 
         spike_data = dict()
         depolarisation_blocks = dict()
 
         for idx in range(len(self.input_seed_list)):
             network_info, input_config, _, neuron_id_lookup, neuron_name_list, \
-                spike_data[idx], _, time, depolarisation_blocks[idx] = self.load_data_helper(idx=idx, load_input=False)
+                spike_data[idx], _, time, depolarisation_blocks[idx] = \
+                self.load_data_helper(idx=idx, load_input=False, quiet_load=quiet_load)
 
         input_config_info = dict()
 
@@ -426,14 +427,15 @@ class InputTuning(object):
 
         return best_config, neuron_info, depol_block
 
-    def find_highest_non_spiking_background_input(self, skip_time=0.0, show_plot=True):
+    def find_highest_non_spiking_background_input(self, skip_time=0.0, show_plot=True, quiet_load=False):
 
         spike_data = dict()
         depolarisation_blocks = dict()
 
         for idx in range(len(self.input_seed_list)):
             network_info, input_config, _, neuron_id_lookup, neuron_name_list, \
-                spike_data[idx], _, time, depolarisation_blocks[idx] = self.load_data_helper(idx=idx, load_input=False)
+                spike_data[idx], _, time, depolarisation_blocks[idx] = \
+                self.load_data_helper(idx=idx, load_input=False, quiet_load=quiet_load)
 
         input_config_info = dict()
 
@@ -608,6 +610,10 @@ class InputTuning(object):
                 import pdb
                 pdb.set_trace()
 
+            if parameter_key not in meta_data or morphology_key not in meta_data[parameter_key]:
+                print(f"Parameter key {parameter_key}, morphology key {morphology_key} not found in {meta_file} -- was it manually removed?")
+                continue
+
             if overwrite:
                 meta_data[parameter_key][morphology_key]["input"] = new_config
             else:
@@ -619,7 +625,7 @@ class InputTuning(object):
             with open(last_meta_file, "w") as f:
                 json.dump(meta_data, f, indent=4)
 
-    def load_data(self, skip_time=0.0):
+    def load_data(self, skip_time=0.0, quiet_load=False):
 
         input_data = dict()
         spike_data = dict()
@@ -629,7 +635,8 @@ class InputTuning(object):
 
         for idx in range(len(self.input_seed_list)):
             network_info, input_config, input_data[idx], neuron_id_lookup, neuron_name_list, \
-                spike_data[idx], volt[idx], time[idx], depolarisation_blocks[idx] = self.load_data_helper(idx=idx)
+                spike_data[idx], volt[idx], time[idx], depolarisation_blocks[idx] \
+                = self.load_data_helper(idx=idx, quiet_load=quiet_load)
 
         n_inputs_lookup = dict()
 
@@ -677,7 +684,7 @@ class InputTuning(object):
 
         return frequency_data, voltage_data
 
-    def load_data_helper(self, idx=None, load_input=True):
+    def load_data_helper(self, idx=None, load_input=True, quiet_load=False):
 
         network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         network_info = SnuddaLoad(network_file)
@@ -694,7 +701,7 @@ class InputTuning(object):
 
         output_data_loader = SnuddaLoadNetworkSimulation(network_path=self.network_path,
                                                          network_simulation_output_file=output_file,
-                                                         do_test=True)
+                                                         do_test=True, quiet_load=quiet_load)
         spike_data = output_data_loader.get_spikes()
 
         # cell_id = output_data_loader.get_id_of_neuron_type()
@@ -754,11 +761,13 @@ class InputTuning(object):
             for idx in idx_list:
                 network_info, input_config, _, neuron_id_lookup, neuron_name_list, \
                     spike_data[idx], volt[idx], time, depolarisation_blocks[idx] = self.load_data_helper(idx=idx,
-                                                                                                         load_input=False)
+                                                                                                         load_input=False,
+                                                                                                         quiet_load=True)
 
         else:
             network_info, input_config, _, neuron_id_lookup, neuron_name_list, \
-                spike_data[0], volt[0], time, depolarisation_blocks[0] = self.load_data_helper(load_input=False)
+                spike_data[0], volt[0], time, depolarisation_blocks[0] = self.load_data_helper(load_input=False,
+                                                                                               quiet_load=True)
 
         morph_flag = np.array([morphology_key in n["morphologyKey"] for n in network_info.data["neurons"]], dtype=bool)
         param_flag = np.array([parameter_key in n["parameterKey"] for n in network_info.data["neurons"]], dtype=bool)
@@ -776,12 +785,18 @@ class InputTuning(object):
 
         fig = plt.figure()
         for r_idx in volt.keys():
-            for idx in plot_idx:
+            for ctr, idx in enumerate(plot_idx):
+                spike_times = spike_data[r_idx][idx]
+
                 if time_range is None:
                     plt.plot(time*1e3, volt[r_idx][idx]*1e3)
+                    plt.plot(spike_times*1e3, np.full(spike_times.shape, 40+ctr), 'k.')
                 else:
                     t_idx = np.logical_and(time_range[0] <= time, time <= time_range[1])
                     plt.plot(time[t_idx]*1e3, volt[r_idx][idx][t_idx]*1e3)
+                    s_idx = np.where(np.logical_and(time_range[0] <= spike_times,
+                                                    spike_times <= time_range[1]))
+                    plt.plot(spike_times[s_idx]*1e3, np.full(spike_times[s_idx].shape, 40+ctr), 'k.')
 
                 if idx in depolarisation_blocks[r_idx]:
                     bad_ranges = depolarisation_blocks[r_idx][idx]
