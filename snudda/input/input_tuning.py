@@ -804,7 +804,7 @@ class InputTuning(object):
                     plt.text((idx+0.5)*freq_bin*1e3, -10, f"{fv:.1f}Hz",
                              horizontalalignment="center")
 
-            plt.title(f"{neuron_type}, param: {full_param_key}, morph: {full_morph_key}")
+            plt.title(f"{neuron_type}, param: {full_param_key}, morph: {full_morph_key} (id {neuron_id})")
             plt.xlabel("Time (ms)")
             plt.ylabel("Voltage (mV)")
 
