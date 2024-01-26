@@ -48,7 +48,7 @@ input_tuning.setup_network(neurons_path=neurons_path,
 print("Calling setup_input")
 
 input_duration = 10
-input_frequency_range = [0, 5, 10, 20, 30, 40]
+input_frequency_range = [0, 2, 4, 6, 8, 10]
 
 input_tuning.setup_input_verification(input_type=input_type,
                                       neuron_type=neuron_type,
