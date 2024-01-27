@@ -6,19 +6,17 @@
 #SBATCH --time-min=2:59:00
 #SBATCH -J InputTuning
 #SBATCH -A naiss2023-5-231
-#SBATCH --nodes=8-12
+#SBATCH --nodes=4
 #SBATCH --tasks-per-node=128
 #SBATCH --mem-per-cpu=930M
 #SBATCH --mail-type=ALL
 
-export SNUDDA_TUNE_NEURON="fs"
-export SEED_LIST="[10,20,30,40,50]"
+export SNUDDA_TUNE_NEURON="ispn"
 export INPUT_TYPE="cortical"
-export INPUT_FREQ=10
 
 # You need to point this as the directory where you created the network in
 #NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k
-NETWORK_DIR=networks/input_tuning_${SNUDDA_TUNE_NEURON}_${INPUT_TYPE}_signal_${INPUT_FREQ}Hz
+NETWORK_DIR=networks/verify_input_${SNUDDA_TUNE_NEURON}_${INPUT_TYPE}
 
 # This is used for NEURON
 export N_WORKERS=$SLURM_NTASKS
@@ -95,7 +93,7 @@ unset DISPLAY
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
 
 # srun -n 1 python setup_input_tuning_background.py &> log/setup_network_log.txt
-srun -n 1 -N 1 --exact --overlap --mem=0 python setup_input_tuning_signal.py &> log/setup_network_log.txt
+srun -n 1 -N 1 --exact --overlap --mem=0 python setup_verify_input_tuning.py &> log/setup_network_log.txt
 
 
 # Quit ipyparallel
@@ -128,6 +126,6 @@ srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/
 # Do we need this magic?
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
 
-srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/input_tuning/x86_64/special -mpi -python $SNUDDA_DIR/snudda/input/input_tuning.py simulate $NETWORK_DIR --seed_list $SEED_LIST
+srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/input_tuning/x86_64/special -mpi -python $SNUDDA_DIR/snudda/input/input_tuning.py simulate $NETWORK_DIR 
 
 
