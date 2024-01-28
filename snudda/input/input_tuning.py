@@ -12,6 +12,7 @@ from mpi4py import MPI
 import h5py
 import matplotlib.pyplot as plt
 import numpy as np
+import copy
 
 from snudda.core import Snudda
 from snudda.init.init import SnuddaInit
@@ -420,7 +421,7 @@ class InputTuning(object):
             print(traceback.format_exc())
             pdb.set_trace()
 
-        best_config = config_above.copy()
+        best_config = copy.deepcopy(config_above)
         best_config[input_type]["nInputs"] = n_syn
 
         neuron_info = network_info.data["neurons"][neuron_id[idx_above]]
@@ -797,7 +798,7 @@ class InputTuning(object):
                         pdb.set_trace()
 
                     for val, ctr in zip(unique, counts):
-                        freq_data[val, idx] = ctr
+                        freq_data[val, idx] = ctr / freq_bin
 
                 freq_vals = np.mean(freq_data, axis=1)
                 for idx, fv in enumerate(freq_vals):
@@ -1232,6 +1233,8 @@ class InputTuning(object):
             out_freq = []
             for start_t, end_t, in_freq in zip(start_times, end_times, input_freq):
                 n_spikes = np.sum(np.logical_and(start_t <= spike_data[neuron_id], spike_data[neuron_id] < end_t))
+                # import pdb
+                # pdb.set_trace()
                 f = n_spikes / (end_t - start_t)
                 out_freq.append(f)
 
