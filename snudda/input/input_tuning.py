@@ -1251,16 +1251,17 @@ class InputTuning(object):
 
         output_freq = np.array(output_freq_list).T
 
-        plt.figure()
-        plt.plot(input_freq, output_freq, 'k')
+        if len(depol_blocked_freqs) > 0:
+            plt.figure()
+            plt.plot(input_freq, output_freq, 'k')
 
-        depol_in_freq, depol_out_freq = zip(*depol_blocked_freqs)
-        plt.plot(depol_in_freq, depol_out_freq, 'r*')
+            depol_in_freq, depol_out_freq = zip(*depol_blocked_freqs)
+            plt.plot(depol_in_freq, depol_out_freq, 'r*')
 
-        plt.xlabel("Input frequency")
-        plt.ylabel("Output frequency")
-        plt.ion()
-        plt.show()
+            plt.xlabel("Input frequency")
+            plt.ylabel("Output frequency")
+            plt.ion()
+            plt.show()
 
         one_mat = np.ones((2,))
 
