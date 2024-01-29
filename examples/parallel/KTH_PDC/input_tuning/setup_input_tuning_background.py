@@ -2,7 +2,7 @@ import os
 import ast
 from snudda.input.input_tuning import InputTuning
 
-print("Starting setup_input_tuning.py")
+print("Starting setup_input_tuning_background.py")
 
 # Should be set by script calling setup_input_tuning_dspn
 # os.environ["SNUDDA_DATA"] = "../../../../../BasalGangliaData/data/"

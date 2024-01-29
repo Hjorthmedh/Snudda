@@ -25,6 +25,7 @@ import h5py
 import numexpr
 import numpy as np
 from numba import jit
+import copy
 
 import snudda.utils.memory
 from snudda.neurons import NeuronMorphologyExtended
@@ -2117,11 +2118,11 @@ class SnuddaDetect(object):
         self.write_log("Loading connectivity information")
         self.next_channel_model_id = 10  # Reset counter
 
-        for name, definition in self.config["Connectivity"].items():
+        for name, con_def in self.config["Connectivity"].items():
+
+            # This also enriches the self.config by adding channelModelID, lognormal_mu_sigma etc
 
             pre_type, post_type = name.split(",")
-
-            con_def = definition.copy()
 
             for key in con_def:
                 if key == "GapJunction":

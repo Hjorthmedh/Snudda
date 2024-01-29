@@ -28,6 +28,7 @@ import h5py
 import neuron
 import numpy as np
 from neuron import h  # , gui
+import copy
 
 import snudda.utils.memory
 from snudda.utils.snudda_path import snudda_parse_path, get_snudda_data
@@ -444,7 +445,7 @@ class SnuddaSimulate(object):
 
                 if ("channelParameters" in info_dict
                         and info_dict["channelParameters"] is not None):
-                    channel_param_dict = info_dict["channelParameters"].copy()
+                    channel_param_dict = copy.deepcopy(info_dict["channelParameters"])
                     mod_file = channel_param_dict["modFile"]
 
                     # TODO: Sanity check on the mod_file string
@@ -479,7 +480,7 @@ class SnuddaSimulate(object):
                         if "synapse" in par_data_dict[pd]:
                             # Add channel parameters specified in network file, however
                             # any values in the synapse parameter file will overwrite them
-                            p_dict = channel_param_dict.copy()
+                            p_dict = copy.deepcopy(channel_param_dict)
                             for x in par_data_dict[pd]["synapse"]:
                                 p_dict[x] = par_data_dict[pd]["synapse"][x]
 
@@ -487,7 +488,7 @@ class SnuddaSimulate(object):
                         else:
                             self.write_log(f"WARNING: Old data format in parameter file {par_file}")
 
-                            p_dict = channel_param_dict.copy()
+                            p_dict = copy.deepcopy(channel_param_dict)
                             for x in par_data_dict[pd]:
                                 p_dict[x] = par_data_dict[pd][x]
 

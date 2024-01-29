@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
+import copy
 from scipy.spatial.distance import pdist, squareform
 
 
@@ -61,7 +62,7 @@ class PointMap:
         a_dest = self.map[a]
         b_dest = self.map[b]
 
-        test_map = self.map.copy()
+        test_map = copy.deepcopy(self.map)
         test_map[a] = self.map[b]
         test_map[b] = self.map[a]
 
@@ -76,7 +77,7 @@ class PointMap:
     def delta_energy(self, a, b):
 
         energy_before = self.energy()
-        alt_map = self.map.copy()
+        alt_map = copy.deepcopy(self.map)
         alt_map[a] = self.map[b]
         alt_map[b] = self.map[a]
         energy_after = self.energy(alt_map)

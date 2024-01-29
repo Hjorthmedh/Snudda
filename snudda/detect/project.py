@@ -1,6 +1,7 @@
 # In addition to adding synapses using touch detection we also want the ability to add connections
 # when we do not have an axon, for example over long range between structures, to connect them together.
 # This is what project.py is responsible for.
+import copy
 import json
 import os
 from collections import OrderedDict
@@ -121,7 +122,7 @@ class SnuddaProject(object):
 
             pre_type, post_type = name.split(",")
 
-            con_def = definition.copy()
+            con_def = copy.deepcopy(definition)
 
             for key in con_def:
                 if key == "GapJunction":

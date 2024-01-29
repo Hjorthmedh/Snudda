@@ -11,6 +11,7 @@ import scipy.optimize
 import neuron
 import json
 import time
+import copy
 
 from snudda.utils.snudda_path import snudda_parse_path, get_snudda_data
 from snudda.synaptic_fitting.parameter_bookkeeper import ParameterBookkeeper
@@ -337,7 +338,7 @@ class OptimiseSynapsesFull(object):
 
         cell_type = self.data["metadata"]["cell_type"]
 
-        return self.cell_properties[cell_type].copy()
+        return copy.deepcopy(self.cell_properties[cell_type])
 
     def update_cell_properties(self, holding_current):
 
