@@ -16,6 +16,8 @@ export SEED_LIST="[10,20,30,40,50]"
 
 # You need to point this as the directory where you created the network in
 #NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k
+ln -s ../networks
+
 NETWORK_DIR=../networks/input_tuning_${SNUDDA_TUNE_NEURON}_background
 
 # This is used for NEURON
