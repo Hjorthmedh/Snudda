@@ -6,7 +6,7 @@
 #SBATCH --time-min=1:59:00
 #SBATCH -J Simulate
 #SBATCH -A naiss2023-5-231
-#SBATCH --nodes=8
+#SBATCH --nodes=8-12
 #SBATCH --tasks-per-node=128
 #SBATCH --mail-type=ALL
 
