@@ -699,7 +699,13 @@ class SnuddaInput(object):
                                                          self.snudda_data)
 
                             with open(par_file, 'r') as f:
-                                par_data_dict = json.load(f, object_pairs_hook=OrderedDict)
+                                par_data_dict_orig = json.load(f, object_pairs_hook=OrderedDict)
+
+                                # Clean up dictionary
+                                par_data_dict = OrderedDict()
+                                for key, value in par_data_dict_orig.items():
+                                    par_data_dict[key] = OrderedDict()
+                                    par_data_dict[key]["synapse"] = par_data_dict_orig[key]["synapse"]
 
                                 if "parameterList" in meta_inp_data:
                                     for pd in par_data_dict:
@@ -717,10 +723,11 @@ class SnuddaInput(object):
 
                         data_updated = False
                         for existing_inp_name in input_info.keys():
+
                             if meta_inp_name == existing_inp_name.split(":")[0]:
 
                                 if "populationUnitID" in input_info[existing_inp_name] \
-                                    and self.network_data["neurons"][neuron_id]["populationUnitID"] \
+                                    and self.network_data["neurons"][neuron_id]["populationUnit"] \
                                         != input_info[existing_inp_name]["populationUnitID"]:
                                     # This existing_inp_name does not affect the neuron, skip this existing_inp_name
                                     # otherwise we might miss to add the default meta-defined input to the neuron
