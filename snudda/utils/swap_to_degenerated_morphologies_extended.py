@@ -96,7 +96,13 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             pre_type, post_type = conf_key.split(",")
 
             for con_type, con_info in conf_info.items():
-                channel_model_id = con_info["channelModelID"]
+                try:
+                    channel_model_id = con_info["channelModelID"]
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
 
                 if "degenerationRecovery" in con_info["pruning"]:
                     degeneration_recovery[pre_type, post_type, channel_model_id] = con_info["pruning"]["degenerationRecovery"]

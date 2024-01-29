@@ -689,43 +689,63 @@ class SnuddaInput(object):
                 if parameter_key in meta_data and morphology_key in meta_data[parameter_key] \
                         and "input" in meta_data[parameter_key][morphology_key]:
 
-                    for inp_name, inp_data in meta_data[parameter_key][morphology_key]["input"].items():
+                    for meta_inp_name, meta_inp_data in meta_data[parameter_key][morphology_key]["input"].items():
 
-                        inp_data_copy = copy.deepcopy(inp_data)
+                        meta_inp_data_copy = copy.deepcopy(meta_inp_data)
 
-                        if "parameterFile" in inp_data:
+                        if "parameterFile" in meta_inp_data:
                             # Read parameter file for meta input also
-                            par_file = snudda_parse_path(inp_data["parameterFile"],
+                            par_file = snudda_parse_path(meta_inp_data["parameterFile"],
                                                          self.snudda_data)
 
                             with open(par_file, 'r') as f:
                                 par_data_dict = json.load(f, object_pairs_hook=OrderedDict)
 
-                                if "parameterList" in inp_data:
+                                if "parameterList" in meta_inp_data:
                                     for pd in par_data_dict:
-                                        for par_key, par_d in inp_data["parameterList"].items():
-                                            print(f"Overriding {par_key} with value {par_d} for {neuron_id}:{inp_name}")
+                                        for par_key, par_d in meta_inp_data["parameterList"].items():
+                                            print(f"Overriding {par_key} with value {par_d} for {neuron_id}:{meta_inp_name}")
                                             par_data_dict[pd]["synapse"][par_key] = par_d
 
-                                inp_data_copy["parameterList"] = list(par_data_dict.values())
+                                meta_inp_data_copy["parameterList"] = list(par_data_dict.values())
 
-                        if inp_name in input_info:
+                        # The next bit is a little tricky...
+                        # If we have "cortical_signal" in the meta.json we want to be able to modify frequency
+                        # differently for different population units.
+                        # The way to do that is to define "cortical_signal" directly, or "cortical_signal:0",
+                        # "cortical_signal:1", "cortical_signal:2", etc... in the networks input_config.json file.
 
-                            self.write_log(f"!!! Warning, combining definition of {inp_name} input for neuron "
-                                           f"{self.network_data['neurons'][neuron_id]['name']} {neuron_id} "
-                                           f"(meta modified by input_config)",
-                                           force_print=True)
+                        data_updated = False
+                        for existing_inp_name in input_info.keys():
+                            if meta_inp_name == existing_inp_name.split(":")[0]:
 
-                            old_info = input_info[inp_name]
-
-                            # Let input.json info override meta.json input parameters if given
-                            for key, data in old_info.items():
-                                if key == "parameterList" and data is None:
+                                if "populationUnitID" in input_info[existing_inp_name] \
+                                    and self.network_data["neurons"][neuron_id]["populationUnitID"] \
+                                        != input_info[existing_inp_name]["populationUnitID"]:
+                                    # This existing_inp_name does not affect the neuron, skip this existing_inp_name
+                                    # otherwise we might miss to add the default meta-defined input to the neuron
+                                    # by setting data_updated flag for input that is not relevant
                                     continue
 
-                                inp_data_copy[key] = data
+                                self.write_log(f"!!! Warning, combining definition of {meta_inp_name} with {existing_inp_name} input for neuron "
+                                               f"{self.network_data['neurons'][neuron_id]['name']} {neuron_id} "
+                                               f"(meta modified by input_config)",
+                                               force_print=True)
 
-                        input_info[inp_name] = inp_data_copy
+                                old_info = copy.deepcopy(input_info[existing_inp_name])
+
+                                # Let input.json info override meta.json input parameters if given
+                                for key, data in old_info.items():
+                                    if key == "parameterList" and data is None:
+                                        continue
+
+                                    meta_inp_data_copy[key] = data
+
+                                input_info[existing_inp_name] = meta_inp_data_copy
+                                data_updated = True
+
+                        if not data_updated:
+                            input_info[meta_inp_name] = meta_inp_data_copy
 
             if len(input_info) == 0:
                 self.write_log(f"!!! Warning, no synaptic input for neuron ID {neuron_id}, "
@@ -1012,7 +1032,7 @@ class SnuddaInput(object):
             == len(num_soma_synapses_list),\
             "Internal error, input lists length missmatch"
 
-        # Lets try and swap self.lbView for self.dView
+        # Let us try and swap self.lbView for self.dView
         if self.d_view is not None:
 
             # self.writeLog("Sending jobs to workers, using lbView")

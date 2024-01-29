@@ -2118,11 +2118,11 @@ class SnuddaDetect(object):
         self.write_log("Loading connectivity information")
         self.next_channel_model_id = 10  # Reset counter
 
-        for name, definition in self.config["Connectivity"].items():
+        for name, con_def in self.config["Connectivity"].items():
+
+            # This also enriches the self.config by adding channelModelID, lognormal_mu_sigma etc
 
             pre_type, post_type = name.split(",")
-
-            con_def = copy.deepcopy(definition)
 
             for key in con_def:
                 if key == "GapJunction":
