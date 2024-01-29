@@ -4,7 +4,7 @@
             "generator" : "poisson",
             "start" : [1, 4, 7, 10, 13, 16],
             "end" :   [3, 6, 9, 12, 15, 18],
-            "frequency" : [7, 7, 9, 9, 14, 14],
+            "frequency" : [4, 4, 6, 6, 8, 8],
             "populationUnitID" : 1
         },
 
@@ -12,7 +12,7 @@
             "generator" : "poisson",
             "start" : [4, 10, 16],
             "end" :   [6, 12, 18],
-            "frequency" : [40],
+            "frequency" : [10],
             "populationUnitID" : 2
         }	
     },
@@ -22,7 +22,7 @@
             "generator" : "poisson",
             "start" : [1, 4, 7, 10, 13, 16],
             "end" :   [3, 6, 9, 12, 15, 18],
-            "frequency" : [6, 6, 8, 8, 11, 11],
+            "frequency" : [4, 4, 6, 6, 8, 8],
             "populationUnitID" : 1	    
         },
 
@@ -30,7 +30,7 @@
             "generator" : "poisson",
             "start" : [4, 10, 16],
             "end" :   [6, 12, 18],
-            "frequency" : [30],
+            "frequency" : [10],
             "populationUnitID" : 2
         }	
     }
