@@ -1568,11 +1568,11 @@ class InputTuning(object):
                     sd = synapse_density
 
                 if type(synapse_parameter_file) == dict:
-                    if neuron_type not in synapse_parameter_file:
-                        print(f"No parameter file for {neuron_type} {input_type} input, excluding from run.")
-                        continue
-
-                    spf = synapse_parameter_file[neuron_type]
+                    if neuron_type in synapse_parameter_file:
+                        spf = synapse_parameter_file[neuron_type]
+                    else:
+                        spf = None
+                        print(f"No parameter file for {neuron_type} {input_type} input")
                 else:
                     spf = synapse_parameter_file
 
@@ -1625,7 +1625,8 @@ class InputTuning(object):
         self.input_info[input_target][input_type]["jitter"] = 0.0
         self.input_info[input_target][input_type]["conductance"] = input_conductance
         self.input_info[input_target][input_type]["modFile"] = "tmGlut"
-        self.input_info[input_target][input_type]["parameterFile"] = synapse_parameter_file
+        if synapse_parameter_file is not None:
+            self.input_info[input_target][input_type]["parameterFile"] = synapse_parameter_file
 
     def plot_generated_input(self, num_bins=50):
         # This function just checks that we have reasonable spikes generated
