@@ -19,7 +19,7 @@ Here is a collection of Jupyter Notebooks, some of the workflows are split over 
 * [input_generation_example_2_frequency_vectors](input_generation_example_2_frequency_vectors.ipynb) define Poisson input with multiple start/stop times (uses [simple_network_creation](simple_network_creation.ipynb)).
 * [input_generation_example_3_correlation](input_generation_example_3_correlation.ipynb) finer control in input targeting (uses [population_unit_network](population_unit_network.ipynb))
 * [input_tuning_example](input_tuning_example.ipynb) explore what input number and frequency are good neurons, e.g to avoid depolarisation block.
-* [Adanced input tuning](../parallel/KTH_PDC/input_tuning/) using the Dardel super computer. Here both background and signal level are optimised.
+* [Advanced input tuning](../parallel/KTH_PDC/input_tuning/) using the Dardel super computer. Here both background and signal level are optimised, and the result is written to meta.json in BasalGangliaData.
 * [input_frequency](InputFrequency/InputFrequency.ipynb) time varying input frequency example
 * [basal_ganglia_data_input](Input-generation-using-BasalGangliaData.ipynb) builds upon the input tuned in BasalGangliaData.
 
