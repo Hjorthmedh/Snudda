@@ -665,7 +665,7 @@ class MorphologyData:
             new_md.section_data = self.section_data.copy()
 
             for p_key, p_value in self.point_lookup.items():
-                new_md.point_lookup[p_key] = p_value.copy()
+                new_md.point_lookup[p_key] = p_value.copy()  # !!! Should this be copy.deepcopy?
 
         new_md.sections = dict()
 

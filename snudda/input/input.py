@@ -24,6 +24,7 @@ import h5py
 import numexpr
 import re
 import numpy as np
+import copy
 
 from snudda.utils.snudda_path import get_snudda_data
 from snudda.input.time_varying_input import TimeVaryingInput
@@ -442,7 +443,7 @@ class SnuddaInput(object):
 
         if isinstance(self.input_config_file, dict):
             self.write_log(f"Input was specified directly by a dictionary")
-            self.input_info = self.input_config_file.copy()
+            self.input_info = copy.deepcopy(self.input_config_file)
 
         else:
             self.write_log(f"Loading input configuration from {self.input_config_file}")
@@ -645,11 +646,11 @@ class SnuddaInput(object):
 
             # The input can be specified using neuron_id, neuron_name or neuron_type
             if str(neuron_id) in self.input_info:
-                input_info = self.input_info[str(neuron_id)].copy()
+                input_info = copy.deepcopy(self.input_info[str(neuron_id)])
             elif neuron_name in self.input_info:
-                input_info = self.input_info[neuron_name].copy()
+                input_info = copy.deepcopy(self.input_info[neuron_name])
             elif neuron_type in self.input_info:
-                input_info = self.input_info[neuron_type].copy()
+                input_info = copy.deepcopy(self.input_info[neuron_type])
             else:
                 input_info = dict()
 
@@ -690,7 +691,7 @@ class SnuddaInput(object):
 
                     for inp_name, inp_data in meta_data[parameter_key][morphology_key]["input"].items():
 
-                        inp_data_copy = inp_data.copy()
+                        inp_data_copy = copy.deepcopy(inp_data)
 
                         if "parameterFile" in inp_data:
                             # Read parameter file for meta input also
@@ -737,7 +738,7 @@ class SnuddaInput(object):
                                    f" (input_type was commented with ! before name)")
                     continue
 
-                input_inf = input_info[input_type].copy()
+                input_inf = copy.deepcopy(input_info[input_type])
 
                 if "populationUnitID" in input_inf:
                     pop_unit_id = input_inf["populationUnitID"]

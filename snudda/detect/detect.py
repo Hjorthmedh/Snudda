@@ -25,6 +25,7 @@ import h5py
 import numexpr
 import numpy as np
 from numba import jit
+import copy
 
 import snudda.utils.memory
 from snudda.neurons import NeuronMorphologyExtended
@@ -2121,7 +2122,7 @@ class SnuddaDetect(object):
 
             pre_type, post_type = name.split(",")
 
-            con_def = definition.copy()
+            con_def = copy.deepcopy(definition)
 
             for key in con_def:
                 if key == "GapJunction":

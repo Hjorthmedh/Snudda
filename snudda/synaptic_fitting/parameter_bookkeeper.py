@@ -5,6 +5,7 @@ import heapq
 import numpy as np
 import json
 import datetime
+import copy
 
 from snudda.utils.numpy_encoder import  NumpyEncoder
 
@@ -17,7 +18,7 @@ class ParameterBookkeeper:
         self.old_iter = 0
 
         if old_book:
-            self.book = old_book.copy()
+            self.book = copy.deepcopy(old_book)
             heapq.heapify(self.book)
         else:
             self.book = []

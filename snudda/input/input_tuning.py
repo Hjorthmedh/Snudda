@@ -589,7 +589,7 @@ class InputTuning(object):
                     meta_data = json.load(f)
                 last_meta_file = meta_file
 
-            new_config = input_config.copy()
+            new_config = copy.deepcopy(input_config)
             try:
                 for input_name in new_config.keys():
                     if set_frequency is not None:
@@ -1408,7 +1408,7 @@ class InputTuning(object):
         for p_idx, p_key in enumerate(param_data):
             assert p_key in meta_data, f"parameter key {p_key} missing in {neuron_info['meta_file']}"
             for m_idx, m_key in enumerate(meta_data[p_key]):
-                ni = neuron_info.copy()
+                ni = copy.deepcopy(neuron_info)
                 ni["morphologyKey"] = m_key
                 ni["parameterKey"] = p_key
                 ni["morphology_file"] = os.path.join(ni["morphology"], meta_data[p_key][m_key]["morphology"])
