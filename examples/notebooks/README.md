@@ -21,6 +21,7 @@ Here is a collection of Jupyter Notebooks, some of the workflows are split over 
 * [input_tuning_example](input_tuning_example.ipynb) explore what input number and frequency are good neurons, e.g to avoid depolarisation block.
 * [Adanced input tuning](../parallel/KTH_PDC/input_tuning/) using the Dardel super computer. Here both background and signal level are optimised.
 * [input_frequency](InputFrequency/InputFrequency.ipynb) time varying input frequency example
+* [basal_ganglia_data_input](Input\ Generation\ using\ BasalGangliaData.ipynb) builds upon the input tuned in BasalGangliaData.
 
 ## Striatum example
 * [striatum_example](striatum_example.ipynb) creates a small striatal network, increase number of neurons for the full version.
