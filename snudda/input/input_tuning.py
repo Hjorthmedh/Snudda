@@ -165,7 +165,13 @@ class InputTuning(object):
 
         cortical_LTS_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-LTS.json"
 
-        if 'cortical' in input_type.lower():
+        if "cortical_contralateral" in input_type.lower():
+            synapse_density = synapse_density_cortical_input
+            synapse_parameter_file = {"dspn": cortical_contralateral_SPN_synapse_parameter_file,
+                                      "ispn": cortical_contralateral_SPN_synapse_parameter_file,
+                                      "fs": cortical_contralateral_FS_synapse_parameter_file}
+
+        elif 'cortical' in input_type.lower():
             synapse_density = synapse_density_cortical_input
             synapse_parameter_file = {"dspn": cortical_SPN_synapse_parameter_file,
                                       "ispn": cortical_SPN_synapse_parameter_file,
@@ -180,11 +186,6 @@ class InputTuning(object):
                                       "fs": thalamic_FS_synapse_parameter_file,
                                       "chin": thalamic_ChIN_synapse_parameter_file}
             print("Using thalamic synapse density for input")
-        elif "cortical_contralateral":
-            synapse_density = synapse_density_cortical_input
-            synapse_parameter_file = {"dspn": cortical_contralateral_SPN_synapse_parameter_file,
-                                      "ispn": cortical_contralateral_SPN_synapse_parameter_file,
-                                      "fs": cortical_contralateral_FS_synapse_parameter_file}
         else:
             synapse_density = "1"
             synapse_parameter_file = {}
