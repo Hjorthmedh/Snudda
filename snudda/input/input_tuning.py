@@ -153,11 +153,16 @@ class InputTuning(object):
 
         # TODO: These should be read from JSON file, so user can add additional neuron and input types
         cortical_SPN_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+        cortical_contralateral_SPN_synapse_parameter_file = "$DATA/synapses/striatum/M1LH_Analysis_191001.h5-parameters-MS.json"
         thalamic_SPN_synapse_parameter_file = "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+
         cortical_FS_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json"
+        cortical_contralateral_FS_synapse_parameter_file = "$DATA/synapses/striatum/M1LH_Analysis_191001.h5-parameters-FS.json"
         thalamic_FS_synapse_parameter_file = "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-FS.json"
+
         cortical_ChIN_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-CHAT.json"
         thalamic_ChIN_synapse_parameter_file = "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-CHAT.json"
+
         cortical_LTS_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-LTS.json"
 
         if 'cortical' in input_type.lower():
@@ -175,6 +180,11 @@ class InputTuning(object):
                                       "fs": thalamic_FS_synapse_parameter_file,
                                       "chin": thalamic_ChIN_synapse_parameter_file}
             print("Using thalamic synapse density for input")
+        elif "cortical_contralateral":
+            synapse_density = synapse_density_cortical_input
+            synapse_parameter_file = {"dspn": cortical_contralateral_SPN_synapse_parameter_file,
+                                      "ispn": cortical_contralateral_SPN_synapse_parameter_file,
+                                      "fs": cortical_contralateral_FS_synapse_parameter_file}
         else:
             synapse_density = "1"
             synapse_parameter_file = {}
