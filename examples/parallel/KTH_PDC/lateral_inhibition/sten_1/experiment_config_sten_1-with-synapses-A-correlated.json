@@ -1,8 +1,8 @@
 {
-    "network_file": "../networks/sten_1/network-synapses-minimal.hdf5",
-    "input_file": "../networks/sten_1/input-spikes.hdf5",
-    "output_file": "../networks/sten_1/simulation/output-with-synapses-sten_1-A-correlated.hdf5",
-    "log_file": "../networks/sten_1/log/network-simulation-with-synapses-log-1A-correlated.txt",
+    "network_file": "../networks/sten_1-correlated/network-synapses-minimal.hdf5",
+    "input_file": "../networks/sten_1-correlated/input-spikes.hdf5",
+    "output_file": "../networks/sten_1-correlated/simulation/output-with-synapses-sten_1-A-correlated.hdf5",
+    "log_file": "../networks/sten_1-correlated/log/network-simulation-with-synapses-log-1A-correlated.txt",
     "sample_dt": 0.01,
     "time": 18.0,
     "record_all_soma": true,
