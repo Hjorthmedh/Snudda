@@ -51,7 +51,9 @@ input_tuning.setup_background_input(input_types=["cortical_background", "thalami
                                     input_density=["1.15*0.05/(1+exp(-(d-30e-6)/5e-6))", "0.05*exp(-d/200e-6)"],
                                     input_fraction=[0.5, 0.5],
                                     num_input_min=10, num_input_max=1000,
-                                    input_frequency=[2, 2], input_duration=10)
+                                    input_frequency=[2, 2],
+                                    input_correlation=None,
+                                    input_duration=10)
 
 print("All done with setup_input_tuning_background.py")
 
