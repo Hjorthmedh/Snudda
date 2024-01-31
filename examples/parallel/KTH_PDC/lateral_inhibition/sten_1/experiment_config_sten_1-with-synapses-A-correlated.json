@@ -1,0 +1,10 @@
+{
+    "network_file": "../networks/sten_1/network-synapses-minimal.hdf5",
+    "input_file": "../networks/sten_1/input-spikes.hdf5",
+    "output_file": "../networks/sten_1/simulation/output-with-synapses-sten_1-A-correlated.hdf5",
+    "log_file": "../networks/sten_1/log/network-simulation-with-synapses-log-1A-correlated.txt",
+    "sample_dt": 0.01,
+    "time": 18.0,
+    "record_all_soma": true,
+    "record_all_compartments": [0, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500, 7000, 7500]
+}
