@@ -193,7 +193,7 @@ class InputTuning(object):
 
         if "cluster" in input_type.lower():
             cluster_size = 4
-            cluster_spread = 20e-3
+            cluster_spread = 20e-6
         else:
             cluster_size = None
             cluster_spread = None
