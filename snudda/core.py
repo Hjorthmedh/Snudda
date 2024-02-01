@@ -637,7 +637,7 @@ class Snudda(object):
                  neuromodulation=None,
                  disable_synapses=None,
                  disable_gj=False,
-                 record_volt=False,
+                 record_volt=True,
                  record_all=False,
                  simulation_config=None,
                  export_core_neuron=False,
