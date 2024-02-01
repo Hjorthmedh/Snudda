@@ -222,7 +222,7 @@ class Snudda(object):
 
     ############################################################################
 
-    def touch_detection_wrapper(self, args):
+    def detect_synapses_wrapper(self, args):
         """
         Synapse touch detection. Writes results to network_path/voxels (one file per hypervoxel).
         Also adds synapse projections between structures.
@@ -246,7 +246,7 @@ class Snudda(object):
         else:
             h5libver = "latest"  # default
 
-        self.touch_detection(random_seed=args.randomseed,
+        self.detect_synapses(random_seed=args.randomseed,
                              parallel=args.parallel,
                              ipython_profile=args.ipython_profile,
                              hyper_voxel_size=hyper_voxel_size,
@@ -255,7 +255,7 @@ class Snudda(object):
                              verbose=args.verbose,
                              cont=args.cont)
 
-    def touch_detection(self,
+    def detect_synapses(self,
                         random_seed=None,
                         parallel=False,
                         ipython_profile=None,

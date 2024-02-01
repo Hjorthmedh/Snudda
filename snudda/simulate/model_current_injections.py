@@ -334,7 +334,7 @@ class SnuddaModelCurrentInjections(object):
         args = FakeArgs()
 
         sn.place_neurons_wrapper(args)
-        sn.touch_detection_wrapper(args)
+        sn.detect_synapses_wrapper(args)
         sn.prune_synapses_wrapper(args)
 
     ############################################################################
