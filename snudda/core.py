@@ -64,7 +64,7 @@ class Snudda(object):
 
     """ Wrapper class, calls Snudda helper functions """
 
-    def __init__(self, network_path):
+    def __init__(self, network_path, parallel=False, ipython_profile=None):
 
         """
         Instantiates Snudda
@@ -75,6 +75,9 @@ class Snudda(object):
         self.d_view = None
         self.rc = None
         self.slurm_id = 0
+
+        self.parallel = parallel
+        self.ipython_profile = ipython_profile
 
         # Add current dir to python path
         sys.path.append(os.getcwd())
@@ -158,6 +161,15 @@ class Snudda(object):
 
     ############################################################################
 
+    def create_network(self):
+
+        # This is a helper function, to create the full network
+        self.place_neurons()
+        self.detect_synapses()
+        self.prune_synapses()
+
+    ############################################################################
+
     def place_neurons_wrapper(self, args):
         """
         Places neurons in 3D space. Creates network-neuron-positions.hdf5 in network_path.
@@ -184,11 +196,17 @@ class Snudda(object):
 
     def place_neurons(self,
                       random_seed=None,
-                      parallel=False,
+                      parallel=None,
                       ipython_profile=None,
                       h5libver="latest",
                       verbose=False,
                       honor_stay_inside=False):
+
+        if parallel is None:
+            parallel = self.parallel
+
+        if ipython_profile is None:
+            ipython_profile = self.ipython_profile
 
         # self.networkPath = args.path
         print("Placing neurons")
@@ -257,7 +275,7 @@ class Snudda(object):
 
     def detect_synapses(self,
                         random_seed=None,
-                        parallel=False,
+                        parallel=None,
                         ipython_profile=None,
                         hyper_voxel_size=100,
                         volume_id=None,
@@ -265,9 +283,15 @@ class Snudda(object):
                         verbose=False,
                         cont=False):
 
+        if parallel is None:
+            parallel = self.parallel
+
+        if ipython_profile is None:
+            ipython_profile = self.ipython_profile
+
         # self.networkPath = args.path
         print("Touch detection")
-        print("Network path: " + str(self.network_path))
+        print(f"Network path: {self.network_path}")
 
         log_dir = os.path.join(self.network_path, "log")
         if not os.path.exists(log_dir):
@@ -353,11 +377,18 @@ class Snudda(object):
 
     def prune_synapses(self,
                        config_file=None,
-                       random_seed=None, parallel=False, ipython_profile=None,
+                       random_seed=None,
+                       parallel=None, ipython_profile=None,
                        h5libver="latest",
                        verbose=False,
                        keep_files=False,
                        save_putative_synapses=False):
+
+        if parallel is None:
+            parallel = self.parallel
+
+        if ipython_profile is None:
+            ipython_profile = self.ipython_profile
 
         # self.networkPath = args.path
         print("Prune synapses")
@@ -434,9 +465,15 @@ class Snudda(object):
                     use_meta_input=True,
                     random_seed=None,
                     h5libver="latest",
-                    parallel=False,
+                    parallel=None,
                     ipython_profile=None,
                     verbose=False):
+
+        if parallel is None:
+            parallel = self.parallel
+
+        if ipython_profile is None:
+            ipython_profile = self.ipython_profile
 
         print("Setting up inputs, assuming input.json exists")
         log_filename = os.path.join(self.network_path, "log", "setup-input.txt")
@@ -884,9 +921,9 @@ class Snudda(object):
 
         stop = timeit.default_timer()
 
-        print(f"\nProgram run time: {stop - self.start:.1f}s")
+        print(f"\nExecution time: {stop - self.start:.1f}s")
 
-        self.logfile.write(f"Program run time: {stop - self.start:.1f}s")
+        self.logfile.write(f"Execution time: {stop - self.start:.1f}s")
         self.logfile.write("End of log. Closing file.")
         self.logfile.close()
 
