@@ -132,6 +132,7 @@ class InputTuning(object):
                     num_input_min=100, num_input_max=1000, num_input_steps=None,
                     input_duration=10,
                     input_frequency_range=None,
+                    input_correlation=None,
                     use_meta_input=True, generate=True, clear_old_input=True):
 
         if clear_old_input:
@@ -153,14 +154,25 @@ class InputTuning(object):
 
         # TODO: These should be read from JSON file, so user can add additional neuron and input types
         cortical_SPN_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+        cortical_contralateral_SPN_synapse_parameter_file = "$DATA/synapses/striatum/M1LH_Analysis_191001.h5-parameters-MS.json"
         thalamic_SPN_synapse_parameter_file = "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+
         cortical_FS_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json"
+        cortical_contralateral_FS_synapse_parameter_file = "$DATA/synapses/striatum/M1LH_Analysis_191001.h5-parameters-FS.json"
         thalamic_FS_synapse_parameter_file = "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-FS.json"
+
         cortical_ChIN_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-CHAT.json"
         thalamic_ChIN_synapse_parameter_file = "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-CHAT.json"
+
         cortical_LTS_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-LTS.json"
 
-        if 'cortical' in input_type.lower():
+        if "cortical_contralateral" in input_type.lower():
+            synapse_density = synapse_density_cortical_input
+            synapse_parameter_file = {"dspn": cortical_contralateral_SPN_synapse_parameter_file,
+                                      "ispn": cortical_contralateral_SPN_synapse_parameter_file,
+                                      "fs": cortical_contralateral_FS_synapse_parameter_file}
+
+        elif 'cortical' in input_type.lower():
             synapse_density = synapse_density_cortical_input
             synapse_parameter_file = {"dspn": cortical_SPN_synapse_parameter_file,
                                       "ispn": cortical_SPN_synapse_parameter_file,
@@ -180,16 +192,26 @@ class InputTuning(object):
             synapse_parameter_file = {}
             print("No density profile used for input    .")
 
+        if "cluster" in input_type.lower():
+            cluster_size = 4
+            cluster_spread = 20e-6
+        else:
+            cluster_size = None
+            cluster_spread = None
+
         self.create_input_config(input_config_file=self.input_config_file,
                                  input_type=input_type,
                                  input_frequency=list(self.frequency_range),  # [1.0],
+                                 input_correlation=input_correlation,
                                  n_input_min=num_input_min,
                                  n_input_max=num_input_max,
                                  num_input_steps=num_input_steps,
                                  synapse_conductance=0.5e-9,
                                  synapse_density=synapse_density,
                                  input_duration=self.input_duration,
-                                 synapse_parameter_file=synapse_parameter_file)
+                                 synapse_parameter_file=synapse_parameter_file,
+                                 cluster_size=cluster_size,
+                                 cluster_spread=cluster_spread)
 
         if generate:
             self.generate_input_helper(use_meta_input=use_meta_input)
@@ -1538,9 +1560,12 @@ class InputTuning(object):
                             input_type,
                             n_input_min, n_input_max, num_input_steps,
                             input_frequency,
+                            input_correlation,
                             synapse_density,
                             synapse_conductance,
                             synapse_parameter_file,
+                            cluster_size,
+                            cluster_spread,
                             input_duration=10.0):
 
         # assert n_input_min > 0, "No point using n_input_min=0, please instead use input_frequency 0."
@@ -1584,17 +1609,22 @@ class InputTuning(object):
                 self.add_input(input_target=neuron_id,
                                input_type=input_type,
                                input_frequency=input_frequency,
+                               input_correlation=input_correlation,
                                input_duration=input_duration,
                                input_density=sd,
                                num_input=num_input,
                                input_conductance=sc,
-                               synapse_parameter_file=spf)
+                               synapse_parameter_file=spf,
+                               cluster_size=cluster_size,
+                               cluster_spread=cluster_spread)
 
         with open(input_config_file, "w") as f:
             json.dump(self.input_info, f, indent=4, cls=NumpyEncoder)
 
-    def add_input(self, input_target, input_type, input_frequency, input_duration,
+    def add_input(self, input_target, input_type, input_frequency, input_correlation,
+                  input_duration,
                   input_density, num_input, input_conductance,
+                  cluster_size, cluster_spread,
                   synapse_parameter_file):
 
         if type(input_target) != str:
@@ -1619,6 +1649,8 @@ class InputTuning(object):
         self.input_info[input_target][input_type]["synapseDensity"] = input_density
         self.input_info[input_target][input_type]["nInputs"] = num_input
         self.input_info[input_target][input_type]["frequency"] = input_frequency
+        if input_correlation is not None:
+            self.input_info[input_target][input_type]["correlation"] = input_correlation
         self.input_info[input_target][input_type]["start"] = input_start
         self.input_info[input_target][input_type]["end"] = input_end
         self.input_info[input_target][input_type]["populationUnitCorrelation"] = 0.0
@@ -1627,6 +1659,12 @@ class InputTuning(object):
         self.input_info[input_target][input_type]["modFile"] = "tmGlut"
         if synapse_parameter_file is not None:
             self.input_info[input_target][input_type]["parameterFile"] = synapse_parameter_file
+
+        if cluster_size is not None:
+            self.input_info[input_target][input_type]["clusterSize"] = cluster_size
+
+        if cluster_spread is not None:
+            self.input_info[input_target][input_type]["clusterSpread"] = cluster_spread
 
     def plot_generated_input(self, num_bins=50):
         # This function just checks that we have reasonable spikes generated

@@ -155,7 +155,7 @@ def snudda_cli():
 
     actions = {"init": snudda.init_config_wrapper,
                "place": snudda.place_neurons_wrapper,
-               "detect": snudda.touch_detection_wrapper,
+               "detect": snudda.detect_synapses_wrapper,
                "prune": snudda.prune_synapses_wrapper,
                "input": snudda.setup_input_wrapper,
                "export": snudda.export_to_SONATA_wrapper,

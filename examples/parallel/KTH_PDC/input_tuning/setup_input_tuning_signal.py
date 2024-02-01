@@ -25,6 +25,12 @@ if os.getenv("INPUT_FREQ"):
 else:
     input_freq = 10
 
+if os.getenv("INPUT_CORRELATION"):
+    input_correlation = float(os.getenv("INPUT_CORRELATION"))
+else:
+    input_correlation = None
+    
+    
     
 if os.getenv("SEED_LIST"):
     seed_list = ast.literal_eval(os.getenv("SEED_LIST"))
@@ -63,6 +69,7 @@ input_tuning.setup_input(input_type=input_type,  # eg. "cortical" or "thalamic"
                          num_input_max=200,
                          input_duration=10.0,
                          input_frequency_range=[input_freq],
+                         input_correlation=input_correlation,
                          use_meta_input=True)
 
 

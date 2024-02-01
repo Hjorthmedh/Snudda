@@ -128,6 +128,6 @@ srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/
 # Do we need this magic?
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
 
-srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/input_tuning/x86_64/special -mpi -python $SNUDDA_DIR/snudda/input/input_tuning.py simulate $NETWORK_DIR --seed_list $SEED_LIST
+srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/input_tuning/NGF/x86_64/special -mpi -python $SNUDDA_DIR/snudda/input/input_tuning.py simulate $NETWORK_DIR --seed_list $SEED_LIST
 
 
