@@ -12,6 +12,7 @@ Here is a collection of Jupyter Notebooks, some of the workflows are split over 
 * [example_of_neuron_rotations](example_of_neuron_rotations.ipynb) shows how to rotate neurons based on position.
 * [bend_morphologies](bend_morphologies.ipynb) shows how to make the neurons bend the axons and dendrites at the edge of the mesh, to keep them constrained to the volume.
 * [connect_structures_example](connect_structures_example.ipynb) shows how to create neuron projections between volumes when no-axon data is available ([parallel version](connect_structures_example_parallel.ipynb)). There is also an [alternative version](connect_structures_example_projection_detection.ipynb) that places axon voxels randomly within the projection zone and then applies touch detection.
+* [composite axon example](ProjectionExample/composite_axon_projections.ipynb) shows how to create neuron projections between (or within) volumes using separate axon morphologies (.swc-files).
 * [virtual_neurons](VirtualNeurons/VirtualNeurons.ipynb) shows how to only simulate the core of a volume of neurons, by turning the outer neurons to virtual neurons that spike at predetermined times. This is useful to avoid edge effects in your simulations.
 
 ## Input creation
