@@ -19,6 +19,7 @@ class InputTestCase(unittest.TestCase):
         self.config_file = os.path.join(self.network_path, "network-config.json")
         self.position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
         self.save_file = os.path.join(self.network_path, "voxels", "network-putative-synapses.hdf5")
+        self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
 
         # Setup network so we can test input generation
         from snudda.init.init import SnuddaInit
@@ -32,28 +33,9 @@ class InputTestCase(unittest.TestCase):
 
         cnc.write_json(self.config_file)
 
-        # Place neurons
-        from snudda.place.place import SnuddaPlace
-        npn = SnuddaPlace(config_file=self.config_file,
-                          log_file=None,
-                          verbose=True,
-                          d_view=None,          # TODO: If d_view is None code run sin serial, add test parallel
-                          h5libver="latest")
-        npn.parse_config()
-        npn.write_data(self.position_file)
-
-        # Detect
-        self.sd = SnuddaDetect(config_file=self.config_file, position_file=self.position_file,
-                               save_file=self.save_file, rc=None,
-                               hyper_voxel_size=120, verbose=True)
-
-        self.sd.detect(restart_detection_flag=True)
-
-        # Prune
-        self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
-
-        sp = SnuddaPrune(network_path=self.network_path, config_file=None)  # Use default config file
-        sp.prune()
+        from snudda import Snudda
+        snd = Snudda(network_path=self.network_path)
+        snd.create_network()
 
     def test_generate(self):
 
