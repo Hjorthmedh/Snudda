@@ -13,6 +13,7 @@ class InputTestCase(unittest.TestCase):
 
     def setUp(self):
 
+        print("RUNNING SETUP")
         os.chdir(os.path.dirname(__file__))
 
         self.network_path = os.path.join("networks", "network_testing_input")
@@ -294,7 +295,6 @@ class InputTestCase(unittest.TestCase):
 
         # TODO: Add checks
 
-
     def test_arbitrary_function(self):
 
         func_lambda = lambda t: t*100
@@ -326,12 +326,6 @@ class InputTestCase(unittest.TestCase):
                     self.assertTrue((t_check-1)*80 <= freq <= (t_check-1)*120,
                                     f"Found frequency {freq} Hz at {t_check}s, expected {t_check*100} Hz")
 
-    def find_spikes_in_range(self, spikes, time_range):
-        t_idx = np.where(np.logical_and(time_range[0] <= spikes, spikes <= time_range[1]))[0]
-        return spikes[t_idx]
-
-    def find_freq_in_range(self, spikes, time_range):
-        return len(self.find_spikes_in_range(spikes, time_range)) / (time_range[1] - time_range[0])
 
     def test_arbitrary_function_range(self):
 
@@ -386,6 +380,13 @@ class InputTestCase(unittest.TestCase):
         self.assertTrue(1 < np.sum(n_b_1) < 10)
         self.assertTrue(1 < np.sum(n_a_2) < 6)
         self.assertTrue(20 < np.sum(n_b_2) < 30)
+
+    def find_spikes_in_range(self, spikes, time_range):
+        t_idx = np.where(np.logical_and(time_range[0] <= spikes, spikes <= time_range[1]))[0]
+        return spikes[t_idx]
+
+    def find_freq_in_range(self, spikes, time_range):
+        return len(self.find_spikes_in_range(spikes, time_range)) / (time_range[1] - time_range[0])
 
 
 if __name__ == '__main__':

@@ -426,6 +426,7 @@ class NeuronMorphologyExtended:
                 else:
                     unique_locations = num_locations
 
+                # Cluster synapses are placed around these unique locations with cluster_spread*2
                 syn_idx = rng.choice(a=dend_idx, size=unique_locations, replace=True,
                                      p=expected_synapses[dend_idx] / expected_sum)
             except:
@@ -467,8 +468,9 @@ class NeuronMorphologyExtended:
 
             list_cluster_syn_idx = []
 
-            for closest_point_idx in lust_of_closest_point_idx:
-                list_cluster_syn_idx.append(rng.choice(closest_point_idx, size=cluster_size, replace=True))
+            for closest_point_idxs in lust_of_closest_point_idx:
+                # lust_of_closest_point_idx is indexed onto geometry[dend_idx, :3]
+                list_cluster_syn_idx.append(rng.choice(dend_idx[closest_point_idxs], size=cluster_size, replace=True))
 
             cluster_syn_idx = np.concatenate(list_cluster_syn_idx)
 
@@ -481,9 +483,6 @@ class NeuronMorphologyExtended:
             sec_id = section_data[cluster_syn_idx, 0]
             sec_x = comp_x * section_data[cluster_syn_idx, 1] + (1 - comp_x) * section_data[parent_idx[cluster_syn_idx], 1]
             dist_to_soma = comp_x * geometry[cluster_syn_idx, 4] + (1 - comp_x) * geometry[parent_idx[cluster_syn_idx], 4]
-
-
-            # TODO: Check that this is correct!!
 
         return xyz, sec_id, sec_x / 1e3, dist_to_soma
 
