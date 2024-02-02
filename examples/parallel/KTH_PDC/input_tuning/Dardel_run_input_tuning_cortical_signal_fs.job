@@ -30,7 +30,7 @@ export N_WORKERS=$SLURM_NTASKS
 export IPNWORKERS=100
 
 # Clear old ipyparallel
-export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/.ipython"
+export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/.ipython-${SLURM_JOB_ID}"
 rm -r $IPYTHONDIR
 export IPYTHON_PROFILE=default
 
@@ -130,4 +130,5 @@ export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
 
 srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/input_tuning/x86_64/special -mpi -python $SNUDDA_DIR/snudda/input/input_tuning.py simulate $NETWORK_DIR --seed_list $SEED_LIST
 
-
+# Cleanup IPYTHONDIR
+rm -r $IPYTHONDIR

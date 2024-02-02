@@ -323,6 +323,7 @@ class SnuddaSaveNetworkRecordings:
 
         if int(self.pc.id()) == 0:
 
+            # TODO: We need to save max time even if we do not save the soma voltage(!)
             out_file = h5py.File(self.output_file, "a")
             if "time" not in out_file and self.time is not None:
                 print(f"Using sample dt = {self.sample_dt} (sample step size {sample_step})")
