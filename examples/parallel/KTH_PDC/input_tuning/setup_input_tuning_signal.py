@@ -30,7 +30,15 @@ if os.getenv("INPUT_CORRELATION"):
 else:
     input_correlation = None
     
-    
+if os.getenv("NUM_INPUT_MAX"):
+    num_input_max = float(os.getenv("NUM_INPUT_MAX"))
+else:
+    num_input_max = 250
+
+if os.getenv("NUM_REPLICAS"):
+    num_replicas = os.getenv("NUM_REPLICAS")
+else:
+    num_replicas = 20
     
 if os.getenv("SEED_LIST"):
     seed_list = ast.literal_eval(os.getenv("SEED_LIST"))
@@ -59,14 +67,14 @@ print("Constructor done, calling setup_network.")
 
 neurons_path = os.path.join("$DATA", "neurons", "striatum")
 input_tuning.setup_network(neurons_path=neurons_path, 
-                           num_replicas=20,
+                           num_replicas=num_replicas,
                            neuron_types=neuron_type)
 
 print("Calling setup_input")
 
 input_tuning.setup_input(input_type=input_type,  # eg. "cortical" or "thalamic"
                          num_input_min=1,
-                         num_input_max=200,
+                         num_input_max=num_input_max,
                          input_duration=10.0,
                          input_frequency_range=[input_freq],
                          input_correlation=input_correlation,
