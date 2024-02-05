@@ -1,0 +1,32 @@
+{
+    "network_path": "my_network",
+
+    "random_seed": {
+        "init": 358866538,
+        "place": 2055985813,
+        "detect": 2736691897,
+        "project": 1756827725,
+        "prune": 1612721545,
+        "input": 3901366756,
+        "simulate": 528867170	
+    },
+    
+    "regions": {
+	“Striatum.json” —>
+	"striatum" : {
+	    "mesh": "striatum-mesh.obj",
+	    "neurons": ["dspn.json", "ispn.json", "fs.json", "chin.json", "lts.json"],
+	    "connectivity": ["striatum-connectivity.json", “striatum-gpe.json”],
+	    "populations": ["pop1.json", "pop2.json"]
+	},
+	"GPe" : {
+	    "mesh": "gpe-mesh.obj",
+	    "neurons": "gpe-neurons.json",
+	    "connectivity": ["gpe-connectivity.json"]
+	}
+    },
+    "connectivity": {
+	"additional.json" # Evalueras sist!
+    }
+	
+}

@@ -1,0 +1,28 @@
+{
+    "neuron": {
+
+	"LTS": {
+	    "neuron_path" : {
+		"LTS_0" : "$SNUDDA_DATA/neurons/striatum/lts/LTS_Experiment-9862_20181211"
+	    }
+	    
+            "neuron_type": "neuron",
+            "rotation_mode": "random",
+            "volume_id": "Striatum",
+	    "stay_inside_mesh": false,
+            "num": 100,
+            "axon_density": [
+                "xyz",
+                "12*3000*1e12*( 0.25*exp(-(((x-200e-6)/100e-6)**2 + ((y-0)/50e-6)**2 + ((z-0)/30e-6)**2)) + 1*exp(-(((x-300e-6)/300e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/10e-6)**2)) + 1*exp(-(((x-700e-6)/100e-6)**2 + ((y-0)/15e-6)**2 + ((z-0)/15e-6)**2)) )",
+                [
+                    -0.0002,
+                    0.0009,
+                    -0.0001,
+                    0.0001,
+                    -3e-05,
+                    3e-05
+                ]
+            ]
+        }
+    }
+}
