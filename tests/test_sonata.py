@@ -87,7 +87,7 @@ class TestSonata(unittest.TestCase):
                 neuron_type = neuron["type"]
 
                 try:
-                    sonata_node = nodes[neuron_type].get_node_id(within_type_idx[neuron["neuronID"]])
+                    sonata_node = nodes[neuron_type].get_node_id(within_type_idx[neuron["neuron_id"]])
                 except:
                     import traceback
                     print(traceback.format_exc())

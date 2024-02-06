@@ -92,20 +92,20 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         type_lookup = self.updated_network_loader.get_neuron_types()
         degeneration_recovery = dict()
 
-        for conf_key, conf_info in network_config["Connectivity"].items():
+        for conf_key, conf_info in network_config["connectivity"].items():
             pre_type, post_type = conf_key.split(",")
 
             for con_type, con_info in conf_info.items():
                 try:
-                    channel_model_id = con_info["channelModelID"]
+                    channel_model_id = con_info["channel_model_id"]
                 except:
                     import traceback
                     print(traceback.format_exc())
                     import pdb
                     pdb.set_trace()
 
-                if "degenerationRecovery" in con_info["pruning"]:
-                    degeneration_recovery[pre_type, post_type, channel_model_id] = con_info["pruning"]["degenerationRecovery"]
+                if "degeneration_recovery" in con_info["pruning"]:
+                    degeneration_recovery[pre_type, post_type, channel_model_id] = con_info["pruning"]["degeneration_recovery"]
 
         return degeneration_recovery, type_lookup
 

@@ -553,7 +553,7 @@ class SwapToDegeneratedMorphologies:
                     # Same spikes as before
                     spike_set = input_group.create_dataset("spikes", data=old_input_data["spikes"][keep_idx2, :],
                                                            compression="gzip", dtype=np.float32)
-                    spike_set.attrs["num_pikes"] = old_input_data["spikes"].attrs["nSpikes"][keep_idx2].astype(np.int32)
+                    spike_set.attrs["num_spikes"] = old_input_data["spikes"].attrs["num_spikes"][keep_idx2].astype(np.int32)
 
                     # New locations for the remapped synapses
                     new_sec_id[idx_remap] = sec_id
@@ -582,7 +582,7 @@ class SwapToDegeneratedMorphologies:
                 else:
                     input_group.create_dataset("spikes", data=old_input_data["spikes"][keep_idx, :],
                                                compression="gzip", dtype=np.float32)
-                    input_group["spikes"].attrs["nSpikes"] = old_input_data["spikes"].attrs["nSpikes"][keep_idx]
+                    input_group["spikes"].attrs["num_spikes"] = old_input_data["spikes"].attrs["num_spikes"][keep_idx]
                     input_group.attrs["section_id"] = new_sec_id[keep_idx]
                     input_group.attrs["section_x"] = new_sec_x[keep_idx]
                     input_group.attrs["parameter_id"] = old_input_data.attrs["parameter_id"][keep_idx]

@@ -282,20 +282,20 @@ class SnuddaSaveNetworkRecordings:
             print(f"Writing network output to {self.output_file}")
             out_file = h5py.File(self.output_file, "w")
 
-            meta_data = out_file.create_group("metaData")
+            meta_data = out_file.create_group("meta_data")
 
-            meta_data.create_dataset("networkFile", data=self.network_data["networkFile"])
+            meta_data.create_dataset("network_file", data=self.network_data["network_file"])
             out_file.create_group("neurons")
 
             if self.network_data:
-                neuron_id = np.array([x["neuronID"] for x in self.network_data["neurons"]])
-                meta_data.create_dataset("ID", data=neuron_id)
+                neuron_id = np.array([x["neuron_id"] for x in self.network_data["neurons"]])
+                meta_data.create_dataset("id", data=neuron_id)
 
-                for name in ["name", "type", "morphology", "parameterKey", "morphologyKey", "modulationKey"]:
+                for name in ["name", "type", "morphology", "parameter_key", "morphology_key", "modulation_key"]:
                     self.write_string_meta_data(group=meta_data, name=name)
 
-                meta_data.create_dataset("populationUnit", data=self.network_data["populationUnit"], compression="gzip")
-                meta_data.create_dataset("position", data=self.network_data["neuronPositions"], compression="gzip")
+                meta_data.create_dataset("population_unit", data=self.network_data["population_unit"], compression="gzip")
+                meta_data.create_dataset("position", data=self.network_data["neuron_positions"], compression="gzip")
 
                 # TODO: Also write extraAxons info to file
 

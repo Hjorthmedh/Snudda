@@ -280,7 +280,7 @@ class SnuddaInput(object):
 
                     it_group = nid_group.create_group(input_type)
                     spike_set = it_group.create_dataset("spikes", data=spike_mat, compression="gzip", dtype=np.float32)
-                    spike_set.attrs["num_pikes"] = num_spikes
+                    spike_set.attrs["num_spikes"] = num_spikes
 
                     it_group.attrs["section_id"] = neuron_in["location"][1].astype(np.int16)
                     it_group.attrs["section_x"] = neuron_in["location"][2].astype(np.float16)
@@ -2040,7 +2040,7 @@ class SnuddaInput(object):
     ############################################################################
 
     # Normally specify synapse_density which then sets number of inputs
-    # ie leave nSpikeTrains as None. If nSpikeTrains is set, that will then
+    # ie leave nSpikeTrains as None. If num_spike_trains is set, that will then
     # scale synapse_density to get the requested number of inputs (approximately)
 
     # For virtual neurons nSpikeTrains must be set, as it defines their activity

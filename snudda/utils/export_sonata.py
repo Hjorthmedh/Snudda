@@ -75,7 +75,7 @@ class ExportSonata:
 
         # Write the data in new format using the ConvHurt module
         # TODO: We need to read structure names from the network-config.json
-        structure_names = [x for x in self.network_config["Volume"]]
+        structure_names = [x for x in self.network_config["volume"]]
         ch = ConvHurt(simulation_structures=structure_names,
                       base_dir=self.out_dir, has_input=has_input)
 
@@ -92,29 +92,29 @@ class ExportSonata:
         # node_group_id, group_idx, node_group_lookup = self.allocate_node_groups()
         node_group_id, group_idx, node_group_lookup, neuron_id_remap = self.allocate_groups_and_remap_nodeid()
 
-        volume_id_list = [x["volumeID"] for x in self.snudda_load.data["neurons"]]
+        volume_id_list = [x["volume_id"] for x in self.snudda_load.data["neurons"]]
         volume_list = set(volume_id_list)
 
         # node_name_list = [x["name"] for x in self.snudda_load.data["neurons"]]
-        node_name_list = [f"{n['name']}_{n['morphologyKey']}_{n['parameterKey']}_{n['modulationKey']}"
+        node_name_list = [f"{n['name']}_{n['morphology_key']}_{n['parameter_key']}_{n['modulation_key']}"
                           for n in self.snudda_load.data["neurons"]]
 
         # Edge data is stored in a HDF5 file and a CSV file
         edge_type_lookup = dict()
-        for (pre_type, post_type), con_data in self.snudda_load.data["connectivityDistributions"].items():
+        for (pre_type, post_type), con_data in self.snudda_load.data["connectivity_distributions"].items():
             for con_type, con_type_data in con_data.items():
-                if con_type == "GapJunction":
+                if con_type == "gap_junction":
                     # TODO: How do we write gap junctions to SONATA?
                     continue
                 else:
-                    edge_type_id = con_type_data["channelModelID"]
+                    edge_type_id = con_type_data["channel_model_id"]
 
                     if self.target_simulator == "NEST":
-                        if "nestModelTemplate" in con_type_data["channelParameters"]:
-                            edge_model = con_type_data["channelParameters"]["nestModelTemplate"]
-                            if "nestDynamicParams" not in con_type_data["channelParameters"]:
-                                raise KeyError("If nestModelTemplate is specified, nestDynamicParams must be specified also")
-                            dynamic_params = con_type_data["channelParameters"]["nestDynamicParams"]
+                        if "nest_model_template" in con_type_data["channel_parameters"]:
+                            edge_model = con_type_data["channel_parameters"]["nest_model_template"]
+                            if "nest_dynamic_params" not in con_type_data["channel_parameters"]:
+                                raise KeyError("If nest_model_template is specified, nest_dynamic_params must be specified also")
+                            dynamic_params = con_type_data["channel_parameters"]["nest_dynamic_params"]
                         else:
                             edge_model = "static_synapse"
                             if con_type == "GABA":
@@ -122,7 +122,7 @@ class ExportSonata:
                             else:
                                 dynamic_params = "excitatory.json"
                     else:
-                        edge_model = con_type_data["channelParameters"]["modFile"]
+                        edge_model = con_type_data["channel_parameters"]["mod_file"]
 
                 edge_type_lookup[pre_type, post_type, con_type] = (edge_type_id, edge_model, f"{pre_type}_{post_type}", dynamic_params)
 
@@ -797,7 +797,7 @@ class ExportSonata:
 
         if self.target_simulator == "NEST":
             # If the dynamics_params.json file exist in the neuron path, then use that
-            neuron_path = os.path.relpath(snudda_parse_path(neuron["neuron_path"], self.snudda_load.data["SnuddaData"]))
+            neuron_path = os.path.relpath(snudda_parse_path(neuron["neuron_path"], self.snudda_load.data["snudda_data"]))
             dynamics_params_path = os.path.join(neuron_path, "dynamics_params.json")
 
             if os.path.isfile(dynamics_params_path):
@@ -1067,7 +1067,7 @@ class ExportSonata:
         morph_set = set([n["morphology"] for n in self.snudda_load.data["neurons"]])
 
         for morph_path in morph_set:
-            morph_file = snudda_parse_path(morph_path, snudda_data=self.snudda_load.data["SnuddaData"])
+            morph_file = snudda_parse_path(morph_path, snudda_data=self.snudda_load.data["snudda_data"])
             base_name = os.path.basename(morph_file)
             dest_file = os.path.join(self.out_dir, "components", "morphologies", base_name)
 
@@ -1090,7 +1090,7 @@ class ExportSonata:
         hoc_set = set([n["hoc"] for n in self.snudda_load.data["neurons"] if n["hoc"]])
 
         for hoc_path in hoc_set:
-            hoc_file = snudda_parse_path(hoc_path, snudda_data=self.snudda_load.data["SnuddaData"])
+            hoc_file = snudda_parse_path(hoc_path, snudda_data=self.snudda_load.data["snudda_data"])
             if os.path.isfile(hoc_file):
                 base_name = os.path.basename(hoc_file)
                 dest_file = os.path.join(self.out_dir, "components", "hoc_templates", base_name)
@@ -1113,7 +1113,7 @@ class ExportSonata:
 
         print("Copying mechanisms")
         mech_path = snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "mechanisms"),
-                                      snudda_data=self.snudda_load.data["SnuddaData"])
+                                      snudda_data=self.snudda_load.data["snudda_data"])
 
         for mech in glob(os.path.join(mech_path, "*.mod")):
             if self.debug:
@@ -1126,7 +1126,7 @@ class ExportSonata:
         print("Copying NEST synapses")
 
         mech_path = snudda_parse_path(os.path.join("$SNUDDA_DATA", "nest", "synapses"),
-                                      snudda_data=self.snudda_load.data["SnuddaData"])
+                                      snudda_data=self.snudda_load.data["snudda_data"])
 
         for mech in glob(os.path.join(mech_path, "*.json")):
             if self.debug:
