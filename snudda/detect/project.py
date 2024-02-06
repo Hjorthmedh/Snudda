@@ -72,7 +72,7 @@ class SnuddaProject(object):
         elif random_seed:
             self.rng = np.random.default_rng(random_seed)
         else:
-            random_seed = self.config["RandomSeed"]["project"]
+            random_seed = self.config["random_seed"]["project"]
             self.rng = np.random.default_rng(random_seed)
 
         self.read_neuron_positions()
@@ -88,15 +88,15 @@ class SnuddaProject(object):
         # We also need simulation origo and voxel size
         work_history_file = os.path.join(self.network_path, "log", "network-detect-worklog.hdf5")
         with h5py.File(work_history_file, "r") as work_hist:
-            self.simulation_origo = work_hist["meta/simulationOrigo"][()]
-            self.voxel_size = work_hist["meta/voxelSize"][()]
+            self.simulation_origo = work_hist["meta/simulation_origo"][()]
+            self.voxel_size = work_hist["meta/voxel_size"][()]
 
     # This is a simplified version of the prototype load in detect
     def read_prototypes(self):
 
         """ Reads in neuron prototypes. Simplified version of what same function in detect.py does. """
 
-        for name, definition in self.config["Neurons"].items():
+        for name, definition in self.config["neurons"].items():
 
             morph = definition["morphology"]
             param = definition["parameters"]
@@ -118,17 +118,17 @@ class SnuddaProject(object):
                                                            mechanism_path=mechanisms)
 
         # TODO: The code below is duplicate from detect.py, update so both use same code base
-        for name, definition in self.config["Connectivity"].items():
+        for name, definition in self.config["connectivity"].items():
 
             pre_type, post_type = name.split(",")
 
             con_def = copy.deepcopy(definition)
 
             for key in con_def:
-                if key == "GapJunction":
-                    con_def[key]["channelModelID"] = 3
+                if key == "gap_junction":
+                    con_def[key]["channel_model_id"] = 3
                 else:
-                    con_def[key]["channelModelID"] = self.next_channel_model_id
+                    con_def[key]["channel_model_id"] = self.next_channel_model_id
                     self.next_channel_model_id += 1
 
                 # Also if conductance is just a number, add std 0
@@ -161,66 +161,66 @@ class SnuddaProject(object):
 
         for connection_type, con_info in connection_info.items():
 
-            if "projectionFile" not in con_info or "projectionName" not in con_info:
+            if "projection_file" not in con_info or "projection_name" not in con_info:
                 # Not a projection, skipping
                 continue
 
-            projection_file = con_info["projectionFile"]
+            projection_file = con_info["projection_file"]
             with open(projection_file, "r") as f:
                 projection_data = json.load(f, object_pairs_hook=OrderedDict)
 
-            if "projectionName" in con_info:
-                proj_name = con_info["projectionName"]
+            if "projection_name" in con_info:
+                proj_name = con_info["projection_name"]
                 projection_source = np.array(projection_data[proj_name]["source"]) * 1e-6
                 projection_destination = np.array(projection_data[proj_name]["destination"]) * 1e-6
             else:
                 projection_source = np.array(projection_data["source"]) * 1e-6
                 projection_destination = np.array(projection_data["destination"]) * 1e-6
 
-            if "projectionRadius" in con_info:
-                projection_radius = con_info["projectionRadius"]
+            if "projection_radius" in con_info:
+                projection_radius = con_info["projection_radius"]
             else:
                 projection_radius = None  # Find the closest neurons
 
-            # TODO: Add projectionDensity later
-            # if "projectionDensity" in con_info:
-            #     projection_density = con_info["projectionDensity"]
+            # TODO: Add projection_density later
+            # if "projection_density" in con_info:
+            #     projection_density = con_info["projection_density"]
             # else:
             #    projection_density = None  # All neurons within projection radius equally likely
 
-            if "numberOfTargets" in con_info:
-                if type(con_info["numberOfTargets"]) == list:
-                    number_of_targets = np.array(con_info["numberOfTargets"])  # mean, std
+            if "number_of_targets" in con_info:
+                if type(con_info["number_of_targets"]) == list:
+                    number_of_targets = np.array(con_info["number_of_targets"])  # mean, std
                 else:
-                    number_of_targets = np.array([con_info["numberOfTargets"], 0])
+                    number_of_targets = np.array([con_info["number_of_targets"], 0])
 
-            if "numberOfSynapses" in con_info:
-                if type(con_info["numberOfSynapses"]) == list:
-                    number_of_synapses = np.array(con_info["numberOfSynapses"])  # mean, std
+            if "number_of_synapses" in con_info:
+                if type(con_info["number_of_synapses"]) == list:
+                    number_of_synapses = np.array(con_info["number_of_synapses"])  # mean, std
                 else:
-                    number_of_synapses = np.array([con_info["numberOfSynapses"], 0])
+                    number_of_synapses = np.array([con_info["number_of_synapses"], 0])
             else:
                 number_of_synapses = np.array([1, 0])
 
-            if "dendriteSynapseDensity" in con_info:
-                dendrite_synapse_density = con_info["dendriteSynapseDensity"]
+            if "dendrite_synapse_density" in con_info:
+                dendrite_synapse_density = con_info["dendrite_synapse_density"]
 
             if type(con_info["conductance"]) == list:
                 conductance_mean, conductance_std = con_info["conductance"]
             else:
                 conductance_mean, conductance_std = con_info["conductance"], 0
 
-            # The channelModelID is added to config information
-            channel_model_id = con_info["channelModelID"]
+            # The channel_model_id is added to config information
+            channel_model_id = con_info["channel_model_id"]
 
             # Find all the presynaptic neurons in the network
             pre_id_list = self.network_info.get_neuron_id_of_type(pre_neuron_type)
-            pre_positions = self.network_info.data["neuronPositions"][pre_id_list, :]
+            pre_positions = self.network_info.data["neuron_positions"][pre_id_list, :]
 
             # Find all the postsynaptic neurons in the network
             post_id_list = self.network_info.get_neuron_id_of_type(post_neuron_type)
             post_name_list = [self.network_info.data["name"][x] for x in post_id_list]
-            post_positions = self.network_info.data["neuronPositions"][post_id_list, :]
+            post_positions = self.network_info.data["neuron_positions"][post_id_list, :]
 
             # For each presynaptic neuron, find their target regions.
             # -- if you want two distinct target regions, you have to create two separate maps
@@ -262,9 +262,9 @@ class SnuddaProject(object):
                     morph_prototype = self.prototype_neurons[t_name]
                     position = self.network_info.data["neurons"][t_id]["position"]
                     rotation = self.network_info.data["neurons"][t_id]["rotation"]
-                    parameter_key = self.network_info.data["neurons"][t_id]["parameterKey"]
-                    morphology_key = self.network_info.data["neurons"][t_id]["morphologyKey"]
-                    modulation_key = self.network_info.data["neurons"][t_id]["modulationKey"]
+                    parameter_key = self.network_info.data["neurons"][t_id]["parameter_key"]
+                    morphology_key = self.network_info.data["neurons"][t_id]["morphology_key"]
+                    modulation_key = self.network_info.data["neurons"][t_id]["modulation_key"]
 
                     morph = morph_prototype.clone(parameter_key=parameter_key,
                                                   morphology_key=morphology_key,
@@ -324,28 +324,28 @@ class SnuddaProject(object):
                                          maxshape=(None, 13),
                                          compression=self.h5compression)
 
-            network_group.create_dataset("nSynapses", data=self.synapse_ctr, dtype=int)
-            network_group.create_dataset("nNeurons", data=self.network_info.data["nNeurons"], dtype=int)
+            network_group.create_dataset("num_synapses", data=self.synapse_ctr, dtype=int)
+            network_group.create_dataset("num_neurons", data=self.network_info.data["num_neurons"], dtype=int)
 
             # This is useful so the merge_helper knows if they need to search this file for synapses
             all_target_id = np.unique(self.synapses[:self.synapse_ctr, 1])
-            network_group.create_dataset("allTargetId", data=all_target_id)
+            network_group.create_dataset("all_target_id", data=all_target_id)
 
             # This creates a lookup that is used for merging later
             synapse_lookup = SnuddaDetect.create_lookup_table(data=self.synapses,
                                                               n_rows=self.synapse_ctr,
                                                               data_type="synapses",
-                                                              num_neurons=self.network_info.data["nNeurons"],
+                                                              num_neurons=self.network_info.data["num_neurons"],
                                                               max_synapse_type=self.next_channel_model_id)
 
-            network_group.create_dataset("synapseLookup", data=synapse_lookup)
-            network_group.create_dataset("maxChannelTypeID", data=self.next_channel_model_id, dtype=int)
+            network_group.create_dataset("synapse_lookup", data=synapse_lookup)
+            network_group.create_dataset("max_channel_type_id", data=self.next_channel_model_id, dtype=int)
 
         # We also need to update the work history file with how many synapses we created
         # for the projections between volumes
 
         with h5py.File(self.work_history_file, "a", libver=self.h5libver) as hist_file:
-            if "nProjectionSynapses" in hist_file:
-                hist_file["nProjectionSynapses"][()] = self.synapse_ctr
+            if "num_projection_synapses" in hist_file:
+                hist_file["num_projection_synapses"][()] = self.synapse_ctr
             else:
-                hist_file.create_dataset("nProjectionSynapses", data=self.synapse_ctr, dtype=int)
+                hist_file.create_dataset("num_projection_synapses", data=self.synapse_ctr, dtype=int)

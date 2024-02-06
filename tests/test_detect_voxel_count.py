@@ -17,7 +17,7 @@ class TestVoxelCount(unittest.TestCase):
         self.n_iter = 500
 
         self.sd = SnuddaDetect(hyper_voxel_size=160)  # Use 250 for real neurons
-        self.sd.hyper_voxels = {0: {"randomSeed": 1234}}
+        self.sd.hyper_voxels = {0: {"random_seed": 1234}}
         self.sd.max_axon = 35  # 27 -- for real morphologies
         self.sd.max_dend = 30
 

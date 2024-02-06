@@ -4,13 +4,14 @@ import sys
 import json
 import numpy as np
 
+from snudda.place.region_mesh_redux import RegionMeshRedux
 from snudda.utils import SnuddaLoad
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from snudda.init.init import SnuddaInit
 from snudda.place.place import SnuddaPlace
-from snudda.place import create_slice_mesh, RegionMesh
+from snudda.place import create_slice_mesh
 
 
 class SnuddaDensityTest(unittest.TestCase):
@@ -62,7 +63,7 @@ class SnuddaDensityTest(unittest.TestCase):
 
         # Load the positions
         sl = SnuddaLoad(self.position_file)
-        neuron_pos = sl.data["neuronPositions"]
+        neuron_pos = sl.data["neuron_positions"]
 
         if not os.path.isdir("figures"):
             os.mkdir("figures")
@@ -116,7 +117,7 @@ class SnuddaDensityTest(unittest.TestCase):
                           z_len=2e-3,
                           description="Test slice")
 
-        rm = RegionMesh(mesh_file, use_cache=False, bin_width=5e-4)
+        rm = RegionMeshRedux(mesh_file, use_cache=False, bin_width=5e-4)
 
         inside_point = rm.random_generator.uniform(low=0, high=2e-3, size=3)
         a_point = rm.random_generator.uniform(low=-1e-3, high=3e-3, size=3)

@@ -178,7 +178,7 @@ class SnuddaAnalyseTopology:
         count = OrderedDict()
         neuron_type_lookup = dict()
 
-        for neuron_id, neuron_type in zip([x["neuronID"] for x in self.snudda_load.data["neurons"]],
+        for neuron_id, neuron_type in zip([x["neuron_id"] for x in self.snudda_load.data["neurons"]],
                                           [x["type"] for x in self.snudda_load.data["neurons"]]):
             neuron_type_lookup[neuron_id] = neuron_type
 

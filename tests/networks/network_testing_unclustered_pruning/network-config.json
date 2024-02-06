@@ -1,5 +1,5 @@
 {
-    "RandomSeed": {
+    "random_seed": {
         "masterseed": 1234,
         "init": 2906597030,
         "place": 1602421836,
@@ -8,30 +8,30 @@
         "input": 507409703,
         "simulate": 2825158027
     },
-    "Volume": {
+    "volume": {
 	"TestStriatum": {
 	    "type": "mesh",
-	    "dMin": 1e-5,
-	    "meshFile": "mesh/simple_mesh.obj",
-	    "meshBinWidth": 5e-5
+	    "d_min": 1e-5,
+	    "mesh_file": "mesh/simple_mesh.obj",
+	    "mesh_bin_width": 5e-5
 	}
     },
-    "Connectivity": {
+    "connectivity": {
 	"ballandstick,ballandstick": {
 	    "GABA": {
 		"conductance": [1.1e-9, 1.5e-9],
                 "pruning": {
                     "f1": 0.3,
-                    "softMax": 5,
+                    "soft_max": 5,
                     "mu2": null,
                     "a3": 1,
-                    "distPruning": null,
-		    "clusterPruning": false
+                    "dist_pruning": null,
+		    "cluster_pruning": false
                 }
 	    }
 	}
     },
-    "Neurons": {
+    "neurons": {
 	"ballandstick_0": {
             "morphology": "validation/ballandstick/simple.swc",
             "parameters": "",
@@ -39,9 +39,9 @@
             "modulation": "",
             "num": 8,
             "hoc": null,
-            "neuronType": "neuron",
-            "rotationMode": "",
-            "volumeID": "TestStriatum"
+            "neuron_type": "neuron",
+            "rotation_mode": "",
+            "volume_id": "TestStriatum"
 
 	}
     }

@@ -158,8 +158,8 @@ class OptimisePruning:
             import pdb
             pdb.set_trace()
 
-        n_synapses = out_file["network/nSynapses"][()]
-        n_gj = out_file["network/nGapJunctions"][()]
+        n_synapses = out_file["network/num_synapses"][()]
+        n_gj = out_file["network/num_gap_junctions"][()]
 
         out_file["network/synapses"].resize((n_synapses, out_file["network/synapses"].shape[1]))
         out_file["network/gapJunctions"].resize((n_gj, out_file["network/gapJunctions"].shape[1]))
@@ -184,13 +184,13 @@ class OptimisePruning:
         snudda_load = SnuddaLoad(network_file=output_file)
         snudda_data = snudda_load.data
 
-        connection_matrix = np.zeros((snudda_data["nNeurons"], snudda_data["nNeurons"]))
+        connection_matrix = np.zeros((snudda_data["num_neurons"], snudda_data["num_neurons"]))
 
         pre_id = snudda_load.get_neuron_id_of_type(neuron_type=pre_type)
         post_id = snudda_load.get_neuron_id_of_type(neuron_type=post_type)
 
-        pre_mask = np.zeros((snudda_data["nNeurons"],), dtype=bool)
-        post_mask = np.zeros((snudda_data["nNeurons"],), dtype=bool)
+        pre_mask = np.zeros((snudda_data["num_neurons"],), dtype=bool)
+        post_mask = np.zeros((snudda_data["num_neurons"],), dtype=bool)
 
         pre_mask[pre_id] = True
         post_mask[post_id] = True

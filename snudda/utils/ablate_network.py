@@ -53,7 +53,7 @@ class SnuddaAblateNetwork:
 
         """ Marks all neurons to be kept. """
 
-        self.keep_neuron_id = set(self.in_file["network/neurons/neuronID"][:])
+        self.keep_neuron_id = set(self.in_file["network/neurons/neuron_id"][:])
         self.removed_connection_type = []
         self.remove_pair_connection_list = []
         self.make_virtual_neuron_id = []
@@ -132,7 +132,7 @@ class SnuddaAblateNetwork:
 
     def filter_synapses(self, data_type):
 
-        """ Filters synapses, data_type is either 'synapses' or 'gapJunctions' """
+        """ Filters synapses, data_type is either 'synapses' or 'gap_junctions' """
 
         synapse_data = self.in_file[f"network/{data_type}"][()].copy()
 
@@ -144,7 +144,7 @@ class SnuddaAblateNetwork:
         # Shortcut, if user wants to remove all, skip the processing part
         if data_type == "synapses" and self.remove_all_synapses:
             return keep_flag  # All zero
-        elif data_type == "gapJunctions" and self.remove_all_gap_junctions:
+        elif data_type == "gap_junctions" and self.remove_all_gap_junctions:
             return keep_flag
 
         neuron_types = [n["type"] for n in self.snudda_load.data["neurons"]]
@@ -191,14 +191,14 @@ class SnuddaAblateNetwork:
             for pre_id, post_id in self.remove_pair_connection_list:
                 if data_type == "synapses":
                     _, _, synapse_idx = self.snudda_load.find_synapses(pre_id=pre_id, post_id=post_id, return_index=True)
-                elif data_type == "gapJunctions":
+                elif data_type == "gap_junctions":
                     print(f"WARNING: If there are any gap junctions between {pre_id}, {post_id} they will not have been removed ")
                     # TODO: There is currently only find_gap_junctions that take neuron_id as parameter, not pre and post id
                     #       so we can not find the gap junction pairs, this will need to be added in the future.
                     # _, _, synapse_idx = self.snudda_load.find_gap_junctions(pre_id=pre_id, post_id=post_id, return_index=True)
                     synapse_idx = None
                 else:
-                    assert f"Unknown data type: {data_type}, should be 'synapses' or 'gapJunctions'"
+                    assert f"Unknown data type: {data_type}, should be 'synapses' or 'gap_junctions'"
 
                 if synapse_idx is not None:
                     for syn_idx in synapse_idx:
@@ -240,7 +240,7 @@ class SnuddaAblateNetwork:
 
         print(f"Keeping {num_soma_keep} neurons.")
 
-        # We need to remap neuronID in the synapses and gap junction matrix
+        # We need to remap neuron_id in the synapses and gap junction matrix
         remap_id = np.full((len(self.snudda_load.data["neurons"]),), np.nan, dtype=int)
         for new_id, old_id in enumerate(soma_keep_id):
             remap_id[old_id] = new_id
@@ -260,28 +260,28 @@ class SnuddaAblateNetwork:
 
         for var_name in self.in_file["network/neurons"]:
 
-            if var_name == "extraAxons":
+            if var_name == "extra_axons":
 
-                parent_id = self.in_file["network/neurons/extraAxons/parentNeuron"][()]
+                parent_id = self.in_file["network/neurons/extra_axons/parent_neuron"][()]
 
                 # Identify which axons belong to neurons that are kept
                 keep_axon_id = np.where([p in soma_keep_id for p in parent_id])[0]
                 axon_dummy_remapping = np.arange(len(keep_axon_id))
-                axon_group = neuron_group.create_group("extraAxons")
+                axon_group = neuron_group.create_group("extra_axons")
 
-                for var_name2 in self.in_file["network/neurons/extraAxons"]:
+                for var_name2 in self.in_file["network/neurons/extra_axons"]:
                     self.copy_neuron_item(neuron_group=axon_group,
                                           var_name=var_name2,
                                           soma_keep_id=keep_axon_id,
                                           remap_id=axon_dummy_remapping,
-                                          neuron_path="network/neurons/extraAxons")
+                                          neuron_path="network/neurons/extra_axons")
             else:
                 self.copy_neuron_item(neuron_group=neuron_group,
                                       var_name=var_name,
                                       soma_keep_id=soma_keep_id,
                                       remap_id=remap_id)
 
-                if var_name == "virtualNeuron" and len(self.make_virtual_neuron_id) > 0:
+                if var_name == "virtual_neuron" and len(self.make_virtual_neuron_id) > 0:
                     virt_id = [remap_id[x] for x in self.make_virtual_neuron_id]
                     neuron_group[var_name][virt_id] = True
 
@@ -296,7 +296,7 @@ class SnuddaAblateNetwork:
             keep_syn_flag = self.filter_synapses(data_type="synapses")
 
             # Lastly deal with gap junctions
-            keep_gj_flag = self.filter_synapses(data_type="gapJunctions")
+            keep_gj_flag = self.filter_synapses(data_type="gap_junctions")
 
             num_syn = np.sum(keep_syn_flag)
             num_synapses = np.zeros((1,), dtype=np.uint64) + num_syn
@@ -304,14 +304,14 @@ class SnuddaAblateNetwork:
             num_gj = np.sum(keep_gj_flag)
             num_gap_junctions = np.zeros((1,), dtype=np.uint64) + num_gj
 
-            network_group.create_dataset("nSynapses", data=num_synapses, dtype=np.uint64)
-            network_group.create_dataset("nGapJunctions", data=num_gap_junctions,
+            network_group.create_dataset("num_synapses", data=num_synapses, dtype=np.uint64)
+            network_group.create_dataset("num_gap_junctions", data=num_gap_junctions,
                                          dtype=np.uint64)
 
             # TODO: !!!! might need to handle chunk size differently based on size...
 
             syn_mat = self.in_file["network/synapses"][()].copy()
-            gj_mat = self.in_file["network/gapJunctions"][()].copy()
+            gj_mat = self.in_file["network/gap_junctions"][()].copy()
 
             print("Copying synapses and gap junctions")
 
@@ -326,7 +326,7 @@ class SnuddaAblateNetwork:
                 if idx % 50000 == 0 and idx > 0:
                     print(f"{idx} / {num_syn} synapse rows parsed")
 
-                # We need to remap the neuronID if some neurons have been removed!!
+                # We need to remap the neuron_id if some neurons have been removed!!
                 row = syn_mat[row_idx, :]
                 row[0] = remap_id[row[0]]
                 row[1] = remap_id[row[1]]
@@ -351,23 +351,23 @@ class SnuddaAblateNetwork:
                 if idx % 50000 == 0:
                     print(f"{idx} / {num_gj} gap junction rows parsed")
 
-                # We need to remap the neuronID if some neurons have been removed!!
+                # We need to remap the neuron_id if some neurons have been removed!!
                 row = gj_mat[row_idx, :]
                 row[0] = remap_id[row[0]]
                 row[1] = remap_id[row[1]]
                 temp_gj_mat[idx, :] = row
 
             if temp_gj_mat.size > 0:
-                gj_chunk_size = self.in_file["network/gapJunctions"].chunks
+                gj_chunk_size = self.in_file["network/gap_junctions"].chunks
             else:
                 gj_chunk_size = None
 
-            network_group.create_dataset("gapJunctions",
+            network_group.create_dataset("gap_junctions",
                                          data=temp_gj_mat,
-                                         dtype=np.int32, shape=(num_gj, self.in_file["network/gapJunctions"].shape[1]),
+                                         dtype=np.int32, shape=(num_gj, self.in_file["network/gap_junctions"].shape[1]),
                                          chunks=gj_chunk_size,
-                                         maxshape=(None, self.in_file["network/gapJunctions"].shape[1]),
-                                         compression=self.in_file["network/gapJunctions"].compression)
+                                         maxshape=(None, self.in_file["network/gap_junctions"].shape[1]),
+                                         compression=self.in_file["network/gap_junctions"].compression)
 
             print(f"{num_gj} / {num_gj} gap junction rows parsed")
             print("Gap junction matrix written.")
@@ -400,14 +400,14 @@ class SnuddaAblateNetwork:
         else:
             raise ValueError("copy_item: Only handle 0D, 1D and 2D data, update code!")
 
-        if var_name == "neuronID":
+        if var_name == "neuron_id":
             # We need to remap
             neuron_group.create_dataset(var_name, data_shape, data.dtype,
                                         [remap_id[data[x]] for x in soma_keep_id],
                                         compression=data.compression)
 
             # Double check that it is OK, should be in order after
-            assert (np.diff(neuron_group["neuronID"][()]) == 1).all(), "Problem with neuron remapping!"
+            assert (np.diff(neuron_group["neuron_id"][()]) == 1).all(), "Problem with neuron remapping!"
 
         else:
             try:

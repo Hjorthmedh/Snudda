@@ -127,26 +127,25 @@ class InputTestCase(unittest.TestCase):
                 spikes = input_info["spikes"][()]
                 n_traces = spikes.shape[0]
 
-                if "nInputs" in config_data[neuron_type][input_type]:
-                    if "clusterSize" in config_data[neuron_type][input_type]:
-                        cluster_size = config_data[neuron_type][input_type]["clusterSize"]
+                if "num_inputs" in config_data[neuron_type][input_type]:
+                    if "cluster_size" in config_data[neuron_type][input_type]:
+                        cluster_size = config_data[neuron_type][input_type]["cluster_size"]
                     else:
                         cluster_size = 1
 
-                    if isinstance(config_data[neuron_type][input_type]['nInputs'], dict):
-                        config_n_inputs = config_data[neuron_type][input_type]['nInputs'][neuron_name]
+                    if isinstance(config_data[neuron_type][input_type]['num_inputs'], dict):
+                        config_n_inputs = config_data[neuron_type][input_type]['num_inputs'][neuron_name]
                     else:
-                        config_n_inputs = config_data[neuron_type][input_type]['nInputs']
+                        config_n_inputs = config_data[neuron_type][input_type]['num_inputs']
                     print(f"Checking number of inputs is {config_n_inputs} (cluster size used: {cluster_size})")
-                    # self.assertEqual(config_n_inputs * cluster_size, n_traces)
                     self.assertEqual(config_n_inputs, n_traces)
 
-                    # TODO: We can no longer assume that sectionID is the same for all inputs in a cluster
+                    # TODO: We can no longer assume that section_id is the same for all inputs in a cluster
                     #       the new code also works at branch points, so cluster can be spread over different sections.
                     # if cluster_size > 1:
                     #     # Verify that all the clusters have the right size
                     #     for ctr in range(0, cluster_size-1):
-                    #         self.assertTrue(np.all(np.diff(input_info["sectionID"])[ctr::cluster_size] == 0))
+                    #         self.assertTrue(np.all(np.diff(input_info["section_id"])[ctr::cluster_size] == 0))
 
                 max_len = 1
                 if type(start_time) is np.ndarray:
@@ -180,8 +179,8 @@ class InputTestCase(unittest.TestCase):
                         # For high correlations and short durations we have huge fluctuations, so skip those
                         pass
 
-                if "populationUnitCorrelation" in config_data[neuron_type][input_type]:
-                    correlation = config_data[neuron_type][input_type]["populationUnitCorrelation"]
+                if "population_unit_correlation" in config_data[neuron_type][input_type]:
+                    correlation = config_data[neuron_type][input_type]["population_unit_correlation"]
 
                     if "jitter" in config_data[neuron_type][input_type]:
                         jitter = config_data[neuron_type][input_type]["jitter"]
@@ -290,8 +289,8 @@ class InputTestCase(unittest.TestCase):
         some_spikes_c3 = input_data["input/3/CorticalSignal/spikes"][()]
         some_spikes_c8 = input_data["input/8/CorticalSignal/spikes"][()]
 
-        pop3 = input_data["input/3/CorticalSignal/populationUnitSpikes"][()]
-        pop8 = input_data["input/8/CorticalSignal/populationUnitSpikes"][()]
+        pop3 = input_data["input/3/CorticalSignal/population_unit_spikes"][()]
+        pop8 = input_data["input/8/CorticalSignal/population_unit_spikes"][()]
 
         # TODO: Add checks
 

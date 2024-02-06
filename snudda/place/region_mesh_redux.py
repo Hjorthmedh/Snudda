@@ -90,8 +90,6 @@ class RegionMeshRedux:
                         lines.append([start_point, end_point])
 
             if len(lines) > 0:
-                #import pdb
-                #pdb.set_trace()
                 line_set = o3d.geometry.LineSet()
                 line_set.points = o3d.utility.Vector3dVector(morph_data.geometry[:, :3])
                 line_set.lines = o3d.utility.Vector2iVector(lines)
@@ -290,6 +288,7 @@ class NeuronPlacer:
 
         return neuron_positions
 
+
 class NeuronBender:
 
     def __init__(self):
@@ -335,7 +334,6 @@ if __name__ == "__main__":
     plt.hist(points_flat[:,1], color="black")
     plt.hist(points_flat2[:,1], color="blue", alpha=0.5)
     plt.show()
-
 
     import pdb
     pdb.set_trace()

@@ -23,7 +23,7 @@ def cleanup(rc, state):
 
     d_view = rc.direct_view(targets='all')
 
-    var_lookup = {"place": ["innerMask", "sm"],  # region_mesh.py
+    var_lookup = {"place": ["inner_mask", "sm"],  # region_mesh.py
                   "detect": ["min_max", "result", "sd"],
                   "project": [],  # Currently does not support parallel execution
                   "prune": ["syn_before", "syn_after", "merge_result_syn", "merge_result_gj", "sp"]}

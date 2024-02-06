@@ -66,12 +66,12 @@ class PairRecordingTestCase(unittest.TestCase):
         with open(self.experiment_config_file, "r") as f:
             experiment_config = json.load(f)
 
-        for inj_info in experiment_config["currentInjection"]:
+        for inj_info in experiment_config["current_injection"]:
 
-            neuron_id = inj_info["neuronID"]
+            neuron_id = inj_info["neuron_id"]
             start = inj_info["start"]
             end = inj_info["end"]
-            requested_freq = inj_info["requestedFrequency"]
+            requested_freq = inj_info["requested_frequency"]
 
             with self.subTest(f"Testing neuron {neuron_id}"):
 

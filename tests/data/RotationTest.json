@@ -1,20 +1,20 @@
 {
-    "Volume" : {
+    "volume" : {
 
 	"DummyVolume" : {},
 	
 	"Striatum" : {
-	    "neuronOrientation" : {
+	    "neuron_orientation" : {
 		"dSPN,iSPN,FS" : {
-		    "rotationMode" : "vectorFieldAndZ",
-		    "rotationFieldFile" : "data/TestField.json"
+		    "rotation_mode" : "vector_field_and_z",
+		    "rotation_field_file" : "data/TestField.json"
 		},
 		"LTS" : {
-		    "rotationMode" : "vectorField",
-		    "rotationFieldFile" : "data/TestField.json"
+		    "rotation_mode" : "vector_field",
+		    "rotation_field_file" : "data/TestField.json"
 		},
 		"ChIN" : {
-		    "rotationMode" : "random"
+		    "rotation_mode" : "random"
 		}
 	    }
 	}

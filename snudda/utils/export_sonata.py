@@ -126,7 +126,7 @@ class ExportSonata:
 
                 edge_type_lookup[pre_type, post_type, con_type] = (edge_type_id, edge_model, f"{pre_type}_{post_type}", dynamic_params)
 
-        node_id_remap = np.full(shape=(self.snudda_load.data["nNeurons"],), fill_value=-1, dtype=int)
+        node_id_remap = np.full(shape=(self.snudda_load.data["num_neurons"],), fill_value=-1, dtype=int)
         input_list = []
 
         for volume_name in volume_list:
@@ -134,19 +134,19 @@ class ExportSonata:
             node_file = f"{volume_name}_nodes.hdf5"
 
             for nt in self.snudda_load.get_neuron_types(return_set=True):
-                nt_idx = np.where([x["volumeID"] == volume_name and x["type"] == nt
+                nt_idx = np.where([x["volume_id"] == volume_name and x["type"] == nt
                                    for x in self.snudda_load.data["neurons"]])
 
                 # Node data is stored in a HDF5 file and a CSV file (CONVERT TO micrometers)
-                node_data = OrderedDict([("x", self.snudda_load.data["neuronPositions"][nt_idx, 0].flatten() * 1e6),
-                                         ("y", self.snudda_load.data["neuronPositions"][nt_idx, 1].flatten() * 1e6),
-                                         ("z", self.snudda_load.data["neuronPositions"][nt_idx, 2].flatten() * 1e6),
+                node_data = OrderedDict([("x", self.snudda_load.data["neuron_positions"][nt_idx, 0].flatten() * 1e6),
+                                         ("y", self.snudda_load.data["neuron_positions"][nt_idx, 1].flatten() * 1e6),
+                                         ("z", self.snudda_load.data["neuron_positions"][nt_idx, 2].flatten() * 1e6),
                                          ("rotation_angle_zaxis", vz[nt_idx].flatten()),
                                          ("rotation_angle_yaxis", vy[nt_idx].flatten()),
                                          ("rotation_angle_xaxis", vx[nt_idx].flatten())])
 
-                node_id_list = np.array([x["neuronID"] for x in self.snudda_load.data["neurons"]
-                                         if x["volumeID"] == volume_name and x["type"] == nt], dtype=int)
+                node_id_list = np.array([x["neuron_id"] for x in self.snudda_load.data["neurons"]
+                                         if x["volume_id"] == volume_name and x["type"] == nt], dtype=int)
 
                 assert (nt_idx == node_id_list).all()
 
@@ -290,7 +290,7 @@ class ExportSonata:
                 neuron_spikes = []
 
                 spike_group = input_hdf5[f"input/{neuron_id}/{input_type}/spikes"]
-                n_spikes = spike_group.attrs["nSpikes"]
+                n_spikes = spike_group.attrs["num_spikes"]
 
                 for idx, ns in enumerate(n_spikes):
                     neuron_spikes.append(spike_group[idx, :ns])
@@ -300,7 +300,7 @@ class ExportSonata:
                 neuron_type = self.snudda_load.data["neurons"][neuron_id]["type"]
 
                 weight = input_hdf5[f"input/{neuron_id}/{input_type}"].attrs["conductance"] * 1e6  # microsiemens for NEST
-                if "GABA" in input_hdf5[f"input/{neuron_id}/{input_type}"].attrs["modFile"].upper():
+                if "GABA" in input_hdf5[f"input/{neuron_id}/{input_type}"].attrs["mod_file"].upper():
                     weight *= -1
 
                 # [(neuron_type, neuron_node_id, input_type, spikes, weight, virtual_node_id), (np, nid, it, s, w, vid), ...]
@@ -419,8 +419,8 @@ class ExportSonata:
         node_type_id_lookup = OrderedDict([])
         next_node_type_id = 0
 
-        node_names = [f"{n['name']}_{n['morphologyKey']}_{n['parameterKey']}_{n['modulationKey']}"
-                             for n in self.snudda_load.data["neurons"]]
+        node_names = [f"{n['name']}_{n['morphology_key']}_{n['parameter_key']}_{n['modulation_key']}"
+                      for n in self.snudda_load.data["neurons"]]
 
         node_names_sorted = sorted(node_names)
 
@@ -470,8 +470,8 @@ class ExportSonata:
 
     def allocate_groups_and_remap_nodeid(self):
 
-        n_neurons = self.snudda_load.data["nNeurons"]
-        volume_list = set([x["volumeID"] for x in self.snudda_load.data["neurons"]])
+        n_neurons = self.snudda_load.data["num_neurons"]
+        volume_list = set([x["volume_id"] for x in self.snudda_load.data["neurons"]])
         neuron_types = self.snudda_load.get_neuron_types(return_set=True)
 
         node_group_id = np.zeros(shape=(n_neurons, ), dtype=int)
@@ -502,7 +502,7 @@ class ExportSonata:
 
     def remap_nodes(self):
 
-        n_neurons = self.snudda_load.data["nNeurons"]
+        n_neurons = self.snudda_load.data["num_neurons"]
         neuron_id_remap = np.full(shape=(n_neurons,), fill_value=-1)
 
         neuron_types = self.snudda_load.get_neuron_types()
@@ -531,7 +531,7 @@ class ExportSonata:
         # First create a lookup
         for n in self.snudda_load.data["neurons"]:
             hoc_file = n["hoc"]
-            name = f"{n['name']}_{n['morphologyKey']}_{n['parameterKey']}_{n['modulationKey']}"
+            name = f"{n['name']}_{n['morphology_key']}_{n['parameter_key']}_{n['modulation_key']}"
 
             # It seems that RT neuron requires the filename without .swc at the end
             # Also, they prepend morphology path, but only allows one directory for all morphologies
@@ -541,7 +541,7 @@ class ExportSonata:
             if hoc_file in self.hoc_location_lookup:
                 # We need to change from old hoc location to the SONATA hoc location
                 hoc_str = f"hoc:{os.path.basename(self.hoc_location_lookup[hoc_file])}"
-            elif n["virtualNeuron"]:
+            elif n["virtual_neuron"]:
                 hoc_str = "virtual"
             else:
                 hoc_str = "NULL"
@@ -632,9 +632,9 @@ class ExportSonata:
 
         synapse_model_lookup = dict()
 
-        for synapse_models in self.snudda_load.data["connectivityDistributions"].values():
+        for synapse_models in self.snudda_load.data["connectivity_distributions"].values():
             for synapse_type, synapse_model in synapse_models.items():
-                synapse_type_id = synapse_model["channelModelID"]
+                synapse_type_id = synapse_model["channel_model_id"]
 
                 if synapse_type == "GABA":
                     synapse_model_lookup[synapse_type_id] = dict()
@@ -654,9 +654,9 @@ class ExportSonata:
 
         synapse_sign_lookup = dict()
 
-        for synapse_models in self.snudda_load.data["connectivityDistributions"].values():
+        for synapse_models in self.snudda_load.data["connectivity_distributions"].values():
             for synapse_type, synapse_model in synapse_models.items():
-                synapse_type_id = synapse_model["channelModelID"]
+                synapse_type_id = synapse_model["channel_model_id"]
 
                 if synapse_type.upper() == "GABA":
                     synapse_sign_lookup[synapse_type_id] = -1.0
@@ -797,7 +797,7 @@ class ExportSonata:
 
         if self.target_simulator == "NEST":
             # If the dynamics_params.json file exist in the neuron path, then use that
-            neuron_path = os.path.relpath(snudda_parse_path(neuron["neuronPath"], self.snudda_load.data["SnuddaData"]))
+            neuron_path = os.path.relpath(snudda_parse_path(neuron["neuron_path"], self.snudda_load.data["SnuddaData"]))
             dynamics_params_path = os.path.join(neuron_path, "dynamics_params.json")
 
             if os.path.isfile(dynamics_params_path):
@@ -805,7 +805,7 @@ class ExportSonata:
 
             # Otherwise, if there is a default model in the nest/models directory, use that
             neuron_type = neuron["type"]
-            alt_dynamics_path = os.path.join(self.snudda_load.data["SnuddaData"],
+            alt_dynamics_path = os.path.join(self.snudda_load.data["snudda_data"],
                                              "nest", "models", f"{neuron_type}.json")
             if os.path.isfile(alt_dynamics_path):
 

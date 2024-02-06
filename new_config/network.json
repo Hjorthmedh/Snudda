@@ -12,21 +12,6 @@
     },
     
     "regions": {
-	“Striatum.json” —>
-	"striatum" : {
-	    "mesh": "striatum-mesh.obj",
-	    "neurons": ["dspn.json", "ispn.json", "fs.json", "chin.json", "lts.json"],
-	    "connectivity": ["striatum-connectivity.json", “striatum-gpe.json”],
-	    "populations": ["pop1.json", "pop2.json"]
-	},
-	"GPe" : {
-	    "mesh": "gpe-mesh.obj",
-	    "neurons": "gpe-neurons.json",
-	    "connectivity": ["gpe-connectivity.json"]
-	}
-    },
-    "connectivity": {
-	"additional.json" # Evalueras sist!
-    }
-	
+	"Striatum" : "striatum.json"
+    }	
 }

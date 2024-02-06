@@ -78,7 +78,7 @@ class SnuddaAnalyse:
         self.network_load = SnuddaLoad(hdf5_file, load_synapses=False)
 
         self.network = self.network_load.data
-        self.snudda_data = self.network["SnuddaData"]
+        self.snudda_data = self.network["snudda_data"]
 
         if "config" in self.network:
             self.config = json.loads(self.network["config"], object_pairs_hook=OrderedDict)
@@ -101,7 +101,7 @@ class SnuddaAnalyse:
         self.data = h5py.File(hdf5_file, 'r')
 
         if not cache_loaded:
-            self.num_neurons = self.network["nNeurons"]
+            self.num_neurons = self.network["num_neurons"]
             print(f"Number of neurons: {self.num_neurons}")
 
             # GABA connection matrix (synType = 1) (ignore AMPA/NMDA = 2, GJ = 3)
@@ -113,7 +113,7 @@ class SnuddaAnalyse:
 
             # self.connectionMatrix = self.createConnectionMatrixSLOW(synType=1)
             self.make_pop_dict()
-            self.positions = self.network["neuronPositions"]
+            self.positions = self.network["neuron_positions"]
 
             self.synapse_dist()
 
@@ -162,27 +162,27 @@ class SnuddaAnalyse:
         out_file = h5py.File(cache_file, 'w', libver='latest')
 
         # Connection Matrix
-        out_file.create_dataset("conMat_data", data=self.connection_matrix.data,
+        out_file.create_dataset("con_mat_data", data=self.connection_matrix.data,
                                 compression='gzip')
-        out_file.create_dataset("conMat_indices",
+        out_file.create_dataset("con_mat_indices",
                                 data=self.connection_matrix.indices,
                                 compression='gzip')
-        out_file.create_dataset("conMat_indptr",
+        out_file.create_dataset("con_mat_indptr",
                                 data=self.connection_matrix.indptr,
                                 compression='gzip')
-        out_file.create_dataset("conMat_shape",
+        out_file.create_dataset("con_mat_shape",
                                 data=self.connection_matrix.shape)
 
         # GJ connection matrix
-        out_file.create_dataset("conMatGJ_data", data=self.connection_matrix_gj.data,
+        out_file.create_dataset("con_mat_gj_data", data=self.connection_matrix_gj.data,
                                 compression='gzip')
-        out_file.create_dataset("conMatGJ_indices",
+        out_file.create_dataset("con_mat_gj_indices",
                                 data=self.connection_matrix_gj.indices,
                                 compression='gzip')
-        out_file.create_dataset("conMatGJ_indptr",
+        out_file.create_dataset("con_mat_jg_indptr",
                                 data=self.connection_matrix_gj.indptr,
                                 compression='gzip')
-        out_file.create_dataset("conMatGJ_shape",
+        out_file.create_dataset("con_mat_gj_shape",
                                 data=self.connection_matrix_gj.shape)
 
         pop_group = out_file.create_group("populations")
@@ -190,7 +190,7 @@ class SnuddaAnalyse:
             v = self.populations[k]
             pop_group.create_dataset(k, data=v)
 
-        out_file["nNeurons"] = self.num_neurons
+        out_file["num_neurons"] = self.num_neurons
         out_file.create_dataset("positions", data=self.positions)
 
         try:
@@ -200,14 +200,14 @@ class SnuddaAnalyse:
                 pp = f"{self.all_types[prePost[0]]}_{self.all_types[prePost[1]]}"
                 dend_pos_bin[pp] = list(self.dend_position_bin[prePost])
 
-            out_file.create_dataset("dendPositionBin", data=json.dumps(dend_pos_bin))
-            out_file.create_dataset("dendPositionEdges", data=self.dend_position_edges)
+            out_file.create_dataset("dend_position_bin", data=json.dumps(dend_pos_bin))
+            out_file.create_dataset("dend_position_edges", data=self.dend_position_edges)
 
             all_types = [x.encode("ascii", "ignore") for x in self.all_types]
-            out_file.create_dataset("allTypes", data=all_types)
-            out_file.create_dataset("neuronTypeID", data=self.neuron_type_id)
+            out_file.create_dataset("all_types", data=all_types)
+            out_file.create_dataset("neuron_type_id", data=self.neuron_type_id)
 
-            out_file.create_dataset("nMaxAnalyse", data=self.num_max_analyse)
+            out_file.create_dataset("num_max_analyse", data=self.num_max_analyse)
 
         except Exception as e:
 
@@ -242,33 +242,33 @@ class SnuddaAnalyse:
                 try:
                     with h5py.File(cache_file, 'r') as data:
 
-                        assert self.num_max_analyse == data["nMaxAnalyse"][()], \
+                        assert self.num_max_analyse == data["num_max_analyse"][()], \
                             "nMaxAnalyse has changed, have to reload connection matrix"
 
-                        self.connection_matrix = sps.csr_matrix((data["conMat_data"],
-                                                                 data["conMat_indices"],
-                                                                 data["conMat_indptr"]),
-                                                                data["conMat_shape"])
+                        self.connection_matrix = sps.csr_matrix((data["con_mat_data"],
+                                                                 data["con_mat_indices"],
+                                                                 data["con_mat_indptr"]),
+                                                                data["con_mat_shape"])
 
-                        self.connection_matrix_gj = sps.csr_matrix((data["conMatGJ_data"],
-                                                                    data["conMatGJ_indices"],
-                                                                    data["conMatGJ_indptr"]),
-                                                                   data["conMatGJ_shape"])
+                        self.connection_matrix_gj = sps.csr_matrix((data["con_mat_gj_data"],
+                                                                    data["con_mat_gj_indices"],
+                                                                    data["con_mat_gj_indptr"]),
+                                                                   data["con_mat_gj_shape"])
 
                         self.populations = dict([])
 
                         for k in data["populations"].keys():
                             self.populations[k] = data["populations"][k][:]
 
-                            self.num_neurons = data["nNeurons"][()]
+                            self.num_neurons = data["num_neurons"][()]
                             self.positions = data["positions"][:]
 
-                        dend_pos_bin = json.loads(data["dendPositionBin"][()], object_pairs_hook=OrderedDict)
+                        dend_pos_bin = json.loads(data["dend_position_bin"][()], object_pairs_hook=OrderedDict)
                         self.dend_position_bin = dict([])
 
-                        all_types = list(data["allTypes"][()])
+                        all_types = list(data["all_types"][()])
                         self.all_types = [x.decode() for x in all_types]
-                        self.neuron_type_id = data["neuronTypeID"][()]
+                        self.neuron_type_id = data["neuron_type_id"][()]
 
                         for pp in dend_pos_bin:
                             p_str = pp.split("_")
@@ -278,7 +278,7 @@ class SnuddaAnalyse:
                             self.dend_position_bin[(pre_type, post_type)] \
                                 = np.array(dend_pos_bin[pp])
 
-                        self.dend_position_edges = data["dendPositionEdges"][()]
+                        self.dend_position_edges = data["dend_position_edges"][()]
 
                         # import pdb
                         # pdb.set_trace()
@@ -324,7 +324,7 @@ class SnuddaAnalyse:
         last_count = 0
 
         row_ctr = 0
-        num_syn_total = self.network["nSynapses"]
+        num_syn_total = self.network["num_synapses"]
 
         for synapses in self.network_load.synapse_iterator(chunk_size=chunk_size):
 
@@ -384,7 +384,7 @@ class SnuddaAnalyse:
         last_count = 0
 
         row_ctr = 0
-        num_gj_total = self.network["nGapJunctions"]
+        num_gj_total = self.network["num_gap_junctions"]
 
         for gjList in self.network_load.gap_junction_iterator(chunk_size=100000):
 
@@ -425,13 +425,13 @@ class SnuddaAnalyse:
 
         for nid, neuron in enumerate(self.network["neurons"]):
 
-            assert (nid == neuron["neuronID"])
+            assert (nid == neuron["neuron_id"])
             name = neuron["name"].split("_")[0]
 
             if name not in self.populations:
                 self.populations[name] = []
 
-            self.populations[name].append(neuron["neuronID"])
+            self.populations[name].append(neuron["neuron_id"])
 
         print("Done.")
 
@@ -449,7 +449,7 @@ class SnuddaAnalyse:
             # return all neurons
 
             if volume_id is not None:
-                idx = np.where([x["volumeID"] == volume_id
+                idx = np.where([x["volume_id"] == volume_id
                                 for x in self.network["neurons"]])[0]
 
                 if neuron_id is None:
@@ -513,12 +513,12 @@ class SnuddaAnalyse:
             side_len = self.side_len
 
         if volume_id is None:
-            idx = np.arange(0, self.network["nNeurons"])
+            idx = np.arange(0, self.network["num_neurons"])
         else:
-            idx = np.where([x["volumeID"] == volume_id for x in self.network["neurons"]])[0]
+            idx = np.where([x["volume_id"] == volume_id for x in self.network["neurons"]])[0]
 
-        min_coord = np.min(self.network["neuronPositions"][idx, :], axis=0)
-        max_coord = np.max(self.network["neuronPositions"][idx, :], axis=0)
+        min_coord = np.min(self.network["neuron_positions"][idx, :], axis=0)
+        max_coord = np.max(self.network["neuron_positions"][idx, :], axis=0)
 
         x_min = min_coord[0]
         y_min = min_coord[1]
@@ -553,8 +553,8 @@ class SnuddaAnalyse:
             # pos = self.network["neurons"][nid]["position"]
             pos = self.positions[nid, :]
 
-            assert volume_id is None or self.network["neurons"][nid]["volumeID"] == volume_id, \
-                f"Neuron {nid} does not belong to volumeID {volume_id}"
+            assert volume_id is None or self.network["neurons"][nid]["volume_id"] == volume_id, \
+                f"Neuron {nid} does not belong to volume_id {volume_id}"
 
             if (abs(pos[0] - x_centre) <= side_len
                     and abs(pos[1] - y_centre) <= side_len
@@ -581,9 +581,9 @@ class SnuddaAnalyse:
             side_len = self.side_len
 
         if volume_id is None:
-            idx = np.arange(0, self.network["nNeurons"])
+            idx = np.arange(0, self.network["num_neurons"])
         else:
-            idx = np.where([x["volumeID"] == volume_id for x in self.network["neurons"]])[0]
+            idx = np.where([x["volume_id"] == volume_id for x in self.network["neurons"]])[0]
 
         if len(idx) == 0:
             print(f"No neurons found in volume {volume_id}")
@@ -591,8 +591,8 @@ class SnuddaAnalyse:
             import pdb
             pdb.set_trace()
 
-        min_coord = np.min(self.network["neuronPositions"][idx, :], axis=0)
-        max_coord = np.max(self.network["neuronPositions"][idx, :], axis=0)
+        min_coord = np.min(self.network["neuron_positions"][idx, :], axis=0)
+        max_coord = np.max(self.network["neuron_positions"][idx, :], axis=0)
 
         x_min = min_coord[0]
         y_min = min_coord[1]
@@ -720,7 +720,7 @@ class SnuddaAnalyse:
             # We are only looking at post synaptic neurons at the centre,
             # to avoid edge effects
             print(f"Only analysing centre post synaptic neurons, sideLen = {side_len}")
-            # postPop = self.centreNeurons(neuronID=postPop,sideLen=sideLen)
+            # postPop = self.centreNeurons(neuron_id=postPop,sideLen=sideLen)
             post_pop = self.get_sub_pop(volume_type=self.volume_type,
                                         volume_part="centre",
                                         side_len=side_len,
@@ -927,7 +927,7 @@ class SnuddaAnalyse:
 
         # We can in principle use all pairs, but here we restrict to just the
         # pairs who's post partner are in the centre
-        # postID = self.centreNeurons(neuronID=postID,sideLen=sideLen)
+        # postID = self.centreNeurons(neuron_id=postID,sideLen=sideLen)
         post_id = self.get_sub_pop(volume_type=self.volume_type,
                                    volume_part="centre",
                                    side_len=side_len,
@@ -1215,7 +1215,7 @@ class SnuddaAnalyse:
 
         # We can in principle use all pairs, but here we restrict to just the
         # pairs who's post partner are in the centre
-        # postID = self.centreNeurons(neuronID=postID,sideLen=sideLen)
+        # postID = self.centreNeurons(neuron_id=postID,sideLen=sideLen)
         post_id = self.get_sub_pop(volume_type=self.volume_type,
                                    volume_part="centre",
                                    side_len=side_len,
@@ -1456,7 +1456,7 @@ class SnuddaAnalyse:
                                                 num_points=5000000.0,
                                                 dist_3d=True):
 
-        population_unit = self.network["populationUnit"]
+        population_unit = self.network["population_unit"]
 
         # Count the connected neurons
         print("Counting connections")
@@ -1565,7 +1565,7 @@ class SnuddaAnalyse:
 
         # Only use post synaptic cell in central part of structure,
         # to minimize edge effect
-        # neuronID = self.centreNeurons(neuronID=self.populations[neuronType],
+        # neuron_id = self.centreNeurons(neuron_id=self.populations[neuronType],
         #                              sideLen=sideLen)
 
         neuron_id = self.get_sub_pop(volume_type=self.volume_type,
@@ -1613,7 +1613,7 @@ class SnuddaAnalyse:
 
         # Only use post synaptic cell in central part of structure,
         # to minimize edge effect
-        # neuronID = self.centreNeurons(neuronID=self.populations[neuronType],
+        # neuron_id = self.centreNeurons(neuron_id=self.populations[neuronType],
         #                              sideLen=sideLen)
 
         neuron_id = self.get_sub_pop(volume_type=self.volume_type,
@@ -1791,7 +1791,7 @@ class SnuddaAnalyse:
 
     ############################################################################
 
-    # Plots neuronID neuron, and all presynaptic partners
+    # Plots neuron_id neuron, and all presynaptic partners
 
     def plot_neurons(self, neuron_id, show_synapses=True, plot_pre_neurons=True):
 
@@ -2194,10 +2194,10 @@ class SnuddaAnalyse:
         is_corner = np.zeros((self.num_neurons,), dtype=bool)
         is_corner[corner_id] = 1
 
-        # OBS, neuronID unique, but many neurons can have same
+        # OBS, neuron_id unique, but many neurons can have same
         # morphology and properties and thus same neuronName
         # So the same name can appear twice in this list
-        for nID, name in zip(self.data["network"]["neurons"]["neuronID"],
+        for nID, name in zip(self.data["network"]["neurons"]["neuron_id"],
                              self.data["network"]["neurons"]["name"]):
 
             if not is_corner[nID]:
@@ -2246,7 +2246,7 @@ class SnuddaAnalyse:
 
     def virtual_axon_synapses(self, post_neuron_type):
 
-        virt_idx = np.where([n["virtualNeuron"] for n in self.network["neurons"]])[0]
+        virt_idx = np.where([n["virtual_neuron"] for n in self.network["neurons"]])[0]
 
         post_idx = self.populations[post_neuron_type]
 
@@ -2506,7 +2506,7 @@ class SnuddaAnalyse:
             print(f"nearest_pre_neighbour_distance: {post_type} is not in the simulation")
             return
 
-        # postPop = self.getSubPop(neuronID=self.populations[postType],
+        # postPop = self.getSubPop(neuron_id=self.populations[postType],
         #                         volumePart="centre")
 
         post_pop = self.populations[post_type]
@@ -2690,248 +2690,3 @@ if __name__ == "__main__":
 
     assert False, "Do you want to run Network_analyse_striatum.py instead?"
 
-    if len(sys.argv) > 1:
-        hdf5File = sys.argv[1]
-        print(f"Using user supplied HDF5 file: {hdf5File}")
-
-    else:
-        hdf5File = None  # Auto detect, use latest file
-        # hdf5File = "save/network-connect-synapse-file-0.hdf5"
-
-    # import cProfile
-    # cProfile.run('na = NetworkAnalyse(hdf5File,loadCache=False,lowMemory=False)')
-    # import pdb
-    # pdb.set_trace()
-
-    na = NetworkAnalyse(hdf5File, loadCache=True, lowMemory=False, sideLen=250e-6,
-                        volumeType="full")  # "cube"
-
-    # na = NetworkAnalyse(hdf5File,loadCache=False)
-
-    # na.plotNeurons(neuronID=5,plotPreNeurons=False)
-    # na.plotNeurons(neuronID=5)
-
-    enableAnalysis = True  # True #False
-
-    # No exp data for this
-    #  dist_3d = False
-    #  na.plotConnectionProbabilityChannels("FS","FS", \
-    #                                       dist_3d=dist_3d, \
-    #                                       expMaxDist=[],\
-    #                                       expData=[])
-    #
-    #  import pdb
-    #  pdb.set_trace()
-
-    # na.cornerNeurons(sideLen = 100e-6)
-
-    # na.plotSynapseDist(densityFlag=True)
-    # na.plotSynapseCumDist()
-
-    # na.virtualAxonSynapses("dSPN")
-    # na.virtualAxonSynapses("iSPN")
-    # na.virtualAxonSynapses("FS")
-
-    # na.simpleMotif("dSPN","dSPN","dSPN")
-    # na.simpleMotif("iSPN","iSPN","iSPN")
-    # na.simpleMotif("dSPN","dSPN","iSPN")
-    # na.analyseSingleMotifs("dSPN")
-
-    na.nearest_pre_neighbour_distance("LTS", "dSPN")
-    na.nearest_pre_neighbour_distance("LTS", "iSPN")
-
-    # na.ChuhmaVirtualExperiment(taggedType=["dSPN","iSPN"])
-
-    dist_3d = False
-
-    # 3/21 LTS->MS, Basal Ganglia book --- distance??
-    # Ibanez-Sandoval, ..., Tepper  2011 3/21 -- if patching around visual axon
-    # but 2/60 when patching blind
-    # !!! Use the focused 3/21 statistics for validation!! --- please :)
-    na.plot_connection_probability("LTS", "dSPN",
-                                   dist_3d=dist_3d,
-                                   exp_max_dist=[250e-6],
-                                   exp_data=[2 / 60.0],
-                                   exp_data_detailed=[(2, 60)])
-
-    na.plot_connection_probability("LTS", "iSPN",
-                                   dist_3d=dist_3d,
-                                   exp_max_dist=[250e-6],
-                                   exp_data=[2 / 60.0],
-                                   exp_data_detailed=[(2, 60)])
-
-    # Silberberg et al 2013, 2/12 FS-> LTS connected --- distance??
-    na.plot_connection_probability("FS", "LTS",
-                                   dist_3d=dist_3d,
-                                   exp_max_dist=[250e-6],
-                                   exp_data=[2.0 / 12],
-                                   exp_data_detailed=[(2, 12)])
-
-    # import pdb
-    # pdb.set_trace()
-
-    na.plot_connection_probability("dSPN", "ChIN",
-                                   dist_3d=dist_3d)
-    na.plot_connection_probability("iSPN", "ChIN",
-                                   dist_3d=dist_3d)
-
-    na.plot_connection_probability("ChIN", "LTS",
-                                   dist_3d=dist_3d)
-    na.plot_connection_probability("ChIN", "iSPN",
-                                   dist_3d=dist_3d)
-    na.plot_connection_probability("ChIN", "dSPN",
-                                   dist_3d=dist_3d)
-
-    print("Check the ChIN stuff")
-    # import pdb
-    # pdb.set_trace()
-
-    # import pdb
-    # pdb.set_trace()
-
-    na.nearest_pre_neighbour_distance("FS", "dSPN")
-    na.nearest_pre_neighbour_distance("FS", "iSPN")
-
-    na.plot_num_synapses_per_pair("ChIN", "dSPN")
-    na.plot_num_synapses_per_pair("ChIN", "iSPN")
-
-    na.plot_num_synapses_per_pair("dSPN", "ChIN")
-    na.plot_num_synapses_per_pair("iSPN", "ChIN")
-
-    # 2-5 ChIN should connect to each MS (approx)
-    na.plot_incoming_connections(neuron_type="dSPN", pre_type="ChIN")
-    na.plot_incoming_connections(neuron_type="iSPN", pre_type="ChIN")
-
-    na.plot_incoming_connections(neuron_type="ChIN", pre_type="dSPN")
-    na.plot_incoming_connections(neuron_type="ChIN", pre_type="iSPN")
-
-    # LTS plots
-    na.plot_num_synapses_per_pair("LTS", "dSPN")
-    na.plot_num_synapses_per_pair("LTS", "iSPN")
-    na.plot_num_synapses_per_pair("LTS", "ChIN")
-
-    na.plot_num_synapses_per_pair("ChIN", "LTS")
-    na.plot_num_synapses_per_pair("FS", "LTS")
-
-    na.plot_incoming_connections(neuron_type="dSPN", pre_type="LTS")
-    na.plot_incoming_connections(neuron_type="iSPN", pre_type="LTS")
-    na.plot_incoming_connections(neuron_type="ChIN", pre_type="LTS")
-
-    na.plot_incoming_connections(neuron_type="LTS", pre_type="ChIN")
-    na.plot_incoming_connections(neuron_type="LTS", pre_type="FS")
-
-    if True or enableAnalysis:
-        dist_3d = False
-
-        # 100e-6 from Planert 2010, and 250e-6 data from Gittis 2010
-        # 150e-6 from Gittis 2011 (actually 100 +/- 50 micrometers)
-        na.plot_connection_probability("FS", "iSPN",
-                                       dist_3d=dist_3d,
-                                       exp_max_dist=[100e-6, 150e-6, 250e-6],
-                                       exp_data=[6 / 9.0, 21 / 54.0, 27 / 77.0],
-                                       exp_data_detailed=[(6, 9), (21, 54), (27, 77)])
-        na.plot_connection_probability("FS", "dSPN",
-                                       dist_3d=dist_3d,
-                                       exp_max_dist=[100e-6, 150e-6, 250e-6],
-                                       exp_data=[8 / 9.0, 29 / 48.0, 48 / 90.0],
-                                       exp_data_detailed=[(8, 9), (29, 48), (48, 90)])
-        na.plot_connection_probability("dSPN", "iSPN",
-                                       dist_3d=dist_3d,
-                                       exp_max_dist=[50e-6, 100e-6],
-                                       exp_data=[3 / 47.0, 3 / 66.0],
-                                       exp_data_detailed=[(3, 47), (3, 66)])
-        na.plot_connection_probability("dSPN", "dSPN",
-                                       dist_3d=dist_3d,
-                                       exp_max_dist=[50e-6, 100e-6],
-                                       exp_data=[5 / 19.0, 3 / 43.0],
-                                       exp_data_detailed=[(5, 19), (3, 43)])
-        na.plot_connection_probability("iSPN", "dSPN",
-                                       dist_3d=dist_3d,
-                                       exp_max_dist=[50e-6, 100e-6],
-                                       exp_data=[13 / 47.0, 10 / 80.0],
-                                       exp_data_detailed=[(13, 47), (10, 80)])
-        na.plot_connection_probability("iSPN", "iSPN",
-                                       dist_3d=dist_3d,
-                                       exp_max_dist=[50e-6, 100e-6],
-                                       exp_data=[14 / 39.0, 7 / 31.0],
-                                       exp_data_detailed=[(14, 39), (7, 31)])
-
-        # No exp data for this -- Gittis,...,Kreitzer 2010 (p2228) -- 7/12 (and 3/4 reciprocal) -- distance?
-        # FS->FS synapses weaker, 1.1 +/- 1.5nS
-        na.plot_connection_probability("FS", "FS",
-                                       dist_3d=dist_3d,
-                                       exp_max_dist=[250e-6],
-                                       exp_data=[7 / 12.0],
-                                       exp_data_detailed=[(7, 12)])
-
-        # Do we have ChINs?
-        # ChIN data, Johanna had ref. ????
-        # Janickova
-
-        if True:
-            # REF???!?!?!?!
-            # na.plotConnectionProbability("ChIN","iSPN", \
-            #                                     dist_3d=dist_3d,
-            #                                     expMaxDist=[200e-6],
-            #                                     expData=[62/89.0],
-            #                                     expDataDetailed=[(62,89)])
-            # na.plotConnectionProbability("ChIN","dSPN", \
-            #                                     dist_3d=dist_3d,
-            #                                     expMaxDist=[200e-6],
-            #                                     expData=[62/89.0],
-            #                                     expDataDetailed=[(62,89)])
-
-            # Derived from Janickova H, ..., Bernard V 2017
-            na.plot_connection_probability("ChIN", "iSPN",
-                                           dist_3d=dist_3d,
-                                           exp_max_dist=[200e-6],
-                                           exp_data=[0.05])
-            na.plot_connection_probability("ChIN", "dSPN",
-                                           dist_3d=dist_3d,
-                                           exp_max_dist=[200e-6],
-                                           exp_data=[0.05])
-
-            na.plot_connection_probability("ChIN", "FS",
-                                           dist_3d=dist_3d)
-
-            na.plot_incoming_connections(neuron_type="dSPN", pre_type="ChIN")
-            na.plot_incoming_connections(neuron_type="iSPN", pre_type="ChIN")
-
-        if True:
-            na.plot_connection_probability("LTS", "ChIN",
-                                           dist_3d=dist_3d)
-
-            na.plot_connection_probability("ChIN", "LTS",
-                                           dist_3d=dist_3d)
-
-    if True:
-        print("The synapse dist function needs a density func, which currently not working since we no longer "
-              + "include compartment length in the dend data, so need to calculate it")
-        na.plot_synapse_dist()
-        na.plot_synapse_cum_dist()
-        na.plot_synapse_dist(density_flag=True)
-
-        # import pdb
-        # pdb.set_trace()
-
-    if True and enableAnalysis:
-        na.plot_num_synapses_per_pair("FS", "dSPN")
-        na.plot_num_synapses_per_pair("FS", "iSPN")
-        na.plot_num_synapses_per_pair("dSPN", "dSPN")
-        na.plot_num_synapses_per_pair("dSPN", "iSPN")
-        na.plot_num_synapses_per_pair("iSPN", "dSPN")
-        na.plot_num_synapses_per_pair("iSPN", "iSPN")
-
-    if True and enableAnalysis:
-        na.plot_incoming_connections(neuron_type="dSPN", pre_type="iSPN")
-        na.plot_incoming_connections(neuron_type="dSPN", pre_type="dSPN")
-        na.plot_incoming_connections(neuron_type="dSPN", pre_type="FS")
-
-    if True and enableAnalysis:
-        na.plot_incoming_connections(neuron_type="iSPN", pre_type="iSPN")
-        na.plot_incoming_connections(neuron_type="iSPN", pre_type="dSPN")
-        na.plot_incoming_connections(neuron_type="iSPN", pre_type="FS")
-
-    print("All done, exiting")
-    # import pdb
-    # pdb.set_trace()

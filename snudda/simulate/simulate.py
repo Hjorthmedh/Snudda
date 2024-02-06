@@ -358,15 +358,15 @@ class SnuddaSimulate(object):
         self.network_info = self.snudda_loader.data
 
         self.synapses = self.network_info["synapses"]
-        self.gap_junctions = self.network_info["gapJunctions"]
+        self.gap_junctions = self.network_info["gap_junctions"]
 
         # We are only passed information about neurons on our node if
         # SplitConnectionFile was run, so need to use nNeurons to know
         # how many neurons in total
-        self.num_neurons = self.network_info["nNeurons"]
+        self.num_neurons = self.network_info["num_neurons"]
 
         if config_file is None:
-            config_file = snudda_parse_path(self.network_info["configFile"], self.snudda_data)
+            config_file = snudda_parse_path(self.network_info["config_file"], self.snudda_data)
 
         self.config_file = config_file
         self.write_log(f"Loading config file {config_file}")
@@ -383,7 +383,7 @@ class SnuddaSimulate(object):
         self.gap_junction_next_gid = self.num_neurons + 100000000
 
         # Make a bool array indicating if cells are virtual or not
-        self.is_virtual_neuron = np.array([n["virtualNeuron"] for n in self.network_info["neurons"]], dtype=bool)
+        self.is_virtual_neuron = np.array([n["virtual_neuron"] for n in self.network_info["neurons"]], dtype=bool)
 
     ############################################################################
 
@@ -430,46 +430,46 @@ class SnuddaSimulate(object):
         # We need to load all the synapse parameters
         self.synapse_parameters = dict()
 
-        for (preType, postType) in self.network_info["connectivityDistributions"]:
+        for (preType, postType) in self.network_info["connectivity_distributions"]:
 
-            syn_data = self.network_info["connectivityDistributions"][preType, postType]
+            syn_data = self.network_info["connectivity_distributions"][preType, postType]
 
             for synType in syn_data:
 
-                synapse_type_id = syn_data[synType]["channelModelID"]
+                synapse_type_id = syn_data[synType]["channel_model_id"]
                 info_dict = syn_data[synType]
 
                 if synapse_type_id == 3:
                     # Gap junctions, skip parameters
                     continue
 
-                if ("channelParameters" in info_dict
-                        and info_dict["channelParameters"] is not None):
-                    channel_param_dict = copy.deepcopy(info_dict["channelParameters"])
-                    mod_file = channel_param_dict["modFile"]
+                if ("channel_parameters" in info_dict
+                        and info_dict["channel_parameters"] is not None):
+                    channel_param_dict = copy.deepcopy(info_dict["channel_parameters"])
+                    mod_file = channel_param_dict["mod_file"]
 
                     # TODO: Sanity check on the mod_file string
                     if mod_file:
                         eval_str = f"self.sim.neuron.h.{mod_file}"
                         channel_module = eval(eval_str)  # If this fails, check that NEURON modules are compiled
                     else:
-                        self.write_log(f"Empty modFile field for {preType} -> {postType} synapses. This channel is IGNORED.", force_print=True)
+                        self.write_log(f"Empty mod_file field for {preType} -> {postType} synapses. This channel is IGNORED.", force_print=True)
                         channel_module = None
 
-                    # These are not variables to set in the modFile
-                    if "modFile" in channel_param_dict:
-                        del channel_param_dict["modFile"]
+                    # These are not variables to set in the mod_file
+                    if "mod_file" in channel_param_dict:
+                        del channel_param_dict["mod_file"]
 
-                    if "parameterFile" in channel_param_dict:
-                        del channel_param_dict["parameterFile"]
+                    if "parameter_file" in channel_param_dict:
+                        del channel_param_dict["parameter_file"]
 
                 else:
                     assert False, (f"No channel module specified for {preType}->{postType} synapses, "
                                    f"type ID={synapse_type_id}")
 
-                if "parameterFile" in info_dict["channelParameters"] \
-                        and info_dict["channelParameters"]["parameterFile"] is not None:
-                    par_file = snudda_parse_path(info_dict["channelParameters"]["parameterFile"], self.snudda_data)
+                if "parameter_file" in info_dict["channel_parameters"] \
+                        and info_dict["channel_parameters"]["parameter_file"] is not None:
+                    par_file = snudda_parse_path(info_dict["channel_parameters"]["parameter_file"], self.snudda_data)
 
                     with open(par_file, "r") as f:
                         par_data_dict = json.load(f, object_pairs_hook=OrderedDict)
@@ -520,7 +520,7 @@ class SnuddaSimulate(object):
 
             name = self.network_info["neurons"][ID]["name"]
 
-            config = self.config["Neurons"][name]
+            config = self.config["neurons"][name]
 
             # We need to get morphology from network_info, since it can now be redefined for bent morphologies
             morph = snudda_parse_path(self.network_info["neurons"][ID]["morphology"], self.snudda_data)
@@ -534,7 +534,7 @@ class SnuddaSimulate(object):
                 modulation = None
 
             # Obs, neurons is a dictionary
-            if self.network_info["neurons"][ID]["virtualNeuron"]:
+            if self.network_info["neurons"][ID]["virtual_neuron"]:
 
                 if self.input_data is None:
                     self.write_log(f"Using {self.input_file} for virtual neurons")
@@ -561,9 +561,9 @@ class SnuddaSimulate(object):
 
             else:
                 # A real neuron (not a virtual neuron that just provides input)
-                parameter_key = self.network_info["neurons"][ID]["parameterKey"]
-                morphology_key = self.network_info["neurons"][ID]["morphologyKey"]
-                modulation_key = self.network_info["neurons"][ID]["modulationKey"]
+                parameter_key = self.network_info["neurons"][ID]["parameter_key"]
+                morphology_key = self.network_info["neurons"][ID]["morphology_key"]
+                modulation_key = self.network_info["neurons"][ID]["modulation_key"]
 
                 self.neurons[ID] = NeuronModel(param_file=param,
                                                morph_path=morph,
@@ -1187,10 +1187,10 @@ class SnuddaSimulate(object):
                 self.external_stim[neuron_id, input_type] = []
 
                 neuron_input = self.input_data["input"][str(neuron_id)][input_type]
-                sections = self.neurons[neuron_id].map_id_to_compartment(neuron_input.attrs["sectionID"])
-                mod_file = SnuddaLoad.to_str(neuron_input.attrs["modFile"])
-                if "parameterList" in neuron_input.attrs:
-                    param_list = json.loads(neuron_input.attrs["parameterList"], object_pairs_hook=OrderedDict)
+                sections = self.neurons[neuron_id].map_id_to_compartment(neuron_input.attrs["section_id"])
+                mod_file = SnuddaLoad.to_str(neuron_input.attrs["mod_file"])
+                if "parameter_list" in neuron_input.attrs:
+                    param_list = json.loads(neuron_input.attrs["parameter_list"], object_pairs_hook=OrderedDict)
                 else:
                     param_list = None
 
@@ -1200,9 +1200,9 @@ class SnuddaSimulate(object):
 
                 for input_id, (section, section_x, param_id, n_spikes) \
                         in enumerate(zip(sections,
-                                         neuron_input.attrs["sectionX"],
-                                         neuron_input.attrs["parameterID"],
-                                         neuron_input["spikes"].attrs["nSpikes"])):
+                                         neuron_input.attrs["section_x"],
+                                         neuron_input.attrs["parameter_id"],
+                                         neuron_input["spikes"].attrs["num_spikes"])):
 
                     # We need to find cellID (int) from neuronID (string, eg. MSD1_3)
 
@@ -1333,7 +1333,7 @@ class SnuddaSimulate(object):
 
         c_id = []
 
-        positions = self.network_info["neuronPositions"]
+        positions = self.network_info["neuron_positions"]
 
         centre_pos = np.min(positions, axis=0)
 
@@ -1632,8 +1632,8 @@ class SnuddaSimulate(object):
 
         """
 
-        simulation_origo = self.network_info["simulationOrigo"]
-        voxel_size = self.network_info["voxelSize"]
+        simulation_origo = self.network_info["simulation_origo"]
+        voxel_size = self.network_info["voxel_size"]
         neuron_position = self.network_info["neurons"][dest_id]["position"]
         neuron_rotation = self.network_info["neurons"][dest_id]["rotation"]
 
