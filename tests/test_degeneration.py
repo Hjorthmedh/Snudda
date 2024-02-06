@@ -149,11 +149,12 @@ class MyTestCase(unittest.TestCase):
 
         # Load the networks
         from snudda.utils import SnuddaLoad
-
+        print("!"*30 + "\n" + "1" + "\n" + "!"*30)
         orig_load = SnuddaLoad(self.network_A)
+        print("!!!!!!11!!11!!!!!!")
         degen_load = SnuddaLoad(self.network_C)
 
-        tmp = [(x["neuronID"], x["morphologyKey"]) for x in orig_load.data["neurons"]]
+        tmp = [(x["neuron_id"], x["morphology_key"]) for x in orig_load.data["neurons"]]
         print(f"Morphologies: {tmp}")
 
         #import pdb
