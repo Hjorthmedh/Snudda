@@ -179,7 +179,7 @@ class SnuddaAnalyse:
         out_file.create_dataset("con_mat_gj_indices",
                                 data=self.connection_matrix_gj.indices,
                                 compression='gzip')
-        out_file.create_dataset("con_mat_jg_indptr",
+        out_file.create_dataset("con_mat_gj_indptr",
                                 data=self.connection_matrix_gj.indptr,
                                 compression='gzip')
         out_file.create_dataset("con_mat_gj_shape",
