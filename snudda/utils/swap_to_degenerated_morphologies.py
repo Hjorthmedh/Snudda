@@ -102,8 +102,8 @@ class SwapToDegeneratedMorphologies:
                 param_key=self.forced_param_key
             self.new_hdf5[f"network/neurons/parameter_key"][idx] = param_key
             self.new_hdf5[f"network/neurons/morphology_key"][idx] = morph_key
-            # self.new_hdf5[f"network/neurons/parameterID"][idx] = param_id
-            # self.new_hdf5[f"network/neurons/morphologyID"][idx] = morph_id
+            # self.new_hdf5[f"network/neurons/parameter_id"][idx] = param_id
+            # self.new_hdf5[f"network/neurons/morphology_id"][idx] = morph_id
 
         self.filter_synapses(filter_axon=self.filter_axon)
         self.filter_gap_junctions()
@@ -169,7 +169,7 @@ class SwapToDegeneratedMorphologies:
 
         """ Each iteration will return the gap junctions between one pair of neurons. """
 
-        return self.synapse_iterator(data_type="gapJunctions", load_synapses=load_gap_junctions)
+        return self.synapse_iterator(data_type="gap_junctions", load_synapses=load_gap_junctions)
 
     def filter_synapses(self, filter_axon=False):
         # First version, will keep all synapses in memory to write a more efficient file
@@ -406,8 +406,8 @@ class SwapToDegeneratedMorphologies:
         if orig_morph_key is None or orig_morph_key == '':
             # Only a single morphology
 
-            original_morphology_id = 0  # self.old_data["neurons"][neuron_id]["morphologyID"]
-            original_parameter_id = 0  # self.old_data["neurons"][neuron_id]["parameterID"]
+            original_morphology_id = 0  # self.old_data["neurons"][neuron_id]["morphology_id"]
+            original_parameter_id = 0  # self.old_data["neurons"][neuron_id]["parameter_id"]
 
             return '', '', new_neuron_path, original_parameter_id, original_morphology_id
 
@@ -568,7 +568,7 @@ class SwapToDegeneratedMorphologies:
                     updated_dist[idx_remap] = dist_to_soma
                     input_group.attrs["distance_to_soma"] = updated_dist[keep_idx2].astype(np.float16)
 
-                    for data_name in ["freq", "correlation", "jitter", "synapseDensity", "start", "end", "conductance",
+                    for data_name in ["freq", "correlation", "jitter", "synapse_density", "start", "end", "conductance",
                                       "population_unit_id", "population_unit_spikes", "generator",
                                       "mod_file", "parameter_file", "parameter_list"]:
 
@@ -588,7 +588,7 @@ class SwapToDegeneratedMorphologies:
                     input_group.attrs["parameter_id"] = old_input_data.attrs["parameter_id"][keep_idx]
                     input_group.attrs["distance_to_soma"] = old_input_data.attrs["distance_to_soma"][keep_idx]
 
-                    for data_name in ["freq", "correlation", "jitter", "synapseDensity", "start", "end", "conductance",
+                    for data_name in ["freq", "correlation", "jitter", "synapse_density", "start", "end", "conductance",
                                       "population_unit_id", "population_unit_spikes", "generator",
                                       "mod_file", "parameter_file", "parameter_list"]:
 
@@ -743,19 +743,19 @@ class SwapToDegeneratedMorphologies:
     def remap_sections_helper(self, neuron_id, old_sec_id, old_sec_x):
 
         """
-            Remaps sections for neuron_id
+            Remaps sections for neuron_id.
 
-            This does currently NOT take AXON DEGENERATION into account
+            This does currently NOT take AXON DEGENERATION into account.
 
             Args:
-                neuron_id (int) : Neuron ID
-                old_sec_id (np.array) : Section ID of old section
-                old_sec_x (np.array) : Section X of old section (float 0-1)
+                neuron_id (int) : Neuron ID.
+                old_sec_id (np.array) : Section ID of old section.
+                old_sec_x (np.array) : Section X of old section (float 0-1).
 
             Returns:
-                keep_idx (np.array) : Indexes to keep
-                new_sec_id (np.array) : Section ID of new section, positions are np.nan if not mapped
-                new_sec_x (np.array) : Section X of new section, positions are np.nan if not mapped
+                keep_idx (np.array) : Indices to keep.
+                new_sec_id (np.array) : Section ID of new section, positions are np.nan if not mapped.
+                new_sec_x (np.array) : Section X of new section, positions are np.nan if not mapped.
 
         """
 
