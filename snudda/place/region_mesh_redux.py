@@ -150,6 +150,9 @@ class NeuronPlacer:
         self.allocated_points = np.zeros(shape=(putative_points.shape[0],), dtype=bool)
 
     def define_density(self, neuron_type, density_function):
+        if neuron_type in self.density_functions:
+            print(f"Warning, overwriting {neuron_type} density with {density_function}")
+
         self.density_functions[neuron_type] = density_function
 
     def place_neurons(self, num_neurons, neuron_type=None):

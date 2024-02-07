@@ -418,7 +418,7 @@ class SnuddaPlace(object):
 
                         if "density_function" in self.volume[volume_id]["density"][neuron_type]:
                             density_str = self.volume[volume_id]["density"][neuron_type]["density_function"]
-                            density_func = lambda x, y, z: numexpr.evaluate(density_str)
+                            density_func = lambda x, y, z, density_str=density_str: numexpr.evaluate(density_str)
 
                         if "density_file" in self.volume[volume_id]["density"][neuron_type]:
                             density_file = self.volume[volume_id]["density"][neuron_type]["density_file"]
@@ -441,15 +441,15 @@ class SnuddaPlace(object):
                                 density = np.array(density_data[volume_id][neuron_type]["density"])
 
                                 if self.griddata_interpolation:
-                                    density_func_helper = lambda pos: griddata(points=coord, values=density,
-                                                                               xi=pos, method="linear",
-                                                                               fill_value=0)
+                                    density_func = lambda x, y, z, coord=coord, density=density: \
+                                        griddata(points=coord, values=density,
+                                                 xi=np.array([x, y, z]), method="linear",
+                                                 fill_value=0).transpose()
                                 else:
-                                    density_func_helper = lambda pos: griddata(points=coord, values=density,
-                                                                               xi=pos, method="nearest",
-                                                                               fill_value=0)
-
-                                density_func = lambda x, y, z: density_func_helper(np.array([x, y, z]).transpose())
+                                    density_func = lambda x, y, z, coord=coord, density=density: \
+                                        griddata(points=coord, values=density,
+                                                 xi=np.array([x, y, z]), method="nearest",
+                                                 fill_value=0).transpose()
 
                         self.volume[volume_id]["mesh"].define_density(neuron_type, density_func)
 
