@@ -1295,11 +1295,11 @@ class SnuddaInput(object):
             f"then time_ranges must be two lists, ie. (start_times, end_times)"
 
         if callable(frequency_function):
-            func = lambda t: frequency_function(t) * p_keep
+            func = lambda t, frequency_function=frequency_function, p_keep=p_keep: frequency_function(t) * p_keep
         else:
             try:
                 func_str = f"{frequency_function}*{p_keep}"
-                func = lambda t: numexpr.evaluate(func_str)
+                func = lambda t, func_str=func_str: numexpr.evaluate(func_str)
             except:
                 import traceback
                 print(traceback.format_exc())
