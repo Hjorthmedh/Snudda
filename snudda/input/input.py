@@ -927,6 +927,9 @@ class SnuddaInput(object):
                     else:
                         n_inp = None
 
+                    if "mod_file" not in input_inf:
+                        raise ValueError(f"Missing mod_file in input json, for {neuron_name} ({neuron_id}) {neuron_type}: {input_type}: {input_inf}")
+
                     mod_file = input_inf["mod_file"]
                     if type(mod_file) in [bytes, np.bytes_]:
                         mod_file = mod_file.decode()

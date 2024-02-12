@@ -331,10 +331,19 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             post_id = synapse_set[0, 1]
             channel_model_id = synapse_set[0, 6]
 
-            assert (synapse_set[:, 0] == pre_id).all()
-            assert (synapse_set[:, 1] == post_id).all()
-            assert (synapse_set[:, 6] == channel_model_id).all(), \
-                f"Code is written with assumption that all synapses between a pair of neurons are of the same type"
+            try:
+                assert (synapse_set[:, 0] == pre_id).all()
+                assert (synapse_set[:, 1] == post_id).all()
+                assert (synapse_set[:, 6] == channel_model_id).all(), \
+                    f"Code is written with assumption that all synapses between a pair of neurons are of the same type"
+            except:
+                print(f"Synapse set between: {self.original_network_loader.data['neurons'][pre_id]} and {self.original_network_loader.data['neurons'][post_id]}")
+                print(f"{synapse_set}")
+                print(f"Possible error: You used GapJunction instead of gap_junction for FS-FS connectivity in network json file")
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
 
             if old_synapse_set is not None:
                 old_pre_id = old_synapse_set[0, 0]
