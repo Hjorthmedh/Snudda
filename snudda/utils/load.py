@@ -195,8 +195,15 @@ class SnuddaLoad(object):
                 data["num_neurons"] = f["network/neurons/neuron_id"].shape[0]
                 data["neuron_id"] = f["network/neurons/neuron_id"][()]
             except:
+                if "neuronID" in f["network/neurons"]:
+                    print(f"\nERROR: Old version of the network detected!\n"
+                          f"Please regenerate your Snudda network: {self.network_file}\n\n")
+
                 import traceback
                 print(traceback.format_exc())
+
+                print("Type \"exit()\" to exit.")
+
                 import pdb
                 pdb.set_trace()
 

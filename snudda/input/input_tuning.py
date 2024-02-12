@@ -418,8 +418,8 @@ class InputTuning(object):
         assert len(input_type) == 1, f"Interpolation can only handle one input type. Found {input_type}"
         input_type = input_type[0]
 
-        n_syn_above = config_above[input_type]["nInputs"]
-        n_syn_below = config_below[input_type]["nInputs"]
+        n_syn_above = config_above[input_type]["num_inputs"]
+        n_syn_below = config_below[input_type]["num_inputs"]
 
         value_above = data[idx_above]
         value_below = data[idx_below]
@@ -444,7 +444,7 @@ class InputTuning(object):
             pdb.set_trace()
 
         best_config = copy.deepcopy(config_above)
-        best_config[input_type]["nInputs"] = n_syn
+        best_config[input_type]["num_inputs"] = n_syn
 
         neuron_info = network_info.data["neurons"][neuron_id[idx_above]]
 
@@ -559,7 +559,7 @@ class InputTuning(object):
         for ctr, nid in enumerate(neuron_id):
             # Get total input.
             for input_conf in input_config[str(nid)].values():
-                n_inputs_total[ctr] += input_conf["nInputs"]
+                n_inputs_total[ctr] += input_conf["num_inputs"]
 
         plt.figure()
         plt.plot(n_inputs_total, spike_count/(max_time-skip_time), 'k.')
@@ -572,7 +572,7 @@ class InputTuning(object):
         input_type = list(best_config.keys())
         assert len(input_type) == 1
         input_type = input_type[0]
-        best_n_syn = best_config[input_type]["nInputs"]
+        best_n_syn = best_config[input_type]["num_inputs"]
 
         y_lim = plt.gca().get_ylim()
         plt.plot([best_n_syn, best_n_syn], y_lim, 'r-')  # best n_inputs
@@ -656,19 +656,28 @@ class InputTuning(object):
         time = dict()
         depolarisation_blocks = dict()
 
-        for idx in range(len(self.input_seed_list)):
-            network_info, input_config, input_data[idx], neuron_id_lookup, neuron_name_list, \
-                spike_data[idx], volt[idx], time[idx], depolarisation_blocks[idx] \
-                = self.load_data_helper(idx=idx, quiet_load=quiet_load)
+        if self.input_seed_list is None:
+            network_info, input_config, input_data, neuron_id_lookup, neuron_name_list, \
+            spike_data, volt, time, depolarisation_blocks \
+                = self.load_data_helper(idx=None, quiet_load=quiet_load)
+
+            first_input_data = input_data["input"]
+        else:
+            for idx in range(len(self.input_seed_list)):
+                network_info, input_config, input_data[idx], neuron_id_lookup, neuron_name_list, \
+                    spike_data[idx], volt[idx], time[idx], depolarisation_blocks[idx] \
+                    = self.load_data_helper(idx=idx, quiet_load=quiet_load)
+
+            first_input_data = input_data[0]["input"]
 
         n_inputs_lookup = dict()
 
-        for neuron_label in input_data[0]["input"]:
+        for neuron_label in first_input_data:
             neuron_id = int(neuron_label)
             n_inputs = 0
 
-            for input_type in input_data[0]["input"][neuron_label]:
-                n_inputs += input_data[0]["input"][neuron_label][input_type]["spikes"].shape[0]
+            for input_type in first_input_data[neuron_label]:
+                n_inputs += first_input_data[neuron_label][input_type]["spikes"].shape[0]
 
             n_inputs_lookup[neuron_id] = n_inputs
 
@@ -686,22 +695,41 @@ class InputTuning(object):
                     print(f"No inputs for neuron_id={neuron_id}, ignoring. Please update your setup.")
                     continue
 
-                for idx in range(len(self.input_seed_list)):
+                if self.input_seed_list is None:
 
                     n_inputs = n_inputs_lookup[neuron_id]
 
                     if n_inputs not in frequency_data[neuron_name]:
                         frequency_data[neuron_name][n_inputs] = dict()
 
-                    frequency_data[neuron_name][n_inputs][idx] = self.extract_frequencies(spike_data=spike_data,
-                                                                                          config_data=input_config,
-                                                                                          neuron_id=neuron_id,
-                                                                                          skip_time=skip_time)
-                    voltage_data[neuron_name][n_inputs][idx] = self.extract_voltage(volt=volt,
-                                                                                    time=time,
-                                                                                    config_data=input_config,
-                                                                                    neuron_id=neuron_id,
-                                                                                    skip_time=skip_time)
+                    frequency_data[neuron_name][n_inputs] = self.extract_frequencies(spike_data=spike_data,
+                                                                                     config_data=input_config,
+                                                                                     neuron_id=neuron_id,
+                                                                                     skip_time=skip_time)
+                    voltage_data[neuron_name][n_inputs] = self.extract_voltage(volt=volt,
+                                                                               time=time,
+                                                                               config_data=input_config,
+                                                                               neuron_id=neuron_id,
+                                                                               skip_time=skip_time)
+
+                else:
+
+                    for idx in range(len(self.input_seed_list)):
+
+                        n_inputs = n_inputs_lookup[neuron_id]
+
+                        if n_inputs not in frequency_data[neuron_name]:
+                            frequency_data[neuron_name][n_inputs] = dict()
+
+                        frequency_data[neuron_name][n_inputs][idx] = self.extract_frequencies(spike_data=spike_data,
+                                                                                              config_data=input_config,
+                                                                                              neuron_id=neuron_id,
+                                                                                              skip_time=skip_time)
+                        voltage_data[neuron_name][n_inputs][idx] = self.extract_voltage(volt=volt,
+                                                                                        time=time,
+                                                                                        config_data=input_config,
+                                                                                        neuron_id=neuron_id,
+                                                                                        skip_time=skip_time)
 
         # TODO: Load voltage trace and warn for depolarisation blocking
 
@@ -1138,7 +1166,6 @@ class InputTuning(object):
                 plt.show()
                 plt.pause(0.001)
 
-            # fig_name = os.path.join(self.network_path, "figures", f"input-scaling-freq-{neuron_name}-{input_type_name}.pdf")
             fig_name = os.path.join(self.network_path, "figures",
                                     f"input-scaling-freq-{neuron_name}-{input_type_name}.png")
             if not os.path.exists(os.path.dirname(fig_name)):
@@ -1526,7 +1553,7 @@ class InputTuning(object):
                 # We will have no connections in this test network, so add empty density
                 neuron_def[n]["axon_density"] = fake_axon_density
 
-        config_def["Neurons"] = neuron_def
+        config_def["neurons"] = neuron_def
 
         return config_def
 

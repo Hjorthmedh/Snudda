@@ -463,7 +463,7 @@ class SnuddaPlotSpikeRaster2:
         idx = 0
         for no in neuron_order:
             # Skip the virtual neurons
-            if not self.snudda_load.data["neurons"][no]["virtualNeuron"]:
+            if not self.snudda_load.data["neurons"][no]["virtual_neuron"]:
                 neuron_order_lookup[no] = idx
                 idx += 1
 
