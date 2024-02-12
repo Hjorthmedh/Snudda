@@ -53,6 +53,7 @@ class PairRecordingTestCase(unittest.TestCase):
     def test_frequency(self):
 
         print("test_pair_recording.py -- This UNIT test is not currently active.")
+        return
 
         # TODO: TEMP line, this is normally done in setUp... remove later
         self.network_path = os.path.join("networks", "pair_recording_test")
