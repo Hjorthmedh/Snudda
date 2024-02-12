@@ -15,7 +15,7 @@ class PairRecordingTestCase(unittest.TestCase):
             os.chdir(os.path.dirname(__file__))
 
         # Temporarily disable the creation of network while testing...
-        return
+        # return
 
         self.network_path = os.path.join("networks", "pair_recording_test")
         rc = None
