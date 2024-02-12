@@ -126,9 +126,9 @@ class SnuddaCut(object):
         network_group = self.out_file.create_group("network")
         neuron_group = network_group.create_group("neurons")
 
-        if len(self.in_file["network/neurons/extraAxons/parentNeuron"][()]) > 0:
+        if len(self.in_file["network/neurons/extra_axons/parent_neuron"][()]) > 0:
             # To implement this we need to only keep the axons that have parent neurons that are still there
-            raise NotImplemented("extraAxons currently not supported by cut.py")
+            raise NotImplemented("extra_axons currently not supported by cut.py")
 
         for var_name in self.in_file["network/neurons"]:
 

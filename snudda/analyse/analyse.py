@@ -708,12 +708,12 @@ class SnuddaAnalyse:
 
         if connection_type == "synapses":
             con_mat = self.connection_matrix
-        elif connection_type == "gapjunctions":
+        elif connection_type == "gapjunctions" or connection_type == "gap_junctions":
             con_mat = self.connection_matrix_gj
         else:
             con_mat = None
             print(f"Unknown connection_type: {connection_type}")
-            print("Please use 'synapses' or 'gapjunctions'")
+            print("Please use 'synapses' or 'gap_junctions'")
             sys.exit(-1)
 
         if side_len is not None:
@@ -1376,10 +1376,10 @@ class SnuddaAnalyse:
 
         if connection_type == "synapses":
             con_mat = self.connection_matrix
-        elif connection_type == "gapjunctions":
+        elif connection_type == "gap_junctions" or connection_type == "gapjunctions":
             con_mat = self.connection_matrix_gj
         else:
-            assert False, "Unknown connection_type: " + str(connection_type)
+            assert False, f"Unknown connection_type: {connection_type}"
 
         # Make this loop use threads, to speed it up
 
@@ -1580,7 +1580,7 @@ class SnuddaAnalyse:
 
         if connection_type == "synapses":
             con_mat = self.connection_matrix
-        elif connection_type == "gapjunctions":
+        elif connection_type == "gapjunctions" or connection_type == "gap_junctions":
             con_mat = self.connection_matrix_gj
         else:
             assert f"Unknown connection_type: {connection_type}"
@@ -1628,7 +1628,7 @@ class SnuddaAnalyse:
 
         if connection_type == "synapses":
             con_mat = self.connection_matrix
-        elif connection_type == "gapjunctions":
+        elif connection_type == "gapjunctions" or connection_type == "gap_junctions":
             con_mat = self.connection_matrix_gj
         else:
             assert "Unknown connection_type: " + str(connection_type)

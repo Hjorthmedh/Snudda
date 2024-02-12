@@ -1,56 +1,56 @@
 {
     "dSPN": {
         "Ctx_1" : {
-	    "populationUnitID" : 1,	    
+	    "Population_unit_id" : 1,	    
             "generator" : "frequency_function",
             "start" : [0.5, 2.5],
             "end" : [1, 3],
             "frequency" : "70*(1+sin(2*3.14159*10*t))",
             "conductance" : 0.5e-9,
-            "nInputs" : 20,
-            "populationUnitCorrelation" : 0,
+            "num_inputs" : 20,
+            "population_unit_correlation" : 0,
             "jitter" : 0,        
-            "modFile": "tmGlut"
+            "mod_file": "tmGlut"
         },
 
         "Ctx_2" : {
-	    "populationUnitID" : 2,
+	    "population_unit_id" : 2,
             "generator" : "frequency_function",
             "start" : [1.5, 2.5],
             "end" : [2, 3],
             "frequency" : "70*(1+sin(2*3.14159*60*t))",
             "conductance" : 0.5e-9,
-            "nInputs" : 20,
-            "populationUnitCorrelation" : 0,
+            "num_inputs" : 20,
+            "population_unit_correlation" : 0,
             "jitter" : 0,        
-            "modFile": "tmGlut"
+            "mod_file": "tmGlut"
         }
     },
 
     "iSPN": {
         "Ctx_1" : {
-	    "populationUnitID" : 1,	    
+	    "population_unit_id" : 1,	    
             "generator" : "frequency_function",
             "start" : [0.5, 2.5],
             "end" : [1, 3],
             "frequency" : "50*(1+sin(2*3.14159*10*t))",
             "conductance" : 0.5e-9,
-            "nInputs" : 20,
-            "populationUnitCorrelation" : 0,
+            "num_inputs" : 20,
+            "population_unit_correlation" : 0,
             "jitter" : 0,        
-            "modFile": "tmGlut"
+            "mod_file": "tmGlut"
         },
         "Ctx_2" : {
-	    "populationUnitID" : 2,
+	    "population_unit_id" : 2,
             "generator" : "frequency_function",
             "start" : [1.5, 2.5],
             "end" : [2, 3],
             "frequency" : "50*(1+sin(2*3.14159*60*t))",
             "conductance" : 0.5e-9,
-            "nInputs" : 20,
-            "populationUnitCorrelation" : 0,
+            "num_inputs" : 20,
+            "population_unit_correlation" : 0,
             "jitter" : 0,        
-            "modFile": "tmGlut"
+            "mod_file": "tmGlut"
         }
     }
     

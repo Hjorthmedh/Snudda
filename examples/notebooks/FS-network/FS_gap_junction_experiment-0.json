@@ -6,16 +6,16 @@
     },
     "current_injection" : [
 	{
-	    "neuron_id": 19,
+	    "neuron_id": 1,
 	    "start": [0.2],
 	    "end": [0.25], 
 	    "amplitude": 4e-10
 	},
 	{
-	    "neuron_id": 22,
+	    "neuron_id": 10,
 	    "start": [0.5],
 	    "end": [0.55], 
-	    "amplitude": 3e-10
+	    "amplitude": 4e-10
 	},
 	{
 	    "neuron_id": 47,

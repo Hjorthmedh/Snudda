@@ -6,11 +6,11 @@
             "end" : [1.5, 4.5],
             "frequency" : [25, 25],
             "conductance" : 0.5e-9,
-            "nInputs" : 50,
-            "populationUnitCorrelation" : [0.5, 0.5],
-            "populationUnitID" : 1,
+            "num_inputs" : 50,
+            "population_unit_correlation" : [0.5, 0.5],
+            "population_unit_id" : 1,
             "jitter" : 0.01,	    
-            "modFile": "tmGlut"
+            "mod_file": "tmGlut"
         },
 
 	"Ctx_2" : {
@@ -19,16 +19,16 @@
             "end" : [3, 4.5],
             "frequency" : [5, 5],
             "conductance" : 0.5e-9,
-            "nInputs" : 50,
-            "populationUnitCorrelation" : [0.5, 0.5],
-            "populationUnitID" : 2,
+            "num_inputs" : 50,
+            "population_unit_correlation" : [0.5, 0.5],
+            "population_unit_id" : 2,
             "jitter" : 0.01,	    
-            "modFile": "tmGlut"
+            "mod_file": "tmGlut"
         },
 
-	"VirtualNeuron" : {
-            "spikeFile": "virtual_input_spikes.txt",
-            "rowMappingFile": "virtual_input_mapping.txt"
+	"virtual_neuron" : {
+            "spike_file": "virtual_input_spikes.txt",
+            "row_mapping_file": "virtual_input_mapping.txt"
 	}		
     },
 
@@ -39,11 +39,11 @@
             "end" : [1.5, 4.5],
             "frequency" : [25, 25],
             "conductance" : 0.5e-9,
-            "nInputs" : 50,
-            "populationUnitCorrelation" : [0.5, 0.5],
-            "populationUnitID" : 1,	    
+            "num_inputs" : 50,
+            "population_unit_correlation" : [0.5, 0.5],
+            "population_unit_id" : 1,	    
             "jitter" : 0.01,	    
-            "modFile": "tmGlut"
+            "mod_file": "tmGlut"
         },
 
         "Ctx_2" : {
@@ -52,16 +52,16 @@
             "end" : [3, 4.5],
             "frequency" : [5, 5],
             "conductance" : 0.5e-9,
-            "nInputs" : 50,
-            "populationUnitCorrelation" : [0.5, 0.5],
-            "populationUnitID" : 2,	    
+            "num_inputs" : 50,
+            "population_unit_correlation" : [0.5, 0.5],
+            "population_unit_id" : 2,	    
             "jitter" : 0.01,	    
-            "modFile": "tmGlut"
+            "mod_file": "tmGlut"
         },
 
-	"VirtualNeuron" : {
-            "spikeFile": "virtual_input_spikes.txt",
-            "rowMappingFile": "virtual_input_mapping.txt"
+	"virtual_neuron" : {
+            "spike_file": "virtual_input_spikes.txt",
+            "row_mapping_file": "virtual_input_mapping.txt"
 	}
     }
 
