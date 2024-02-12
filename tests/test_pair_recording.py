@@ -15,7 +15,8 @@ class PairRecordingTestCase(unittest.TestCase):
             os.chdir(os.path.dirname(__file__))
 
         # Temporarily disable the creation of network while testing...
-        # return
+        print("test_pair_recoring.py -- Network creation disabled -- we need to retune or verify the if_info.json files before running")
+        return
 
         self.network_path = os.path.join("networks", "pair_recording_test")
         rc = None
@@ -51,7 +52,7 @@ class PairRecordingTestCase(unittest.TestCase):
 
     def test_frequency(self):
 
-        return
+        print("test_pair_recording.py -- This UNIT test is not currently active.")
 
         # TODO: TEMP line, this is normally done in setUp... remove later
         self.network_path = os.path.join("networks", "pair_recording_test")
