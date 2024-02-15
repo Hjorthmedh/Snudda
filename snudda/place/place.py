@@ -701,7 +701,7 @@ class SnuddaPlace(object):
             raise KeyError("No 'projection' entry in the projection config!")
         
         proj_cfg = proj_info["projection"]
-        if "file" in proj_cfg and \
+        if "projection_file" in proj_cfg and \
             ("source" in proj_cfg or \
            "destination" in proj_cfg):
            raise NotImplementedError("Projections should specify either a file or a mapping!")
@@ -711,8 +711,8 @@ class SnuddaPlace(object):
             source = np.array(proj_cfg["source"])*1e-6
             destination = np.array(proj_cfg["destination"])*1e-6
 
-        elif "file" in proj_cfg :
-            with open(proj_cfg["file"], 'r') as f:
+        elif "projection_file" in proj_cfg :
+            with open(proj_cfg["projection_file"], 'r') as f:
                 proj_file_data = json.load(f)
             source = np.array(proj_file_data["source"])*1e-6
             destination = np.array(proj_file_data["destination"])*1e-6
@@ -726,8 +726,8 @@ class SnuddaPlace(object):
             rotation = np.array(rotation_cfg["rotation"])
             rot_position = destination
         
-        elif "file" in rotation_cfg:
-            with open(rotation_cfg["file"], 'r') as f:
+        elif "rotation_file" in rotation_cfg:
+            with open(rotation_cfg["rotation_file"], 'r') as f:
                 rotation_data = json.load(f)
             rotation = np.array(rotation_data["rotation"])
             rot_position = np.array(rotation_data["position"])*1e-6
