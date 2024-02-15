@@ -6,6 +6,7 @@
 
 import os
 import json
+from copy import deepcopy
 from snudda.utils import snudda_parse_path
 from snudda.utils import NumpyEncoder
 
@@ -19,16 +20,20 @@ class ConfigParser:
         self.snudda_data = snudda_data
         self.config_data = {}
 
-        self.exclude_parse_keys = ["parameter_file", "projection_file", "rotation_file"]
+        self.exclude_parse_keys = ["parameter_file", "projection_file", "rotation_file", "rotation_field_file"]
         self.exclude_parse_values = ["parameters.json", "mechanisms.json", "modulation.json", "meta.json"]
 
         if path is not None and parse:
             self.load()
 
     def load(self):
+        print(f"Loading {self.path}")
+
         if os.path.isfile(self.path):
             with open(self.path) as f:
                 self.config_data = json.load(f)
+        else:
+            print(f"File not found!")
 
         if self.snudda_data is None:
             if "meta" in self.config_data and "snudda_data" in self.config_data["meta"]:
@@ -38,33 +43,64 @@ class ConfigParser:
 
         self.config_data = self.parse_subtree(self.config_data)
 
+    def substitute_json(self, putative_file):
+
+        if not (isinstance(putative_file, str) and putative_file.endswith(".json")):
+            return putative_file
+
+        putative_path = snudda_parse_path(putative_file, snudda_data=self.snudda_data)
+        if not os.path.isfile(putative_path):
+            raise ValueError(f"File not found {putative_path}")
+
+        # This allows us to exclude parsing of certain json files
+        if os.path.basename(putative_path) in self.exclude_parse_values:
+            return putative_file
+
+        with open(putative_path) as f:
+            print(f"Loading {putative_path}")
+            sub_tree = json.load(f)
+
+        sub_tree = self.parse_subtree(sub_tree)
+
+        return sub_tree
+
     def parse_subtree(self, config_dict):
+
+        updated_config = deepcopy(config_dict)
 
         for key, value in config_dict.items():
 
             if key in self.exclude_parse_keys:
                 continue
 
-            if isinstance(value, str) and value.endswith(".json"):
-                putative_path = snudda_parse_path(value, snudda_data=self.snudda_data)
-                if os.path.isfile(putative_path):
+            # Keys beginning with ! are excluded
+            elif key[0] == "!":
+                del updated_config[key]
 
-                    # This allows us to exclude parsing of certain json files
-                    if os.path.basename(putative_path) in self.exclude_parse_values:
-                        continue
+            elif isinstance(value, dict):
+                updated_config[key] = self.parse_subtree(value)
 
-                    with open(putative_path) as f:
-                        sub_tree = json.load(f)
+            elif isinstance(value, list):
+                updated_config[key] = [self.substitute_json(x) for x in value]
 
-                    config_dict[key] = self.parse_subtree(sub_tree)
+            else:
+                updated_config[key] = self.substitute_json(value)
 
-        return config_dict
+        return updated_config
 
     def write_config(self, output_path=None):
 
         with open(output_path, "wt") as f:
             json.dump(self.config_data, f, indent=4, cls=NumpyEncoder)
 
-        pass
 
+if __name__ == "__main__":
 
+    config_path = "/home/hjorth/HBP/BasalGangliaData/data/connectivity/network.json"
+
+    conf = ConfigParser(path=config_path, snudda_data="/home/hjorth/HBP/BasalGangliaData/data")
+    conf.parse_config()
+    conf.write_config("test.json")
+
+    # import pdb
+    # pdb.set_trace()
