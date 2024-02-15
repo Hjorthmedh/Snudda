@@ -2083,7 +2083,7 @@ class SnuddaDetect(object):
 
             if "axon_density" in definition:
 
-                # We need to do this so we can apply the axon densities below
+                # We need to do this so that we can apply the axon densities below
                 self.prototype_neurons[name].instantiate()
 
                 self.write_log("Setting axon density for neuron without axon")
@@ -2329,8 +2329,6 @@ class SnuddaDetect(object):
         else:
             morphology_path = None  # Get morpholog automatically from morphology_key
 
-        # print(f"morphology_path = {morphology_path}")
-
         # Clone prototype neuron (it is centred, and not rotated)
         neuron = self.prototype_neurons[neuron_info["name"]].clone(parameter_key=neuron_info["parameter_key"],
                                                                    morphology_key=neuron_info["morphology_key"],
@@ -2338,6 +2336,17 @@ class SnuddaDetect(object):
                                                                    rotation=neuron_info["rotation"],
                                                                    position=neuron_info["position"],
                                                                    morphology_path=morphology_path)
+
+        if "axon_density" in neuron_info and neuron_info["axon_density"] is not None:
+            if neuron_info["axon_density_type"] == "r":
+                neuron.set_axon_voxel_radial_density(neuron_info["axon_density"],
+                                                     neuron_info["axon_density_radius"])
+            elif neuron_info["axon_density_type"] == "xyz":
+                neuron.set_axon_voxel_xyz_density(neuron_info["axon_density"],
+                                                  neuron_info["axon_density_bounds_xyz"])
+
+            else:
+                raise ValueError(f"Unknown axon density: {neuron_info['axon_density_type']}")
 
         if "extra_axons" in neuron_info:
             for axon_name, axon_info in neuron_info["extra_axons"].items():
