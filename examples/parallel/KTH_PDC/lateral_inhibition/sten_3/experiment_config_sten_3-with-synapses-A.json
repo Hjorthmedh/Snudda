@@ -1,8 +1,8 @@
 {
     "network_file": "../networks/sten_3/network-synapses.hdf5",
     "input_file": "../networks/sten_3/input-spikes.hdf5",
-    "output_file": "../networks/sten_3/simulation/output-with-synapses-sten_1-A.hdf5",
-    "log_file": "../networks/sten_3/log/network-simulation-with-synapses-log-1A.txt",
+    "output_file": "../networks/sten_3/simulation/output-with-synapses-sten_3-A.hdf5",
+    "log_file": "../networks/sten_3/log/network-simulation-with-synapses-log-3A.txt",
     "sample_dt": 0.01,
     "time": 18.0,
     "record_all_soma": true,

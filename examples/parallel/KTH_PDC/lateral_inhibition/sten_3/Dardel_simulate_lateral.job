@@ -6,9 +6,11 @@
 #SBATCH --time-min=6:59:00
 #SBATCH -J Simulate
 #SBATCH -A naiss2023-5-231
-#SBATCH --nodes=10-16
-#SBATCH --tasks-per-node=128
+#SBATCH --nodes=60
+#SBATCH --tasks-per-node=45
 #SBATCH --mail-type=ALL
+
+# 2024-02-16: 40 nodes worked, had 28% free... trying increasing to 45 nodes
 
 # You need to point this as the directory where you created the network in
 #NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k
@@ -41,8 +43,8 @@ else
 fi
 
 
-# NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
-NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses-minimal.hdf5
+NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
+# NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses-minimal.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 # NETWORK_VOLTAGE_FILE=$NETWORK_DIR/simulation/voltage-trace-${SLURM_JOBID}.txt
 
