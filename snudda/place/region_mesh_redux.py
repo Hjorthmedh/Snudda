@@ -222,6 +222,9 @@ class NeuronPlacer:
             sorted_counts = counts[sort_idx]
 
             first_pair = np.argmax(sorted_counts == 1)
+            if sorted_counts[first_pair] != 1:
+                first_pair = len(sorted_counts) - 1  # Basically use remove_fraction_idx
+
             remove_fraction_idx = int(np.ceil(remove_fraction*len(sorted_offenders)))
             remove_idx = sorted_offenders[:min(first_pair, remove_fraction_idx)]
 
