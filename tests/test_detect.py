@@ -1,7 +1,6 @@
 import os
 import sys
 import unittest
-
 import numpy as np
 
 from snudda.detect.detect import SnuddaDetect

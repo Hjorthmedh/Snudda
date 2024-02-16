@@ -100,8 +100,8 @@ if __name__ == "__main__":
     from argparse import ArgumentParser
 
     parser = ArgumentParser(description="Export ERODED connection matrix to CSV file")
-    parser.add_argument("inFile", help="Snudda HDF5 file with network")
-    parser.add_argument("outFile", help="CSV output file")
+    parser.add_argument("in_file", help="Snudda HDF5 file with network")
+    parser.add_argument("out_file", help="CSV output file")
     parser.add_argument("fraction", help="Fraction of connections kept", type=float)
     parser.add_argument("--full", action="store_false", dest="sparse")
     parser.add_argument("--permute", action="store_true")
@@ -111,6 +111,6 @@ if __name__ == "__main__":
                         default="types")
     args = parser.parse_args()
 
-    s = SnuddaExportErodedConnectionMatrix(args.inFile, args.outFile, save_sparse=args.sparse,
+    s = SnuddaExportErodedConnectionMatrix(args.in_file, args.out_file, save_sparse=args.sparse,
                                            fraction_kept=args.fraction, permute=args.permute,
                                            permute_type=args.permutation_type)

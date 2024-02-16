@@ -24,7 +24,7 @@ class SnuddaAnalyseTopologyActivity:
 
     def load_mapping_file(self, data_key):
 
-        network_file = SnuddaLoad.to_str(self.simulation_data[data_key].network_simulation_file["metaData"]["networkFile"][()])
+        network_file = SnuddaLoad.to_str(self.simulation_data[data_key].network_simulation_file["meta_data"]["network_file"][()])
         mapping_file = f"{network_file}-remapping.txt"
 
         self.mapping_list[data_key] = np.genfromtxt(mapping_file, delimiter=',', dtype=int)

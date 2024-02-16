@@ -71,19 +71,19 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         for orig_neuron, updated_neuron in zip(self.original_network_loader.data["neurons"],
                                                self.updated_network_loader.data["neurons"]):
 
-            assert orig_neuron["neuronID"] == updated_neuron["neuronID"], f"Internal error, neuron ID mismatch"
+            assert orig_neuron["neuron_id"] == updated_neuron["neuron_id"], f"Internal error, neuron ID mismatch"
 
             assert orig_neuron["name"] == updated_neuron["name"], \
-                (f"Name mismatch for neuron {orig_neuron['neuronID']}: {orig_neuron['name']} {updated_neuron['name']}"
+                (f"Name mismatch for neuron {orig_neuron['neuron_id']}: {orig_neuron['name']} {updated_neuron['name']}"
                  f"\nDid you use the same random seed when calling init to generate the networks?")
 
             assert (orig_neuron["position"] == updated_neuron["position"]).all(), \
-                (f"Position mismatch for neuron {orig_neuron['neuronID']}: "
+                (f"Position mismatch for neuron {orig_neuron['neuron_id']}: "
                  f"{orig_neuron['position']} {updated_neuron['position']}"
                  f"\nDid you use the same random seed when calling init to generate the networks?")
 
             assert (orig_neuron["rotation"] == updated_neuron["rotation"]).all(), \
-                (f"Position mismatch for neuron {orig_neuron['neuronID']}: " 
+                (f"Position mismatch for neuron {orig_neuron['neuron_id']}: " 
                  f"{orig_neuron['rotation']} {updated_neuron['rotation']}"
                  f"\nDid you use the same random seed when calling init to generate the networks?")
 
@@ -92,20 +92,20 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         type_lookup = self.updated_network_loader.get_neuron_types()
         degeneration_recovery = dict()
 
-        for conf_key, conf_info in network_config["Connectivity"].items():
+        for conf_key, conf_info in network_config["connectivity"].items():
             pre_type, post_type = conf_key.split(",")
 
             for con_type, con_info in conf_info.items():
                 try:
-                    channel_model_id = con_info["channelModelID"]
+                    channel_model_id = con_info["channel_model_id"]
                 except:
                     import traceback
                     print(traceback.format_exc())
                     import pdb
                     pdb.set_trace()
 
-                if "degenerationRecovery" in con_info["pruning"]:
-                    degeneration_recovery[pre_type, post_type, channel_model_id] = con_info["pruning"]["degenerationRecovery"]
+                if "degeneration_recovery" in con_info["pruning"]:
+                    degeneration_recovery[pre_type, post_type, channel_model_id] = con_info["pruning"]["degeneration_recovery"]
 
         return degeneration_recovery, type_lookup
 
@@ -113,14 +113,14 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
         # Calculate coordinate remapping for updated synapses
 
-        voxel_size = self.updated_network_loader.data["voxelSize"]
-        assert voxel_size == self.original_network_loader.data["voxelSize"], f"Voxel size mismatch between networks"
+        voxel_size = self.updated_network_loader.data["voxel_size"]
+        assert voxel_size == self.original_network_loader.data["voxel_size"], f"Voxel size mismatch between networks"
 
         if synapse_distance_treshold is None:
             synapse_distance_treshold = 1.2*(3 * voxel_size ** 2) ** 0.5  # 5.2e-6, maximal mismatch due to moving origos, actually 5.4 micrometers
 
-        orig_sim_origo = self.original_network_loader.data["simulationOrigo"]
-        updated_sim_origo = self.updated_network_loader.data["simulationOrigo"]
+        orig_sim_origo = self.original_network_loader.data["simulation_origo"]
+        updated_sim_origo = self.updated_network_loader.data["simulation_origo"]
 
         origo_diff = updated_sim_origo - orig_sim_origo
         voxel_transform = np.round(origo_diff / voxel_size)
@@ -166,7 +166,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
                                       > soma.radie + synapse_distance_treshold)
             keep_mask[post_idx[np.where(syn_mask)[0]]] = True
 
-            if self.updated_network_loader.data["neurons"][nid]["axonDensity"] is None:
+            if self.updated_network_loader.data["neurons"][nid]["axon_density"] is None:
                 try:
                     axon_kd_tree = self.get_kd_tree(morph, "axon", kd_tree_cache=self.old_kd_tree_cache)
                     synapse_axon_dist, _ = axon_kd_tree.query(pre_coords)
@@ -275,11 +275,11 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         self.new_hdf5["network"].create_dataset("synapses", data=pruned_synapses, compression="lzf")
 
         num_synapses = np.zeros((1,), dtype=np.uint64)
-        self.new_hdf5["network"].create_dataset("nSynapses", data=pruned_synapses.shape[0], dtype=np.uint64)
+        self.new_hdf5["network"].create_dataset("num_synapses", data=pruned_synapses.shape[0], dtype=np.uint64)
 
-        print(f"Keeping {self.new_hdf5['network/nSynapses'][()]} "
-              f"out of {self.old_hdf5['network/nSynapses'][()]} synapses "
-              f"({self.new_hdf5['network/nSynapses'][()] / self.old_hdf5['network/nSynapses'][()]*100:.3f} %)")
+        print(f"Keeping {self.new_hdf5['network/num_synapses'][()]} "
+              f"out of {self.old_hdf5['network/num_synapses'][()]} synapses "
+              f"({self.new_hdf5['network/num_synapses'][()] / self.old_hdf5['network/num_synapses'][()]*100:.3f} %)")
 
     def post_degeneration_pruning(self, synapses, old_synapse_iterator, network_config, rng):
 
@@ -300,9 +300,9 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
         type_lookup = self.updated_network_loader.get_neuron_types()
         mu2_lookup = dict()
-        n_neurons = self.updated_network_loader.data["nNeurons"]
+        n_neurons = self.updated_network_loader.data["num_neurons"]
 
-        for conf_key, conf_info in network_config["Connectivity"].items():
+        for conf_key, conf_info in network_config["connectivity"].items():
             pre_type, post_type = conf_key.split(",")
 
             if pre_type not in mu2_lookup:
@@ -313,7 +313,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
 
             for con_type, con_info in conf_info.items():
 
-                channel_model_id = con_info["channelModelID"]
+                channel_model_id = con_info["channel_model_id"]
 
                 # OBS, this does not take into account population units. Neurons belonging to different population unit
                 # can have a different mu2, but we have never used that option.
@@ -331,10 +331,19 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             post_id = synapse_set[0, 1]
             channel_model_id = synapse_set[0, 6]
 
-            assert (synapse_set[:, 0] == pre_id).all()
-            assert (synapse_set[:, 1] == post_id).all()
-            assert (synapse_set[:, 6] == channel_model_id).all(), \
-                f"Code is written with assumption that all synapses between a pair of neurons are of the same type"
+            try:
+                assert (synapse_set[:, 0] == pre_id).all()
+                assert (synapse_set[:, 1] == post_id).all()
+                assert (synapse_set[:, 6] == channel_model_id).all(), \
+                    f"Code is written with assumption that all synapses between a pair of neurons are of the same type"
+            except:
+                print(f"Synapse set between: {self.original_network_loader.data['neurons'][pre_id]} and {self.original_network_loader.data['neurons'][post_id]}")
+                print(f"{synapse_set}")
+                print(f"Possible error: You used GapJunction instead of gap_junction for FS-FS connectivity in network json file")
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
 
             if old_synapse_set is not None:
                 old_pre_id = old_synapse_set[0, 0]

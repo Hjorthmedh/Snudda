@@ -114,7 +114,7 @@ class PlotTraces:
 
         if trace_id is None:
             if self.network_info:
-                trace_id = [x["neuronID"] for x in self.network_info.data["neurons"]]
+                trace_id = [x["neuron_id"] for x in self.network_info.data["neurons"]]
             else:
                 trace_id = [x for x in self.voltage]
         elif isinstance(trace_id, (int, np.integer)):
@@ -134,7 +134,7 @@ class PlotTraces:
 
         if self.network_info is not None:
             cell_types = [n["type"] for n in self.network_info.data["neurons"]]
-            cell_id_check = [n["neuronID"] for n in self.network_info.data["neurons"]]
+            cell_id_check = [n["neuron_id"] for n in self.network_info.data["neurons"]]
             try:
                 assert (np.array([cell_id_check[x] == x for x in trace_id])).all(), \
                     "Internal error, assume IDs ordered"
@@ -166,7 +166,7 @@ class PlotTraces:
         for r in trace_id:
 
             if r not in self.voltage:
-                if self.network_info is not None and self.network_info.data["neurons"][r]["virtualNeuron"]:
+                if self.network_info is not None and self.network_info.data["neurons"][r]["virtual_neuron"]:
                     # It was a virtual neuron that lacked voltage, skip warning
                     continue
 
@@ -174,7 +174,7 @@ class PlotTraces:
                 continue
 
             plot_count += 1
-            types_in_plot.add(self.output_load.network_simulation_file["metaData"]["type"][r].decode())
+            types_in_plot.add(self.output_load.network_simulation_file["meta_data"]["type"][r].decode())
 
             if colours is None or self.network_info is None:
                 colour = "black"
@@ -216,7 +216,11 @@ class PlotTraces:
 
             if mark_spikes:
                 spike_times = self.output_load.get_spikes(neuron_id=r).flatten()
-                plt.plot(spike_times, np.full(spike_times.shape, fill_value=offset), 'r*')
+                if time_range is None:
+                   plt.plot(spike_times-skip_time, np.full(spike_times.shape, fill_value=offset), 'r*')
+                else:
+                    s_idx = np.where(np.logical_and(time_range[0] <= spike_times, spike_times <= time_range[1]))[0]
+                    plt.plot(spike_times[s_idx], np.full(s_idx.shape, fill_value=offset), 'r*')
 
             if offset:
                 ofs += offset
@@ -314,7 +318,7 @@ class PlotTraces:
 
         if not trace_id:
             if self.network_info:
-                trace_id = [x["neuronID"] for x in self.network_info.data["neurons"]]
+                trace_id = [x["neuron_id"] for x in self.network_info.data["neurons"]]
             else:
                 trace_id = [x for x in self.voltage]
         elif isinstance(trace_id, (int, np.integer)):
@@ -334,7 +338,7 @@ class PlotTraces:
 
         if self.network_info is not None:
             cell_types = [n["type"] for n in self.network_info.data["neurons"]]
-            cell_id_check = [n["neuronID"] for n in self.network_info.data["neurons"]]
+            cell_id_check = [n["neuron_id"] for n in self.network_info.data["neurons"]]
             try:
                 assert (np.array([cell_id_check[x] == x for x in trace_id])).all(), \
                     "Internal error, assume IDs ordered"

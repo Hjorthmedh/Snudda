@@ -187,8 +187,8 @@ class SnuddaPlotInputLocations:
             if input_type and input_name != input_type:
                 continue
 
-            section_id = section_id + list(self.input_data["input"][str(neuron_id)][input_name].attrs["sectionID"])
-            section_x = section_x + list(self.input_data["input"][str(neuron_id)][input_name].attrs["sectionX"])
+            section_id = section_id + list(self.input_data["input"][str(neuron_id)][input_name].attrs["section_id"])
+            section_x = section_x + list(self.input_data["input"][str(neuron_id)][input_name].attrs["section_x"])
 
         return np.array(section_id), np.array(section_x)
 
@@ -197,7 +197,7 @@ class SnuddaPlotInputLocations:
         distance_to_soma = []
 
         if input_name in self.input_data["input"][str(neuron_id)]:
-            distance_to_soma += list(self.input_data["input"][str(neuron_id)][input_name].attrs["distanceToSoma"])
+            distance_to_soma += list(self.input_data["input"][str(neuron_id)][input_name].attrs["distance_to_soma"])
 
         return np.array(distance_to_soma)
 
@@ -253,9 +253,9 @@ class SnuddaPlotInputLocations:
         plt.ylabel("Normalised total density")
 
         if neuron_type in self.input_config and input_name in self.input_config[neuron_type] \
-                and "synapseDensity" in self.input_config[neuron_type][input_name]:
+                and "synapse_density" in self.input_config[neuron_type][input_name]:
 
-            synapse_density = self.input_config[neuron_type][input_name]["synapseDensity"]
+            synapse_density = self.input_config[neuron_type][input_name]["synapse_density"]
             d = np.linspace(0, max_dist, n_bins)
 
             synapse_density = numexpr.evaluate(synapse_density)
@@ -357,7 +357,7 @@ class SnuddaPlotInputLocations:
         if neuron_id not in self.neuron_cache:
             neuron_info = self.snudda_load.data["neurons"][neuron_id]
 
-            prot = NeuronPrototype(neuron_path=neuron_info["neuronPath"], neuron_name=neuron_info["name"],
+            prot = NeuronPrototype(neuron_path=neuron_info["neuron_path"], neuron_name=neuron_info["name"],
                                    snudda_data=self.snudda_data)
 
             if self.plot_in_origo:
@@ -367,7 +367,7 @@ class SnuddaPlotInputLocations:
                 position = neuron_info["position"]
                 rotation = neuron_info["rotation"]
 
-            nm = prot.clone(parameter_key=neuron_info["parameterKey"], morphology_key=neuron_info["morphologyKey"],
+            nm = prot.clone(parameter_key=neuron_info["parameter_key"], morphology_key=neuron_info["morphology_key"],
                             position=position, rotation=rotation)
             self.neuron_cache[neuron_id] = nm
 

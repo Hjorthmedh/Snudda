@@ -70,7 +70,7 @@ class SnuddaExportConnectionMatrix(object):
 
         """ Creates the connection matrix from the synapse matrix data. """
 
-        num_neurons = self.sl.data["nNeurons"]
+        num_neurons = self.sl.data["num_neurons"]
 
         con_mat = np.zeros((num_neurons, num_neurons), dtype=int)
         cnt = 0
@@ -92,7 +92,7 @@ class SnuddaExportConnectionMatrix(object):
         con_mat[pre, post] += cnt
         cnt = 0
 
-        assert np.sum(np.sum(con_mat)) == self.sl.data["nSynapses"], \
+        assert np.sum(np.sum(con_mat)) == self.sl.data["num_synapses"], \
             "Synapse numbers in connection matrix does not match"
 
         return con_mat

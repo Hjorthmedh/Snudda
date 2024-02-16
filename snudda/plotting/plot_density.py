@@ -25,7 +25,7 @@ class PlotDensity(object):
 
         p_axis = {"x": 0, "y": 1, "z": 2}
         assert plot_axis in p_axis, f"plot_axis must be one of {', '.join(p_axis.keys())}"
-        neuron_pos = self.sl.data["neuronPositions"]
+        neuron_pos = self.sl.data["neuron_positions"]
         cell_id = self.sl.get_neuron_id_of_type(neuron_type)
 
         fig = plt.figure()

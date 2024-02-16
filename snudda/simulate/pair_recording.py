@@ -50,9 +50,9 @@ class PairRecording(SnuddaSimulate):
         self.experiment_config = self.read_experiment_config(experiment_config_file=experiment_config_file)
 
         if output_file is None:
-            if "pairRecordingOutputFile" in self.experiment_config["meta"].keys():
+            if "pair_recording_output_file" in self.experiment_config["meta"].keys():
                 output_file = os.path.join(network_path, "simulation",
-                                           self.experiment_config["meta"]["pairRecordingOutputFile"])
+                                           self.experiment_config["meta"]["pair_recording_output_file"])
             else:
                 output_file = os.path.join(network_path, "simulation", "output.hdf5")
 
@@ -93,15 +93,15 @@ class PairRecording(SnuddaSimulate):
 
         """ Parses the experimental config file, updating the simulation as needed. """
 
-        if "neuronSubset" in self.experiment_config["meta"]:
-            neuron_subset = self.experiment_config["meta"]["neuronSubset"]
+        if "neuron_subset" in self.experiment_config["meta"]:
+            neuron_subset = self.experiment_config["meta"]["neuron_subset"]
         else:
             neuron_subset = "all"  # "prepost"
 
         self.set_neurons_to_simulate(neuron_subset)
 
-        if "recordSynapticCurrent" in self.experiment_config:
-            syn_cur_record = self.experiment_config["recordSynapticCurrent"]
+        if "record_synaptic_current" in self.experiment_config:
+            syn_cur_record = self.experiment_config["record_synaptic_current"]
 
             for pre_id, post_id in syn_cur_record:
                 self.write_log(f"Marking synapses for recording: {pre_id} -> {post_id}")
@@ -110,31 +110,31 @@ class PairRecording(SnuddaSimulate):
         # Setup the network given in network_config
         super().setup()
 
-        self.sim_duration = self.experiment_config["meta"]["simulationDuration"]
+        self.sim_duration = self.experiment_config["meta"]["simulation_duration"]
 
         if self.output_file is None:
-            if "pairRecordingOutputFile" in self.experiment_config["meta"]:
+            if "pair_recording_output_file" in self.experiment_config["meta"]:
                 self.output_file = os.path.join(self.network_path, "simulation",
-                                                self.experiment_config["meta"]["pairRecordingOutputFile"])
+                                                self.experiment_config["meta"]["pair_recording_output_file"])
                 self.record.set_new_output_file(self.output_file)
 
         # Setup v_init for each neuron_id specified
-        if "vInit" in self.experiment_config["meta"]:
+        if "v_init" in self.experiment_config["meta"]:
 
-            if type(self.experiment_config["meta"]["vInit"]) == list:
-                neuron_id, v_init = zip(*self.experiment_config["meta"]["vInit"])
+            if type(self.experiment_config["meta"]["v_init"]) == list:
+                neuron_id, v_init = zip(*self.experiment_config["meta"]["v_init"])
             else:
                 neuron_id = None
-                v_init = self.experiment_config["meta"]["vInit"]
+                v_init = self.experiment_config["meta"]["v_init"]
 
             self.set_v_init(neuron_id=neuron_id, v_init=v_init)
 
-        if "vHold" in self.experiment_config["meta"]:
-            if type(self.experiment_config["meta"]["vHold"]) == list:
-                neuron_id, v_hold = zip(*self.experiment_config["meta"]["vHold"])
+        if "v_hold" in self.experiment_config["meta"]:
+            if type(self.experiment_config["meta"]["v_hold"]) == list:
+                neuron_id, v_hold = zip(*self.experiment_config["meta"]["v_hold"])
             else:
                 neuron_id = None
-                v_hold = self.experiment_config["meta"]["vHold"]
+                v_hold = self.experiment_config["meta"]["v_hold"]
 
             self.set_v_hold(neuron_id=neuron_id, v_hold=v_hold)
 
@@ -143,8 +143,8 @@ class PairRecording(SnuddaSimulate):
                 self.set_channel_rev(channel_name=channel_name, v_rev=v_rev)
 
         # Iterate over current injections
-        for cur_info in self.experiment_config["currentInjection"]:
-            stim_neuron_id = self.to_list(cur_info["neuronID"])
+        for cur_info in self.experiment_config["current_injection"]:
+            stim_neuron_id = self.to_list(cur_info["neuron_id"])
             stim_start_time = self.to_list(cur_info["start"])
             stim_end_time = self.to_list(cur_info["end"])
 
@@ -157,8 +157,8 @@ class PairRecording(SnuddaSimulate):
 
                 if "amplitude" in cur_info:
                     stim_amplitude = self.to_list(cur_info["amplitude"])
-                elif "requestedFrequency" in cur_info:
-                    requested_freq = self.to_list(cur_info["requestedFrequency"])
+                elif "requested_frequency" in cur_info:
+                    requested_freq = self.to_list(cur_info["requested_frequency"])
                     stim_amplitude = self.get_corresponding_current_injection(neuron_id=nid,
                                                                               frequency=requested_freq)
 
@@ -204,9 +204,9 @@ class PairRecording(SnuddaSimulate):
 
         """ Extracts what current injection is needed to get requested frequency from if_info.json """
 
-        if_file = os.path.join(self.network_info["neurons"][neuron_id]["neuronPath"], "if_info.json")
-        parameter_key = self.network_info["neurons"][neuron_id]["parameterKey"]
-        morphology_key = self.network_info["neurons"][neuron_id]["morphologyKey"]
+        if_file = os.path.join(self.network_info["neurons"][neuron_id]["neuron_path"], "if_info.json")
+        parameter_key = self.network_info["neurons"][neuron_id]["parameter_key"]
+        morphology_key = self.network_info["neurons"][neuron_id]["morphology_key"]
 
         assert os.path.isfile(if_file), f"Unable determine current to get frequency {frequency}, needs {if_file}"
 
@@ -364,8 +364,8 @@ class PairRecording(SnuddaSimulate):
 
         elif selection.lower() == "prepost":
 
-            pre_id = set(sum([c["neuronID"] if type(c["neuronID"]) == list else [c["neuronID"]]
-                              for c in self.experiment_config["currentInjection"]], []))
+            pre_id = set(sum([c["neuron_id"] if type(c["neuron_id"]) == list else [c["neuron_id"]]
+                              for c in self.experiment_config["current_injection"]], []))
             sim_id = pre_id
 
             for pid in pre_id:
@@ -467,8 +467,8 @@ class PairRecording(SnuddaSimulate):
                trace_id (list, optional) : Trace ID to show (default None, meaning all post synaptic traces)
            """
 
-        for cur_info in self.experiment_config["currentInjection"]:
-            pre_id = cur_info["neuronID"]
+        for cur_info in self.experiment_config["current_injection"]:
+            pre_id = cur_info["neuron_id"]
             cur_start = self.to_list(cur_info["start"])
             cur_end = self.to_list(cur_info["end"])
             cur_times = list(zip(cur_start, cur_end))

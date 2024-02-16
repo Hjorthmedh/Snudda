@@ -105,7 +105,7 @@ class SnuddaLoadNetworkSimulation:
                     spike_data[int(nid)] = self.network_simulation_file[f"neurons/{nid}/spikes"][()].copy()
 
             # If all neuronID not represented, add empty
-            for nid in self.network_simulation_file["metaData/ID"]:
+            for nid in self.network_simulation_file["meta_data/id"]:
                 if nid not in spike_data:
                     spike_data[nid] = np.array([])
 
@@ -262,7 +262,7 @@ class SnuddaLoadNetworkSimulation:
                 print(f"Neuron {neuron_id} has depolarisation block from {t_start:.3f} s to {t_end:.3f} s")
 
         bad_cells = sorted(list(set([x for x, ts, te in depolarisation_block])))
-        bad_cell_str = [f"{x}: ({self.network_simulation_file['metaData/name'][x].decode()}, {self.network_simulation_file['metaData/parameterKey'][x].decode()}, {self.network_simulation_file['metaData/morphologyKey'][x].decode()})"
+        bad_cell_str = [f"{x}: ({self.network_simulation_file['meta_data/name'][x].decode()}, {self.network_simulation_file['meta_data/parameter_key'][x].decode()}, {self.network_simulation_file['meta_data/morphology_key'][x].decode()})"
                         for x in bad_cells]
         bad_str = '\n'.join(bad_cell_str)
 
@@ -316,36 +316,36 @@ class SnuddaLoadNetworkSimulation:
     def get_neuron_positions(self, neuron_id=None):
 
         if neuron_id is None:
-            pos_data = self.network_simulation_file["metaData/position"][()].copy()
+            pos_data = self.network_simulation_file["meta_data/position"][()].copy()
         else:
-            pos_data = self.network_simulation_file["metaData/position"][neuron_id, :].copy()
+            pos_data = self.network_simulation_file["meta_data/position"][neuron_id, :].copy()
 
         return pos_data
 
     def get_id_of_neuron_type(self, neuron_type=None):
 
         if neuron_type:
-            neuron_id = [x for x, y in zip(self.network_simulation_file["metaData/ID"][()],
-                                           self.network_simulation_file["metaData/type"][()])
+            neuron_id = [x for x, y in zip(self.network_simulation_file["meta_data/id"][()],
+                                           self.network_simulation_file["meta_data/type"][()])
                          if SnuddaLoad.to_str(y).lower() == neuron_type.lower()]
         else:
-            neuron_id = self.network_simulation_file["metaData/ID"][()].copy()
+            neuron_id = self.network_simulation_file["meta_data/id"][()].copy()
 
         return neuron_id
 
     def get_neuron_name(self, neuron_id=None):
         if neuron_id is not None:
-            neuron_name = [SnuddaLoad.to_str(self.network_simulation_file["metaData/name"][x]) for x in neuron_id]
+            neuron_name = [SnuddaLoad.to_str(self.network_simulation_file["meta_data/name"][x]) for x in neuron_id]
         else:
-            neuron_name = [SnuddaLoad.to_str(x) for x in self.network_simulation_file["metaData/name"][()]]
+            neuron_name = [SnuddaLoad.to_str(x) for x in self.network_simulation_file["meta_data/name"][()]]
 
         return neuron_name
 
     def get_neuron_type(self, neuron_id=None):
         if neuron_id is not None:
-            neuron_type = [SnuddaLoad.to_str(self.network_simulation_file["metaData/type"][x]) for x in neuron_id]
+            neuron_type = [SnuddaLoad.to_str(self.network_simulation_file["meta_data/type"][x]) for x in neuron_id]
         else:
-            neuron_type = [SnuddaLoad.to_str(x) for x in self.network_simulation_file["metaData/type"][()]]
+            neuron_type = [SnuddaLoad.to_str(x) for x in self.network_simulation_file["meta_data/type"][()]]
 
         return neuron_type
 
@@ -357,13 +357,13 @@ class SnuddaLoadNetworkSimulation:
             yield x
 
     def iter_neuron_id(self):
-        for x in self.network_simulation_file["metaData/ID"]:
+        for x in self.network_simulation_file["meta_data/id"]:
             yield x
 
     def get_neuron_keys(self, neuron_id):
-        param_key = self.network_simulation_file["metaData/parameterKey"][neuron_id]
-        morph_key = self.network_simulation_file["metaData/morphologyKey"][neuron_id]
-        mod_key = self.network_simulation_file["metaData/modulationKey"][neuron_id]
+        param_key = self.network_simulation_file["meta_data/parameter_key"][neuron_id]
+        morph_key = self.network_simulation_file["meta_data/morphology_key"][neuron_id]
+        mod_key = self.network_simulation_file["meta_data/modulation_key"][neuron_id]
 
         return param_key, morph_key, mod_key
 
@@ -389,16 +389,16 @@ class SnuddaLoadNetworkSimulation:
                 # Skip empty spike trains
                 if spike_train.size > 0:
                     f.write(f"{' '.join([f'{time_scale*x:.5f}' for x in spike_train.flatten()])}\n")
-                    fm.write(f"{nid}, {SnuddaLoad.to_str(self.network_simulation_file['metaData/name'][nid])}, "
-                             f"{self.network_simulation_file['metaData/populationUnit'][nid]}, "
-                             f"{','.join([str(x) for x in self.network_simulation_file['metaData/position'][nid,: ]])}\n")
+                    fm.write(f"{nid}, {SnuddaLoad.to_str(self.network_simulation_file['meta_data/name'][nid])}, "
+                             f"{self.network_simulation_file['meta_data/population_unit'][nid]}, "
+                             f"{','.join([str(x) for x in self.network_simulation_file['meta_data/position'][nid,: ]])}\n")
 
 
 def load_network_simulation_cli():
     from argparse import ArgumentParser
 
     parser = ArgumentParser(description="Load snudda activity data (spikes and or voltage)")
-    parser.add_argument("dataFile", help="Data file")
+    parser.add_argument("data_file", help="Data file")
     parser.add_argument("--export_spike_file", help="Name of csv file to export spikes to",
                         default=None)
     parser.add_argument("--time_scale", default=1.0, type=float)
@@ -406,7 +406,7 @@ def load_network_simulation_cli():
     parser.add_argument("--skip_test", help="Do tests on simulation data", action="store_true")
     args = parser.parse_args()
 
-    slna = SnuddaLoadNetworkSimulation(network_simulation_output_file=args.dataFile, verbose=args.verbose,
+    slna = SnuddaLoadNetworkSimulation(network_simulation_output_file=args.data_file, verbose=args.verbose,
                                        do_test=not args.skip_test)
 
     if args.export_spike_file is not None:

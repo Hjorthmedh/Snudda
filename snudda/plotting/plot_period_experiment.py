@@ -115,7 +115,7 @@ class PlotPeriodExperiment(SnuddaPlotSpikeRaster2):
         period_end = np.around(period_start + period, 8)
 
         n_periods = int(np.ceil(time[-1] / period))
-        spike_in_period = np.zeros((self.snudda_load.data["nNeurons"], n_periods))
+        spike_in_period = np.zeros((self.snudda_load.data["num_neurons"], n_periods))
 
         for neuron_id in self.snudda_load.get_neuron_id():
             spikes = self.snudda_simulation_load.get_spikes(neuron_id=neuron_id)

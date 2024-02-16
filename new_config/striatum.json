@@ -1,0 +1,27 @@
+{
+    "regions":
+    {
+	"Striatum": {
+	    "volume": {
+		"mesh_file": "mesh/stratium-mesh.obj",
+		"d_min": 1.5e-5,
+		"n_putative_points": 100000,
+		"random_seed": 123456,
+		"density": {
+		    "my_neuron": {
+			"density_function": "abs(x)"
+		    }
+		}
+		"neuron_orientation": {
+		    "my_neuron": {
+			"rotation_mode": "vector_field",
+			"rotation_field_file": "my_rotation_file.json"
+		    }
+		}
+	    },
+	    "neurons": ["dspn.json", "ispn.json", "fs.json", "chin.json", "lts.json"],
+	    "connectivity": ["striatum-connectivity.json"],
+	    "populations": ["pop1.json", "pop2.json"]
+	}
+    }
+}

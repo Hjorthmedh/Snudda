@@ -554,7 +554,7 @@ class OptimiseSynapsesFull(object):
         if n_synapses_override is not None:
             n_synapses = n_synapses_override
         else:
-            n_synapses = c_prop["nSynapses"]
+            n_synapses = c_prop["num_synapses"]
 
         if "holdingCurrent" in c_prop:
             holding_current = c_prop["holdingCurrent"]

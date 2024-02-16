@@ -30,13 +30,13 @@ class SnuddaRotate:
             self.config = json.load(f, object_pairs_hook=OrderedDict)
 
         # Parse the config
-        for volume_name in self.config["Volume"]:
-            if "neuronOrientation" in self.config["Volume"][volume_name]:
-                for neuron_type in self.config["Volume"][volume_name]["neuronOrientation"]:
+        for volume_name in self.config["volume"]:
+            if "neuron_orientation" in self.config["volume"][volume_name]:
+                for neuron_type in self.config["volume"][volume_name]["neuron_orientation"]:
 
-                    orientation_info = self.config["Volume"][volume_name]["neuronOrientation"][neuron_type]
-                    rotation_mode = orientation_info["rotationMode"]
-                    rotation_field_file = orientation_info["rotationFieldFile"] if "rotationFieldFile" \
+                    orientation_info = self.config["volume"][volume_name]["neuron_orientation"][neuron_type]
+                    rotation_mode = orientation_info["rotation_mode"]
+                    rotation_field_file = orientation_info["rotation_field_file"] if "rotation_field_file" \
                                                                                    in orientation_info else None
                     if rotation_field_file:
                         position, rotation = self.load_rotation_field(rotation_field_file, volume_name)
@@ -69,7 +69,7 @@ class SnuddaRotate:
             rotation_matrices = [self.rand_rotation_matrix(rand_nums=rng.random(size=(3,)))
                                  for x in range(0, neuron_positions.shape[0])]
 
-        elif "vectorField" in rotation_mode:
+        elif "vector_field" in rotation_mode:
             rotation_vectors = griddata(points=field_position,
                                         values=field_rotation,
                                         xi=neuron_positions, method="linear")
@@ -79,7 +79,7 @@ class SnuddaRotate:
                  f"is neuron position outside the field?\nNeuron positions: {neuron_positions}"
                  f" (must be inside convex hull of the field's positions points)")
 
-            if rotation_mode == "vectorFieldAndZ":
+            if rotation_mode == "vector_field_and_z":
                 rotation_matrices = [np.matmul(SnuddaRotate.rotation_matrix_from_vectors(np.array([0, 0, 1]), rv),
                                                self.random_z_rotate(rng))
                                      for rv in rotation_vectors]

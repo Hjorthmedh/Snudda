@@ -1,7 +1,7 @@
 # This code writes the input spikes for the NEURON simulation --
 #
 #
-# If nInputs is given then synapseDensity is scaled to give approximately
+# If num_inputs is given then synapse_density is scaled to give approximately
 # that total number of synapses, otherwise it is used without scaling.
 # see config/input-tinytest-v2.json for example config.
 #
@@ -179,13 +179,13 @@ class SnuddaInput(object):
         self.network_data = self.snudda_load.data
         self.neuron_info = self.network_data["neurons"]
 
-        self.network_config_file = self.network_data["configFile"]
-        self.position_file = self.network_data["positionFile"]
+        self.network_config_file = self.network_data["config_file"]
+        self.position_file = self.network_data["position_file"]
 
-        self.network_slurm_id = self.network_data["SlurmID"]
-        self.population_unit_id = self.network_data["populationUnit"]
+        self.network_slurm_id = self.network_data["slurm_id"]
+        self.population_unit_id = self.network_data["population_unit"]
 
-        self.neuron_id = [n["neuronID"] for n in self.network_data["neurons"]]
+        self.neuron_id = [n["neuron_id"] for n in self.network_data["neurons"]]
         self.neuron_name = [n["name"] for n in self.network_data["neurons"]]
         self.neuron_type = [n["type"] for n in self.network_data["neurons"]]
 
@@ -268,7 +268,7 @@ class SnuddaInput(object):
                                    f" (input_type was commented with ! before name)")
                     continue
 
-                if input_type.lower() != "VirtualNeuron".lower():
+                if input_type.lower() != "virtual_neuron".lower():
 
                     neuron_in = self.neuron_input[neuron_id][input_type]
 
@@ -280,11 +280,11 @@ class SnuddaInput(object):
 
                     it_group = nid_group.create_group(input_type)
                     spike_set = it_group.create_dataset("spikes", data=spike_mat, compression="gzip", dtype=np.float32)
-                    spike_set.attrs["nSpikes"] = num_spikes
+                    spike_set.attrs["num_spikes"] = num_spikes
 
-                    it_group.attrs["sectionID"] = neuron_in["location"][1].astype(np.int16)
-                    it_group.attrs["sectionX"] = neuron_in["location"][2].astype(np.float16)
-                    it_group.attrs["distanceToSoma"] = neuron_in["location"][3].astype(np.float16)
+                    it_group.attrs["section_id"] = neuron_in["location"][1].astype(np.int16)
+                    it_group.attrs["section_x"] = neuron_in["location"][2].astype(np.float16)
+                    it_group.attrs["distance_to_soma"] = neuron_in["location"][3].astype(np.float16)
 
                     if "freq" in neuron_in:
                         spike_set.attrs["freq"] = neuron_in["freq"]
@@ -295,8 +295,8 @@ class SnuddaInput(object):
                     if "jitter" in neuron_in and neuron_in["jitter"]:
                         spike_set.attrs["jitter"] = neuron_in["jitter"]
 
-                    if "synapseDensity" in neuron_in and neuron_in["synapseDensity"]:
-                        it_group.attrs["synapseDensity"] = neuron_in["synapseDensity"]
+                    if "synapse_density" in neuron_in and neuron_in["synapse_density"]:
+                        it_group.attrs["synapse_density"] = neuron_in["synapse_density"]
 
                     if "start" in neuron_in:
                         spike_set.attrs["start"] = neuron_in["start"]
@@ -306,9 +306,9 @@ class SnuddaInput(object):
 
                     it_group.attrs["conductance"] = neuron_in["conductance"]
 
-                    if "populationUnitID" in neuron_in:
-                        population_unit_id = int(neuron_in["populationUnitID"])
-                        it_group.attrs["populationUnitID"] = population_unit_id
+                    if "population_unit_id" in neuron_in:
+                        population_unit_id = int(neuron_in["population_unit_id"])
+                        it_group.attrs["population_unit_id"] = population_unit_id
                     else:
                         population_unit_id = None
 
@@ -320,24 +320,24 @@ class SnuddaInput(object):
                             and input_type in self.population_unit_spikes[neuron_type]:
                         chan_spikes = self.population_unit_spikes[neuron_type][input_type][population_unit_id]
 
-                        it_group.create_dataset("populationUnitSpikes", data=chan_spikes, compression="gzip",
+                        it_group.create_dataset("population_unit_spikes", data=chan_spikes, compression="gzip",
                                                 dtype=np.float32)
 
                     spike_set.attrs["generator"] = neuron_in["generator"]
 
-                    it_group.attrs["modFile"] = neuron_in["modFile"]
+                    it_group.attrs["mod_file"] = neuron_in["mod_file"]
 
-                    if "parameterFile" in neuron_in and neuron_in["parameterFile"]:
-                        it_group.attrs["parameterFile"] = neuron_in["parameterFile"]
+                    if "parameter_file" in neuron_in and neuron_in["parameter_file"]:
+                        it_group.attrs["parameter_file"] = neuron_in["parameter_file"]
 
                     # We need to convert this to string to be able to save it
-                    if "parameterList" in neuron_in and neuron_in["parameterList"] is not None:
+                    if "parameter_list" in neuron_in and neuron_in["parameter_list"] is not None:
                         # We only need to save the synapse parameters in the file
-                        syn_par_list = [x["synapse"] for x in neuron_in["parameterList"] if "synapse" in x]
+                        syn_par_list = [x["synapse"] for x in neuron_in["parameter_list"] if "synapse" in x]
                         if len(syn_par_list) > 0:
-                            it_group.attrs["parameterList"] = json.dumps(syn_par_list)
+                            it_group.attrs["parameter_list"] = json.dumps(syn_par_list)
 
-                    it_group.attrs["parameterID"] = neuron_in["parameterID"].astype(np.int32)
+                    it_group.attrs["parameter_id"] = neuron_in["parameter_id"].astype(np.int32)
 
                 else:
 
@@ -345,25 +345,25 @@ class SnuddaInput(object):
                     a_group = nid_group.create_group("activity")
 
                     try:
-                        if "spikeFile" in self.neuron_input[neuron_id][input_type]:
-                            spike_file = self.neuron_input[neuron_id][input_type]["spikeFile"]
+                        if "spike_file" in self.neuron_input[neuron_id][input_type]:
+                            spike_file = self.neuron_input[neuron_id][input_type]["spike_file"]
                     except:
                         import traceback
                         print(traceback.format_exc())
                         import pdb
                         pdb.set_trace()
 
-                    if "rowID" in self.neuron_input[neuron_id][input_type]:
-                        spike_row = self.neuron_input[neuron_id][input_type]["rowID"]
+                    if "row_id" in self.neuron_input[neuron_id][input_type]:
+                        spike_row = self.neuron_input[neuron_id][input_type]["row_id"]
                     else:
                         spike_row = None
 
                     if spike_row is None:
 
-                        if "rowMappingFile" in self.neuron_input[neuron_id][input_type]\
-                          and "rowMappingData" not in self.neuron_input[neuron_id][input_type]:
+                        if "row_mapping_file" in self.neuron_input[neuron_id][input_type]\
+                          and "row_mapping_data" not in self.neuron_input[neuron_id][input_type]:
 
-                            row_mapping_file = self.neuron_input[neuron_id][input_type]["rowMappingFile"]
+                            row_mapping_file = self.neuron_input[neuron_id][input_type]["row_mapping_file"]
                             row_mapping_data = np.loadtxt(row_mapping_file, dtype=int)
                             row_mapping = dict()
                             for nid, rowid in row_mapping_data:
@@ -372,15 +372,15 @@ class SnuddaInput(object):
                                 row_mapping[nid] = rowid
 
                             # Save row mapping so we dont have to generate it next iteration
-                            self.neuron_input[neuron_id][input_type]["rowMappingData"] = row_mapping
+                            self.neuron_input[neuron_id][input_type]["row_mapping_data"] = row_mapping
 
-                        if "rowMappingData" in self.neuron_input[neuron_id][input_type]\
-                            and neuron_id in self.neuron_input[neuron_id][input_type]["rowMappingData"]:
-                            spike_row = self.neuron_input[neuron_id][input_type]["rowMappingData"][neuron_id]
+                        if "row_mapping_data" in self.neuron_input[neuron_id][input_type]\
+                            and neuron_id in self.neuron_input[neuron_id][input_type]["row_mapping_data"]:
+                            spike_row = self.neuron_input[neuron_id][input_type]["row_mapping_data"][neuron_id]
                         else:
                             spike_row = neuron_id
 
-                    if "spikeData" not in self.neuron_input[neuron_id][input_type]:
+                    if "spike_data" not in self.neuron_input[neuron_id][input_type]:
                         float_pattern = re.compile(r'^[-+]?[0-9]*\.?[0-9]+$')
 
                         s_data = []
@@ -389,10 +389,10 @@ class SnuddaInput(object):
                                 s_data.append(np.array([float(x) for x in row.split(" ")
                                                         if len(x) > 0 and float_pattern.match(x)]))
 
-                        self.neuron_input[neuron_id][input_type]["spikeData"] = s_data
+                        self.neuron_input[neuron_id][input_type]["spike_data"] = s_data
 
                     try:
-                        spikes = self.neuron_input[neuron_id][input_type]["spikeData"][spike_row]
+                        spikes = self.neuron_input[neuron_id][input_type]["spike_data"][spike_row]
                     except:
                         import traceback
                         print(traceback.format_exc())
@@ -459,9 +459,9 @@ class SnuddaInput(object):
                 if "end" in self.input_info[neuron_type][input_type]:
                     max_time = max(max_time, np.max(self.input_info[neuron_type][input_type]["end"]))
 
-                if "parameterFile" in self.input_info[neuron_type][input_type]:
+                if "parameter_file" in self.input_info[neuron_type][input_type]:
                     # Allow user to use $DATA to refer to snudda data directory
-                    par_file = snudda_parse_path(self.input_info[neuron_type][input_type]["parameterFile"],
+                    par_file = snudda_parse_path(self.input_info[neuron_type][input_type]["parameter_file"],
                                                  self.snudda_data)
 
                     with open(par_file, 'r') as f:
@@ -471,20 +471,20 @@ class SnuddaInput(object):
                     par_data = []
                     for pd in par_data_dict:
 
-                        if "parameterList" in self.input_info[neuron_type][input_type]:
-                            for par_key, par_d in self.input_info[neuron_type][input_type]["parameterList"].items():
+                        if "parameter_list" in self.input_info[neuron_type][input_type]:
+                            for par_key, par_d in self.input_info[neuron_type][input_type]["parameter_list"].items():
                                 print(f"Overriding {par_key} with value {par_d} for {neuron_type}:{input_type}")
                                 par_data_dict[pd]["synapse"][par_key] = par_d
 
                         par_data.append(par_data_dict[pd])
-                elif "parameterList" in self.input_info[neuron_type][input_type]:
+                elif "parameter_list" in self.input_info[neuron_type][input_type]:
 
-                    par_data = [{"synapse": self.input_info[neuron_type][input_type]["parameterList"]}]
+                    par_data = [{"synapse": self.input_info[neuron_type][input_type]["parameter_list"]}]
                 else:
                     par_data = None
 
                 try:
-                    self.input_info[neuron_type][input_type]["parameterList"] = par_data
+                    self.input_info[neuron_type][input_type]["parameter_list"] = par_data
                 except:
                     import traceback
                     self.write_log(traceback.format_exc(), is_error=True)
@@ -511,7 +511,7 @@ class SnuddaInput(object):
         This function generates these correlated spikes
         """
 
-        self.write_log("Running makePopulationUnitSpikeTrains")
+        self.write_log("Running make_population_unit_spike_trains")
 
         self.population_unit_spikes = dict([])
 
@@ -531,8 +531,8 @@ class SnuddaInput(object):
                 else:
                     end_time = self.time
 
-                if "populationUnitID" in self.input_info[cell_type][input_type]:
-                    pop_unit_list = self.input_info[cell_type][input_type]["populationUnitID"]
+                if "population_unit_id" in self.input_info[cell_type][input_type]:
+                    pop_unit_list = self.input_info[cell_type][input_type]["population_unit_id"]
 
                     if type(pop_unit_list) != list:
                         pop_unit_list = [pop_unit_list]
@@ -544,7 +544,7 @@ class SnuddaInput(object):
                 # This makes sure that we do not give population unit wide mother spikes to population unit 0
                 pop_unit_list = set(pop_unit_list) - {0}
 
-                if input_type == "VirtualNeuron":
+                if input_type == "virtual_neuron":
                     # No population unit spike trains needed for virtual neurons, reads input from file
                     pass
 
@@ -582,21 +582,21 @@ class SnuddaInput(object):
                     assert False, f"Unknown input generator {self.input_info[cell_type][input_type]['generator']} " \
                                   f"for cell_type {cell_type}, input_type {input_type}"
 
-                if "setMotherSpikes" in self.input_info[cell_type][input_type]:
+                if "set_mother_spikes" in self.input_info[cell_type][input_type]:
                     self.write_log(f"Warning, overwriting mother spikes for {cell_type} {input_type} with user defined spikes")
 
                     for idx_pop_unit in pop_unit_list:
                         # User defined mother spikes
                         self.population_unit_spikes[cell_type][input_type][idx_pop_unit] = \
-                            np.array(self.input_info[cell_type][input_type]["setMotherSpikes"])
+                            np.array(self.input_info[cell_type][input_type]["set_mother_spikes"])
 
-                if "addMotherSpikes" in self.input_info[cell_type][input_type]:
+                if "add_mother_spikes" in self.input_info[cell_type][input_type]:
                     self.write_log(f"Adding user defined extra spikes to mother process for {cell_type} {input_type} -- but not for population unit 0")
 
                     for idx_pop_unit in pop_unit_list:
                         self.population_unit_spikes[cell_type][input_type][idx_pop_unit] = \
                             np.sort(np.concatenate((self.population_unit_spikes[cell_type][input_type][idx_pop_unit],
-                                                   np.array(self.input_info[cell_type][input_type]["addMotherSpikes"]))))
+                                                   np.array(self.input_info[cell_type][input_type]["add_mother_spikes"]))))
 
         return self.population_unit_spikes
 
@@ -658,17 +658,17 @@ class SnuddaInput(object):
             # if dSPN --> use neuron_type dSPN
             # if dSPN_3 --> use specific neuron morphology corresponding to dSPN_3
 
-            if self.neuron_info[neuron_id]["virtualNeuron"]:
+            if self.neuron_info[neuron_id]["virtual_neuron"]:
                 # Is a virtual neuron, we will read activity from file, skip neuron
-                if "VirtualNeuron" in input_info:
-                    self.neuron_input[neuron_id]["VirtualNeuron"] = input_info["VirtualNeuron"]
+                if "virtual_neuron" in input_info:
+                    self.neuron_input[neuron_id]["virtual_neuron"] = input_info["virtual_neuron"]
                 else:
                     print(f"Missing activity for virtual neuron {neuron_id} ({neuron_name})")
                 continue
 
-            elif "VirtualNeuron" in input_info:
+            elif "virtual_neuron" in input_info:
                 # Not a virtual neuron, so remove any virtual input specified
-                del input_info["VirtualNeuron"]
+                del input_info["virtual_neuron"]
 
             # Also see if we have additional input specified in the meta.json file for the neuron?
 
@@ -677,9 +677,9 @@ class SnuddaInput(object):
             #  2. Using parameter_id, morphology_id check if the meta.json has any additional input specified
             #  3. Add the input to input_info
 
-            parameter_key = self.network_data["neurons"][neuron_id]["parameterKey"]
-            morphology_key = self.network_data["neurons"][neuron_id]["morphologyKey"]
-            neuron_path = snudda_parse_path(self.network_data["neurons"][neuron_id]["neuronPath"], self.snudda_data)
+            parameter_key = self.network_data["neurons"][neuron_id]["parameter_key"]
+            morphology_key = self.network_data["neurons"][neuron_id]["morphology_key"]
+            neuron_path = snudda_parse_path(self.network_data["neurons"][neuron_id]["neuron_path"], self.snudda_data)
             meta_path = os.path.join(neuron_path, "meta.json")
 
             if self.use_meta_input and os.path.exists(meta_path):
@@ -693,9 +693,9 @@ class SnuddaInput(object):
 
                         meta_inp_data_copy = copy.deepcopy(meta_inp_data)
 
-                        if "parameterFile" in meta_inp_data:
+                        if "parameter_file" in meta_inp_data:
                             # Read parameter file for meta input also
-                            par_file = snudda_parse_path(meta_inp_data["parameterFile"],
+                            par_file = snudda_parse_path(meta_inp_data["parameter_file"],
                                                          self.snudda_data)
 
                             with open(par_file, 'r') as f:
@@ -707,13 +707,13 @@ class SnuddaInput(object):
                                     par_data_dict[key] = OrderedDict()
                                     par_data_dict[key]["synapse"] = par_data_dict_orig[key]["synapse"]
 
-                                if "parameterList" in meta_inp_data:
+                                if "parameter_list" in meta_inp_data:
                                     for pd in par_data_dict:
-                                        for par_key, par_d in meta_inp_data["parameterList"].items():
+                                        for par_key, par_d in meta_inp_data["parameter_list"].items():
                                             print(f"Overriding {par_key} with value {par_d} for {neuron_id}:{meta_inp_name}")
                                             par_data_dict[pd]["synapse"][par_key] = par_d
 
-                                meta_inp_data_copy["parameterList"] = list(par_data_dict.values())
+                                meta_inp_data_copy["parameter_list"] = list(par_data_dict.values())
 
                         # The next bit is a little tricky...
                         # If we have "cortical_signal" in the meta.json we want to be able to modify frequency
@@ -726,9 +726,9 @@ class SnuddaInput(object):
 
                             if meta_inp_name == existing_inp_name.split(":")[0]:
 
-                                if "populationUnitID" in input_info[existing_inp_name] \
-                                    and self.network_data["neurons"][neuron_id]["populationUnit"] \
-                                        != input_info[existing_inp_name]["populationUnitID"]:
+                                if "population_unit_id" in input_info[existing_inp_name] \
+                                    and self.network_data["neurons"][neuron_id]["population_unit"] \
+                                        != input_info[existing_inp_name]["population_unit_id"]:
                                     # This existing_inp_name does not affect the neuron, skip this existing_inp_name
                                     # otherwise we might miss to add the default meta-defined input to the neuron
                                     # by setting data_updated flag for input that is not relevant
@@ -743,7 +743,7 @@ class SnuddaInput(object):
 
                                 # Let input.json info override meta.json input parameters if given
                                 for key, data in old_info.items():
-                                    if key == "parameterList" and data is None:
+                                    if key == "parameter_list" and data is None:
                                         continue
 
                                     meta_inp_data_copy[key] = data
@@ -767,8 +767,8 @@ class SnuddaInput(object):
 
                 input_inf = copy.deepcopy(input_info[input_type])
 
-                if "populationUnitID" in input_inf:
-                    pop_unit_id = input_inf["populationUnitID"]
+                if "population_unit_id" in input_inf:
+                    pop_unit_id = input_inf["population_unit_id"]
 
                     if type(pop_unit_id) in [list, np.ndarray] and population_unit_id not in pop_unit_id:
                         # We have a list of functional channels, but this neuron
@@ -786,42 +786,42 @@ class SnuddaInput(object):
                 self.neuron_input[neuron_id][input_type] = dict([])
 
                 if "generator" in input_inf and input_inf["generator"] == "csv":
-                    csv_file = snudda_parse_path(input_inf["csvFile"] % neuron_id, self.snudda_data)
+                    csv_file = snudda_parse_path(input_inf["csv_file"] % neuron_id, self.snudda_data)
 
                     self.neuron_input[neuron_id][input_type]["generator"] = "csv"
                     csv_spikes = self.import_csv_spikes(csv_file=csv_file)
                     num_spike_trains = len(csv_spikes)
 
                     self.neuron_input[neuron_id][input_type]["spikes"] = csv_spikes
-                    self.neuron_input[neuron_id][input_type]["nSpikes"] = np.array([len(x) for x in csv_spikes])
+                    self.neuron_input[neuron_id][input_type]["num_spikes"] = np.array([len(x) for x in csv_spikes])
 
                     self.neuron_input[neuron_id][input_type]["conductance"] = input_inf["conductance"]
-                    self.neuron_input[neuron_id][input_type]["modFile"] = input_inf["modFile"]
+                    self.neuron_input[neuron_id][input_type]["mod_file"] = input_inf["mod_file"]
 
-                    if "parameterFile" in input_inf:
-                        self.neuron_input[neuron_id][input_type]["parameterFile"] = input_inf["parameterFile"]
-                    if "parameterList" in input_inf:
-                        self.neuron_input[neuron_id][input_type]["parameterList"] = input_inf["parameterList"]
+                    if "parameter_file" in input_inf:
+                        self.neuron_input[neuron_id][input_type]["parameter_file"] = input_inf["parameter_file"]
+                    if "parameter_list" in input_inf:
+                        self.neuron_input[neuron_id][input_type]["parameter_list"] = input_inf["parameter_list"]
 
-                    if "synapseDensity" in input_inf:
-                        synapse_density = input_inf["synapseDensity"]
+                    if "synapse_density" in input_inf:
+                        synapse_density = input_inf["synapse_density"]
                     else:
                         synapse_density = "1"
 
                     rng_master = np.random.default_rng(self.random_seed + neuron_id + 10072)
 
-                    if "dendriteLocation" in input_inf:
+                    if "dendrite_location" in input_inf:
                         # User specified dendrite location
 
-                        assert "morphologyKey" in input_inf, \
-                            f"If you specify dendriteLocation you must also specify morphologyKey"
+                        assert "morphology_key" in input_inf, \
+                            f"If you specify dendrite_location you must also specify morphology_key"
 
-                        assert morphology_key == self.network_data["neurons"][neuron_id]["morphologyKey"], \
+                        assert morphology_key == self.network_data["neurons"][neuron_id]["morphology_key"], \
                             f"Neuron {neuron_id} has morphology_key " \
-                            f"{self.network_data['neurons'][neuron_id]['morphologyKey']}" \
+                            f"{self.network_data['neurons'][neuron_id]['morphology_key']}" \
                             f"which does not match what is specified in input JSON file: {morphology_key}"
 
-                        dendrite_location = input_inf["dendriteLocation"]
+                        dendrite_location = input_inf["dendrite_location"]
                         sec_id, sec_x = zip(*dendrite_location)
 
                         # TODO: Calculate the correct x,y,z and distance to soma
@@ -832,13 +832,13 @@ class SnuddaInput(object):
                         cluster_size = None
                         cluster_spread = None
 
-                        if "nSomaSynapses" in input_inf:
-                            n_soma_synapses = input_inf["nSomaSynapses"]
+                        if "num_soma_synapses" in input_inf:
+                            n_soma_synapses = input_inf["num_soma_synapses"]
                         else:
                             n_soma_synapses = 0
 
                         if n_soma_synapses > num_spike_trains:
-                            raise ValueError(f"nSomaSynapses can not be greater than the number of input trains read from CSV file")
+                            raise ValueError(f"num_soma_synapses can not be greater than the number of input trains read from CSV file")
 
                         # We need a random seed generator for the dendrite_input_location on the master TODO: Cleanup
                         input_loc = self.dendrite_input_locations(neuron_id=neuron_id,
@@ -855,10 +855,10 @@ class SnuddaInput(object):
                                                                neuron_id=neuron_id)
 
                     self.neuron_input[neuron_id][input_type]["location"] = input_loc
-                    self.neuron_input[neuron_id][input_type]["synapseDensity"] = synapse_density
+                    self.neuron_input[neuron_id][input_type]["synapse_density"] = synapse_density
 
                     parameter_id = rng_master.integers(1e6, size=num_spike_trains)
-                    self.neuron_input[neuron_id][input_type]["parameterID"] = parameter_id
+                    self.neuron_input[neuron_id][input_type]["parameter_id"] = parameter_id
 
                     # Done for CSV input
                     continue
@@ -883,7 +883,7 @@ class SnuddaInput(object):
                 else:
                     end_list.append(self.time)
 
-                if input_type.lower() == "VirtualNeuron".lower():
+                if input_type.lower() == "virtual_neuron".lower():
                     # Virtual neurons spikes specify their activity, location and conductance not used
                     cond = None
                     n_inp = 1
@@ -893,13 +893,13 @@ class SnuddaInput(object):
                     parameter_list = None
                 else:
                     assert "location" not in input_inf, \
-                        "Location in input config has been replaced with synapseDensity"
+                        "Location in input config has been replaced with synapse_density"
 
                     # If your code fails here, it might be that you are trying to override the background input
                     # frequency, but have the incorrect name of that input (check the meta.json file)
                     cond = input_inf["conductance"]
 
-                    if "nInputs" in input_inf:
+                    if "num_inputs" in input_inf:
 
                         # TODO: We need to read this from meta.json
                         dir_name = snudda_parse_path(os.path.basename(neuron_path), self.snudda_data)
@@ -910,39 +910,42 @@ class SnuddaInput(object):
                         # 3: Neuron name (note this can change if additional neurons are added to neuron type dir)
                         # 4: Neuron type
 
-                        if type(input_inf["nInputs"]) == OrderedDict:
-                            if morphology_key in input_inf["nInputs"]:
-                                n_inp = input_inf["nInputs"][morphology_key]
-                            elif dir_name in input_inf["nInputs"]:
-                                n_inp = input_inf["nInputs"][dir_name]
-                            elif neuron_name in input_inf["nInputs"]:
-                                n_inp = input_inf["nInputs"][neuron_name]
-                            elif neuron_type in input_inf["nInputs"]:
-                                n_inp = input_inf["nInputs"][neuron_type]
+                        if type(input_inf["num_inputs"]) == OrderedDict:
+                            if morphology_key in input_inf["num_inputs"]:
+                                n_inp = input_inf["num_inputs"][morphology_key]
+                            elif dir_name in input_inf["num_inputs"]:
+                                n_inp = input_inf["num_inputs"][dir_name]
+                            elif neuron_name in input_inf["num_inputs"]:
+                                n_inp = input_inf["num_inputs"][neuron_name]
+                            elif neuron_type in input_inf["num_inputs"]:
+                                n_inp = input_inf["num_inputs"][neuron_type]
                             else:
                                 n_inp = None
                         else:
-                            n_inp = input_inf["nInputs"]
+                            n_inp = input_inf["num_inputs"]
 
                     else:
                         n_inp = None
 
-                    mod_file = input_inf["modFile"]
+                    if "mod_file" not in input_inf:
+                        raise ValueError(f"Missing mod_file in input json, for {neuron_name} ({neuron_id}) {neuron_type}: {input_type}: {input_inf}")
+
+                    mod_file = input_inf["mod_file"]
                     if type(mod_file) in [bytes, np.bytes_]:
                         mod_file = mod_file.decode()
 
-                    if "parameterFile" in input_inf:
-                        parameter_file = input_inf["parameterFile"]
+                    if "parameter_file" in input_inf:
+                        parameter_file = input_inf["parameter_file"]
                     else:
                         parameter_file = None
 
-                    if "parameterList" in input_inf:
-                        parameter_list = input_inf["parameterList"]
+                    if "parameter_list" in input_inf:
+                        parameter_list = input_inf["parameter_list"]
                     else:
                         parameter_list = None
 
-                if "synapseDensity" in input_inf:
-                    synapse_density = input_inf["synapseDensity"]
+                if "synapse_density" in input_inf:
+                    synapse_density = input_inf["synapse_density"]
                 else:
                     synapse_density = "1"
 
@@ -952,13 +955,13 @@ class SnuddaInput(object):
                 population_unit_id_list.append(population_unit_id)
                 conductance_list.append(cond)
 
-                if "populationUnitCorrelation" in input_inf:
-                    correlation_list.append(input_inf["populationUnitCorrelation"])
+                if "population_unit_correlation" in input_inf:
+                    correlation_list.append(input_inf["population_unit_correlation"])
                 else:
                     correlation_list.append(0)
 
-                if "populationUnitCorrelationFraction" in input_inf:
-                    population_unit_fraction_list.append(np.array(input_inf["populationUnitCorrelationFraction"]))
+                if "population_unit_correlation_fraction" in input_inf:
+                    population_unit_fraction_list.append(np.array(input_inf["population_unit_correlation_fraction"]))
                 else:
                     population_unit_fraction_list.append(1)
 
@@ -978,29 +981,29 @@ class SnuddaInput(object):
                 parameter_file_list.append(parameter_file)
                 parameter_list_list.append(parameter_list)
 
-                if "clusterSize" in input_inf:
-                    cluster_size = input_inf["clusterSize"]
+                if "cluster_size" in input_inf:
+                    cluster_size = input_inf["cluster_size"]
                 else:
                     cluster_size = None
 
-                if "clusterSpread" in input_inf:
-                    cluster_spread = input_inf["clusterSpread"]
+                if "cluster_spread" in input_inf:
+                    cluster_spread = input_inf["cluster_spread"]
                 else:
                     cluster_spread = 20e-6
 
                 cluster_size_list.append(cluster_size)
                 cluster_spread_list.append(cluster_spread)
 
-                if "dendriteLocation" in input_inf:
-                    assert "morphologyKey" in input_inf, \
-                        f"If you specify dendriteLocation you must also specify morphologyKey"
+                if "dendrite_location" in input_inf:
+                    assert "morphology_key" in input_inf, \
+                        f"If you specify dendrite_location you must also specify morphology_key"
 
-                    assert morphology_key == self.network_data["neurons"][neuron_id]["morphologyKey"], \
+                    assert morphology_key == self.network_data["neurons"][neuron_id]["morphology_key"], \
                         f"Neuron {neuron_id} has morphology_key " \
-                        f"{self.network_data['neurons'][neuron_id]['morphologyKey']}" \
+                        f"{self.network_data['neurons'][neuron_id]['morphology_key']}" \
                         f"which does not match what is specified in input JSON file: {morphology_key}"
 
-                    dend_location = input_inf["dendriteLocation"]
+                    dend_location = input_inf["dendrite_location"]
                 else:
                     dend_location = None
 
@@ -1018,8 +1021,8 @@ class SnuddaInput(object):
                     self.write_log(f"Unknown input generator: {input_inf['generator']} for {neuron_id}", is_error=True)
                     assert False, f"Unknown input generator {input_inf['generator']}"
 
-                if "nSomaSynapses" in input_inf:
-                    n_soma_synapses = input_inf["nSomaSynapses"]
+                if "num_soma_synapses" in input_inf:
+                    n_soma_synapses = input_inf["num_soma_synapses"]
                 else:
                     n_soma_synapses = 0
 
@@ -1119,11 +1122,11 @@ class SnuddaInput(object):
             self.write_log(f"Gathering {neuron_id} - {input_type}")
             self.neuron_input[neuron_id][input_type]["spikes"] = spikes
 
-            if input_type.lower() != "VirtualNeuron".lower():
+            if input_type.lower() != "virtual_neuron".lower():
                 # Virtual neurons have no location of their input, as the "input"
                 # specifies the spike times of the virtual neuron itself
                 self.neuron_input[neuron_id][input_type]["location"] = loc
-                self.neuron_input[neuron_id][input_type]["synapseDensity"] = synapse_density
+                self.neuron_input[neuron_id][input_type]["synapse_density"] = synapse_density
                 self.neuron_input[neuron_id][input_type]["conductance"] = cond
 
             self.neuron_input[neuron_id][input_type]["freq"] = frq
@@ -1131,17 +1134,17 @@ class SnuddaInput(object):
             self.neuron_input[neuron_id][input_type]["jitter"] = jdt
             self.neuron_input[neuron_id][input_type]["start"] = timeRange[0]
             self.neuron_input[neuron_id][input_type]["end"] = timeRange[1]
-            self.neuron_input[neuron_id][input_type]["populationUnitID"] = p_uid
+            self.neuron_input[neuron_id][input_type]["population_unit_id"] = p_uid
 
             assert p_uid == self.population_unit_id[neuron_id], \
                 "Internal error: Neuron should belong to the functional channel " \
                 + "that input is generated for"
 
             self.neuron_input[neuron_id][input_type]["generator"] = "poisson"
-            self.neuron_input[neuron_id][input_type]["modFile"] = mod_file
-            self.neuron_input[neuron_id][input_type]["parameterFile"] = param_file
-            self.neuron_input[neuron_id][input_type]["parameterList"] = param_list
-            self.neuron_input[neuron_id][input_type]["parameterID"] = param_id
+            self.neuron_input[neuron_id][input_type]["mod_file"] = mod_file
+            self.neuron_input[neuron_id][input_type]["parameter_file"] = param_file
+            self.neuron_input[neuron_id][input_type]["parameter_list"] = param_list
+            self.neuron_input[neuron_id][input_type]["parameter_id"] = param_id
 
         return self.neuron_input
 
@@ -1295,11 +1298,11 @@ class SnuddaInput(object):
             f"then time_ranges must be two lists, ie. (start_times, end_times)"
 
         if callable(frequency_function):
-            func = lambda t: frequency_function(t) * p_keep
+            func = lambda t, frequency_function=frequency_function, p_keep=p_keep: frequency_function(t) * p_keep
         else:
             try:
                 func_str = f"{frequency_function}*{p_keep}"
-                func = lambda t: numexpr.evaluate(func_str)
+                func = lambda t, func_str=func_str: numexpr.evaluate(func_str)
             except:
                 import traceback
                 print(traceback.format_exc())
@@ -1458,13 +1461,13 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    # timeRange --- (start,end time) of spike train
+    # time_range --- (start,end time) of spike train
     # freq -- frequency of spike train
-    # nSpikeTrains -- number of spike trains to generate
-    # Pkeep -- fraction of channel spikes to include in spike train
-    # retpopUnitSpikes -- if true, returns tuple with second item population unit spikes
+    # num_spike_trains -- number of spike trains to generate
+    # p_keep -- fraction of channel spikes to include in spike train
+    # ret_pop_unit_spikes -- if true, returns tuple with second item population unit spikes
     #                  if false, just return spikes
-    # populationUnitSpikes --- if None, new population unit spikes will be generated
+    # population_unit_spikes --- if None, new population unit spikes will be generated
     #                  (population unit Spikes are the spikes shared between correlated
     #                   spike trains)
 
@@ -1517,7 +1520,7 @@ class SnuddaInput(object):
             spike_trains.append(SnuddaInput.mix_spikes([t_unique, t_population_unit]))
 
         # if(False):
-        # self.verifyCorrelation(spikeTrains=spikeTrains) # THIS STEP IS VERY VERY SLOW
+        #      self.verifyCorrelation(spikeTrains=spikeTrains) # THIS STEP IS VERY VERY SLOW
 
         if jitter_dt is not None:
             spike_trains = self.jitter_spikes(spike_trains, jitter_dt, time_range=time_range, rng=rng)
@@ -1660,8 +1663,8 @@ class SnuddaInput(object):
 
         # This also loads random seed from config file while we have it open
         if self.random_seed is None:
-            if "RandomSeed" in self.network_config and "input" in self.network_config["RandomSeed"]:
-                self.random_seed = self.network_config["RandomSeed"]["input"]
+            if "random_seed" in self.network_config and "input" in self.network_config["random_seed"]:
+                self.random_seed = self.network_config["random_seed"]["input"]
                 self.write_log(f"Reading random seed from config file: {self.random_seed}")
             else:
                 # No random seed given, invent one
@@ -1670,22 +1673,22 @@ class SnuddaInput(object):
         else:
             self.write_log(f"Using random seed provided by command line: {self.random_seed}")
 
-        if "PopulationUnits" in self.network_config:
+        if "population_units" in self.network_config:
 
             all_id = []
-            for volume in self.network_config["PopulationUnits"]:
-                if "unitID" in self.network_config["PopulationUnits"][volume]:
-                    all_id += self.network_config["PopulationUnits"][volume]["unitID"]
+            for volume in self.network_config["population_units"]:
+                if "unit_id" in self.network_config["population_units"][volume]:
+                    all_id += self.network_config["population_units"][volume]["unit_id"]
 
             all_id = set(all_id) - {0}
 
-            if "AllUnitID" in self.network_config["PopulationUnits"]:
-                self.all_population_units = set(self.network_config["PopulationUnits"]["AllUnitID"])
+            if "all_unit_id" in self.network_config["population_units"]:
+                self.all_population_units = set(self.network_config["population_units"]["all_unit_id"])
                 assert all_id == self.all_population_units, \
-                    (f"Inconsistency: AllUnitID = {self.all_population_units}, "
-                     f"but all units in unitID blocks = {all_id}")
+                    (f"Inconsistency: all_unit_id = {self.all_population_units}, "
+                     f"but all units in unit_id blocks = {all_id}")
             else:
-                self.write_log("Missing AllUnitID tag, deriving it from unitID tag for volumes")
+                self.write_log("Missing all_unit_id tag, deriving it from unit_id tag for volumes")
                 self.all_population_units = all_id
 
         else:
@@ -1733,7 +1736,7 @@ class SnuddaInput(object):
                 corr_vec.append(self.estimate_correlation(s, s2, dt=dt))
 
         # print("corr = " + str(corrVec))
-        self.write_log(f"meanCorr = {np.mean(corr_vec)}")
+        self.write_log(f"mean_corr = {np.mean(corr_vec)}")
 
     ############################################################################
 
@@ -1794,23 +1797,23 @@ class SnuddaInput(object):
         # self.write_log(f"self.network_config['Neurons'] = {self.network_config['Neurons']}")
         # self.write_log(f"self.network_config['Neurons'][neuron_name] = {self.network_config['Neurons'][neuron_name]}")
 
-        morphology_path = self.network_config["Neurons"][neuron_name]["morphology"]
-        parameters_path = self.network_config["Neurons"][neuron_name]["parameters"]
+        morphology_path = self.network_config["neurons"][neuron_name]["morphology"]
+        parameters_path = self.network_config["neurons"][neuron_name]["parameters"]
 
-        if "modulation" in self.network_config["Neurons"][neuron_name]:
-            modulation_path = self.network_config["Neurons"][neuron_name]["modulation"]
+        if "modulation" in self.network_config["neurons"][neuron_name]:
+            modulation_path = self.network_config["neurons"][neuron_name]["modulation"]
         else:
             modulation_path = None
 
-        mechanisms_path = self.network_config["Neurons"][neuron_name]["mechanisms"]
+        mechanisms_path = self.network_config["neurons"][neuron_name]["mechanisms"]
 
-        # parameter_id = self.neuron_info[neuron_id]["parameterID"]
-        # morphology_id = self.neuron_info[neuron_id]["morphologyID"]
-        # modulation_id = self.neuron_info[neuron_id]["modulationID"]
+        # parameter_id = self.neuron_info[neuron_id]["parameter_id"]
+        # morphology_id = self.neuron_info[neuron_id]["morphology_id"]
+        # modulation_id = self.neuron_info[neuron_id]["modulation_id"]
 
-        parameter_key = self.neuron_info[neuron_id]["parameterKey"]
-        morphology_key = self.neuron_info[neuron_id]["morphologyKey"]
-        modulation_key = self.neuron_info[neuron_id]["modulationKey"]
+        parameter_key = self.neuron_info[neuron_id]["parameter_key"]
+        morphology_key = self.neuron_info[neuron_id]["morphology_key"]
+        modulation_key = self.neuron_info[neuron_id]["modulation_key"]
 
         if neuron_name in self.neuron_cache:
             self.write_log(f"About to clone cache of {neuron_name}.")
@@ -1964,7 +1967,7 @@ class SnuddaInput(object):
 
         for neuron_id in self.neuron_input:
             for input_type in self.neuron_input[neuron_id]:
-                if input_type == "VirtualNeuron":
+                if input_type == "virtual_neuron":
                     s = self.neuron_input[neuron_id][input_type]["spikes"]
                     assert (np.diff(s) >= 0).all(), \
                         str(neuron_id) + " " + input_type + ": Spikes must be in order"
@@ -1980,7 +1983,7 @@ class SnuddaInput(object):
 
         """ Plot spikes for neuron_id """
 
-        self.write_log(f"Plotting spikes for neuronID: {neuron_id}")
+        self.write_log(f"Plotting spikes for neuron_id: {neuron_id}")
 
         if neuron_id is None:
             neuron_id = self.neuron_input
@@ -2039,9 +2042,9 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    # Normally specify synapseDensity which then sets number of inputs
-    # ie leave nSpikeTrains as None. If nSpikeTrains is set, that will then
-    # scale synapseDensity to get the requested number of inputs (approximately)
+    # Normally specify synapse_density which then sets number of inputs
+    # ie leave nSpikeTrains as None. If num_spike_trains is set, that will then
+    # scale synapse_density to get the requested number of inputs (approximately)
 
     # For virtual neurons nSpikeTrains must be set, as it defines their activity
 
@@ -2105,7 +2108,7 @@ class SnuddaInput(object):
 
         rng = np.random.default_rng(random_seed)
 
-        if input_type.lower() == "VirtualNeuron".lower():
+        if input_type.lower() == "virtual_neuron".lower():
             # This specifies activity of a virtual neuron
             conductance = None
 
@@ -2191,7 +2194,7 @@ class SnuddaInput(object):
         # We need to pick which parameter set to use for the input also
         parameter_id = rng.integers(1e6, size=num_inputs)
 
-        # We need to keep track of the neuronID, since it will all be jumbled
+        # We need to keep track of the neuron_id, since it will all be jumbled
         # when doing asynchronous parallelisation
         return (neuron_id, input_type, spikes, input_loc, synapse_density, freq,
                 jitter_dt, population_unit_id, conductance, correlation,

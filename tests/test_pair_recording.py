@@ -15,6 +15,7 @@ class PairRecordingTestCase(unittest.TestCase):
             os.chdir(os.path.dirname(__file__))
 
         # Temporarily disable the creation of network while testing...
+        print("test_pair_recoring.py -- Network creation disabled -- we need to retune or verify the if_info.json files before running")
         return
 
         self.network_path = os.path.join("networks", "pair_recording_test")
@@ -51,6 +52,7 @@ class PairRecordingTestCase(unittest.TestCase):
 
     def test_frequency(self):
 
+        print("test_pair_recording.py -- This UNIT test is not currently active.")
         return
 
         # TODO: TEMP line, this is normally done in setUp... remove later
@@ -66,12 +68,12 @@ class PairRecordingTestCase(unittest.TestCase):
         with open(self.experiment_config_file, "r") as f:
             experiment_config = json.load(f)
 
-        for inj_info in experiment_config["currentInjection"]:
+        for inj_info in experiment_config["current_injection"]:
 
-            neuron_id = inj_info["neuronID"]
+            neuron_id = inj_info["neuron_id"]
             start = inj_info["start"]
             end = inj_info["end"]
-            requested_freq = inj_info["requestedFrequency"]
+            requested_freq = inj_info["requested_frequency"]
 
             with self.subTest(f"Testing neuron {neuron_id}"):
 

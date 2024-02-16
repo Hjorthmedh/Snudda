@@ -192,7 +192,7 @@ class Snudda(object):
                            ipython_profile=args.ipython_profile,
                            h5libver=h5libver,
                            verbose=args.verbose,
-                           honor_stay_inside=args.stay_inside)
+                           honor_morphology_stay_inside=args.stay_inside)
 
     def place_neurons(self,
                       random_seed=None,
@@ -200,7 +200,7 @@ class Snudda(object):
                       ipython_profile=None,
                       h5libver="latest",
                       verbose=False,
-                      honor_stay_inside=False):
+                      honor_morphology_stay_inside=False):
 
         if parallel is None:
             parallel = self.parallel
@@ -227,7 +227,7 @@ class Snudda(object):
                          d_view=self.d_view,
                          h5libver=h5libver,
                          random_seed=random_seed,
-                         morphologies_stay_inside=honor_stay_inside)
+                         morphologies_stay_inside=honor_morphology_stay_inside)
 
         sp.place()
 

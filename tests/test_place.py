@@ -33,26 +33,26 @@ class TestPlace(unittest.TestCase):
         with open(self.config_file, "r") as f:
             config_data = json.load(f)
 
-        self.assertTrue("RandomSeed" in config_data)
-        self.assertTrue(config_data["RandomSeed"]["masterseed"] == 1234)
-        self.assertTrue(config_data["RandomSeed"]["init"] == 2906597030)
-        self.assertTrue(config_data["RandomSeed"]["place"] == 1602421836)
-        self.assertTrue(config_data["RandomSeed"]["detect"] == 216676975)
-        self.assertTrue(config_data["RandomSeed"]["project"] == 2698621808)
-        self.assertTrue(config_data["RandomSeed"]["prune"] == 507409703)
-        self.assertTrue(config_data["RandomSeed"]["input"] == 2825158027)
-        self.assertTrue(config_data["RandomSeed"]["simulate"] == 3613074)
+        self.assertTrue("random_seed" in config_data)
+        self.assertTrue(config_data["random_seed"]["masterseed"] == 1234)
+        self.assertTrue(config_data["random_seed"]["init"] == 2906597030)
+        self.assertTrue(config_data["random_seed"]["place"] == 1602421836)
+        self.assertTrue(config_data["random_seed"]["detect"] == 216676975)
+        self.assertTrue(config_data["random_seed"]["project"] == 2698621808)
+        self.assertTrue(config_data["random_seed"]["prune"] == 507409703)
+        self.assertTrue(config_data["random_seed"]["input"] == 2825158027)
+        self.assertTrue(config_data["random_seed"]["simulate"] == 3613074)
 
-        self.assertTrue("Volume" in config_data)
-        self.assertTrue("Connectivity" in config_data)
-        self.assertTrue("Neurons" in config_data)
+        self.assertTrue("volume" in config_data)
+        self.assertTrue("connectivity" in config_data)
+        self.assertTrue("neurons" in config_data)
 
-        for neuron in config_data["Neurons"]:
-            self.assertTrue("morphology" in config_data["Neurons"][neuron])
-            self.assertTrue("parameters" in config_data["Neurons"][neuron])
-            self.assertTrue("mechanisms" in config_data["Neurons"][neuron])
-            self.assertTrue("modulation" in config_data["Neurons"][neuron])
-            self.assertTrue("num" in config_data["Neurons"][neuron])
+        for neuron in config_data["neurons"]:
+            self.assertTrue("morphology" in config_data["neurons"][neuron])
+            self.assertTrue("parameters" in config_data["neurons"][neuron])
+            self.assertTrue("mechanisms" in config_data["neurons"][neuron])
+            self.assertTrue("modulation" in config_data["neurons"][neuron])
+            self.assertTrue("num" in config_data["neurons"][neuron])
 
     def test_place(self):
 

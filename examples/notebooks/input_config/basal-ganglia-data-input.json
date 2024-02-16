@@ -5,7 +5,7 @@
             "start" : [1, 4],
             "end" :   [3, 6],
             "frequency" : [5, 5],
-            "populationUnitID" : 1
+            "population_unit_id" : 1
         },
 
         "cortical:2" : {
@@ -13,7 +13,7 @@
             "start" : [4],
             "end" :   [6],
             "frequency" : [10],
-            "populationUnitID" : 2
+            "population_unit_id" : 2
         }       
     },
 
@@ -24,7 +24,7 @@
             "start" : [1, 4],
             "end" :   [3, 6],
             "frequency" : [5, 5],
-            "populationUnitID" : 1          
+            "population_unit_id" : 1          
         },
 
         "cortical:2" : {
@@ -32,7 +32,7 @@
             "start" : [4],
             "end" :   [6],
             "frequency" : [10],
-            "populationUnitID" : 2
+            "population_unit_id" : 2
         }       
     }
 

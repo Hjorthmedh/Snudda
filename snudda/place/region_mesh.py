@@ -19,6 +19,9 @@ class RegionMesh(object):
                  logfile_name=None, log_file=None,
                  random_seed=112, verbose=False):
 
+        raise DeprecationWarning("Old version")
+        assert False
+
         """
         Constructor.
 

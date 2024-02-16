@@ -43,7 +43,7 @@ class TimeVaryingInput:
 
         try:
             stretched_time = np.cumsum(frequency*dt) - frequency[0]*dt  # We want stretched time to start at 0
-            func = lambda t: np.interp(t, stretched_time, time)
+            func = lambda t, stretched_time=stretched_time, time=time: np.interp(t, stretched_time, time)
             stretch_end_time = stretched_time[-1]
         except:
             import traceback

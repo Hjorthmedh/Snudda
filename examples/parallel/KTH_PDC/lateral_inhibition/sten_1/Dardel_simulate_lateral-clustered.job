@@ -2,11 +2,11 @@
 #SBATCH --partition=main
 #SBATCH -o log/Simulate-%j-output.txt
 #SBATCH -e log/Simulate-%j-error.txt
-#SBATCH -t 8:59:00
-#SBATCH --time-min=6:59:00
+#SBATCH -t 0:45:00
+#SBATCH --time-min=0:45:00
 #SBATCH -J Simulate
 #SBATCH -A naiss2023-5-231
-#SBATCH --nodes=10-16
+#SBATCH --nodes=36-40
 #SBATCH --tasks-per-node=128
 #SBATCH --mail-type=ALL
 

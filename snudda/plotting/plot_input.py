@@ -87,7 +87,7 @@ class PlotInput(object):
 
         neuron_id = self.network_info.get_population_unit_members(population_unit_id)
 
-        assert np.array([self.network_info.data["populationUnit"][x] == population_unit_id for x in neuron_id]).all()
+        assert np.array([self.network_info.data["population_unit"][x] == population_unit_id for x in neuron_id]).all()
 
         if neuron_type:
             neuron_id2 = self.network_info.get_neuron_id_of_type(neuron_type)
@@ -103,7 +103,7 @@ class PlotInput(object):
             print(f"No neurons with population id {population_unit_id}")
             return
 
-        assert np.array([self.network_info.data["populationUnit"][int(x)] == population_unit_id
+        assert np.array([self.network_info.data["population_unit"][int(x)] == population_unit_id
                          for x in target_id]).all()
 
         self.plot_input_to_target(target_id, fig_size=fig_size)
