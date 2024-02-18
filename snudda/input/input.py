@@ -726,6 +726,11 @@ class SnuddaInput(object):
 
                             if meta_inp_name == existing_inp_name.split(":")[0]:
 
+                                # This is so that we can have multiple overrides of for example cortical input
+                                # with cortical:A, cortical:B, cortical:C to the same set of neurons
+                                # without the input definitions overwriting each other
+                                extra_copy_inp_data = copy.deepcopy(meta_inp_data_copy)
+
                                 if "population_unit_id" in input_info[existing_inp_name] \
                                     and self.network_data["neurons"][neuron_id]["population_unit"] \
                                         != input_info[existing_inp_name]["population_unit_id"]:
@@ -746,9 +751,9 @@ class SnuddaInput(object):
                                     if key == "parameter_list" and data is None:
                                         continue
 
-                                    meta_inp_data_copy[key] = data
+                                    extra_copy_inp_data[key] = data
 
-                                input_info[existing_inp_name] = meta_inp_data_copy
+                                input_info[existing_inp_name] = extra_copy_inp_data
                                 data_updated = True
 
                         if not data_updated:
