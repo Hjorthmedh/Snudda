@@ -2,15 +2,17 @@
 #SBATCH --partition=main
 #SBATCH -o log/Simulate-%j-output.txt
 #SBATCH -e log/Simulate-%j-error.txt
-#SBATCH -t 8:59:00
-#SBATCH --time-min=6:59:00
+#SBATCH -t 9:30:00
+#SBATCH --time-min=8:59:00
 #SBATCH -J Simulate
 #SBATCH -A naiss2023-5-231
 #SBATCH --nodes=60
-#SBATCH --tasks-per-node=45
+#SBATCH --tasks-per-node=128
 #SBATCH --mail-type=ALL
 
-# 2024-02-16: 40 nodes worked, had 28% free... trying increasing to 45 nodes
+# 2024-02-16: 40 cores per node worked, had 28% free... trying increasing to 45 cores per node
+# 2024-02-18: Increasing back up to 128 cores. Memory free is probably more
+#             dependent on total number of nodes allocated
 
 # You need to point this as the directory where you created the network in
 #NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k

@@ -21,7 +21,7 @@
             "start" : [0],
             "end" :   [18],
             "frequency" : [2],
-            "population_unit_id" : 2
+            "population_unit_id" : 0
         }	
 
     },
@@ -47,7 +47,7 @@
             "start" : [0],
             "end" :   [18],
             "frequency" : [2],
-            "population_unit_id" : 2
+            "population_unit_id" : 0
         }	
 	
     },
