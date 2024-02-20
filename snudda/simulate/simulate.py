@@ -1260,7 +1260,7 @@ class SnuddaSimulate(object):
                                     (f"Converting {self.neurons[neuron_id].name} {par}={syn_params[par]} "
                                      f"we get {par_value}, "
                                      f"but expected >= 0.01 and < 10000")
-
+                            # print(f"Setting {par} to {par_value}.")
                             setattr(syn, par, par_value)
 
                     # Need to save references, otherwise they will be freed

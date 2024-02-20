@@ -99,7 +99,7 @@ class SnuddaInit(object):
 
         if struct_def:
             for sn in struct_def:
-                if "stay_inside" in inspect.getargspec(struct_func[sn]).args:
+                if "stay_inside" in inspect.getfullargspec(struct_func[sn]).args:
                     print(f"Adding {sn} with {struct_def[sn]} neurons (stay_inside={honor_stay_inside})")
                     struct_func[sn](num_neurons=struct_def[sn], neurons_dir=neurons_dir, stay_inside=honor_stay_inside)
                 else:
