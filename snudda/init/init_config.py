@@ -19,6 +19,7 @@ class ConfigParser:
         self.network_info = dict()  # master dictionary
         self.snudda_data = snudda_data
         self.config_data = {}
+        self.rng = None
 
         self.exclude_parse_keys = ["parameter_file", "projection_file", "rotation_file", "rotation_field_file"]
         self.exclude_parse_values = ["parameters.json", "mechanisms.json", "modulation.json", "meta.json"]
@@ -43,7 +44,9 @@ class ConfigParser:
 
         self.config_data = self.parse_subtree(self.config_data)
 
-    def substitute_json(self, putative_file):
+        self.setup_random_seeds()
+
+    def substitute_json(self, putative_file, key=None):
 
         if not (isinstance(putative_file, str) and putative_file.endswith(".json")):
             return putative_file
@@ -61,6 +64,9 @@ class ConfigParser:
             sub_tree = json.load(f)
 
         sub_tree = self.parse_subtree(sub_tree)
+
+        if key in sub_tree:
+            return sub_tree[key]
 
         return sub_tree
 
@@ -84,9 +90,24 @@ class ConfigParser:
                 updated_config[key] = [self.substitute_json(x) for x in value]
 
             else:
-                updated_config[key] = self.substitute_json(value)
+                updated_config[key] = self.substitute_json(value, key)
 
         return updated_config
+
+    def setup_random_seeds(self):
+
+        if "random_seed" in self.config_data:
+            if "masterseed" in self.config_data["random_seed"]:
+                master_seed = self.config_data["random_seed"]["masterseed"]
+            else:
+                master_seed = None
+
+        from snudda.init import SnuddaInit
+
+        rand_seed_dict, init_rng = SnuddaInit.setup_random_seeds(random_seed=master_seed)
+
+        self.config_data["random_seed"] = rand_seed_dict
+        self.rng = init_rng
 
     def write_config(self, output_path=None):
 

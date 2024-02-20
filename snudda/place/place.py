@@ -113,7 +113,7 @@ class SnuddaPlace(object):
         else:
             self.h5libver = h5libver
 
-        self.write_log("Using hdf5 version: " + str(self.h5libver))
+        self.write_log(f"Using hdf5 version: {self.h5libver}")
 
         self.griddata_interpolation = griddata_interpolation
 
@@ -349,7 +349,7 @@ class SnuddaPlace(object):
         if self.log_file is None:
             mesh_log_filename = "mesh-log.txt"
         else:
-            mesh_log_filename = self.log_file.name + "-mesh"
+            mesh_log_filename = f"{self.log_file.name}-mesh"
         mesh_logfile = open(mesh_log_filename, 'wt')
 
         # First handle volume definitions
@@ -370,16 +370,7 @@ class SnuddaPlace(object):
 
             if "mesh_file" in vol_def:
 
-                assert "d_min" in vol_def, "You must specify d_min if using a mesh" \
-                                          + " for volume " + str(volume_id)
-
-                if "mesh_bin_width" not in vol_def or not vol_def["mesh_bin_width"]:
-                    self.write_log("No mesh_bin_width specified, using 1e-4")
-                    mesh_bin_width = 1e-4
-                else:
-                    mesh_bin_width = vol_def["mesh_bin_width"]
-
-                self.write_log(f"Using mesh_bin_width {mesh_bin_width}")
+                assert "d_min" in vol_def, f"You must specify d_min if using a mesh for volume {volume_id}"
 
                 if "-cube-mesh-" in vol_def["mesh_file"] or "slice.obj" in vol_def["mesh_file"]:
                     self.write_log("Cube or slice mesh, switching to serial processing.")
