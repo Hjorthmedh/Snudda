@@ -1,0 +1,22 @@
+{
+    "populations": {
+	"method": "radial_density",
+        "centres": [[ 0.00475, 0.004, 0.00775 ],
+		    [ 0.00475, 0.004, 0.00775 ]],
+            "probability_functions": [
+                "(d < 300e-6) * 1",
+                "(d < 300e-6) * 1"
+            ],
+            "unit_id": [
+                1,
+                2
+            ],
+            "neuron_types": [["dSPN", "iSPN"],
+			     ["dSPN", "iSPN"]],
+            "num_neurons": [ 4000, 4000 ]
+	    	    
+	}
+
+    }
+    
+}

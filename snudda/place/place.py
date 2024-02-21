@@ -306,7 +306,211 @@ class SnuddaPlace(object):
 
     def parse_config(self, config_file=None, resort_neurons=True):
 
-        """ Parse network config_file """
+        """ Pase network config_file"""
+
+        if config_file is None:
+            config_file = self.config_file
+
+        if config_file is None:
+            self.write_log("No config file specified.", is_error=True)
+            raise ValueError("No config file specified.")
+
+        if not os.path.isfile(config_file):
+            self.write_log(f"Missing config file {config_file}", is_error=True)
+            raise ValueError(f"Missing config file {config_file}")
+
+        self.write_log(f"Parsing place config file {config_file}")
+
+        with open(config_file, "r") as f:
+            config = json.load(f, object_pairs_hook=OrderedDict)
+
+        if "regions" not in config:
+            self.write_log(f"Missing 'regions', switching to legacy parser.")
+            return self.parse_config_legacy(config_file=config_file, resort_neurons=resort_neurons)
+
+        if not config:
+            self.write_log("Warning, empty network config.")
+
+        if self.random_seed is None:
+            if "random_seed" in config and "place" in config["random_seed"]:
+                self.random_seed = config["random_seed"]["place"]
+                self.write_log(f"Reading random seed from config file: {self.random_seed}")
+        else:
+            self.write_log(f"Using random seed provided by command line: {self.random_seed}")
+
+        # Setup for rotations
+        self.rotate_helper = SnuddaRotate(self.config_file)
+
+        if self.random_seed:
+            self.random_generator = np.random.default_rng(self.random_seed + 115)
+        else:
+            self.random_generator = np.random.default_rng()
+
+        # Setup random seeds for all regions
+        ss = np.random.SeedSequence(self.random_seed)
+        all_seeds = ss.generate_state(len(config["regions"]))
+
+        for (region_name, region_data), region_seed in zip(config["regions"].items(), all_seeds):
+            total_num_neurons = region_data["total_neuron_count"]
+
+            volume_data = region_data["volume"]
+            self.volume[region_name] = volume_data
+
+            if "random_seed" not in volume_data:
+                self.volume[region_name]["random_seed"] = region_seed
+            else:
+                region_seed = self.volume[region_name]["random_seed"]
+
+            region_rnd = np.random.default_rng(region_seed + 123)
+
+            if snudda_path_exists(volume_data["mesh_file"], self.snudda_data):
+                mesh_file = snudda_parse_path(volume_data["mesh_file"], self.snudda_data)
+            elif os.path.isfile(os.path.join(self.network_path, volume_data["mesh_file"])):
+                mesh_file = os.path.join(self.network_path, volume_data["mesh_file"])
+            else:
+                raise ValueError(f"Unable to find mesh_file {volume_data['mesh_file']}")
+
+            if "num_putative_points" in volume_data:
+                num_putative_points = int(volume_data["num_putative_points"])
+            else:
+                num_putative_points = None
+
+                self.volume[region_name]["mesh"] \
+                    = NeuronPlacer(mesh_path=mesh_file,
+                                   d_min=self.volume[region_name]["d_min"],
+                                   random_seed=region_seed,
+                                   n_putative_points=num_putative_points)
+
+            if "density" in self.volume[region_name]:
+                for neuron_type in self.volume[region_name]["density"]:
+                    density_func = None
+
+                    if "density_function" in self.volume[region_name]["density"][neuron_type]:
+                        density_str = self.volume[region_name]["density"][neuron_type]["density_function"]
+                        density_func = lambda x, y, z, d_str=density_str: numexpr.evaluate(d_str)
+
+                    if "density_file" in self.volume[region_name]["density"][neuron_type]:
+                        density_file = self.volume[region_name]["density"][neuron_type]["density_file"]
+
+                        # We need to load the data from the file
+                        from scipy.interpolate import griddata
+                        with open(snudda_parse_path(density_file, self.snudda_data), "r") as f:
+                            density_data = json.load(f, object_pairs_hook=OrderedDict)
+
+                            assert region_name in density_data and neuron_type in density_data[region_name], \
+                                f"Volume {region_name} does not contain data for neuron type {neuron_type}"
+
+                            assert "coordinates" in density_data[region_name][neuron_type] \
+                                   and "density" in density_data[region_name][neuron_type], \
+                                (f"Missing coordinates and/or Density data for "
+                                 f"volume {region_name}, neuron type {neuron_type}")
+
+                            # Convert to SI (* 1e-6)
+                            coord = np.array(density_data[region_name][neuron_type]["coordinates"]) * 1e-6
+                            density = np.array(density_data[region_name][neuron_type]["density"])
+
+                            if self.griddata_interpolation:
+                                density_func = lambda x, y, z, c=coord, d=density: \
+                                    griddata(points=c, values=d,
+                                             xi=np.array([x, y, z]), method="linear",
+                                             fill_value=0).transpose()
+                            else:
+                                density_func = lambda x, y, z, c=coord, d=density: \
+                                    griddata(points=c, values=d,
+                                             xi=np.array([x, y, z]), method="nearest",
+                                             fill_value=0).transpose()
+
+                    self.volume[region_name]["mesh"].define_density(neuron_type, density_func)
+
+            if "neurons" not in region_data:
+                self.write_log(f"No neurons specified for volume {region_name}")
+
+            for neuron_type, neuron_data in region_data["neurons"].items():
+
+                model_type = neuron_data.get("neuron_type", default="neuron")
+                # rotation_mode currently not used?!
+
+                axon_density = neuron_data.get("axon_density")
+
+                if "num_neurons" in neuron_data:
+                    num_neurons = neuron_data["num_neurons"]
+                elif "fraction" in neuron_data:
+                    num_neurons = int(neuron_data["fraction"] * total_num_neurons)
+                else:
+                    raise ValueError(f"You need to specify 'fraction' or 'num_neurons' for {neuron_type}")
+
+                n_types = len(neuron_data["neuron_path"])
+                n_neurons = np.full((n_types, ), int(num_neurons/n_types))
+
+                extra_n = region_rnd.randint(n_types, size=num_neurons-np.sum(n_neurons))
+
+                for en in extra_n:
+                    n_neurons[en] += 1
+
+                for (neuron_name, neuron_path), num in zip(neuron_data["neuron_path"], n_neurons):
+                    assert neuron_name.split("_")[0] == neuron_type, \
+                        f"The keys in neuron_path must be {neuron_name}_X where X is usually a number"
+
+                    morph = os.path.join(neuron_path, "morphology")
+                    param = os.path.join(neuron_path, "parameters.json")
+                    mech = os.path.join(neuron_path, "mechanisms.json")
+
+                    modulation = os.path.join(neuron_path, "modulation.json")
+                    if not snudda_path_exists(modulation):
+                        modulation = None
+
+                    if model_type == "virtual":
+                        param = None
+                        mech = None
+                        modulation = None
+                        hoc = None
+                        virtual_neuron = True
+                    else:
+                        virtual_neuron = False
+
+                    parameter_key = neuron_data.get("parameter_key")
+                    morphology_key = neuron_data.get("morphology_key")
+                    modulation_key = neuron_data.get("modulation_key")
+
+                    self.add_neurons(name=neuron_name,
+                                     swc_path=morph,
+                                     param_filename=param,
+                                     mech_filename=mech,
+                                     modulation=modulation,
+                                     num_neurons=num,
+                                     hoc=None,
+                                     volume_id=region_name,
+                                     virtual_neuron=virtual_neuron,
+                                     axon_density=axon_density,
+                                     parameter_key=parameter_key,
+                                     morphology_key=morphology_key,
+                                     modulation_key=modulation_key,
+                                     config=config)
+
+        self.config_file = config_file
+        self.config = config
+
+        # We reorder neurons, sorting their IDs after position
+        # -- UPDATE: Now we spatial cluster neurons depending on number of workers
+        if resort_neurons:
+            self.sort_neurons(sort_idx=self.cluster_neurons())
+
+        if False:  # Debug purposes, make sure neuron ranges are ok
+            self.plot_ranges()
+
+        self.define_population_units(config)
+
+        mesh_logfile.close()
+
+    @staticmethod
+    def get_var_helper(data, key, default_value=None):
+        return data[key] if key in data else default_value
+
+    ############################################################################
+
+    def parse_config_legacy(self, config_file=None, resort_neurons=True):
+
+        """ Parse network config_file (legacy version) """
 
         if config_file is None:
             config_file = self.config_file
@@ -657,6 +861,43 @@ class SnuddaPlace(object):
     ############################################################################
 
     def generate_extra_axon_info(self, source_neuron, position, config, rng):
+
+        axon_info = []
+
+        if self.axon_config_cache is None:
+
+            self.axon_config_cache = dict()
+
+            for region in config["regions"]:
+                for neuron_key, neuron_info in config["regions"][region]["neurons"].items():
+                    if "axon_config" in neuron_info:
+                        axon_config = snudda_parse_path(neuron_info["axon_config"], self.snudda_data)
+                        with open(axon_config, "r") as f:
+                            self.axon_config_cache[neuron_key] = json.load(f)
+
+        # Each neuron type has a set of axons to choose from
+        source_neuron_type = source_neuron.split("_")[0]
+
+        if source_neuron_type in self.axon_config_cache:
+            axon_config = self.axon_config_cache[source_neuron_type]
+
+            for axon_name, axon_data in axon_config.items():
+
+                axon_position, axon_rotation, axon_swc \
+                    = self.get_projection_axon_location(source_position=position,
+                                                        proj_info=axon_data,
+                                                        rng=rng)
+                axon_info.append([axon_name, axon_position, axon_rotation, axon_swc])
+
+            return axon_info
+
+        else:
+            # No extra axons for neuron
+            return []
+
+    #########################################################################
+
+    def generate_extra_axon_info_old(self, source_neuron, position, config, rng):
 
         axon_info = []
 
@@ -1064,7 +1305,44 @@ class SnuddaPlace(object):
 
     ############################################################################
 
-    def define_population_units(self, population_unit_info):
+    def define_population_units(self, config):
+
+        """ Defines population units.
+
+        Args:
+            population_unit_info (dict): Has keys "all_unit_id" with a list of all Unit IDs, and <volume_id> which points
+                                         to a dictionary. This dictionary has keys:
+                                         "method" : "random" or "radial_density"                    "
+                                         "unit_id" : ID of population unit
+                                         "fraction_of_neurons" : How large fraction of neurons belong to this unit (used by "random" method)
+                                         "neuron_types" : List of Neuron types that belong to this population unit
+                                         "num_neurons" : Number of neurons in each population unit, only used with radial_density method
+                                         "structure" : Name of structure population unit is located in (volume_id)
+                                         "centres" : Centre of radial density
+                                         "probability_functions" : Probability function defining unit membership, function of radius
+
+        """
+
+        method_lookup = {"random": self.random_labeling,
+                         "radial_density": self.population_unit_density_labeling}
+
+        for region_name in self.config["regions"]:
+            if "population_units" in self.config["regions"][region_name]:
+                for unit_id in self.config["regions"][region_name]["population_units"]["all_unit_id"]:
+                    self.population_units[unit_id] = []
+
+                neuron_id = self.volume_neurons(region_name)
+                method_name = self.config["regions"][region_name]["population_units"]["method"]
+
+                assert method_name in method_lookup, \
+                    (f"Unknown population placement method {method_name}. "
+                     f"Valid options are {', '.join([x for x in method_lookup])}")
+
+                method_lookup[method_name](self.config["regions"][region_name]["population_units"], neuron_id)
+
+    ############################################################################
+
+    def define_population_units_legacy(self, population_unit_info):
 
         """ Defines population units.
 
