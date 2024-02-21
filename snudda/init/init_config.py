@@ -7,6 +7,7 @@
 import os
 import json
 from copy import deepcopy
+from collections import ChainMap
 from snudda.utils import snudda_parse_path
 from snudda.utils import NumpyEncoder
 
@@ -42,35 +43,52 @@ class ConfigParser:
 
     def parse_config(self):
 
-        self.config_data = self.parse_subtree(self.config_data)
+        self.config_data = self.parse_subtree(self.config_data, parent_file=self.path)
 
         self.setup_random_seeds()
 
-    def substitute_json(self, putative_file, key=None):
+    def substitute_json(self, putative_file, key=None, parent_file=None):
 
         if not (isinstance(putative_file, str) and putative_file.endswith(".json")):
             return putative_file
 
-        putative_path = snudda_parse_path(putative_file, snudda_data=self.snudda_data)
-        if not os.path.isfile(putative_path):
-            raise ValueError(f"File not found {putative_path}")
+        # First we look for files in the same directory as the parent directory
+        # after that we do SNUDDA_DATA substitution if no match
 
         # This allows us to exclude parsing of certain json files
-        if os.path.basename(putative_path) in self.exclude_parse_values:
+        if os.path.basename(putative_file) in self.exclude_parse_values:
             return putative_file
+
+        parent_dir = os.path.dirname(parent_file)
+        base_dir = os.path.dirname(self.path)
+
+        # Version of file name that we check to see if we can find the file
+        putative_files = [putative_file,
+                          os.path.join(parent_dir, putative_file),
+                          os.path.join(base_dir, putative_file),
+                          snudda_parse_path(putative_file, snudda_data=self.snudda_data)]
+        putative_path = None
+
+        for pf in putative_files:
+            if os.path.isfile(pf):
+                putative_path = pf
+                break
+
+        if putative_path is None:
+            raise ValueError(f"File not found {putative_file}")
 
         with open(putative_path) as f:
             print(f"Loading {putative_path}")
             sub_tree = json.load(f)
 
-        sub_tree = self.parse_subtree(sub_tree)
+        sub_tree = self.parse_subtree(sub_tree, parent_file=putative_path)
 
         if key in sub_tree:
             return sub_tree[key]
 
         return sub_tree
 
-    def parse_subtree(self, config_dict):
+    def parse_subtree(self, config_dict, parent_file=None):
 
         updated_config = deepcopy(config_dict)
 
@@ -84,13 +102,17 @@ class ConfigParser:
                 del updated_config[key]
 
             elif isinstance(value, dict):
-                updated_config[key] = self.parse_subtree(value)
+                updated_config[key] = self.parse_subtree(value, parent_file=parent_file)
 
             elif isinstance(value, list):
-                updated_config[key] = [self.substitute_json(x) for x in value]
+                updated_config[key] = [self.substitute_json(x, parent_file=parent_file) for x in value]
+
+                # If the first element is a dict, assume all are dict and merge them
+                if isinstance(updated_config[key][0], dict):
+                    updated_config[key] = dict(ChainMap(*reversed(updated_config[key])))
 
             else:
-                updated_config[key] = self.substitute_json(value, key)
+                updated_config[key] = self.substitute_json(value, key, parent_file=parent_file)
 
         return updated_config
 
@@ -111,17 +133,25 @@ class ConfigParser:
 
     def write_config(self, output_path=None):
 
+        if output_path is None:
+            output_path = os.path.join(self.config_data["network_path"], "network-config.json")
+
+        print(f"Writing to file {output_path}")
+        network_dir = os.path.dirname(output_path)
+        if network_dir and not os.path.isdir(network_dir):
+            os.makedirs(network_dir)
+
         with open(output_path, "wt") as f:
             json.dump(self.config_data, f, indent=4, cls=NumpyEncoder)
 
 
 if __name__ == "__main__":
 
-    config_path = "/home/hjorth/HBP/BasalGangliaData/data/connectivity/network.json"
+    config_path = "/home/hjorth/HBP/Snudda/new_config/network.json"
 
     conf = ConfigParser(path=config_path, snudda_data="/home/hjorth/HBP/BasalGangliaData/data")
     conf.parse_config()
-    conf.write_config("test.json")
+    conf.write_config()
 
     # import pdb
     # pdb.set_trace()

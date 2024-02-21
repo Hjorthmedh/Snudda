@@ -32,7 +32,7 @@ class SnuddaRotate:
             return self.parse_config_file_legacy(config_file=config_file)
 
         # Parse the config
-        for region_name, region_data in self.config["regions"]:
+        for region_name, region_data in self.config["regions"].items():
             if "neuron_orientation" in region_data["volume"]:
                 for neuron_type in region_data["volume"]["neuron_orientation"]:
 

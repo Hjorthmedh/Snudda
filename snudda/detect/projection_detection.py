@@ -300,19 +300,20 @@ class ProjectionDetection:
 
     def parse_config(self):
 
-        for con_name, con_info in self.snudda_detect.config["connectivity"].items():
-            for con_type, con_config in con_info.items():
-                if "projection_config_file" in con_config:
-                    pre_neuron_type = con_name.split(",")[0]
+        for region_name, region_data in self.snudda_detect.config["regions"].items():
+            for con_name, con_info in region_data["connectivity"].items():
+                for con_type, con_config in con_info.items():
+                    if "projection_config_file" in con_config:
+                        pre_neuron_type = con_name.split(",")[0]
 
-                    if "projection_name" in con_config:
-                        projection_name = con_config["projection_name"]
-                    else:
-                        projection_name = f"{con_name},{con_type}"
+                        if "projection_name" in con_config:
+                            projection_name = con_config["projection_name"]
+                        else:
+                            projection_name = f"{con_name},{con_type}"
 
-                    self.add_projection(projection_name=projection_name, pre_neuron_type=pre_neuron_type,
-                                        projection_file=snudda_parse_path(con_config["projection_config_file"],
-                                                                          snudda_data=self.snudda_detect.snudda_data))
+                        self.add_projection(projection_name=projection_name, pre_neuron_type=pre_neuron_type,
+                                            projection_file=snudda_parse_path(con_config["projection_config_file"],
+                                                                              snudda_data=self.snudda_detect.snudda_data))
 
     def add_projection(self, projection_name, pre_neuron_type, projection_file):
 

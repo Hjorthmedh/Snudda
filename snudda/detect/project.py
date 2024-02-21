@@ -96,46 +96,34 @@ class SnuddaProject(object):
 
         """ Reads in neuron prototypes. Simplified version of what same function in detect.py does. """
 
-        for name, definition in self.config["neurons"].items():
+        for region_name, region_data in self.config["regions"].items():
+            for name_type, definition in region_data["neurons"].items():
+                for name, neuron_path in definition["neuron_path"].items():
 
-            morph = definition["morphology"]
-            param = definition["parameters"]
-
-            if "modulation" in definition:
-                modulation = definition["modulation"]
-            else:
-                modulation = None
-
-            mechanisms = definition["mechanisms"]
-
-            # TODO: Need to update to use NeuronPrototype !!!
-            self.prototype_neurons[name] = NeuronPrototype(neuron_name=name,
-                                                           neuron_path=None,
-                                                           snudda_data=self.snudda_data,
-                                                           morphology_path=morph,
-                                                           parameter_path=param,
-                                                           modulation_path=modulation,
-                                                           mechanism_path=mechanisms)
+                    self.prototype_neurons[name] = NeuronPrototype(neuron_name=name,
+                                                                   neuron_path=neuron_path,
+                                                                   snudda_data=self.snudda_data)
 
         # TODO: The code below is duplicate from detect.py, update so both use same code base
-        for name, definition in self.config["connectivity"].items():
+        for region_name, region_data in self.config["regions"].items():
+            for name, con_def in region_data["connectivity"].items():
 
-            pre_type, post_type = name.split(",")
+                pre_type, post_type = name.split(",")
 
-            con_def = copy.deepcopy(definition)
+                con_def = copy.deepcopy(definition)
 
-            for key in con_def:
-                if key == "gap_junction":
-                    con_def[key]["channel_model_id"] = 3
-                else:
-                    con_def[key]["channel_model_id"] = self.next_channel_model_id
-                    self.next_channel_model_id += 1
+                for key in con_def:
+                    if key == "gap_junction":
+                        con_def[key]["channel_model_id"] = 3
+                    else:
+                        con_def[key]["channel_model_id"] = self.next_channel_model_id
+                        self.next_channel_model_id += 1
 
-                # Also if conductance is just a number, add std 0
-                if type(con_def[key]["conductance"]) not in [list, tuple]:
-                    con_def[key]["conductance"] = [con_def[key]["conductance"], 0]
+                    # Also if conductance is just a number, add std 0
+                    if type(con_def[key]["conductance"]) not in [list, tuple]:
+                        con_def[key]["conductance"] = [con_def[key]["conductance"], 0]
 
-            self.connectivity_distributions[pre_type, post_type] = con_def
+                self.connectivity_distributions[pre_type, post_type] = con_def
 
     def project(self, write=True):
 

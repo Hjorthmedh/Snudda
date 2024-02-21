@@ -16,7 +16,6 @@
 import json
 import os
 import sys
-from collections import OrderedDict
 
 import h5py
 import numexpr
@@ -322,7 +321,7 @@ class SnuddaPlace(object):
         self.write_log(f"Parsing place config file {config_file}")
 
         with open(config_file, "r") as f:
-            config = json.load(f, object_pairs_hook=OrderedDict)
+            config = json.load(f)
 
         if "regions" not in config:
             self.write_log(f"Missing 'regions', switching to legacy parser.")
@@ -351,7 +350,7 @@ class SnuddaPlace(object):
         all_seeds = ss.generate_state(len(config["regions"]))
 
         for (region_name, region_data), region_seed in zip(config["regions"].items(), all_seeds):
-            total_num_neurons = region_data["total_neuron_count"]
+            total_num_neurons = region_data["num_neurons"]
 
             volume_data = region_data["volume"]
             self.volume[region_name] = volume_data
@@ -375,11 +374,11 @@ class SnuddaPlace(object):
             else:
                 num_putative_points = None
 
-                self.volume[region_name]["mesh"] \
-                    = NeuronPlacer(mesh_path=mesh_file,
-                                   d_min=self.volume[region_name]["d_min"],
-                                   random_seed=region_seed,
-                                   n_putative_points=num_putative_points)
+            self.volume[region_name]["mesh"] \
+                = NeuronPlacer(mesh_path=mesh_file,
+                               d_min=self.volume[region_name]["d_min"],
+                               random_seed=region_seed,
+                               n_putative_points=num_putative_points)
 
             if "density" in self.volume[region_name]:
                 for neuron_type in self.volume[region_name]["density"]:
@@ -395,7 +394,7 @@ class SnuddaPlace(object):
                         # We need to load the data from the file
                         from scipy.interpolate import griddata
                         with open(snudda_parse_path(density_file, self.snudda_data), "r") as f:
-                            density_data = json.load(f, object_pairs_hook=OrderedDict)
+                            density_data = json.load(f)
 
                             assert region_name in density_data and neuron_type in density_data[region_name], \
                                 f"Volume {region_name} does not contain data for neuron type {neuron_type}"
@@ -425,9 +424,11 @@ class SnuddaPlace(object):
             if "neurons" not in region_data:
                 self.write_log(f"No neurons specified for volume {region_name}")
 
+            number_of_added_neurons = 0
+
             for neuron_type, neuron_data in region_data["neurons"].items():
 
-                model_type = neuron_data.get("neuron_type", default="neuron")
+                model_type = neuron_data.get("neuron_type", "neuron")  # default "neuron"
                 # rotation_mode currently not used?!
 
                 axon_density = neuron_data.get("axon_density")
@@ -435,6 +436,8 @@ class SnuddaPlace(object):
                 if "num_neurons" in neuron_data:
                     num_neurons = neuron_data["num_neurons"]
                 elif "fraction" in neuron_data:
+                    if neuron_data["fraction"] < 0 or neuron_data["fraction"] > 1:
+                        raise ValueError(f"{neuron_type}: Neuron 'fraction' must be between 0 and 1.")
                     num_neurons = int(neuron_data["fraction"] * total_num_neurons)
                 else:
                     raise ValueError(f"You need to specify 'fraction' or 'num_neurons' for {neuron_type}")
@@ -442,12 +445,12 @@ class SnuddaPlace(object):
                 n_types = len(neuron_data["neuron_path"])
                 n_neurons = np.full((n_types, ), int(num_neurons/n_types))
 
-                extra_n = region_rnd.randint(n_types, size=num_neurons-np.sum(n_neurons))
+                extra_n = region_rnd.integers(low=0, high=n_types, size=num_neurons-np.sum(n_neurons))
 
                 for en in extra_n:
                     n_neurons[en] += 1
 
-                for (neuron_name, neuron_path), num in zip(neuron_data["neuron_path"], n_neurons):
+                for (neuron_name, neuron_path), num in zip(neuron_data["neuron_path"].items(), n_neurons):
                     assert neuron_name.split("_")[0] == neuron_type, \
                         f"The keys in neuron_path must be {neuron_name}_X where X is usually a number"
 
@@ -456,7 +459,7 @@ class SnuddaPlace(object):
                     mech = os.path.join(neuron_path, "mechanisms.json")
 
                     modulation = os.path.join(neuron_path, "modulation.json")
-                    if not snudda_path_exists(modulation):
+                    if not snudda_path_exists(modulation, snudda_data=self.snudda_data):
                         modulation = None
 
                     if model_type == "virtual":
@@ -487,6 +490,11 @@ class SnuddaPlace(object):
                                      modulation_key=modulation_key,
                                      config=config)
 
+                    number_of_added_neurons += num
+
+            if number_of_added_neurons > total_num_neurons*1.01:
+                raise ValueError(f"{region_name} should have {total_num_neurons} but {number_of_added_neurons} were added.")
+
         self.config_file = config_file
         self.config = config
 
@@ -499,8 +507,6 @@ class SnuddaPlace(object):
             self.plot_ranges()
 
         self.define_population_units(config)
-
-        mesh_logfile.close()
 
     @staticmethod
     def get_var_helper(data, key, default_value=None):
@@ -530,7 +536,7 @@ class SnuddaPlace(object):
         cfg_file = open(config_file, 'r')
 
         try:
-            config = json.load(cfg_file, object_pairs_hook=OrderedDict)
+            config = json.load(cfg_file)
         finally:
             cfg_file.close()
 
@@ -549,12 +555,6 @@ class SnuddaPlace(object):
             self.write_log(f"Using random seed provided by command line: {self.random_seed}")
 
         self.random_generator = np.random.default_rng(self.random_seed + 115)
-
-        if self.log_file is None:
-            mesh_log_filename = "mesh-log.txt"
-        else:
-            mesh_log_filename = f"{self.log_file.name}-mesh"
-        mesh_logfile = open(mesh_log_filename, 'wt')
 
         # First handle volume definitions
         volume_def = config["volume"]
@@ -621,7 +621,7 @@ class SnuddaPlace(object):
                             # We need to load the data from the file
                             from scipy.interpolate import griddata
                             with open(snudda_parse_path(density_file, self.snudda_data), "r") as f:
-                                density_data = json.load(f, object_pairs_hook=OrderedDict)
+                                density_data = json.load(f)
 
                                 assert volume_id in density_data and neuron_type in density_data[volume_id], \
                                     f"Volume {volume_id} does not contain data for neuron type {neuron_type}"
@@ -742,8 +742,6 @@ class SnuddaPlace(object):
         if "population_units" in config:
             self.define_population_units(config["population_units"])
 
-        mesh_logfile.close()
-
     ############################################################################
 
     def avoid_edges_parallel(self):
@@ -760,7 +758,7 @@ class SnuddaPlace(object):
                 volume_id = config["volume_id"]
                 mesh_file = self.config["volume"][volume_id]["mesh_file"]
 
-                if type(config["stay_inside_mesh"]) in (dict, OrderedDict):
+                if isinstance(config["stay_inside_mesh"], dict):
                     if "k_dist" in config["stay_inside_mesh"]:
                         k_dist = config["stay_inside_mesh"]["k_dist"]
                     else:
@@ -1093,7 +1091,7 @@ class SnuddaPlace(object):
         pos_file = h5py.File(file_name, "w", libver=self.h5libver)
 
         with open(self.config_file, 'r') as cfg_file:
-            config = json.load(cfg_file, object_pairs_hook=OrderedDict)
+            config = json.load(cfg_file)
 
         # Meta data
         save_meta_data = [(self.config_file, "config_file"),
