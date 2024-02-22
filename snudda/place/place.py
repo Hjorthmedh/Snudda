@@ -346,7 +346,7 @@ class SnuddaPlace(object):
         all_seeds = ss.generate_state(len(config["regions"]))
 
         for (region_name, region_data), region_seed in zip(config["regions"].items(), all_seeds):
-            total_num_neurons = region_data["num_neurons"]
+            total_num_neurons = region_data.get("num_neurons")
 
             volume_data = region_data["volume"]
             self.volume[region_name] = volume_data
@@ -432,6 +432,9 @@ class SnuddaPlace(object):
                 if "num_neurons" in neuron_data:
                     num_neurons = neuron_data["num_neurons"]
                 elif "fraction" in neuron_data:
+                    if total_num_neurons is None:
+                        raise ValueError(f"If fraction is specified, then total_num_neurons for the region {region_name} must be set")
+
                     if neuron_data["fraction"] < 0 or neuron_data["fraction"] > 1:
                         raise ValueError(f"{neuron_type}: Neuron 'fraction' must be between 0 and 1.")
                     num_neurons = int(neuron_data["fraction"] * total_num_neurons)
@@ -488,7 +491,7 @@ class SnuddaPlace(object):
 
                     number_of_added_neurons += num
 
-            if number_of_added_neurons > total_num_neurons*1.01:
+            if total_num_neurons is not None and number_of_added_neurons > total_num_neurons*1.01:
                 raise ValueError(f"{region_name} should have {total_num_neurons} but {number_of_added_neurons} were added.")
 
         self.config_file = config_file
@@ -1162,13 +1165,13 @@ class SnuddaPlace(object):
             for nid, rn in zip(neurons_of_type, rand_num):
                 # If our randum number is smaller than the first fraction, then neuron in first pop unit
                 # if random number is between first and second cumulative fraction, then second pop unit
-                # If larger than last cum_fraction, then no pop unit was picked (and we get -1)
+                # If larger than last cum_fraction, then no pop unit was picked (and we set pop unit 0)
                 idx = len(cum_fraction) - np.sum(rn <= cum_fraction)
 
                 if idx < len(cum_fraction):
-                    unit_id = units_available[nt]["unit"][idx]
-                    self.population_unit[nid] = unit_id
-                    self.population_units[unit_id].append(nid)
+                    uid = units_available[neuron_type]["unit"][idx]
+                    self.population_unit[nid] = uid
+                    self.population_units[uid].append(nid)
                 else:
                     self.population_unit[nid] = 0
 
