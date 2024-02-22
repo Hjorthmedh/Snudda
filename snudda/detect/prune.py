@@ -297,7 +297,7 @@ class SnuddaPrune(object):
 
         """
 
-        data = collections.OrderedDict()
+        data = dict()
 
         data["merge_files_syn"] = merge_files_syn
         data["merge_neuron_range_syn"] = merge_neuron_range_syn
@@ -327,7 +327,7 @@ class SnuddaPrune(object):
         """
 
         with open(self.merge_info_file, "r") as f:
-            data = json.load(f, object_pairs_hook=collections.OrderedDict)
+            data = json.load(f)
 
         merge_files_syn = data["merge_files_syn"]
         merge_neuron_range_syn = data["merge_neuron_range_syn"]
@@ -545,9 +545,9 @@ class SnuddaPrune(object):
         self.position_file = self.hist_file["meta/position_file"][()]
 
         # This was config data used for detection, might differ from pruning config
-        self.detect_config = json.loads(self.hist_file["meta/config"][()], object_pairs_hook=collections.OrderedDict)
+        self.detect_config = json.loads(self.hist_file["meta/config"][()])
         with open(self.config_file, "r") as f:
-            self.config = json.load(f, object_pairs_hook=collections.OrderedDict)
+            self.config = json.load(f)
 
         # If connectivity is empty, then there was nothing to do touch detection on
         # But if it is non-empty, then there should be no remaining hyper voxels
@@ -654,20 +654,30 @@ class SnuddaPrune(object):
             config_file (str) : Path to new config file
         """
 
-        detect_config = json.loads(self.hist_file["meta/config"][()], object_pairs_hook=collections.OrderedDict)
+        detect_config = json.loads(self.hist_file["meta/config"][()])
         with open(config_file, "r") as f:
-            prune_config = json.load(f, object_pairs_hook=collections.OrderedDict)
+            prune_config = json.load(f)
 
         all_present = True
 
-        for con in prune_config["connectivity"]:
-            if con not in detect_config["connectivity"]:
-                self.write_log(f"!!! Connection {con} is present in {config_file}, "
-                               f"but was not included in config file used for detect. "
-                               f"Please rerun snudda detect", is_error=True)
-                all_present = False
+        con_p = set()
+        con_c = set()
 
-        assert all_present, "Please rerun snudda detect."
+        for region_p in prune_config["regions"].keys():
+            con_p.union(set(list(prune_config["regions"][region_p]["connectivity"].keys())))
+
+        for region_c in detect_config["regions"].keys():
+            con_c.union(set(list(detect_config["regions"][region_c]["connectivity"].keys())))
+
+        missing_c = con_p - con_c
+
+        if len(missing_c) > 0:
+            self.write_log(f"!!! Connection(s) {missing_c} is present in {config_file}, "
+                           f"but was not included in config file used for detect. "
+                           f"Please rerun snudda detect", is_error=True)
+
+            raise ValueError(f"All connections in pruning_config was not present in detect_config. Missing {missing_c}. Please rerun detect first!")
+
 
     ############################################################################
 
@@ -686,7 +696,7 @@ class SnuddaPrune(object):
 
         self.check_network_config_integrity(config_file=config_file)
         with open(config_file, "r") as f:
-            self.config = json.load(f, object_pairs_hook=collections.OrderedDict)
+            self.config = json.load(f)
 
         self.population_unit_id = self.hist_file["network/neurons/population_unit_id"][()].copy()
 
@@ -694,40 +704,41 @@ class SnuddaPrune(object):
         # many millions of times, we create an temporary typeID number
         self.make_type_numbering()
 
-        orig_connectivity_distributions = json.loads(self.hist_file["meta/connectivity_distributions"][()],
-                                                     object_pairs_hook=collections.OrderedDict)
+        orig_connectivity_distributions = json.loads(self.hist_file["meta/connectivity_distributions"][()])
 
-        config_connectivity_distributions = self.config["connectivity"]
+        # config_connectivity_distributions = self.config["connectivity"]
 
         self.connectivity_distributions = dict([])
 
-        # For the pruning we merge the two into one
-        for key in config_connectivity_distributions:
-            (pre_type, post_type) = key.split(",")  # split on "$$" if we had looped over orig_connectivity_distribution
-            orig_key = f"{pre_type}$${post_type}"
+        for region_name, region_data in self.config["regions"].items():
+            # For the pruning we merge the original detect connectivity_distribution with the one for prune
+            for con_name, connection_data in region_data["connectivity"].items():
 
-            # Need to handle if preType or postType don't exist, then skip this
-            if pre_type not in self.type_id_lookup or post_type not in self.type_id_lookup:
-                self.write_log(f"Skipping {pre_type} to {post_type} connection")
-                continue
+                (pre_type, post_type) = con_name.split(",")  # split on "$$" if we had looped over orig_connectivity_distribution
+                orig_key = f"{pre_type}$${post_type}"
 
-            pre_type_id = self.type_id_lookup[pre_type]
-            post_type_id = self.type_id_lookup[post_type]
+                # Need to handle if preType or postType don't exist, then skip this
+                if pre_type not in self.type_id_lookup or post_type not in self.type_id_lookup:
+                    self.write_log(f"Skipping {pre_type} to {post_type} connection")
+                    continue
 
-            for con_type in config_connectivity_distributions[key]:
-                con_data = config_connectivity_distributions[key][con_type]
+                pre_type_id = self.type_id_lookup[pre_type]
+                post_type_id = self.type_id_lookup[post_type]
 
-                pruning = self.complete_pruning_info(con_data["pruning"])
+                for con_type in connection_data:
+                    con_data = connection_data[con_type]
 
-                if "pruning_other" in con_data:
-                    pruning_other = self.complete_pruning_info(con_data["pruning_other"])
-                else:
-                    pruning_other = None
+                    pruning = self.complete_pruning_info(con_data["pruning"])
 
-                # This data is added by detect, we need to take it from what was used during detection
-                synapse_type_id = orig_connectivity_distributions[orig_key][con_type]["channel_model_id"]
+                    if "pruning_other" in con_data:
+                        pruning_other = self.complete_pruning_info(con_data["pruning_other"])
+                    else:
+                        pruning_other = None
 
-                self.connectivity_distributions[pre_type_id, post_type_id, synapse_type_id] = (pruning, pruning_other)
+                    # This data is added by detect, we need to take it from what was used during detection
+                    synapse_type_id = orig_connectivity_distributions[orig_key][con_type]["channel_model_id"]
+
+                    self.connectivity_distributions[pre_type_id, post_type_id, synapse_type_id] = (pruning, pruning_other)
 
     ############################################################################
 
@@ -828,14 +839,15 @@ class SnuddaPrune(object):
         # Copy over meta data
         self.hist_file.copy("meta", out_file)
 
-        cfg = json.loads(self.hist_file["meta/config"][()], object_pairs_hook=collections.OrderedDict)
-        morph_group = out_file.create_group("morphologies")
-
-        for name, definition in cfg["neurons"].items():
-            morph_file = definition["morphology"]
-
-            swc_group = morph_group.create_group(name)
-            swc_group.create_dataset("location", data=morph_file)
+        # cfg = json.loads(self.hist_file["meta/config"][()])
+        # morph_group = out_file.create_group("morphologies")
+        #
+        # for region_name, region_data in cfg["regions"].items():
+        #     for name, definition in region_data["neurons"].items():
+        #         morph_file = definition["morphology"]
+        #
+        #         swc_group = morph_group.create_group(name)
+        #         swc_group.create_dataset("location", data=morph_file)
 
         network_group = out_file.create_group("network")
 
@@ -939,7 +951,7 @@ class SnuddaPrune(object):
         # self.histFile.copy("neurons",outFile)
         self.hist_file.copy("network/neurons", network_group)
 
-        cfg = json.loads(self.hist_file["meta/config"][()], object_pairs_hook=collections.OrderedDict)
+        cfg = json.loads(self.hist_file["meta/config"][()])
 
         chunk_size = self.synapse_chunk_size
 

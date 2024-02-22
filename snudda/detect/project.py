@@ -4,6 +4,7 @@
 import copy
 import json
 import os
+import traceback
 from collections import OrderedDict
 
 import h5py
@@ -106,11 +107,11 @@ class SnuddaProject(object):
 
         # TODO: The code below is duplicate from detect.py, update so both use same code base
         for region_name, region_data in self.config["regions"].items():
-            for name, con_def in region_data["connectivity"].items():
+            for name, connection_def in region_data["connectivity"].items():
 
                 pre_type, post_type = name.split(",")
 
-                con_def = copy.deepcopy(definition)
+                con_def = copy.deepcopy(connection_def)
 
                 for key in con_def:
                     if key == "gap_junction":

@@ -18,7 +18,6 @@ import os
 import sys
 import time
 import timeit
-from collections import OrderedDict
 import gc
 
 import h5py
@@ -2025,7 +2024,7 @@ class SnuddaDetect(object):
         cfg_file = open(str(config_file), 'r')
 
         try:
-            self.config = json.load(cfg_file, object_pairs_hook=OrderedDict)
+            self.config = json.load(cfg_file)
         finally:
             cfg_file.close()
 
@@ -2108,9 +2107,10 @@ class SnuddaDetect(object):
         self.next_channel_model_id = 10  # Reset counter
 
         for region_name, region_data in self.config["regions"].items():
-            for name, con_def in region_data["connectivity"].items():
+            for name, connection_def in region_data["connectivity"].items():
 
                 # This also enriches the self.config by adding channelModelID, lognormal_mu_sigma etc
+                con_def = copy.deepcopy(connection_def)
 
                 pre_type, post_type = name.split(",")
 
