@@ -1,4 +1,6 @@
 {
+    "snudda_data": "",
+    
     "random_seed": {
         "masterseed": 1234,
         "init": 2906597030,
@@ -8,42 +10,42 @@
         "input": 507409703,
         "simulate": 2825158027
     },
-    "volume": {
+    "regions": {
 	"TestStriatum": {
-	    "type": "mesh",
-	    "d_min": 1e-5,
-	    "mesh_file": "mesh/simple_mesh.obj",
-	    "mesh_bin_width": 5e-5
-	}
-    },
-    "connectivity": {
-	"ballandstick,ballandstick": {
-	    "GABA": {
-		"conductance": [1.1e-9, 1.5e-9],
-		"cluster_size": 5,
-		"cluster_Spread": 25e-6,
-                "pruning": {
-                    "f1": 1,
-                    "soft_max": 5,
-                    "mu2": null,
-                    "a3": 1,
-                    "dist_pruning": null
-                }
-	    }
-	}
-    },
-    "neurons": {
-	"ballandstick_0": {
-            "morphology": "validation/ballanddoublestick/double.swc",
-            "parameters": "",
-            "mechanisms": "",
-            "modulation": "",
-            "num": 8,
-            "hoc": null,
-            "neuron_type": "neuron",
-            "rotation_mode": "",
-            "volume_id": "TestStriatum"
+	    "volume": {
+		"type": "mesh",
+		"d_min": 1e-5,
+		"mesh_file": "mesh/simple_mesh.obj",
+		"num_putative_points": 10000
+	    },
 
+	    "connectivity": {
+		"ballandstick,ballandstick": {
+		    "GABA": {
+			"conductance": [1.1e-9, 1.5e-9],
+			"cluster_size": 5,
+			"cluster_Spread": 25e-6,
+			"pruning": {
+			    "f1": 1,
+			    "soft_max": 5,
+			    "mu2": null,
+			    "a3": 1,
+			    "dist_pruning": null
+			}
+		    }
+		}
+	    },
+	    "neurons": {
+		"ballandstick": {
+		    "neuron_path": {
+		    	"ballandstick_0":  "validation/ballanddoublestick/"
+		    },
+		    "num_neurons": 8,
+		    "neuron_type": "neuron",
+		    "rotation_mode": "",
+		    "volume_id": "TestStriatum"
+		}
+	    }
 	}
     }
 }

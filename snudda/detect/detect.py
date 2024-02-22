@@ -3350,7 +3350,15 @@ class SnuddaDetect(object):
             num_neurons = self.hyper_voxels[self.hyper_voxel_id]["neuron_ctr"]
 
             if plot_neuron_id is None:
-                plot_neuron_id = self.hyper_voxels[self.hyper_voxel_id]["neurons"][:num_neurons]
+                try:
+                    plot_neuron_id = np.array(list(self.hyper_voxels[self.hyper_voxel_id]["neurons"].keys()))
+
+                    # plot_neuron_id = self.hyper_voxels[self.hyper_voxel_id]["neurons"][:num_neurons]
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
 
             for neuron_id in plot_neuron_id:
                 neuron = self.load_neuron(self.neurons[neuron_id], use_cache=False)
