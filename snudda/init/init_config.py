@@ -119,8 +119,8 @@ class ConfigParser:
     def setup_random_seeds(self):
 
         if "random_seed" in self.config_data:
-            if "masterseed" in self.config_data["random_seed"]:
-                master_seed = self.config_data["random_seed"]["masterseed"]
+            if "master_seed" in self.config_data["random_seed"]:
+                master_seed = self.config_data["random_seed"]["master_seed"]
             else:
                 master_seed = None
 

@@ -63,6 +63,9 @@ class SnuddaInit(object):
         if self.snudda_data is not None and not os.path.isdir(self.snudda_data):
             raise ValueError(f"Missing SNUDDA_DATA. No directory: {self.snudda_data}")
 
+        if self.snudda_data:
+            self.snudda_data = os.path.abspath(self.snudda_data)
+
         if config_file:
             self.config_file = config_file
         elif network_path:
@@ -77,8 +80,8 @@ class SnuddaInit(object):
         else:
             self.network_path = ""
 
-        self.network_data["network_path"] = network_path
-        self.network_data["snudda_data"] = snudda_data
+        self.network_data["network_path"] = self.network_path
+        self.network_data["snudda_data"] = self.snudda_data
 
         self.network_data["random_seed"], self.init_rng = SnuddaInit.setup_random_seeds(random_seed)
 
@@ -774,15 +777,27 @@ class SnuddaInit(object):
 
         unit_id = self.setup_population_unit(region_name=structure_name, unit_id=unit_id)
 
-        if "population_units" not in self.network_data:
-            self.network_data["regions"][structure_name]["population_units"] = dict()
+        if "method" not in self.network_data["regions"][structure_name]["population_units"]:
+            self.network_data["regions"][structure_name]["population_units"]["method"] = "radial_density"
+            self.network_data["regions"][structure_name]["population_units"]["centres"] = [unit_centre]
+            self.network_data["regions"][structure_name]["population_units"]["probability_functions"] = [probability_function]
+            self.network_data["regions"][structure_name]["population_units"]["unit_id"] = [unit_id]
+            self.network_data["regions"][structure_name]["population_units"]["neuron_types"] = [neuron_types]
+            self.network_data["regions"][structure_name]["population_units"]["num_neurons"] = [num_neurons]
+            self.network_data["regions"][structure_name]["population_units"]["structure"] = structure_name
 
-        self.network_data["regions"][structure_name]["population_units"]["method"] = "radial_density"
-        self.network_data["regions"][structure_name]["population_units"]["centres"] = [unit_centre]
-        self.network_data["regions"][structure_name]["population_units"]["probability_functions"] = [probability_function]
-        self.network_data["regions"][structure_name]["population_units"]["unit_id"] = [unit_id]
-        self.network_data["regions"][structure_name]["population_units"]["neuron_types"] = [neuron_types]
-        self.network_data["regions"][structure_name]["population_units"]["num_neurons"] = [num_neurons]
+        else:
+            old_method = self.network_data["regions"][structure_name]["population_units"]["method"]
+
+            if old_method != "radial_density":
+                raise ValueError(f"{structure_name} population unit, expected method 'radial_density' found '{old_method}', "
+                                 f"you cant mix methods for a structure.")
+
+            self.network_data["regions"][structure_name]["population_units"]["centres"].append(unit_centre)
+            self.network_data["regions"][structure_name]["population_units"]["probability_functions"].append(probability_function)
+            self.network_data["regions"][structure_name]["population_units"]["unit_id"].append(unit_id)
+            self.network_data["regions"][structure_name]["population_units"]["neuron_types"].append(neuron_types)
+            self.network_data["regions"][structure_name]["population_units"]["num_neurons"].append(num_neurons)
 
     def add_population_unit_random(self, structure_name, neuron_types, fraction_of_neurons, unit_id=None):
 
@@ -791,13 +806,23 @@ class SnuddaInit(object):
 
         unit_id = self.setup_population_unit(region_name=structure_name, unit_id=unit_id)
 
-        if "population_units" not in self.network_data["regions"][structure_name]:
-            self.network_data["regions"][structure_name]["population_units"] = dict()
+        if "method" not in self.network_data["regions"][structure_name]["population_units"]:
             self.network_data["regions"][structure_name]["population_units"]["method"] = "random"
             self.network_data["regions"][structure_name]["population_units"]["fraction_of_neurons"] = [fraction_of_neurons]
             self.network_data["regions"][structure_name]["population_units"]["unit_id"] = [unit_id]
             self.network_data["regions"][structure_name]["population_units"]["neuron_types"] = [neuron_types]
             self.network_data["regions"][structure_name]["population_units"]["structure"] = structure_name
+
+        else:
+            old_method = self.network_data["regions"][structure_name]["population_units"]["method"]
+
+            if old_method != "random":
+                raise ValueError(f"{structure_name} population unit, expected method 'random' found '{old_method}', "
+                                 f"you cant mix methods for a structure.")
+
+            self.network_data["regions"][structure_name]["population_units"]["fraction_of_neurons"].append(fraction_of_neurons)
+            self.network_data["regions"][structure_name]["population_units"]["unit_id"].append(unit_id)
+            self.network_data["regions"][structure_name]["population_units"]["neuron_types"].append(neuron_types)
 
     # Helper function, returns next free unit_id and sets up data structures (user can also choose own unit_id
     # but it must be unique and not already used
@@ -1816,7 +1841,7 @@ class SnuddaInit(object):
         rand_seed_dict = dict()
 
         if random_seed is not None:
-            rand_seed_dict["masterseed"] = random_seed
+            rand_seed_dict["master_seed"] = random_seed
 
         for st, s in zip(seed_types, all_seeds):
             rand_seed_dict[st] = s
