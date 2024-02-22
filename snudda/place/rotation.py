@@ -1,5 +1,4 @@
 import json
-from collections import OrderedDict
 
 import numpy as np
 from scipy.interpolate import griddata
@@ -26,13 +25,14 @@ class SnuddaRotate:
     def parse_config_file(self, config_file):
 
         with open(config_file, "r") as f:
-            self.config = json.load(f, object_pairs_hook=OrderedDict)
+            self.config = json.load(f)
 
         if "regions" not in self.config:
             return self.parse_config_file_legacy(config_file=config_file)
 
         # Parse the config
         for region_name, region_data in self.config["regions"].items():
+
             if "neuron_orientation" in region_data["volume"]:
                 for neuron_type in region_data["volume"]["neuron_orientation"]:
 
@@ -50,7 +50,7 @@ class SnuddaRotate:
         """ Parse config_file, sets self.rotation_lookup """
 
         with open(config_file, "r") as f:
-            self.config = json.load(f, object_pairs_hook=OrderedDict)
+            self.config = json.load(f)
 
         # Parse the config
         for volume_name in self.config["volume"]:
@@ -153,7 +153,7 @@ class SnuddaRotate:
         """ Loads rotation field for volumne_name from rotation_field_file """
 
         with open(rotation_field_file, "r") as f:
-            rotation_field_data = json.load(f, object_pairs_hook=OrderedDict)
+            rotation_field_data = json.load(f)
 
         if volume_name in rotation_field_data:
             assert "position" in rotation_field_data[volume_name] \
