@@ -101,6 +101,9 @@ class SnuddaPlace(object):
         self.verbose = verbose
         self.log_file = log_file
 
+        if self.snudda_data is None:
+            self.write_log(f"Warning, snudda_data is not set!")
+
         if self.network_path:
             self.position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
         else:
@@ -521,7 +524,8 @@ class SnuddaPlace(object):
         bend_neuron_info = []
 
         for neuron in self.neurons:
-            config = self.config["neurons"][neuron.name]
+            neuron_type = neuron.name.split("_")[0]
+            config = self.config["regions"][neuron.volume_id]["neurons"][neuron_type]
 
             if "stay_inside_mesh" in config and config["stay_inside_mesh"]:
                 volume_id = config["volume_id"]

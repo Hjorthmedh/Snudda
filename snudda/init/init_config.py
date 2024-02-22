@@ -40,6 +40,11 @@ class ConfigParser:
         if self.snudda_data is None:
             if "meta" in self.config_data and "snudda_data" in self.config_data["meta"]:
                 self.snudda_data = self.config_data["meta"]["snudda_data"]
+            else:
+                snudda_data = ""
+
+        if not self.snudda_data:
+            print(f"Warning, snudda_data is not set!")
 
     def parse_config(self):
 
