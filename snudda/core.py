@@ -115,7 +115,8 @@ class Snudda(object):
                          random_seed=args.randomseed,
                          honor_stay_inside=args.stay_inside)
 
-    def init_config(self, network_size=None,
+    def init_config(self,
+                    network_size=None,
                     snudda_data=None,
                     struct_def=None,
                     neurons_dir=None,
@@ -147,7 +148,8 @@ class Snudda(object):
         self.make_dir_if_needed(self.network_path)
 
         config_file = os.path.join(self.network_path, "network-config.json")
-        SnuddaInit(struct_def=struct_def,
+        SnuddaInit(network_path=self.network_path,
+                   struct_def=struct_def,
                    neurons_dir=neurons_dir,
                    snudda_data=snudda_data,
                    config_file=config_file,
