@@ -247,7 +247,7 @@ class SnuddaInit(object):
 
     def add_neuron_target(self,
                           neuron_name, target_name,
-                          region_name,
+                          region_name,   # region_name is the volume of the presynaptic neuron
                           connection_type,
                           dist_pruning,
                           f1,
@@ -696,7 +696,7 @@ class SnuddaInit(object):
 
     ###########################################################################################################
 
-    def neuron_projection(self, region_name,
+    def neuron_projection(self,
                           neuron_name, target_name,
                           projection_name,
                           projection_file,
@@ -723,7 +723,7 @@ class SnuddaInit(object):
                           parameter_file=None,
                           channel_param_dictionary=None):
 
-        self.add_neuron_target(region_name=region_name,
+        self.add_neuron_target(region_name=source_volume,
                                neuron_name=neuron_name, target_name=target_name,
                                connection_type=connection_type,
                                dist_pruning=dist_pruning,
@@ -745,7 +745,7 @@ class SnuddaInit(object):
         # Next we need to add the connection mapping specific parameters
 
         nt_key = f"{neuron_name},{target_name}"
-        con_info = self.network_data["regions"][region_name]["connectivity"][nt_key][connection_type]
+        con_info = self.network_data["regions"][source_volume]["connectivity"][nt_key][connection_type]
 
         con_info["projection_file"] = projection_file
         con_info["projection_name"] = projection_name

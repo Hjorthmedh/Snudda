@@ -521,17 +521,16 @@ class SnuddaSimulate(object):
 
             name = self.network_info["neurons"][ID]["name"]
 
-            config = self.config["neurons"][name]
-
             # We need to get morphology from network_info, since it can now be redefined for bent morphologies
             morph = snudda_parse_path(self.network_info["neurons"][ID]["morphology"], self.snudda_data)
-            # morph = snudda_parse_path(config["morphology"], self.snudda_data)
-            param = snudda_parse_path(config["parameters"], self.snudda_data)
-            mech = snudda_parse_path(config["mechanisms"], self.snudda_data)
 
-            if "modulation" in config:
-                modulation = snudda_parse_path(config["modulation"], self.snudda_data)
-            else:
+            neuron_path = snudda_parse_path(self.network_info["neurons"][ID]["neuron_path"], self.snudda_data)
+
+            param = os.path.join(neuron_path, "parameters.json")
+            mech = os.path.join(neuron_path, "mechanisms.json")
+            modulation = os.path.join(neuron_path, "modulation.json")
+
+            if not os.path.isfile(modulation):
                 modulation = None
 
             # Obs, neurons is a dictionary

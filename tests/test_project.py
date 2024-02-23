@@ -73,6 +73,7 @@ class TestProject(unittest.TestCase):
 
         cnc.add_neuron_target(neuron_name="dSPN",
                               target_name="dSPN",
+                              region_name="VolumeA",
                               connection_type="GABA",
                               dist_pruning=SPN2SPNdistDepPruning,
                               f1=0.38, soft_max=3, mu2=2.4,
@@ -86,6 +87,7 @@ class TestProject(unittest.TestCase):
 
         cnc.add_neuron_target(neuron_name="iSPN",
                               target_name="iSPN",
+                              region_name="VolumeB",
                               connection_type="GABA",
                               dist_pruning=SPN2SPNdistDepPruning,
                               f1=0.55, soft_max=4, mu2=2.4,

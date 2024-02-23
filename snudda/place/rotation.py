@@ -27,9 +27,6 @@ class SnuddaRotate:
         with open(config_file, "r") as f:
             self.config = json.load(f)
 
-        if "regions" not in self.config:
-            return self.parse_config_file_legacy(config_file=config_file)
-
         # Parse the config
         for region_name, region_data in self.config["regions"].items():
 
@@ -45,28 +42,6 @@ class SnuddaRotate:
                         position, rotation = None, None
 
                     self.rotation_lookup[region_name, neuron_type] = (rotation_mode, position, rotation)
-
-    def parse_config_file_legacy(self, config_file):
-        """ Parse config_file, sets self.rotation_lookup """
-
-        with open(config_file, "r") as f:
-            self.config = json.load(f)
-
-        # Parse the config
-        for volume_name in self.config["volume"]:
-            if "neuron_orientation" in self.config["volume"][volume_name]:
-                for neuron_type in self.config["volume"][volume_name]["neuron_orientation"]:
-
-                    orientation_info = self.config["volume"][volume_name]["neuron_orientation"][neuron_type]
-                    rotation_mode = orientation_info["rotation_mode"]
-                    rotation_field_file = orientation_info["rotation_field_file"] if "rotation_field_file" \
-                                                                                   in orientation_info else None
-                    if rotation_field_file:
-                        position, rotation = self.load_rotation_field(rotation_field_file, volume_name)
-                    else:
-                        position, rotation = None, None
-
-                    self.rotation_lookup[volume_name, neuron_type] = (rotation_mode, position, rotation)
 
     @staticmethod
     def random_z_rotate(rng):

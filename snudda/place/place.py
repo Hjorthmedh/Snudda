@@ -525,25 +525,25 @@ class SnuddaPlace(object):
 
         for neuron in self.neurons:
             neuron_type = neuron.name.split("_")[0]
-            config = self.config["regions"][neuron.volume_id]["neurons"][neuron_type]
+            neuron_config = self.config["regions"][neuron.volume_id]["neurons"][neuron_type]
 
-            if "stay_inside_mesh" in config and config["stay_inside_mesh"]:
-                volume_id = config["volume_id"]
-                mesh_file = self.config["volume"][volume_id]["mesh_file"]
+            if "stay_inside_mesh" in neuron_config and neuron_config["stay_inside_mesh"]:
+                volume_id = neuron_config["volume_id"]
+                mesh_file = self.config["regions"][volume_id]["volume"]["mesh_file"]
 
-                if isinstance(config["stay_inside_mesh"], dict):
-                    if "k_dist" in config["stay_inside_mesh"]:
-                        k_dist = config["stay_inside_mesh"]["k_dist"]
+                if isinstance(neuron_config["stay_inside_mesh"], dict):
+                    if "k_dist" in neuron_config["stay_inside_mesh"]:
+                        k_dist = neuron_config["stay_inside_mesh"]["k_dist"]
                     else:
                         k_dist = 30e-6
 
-                    if "n_random" in config["stay_inside_mesh"]:
-                        n_random = config["stay_inside_mesh"]["n_random"]
+                    if "n_random" in neuron_config["stay_inside_mesh"]:
+                        n_random = neuron_config["stay_inside_mesh"]["n_random"]
                     else:
                         n_random = 5
 
-                    if "max_angle" in config["stay_inside_mesh"]:
-                        max_angle = config["stay_inside_mesh"]["max_angle"]
+                    if "max_angle" in neuron_config["stay_inside_mesh"]:
+                        max_angle = neuron_config["stay_inside_mesh"]["max_angle"]
                     else:
                         max_angle = 0.1  # radians
                 else:

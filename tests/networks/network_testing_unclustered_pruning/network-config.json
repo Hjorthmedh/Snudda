@@ -8,41 +8,41 @@
         "input": 507409703,
         "simulate": 2825158027
     },
-    "volume": {
+    "regions": {
 	"TestStriatum": {
-	    "type": "mesh",
-	    "d_min": 1e-5,
-	    "mesh_file": "mesh/simple_mesh.obj",
-	    "mesh_bin_width": 5e-5
-	}
-    },
-    "connectivity": {
-	"ballandstick,ballandstick": {
-	    "GABA": {
-		"conductance": [1.1e-9, 1.5e-9],
-                "pruning": {
-                    "f1": 0.3,
-                    "soft_max": 5,
-                    "mu2": null,
-                    "a3": 1,
-                    "dist_pruning": null,
-		    "cluster_pruning": false
-                }
+	    "volume": {
+		"type": "mesh",
+		"d_min": 1e-5,
+		"mesh_file": "mesh/simple_mesh.obj",
+		"mesh_bin_width": 5e-5
+	    },
+	
+	    "connectivity": {
+		"ballandstick,ballandstick": {
+		    "GABA": {
+			"conductance": [1.1e-9, 1.5e-9],
+			"pruning": {
+			    "f1": 0.3,
+			    "soft_max": 5,
+			    "mu2": null,
+			    "a3": 1,
+			    "dist_pruning": null,
+			    "cluster_pruning": false
+			}
+		    }
+		}
+	    },
+	    "neurons": {
+		"ballandstick": {
+		    "neuron_path": {
+			"ballandstick_0":  "validation/ballandstick/"
+		    },
+		    "num_neurons": 8,
+		    "neuron_type": "neuron",
+		    "rotation_mode": "",
+		    "volume_id": "TestStriatum"
+		}
 	    }
-	}
-    },
-    "neurons": {
-	"ballandstick_0": {
-            "morphology": "validation/ballandstick/simple.swc",
-            "parameters": "",
-            "mechanisms": "",
-            "modulation": "",
-            "num": 8,
-            "hoc": null,
-            "neuron_type": "neuron",
-            "rotation_mode": "",
-            "volume_id": "TestStriatum"
-
 	}
     }
 }

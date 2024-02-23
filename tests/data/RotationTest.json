@@ -1,20 +1,24 @@
 {
-    "volume" : {
+    "regions" : {
 
-	"DummyVolume" : {},
+	"DummyVolume" : {
+	    "volume": {}
+	},
 	
 	"Striatum" : {
-	    "neuron_orientation" : {
-		"dSPN,iSPN,FS" : {
-		    "rotation_mode" : "vector_field_and_z",
-		    "rotation_field_file" : "data/TestField.json"
-		},
-		"LTS" : {
-		    "rotation_mode" : "vector_field",
-		    "rotation_field_file" : "data/TestField.json"
-		},
-		"ChIN" : {
-		    "rotation_mode" : "random"
+	    "volume": {
+		"neuron_orientation" : {
+		    "dSPN,iSPN,FS" : {
+			"rotation_mode" : "vector_field_and_z",
+			"rotation_field_file" : "data/TestField.json"
+		    },
+		    "LTS" : {
+			"rotation_mode" : "vector_field",
+			"rotation_field_file" : "data/TestField.json"
+		    },
+		    "ChIN" : {
+			"rotation_mode" : "random"
+		    }
 		}
 	    }
 	}
