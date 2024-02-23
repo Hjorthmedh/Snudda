@@ -106,7 +106,7 @@ class TestInit(unittest.TestCase):
             with open(config_name, "r") as f:
                 cfg_data = json.load(f)
 
-            self.assertTrue(cfg_data["regions"]["Striatum"]["population_units"]["all_unit_id"] == [1, 2, 3, 4, 10])
+            self.assertTrue(cfg_data["regions"]["Striatum"]["population_units"]["unit_id"] == [1, 2, 3, 4, 10])
             self.assertTrue(cfg_data["regions"]["Striatum"]["population_units"]["method"] == "random")
             self.assertTrue(cfg_data["regions"]["Striatum"]["population_units"]["fraction_of_neurons"] == [0.5, 0.2, 0.3, 0.15, 0.15])
             self.assertTrue(cfg_data["regions"]["Striatum"]["population_units"]["unit_id"] == [1, 2, 3, 4, 10])
@@ -147,7 +147,7 @@ class TestInit(unittest.TestCase):
             with open(config_name, "r") as f:
                 cfg_data = json.load(f)
 
-            self.assertTrue(cfg_data["regions"]["Striatum"]["population_units"]["all_unit_id"] == [1, 2, 3])
+            self.assertTrue(cfg_data["regions"]["Striatum"]["population_units"]["unit_id"] == [1, 2, 3])
             self.assertTrue(cfg_data["regions"]["Striatum"]["population_units"]["method"] == "radial_density")
             self.assertTrue(cfg_data["regions"]["Striatum"]["population_units"]["centres"][0] == [0, 0, 0])
             self.assertTrue(cfg_data["regions"]["Striatum"]["population_units"]["centres"][1] == [0.000300, 0, 0])

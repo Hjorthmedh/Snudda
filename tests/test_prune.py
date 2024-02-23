@@ -207,7 +207,7 @@ class TestPrune(unittest.TestCase):
 
         with self.subTest("synapse-f1"):
             # Test of f1
-            testing_config_file = os.path.join(self.network_path, "network-config-test-1b.json")
+            testing_config_file = os.path.join(self.network_path, "network-config-test-1.json")
             sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, keep_files=True)  # Use default config file
             sp.prune()
 
