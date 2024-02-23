@@ -1367,6 +1367,10 @@ class InputTuning(object):
         assert os.path.isfile(parameter_file), f"Missing parameter file {parameter_file}"
         assert os.path.isfile(mechanism_file), f"Missing mechanism file {mechanism_file}"
 
+        # TODO: We need to have neuron_info["neuron_path"][name_of_neuron] = neuron_path
+        # The below line is wrong, but it is FRIDAY evening so will fix it monday...
+        neuron_info["neuron_path"] = snudda_simplify_path(neuron_path, self.snudda_data)
+
         neuron_info["morphology"] = snudda_simplify_path(neuron_morph, self.snudda_data)
         neuron_info["parameters"] = snudda_simplify_path(parameter_file, self.snudda_data)
         neuron_info["mechanisms"] = snudda_simplify_path(mechanism_file, self.snudda_data)
@@ -1503,21 +1507,20 @@ class InputTuning(object):
         if snudda_data is None:
             snudda_data = self.snudda_data
 
-        config_def = collections.OrderedDict()
+        config_def = dict()
         config_def["snudda_data"] = snudda_data
         config_def["random_seed"], self.init_rng = SnuddaInit.setup_random_seeds(random_seed)
 
-        volume_def = collections.OrderedDict()
+        region_def = dict()
         vol_name = "InputTest"
-        volume_def[vol_name] = collections.OrderedDict()
+        region_def[vol_name] = dict()
+        region_def[vol_name]["volume"] = dict()
 
-        volume_def[vol_name]["type"] = "mesh"
-        volume_def[vol_name]["d_min"] = 15e-6
-        volume_def[vol_name]["mesh_file"] = "data/mesh/InputTestMesh.obj"
-        volume_def[vol_name]["mesh_bin_width"] = 100e-6
-
-        config_def["volume"] = volume_def
-        config_def["connectivity"] = dict()  # Unconnected
+        region_def[vol_name]["volume"]["type"] = "mesh"
+        region_def[vol_name]["volume"]["d_min"] = 15e-6
+        region_def[vol_name]["volume"]["mesh_file"] = "data/mesh/InputTestMesh.obj"
+        region_def[vol_name]["volume"]["mesh_bin_width"] = 100e-6
+        region_def[vol_name]["connectivity"] = dict()  # Unconnected
 
         if single_neuron_path:
             # Override and only get one neuron
@@ -1538,12 +1541,12 @@ class InputTuning(object):
             neuron_def = self.gather_all_neurons(neuron_types=neuron_types, all_combinations=all_combinations)
 
         # Just generate a set of points
-        volume_def[vol_name]["n_putative_points"] = max(len(neuron_def.keys())*5, 10000)
+        region_def[vol_name]["volume"]["n_putative_points"] = max(len(neuron_def.keys())*5, 10000)
 
         fake_axon_density = ["r", "1", 10e-6]
 
         for n in neuron_def.keys():
-            neuron_def[n]["num"] = num_replicas
+            neuron_def[n]["num_neurons"] = num_replicas
             neuron_def[n]["volume_id"] = vol_name
             neuron_def[n]["rotation_mode"] = "random"
             neuron_def[n]["hoc"] = None
@@ -1553,7 +1556,9 @@ class InputTuning(object):
                 # We will have no connections in this test network, so add empty density
                 neuron_def[n]["axon_density"] = fake_axon_density
 
-        config_def["neurons"] = neuron_def
+        region_def[vol_name]["neurons"] = neuron_def
+
+        config_def["regions"] = region_def
 
         return config_def
 

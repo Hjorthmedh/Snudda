@@ -206,6 +206,12 @@ class SnuddaInit(object):
                                mesh_file=struct_mesh,
                                n_putative_points=n_putative_points)
 
+        if "connectivity" not in self.network_data["regions"][struct_name]:
+            self.network_data["regions"][struct_name]["connectivity"] = dict()
+
+        if "neurons" not in self.network_data["regions"][struct_name]:
+            self.network_data["regions"][struct_name]["neurons"] = dict()
+
     ############################################################################
 
     @staticmethod
