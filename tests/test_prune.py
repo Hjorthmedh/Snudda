@@ -221,8 +221,10 @@ class TestPrune(unittest.TestCase):
             n_gaba = np.sum(sl.data["synapses"][:, 6] == gaba_id)
             n_ampa = np.sum(sl.data["synapses"][:, 6] == ampa_id)
 
-            self.assertTrue((20*8 + 10*2)*0.5 - 10 < n_gaba < (20*8 + 10*2)*0.5 + 10)
-            self.assertTrue((20*8 + 10*2)*0.9 - 10 < n_ampa < (20*8 + 10*2)*0.9 + 10)
+            # gaba: var(x) = n * p * (1-p), ie 180 * 0.5 * 0. 5 = 45 --> std(x) = 6.7, 2* std(x) = 13
+            # ampa: 2*std(x) = 2*sqrt(180*0.9*0.1) = 8
+            self.assertTrue((20*8 + 10*2)*0.5 - 13 < n_gaba < (20*8 + 10*2)*0.5 + 13)
+            self.assertTrue((20*8 + 10*2)*0.9 - 8 < n_ampa < (20*8 + 10*2)*0.9 + 8)
 
         with self.subTest("synapse-softmax"):
             # Test of softmax
@@ -244,7 +246,7 @@ class TestPrune(unittest.TestCase):
             # Load the pruned data and check it
             sl = SnuddaLoad(pruned_output)
             # With mu2 having 2 synapses means 50% chance to keep them, having 1 will be likely to have it removed
-            self.assertTrue(20*8*0.5 - 10 < sl.data["num_synapses"] < 20*8*0.5 + 10)
+            self.assertTrue(20*8*0.5 - 13 < sl.data["num_synapses"] < 20*8*0.5 + 13)
 
         with self.subTest("synapse-a3"):
             # Test of a3
