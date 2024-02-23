@@ -75,7 +75,7 @@ class ExportSonata:
 
         # Write the data in new format using the ConvHurt module
         # TODO: We need to read structure names from the network-config.json
-        structure_names = [x for x in self.network_config["volume"]]
+        structure_names = [x for x in self.network_config["regions"]]
         ch = ConvHurt(simulation_structures=structure_names,
                       base_dir=self.out_dir, has_input=has_input)
 
