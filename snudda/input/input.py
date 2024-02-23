@@ -318,9 +318,6 @@ class SnuddaInput(object):
                             and population_unit_id is not None and population_unit_id > 0 \
                             and input_type in self.population_unit_spikes[neuron_type]:
 
-                        import pdb
-                        pdb.set_trace()
-
                         chan_spikes = self.population_unit_spikes[neuron_type][input_type][population_unit_id]
 
                         it_group.create_dataset("population_unit_spikes", data=chan_spikes, compression="gzip",
@@ -1683,24 +1680,13 @@ class SnuddaInput(object):
 
         all_id = []
 
-        for region_name, region_data in self.network_config.items():
+        for region_name, region_data in self.network_config["regions"].items():
             if "population_units" in region_data:
                 if "unit_id" in region_data["population_units"]:
                     all_id += region_data["population_units"]["unit_id"]
 
-                all_id = set(all_id) - {0}
-
-            if "all_unit_id" in region_data["population_units"]:
-                self.all_population_units = set(region_data["population_units"]["all_unit_id"])
-                assert all_id == self.all_population_units, \
-                    (f"Inconsistency: all_unit_id = {self.all_population_units}, "
-                     f"but all units in unit_id blocks = {all_id}")
-            else:
-                self.write_log("Missing all_unit_id tag, deriving it from unit_id tag for volumes")
-                self.all_population_units = all_id
-
-        else:
-            self.all_population_units = {}
+        all_id = set(all_id) - {0}
+        self.all_population_units = all_id
 
     def generate_seeds(self, num_states):
 

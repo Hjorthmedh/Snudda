@@ -1080,18 +1080,6 @@ class SnuddaPlace(object):
 
         """ Defines population units.
 
-        Args:
-            population_unit_info (dict): Has keys "all_unit_id" with a list of all Unit IDs, and <volume_id> which points
-                                         to a dictionary. This dictionary has keys:
-                                         "method" : "random" or "radial_density"                    "
-                                         "unit_id" : ID of population unit
-                                         "fraction_of_neurons" : How large fraction of neurons belong to this unit (used by "random" method)
-                                         "neuron_types" : List of Neuron types that belong to this population unit
-                                         "num_neurons" : Number of neurons in each population unit, only used with radial_density method
-                                         "structure" : Name of structure population unit is located in (volume_id)
-                                         "centres" : Centre of radial density
-                                         "probability_functions" : Probability function defining unit membership, function of radius
-
         """
 
         method_lookup = {"random": self.random_labeling,
@@ -1099,7 +1087,7 @@ class SnuddaPlace(object):
 
         for region_name in self.config["regions"]:
             if "population_units" in self.config["regions"][region_name]:
-                for unit_id in self.config["regions"][region_name]["population_units"]["all_unit_id"]:
+                for unit_id in self.config["regions"][region_name]["population_units"]["unit_id"]:
                     self.population_units[unit_id] = []
 
                 neuron_id = self.volume_neurons(region_name)

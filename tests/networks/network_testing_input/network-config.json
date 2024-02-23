@@ -490,10 +490,6 @@
                 }
             },
             "population_units": {
-                "all_unit_id": [
-                    1,
-                    2
-                ],
                 "method": "random",
                 "fraction_of_neurons": [
                     0.4,

@@ -87,7 +87,7 @@ class SnuddaInit(object):
 
         self.network_data["regions"] = dict()
         self.num_neurons_total = 0
-
+        self.next_population_unit = 1
 
         if self.config_file and self.network_path:
             assert os.path.realpath(self.network_path) == os.path.realpath(os.path.dirname(self.config_file)), \
@@ -830,16 +830,10 @@ class SnuddaInit(object):
 
         if "population_units" not in self.network_data["regions"][region_name]:
             self.network_data["regions"][region_name]["population_units"] = dict()
-            self.network_data["regions"][region_name]["population_units"]["all_unit_id"] = []
 
         if not unit_id:
-            if self.network_data["regions"][region_name]["population_units"]["all_unit_id"]:
-                unit_id = np.max(self.network_data["regions"][region_name]["population_units"]["all_unit_id"]) + 1
-            else:
-                unit_id = 1
-
-        assert unit_id not in self.network_data["regions"][region_name]["population_units"]["all_unit_id"], f"Unit id {unit_id} already in use"
-        self.network_data["regions"][region_name]["population_units"]["all_unit_id"].append(unit_id)
+            unit_id = self.next_population_unit
+            self.next_population_unit += 1
 
         return unit_id
 
