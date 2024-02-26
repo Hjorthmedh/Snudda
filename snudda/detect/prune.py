@@ -551,9 +551,15 @@ class SnuddaPrune(object):
 
         # If connectivity is empty, then there was nothing to do touch detection on
         # But if it is non-empty, then there should be no remaining hyper voxels
-        assert len(remaining) == 0 or len(self.config["connectivity"]) == 0, \
-            (f"Detection not done. There are {len(remaining)} hypervoxels "
-             f"not completed: {', '.join([str(x) for x in remaining])}")
+
+        connection_config = False
+        for region_name, region_data in self.config["regions"].items():
+            if "connectivity" in region_data and len(region_data["connectivity"]) > 0:
+                no_connection_config = True
+
+        if connection_config and len(remaining) > 0:
+            raise RuntimeError(f"Detection not done. There are {len(remaining)} hypervoxels "
+                               f"not completed: {', '.join([str(x) for x in remaining])}")
 
         # This also loads random seed from config file while we have it open
         if self.random_seed is None:

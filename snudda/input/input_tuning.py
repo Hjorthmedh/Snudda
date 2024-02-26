@@ -1519,7 +1519,7 @@ class InputTuning(object):
         region_def[vol_name]["volume"]["type"] = "mesh"
         region_def[vol_name]["volume"]["d_min"] = 15e-6
         region_def[vol_name]["volume"]["mesh_file"] = "data/mesh/InputTestMesh.obj"
-        region_def[vol_name]["volume"]["mesh_bin_width"] = 100e-6
+        region_def[vol_name]["volume"]["num_putative_points"] = 10000
         region_def[vol_name]["connectivity"] = dict()  # Unconnected
 
         if single_neuron_path:
@@ -1550,6 +1550,9 @@ class InputTuning(object):
             neuron_def[n]["volume_id"] = vol_name
             neuron_def[n]["rotation_mode"] = "random"
             neuron_def[n]["hoc"] = None
+
+            if isinstance(neuron_def[n]["neuron_path"], str):
+                neuron_def[n]["neuron_path"] = {n: neuron_def[n]["neuron_path"]}
 
             if not self.has_axon(neuron_def[n]):
                 print(f"One or more of morphologies {neuron_def[n]['morphology']} has no axon, faking it.")

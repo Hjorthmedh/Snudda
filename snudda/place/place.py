@@ -445,16 +445,34 @@ class SnuddaPlace(object):
                     raise ValueError(f"You need to specify 'fraction' or 'num_neurons' for {neuron_type}")
 
                 n_types = len(neuron_data["neuron_path"])
-                n_neurons = np.full((n_types, ), int(num_neurons/n_types))
 
-                extra_n = region_rnd.integers(low=0, high=n_types, size=num_neurons-np.sum(n_neurons))
+                if isinstance(num_neurons, int):
+                    n_neurons = np.full((n_types, ), int(num_neurons/n_types))
 
-                for en in extra_n:
-                    n_neurons[en] += 1
+                    extra_n = region_rnd.integers(low=0, high=n_types, size=num_neurons-np.sum(n_neurons))
 
-                for (neuron_name, neuron_path), num in zip(neuron_data["neuron_path"].items(), n_neurons):
-                    assert neuron_name.split("_")[0] == neuron_type, \
-                        f"The keys in neuron_path must be {neuron_name}_X where X is usually a number"
+                    for en in extra_n:
+                        n_neurons[en] += 1
+                elif len(num_neurons) != n_types:
+                    raise ValueError(f"num_neurons can be a scalar or a vector, if it is a vector "
+                                     f"({num_neurons = }) then its length must equal number of "
+                                     f"neuron_path:s given ({n_types})")
+                else:
+                    n_neurons = num_neurons
+
+                parameter_key_list = SnuddaPlace.replicate_str(neuron_data.get("parameter_key"),
+                                                               num_neurons, f"{neuron_type} parameter_key")
+                morphology_key_list = SnuddaPlace.replicate_str(neuron_data.get("morphology_key"),
+                                                                num_neurons, f"{neuron_type} morphology_key")
+                modulation_key_list = SnuddaPlace.replicate_str(neuron_data.get("modulation_key"),
+                                                                num_neurons, f"{neuron_type} modulation_key")
+
+                for (neuron_name, neuron_path), num, parameter_key, morphology_key, modulation_key \
+                        in zip(neuron_data["neuron_path"].items(), n_neurons,
+                               parameter_key_list, morphology_key_list, modulation_key_list):
+
+                    if neuron_name.split("_")[0] != neuron_type and neuron_name != neuron_type:
+                        raise ValueError(f"The keys in neuron_path must be {neuron_name}_X where X is usually a number")
 
                     morph = os.path.join(neuron_path, "morphology")
                     param = os.path.join(neuron_path, "parameters.json")
@@ -472,10 +490,6 @@ class SnuddaPlace(object):
                         virtual_neuron = True
                     else:
                         virtual_neuron = False
-
-                    parameter_key = neuron_data.get("parameter_key")
-                    morphology_key = neuron_data.get("morphology_key")
-                    modulation_key = neuron_data.get("modulation_key")
 
                     self.add_neurons(name=neuron_name,
                                      swc_path=morph,
@@ -1410,6 +1424,20 @@ class SnuddaPlace(object):
     def volume_neurons(self, volume_id):
 
         return [n.neuron_id for n in self.neurons if n.volume_id == volume_id]
+
+    @staticmethod
+    def replicate_str(string, n_replicas, variable_name=None):
+
+        # variable_name is just used to help with error message if incorrect input
+
+        if string is None or isinstance(string, str):
+            rep_str = [string for x in range(n_replicas)]
+        elif len(string) == n_replicas:
+            rep_str = string
+        else:
+            raise ValueError(f"Expected a str or a list of str of length {n_replicas} for {variable_name}")
+
+        return rep_str
 
     ############################################################################
 
