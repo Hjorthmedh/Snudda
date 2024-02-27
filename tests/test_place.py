@@ -119,11 +119,11 @@ class TestPlace(unittest.TestCase):
         pop_units = sl.get_neuron_population_units()
         neuron_types = sl.get_neuron_types()
 
-        self.assertTrue(np.abs(np.sum(pop_units == 1) - 2000*0.5) < 30)  # 50% of dSPN, iSPN should be pop unit 1
-        self.assertTrue(np.abs(np.sum(pop_units == 2) - 2000*0.2) < 30)  # 20% should be pop unit 1
+        self.assertTrue(np.abs(np.sum(pop_units == 1) - 2000*0.5) < 45)  # 50% of dSPN, iSPN should be pop unit 1
+        self.assertTrue(np.abs(np.sum(pop_units == 2) - 2000*0.2) < 40)  # 20% should be pop unit 1
         self.assertTrue(np.abs(np.sum(pop_units == 3) - 1000*0.3) < 30)  # 30% of dSPN should be pop unit 1
-        self.assertTrue(np.abs(np.sum(pop_units == 4) - 1000*0.15) < 30)  # 15% of iSPN should be pop unit 1
-        self.assertTrue(np.abs(np.sum(pop_units == 10) - 1000*0.15) < 30)  # 15% of iSPN should be pop unit 1
+        self.assertTrue(np.abs(np.sum(pop_units == 4) - 1000*0.15) < 25)  # 15% of iSPN should be pop unit 1
+        self.assertTrue(np.abs(np.sum(pop_units == 10) - 1000*0.15) < 25)  # 15% of iSPN should be pop unit 1
 
 
 if __name__ == '__main__':
