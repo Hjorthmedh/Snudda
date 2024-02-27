@@ -398,15 +398,18 @@ class SnuddaInit(object):
 
         assert isinstance(connection_dict, dict)
 
-        assert "connectivity" in connection_dict, \
-            f"replace_connectivity: Missing the Connectivity key in dictionary:\n{connection_dict}"
-
         updated_config = False
 
         for region_name in self.network_data["regions"].keys():
-            if region_name in connection_dict:
-                self.network_data["regions"][region_name]["connectivity"] = connection_dict[region_name]["connectivity"]
-                upated_config = True
+            if region_name in connection_dict["regions"]:
+                try:
+                    self.network_data["regions"][region_name]["connectivity"] = connection_dict["regions"][region_name]["connectivity"]
+                    updated_config = True
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
 
         if not updated_config:
             raise ValueError(f"No regions defined in the replacement connectivity (connectivity is now stored per region in json file)")

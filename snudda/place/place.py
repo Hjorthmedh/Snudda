@@ -198,7 +198,8 @@ class SnuddaPlace(object):
                     parameter_key=None,
                     morphology_key=None,
                     modulation_key=None,
-                    config=None):
+                    config=None,
+                    rng=None):
 
         """
         Add neurons to volume specified.
@@ -224,6 +225,9 @@ class SnuddaPlace(object):
         assert volume_id is not None, f"You must specify a volume for neuron {name}"
         assert hoc is None, "Currently only support hoc=None, since we can have multiple parameter, morph combos now"
 
+        if rng is None:
+            rng = self.random_generator
+
         neuron_prototype = NeuronPrototype(neuron_name=name,
                                            neuron_path=None,
                                            snudda_data=self.snudda_data,
@@ -241,13 +245,13 @@ class SnuddaPlace(object):
 
         neuron_rotations = self.rotate_helper.get_rotations(volume_name=volume_id, neuron_type=neuron_type,
                                                             neuron_positions=neuron_positions,
-                                                            rng=self.random_generator)
+                                                            rng=rng)
 
         # Are there any projections from this neuron type in the config file?
         axon_info = self.generate_extra_axon_info(source_neuron=name,
                                                   position=neuron_positions,
                                                   config=config,
-                                                  rng=self.random_generator)
+                                                  rng=rng)
 
         for idx, (coords, rotation) in enumerate(zip(neuron_positions, neuron_rotations)):
 
@@ -260,17 +264,17 @@ class SnuddaPlace(object):
             # parameter set randomly
             # modulation.json is similarly formatted, pick a parameter set here
             if parameter_key is None:
-                parameter_id = self.random_generator.integers(1000000)
+                parameter_id = rng.integers(1000000)
             else:
                 parameter_id = None
 
             if modulation_key is None:
-                modulation_id = self.random_generator.integers(1000000)
+                modulation_id = rng.integers(1000000)
             else:
                 modulation_id = None
 
             if morphology_key is None:
-                morphology_id = self.random_generator.integers(1000000)
+                morphology_id = rng.integers(1000000)
             else:
                 morphology_id = None
 
@@ -294,8 +298,7 @@ class SnuddaPlace(object):
                                      name=axon_name,
                                      position=axon_position[idx, :],
                                      rotation=axon_rotation[idx, :].reshape((3, 3)),
-                                     lazy_loading=True
-                                     )
+                                     lazy_loading=True)
 
             self.neurons.append(n)
 
@@ -504,7 +507,8 @@ class SnuddaPlace(object):
                                      parameter_key=parameter_key,
                                      morphology_key=morphology_key,
                                      modulation_key=modulation_key,
-                                     config=config)
+                                     config=config,
+                                     rng=region_rnd)
 
                     number_of_added_neurons += num
 
@@ -517,7 +521,7 @@ class SnuddaPlace(object):
         # We reorder neurons, sorting their IDs after position
         # -- UPDATE: Now we spatial cluster neurons depending on number of workers
         if resort_neurons:
-            self.sort_neurons(sort_idx=self.cluster_neurons())
+            self.sort_neurons(sort_idx=self.cluster_neurons(rng=region_rnd))
 
         if False:  # Debug purposes, make sure neuron ranges are ok
             self.plot_ranges()
@@ -1311,7 +1315,7 @@ class SnuddaPlace(object):
         ax.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], c=colours, alpha=0.5)
         plt.show()
 
-    def cluster_neurons(self, n_trials=5):
+    def cluster_neurons(self, n_trials=5, rng=None):
 
         """
         Cluster neurons, so that nearby neurons are grouped on same worker, to speed up simulations.
@@ -1319,6 +1323,9 @@ class SnuddaPlace(object):
         Args:
             n_trials (int) : Number of trials for k-means clustering (default 5)
         """
+
+        if rng is None:
+            rng = self.random_generator
 
         n_workers = len(self.d_view) if self.d_view is not None else 1
         n_clusters = np.maximum(n_workers * 5, 100)
@@ -1330,7 +1337,7 @@ class SnuddaPlace(object):
 
         xyz = self.all_neuron_positions()
 
-        centroids, labels = scipy.cluster.vq.kmeans2(xyz, n_clusters, minit="points", seed=self.random_generator)
+        centroids, labels = scipy.cluster.vq.kmeans2(xyz, n_clusters, minit="points", seed=rng)
 
         n_centroids = centroids.shape[0]
         assert n_centroids == n_clusters
@@ -1380,7 +1387,7 @@ class SnuddaPlace(object):
                            f"neurons unaccounted for",
                            is_error=True)
             self.write_log(f"incorrect neuron_order={neuron_order} (printed for debugging)")
-            neuron_order = self.cluster_neurons(n_trials=n_trials - 1)
+            neuron_order = self.cluster_neurons(n_trials=n_trials - 1, rng=rng)
 
         # TODO: This occured once on Tegner, why did it happen?
         assert np.count_nonzero(neuron_order < 0) == 0, \

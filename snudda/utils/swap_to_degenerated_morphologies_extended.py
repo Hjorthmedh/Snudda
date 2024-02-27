@@ -70,21 +70,29 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         for orig_neuron, updated_neuron in zip(self.original_network_loader.data["neurons"],
                                                self.updated_network_loader.data["neurons"]):
 
-            assert orig_neuron["neuron_id"] == updated_neuron["neuron_id"], f"Internal error, neuron ID mismatch"
+            try:
+                assert orig_neuron["neuron_id"] == updated_neuron["neuron_id"], f"Internal error, neuron ID mismatch"
 
-            assert orig_neuron["name"] == updated_neuron["name"], \
-                (f"Name mismatch for neuron {orig_neuron['neuron_id']}: {orig_neuron['name']} {updated_neuron['name']}"
-                 f"\nDid you use the same random seed when calling init to generate the networks?")
+                assert orig_neuron["name"] == updated_neuron["name"], \
+                    (f"Name mismatch for neuron {orig_neuron['neuron_id']}: {orig_neuron['name']} {updated_neuron['name']}"
+                     f"\nDid you use the same random seed when calling init to generate the networks? "
+                     f"Also, did you use the same number of workers for both? The neurons are clustered differently "
+                     f"depending on number of workers, to help improve speed.")
 
-            assert (orig_neuron["position"] == updated_neuron["position"]).all(), \
-                (f"Position mismatch for neuron {orig_neuron['neuron_id']}: "
-                 f"{orig_neuron['position']} {updated_neuron['position']}"
-                 f"\nDid you use the same random seed when calling init to generate the networks?")
+                assert (orig_neuron["position"] == updated_neuron["position"]).all(), \
+                    (f"Position mismatch for neuron {orig_neuron['neuron_id']}: "
+                     f"{orig_neuron['position']} {updated_neuron['position']}"
+                     f"\nDid you use the same random seed when calling init to generate the networks?")
 
-            assert (orig_neuron["rotation"] == updated_neuron["rotation"]).all(), \
-                (f"Position mismatch for neuron {orig_neuron['neuron_id']}: " 
-                 f"{orig_neuron['rotation']} {updated_neuron['rotation']}"
-                 f"\nDid you use the same random seed when calling init to generate the networks?")
+                assert (orig_neuron["rotation"] == updated_neuron["rotation"]).all(), \
+                    (f"Position mismatch for neuron {orig_neuron['neuron_id']}: " 
+                     f"{orig_neuron['rotation']} {updated_neuron['rotation']}"
+                     f"\nDid you use the same random seed when calling init to generate the networks?")
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
 
     def get_degeneration_recovery_lookups(self, network_config):
 
