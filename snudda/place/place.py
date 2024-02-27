@@ -464,11 +464,11 @@ class SnuddaPlace(object):
                     n_neurons = num_neurons
 
                 parameter_key_list = SnuddaPlace.replicate_str(neuron_data.get("parameter_key"),
-                                                               num_neurons, f"{neuron_type} parameter_key")
+                                                               n_neurons, f"{neuron_type} parameter_key")
                 morphology_key_list = SnuddaPlace.replicate_str(neuron_data.get("morphology_key"),
-                                                                num_neurons, f"{neuron_type} morphology_key")
+                                                                n_neurons, f"{neuron_type} morphology_key")
                 modulation_key_list = SnuddaPlace.replicate_str(neuron_data.get("modulation_key"),
-                                                                num_neurons, f"{neuron_type} modulation_key")
+                                                                n_neurons, f"{neuron_type} modulation_key")
 
                 for (neuron_name, neuron_path), num, parameter_key, morphology_key, modulation_key \
                         in zip(neuron_data["neuron_path"].items(), n_neurons,
@@ -1438,7 +1438,7 @@ class SnuddaPlace(object):
         # variable_name is just used to help with error message if incorrect input
 
         if string is None or isinstance(string, str):
-            rep_str = [string for x in range(n_replicas)]
+            rep_str = [string for x in range(np.sum(n_replicas))]
         elif len(string) == n_replicas:
             rep_str = string
         else:
