@@ -616,18 +616,20 @@ class Snudda(object):
 
         print(f"args: {args}")
 
-        self.simulate(network_file=args.network_file, input_file=args.input_file,
-                      output_file=args.output_file, snudda_data=args.snudda_data,
-                      time=args.time,
-                      mech_dir=args.mech_dir,
-                      neuromodulation=args.neuromodulation,
-                      disable_synapses=args.disable_synapses,
-                      disable_gj=args.disable_gj,
-                      record_volt=args.record_volt,
-                      record_all=args.record_all,
-                      simulation_config=args.simulation_config,
-                      export_core_neuron=args.exportCoreNeuron,
-                      verbose=args.verbose)
+        sim = self.simulate(network_file=args.network_file, input_file=args.input_file,
+                            output_file=args.output_file, snudda_data=args.snudda_data,
+                            time=args.time,
+                            mech_dir=args.mech_dir,
+                            neuromodulation=args.neuromodulation,
+                            disable_synapses=args.disable_synapses,
+                            disable_gj=args.disable_gj,
+                            record_volt=args.record_volt,
+                            record_all=args.record_all,
+                            simulation_config=args.simulation_config,
+                            export_core_neuron=args.exportCoreNeuron,
+                            verbose=args.verbose)
+
+        sim.clear_neuron()
 
     def simulate(self,
                  network_file=None,

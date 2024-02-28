@@ -576,7 +576,7 @@ class SnuddaSimulate(object):
 
                 # Register ID as belonging to this worker node
                 try:
-                    print(f"Debug:: Neuron {ID} on node {int(self.pc.id())}")
+                    # print(f"Debug:: Neuron {ID} on node {int(self.pc.id())}")
                     self.pc.set_gid2node(ID, int(self.pc.id()))
                 except:
                     print(f"pc.set_gid2node failed ID = {ID}, {int(self.pc.id())}")

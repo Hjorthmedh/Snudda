@@ -96,6 +96,9 @@ class PairRecordingTestCase(unittest.TestCase):
 
         self.assertEqual(True, True)  # add assertion here
 
+    def tearDown(self):
+        self.pr.clear_neuron()
+
 
 if __name__ == '__main__':
     unittest.main()
