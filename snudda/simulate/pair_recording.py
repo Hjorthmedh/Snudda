@@ -41,6 +41,7 @@ class PairRecording(SnuddaSimulate):
 
     def __init__(self, network_path, experiment_config_file,
                  output_file=None, network_file=None,
+                 snudda_data=None,
                  disable_gap_junctions=False,
                  disable_synapses=False,
                  verbose=False):
@@ -63,6 +64,7 @@ class PairRecording(SnuddaSimulate):
                          output_file=output_file,
                          disable_synapses=disable_synapses,
                          disable_gap_junctions=disable_gap_junctions,
+                         snudda_data=snudda_data,
                          verbose=verbose)
 
         self.simulate_neuron_ids = None
@@ -411,6 +413,16 @@ class PairRecording(SnuddaSimulate):
 
             # Clear this variable, since old value is not valid
             self.neuron_nodes = None  # TODO, set it correctly!
+
+            # We also need to remove gap junctions that belong to neurons not simulated
+            keep_gj_flag = np.ones((self.gap_junctions.shape[0], ), dtype=bool)
+
+            for idx, gj_row in enumerate(self.gap_junctions):
+                if gj_row[0] not in self.simulate_neuron_ids or gj_row[1] not in self.simulate_neuron_ids:
+                    keep_gj_flag[idx] = False
+
+            self.gap_junctions = self.gap_junctions[keep_gj_flag, :]
+
 
     def run(self):
 

@@ -216,7 +216,7 @@ class SnuddaSimulate(object):
         if disable_gap_junctions is not None:
             self.disable_gap_junctions = disable_gap_junctions
 
-        self.synapse_type_lookup = {1: "GABA", 2: "AMPA_NMDA", 3: "GapJunction"}
+        self.synapse_type_lookup = {1: "GABA", 2: "AMPA_NMDA", 3: "gap_junction"}
 
         self.neurons = {}
         self.sim = None
@@ -1134,6 +1134,9 @@ class SnuddaSimulate(object):
         gj = h.gGapPar(section(section_dist))
         self.gap_junction_list.append(gj)
 
+        # If you get a "NEURON: No source_var for target_var sid = 1301" error, then
+        # make sure the neurons on both sides of the gap junction are included in the simulation
+
         # https://neuronsimulator.github.io/nrn/python/modelspec/programmatic/network/parcon.html?highlight=target_var
         # Update thanks to Lizhixin
 
@@ -1571,6 +1574,10 @@ class SnuddaSimulate(object):
         # explicitly set: h.v_init
         # self.sim.neuron.h.v_init = -78
         # self.sim.neuron.h.finitialize(-78)
+
+        # Important, when simulating gap junctions, neurons on both sides of the gap junction
+        # must be simulated.
+
         if hold_v is None:
             self.sim.neuron.h.finitialize()
         else:

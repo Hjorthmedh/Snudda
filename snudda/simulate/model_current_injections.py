@@ -207,6 +207,8 @@ class SnuddaModelCurrentInjections(object):
                                              log_file=log_file,
                                              disable_gap_junctions=True)
 
+            self.snudda_sim.setup()
+
         # Get neuronID of neurons that will get artificial stimulation
         stim_id = [x["neuronID"] for x in self.snudda_sim.network_info["neurons"] if "SPN" in x["type"]]
 
@@ -286,6 +288,8 @@ class SnuddaModelCurrentInjections(object):
                                              log_file=log_file,
                                              disable_gap_junctions=True)
 
+            self.snudda_sim.setup()
+
         # Set up stimulation protocol
         for n_id in stim_id:
             self.snudda_sim.add_current_injection(neuron_id=n_id,
@@ -308,14 +312,16 @@ class SnuddaModelCurrentInjections(object):
 
         self.snudda_sim.run(self.sim_end * 1e3)
 
-        self.current_file = os.path.join(sim_name, f"{sim_type}-network-stimulation-current.txt")
+        # self.current_file = os.path.join(sim_name, f"{sim_type}-network-stimulation-current.txt")
 
-        self.snudda_sim.write_current(self.current_file)
+        self.snudda_sim.write_output()
 
-        if save_voltage:
-            voltage_file = os.path.join(sim_name,  f"{sim_type}-network-stimulation-voltage.txt")
-
-            self.snudda_sim.write_voltage_OLD(voltage_file)
+        # self.snudda_sim.write_current(self.current_file)
+        #
+        # if save_voltage:
+        #     voltage_file = os.path.join(sim_name,  f"{sim_type}-network-stimulation-voltage.txt")
+        #
+        #    self.snudda_sim.write_voltage_OLD(voltage_file)
 
     ############################################################################
 
