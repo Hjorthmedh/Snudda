@@ -8,6 +8,7 @@ from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
 
 import neuron
 
+
 class PairRecordingTestCase(unittest.TestCase):
 
     def setUp(self):
