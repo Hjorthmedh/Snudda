@@ -195,3 +195,4 @@ class TestCLI(unittest.TestCase):
         # Exit the test directory
         if os.path.dirname(__file__):
             os.chdir(os.path.dirname(__file__))
+            
