@@ -18,7 +18,6 @@ import os
 import sys
 import time
 import timeit
-from collections import OrderedDict
 import gc
 
 import h5py
@@ -2025,7 +2024,7 @@ class SnuddaDetect(object):
         cfg_file = open(str(config_file), 'r')
 
         try:
-            self.config = json.load(cfg_file, object_pairs_hook=OrderedDict)
+            self.config = json.load(cfg_file)
         finally:
             cfg_file.close()
 
@@ -2043,112 +2042,104 @@ class SnuddaDetect(object):
 
         self.prototype_neurons = dict()
 
-        for name, definition in self.config["neurons"].items():
+        for region_name, region_data in self.config["regions"].items():
+            for name_type, definition in region_data["neurons"].items():
+                for name, neuron_path in definition["neuron_path"].items():
 
-            self.write_log(f"Reading prototype for: {name}")
+                    self.write_log(f"Reading prototype for: {name}")
 
-            morph = definition["morphology"]
-            param = definition["parameters"]
-            mech = definition["mechanisms"]
+                    if "neuron_type" in definition:
+                        neuron_type = definition["neuron_type"]
+                    else:
+                        neuron_type = "neuron"
 
-            if "modulation" in definition:
-                modulation = definition["modulation"]
-            else:
-                modulation = ""
+                    if neuron_type == "virtual":
+                        virtual_neuron = True
+                    else:
+                        virtual_neuron = False
 
-            if "neuron_type" in definition:
-                neuron_type = definition["neuron_type"]
-            else:
-                neuron_type = "neuron"
+                    if 'hoc' in definition:
+                        hoc = definition["hoc"]
+                        assert "hoc no longer passed to NeuronPrototype / NeuronMorphology -- need to add it later "
+                    else:
+                        hoc = None
 
-            if neuron_type == "virtual":
-                virtual_neuron = True
-            else:
-                virtual_neuron = False
+                    self.prototype_neurons[name] = NeuronPrototype(neuron_name=name,
+                                                                   neuron_path=neuron_path,
+                                                                   snudda_data=self.snudda_data,
+                                                                   # hoc=hoc,
+                                                                   virtual_neuron=virtual_neuron)
 
-            if 'hoc' in definition:
-                hoc = definition["hoc"]
-                assert "hoc no longer passed to NeuronPrototype / NeuronMorphology -- need to add it later "
-            else:
-                hoc = None
+                    if "axon_density" in definition:
 
-            self.prototype_neurons[name] = NeuronPrototype(neuron_name=name,
-                                                           neuron_path=None,
-                                                           snudda_data=self.snudda_data,
-                                                           morphology_path=morph,
-                                                           parameter_path=param,
-                                                           mechanism_path=mech,
-                                                           # hoc=hoc,
-                                                           virtual_neuron=virtual_neuron)
+                        # We need to do this so that we can apply the axon densities below
+                        self.prototype_neurons[name].instantiate()
 
-            if "axon_density" in definition:
+                        self.write_log("Setting axon density for neuron without axon")
+                        axon_density_type = definition["axon_density"][0]
 
-                # We need to do this so that we can apply the axon densities below
-                self.prototype_neurons[name].instantiate()
+                        if axon_density_type == "r":
+                            density = definition["axon_density"][1]
+                            max_radius = definition["axon_density"][2]
 
-                self.write_log("Setting axon density for neuron without axon")
-                axon_density_type = definition["axon_density"][0]
+                            self.prototype_neurons[name].apply("set_axon_voxel_radial_density", [density, max_radius])
+                        elif axon_density_type == "xyz":
+                            density = definition["axon_density"][1]
+                            axon_density_bounds_xyz = np.array(definition["axon_density"][2])
 
-                if axon_density_type == "r":
-                    density = definition["axon_density"][1]
-                    max_radius = definition["axon_density"][2]
+                            self.prototype_neurons[name].apply("set_axon_voxel_xyz_density", [density, axon_density_bounds_xyz])
 
-                    self.prototype_neurons[name].apply("set_axon_voxel_radial_density", [density, max_radius])
-                elif axon_density_type == "xyz":
-                    density = definition["axon_density"][1]
-                    axon_density_bounds_xyz = np.array(definition["axon_density"][2])
+                        else:
+                            self.write_log(f"{name}: Unknown axon density type : {axon_density_type}\n"
+                                           f"{definition['axon_density']}", is_error=True)
 
-                    self.prototype_neurons[name].apply("set_axon_voxel_xyz_density", [density, axon_density_bounds_xyz])
+                    else:
+                        # If no axon density specified, then axon must be present in morphology
+                        assert self.prototype_neurons[name].all_have_axon(), f"A morphlogy in {neuron_path} does not have an axon"
 
-                else:
-                    self.write_log(f"{name}: Unknown axon density type : {axon_density_type}\n"
-                                   f"{definition['axon_density']}", is_error=True)
+                    assert self.prototype_neurons[name].all_have_dend() or self.prototype_neurons[name].virtual_neuron, \
+                        f"A morphology in {neuron_path} does not have a dendrite"
 
-            else:
-                # If no axon density specified, then axon must be present in morphology
-                assert self.prototype_neurons[name].all_have_axon(), f"File: {morph} does not have an axon"
-
-            assert self.prototype_neurons[name].all_have_dend() or self.prototype_neurons[name].virtual_neuron, \
-                f"File: {morph} does not have a dendrite"
-
-            # Since we already have the config file open, let's read connectivity
-            # distributions also
+                    # Since we already have the config file open, let's read connectivity
+                    # distributions also
 
         self.write_log("Loading connectivity information")
         self.next_channel_model_id = 10  # Reset counter
 
-        for name, con_def in self.config["connectivity"].items():
+        for region_name, region_data in self.config["regions"].items():
+            for name, connection_def in region_data["connectivity"].items():
 
-            # This also enriches the self.config by adding channelModelID, lognormal_mu_sigma etc
+                # This also enriches the self.config by adding channelModelID, lognormal_mu_sigma etc
+                con_def = copy.deepcopy(connection_def)
 
-            pre_type, post_type = name.split(",")
+                pre_type, post_type = name.split(",")
 
-            for key in con_def:
-                if key == "gap_junction":
-                    con_def[key]["channel_model_id"] = 3
-                else:
-                    con_def[key]["channel_model_id"] = self.next_channel_model_id
-                    self.next_channel_model_id += 1
+                for key in con_def:
+                    if key == "gap_junction":
+                        con_def[key]["channel_model_id"] = 3
+                    else:
+                        con_def[key]["channel_model_id"] = self.next_channel_model_id
+                        self.next_channel_model_id += 1
 
-                # Also if conductance is just a number, add std 0
-                if type(con_def[key]["conductance"]) not in [list, tuple]:
-                    con_def[key]["conductance"] = [con_def[key]["conductance"], 0]
+                    # Also if conductance is just a number, add std 0
+                    if type(con_def[key]["conductance"]) not in [list, tuple]:
+                        con_def[key]["conductance"] = [con_def[key]["conductance"], 0]
 
-                # Precompute lognormal parameters
-                # https://en.wikipedia.org/wiki/Log-normal_distribution
-                mean_cond = con_def[key]["conductance"][0]
-                std_cond = con_def[key]["conductance"][1]
-                mu = np.log(mean_cond ** 2 / np.sqrt(mean_cond ** 2 + std_cond ** 2))
-                sigma = np.sqrt(np.log(1 + std_cond ** 2 / mean_cond ** 2))
-                con_def[key]["lognormal_mu_sigma"] = [mu, sigma]
+                    # Precompute lognormal parameters
+                    # https://en.wikipedia.org/wiki/Log-normal_distribution
+                    mean_cond = con_def[key]["conductance"][0]
+                    std_cond = con_def[key]["conductance"][1]
+                    mu = np.log(mean_cond ** 2 / np.sqrt(mean_cond ** 2 + std_cond ** 2))
+                    sigma = np.sqrt(np.log(1 + std_cond ** 2 / mean_cond ** 2))
+                    con_def[key]["lognormal_mu_sigma"] = [mu, sigma]
 
-                if "cluster_size" not in con_def[key]:
-                    con_def[key]["cluster_size"] = 1
+                    if "cluster_size" not in con_def[key]:
+                        con_def[key]["cluster_size"] = 1
 
-                if "cluster_spread" not in con_def[key]:
-                    con_def[key]["cluster_spread"] = 20e-3
+                    if "cluster_spread" not in con_def[key]:
+                        con_def[key]["cluster_spread"] = 20e-3
 
-            self.connectivity_distributions[pre_type, post_type] = con_def
+                self.connectivity_distributions[pre_type, post_type] = con_def
 
     ############################################################################
 
@@ -3359,7 +3350,15 @@ class SnuddaDetect(object):
             num_neurons = self.hyper_voxels[self.hyper_voxel_id]["neuron_ctr"]
 
             if plot_neuron_id is None:
-                plot_neuron_id = self.hyper_voxels[self.hyper_voxel_id]["neurons"][:num_neurons]
+                try:
+                    plot_neuron_id = np.array(list(self.hyper_voxels[self.hyper_voxel_id]["neurons"].keys()))
+
+                    # plot_neuron_id = self.hyper_voxels[self.hyper_voxel_id]["neurons"][:num_neurons]
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
 
             for neuron_id in plot_neuron_id:
                 neuron = self.load_neuron(self.neurons[neuron_id], use_cache=False)

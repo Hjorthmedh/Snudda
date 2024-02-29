@@ -264,9 +264,9 @@ class InputTestCase(unittest.TestCase):
 
         # OBS, population unit 0 does not get any of the extra mother spikes specified
         # So we need to check FS neuron that belongs to population unit 1 or 2.
-        some_spikes = input_data["input/3/Cortical/spikes"][()].flatten()
+        some_spikes = input_data["input/4/Cortical/spikes"][()].flatten()
         some_spikes = some_spikes[some_spikes >= 0]
-        n_trains = input_data["input/3/Cortical/spikes"][()].shape[0]
+        n_trains = input_data["input/4/Cortical/spikes"][()].shape[0]
 
         for extra_spike in [0.2, 0.3, 0.45]:
 
@@ -274,7 +274,7 @@ class InputTestCase(unittest.TestCase):
                             >= n_trains)
             self.assertTrue(np.sum(np.abs(some_spikes - extra_spike + 0.05) < 1e-3) < 50)
 
-        some_spikes2 = input_data["input/3/Thalamic/spikes"][()].flatten()
+        some_spikes2 = input_data["input/4/Thalamic/spikes"][()].flatten()
         some_spikes2 = some_spikes2[some_spikes2 >= 0]
 
         for spike in [0.1, 0.2, 0.3]:
@@ -286,11 +286,11 @@ class InputTestCase(unittest.TestCase):
         # and also checks input correlation
 
         # TODO: New cell numbering, so need to pick other cell numbers
-        some_spikes_c3 = input_data["input/3/CorticalSignal/spikes"][()]
-        some_spikes_c8 = input_data["input/8/CorticalSignal/spikes"][()]
+        some_spikes_c0 = input_data["input/0/CorticalSignal/spikes"][()]
+        some_spikes_c1 = input_data["input/1/CorticalSignal/spikes"][()]
 
-        pop3 = input_data["input/3/CorticalSignal/population_unit_spikes"][()]
-        pop8 = input_data["input/8/CorticalSignal/population_unit_spikes"][()]
+        pop0 = input_data["input/0/CorticalSignal/population_unit_spikes"][()]
+        pop1 = input_data["input/1/CorticalSignal/population_unit_spikes"][()]
 
         # TODO: Add checks
 

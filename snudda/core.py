@@ -72,6 +72,7 @@ class Snudda(object):
         """
 
         self.network_path = network_path
+
         self.d_view = None
         self.rc = None
         self.slurm_id = 0
@@ -115,7 +116,8 @@ class Snudda(object):
                          random_seed=args.randomseed,
                          honor_stay_inside=args.stay_inside)
 
-    def init_config(self, network_size=None,
+    def init_config(self,
+                    network_size=None,
                     snudda_data=None,
                     struct_def=None,
                     neurons_dir=None,
@@ -123,6 +125,8 @@ class Snudda(object):
                     honor_stay_inside=True,   # currently the cli.py defaults to sending False
                     overwrite=False,
                     random_seed=None):
+
+        print(f"Legacy config creation.")
 
         # self.networkPath = args.path
         print("Creating config file")
@@ -147,7 +151,8 @@ class Snudda(object):
         self.make_dir_if_needed(self.network_path)
 
         config_file = os.path.join(self.network_path, "network-config.json")
-        SnuddaInit(struct_def=struct_def,
+        SnuddaInit(network_path=self.network_path,
+                   struct_def=struct_def,
                    neurons_dir=neurons_dir,
                    snudda_data=snudda_data,
                    config_file=config_file,
@@ -158,6 +163,34 @@ class Snudda(object):
         if network_size is not None and network_size > 1e5:
             print(f"Make sure there is enough disk space in {self.network_path}")
             print("Large networks take up ALOT of space")
+
+    ############################################################################
+
+    def import_config_wrapper(self, args):
+
+        self.import_config(network_config_file=args.config_file,
+                           snudda_data=args.snudda_data,
+                           overwrite=args.overwrite)
+
+    def import_config(self, network_config_file, snudda_data=None, overwrite=False):
+
+        from snudda.init.init_config import ConfigParser
+
+        conf = ConfigParser(config_file=network_config_file, snudda_data=snudda_data)
+        conf.parse_config()
+
+        if not os.path.isdir(self.network_path):
+            print(f"Creating directory {self.network_path}")
+            os.makedirs(self.network_path)
+
+        new_config_file = os.path.join(self.network_path, "network-config.json")
+
+        if os.path.isfile(new_config_file) and not overwrite:
+            print(f"\n!!! ERROR: File already exists: {new_config_file}\nSet 'overwrite' to overwrite old file.\n")
+            exit(-1)
+
+        conf.replace_network_path(network_path=os.path.abspath(self.network_path))
+        conf.write_config(new_config_file)
 
     ############################################################################
 
@@ -614,18 +647,20 @@ class Snudda(object):
 
         print(f"args: {args}")
 
-        self.simulate(network_file=args.network_file, input_file=args.input_file,
-                      output_file=args.output_file, snudda_data=args.snudda_data,
-                      time=args.time,
-                      mech_dir=args.mech_dir,
-                      neuromodulation=args.neuromodulation,
-                      disable_synapses=args.disable_synapses,
-                      disable_gj=args.disable_gj,
-                      record_volt=args.record_volt,
-                      record_all=args.record_all,
-                      simulation_config=args.simulation_config,
-                      export_core_neuron=args.exportCoreNeuron,
-                      verbose=args.verbose)
+        sim = self.simulate(network_file=args.network_file, input_file=args.input_file,
+                            output_file=args.output_file, snudda_data=args.snudda_data,
+                            time=args.time,
+                            mech_dir=args.mech_dir,
+                            neuromodulation=args.neuromodulation,
+                            disable_synapses=args.disable_synapses,
+                            disable_gj=args.disable_gj,
+                            record_volt=args.record_volt,
+                            record_all=args.record_all,
+                            simulation_config=args.simulation_config,
+                            export_core_neuron=args.exportCoreNeuron,
+                            verbose=args.verbose)
+
+        sim.clear_neuron()
 
     def simulate(self,
                  network_file=None,

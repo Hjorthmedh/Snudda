@@ -216,7 +216,7 @@ class SnuddaSimulate(object):
         if disable_gap_junctions is not None:
             self.disable_gap_junctions = disable_gap_junctions
 
-        self.synapse_type_lookup = {1: "GABA", 2: "AMPA_NMDA", 3: "GapJunction"}
+        self.synapse_type_lookup = {1: "GABA", 2: "AMPA_NMDA", 3: "gap_junction"}
 
         self.neurons = {}
         self.sim = None
@@ -521,17 +521,16 @@ class SnuddaSimulate(object):
 
             name = self.network_info["neurons"][ID]["name"]
 
-            config = self.config["neurons"][name]
-
             # We need to get morphology from network_info, since it can now be redefined for bent morphologies
             morph = snudda_parse_path(self.network_info["neurons"][ID]["morphology"], self.snudda_data)
-            # morph = snudda_parse_path(config["morphology"], self.snudda_data)
-            param = snudda_parse_path(config["parameters"], self.snudda_data)
-            mech = snudda_parse_path(config["mechanisms"], self.snudda_data)
 
-            if "modulation" in config:
-                modulation = snudda_parse_path(config["modulation"], self.snudda_data)
-            else:
+            neuron_path = snudda_parse_path(self.network_info["neurons"][ID]["neuron_path"], self.snudda_data)
+
+            param = os.path.join(neuron_path, "parameters.json")
+            mech = os.path.join(neuron_path, "mechanisms.json")
+            modulation = os.path.join(neuron_path, "modulation.json")
+
+            if not os.path.isfile(modulation):
                 modulation = None
 
             # Obs, neurons is a dictionary
@@ -577,8 +576,10 @@ class SnuddaSimulate(object):
 
                 # Register ID as belonging to this worker node
                 try:
+                    # print(f"Debug:: Neuron {ID} on node {int(self.pc.id())}")
                     self.pc.set_gid2node(ID, int(self.pc.id()))
                 except:
+                    print(f"pc.set_gid2node failed ID = {ID}, {int(self.pc.id())}")
                     import traceback
                     print(traceback.format_exc())
                     import pdb
@@ -1135,6 +1136,9 @@ class SnuddaSimulate(object):
         gj = h.gGapPar(section(section_dist))
         self.gap_junction_list.append(gj)
 
+        # If you get a "NEURON: No source_var for target_var sid = 1301" error, then
+        # make sure the neurons on both sides of the gap junction are included in the simulation
+
         # https://neuronsimulator.github.io/nrn/python/modelspec/programmatic/network/parcon.html?highlight=target_var
         # Update thanks to Lizhixin
 
@@ -1572,6 +1576,10 @@ class SnuddaSimulate(object):
         # explicitly set: h.v_init
         # self.sim.neuron.h.v_init = -78
         # self.sim.neuron.h.finitialize(-78)
+
+        # Important, when simulating gap junctions, neurons on both sides of the gap junction
+        # must be simulated.
+
         if hold_v is None:
             self.sim.neuron.h.finitialize()
         else:

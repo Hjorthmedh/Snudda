@@ -15,6 +15,8 @@ Here is a collection of Jupyter Notebooks, some of the workflows are split over 
 * [composite axon example](ProjectionExample/composite_axon_projections.ipynb) shows how to create neuron projections between (or within) volumes using separate axon morphologies (.swc-files).
 * [virtual_neurons](VirtualNeurons/VirtualNeurons.ipynb) shows how to only simulate the core of a volume of neurons, by turning the outer neurons to virtual neurons that spike at predetermined times. This is useful to avoid edge effects in your simulations.
 
+* [Advanced region creation](StriatumExample/CreateStriatum.ipynb) that shows how regions can be specified using multiple files.
+
 ## Input creation
 * [input_generation_example_1](input_generation_example_1.ipynb) generate constant Poisson input (uses [simple_network_creation](simple_network_creation.ipynb))
 * [input_generation_example_2_frequency_vectors](input_generation_example_2_frequency_vectors.ipynb) define Poisson input with multiple start/stop times (uses [simple_network_creation](simple_network_creation.ipynb)).

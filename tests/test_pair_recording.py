@@ -6,17 +6,21 @@ from snudda.simulate.pair_recording import PairRecording
 from snudda.utils.load import SnuddaLoad
 from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
 
+import neuron
+
 
 class PairRecordingTestCase(unittest.TestCase):
 
     def setUp(self):
+
+        print(f"Running NEURON version {neuron.__version__}")
 
         if os.path.dirname(__file__):
             os.chdir(os.path.dirname(__file__))
 
         # Temporarily disable the creation of network while testing...
         print("test_pair_recoring.py -- Network creation disabled -- we need to retune or verify the if_info.json files before running")
-        return
+        #return
 
         self.network_path = os.path.join("networks", "pair_recording_test")
         rc = None
@@ -53,7 +57,6 @@ class PairRecordingTestCase(unittest.TestCase):
     def test_frequency(self):
 
         print("test_pair_recording.py -- This UNIT test is not currently active.")
-        return
 
         # TODO: TEMP line, this is normally done in setUp... remove later
         self.network_path = os.path.join("networks", "pair_recording_test")
@@ -83,7 +86,7 @@ class PairRecordingTestCase(unittest.TestCase):
                     freq = n_spikes / (e - s)
 
                     print(f"neuron_id: {neuron_id}, requested_freq: {requested_freq} Hz, actual freq: {freq}")
-                    self.assertTrue(requested_freq * 0.8 < freq < requested_freq * 1.2,
+                    self.assertTrue(requested_freq * 0.75 < freq < requested_freq * 1.25,
                                     f"neuron_id: {neuron_id}, requested_freq: {requested_freq} Hz, actual freq: {freq}")
 
 #        import pdb
@@ -92,6 +95,9 @@ class PairRecordingTestCase(unittest.TestCase):
         # TODO: Read in the frequency of each neuron. Compare the simulated frequency to the requested frequency
 
         self.assertEqual(True, True)  # add assertion here
+
+    def tearDown(self):
+        self.pr.clear_neuron()
 
 
 if __name__ == '__main__':

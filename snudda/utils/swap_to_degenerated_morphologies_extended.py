@@ -1,7 +1,6 @@
 import numpy as np
 
 import json
-from collections import OrderedDict
 
 from snudda import SnuddaLoad
 from snudda.utils.swap_to_degenerated_morphologies import SwapToDegeneratedMorphologies
@@ -71,41 +70,45 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         for orig_neuron, updated_neuron in zip(self.original_network_loader.data["neurons"],
                                                self.updated_network_loader.data["neurons"]):
 
-            assert orig_neuron["neuron_id"] == updated_neuron["neuron_id"], f"Internal error, neuron ID mismatch"
+            try:
+                assert orig_neuron["neuron_id"] == updated_neuron["neuron_id"], f"Internal error, neuron ID mismatch"
 
-            assert orig_neuron["name"] == updated_neuron["name"], \
-                (f"Name mismatch for neuron {orig_neuron['neuron_id']}: {orig_neuron['name']} {updated_neuron['name']}"
-                 f"\nDid you use the same random seed when calling init to generate the networks?")
+                assert orig_neuron["name"] == updated_neuron["name"], \
+                    (f"Name mismatch for neuron {orig_neuron['neuron_id']}: {orig_neuron['name']} {updated_neuron['name']}"
+                     f"\nDid you use the same random seed when calling init to generate the networks? "
+                     f"Also, did you use the same number of workers for both? The neurons are clustered differently "
+                     f"depending on number of workers, to help improve speed.")
 
-            assert (orig_neuron["position"] == updated_neuron["position"]).all(), \
-                (f"Position mismatch for neuron {orig_neuron['neuron_id']}: "
-                 f"{orig_neuron['position']} {updated_neuron['position']}"
-                 f"\nDid you use the same random seed when calling init to generate the networks?")
+                assert (orig_neuron["position"] == updated_neuron["position"]).all(), \
+                    (f"Position mismatch for neuron {orig_neuron['neuron_id']}: "
+                     f"{orig_neuron['position']} {updated_neuron['position']}"
+                     f"\nDid you use the same random seed when calling init to generate the networks?")
 
-            assert (orig_neuron["rotation"] == updated_neuron["rotation"]).all(), \
-                (f"Position mismatch for neuron {orig_neuron['neuron_id']}: " 
-                 f"{orig_neuron['rotation']} {updated_neuron['rotation']}"
-                 f"\nDid you use the same random seed when calling init to generate the networks?")
+                assert (orig_neuron["rotation"] == updated_neuron["rotation"]).all(), \
+                    (f"Position mismatch for neuron {orig_neuron['neuron_id']}: " 
+                     f"{orig_neuron['rotation']} {updated_neuron['rotation']}"
+                     f"\nDid you use the same random seed when calling init to generate the networks?")
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
 
     def get_degeneration_recovery_lookups(self, network_config):
 
         type_lookup = self.updated_network_loader.get_neuron_types()
         degeneration_recovery = dict()
 
-        for conf_key, conf_info in network_config["connectivity"].items():
-            pre_type, post_type = conf_key.split(",")
+        for region_name, region_data in network_config["regions"].items():
 
-            for con_type, con_info in conf_info.items():
-                try:
-                    channel_model_id = con_info["channel_model_id"]
-                except:
-                    import traceback
-                    print(traceback.format_exc())
-                    import pdb
-                    pdb.set_trace()
+            for conf_key, conf_info in region_data["connectivity"].items():
+                pre_type, post_type = conf_key.split(",")
 
-                if "degeneration_recovery" in con_info["pruning"]:
-                    degeneration_recovery[pre_type, post_type, channel_model_id] = con_info["pruning"]["degeneration_recovery"]
+                for con_type, con_info in conf_info.items():
+                    channel_model_id = self.updated_network_loader.data["connectivity_distributions"][pre_type,post_type][con_type]["channel_model_id"]
+
+                    if "degeneration_recovery" in con_info["pruning"]:
+                        degeneration_recovery[pre_type, post_type, channel_model_id] = con_info["pruning"]["degeneration_recovery"]
 
         return degeneration_recovery, type_lookup
 
@@ -228,7 +231,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         if post_degen_pruning is None:
             post_degen_pruning = self.post_degen_pruning
 
-        config = json.loads(self.updated_network_loader.data["config"], object_pairs_hook=OrderedDict)
+        config = json.loads(self.updated_network_loader.data["config"])
 
         # This needs to be made bigger!
         num_rows = self.old_hdf5["network/synapses"].shape[0] + self.updated_hdf5["network/synapses"].shape[0]
@@ -244,7 +247,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
             #     import pdb
             #     pdb.set_trace()
 
-            new_syn = self.filter_synapses_helper(synapses, filter_axon=filter_axon)                    
+            new_syn = self.filter_synapses_helper(synapses, filter_axon=filter_axon)
             new_synapses[syn_ctr:syn_ctr + new_syn.shape[0]] = new_syn
             syn_ctr += new_syn.shape[0]
 
@@ -302,22 +305,24 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         mu2_lookup = dict()
         n_neurons = self.updated_network_loader.data["num_neurons"]
 
-        for conf_key, conf_info in network_config["connectivity"].items():
-            pre_type, post_type = conf_key.split(",")
+        for region_name, region_data in network_config["regions"].items():
 
-            if pre_type not in mu2_lookup:
-                mu2_lookup[pre_type] = dict()
+            for conf_key, conf_info in region_data["connectivity"].items():
+                pre_type, post_type = conf_key.split(",")
 
-            if post_type not in mu2_lookup[pre_type]:
-                mu2_lookup[pre_type][post_type] = dict()
+                if pre_type not in mu2_lookup:
+                    mu2_lookup[pre_type] = dict()
 
-            for con_type, con_info in conf_info.items():
+                if post_type not in mu2_lookup[pre_type]:
+                    mu2_lookup[pre_type][post_type] = dict()
 
-                channel_model_id = con_info["channel_model_id"]
+                for con_type, con_info in conf_info.items():
 
-                # OBS, this does not take into account population units. Neurons belonging to different population unit
-                # can have a different mu2, but we have never used that option.
-                mu2_lookup[pre_type][post_type][channel_model_id] = con_info["pruning"]["mu2"]
+                    channel_model_id = self.updated_network_loader.data["connectivity_distributions"][pre_type,post_type][con_type]["channel_model_id"]
+
+                    # OBS, this does not take into account population units. Neurons belonging to different population unit
+                    # can have a different mu2, but we have never used that option.
+                    mu2_lookup[pre_type][post_type][channel_model_id] = con_info["pruning"]["mu2"]
 
         synapse_ctr = 0
 

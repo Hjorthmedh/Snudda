@@ -16,7 +16,6 @@
 import json
 import os
 import sys
-from collections import OrderedDict
 
 import h5py
 import numexpr
@@ -102,6 +101,9 @@ class SnuddaPlace(object):
         self.verbose = verbose
         self.log_file = log_file
 
+        if self.snudda_data is None:
+            self.write_log(f"Warning, snudda_data is not set!")
+
         if self.network_path:
             self.position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
         else:
@@ -113,7 +115,7 @@ class SnuddaPlace(object):
         else:
             self.h5libver = h5libver
 
-        self.write_log("Using hdf5 version: " + str(self.h5libver))
+        self.write_log(f"Using hdf5 version: {self.h5libver}")
 
         self.griddata_interpolation = griddata_interpolation
 
@@ -196,7 +198,8 @@ class SnuddaPlace(object):
                     parameter_key=None,
                     morphology_key=None,
                     modulation_key=None,
-                    config=None):
+                    config=None,
+                    rng=None):
 
         """
         Add neurons to volume specified.
@@ -222,6 +225,9 @@ class SnuddaPlace(object):
         assert volume_id is not None, f"You must specify a volume for neuron {name}"
         assert hoc is None, "Currently only support hoc=None, since we can have multiple parameter, morph combos now"
 
+        if rng is None:
+            rng = self.random_generator
+
         neuron_prototype = NeuronPrototype(neuron_name=name,
                                            neuron_path=None,
                                            snudda_data=self.snudda_data,
@@ -239,13 +245,13 @@ class SnuddaPlace(object):
 
         neuron_rotations = self.rotate_helper.get_rotations(volume_name=volume_id, neuron_type=neuron_type,
                                                             neuron_positions=neuron_positions,
-                                                            rng=self.random_generator)
+                                                            rng=rng)
 
         # Are there any projections from this neuron type in the config file?
         axon_info = self.generate_extra_axon_info(source_neuron=name,
                                                   position=neuron_positions,
                                                   config=config,
-                                                  rng=self.random_generator)
+                                                  rng=rng)
 
         for idx, (coords, rotation) in enumerate(zip(neuron_positions, neuron_rotations)):
 
@@ -258,17 +264,17 @@ class SnuddaPlace(object):
             # parameter set randomly
             # modulation.json is similarly formatted, pick a parameter set here
             if parameter_key is None:
-                parameter_id = self.random_generator.integers(1000000)
+                parameter_id = rng.integers(1000000)
             else:
                 parameter_id = None
 
             if modulation_key is None:
-                modulation_id = self.random_generator.integers(1000000)
+                modulation_id = rng.integers(1000000)
             else:
                 modulation_id = None
 
             if morphology_key is None:
-                morphology_id = self.random_generator.integers(1000000)
+                morphology_id = rng.integers(1000000)
             else:
                 morphology_id = None
 
@@ -292,8 +298,7 @@ class SnuddaPlace(object):
                                      name=axon_name,
                                      position=axon_position[idx, :],
                                      rotation=axon_rotation[idx, :].reshape((3, 3)),
-                                     lazy_loading=True
-                                     )
+                                     lazy_loading=True)
 
             self.neurons.append(n)
 
@@ -306,29 +311,23 @@ class SnuddaPlace(object):
 
     def parse_config(self, config_file=None, resort_neurons=True):
 
-        """ Parse network config_file """
+        """ Pase network config_file"""
 
         if config_file is None:
             config_file = self.config_file
 
         if config_file is None:
-            self.write_log("No configuration file specified")
-            sys.exit(-1)
+            self.write_log("No config file specified.", is_error=True)
+            raise ValueError("No config file specified.")
 
-        if not os.path.exists(config_file):
-            self.write_log(f"Config file does not exist: {config_file}")
-            self.write_log("Run snudda init <your directory> first")
-            assert os.path.exists(config_file), f"Config file does not exist: {config_file}, working directory is {os.getcwd()}"
-            sys.exit(-1)
+        if not os.path.isfile(config_file):
+            self.write_log(f"Missing config file {config_file}", is_error=True)
+            raise ValueError(f"Missing config file {config_file}")
 
-        self.write_log(f"Parsing configuration file {config_file}")
+        self.write_log(f"Parsing place config file {config_file}")
 
-        cfg_file = open(config_file, 'r')
-
-        try:
-            config = json.load(cfg_file, object_pairs_hook=OrderedDict)
-        finally:
-            cfg_file.close()
+        with open(config_file, "r") as f:
+            config = json.load(f)
 
         if not config:
             self.write_log("Warning, empty network config.")
@@ -337,201 +336,184 @@ class SnuddaPlace(object):
             if "random_seed" in config and "place" in config["random_seed"]:
                 self.random_seed = config["random_seed"]["place"]
                 self.write_log(f"Reading random seed from config file: {self.random_seed}")
-            else:
-                # No random seed given, invent one
-                self.random_seed = 1001
-                self.write_log(f"No random seed provided, using: {self.random_seed}")
         else:
             self.write_log(f"Using random seed provided by command line: {self.random_seed}")
-
-        self.random_generator = np.random.default_rng(self.random_seed + 115)
-
-        if self.log_file is None:
-            mesh_log_filename = "mesh-log.txt"
-        else:
-            mesh_log_filename = self.log_file.name + "-mesh"
-        mesh_logfile = open(mesh_log_filename, 'wt')
-
-        # First handle volume definitions
-        volume_def = config["volume"]
-
-        # Setup random seeds for all volumes
-        ss = np.random.SeedSequence(self.random_seed)
-        all_seeds = ss.generate_state(len(volume_def))
-        all_vd = sorted(volume_def.keys())
-
-        vol_seed = dict()
-        for vd, seed in zip(all_vd, all_seeds):
-            vol_seed[vd] = seed
-
-        for volume_id, vol_def in volume_def.items():
-
-            self.volume[volume_id] = vol_def
-
-            if "mesh_file" in vol_def:
-
-                assert "d_min" in vol_def, "You must specify d_min if using a mesh" \
-                                          + " for volume " + str(volume_id)
-
-                if "mesh_bin_width" not in vol_def or not vol_def["mesh_bin_width"]:
-                    self.write_log("No mesh_bin_width specified, using 1e-4")
-                    mesh_bin_width = 1e-4
-                else:
-                    mesh_bin_width = vol_def["mesh_bin_width"]
-
-                self.write_log(f"Using mesh_bin_width {mesh_bin_width}")
-
-                if "-cube-mesh-" in vol_def["mesh_file"] or "slice.obj" in vol_def["mesh_file"]:
-                    self.write_log("Cube or slice mesh, switching to serial processing.")
-                    d_view = None
-                else:
-                    d_view = self.d_view
-
-                if snudda_path_exists(vol_def["mesh_file"], self.snudda_data):
-                    mesh_file = snudda_parse_path(vol_def["mesh_file"], self.snudda_data)
-                elif os.path.exists(os.path.join(self.network_path, vol_def["mesh_file"])):
-                    mesh_file = os.path.join(self.network_path, vol_def["mesh_file"])
-                else:
-                    self.write_log(f"Unable to find mesh file {vol_def['mesh_file']}")
-                    sys.exit(-1)
-
-                if "n_putative_points" in self.volume[volume_id]:
-                    n_putative_points = int(self.volume[volume_id]["n_putative_points"])
-                else:
-                    n_putative_points = None  # Autodetect
-
-                self.volume[volume_id]["mesh"] \
-                    = NeuronPlacer(mesh_path=mesh_file,
-                                   d_min=vol_def["d_min"],
-                                   random_seed=vol_seed[volume_id],
-                                   n_putative_points=n_putative_points)
-
-                if "density" in self.volume[volume_id]:
-                    # We need to set up the neuron density functions also
-                    # TODO: Here density for each neuron type in the volume is defined
-                    #       as a numexpr evaluated string of x,y,z stored in a dictionary
-                    #       with the neuron type as key.
-                    #       Add ability to also specify a density file.
-                    for neuron_type in self.volume[volume_id]["density"]:
-
-                        density_func = None
-
-                        if "density_function" in self.volume[volume_id]["density"][neuron_type]:
-                            density_str = self.volume[volume_id]["density"][neuron_type]["density_function"]
-                            density_func = lambda x, y, z, d_str=density_str: numexpr.evaluate(d_str)
-
-                        if "density_file" in self.volume[volume_id]["density"][neuron_type]:
-                            density_file = self.volume[volume_id]["density"][neuron_type]["density_file"]
-
-                            # We need to load the data from the file
-                            from scipy.interpolate import griddata
-                            with open(snudda_parse_path(density_file, self.snudda_data), "r") as f:
-                                density_data = json.load(f, object_pairs_hook=OrderedDict)
-
-                                assert volume_id in density_data and neuron_type in density_data[volume_id], \
-                                    f"Volume {volume_id} does not contain data for neuron type {neuron_type}"
-
-                                assert "coordinates" in density_data[volume_id][neuron_type] \
-                                       and "density" in density_data[volume_id][neuron_type], \
-                                    (f"Missing coordinates and/or Density data for "
-                                     f"volume {volume_id}, neuron type {neuron_type}")
-
-                                # Convert to SI (* 1e-6)
-                                coord = np.array(density_data[volume_id][neuron_type]["coordinates"]) * 1e-6
-                                density = np.array(density_data[volume_id][neuron_type]["density"])
-
-                                if self.griddata_interpolation:
-                                    density_func = lambda x, y, z, c=coord, d=density: \
-                                        griddata(points=c, values=d,
-                                                 xi=np.array([x, y, z]), method="linear",
-                                                 fill_value=0).transpose()
-                                else:
-                                    density_func = lambda x, y, z, c=coord, d=density: \
-                                        griddata(points=c, values=d,
-                                                 xi=np.array([x, y, z]), method="nearest",
-                                                 fill_value=0).transpose()
-
-                        self.volume[volume_id]["mesh"].define_density(neuron_type, density_func)
-
-            self.write_log("Using dimensions from config file")
 
         # Setup for rotations
         self.rotate_helper = SnuddaRotate(self.config_file)
 
-        assert "neurons" in config, \
-            "No neurons defined. Is this config file old format?"
+        if self.random_seed:
+            self.random_generator = np.random.default_rng(self.random_seed + 115)
+        else:
+            self.random_generator = np.random.default_rng()
 
-        # Read in the neurons
-        for name, definition in config["neurons"].items():
+        # Setup random seeds for all regions
+        ss = np.random.SeedSequence(self.random_seed)
+        all_seeds = ss.generate_state(len(config["regions"]))
 
-            neuron_name = name
-            morph = definition["morphology"]
-            param = definition["parameters"]
-            mech = definition["mechanisms"]
+        for (region_name, region_data), region_seed in zip(config["regions"].items(), all_seeds):
+            total_num_neurons = region_data.get("num_neurons")
 
-            if "modulation" in definition:
-                modulation = definition["modulation"]
+            volume_data = region_data["volume"]
+            self.volume[region_name] = volume_data
+
+            if "random_seed" not in volume_data:
+                self.volume[region_name]["random_seed"] = region_seed
             else:
-                # Modulation optional
-                modulation = None
+                region_seed = self.volume[region_name]["random_seed"]
 
-            num = definition["num"]
-            volume_id = definition["volume_id"]
+            region_rnd = np.random.default_rng(region_seed + 123)
 
-            if "neuron_type" in definition:
-                # type is "neuron" or "virtual" (provides input only)
-                model_type = definition["neuron_type"]
+            if snudda_path_exists(volume_data["mesh_file"], self.snudda_data):
+                mesh_file = snudda_parse_path(volume_data["mesh_file"], self.snudda_data)
+            elif os.path.isfile(os.path.join(self.network_path, volume_data["mesh_file"])):
+                mesh_file = os.path.join(self.network_path, volume_data["mesh_file"])
             else:
-                model_type = "neuron"
+                raise ValueError(f"Unable to find mesh_file {volume_data['mesh_file']}")
 
-            if 'hoc' in definition:
-                hoc = definition["hoc"]
+            if "num_putative_points" in volume_data:
+                num_putative_points = int(volume_data["num_putative_points"])
             else:
-                hoc = None
+                num_putative_points = None
 
-            if model_type == "virtual":
-                # Virtual neurons gets spikes from a file
-                mech = ""
-                hoc = ""
-                virtual_neuron = True
-            else:
-                virtual_neuron = False
+            self.volume[region_name]["mesh"] \
+                = NeuronPlacer(mesh_path=mesh_file,
+                               d_min=self.volume[region_name]["d_min"],
+                               random_seed=region_seed,
+                               n_putative_points=num_putative_points)
 
-            if "axon_density" in definition:
-                axon_density = definition["axon_density"]
-            else:
-                axon_density = None
+            if "density" in self.volume[region_name]:
+                for neuron_type in self.volume[region_name]["density"]:
+                    density_func = None
 
-            if "parameter_key" in definition:
-                parameter_key = definition["parameter_key"]
-            else:
-                parameter_key = None
+                    if "density_function" in self.volume[region_name]["density"][neuron_type]:
+                        density_str = self.volume[region_name]["density"][neuron_type]["density_function"]
+                        density_func = lambda x, y, z, d_str=density_str: numexpr.evaluate(d_str)
 
-            if "morphology_key" in definition:
-                morphology_key = definition["morphology_key"]
-            else:
-                morphology_key = None
+                    if "density_file" in self.volume[region_name]["density"][neuron_type]:
+                        density_file = self.volume[region_name]["density"][neuron_type]["density_file"]
 
-            if "modulation_key" in definition:
-                modulation_key = definition["modulation_key"]
-            else:
-                modulation_key = None
+                        # We need to load the data from the file
+                        from scipy.interpolate import griddata
+                        with open(snudda_parse_path(density_file, self.snudda_data), "r") as f:
+                            density_data = json.load(f)
 
-            self.write_log(f"Adding: {num} {neuron_name}")
-            self.add_neurons(name=neuron_name,
-                             swc_path=morph,
-                             param_filename=param,
-                             mech_filename=mech,
-                             modulation=modulation,
-                             num_neurons=num,
-                             hoc=hoc,
-                             volume_id=volume_id,
-                             virtual_neuron=virtual_neuron,
-                             axon_density=axon_density,
-                             parameter_key=parameter_key,
-                             morphology_key=morphology_key,
-                             modulation_key=modulation_key,
-                             config=config)
+                            assert region_name in density_data and neuron_type in density_data[region_name], \
+                                f"Volume {region_name} does not contain data for neuron type {neuron_type}"
+
+                            assert "coordinates" in density_data[region_name][neuron_type] \
+                                   and "density" in density_data[region_name][neuron_type], \
+                                (f"Missing coordinates and/or Density data for "
+                                 f"volume {region_name}, neuron type {neuron_type}")
+
+                            # Convert to SI (* 1e-6)
+                            coord = np.array(density_data[region_name][neuron_type]["coordinates"]) * 1e-6
+                            density = np.array(density_data[region_name][neuron_type]["density"])
+
+                            if self.griddata_interpolation:
+                                density_func = lambda x, y, z, c=coord, d=density: \
+                                    griddata(points=c, values=d,
+                                             xi=np.array([x, y, z]), method="linear",
+                                             fill_value=0).transpose()
+                            else:
+                                density_func = lambda x, y, z, c=coord, d=density: \
+                                    griddata(points=c, values=d,
+                                             xi=np.array([x, y, z]), method="nearest",
+                                             fill_value=0).transpose()
+
+                    self.volume[region_name]["mesh"].define_density(neuron_type, density_func)
+
+            if "neurons" not in region_data:
+                self.write_log(f"No neurons specified for volume {region_name}")
+
+            number_of_added_neurons = 0
+
+            for neuron_type, neuron_data in region_data["neurons"].items():
+
+                model_type = neuron_data.get("neuron_type", "neuron")  # default "neuron"
+                # rotation_mode currently not used?!
+
+                axon_density = neuron_data.get("axon_density")
+
+                if "num_neurons" in neuron_data:
+                    num_neurons = neuron_data["num_neurons"]
+                elif "fraction" in neuron_data:
+                    if total_num_neurons is None:
+                        raise ValueError(f"If fraction is specified, then total_num_neurons for the region {region_name} must be set")
+
+                    if neuron_data["fraction"] < 0 or neuron_data["fraction"] > 1:
+                        raise ValueError(f"{neuron_type}: Neuron 'fraction' must be between 0 and 1.")
+                    num_neurons = int(neuron_data["fraction"] * total_num_neurons)
+                else:
+                    raise ValueError(f"You need to specify 'fraction' or 'num_neurons' for {neuron_type}")
+
+                n_types = len(neuron_data["neuron_path"])
+
+                if isinstance(num_neurons, int):
+                    n_neurons = np.full((n_types, ), int(num_neurons/n_types))
+
+                    extra_n = region_rnd.integers(low=0, high=n_types, size=num_neurons-np.sum(n_neurons))
+
+                    for en in extra_n:
+                        n_neurons[en] += 1
+                elif len(num_neurons) != n_types:
+                    raise ValueError(f"num_neurons can be a scalar or a vector, if it is a vector "
+                                     f"({num_neurons = }) then its length must equal number of "
+                                     f"neuron_path:s given ({n_types})")
+                else:
+                    n_neurons = num_neurons
+
+                parameter_key_list = SnuddaPlace.replicate_str(neuron_data.get("parameter_key"),
+                                                               n_neurons, f"{neuron_type} parameter_key")
+                morphology_key_list = SnuddaPlace.replicate_str(neuron_data.get("morphology_key"),
+                                                                n_neurons, f"{neuron_type} morphology_key")
+                modulation_key_list = SnuddaPlace.replicate_str(neuron_data.get("modulation_key"),
+                                                                n_neurons, f"{neuron_type} modulation_key")
+
+                for (neuron_name, neuron_path), num, parameter_key, morphology_key, modulation_key \
+                        in zip(neuron_data["neuron_path"].items(), n_neurons,
+                               parameter_key_list, morphology_key_list, modulation_key_list):
+
+                    if neuron_name.split("_")[0] != neuron_type and neuron_name != neuron_type:
+                        raise ValueError(f"The keys in neuron_path must be {neuron_name}_X where X is usually a number")
+
+                    morph = os.path.join(neuron_path, "morphology")
+                    param = os.path.join(neuron_path, "parameters.json")
+                    mech = os.path.join(neuron_path, "mechanisms.json")
+
+                    modulation = os.path.join(neuron_path, "modulation.json")
+                    if not snudda_path_exists(modulation, snudda_data=self.snudda_data):
+                        modulation = None
+
+                    if model_type == "virtual":
+                        param = None
+                        mech = None
+                        modulation = None
+                        hoc = None
+                        virtual_neuron = True
+                    else:
+                        virtual_neuron = False
+
+                    self.add_neurons(name=neuron_name,
+                                     swc_path=morph,
+                                     param_filename=param,
+                                     mech_filename=mech,
+                                     modulation=modulation,
+                                     num_neurons=num,
+                                     hoc=None,
+                                     volume_id=region_name,
+                                     virtual_neuron=virtual_neuron,
+                                     axon_density=axon_density,
+                                     parameter_key=parameter_key,
+                                     morphology_key=morphology_key,
+                                     modulation_key=modulation_key,
+                                     config=config,
+                                     rng=region_rnd)
+
+                    number_of_added_neurons += num
+
+            if total_num_neurons is not None and number_of_added_neurons > total_num_neurons*1.01:
+                raise ValueError(f"{region_name} should have {total_num_neurons} but {number_of_added_neurons} were added.")
 
         self.config_file = config_file
         self.config = config
@@ -539,15 +521,16 @@ class SnuddaPlace(object):
         # We reorder neurons, sorting their IDs after position
         # -- UPDATE: Now we spatial cluster neurons depending on number of workers
         if resort_neurons:
-            self.sort_neurons(sort_idx=self.cluster_neurons())
+            self.sort_neurons(sort_idx=self.cluster_neurons(rng=region_rnd))
 
         if False:  # Debug purposes, make sure neuron ranges are ok
             self.plot_ranges()
 
-        if "population_units" in config:
-            self.define_population_units(config["population_units"])
+        self.define_population_units(config)
 
-        mesh_logfile.close()
+    @staticmethod
+    def get_var_helper(data, key, default_value=None):
+        return data[key] if key in data else default_value
 
     ############################################################################
 
@@ -559,25 +542,26 @@ class SnuddaPlace(object):
         bend_neuron_info = []
 
         for neuron in self.neurons:
-            config = self.config["neurons"][neuron.name]
+            neuron_type = neuron.name.split("_")[0]
+            neuron_config = self.config["regions"][neuron.volume_id]["neurons"][neuron_type]
 
-            if "stay_inside_mesh" in config and config["stay_inside_mesh"]:
-                volume_id = config["volume_id"]
-                mesh_file = self.config["volume"][volume_id]["mesh_file"]
+            if "stay_inside_mesh" in neuron_config and neuron_config["stay_inside_mesh"]:
+                volume_id = neuron_config["volume_id"]
+                mesh_file = self.config["regions"][volume_id]["volume"]["mesh_file"]
 
-                if type(config["stay_inside_mesh"]) in (dict, OrderedDict):
-                    if "k_dist" in config["stay_inside_mesh"]:
-                        k_dist = config["stay_inside_mesh"]["k_dist"]
+                if isinstance(neuron_config["stay_inside_mesh"], dict):
+                    if "k_dist" in neuron_config["stay_inside_mesh"]:
+                        k_dist = neuron_config["stay_inside_mesh"]["k_dist"]
                     else:
                         k_dist = 30e-6
 
-                    if "n_random" in config["stay_inside_mesh"]:
-                        n_random = config["stay_inside_mesh"]["n_random"]
+                    if "n_random" in neuron_config["stay_inside_mesh"]:
+                        n_random = neuron_config["stay_inside_mesh"]["n_random"]
                     else:
                         n_random = 5
 
-                    if "max_angle" in config["stay_inside_mesh"]:
-                        max_angle = config["stay_inside_mesh"]["max_angle"]
+                    if "max_angle" in neuron_config["stay_inside_mesh"]:
+                        max_angle = neuron_config["stay_inside_mesh"]["max_angle"]
                     else:
                         max_angle = 0.1  # radians
                 else:
@@ -666,6 +650,43 @@ class SnuddaPlace(object):
     ############################################################################
 
     def generate_extra_axon_info(self, source_neuron, position, config, rng):
+
+        axon_info = []
+
+        if self.axon_config_cache is None:
+
+            self.axon_config_cache = dict()
+
+            for region in config["regions"]:
+                for neuron_key, neuron_info in config["regions"][region]["neurons"].items():
+                    if "axon_config" in neuron_info:
+                        axon_config = snudda_parse_path(neuron_info["axon_config"], self.snudda_data)
+                        with open(axon_config, "r") as f:
+                            self.axon_config_cache[neuron_key] = json.load(f)
+
+        # Each neuron type has a set of axons to choose from
+        source_neuron_type = source_neuron.split("_")[0]
+
+        if source_neuron_type in self.axon_config_cache:
+            axon_config = self.axon_config_cache[source_neuron_type]
+
+            for axon_name, axon_data in axon_config.items():
+
+                axon_position, axon_rotation, axon_swc \
+                    = self.get_projection_axon_location(source_position=position,
+                                                        proj_info=axon_data,
+                                                        rng=rng)
+                axon_info.append([axon_name, axon_position, axon_rotation, axon_swc])
+
+            return axon_info
+
+        else:
+            # No extra axons for neuron
+            return []
+
+    #########################################################################
+
+    def generate_extra_axon_info_old(self, source_neuron, position, config, rng):
 
         axon_info = []
 
@@ -861,7 +882,7 @@ class SnuddaPlace(object):
         pos_file = h5py.File(file_name, "w", libver=self.h5libver)
 
         with open(self.config_file, 'r') as cfg_file:
-            config = json.load(cfg_file, object_pairs_hook=OrderedDict)
+            config = json.load(cfg_file)
 
         # Meta data
         save_meta_data = [(self.config_file, "config_file"),
@@ -1073,42 +1094,28 @@ class SnuddaPlace(object):
 
     ############################################################################
 
-    def define_population_units(self, population_unit_info):
+    def define_population_units(self, config):
 
         """ Defines population units.
-
-        Args:
-            population_unit_info (dict): Has keys "all_unit_id" with a list of all Unit IDs, and <volume_id> which points
-                                         to a dictionary. This dictionary has keys:
-                                         "method" : "random" or "radial_density"                    "
-                                         "unit_id" : ID of population unit
-                                         "fraction_of_neurons" : How large fraction of neurons belong to this unit (used by "random" method)
-                                         "neuron_types" : List of Neuron types that belong to this population unit
-                                         "num_neurons" : Number of neurons in each population unit, only used with radial_density method
-                                         "structure" : Name of structure population unit is located in (volume_id)
-                                         "centres" : Centre of radial density
-                                         "probability_functions" : Probability function defining unit membership, function of radius
 
         """
 
         method_lookup = {"random": self.random_labeling,
                          "radial_density": self.population_unit_density_labeling}
 
-        for unit_id in population_unit_info["all_unit_id"]:
-            self.population_units[unit_id] = []
+        for region_name in self.config["regions"]:
+            if "population_units" in self.config["regions"][region_name]:
+                for unit_id in self.config["regions"][region_name]["population_units"]["unit_id"]:
+                    self.population_units[unit_id] = []
 
-        for volume_id in population_unit_info:
-            if volume_id in ["all_unit_id"]:
-                continue  # Not a population unit, metadata.
+                neuron_id = self.volume_neurons(region_name)
+                method_name = self.config["regions"][region_name]["population_units"]["method"]
 
-            neuron_id = self.volume_neurons(volume_id)
-            method_name = population_unit_info[volume_id]["method"]
+                assert method_name in method_lookup, \
+                    (f"Unknown population placement method {method_name}. "
+                     f"Valid options are {', '.join([x for x in method_lookup])}")
 
-            assert method_name in method_lookup, \
-                (f"Unknown population placement method {method_name}. "
-                 f"Valid options are {', '.join([x for x in method_lookup])}")
-
-            method_lookup[method_name](population_unit_info[volume_id], neuron_id)
+                method_lookup[method_name](self.config["regions"][region_name]["population_units"], neuron_id)
 
     ############################################################################
 
@@ -1168,13 +1175,13 @@ class SnuddaPlace(object):
             for nid, rn in zip(neurons_of_type, rand_num):
                 # If our randum number is smaller than the first fraction, then neuron in first pop unit
                 # if random number is between first and second cumulative fraction, then second pop unit
-                # If larger than last cum_fraction, then no pop unit was picked (and we get -1)
+                # If larger than last cum_fraction, then no pop unit was picked (and we set pop unit 0)
                 idx = len(cum_fraction) - np.sum(rn <= cum_fraction)
 
                 if idx < len(cum_fraction):
-                    unit_id = units_available[nt]["unit"][idx]
-                    self.population_unit[nid] = unit_id
-                    self.population_units[unit_id].append(nid)
+                    uid = units_available[neuron_type]["unit"][idx]
+                    self.population_unit[nid] = uid
+                    self.population_units[uid].append(nid)
                 else:
                     self.population_unit[nid] = 0
 
@@ -1308,7 +1315,7 @@ class SnuddaPlace(object):
         ax.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], c=colours, alpha=0.5)
         plt.show()
 
-    def cluster_neurons(self, n_trials=5):
+    def cluster_neurons(self, n_trials=5, rng=None):
 
         """
         Cluster neurons, so that nearby neurons are grouped on same worker, to speed up simulations.
@@ -1316,6 +1323,9 @@ class SnuddaPlace(object):
         Args:
             n_trials (int) : Number of trials for k-means clustering (default 5)
         """
+
+        if rng is None:
+            rng = self.random_generator
 
         n_workers = len(self.d_view) if self.d_view is not None else 1
         n_clusters = np.maximum(n_workers * 5, 100)
@@ -1327,7 +1337,7 @@ class SnuddaPlace(object):
 
         xyz = self.all_neuron_positions()
 
-        centroids, labels = scipy.cluster.vq.kmeans2(xyz, n_clusters, minit="points", seed=self.random_generator)
+        centroids, labels = scipy.cluster.vq.kmeans2(xyz, n_clusters, minit="points", seed=rng)
 
         n_centroids = centroids.shape[0]
         assert n_centroids == n_clusters
@@ -1377,7 +1387,7 @@ class SnuddaPlace(object):
                            f"neurons unaccounted for",
                            is_error=True)
             self.write_log(f"incorrect neuron_order={neuron_order} (printed for debugging)")
-            neuron_order = self.cluster_neurons(n_trials=n_trials - 1)
+            neuron_order = self.cluster_neurons(n_trials=n_trials - 1, rng=rng)
 
         # TODO: This occured once on Tegner, why did it happen?
         assert np.count_nonzero(neuron_order < 0) == 0, \
@@ -1421,6 +1431,20 @@ class SnuddaPlace(object):
     def volume_neurons(self, volume_id):
 
         return [n.neuron_id for n in self.neurons if n.volume_id == volume_id]
+
+    @staticmethod
+    def replicate_str(string, n_replicas, variable_name=None):
+
+        # variable_name is just used to help with error message if incorrect input
+
+        if string is None or isinstance(string, str):
+            rep_str = [string for x in range(np.sum(n_replicas))]
+        elif len(string) == n_replicas:
+            rep_str = string
+        else:
+            raise ValueError(f"Expected a str or a list of str of length {n_replicas} for {variable_name}")
+
+        return rep_str
 
     ############################################################################
 

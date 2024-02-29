@@ -1,5 +1,4 @@
 import json
-from collections import OrderedDict
 
 import numpy as np
 from scipy.interpolate import griddata
@@ -24,26 +23,25 @@ class SnuddaRotate:
             self.parse_config_file(config_file=config_file)
 
     def parse_config_file(self, config_file):
-        """ Parse config_file, sets self.rotation_lookup """
 
         with open(config_file, "r") as f:
-            self.config = json.load(f, object_pairs_hook=OrderedDict)
+            self.config = json.load(f)
 
         # Parse the config
-        for volume_name in self.config["volume"]:
-            if "neuron_orientation" in self.config["volume"][volume_name]:
-                for neuron_type in self.config["volume"][volume_name]["neuron_orientation"]:
+        for region_name, region_data in self.config["regions"].items():
 
-                    orientation_info = self.config["volume"][volume_name]["neuron_orientation"][neuron_type]
+            if "neuron_orientation" in region_data["volume"]:
+                for neuron_type in region_data["volume"]["neuron_orientation"]:
+
+                    orientation_info = region_data["volume"]["neuron_orientation"][neuron_type]
                     rotation_mode = orientation_info["rotation_mode"]
-                    rotation_field_file = orientation_info["rotation_field_file"] if "rotation_field_file" \
-                                                                                   in orientation_info else None
+                    rotation_field_file = orientation_info["rotation_field_file"] if "rotation_field_file" in orientation_info else None
                     if rotation_field_file:
-                        position, rotation = self.load_rotation_field(rotation_field_file, volume_name)
+                        position, rotation = self.load_rotation_field(rotation_field_file, region_name)
                     else:
                         position, rotation = None, None
 
-                    self.rotation_lookup[volume_name, neuron_type] = (rotation_mode, position, rotation)
+                    self.rotation_lookup[region_name, neuron_type] = (rotation_mode, position, rotation)
 
     @staticmethod
     def random_z_rotate(rng):
@@ -130,7 +128,7 @@ class SnuddaRotate:
         """ Loads rotation field for volumne_name from rotation_field_file """
 
         with open(rotation_field_file, "r") as f:
-            rotation_field_data = json.load(f, object_pairs_hook=OrderedDict)
+            rotation_field_data = json.load(f)
 
         if volume_name in rotation_field_data:
             assert "position" in rotation_field_data[volume_name] \

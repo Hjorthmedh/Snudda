@@ -43,6 +43,7 @@ class MyTestCase(unittest.TestCase):
         # Overwrite adult GJ connectivity, with higher juvenile connectivity
         cnc.add_neuron_target(neuron_name="FS",
                               target_name="FS",
+                              region_name="Striatum",
                               connection_type="gap_junction",
                               dist_pruning=None,
                               f1=0.7, soft_max=8, mu2=2, a3=1.0,

@@ -82,7 +82,8 @@ def get_snudda_data(snudda_data=None, config_file=None, network_path=None, verbo
     if snudda_data is None:
         snudda_data = os.path.join(os.path.dirname(__file__), os.pardir, "data")
 
-    assert os.path.isdir(snudda_data), f"SNUDDA_DATA = {snudda_data} DOES NOT EXIST"
+    if not os.path.isdir(snudda_data):
+        raise ValueError(f"SNUDDA_DATA = {snudda_data} DOES NOT EXIST")
 
     return snudda_data
 
@@ -93,10 +94,10 @@ def read_snudda_data_from_config(config_file):
     with open(config_file, "rt") as f:
         config_data = json.load(f)
 
-    if "snudda_data" in config_data:
+    if "snudda_data" in config_data and config_data["snudda_data"]:
         snudda_data = config_data["snudda_data"]
-        assert os.path.isdir(snudda_data), \
-            f"MISSING DIRECTORY snudda_data = {snudda_data} specified in config file {config_file}"
+        if not os.path.isdir(snudda_data):
+            raise ValueError(f"MISSING DIRECTORY {snudda_data = } specified in config file {config_file}")
 
     return snudda_data
 

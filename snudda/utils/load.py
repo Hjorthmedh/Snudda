@@ -3,7 +3,6 @@ import os
 import sys
 import json
 import timeit
-from collections import OrderedDict
 
 import numpy as np
 
@@ -186,7 +185,7 @@ class SnuddaLoad(object):
             if self.verbose:
                 print("Loading config data from HDF5")
             data["config"] = SnuddaLoad.to_str(f["meta/config"][()])
-            self.config = json.loads(f["meta/config"][()], object_pairs_hook=OrderedDict)
+            self.config = json.loads(f["meta/config"][()])
 
         # Added so this code can also load the position file, which
         # does not have the network group yet
@@ -340,7 +339,7 @@ class SnuddaLoad(object):
 
         if "connectivity_distributions" in f["meta"]:
             orig_connectivity_distributions = \
-                json.loads(SnuddaLoad.to_str(f["meta/connectivity_distributions"][()]), object_pairs_hook=OrderedDict)
+                json.loads(SnuddaLoad.to_str(f["meta/connectivity_distributions"][()]))
 
             for keys in orig_connectivity_distributions:
                 (pre_type, post_type) = keys.split("$$")
@@ -493,7 +492,7 @@ class SnuddaLoad(object):
 
         if self.config is None:
             config_file = self.data["config_file"]
-            self.config = json.load(open(config_file, 'r'), object_pairs_hook=OrderedDict)
+            self.config = json.load(open(config_file, 'r'))
 
     ############################################################################
 

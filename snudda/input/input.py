@@ -26,6 +26,7 @@ import re
 import numpy as np
 import copy
 
+from snudda.neurons import NeuronMorphologyExtended
 from snudda.utils.snudda_path import get_snudda_data
 from snudda.input.time_varying_input import TimeVaryingInput
 from snudda.neurons.neuron_prototype import NeuronPrototype
@@ -312,12 +313,11 @@ class SnuddaInput(object):
                     else:
                         population_unit_id = None
 
-                    # TODO: What to do with population_unit_spikes, should we have mandatory jittering for them?
-
                     # population_unit_id = 0 means not population unit membership, so no population spikes available
                     if neuron_type in self.population_unit_spikes \
                             and population_unit_id is not None and population_unit_id > 0 \
                             and input_type in self.population_unit_spikes[neuron_type]:
+
                         chan_spikes = self.population_unit_spikes[neuron_type][input_type][population_unit_id]
 
                         it_group.create_dataset("population_unit_spikes", data=chan_spikes, compression="gzip",
@@ -1678,26 +1678,15 @@ class SnuddaInput(object):
         else:
             self.write_log(f"Using random seed provided by command line: {self.random_seed}")
 
-        if "population_units" in self.network_config:
+        all_id = []
 
-            all_id = []
-            for volume in self.network_config["population_units"]:
-                if "unit_id" in self.network_config["population_units"][volume]:
-                    all_id += self.network_config["population_units"][volume]["unit_id"]
+        for region_name, region_data in self.network_config["regions"].items():
+            if "population_units" in region_data:
+                if "unit_id" in region_data["population_units"]:
+                    all_id += region_data["population_units"]["unit_id"]
 
-            all_id = set(all_id) - {0}
-
-            if "all_unit_id" in self.network_config["population_units"]:
-                self.all_population_units = set(self.network_config["population_units"]["all_unit_id"])
-                assert all_id == self.all_population_units, \
-                    (f"Inconsistency: all_unit_id = {self.all_population_units}, "
-                     f"but all units in unit_id blocks = {all_id}")
-            else:
-                self.write_log("Missing all_unit_id tag, deriving it from unit_id tag for volumes")
-                self.all_population_units = all_id
-
-        else:
-            self.all_population_units = {}
+        all_id = set(all_id) - {0}
+        self.all_population_units = all_id
 
     def generate_seeds(self, num_states):
 
@@ -1802,25 +1791,31 @@ class SnuddaInput(object):
         # self.write_log(f"self.network_config['Neurons'] = {self.network_config['Neurons']}")
         # self.write_log(f"self.network_config['Neurons'][neuron_name] = {self.network_config['Neurons'][neuron_name]}")
 
-        morphology_path = self.network_config["neurons"][neuron_name]["morphology"]
-        parameters_path = self.network_config["neurons"][neuron_name]["parameters"]
-
-        if "modulation" in self.network_config["neurons"][neuron_name]:
-            modulation_path = self.network_config["neurons"][neuron_name]["modulation"]
-        else:
-            modulation_path = None
-
-        mechanisms_path = self.network_config["neurons"][neuron_name]["mechanisms"]
-
-        # parameter_id = self.neuron_info[neuron_id]["parameter_id"]
-        # morphology_id = self.neuron_info[neuron_id]["morphology_id"]
-        # modulation_id = self.neuron_info[neuron_id]["modulation_id"]
+        neuron_path = self.neuron_info[neuron_id]["neuron_path"]
+        morphology_path = self.neuron_info[neuron_id]["morphology"]
 
         parameter_key = self.neuron_info[neuron_id]["parameter_key"]
         morphology_key = self.neuron_info[neuron_id]["morphology_key"]
         modulation_key = self.neuron_info[neuron_id]["modulation_key"]
 
-        if neuron_name in self.neuron_cache:
+        # TODO: If the morphology is a bend morphology, we need to special treat it!
+        if neuron_path not in morphology_path:
+
+            assert "modified_morphologies" in morphology_path, \
+                f"input: neuron_path not in morphology_path, expected 'modified_morphologies' " \
+                f"in path: {morphology_path = }, {neuron_path = }"
+
+            # Bend morphologies are unique, need to load it separately
+            morphology = NeuronMorphologyExtended(name=neuron_name,
+                                                  position=None,  # This is set further down when using clone
+                                                  rotation=None,
+                                                  swc_filename=morphology_path,
+                                                  snudda_data=self.snudda_data,
+                                                  parameter_key=parameter_key,
+                                                  morphology_key=morphology_key,
+                                                  modulation_key=modulation_key)
+
+        elif neuron_name in self.neuron_cache:
             self.write_log(f"About to clone cache of {neuron_name}.")
             # Since we do not care about location of neuron in space, we can use get_cache_original
             morphology = self.neuron_cache[neuron_name].clone(parameter_key=parameter_key,
@@ -1831,11 +1826,7 @@ class SnuddaInput(object):
             self.write_log(f"Creating prototype {neuron_name}")
             morphology_prototype = NeuronPrototype(neuron_name=neuron_name,
                                                    snudda_data=self.snudda_data,
-                                                   morphology_path=morphology_path,
-                                                   parameter_path=parameters_path,
-                                                   modulation_path=modulation_path,
-                                                   mechanism_path=mechanisms_path,
-                                                   neuron_path=None)
+                                                   neuron_path=neuron_path)
             self.neuron_cache[neuron_name] = morphology_prototype
             morphology = morphology_prototype.clone(parameter_key=parameter_key,
                                                     morphology_key=morphology_key,

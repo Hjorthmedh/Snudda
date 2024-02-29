@@ -83,7 +83,6 @@ class TestVoxelCount(unittest.TestCase):
         dend_bins = np.arange(min_dend_count-1.5, max_dend_count+1.5)
         axon_bins = np.arange(min_axon_count-1.5, max_axon_count+1.5)
 
-
         if True:
             import matplotlib.pyplot as plt
             fig, ax = plt.subplots(2, 1)

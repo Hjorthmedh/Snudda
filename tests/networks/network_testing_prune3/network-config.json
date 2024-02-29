@@ -1,4 +1,6 @@
 {
+    "snudda_data": "",
+    
     "random_seed": {
         "masterseed": 1234,
         "init": 2906597030,
@@ -8,61 +10,61 @@
         "input": 507409703,
         "simulate": 2825158027
     },
-    "volume": {
+    "regions": {
 	"TestStriatum": {
-	    "type": "mesh",
-	    "d_min": 1e-5,
-	    "mesh_file": "mesh/simple_mesh.obj",
-	    "mesh_bin_width": 5e-5
-	}
-    },
-    "connectivity": {
-	"ballanddoublestick,ballanddoublestick": {
-	    "GABA": {
-		"conductance": [1.1e-9, 1.5e-9],
-                "pruning": {
-                    "f1": 1,
-                    "soft_max": 5,
-                    "mu2": null,
-                    "a3": 1,
-                    "dist_pruning": null
-                }
+	    "volume": {
+		"type": "mesh",
+		"d_min": 1e-5,
+		"mesh_file": "mesh/simple_mesh.obj",
+		"num_putative_points": 10000
 	    },
-	    "AMPA": {
-		"conductance": [1.1e-9, 1.5e-9],
-                "pruning": {
-                    "f1": 1,
-                    "soft_max": 5,
-                    "mu2": null,
-                    "a3": 1,
-                    "dist_pruning": null
-                }
+	    "connectivity": {
+		"ballanddoublestick,ballanddoublestick": {
+		    "GABA": {
+			"conductance": [1.1e-9, 1.5e-9],
+			"pruning": {
+			    "f1": 1,
+			    "soft_max": 5,
+			    "mu2": null,
+			    "a3": 1,
+			    "dist_pruning": null
+			}
+		    },
+		    "AMPA": {
+			"conductance": [1.1e-9, 1.5e-9],
+			"pruning": {
+			    "f1": 1,
+			    "soft_max": 5,
+			    "mu2": null,
+			    "a3": 1,
+			    "dist_pruning": null
+			}
+		    },
+		    "gap_junction": {
+			"conductance": [5e-10, 1e-10],
+			"channel_parameters": null,
+			"pruning": {
+			    "f1": 1,
+			    "soft_max": 8,
+			    "mu2": null,
+			    "a3": 1.0,
+			    "dist-pruning": null
+			}
+		    }
+		}
 	    },
-            "gap_junction": {
-                "conductance": [5e-10, 1e-10],
-                "channel_parameters": null,
-                "pruning": {
-                    "f1": 1,
-                    "soft_max": 8,
-                    "mu2": null,
-                    "a3": 1.0,
-                    "dist-pruning": null
-                }
-            }
-	}
-    },
-    "neurons": {
-	"ballanddoublestick_0": {
-            "morphology": "validation/ballanddoublestick/double.swc",
-            "parameters": "",
-            "mechanisms": "",
-            "modulation": "",
-            "num": 28,
-            "hoc": null,
-            "neuron-type": "neuron",
-            "rotation_mode": "",
-            "volume_id": "TestStriatum"
-
+	    "neurons": {
+		"ballanddoublestick": {
+		    "neuron_path": {
+			"ballanddoublestick_0": "validation/ballanddoublestick/"
+		    },
+		    "num_neurons": 28,
+		    "neuron-type": "neuron",
+		    "rotation_mode": "",
+		    "volume_id": "TestStriatum"
+		    
+		}
+	    }
 	}
     }
 }
