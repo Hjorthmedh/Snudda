@@ -14,9 +14,9 @@ from snudda.utils import NumpyEncoder
 
 class ConfigParser:
 
-    def __init__(self, path=None, snudda_data=None, parse=True):
+    def __init__(self, config_file=None, snudda_data=None, parse=True):
 
-        self.path = path
+        self.config_file = config_file
         self.network_info = dict()  # master dictionary
         self.snudda_data = snudda_data
         self.config_data = {}
@@ -25,32 +25,42 @@ class ConfigParser:
         self.exclude_parse_keys = ["parameter_file", "projection_file", "rotation_file", "rotation_field_file"]
         self.exclude_parse_values = ["parameters.json", "mechanisms.json", "modulation.json", "meta.json"]
 
-        if path is not None and parse:
+        if config_file is not None and parse:
             self.load()
 
     def load(self):
-        print(f"Loading {self.path}")
+        print(f"Loading {self.config_file}")
 
-        if os.path.isfile(self.path):
-            with open(self.path) as f:
+        if os.path.isfile(self.config_file):
+            with open(self.config_file) as f:
                 self.config_data = json.load(f)
         else:
-            print(f"File not found!")
+            raise ValueError(f"File not found: {self.config_file}")
 
         if self.snudda_data is None:
-            if "meta" in self.config_data and "snudda_data" in self.config_data["meta"]:
-                self.snudda_data = self.config_data["meta"]["snudda_data"]
+            if "snudda_data" in self.config_data:
+                self.snudda_data = os.path.abspath(self.config_data["snudda_data"])
+                self.config_data["snudda_data"] = self.snudda_data  # Make sure abspath is stored
             else:
                 snudda_data = ""
+        else:
+            if "snudda_data" in self.config_data:
+                print(f"Warning, overriding snudda_data with {os.path.abspath(self.snudda_data)}")
+
+            self.config_data["snudda_data"] = os.path.abspath(self.snudda_data)
 
         if not self.snudda_data:
             print(f"Warning, snudda_data is not set!")
 
     def parse_config(self):
 
-        self.config_data = self.parse_subtree(self.config_data, parent_file=self.path)
+        self.config_data = self.parse_subtree(self.config_data, parent_file=self.config_file)
 
         self.setup_random_seeds()
+
+    def replace_network_path(self, network_path):
+        print(f"Setting {network_path = }")
+        self.config_data["network_path"] = network_path
 
     def substitute_json(self, putative_file, key=None, parent_file=None):
 
@@ -65,7 +75,7 @@ class ConfigParser:
             return putative_file
 
         parent_dir = os.path.dirname(parent_file)
-        base_dir = os.path.dirname(self.path)
+        base_dir = os.path.dirname(self.config_file)
 
         # Version of file name that we check to see if we can find the file
         putative_files = [putative_file,
@@ -154,7 +164,7 @@ if __name__ == "__main__":
 
     config_path = "/home/hjorth/HBP/Snudda/new_config/network.json"
 
-    conf = ConfigParser(path=config_path, snudda_data="/home/hjorth/HBP/BasalGangliaData/data")
+    conf = ConfigParser(config_file=config_path, snudda_data="/home/hjorth/HBP/BasalGangliaData/data")
     conf.parse_config()
     conf.write_config()
 

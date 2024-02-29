@@ -1,6 +1,6 @@
 {
     "Striatum": {
-	"num_neurons": 200,
+	"num_neurons": 1000,
 	"volume": {
 	    "mesh_file": "$SNUDDA_DATA/meshes/Striatum-dorsal-left-hemisphere.obj",
 	    "d_min": 1.5e-5,
@@ -18,7 +18,11 @@
 		}
 	    }
 	},
-	"neurons": ["dspn.json", "ispn.json", "fs.json", "chin.json", "lts.json"],
+	"neurons": ["neurons/dspn.json",
+		    "neurons/ispn.json",
+		    "neurons/fs.json",
+		    "neurons/chin.json",
+		    "neurons/lts.json"],
 	"connectivity": ["$SNUDDA_DATA/connectivity/striatum/striatum-connectivity.json"],
 	"populations": "pop1.json"
     }

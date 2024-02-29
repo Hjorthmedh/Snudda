@@ -51,6 +51,14 @@ def snudda_cli():
     init_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     init_parser.add_argument("--verbose", action="store_true")
 
+    import_parser = sub_parsers.add_parser("import")
+    import_parser.add_argument("path", help="Location of network")
+    import_parser.add_argument("config_file", help="Location of config_file to import")
+    import_parser.add_argument("--snudda_data", help="Location of snudda_data", default=None)
+    import_parser.add_argument("-overwrite", "--overwrite", action="store_true", help="Overwrite old config file")
+    import_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
+    import_parser.add_argument("--verbose", action="store_true")
+
     place_parser = sub_parsers.add_parser("place")
     place_parser.add_argument("path", help="Location of network")
     place_parser.add_argument("-randomseed", "--randomseed", "--seed", default=None, help="Random seed", type=int)
@@ -154,6 +162,7 @@ def snudda_cli():
     snudda = Snudda(args.path)
 
     actions = {"init": snudda.init_config_wrapper,
+               "import": snudda.import_config_wrapper,
                "place": snudda.place_neurons_wrapper,
                "detect": snudda.detect_synapses_wrapper,
                "prune": snudda.prune_synapses_wrapper,
