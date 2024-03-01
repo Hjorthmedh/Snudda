@@ -85,6 +85,8 @@ class SnuddaSimulateNeuromodulationSynapse(SnuddaSimulate):
         self.check_memory_status()
         self.pc.barrier()
 
+        self.setup_parse_sim_info()
+
     def neuromodulation_setup(self):
 
         # This loops through all the synapses, and connects the relevant ones

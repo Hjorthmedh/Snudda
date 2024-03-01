@@ -3,7 +3,7 @@
 
 
 SNUDDA_DIR=$HOME/Snudda/snudda
-JOBDIR=networks/test_10k
+JOBDIR=networks/test_10k_inside
 
 SIMSIZE=10000
 
@@ -26,7 +26,6 @@ echo "SLURM_PROCID = $SLURM_PROCID"
 if [ "$SLURM_PROCID" -gt 0 ]; then
     mock_string="Not main process"
 else
-
     # For debug purposes:                                                         
     echo "PATH: "$PATH
     echo "IPYTHONDIR: "$IPYTHONDIR

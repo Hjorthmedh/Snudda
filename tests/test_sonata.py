@@ -87,7 +87,7 @@ class TestSonata(unittest.TestCase):
                 neuron_type = neuron["type"]
 
                 try:
-                    sonata_node = nodes[neuron_type].get_node_id(within_type_idx[neuron["neuronID"]])
+                    sonata_node = nodes[neuron_type].get_node_id(within_type_idx[neuron["neuron_id"]])
                 except:
                     import traceback
                     print(traceback.format_exc())
@@ -141,10 +141,11 @@ class TestSonata(unittest.TestCase):
 
             # Check that all edges are accounted for
 
-            self.assertEqual(edge_count, sl.data["nSynapses"])
+            self.assertEqual(edge_count, sl.data["num_synapses"])
             self.assertTrue((con_mat == new_con_mat).all())
 
         # !!! TODO: Add test for input, also write dedicated input.json file for this test
+
 
 if __name__ == '__main__':
     unittest.main()

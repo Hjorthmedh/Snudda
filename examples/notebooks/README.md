@@ -12,14 +12,19 @@ Here is a collection of Jupyter Notebooks, some of the workflows are split over 
 * [example_of_neuron_rotations](example_of_neuron_rotations.ipynb) shows how to rotate neurons based on position.
 * [bend_morphologies](bend_morphologies.ipynb) shows how to make the neurons bend the axons and dendrites at the edge of the mesh, to keep them constrained to the volume.
 * [connect_structures_example](connect_structures_example.ipynb) shows how to create neuron projections between volumes when no-axon data is available ([parallel version](connect_structures_example_parallel.ipynb)). There is also an [alternative version](connect_structures_example_projection_detection.ipynb) that places axon voxels randomly within the projection zone and then applies touch detection.
+* [composite axon example](ProjectionExample/composite_axon_projections.ipynb) shows how to create neuron projections between (or within) volumes using separate axon morphologies (.swc-files).
 * [virtual_neurons](VirtualNeurons/VirtualNeurons.ipynb) shows how to only simulate the core of a volume of neurons, by turning the outer neurons to virtual neurons that spike at predetermined times. This is useful to avoid edge effects in your simulations.
+
+* [Advanced region creation](StriatumExample/CreateStriatum.ipynb) that shows how regions can be specified using multiple files.
 
 ## Input creation
 * [input_generation_example_1](input_generation_example_1.ipynb) generate constant Poisson input (uses [simple_network_creation](simple_network_creation.ipynb))
 * [input_generation_example_2_frequency_vectors](input_generation_example_2_frequency_vectors.ipynb) define Poisson input with multiple start/stop times (uses [simple_network_creation](simple_network_creation.ipynb)).
 * [input_generation_example_3_correlation](input_generation_example_3_correlation.ipynb) finer control in input targeting (uses [population_unit_network](population_unit_network.ipynb))
 * [input_tuning_example](input_tuning_example.ipynb) explore what input number and frequency are good neurons, e.g to avoid depolarisation block.
+* [Advanced input tuning](../parallel/KTH_PDC/input_tuning/) using the Dardel super computer. Here both background and signal level are optimised, and the result is written to meta.json in BasalGangliaData.
 * [input_frequency](InputFrequency/InputFrequency.ipynb) time varying input frequency example
+* [basal_ganglia_data_input](Input-generation-using-BasalGangliaData.ipynb) builds upon the input tuned in BasalGangliaData.
 
 ## Striatum example
 * [striatum_example](striatum_example.ipynb) creates a small striatal network, increase number of neurons for the full version.

@@ -83,14 +83,14 @@ class OptimisePruning:
 
         self.prune.load_pruning_information()
 
-        orig_connectivity_distributions = json.loads(self.prune.hist_file["meta/connectivityDistributions"][()],
+        orig_connectivity_distributions = json.loads(self.prune.hist_file["meta/connectivity_distributions"][()],
                                                      object_pairs_hook=collections.OrderedDict)
 
         # Next overwrite the pruning parameters
         pre_type_id = self.prune.type_id_lookup[pre_type]
         post_type_id = self.prune.type_id_lookup[post_type]
         orig_key = f"{pre_type}$${post_type}"
-        synapse_type_id = orig_connectivity_distributions[orig_key][con_type]["channelModelID"]
+        synapse_type_id = orig_connectivity_distributions[orig_key][con_type]["channel_model_id"]
 
         pruning = self.prune.complete_pruning_info(pruning_parameters)
         pruning_other = None
@@ -109,11 +109,19 @@ class OptimisePruning:
 
         out_file = h5py.File(output_file, "w")
 
-        with h5py.File(self.merge_files_syn[0], "r") as f_syn:
-            # print(f"Writing file {output_file}")
-            # We need to make sure that we keep the pruned data files separate
+        if self.merge_files_syn[0] is not None:
+            with h5py.File(self.merge_files_syn[0], "r") as f_syn:
+                # print(f"Writing file {output_file}")
+                # We need to make sure that we keep the pruned data files separate
 
-            num_syn, num_syn_kept = self.prune.prune_synapses(synapse_file=f_syn,
+                num_syn, num_syn_kept = self.prune.prune_synapses(synapse_file=f_syn,
+                                                                  output_filename=out_file,
+                                                                  row_range=None,
+                                                                  close_out_file=False,
+                                                                  close_input_file=True,
+                                                                  merge_data_type="synapses")
+        else:
+            num_syn, num_syn_kept = self.prune.prune_synapses(synapse_file=None,
                                                               output_filename=out_file,
                                                               row_range=None,
                                                               close_out_file=False,
@@ -128,14 +136,14 @@ class OptimisePruning:
                                                                 row_range=None,
                                                                 close_out_file=False,
                                                                 close_input_file=True,
-                                                                merge_data_type="gapJunctions")
+                                                                merge_data_type="gap_junctions")
         else:
             num_gj, num_gj_kept = self.prune.prune_synapses(synapse_file=None,
                                                             output_filename=out_file,
                                                             row_range=None,
                                                             close_out_file=False,
                                                             close_input_file=True,
-                                                            merge_data_type="gapJunctions")
+                                                            merge_data_type="gap_junctions")
 
         if not os.path.exists(output_file):
             print(f"Output file missing {output_file}")
@@ -150,15 +158,16 @@ class OptimisePruning:
             import pdb
             pdb.set_trace()
 
-        n_synapses = out_file["network/nSynapses"][()]
-        n_gj = out_file["network/nGapJunctions"][()]
+        n_synapses = out_file["network/num_synapses"][()]
+        n_gj = out_file["network/num_gap_junctions"][()]
 
         out_file["network/synapses"].resize((n_synapses, out_file["network/synapses"].shape[1]))
-        out_file["network/gapJunctions"].resize((n_gj, out_file["network/gapJunctions"].shape[1]))
+        out_file["network/gap_junctions"].resize((n_gj, out_file["network/gap_junctions"].shape[1]))
 
         out_file.close()
 
-    def evaluate_fitness(self, pre_type, post_type, output_file, experimental_data, avg_num_synapses_per_pair=None):
+    def evaluate_fitness(self, pre_type, post_type, output_file, experimental_data,
+                         avg_num_synapses_per_pair=None, con_type="synapses"):
 
         """
 
@@ -175,23 +184,25 @@ class OptimisePruning:
         snudda_load = SnuddaLoad(network_file=output_file)
         snudda_data = snudda_load.data
 
-        connection_matrix = np.zeros((snudda_data["nNeurons"], snudda_data["nNeurons"]))
+        connection_matrix = np.zeros((snudda_data["num_neurons"], snudda_data["num_neurons"]))
 
         pre_id = snudda_load.get_neuron_id_of_type(neuron_type=pre_type)
         post_id = snudda_load.get_neuron_id_of_type(neuron_type=post_type)
 
-        pre_mask = np.zeros((snudda_data["nNeurons"],), dtype=bool)
-        post_mask = np.zeros((snudda_data["nNeurons"],), dtype=bool)
+        pre_mask = np.zeros((snudda_data["num_neurons"],), dtype=bool)
+        post_mask = np.zeros((snudda_data["num_neurons"],), dtype=bool)
 
         pre_mask[pre_id] = True
         post_mask[post_id] = True
 
-        for row in snudda_data["synapses"]:
+        # print(f"snudda_data.keys = {snudda_data.keys()}")
+
+        for row in snudda_data[con_type]:
             if pre_mask[row[0]] and post_mask[row[1]]:
                 # Only include connections between the right pre and post types
                 connection_matrix[row[0], row[1]] += 1
 
-        pos = snudda_data["neuronPositions"]
+        pos = snudda_data["neuron_positions"]
         # We need to extract the parts relevant
         dist_matrix = distance_matrix(pos[pre_mask, :], pos[post_mask, :])
 
@@ -277,11 +288,17 @@ class OptimisePruning:
                           pruning_parameters=pruning_parameters,
                           output_file=output_file)
 
+        if optimisation_info["con_type"].lower() == "gap_junction":
+            con_type = "gap_junctions"
+        else:
+            con_type = "synapses"
+
         fitness = op.evaluate_fitness(pre_type=optimisation_info["pre_type"],
                                       post_type=optimisation_info["post_type"],
                                       output_file=output_file,
                                       experimental_data=optimisation_info["exp_data"],
-                                      avg_num_synapses_per_pair=optimisation_info["avg_num_synapses_per_pair"])
+                                      avg_num_synapses_per_pair=optimisation_info["avg_num_synapses_per_pair"],
+                                      con_type=con_type)
 
         # print(f"Evaluating f1 = {x[0]}, fitness: {fitness}\n{output_file}\n")
         # print(f"Fitness: {fitness}")
@@ -378,7 +395,7 @@ class OptimisePruning:
         return res
 
     @staticmethod
-    def get_parameters(res, optimisation_info):
+    def get_parameters(res, optimisation_info, truncate_decimals=False):
 
         param_names = optimisation_info["param_names"]
 
@@ -387,11 +404,13 @@ class OptimisePruning:
             pruning_parameters |= optimisation_info["extra_pruning_parameters"]
 
         for p_name, p_value in zip(param_names, res.x):
+            if truncate_decimals:
+                p_value = np.around(p_value, decimals=truncate_decimals)
             pruning_parameters[p_name] = p_value
 
         return pruning_parameters
 
-    def export_json(self, file_name, res, append=False):
+    def export_json(self, file_name, res, append=False, truncate_decimals=4):
 
         pre_type = self.optimisation_info["pre_type"]
         post_type = self.optimisation_info["post_type"]
@@ -403,23 +422,25 @@ class OptimisePruning:
             with open(file_name, "r") as f:
                 config_data = json.load(f)
         else:
-            config_data = {"Connectivity": {}}
+            config_data = {"connectivity": {}}
 
         n_params = len(res.x)
 
-        if f"{pre_type},{post_type}" in config_data["Connectivity"]:
-            con_data = config_data["Connectivity"][f"{pre_type},{post_type}"]
+        if f"{pre_type},{post_type}" in config_data["connectivity"]:
+            con_data = config_data["connectivity"][f"{pre_type},{post_type}"]
         else:
             con_data = dict()
 
         if connection_type not in con_data:
             con_data[connection_type] = dict()
 
-        con_data[connection_type]["pruning"] = self.get_parameters(res=res, optimisation_info=self.optimisation_info)
-        if "pruningOther" in con_data[connection_type]:
-            del con_data[connection_type]["pruningOther"]
+        con_data[connection_type]["pruning"] = self.get_parameters(res=res, optimisation_info=self.optimisation_info,
+                                                                   truncate_decimals=truncate_decimals)
+        if "pruning_other" in con_data[connection_type]:
+            del con_data[connection_type]["pruning_other"]
 
-        config_data["Connectivity"][f"{pre_type},{post_type}"] = con_data
+        config_data["connectivity"][f"{pre_type},{post_type}"] = con_data
 
         with open(file_name, "w") as f:
             json.dump(config_data, f, cls=NumpyEncoder, indent=4)
+

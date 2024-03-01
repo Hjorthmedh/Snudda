@@ -296,7 +296,7 @@ class NeuronPrototype:
             pdb.set_trace()
 
         assert morph_path is not None, \
-            (f"morph_path is None for {self.neuron_name} path: {self.neuron_path}. "
+            (f"morph_path is None for {self.neuron_name} path: {self.neuron_path} (neuron_path should be a directory, not a SWC file). "
              f"Is SNUDDA_DATA set correctly? ({os.environ['SNUDDA_DATA']})")
 
         return morph_path, morph_key

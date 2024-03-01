@@ -51,6 +51,14 @@ def snudda_cli():
     init_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     init_parser.add_argument("--verbose", action="store_true")
 
+    import_parser = sub_parsers.add_parser("import")
+    import_parser.add_argument("path", help="Location of network")
+    import_parser.add_argument("config_file", help="Location of config_file to import")
+    import_parser.add_argument("--snudda_data", help="Location of snudda_data", default=None)
+    import_parser.add_argument("-overwrite", "--overwrite", action="store_true", help="Overwrite old config file")
+    import_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
+    import_parser.add_argument("--verbose", action="store_true")
+
     place_parser = sub_parsers.add_parser("place")
     place_parser.add_argument("path", help="Location of network")
     place_parser.add_argument("-randomseed", "--randomseed", "--seed", default=None, help="Random seed", type=int)
@@ -113,10 +121,11 @@ def snudda_cli():
                                  dest="input_file", default=None)
     simulate_parser.add_argument("--outputFile", help="Output hdf5 file (from simulation)",
                                  dest="output_file", default=None)
-    simulate_parser.add_argument("--time", type=float, default=2.5, help="Duration of simulation in seconds")
+    simulate_parser.add_argument("--time", type=float, default=None, help="Duration of simulation in seconds")
 
     simulate_parser.add_argument("--snudda_data", "--SnuddaData", type=str, default=None, dest="snudda_data",
                                  help="Path to SNUDDA_DATA")
+    simulate_parser.add_argument("--simulation_config", type=str, default=None)
 
     simulate_parser.add_argument("--noVolt", "--novolt", dest="record_volt", action="store_false",
                                  help="Exclude voltage data, to save time and space.")
@@ -126,10 +135,10 @@ def snudda_cli():
                                  help=('replay plays back a vector of modulation level, '
                                        'adaptive sets modulation based on spiking activity'))
 
-    simulate_parser.add_argument("--disableSyn", action="store_true", dest="disable_synapses",
+    simulate_parser.add_argument("--disableSyn", "--disableSynapses", action="store_true", dest="disable_synapses", default=None,
                                  help="Disable synapses")
 
-    simulate_parser.add_argument("--disableGJ", action="store_true", dest="disable_gj",
+    simulate_parser.add_argument("--disableGJ", "--disableGapJunctions", action="store_true", dest="disable_gj", default=None,
                                  help="Disable gap junctions")
 
     simulate_parser.add_argument("-mechdir", "--mechDir", dest="mech_dir",
@@ -153,8 +162,9 @@ def snudda_cli():
     snudda = Snudda(args.path)
 
     actions = {"init": snudda.init_config_wrapper,
+               "import": snudda.import_config_wrapper,
                "place": snudda.place_neurons_wrapper,
-               "detect": snudda.touch_detection_wrapper,
+               "detect": snudda.detect_synapses_wrapper,
                "prune": snudda.prune_synapses_wrapper,
                "input": snudda.setup_input_wrapper,
                "export": snudda.export_to_SONATA_wrapper,

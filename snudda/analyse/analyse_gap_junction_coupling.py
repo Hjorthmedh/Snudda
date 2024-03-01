@@ -26,8 +26,8 @@ class AnalyseGapJunctionCoupling:
 
     def load_simulation_data(self):
 
-        if "meta" in self.experiment_config and "pairRecordingOutputFile" in self.experiment_config["meta"]:
-            output_file = self.experiment_config["meta"]["pairRecordingOutputFile"]
+        if "meta" in self.experiment_config and "pair_recording_output_file" in self.experiment_config["meta"]:
+            output_file = self.experiment_config["meta"]["pair_recording_output_file"]
         else:
             output_file = None
 
@@ -38,7 +38,7 @@ class AnalyseGapJunctionCoupling:
 
     def get_gap_junction_connection_matrix(self):
 
-        num_neurons = len(self.network_info.data["neuronID"])
+        num_neurons = len(self.network_info.data["neuron_id"])
         gj_connection_matrix = np.zeros((num_neurons, num_neurons), dtype=int)
 
         for gj_list in self.network_info.gap_junction_iterator():
@@ -89,8 +89,8 @@ class AnalyseGapJunctionCoupling:
 
     def get_intervals(self, amplitude, duration):
 
-        for cur_inj in self.experiment_config["currentInjection"]:
-            neuron_id = cur_inj["neuronID"]
+        for cur_inj in self.experiment_config["current_injection"]:
+            neuron_id = cur_inj["neuron_id"]
             cur_start_time = cur_inj["start"]
             cur_end_time = cur_inj["end"]
             cur_amplitude = cur_inj["amplitude"]

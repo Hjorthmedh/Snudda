@@ -103,7 +103,7 @@ class PlotDegenerationAndGrowth:
         if coords_2 is None:
             coords_2 = np.zeros((3, 0))
 
-        voxel_size = self.original_file.data["voxelSize"]
+        voxel_size = self.original_file.data["voxel_size"]
 
         rcoords_1 = np.round(coords_1/voxel_size, decimals=0).astype(int)
         rcoords_2 = np.round(coords_2/voxel_size, decimals=0).astype(int)
@@ -125,7 +125,6 @@ class PlotDegenerationAndGrowth:
         # pdb.set_trace()
 
         return added_coords, removed_coords, kept_coords
-
 
     def categorise_helper(self, orig_synapses, orig_coords, degen_synapses, degen_coords):
 

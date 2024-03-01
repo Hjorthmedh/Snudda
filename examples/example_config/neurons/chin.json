@@ -1,0 +1,18 @@
+{
+    "ChIN": {
+	"neuron_path": {
+	    "ChIN_0": "$SNUDDA_DATA/neurons/striatum/chin/str-chin-e170614_cell6-m17JUL301751_170614_no6_MD_cell_1_x63-v20190710"
+	},
+	
+	"neuron_type": "neuron",	    
+	"rotation_mode": "random",
+	"volume_id": "Striatum",
+	"stay_inside_mesh": false,
+	"fraction": 0.011,
+	"axon_density": [
+            "r",
+            "5000*1e12/3*exp(-r/120e-6)",
+            0.00035
+	]
+    }	
+}

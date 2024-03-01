@@ -421,11 +421,18 @@ class NeuronMorphologyExtended:
 
         if num_locations is not None:
             try:
-                syn_idx = rng.choice(a=dend_idx, size=num_locations, replace=True,
+                if cluster_size is not None:
+                    unique_locations = int(np.ceil(num_locations / cluster_size))
+                else:
+                    unique_locations = num_locations
+
+                # Cluster synapses are placed around these unique locations with cluster_spread*2
+                syn_idx = rng.choice(a=dend_idx, size=unique_locations, replace=True,
                                      p=expected_synapses[dend_idx] / expected_sum)
             except:
                 print(f"dend_idx={dend_idx}\n"
                       f"num_locations={num_locations}\n"
+                      f"unique_locations={unique_locations}\n"
                       f"p={expected_synapses[dend_idx] / expected_sum}")
                 import traceback
                 self.write_log(traceback.format_exc(), is_error=True)
@@ -461,19 +468,21 @@ class NeuronMorphologyExtended:
 
             list_cluster_syn_idx = []
 
-            for closest_point_idx in lust_of_closest_point_idx:
-                list_cluster_syn_idx.append(rng.choice(closest_point_idx, size=cluster_size, replace=True))
+            for closest_point_idxs in lust_of_closest_point_idx:
+                # lust_of_closest_point_idx is indexed onto geometry[dend_idx, :3]
+                list_cluster_syn_idx.append(rng.choice(dend_idx[closest_point_idxs], size=cluster_size, replace=True))
 
             cluster_syn_idx = np.concatenate(list_cluster_syn_idx)
 
-            num_locations = len(cluster_syn_idx)
-            comp_x = rng.random(num_locations)
+            # Make sure we only have num_location points, remove any excess
+            cluster_syn_idx = cluster_syn_idx[:num_locations]
+
+            num_pos = len(cluster_syn_idx)
+            comp_x = rng.random(num_pos)
             xyz = comp_x[:, None] * geometry[cluster_syn_idx, :3] + (1 - comp_x[:, None]) * geometry[parent_idx[cluster_syn_idx], :3]
             sec_id = section_data[cluster_syn_idx, 0]
             sec_x = comp_x * section_data[cluster_syn_idx, 1] + (1 - comp_x) * section_data[parent_idx[cluster_syn_idx], 1]
             dist_to_soma = comp_x * geometry[cluster_syn_idx, 4] + (1 - comp_x) * geometry[parent_idx[cluster_syn_idx], 4]
-
-            # TODO: Check that this is correct!!
 
         return xyz, sec_id, sec_x / 1e3, dist_to_soma
 

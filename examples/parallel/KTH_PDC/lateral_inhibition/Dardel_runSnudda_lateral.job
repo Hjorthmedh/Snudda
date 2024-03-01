@@ -1,0 +1,80 @@
+#!/bin/bash -l
+#SBATCH --partition=main
+#SBATCH -o log/runSnudda-%j-output.txt
+#SBATCH -e log/runSnudda-%j-error.txt
+#SBATCH -t 1:59:00
+#SBATCH -J Snudda
+#SBATCH -A naiss2023-5-231
+#SBATCH --nodes=2
+#SBATCH -n 256
+#SBATCH --cpus-per-task=2
+#SBATCH --mem-per-cpu=930M
+#SBATCH --mail-type=ALL                                                         
+module load snic-env
+
+
+#..
+#export OMP_STACKSIZE=128G
+ulimit -s unlimited
+
+
+#let NWORKERS="$SLURM_NTASKS-2"
+let NWORKERS="100"
+# let NWORKERS="50"
+
+export IPNWORKERS=$NWORKERS
+
+
+export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/.ipython"
+rm -r $IPYTHONDIR
+export IPYTHON_PROFILE=default
+source $HOME/Snudda/snudda_env/bin/activate
+
+
+#.. Start the ipcontroller
+export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
+srun -n 1 -N 1 -c 2 --exact --overlap --mem=0 ./../ipcontroller_new.sh &
+
+
+echo ">>> waiting 60s for controller to start"
+sleep 60 
+
+#.. Read in CONTROLLERIP
+CONTROLLERIP=$(<controller_ip.txt)
+
+
+##.. Start the engines
+echo ">>> starting ${IPNWORKERS} engines "
+#srun -n ${IPNWORKERS} -c 2 --exact --overlap ipengine --location=${CONTROLLERIP} --profile=${IPYTHON_PROFILE} --mpi \
+#--ipython-dir=${IPYTHONDIR}  --timeout=30.0 --log-level=DEBUG \
+#--BaseParallelApplication.verbose_crash=True --IPEngine.verbose_crash=True \
+#--Kernel.stop_on_error_timeout=1.0 --IPythonKernel.stop_on_error_timeout=1.0 \
+#Session.buffer_threshold=4096 Session.copy_threshold=250000 \
+#Session.digest_history_size=250000 c.EngineFactory.max_heartbeat_misses=10  c.MPI.use='mpi4py' \
+#1> ipe_${SLURM_JOBID}.out 2> ipe_${SLURM_JOBID}.err &
+
+#srun -n ${IPNWORKERS} -c 2 --exact --overlap valgrind --leak-check=full --show-leak-kinds=all \
+#ipengine --location=${CONTROLLERIP} --profile=${IPYTHON_PROFILE} --mpi \
+#--ipython-dir=${IPYTHONDIR}  --timeout=30.0 c.EngineFactory.max_heartbeat_misses=10  c.MPI.use='mpi4py' \
+#1> ipe_${SLURM_JOBID}.out 2> ipe_${SLURM_JOBID}.err &
+
+export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
+srun -n ${IPNWORKERS} -c 2 -N ${SLURM_JOB_NUM_NODES} --exact --overlap --mem=0 ipengine \
+--location=${CONTROLLERIP} --profile=${IPYTHON_PROFILE} --mpi \
+--ipython-dir=${IPYTHONDIR}  --timeout=30.0 c.EngineFactory.max_heartbeat_misses=10  c.MPI.use='mpi4py' \
+1> ipe_${SLURM_JOBID}.out 2> ipe_${SLURM_JOBID}.err &
+
+
+echo ">>> waiting 60s for engines to start"
+sleep 30
+
+export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
+srun -n 1 -N 1 --exact --overlap --mem=0 ./Dardel_runSnudda_lateral.sh
+
+
+echo " "
+
+echo "JOB END "`date` start_time_network_connect.txt
+
+wait
+

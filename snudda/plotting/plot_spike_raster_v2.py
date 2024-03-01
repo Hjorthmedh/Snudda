@@ -49,7 +49,7 @@ class SnuddaPlotSpikeRaster2:
             assert network_file is None or snudda_load.network_file == self.network_file, \
                 f"snudda_load refers to {snudda_load.network_file}, but user passed network_file={self.network_file}"
         else:
-            self.snudda_load = SnuddaLoad(network_file=self.network_file)
+            self.snudda_load = SnuddaLoad(network_file=self.network_file, load_synapses=False)
 
         if snudda_simulation_load:
             self.snudda_simulation_load = snudda_simulation_load
@@ -394,9 +394,14 @@ class SnuddaPlotSpikeRaster2:
         if label_text is None:
             label_text = ""
             
-        ax.hist(x=pop_spikes.values(), bins=bins, weights=weights, linewidth=3, linestyle=linestyle,
-                histtype="step", color=colour,
-                label=[f"{label_text}{x}" for x in pop_spikes.keys()])
+        N, bins, patches = ax.hist(x=pop_spikes.values(), bins=bins, weights=weights, linewidth=3, linestyle=linestyle,
+                                   histtype="step", color=colour,
+                                   label=[f"{label_text}{x}" for x in pop_spikes.keys()])
+
+        if type(colour) == list:
+            for patch, col in zip(patches, colour):
+                patch[0].set_facecolor(col)
+
         plt.xlabel("Time (s)", fontsize=20)
         plt.ylabel("Frequency (Hz)", fontsize=20)
         ax.legend()
@@ -452,8 +457,15 @@ class SnuddaPlotSpikeRaster2:
 
         neuron_order_lookup = np.zeros(neuron_order.shape)
 
-        for idx, no in enumerate(neuron_order):
-            neuron_order_lookup[no] = idx
+        # for idx, no in enumerate(neuron_order):
+        #     neuron_order_lookup[no] = idx
+
+        idx = 0
+        for no in neuron_order:
+            # Skip the virtual neurons
+            if not self.snudda_load.data["neurons"][no]["virtual_neuron"]:
+                neuron_order_lookup[no] = idx
+                idx += 1
 
         spike_y = np.take(neuron_order_lookup, self.spike_neuron_id)
 
@@ -465,6 +477,9 @@ class SnuddaPlotSpikeRaster2:
 
         ax.scatter(self.spike_time - skip_time, spike_y, color=sc, s=5, linewidths=0.1)
 
+        # Optionally we should also show the virtual neuron spikes...
+
+
         # Get position of labels
         unique_neuron_types = set(neuron_type_list)
         y_tick = []
@@ -475,8 +490,8 @@ class SnuddaPlotSpikeRaster2:
 
         ax.invert_yaxis()
         ax.set_xlabel('Time (s)', fontsize=20)
-        ax.set_yticks(y_tick, fontsize=20)
-        ax.set_yticklabels(y_tick_label)
+        ax.set_yticks(y_tick)
+        ax.set_yticklabels(y_tick_label, fontsize=20)
 
         if skip_time or end_time:
             x_lim = ax.get_xlim()
@@ -520,7 +535,7 @@ class SnuddaPlotSpikeRaster2:
 
         for nt in neuron_types:
 
-            neuron_id = self.snudda_load.get_neuron_id_of_type(neuron_type=nt)
+            neuron_id = self.snudda_load.get_neuron_id_of_type(neuron_type=nt, include_virtual=False)
             spikes = self.snudda_simulation_load.get_spikes(neuron_id=neuron_id)
 
             if time_range is None:
@@ -543,6 +558,65 @@ class SnuddaPlotSpikeRaster2:
 
         if figure_name is not None:
             plt.savefig(os.path.join(self.figure_path, figure_name))
+
+    def plot_population_frequency(self, population_id, time_ranges=None):
+
+        raise NotImplementedError()
+
+        if population_id is None:
+            population_id = sorted(list(self.snudda_load.get_neuron_population_units(return_set=True)))
+            label = [str(x) for x in population_id]
+
+        if time_ranges is None:
+            time_ranges = [(0, np.max(self.snudda_simulation_load.get_time()))]
+
+        x_labels = [f"{x[0]} -- {x[1]}" for x in time_ranges]
+
+        data = dict()
+
+        for pop_id in population_id:
+            neuron_id = self.snudda_load.get_population_unit_members(population_unit=pop_id)
+            freq_table = self.snudda_simulation_load.get_frequency(neuron_id=neuron_id, time_ranges=time_ranges)
+            avg_freq = np.sum(freq_table, axis=0).flatten()
+
+            data[str(pop_id)] = avg_freq
+
+        self.plot_grouped_bars(legend_labels_and_data=data)
+
+    def plot_grouped_bars(self, legend_labels_and_data, x_labels, y_unit_label, title):
+
+        raise NotImplementedError()
+
+        # Derived from matplotlib example
+
+        # x_labels = ("Adelie", "Chinstrap", "Gentoo")
+        # legend_labels_and_data = {
+        #     'Bill Depth': (18.35, 18.43, 14.98),
+        #     'Bill Length': (38.79, 48.83, 47.50),
+        #     'Flipper Length': (189.95, 195.82, 217.19),
+        # }
+
+        x = np.arange(len(x_labels))  # the label locations
+        width = 0.25  # the width of the bars
+        multiplier = 0
+
+        fig, ax = plt.subplots(layout='constrained')
+
+        for attribute, measurement in legend_labels_and_data.items():
+            offset = width * multiplier
+            rects = ax.bar(x + offset, measurement, width, label=attribute)
+            ax.bar_label(rects, padding=3)
+            multiplier += 1
+
+        # Add some text for labels, title and custom x-axis tick labels, etc.
+        ax.set_ylabel(y_unit_label)
+        ax.set_title(title)
+        ax.set_xticks(x + width, x_labels)
+        ax.legend(loc='upper left', ncols=3)
+        ax.set_ylim(0, 250)
+
+        plt.show()
+
 
 
 if __name__ == "__main__":

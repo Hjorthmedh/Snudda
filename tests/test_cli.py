@@ -144,7 +144,11 @@ class TestCLI(unittest.TestCase):
                     print(tstr)
 
             print("Time to run simulation...")
-            run_cli_command("simulate tiny_parallel --time 0.1")
+            # run_cli_command("simulate tiny_parallel --time 0.1")
+
+            # Use the simulation config interface
+            sim_config = os.path.join(os.path.dirname(__file__), "data", "sim-test-config.json")
+            run_cli_command(f"simulate tiny_parallel --simulation_config {sim_config}")
 
         os.environ["SLURM_JOBID"] = "1234"
 
@@ -191,3 +195,4 @@ class TestCLI(unittest.TestCase):
         # Exit the test directory
         if os.path.dirname(__file__):
             os.chdir(os.path.dirname(__file__))
+            

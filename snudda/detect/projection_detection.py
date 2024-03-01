@@ -90,7 +90,7 @@ class ProjectionDetection:
 
             ss = np.random.SeedSequence(self.snudda_detect.random_seed + 202222)
             all_seeds = ss.generate_state(len(self.snudda_detect.neurons))
-            all_neuron_id = sorted([n["neuronID"] for n in self.snudda_detect.neurons])
+            all_neuron_id = sorted([n["neuron_id"] for n in self.snudda_detect.neurons])
 
             seed_lookup = dict()
             for s, n in zip(all_seeds, all_neuron_id):
@@ -279,7 +279,7 @@ class ProjectionDetection:
                         self.snudda_detect.voxel_overflow_counter += 1
 
     def get_neurons_of_type(self, neuron_type):
-        neuron_id = np.array([x["neuronID"] for x in self.snudda_detect.neurons if x["type"] == neuron_type])
+        neuron_id = np.array([x["neuron_id"] for x in self.snudda_detect.neurons if x["type"] == neuron_type])
         return neuron_id
 
     def get_neuron_type(self, neuron_id):
@@ -300,19 +300,20 @@ class ProjectionDetection:
 
     def parse_config(self):
 
-        for con_name, con_info in self.snudda_detect.config["Connectivity"].items():
-            for con_type, con_config in con_info.items():
-                if "projectionConfigFile" in con_config:
-                    pre_neuron_type = con_name.split(",")[0]
+        for region_name, region_data in self.snudda_detect.config["regions"].items():
+            for con_name, con_info in region_data["connectivity"].items():
+                for con_type, con_config in con_info.items():
+                    if "projection_config_file" in con_config:
+                        pre_neuron_type = con_name.split(",")[0]
 
-                    if "projectionName" in con_config:
-                        projection_name = con_config["projectionName"]
-                    else:
-                        projection_name = f"{con_name},{con_type}"
+                        if "projection_name" in con_config:
+                            projection_name = con_config["projection_name"]
+                        else:
+                            projection_name = f"{con_name},{con_type}"
 
-                    self.add_projection(projection_name=projection_name, pre_neuron_type=pre_neuron_type,
-                                        projection_file=snudda_parse_path(con_config["projectionConfigFile"],
-                                                                          snudda_data=self.snudda_detect.snudda_data))
+                        self.add_projection(projection_name=projection_name, pre_neuron_type=pre_neuron_type,
+                                            projection_file=snudda_parse_path(con_config["projection_config_file"],
+                                                                              snudda_data=self.snudda_detect.snudda_data))
 
     def add_projection(self, projection_name, pre_neuron_type, projection_file):
 
@@ -335,7 +336,7 @@ class ProjectionDetection:
         else:
             proj_file_info = projection_data
 
-        if "axonMorphology" in proj_file_info:
+        if "axon_morphology" in proj_file_info:
             self.write_log("Axon morphology projections not handled by projection_detection.py")
             self.write_log("UPDATING THE CODE, MAKE SURE detect.py DOES INCLUDE IT IN NEURON MORPHOLOGIES FOR NORMAL DETECTION")
             self.write_log("This code might become obsolete...")
@@ -344,7 +345,7 @@ class ProjectionDetection:
         assert "source" in proj_file_info, f"'source' must exist in {projection_file}"
         assert "destination" in proj_file_info, f"'destination' must exist in {projection_file}"
         assert "radius" in proj_file_info, f"'radius' must exist in {projection_file}"
-        assert "numPoints" in proj_file_info, f"'numPoints' must exist in {projection_file}"
+        assert "num_points" in proj_file_info, f"'num_points' must exist in {projection_file}"
 
         proj_info = dict()
         proj_info["name"] = projection_name
@@ -352,7 +353,7 @@ class ProjectionDetection:
         proj_info["dest"] = np.array(proj_file_info["destination"]) * 1e-6
 
         proj_info["radius"] = proj_file_info["radius"]  # Either single radius, or (rx, ry, rz)
-        proj_info["num_points"] = proj_file_info["numPoints"]  # Number of axon points placed
+        proj_info["num_points"] = proj_file_info["num_points"]  # Number of axon points placed
 
         if "rotation" in projection_data[projection_name]:
             proj_info["rotation"] = np.array(proj_file_info["rotation"])  # n x 9 matrix

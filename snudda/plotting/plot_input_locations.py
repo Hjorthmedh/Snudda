@@ -14,7 +14,8 @@ from mpl_toolkits.mplot3d import Axes3D
 
 class SnuddaPlotInputLocations:
 
-    def __init__(self, network_path=None, network_file=None, input_file=None):
+    def __init__(self, network_path=None, network_file=None, input_file=None, snudda_data=None,
+                 plot_in_origo=False):
 
         if not network_path:
             if network_file:
@@ -26,7 +27,10 @@ class SnuddaPlotInputLocations:
 
         self.network_path = network_path
 
-        self.snudda_data = get_snudda_data(network_path=self.network_path)
+        if snudda_data:
+            self.snudda_data = snudda_data
+        else:
+            self.snudda_data = get_snudda_data(network_path=self.network_path)
 
         if network_file is None:
             self.network_file = os.path.join(network_path, "network-synapses.hdf5")
@@ -36,7 +40,7 @@ class SnuddaPlotInputLocations:
         if input_file is None:
             self.input_file = os.path.join(network_path, "input-spikes.hdf5")
         else:
-            self.input_file = os.path.join(network_path, input_file)
+            self.input_file = input_file
             
         self.neuron_cache = dict()
 
@@ -45,6 +49,7 @@ class SnuddaPlotInputLocations:
         if os.path.exists(self.input_file):
             self.input_data = h5py.File(self.input_file, "r")
         else:
+            print(f"No input file: {self.input_file}")
             self.input_data = None
 
         self.input_config = None
@@ -53,6 +58,25 @@ class SnuddaPlotInputLocations:
             self.load_input_config()
 
         self.dend_hist_cache = dict()
+
+        self.plot_in_origo = plot_in_origo
+
+    def plot_input_soma_distance(self, neuron_id, input_type, n_bins=20):
+
+        neuron_name = self.snudda_load.data["neurons"][neuron_id]["name"]
+
+        distance_to_soma = self.get_input_soma_distance(neuron_id=neuron_id, input_name=input_type)
+
+        plt.figure()
+        plt.hist(distance_to_soma*1e6, bins=n_bins)
+        plt.xlabel("Distance to soma (mum)")
+        plt.ylabel("Count")
+        plt.title(f"{neuron_name} ({neuron_id}) {distance_to_soma.size} {input_type} synapses")
+        plt.ion()
+        plt.show()
+
+        fig_name = os.path.join(self.network_path, "figures", f"Input-soma-distance-{neuron_id}-{input_type}.png")
+        plt.savefig(fig_name)
 
     def plot_neuron_inputs(self, neuron_id,
                            input_type=None,
@@ -152,19 +176,19 @@ class SnuddaPlotInputLocations:
 
     def get_input_locations(self, neuron_id, input_type=None):
 
+        section_id = []
+        section_x = []
+
         if not self.input_data:
             # No input data available
             return None, None
-
-        section_id = []
-        section_x = []
 
         for input_name in self.input_data["input"][str(neuron_id)]:
             if input_type and input_name != input_type:
                 continue
 
-            section_id = section_id + list(self.input_data["input"][str(neuron_id)][input_name].attrs["sectionID"])
-            section_x = section_x + list(self.input_data["input"][str(neuron_id)][input_name].attrs["sectionX"])
+            section_id = section_id + list(self.input_data["input"][str(neuron_id)][input_name].attrs["section_id"])
+            section_x = section_x + list(self.input_data["input"][str(neuron_id)][input_name].attrs["section_x"])
 
         return np.array(section_id), np.array(section_x)
 
@@ -173,7 +197,7 @@ class SnuddaPlotInputLocations:
         distance_to_soma = []
 
         if input_name in self.input_data["input"][str(neuron_id)]:
-            distance_to_soma += list(self.input_data["input"][str(neuron_id)][input_name].attrs["distanceToSoma"])
+            distance_to_soma += list(self.input_data["input"][str(neuron_id)][input_name].attrs["distance_to_soma"])
 
         return np.array(distance_to_soma)
 
@@ -229,9 +253,9 @@ class SnuddaPlotInputLocations:
         plt.ylabel("Normalised total density")
 
         if neuron_type in self.input_config and input_name in self.input_config[neuron_type] \
-                and "synapseDensity" in self.input_config[neuron_type][input_name]:
+                and "synapse_density" in self.input_config[neuron_type][input_name]:
 
-            synapse_density = self.input_config[neuron_type][input_name]["synapseDensity"]
+            synapse_density = self.input_config[neuron_type][input_name]["synapse_density"]
             d = np.linspace(0, max_dist, n_bins)
 
             synapse_density = numexpr.evaluate(synapse_density)
@@ -333,10 +357,18 @@ class SnuddaPlotInputLocations:
         if neuron_id not in self.neuron_cache:
             neuron_info = self.snudda_load.data["neurons"][neuron_id]
 
-            prot = NeuronPrototype(neuron_path=neuron_info["neuronPath"], neuron_name=neuron_info["name"],
+            prot = NeuronPrototype(neuron_path=neuron_info["neuron_path"], neuron_name=neuron_info["name"],
                                    snudda_data=self.snudda_data)
-            nm = prot.clone(parameter_key=neuron_info["parameterKey"], morphology_key=neuron_info["morphologyKey"],
-                            position=neuron_info["position"], rotation=neuron_info["rotation"])
+
+            if self.plot_in_origo:
+                position = np.zeros((3,))
+                rotation = None
+            else:
+                position = neuron_info["position"]
+                rotation = neuron_info["rotation"]
+
+            nm = prot.clone(parameter_key=neuron_info["parameter_key"], morphology_key=neuron_info["morphology_key"],
+                            position=position, rotation=rotation)
             self.neuron_cache[neuron_id] = nm
 
         return self.neuron_cache[neuron_id]

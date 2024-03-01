@@ -1,0 +1,40 @@
+{
+    "dSPN": {
+        "cortical:1" : {
+            "generator" : "poisson",
+            "start" : [1, 4],
+            "end" :   [3, 6],
+            "frequency" : [5, 5],
+            "population_unit_id" : 1
+        },
+
+        "cortical:2" : {
+            "generator" : "poisson",
+            "start" : [4],
+            "end" :   [6],
+            "frequency" : [10],
+            "population_unit_id" : 2
+        }       
+    },
+
+
+    "iSPN": {
+        "cortical:1" : {
+            "generator" : "poisson",
+            "start" : [1, 4],
+            "end" :   [3, 6],
+            "frequency" : [5, 5],
+            "population_unit_id" : 1          
+        },
+
+        "cortical:2" : {
+            "generator" : "poisson",
+            "start" : [4],
+            "end" :   [6],
+            "frequency" : [10],
+            "population_unit_id" : 2
+        }       
+    }
+
+    
+}

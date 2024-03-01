@@ -64,7 +64,7 @@ class Snudda(object):
 
     """ Wrapper class, calls Snudda helper functions """
 
-    def __init__(self, network_path):
+    def __init__(self, network_path, parallel=False, ipython_profile=None):
 
         """
         Instantiates Snudda
@@ -72,9 +72,13 @@ class Snudda(object):
         """
 
         self.network_path = network_path
+
         self.d_view = None
         self.rc = None
         self.slurm_id = 0
+
+        self.parallel = parallel
+        self.ipython_profile = ipython_profile
 
         # Add current dir to python path
         sys.path.append(os.getcwd())
@@ -112,27 +116,32 @@ class Snudda(object):
                          random_seed=args.randomseed,
                          honor_stay_inside=args.stay_inside)
 
-    def init_config(self, network_size,
+    def init_config(self,
+                    network_size=None,
                     snudda_data=None,
+                    struct_def=None,
                     neurons_dir=None,
                     connection_file=None,
                     honor_stay_inside=True,   # currently the cli.py defaults to sending False
                     overwrite=False,
                     random_seed=None):
 
+        print(f"Legacy config creation.")
+
         # self.networkPath = args.path
         print("Creating config file")
         print(f"Network path: {self.network_path}")
 
         from snudda.init.init import SnuddaInit
-        struct_def = {"Striatum": network_size,
-                      "GPe": 0,
-                      "GPi": 0,
-                      "SNr": 0,
-                      "STN": 0,
-                      "Cortex": 0,
-                      "Thalamus": 0}
-        # Cortex and thalamus axons disabled right now, set to 1 to include one
+
+        if struct_def is None:
+            struct_def = {"Striatum": network_size,
+                          "GPe": 0,
+                          "GPi": 0,
+                          "SNr": 0,
+                          "STN": 0,
+                          "Cortex": 0,  # Cortex and thalamus axons disabled right now, set to N > 0 to include a few
+                          "Thalamus": 0}
 
         if not overwrite:
             assert not os.path.exists(self.network_path), \
@@ -142,7 +151,8 @@ class Snudda(object):
         self.make_dir_if_needed(self.network_path)
 
         config_file = os.path.join(self.network_path, "network-config.json")
-        SnuddaInit(struct_def=struct_def,
+        SnuddaInit(network_path=self.network_path,
+                   struct_def=struct_def,
                    neurons_dir=neurons_dir,
                    snudda_data=snudda_data,
                    config_file=config_file,
@@ -150,9 +160,46 @@ class Snudda(object):
                    random_seed=random_seed,
                    connection_override_file=connection_file)
 
-        if network_size > 1e5:
+        if network_size is not None and network_size > 1e5:
             print(f"Make sure there is enough disk space in {self.network_path}")
             print("Large networks take up ALOT of space")
+
+    ############################################################################
+
+    def import_config_wrapper(self, args):
+
+        self.import_config(network_config_file=args.config_file,
+                           snudda_data=args.snudda_data,
+                           overwrite=args.overwrite)
+
+    def import_config(self, network_config_file, snudda_data=None, overwrite=False):
+
+        from snudda.init.init_config import ConfigParser
+
+        conf = ConfigParser(config_file=network_config_file, snudda_data=snudda_data)
+        conf.parse_config()
+
+        if not os.path.isdir(self.network_path):
+            print(f"Creating directory {self.network_path}")
+            os.makedirs(self.network_path)
+
+        new_config_file = os.path.join(self.network_path, "network-config.json")
+
+        if os.path.isfile(new_config_file) and not overwrite:
+            print(f"\n!!! ERROR: File already exists: {new_config_file}\nSet 'overwrite' to overwrite old file.\n")
+            exit(-1)
+
+        conf.replace_network_path(network_path=os.path.abspath(self.network_path))
+        conf.write_config(new_config_file)
+
+    ############################################################################
+
+    def create_network(self):
+
+        # This is a helper function, to create the full network
+        self.place_neurons()
+        self.detect_synapses()
+        self.prune_synapses()
 
     ############################################################################
 
@@ -178,15 +225,21 @@ class Snudda(object):
                            ipython_profile=args.ipython_profile,
                            h5libver=h5libver,
                            verbose=args.verbose,
-                           honor_stay_inside=args.stay_inside)
+                           honor_morphology_stay_inside=args.stay_inside)
 
     def place_neurons(self,
                       random_seed=None,
-                      parallel=False,
+                      parallel=None,
                       ipython_profile=None,
                       h5libver="latest",
                       verbose=False,
-                      honor_stay_inside=False):
+                      honor_morphology_stay_inside=False):
+
+        if parallel is None:
+            parallel = self.parallel
+
+        if ipython_profile is None:
+            ipython_profile = self.ipython_profile
 
         # self.networkPath = args.path
         print("Placing neurons")
@@ -207,7 +260,7 @@ class Snudda(object):
                          d_view=self.d_view,
                          h5libver=h5libver,
                          random_seed=random_seed,
-                         morphologies_stay_inside=honor_stay_inside)
+                         morphologies_stay_inside=honor_morphology_stay_inside)
 
         sp.place()
 
@@ -220,7 +273,7 @@ class Snudda(object):
 
     ############################################################################
 
-    def touch_detection_wrapper(self, args):
+    def detect_synapses_wrapper(self, args):
         """
         Synapse touch detection. Writes results to network_path/voxels (one file per hypervoxel).
         Also adds synapse projections between structures.
@@ -244,7 +297,7 @@ class Snudda(object):
         else:
             h5libver = "latest"  # default
 
-        self.touch_detection(random_seed=args.randomseed,
+        self.detect_synapses(random_seed=args.randomseed,
                              parallel=args.parallel,
                              ipython_profile=args.ipython_profile,
                              hyper_voxel_size=hyper_voxel_size,
@@ -253,9 +306,9 @@ class Snudda(object):
                              verbose=args.verbose,
                              cont=args.cont)
 
-    def touch_detection(self,
+    def detect_synapses(self,
                         random_seed=None,
-                        parallel=False,
+                        parallel=None,
                         ipython_profile=None,
                         hyper_voxel_size=100,
                         volume_id=None,
@@ -263,9 +316,15 @@ class Snudda(object):
                         verbose=False,
                         cont=False):
 
+        if parallel is None:
+            parallel = self.parallel
+
+        if ipython_profile is None:
+            ipython_profile = self.ipython_profile
+
         # self.networkPath = args.path
         print("Touch detection")
-        print("Network path: " + str(self.network_path))
+        print(f"Network path: {self.network_path}")
 
         log_dir = os.path.join(self.network_path, "log")
         if not os.path.exists(log_dir):
@@ -350,12 +409,19 @@ class Snudda(object):
                             save_putative_synapses = args.savePutative)
 
     def prune_synapses(self,
-                       config_file,
-                       random_seed=None, parallel=False, ipython_profile=None,
+                       config_file=None,
+                       random_seed=None,
+                       parallel=None, ipython_profile=None,
                        h5libver="latest",
                        verbose=False,
                        keep_files=False,
                        save_putative_synapses=False):
+
+        if parallel is None:
+            parallel = self.parallel
+
+        if ipython_profile is None:
+            ipython_profile = self.ipython_profile
 
         # self.networkPath = args.path
         print("Prune synapses")
@@ -432,9 +498,15 @@ class Snudda(object):
                     use_meta_input=True,
                     random_seed=None,
                     h5libver="latest",
-                    parallel=False,
+                    parallel=None,
                     ipython_profile=None,
                     verbose=False):
+
+        if parallel is None:
+            parallel = self.parallel
+
+        if ipython_profile is None:
+            ipython_profile = self.ipython_profile
 
         print("Setting up inputs, assuming input.json exists")
         log_filename = os.path.join(self.network_path, "log", "setup-input.txt")
@@ -575,17 +647,20 @@ class Snudda(object):
 
         print(f"args: {args}")
 
-        self.simulate(network_file=args.network_file, input_file=args.input_file,
-                      output_file=args.output_file, snudda_data=args.snudda_data,
-                      time=args.time,
-                      mech_dir=args.mech_dir,
-                      neuromodulation=args.neuromodulation,
-                      disable_synapses=args.disable_synapses,
-                      disable_gj=args.disable_gj,
-                      record_volt=args.record_volt,
-                      record_all=args.record_all,
-                      export_core_neuron=args.exportCoreNeuron,
-                      verbose=args.verbose)
+        sim = self.simulate(network_file=args.network_file, input_file=args.input_file,
+                            output_file=args.output_file, snudda_data=args.snudda_data,
+                            time=args.time,
+                            mech_dir=args.mech_dir,
+                            neuromodulation=args.neuromodulation,
+                            disable_synapses=args.disable_synapses,
+                            disable_gj=args.disable_gj,
+                            record_volt=args.record_volt,
+                            record_all=args.record_all,
+                            simulation_config=args.simulation_config,
+                            export_core_neuron=args.exportCoreNeuron,
+                            verbose=args.verbose)
+
+        sim.clear_neuron()
 
     def simulate(self,
                  network_file=None,
@@ -595,10 +670,11 @@ class Snudda(object):
                  time=None,
                  mech_dir=None,
                  neuromodulation=None,
-                 disable_synapses=False,
+                 disable_synapses=None,
                  disable_gj=False,
-                 record_volt=False,
+                 record_volt=True,
                  record_all=False,
+                 simulation_config=None,
                  export_core_neuron=False,
                  verbose=False):
 
@@ -693,6 +769,7 @@ class Snudda(object):
                                                     disable_gap_junctions=disable_gj,
                                                     disable_synapses=disable_synapses,
                                                     log_file=log_file,
+                                                    simulation_config=simulation_config,
                                                     verbose=verbose)
 
                 sim.setup()
@@ -710,6 +787,7 @@ class Snudda(object):
                                                            disable_synapses=disable_synapses,
                                                            log_file=log_file,
                                                            neuromodulator_description=neuromod_dict,
+                                                           simulation_config=simulation_config,
                                                            verbose=verbose)
 
                 sim.setup()
@@ -726,6 +804,7 @@ class Snudda(object):
                                  disable_gap_junctions=disable_gj,
                                  disable_synapses=disable_synapses,
                                  log_file=log_file,
+                                 simulation_config=simulation_config,
                                  verbose=verbose)
             sim.setup()
             sim.add_external_input()
@@ -734,6 +813,7 @@ class Snudda(object):
 
         if record_volt:
             # sim.add_volt_recording_all()
+            # Either use record_volt or specify "record_all_soma" in simulation_config file
             sim.add_volt_recording_soma()
             # sim.addRecordingOfType("dSPN",5) # Side len let you record from a subset
 
@@ -742,7 +822,11 @@ class Snudda(object):
             sim.add_volt_recording_all(cell_id=record_cell_id)
             sim.add_synapse_current_recording_all(record_cell_id)
 
-        t_sim = time * 1000  # Convert from s to ms for Neuron simulator
+        if time is not None:
+            t_sim = time * 1000  # Convert from s to ms for Neuron simulator
+        else:
+            # Will attempt to read "time" from simulation_config
+            t_sim = None
 
         if export_core_neuron:
             sim.export_to_core_neuron()
@@ -799,7 +883,9 @@ class Snudda(object):
         u_file = os.path.join(ipython_dir, f"profile_{ipython_profile}", "security", "ipcontroller-client.json")
         print(f"Reading IPYPARALLEL connection info from {u_file}\n")
         self.logfile.write(f"Reading IPYPARALLEL connection info from {u_file}\n")
-        self.rc = Client(profile=ipython_profile, url_file=u_file, timeout=120, debug=False)
+        # self.rc = Client(profile=ipython_profile, url_file=u_file, timeout=120, debug=False)
+        self.rc = Client(profile=ipython_profile, connection_info=u_file, timeout=120, debug=False)
+
 
         self.logfile.write(f'Client IDs: {self.rc.ids}')
 
@@ -870,9 +956,9 @@ class Snudda(object):
 
         stop = timeit.default_timer()
 
-        print(f"\nProgram run time: {stop - self.start:.1f}s")
+        print(f"\nExecution time: {stop - self.start:.1f}s")
 
-        self.logfile.write(f"Program run time: {stop - self.start:.1f}s")
+        self.logfile.write(f"Execution time: {stop - self.start:.1f}s")
         self.logfile.write("End of log. Closing file.")
         self.logfile.close()
 

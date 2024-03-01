@@ -79,13 +79,13 @@ class TestClusteredPruning(unittest.TestCase):
 
         clustered_data_loader = SnuddaLoad(network_file=self.network_path_clustered, load_synapses=True)
         clustered_synapses = clustered_data_loader.data["synapses"]
-        clustered_voxel_size = clustered_data_loader.data["voxelSize"]
-        clustered_simulation_origo = clustered_data_loader.data["simulationOrigo"]
+        clustered_voxel_size = clustered_data_loader.data["voxel_size"]
+        clustered_simulation_origo = clustered_data_loader.data["simulation_origo"]
 
         nonclustered_data_loader = SnuddaLoad(network_file=self.network_path_unclustered, load_synapses=True)
         nonclustered_synapses = nonclustered_data_loader.data["synapses"]
-        nonclustered_voxel_size = nonclustered_data_loader.data["voxelSize"]
-        nonclustered_simulation_origo = nonclustered_data_loader.data["simulationOrigo"]
+        nonclustered_voxel_size = nonclustered_data_loader.data["voxel_size"]
+        nonclustered_simulation_origo = nonclustered_data_loader.data["simulation_origo"]
 
         for post_id, pre_id in zip([0, 1, 2, 3], [4, 5, 6, 7]):
             clustered_idx = np.where(np.logical_and(clustered_synapses[:, 0] == pre_id, clustered_synapses[:, 1] == post_id))[0]
@@ -107,8 +107,8 @@ class TestClusteredPruning(unittest.TestCase):
 
         data_loader = SnuddaLoad(network_file=self.network_path_clustered, load_synapses=True)
         synapses = data_loader.data["synapses"]
-        voxel_size = data_loader.data["voxelSize"]
-        simulation_origo = data_loader.data["simulationOrigo"]
+        voxel_size = data_loader.data["voxel_size"]
+        simulation_origo = data_loader.data["simulation_origo"]
 
         for post_id, pre_id in zip([0, 1, 2, 3], [4, 5, 6, 7]):
             idx = np.where(np.logical_and(synapses[:, 0] == pre_id, synapses[:, 1] == post_id))[0]
@@ -121,8 +121,8 @@ class TestClusteredPruning(unittest.TestCase):
 
         data_loader = SnuddaLoad(network_file=self.network_path_unclustered, load_synapses=True)
         synapses = data_loader.data["synapses"]
-        voxel_size = data_loader.data["voxelSize"]
-        simulation_origo = data_loader.data["simulationOrigo"]
+        voxel_size = data_loader.data["voxel_size"]
+        simulation_origo = data_loader.data["simulation_origo"]
 
         for post_id, pre_id in zip([0, 1, 2, 3], [4, 5, 6, 7]):
             idx = np.where(np.logical_and(synapses[:, 0] == pre_id, synapses[:, 1] == post_id))[0]

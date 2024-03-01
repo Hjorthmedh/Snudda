@@ -13,12 +13,14 @@ class InputTestCase(unittest.TestCase):
 
     def setUp(self):
 
+        print("RUNNING SETUP")
         os.chdir(os.path.dirname(__file__))
 
         self.network_path = os.path.join("networks", "network_testing_input")
         self.config_file = os.path.join(self.network_path, "network-config.json")
         self.position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
         self.save_file = os.path.join(self.network_path, "voxels", "network-putative-synapses.hdf5")
+        self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
 
         # Setup network so we can test input generation
         from snudda.init.init import SnuddaInit
@@ -32,28 +34,9 @@ class InputTestCase(unittest.TestCase):
 
         cnc.write_json(self.config_file)
 
-        # Place neurons
-        from snudda.place.place import SnuddaPlace
-        npn = SnuddaPlace(config_file=self.config_file,
-                          log_file=None,
-                          verbose=True,
-                          d_view=None,          # TODO: If d_view is None code run sin serial, add test parallel
-                          h5libver="latest")
-        npn.parse_config()
-        npn.write_data(self.position_file)
-
-        # Detect
-        self.sd = SnuddaDetect(config_file=self.config_file, position_file=self.position_file,
-                               save_file=self.save_file, rc=None,
-                               hyper_voxel_size=120, verbose=True)
-
-        self.sd.detect(restart_detection_flag=True)
-
-        # Prune
-        self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
-
-        sp = SnuddaPrune(network_path=self.network_path, config_file=None)  # Use default config file
-        sp.prune()
+        from snudda import Snudda
+        snd = Snudda(network_path=self.network_path)
+        snd.create_network()
 
     def test_generate(self):
 
@@ -144,26 +127,25 @@ class InputTestCase(unittest.TestCase):
                 spikes = input_info["spikes"][()]
                 n_traces = spikes.shape[0]
 
-                if "nInputs" in config_data[neuron_type][input_type]:
-                    if "clusterSize" in config_data[neuron_type][input_type]:
-                        cluster_size = config_data[neuron_type][input_type]["clusterSize"]
+                if "num_inputs" in config_data[neuron_type][input_type]:
+                    if "cluster_size" in config_data[neuron_type][input_type]:
+                        cluster_size = config_data[neuron_type][input_type]["cluster_size"]
                     else:
                         cluster_size = 1
 
-                    if isinstance(config_data[neuron_type][input_type]['nInputs'], dict):
-                        config_n_inputs = config_data[neuron_type][input_type]['nInputs'][neuron_name]
+                    if isinstance(config_data[neuron_type][input_type]['num_inputs'], dict):
+                        config_n_inputs = config_data[neuron_type][input_type]['num_inputs'][neuron_name]
                     else:
-                        config_n_inputs = config_data[neuron_type][input_type]['nInputs']
-                    print(f"Checking number of inputs is {config_n_inputs} * {cluster_size}")
-                    self.assertEqual(config_n_inputs * cluster_size, n_traces)
+                        config_n_inputs = config_data[neuron_type][input_type]['num_inputs']
+                    print(f"Checking number of inputs is {config_n_inputs} (cluster size used: {cluster_size})")
+                    self.assertEqual(config_n_inputs, n_traces)
 
-                    # TODO: We can no longer assume that sectionID is the same for all inputs in a cluster
+                    # TODO: We can no longer assume that section_id is the same for all inputs in a cluster
                     #       the new code also works at branch points, so cluster can be spread over different sections.
                     # if cluster_size > 1:
                     #     # Verify that all the clusters have the right size
                     #     for ctr in range(0, cluster_size-1):
-                    #         self.assertTrue(np.all(np.diff(input_info["sectionID"])[ctr::cluster_size] == 0))
-
+                    #         self.assertTrue(np.all(np.diff(input_info["section_id"])[ctr::cluster_size] == 0))
 
                 max_len = 1
                 if type(start_time) is np.ndarray:
@@ -197,8 +179,8 @@ class InputTestCase(unittest.TestCase):
                         # For high correlations and short durations we have huge fluctuations, so skip those
                         pass
 
-                if "populationUnitCorrelation" in config_data[neuron_type][input_type]:
-                    correlation = config_data[neuron_type][input_type]["populationUnitCorrelation"]
+                if "population_unit_correlation" in config_data[neuron_type][input_type]:
+                    correlation = config_data[neuron_type][input_type]["population_unit_correlation"]
 
                     if "jitter" in config_data[neuron_type][input_type]:
                         jitter = config_data[neuron_type][input_type]["jitter"]
@@ -282,9 +264,9 @@ class InputTestCase(unittest.TestCase):
 
         # OBS, population unit 0 does not get any of the extra mother spikes specified
         # So we need to check FS neuron that belongs to population unit 1 or 2.
-        some_spikes = input_data["input/3/Cortical/spikes"][()].flatten()
+        some_spikes = input_data["input/4/Cortical/spikes"][()].flatten()
         some_spikes = some_spikes[some_spikes >= 0]
-        n_trains = input_data["input/3/Cortical/spikes"][()].shape[0]
+        n_trains = input_data["input/4/Cortical/spikes"][()].shape[0]
 
         for extra_spike in [0.2, 0.3, 0.45]:
 
@@ -292,7 +274,7 @@ class InputTestCase(unittest.TestCase):
                             >= n_trains)
             self.assertTrue(np.sum(np.abs(some_spikes - extra_spike + 0.05) < 1e-3) < 50)
 
-        some_spikes2 = input_data["input/3/Thalamic/spikes"][()].flatten()
+        some_spikes2 = input_data["input/4/Thalamic/spikes"][()].flatten()
         some_spikes2 = some_spikes2[some_spikes2 >= 0]
 
         for spike in [0.1, 0.2, 0.3]:
@@ -304,14 +286,13 @@ class InputTestCase(unittest.TestCase):
         # and also checks input correlation
 
         # TODO: New cell numbering, so need to pick other cell numbers
-        some_spikes_c3 = input_data["input/3/CorticalSignal/spikes"][()]
-        some_spikes_c8 = input_data["input/8/CorticalSignal/spikes"][()]
+        some_spikes_c0 = input_data["input/0/CorticalSignal/spikes"][()]
+        some_spikes_c1 = input_data["input/1/CorticalSignal/spikes"][()]
 
-        pop3 = input_data["input/3/CorticalSignal/populationUnitSpikes"][()]
-        pop8 = input_data["input/8/CorticalSignal/populationUnitSpikes"][()]
+        pop0 = input_data["input/0/CorticalSignal/population_unit_spikes"][()]
+        pop1 = input_data["input/1/CorticalSignal/population_unit_spikes"][()]
 
         # TODO: Add checks
-
 
     def test_arbitrary_function(self):
 
@@ -344,12 +325,6 @@ class InputTestCase(unittest.TestCase):
                     self.assertTrue((t_check-1)*80 <= freq <= (t_check-1)*120,
                                     f"Found frequency {freq} Hz at {t_check}s, expected {t_check*100} Hz")
 
-    def find_spikes_in_range(self, spikes, time_range):
-        t_idx = np.where(np.logical_and(time_range[0] <= spikes, spikes <= time_range[1]))[0]
-        return spikes[t_idx]
-
-    def find_freq_in_range(self, spikes, time_range):
-        return len(self.find_spikes_in_range(spikes, time_range)) / (time_range[1] - time_range[0])
 
     def test_arbitrary_function_range(self):
 
@@ -404,6 +379,13 @@ class InputTestCase(unittest.TestCase):
         self.assertTrue(1 < np.sum(n_b_1) < 10)
         self.assertTrue(1 < np.sum(n_a_2) < 6)
         self.assertTrue(20 < np.sum(n_b_2) < 30)
+
+    def find_spikes_in_range(self, spikes, time_range):
+        t_idx = np.where(np.logical_and(time_range[0] <= spikes, spikes <= time_range[1]))[0]
+        return spikes[t_idx]
+
+    def find_freq_in_range(self, spikes, time_range):
+        return len(self.find_spikes_in_range(spikes, time_range)) / (time_range[1] - time_range[0])
 
 
 if __name__ == '__main__':

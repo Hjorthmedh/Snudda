@@ -38,23 +38,23 @@ class PlotNetwork(object):
              colour_neuron_type=True):
 
         if type(plot_axon) == bool:
-            plot_axon = np.ones((self.sl.data["nNeurons"],), dtype=bool) * plot_axon
+            plot_axon = np.ones((self.sl.data["num_neurons"],), dtype=bool) * plot_axon
 
         if type(plot_dendrite) == bool:
-            plot_dendrite = np.ones((self.sl.data["nNeurons"],), dtype=bool) * plot_dendrite
+            plot_dendrite = np.ones((self.sl.data["num_neurons"],), dtype=bool) * plot_dendrite
 
         assert len(plot_axon) == len(plot_dendrite) == len(self.sl.data["neurons"])
 
         fig = plt.figure(figsize=(6, 6.5))
         ax = plt.axes(projection='3d')
 
-        if "simulationOrigo" in self.sl.data:
-            simulation_origo = self.sl.data["simulationOrigo"]
+        if "simulation_origo" in self.sl.data:
+            simulation_origo = self.sl.data["simulation_origo"]
         else:
             simulation_origo = np.array([0, 0, 0])
 
-        if "populationUnit" in self.sl.data and colour_population_unit:
-            population_unit = self.sl.data["populationUnit"]
+        if "population_unit" in self.sl.data and colour_population_unit:
+            population_unit = self.sl.data["population_unit"]
             pop_units = sorted(list(set(population_unit)))
             cmap = plt.get_cmap('tab20', len(pop_units))
             colour_lookup_helper = dict()
@@ -81,11 +81,11 @@ class PlotNetwork(object):
         for neuron_info, pa, pd in zip(self.sl.data["neurons"], plot_axon, plot_dendrite):
 
             if neuron_id_list:
-                # We only plot certain neuronID
-                if neuron_info["neuronID"] not in neuron_id_list:
+                # We only plot certain neuron_id
+                if neuron_info["neuron_id"] not in neuron_id_list:
                     continue
 
-            soma_colour = colour_lookup(neuron_info["neuronID"])
+            soma_colour = colour_lookup(neuron_info["neuron_id"])
             neuron = self.load_neuron(neuron_info)
 
             neuron.plot_neuron(axis=ax,
@@ -96,7 +96,7 @@ class PlotNetwork(object):
                                dend_colour=None)  #"silver")   # Can also write colours as (0, 0, 0) -- rgb
 
         # Plot synapses
-        if plot_synapses and "synapseCoords" in self.sl.data and self.sl.data["synapseCoords"].size > 0:
+        if plot_synapses and "synapse_coords" in self.sl.data and self.sl.data["synapse_coords"].size > 0:
 
             if neuron_id_list:
                 post_id = self.sl.data["synapses"][:, 1]
@@ -118,21 +118,21 @@ class PlotNetwork(object):
 
                 keep_idx = np.where(keep_flag)[0]
 
-                x = self.sl.data["synapseCoords"][:, 0][keep_idx]
-                y = self.sl.data["synapseCoords"][:, 1][keep_idx]
-                z = self.sl.data["synapseCoords"][:, 2][keep_idx]
+                x = self.sl.data["synapse_coords"][:, 0][keep_idx]
+                y = self.sl.data["synapse_coords"][:, 1][keep_idx]
+                z = self.sl.data["synapse_coords"][:, 2][keep_idx]
 
                 plt.figtext(0.5, 0.20, f"{keep_idx.size} synapses", ha="center", fontsize=18)
 
             else:
-                x = self.sl.data["synapseCoords"][:, 0]
-                y = self.sl.data["synapseCoords"][:, 1]
-                z = self.sl.data["synapseCoords"][:, 2]
+                x = self.sl.data["synapse_coords"][:, 0]
+                y = self.sl.data["synapse_coords"][:, 1]
+                z = self.sl.data["synapse_coords"][:, 2]
 
             ax.scatter(x, y, z, color=(1, 0, 0))
 
             if neuron_id_list is None:
-                plt.figtext(0.5, 0.20, f"{self.sl.data['nSynapses']} synapses", ha="center", fontsize=18)
+                plt.figtext(0.5, 0.20, f"{self.sl.data['num_synapses']} synapses", ha="center", fontsize=18)
 
         if elev_azim:
             ax.view_init(elev_azim[0], elev_azim[1])
@@ -179,7 +179,7 @@ class PlotNetwork(object):
 
         if neuron_name not in self.prototype_neurons:
             self.prototype_neurons[neuron_name] = NeuronPrototype(neuron_name=neuron_info["name"],
-                                                                  neuron_path=neuron_info["neuronPath"],
+                                                                  neuron_path=neuron_info["neuron_path"],
                                                                   snudda_data=self.snudda_data,
                                                                   load_morphology=True,
                                                                   virtual_neuron=False)
@@ -192,13 +192,13 @@ class PlotNetwork(object):
 
         neuron = self.prototype_neurons[neuron_name].clone(position=neuron_info["position"],
                                                            rotation=neuron_info["rotation"],
-                                                           parameter_key=neuron_info["parameterKey"],
-                                                           morphology_key=neuron_info["morphologyKey"],
-                                                           modulation_key=neuron_info["modulationKey"],
+                                                           parameter_key=neuron_info["parameter_key"],
+                                                           morphology_key=neuron_info["morphology_key"],
+                                                           modulation_key=neuron_info["modulation_key"],
                                                            morphology_path=morphology_path)
 
-        if "extraAxons" in neuron_info:
-            for axon_name, axon_info in neuron_info["extraAxons"].items():
+        if "extra_axons" in neuron_info:
+            for axon_name, axon_info in neuron_info["extra_axons"].items():
 
                 if axon_info["morphology"] not in self.extra_axon_cache:
                     self.extra_axon_cache[axon_info["morphology"]] = MorphologyData(swc_file=axon_info["morphology"],
@@ -218,11 +218,11 @@ class PlotNetwork(object):
         fig = plt.figure(figsize=(6, 6.5))
         ax = plt.axes(projection='3d')
 
-        assert "populationUnit" in self.sl.data
+        assert "population_unit" in self.sl.data
 
-        population_unit = self.sl.data["populationUnit"]
+        population_unit = self.sl.data["population_unit"]
         pop_units = sorted(list(set(population_unit)))
-        cmap = plt.get_cmap('tab20', len(pop_units))
+        cmap = plt.get_cmap('tab20', len(pop_units)+1)
         neuron_colours = []
 
         for idx, pu in enumerate(population_unit):
@@ -232,7 +232,7 @@ class PlotNetwork(object):
                 neuron_colours.append([0.6, 0.6, 0.6, 1.0])
 
         neuron_colours = np.array(neuron_colours)
-        positions = self.sl.data["neuronPositions"]
+        positions = self.sl.data["neuron_positions"]
 
         pop_unit_idx = np.where(population_unit > 0)[0]
         unmarked_idx = np.where(population_unit == 0)[0]

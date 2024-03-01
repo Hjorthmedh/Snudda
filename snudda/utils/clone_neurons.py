@@ -19,7 +19,7 @@ class CloneNeurons:
         
     def get_neuron_id(self, hdf5_file, neuron_type):
 
-        neuron_id = [ x for x,y in zip(hdf5_file["network/neurons/neuronID"],
+        neuron_id = [ x for x,y in zip(hdf5_file["network/neurons/neuron_id"],
                                        hdf5_file["network/neurons/name"])
                       if y.decode().split("_")[0] == neuron_type]
         
@@ -31,7 +31,7 @@ class CloneNeurons:
         
         for var_name in self.source_file["network/neurons"].keys():
 
-            if var_name == "neuronID":
+            if var_name == "neuron_id":
                 # Keep original dest neuron ID
                 continue
 
@@ -41,7 +41,6 @@ class CloneNeurons:
             else:
                 self.dest_file["network/neurons"][var_name][dest_id, :] = \
                     self.source_file["network/neurons"][var_name][source_id, :]
-
 
     def clone_neurons(self, neuron_type=None):
 

@@ -2,9 +2,9 @@
     "dSPN": {
 	"cortical_signal": {
 	    "generator": "csv",
-	    "csvFile": "input_config/example-input-data-dspn.csv",
-	    "modFile": "tmGlut",
-	    "synapseDensity" : "1",
+	    "csv_file": "input_config/example-input-data-dspn.csv",
+	    "mod_file": "tmGlut",
+	    "synapse_density" : "1",
 	    "conductance": 0.5e-9
 	}
     },
@@ -12,11 +12,11 @@
     "0": {
 	"cortical_signal_0": {
 	    "generator": "csv",
-	    "csvFile": "input_config/example-input-data-0.csv",
-	    "modFile": "tmGlut",
+	    "csv_file": "input_config/example-input-data-0.csv",
+	    "mod_file": "tmGlut",
 	    "conductance": 0.5e-9,
-	    "morphologyKey": "m3a845add",
-	    "dendriteLocation": [[0, 0.5], [3, 0.6], [10, 0.1]]
+	    "morphology_key": "m3a845add",
+	    "dendrite_location": [[0, 0.5], [3, 0.6], [10, 0.1]]
 	},
         "!cortical_background" : {
             "generator" : "poisson",

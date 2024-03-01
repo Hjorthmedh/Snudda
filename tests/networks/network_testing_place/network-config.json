@@ -1,6 +1,8 @@
 {
-    "RandomSeed": {
-        "masterseed": 1234,
+    "network_path": "networks/network_testing_place",
+    "snudda_data": null,
+    "random_seed": {
+        "master_seed": 1234,
         "init": 2906597030,
         "place": 1602421836,
         "detect": 216676975,
@@ -9,486 +11,484 @@
         "input": 2825158027,
         "simulate": 3613074
     },
-    "Volume": {
+    "regions": {
         "Striatum": {
-            "type": "mesh",
-            "dMin": 1.5e-05,
-            "meshFile": "networks/network_testing_place/mesh/Striatum-cube-mesh-6.286535491496336e-05.obj",
-            "meshBinWidth": 6.286535491496336e-05
-        }
-    },
-    "Connectivity": {
-        "FS,FS": {
-            "GABA": {
-                "conductance": [
-                    1.1e-09,
-                    1.5e-09
-                ],
-                "channelParameters": {
-                    "tau1": [
-                        0.00133,
-                        1000.0
-                    ],
-                    "tau2": [
-                        0.0057,
-                        1000.0
-                    ],
-                    "modFile": "tmGabaA"
+            "volume": {
+                "type": "mesh",
+                "d_min": 1.5e-05,
+                "mesh_file": "networks/network_testing_place/mesh/Striatum-cube-mesh-6.286535491496336e-05.obj",
+                "n_putative_points": 60
+            },
+            "connectivity": {
+                "FS,FS": {
+                    "GABA": {
+                        "conductance": [
+                            1.1e-09,
+                            1.5e-09
+                        ],
+                        "channel_parameters": {
+                            "tau1": [
+                                0.00133,
+                                1000.0
+                            ],
+                            "tau2": [
+                                0.0057,
+                                1000.0
+                            ],
+                            "mod_file": "tmGabaA"
+                        },
+                        "cluster_size": 1,
+                        "cluster_spread": null,
+                        "pruning": {
+                            "f1": 0.15,
+                            "soft_max": 5,
+                            "mu2": 2,
+                            "a3": 1,
+                            "dist_pruning": null,
+                            "cluster_pruning": false
+                        }
+                    },
+                    "gap_junction": {
+                        "conductance": [
+                            5e-10,
+                            1e-10
+                        ],
+                        "channel_parameters": null,
+                        "cluster_size": 1,
+                        "cluster_spread": null,
+                        "pruning": {
+                            "f1": 0.7,
+                            "soft_max": 8,
+                            "mu2": 2,
+                            "a3": 0.5,
+                            "dist_pruning": null,
+                            "cluster_pruning": false
+                        }
+                    }
                 },
-                "clusterSize": 1,
-                "clusterSpread": null,
-                "pruning": {
-                    "f1": 0.15,
-                    "softMax": 5,
-                    "mu2": 2,
-                    "a3": 1,
-                    "distPruning": null,
-                    "clusterPruning": false
+                "FS,dSPN": {
+                    "GABA": {
+                        "conductance": [
+                            1.1e-09,
+                            1.5e-09
+                        ],
+                        "channel_parameters": {
+                            "tau1": [
+                                0.0012,
+                                1000.0
+                            ],
+                            "tau2": [
+                                0.008,
+                                1000.0
+                            ],
+                            "parameter_file": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-FD-tmgaba-fit.json",
+                            "mod_file": "tmGabaA"
+                        },
+                        "cluster_size": 1,
+                        "cluster_spread": null,
+                        "pruning": {
+                            "f1": 0.5,
+                            "soft_max": 5,
+                            "mu2": 2,
+                            "a3": 1.0,
+                            "dist_pruning": "exp(-(0.5*d/60e-6)**2)",
+                            "cluster_pruning": false
+                        }
+                    }
+                },
+                "FS,iSPN": {
+                    "GABA": {
+                        "conductance": [
+                            1.1e-09,
+                            1.5e-09
+                        ],
+                        "channel_parameters": {
+                            "tau1": [
+                                0.0012,
+                                1000.0
+                            ],
+                            "tau2": [
+                                0.008,
+                                1000.0
+                            ],
+                            "parameter_file": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-FI-tmgaba-fit.json",
+                            "mod_file": "tmGabaA"
+                        },
+                        "cluster_size": 1,
+                        "cluster_spread": null,
+                        "pruning": {
+                            "f1": 0.5,
+                            "soft_max": 5,
+                            "mu2": 2,
+                            "a3": 0.9,
+                            "dist_pruning": "exp(-(0.5*d/60e-6)**2)",
+                            "cluster_pruning": false
+                        }
+                    }
+                },
+                "FS,LTS": {
+                    "GABA": {
+                        "conductance": [
+                            1.1e-10,
+                            1.5e-10
+                        ],
+                        "channel_parameters": {
+                            "mod_file": "tmGabaA"
+                        },
+                        "cluster_size": 1,
+                        "cluster_spread": null,
+                        "pruning": {
+                            "f1": 0.15,
+                            "soft_max": 3,
+                            "mu2": 2,
+                            "a3": 1.0,
+                            "dist_pruning": null,
+                            "cluster_pruning": false
+                        }
+                    }
+                },
+                "dSPN,dSPN": {
+                    "GABA": {
+                        "conductance": [
+                            2.4e-10,
+                            1e-10
+                        ],
+                        "channel_parameters": {
+                            "tau1": [
+                                0.0013,
+                                1000.0
+                            ],
+                            "tau2": [
+                                0.0124,
+                                1000.0
+                            ],
+                            "failRate": 0.7,
+                            "parameter_file": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-DD-tmgaba-fit.json",
+                            "mod_file": "tmGabaA"
+                        },
+                        "cluster_size": 1,
+                        "cluster_spread": null,
+                        "pruning": {
+                            "f1": 0.28500000000000003,
+                            "soft_max": 3,
+                            "mu2": 2.4,
+                            "a3": 1.0,
+                            "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
+                            "cluster_pruning": false
+                        },
+                        "pruning_other": {
+                            "f1": 0.28500000000000003,
+                            "soft_max": 3,
+                            "mu2": 2.4,
+                            "a3": 1.0,
+                            "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
+                            "cluster_pruning": false
+                        }
+                    }
+                },
+                "dSPN,iSPN": {
+                    "GABA": {
+                        "conductance": [
+                            2.4e-10,
+                            1e-10
+                        ],
+                        "channel_parameters": {
+                            "tau1": [
+                                0.0013,
+                                1000.0
+                            ],
+                            "tau2": [
+                                0.0124,
+                                1000.0
+                            ],
+                            "failRate": 0.7,
+                            "parameter_file": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-DI-tmgaba-fit.json",
+                            "mod_file": "tmGabaA"
+                        },
+                        "cluster_size": 1,
+                        "cluster_spread": null,
+                        "pruning": {
+                            "f1": 0.164,
+                            "soft_max": 3,
+                            "mu2": 2.4,
+                            "a3": 1.0,
+                            "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
+                            "cluster_pruning": false
+                        },
+                        "pruning_other": {
+                            "f1": 0.164,
+                            "soft_max": 3,
+                            "mu2": 2.4,
+                            "a3": 1.0,
+                            "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
+                            "cluster_pruning": false
+                        }
+                    }
+                },
+                "dSPN,ChIN": {
+                    "GABA": {
+                        "conductance": [
+                            2.4e-10,
+                            1e-10
+                        ],
+                        "channel_parameters": {
+                            "failRate": 0.7,
+                            "mod_file": "tmGabaA"
+                        },
+                        "cluster_size": 1,
+                        "cluster_spread": null,
+                        "pruning": {
+                            "f1": 0.1,
+                            "soft_max": 3,
+                            "mu2": 2.4,
+                            "a3": 0.1,
+                            "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
+                            "cluster_pruning": false
+                        }
+                    }
+                },
+                "iSPN,dSPN": {
+                    "GABA": {
+                        "conductance": [
+                            2.4e-10,
+                            1e-10
+                        ],
+                        "channel_parameters": {
+                            "tau1": [
+                                0.0013,
+                                1000.0
+                            ],
+                            "tau2": [
+                                0.0124,
+                                1000.0
+                            ],
+                            "failRate": 0.4,
+                            "parameter_file": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-ID-tmgaba-fit.json",
+                            "mod_file": "tmGabaA"
+                        },
+                        "cluster_size": 1,
+                        "cluster_spread": null,
+                        "pruning": {
+                            "f1": 0.279,
+                            "soft_max": 4,
+                            "mu2": 2.4,
+                            "a3": 1.0,
+                            "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
+                            "cluster_pruning": false
+                        },
+                        "pruning_other": {
+                            "f1": 0.279,
+                            "soft_max": 4,
+                            "mu2": 2.4,
+                            "a3": 1.0,
+                            "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
+                            "cluster_pruning": false
+                        }
+                    }
+                },
+                "iSPN,iSPN": {
+                    "GABA": {
+                        "conductance": [
+                            2.4e-10,
+                            1e-10
+                        ],
+                        "channel_parameters": {
+                            "tau1": [
+                                0.0013,
+                                1000.0
+                            ],
+                            "tau2": [
+                                0.0124,
+                                1000.0
+                            ],
+                            "failRate": 0.4,
+                            "parameter_file": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-II-tmgaba-fit.json",
+                            "mod_file": "tmGabaA"
+                        },
+                        "cluster_size": 1,
+                        "cluster_spread": null,
+                        "pruning": {
+                            "f1": 0.55,
+                            "soft_max": 4,
+                            "mu2": 2.4,
+                            "a3": 1.0,
+                            "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
+                            "cluster_pruning": false
+                        },
+                        "pruning_other": {
+                            "f1": 0.55,
+                            "soft_max": 4,
+                            "mu2": 2.4,
+                            "a3": 1.0,
+                            "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
+                            "cluster_pruning": false
+                        }
+                    }
+                },
+                "iSPN,ChIN": {
+                    "GABA": {
+                        "conductance": [
+                            2.4e-10,
+                            1e-10
+                        ],
+                        "channel_parameters": {
+                            "failRate": 0.4,
+                            "mod_file": "tmGabaA"
+                        },
+                        "cluster_size": 1,
+                        "cluster_spread": null,
+                        "pruning": {
+                            "f1": 0.1,
+                            "soft_max": 3,
+                            "mu2": 2.4,
+                            "a3": 0.1,
+                            "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
+                            "cluster_pruning": false
+                        }
+                    }
+                },
+                "ChIN,dSPN": {
+                    "ACh": {
+                        "conductance": [
+                            1e-09,
+                            0
+                        ],
+                        "channel_parameters": {
+                            "mod_file": ""
+                        },
+                        "cluster_size": 1,
+                        "cluster_spread": null,
+                        "pruning": {
+                            "f1": 0.5,
+                            "soft_max": 10,
+                            "mu2": 15,
+                            "a3": 0.1,
+                            "dist_pruning": null,
+                            "cluster_pruning": false
+                        }
+                    }
+                },
+                "ChIN,iSPN": {
+                    "ACh": {
+                        "conductance": [
+                            1e-09,
+                            0
+                        ],
+                        "channel_parameters": {
+                            "mod_file": ""
+                        },
+                        "cluster_size": 1,
+                        "cluster_spread": null,
+                        "pruning": {
+                            "f1": 0.5,
+                            "soft_max": 10,
+                            "mu2": 10,
+                            "a3": 0.1,
+                            "dist_pruning": null,
+                            "cluster_pruning": false
+                        }
+                    }
+                },
+                "LTS,dSPN": {
+                    "GABA": {
+                        "conductance": [
+                            1e-09,
+                            0
+                        ],
+                        "channel_parameters": {
+                            "tau1": [
+                                0.003,
+                                1000.0
+                            ],
+                            "tau2": [
+                                0.038,
+                                1000.0
+                            ],
+                            "mod_file": "tmGabaA"
+                        },
+                        "cluster_size": 1,
+                        "cluster_spread": null,
+                        "pruning": {
+                            "f1": 0.3,
+                            "soft_max": 15,
+                            "mu2": 3,
+                            "a3": 0.3,
+                            "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
+                            "cluster_pruning": false
+                        }
+                    }
+                },
+                "LTS,iSPN": {
+                    "GABA": {
+                        "conductance": [
+                            1e-09,
+                            0
+                        ],
+                        "channel_parameters": {
+                            "tau1": [
+                                0.003,
+                                1000.0
+                            ],
+                            "tau2": [
+                                0.038,
+                                1000.0
+                            ],
+                            "mod_file": "tmGabaA"
+                        },
+                        "cluster_size": 1,
+                        "cluster_spread": null,
+                        "pruning": {
+                            "f1": 0.3,
+                            "soft_max": 15,
+                            "mu2": 3,
+                            "a3": 0.3,
+                            "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
+                            "cluster_pruning": false
+                        }
+                    }
+                },
+                "LTS,ChIN": {
+                    "GABA": {
+                        "conductance": [
+                            1e-09,
+                            0
+                        ],
+                        "channel_parameters": {
+                            "mod_file": "tmGabaA"
+                        },
+                        "cluster_size": 1,
+                        "cluster_spread": null,
+                        "pruning": {
+                            "f1": 0.5,
+                            "soft_max": 10,
+                            "mu2": 3,
+                            "a3": 0.4,
+                            "dist_pruning": null,
+                            "cluster_pruning": false
+                        }
+                    }
                 }
             },
-            "GapJunction": {
-                "conductance": [
-                    5e-10,
-                    1e-10
-                ],
-                "channelParameters": null,
-                "clusterSize": 1,
-                "clusterSpread": null,
-                "pruning": {
-                    "f1": 0.7,
-                    "softMax": 8,
-                    "mu2": 2,
-                    "a3": 0.5,
-                    "distPruning": null,
-                    "clusterPruning": false
+            "neurons": {
+                "FS": {
+                    "num_neurons": 10,
+                    "neuron_type": "neuron",
+                    "rotation_mode": "random",
+                    "volume_id": "Striatum",
+                    "neuron_path": {
+                        "FS_0": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312"
+                    }
+                },
+                "dSPN": {
+                    "num_neurons": 10,
+                    "neuron_type": "neuron",
+                    "rotation_mode": "random",
+                    "volume_id": "Striatum",
+                    "neuron_path": {
+                        "dSPN_0": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508"
+                    }
                 }
             }
-        },
-        "FS,dSPN": {
-            "GABA": {
-                "conductance": [
-                    1.1e-09,
-                    1.5e-09
-                ],
-                "channelParameters": {
-                    "tau1": [
-                        0.0012,
-                        1000.0
-                    ],
-                    "tau2": [
-                        0.008,
-                        1000.0
-                    ],
-                    "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-FD-tmgaba-fit.json",
-                    "modFile": "tmGabaA"
-                },
-                "clusterSize": 1,
-                "clusterSpread": null,
-                "pruning": {
-                    "f1": 0.5,
-                    "softMax": 5,
-                    "mu2": 2,
-                    "a3": 1.0,
-                    "distPruning": "exp(-(0.5*d/60e-6)**2)",
-                    "clusterPruning": false
-                }
-            }
-        },
-        "FS,iSPN": {
-            "GABA": {
-                "conductance": [
-                    1.1e-09,
-                    1.5e-09
-                ],
-                "channelParameters": {
-                    "tau1": [
-                        0.0012,
-                        1000.0
-                    ],
-                    "tau2": [
-                        0.008,
-                        1000.0
-                    ],
-                    "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-FI-tmgaba-fit.json",
-                    "modFile": "tmGabaA"
-                },
-                "clusterSize": 1,
-                "clusterSpread": null,
-                "pruning": {
-                    "f1": 0.5,
-                    "softMax": 5,
-                    "mu2": 2,
-                    "a3": 0.9,
-                    "distPruning": "exp(-(0.5*d/60e-6)**2)",
-                    "clusterPruning": false
-                }
-            }
-        },
-        "FS,LTS": {
-            "GABA": {
-                "conductance": [
-                    1.1e-10,
-                    1.5e-10
-                ],
-                "channelParameters": {
-                    "modFile": "tmGabaA"
-                },
-                "clusterSize": 1,
-                "clusterSpread": null,
-                "pruning": {
-                    "f1": 0.15,
-                    "softMax": 3,
-                    "mu2": 2,
-                    "a3": 1.0,
-                    "distPruning": null,
-                    "clusterPruning": false
-                }
-            }
-        },
-        "dSPN,dSPN": {
-            "GABA": {
-                "conductance": [
-                    2.4e-10,
-                    1e-10
-                ],
-                "channelParameters": {
-                    "tau1": [
-                        0.0013,
-                        1000.0
-                    ],
-                    "tau2": [
-                        0.0124,
-                        1000.0
-                    ],
-                    "failRate": 0.7,
-                    "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-DD-tmgaba-fit.json",
-                    "modFile": "tmGabaA"
-                },
-                "clusterSize": 1,
-                "clusterSpread": null,
-                "pruning": {
-                    "f1": 0.28500000000000003,
-                    "softMax": 3,
-                    "mu2": 2.4,
-                    "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
-                    "clusterPruning": false
-                },
-                "pruningOther": {
-                    "f1": 0.28500000000000003,
-                    "softMax": 3,
-                    "mu2": 2.4,
-                    "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
-                    "clusterPruning": false
-                }
-            }
-        },
-        "dSPN,iSPN": {
-            "GABA": {
-                "conductance": [
-                    2.4e-10,
-                    1e-10
-                ],
-                "channelParameters": {
-                    "tau1": [
-                        0.0013,
-                        1000.0
-                    ],
-                    "tau2": [
-                        0.0124,
-                        1000.0
-                    ],
-                    "failRate": 0.7,
-                    "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-DI-tmgaba-fit.json",
-                    "modFile": "tmGabaA"
-                },
-                "clusterSize": 1,
-                "clusterSpread": null,
-                "pruning": {
-                    "f1": 0.164,
-                    "softMax": 3,
-                    "mu2": 2.4,
-                    "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
-                    "clusterPruning": false
-                },
-                "pruningOther": {
-                    "f1": 0.164,
-                    "softMax": 3,
-                    "mu2": 2.4,
-                    "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
-                    "clusterPruning": false
-                }
-            }
-        },
-        "dSPN,ChIN": {
-            "GABA": {
-                "conductance": [
-                    2.4e-10,
-                    1e-10
-                ],
-                "channelParameters": {
-                    "failRate": 0.7,
-                    "modFile": "tmGabaA"
-                },
-                "clusterSize": 1,
-                "clusterSpread": null,
-                "pruning": {
-                    "f1": 0.1,
-                    "softMax": 3,
-                    "mu2": 2.4,
-                    "a3": 0.1,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
-                    "clusterPruning": false
-                }
-            }
-        },
-        "iSPN,dSPN": {
-            "GABA": {
-                "conductance": [
-                    2.4e-10,
-                    1e-10
-                ],
-                "channelParameters": {
-                    "tau1": [
-                        0.0013,
-                        1000.0
-                    ],
-                    "tau2": [
-                        0.0124,
-                        1000.0
-                    ],
-                    "failRate": 0.4,
-                    "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-ID-tmgaba-fit.json",
-                    "modFile": "tmGabaA"
-                },
-                "clusterSize": 1,
-                "clusterSpread": null,
-                "pruning": {
-                    "f1": 0.279,
-                    "softMax": 4,
-                    "mu2": 2.4,
-                    "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
-                    "clusterPruning": false
-                },
-                "pruningOther": {
-                    "f1": 0.279,
-                    "softMax": 4,
-                    "mu2": 2.4,
-                    "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
-                    "clusterPruning": false
-                }
-            }
-        },
-        "iSPN,iSPN": {
-            "GABA": {
-                "conductance": [
-                    2.4e-10,
-                    1e-10
-                ],
-                "channelParameters": {
-                    "tau1": [
-                        0.0013,
-                        1000.0
-                    ],
-                    "tau2": [
-                        0.0124,
-                        1000.0
-                    ],
-                    "failRate": 0.4,
-                    "parameterFile": "$SNUDDA_DATA/synapses/striatum/PlanertFitting-II-tmgaba-fit.json",
-                    "modFile": "tmGabaA"
-                },
-                "clusterSize": 1,
-                "clusterSpread": null,
-                "pruning": {
-                    "f1": 0.55,
-                    "softMax": 4,
-                    "mu2": 2.4,
-                    "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
-                    "clusterPruning": false
-                },
-                "pruningOther": {
-                    "f1": 0.55,
-                    "softMax": 4,
-                    "mu2": 2.4,
-                    "a3": 1.0,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
-                    "clusterPruning": false
-                }
-            }
-        },
-        "iSPN,ChIN": {
-            "GABA": {
-                "conductance": [
-                    2.4e-10,
-                    1e-10
-                ],
-                "channelParameters": {
-                    "failRate": 0.4,
-                    "modFile": "tmGabaA"
-                },
-                "clusterSize": 1,
-                "clusterSpread": null,
-                "pruning": {
-                    "f1": 0.1,
-                    "softMax": 3,
-                    "mu2": 2.4,
-                    "a3": 0.1,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
-                    "clusterPruning": false
-                }
-            }
-        },
-        "ChIN,dSPN": {
-            "ACh": {
-                "conductance": [
-                    1e-09,
-                    0
-                ],
-                "channelParameters": {
-                    "modFile": ""
-                },
-                "clusterSize": 1,
-                "clusterSpread": null,
-                "pruning": {
-                    "f1": 0.5,
-                    "softMax": 10,
-                    "mu2": 15,
-                    "a3": 0.1,
-                    "distPruning": null,
-                    "clusterPruning": false
-                }
-            }
-        },
-        "ChIN,iSPN": {
-            "ACh": {
-                "conductance": [
-                    1e-09,
-                    0
-                ],
-                "channelParameters": {
-                    "modFile": ""
-                },
-                "clusterSize": 1,
-                "clusterSpread": null,
-                "pruning": {
-                    "f1": 0.5,
-                    "softMax": 10,
-                    "mu2": 10,
-                    "a3": 0.1,
-                    "distPruning": null,
-                    "clusterPruning": false
-                }
-            }
-        },
-        "LTS,dSPN": {
-            "GABA": {
-                "conductance": [
-                    1e-09,
-                    0
-                ],
-                "channelParameters": {
-                    "tau1": [
-                        0.003,
-                        1000.0
-                    ],
-                    "tau2": [
-                        0.038,
-                        1000.0
-                    ],
-                    "modFile": "tmGabaA"
-                },
-                "clusterSize": 1,
-                "clusterSpread": null,
-                "pruning": {
-                    "f1": 0.3,
-                    "softMax": 15,
-                    "mu2": 3,
-                    "a3": 0.3,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
-                    "clusterPruning": false
-                }
-            }
-        },
-        "LTS,iSPN": {
-            "GABA": {
-                "conductance": [
-                    1e-09,
-                    0
-                ],
-                "channelParameters": {
-                    "tau1": [
-                        0.003,
-                        1000.0
-                    ],
-                    "tau2": [
-                        0.038,
-                        1000.0
-                    ],
-                    "modFile": "tmGabaA"
-                },
-                "clusterSize": 1,
-                "clusterSpread": null,
-                "pruning": {
-                    "f1": 0.3,
-                    "softMax": 15,
-                    "mu2": 3,
-                    "a3": 0.3,
-                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
-                    "clusterPruning": false
-                }
-            }
-        },
-        "LTS,ChIN": {
-            "GABA": {
-                "conductance": [
-                    1e-09,
-                    0
-                ],
-                "channelParameters": {
-                    "modFile": "tmGabaA"
-                },
-                "clusterSize": 1,
-                "clusterSpread": null,
-                "pruning": {
-                    "f1": 0.5,
-                    "softMax": 10,
-                    "mu2": 3,
-                    "a3": 0.4,
-                    "distPruning": null,
-                    "clusterPruning": false
-                }
-            }
-        }
-    },
-    "Neurons": {
-        "FS_0": {
-            "morphology": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/MTC180800A-IDB-cor-rep.swc",
-            "parameters": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/parameters.json",
-            "mechanisms": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/mechanisms.json",
-            "modulation": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312/modulation.json",
-            "num": 10,
-            "hoc": null,
-            "neuronType": "neuron",
-            "rotationMode": "random",
-            "volumeID": "Striatum"
-        },
-        "dSPN_0": {
-            "morphology": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc",
-            "parameters": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/parameters.json",
-            "mechanisms": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/mechanisms.json",
-            "modulation": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/modulation.json",
-            "num": 10,
-            "hoc": null,
-            "neuronType": "neuron",
-            "rotationMode": "random",
-            "volumeID": "Striatum"
         }
     }
 }

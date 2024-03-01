@@ -64,8 +64,8 @@ def get_snudda_data(snudda_data=None, config_file=None, network_path=None, verbo
         network_file = os.path.join(network_path, "network-synapses.hdf5")
         if os.path.isfile(network_file):
             with h5py.File(network_file, "r") as f:
-                if "meta" in f and "snuddaData" in f["meta"]:
-                    snudda_data_str = f["meta/snuddaData"][()]
+                if "meta" in f and "snudda_data" in f["meta"]:
+                    snudda_data_str = f["meta/snudda_data"][()]
                     if type(snudda_data_str) in [bytes, np.bytes_]:
                         snudda_data = snudda_data_str.decode()
                     else:
@@ -82,7 +82,8 @@ def get_snudda_data(snudda_data=None, config_file=None, network_path=None, verbo
     if snudda_data is None:
         snudda_data = os.path.join(os.path.dirname(__file__), os.pardir, "data")
 
-    assert os.path.isdir(snudda_data), f"SNUDDA_DATA = {snudda_data} DOES NOT EXIST"
+    if not os.path.isdir(snudda_data):
+        raise ValueError(f"SNUDDA_DATA = {snudda_data} DOES NOT EXIST")
 
     return snudda_data
 
@@ -93,10 +94,10 @@ def read_snudda_data_from_config(config_file):
     with open(config_file, "rt") as f:
         config_data = json.load(f)
 
-    if "SnuddaData" in config_data:
-        snudda_data = config_data["SnuddaData"]
-        assert os.path.isdir(snudda_data), \
-            f"MISSING DIRECTORY SnuddaData = {snudda_data} specified in config file {config_file}"
+    if "snudda_data" in config_data and config_data["snudda_data"]:
+        snudda_data = config_data["snudda_data"]
+        if not os.path.isdir(snudda_data):
+            raise ValueError(f"MISSING DIRECTORY {snudda_data = } specified in config file {config_file}")
 
     return snudda_data
 

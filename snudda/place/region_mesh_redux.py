@@ -90,8 +90,6 @@ class RegionMeshRedux:
                         lines.append([start_point, end_point])
 
             if len(lines) > 0:
-                #import pdb
-                #pdb.set_trace()
                 line_set = o3d.geometry.LineSet()
                 line_set.points = o3d.utility.Vector3dVector(morph_data.geometry[:, :3])
                 line_set.lines = o3d.utility.Vector2iVector(lines)
@@ -152,6 +150,9 @@ class NeuronPlacer:
         self.allocated_points = np.zeros(shape=(putative_points.shape[0],), dtype=bool)
 
     def define_density(self, neuron_type, density_function):
+        if neuron_type in self.density_functions:
+            print(f"Warning, overwriting {neuron_type} density with {density_function}")
+
         self.density_functions[neuron_type] = density_function
 
     def place_neurons(self, num_neurons, neuron_type=None):
@@ -221,6 +222,9 @@ class NeuronPlacer:
             sorted_counts = counts[sort_idx]
 
             first_pair = np.argmax(sorted_counts == 1)
+            if sorted_counts[first_pair] != 1:
+                first_pair = len(sorted_counts) - 1  # Basically use remove_fraction_idx
+
             remove_fraction_idx = int(np.ceil(remove_fraction*len(sorted_offenders)))
             remove_idx = sorted_offenders[:min(first_pair, remove_fraction_idx)]
 
@@ -290,6 +294,7 @@ class NeuronPlacer:
 
         return neuron_positions
 
+
 class NeuronBender:
 
     def __init__(self):
@@ -310,7 +315,7 @@ class NeuronBender:
 
 if __name__ == "__main__":
 
-    mesh_path="../data/mesh/Striatum-d-right.obj"
+    mesh_path = "../data/mesh/Striatum-d-right.obj"
 
     # nep = NeuronPlacer(mesh_path=mesh_path, d_min=10e-6, n_putative_points=10000000)
     nep = NeuronPlacer(mesh_path=mesh_path, d_min=10e-6, n_putative_points=None, putative_density=100e3)
@@ -335,7 +340,6 @@ if __name__ == "__main__":
     plt.hist(points_flat[:,1], color="black")
     plt.hist(points_flat2[:,1], color="blue", alpha=0.5)
     plt.show()
-
 
     import pdb
     pdb.set_trace()

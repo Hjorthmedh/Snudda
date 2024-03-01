@@ -85,7 +85,9 @@ class PlotTraces:
     def plot_traces(self, trace_id=None, offset=150e-3, colours=None, skip_time=None, time_range=None,
                     line_width=1, fig_size=None,
                     mark_current=None, mark_current_y=None,
-                    title=None, fig_name=None, mark_depolarisation_block=True):
+                    title=None, fig_name=None,
+                    mark_depolarisation_block=True,
+                    mark_spikes=True):
 
         """
             Plot the traces of neuron trace_id
@@ -112,7 +114,7 @@ class PlotTraces:
 
         if trace_id is None:
             if self.network_info:
-                trace_id = [x["neuronID"] for x in self.network_info.data["neurons"]]
+                trace_id = [x["neuron_id"] for x in self.network_info.data["neurons"]]
             else:
                 trace_id = [x for x in self.voltage]
         elif isinstance(trace_id, (int, np.integer)):
@@ -132,7 +134,7 @@ class PlotTraces:
 
         if self.network_info is not None:
             cell_types = [n["type"] for n in self.network_info.data["neurons"]]
-            cell_id_check = [n["neuronID"] for n in self.network_info.data["neurons"]]
+            cell_id_check = [n["neuron_id"] for n in self.network_info.data["neurons"]]
             try:
                 assert (np.array([cell_id_check[x] == x for x in trace_id])).all(), \
                     "Internal error, assume IDs ordered"
@@ -164,7 +166,7 @@ class PlotTraces:
         for r in trace_id:
 
             if r not in self.voltage:
-                if self.network_info is not None and self.network_info.data["neurons"][r]["virtualNeuron"]:
+                if self.network_info is not None and self.network_info.data["neurons"][r]["virtual_neuron"]:
                     # It was a virtual neuron that lacked voltage, skip warning
                     continue
 
@@ -172,7 +174,7 @@ class PlotTraces:
                 continue
 
             plot_count += 1
-            types_in_plot.add(self.output_load.network_simulation_file["metaData"]["type"][r].decode())
+            types_in_plot.add(self.output_load.network_simulation_file["meta_data"]["type"][r].decode())
 
             if colours is None or self.network_info is None:
                 colour = "black"
@@ -211,6 +213,14 @@ class PlotTraces:
 
                     plt.plot([depol_start_t-skip_time, depol_end_t-skip_time],
                              [ofs, ofs], color="red", linewidth=line_width)
+
+            if mark_spikes:
+                spike_times = self.output_load.get_spikes(neuron_id=r).flatten()
+                if time_range is None:
+                   plt.plot(spike_times-skip_time, np.full(spike_times.shape, fill_value=offset), 'r*')
+                else:
+                    s_idx = np.where(np.logical_and(time_range[0] <= spike_times, spike_times <= time_range[1]))[0]
+                    plt.plot(spike_times[s_idx], np.full(s_idx.shape, fill_value=offset), 'r*')
 
             if offset:
                 ofs += offset
@@ -308,7 +318,7 @@ class PlotTraces:
 
         if not trace_id:
             if self.network_info:
-                trace_id = [x["neuronID"] for x in self.network_info.data["neurons"]]
+                trace_id = [x["neuron_id"] for x in self.network_info.data["neurons"]]
             else:
                 trace_id = [x for x in self.voltage]
         elif isinstance(trace_id, (int, np.integer)):
@@ -328,7 +338,7 @@ class PlotTraces:
 
         if self.network_info is not None:
             cell_types = [n["type"] for n in self.network_info.data["neurons"]]
-            cell_id_check = [n["neuronID"] for n in self.network_info.data["neurons"]]
+            cell_id_check = [n["neuron_id"] for n in self.network_info.data["neurons"]]
             try:
                 assert (np.array([cell_id_check[x] == x for x in trace_id])).all(), \
                     "Internal error, assume IDs ordered"
@@ -456,6 +466,7 @@ def snudda_plot_traces_cli():
     parser.add_argument("--skip_time", type=float, default=0)
     parser.add_argument("--max_num_traces", type=int, default=None)
     parser.add_argument("--traceID", type=str, default=None, help="Trace ID to plot, separated by comma: e.g. 1,3,14")
+    parser.add_argument("--wait", action="store_true")
     args = parser.parse_args()
 
     npt = PlotTraces(output_file=args.output_file, network_file=args.network_file, input_file=args.input_file)
@@ -469,6 +480,9 @@ def snudda_plot_traces_cli():
             npt.plot_trace_neuron_type(neuron_type=neuron_type, num_traces=args.max_num_traces,
                                        offset=args.plot_offset, skip_time=args.skip_time,
                                        fig_size=(10, 5))
+
+    if args.wait:
+        input("Press a key to continue.")
 
 
 if __name__ == "__main__":

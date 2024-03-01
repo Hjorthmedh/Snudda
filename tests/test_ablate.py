@@ -43,7 +43,8 @@ class MyTestCase(unittest.TestCase):
         # Overwrite adult GJ connectivity, with higher juvenile connectivity
         cnc.add_neuron_target(neuron_name="FS",
                               target_name="FS",
-                              connection_type="GapJunction",
+                              region_name="Striatum",
+                              connection_type="gap_junction",
                               dist_pruning=None,
                               f1=0.7, soft_max=8, mu2=2, a3=1.0,
                               conductance=[0.5e-9, 0.1e-9],
@@ -137,10 +138,10 @@ class MyTestCase(unittest.TestCase):
         for new_id, old_id in old_id_lookup.items():
 
             for var in sl_orig.data["neurons"][old_id]:
-                if var == "neuronID":
-                    self.assertTrue(sl_ablated.data["neurons"][new_id]["neuronID"] == new_id)
-                    self.assertTrue(sl_orig.data["neurons"][old_id]["neuronID"] == old_id)
-                elif var == "axonDensityRadius":
+                if var == "neuron_id":
+                    self.assertTrue(sl_ablated.data["neurons"][new_id]["neuron_id"] == new_id)
+                    self.assertTrue(sl_orig.data["neurons"][old_id]["neuron_id"] == old_id)
+                elif var == "axon_density_radius":
                     self.assertTrue((np.isnan(sl_ablated.data["neurons"][new_id][var]) and np.isnan(sl_orig.data["neurons"][old_id][var]))
                                     or sl_ablated.data["neurons"][new_id][var] == sl_orig.data["neurons"][old_id][var])
 

@@ -6,9 +6,13 @@ import os
 import sys
 import timeit
 
+# Must be run before NEURON import to run in parallel
+from mpi4py import MPI
+
 import h5py
 import matplotlib.pyplot as plt
 import numpy as np
+import copy
 
 from snudda.core import Snudda
 from snudda.init.init import SnuddaInit
@@ -34,7 +38,7 @@ class NumpyEncoder(json.JSONEncoder):
 
 class InputTuning(object):
 
-    def __init__(self, network_path, snudda_data=None):
+    def __init__(self, network_path, snudda_data=None, rc=None, input_seed_list=None):
 
         self.network_path = network_path
         self.neurons_path = None
@@ -50,6 +54,9 @@ class InputTuning(object):
         self.frequency_range = None
         self.input_duration = None
         self.max_time = None  # self.input_duration * len(self.frequency_range)
+        self.num_replicas = None
+
+        self.rc = rc
 
         if not os.path.isdir(self.network_path):
             os.makedirs(self.network_path)
@@ -57,7 +64,15 @@ class InputTuning(object):
         self.network_config_file_name = os.path.join(self.network_path, "network-config.json")
         self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         self.input_config_file = os.path.join(self.network_path, "input_config.json")
-        self.input_spikes_file = os.path.join(self.network_path, 'input.hdf5')
+
+        self.input_seed_list = input_seed_list
+
+        if self.input_seed_list is None:
+            self.input_spikes_file = os.path.join(self.network_path, 'input.hdf5')
+            self.output_file = os.path.join(self.network_path, "simulations", "output.hdf5")
+        else:
+            self.input_spikes_file = [os.path.join(self.network_path, f"input-{s}.hdf5") for s in self.input_seed_list]
+            self.output_file = [os.path.join(self.network_path, "simulations", f"output-{s}.hdf5") for s in self.input_seed_list]
 
         self.core = Snudda(self.network_path)
         self.init_helper = SnuddaInit(network_path=self.network_path, snudda_data=self.snudda_data)
@@ -72,6 +87,8 @@ class InputTuning(object):
             all_combinations = True
         else:
             all_combinations = False
+
+        self.num_replicas = num_replicas
 
         # TODO: num_replicas should be set by a parameter, it affects how many duplicates of each neuron
         # and thus how many steps we have between n_min and n_max number of inputs specified.
@@ -103,20 +120,29 @@ class InputTuning(object):
         sp.parse_config(resort_neurons=False)  # By not resorting neurons, we have original order
         sp.write_data()
 
-        sd = SnuddaDetect(network_path=self.network_path)
+        sd = SnuddaDetect(network_path=self.network_path, rc=self.rc)
         sd.detect()
 
-        sp = SnuddaPrune(network_path=self.network_path)
+        sp = SnuddaPrune(network_path=self.network_path, rc=self.rc)
         sp.prune()
 
         # TODO: Skip placing neurons that will not receive any inputs or distribute any inputs
 
-    def setup_input(self, input_type=None, num_input_min=100, num_input_max=1000,
+    def setup_input(self, input_type=None,
+                    num_input_min=100, num_input_max=1000, num_input_steps=None,
                     input_duration=10,
-                    input_frequency_range=None, use_meta_input=True):
+                    input_frequency_range=None,
+                    input_correlation=None,
+                    use_meta_input=True, generate=True, clear_old_input=True):
+
+        if clear_old_input:
+            self.input_info = None
 
         if not input_frequency_range:
             input_frequency_range = [1.0]
+
+        if not num_input_steps:
+            num_input_steps = self.num_replicas
 
         self.frequency_range = np.array(input_frequency_range)
         self.input_duration = input_duration
@@ -126,15 +152,27 @@ class InputTuning(object):
         synapse_density_thalamic_input = "0.05*exp(-d/200e-6)"
         #  synapse_density_thalamic_input = "(d > 100e-6)*1"  # TEST!!
 
+        # TODO: These should be read from JSON file, so user can add additional neuron and input types
         cortical_SPN_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+        cortical_contralateral_SPN_synapse_parameter_file = "$DATA/synapses/striatum/M1LH_Analysis_191001.h5-parameters-MS.json"
         thalamic_SPN_synapse_parameter_file = "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+
         cortical_FS_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json"
+        cortical_contralateral_FS_synapse_parameter_file = "$DATA/synapses/striatum/M1LH_Analysis_191001.h5-parameters-FS.json"
         thalamic_FS_synapse_parameter_file = "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-FS.json"
+
         cortical_ChIN_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-CHAT.json"
         thalamic_ChIN_synapse_parameter_file = "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-CHAT.json"
+
         cortical_LTS_synapse_parameter_file = "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-LTS.json"
 
-        if input_type == 'cortical':
+        if "cortical_contralateral" in input_type.lower():
+            synapse_density = synapse_density_cortical_input
+            synapse_parameter_file = {"dspn": cortical_contralateral_SPN_synapse_parameter_file,
+                                      "ispn": cortical_contralateral_SPN_synapse_parameter_file,
+                                      "fs": cortical_contralateral_FS_synapse_parameter_file}
+
+        elif 'cortical' in input_type.lower():
             synapse_density = synapse_density_cortical_input
             synapse_parameter_file = {"dspn": cortical_SPN_synapse_parameter_file,
                                       "ispn": cortical_SPN_synapse_parameter_file,
@@ -142,7 +180,7 @@ class InputTuning(object):
                                       "lts": cortical_LTS_synapse_parameter_file,
                                       "chin": cortical_ChIN_synapse_parameter_file}
             print("Using cortical synapse density for input.")
-        elif input_type == 'thalamic':
+        elif 'thalamic' in input_type.lower():
             synapse_density = synapse_density_thalamic_input
             synapse_parameter_file = {"dspn": thalamic_SPN_synapse_parameter_file,
                                       "ispn": thalamic_SPN_synapse_parameter_file,
@@ -154,22 +192,128 @@ class InputTuning(object):
             synapse_parameter_file = {}
             print("No density profile used for input    .")
 
+        if "cluster" in input_type.lower():
+            cluster_size = 4
+            cluster_spread = 20e-6
+        else:
+            cluster_size = None
+            cluster_spread = None
+
         self.create_input_config(input_config_file=self.input_config_file,
                                  input_type=input_type,
                                  input_frequency=list(self.frequency_range),  # [1.0],
+                                 input_correlation=input_correlation,
                                  n_input_min=num_input_min,
                                  n_input_max=num_input_max,
+                                 num_input_steps=num_input_steps,
                                  synapse_conductance=0.5e-9,
                                  synapse_density=synapse_density,
                                  input_duration=self.input_duration,
-                                 synapse_parameter_file=synapse_parameter_file)
+                                 synapse_parameter_file=synapse_parameter_file,
+                                 cluster_size=cluster_size,
+                                 cluster_spread=cluster_spread)
 
-        si = SnuddaInput(input_config_file=self.input_config_file,
-                         hdf5_network_file=os.path.join(self.network_path, 'network-synapses.hdf5'),
-                         spike_data_filename=self.input_spikes_file,
-                         time=self.max_time,
-                         logfile=os.path.join(self.network_path, "log", "input.txt"), use_meta_input=use_meta_input)
-        si.generate()
+        if generate:
+            self.generate_input_helper(use_meta_input=use_meta_input)
+
+        # Info we need to run right duration of simulation
+        self.write_tuning_info()
+
+    def generate_input_helper(self, use_meta_input=True):
+        if self.input_seed_list is None:
+            si = SnuddaInput(input_config_file=self.input_config_file,
+                             hdf5_network_file=os.path.join(self.network_path, 'network-synapses.hdf5'),
+                             spike_data_filename=self.input_spikes_file,
+                             time=self.max_time,
+                             logfile=os.path.join(self.network_path, "log", "input.txt"),
+                             use_meta_input=use_meta_input, rc=self.rc)
+            si.generate()
+        else:
+            for ctr, (seed, input_file) in enumerate(zip(self.input_seed_list, self.input_spikes_file)):
+                print(f"Iteration {ctr}/{len(self.input_seed_list)} (seed: {seed})")
+
+                si = SnuddaInput(input_config_file=self.input_config_file,
+                                 hdf5_network_file=os.path.join(self.network_path, 'network-synapses.hdf5'),
+                                 spike_data_filename=input_file,
+                                 time=self.max_time,
+                                 logfile=os.path.join(self.network_path, "log", f"input-{seed}.txt"),
+                                 use_meta_input=use_meta_input, rc=self.rc, random_seed=seed)
+                si.generate()
+
+    def setup_background_input(self, input_types=["cortical_background", "thalamic_background"],
+                               input_density=["1.15*0.05/(1+exp(-(d-30e-6)/5e-6))", "0.05*exp(-d/200e-6)"],
+                               input_fraction=[0.5, 0.5],
+                               num_input_min=10, num_input_max=500,
+                               input_frequency=[1, 1], input_duration=10,
+                               generate_input=True):
+
+        """ Tries to find the maximum number of synapses that will not make the neuron spike. """
+
+        if np.sum(input_fraction) != 1:
+            # If [0.5, 0.5] and 100 inputs, means 50 and 50 synapses for the two inputs
+            input_fraction = np.array(input_fraction) / np.sum(input_fraction)
+            print(f"Adjusting input fraction to make total 1: {input_fraction}")
+
+        num_input_steps = self.num_replicas
+        self.input_duration = input_duration
+        self.max_time = self.input_duration   # Only one frequency for background, we are varying number of inputs
+
+        # TODO: Setup network, run neurons at one frequency.
+
+        # Make sure input is cleared on first iteration, and generated on last iteration
+        generate_flag = np.zeros((len(input_frequency),), dtype=bool)
+        generate_flag[-1] = generate_input
+        clear_flag = np.zeros((len(input_frequency),), dtype=bool)
+        clear_flag[0] = True
+
+        for input_type, density, fraction, frequency, gf, cf \
+            in zip(input_types, input_density, input_fraction, input_frequency,
+                   generate_flag, clear_flag):
+
+            self.setup_input(input_type=input_type,
+                             num_input_min=np.round(fraction*num_input_min),
+                             num_input_max=np.round(fraction*num_input_max),
+                             input_duration=input_duration,
+                             input_frequency_range=[frequency],
+                             use_meta_input=False,
+                             generate=gf,
+                             clear_old_input=cf)
+
+    def setup_input_verification(self, input_type="cortical", neuron_type="dSPN",
+                                 input_frequency_range=None,
+                                 input_duration=10,
+                                 generate=True, seed_list=None):
+
+        # Here we use the META input, and replace the frequency, start and end variables
+        # input_type can be "cortical", "thalamic", "cortical_background", "thalamic_background"
+
+        if not input_frequency_range:
+            input_frequency_range = [1.0, 5.0, 10.0, 15.0, 20.0, 30.0, 40.0]
+
+        self.frequency_range = np.array(input_frequency_range)
+        self.input_duration = input_duration
+        self.max_time = self.input_duration * len(self.frequency_range)
+
+        n_steps = len(self.frequency_range)
+        input_start = input_duration * np.arange(0, n_steps)
+        input_end = input_duration * np.arange(1, n_steps + 1)
+
+        input_target = neuron_type
+        self.input_info = collections.OrderedDict()
+        self.input_info[input_target] = collections.OrderedDict()
+
+        self.input_info[input_target][input_type] = collections.OrderedDict()
+
+        self.input_info[input_target][input_type]["generator"] = "poisson"
+        self.input_info[input_target][input_type]["start"] = input_start
+        self.input_info[input_target][input_type]["end"] = input_end
+        self.input_info[input_target][input_type]["frequency"] = self.frequency_range
+
+        with open(self.input_config_file, "w") as f:
+            json.dump(self.input_info, f, indent=4, cls=NumpyEncoder)
+
+        if generate:
+            self.generate_input_helper(use_meta_input=True)
 
         # Info we need to run right duration of simulation
         self.write_tuning_info()
@@ -177,6 +321,7 @@ class InputTuning(object):
     def analyse_results(self, input_type='', show_plots=False):
 
         frequency_data, voltage_data = self.load_data()
+
         self.plot_frequency_data(frequency_data, show_plots=show_plots, input_type_name=input_type)
         self.plot_frequency_data_alt(frequency_data, show_plots=show_plots, input_type_name=input_type)
         self.plot_volt_data(voltage_data, show_plots=show_plots, input_type_name=input_type)
@@ -186,13 +331,428 @@ class InputTuning(object):
               f"python3 plotting/Network_plot_traces.py {self.network_path}output_volt.txt "
               f"{self.network_path}network-synapses.hdf5 ")
 
-    def load_data(self, skip_time=0.0):
+    def find_signal_strength(self, requested_frequency=10.0, skip_time=0.0, show_plot=True, quiet_load=False):
+
+        spike_data = dict()
+        depolarisation_blocks = dict()
+
+        for idx in range(len(self.input_seed_list)):
+            network_info, input_config, _, neuron_id_lookup, neuron_name_list, \
+                spike_data[idx], _, time, depolarisation_blocks[idx] = \
+                self.load_data_helper(idx=idx, load_input=False, quiet_load=quiet_load)
+
+        input_config_info = dict()
+
+        duration = np.max(time) - skip_time
+        requested_spikes = requested_frequency * duration
+
+        bad_neuron_list = []
+
+        for neuron_name in neuron_id_lookup.keys():
+            neuron_id = neuron_id_lookup[neuron_name]
+
+            spike_count = np.zeros((len(neuron_id), len(self.input_seed_list)), dtype=int)
+            depol_block_flag = np.zeros((len(neuron_id), len(self.input_seed_list)), dtype=bool)
+
+            for idx in range(len(self.input_seed_list)):
+                spike_count[:, idx], depol_block_flag[:, idx] = \
+                    self.extract_background_spikes(spike_data=spike_data[idx],
+                                                   neuron_id=neuron_id,
+                                                   skip_time=skip_time,
+                                                   depolarisation_blocks=depolarisation_blocks[idx])
+
+            spike_count_mean = np.mean(spike_count, axis=1)
+
+            best_config, neuron_info, depol_block = self.get_best_config(data=spike_count_mean, requested_value=requested_spikes,
+                                                                         neuron_id=neuron_id,
+                                                                         input_config=input_config,
+                                                                         network_info=network_info,
+                                                                         depol_block_flag=depol_block_flag)
+
+            if depol_block:
+                bad_neuron_list.append(neuron_name)
+
+            input_config_info[neuron_name] = (best_config,
+                                              snudda_parse_path(os.path.join(neuron_info["neuron_path"], "meta.json"),
+                                                                snudda_data=self.snudda_data),
+                                              neuron_info["parameter_key"],
+                                              neuron_info["morphology_key"])
+
+            # Just an idiot check to make sure all neurons we are comparing are the same
+            for nid in neuron_id:
+                assert network_info.data["neurons"][neuron_id[0]]["name"] == network_info.data["neurons"][nid]["name"]
+
+            if depol_block:
+                label = f"signal-{requested_frequency}-Hz-BLOCKED"
+            else:
+                label = f"signal-{requested_frequency}-Hz"
+
+            self.plot_signal_info(neuron_id=neuron_id, neuron_info=neuron_info, best_config=best_config,
+                                  spike_count=spike_count, input_config=input_config, max_time=np.max(time),
+                                  requested_frequency=requested_frequency, depol_block_flag=depol_block_flag,
+                                  label=label, show_plot=show_plot)
+
+        for name in bad_neuron_list:
+            print(f"Found early depolarisation block: {name}")
+
+        return input_config_info
+
+    def get_best_config(self, data, requested_value, neuron_id, input_config, network_info,
+                        depol_block_flag):
+
+        idx_above = np.argmax(data > requested_value)
+
+        if data[idx_above] < requested_value:
+            # If we did not reach the requested value, pick the closest point.
+            idx_above = idx_below = np.argmin(abs(data - requested_value))
+
+        elif idx_above == 0:
+            idx_below = 0
+        else:
+            idx_below = idx_above - 1
+
+        config_above = input_config[str(neuron_id[idx_above])]
+        config_below = input_config[str(neuron_id[idx_below])]
+
+        input_type = list(config_above.keys())
+        assert len(input_type) == 1, f"Interpolation can only handle one input type. Found {input_type}"
+        input_type = input_type[0]
+
+        n_syn_above = config_above[input_type]["num_inputs"]
+        n_syn_below = config_below[input_type]["num_inputs"]
+
+        value_above = data[idx_above]
+        value_below = data[idx_below]
+
+        depol_block = depol_block_flag[:idx_above, :].any()
+
+        assert value_below <= value_above
+
+        if n_syn_above == n_syn_below:
+            n_syn = n_syn_above
+        else:
+            n_syn = int(np.round(n_syn_below
+                                 + (n_syn_above - n_syn_below) * (requested_value - value_below)
+                                 / (value_above - value_below)))
+
+        try:
+            assert n_syn_below <= n_syn <= n_syn_above, f"NOT TRUE: n_syn_below {n_syn_below} <= n_syn {n_syn} <= n_syn_above {n_syn_above}"
+        except:
+            import traceback
+            import pdb
+            print(traceback.format_exc())
+            pdb.set_trace()
+
+        best_config = copy.deepcopy(config_above)
+        best_config[input_type]["num_inputs"] = n_syn
+
+        neuron_info = network_info.data["neurons"][neuron_id[idx_above]]
+
+        return best_config, neuron_info, depol_block
+
+    def find_highest_non_spiking_background_input(self, skip_time=0.0, show_plot=True, quiet_load=False):
+
+        spike_data = dict()
+        depolarisation_blocks = dict()
+
+        for idx in range(len(self.input_seed_list)):
+            network_info, input_config, _, neuron_id_lookup, neuron_name_list, \
+                spike_data[idx], _, time, depolarisation_blocks[idx] = \
+                self.load_data_helper(idx=idx, load_input=False, quiet_load=quiet_load)
+
+        input_config_info = dict()
+
+        for neuron_name in neuron_id_lookup.keys():
+            neuron_id = neuron_id_lookup[neuron_name]
+
+            spike_count = np.zeros((len(neuron_id), len(self.input_seed_list)), dtype=int)
+            depol_block_flag = np.zeros((len(neuron_id), len(self.input_seed_list)), dtype=bool)
+
+            for idx in range(len(self.input_seed_list)):
+                spike_count[:, idx], depol_block_flag[:, idx] = \
+                    self.extract_background_spikes(spike_data=spike_data[idx],
+                                                   neuron_id=neuron_id,
+                                                   skip_time=skip_time,
+                                                   depolarisation_blocks=depolarisation_blocks[idx])
+
+            spike_count_sum = np.sum(spike_count, axis=1)
+
+            # TODO: Need to handle if there are spikes in all traces
+            best_ctr = 0
+            for ctr, sc in enumerate(spike_count_sum):
+                if sc > 0:
+                    break
+                else:
+                    best_ctr = ctr
+
+            best_neuron_id = neuron_id[best_ctr]
+
+            neuron_info = network_info.data["neurons"][best_neuron_id]
+            input_config_info[neuron_name] = (input_config[str(best_neuron_id)],
+                                              snudda_parse_path(os.path.join(neuron_info["neuron_path"], "meta.json"),
+                                                                snudda_data=self.snudda_data),
+                                              neuron_info["parameter_key"],
+                                              neuron_info["morphology_key"])
+
+            # Just an idiot check to make sure all neurons we are comparing are the same
+            for nid in neuron_id:
+                assert network_info.data["neurons"][neuron_id[0]]["name"] == network_info.data["neurons"][nid]["name"]
+
+            self.plot_background_info(neuron_id=neuron_id, neuron_info=neuron_info, best_neuron_id=best_neuron_id,
+                                      spike_count=spike_count, input_config=input_config, depol_block_flag=depol_block_flag,
+                                      max_time=np.max(time), label="background-inputs", show_plot=show_plot)
+
+        return input_config_info
+
+    def plot_background_info(self, neuron_id, neuron_info, best_neuron_id, spike_count, input_config,
+                             max_time, skip_time=0, label="background-inputs", show_plot=True,
+                             depol_block_flag=None):
+
+        n_inputs_total = np.zeros((len(neuron_id),), dtype=int)
+        fig_dir = os.path.join(self.network_path, "figures")
+
+        if not os.path.isdir(fig_dir):
+            os.mkdir(fig_dir)
+
+        fig_name = os.path.join(fig_dir, f"{neuron_info['morphology_key']}-{neuron_info['parameter_key']}-{neuron_info['name']}-{label}.png")
+
+        for ctr, nid in enumerate(neuron_id):
+            # Get total input.
+            for input_conf in input_config[str(nid)].values():
+                n_inputs_total[ctr] += input_conf["num_inputs"]
+
+        best_idx = np.where(neuron_id == best_neuron_id)[0]
+
+        plt.figure()
+        plt.plot(n_inputs_total, spike_count/(max_time-skip_time), 'k.')
+
+        if depol_block_flag is not None:
+            # Mark the depolarisation blocks with a red circle.
+            bad_idx = np.where(depol_block_flag)
+            plt.plot(n_inputs_total[bad_idx[0]], spike_count[bad_idx]/(max_time-skip_time), 'ro')
+
+        plt.plot(n_inputs_total[best_idx], spike_count[best_idx]/(max_time-skip_time), 'b*')
+        plt.xlabel("Total number of synapses")
+        plt.ylabel("Spike frequency")
+        plt.title(f"Neuron {neuron_info['name']}")
+
+        print(f"Saving figure to {fig_name}")
+        plt.savefig(fig_name)
+
+        if show_plot:
+            plt.ion()
+            plt.show()
+
+    def plot_signal_info(self, neuron_id, neuron_info, best_config, spike_count, input_config,
+                         max_time, requested_frequency, skip_time=0,
+                         label="background-inputs", show_plot=True,
+                         depol_block_flag=None):
+
+        n_inputs_total = np.zeros((len(neuron_id),), dtype=int)
+        fig_dir = os.path.join(self.network_path, "figures")
+
+        if not os.path.isdir(fig_dir):
+            os.mkdir(fig_dir)
+
+        fig_name = os.path.join(fig_dir, f"{neuron_info['morphology_key']}-{neuron_info['parameter_key']}-{neuron_info['name']}-{label}.png")
+
+        for ctr, nid in enumerate(neuron_id):
+            # Get total input.
+            for input_conf in input_config[str(nid)].values():
+                n_inputs_total[ctr] += input_conf["num_inputs"]
+
+        plt.figure()
+        plt.plot(n_inputs_total, spike_count/(max_time-skip_time), 'k.')
+
+        if depol_block_flag is not None:
+            # Mark the depolarisation blocks with a red circle.
+            bad_idx = np.where(depol_block_flag)
+            plt.plot(n_inputs_total[bad_idx[0]], spike_count[bad_idx]/(max_time-skip_time), 'ro')
+
+        input_type = list(best_config.keys())
+        assert len(input_type) == 1
+        input_type = input_type[0]
+        best_n_syn = best_config[input_type]["num_inputs"]
+
+        y_lim = plt.gca().get_ylim()
+        plt.plot([best_n_syn, best_n_syn], y_lim, 'r-')  # best n_inputs
+
+        x_lim = plt.gca().get_xlim()
+        plt.plot(x_lim, [requested_frequency, requested_frequency], 'k--')
+
+        # plt.plot(n_inputs_total[best_idx], spike_count[best_idx]/(max_time-skip_time), 'r*')
+        plt.xlabel("Total number of synapses")
+        plt.ylabel("Spike frequency")
+        plt.title(f"Neuron {neuron_info['name']} ({best_n_syn} {input_type} synapses)")
+
+        print(f"Saving figure to {fig_name}")
+        plt.savefig(fig_name)
+
+        if show_plot:
+            plt.ion()
+            plt.show()
+
+    def update_meta(self, input_config_info, overwrite=True, set_frequency=None):
+
+        last_meta_file = None
+        meta_data = None
+
+        for input_config, meta_file, parameter_key, morphology_key in input_config_info.values():
+
+            if meta_file != last_meta_file:
+                # Write old data to file
+                if last_meta_file is not None:
+                    print(f"Writing {last_meta_file}")
+                    with open(last_meta_file, "w") as f:
+                        json.dump(meta_data, f, indent=4)
+
+                # Load new data
+                with open(meta_file, "r") as f:
+                    meta_data = json.load(f)
+                last_meta_file = meta_file
+
+            new_config = copy.deepcopy(input_config)
+            try:
+                for input_name in new_config.keys():
+                    if set_frequency is not None:
+                        # Override the frequency (this is useful to have a signal, but not have it active)
+                        new_config[input_name]["frequency"] = set_frequency
+                    else:
+                        # Use the frequency from the input tuning
+                        new_config[input_name]["frequency"] = new_config[input_name]["frequency"][0]
+
+                    del new_config[input_name]["start"]
+                    del new_config[input_name]["end"]
+
+                    # If parameter_file and parameter-ist both are given, only keep the latter
+                    if "parameter_file" in new_config[input_name] and "parameter_list" in new_config[input_name]:
+                        del new_config[input_name]["parameter_list"]
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
+
+            if parameter_key not in meta_data or morphology_key not in meta_data[parameter_key]:
+                print(f"Parameter key {parameter_key}, morphology key {morphology_key} not found in {meta_file} -- was it manually removed?")
+                continue
+
+            if overwrite:
+                meta_data[parameter_key][morphology_key]["input"] = new_config
+            else:
+                meta_data[parameter_key][morphology_key]["input"] |= new_config
+
+        # Write last iteration to file
+        if last_meta_file is not None:
+            print(f"Writing {last_meta_file}")
+            with open(last_meta_file, "w") as f:
+                json.dump(meta_data, f, indent=4)
+
+    def load_data(self, skip_time=0.0, quiet_load=False):
+
+        input_data = dict()
+        spike_data = dict()
+        volt = dict()
+        time = dict()
+        depolarisation_blocks = dict()
+
+        if self.input_seed_list is None:
+            network_info, input_config, input_data, neuron_id_lookup, neuron_name_list, \
+            spike_data, volt, time, depolarisation_blocks \
+                = self.load_data_helper(idx=None, quiet_load=quiet_load)
+
+            first_input_data = input_data["input"]
+        else:
+            for idx in range(len(self.input_seed_list)):
+                network_info, input_config, input_data[idx], neuron_id_lookup, neuron_name_list, \
+                    spike_data[idx], volt[idx], time[idx], depolarisation_blocks[idx] \
+                    = self.load_data_helper(idx=idx, quiet_load=quiet_load)
+
+            first_input_data = input_data[0]["input"]
+
+        n_inputs_lookup = dict()
+
+        for neuron_label in first_input_data:
+            neuron_id = int(neuron_label)
+            n_inputs = 0
+
+            for input_type in first_input_data[neuron_label]:
+                n_inputs += first_input_data[neuron_label][input_type]["spikes"].shape[0]
+
+            n_inputs_lookup[neuron_id] = n_inputs
+
+        frequency_data = dict()
+        voltage_data = dict()
+
+        for neuron_name in neuron_id_lookup.keys():
+            frequency_data[neuron_name] = dict()
+            voltage_data[neuron_name] = dict()
+
+        for neuron_name in neuron_name_list:
+            for neuron_id in neuron_id_lookup[neuron_name]:
+
+                if neuron_id not in n_inputs_lookup:
+                    print(f"No inputs for neuron_id={neuron_id}, ignoring. Please update your setup.")
+                    continue
+
+                if self.input_seed_list is None:
+
+                    n_inputs = n_inputs_lookup[neuron_id]
+
+                    if n_inputs not in frequency_data[neuron_name]:
+                        frequency_data[neuron_name][n_inputs] = dict()
+
+                    frequency_data[neuron_name][n_inputs] = self.extract_frequencies(spike_data=spike_data,
+                                                                                     config_data=input_config,
+                                                                                     neuron_id=neuron_id,
+                                                                                     skip_time=skip_time)
+                    voltage_data[neuron_name][n_inputs] = self.extract_voltage(volt=volt,
+                                                                               time=time,
+                                                                               config_data=input_config,
+                                                                               neuron_id=neuron_id,
+                                                                               skip_time=skip_time)
+
+                else:
+
+                    for idx in range(len(self.input_seed_list)):
+
+                        n_inputs = n_inputs_lookup[neuron_id]
+
+                        if n_inputs not in frequency_data[neuron_name]:
+                            frequency_data[neuron_name][n_inputs] = dict()
+
+                        frequency_data[neuron_name][n_inputs][idx] = self.extract_frequencies(spike_data=spike_data,
+                                                                                              config_data=input_config,
+                                                                                              neuron_id=neuron_id,
+                                                                                              skip_time=skip_time)
+                        voltage_data[neuron_name][n_inputs][idx] = self.extract_voltage(volt=volt,
+                                                                                        time=time,
+                                                                                        config_data=input_config,
+                                                                                        neuron_id=neuron_id,
+                                                                                        skip_time=skip_time)
+
+        # TODO: Load voltage trace and warn for depolarisation blocking
+
+        return frequency_data, voltage_data
+
+    def load_data_helper(self, idx=None, load_input=True, quiet_load=False):
 
         network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         network_info = SnuddaLoad(network_file)
-        input_data = h5py.File(self.input_spikes_file, "r")
+        input_data = None
 
-        output_data_loader = SnuddaLoadNetworkSimulation(network_path=self.network_path)
+        if idx is None:
+            output_file = self.output_file
+            if load_input and os.path.isfile(self.input_spikes_file):
+                input_data = h5py.File(self.input_spikes_file, "r")
+        else:
+            output_file = self.output_file[idx]
+            if load_input and os.path.isfile(self.input_spikes_file[idx]):
+                input_data = h5py.File(self.input_spikes_file[idx], "r")
+
+        output_data_loader = SnuddaLoadNetworkSimulation(network_path=self.network_path,
+                                                         network_simulation_output_file=output_file,
+                                                         do_test=True, quiet_load=quiet_load)
         spike_data = output_data_loader.get_spikes()
 
         # cell_id = output_data_loader.get_id_of_neuron_type()
@@ -216,48 +776,171 @@ class InputTuning(object):
         # Next identify number of inputs each run had
         input_config = self.load_input_config()
 
-        n_inputs_lookup = dict()
+        depolarisation_blocks = output_data_loader.get_depolarisation_dictionary()
 
-        for neuron_label in input_data["input"]:
-            neuron_id = int(neuron_label)
-            n_inputs = 0
+        return network_info, input_config, input_data, neuron_id_lookup, neuron_name_list, spike_data, volt, time, depolarisation_blocks
 
-            for input_type in input_data["input"][neuron_label]:
-                n_inputs += input_data["input"][neuron_label][input_type]["spikes"].shape[0]
+    def is_depolarisation_blocked(self, neuron_id, time_range, depolarisation_blocks):
 
-            n_inputs_lookup[neuron_id] = n_inputs
+        # Checks if there are any depolarisation blocks for neuron_id within the time_range
 
-        frequency_data = dict()
-        voltage_data = dict()
+        is_blocked = False
 
-        for neuron_name in neuron_id_lookup.keys():
-            frequency_data[neuron_name] = dict()
-            voltage_data[neuron_name] = dict()
+        if neuron_id in depolarisation_blocks:
 
-        for neuron_name in neuron_name_list:
-            for neuron_id in neuron_id_lookup[neuron_name]:
+            for start_block, end_block in depolarisation_blocks[neuron_id]:
 
-                if neuron_id not in n_inputs_lookup:
-                    print(f"No inputs for neuron_id={neuron_id}, ignoring. Please update your setup.")
-                    continue
+                if time_range[0] < end_block and time_range[1] > start_block:
+                    is_blocked = True
 
-                n_inputs = n_inputs_lookup[neuron_id]
-                frequency_data[neuron_name][n_inputs] = self.extract_spikes(spike_data=spike_data,
-                                                                            config_data=input_config,
-                                                                            neuron_id=neuron_id,
-                                                                            skip_time=skip_time)
-                voltage_data[neuron_name][n_inputs] = self.extract_voltage(volt=volt,
-                                                                           time=time,
-                                                                           config_data=input_config,
-                                                                           neuron_id=neuron_id,
-                                                                           skip_time=skip_time)
+        return is_blocked
 
-        # TODO: Load voltage trace and warn for depolarisation blocking
+    def plot_depolarisation_blocked_neurons(self, freq_bin=10):
 
-        return frequency_data, voltage_data
+        spike_data = dict()
+        volt = dict()
+        depolarisation_blocks = dict()
+
+        if type(self.input_spikes_file) == list:
+            idx_list = np.arange(0, len(self.input_spikes_file))
+
+            for idx in idx_list:
+                network_info, input_config, _, neuron_id_lookup, neuron_name_list, \
+                    spike_data[idx], volt[idx], time, depolarisation_blocks[idx] = \
+                    self.load_data_helper(idx=idx, load_input=False, quiet_load=True)
+
+        else:
+            network_info, input_config, _, neuron_id_lookup, neuron_name_list, \
+                spike_data[0], volt[0], time, depolarisation_blocks[0] = \
+                self.load_data_helper(load_input=False, quiet_load=True)
+
+        bad_neurons = []
+
+        for idx in depolarisation_blocks:
+            bad_neurons += list(depolarisation_blocks[idx].keys())
+
+        for neuron_id in bad_neurons:
+            plt.figure()
+
+            for ctr, idx in enumerate(volt):
+                plt.plot(time*1e3, volt[idx][neuron_id]*1e3)
+                plt.plot(spike_data[idx][neuron_id]*1e3,
+                         np.full(spike_data[idx][neuron_id].shape, 40+ctr), 'k.')
+                if neuron_id in depolarisation_blocks[idx]:
+                    for bad_start, bad_end in depolarisation_blocks[idx][neuron_id]:
+                        plt.plot([bad_start*1e3, bad_end*1e3], [50, 50], 'r')
+
+            full_morph_key = network_info.data["neurons"][neuron_id]["morphology_key"]
+            full_param_key = network_info.data["neurons"][neuron_id]["parameter_key"]
+            neuron_type = network_info.data["neurons"][neuron_id]["type"]
+
+            if freq_bin is not None:
+                n_bins = int(np.floor(np.max(time) / freq_bin)) + 1
+                freq_data = np.zeros((n_bins, len(spike_data.keys())))
+
+                for idx in spike_data:
+                    try:
+                        unique, counts = np.unique(np.floor(spike_data[idx][neuron_id].flatten() / freq_bin).astype(int), return_counts=True)
+                    except:
+                        import traceback
+                        print(traceback.format_exc())
+                        import pdb
+                        pdb.set_trace()
+
+                    for val, ctr in zip(unique, counts):
+                        freq_data[val, idx] = ctr / freq_bin
+
+                freq_vals = np.mean(freq_data, axis=1)
+                for idx, fv in enumerate(freq_vals):
+                    plt.text((idx+0.5)*freq_bin*1e3, -10, f"{fv:.1f}Hz",
+                             horizontalalignment="center")
+
+            plt.title(f"{neuron_type}, param: {full_param_key}, morph: {full_morph_key} (id {neuron_id})")
+            plt.xlabel("Time (ms)")
+            plt.ylabel("Voltage (mV)")
+
+            fig_path = os.path.join(self.network_path, "figures",
+                                    f"Bad-trace-{neuron_type}-{full_param_key}-{full_morph_key}.png")
+
+            if not os.path.exists(os.path.dirname(fig_path)):
+                os.mkdir(os.path.dirname(fig_path))
+
+            plt.savefig(fig_path, dpi=300)
+
+            plt.ion()
+            plt.show()
+
+    def plot_voltage_trace(self, morphology_key, parameter_key, mp_idx=None, time_range=None):
+
+        # Find all neurons with the morphology key, and parameter key
+
+        # If idx is given pick the n:th trace specified to plot, if not plot all traces.
+        # idx can be a list of multiple traces.
+
+        spike_data = dict()
+        volt = dict()
+        depolarisation_blocks = dict()
+
+        if type(self.input_spikes_file) == list:
+            idx_list = np.arange(0, len(self.input_spikes_file))
+
+            for idx in idx_list:
+                network_info, input_config, _, neuron_id_lookup, neuron_name_list, \
+                    spike_data[idx], volt[idx], time, depolarisation_blocks[idx] = \
+                    self.load_data_helper(idx=idx, load_input=False, quiet_load=True)
+
+        else:
+            network_info, input_config, _, neuron_id_lookup, neuron_name_list, \
+                spike_data[0], volt[0], time, depolarisation_blocks[0] = \
+                self.load_data_helper(load_input=False, quiet_load=True)
+
+        morph_flag = np.array([morphology_key in n["morphology_key"] for n in network_info.data["neurons"]], dtype=bool)
+        param_flag = np.array([parameter_key in n["parameter_key"] for n in network_info.data["neurons"]], dtype=bool)
+
+        match_idx = np.where(np.logical_and(morph_flag, param_flag))[0]
+
+        if mp_idx is None:
+            plot_idx = match_idx
+        else:
+            plot_idx = match_idx[mp_idx]
+
+        full_morph_key = network_info.data["neurons"][plot_idx[0]]["morphology_key"]
+        full_param_key = network_info.data["neurons"][plot_idx[0]]["parameter_key"]
+        neuron_type = network_info.data["neurons"][plot_idx[0]]["type"]
+
+        fig = plt.figure()
+        for r_idx in volt.keys():
+            for ctr, idx in enumerate(plot_idx):
+                spike_times = spike_data[r_idx][idx]
+
+                if time_range is None:
+                    plt.plot(time*1e3, volt[r_idx][idx]*1e3)
+                    plt.plot(spike_times*1e3, np.full(spike_times.shape, 40+ctr), 'k.')
+                else:
+                    t_idx = np.logical_and(time_range[0] <= time, time <= time_range[1])
+                    plt.plot(time[t_idx]*1e3, volt[r_idx][idx][t_idx]*1e3)
+                    s_idx = np.where(np.logical_and(time_range[0] <= spike_times,
+                                                    spike_times <= time_range[1]))
+                    plt.plot(spike_times[s_idx]*1e3, np.full(spike_times[s_idx].shape, 40+ctr), 'k.')
+
+                if idx in depolarisation_blocks[r_idx]:
+                    bad_ranges = depolarisation_blocks[r_idx][idx]
+                    for bad_start, bad_end in bad_ranges:
+                        if time_range is None or (bad_start <= time_range[1] and bad_end >= time_range[0]):
+                            plt.plot([bad_start*1e3, bad_end*1e3], [50, 50], 'r')
+
+        plt.title(f"{neuron_type}, param: {full_param_key}, morpg: {full_morph_key}")
+        plt.xlabel("Time (ms)")
+        plt.ylabel("Voltage (mV)")
+
+        fig_path = os.path.join(self.network_path, "figures", f"Trace-{neuron_type}-{full_param_key}-{full_morph_key}.png")
+        plt.savefig(fig_path)
+
+        plt.ion()
+        plt.show()
 
     # TODO: We should set skip_time to 1 second, 0 for now while testing
-    def extract_spikes(self, spike_data, config_data, neuron_id, skip_time=0.0):
+    def extract_frequencies(self, spike_data, config_data, neuron_id, skip_time=0.0):
 
         # This function checks the config_data to find out what time ranges to extract
 
@@ -292,6 +975,23 @@ class InputTuning(object):
         output_frequency = np.array(output_frequency)
 
         return input_frequency, output_frequency, input_type
+
+    def extract_background_spikes(self, spike_data, neuron_id, skip_time=0.0, depolarisation_blocks=None):
+
+        spike_count = np.zeros((len(neuron_id), ), dtype=int)
+
+        for ctr, n_id in enumerate(neuron_id):
+            spike_count[ctr] = len(np.where(spike_data[n_id] >= skip_time)[0])
+
+        if depolarisation_blocks is not None:
+            depol_block_flag = np.zeros((len(neuron_id),), dtype=bool)
+            for ctr, n_id in enumerate(neuron_id):
+                if n_id in depolarisation_blocks:
+                    depol_block_flag[ctr] = True
+
+            return spike_count, depol_block_flag
+
+        return spike_count
 
     def load_input_config(self):
 
@@ -466,7 +1166,6 @@ class InputTuning(object):
                 plt.show()
                 plt.pause(0.001)
 
-            # fig_name = os.path.join(self.network_path, "figures", f"input-scaling-freq-{neuron_name}-{input_type_name}.pdf")
             fig_name = os.path.join(self.network_path, "figures",
                                     f"input-scaling-freq-{neuron_name}-{input_type_name}.png")
             if not os.path.exists(os.path.dirname(fig_name)):
@@ -557,6 +1256,99 @@ class InputTuning(object):
             if not show_plots:
                 plt.close()
 
+    def plot_verify_frequency_distribution(self, input_type="cortical"):
+
+        network_info, input_config, input_data, neuron_id_lookup, neuron_name_list, \
+            spike_data, volt, time, depolarisation_blocks = self.load_data_helper()
+
+        # First find out what time ranges we need to look at, and what the input frequency is for those
+        neuron_type = list(input_config.keys())
+        assert len(neuron_type) == 1, f"Plot only supports one neuron type at a time, neuron_type = {neuron_type}"
+        neuron_type = neuron_type[0]
+
+        assert input_type in input_config[neuron_type], f"{input_type} not in input_config: {input_config}"
+        start_times = np.array(input_config[neuron_type][input_type]["start"])
+        end_times = np.array(input_config[neuron_type][input_type]["end"])
+        input_freq = np.array(input_config[neuron_type][input_type]["frequency"])
+        output_freq_list = []
+
+        #import pdb
+        #pdb.set_trace()
+
+        depol_blocked_freqs = []
+        depol_blocked_lookup = dict()
+
+        for neuron_id in sorted(spike_data.keys()):
+            out_freq = []
+            for start_t, end_t, in_freq in zip(start_times, end_times, input_freq):
+                n_spikes = np.sum(np.logical_and(start_t <= spike_data[neuron_id], spike_data[neuron_id] < end_t))
+                # import pdb
+                # pdb.set_trace()
+                f = n_spikes / (end_t - start_t)
+                out_freq.append(f)
+
+                if self.is_depolarisation_blocked(neuron_id=neuron_id, time_range=(start_t, end_t),
+                                                  depolarisation_blocks=depolarisation_blocks):
+                    depol_blocked_freqs.append((in_freq, f))
+
+                    if in_freq not in depol_blocked_lookup:
+                        depol_blocked_lookup[in_freq] = [f]
+                    else:
+                        depol_blocked_lookup[in_freq].append(f)
+
+            output_freq_list.append(out_freq)
+
+        output_freq = np.array(output_freq_list).T
+
+        if len(depol_blocked_freqs) > 0:
+            plt.figure()
+            plt.plot(input_freq, output_freq, 'k')
+
+            depol_in_freq, depol_out_freq = zip(*depol_blocked_freqs)
+            plt.plot(depol_in_freq, depol_out_freq, 'r*')
+
+            plt.xlabel("Input frequency")
+            plt.ylabel("Output frequency")
+            plt.ion()
+            plt.show()
+
+        one_mat = np.ones((2,))
+
+        bad_idx = set()
+
+        fig, ax = plt.subplots(len(input_freq), 1, figsize=(6, 12))
+
+        for idx, (in_freq, out_freq) in enumerate(zip(input_freq, output_freq)):
+
+            # ax[idx].hist(out_freq, bins=50)
+            counts, bins = np.histogram(out_freq, bins=50)
+            ax[idx].stairs(counts, bins, color="black")
+
+            if in_freq in depol_blocked_lookup:
+                depol_counts, depol_bins = np.histogram(depol_blocked_lookup[in_freq], bins=bins)
+                ax[idx].stairs(depol_counts, depol_bins, color="red")
+
+            yl = ax[idx].get_ylim()
+            mean_freq = np.mean(out_freq)
+            std_freq = np.std(out_freq)
+
+            ax[idx].plot(one_mat*mean_freq, yl, 'k-')
+            ax[idx].plot(one_mat*(mean_freq + 2*std_freq), yl, 'k--')
+            ax[idx].plot(one_mat*(mean_freq - 2*std_freq), yl, 'k--')
+            ax[idx].plot([in_freq, in_freq], yl, 'b-')
+
+            bad_idx = bad_idx.union(set(np.where(np.logical_or(out_freq < mean_freq - 2*std_freq,
+                                                               out_freq > mean_freq + 2*std_freq))[0]))
+
+            ax[idx].set_xlabel("Spiking frequency (Hz)")
+
+        plt.ion()
+        plt.show()
+
+        for idx in bad_idx:
+            bad_neuron = network_info.data["neurons"][idx]
+            print(f"Frequency outliers: {bad_neuron['name']} ({idx}) -- {output_freq[:, idx]} Hz\n{bad_neuron['neuron_path']}")
+
     def get_neuron_info(self, neuron_path):
 
         neuron_path = snudda_parse_path(neuron_path, self.snudda_data)
@@ -574,6 +1366,10 @@ class InputTuning(object):
         # Check if empty neuron_morph_list, or if more than one morphology
         assert os.path.isfile(parameter_file), f"Missing parameter file {parameter_file}"
         assert os.path.isfile(mechanism_file), f"Missing mechanism file {mechanism_file}"
+
+        # TODO: We need to have neuron_info["neuron_path"][name_of_neuron] = neuron_path
+        # The below line is wrong, but it is FRIDAY evening so will fix it monday...
+        neuron_info["neuron_path"] = snudda_simplify_path(neuron_path, self.snudda_data)
 
         neuron_info["morphology"] = snudda_simplify_path(neuron_morph, self.snudda_data)
         neuron_info["parameters"] = snudda_simplify_path(parameter_file, self.snudda_data)
@@ -630,8 +1426,8 @@ class InputTuning(object):
                     neuron_info_combination_list = self.get_all_combinations(neuron_info)
                     for ni in neuron_info_combination_list:
                         n_name = os.path.basename(os.path.dirname(ni["parameters"]))
-                        param_key = ni["parameterKey"]
-                        morph_key = ni["morphologyKey"]
+                        param_key = ni["parameter_key"]
+                        morph_key = ni["morphology_key"]
                         short_name = n_name[:min(10, len(n_name))]
                         neuron_name = f"{neuron_type}_{short_name}_{param_key}_{morph_key}".replace("-", "_")
                         all_neurons[neuron_name] = ni
@@ -665,9 +1461,9 @@ class InputTuning(object):
         for p_idx, p_key in enumerate(param_data):
             assert p_key in meta_data, f"parameter key {p_key} missing in {neuron_info['meta_file']}"
             for m_idx, m_key in enumerate(meta_data[p_key]):
-                ni = neuron_info.copy()
-                ni["morphologyKey"] = m_key
-                ni["parameterKey"] = p_key
+                ni = copy.deepcopy(neuron_info)
+                ni["morphology_key"] = m_key
+                ni["parameter_key"] = p_key
                 ni["morphology_file"] = os.path.join(ni["morphology"], meta_data[p_key][m_key]["morphology"])
                 ni["parameter_id"] = p_idx
                 ni["morphology_id"] = m_idx
@@ -711,21 +1507,20 @@ class InputTuning(object):
         if snudda_data is None:
             snudda_data = self.snudda_data
 
-        config_def = collections.OrderedDict()
-        config_def["SnuddaData"] = snudda_data
-        config_def["RandomSeed"], self.init_rng = SnuddaInit.setup_random_seeds(random_seed)
+        config_def = dict()
+        config_def["snudda_data"] = snudda_data
+        config_def["random_seed"], self.init_rng = SnuddaInit.setup_random_seeds(random_seed)
 
-        volume_def = collections.OrderedDict()
+        region_def = dict()
         vol_name = "InputTest"
-        volume_def[vol_name] = collections.OrderedDict()
+        region_def[vol_name] = dict()
+        region_def[vol_name]["volume"] = dict()
 
-        volume_def[vol_name]["type"] = "mesh"
-        volume_def[vol_name]["dMin"] = 15e-6
-        volume_def[vol_name]["meshFile"] = "data/mesh/InputTestMesh.obj"
-        volume_def[vol_name]["meshBinWidth"] = 100e-6
-
-        config_def["Volume"] = volume_def
-        config_def["Connectivity"] = dict()  # Unconnected
+        region_def[vol_name]["volume"]["type"] = "mesh"
+        region_def[vol_name]["volume"]["d_min"] = 15e-6
+        region_def[vol_name]["volume"]["mesh_file"] = "data/mesh/InputTestMesh.obj"
+        region_def[vol_name]["volume"]["num_putative_points"] = 10000
+        region_def[vol_name]["connectivity"] = dict()  # Unconnected
 
         if single_neuron_path:
             # Override and only get one neuron
@@ -734,31 +1529,39 @@ class InputTuning(object):
             neuron_def[neuron_types] = self.get_neuron_info(single_neuron_path)
 
             if parameter_key:
-                neuron_def[neuron_types]["parameterKey"] = parameter_key
+                neuron_def[neuron_types]["parameter_key"] = parameter_key
 
             if morphology_key:
-                neuron_def[neuron_types]["morphologyKey"] = morphology_key
+                neuron_def[neuron_types]["morphology_key"] = morphology_key
 
             if modulation_key:
-                neuron_def[neuron_types]["modulationKey"] = modulation_key
+                neuron_def[neuron_types]["modulation_key"] = modulation_key
 
         else:
             neuron_def = self.gather_all_neurons(neuron_types=neuron_types, all_combinations=all_combinations)
 
+        # Just generate a set of points
+        region_def[vol_name]["volume"]["n_putative_points"] = max(len(neuron_def.keys())*5, 10000)
+
         fake_axon_density = ["r", "1", 10e-6]
 
         for n in neuron_def.keys():
-            neuron_def[n]["num"] = num_replicas
-            neuron_def[n]["volumeID"] = vol_name
-            neuron_def[n]["rotationMode"] = "random"
+            neuron_def[n]["num_neurons"] = num_replicas
+            neuron_def[n]["volume_id"] = vol_name
+            neuron_def[n]["rotation_mode"] = "random"
             neuron_def[n]["hoc"] = None
+
+            if isinstance(neuron_def[n]["neuron_path"], str):
+                neuron_def[n]["neuron_path"] = {n: neuron_def[n]["neuron_path"]}
 
             if not self.has_axon(neuron_def[n]):
                 print(f"One or more of morphologies {neuron_def[n]['morphology']} has no axon, faking it.")
                 # We will have no connections in this test network, so add empty density
-                neuron_def[n]["axonDensity"] = fake_axon_density
+                neuron_def[n]["axon_density"] = fake_axon_density
 
-        config_def["Neurons"] = neuron_def
+        region_def[vol_name]["neurons"] = neuron_def
+
+        config_def["regions"] = region_def
 
         return config_def
 
@@ -771,7 +1574,7 @@ class InputTuning(object):
         if not self.neuron_info:
             self.load_network_info(network_file=self.network_file)
 
-        neuron_id = np.array([x["neuronID"] for x in self.neuron_info])
+        neuron_id = np.array([x["neuron_id"] for x in self.neuron_info])
         neuron_type = np.array([x["type"] for x in self.neuron_info])
 
         neuron_sets = dict()
@@ -790,13 +1593,17 @@ class InputTuning(object):
     def create_input_config(self,
                             input_config_file,
                             input_type,
-                            n_input_min, n_input_max, input_frequency,
+                            n_input_min, n_input_max, num_input_steps,
+                            input_frequency,
+                            input_correlation,
                             synapse_density,
                             synapse_conductance,
                             synapse_parameter_file,
+                            cluster_size,
+                            cluster_spread,
                             input_duration=10.0):
 
-        assert n_input_min > 0, "No point using n_input_min=0, please instead use input_frequency 0."
+        # assert n_input_min > 0, "No point using n_input_min=0, please instead use input_frequency 0."
 
         neuron_sets = self.collect_neurons()
         n_inputs = dict()
@@ -807,7 +1614,11 @@ class InputTuning(object):
             # will determine how many steps we have between n_input_min and n_input_max
 
             neuron_id_list = neuron_sets[neuron_type]
-            num_range = np.linspace(n_input_min, n_input_max, num=len(neuron_id_list)).astype(int)
+            n_unique = len(neuron_id_list) / num_input_steps
+
+            assert n_unique % 1 == 0, f"Internal error, every model version should exist {num_input_steps} times"
+
+            num_range = np.linspace(n_input_min, n_input_max, num=num_input_steps).astype(int).reshape((1, num_input_steps)).repeat(int(n_unique), axis=0).flatten()
 
             for neuron_id, num_input in zip(neuron_id_list, num_range):
 
@@ -817,11 +1628,11 @@ class InputTuning(object):
                     sd = synapse_density
 
                 if type(synapse_parameter_file) == dict:
-                    if neuron_type not in synapse_parameter_file:
-                        print(f"No parameter file for {neuron_type} {input_type} input, excluding from run.")
-                        continue
-
-                    spf = synapse_parameter_file[neuron_type]
+                    if neuron_type in synapse_parameter_file:
+                        spf = synapse_parameter_file[neuron_type]
+                    else:
+                        spf = None
+                        print(f"No parameter file for {neuron_type} {input_type} input")
                 else:
                     spf = synapse_parameter_file
 
@@ -833,17 +1644,22 @@ class InputTuning(object):
                 self.add_input(input_target=neuron_id,
                                input_type=input_type,
                                input_frequency=input_frequency,
+                               input_correlation=input_correlation,
                                input_duration=input_duration,
                                input_density=sd,
                                num_input=num_input,
                                input_conductance=sc,
-                               synapse_parameter_file=spf)
+                               synapse_parameter_file=spf,
+                               cluster_size=cluster_size,
+                               cluster_spread=cluster_spread)
 
         with open(input_config_file, "w") as f:
             json.dump(self.input_info, f, indent=4, cls=NumpyEncoder)
 
-    def add_input(self, input_target, input_type, input_frequency, input_duration,
+    def add_input(self, input_target, input_type, input_frequency, input_correlation,
+                  input_duration,
                   input_density, num_input, input_conductance,
+                  cluster_size, cluster_spread,
                   synapse_parameter_file):
 
         if type(input_target) != str:
@@ -857,21 +1673,33 @@ class InputTuning(object):
         input_start = input_duration * np.arange(0, n_steps)
         input_end = input_duration * np.arange(1, n_steps + 1)
 
-        self.input_info[input_target] = collections.OrderedDict()
+        if input_target not in self.input_info:
+            # By only creating dictionary if it does not exist, we can have multiple inputs
+            self.input_info[input_target] = collections.OrderedDict()
+
         self.input_info[input_target][input_type] = collections.OrderedDict()
 
         self.input_info[input_target][input_type]["generator"] = "poisson"
         self.input_info[input_target][input_type]["type"] = "AMPA_NMDA"
-        self.input_info[input_target][input_type]["synapseDensity"] = input_density
-        self.input_info[input_target][input_type]["nInputs"] = num_input
+        self.input_info[input_target][input_type]["synapse_density"] = input_density
+        self.input_info[input_target][input_type]["num_inputs"] = num_input
         self.input_info[input_target][input_type]["frequency"] = input_frequency
+        if input_correlation is not None:
+            self.input_info[input_target][input_type]["correlation"] = input_correlation
         self.input_info[input_target][input_type]["start"] = input_start
         self.input_info[input_target][input_type]["end"] = input_end
-        self.input_info[input_target][input_type]["populationUnitCorrelation"] = 0.0
+        self.input_info[input_target][input_type]["population_unit_correlation"] = 0.0
         self.input_info[input_target][input_type]["jitter"] = 0.0
         self.input_info[input_target][input_type]["conductance"] = input_conductance
-        self.input_info[input_target][input_type]["modFile"] = "tmGlut"
-        self.input_info[input_target][input_type]["parameterFile"] = synapse_parameter_file
+        self.input_info[input_target][input_type]["mod_file"] = "tmGlut"
+        if synapse_parameter_file is not None:
+            self.input_info[input_target][input_type]["parameter_file"] = synapse_parameter_file
+
+        if cluster_size is not None:
+            self.input_info[input_target][input_type]["cluster_size"] = cluster_size
+
+        if cluster_spread is not None:
+            self.input_info[input_target][input_type]["cluster_spread"] = cluster_spread
 
     def plot_generated_input(self, num_bins=50):
         # This function just checks that we have reasonable spikes generated
@@ -880,7 +1708,7 @@ class InputTuning(object):
         network_data = h5py.File(self.network_file, 'r')
 
         neuron_type = np.array([x.decode().split("_")[0].lower() for x in network_data["network/neurons/name"]])
-        neuron_id = np.array([x for x in network_data["network/neurons/neuronID"]])
+        neuron_id = np.array([x for x in network_data["network/neurons/neuron_id"]])
 
         # Plot the input spikes
         for nt in set(neuron_type):
@@ -902,7 +1730,7 @@ class InputTuning(object):
                         distance_to_soma[input_type] = []
 
                     distance_to_soma[input_type].append(
-                        input_spike_data["input"][str(nid)][input_type]["distanceToSoma"][:])
+                        input_spike_data["input"][str(nid)][input_type]["distance_to_soma"][:])
 
             plt.title(f"Input to {nt}")
             plt.xlabel("Time (s)")
@@ -937,7 +1765,24 @@ class InputTuning(object):
         input_spike_data.close()
         network_data.close()
 
-    def simulate(self, mech_dir=None):
+    def simulate(self, mech_dir=None, sample_dt=0.005):
+
+        if self.input_seed_list is None:
+            self.simulate_helper(mech_dir=mech_dir, sample_dt=sample_dt)
+        else:
+            for ctr, (input_file, output_file) in enumerate(zip(self.input_spikes_file, self.output_file)):
+                print(f"Iteration: {ctr+1}/{len(self.input_spikes_file)}")
+                print(f"Input file: {input_file}\nOutput file: {output_file}")
+                self.simulate_helper(mech_dir=mech_dir, sample_dt=sample_dt,
+                                     input_spikes_file=input_file, output_file=output_file)
+
+    def simulate_helper(self, mech_dir=None, sample_dt=0.01, input_spikes_file=None, output_file=None):
+
+        if input_spikes_file is None:
+            input_spikes_file = self.input_spikes_file
+
+        if output_file is None:
+            output_file = self.output_file
 
         from snudda.core import Snudda
         Snudda.compile_mechanisms(mech_dir=mech_dir)
@@ -951,7 +1796,9 @@ class InputTuning(object):
         pc = h.ParallelContext()
 
         sim = SnuddaSimulate(network_file=self.network_file,
-                             input_file=self.input_spikes_file)
+                             input_file=input_spikes_file,
+                             output_file=output_file,
+                             sample_dt=sample_dt)
         sim.setup()
         sim.add_external_input()
         sim.check_memory_status()
@@ -962,7 +1809,7 @@ class InputTuning(object):
         t_sim = self.max_time * 1000  # Convert from s to ms for Neuron simulator
 
         sim.check_memory_status()
-        print("Running simulation for " + str(t_sim) + " ms.")
+        print(f"Running simulation for {t_sim} ms.")
         sim.run(t_sim)  # In milliseconds
 
         print("Simulation done, saving output")
@@ -971,6 +1818,13 @@ class InputTuning(object):
         stop = timeit.default_timer()
         if sim.pc.id() == 0:
             print(f"Program run time: {stop - start:.1f}s")
+
+        print("About to clear memory")
+        sim.check_memory_status()
+        sim.clear_neuron()
+        print("Memory cleared")
+        sim.check_memory_status()
+        sim = None
 
     def read_tuning_info(self):
         tuning_info_file = os.path.join(self.network_path, "tuning-info.json")
@@ -985,19 +1839,19 @@ class InputTuning(object):
 
             # max_time is the important one, we want to make sure we simulate correct duration without having the user
             # provide the parameter twice
-            self.max_time = tuning_meta_data["MaxTime"]
-            self.input_duration = tuning_meta_data["InputDuration"]
-            self.frequency_range = tuning_meta_data["FrequencyRange"]
-            self.neurons_path = tuning_meta_data["NeuronsDirectory"]
+            self.max_time = tuning_meta_data["max_time"]
+            self.input_duration = tuning_meta_data["input_duration"]
+            self.frequency_range = tuning_meta_data["frequency_range"]
+            self.neurons_path = tuning_meta_data["neurons_directory"]
         except:
             print(f"Failed to read {tuning_info_file}")
 
     def write_tuning_info(self):
         tuning_meta_data = collections.OrderedDict()
-        tuning_meta_data["InputDuration"] = self.input_duration
-        tuning_meta_data["MaxTime"] = self.max_time
-        tuning_meta_data["FrequencyRange"] = self.frequency_range
-        tuning_meta_data["NeuronsDirectory"] = self.neurons_path
+        tuning_meta_data["input_duration"] = self.input_duration
+        tuning_meta_data["max_time"] = self.max_time
+        tuning_meta_data["frequency_range"] = self.frequency_range
+        tuning_meta_data["neurons_directory"] = self.neurons_path
 
         tuning_info_file = os.path.join(self.network_path, "tuning-info.json")
         with open(tuning_info_file, "wt") as f:
@@ -1034,12 +1888,20 @@ if __name__ == "__main__":
                         help="Optional, if only we want to simulate one neuron type, eg. FS")
     parser.add_argument("--singleNeuronType", default=None, type=str,
                         help="Optional, if only we want to simulate one neuron subtype, eg. FS_1")
-    parser.add_argument("--no_meta_input", action="store_true", default=False)
+    parser.add_argument("--meta_input", action="store_true", default=False)
+    parser.add_argument("--seed_list", type=str, default=None)
+    parser.add_argument("--no_downsampling", action="store_true")
+
     args = parser.parse_args()
 
     # TODO: Let the user choose input type, duration for each "run", frequency range, number of input range
 
-    input_scaling = InputTuning(args.networkPath)
+    if args.seed_list is not None:
+        seed_list = ast.literal_eval(args.seed_list)
+    else:
+        seed_list = None
+
+    input_scaling = InputTuning(args.networkPath, input_seed_list=seed_list)
 
     if args.action == "setup":
         input_frequency = ast.literal_eval(args.inputFrequency)
@@ -1053,23 +1915,56 @@ if __name__ == "__main__":
         input_scaling.setup_input(input_type=args.input_type,
                                   num_input_min=args.numInputMin,
                                   num_input_max=args.numInputMax,
+                                  num_replicas=args.numInputSteps,
                                   input_duration=args.inputDuration,
                                   input_frequency_range=input_frequency,
-                                  use_meta_input=not args.no_meta_input)
+                                  use_meta_input=args.no_meta_input)
 
         print("Tip, to run in parallel on your local machine use: "
               "mpiexec -n 4 python3 tuning/input_tuning.py simulate <yournetworkhere>")
+
+    if args.action == "setup_background":
+        input_frequency = ast.literal_eval(args.inputFrequency)
+
+        if type(input_frequency) != list:
+            input_frequency = np.array(list(input_frequency))
+
+        if len(input_frequency) != 1:
+            raise ValueError("input_frequency must only be one value when doing setup_background")
+
+        input_scaling.setup_network(neurons_path=args.neurons,
+                                    num_replicas=args.numInputSteps,
+                                    neuron_types=args.neuronType,
+                                    single_neuron_path=args.singleNeuronType)
+
+        print(f"Setting up background input, will do cortical and thalamic background 50-50 at {input_frequency}")
+
+        input_scaling.setup_background_input(input_types=["cortical_background", "thalamic_background"],
+                                             input_density=["1.15*0.05/(1+exp(-(d-30e-6)/5e-6))", "0.05*exp(-d/200e-6)"],
+                                             input_fraction=[0.5, 0.5],
+                                             num_input_min=args.numInputMin,
+                                             num_input_max=args.numInputMax,
+                                             input_duration=args.inputDuration,
+                                             input_frequency=[input_frequency, input_frequency])
 
     elif args.action == "simulate":
         print("Run simulation...")
         print("Tip, to run in parallel on your local machine use: "
               "mpiexec -n 4 python3 tuning/input_tuning.py simulate <yournetworkhere>")
-        input_scaling.simulate(mech_dir=args.mechDir)
+
+        if args.no_downsampling:
+            sample_dt = None
+        else:
+            sample_dt = 0.01
+
+        input_scaling.simulate(mech_dir=args.mechDir, sample_dt=sample_dt)
 
     elif args.action == "analyse":
         # input_scaling.plot_generated_input()
         input_scaling.analyse_results(input_type=args.input_type)
 
+    elif args.action == "analyse_background":
+        input_scaling.analyse_background()
 
     else:
         print(f"Unknown action {args.action}")

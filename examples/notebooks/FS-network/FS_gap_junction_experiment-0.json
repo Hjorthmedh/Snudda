@@ -1,36 +1,36 @@
 {
     "meta" : {
-	"simulationDuration" : 1.6,
-	"pairRecordingOutputFile" : "FS-gap-junction-output.hdf5",
+	"simulation_duration" : 1.6,
+	"pair_recording_output_file" : "FS-gap-junction-output.hdf5",
 	"record" : "soma"
     },
-    "currentInjection" : [
+    "current_injection" : [
 	{
-	    "neuronID": 19,
+	    "neuron_id": 1,
 	    "start": [0.2],
 	    "end": [0.25], 
 	    "amplitude": 4e-10
 	},
 	{
-	    "neuronID": 22,
+	    "neuron_id": 10,
 	    "start": [0.5],
 	    "end": [0.55], 
-	    "amplitude": 3e-10
+	    "amplitude": 4e-10
 	},
 	{
-	    "neuronID": 47,
+	    "neuron_id": 47,
 	    "start": [0.8],
 	    "end": [0.85], 
 	    "amplitude": 4e-10
 	},
 	{
-	    "neuronID": 68,
+	    "neuron_id": 68,
 	    "start": [1.1],
 	    "end": [1.15], 
 	    "amplitude": 4e-10
 	},
 	{
-	    "neuronID": 11,
+	    "neuron_id": 11,
 	    "start": [1.4],
 	    "end": [1.45], 
 	    "amplitude": 4e-10
