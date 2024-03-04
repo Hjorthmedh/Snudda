@@ -2,25 +2,23 @@
 #SBATCH --partition=main
 #SBATCH -o log/Simulate-%j-output.txt
 #SBATCH -e log/Simulate-%j-error.txt
-#SBATCH -t 9:30:00
-#SBATCH --time-min=8:59:00
+#SBATCH -t 8:59:00
+#SBATCH --time-min=6:59:00
 #SBATCH -J Simulate
 #SBATCH -A naiss2023-5-231
 #SBATCH --nodes=60
 #SBATCH --tasks-per-node=50
 #SBATCH --mail-type=ALL
 
-# 2024-02-16: 40 cores per node worked, had 28% free... trying increasing to 45 cores per node
-# 2024-02-18: Increasing back up to 128 cores. Memory free is probably more
-#             dependent on total number of nodes allocated
-# 2024-02-19: 128 cores failade memory.. testar 50 cores nu
+# 2024-02-16: 40 nodes worked, had 28% free... trying increasing to 45 nodes
+# 2024-03-01: 60 nodes, 50 workers worked...
 
 # You need to point this as the directory where you created the network in
 #NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k
-NETWORK_DIR=../networks/sten_3
+NETWORK_DIR=../networks/sten_4
 
-SIMULATION_CONFIG_WITH_SYNAPSES=experiment_config_sten_3-with-synapses-B.json
-SIMULATION_CONFIG_NO_SYNAPSES=experiment_config_sten_3-no-synapses-B.json
+SIMULATION_CONFIG_WITH_SYNAPSES=experiment_config_sten_4-with-synapses-A.json
+SIMULATION_CONFIG_NO_SYNAPSES=experiment_config_sten_4-no-synapses-A.json
 
 
 # NETWORK_WITH_SYNAPSES_OUTPUT=$NETWORK_DIR/simulation/output-with-synapses-sten_1.hdf5
@@ -48,7 +46,7 @@ fi
 
 NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
 # NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses-minimal.hdf5
-NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes-B.hdf5
+NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 # NETWORK_VOLTAGE_FILE=$NETWORK_DIR/simulation/voltage-trace-${SLURM_JOBID}.txt
 
 
