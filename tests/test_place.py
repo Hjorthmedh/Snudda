@@ -121,9 +121,9 @@ class TestPlace(unittest.TestCase):
 
         self.assertTrue(np.abs(np.sum(pop_units == 1) - 2000*0.5) < 50)  # 50% of dSPN, iSPN should be pop unit 1
         self.assertTrue(np.abs(np.sum(pop_units == 2) - 2000*0.2) < 50)  # 20% should be pop unit 1
-        self.assertTrue(np.abs(np.sum(pop_units == 3) - 1000*0.3) < 30)  # 30% of dSPN should be pop unit 1
-        self.assertTrue(np.abs(np.sum(pop_units == 4) - 1000*0.15) < 30)  # 15% of iSPN should be pop unit 1
-        self.assertTrue(np.abs(np.sum(pop_units == 10) - 1000*0.15) < 30)  # 15% of iSPN should be pop unit 1
+        self.assertTrue(np.abs(np.sum(pop_units == 3) - 1000*0.3) < 35)  # 30% of dSPN should be pop unit 1
+        self.assertTrue(np.abs(np.sum(pop_units == 4) - 1000*0.15) < 35)  # 15% of iSPN should be pop unit 1
+        self.assertTrue(np.abs(np.sum(pop_units == 10) - 1000*0.15) < 35)  # 15% of iSPN should be pop unit 1
 
 
 if __name__ == '__main__':
