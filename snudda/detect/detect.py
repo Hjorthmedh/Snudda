@@ -1264,6 +1264,9 @@ class SnuddaDetect(object):
                                 
                             if cluster_size > 1:
                                 cluster_spread = con_dict[con_type]["cluster_spread"]
+
+                                if cluster_spread is None:
+                                    raise ValueError(f"cluster_spread ({cluster_spread}) must be a distance (in meters), e.g. 10e-6. ")
                                 
                                 if isinstance(cluster_spread, (np.ndarray, list)):
                                     cluster_spread = np.maximum(np.abs(self.hyper_voxel_rng.normal(loc=cluster_spread[0],

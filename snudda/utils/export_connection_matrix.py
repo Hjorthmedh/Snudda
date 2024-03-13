@@ -114,8 +114,8 @@ class SnuddaExportConnectionMatrix(object):
 
     def save_axon_dend_distance_matrix(self, plot=False):
 
-        delay_file = f"{self.out_file}-delay"
-        print(f"Writing delay file: {delay_file}")
+        delay_file = f"{self.out_file}-path-distance"
+        print(f"Writing path distance file: {delay_file}")
 
         axon_dend_distance = self.create_axon_dend_distance_matrix()
 
