@@ -45,7 +45,9 @@ class SnuddaLoad(object):
         if network_file:
             alt_file = os.path.join(network_file, "network-synapses.hdf5")
 
-            if os.path.isdir(network_file) and os.path.isfile(alt_file):
+            if os.path.isdir(network_file):
+                if not os.path.isfile(alt_file):
+                    raise ValueError(f"Network path {network_file} specified, but no file {alt_file}")
                 network_file = alt_file
 
             self.data = self.load_hdf5(network_file, load_synapses)
