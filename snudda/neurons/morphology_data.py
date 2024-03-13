@@ -480,7 +480,7 @@ class MorphologyData:
                     raise ValueError(f"Cache version mismatch: {data['cache_version']} (required {self.cache_version})")
 
                 if self.swc_file != data["swc_file"]:
-                    raise ValueError(f"Cache mismatch.")
+                    raise ValueError(f"Cache mismatch. Different paths:\nRequested: {self.swc_file}\nCached: {data['swc_file']}")
 
                 self.geometry = data["geometry"]
                 self.section_data = data["section_data"]
@@ -515,6 +515,8 @@ class MorphologyData:
                 cache_loaded = True
 
             except:
+                import traceback
+                print(traceback.format_exc())
                 print(f"Failed to load cache from {cache_file}")
 
         return cache_loaded

@@ -70,7 +70,7 @@ else
 #    sleep 120 #60
 
     echo ">>> Place: "`date`
-    snudda place ${JOBDIR} --verbose
+    snudda place ${JOBDIR} --verbose --ipython_timeout 600
 
     if [ $? != 0 ]; then
 	echo "Something went wrong during placement, aborting!"
@@ -79,7 +79,7 @@ else
     fi
 
     echo ">>> Detect: "`date`
-    snudda detect ${JOBDIR} --hvsize 50 --parallel
+    snudda detect ${JOBDIR} --hvsize 50 --parallel --ipython_timeout 600
 
     if [ $? != 0 ]; then
 	echo "Something went wrong during detection, aborting!"
@@ -88,7 +88,7 @@ else
     fi
     
     echo ">>> Prune: "`date`
-    snudda prune ${JOBDIR} --parallel
+    snudda prune ${JOBDIR} --parallel --ipython_timeout 600
 
     if [ $? != 0 ]; then
 	echo "Something went wrong during pruning, aborting!"
@@ -103,7 +103,7 @@ else
     
     echo ">>> Input: "`date`
     # snudda input ${JOBDIR} --parallel --time 18 --input input.json --networkFile ${JOBDIR}/network-synapses-minimal.hdf5
-    snudda input ${JOBDIR} --parallel --time 18 --input input.json
+    snudda input ${JOBDIR} --parallel --time 18 --input input.json --ipython_timeout 600
 
     
     #.. Shut down cluster
