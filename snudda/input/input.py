@@ -904,9 +904,11 @@ class SnuddaInput(object):
                     # frequency, but have the incorrect name of that input (check the meta.json file)
 
                     if "conductance" not in input_inf:
-                        raise ValueError(f"No conductance specified for input. "
+                        raise ValueError(f"No conductance specified for input {input_type}. "
                                          f"Are you trying to use meta.json input, but spelled name wrong, "
-                                         f"or did you miss to specify conductance for the input?\n{input_inf =}")
+                                         f"or did you miss to specify conductance for the input?"
+                                         f"\n{neuron_id = }, {neuron_name = }, {neuron_type = }, {population_unit_id = }"
+                                         f"\n{input_inf = }")
 
                     cond = input_inf["conductance"]
 
