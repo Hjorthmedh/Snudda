@@ -62,6 +62,10 @@ class ConfigParser:
         print(f"Setting {network_path = }")
         self.config_data["network_path"] = network_path
 
+    def skip_item(self, item):
+
+        return isinstance(item, str) and len(item) > 0 and item[0] == '!'
+
     def substitute_json(self, putative_file, key=None, parent_file=None):
 
         if not (isinstance(putative_file, str) and putative_file.endswith(".json")):
@@ -120,14 +124,17 @@ class ConfigParser:
                 updated_config[key] = self.parse_subtree(value, parent_file=parent_file)
 
             elif isinstance(value, list):
-                updated_config[key] = [self.substitute_json(x, parent_file=parent_file) for x in value]
+                updated_config[key] = [self.substitute_json(x, parent_file=parent_file) for x in value if not self.skip_item(x)]
 
                 # If the first element is a dict, assume all are dict and merge them
                 if isinstance(updated_config[key][0], dict):
                     updated_config[key] = dict(ChainMap(*reversed(updated_config[key])))
 
             else:
-                updated_config[key] = self.substitute_json(value, key, parent_file=parent_file)
+                if not self.skip_item(item=value):
+                    updated_config[key] = self.substitute_json(value, key, parent_file=parent_file)
+                else:
+                    del updated_config[key]
 
         return updated_config
 

@@ -902,6 +902,15 @@ class SnuddaInput(object):
 
                     # If your code fails here, it might be that you are trying to override the background input
                     # frequency, but have the incorrect name of that input (check the meta.json file)
+
+                    if "conductance" not in input_inf:
+                        raise ValueError(f"No conductance specified for {input_type = }.\n"
+                                         f"Are you trying to use meta.json input, but spelled name wrong, "
+                                         f"or did you miss to specify conductance for the input?"
+                                         f"\n{neuron_id = }, {neuron_name = }, {neuron_type = }, {population_unit_id = }"
+                                         f"\n{input_inf = }"
+                                         f"\nSee examples: https://github.com/Hjorthmedh/Snudda/tree/master/examples/notebooks")
+
                     cond = input_inf["conductance"]
 
                     if "num_inputs" in input_inf:

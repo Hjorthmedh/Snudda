@@ -447,6 +447,8 @@ class SnuddaPlace(object):
                 else:
                     raise ValueError(f"You need to specify 'fraction' or 'num_neurons' for {neuron_type}")
 
+                # print(f"{neuron_type = }, {num_neurons = }")
+
                 n_types = len(neuron_data["neuron_path"])
 
                 if isinstance(num_neurons, int):
@@ -463,6 +465,8 @@ class SnuddaPlace(object):
                 else:
                     n_neurons = num_neurons
 
+                # print(f"{n_neurons = }")
+
                 parameter_key_list = SnuddaPlace.replicate_str(neuron_data.get("parameter_key"),
                                                                n_neurons, f"{neuron_type} parameter_key")
                 morphology_key_list = SnuddaPlace.replicate_str(neuron_data.get("morphology_key"),
@@ -473,6 +477,8 @@ class SnuddaPlace(object):
                 for (neuron_name, neuron_path), num, parameter_key, morphology_key, modulation_key \
                         in zip(neuron_data["neuron_path"].items(), n_neurons,
                                parameter_key_list, morphology_key_list, modulation_key_list):
+
+                    print(f"{neuron_name = }, {num = }, {neuron_path = }")
 
                     if neuron_name.split("_")[0] != neuron_type and neuron_name != neuron_type:
                         raise ValueError(f"The keys in neuron_path must be {neuron_name}_X where X is usually a number")
@@ -1438,11 +1444,11 @@ class SnuddaPlace(object):
         # variable_name is just used to help with error message if incorrect input
 
         if string is None or isinstance(string, str):
-            rep_str = [string for x in range(np.sum(n_replicas))]
+            rep_str = [string for x in range(len(n_replicas))]
         elif len(string) == n_replicas:
             rep_str = string
         else:
-            raise ValueError(f"Expected a str or a list of str of length {n_replicas} for {variable_name}")
+            raise ValueError(f"Expected a str or a list of str of length {len(n_replicas)} for {variable_name}")
 
         return rep_str
 
